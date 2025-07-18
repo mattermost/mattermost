@@ -32,24 +32,28 @@ type syncData struct {
 	rc   *model.RemoteCluster
 	scr  *model.SharedChannelRemote
 
-	users         map[string]*model.User
-	profileImages map[string]*model.User
-	posts         []*model.Post
-	reactions     []*model.Reaction
-	statuses      []*model.Status
-	attachments   []attachment
+	users             map[string]*model.User
+	profileImages     map[string]*model.User
+	posts             []*model.Post
+	reactions         []*model.Reaction
+	acknowledgements  []*model.PostAcknowledgement
+	statuses          []*model.Status
+	attachments       []attachment
+	mentionTransforms map[string]string
 
-	resultRepeat     bool
-	resultNextCursor model.GetPostsSinceForSyncCursor
+	resultRepeat                bool
+	resultNextCursor            model.GetPostsSinceForSyncCursor
+	GlobalUserSyncLastTimestamp int64
 }
 
 func newSyncData(task syncTask, rc *model.RemoteCluster, scr *model.SharedChannelRemote) *syncData {
 	return &syncData{
-		task:          task,
-		rc:            rc,
-		scr:           scr,
-		users:         make(map[string]*model.User),
-		profileImages: make(map[string]*model.User),
+		task:              task,
+		rc:                rc,
+		scr:               scr,
+		users:             make(map[string]*model.User),
+		profileImages:     make(map[string]*model.User),
+		mentionTransforms: make(map[string]string),
 		resultNextCursor: model.GetPostsSinceForSyncCursor{
 			LastPostUpdateAt: scr.LastPostUpdateAt, LastPostUpdateID: scr.LastPostUpdateID,
 			LastPostCreateAt: scr.LastPostCreateAt, LastPostCreateID: scr.LastPostCreateID,
@@ -58,7 +62,7 @@ func newSyncData(task syncTask, rc *model.RemoteCluster, scr *model.SharedChanne
 }
 
 func (sd *syncData) isEmpty() bool {
-	return len(sd.users) == 0 && len(sd.profileImages) == 0 && len(sd.posts) == 0 && len(sd.reactions) == 0 && len(sd.attachments) == 0
+	return len(sd.users) == 0 && len(sd.profileImages) == 0 && len(sd.posts) == 0 && len(sd.reactions) == 0 && len(sd.acknowledgements) == 0 && len(sd.attachments) == 0
 }
 
 func (sd *syncData) isCursorChanged() bool {
@@ -74,6 +78,7 @@ func (sd *syncData) setDataFromMsg(msg *model.SyncMsg) {
 	sd.users = msg.Users
 	sd.posts = msg.Posts
 	sd.reactions = msg.Reactions
+	sd.acknowledgements = msg.Acknowledgements
 	sd.statuses = msg.Statuses
 }
 
@@ -83,6 +88,12 @@ func (sd *syncData) setDataFromMsg(msg *model.SyncMsg) {
 // channels are very active.
 // Returning an error forces a retry on the task.
 func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error {
+	// Empty channelID indicates a global user sync task
+	// Normal syncTasks always include a valid channelID
+	if task.channelID == "" {
+		return scs.syncAllUsers(rc)
+	}
+
 	rcs := scs.server.GetRemoteClusterService()
 	if rcs == nil {
 		return fmt.Errorf("cannot update remote cluster %s for channel id %s; Remote Cluster Service not enabled", rc.Name, task.channelID)
@@ -112,6 +123,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 			RemoteId:          rc.RemoteId,
 			LastPostCreateAt:  model.GetMillis(),
 			LastPostUpdateAt:  model.GetMillis(),
+			LastMembersSyncAt: 0,
 		}
 		if scr, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
 			return fmt.Errorf("cannot auto-create shared channel remote (channel_id=%s, remote_id=%s): %w", task.channelID, rc.RemoteId, err)
@@ -177,6 +189,11 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 		return fmt.Errorf("cannot fetch reactions for sync %v: %w", sd, err)
 	}
 
+	// fetch acknowledgements for posts
+	if err := scs.fetchAcknowledgementsForSync(sd); err != nil {
+		return fmt.Errorf("cannot fetch acknowledgements for sync %v: %w", sd, err)
+	}
+
 	// fetch users associated with posts & reactions
 	if err := scs.fetchPostUsersForSync(sd); err != nil {
 		return fmt.Errorf("cannot fetch post users for sync %v: %w", sd, err)
@@ -210,6 +227,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 		mlog.Int("images", len(sd.profileImages)),
 		mlog.Int("posts", len(sd.posts)),
 		mlog.Int("reactions", len(sd.reactions)),
+		mlog.Int("acknowledgements", len(sd.acknowledgements)),
 		mlog.Int("attachments", len(sd.attachments)),
 	)
 
@@ -241,6 +259,7 @@ func (scs *Service) fetchUsersForSync(sd *syncData) error {
 		return err
 	}
 
+	// Don't sync users back to the remote cluster they originated from
 	for _, u := range users {
 		if u.GetRemoteID() != sd.rc.RemoteId {
 			sd.users[u.Id] = u
@@ -310,6 +329,13 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostUpdateAt, scs.server.Log())
 	}
 
+	// Populate metadata for all posts before syncing
+	for i, post := range sd.posts {
+		if post != nil {
+			sd.posts[i] = scs.app.PreparePostForClient(request.EmptyContext(scs.server.Log()), post, false, false, true)
+		}
+	}
+
 	sd.resultNextCursor = nextCursor
 	sd.resultRepeat = count >= maxPostsPerSync
 
@@ -368,6 +394,28 @@ func (scs *Service) fetchReactionsForSync(sd *syncData) error {
 	return merr.ErrorOrNil()
 }
 
+// fetchAcknowledgementsForSync populates the sync data with any new acknowledgements since the last sync.
+func (scs *Service) fetchAcknowledgementsForSync(sd *syncData) error {
+	start := time.Now()
+	defer func() {
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "Acknowledgements", time.Since(start).Seconds())
+		}
+	}()
+
+	merr := merror.New()
+	for _, post := range sd.posts {
+		// any acknowledgements originating from the remote cluster are filtered out
+		acknowledgements, err := scs.server.GetStore().PostAcknowledgement().GetForPostSince(post.Id, sd.scr.LastPostUpdateAt, sd.rc.RemoteId, true)
+		if err != nil {
+			merr.Append(fmt.Errorf("could not get acknowledgements for post %s: %w", post.Id, err))
+			continue
+		}
+		sd.acknowledgements = append(sd.acknowledgements, acknowledgements...)
+	}
+	return merr.ErrorOrNil()
+}
+
 // fetchPostUsersForSync populates the sync data with all users associated with posts.
 func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 	start := time.Now()
@@ -393,10 +441,11 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 		userIDs[reaction.UserId] = p2mm{}
 	}
 
-	for _, post := range sd.posts {
-		// add author
-		userIDs[post.UserId] = p2mm{}
+	for _, acknowledgement := range sd.acknowledgements {
+		userIDs[acknowledgement.UserId] = p2mm{}
+	}
 
+	for _, post := range sd.posts {
 		// get mentions and users for each mention
 		mentionMap := scs.app.MentionsToTeamMembers(request.EmptyContext(scs.server.Log()), post.Message, sc.TeamId)
 
@@ -408,10 +457,19 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 			}
 
 			// Skip remote users unless mention contains a colon (@username:remote)
-			if user.RemoteId != nil && !strings.Contains(mention, ":") {
+			if user.IsRemote() && !strings.Contains(mention, ":") {
 				continue
 			}
+		}
 
+		// add author with post and mentionMap so transformations can be applied
+		userIDs[post.UserId] = p2mm{
+			post:       post,
+			mentionMap: mentionMap,
+		}
+
+		// Add all mentioned users
+		for _, userID := range mentionMap {
 			userIDs[userID] = p2mm{
 				post:       post,
 				mentionMap: mentionMap,
@@ -420,7 +478,6 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 	}
 
 	merr := merror.New()
-
 	for userID, v := range userIDs {
 		user, err := scs.server.GetStore().User().Get(context.Background(), userID)
 		if err != nil {
@@ -430,7 +487,7 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 
 		sync, syncImage, err2 := scs.shouldUserSync(user, sd.task.channelID, sd.rc)
 		if err2 != nil {
-			merr.Append(fmt.Errorf("could not check should sync user %s: %w", userID, err))
+			merr.Append(fmt.Errorf("could not check should sync user %s: %w", userID, err2))
 			continue
 		}
 
@@ -442,9 +499,15 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 			sd.profileImages[user.Id] = user
 		}
 
-		// Transform @username:remote to @username when sending to a user's home cluster
-		if v.post != nil && user.RemoteId != nil && *user.RemoteId == sd.rc.RemoteId {
-			fixMention(v.post, v.mentionMap, user)
+		// Collect mention transforms for all mentioned users
+		if v.mentionMap != nil {
+			for mention, mentionUserID := range v.mentionMap {
+				if mentionUserID == userID {
+					// Always add the mention transform - let receiver decide how to display
+					// The sender should NOT modify the message, only provide the mapping
+					sd.mentionTransforms[mention] = userID
+				}
+			}
 		}
 	}
 	return merr.ErrorOrNil()
@@ -486,7 +549,9 @@ func (scs *Service) filterPostsForSync(sd *syncData) {
 		//   - new posts (EditAt == 0)
 		//   - edited posts (EditAt >= LastPostUpdateAt)
 		//   - deleted posts (DeleteAt > 0)
-		if p.EditAt > 0 && p.EditAt < sd.scr.LastPostUpdateAt && p.DeleteAt == 0 {
+		//   - posts with metadata changes (acknowledgements/priority)
+		hasMetadataChanges := p.Metadata != nil && (p.Metadata.Acknowledgements != nil || p.Metadata.Priority != nil)
+		if p.EditAt > 0 && p.EditAt < sd.scr.LastPostUpdateAt && p.DeleteAt == 0 && !hasMetadataChanges {
 			continue
 		}
 
@@ -495,7 +560,7 @@ func (scs *Service) filterPostsForSync(sd *syncData) {
 			continue
 		}
 
-		// don't sync a post back to the remote it came from.
+		// don't sync a post back to the remote cluster it came from.
 		if p.GetRemoteID() == sd.rc.RemoteId {
 			continue
 		}
@@ -505,6 +570,7 @@ func (scs *Service) filterPostsForSync(sd *syncData) {
 
 		filtered = append(filtered, p)
 	}
+
 	sd.posts = filtered
 }
 
@@ -543,6 +609,13 @@ func (scs *Service) sendSyncData(sd *syncData) error {
 		scs.updateCursorForRemote(sd.scr.Id, sd.rc, sd.resultNextCursor)
 	}
 
+	// send acknowledgements
+	if len(sd.acknowledgements) != 0 {
+		if err := scs.sendAcknowledgementSyncData(sd); err != nil {
+			merr.Append(fmt.Errorf("cannot send acknowledgement sync data: %w", err))
+		}
+	}
+
 	// send reactions
 	if len(sd.reactions) != 0 {
 		if err := scs.sendReactionSyncData(sd); err != nil {
@@ -578,6 +651,11 @@ func (scs *Service) sendUserSyncData(sd *syncData) error {
 	msg.Users = sd.users
 
 	err := scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
+		// Only update cursor on successful sync
+		if errResp == nil && sd.GlobalUserSyncLastTimestamp > 0 {
+			scs.updateGlobalSyncCursor(sd.rc, sd.GlobalUserSyncLastTimestamp)
+		}
+
 		for _, userID := range syncResp.UsersSyncd {
 			if err := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(userID, sd.task.channelID, sd.rc.RemoteId); err != nil {
 				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Cannot update shared channel user LastSyncAt",
@@ -625,6 +703,7 @@ func (scs *Service) sendPostSyncData(sd *syncData) error {
 
 	msg := model.NewSyncMsg(sd.task.channelID)
 	msg.Posts = sd.posts
+	msg.MentionTransforms = sd.mentionTransforms
 
 	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
 		if len(syncResp.PostErrors) != 0 {
@@ -665,6 +744,29 @@ func (scs *Service) sendReactionSyncData(sd *syncData) error {
 	})
 }
 
+// sendAcknowledgementSyncData sends the collected acknowledgement updates to the remote cluster.
+func (scs *Service) sendAcknowledgementSyncData(sd *syncData) error {
+	start := time.Now()
+	defer func() {
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncSendStepDuration(sd.rc.RemoteId, "Acknowledgements", time.Since(start).Seconds())
+		}
+	}()
+
+	msg := model.NewSyncMsg(sd.task.channelID)
+	msg.Acknowledgements = sd.acknowledgements
+
+	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
+		if len(syncResp.AcknowledgementErrors) != 0 {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Response indicates error for acknowledgement(s) sync",
+				mlog.String("channel_id", sd.task.channelID),
+				mlog.String("remote_id", sd.rc.RemoteId),
+				mlog.Array("acknowledgement_posts", syncResp.AcknowledgementErrors),
+			)
+		}
+	})
+}
+
 // sendStatusSyncData sends the collected status updates to the remote cluster.
 func (scs *Service) sendStatusSyncData(sd *syncData) error {
 	msg := model.NewSyncMsg(sd.task.channelID)
@@ -691,6 +793,201 @@ func (scs *Service) sendProfileImageSyncData(sd *syncData) {
 	}
 }
 
+// shouldUserSyncGlobal determines if a user needs to be synchronized globally.
+// Compares user's update timestamp with the remote cluster's LastGlobalUserSyncAt.
+func (scs *Service) shouldUserSyncGlobal(user *model.User, rc *model.RemoteCluster) (bool, error) {
+	// Don't sync users back to the remote cluster they originated from
+	if user.IsRemote() && user.GetRemoteID() == rc.RemoteId {
+		return false, nil
+	}
+
+	// Calculate latest update time for this user (profile or picture)
+	latestUserUpdateTime := max(user.LastPictureUpdate, user.UpdateAt)
+
+	// For initial sync (LastGlobalUserSyncAt=0), sync all users
+	// For incremental sync, only sync users updated after the last sync
+	if rc.LastGlobalUserSyncAt == 0 {
+		return true, nil
+	}
+	return latestUserUpdateTime > rc.LastGlobalUserSyncAt, nil
+}
+
+// syncAllUsers synchronizes all local users to a remote cluster.
+// This is called when a connection with a remote cluster is established or when handling a global user sync task.
+// Uses cursor-based approach with LastGlobalUserSyncAt to resume after interruptions.
+func (scs *Service) syncAllUsers(rc *model.RemoteCluster) error {
+	// Check if feature is enabled
+	if !scs.server.Config().FeatureFlags.EnableSyncAllUsersForRemoteCluster {
+		return nil
+	}
+
+	if !rc.IsOnline() {
+		return fmt.Errorf("remote cluster %s is not online", rc.RemoteId)
+	}
+
+	// Start metrics tracking
+	metrics := scs.server.GetMetrics()
+	start := time.Now()
+	defer func() {
+		if metrics != nil {
+			metrics.IncrementSharedChannelsSyncCounter(rc.RemoteId)
+			metrics.ObserveSharedChannelsSyncCollectionDuration(rc.RemoteId, time.Since(start).Seconds())
+		}
+	}()
+
+	batchSize := scs.getGlobalUserSyncBatchSize()
+
+	// Create sync data with collected users
+	sd := &syncData{
+		task:  syncTask{remoteID: rc.RemoteId},
+		rc:    rc,
+		scr:   &model.SharedChannelRemote{RemoteId: rc.RemoteId},
+		users: make(map[string]*model.User),
+	}
+
+	// Collect users to sync
+	users, latestTimestamp, _, hasMore, err := scs.collectUsersForGlobalSync(rc, batchSize)
+	if err != nil {
+		return err
+	}
+
+	// Exit early if no users to sync
+	if len(users) == 0 {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "No users to sync for remote cluster",
+			mlog.String("remote_id", rc.RemoteId))
+		return nil
+	}
+
+	// Add users to sync data
+	sd.users = users
+	sd.GlobalUserSyncLastTimestamp = latestTimestamp
+
+	// Send the collected users to remote
+	if err := scs.sendUserSyncData(sd); err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error sending user batch during sync",
+			mlog.String("remote_id", rc.RemoteId),
+			mlog.Err(err),
+		)
+		return fmt.Errorf("error sending user batch during sync: %w", err)
+	}
+
+	// Schedule next batch if needed
+	if hasMore {
+		scs.scheduleNextUserSyncBatch(rc, latestTimestamp, batchSize, len(users))
+	}
+
+	return nil
+}
+
+// getGlobalUserSyncBatchSize returns the configured batch size for user syncing
+func (scs *Service) getGlobalUserSyncBatchSize() int {
+	batchSize := MaxUsersPerSync
+	if scs.server.Config().ConnectedWorkspacesSettings.GlobalUserSyncBatchSize != nil {
+		configValue := *scs.server.Config().ConnectedWorkspacesSettings.GlobalUserSyncBatchSize
+		if configValue > 0 && configValue <= 200 {
+			batchSize = configValue
+		}
+	}
+	return batchSize
+}
+
+// collectUsersForGlobalSync fetches users that need to be synced to the remote
+func (scs *Service) collectUsersForGlobalSync(rc *model.RemoteCluster, batchSize int) (map[string]*model.User, int64, int, bool, error) {
+	options := &model.UserGetOptions{
+		Page:    0,
+		PerPage: 100, // Database fetch batch size
+		Active:  true,
+		Sort:    "update_at_asc", // Order by UpdateAt ASC to ensure cursor consistency
+	}
+
+	// Only use UpdatedAfter for incremental syncs, not the initial sync
+	// This ensures users with UpdateAt=0 are included in the first sync
+	if rc.LastGlobalUserSyncAt > 0 {
+		options.UpdatedAfter = rc.LastGlobalUserSyncAt
+	}
+
+	users := make(map[string]*model.User)
+	latestTimestamp := rc.LastGlobalUserSyncAt
+	totalCount := 0
+
+	// Page through database results
+	for {
+		batch, err := scs.server.GetStore().User().GetAllProfiles(options)
+		if err != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error fetching users for global sync",
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.Err(err),
+			)
+			return nil, 0, 0, false, err
+		}
+
+		if len(batch) == 0 {
+			break // No more users to process
+		}
+
+		totalCount += len(batch)
+
+		// Process each user in this database page
+		for _, user := range batch {
+			// Stop if we've reached batch limit
+			if len(users) >= batchSize {
+				return users, latestTimestamp, totalCount, true, nil
+			}
+
+			// Skip users from remotes
+			if user.IsRemote() {
+				continue
+			}
+
+			// Check if user needs syncing
+			needsSync, _ := scs.shouldUserSyncGlobal(user, rc)
+			if !needsSync {
+				continue
+			}
+
+			// Add user and update cursor timestamp
+			users[user.Id] = user
+
+			userUpdateTime := max(user.UpdateAt, user.LastPictureUpdate)
+			if userUpdateTime > latestTimestamp {
+				latestTimestamp = userUpdateTime
+			}
+		}
+
+		// Check if we've reached the end of results
+		if len(batch) < options.PerPage {
+			break
+		}
+
+		// Move to next page
+		options.Page++
+	}
+
+	return users, latestTimestamp, totalCount, false, nil
+}
+
+// updateGlobalSyncCursor updates the LastGlobalUserSyncAt value for the remote cluster
+func (scs *Service) updateGlobalSyncCursor(rc *model.RemoteCluster, newTimestamp int64) {
+	if err := scs.server.GetStore().RemoteCluster().UpdateLastGlobalUserSyncAt(rc.RemoteId, newTimestamp); err == nil {
+		rc.LastGlobalUserSyncAt = newTimestamp
+	} else {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update global user sync cursor",
+			mlog.String("remote_id", rc.RemoteId),
+			mlog.Err(err),
+		)
+	}
+}
+
+// scheduleNextUserSyncBatch creates a new task for the next batch of user sync
+func (scs *Service) scheduleNextUserSyncBatch(rc *model.RemoteCluster, timestamp int64, batchSize, processedCount int) {
+	// Use timestamp as userID to make each batch task unique
+	// This prevents task ID collisions between different batches for the same remote
+	timestampStr := fmt.Sprintf("%d", timestamp)
+	task := newSyncTask("", timestampStr, rc.RemoteId, nil, nil)
+	task.schedule = time.Now().Add(NotifyMinimumDelay)
+	scs.addTask(task)
+}
+
 // sendSyncMsgToRemote synchronously sends the sync message to the remote cluster (or plugin).
 func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteCluster, f sendSyncMsgResultFunc) error {
 	rcs := scs.server.GetRemoteClusterService()
@@ -706,7 +1003,15 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 	if err != nil {
 		return err
 	}
-	rcMsg := model.NewRemoteClusterMsg(TopicSync, b)
+
+	// Use appropriate topic based on message type
+	topic := TopicSync
+	if msg.ChannelId == "" && len(msg.Users) > 0 &&
+		len(msg.Posts) == 0 && len(msg.Reactions) == 0 &&
+		len(msg.Statuses) == 0 {
+		topic = TopicGlobalUserSync
+	}
+	rcMsg := model.NewRemoteClusterMsg(topic, b)
 
 	ctx, cancel := context.WithTimeout(context.Background(), remotecluster.SendTimeout)
 	defer cancel()
@@ -717,18 +1022,34 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 	err = rcs.SendMsg(ctx, rcMsg, rc, func(rcMsg model.RemoteClusterMsg, rc *model.RemoteCluster, rcResp *remotecluster.Response, errResp error) {
 		defer wg.Done()
 
-		var syncResp model.SyncResponse
-		if err2 := json.Unmarshal(rcResp.Payload, &syncResp); err2 != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Invalid sync msg response from remote cluster",
-				mlog.String("remote", rc.Name),
-				mlog.String("channel_id", msg.ChannelId),
-				mlog.Err(err2),
-			)
+		// Check for ErrChannelNotShared in the application response
+		if rcResp != nil && !rcResp.IsSuccess() && strings.Contains(rcResp.Err, ErrChannelNotShared.Error()) {
+			scs.handleChannelNotSharedError(msg, rc)
 			return
 		}
 
-		if f != nil {
-			f(syncResp, errResp)
+		var syncResp model.SyncResponse
+		if errResp == nil {
+			if rcResp != nil && len(rcResp.Payload) > 0 {
+				if err2 := json.Unmarshal(rcResp.Payload, &syncResp); err2 != nil {
+					scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Invalid sync msg response from remote cluster",
+						mlog.String("remote", rc.Name),
+						mlog.String("channel_id", msg.ChannelId),
+						mlog.Err(err2),
+					)
+					return
+				}
+
+				if f != nil {
+					f(syncResp, errResp)
+				}
+			} else {
+				// No error but response is nil or empty
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Empty or nil response payload from remote cluster",
+					mlog.String("remote", rc.Name),
+					mlog.String("channel_id", msg.ChannelId),
+				)
+			}
 		}
 	})
 
@@ -753,5 +1074,47 @@ func sanitizeSyncData(sd *syncData) {
 	}
 	for id, user := range sd.profileImages {
 		sd.profileImages[id] = sanitizeUserForSync(user)
+	}
+}
+
+// handleChannelNotSharedError processes the case when a remote indicates a channel
+// is no longer shared. It removes the remote from the shared channel locally and,
+// if it was the last remote, completely unshares the channel.
+func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.RemoteCluster) {
+	logger := scs.server.Log()
+
+	logger.Log(mlog.LvlSharedChannelServiceDebug, "Remote indicated channel is no longer shared; unsharing locally",
+		mlog.String("remote", rc.Name),
+		mlog.String("channel_id", msg.ChannelId),
+	)
+
+	// Get the SharedChannelRemote record for this channel and remote
+	scr, getErr := scs.server.GetStore().SharedChannel().GetRemoteByIds(msg.ChannelId, rc.RemoteId)
+	if getErr != nil {
+		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to get shared channel remote",
+			mlog.String("remote", rc.Name),
+			mlog.String("channel_id", msg.ChannelId),
+			mlog.Err(getErr),
+		)
+		return
+	}
+
+	// Get channel details for posting the system message
+	channel, channelErr := scs.server.GetStore().Channel().Get(msg.ChannelId, true)
+	if channelErr != nil {
+		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to get channel details",
+			mlog.String("remote", rc.Name),
+			mlog.String("channel_id", msg.ChannelId),
+			mlog.Err(channelErr),
+		)
+		return
+	}
+
+	// Post a system message to notify users that the channel is no longer shared with this remote
+	scs.postUnshareNotification(msg.ChannelId, scr.CreatorId, channel, rc)
+
+	if err := scs.UninviteRemoteFromChannel(msg.ChannelId, rc.RemoteId); err != nil {
+		logger.Log(mlog.LvlSharedChannelServiceError, "Failed to uninvite remote from shared channel", mlog.Err(err))
+		return
 	}
 }

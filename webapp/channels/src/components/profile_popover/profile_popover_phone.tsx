@@ -18,6 +18,11 @@ const ProfilePopoverPhone = ({attribute, userProfile}: Props) => {
         return null;
     }
 
+    function handlePhoneClick(e: React.MouseEvent<HTMLAnchorElement>) {
+        e.preventDefault();
+        window.open(`tel:${phone}`);
+    }
+
     return (
         <div
             title={phone}
@@ -29,7 +34,8 @@ const ProfilePopoverPhone = ({attribute, userProfile}: Props) => {
                 aria-label='phone icon'
             />
             <a
-                href={'tel:' + phone}
+                href={`tel:${phone}`}
+                onClick={handlePhoneClick}
             >
                 {phone}
             </a>

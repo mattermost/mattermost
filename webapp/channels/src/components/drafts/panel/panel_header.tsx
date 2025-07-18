@@ -49,7 +49,7 @@ function PanelHeader({
     const timestampDateObject = useMemo(() => new Date(timestamp), [timestamp]);
 
     return (
-        <header className='PanelHeader'>
+        <div className='PanelHeader'>
             <div className='PanelHeader__left'>{title}</div>
             <div className='PanelHeader__right'>
                 <div className='PanelHeader__actions'>
@@ -118,7 +118,7 @@ function PanelHeader({
                     )}
                 </div>
             </div>
-        </header>
+        </div>
     );
 }
 

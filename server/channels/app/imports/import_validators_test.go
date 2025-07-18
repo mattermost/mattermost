@@ -1541,6 +1541,58 @@ func TestImportValidateEmojiImportData(t *testing.T) {
 	}
 }
 
+func TestImportValidateThreadFollowerImportData(t *testing.T) {
+	testCases := []struct {
+		testName    string
+		input       *ThreadFollowerImportData
+		expectError bool
+	}{
+		{
+			testName: "success",
+			input: &ThreadFollowerImportData{
+				LastViewed:     model.NewPointer(int64(0)),
+				UnreadMentions: model.NewPointer(int64(0)),
+				User:           model.NewPointer("user1"),
+			},
+			expectError: false,
+		},
+		{
+			testName:    "nil",
+			input:       nil,
+			expectError: true,
+		},
+		{
+			testName: "nil user",
+			input: &ThreadFollowerImportData{
+				LastViewed:     model.NewPointer(int64(0)),
+				UnreadMentions: model.NewPointer(int64(0)),
+				User:           nil,
+			},
+			expectError: true,
+		},
+		{
+			testName: "empty user",
+			input: &ThreadFollowerImportData{
+				LastViewed:     model.NewPointer(int64(0)),
+				UnreadMentions: model.NewPointer(int64(0)),
+				User:           model.NewPointer(""),
+			},
+			expectError: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.testName, func(t *testing.T) {
+			err := ValidateThreadFollowerImportData(tc.input)
+			if tc.expectError {
+				require.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}
+
 func checkError(t *testing.T, err *model.AppError) {
 	require.NotNil(t, err, "Should have returned an error.")
 }
@@ -1647,6 +1699,19 @@ func TestIsValidGuestRoles(t *testing.T) {
 						Channels: &[]UserChannelImportData{
 							{Roles: model.NewPointer(model.ChannelAdminRoleId)},
 						},
+					},
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "Valid case: User with team but nil channels array",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemUserRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles:    model.NewPointer(model.TeamUserRoleId),
+						Channels: nil,
 					},
 				},
 			},
