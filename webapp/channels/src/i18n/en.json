@@ -3152,6 +3152,7 @@
   "admin.user_settings.policy_list.no_policies_found": "No policies found",
   "admin.user_settings.policy_list.search_policy_errored": "Something went wrong. Try again",
   "admin.userManagement.userDetail.addTeam": "Add Team",
+  "admin.userManagement.userDetail.authData": "Auth Data",
   "admin.userManagement.userDetail.authenticationMethod": "Authentication Method",
   "admin.userManagement.userDetail.email": "Email",
   "admin.userManagement.userDetail.mfa": "MFA",

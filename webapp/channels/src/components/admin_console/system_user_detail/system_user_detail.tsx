@@ -398,6 +398,16 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                         <SheidOutlineIcon/>
                                         <span>{getUserAuthenticationTextField(this.props.intl, this.props.mfaEnabled, this.state.user)}</span>
                                     </label>
+                                    {this.state.user?.auth_data && this.state.user?.auth_service && (
+                                        <label>
+                                            <FormattedMessage
+                                                id='admin.userManagement.userDetail.authData'
+                                                defaultMessage='Auth Data'
+                                            />
+                                            <SheidOutlineIcon/>
+                                            <span>{this.state.user.auth_data}</span>
+                                        </label>
+                                    )}
                                 </>
                             }
                             footer={
