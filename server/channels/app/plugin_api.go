@@ -270,7 +270,7 @@ func (api *PluginAPI) GetUsers(options *model.UserGetOptions) ([]*model.User, *m
 }
 
 func (api *PluginAPI) GetUsersByIds(usersID []string) ([]*model.User, *model.AppError) {
-	return api.app.GetUsers(usersID)
+	return api.app.GetUsers(api.ctx, usersID)
 }
 
 func (api *PluginAPI) GetUser(userID string) (*model.User, *model.AppError) {

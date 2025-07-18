@@ -94,8 +94,8 @@ func (us *UserService) GetUser(userID string) (*model.User, error) {
 	return us.store.Get(context.Background(), userID)
 }
 
-func (us *UserService) GetUsers(userIDs []string) ([]*model.User, error) {
-	return us.store.GetMany(context.Background(), userIDs)
+func (us *UserService) GetUsers(rctx request.CTX, userIDs []string) ([]*model.User, error) {
+	return us.store.GetMany(rctx, userIDs)
 }
 
 func (us *UserService) GetUserByUsername(username string) (*model.User, error) {

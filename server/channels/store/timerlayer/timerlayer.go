@@ -11745,10 +11745,10 @@ func (s *TimerLayerUserStore) GetKnownUsers(userID string) ([]string, error) {
 	return result, err
 }
 
-func (s *TimerLayerUserStore) GetMany(ctx context.Context, ids []string) ([]*model.User, error) {
+func (s *TimerLayerUserStore) GetMany(rctx request.CTX, ids []string) ([]*model.User, error) {
 	start := time.Now()
 
-	result, err := s.UserStore.GetMany(ctx, ids)
+	result, err := s.UserStore.GetMany(rctx, ids)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

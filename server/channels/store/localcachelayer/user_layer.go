@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
@@ -252,7 +253,7 @@ func (s *LocalCacheUserStore) Get(ctx context.Context, id string) (*model.User, 
 // It checks if the user entries are present in the cache, returning the entries from cache
 // if it is present. Otherwise, it fetches the entries from the store and stores it in the
 // cache.
-func (s *LocalCacheUserStore) GetMany(ctx context.Context, ids []string) ([]*model.User, error) {
+func (s *LocalCacheUserStore) GetMany(rctx request.CTX, ids []string) ([]*model.User, error) {
 	// we are doing a loop instead of caching the full set in the cache because the number of permutations that we can have
 	// in this func is making caching of the total set not beneficial.
 	var cachedUsers []*model.User
@@ -288,9 +289,9 @@ func (s *LocalCacheUserStore) GetMany(ctx context.Context, ids []string) ([]*mod
 
 	if len(notCachedUserIds) > 0 {
 		if fromMaster {
-			ctx = sqlstore.WithMaster(ctx)
+			rctx = sqlstore.RequestContextWithMaster(rctx)
 		}
-		dbUsers, err := s.UserStore.GetMany(ctx, notCachedUserIds)
+		dbUsers, err := s.UserStore.GetMany(rctx, notCachedUserIds)
 		if err != nil {
 			return nil, err
 		}

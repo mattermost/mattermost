@@ -402,7 +402,7 @@ func (a *App) handleCreationEvent(c request.CTX, userID, otherUserID string, cha
 }
 
 func (a *App) createDirectChannel(c request.CTX, userID string, otherUserID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
-	users, err := a.Srv().Store().User().GetMany(context.Background(), []string{userID, otherUserID})
+	users, err := a.Srv().Store().User().GetMany(c, []string{userID, otherUserID})
 	if err != nil {
 		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}

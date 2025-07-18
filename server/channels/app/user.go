@@ -431,8 +431,8 @@ func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
 	return user, nil
 }
 
-func (a *App) GetUsers(userIDs []string) ([]*model.User, *model.AppError) {
-	users, err := a.ch.srv.userService.GetUsers(userIDs)
+func (a *App) GetUsers(rctx request.CTX, userIDs []string) ([]*model.User, *model.AppError) {
+	users, err := a.ch.srv.userService.GetUsers(rctx, userIDs)
 	if err != nil {
 		return nil, model.NewAppError("GetUsers", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

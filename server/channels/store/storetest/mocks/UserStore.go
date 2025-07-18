@@ -831,9 +831,9 @@ func (_m *UserStore) GetKnownUsers(userID string) ([]string, error) {
 	return r0, r1
 }
 
-// GetMany provides a mock function with given fields: ctx, ids
-func (_m *UserStore) GetMany(ctx context.Context, ids []string) ([]*model.User, error) {
-	ret := _m.Called(ctx, ids)
+// GetMany provides a mock function with given fields: rctx, ids
+func (_m *UserStore) GetMany(rctx request.CTX, ids []string) ([]*model.User, error) {
+	ret := _m.Called(rctx, ids)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetMany")
@@ -841,19 +841,19 @@ func (_m *UserStore) GetMany(ctx context.Context, ids []string) ([]*model.User, 
 
 	var r0 []*model.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]*model.User, error)); ok {
-		return rf(ctx, ids)
+	if rf, ok := ret.Get(0).(func(request.CTX, []string) ([]*model.User, error)); ok {
+		return rf(rctx, ids)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, []string) []*model.User); ok {
-		r0 = rf(ctx, ids)
+	if rf, ok := ret.Get(0).(func(request.CTX, []string) []*model.User); ok {
+		r0 = rf(rctx, ids)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
-		r1 = rf(ctx, ids)
+	if rf, ok := ret.Get(1).(func(request.CTX, []string) error); ok {
+		r1 = rf(rctx, ids)
 	} else {
 		r1 = ret.Error(1)
 	}

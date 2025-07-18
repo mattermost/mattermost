@@ -438,7 +438,7 @@ type UserStore interface {
 	StoreMfaUsedTimestamps(userID string, ts []int) error
 	GetMfaUsedTimestamps(userID string) ([]int, error)
 	Get(ctx context.Context, id string) (*model.User, error)
-	GetMany(ctx context.Context, ids []string) ([]*model.User, error)
+	GetMany(rctx request.CTX, ids []string) ([]*model.User, error)
 	GetAll() ([]*model.User, error)
 	ClearCaches()
 	InvalidateProfilesInChannelCacheByUser(userID string)

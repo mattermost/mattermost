@@ -14910,11 +14910,11 @@ func (s *RetryLayerUserStore) GetKnownUsers(userID string) ([]string, error) {
 
 }
 
-func (s *RetryLayerUserStore) GetMany(ctx context.Context, ids []string) ([]*model.User, error) {
+func (s *RetryLayerUserStore) GetMany(rctx request.CTX, ids []string) ([]*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.GetMany(ctx, ids)
+		result, err := s.UserStore.GetMany(rctx, ids)
 		if err == nil {
 			return result, nil
 		}
