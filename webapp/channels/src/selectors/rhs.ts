@@ -6,7 +6,6 @@ import type {Post, PostType} from '@mattermost/types/posts';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {makeGetGlobalItem, makeGetGlobalItemWithDefault} from 'selectors/storage';
@@ -135,9 +134,9 @@ export function getSearchTerms(state: GlobalState): string {
     return state.views.rhs.searchTerms;
 }
 
-// getSearchTeam returns the team ID that the search is currently scoped to, or the current team if no team was specified.
+// getSearchTeam returns the team ID that the search is currently scoped to, or empty string for "All Teams" if no team was specified.
 export function getSearchTeam(state: GlobalState): string {
-    return state.views.rhs.searchTeam ?? getCurrentTeamId(state);
+    return state.views.rhs.searchTeam ?? '';
 }
 
 export function getSearchType(state: GlobalState): SearchType {
