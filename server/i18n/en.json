@@ -3855,10 +3855,6 @@
     "translation": "Error creating zip file."
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Error reading file from backend"
-  },
-  {
     "id": "api.unmarshal_error",
     "translation": "Failed to unmarshal."
   },
