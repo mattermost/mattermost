@@ -387,7 +387,7 @@ function isAppForm(v: unknown): v is AppForm {
     return true;
 }
 
-export type AppFormValue = string | AppSelectOption | boolean | null;
+export type AppFormValue = string | AppSelectOption | AppSelectOption[] | boolean | null;
 
 function isAppFormValue(v: unknown): v is AppFormValue {
     if (typeof v === 'string') {
@@ -400,6 +400,10 @@ function isAppFormValue(v: unknown): v is AppFormValue {
 
     if (v === null) {
         return true;
+    }
+
+    if (Array.isArray(v)) {
+        return v.every(isAppSelectOption);
     }
 
     return isAppSelectOption(v);
