@@ -3160,8 +3160,7 @@ func TestGetLinkMetadataFromCache(t *testing.T) {
 	testTimestamp := int64(1640995200000) // 2022-01-01 00:00:00 UTC
 
 	setup := func(t *testing.T) {
-		err := platform.PurgeLinkCache()
-		require.NoError(t, err)
+		platform.PurgeLinkCache()
 	}
 
 	assertCached := func(t *testing.T, url string, expectedOG *opengraph.OpenGraph, expectedImage *model.PostImage, expectedPermalink *model.Permalink) {
@@ -3201,8 +3200,7 @@ func TestGetLinkMetadataFromCache(t *testing.T) {
 			},
 		}
 
-		ctx := request.TestContext(t)
-		cacheLinkMetadata(ctx, testURL, testTimestamp, expectedOG, expectedImage, expectedPermalink)
+		cacheLinkMetadata(testURL, testTimestamp, expectedOG, expectedImage, expectedPermalink)
 
 		assertCached(t, testURL, expectedOG, expectedImage, expectedPermalink)
 	})
@@ -3217,8 +3215,7 @@ func TestGetLinkMetadataFromCache(t *testing.T) {
 			Title: "Cached Title",
 			URL:   cachedURL,
 		}
-		ctx := request.TestContext(t)
-		cacheLinkMetadata(ctx, cachedURL, testTimestamp, expectedOG, nil, nil)
+		cacheLinkMetadata(cachedURL, testTimestamp, expectedOG, nil, nil)
 
 		assertNotCached(t, requestedURL)
 	})
@@ -3237,8 +3234,7 @@ func TestGetLinkMetadataFromCache(t *testing.T) {
 			Title: "First URL Title",
 			URL:   url1,
 		}
-		ctx := request.TestContext(t)
-		cacheLinkMetadata(ctx, url1, testTimestamp, og1, nil, nil)
+		cacheLinkMetadata(url1, testTimestamp, og1, nil, nil)
 
 		assertCached(t, url1, og1, nil, nil)
 		assertNotCached(t, url2)
@@ -3249,8 +3245,7 @@ func TestGetLinkMetadataFromCache(t *testing.T) {
 
 		nilURL := "https://example.com/nil-test"
 
-		ctx := request.TestContext(t)
-		cacheLinkMetadata(ctx, nilURL, testTimestamp, nil, nil, nil)
+		cacheLinkMetadata(nilURL, testTimestamp, nil, nil, nil)
 
 		assertCached(t, nilURL, nil, nil, nil)
 	})
