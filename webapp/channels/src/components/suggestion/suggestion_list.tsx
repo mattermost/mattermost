@@ -199,7 +199,6 @@ export default class SuggestionList extends React.PureComponent<Props> {
                 <SuggestionListContents
                     ref={this.contentRef}
                     id='suggestionList'
-                    data-testid='suggestionList'
                     className={contentClass}
                     style={contentStyle}
 
@@ -219,7 +218,6 @@ export default class SuggestionList extends React.PureComponent<Props> {
             contents = (
                 <UngroupedSuggestions
                     id='suggestionList'
-                    data-testid='suggestionList'
                     className={contentClass}
                     style={contentStyle}
 

@@ -15,7 +15,6 @@ export type SuggestionListContentsProps = {
     id: string;
     className?: string;
     style?: React.CSSProperties;
-    testId?: string;
 
     results: SuggestionResults<unknown>;
     selectedTerm: string;
@@ -31,7 +30,6 @@ export const SuggestionListContents = React.forwardRef<HTMLElement, SuggestionLi
     id,
     className,
     style,
-    testId,
 
     results,
     selectedTerm,
@@ -92,7 +90,6 @@ export const SuggestionListContents = React.forwardRef<HTMLElement, SuggestionLi
                 ref={ref as React.ForwardedRef<HTMLDivElement>}
 
                 id={id}
-                data-testid={testId}
                 className={className}
                 style={style}
 
@@ -112,7 +109,6 @@ export const SuggestionListContents = React.forwardRef<HTMLElement, SuggestionLi
         <UngroupedSuggestions
             ref={ref as React.ForwardedRef<HTMLUListElement>}
             id={id}
-            data-testid={testId}
             className={className}
             style={style}
 
