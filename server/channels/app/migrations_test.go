@@ -12,16 +12,15 @@ import (
 
 func TestDoSetupContentFlaggingProperties(t *testing.T) {
 	t.Run("should register property group and fields", func(t *testing.T) {
-		server, err := NewServer()
-		require.NoError(t, err)
-		require.NotNil(t, server)
+		th := Setup(t)
+		defer th.TearDown()
 
-		group, err := server.propertyService.GetPropertyGroup(model.ContentFlaggingGroupName)
+		group, err := th.Server.propertyService.GetPropertyGroup(model.ContentFlaggingGroupName)
 		require.NoError(t, err)
 		require.NotNil(t, group)
 		require.Equal(t, model.ContentFlaggingGroupName, group.Name)
 
-		propertyFields, err := server.propertyService.SearchPropertyFields(group.ID, "", model.PropertyFieldSearchOpts{PerPage: 100})
+		propertyFields, err := th.Server.propertyService.SearchPropertyFields(group.ID, "", model.PropertyFieldSearchOpts{PerPage: 100})
 		require.NoError(t, err)
 		require.Len(t, propertyFields, 9)
 	})
