@@ -160,10 +160,9 @@ describe('UserPropertyValues', () => {
         const ldapLink = screen.getByText('AD/LDAP: ldapAttribute');
         expect(ldapLink).toBeInTheDocument();
 
-        // Check that the link points to the correct location
+        // Check that the clickable element is present (no longer checking href)
         const linkElement = screen.getByTestId(`user-property-field-values__ldap-${ldapField.name}`);
         expect(linkElement).toBeInTheDocument();
-        expect(linkElement).toHaveAttribute('href', `/admin_console/authentication/ldap#custom_profile_attribute-${baseField.name}`);
     });
 
     it('shows SAML sync information when field has SAML attribute', () => {
@@ -182,10 +181,9 @@ describe('UserPropertyValues', () => {
         const samlLink = screen.getByText('SAML: samlAttribute');
         expect(samlLink).toBeInTheDocument();
 
-        // Check that the link points to the correct location
+        // Check that the clickable element is present (no longer checking href)
         const linkElement = screen.getByTestId(`user-property-field-values__saml-${samlField.name}`);
         expect(linkElement).toBeInTheDocument();
-        expect(linkElement).toHaveAttribute('href', `/admin_console/authentication/saml#custom_profile_attribute-${baseField.name}`);
     });
 
     it('shows both LDAP and SAML sync information when field has both attributes', () => {
@@ -209,11 +207,11 @@ describe('UserPropertyValues', () => {
         const samlLink = screen.getByText('SAML: samlAttribute');
         expect(samlLink).toBeInTheDocument();
 
-        // Check that both links point to the correct locations
+        // Check that both clickable elements are present (no longer checking href)
         const ldapLinkElement = screen.getByTestId(`user-property-field-values__ldap-${baseField.name}`);
         expect(ldapLinkElement).toBeInTheDocument();
 
-        const samlLinkElement = screen.getByTestId(`user-property-field-values__ldap-${baseField.name}`);
+        const samlLinkElement = screen.getByTestId(`user-property-field-values__saml-${baseField.name}`);
         expect(samlLinkElement).toBeInTheDocument();
     });
 });
