@@ -90,6 +90,10 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 	if options != nil {
 		mainHelper.Options = *options
 
+		if options.EnableStore && !testing.Short() {
+			mainHelper.setupStore()
+		}
+
 		if options.EnableResources {
 			mainHelper.setupResources()
 		}
@@ -170,6 +174,31 @@ func (h *MainHelper) GetNewStores(tb testing.TB) (store.Store, *sqlstore.SqlStor
 	preloadMigrations(driverName, sqlStore)
 
 	return store, sqlStore, settings, searchEngine
+}
+
+func (h *MainHelper) setupStore() {
+	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
+	if driverName == "" {
+		driverName = model.DatabaseDriverPostgres
+	}
+
+	h.Settings = storetest.MakeSqlSettings(driverName)
+	h.replicas = h.Settings.DataSourceReplicas
+
+	config := &model.Config{}
+	config.SetDefaults()
+
+	h.SearchEngine = searchengine.NewBroker(config)
+	h.ClusterInterface = &FakeClusterInterface{}
+
+	var err error
+	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil, sqlstore.DisableMorphLogging())
+	if err != nil {
+		panic(err)
+	}
+	h.Store = searchlayer.NewSearchLayer(&TestStore{
+		h.SQLStore,
+	}, h.SearchEngine, config)
 }
 
 func (h *MainHelper) ToggleReplicasOff() {
