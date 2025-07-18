@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessages} from 'react-intl';
+import {defineMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
@@ -21,17 +21,11 @@ import type {SuggestionProps} from './suggestion';
 
 export const MIN_CHANNEL_LINK_LENGTH = 2;
 
-type WrappedChannel = {
-    type: string;
-    channel?: Channel;
-    loading?: boolean;
-}
+export const ChannelMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Channel>>((props, ref) => {
+    const {item: channel} = props;
+    const channelIsArchived = channel && channel.delete_at && channel.delete_at !== 0;
 
-export const ChannelMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<WrappedChannel>>((props, ref) => {
-    const {item} = props;
-    const channelIsArchived = item.channel && item.channel.delete_at && item.channel.delete_at !== 0;
-
-    const channelName = item.channel?.display_name;
+    const channelName = channel.display_name;
     let channelIcon;
     if (channelIsArchived) {
         channelIcon = (
@@ -42,12 +36,12 @@ export const ChannelMentionSuggestion = React.forwardRef<HTMLLIElement, Suggesti
     } else {
         channelIcon = (
             <span className='suggestion-list__icon suggestion-list__icon--large'>
-                <i className={`icon icon--no-spacing icon-${item.channel?.type === Constants.OPEN_CHANNEL ? 'globe' : 'lock-outline'}`}/>
+                <i className={`icon icon--no-spacing icon-${channel?.type === Constants.OPEN_CHANNEL ? 'globe' : 'lock-outline'}`}/>
             </span>
         );
     }
 
-    const description = '~' + item.channel?.name;
+    const description = '~' + channel?.name;
 
     return (
         <SuggestionContainer
@@ -90,7 +84,7 @@ export default class ChannelMentionProvider extends Provider {
         this.delayChannelAutocomplete = props.delayChannelAutocomplete;
     }
 
-    handlePretextChanged(pretext: string, resultCallback: ResultsCallback<WrappedChannel>) {
+    handlePretextChanged(pretext: string, resultCallback: ResultsCallback<Channel>) {
         this.resetRequest();
 
         const captured = (/\B(~([^~\r\n]*))$/i).exec(pretext.toLowerCase());
@@ -134,8 +128,8 @@ export default class ChannelMentionProvider extends Provider {
         this.startNewRequest(prefix);
 
         const words = prefix.toLowerCase().split(/\s+/);
-        const wrappedChannelIds: Record<string, boolean> = {};
-        let wrappedChannels: WrappedChannel[] = [];
+        const myChannelIds: Record<string, boolean> = {};
+        let myChannels: Channel[] = [];
         getMyChannels(store.getState()).forEach((item) => {
             if (item.type !== 'O' || item.delete_at > 0) {
                 return;
@@ -161,26 +155,20 @@ export default class ChannelMentionProvider extends Provider {
             if (!matched) {
                 return;
             }
-            wrappedChannelIds[item.id] = true;
-            wrappedChannels.push({
-                type: Constants.MENTION_CHANNELS,
-                channel: item,
-            });
+            myChannelIds[item.id] = true;
+            myChannels.push(item);
         });
-        wrappedChannels = wrappedChannels.sort((a, b) => {
+        myChannels = myChannels.sort((a, b) => {
             //
             // MM-12677 When this is migrated this needs to be fixed to pull the user's locale
             //
-            return sortChannelsByTypeAndDisplayName('en', a.channel as Channel, b.channel as Channel);
+            return sortChannelsByTypeAndDisplayName('en', a, b);
         });
-        const channelMentions = wrappedChannels.map((item) => '~' + item.channel?.name);
         resultCallback({
-            terms: channelMentions.concat([' ']),
-            items: wrappedChannels.concat([{
-                type: Constants.MENTION_MORE_CHANNELS,
-                loading: true,
-            }]),
-            component: ChannelMentionSuggestion,
+            groups: [
+                myChannelsGroup(myChannels),
+                moreChannelsGroup([], true),
+            ],
             matchedPretext: captured[1],
         });
 
@@ -195,55 +183,46 @@ export default class ChannelMentionProvider extends Provider {
                 this.lastPrefixWithNoResults = prefix;
             }
 
-            // Wrap channels in an outer object to avoid overwriting the 'type' property.
-            const wrappedMoreChannels: WrappedChannel[] = [];
-            channels.forEach((item) => {
-                if (item.delete_at > 0 && !myMembers[item.id]) {
+            const moreChannels: Channel[] = [];
+            channels.forEach((channel) => {
+                if (channel.delete_at > 0 && !myMembers[channel.id]) {
                     return;
                 }
 
-                if (myMembers[item.id] && !wrappedChannelIds[item.id]) {
-                    wrappedChannelIds[item.id] = true;
-                    wrappedChannels.push({
-                        type: Constants.MENTION_CHANNELS,
-                        channel: item,
-                    });
+                if (myMembers[channel.id] && !myChannelIds[channel.id]) {
+                    myChannelIds[channel.id] = true;
+                    myChannels.push(channel);
                     return;
                 }
 
-                if (myMembers[item.id] && wrappedChannelIds[item.id]) {
+                if (myMembers[channel.id] && myChannelIds[channel.id]) {
                     return;
                 }
 
-                if (!myMembers[item.id] && wrappedChannelIds[item.id]) {
-                    delete wrappedChannelIds[item.id];
-                    const idx = wrappedChannels.map((el) => el.channel?.id).indexOf(item.id);
+                if (!myMembers[channel.id] && myChannelIds[channel.id]) {
+                    delete myChannelIds[channel.id];
+                    const idx = myChannels.findIndex((el) => el.id === channel.id);
                     if (idx >= 0) {
-                        wrappedChannels.splice(idx, 1);
+                        myChannels.splice(idx, 1);
                     }
                 }
 
-                wrappedMoreChannels.push({
-                    type: Constants.MENTION_MORE_CHANNELS,
-                    channel: item,
-                });
+                moreChannels.push(channel);
             });
 
-            wrappedChannels = wrappedChannels.sort((a, b) => {
+            myChannels = myChannels.sort((a, b) => {
                 //
                 // MM-12677 When this is migrated this needs to be fixed to pull the user's locale
                 //
-                return sortChannelsByTypeAndDisplayName('en', a.channel as Channel, b.channel as Channel);
+                return sortChannelsByTypeAndDisplayName('en', a, b);
             });
-
-            const wrapped = wrappedChannels.concat(wrappedMoreChannels);
-            const mentions = wrapped.map((item) => '~' + item.channel?.name);
 
             resultCallback({
                 matchedPretext: captured[1],
-                terms: mentions,
-                items: wrapped,
-                component: ChannelMentionSuggestion,
+                groups: [
+                    myChannelsGroup(myChannels),
+                    moreChannelsGroup(moreChannels, false),
+                ],
             });
         };
 
@@ -262,9 +241,40 @@ export default class ChannelMentionProvider extends Provider {
     }
 }
 
-defineMessages({
-    myChannelsDivider: {
-        id: 'suggestion.mention.channels',
-        defaultMessage: 'My Channels',
-    },
-});
+export function myChannelsGroup(items: Channel[]) {
+    const terms = items.map((channel) => '~' + channel?.name);
+
+    return {
+        key: 'myChannels',
+        label: defineMessage({id: 'suggestion.mention.channels', defaultMessage: 'My Channels'}),
+        terms,
+        items,
+        component: ChannelMentionSuggestion,
+    };
+}
+
+export function moreChannelsGroup(items: Channel[], loading: boolean) {
+    const label = defineMessage({id: 'suggestion.mention.morechannels', defaultMessage: 'Other Channels'});
+
+    if (loading) {
+        return {
+            key: 'moreChannels',
+            label,
+            items: [{
+                loading: true as const,
+            }],
+            terms: [''],
+            components: [ChannelMentionSuggestion],
+        };
+    }
+
+    const terms = items.map((channel) => '~' + channel?.name);
+
+    return {
+        key: 'moreChannels',
+        label,
+        terms,
+        items,
+        component: ChannelMentionSuggestion,
+    };
+}

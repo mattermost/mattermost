@@ -8,7 +8,7 @@ import type {AutocompleteSuggestion} from '@mattermost/types/integrations';
 
 import {Client4} from 'mattermost-redux/client';
 
-import CommandProvider, {CommandSuggestion} from './command_provider';
+import CommandProvider, {commandsGroup, CommandSuggestion} from './command_provider';
 
 describe('CommandSuggestion', () => {
     const suggestion: AutocompleteSuggestion = {
@@ -65,16 +65,14 @@ describe('CommandProvider', () => {
 
             const expected = {
                 matchedPretext: '/jira issue',
-                terms: ['/jira issue'],
-                items: [{
+                groups: [commandsGroup([{
                     Complete: '/jira issue',
                     Suggestion: '/issue',
                     Hint: 'hint',
                     IconData: 'icon_data',
                     Description: 'description',
                     type: 'commands',
-                }],
-                component: CommandSuggestion,
+                }])],
             };
             expect(callback).toHaveBeenCalledWith(expected);
 
@@ -106,16 +104,14 @@ describe('CommandProvider', () => {
 
             const expected = {
                 matchedPretext: '/jira issue',
-                terms: ['/jira issue'],
-                items: [{
+                groups: [commandsGroup([{
                     Complete: '/jira issue',
                     Suggestion: '/issue',
                     Hint: 'hint',
                     IconData: 'icon_data',
                     Description: 'description',
                     type: 'commands',
-                }],
-                component: CommandSuggestion,
+                }])],
             };
             expect(callback).toHaveBeenCalledWith(expected);
 
