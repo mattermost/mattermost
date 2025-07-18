@@ -82,7 +82,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v10.7 server
+// Based on v10.11 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -202,6 +202,7 @@ const defaultServerConfig: AdminConfig = {
         ScheduledPosts: true,
         EnableWebHubChannelIteration: false,
         FrameAncestors: '',
+        DeleteAccountLink: '',
     },
     TeamSettings: {
         SiteName: 'Mattermost',
@@ -498,6 +499,7 @@ const defaultServerConfig: AdminConfig = {
         LoginIdAttribute: '',
         PictureAttribute: '',
         SyncIntervalMinutes: 60,
+        ReAddRemovedMembers: false,
         SkipCertificateVerification: false,
         PublicCertificateFile: '',
         PrivateKeyFile: '',
@@ -565,6 +567,8 @@ const defaultServerConfig: AdminConfig = {
         MobileEnableBiometrics: false,
         MobilePreventScreenCapture: false,
         MobileJailbreakProtection: false,
+        MobileEnableSecureFilePreview: false,
+        MobileAllowPdfLinkNavigation: false,
     },
     CacheSettings: {
         CacheType: 'lru',
@@ -583,7 +587,7 @@ const defaultServerConfig: AdminConfig = {
         AdvertiseAddress: '',
         UseIPAddress: true,
         EnableGossipCompression: true,
-        EnableExperimentalGossipEncryption: false,
+        EnableGossipEncryption: false,
         ReadOnlyConfig: true,
         GossipPort: 8074,
     },
@@ -608,6 +612,7 @@ const defaultServerConfig: AdminConfig = {
         DisableWakeUpReconnectHandler: false,
         UsersStatusAndProfileFetchingPollIntervalMilliseconds: 3000,
         YoutubeReferrerPolicy: false,
+        ExperimentalChannelCategorySorting: false,
     },
     AnalyticsSettings: {
         MaxUsersForStatistics: 2500,
@@ -661,6 +666,7 @@ const defaultServerConfig: AdminConfig = {
         BatchSize: 3000,
         TimeBetweenBatchesMilliseconds: 100,
         RetentionIdsBatchSize: 100,
+        PreservePinnedPosts: false,
     },
     MessageExportSettings: {
         EnableExport: false,
@@ -745,6 +751,9 @@ const defaultServerConfig: AdminConfig = {
         TestBoolFeature: false,
         EnableRemoteClusterService: false,
         EnableSharedChannelsDMs: false,
+        EnableSharedChannelsPlugins: true,
+        EnableSharedChannelsMemberSync: false,
+        EnableSyncAllUsersForRemoteCluster: false,
         AppsEnabled: false,
         PermalinkPreviews: false,
         NormalizeLdapDNs: false,
@@ -761,8 +770,9 @@ const defaultServerConfig: AdminConfig = {
         ChannelBookmarks: true,
         WebSocketEventScope: true,
         NotificationMonitoring: true,
-        ExperimentalAuditSettingsSystemConsoleUI: false,
-        CustomProfileAttributes: false,
+        ExperimentalAuditSettingsSystemConsoleUI: true,
+        CustomProfileAttributes: true,
+        AttributeBasedAccessControl: true,
     },
     ImportSettings: {
         Directory: './import',
@@ -785,10 +795,36 @@ const defaultServerConfig: AdminConfig = {
         EnableSharedChannels: false,
         EnableRemoteClusterService: false,
         DisableSharedChannelsStatusSync: false,
+        SyncUsersOnConnectionOpen: false,
+        GlobalUserSyncBatchSize: 25,
         MaxPostsPerSync: 50,
+        MemberSyncBatchSize: 20,
     },
     AccessControlSettings: {
         EnableAttributeBasedAccessControl: false,
         EnableChannelScopeAccessControl: false,
+    },
+    ContentFlaggingSettings: {
+        NotificationSettings: {
+            ReviewerSettings: {
+                CommonReviewers: false,
+                CommonReviewerIds: [],
+                TeamReviewersSetting: {},
+                SystemAdminsAsReviewers: false,
+                TeamAdminsAsReviewers: false,
+            },
+            EventTargetMapping: {
+                flagged: ['reviewers', 'author'],
+                assigned: ['reviewers'],
+                removed: ['reviewers'],
+                dismissed: ['reviewers', 'author'],
+            },
+            AdditionalSettings: {
+                Reasons: ['Reason 1', 'Reason 2'],
+                ReporterCommentRequired: false,
+                ReviewerCommentRequired: false,
+                HideFlaggedContent: false,
+            },
+        },
     },
 };

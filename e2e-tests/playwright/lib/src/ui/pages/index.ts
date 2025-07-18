@@ -9,6 +9,7 @@ import SignupPage from './signup';
 import SystemConsolePage from './system_console';
 import ScheduledPostsPage from './scheduled_posts';
 import DraftsPage from './drafts';
+import ThreadsPage from './threads';
 
 const pages = {
     ChannelsPage,
@@ -19,6 +20,7 @@ const pages = {
     ScheduledPostsPage,
     SystemConsolePage,
     DraftsPage,
+    ThreadsPage,
 };
 
 export {

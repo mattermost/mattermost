@@ -1,8 +1,6 @@
 module github.com/mattermost/mattermost/server/v8
 
-go 1.23.0
-
-toolchain go1.23.9
+go 1.24.3
 
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
@@ -41,7 +39,7 @@ require (
 	github.com/ledongthuc/pdf v0.0.0-20250511090121-5959a4027728
 	github.com/lib/pq v1.10.9
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
-	github.com/mattermost/gosaml2 v0.9.0
+	github.com/mattermost/gosaml2 v0.10.0
 	github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956
 	github.com/mattermost/logr/v2 v2.0.22
 	github.com/mattermost/mattermost/server/public v0.1.12
@@ -251,10 +249,6 @@ exclude (
 	github.com/dyatlov/go-opengraph v0.0.0-20210112100619-dae8665a5b09
 	github.com/willf/bitset v1.2.0
 )
-
-// Prevent from being upgraded because this library has a minimum requirement
-// of Go 1.24.
-replace github.com/ledongthuc/pdf => github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06
 
 // Also prevent tablewriter from being upgraded because the downstream dependency
 // jaytaylor/html2text does not have a go.mod file which makes it bump to the latest

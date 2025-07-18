@@ -9759,7 +9759,7 @@
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Kan inte aktivera användare. Servern överskrider gränsen för säkra användare. Kontakta din administratör med: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Kan inte aktivera användare. Servern överskrider gränsen för säkra användare. ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "api.user.create_user.user_limits.exceeded",
@@ -10705,7 +10705,7 @@
   },
   {
     "id": "app.group.create_syncable_memberships.error",
-    "translation": "Det går inte att skapa synkroniserbara gruppmedlemskap."
+    "translation": "Det går inte att skapa gruppmedlemskap som kan synkroniseras."
   },
   {
     "id": "app.group.delete_invalid_syncable_memberships.error",
@@ -10794,5 +10794,105 @@
   {
     "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
     "translation": "Kanalens bannerfärg måste vara en giltig färg i hexadecimalform (t.ex. #FF0000 eller #F00)"
+  },
+  {
+    "id": "app.import.validate_attachment_import_data.invalid_path.error",
+    "translation": "Det gick inte att validera import av bilagor. Ogiltig sökväg: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_post_import_data.attachment.error",
+    "translation": "Misslyckades med att validera bilagor till meddelanden."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.attachment.error",
+    "translation": "Misslyckades med att validera bilagor för direktmeddelanden."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
+    "translation": "Fältet Importera emoji-bild har en ogiltig sökväg: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_reply_import_data.attachment.error",
+    "translation": "Misslyckades med att validera bilagor till svar."
+  },
+  {
+    "id": "app.import.validate_user_import_data.invalid_image_path.error",
+    "translation": "Sökvägen för användarprofilens bild är ogiltig: \"{{.Path}}\""
+  },
+  {
+    "id": "ent.access_control.job_data_conversion.app_error",
+    "translation": "Misslyckades med att extrahera data från föregående jobb."
+  },
+  {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "Misslyckades med att spara batchen med bekräftelse-objekt"
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Det går inte att ta bort bekräftelse för saknad post"
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Det går inte att spara bekräftelse för saknad post"
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "Ogiltigt kanal-id."
+  },
+  {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Det går inte att skapa användaren. Servern överskrider maxantal licensierade användare. Kontakta din administratör med: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "Det går inte att aktivera användaren. Servern överskrider maxantal licensierade användare. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "Konfigurationsvärdet för Granskningsloggarnas maxålder får inte vara negativt."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "Konfigurationsvärdet för maxantalet backupfiler av audit-loggar får inte vara negativt."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "Konfigurationsvärdet för max-antal filköer för audit-loggar måste vara större än noll."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "Konfigurationsvärdet för maximal filstorlek på audit-loggar måste vara större än noll."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "När loggning av revisionsfiler är aktiverad måste ett filnamn anges."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "Filnamnet får inte vara en filkatalog."
+  },
+  {
+    "id": "api.command_share.service_inactive",
+    "translation": "Tjänsten för Delade kanaler är aktiverad med inte igång."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Tjänsten för åtkomstkontroll är inte tillgänglig. Det går inte att filtrera användare för ABAC-aktiverad kanal."
+  },
+  {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "Testanslutning till LDAP misslyckades. Server: {{.Server}}:{{.Port}}, Anslutningssäkerhet: {{.ConnectionType}}, Filnamn Privat Nyckel: {{.PrivateKeyFilename}}, Filnamn Publikt Certifikat: {{.PublicCertFilename}}, Användarnamn: {{.BindUsername}}. Felmeddelande: {{.Error}}"
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Ogiltig testtyp: {{.TestType}}"
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Import av externt kluster tillåt inte"
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Det går inte att bjuda in gästanvändare till den här kanalen eftersom den har åtkomstbegränsningar baserade på användarattribut."
   }
 ]

@@ -8,8 +8,9 @@ import {FormattedMessage} from 'react-intl';
 import type {ClientLicense} from '@mattermost/types/config';
 
 import AlertBanner from 'components/alert_banner';
-import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
+import ExternalLink from 'components/external_link';
 
+import {LicenseLinks} from 'utils/constants';
 import {daysToLicenseExpire} from 'utils/license_utils';
 import {getSkuDisplayName} from 'utils/subscription';
 import {getBrowserTimezone} from 'utils/timezone';
@@ -53,17 +54,23 @@ const TrialLicenseCard: React.FC<Props> = ({license}: Props) => {
 
     const message = (
         <div className='RenewLicenseCard TrialLicense'>
-            <div className='RenewLicenseCard__text'>
-                <div className='RenewLicenseCard__text-description'>
-                    {messageBody()}
-                </div>
-                <div className='RenewLicenseCard__buttons'>
-                    <ContactUsButton
-                        customClass='contact_us_primary_cta'
-                    />
-                </div>
+            <div className='RenewLicenseCard__text RenewLicenseCard__text-description'>
+                {messageBody()}
             </div>
         </div>
+    );
+
+    const actionButtonLeft = (
+        <ExternalLink
+            href={LicenseLinks.CONTACT_SALES}
+            location='license_settings_user_seat_alert'
+            className='style-button AlertBanner__buttonLeft'
+        >
+            <FormattedMessage
+                id='admin.license.trialCard.contactSales'
+                defaultMessage='Contact Sales'
+            />
+        </ExternalLink>
     );
 
     const cardTitle = (
@@ -80,6 +87,7 @@ const TrialLicenseCard: React.FC<Props> = ({license}: Props) => {
             mode={'info'}
             title={cardTitle}
             message={message}
+            actionButtonLeft={actionButtonLeft}
         />
     );
 };

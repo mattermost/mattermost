@@ -46,6 +46,25 @@ import './schema_admin_settings.scss';
 
 const emptyList: string[] = [];
 
+export type SystemConsoleCustomSettingChangeHandler = (id: string, value: any, confirm?: boolean, doSubmit?: boolean, warning?: boolean) => void;
+
+export type SystemConsoleCustomSettingsComponentProps = {
+    id: string;
+    label: string;
+    helpText: string;
+    value: unknown;
+    disabled: boolean;
+    config: Partial<AdminConfig>;
+    license: ClientLicense;
+    setByEnv: boolean;
+    onChange: SystemConsoleCustomSettingChangeHandler;
+    registerSaveAction: (saveAction: () => Promise<{error?: {message?: string}}>) => void;
+    setSaveNeeded: () => void;
+    unRegisterSaveAction: (saveAction: () => Promise<{error?: {message?: string}}>) => void;
+    cancelSubmit: () => void;
+    showConfirm: boolean;
+}
+
 type Props = {
     config: Partial<AdminConfig>;
     environmentConfig: Partial<EnvironmentConfig>;
@@ -86,7 +105,7 @@ export function unescapePathPart(pathPart: string) {
     return pathPart.replace(/\+/g, '.');
 }
 
-function descriptorOrStringToString(text: string | MessageDescriptor | undefined, intl: IntlShape, values?: {[key: string]: any}): string | undefined {
+export function descriptorOrStringToString(text: string | MessageDescriptor | undefined, intl: IntlShape, values?: {[key: string]: any}): string | undefined {
     if (!text) {
         return undefined;
     }
@@ -204,46 +223,6 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         }
     };
 
-    getConfigFromState(config: Partial<AdminConfig>) {
-        const schema = this.props.schema;
-
-        if (schema) {
-            let settings: AdminDefinitionSetting[] = [];
-
-            if ('settings' in schema && schema.settings) {
-                settings = schema.settings;
-            } else if ('sections' in schema && schema.sections) {
-                schema.sections.map((section) => section.settings).forEach((sectionSettings) => settings.push(...sectionSettings));
-            }
-
-            settings.forEach((setting) => {
-                if (!setting.key) {
-                    return;
-                }
-
-                if (setting.type === Constants.SettingsTypes.TYPE_PERMISSION) {
-                    this.setConfigValue(config, setting.key, null);
-                    return;
-                }
-
-                let value = this.getSettingValue(setting);
-                const previousValue = SchemaAdminSettings.getConfigValue(config, setting.key);
-
-                if ('onConfigSave' in setting && setting.onConfigSave) {
-                    value = setting.onConfigSave(value, previousValue);
-                }
-
-                this.setConfigValue(config, setting.key, value);
-            });
-
-            if ('onConfigSave' in schema && schema.onConfigSave) {
-                return schema.onConfigSave(config);
-            }
-        }
-
-        return config;
-    }
-
     static getStateFromConfig(config: Partial<AdminConfig>, schema: AdminDefinitionSubSectionSchema, roles?: Record<string, Role>) {
         let state: Partial<State> = {};
 
@@ -256,7 +235,21 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 schema.sections.map((section) => section.settings).forEach((sectionSettings) => settings.push(...sectionSettings));
             }
 
-            settings.forEach((setting) => {
+            // Recursively collect settings from expandable settings
+            const collectSettingsRecursively = (settingsArray: AdminDefinitionSetting[]): AdminDefinitionSetting[] => {
+                const allSettings: AdminDefinitionSetting[] = [];
+                settingsArray.forEach((setting) => {
+                    allSettings.push(setting);
+                    if (setting.type === Constants.SettingsTypes.TYPE_EXPANDABLE_SETTING && setting.settings) {
+                        allSettings.push(...collectSettingsRecursively(setting.settings));
+                    }
+                });
+                return allSettings;
+            };
+
+            const allSettings = collectSettingsRecursively(settings);
+
+            allSettings.forEach((setting) => {
                 if (!setting.key) {
                     return;
                 }
@@ -301,24 +294,6 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         }
 
         return null;
-    }
-
-    getSettingValue(setting: AdminDefinitionSetting) {
-        // Force boolean values to false when disabled.
-        if (setting.type === Constants.SettingsTypes.TYPE_BOOL) {
-            if (this.isDisabled(setting)) {
-                return false;
-            }
-        }
-        if (!setting.key) {
-            return undefined;
-        }
-
-        if (setting.type === Constants.SettingsTypes.TYPE_TEXT && setting.dynamic_value) {
-            return setting.dynamic_value(this.state[setting.key], this.props.config, this.state);
-        }
-
-        return this.state[setting.key];
     }
 
     renderTitle = () => {
@@ -376,59 +351,6 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 values={setting.label_values}
             />
         );
-    };
-
-    renderSettingHelpText = (setting: AdminDefinitionSetting) => {
-        if (!this.props.schema || setting.type === 'banner' || !setting.help_text) {
-            return <span>{''}</span>;
-        }
-
-        let helpText;
-        let isMarkdown;
-        let helpTextValues;
-        if ('disabled_help_text' in setting && setting.disabled_help_text && this.isDisabled(setting)) {
-            helpText = setting.disabled_help_text;
-            isMarkdown = setting.disabled_help_text_markdown;
-            helpTextValues = setting.disabled_help_text_values;
-        } else {
-            helpText = setting.help_text;
-            isMarkdown = setting.help_text_markdown;
-            helpTextValues = setting.help_text_values;
-        }
-
-        return (
-            <SchemaText
-                isMarkdown={isMarkdown}
-                text={helpText}
-                textValues={helpTextValues}
-            />
-        );
-    };
-
-    renderDropdownOptionHelpText = (option: AdminDefinitionSettingDropdownOption) => {
-        if (!option.help_text) {
-            return <span>{''}</span>;
-        }
-
-        return (
-            <SchemaText
-                isMarkdown={option.help_text_markdown}
-                text={option.help_text}
-                textValues={option.help_text_values}
-            />
-        );
-    };
-
-    renderLabel = (setting: AdminDefinitionSetting) => {
-        if (!this.props.schema || !setting.label) {
-            return '';
-        }
-
-        if (typeof setting.label === 'string') {
-            return setting.label;
-        }
-
-        return this.props.intl.formatMessage(setting.label);
     };
 
     isDisabled = (setting: AdminDefinitionSetting) => {
@@ -494,14 +416,17 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             setting.action(successCallback, error, this.state[sourceUrlKey]);
         };
 
+        const helpText = renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
+        const label = renderLabel(setting, this.props.schema, this.props.intl);
+
         return (
             <RequestButton
                 id={setting.key}
                 key={this.props.schema.id + '_text_' + setting.key}
                 requestAction={handleRequestAction}
-                helpText={this.renderSettingHelpText(setting)}
+                helpText={helpText}
                 loadingText={descriptorOrStringToString(setting.loading, this.props.intl)}
-                buttonText={<span>{this.renderLabel(setting)}</span>}
+                buttonText={<span>{label}</span>}
                 showSuccessMessage={Boolean(setting.success_message)}
                 includeDetailedError={true}
                 disabled={this.isDisabled(setting)}
@@ -543,18 +468,21 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             ) : footer;
         }
 
+        const label = renderLabel(setting, this.props.schema, this.props.intl);
+        const helpText = renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
+
         return (
             <TextSetting
                 key={this.props.schema.id + '_text_' + setting.key}
                 id={setting.key}
                 multiple={setting.multiple}
                 type={inputType}
-                label={this.renderLabel(setting)}
-                helpText={this.renderSettingHelpText(setting)}
+                label={label}
+                helpText={helpText}
                 placeholder={descriptorOrStringToString(setting.placeholder, this.props.intl, setting.placeholder_values)}
                 value={value}
                 disabled={this.isDisabled(setting)}
-                setByEnv={this.isSetByEnv(setting.key)}
+                setByEnv={isSetByEnv(setting.key, this.props.environmentConfig)}
                 onChange={this.handleChange}
                 maxLength={setting.max_length}
                 footer={footer}
@@ -566,12 +494,16 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         if (!this.props.schema || !setting.key || setting.type !== 'color') {
             return (<></>);
         }
+
+        const label = renderLabel(setting, this.props.schema, this.props.intl);
+        const helpText = renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
+
         return (
             <ColorSetting
                 key={this.props.schema.id + '_text_' + setting.key}
                 id={setting.key}
-                label={this.renderLabel(setting)}
-                helpText={this.renderSettingHelpText(setting)}
+                label={label}
+                helpText={helpText}
                 value={this.state[setting.key] || ''}
                 disabled={this.isDisabled(setting)}
                 onChange={this.handleChange}
@@ -584,15 +516,18 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             return (<></>);
         }
 
+        const label = renderLabel(setting, this.props.schema, this.props.intl);
+        const helpText = renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
+
         return (
             <BooleanSetting
                 key={this.props.schema.id + '_bool_' + setting.key}
                 id={setting.key}
-                label={this.renderLabel(setting)}
-                helpText={this.renderSettingHelpText(setting)}
+                label={label}
+                helpText={helpText}
                 value={this.state[setting.key] ?? (setting.default || false)}
                 disabled={this.isDisabled(setting)}
-                setByEnv={this.isSetByEnv(setting.key)}
+                setByEnv={isSetByEnv(setting.key, this.props.environmentConfig)}
                 onChange={this.handleChange}
             />
         );
@@ -603,15 +538,18 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             return (<></>);
         }
 
+        const label = renderLabel(setting, this.props.schema, this.props.intl);
+        const helpText = renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
+
         return (
             <BooleanSetting
                 key={this.props.schema.id + '_bool_' + setting.key}
                 id={setting.key}
-                label={this.renderLabel(setting)}
-                helpText={this.renderSettingHelpText(setting)}
+                label={label}
+                helpText={helpText}
                 value={this.state[setting.key] || false}
                 disabled={this.isDisabled(setting)}
-                setByEnv={this.isSetByEnv(setting.key)}
+                setByEnv={isSetByEnv(setting.key, this.props.environmentConfig)}
                 onChange={this.handlePermissionChange}
             />
         );
@@ -650,20 +588,22 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             }
         }
 
+        const label = renderLabel(setting, this.props.schema, this.props.intl);
+
         let helpText: string | JSX.Element = '';
         if (!hideHelp) {
-            helpText = selectedOptionForHelpText ? this.renderDropdownOptionHelpText(selectedOptionForHelpText) : this.renderSettingHelpText(setting);
+            helpText = selectedOptionForHelpText ? renderDropdownOptionHelpText(selectedOptionForHelpText) : renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
         }
         return (
             <DropdownSetting
                 key={this.props.schema.id + '_dropdown_' + setting.key}
                 id={setting.key}
                 values={values}
-                label={this.renderLabel(setting)}
+                label={label}
                 helpText={helpText}
                 value={selectedValue}
                 disabled={this.isDisabled(setting)}
-                setByEnv={this.isSetByEnv(setting.key)}
+                setByEnv={isSetByEnv(setting.key, this.props.environmentConfig)}
                 onChange={this.handleChange}
             />
         );
@@ -682,20 +622,24 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             };
         });
 
+        const label = renderLabel(setting, this.props.schema, this.props.intl);
+        const helpText = renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
+
         if (setting.multiple) {
             const noOptionsMessage = typeof setting.no_result === 'object' ? (
                 <FormattedMessage {...setting.no_result}/>
             ) : setting.no_result;
+
             return (
                 <MultiSelectSetting
                     key={this.props.schema.id + '_language_' + setting.key}
                     id={setting.key}
-                    label={this.renderLabel(setting)}
                     values={values}
-                    helpText={this.renderSettingHelpText(setting)}
+                    label={label}
+                    helpText={helpText}
                     selected={(this.state[setting.key] || emptyList)}
                     disabled={this.isDisabled(setting)}
-                    setByEnv={this.isSetByEnv(setting.key)}
+                    setByEnv={isSetByEnv(setting.key, this.props.environmentConfig)}
                     onChange={this.handleChange}
                     noOptionsMessage={noOptionsMessage}
                 />
@@ -705,12 +649,12 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             <DropdownSetting
                 key={this.props.schema.id + '_language_' + setting.key}
                 id={setting.key}
-                label={this.renderLabel(setting)}
                 values={values}
-                helpText={this.renderSettingHelpText(setting)}
+                label={label}
+                helpText={helpText}
                 value={this.state[setting.key] ?? values[0].value}
                 disabled={this.isDisabled(setting)}
-                setByEnv={this.isSetByEnv(setting.key)}
+                setByEnv={isSetByEnv(setting.key, this.props.environmentConfig)}
                 onChange={this.handleChange}
             />
         );
@@ -727,17 +671,20 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         }
         values.sort((a, b) => a.order - b.order);
 
+        const label = renderLabel(setting, this.props.schema, this.props.intl);
+        const helpText = renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
+
         if (setting.multiple) {
             return (
                 <MultiSelectSetting
                     key={this.props.schema.id + '_language_' + setting.key}
                     id={setting.key}
-                    label={this.renderLabel(setting)}
+                    label={label}
                     values={values}
-                    helpText={this.renderSettingHelpText(setting)}
+                    helpText={helpText}
                     selected={(this.state[setting.key] && this.state[setting.key].split(',')) || []}
                     disabled={this.isDisabled(setting)}
-                    setByEnv={this.isSetByEnv(setting.key)}
+                    setByEnv={isSetByEnv(setting.key, this.props.environmentConfig)}
                     onChange={(changedId, value) => this.handleChange(changedId, value.join(','))}
                     noOptionsMessage={descriptorOrStringToString(setting.no_result, this.props.intl)}
                 />
@@ -747,12 +694,12 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             <DropdownSetting
                 key={this.props.schema.id + '_language_' + setting.key}
                 id={setting.key}
-                label={this.renderLabel(setting)}
+                label={label}
                 values={values}
-                helpText={this.renderSettingHelpText(setting)}
+                helpText={helpText}
                 value={this.state[setting.key] ?? values[0].value}
                 disabled={this.isDisabled(setting)}
-                setByEnv={this.isSetByEnv(setting.key)}
+                setByEnv={isSetByEnv(setting.key, this.props.environmentConfig)}
                 onChange={this.handleChange}
             />
         );
@@ -767,16 +714,19 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         const values = options.map((o) => ({value: o.value, text: descriptorOrStringToString(o.display_name, this.props.intl)!}));
         const defaultOption = values.find((v) => v.value === setting.default)?.value || values[0].value;
 
+        const label = renderLabel(setting, this.props.schema, this.props.intl);
+        const helpText = renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
+
         return (
             <RadioSetting
                 key={this.props.schema.id + '_radio_' + setting.key}
                 id={setting.key}
                 values={values}
-                label={this.renderLabel(setting)}
-                helpText={this.renderSettingHelpText(setting)}
+                label={label}
+                helpText={helpText}
                 value={this.state[setting.key] ?? defaultOption}
                 disabled={this.isDisabled(setting)}
-                setByEnv={this.isSetByEnv(setting.key)}
+                setByEnv={isSetByEnv(setting.key, this.props.environmentConfig)}
                 onChange={this.handleChange}
             />
         );
@@ -794,7 +744,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             >
                 <div className='banner__content'>
                     <span>
-                        { setting.banner_type === 'warning' ? <WarningIcon additionalClassName='banner__icon'/> : null}
+                        {setting.banner_type === 'warning' ? <WarningIcon additionalClassName='banner__icon'/> : null}
                         {this.renderBanner(setting)}
                     </span>
                 </div>
@@ -807,17 +757,20 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             return (<></>);
         }
 
+        const label = renderLabel(setting, this.props.schema, this.props.intl);
+        const helpText = renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
+
         return (
             <GeneratedSetting
                 key={this.props.schema.id + '_generated_' + setting.key}
                 id={setting.key}
-                label={this.renderLabel(setting)}
-                helpText={this.renderSettingHelpText(setting)}
+                label={label}
+                helpText={helpText}
                 regenerateHelpText={setting.regenerate_help_text}
                 placeholder={descriptorOrStringToString(setting.placeholder, this.props.intl)}
                 value={this.state[setting.key] ?? (setting.default || '')}
                 disabled={this.isDisabled(setting)}
-                setByEnv={this.isSetByEnv(setting.key)}
+                setByEnv={isSetByEnv(setting.key, this.props.environmentConfig)}
                 onChange={this.handleGeneratedChange}
             />
         );
@@ -875,12 +828,15 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             return (<></>);
         }
 
+        const label = renderLabel(setting, this.props.schema, this.props.intl);
+        const helpText = renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
+
         return (
             <UserAutocompleteSetting
                 key={this.props.schema.id + '_userautocomplete_' + setting.key}
                 id={setting.key}
-                label={this.renderLabel(setting)}
-                helpText={this.renderSettingHelpText(setting)}
+                label={label}
+                helpText={helpText}
                 placeholder={setting.placeholder}
                 value={this.state[setting.key] ?? (setting.default || '')}
                 disabled={this.isDisabled(setting)}
@@ -894,6 +850,8 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             return (<></>);
         }
 
+        const helpText = renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
+
         return (
             <JobsTable
                 key={this.props.schema.id + '_jobstable_' + setting.key}
@@ -901,7 +859,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 getExtraInfoText={setting.render_job}
                 disabled={this.isDisabled(setting)}
                 createJobButtonText={descriptorOrStringToString(setting.label, this.props.intl)}
-                createJobHelpText={this.renderSettingHelpText(setting)}
+                createJobHelpText={helpText}
             />
         );
     };
@@ -923,18 +881,22 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 };
                 setting.remove_action(successCallback, errorCallback);
             };
+
+            const label = renderLabel(setting, this.props.schema, this.props.intl);
+            const helpText = renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
+
             return (
                 <RemoveFileSetting
                     id={this.props.schema.id}
                     key={this.props.schema.id + '_fileupload_' + setting.key}
-                    label={this.renderLabel(setting)}
-                    helpText={descriptorOrStringToString(setting.remove_help_text, this.props.intl)}
+                    label={label}
+                    helpText={helpText}
                     removeButtonText={descriptorOrStringToString(setting.remove_button_text, this.props.intl)}
                     removingText={descriptorOrStringToString(setting.removing_text, this.props.intl)}
                     fileName={this.state[setting.key]}
                     onSubmit={removeFile}
                     disabled={this.isDisabled(setting)}
-                    setByEnv={this.isSetByEnv(setting.key)}
+                    setByEnv={isSetByEnv(setting.key, this.props.environmentConfig)}
                 />
             );
         }
@@ -954,12 +916,15 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             setting.upload_action(file, successCallback, errorCallback);
         };
 
+        const label = renderLabel(setting, this.props.schema, this.props.intl);
+        const helpText = renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
+
         return (
             <FileUploadSetting
                 id={setting.key}
                 key={this.props.schema.id + '_fileupload_' + setting.key}
-                label={this.renderLabel(setting)}
-                helpText={this.renderSettingHelpText(setting)}
+                label={label}
+                helpText={helpText}
                 uploadingText={descriptorOrStringToString(setting.uploading_text, this.props.intl)}
                 disabled={this.isDisabled(setting)}
                 fileType={setting.fileType}
@@ -974,19 +939,22 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             return (<></>);
         }
 
+        const label = renderLabel(setting, this.props.schema, this.props.intl);
+        const helpText = renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
+
         const CustomComponent = setting.component;
 
         const componentInstance = (
             <CustomComponent
                 key={this.props.schema.id + '_custom_' + setting.key}
                 id={setting.key}
-                label={this.renderLabel(setting)}
-                helpText={this.renderSettingHelpText(setting)}
+                label={label}
+                helpText={helpText}
                 value={this.state[setting.key]}
                 disabled={this.isDisabled(setting)}
                 config={this.props.config}
                 license={this.props.license}
-                setByEnv={this.isSetByEnv(setting.key)}
+                setByEnv={isSetByEnv(setting.key, this.props.environmentConfig)}
                 onChange={this.handleChange}
                 registerSaveAction={this.registerSaveAction}
                 setSaveNeeded={this.setSaveNeeded}
@@ -1178,7 +1146,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
 
         // clone config so that we aren't modifying data in the stores
         let config = JSON.parse(JSON.stringify(this.props.config));
-        config = this.getConfigFromState(config);
+        config = getConfigFromState(config, this.state, this.props.schema, this.isDisabled);
 
         const {error} = await this.props.patchConfig(config);
         if (error) {
@@ -1224,24 +1192,6 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         }, config);
     }
 
-    setConfigValue(config: any, path: string, value: any) {
-        function setValue(obj: any, pathParts: string[]) {
-            const part = unescapePathPart(pathParts[0]);
-
-            if (pathParts.length === 1) {
-                obj[part] = value;
-            } else {
-                if (obj[part] == null) {
-                    obj[part] = {};
-                }
-
-                setValue(obj[part], pathParts.slice(1));
-            }
-        }
-
-        setValue(config, path.split('.'));
-    }
-
     isSetByEnv = (path: string) => {
         return Boolean(SchemaAdminSettings.getConfigValue(this.props.environmentConfig, path));
     };
@@ -1273,7 +1223,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             }
 
             // don't validate elements set by env.
-            if (this.isSetByEnv(setting.key)) {
+            if (isSetByEnv(setting.key, this.props.environmentConfig)) {
                 continue;
             }
 
@@ -1395,5 +1345,168 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         );
     };
 }
+
+export const renderLabel = (
+    setting: AdminDefinitionSetting,
+    schema: AdminDefinitionSubSectionSchema | null,
+    intl: IntlShape,
+) => {
+    if (!schema || !setting.label) {
+        return '';
+    }
+
+    if (typeof setting.label === 'string') {
+        return setting.label;
+    }
+
+    return intl.formatMessage(setting.label);
+};
+
+export const renderSettingHelpText = (
+    setting: AdminDefinitionSetting,
+    schema: AdminDefinitionSubSectionSchema | null,
+    isDisabled: boolean,
+) => {
+    if (!schema || setting.type === 'banner' || !setting.help_text) {
+        return <span>{''}</span>;
+    }
+
+    let helpText;
+    let isMarkdown;
+    let helpTextValues;
+    if ('disabled_help_text' in setting && setting.disabled_help_text && isDisabled) {
+        helpText = setting.disabled_help_text;
+        isMarkdown = setting.disabled_help_text_markdown;
+        helpTextValues = setting.disabled_help_text_values;
+    } else {
+        helpText = setting.help_text;
+        isMarkdown = setting.help_text_markdown;
+        helpTextValues = setting.help_text_values;
+    }
+
+    return (
+        <SchemaText
+            isMarkdown={isMarkdown}
+            text={helpText}
+            textValues={helpTextValues}
+        />
+    );
+};
+
+export const isSetByEnv = (path: string, environmentConfig: Partial<EnvironmentConfig>) => {
+    return Boolean(SchemaAdminSettings.getConfigValue(environmentConfig, path));
+};
+
+export const renderDropdownOptionHelpText = (option: AdminDefinitionSettingDropdownOption) => {
+    if (!option.help_text) {
+        return <span>{''}</span>;
+    }
+
+    return (
+        <SchemaText
+            isMarkdown={option.help_text_markdown}
+            text={option.help_text}
+            textValues={option.help_text_values}
+        />
+    );
+};
+
+export const setConfigValue = (config: any, path: string, value: any) => {
+    function setValue(obj: any, pathParts: string[]) {
+        const part = unescapePathPart(pathParts[0]);
+
+        if (pathParts.length === 1) {
+            obj[part] = value;
+        } else {
+            if (obj[part] == null) {
+                obj[part] = {};
+            }
+
+            setValue(obj[part], pathParts.slice(1));
+        }
+    }
+
+    setValue(config, path.split('.'));
+};
+
+export const getSettingValue = (
+    setting: AdminDefinitionSetting,
+    state: any,
+    config: Partial<AdminConfig>,
+    isDisabled: (setting: AdminDefinitionSetting) => boolean,
+) => {
+    // Force boolean values to false when disabled.
+    if (setting.type === Constants.SettingsTypes.TYPE_BOOL) {
+        if (isDisabled(setting)) {
+            return false;
+        }
+    }
+    if (!setting.key) {
+        return undefined;
+    }
+
+    if (setting.type === Constants.SettingsTypes.TYPE_TEXT && setting.dynamic_value) {
+        return setting.dynamic_value(state[setting.key], config, state);
+    }
+
+    return state[setting.key];
+};
+
+export const getConfigFromState = (
+    config: Partial<AdminConfig>,
+    state: any,
+    schema: AdminDefinitionSubSectionSchema,
+    isDisabled: (setting: AdminDefinitionSetting) => boolean,
+) => {
+    if (schema) {
+        let settings: AdminDefinitionSetting[] = [];
+
+        if ('settings' in schema && schema.settings) {
+            settings = schema.settings;
+        } else if ('sections' in schema && schema.sections) {
+            schema.sections.map((section) => section.settings).forEach((sectionSettings) => settings.push(...sectionSettings));
+        }
+
+        // Recursively collect settings from expandable settings
+        const collectSettingsRecursively = (settingsArray: AdminDefinitionSetting[]): AdminDefinitionSetting[] => {
+            const allSettings: AdminDefinitionSetting[] = [];
+            settingsArray.forEach((setting) => {
+                allSettings.push(setting);
+                if (setting.type === Constants.SettingsTypes.TYPE_EXPANDABLE_SETTING && setting.settings) {
+                    allSettings.push(...collectSettingsRecursively(setting.settings));
+                }
+            });
+            return allSettings;
+        };
+
+        const allSettings = collectSettingsRecursively(settings);
+
+        allSettings.forEach((setting) => {
+            if (!setting.key) {
+                return;
+            }
+
+            if (setting.type === Constants.SettingsTypes.TYPE_PERMISSION) {
+                setConfigValue(config, setting.key, null);
+                return;
+            }
+
+            let value = getSettingValue(setting, state, config, isDisabled);
+            const previousValue = SchemaAdminSettings.getConfigValue(config, setting.key);
+
+            if ('onConfigSave' in setting && setting.onConfigSave) {
+                value = setting.onConfigSave(value, previousValue);
+            }
+
+            setConfigValue(config, setting.key, value);
+        });
+
+        if ('onConfigSave' in schema && schema.onConfigSave) {
+            return schema.onConfigSave(config);
+        }
+    }
+
+    return config;
+};
 
 export default injectIntl(SchemaAdminSettings);

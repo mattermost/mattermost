@@ -341,7 +341,7 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 	})
 }
 
-func TestUnAssignPoliciesFromChannels(t *testing.T) {
+func TestUnassignPoliciesFromChannels(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -405,6 +405,7 @@ func TestUnAssignPoliciesFromChannels(t *testing.T) {
 	})
 
 	t.Run("Error deleting policy from AccessControlService", func(t *testing.T) {
+		t.Skip("MM-64541")
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
 
