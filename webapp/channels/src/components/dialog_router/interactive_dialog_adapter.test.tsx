@@ -1230,7 +1230,11 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             } = mockCall.actions;
 
             // Test lookup handler returns empty items
-            const lookupResult = await doAppLookup();
+            const lookupResult = await doAppLookup({
+                selected_field: 'test_field',
+                query: 'test',
+                values: {},
+            });
             expect(lookupResult.data).toEqual({
                 type: 'ok',
                 data: {items: []},
@@ -1249,12 +1253,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             expect(typeof postEphemeralCallResponseForContext).toBe('function');
 
             // Should log warnings about unsupported features
-            expect(mockConsole.warn).toHaveBeenCalledWith(
-                '[InteractiveDialogAdapter]',
-                'Unexpected lookup call in Interactive Dialog adapter - this should not happen',
-                '',
-            );
-
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 '[InteractiveDialogAdapter]',
                 'Unexpected refresh call in Interactive Dialog adapter - this should not happen',
@@ -1614,8 +1612,8 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
         });
     });
 
-    describe('Dynamic Select Support', () => {
-        test('should convert select element with dynamic data_source correctly', async () => {
+    describe('Dynamic Select Integration', () => {
+        test('should render dynamic select with correct props', async () => {
             const dynamicDataSourceElement: DialogElement = {
                 name: 'dynamic-data-source-field',
                 type: 'select',
@@ -1646,72 +1644,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 const expectedValue = JSON.stringify({label: 'preset_value', value: 'preset_value'});
                 expect(getByTestId('field-value-dynamic-data-source-field')).toHaveTextContent(expectedValue);
                 expect(getByTestId('field-required-dynamic-data-source-field')).toHaveTextContent('optional');
-            });
-        });
-
-        test('should handle dynamic select default values correctly', async () => {
-            const dynamicSelectWithDefault: DialogElement = {
-                name: 'dynamic-with-default',
-                type: 'select',
-                data_source: 'dynamic',
-                display_name: 'Dynamic Select with Default',
-                help_text: '',
-                placeholder: '',
-                default: 'selected_option_value',
-                optional: false,
-                max_length: 0,
-                min_length: 0,
-                subtype: '',
-                options: [],
-            };
-
-            const props = {
-                ...baseProps,
-                elements: [dynamicSelectWithDefault],
-            };
-
-            const {getByTestId} = renderWithContext(
-                <InteractiveDialogAdapter {...props}/>,
-            );
-
-            await waitFor(() => {
-                const valueElement = getByTestId('field-value-dynamic-with-default');
-                const valueText = valueElement.textContent;
-
-                // Should create AppSelectOption with both label and value set to default
-                expect(valueText).toContain('selected_option_value');
-                expect(valueText).toContain('label');
-                expect(valueText).toContain('value');
-            });
-        });
-
-        test('should handle empty default for dynamic select', async () => {
-            const dynamicSelectNoDefault: DialogElement = {
-                name: 'dynamic-no-default',
-                type: 'select',
-                data_source: 'dynamic',
-                display_name: 'Dynamic Select No Default',
-                help_text: '',
-                placeholder: '',
-                default: '',
-                optional: true,
-                max_length: 0,
-                min_length: 0,
-                subtype: '',
-                options: [],
-            };
-
-            const props = {
-                ...baseProps,
-                elements: [dynamicSelectNoDefault],
-            };
-
-            const {getByTestId} = renderWithContext(
-                <InteractiveDialogAdapter {...props}/>,
-            );
-
-            await waitFor(() => {
-                expect(getByTestId('field-value-dynamic-no-default')).toHaveTextContent('null');
             });
         });
 

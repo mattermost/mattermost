@@ -199,6 +199,9 @@ export function getFieldType(element: DialogElement): string | null {
         if (element.data_source === 'channels') {
             return AppFieldTypes.CHANNEL;
         }
+        if (element.data_source === 'dynamic') {
+            return AppFieldTypes.DYNAMIC_SELECT;
+        }
         return AppFieldTypes.STATIC_SELECT;
     case DialogElementTypes.BOOL:
         return AppFieldTypes.BOOL;
@@ -228,6 +231,14 @@ export function getDefaultValue(element: DialogElement): AppFormValue {
 
     case DialogElementTypes.SELECT:
     case DialogElementTypes.RADIO: {
+        // Handle dynamic selects that use data_source instead of static options
+        if (element.type === 'select' && element.data_source === 'dynamic' && element.default) {
+            return {
+                label: String(element.default),
+                value: String(element.default),
+            };
+        }
+
         if (element.options && element.default) {
             const defaultOption = element.options.find((option) => option.value === element.default);
             if (defaultOption) {
@@ -334,6 +345,13 @@ export function convertElement(element: DialogElement, options: ConversionOption
     // Add options for select and radio fields
     if (element.type === DialogElementTypes.SELECT || element.type === DialogElementTypes.RADIO) {
         appField.options = getOptions(element);
+
+        // Add lookup support for dynamic selects
+        if (element.type === DialogElementTypes.SELECT && element.data_source === 'dynamic') {
+            appField.lookup = {
+                path: element.data_source_url || '',
+            };
+        }
     }
 
     return {field: appField, errors};
