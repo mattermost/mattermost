@@ -858,7 +858,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.ExperimentalStrictCSRFEnforcement == nil {
-		s.ExperimentalStrictCSRFEnforcement = NewPointer(false)
+		s.ExperimentalStrictCSRFEnforcement = NewPointer(true)
 	}
 
 	if s.DisableBotsWhenOwnerIsDeactivated == nil {
