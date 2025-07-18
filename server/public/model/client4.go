@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -989,7 +990,7 @@ func (c *Client4) CreateUser(ctx context.Context, user *User) (*User, *Response,
 // CreateUserWithToken creates a user in the system based on the provided tokenId.
 func (c *Client4) CreateUserWithToken(ctx context.Context, user *User, tokenId string) (*User, *Response, error) {
 	if tokenId == "" {
-		return nil, nil, NewAppError("MissingHashOrData", "api.user.create_user.missing_token.app_error", nil, "", http.StatusBadRequest)
+		return nil, nil, errors.New("token ID is required")
 	}
 
 	query := "?t=" + tokenId
@@ -1005,7 +1006,7 @@ func (c *Client4) CreateUserWithToken(ctx context.Context, user *User, tokenId s
 // CreateUserWithInviteId creates a user in the system based on the provided invited id.
 func (c *Client4) CreateUserWithInviteId(ctx context.Context, user *User, inviteId string) (*User, *Response, error) {
 	if inviteId == "" {
-		return nil, nil, NewAppError("MissingInviteId", "api.user.create_user.missing_invite_id.app_error", nil, "", http.StatusBadRequest)
+		return nil, nil, errors.New("invite ID is required")
 	}
 
 	query := "?iid=" + url.QueryEscape(inviteId)
@@ -1708,15 +1709,15 @@ func (c *Client4) SetProfileImage(ctx context.Context, userId string, data []byt
 
 	part, err := writer.CreateFormFile("image", "profile.png")
 	if err != nil {
-		return nil, NewAppError("SetProfileImage", "model.client.set_profile_user.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, fmt.Errorf("failed to create form file: %w", err)
 	}
 
 	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
-		return nil, NewAppError("SetProfileImage", "model.client.set_profile_user.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, fmt.Errorf("failed to copy data to form file: %w", err)
 	}
 
 	if err = writer.Close(); err != nil {
-		return nil, NewAppError("SetProfileImage", "model.client.set_profile_user.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, fmt.Errorf("failed to close multipart writer: %w", err)
 	}
 
 	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+c.userRoute(userId)+"/image", bytes.NewReader(body.Bytes()))
@@ -2513,15 +2514,15 @@ func (c *Client4) SetTeamIcon(ctx context.Context, teamId string, data []byte) (
 
 	part, err := writer.CreateFormFile("image", "teamIcon.png")
 	if err != nil {
-		return nil, NewAppError("SetTeamIcon", "model.client.set_team_icon.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, fmt.Errorf("failed to create form file for team icon: %w", err)
 	}
 
 	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
-		return nil, NewAppError("SetTeamIcon", "model.client.set_team_icon.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, fmt.Errorf("failed to copy data to team icon form file: %w", err)
 	}
 
 	if err = writer.Close(); err != nil {
-		return nil, NewAppError("SetTeamIcon", "model.client.set_team_icon.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, fmt.Errorf("failed to close multipart writer for team icon: %w", err)
 	}
 
 	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+c.teamRoute(teamId)+"/image", bytes.NewReader(body.Bytes()))
@@ -3019,13 +3020,13 @@ func (c *Client4) GetChannelMembersWithTeamData(ctx context.Context, userID stri
 				// TODO(hanzei): Double check
 				var member ChannelMemberWithTeamData
 				if err2 := json.Unmarshal([]byte(line), &member); err2 != nil {
-					return nil, BuildResponse(r), NewAppError("GetChannelMembersWithTeamData", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err2)
+					return nil, BuildResponse(r), fmt.Errorf("failed to unmarshal channel member data: %w", err2)
 				}
 				ch = append(ch, member)
 			}
 
 			if err2 := scanner.Err(); err2 != nil {
-				return nil, BuildResponse(r), NewAppError("GetChannelMembersWithTeamData", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err2)
+				return nil, BuildResponse(r), fmt.Errorf("scanner error while reading channel members: %w", err2)
 			}
 
 			return ch, BuildResponse(r), nil
@@ -3421,7 +3422,7 @@ func (c *Client4) GetPostsByIds(ctx context.Context, postIds []string) ([]*Post,
 func (c *Client4) GetEditHistoryForPost(ctx context.Context, postId string) ([]*Post, *Response, error) {
 	js, err := json.Marshal(postId)
 	if err != nil {
-		return nil, nil, NewAppError("GetEditHistoryForPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, nil, fmt.Errorf("failed to marshal edit history request: %w", err)
 	}
 	r, err := c.DoAPIGet(ctx, c.postRoute(postId)+"/edit_history", string(js))
 	if err != nil {
@@ -3445,7 +3446,7 @@ func (c *Client4) GetFlaggedPostsForUser(ctx context.Context, userId string, pag
 // GetFlaggedPostsForUserInTeam returns flagged posts in team of a user based on user id string.
 func (c *Client4) GetFlaggedPostsForUserInTeam(ctx context.Context, userId string, teamId string, page int, perPage int) (*PostList, *Response, error) {
 	if !IsValidId(teamId) {
-		return nil, nil, NewAppError("GetFlaggedPostsForUserInTeam", "model.client.get_flagged_posts_in_team.missing_parameter.app_error", nil, "", http.StatusBadRequest)
+		return nil, nil, errors.New("teamId is invalid")
 	}
 
 	query := fmt.Sprintf("?team_id=%v&page=%v&per_page=%v", teamId, page, perPage)
@@ -3460,7 +3461,7 @@ func (c *Client4) GetFlaggedPostsForUserInTeam(ctx context.Context, userId strin
 // GetFlaggedPostsForUserInChannel returns flagged posts in channel of a user based on user id string.
 func (c *Client4) GetFlaggedPostsForUserInChannel(ctx context.Context, userId string, channelId string, page int, perPage int) (*PostList, *Response, error) {
 	if !IsValidId(channelId) {
-		return nil, nil, NewAppError("GetFlaggedPostsForUserInChannel", "model.client.get_flagged_posts_in_channel.missing_parameter.app_error", nil, "", http.StatusBadRequest)
+		return nil, nil, errors.New("channelId is invalid")
 	}
 
 	query := fmt.Sprintf("?channel_id=%v&page=%v&per_page=%v", channelId, page, perPage)
@@ -4126,15 +4127,15 @@ func (c *Client4) UploadLicenseFile(ctx context.Context, data []byte) (*Response
 
 	part, err := writer.CreateFormFile("license", "test-license.mattermost-license")
 	if err != nil {
-		return nil, NewAppError("UploadLicenseFile", "model.client.set_profile_user.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, fmt.Errorf("failed to create form file for license upload: %w", err)
 	}
 
 	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
-		return nil, NewAppError("UploadLicenseFile", "model.client.set_profile_user.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, fmt.Errorf("failed to copy license data to form file: %w", err)
 	}
 
 	if err = writer.Close(); err != nil {
-		return nil, NewAppError("UploadLicenseFile", "model.client.set_profile_user.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, fmt.Errorf("failed to close multipart writer for license upload: %w", err)
 	}
 
 	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+c.licenseRoute(), bytes.NewReader(body.Bytes()))
@@ -4458,7 +4459,7 @@ func fileToMultipart(data []byte, filename string) ([]byte, *multipart.Writer, e
 func (c *Client4) UploadSamlIdpCertificate(ctx context.Context, data []byte, filename string) (*Response, error) {
 	body, writer, err := fileToMultipart(data, filename)
 	if err != nil {
-		return nil, NewAppError("UploadSamlIdpCertificate", "model.client.upload_saml_cert.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, fmt.Errorf("failed to prepare SAML IDP certificate for upload: %w", err)
 	}
 
 	_, resp, err := c.DoUploadFile(ctx, c.samlRoute()+"/certificate/idp", body, writer.FormDataContentType())
@@ -4470,7 +4471,7 @@ func (c *Client4) UploadSamlIdpCertificate(ctx context.Context, data []byte, fil
 func (c *Client4) UploadSamlPublicCertificate(ctx context.Context, data []byte, filename string) (*Response, error) {
 	body, writer, err := fileToMultipart(data, filename)
 	if err != nil {
-		return nil, NewAppError("UploadSamlPublicCertificate", "model.client.upload_saml_cert.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, fmt.Errorf("failed to prepare SAML public certificate for upload: %w", err)
 	}
 
 	_, resp, err := c.DoUploadFile(ctx, c.samlRoute()+"/certificate/public", body, writer.FormDataContentType())
@@ -4482,7 +4483,7 @@ func (c *Client4) UploadSamlPublicCertificate(ctx context.Context, data []byte, 
 func (c *Client4) UploadSamlPrivateCertificate(ctx context.Context, data []byte, filename string) (*Response, error) {
 	body, writer, err := fileToMultipart(data, filename)
 	if err != nil {
-		return nil, NewAppError("UploadSamlPrivateCertificate", "model.client.upload_saml_cert.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, fmt.Errorf("failed to prepare SAML private certificate for upload: %w", err)
 	}
 
 	_, resp, err := c.DoUploadFile(ctx, c.samlRoute()+"/certificate/private", body, writer.FormDataContentType())
@@ -4668,7 +4669,7 @@ func (c *Client4) GetLdapGroups(ctx context.Context) ([]*Group, *Response, error
 		Groups []*Group `json:"groups"`
 	}](r)
 	if err != nil {
-		return nil, BuildResponse(r), NewAppError("Api4.GetLdapGroups", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, BuildResponse(r), fmt.Errorf("failed to decode LDAP groups response: %w", err)
 	}
 	for i := range responseData.Groups {
 		responseData.Groups[i].DisplayName = *responseData.Groups[i].Name
@@ -4732,7 +4733,7 @@ func (c *Client4) GetGroupsByChannel(ctx context.Context, channelId string, opts
 		Count  int                     `json:"total_group_count"`
 	}](r)
 	if err != nil {
-		return nil, 0, BuildResponse(r), NewAppError("Api4.GetGroupsByChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, 0, BuildResponse(r), fmt.Errorf("failed to decode groups by channel response: %w", err)
 	}
 
 	return responseData.Groups, responseData.Count, resp, nil
@@ -4755,7 +4756,7 @@ func (c *Client4) GetGroupsByTeam(ctx context.Context, teamId string, opts Group
 		Count  int                     `json:"total_group_count"`
 	}](r)
 	if err != nil {
-		return nil, 0, BuildResponse(r), NewAppError("Api4.GetGroupsByTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, 0, BuildResponse(r), fmt.Errorf("failed to decode groups by team response: %w", err)
 	}
 
 	return responseData.Groups, responseData.Count, resp, nil
@@ -4777,7 +4778,7 @@ func (c *Client4) GetGroupsAssociatedToChannelsByTeam(ctx context.Context, teamI
 		GroupsAssociatedToChannels map[string][]*GroupWithSchemeAdmin `json:"groups"`
 	}](r)
 	if err != nil {
-		return nil, BuildResponse(r), NewAppError("Api4.GetGroupsAssociatedToChannelsByTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, BuildResponse(r), fmt.Errorf("failed to decode groups associated to channels by team response: %w", err)
 	}
 
 	return responseData.GroupsAssociatedToChannels, resp, nil
@@ -4862,7 +4863,7 @@ func (c *Client4) MigrateAuthToSaml(ctx context.Context, fromAuthService string,
 func (c *Client4) UploadLdapPublicCertificate(ctx context.Context, data []byte) (*Response, error) {
 	body, writer, err := fileToMultipart(data, LdapPublicCertificateName)
 	if err != nil {
-		return nil, NewAppError("UploadLdapPublicCertificate", "model.client.upload_ldap_cert.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, fmt.Errorf("failed to prepare LDAP public certificate for upload: %w", err)
 	}
 
 	_, resp, err := c.DoUploadFile(ctx, c.ldapRoute()+"/certificate/public", body, writer.FormDataContentType())
@@ -4873,7 +4874,7 @@ func (c *Client4) UploadLdapPublicCertificate(ctx context.Context, data []byte) 
 func (c *Client4) UploadLdapPrivateCertificate(ctx context.Context, data []byte) (*Response, error) {
 	body, writer, err := fileToMultipart(data, LdapPrivateKeyName)
 	if err != nil {
-		return nil, NewAppError("UploadLdapPrivateCertificate", "model.client.upload_Ldap_cert.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, fmt.Errorf("failed to prepare LDAP private certificate for upload: %w", err)
 	}
 
 	_, resp, err := c.DoUploadFile(ctx, c.ldapRoute()+"/certificate/private", body, writer.FormDataContentType())
@@ -4947,15 +4948,15 @@ func (c *Client4) UploadBrandImage(ctx context.Context, data []byte) (*Response,
 
 	part, err := writer.CreateFormFile("image", "brand.png")
 	if err != nil {
-		return nil, NewAppError("UploadBrandImage", "model.client.set_profile_user.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, fmt.Errorf("failed to create form file for brand image upload: %w", err)
 	}
 
 	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
-		return nil, NewAppError("UploadBrandImage", "model.client.set_profile_user.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, fmt.Errorf("failed to copy brand image data to form file: %w", err)
 	}
 
 	if err = writer.Close(); err != nil {
-		return nil, NewAppError("UploadBrandImage", "model.client.set_profile_user.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, fmt.Errorf("failed to close multipart writer for brand image upload: %w", err)
 	}
 
 	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+c.brandRoute()+"/image", bytes.NewReader(body.Bytes()))
@@ -5559,7 +5560,7 @@ func (c *Client4) ExecuteCommand(ctx context.Context, channelId, command string)
 
 	response, err := CommandResponseFromJSON(r.Body)
 	if err != nil {
-		return nil, BuildResponse(r), NewAppError("ExecuteCommand", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, BuildResponse(r), fmt.Errorf("failed to decode command response: %w", err)
 	}
 	return response, BuildResponse(r), nil
 }
@@ -5580,7 +5581,7 @@ func (c *Client4) ExecuteCommandWithTeam(ctx context.Context, channelId, teamId,
 
 	response, err := CommandResponseFromJSON(r.Body)
 	if err != nil {
-		return nil, BuildResponse(r), NewAppError("ExecuteCommandWithTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, BuildResponse(r), fmt.Errorf("failed to decode command response: %w", err)
 	}
 	return response, BuildResponse(r), nil
 }
@@ -5697,7 +5698,7 @@ func (c *Client4) CreateEmoji(ctx context.Context, emoji *Emoji, image []byte, f
 
 	emojiJSON, err := json.Marshal(emoji)
 	if err != nil {
-		return nil, nil, NewAppError("CreateEmoji", "api.marshal_error", nil, "", 0).Wrap(err)
+		return nil, nil, fmt.Errorf("failed to marshal emoji data: %w", err)
 	}
 
 	if err := writer.WriteField("emoji", string(emojiJSON)); err != nil {
@@ -6253,7 +6254,7 @@ func (c *Client4) GetMarketplacePlugins(ctx context.Context, filter *Marketplace
 
 	plugins, err := MarketplacePluginsFromReader(r.Body)
 	if err != nil {
-		return nil, BuildResponse(r), NewAppError(route, "model.client.parse_plugins.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, BuildResponse(r), fmt.Errorf("failed to parse marketplace plugins response: %w", err)
 	}
 
 	return plugins, BuildResponse(r), nil
@@ -7011,7 +7012,7 @@ func (c *Client4) DownloadExport(ctx context.Context, name string, wr io.Writer,
 	defer closeBody(r)
 	n, err := io.Copy(wr, r.Body)
 	if err != nil {
-		return n, BuildResponse(r), NewAppError("DownloadExport", "model.client.copy.app_error", nil, "", r.StatusCode).Wrap(err)
+		return n, BuildResponse(r), fmt.Errorf("failed to copy export data to writer: %w", err)
 	}
 	return n, BuildResponse(r), nil
 }
@@ -7092,7 +7093,7 @@ func (c *Client4) DownloadComplianceExport(ctx context.Context, jobId string, wr
 
 	_, err = io.Copy(wr, r.Body)
 	if err != nil {
-		return filename, NewAppError("DownloadComplianceExport", "model.client.copy.app_error", nil, "", r.StatusCode).Wrap(err)
+		return filename, fmt.Errorf("failed to copy compliance export data to writer: %w", err)
 	}
 	return filename, nil
 }
