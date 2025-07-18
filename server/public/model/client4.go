@@ -723,7 +723,7 @@ func (c *Client4) DoAPIDelete(ctx context.Context, url string) (*http.Response, 
 
 // DoAPIDeleteJSON marshals the provided data to JSON and makes a DELETE request to the specified URL.
 // Returns the HTTP response or any error that occurred during marshaling or request.
-func (c *Client4) DoAPIDeleteJSON(ctx context.Context, url string, data any, funcName string) (*http.Response, error) {
+func (c *Client4) DoAPIDeleteJSON(ctx context.Context, url string, data any) (*http.Response, error) {
 	buf, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
@@ -734,7 +734,7 @@ func (c *Client4) DoAPIDeleteJSON(ctx context.Context, url string, data any, fun
 // DoAPIRequestWithHeaders makes an HTTP request with the specified method, URL, and custom headers.
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIRequestWithHeaders(ctx context.Context, method, url, data string, headers map[string]string) (*http.Response, error) {
-	return c.doAPIRequestReader(ctx, method, url, strings.NewReader(""), headers)
+	return c.doAPIRequestReader(ctx, method, url, strings.NewReader(data), headers)
 }
 
 func (c *Client4) doAPIRequest(ctx context.Context, method, url, data, etag string) (*http.Response, error) {
@@ -5356,7 +5356,7 @@ func (c *Client4) AddTeamsToRetentionPolicy(ctx context.Context, policyID string
 // RemoveTeamsFromRetentionPolicy will remove the specified teams from the granular data retention policy
 // with the specified ID.
 func (c *Client4) RemoveTeamsFromRetentionPolicy(ctx context.Context, policyID string, teamIDs []string) (*Response, error) {
-	r, err := c.DoAPIDeleteJSON(ctx, c.dataRetentionPolicyRoute(policyID)+"/teams", teamIDs, "")
+	r, err := c.DoAPIDeleteJSON(ctx, c.dataRetentionPolicyRoute(policyID)+"/teams", teamIDs)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5397,7 +5397,7 @@ func (c *Client4) AddChannelsToRetentionPolicy(ctx context.Context, policyID str
 // RemoveChannelsFromRetentionPolicy will remove the specified channels from the granular data retention policy
 // with the specified ID.
 func (c *Client4) RemoveChannelsFromRetentionPolicy(ctx context.Context, policyID string, channelIDs []string) (*Response, error) {
-	r, err := c.DoAPIDeleteJSON(ctx, c.dataRetentionPolicyRoute(policyID)+"/channels", channelIDs, "")
+	r, err := c.DoAPIDeleteJSON(ctx, c.dataRetentionPolicyRoute(policyID)+"/channels", channelIDs)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6428,7 +6428,7 @@ func (c *Client4) UpsertGroupMembers(ctx context.Context, groupID string, userId
 }
 
 func (c *Client4) DeleteGroupMembers(ctx context.Context, groupID string, userIds *GroupModifyMembers) ([]*GroupMember, *Response, error) {
-	r, err := c.DoAPIDeleteJSON(ctx, c.groupRoute(groupID)+"/members", userIds, "")
+	r, err := c.DoAPIDeleteJSON(ctx, c.groupRoute(groupID)+"/members", userIds)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7707,7 +7707,7 @@ func (c *Client4) UnassignAccessControlPolicies(ctx context.Context, policyID st
 	}
 	unassignments.ChannelIds = resourceIDs
 
-	r, err := c.DoAPIDeleteJSON(ctx, c.accessControlPolicyRoute(policyID)+"/unassign", unassignments, "")
+	r, err := c.DoAPIDeleteJSON(ctx, c.accessControlPolicyRoute(policyID)+"/unassign", unassignments)
 	if err != nil {
 		return BuildResponse(r), err
 	}
