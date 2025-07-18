@@ -70,6 +70,9 @@ type FeatureFlags struct {
 	AttributeBasedAccessControl bool
 
 	ContentFlagging bool
+
+	// Enable AppsForm for Interactive Dialogs instead of legacy dialog implementation
+	InteractiveDialogAppsForm bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -99,6 +102,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
 	f.ContentFlagging = false
+	f.InteractiveDialogAppsForm = true
 }
 
 // ToMap returns the feature flags as a map[string]string
