@@ -1202,7 +1202,7 @@ func TestCreatePost(t *testing.T) {
 
 		channelForPreview := th.CreateChannel(th.Context, th.BasicTeam)
 
-		for i := 0; i < 20; i++ {
+		for range 20 {
 			user := th.CreateUser()
 			th.LinkUserToTeam(user, th.BasicTeam)
 			th.AddUserToChannel(user, channelForPreview)
@@ -1235,7 +1235,7 @@ func TestCreatePost(t *testing.T) {
 		n := 1000
 		var wg sync.WaitGroup
 		wg.Add(n)
-		for i := 0; i < n; i++ {
+		for range n {
 			go func() {
 				defer wg.Done()
 				post := previewPost.Clone()
