@@ -2224,7 +2224,7 @@ func (c *Client4) PermanentDeleteTeam(ctx context.Context, teamId string) (*Resp
 // the corresponding AllowOpenInvite appropriately.
 func (c *Client4) UpdateTeamPrivacy(ctx context.Context, teamId string, privacy string) (*Team, *Response, error) {
 	requestBody := map[string]string{"privacy": privacy}
-	r, err := c.DoAPIPostJSON(ctx, c.teamRoute(teamId)+"/privacy", requestBody)
+	r, err := c.DoAPIPutJSON(ctx, c.teamRoute(teamId)+"/privacy", requestBody)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
