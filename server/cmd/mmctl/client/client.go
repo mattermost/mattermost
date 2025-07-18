@@ -12,6 +12,8 @@ import (
 )
 
 type Client interface {
+	DoAPIPostJSON(ctx context.Context, url string, data any) (*http.Response, error)
+
 	CreateChannel(ctx context.Context, channel *model.Channel) (*model.Channel, *model.Response, error)
 	RemoveUserFromChannel(ctx context.Context, channelID, userID string) (*model.Response, error)
 	GetChannelMembers(ctx context.Context, channelID string, page, perPage int, etag string) (model.ChannelMembers, *model.Response, error)
@@ -44,7 +46,6 @@ type Client interface {
 	CreatePost(ctx context.Context, post *model.Post) (*model.Post, *model.Response, error)
 	GetPostsForChannel(ctx context.Context, channelID string, page, perPage int, etag string, collapsedThreads bool, includeDeleted bool) (*model.PostList, *model.Response, error)
 	GetPostsSince(ctx context.Context, channelID string, since int64, collapsedThreads bool) (*model.PostList, *model.Response, error)
-	DoAPIPost(ctx context.Context, url string, data string) (*http.Response, error)
 	GetLdapGroups(ctx context.Context) ([]*model.Group, *model.Response, error)
 	GetGroupsByChannel(ctx context.Context, channelID string, groupOpts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.Response, error)
 	GetGroupsByTeam(ctx context.Context, teamID string, groupOpts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.Response, error)
