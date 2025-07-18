@@ -335,12 +335,8 @@ func init() {
 	UserCreateCmd.Flags().String("lastname", "", "Optional. The last name for the new user account")
 	UserCreateCmd.Flags().String("locale", "", "Optional. The locale (ex: en, fr) for the new user account")
 	UserCreateCmd.Flags().Bool("system-admin", false, "Optional. If supplied, the new user will be a system administrator. Defaults to false")
-	UserCreateCmd.Flags().Bool("system_admin", false, "")
-	_ = UserCreateCmd.Flags().MarkDeprecated("system_admin", "please use system-admin instead")
 	UserCreateCmd.Flags().Bool("guest", false, "Optional. If supplied, the new user will be a guest. Defaults to false")
 	UserCreateCmd.Flags().Bool("email-verified", false, "Optional. If supplied, the new user will have the email verified. Defaults to false")
-	UserCreateCmd.Flags().Bool("email_verified", false, "")
-	_ = UserCreateCmd.Flags().MarkDeprecated("email_verified", "please use email-verified instead")
 	UserCreateCmd.Flags().Bool("disable-welcome-email", false, "Optional. If supplied, the new user will not receive a welcome email. Defaults to false")
 
 	DeleteUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed")
@@ -362,8 +358,6 @@ func init() {
 	UserConvertCmd.Flags().String("lastname", "", "The last name for the converted user account. Required when the \"bot\" flag is set")
 	UserConvertCmd.Flags().String("locale", "", "The locale (ex: en, fr) for converted new user account. Required when the \"bot\" flag is set")
 	UserConvertCmd.Flags().Bool("system-admin", false, "If supplied, the converted user will be a system administrator. Defaults to false. Required when the \"bot\" flag is set")
-	UserConvertCmd.Flags().Bool("system_admin", false, "")
-	_ = UserConvertCmd.Flags().MarkDeprecated("system_admin", "please use system-admin instead")
 
 	ChangePasswordUserCmd.Flags().StringP("current", "c", "", "The current password of the user. Use only if changing your own password")
 	ChangePasswordUserCmd.Flags().StringP("password", "p", "", "The new password for the user")
@@ -507,14 +501,8 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	lastname, _ := cmd.Flags().GetString("lastname")
 	locale, _ := cmd.Flags().GetString("locale")
 	systemAdmin, _ := cmd.Flags().GetBool("system-admin")
-	if !systemAdmin {
-		systemAdmin, _ = cmd.Flags().GetBool("system_admin")
-	}
 	guest, _ := cmd.Flags().GetBool("guest")
 	emailVerified, _ := cmd.Flags().GetBool("email-verified")
-	if !emailVerified {
-		emailVerified, _ = cmd.Flags().GetBool("email_verified")
-	}
 	disableWelcomeEmail, _ := cmd.Flags().GetBool("disable-welcome-email")
 
 	user := &model.User{
@@ -1009,9 +997,6 @@ func convertBotToUser(c client.Client, cmd *cobra.Command, userArgs []string) er
 	}
 
 	systemAdmin, _ := cmd.Flags().GetBool("system-admin")
-	if !systemAdmin {
-		systemAdmin, _ = cmd.Flags().GetBool("system_admin")
-	}
 
 	user, _, err = c.ConvertBotToUser(context.TODO(), user.Id, up, systemAdmin)
 	if err != nil {

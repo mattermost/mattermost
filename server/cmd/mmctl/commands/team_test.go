@@ -37,7 +37,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 		cmd.Flags().String("name", mockTeamName, "")
 
 		err := createTeamCmdF(s.client, cmd, []string{})
-		s.Require().Equal(err, errors.New("display Name is required"))
+		s.Require().Equal(err, errors.New("display-name is required"))
 		s.Require().Len(printer.GetLines(), 0)
 	})
 

@@ -1912,7 +1912,6 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		cmd.Flags().String("name", "", "Channel Name")
 		cmd.Flags().String("display-name", "", channelDisplayName)
-		cmd.Flags().String("display_name", "", "")
 
 		err := renameChannelCmdF(s.client, cmd, args)
 		s.Require().EqualError(err, "require at least one flag to rename channel, either 'name' or 'display-name'")
@@ -2275,7 +2274,6 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		newChannelDisplayName := ""
 		cmd.Flags().String("name", newChannelName, "Channel Name")
 		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
-		cmd.Flags().String("display_name", "", "")
 
 		foundTeam := &model.Team{
 			Id:          teamID,
@@ -2577,7 +2575,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		cmd.Flags().String("name", channelName, "Channel Name")
 
 		err := createChannelCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "display Name is required")
+		s.Require().EqualError(err, "display-name is required")
 	})
 
 	s.Run("should not create channel without name", func() {
