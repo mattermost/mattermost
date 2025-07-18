@@ -315,6 +315,10 @@ func (b *BleveEngine) IndexChannel(_ request.CTX, channel *model.Channel, userID
 	return nil
 }
 
+func (b *BleveEngine) SyncBulkIndexChannels(rctx request.CTX, channels []*model.Channel, getUserIDsForChannel func(channel *model.Channel) ([]string, error), teamMemberIDs []string) *model.AppError {
+	return nil
+}
+
 func (b *BleveEngine) SearchChannels(teamId, userID, term string, isGuest, _ bool) ([]string, *model.AppError) {
 	// This query essentially boils down to (if teamID is passed):
 	// match teamID == <>
