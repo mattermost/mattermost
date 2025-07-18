@@ -422,7 +422,7 @@ func (a *App) UpdateTeamMemberRoles(c request.CTX, teamID string, userID string,
 
 	for roleName := range strings.FieldsSeq(newRoles) {
 		var role *model.Role
-		role, err = a.GetRoleByName(context.Background(), roleName)
+		role, err = a.GetRoleByName(c, roleName)
 		if err != nil {
 			err.StatusCode = http.StatusBadRequest
 			return nil, err

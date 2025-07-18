@@ -75,7 +75,7 @@ func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	role, err := c.App.GetRoleByName(r.Context(), c.Params.RoleName)
+	role, err := c.App.GetRoleByName(c.AppContext, c.Params.RoleName)
 	if err != nil {
 		c.Err = err
 		return

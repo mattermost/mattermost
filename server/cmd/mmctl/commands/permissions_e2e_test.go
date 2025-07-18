@@ -4,8 +4,6 @@
 package commands
 
 import (
-	"context"
-
 	"github.com/mattermost/mattermost/server/public/model"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
@@ -39,7 +37,7 @@ func (s *MmctlE2ETestSuite) TestShowRoleCmd() {
 func (s *MmctlE2ETestSuite) TestAddPermissionsCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
-	role, appErr := s.th.App.GetRoleByName(context.TODO(), model.SystemUserRoleId)
+	role, appErr := s.th.App.GetRoleByName(s.th.Context, model.SystemUserRoleId)
 	s.Require().Nil(appErr)
 	s.Require().NotContains(role.Permissions, model.PermissionCreateBot.Id)
 
@@ -66,7 +64,7 @@ func (s *MmctlE2ETestSuite) TestAddPermissionsCmd() {
 
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
-		updatedRole, appErr := s.th.App.GetRoleByName(context.TODO(), model.SystemUserRoleId)
+		updatedRole, appErr := s.th.App.GetRoleByName(s.th.Context, model.SystemUserRoleId)
 		s.Require().Nil(appErr)
 		s.Require().Contains(updatedRole.Permissions, model.PermissionCreateBot.Id)
 	})
@@ -75,7 +73,7 @@ func (s *MmctlE2ETestSuite) TestAddPermissionsCmd() {
 func (s *MmctlE2ETestSuite) TestRemovePermissionsCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
-	role, appErr := s.th.App.GetRoleByName(context.TODO(), model.SystemUserRoleId)
+	role, appErr := s.th.App.GetRoleByName(s.th.Context, model.SystemUserRoleId)
 	s.Require().Nil(appErr)
 	s.Require().Contains(role.Permissions, model.PermissionCreateDirectChannel.Id)
 
@@ -103,7 +101,7 @@ func (s *MmctlE2ETestSuite) TestRemovePermissionsCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		updatedRole, appErr := s.th.App.GetRoleByName(context.TODO(), model.SystemUserRoleId)
+		updatedRole, appErr := s.th.App.GetRoleByName(s.th.Context, model.SystemUserRoleId)
 		s.Require().Nil(appErr)
 		s.Require().NotContains(updatedRole.Permissions, model.PermissionCreateDirectChannel.Id)
 	})

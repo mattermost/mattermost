@@ -5,7 +5,6 @@ package slashcommands
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"path/filepath"
 	"slices"
@@ -362,7 +361,7 @@ func (th *TestHelper) addUserToChannel(tb testing.TB, user *model.User, channel 
 }
 
 func (th *TestHelper) removePermissionFromRole(tb testing.TB, permission string, roleName string) {
-	role, appErr := th.App.GetRoleByName(context.Background(), roleName)
+	role, appErr := th.App.GetRoleByName(th.Context, roleName)
 	require.Nil(tb, appErr)
 
 	var newPermissions []string
@@ -383,7 +382,7 @@ func (th *TestHelper) removePermissionFromRole(tb testing.TB, permission string,
 }
 
 func (th *TestHelper) addPermissionToRole(tb testing.TB, permission string, roleName string) {
-	role, appErr := th.App.GetRoleByName(context.Background(), roleName)
+	role, appErr := th.App.GetRoleByName(th.Context, roleName)
 	require.Nil(tb, appErr)
 
 	if slices.Contains(role.Permissions, permission) {
