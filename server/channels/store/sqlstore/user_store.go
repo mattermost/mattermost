@@ -244,18 +244,29 @@ func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateD
 	if !trustedUpdateData {
 		user.Roles = oldUser.Roles
 		user.DeleteAt = oldUser.DeleteAt
-	}
 
-	if user.IsOAuthUser() {
-		if !trustedUpdateData {
+		if user.IsOAuthUser() {
 			user.Email = oldUser.Email
 		}
-	} else if user.IsLDAPUser() && !trustedUpdateData {
-		if user.Username != oldUser.Username || user.Email != oldUser.Email {
-			return nil, store.NewErrInvalidInput("User", "id", user.Id)
+
+		if user.IsLDAPUser() {
+			if user.Username != oldUser.Username {
+				return nil, store.NewErrInvalidInput("User", "id", user.Id)
+			}
+			if user.Email != oldUser.Email {
+				return nil, store.NewErrInvalidInput("User", "email", user.Id)
+			}
 		}
-	} else if user.Email != oldUser.Email {
-		user.EmailVerified = false
+
+		if user.Email != oldUser.Email {
+			user.EmailVerified = false
+		}
+	}
+
+	// In the past, changing the email of a SSO user would mark the email as unverified.
+	// This is a lazy migration to fix broken records.
+	if user.IsSSOUser() {
+		user.EmailVerified = true
 	}
 
 	if user.Username != oldUser.Username {
