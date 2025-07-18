@@ -59,31 +59,6 @@ const SearchSuggestions = ({
 
     const searchPluginSuggestions = useSelector(getSearchPluginSuggestions);
 
-    // const generateLabel = (item: any) => { // TODO label items directly
-    //     let label = '';
-    //     if (item.username) {
-    //         label = item.username;
-    //         if ((item.first_name || item.last_name) && item.nickname) {
-    //             label += ` ${item.first_name} ${item.last_name} ${item.nickname}`;
-    //         } else if (item.nickname) {
-    //             label += ` ${item.nickname}`;
-    //         } else if (item.first_name || item.last_name) {
-    //             label += ` ${item.first_name} ${item.last_name}`;
-    //         }
-    //     } else if (item.type === 'D' || item.type === 'G') {
-    //         label = item.display_name;
-    //     } else if (item.type === 'P' || item.type === 'O') {
-    //         label = item.name;
-    //     } else if (item.emoji) {
-    //         label = item.name;
-    //     }
-
-    //     if (label) {
-    //         label = label.toLowerCase();
-    //     }
-    //     return label;
-    // };
-
     const getItemId = useCallback((term) => `searchBoxSuggestions_item_${term}`, []);
 
     if (searchType === '' || searchType === 'messages' || searchType === 'files') {
