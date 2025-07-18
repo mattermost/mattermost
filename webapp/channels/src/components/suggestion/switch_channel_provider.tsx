@@ -768,17 +768,17 @@ export default class SwitchChannelProvider extends Provider {
             matchedPretext: '',
             groups: [
                 {
-                    key: 'recent',
-                    label: defineMessage({id: 'suggestion.mention.recent.channels', defaultMessage: 'Recent'}),
-                    terms: sortedRecentChannels.map((wrappedChannel) => wrappedChannel.channel.id),
-                    items: sortedRecentChannels,
-                    component: ConnectedSwitchChannelSuggestion,
-                },
-                {
                     key: 'unread',
                     label: defineMessage({id: 'suggestion.mention.unread', defaultMessage: 'Unread'}),
                     terms: sortedUnreadChannels.map((wrappedChannel) => wrappedChannel.channel.id),
                     items: sortedUnreadChannels,
+                    component: ConnectedSwitchChannelSuggestion,
+                },
+                {
+                    key: 'recent',
+                    label: defineMessage({id: 'suggestion.mention.recent.channels', defaultMessage: 'Recent'}),
+                    terms: sortedRecentChannels.map((wrappedChannel) => wrappedChannel.channel.id),
+                    items: sortedRecentChannels,
                     component: ConnectedSwitchChannelSuggestion,
                 },
             ],

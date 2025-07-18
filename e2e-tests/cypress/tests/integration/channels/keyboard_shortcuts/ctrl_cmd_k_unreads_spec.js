@@ -56,7 +56,7 @@ describe('Keyboard Shortcuts', () => {
         cy.apiLogin(testUser);
     });
 
-    it.skip('MM-T1241 - CTRL/CMD+K: Unreads', () => {
+    it('MM-T1241 - CTRL/CMD+K: Unreads', () => {
         const otherUserMention = `@${otherUser.username}`;
 
         // # Post messages as testUser to first and second team's channels
@@ -95,12 +95,12 @@ describe('Keyboard Shortcuts', () => {
 
         cy.findByRole('combobox', {name: 'quick switch input'}).type('{downarrow}');
         cy.get('#suggestionList').
-            findByTestId(team2Channels[1].name).should('be.visible').and('have.class', 'suggestion--selected').
+            findByRole('option', {name: team2Channels[1].display_name}).should('be.visible').and('have.class', 'suggestion--selected').
             find('.badge').should('be.visible').and('have.text', baseCount);
 
         cy.findByRole('combobox', {name: 'quick switch input'}).type('{downarrow}');
         cy.get('#suggestionList').
-            findByTestId(team2Channels[0].name).should('be.visible').and('have.class', 'suggestion--selected').
+            findByRole('option', {name: team2Channels[0].display_name}).should('be.visible').and('have.class', 'suggestion--selected').
             find('.badge').should('be.visible').and('have.text', baseCount + withMention);
 
         cy.findByRole('combobox', {name: 'quick switch input'}).type('{downarrow}');
@@ -147,7 +147,7 @@ describe('Keyboard Shortcuts', () => {
                     cy.get('@channelSwitcherDialog').within(() => {
                         // * Verify all unread channels names are showing up in the dialogs list
                         teamAndChannels[0].channels.forEach((channel) => {
-                            cy.findByText(channel.display_name).should('exist');
+                            cy.findByText(channel.display_name).should('be.visible');
                         });
                     });
                 });
