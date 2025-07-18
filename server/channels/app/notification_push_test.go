@@ -1727,7 +1727,6 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
 		*cfg.LogSettings.EnableConsole = false
-		*cfg.NotificationLogSettings.EnableConsole = false
 	})
 
 	ch := &model.Channel{
