@@ -951,9 +951,9 @@ func (_m *UserStore) GetProfileByGroupChannelIdsForUser(userID string, channelId
 	return r0, r1
 }
 
-// GetProfileByIds provides a mock function with given fields: ctx, userIds, options, allowFromCache
-func (_m *UserStore) GetProfileByIds(ctx context.Context, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
-	ret := _m.Called(ctx, userIds, options, allowFromCache)
+// GetProfileByIds provides a mock function with given fields: rctx, userIds, options, allowFromCache
+func (_m *UserStore) GetProfileByIds(rctx request.CTX, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
+	ret := _m.Called(rctx, userIds, options, allowFromCache)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetProfileByIds")
@@ -961,19 +961,19 @@ func (_m *UserStore) GetProfileByIds(ctx context.Context, userIds []string, opti
 
 	var r0 []*model.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []string, *store.UserGetByIdsOpts, bool) ([]*model.User, error)); ok {
-		return rf(ctx, userIds, options, allowFromCache)
+	if rf, ok := ret.Get(0).(func(request.CTX, []string, *store.UserGetByIdsOpts, bool) ([]*model.User, error)); ok {
+		return rf(rctx, userIds, options, allowFromCache)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, []string, *store.UserGetByIdsOpts, bool) []*model.User); ok {
-		r0 = rf(ctx, userIds, options, allowFromCache)
+	if rf, ok := ret.Get(0).(func(request.CTX, []string, *store.UserGetByIdsOpts, bool) []*model.User); ok {
+		r0 = rf(rctx, userIds, options, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, []string, *store.UserGetByIdsOpts, bool) error); ok {
-		r1 = rf(ctx, userIds, options, allowFromCache)
+	if rf, ok := ret.Get(1).(func(request.CTX, []string, *store.UserGetByIdsOpts, bool) error); ok {
+		r1 = rf(rctx, userIds, options, allowFromCache)
 	} else {
 		r1 = ret.Error(1)
 	}

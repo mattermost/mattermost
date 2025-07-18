@@ -161,9 +161,9 @@ func (s *LocalCacheUserStore) GetAllProfilesInChannel(ctx context.Context, chann
 	return userMap, nil
 }
 
-func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
+func (s *LocalCacheUserStore) GetProfileByIds(rctx request.CTX, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
 	if !allowFromCache {
-		return s.UserStore.GetProfileByIds(ctx, userIds, options, false)
+		return s.UserStore.GetProfileByIds(rctx, userIds, options, false)
 	}
 
 	if options == nil {
@@ -202,9 +202,9 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 
 	if len(remainingUserIds) > 0 {
 		if fromMaster {
-			ctx = sqlstore.WithMaster(ctx)
+			rctx = sqlstore.RequestContextWithMaster(rctx)
 		}
-		remainingUsers, err := s.UserStore.GetProfileByIds(ctx, remainingUserIds, options, false)
+		remainingUsers, err := s.UserStore.GetProfileByIds(rctx, remainingUserIds, options, false)
 		if err != nil {
 			return nil, err
 		}

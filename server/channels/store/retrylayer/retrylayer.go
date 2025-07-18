@@ -7683,11 +7683,11 @@ func (s *RetryLayerPostStore) Delete(rctx request.CTX, postID string, timestamp 
 
 }
 
-func (s *RetryLayerPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
+func (s *RetryLayerPostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.Get(ctx, id, opts, userID, sanitizeOptions)
+		result, err := s.PostStore.Get(rctx, id, opts, userID, sanitizeOptions)
 		if err == nil {
 			return result, nil
 		}
@@ -8010,11 +8010,11 @@ func (s *RetryLayerPostStore) GetPostReminders(now int64) ([]*model.PostReminder
 
 }
 
-func (s *RetryLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
+func (s *RetryLayerPostStore) GetPosts(rctx request.CTX, options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPosts(options, allowFromCache, sanitizeOptions)
+		result, err := s.PostStore.GetPosts(rctx, options, allowFromCache, sanitizeOptions)
 		if err == nil {
 			return result, nil
 		}
@@ -8031,11 +8031,11 @@ func (s *RetryLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromC
 
 }
 
-func (s *RetryLayerPostStore) GetPostsAfter(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
+func (s *RetryLayerPostStore) GetPostsAfter(rctx request.CTX, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostsAfter(options, sanitizeOptions)
+		result, err := s.PostStore.GetPostsAfter(rctx, options, sanitizeOptions)
 		if err == nil {
 			return result, nil
 		}
@@ -8073,11 +8073,11 @@ func (s *RetryLayerPostStore) GetPostsBatchForIndexing(startTime int64, startPos
 
 }
 
-func (s *RetryLayerPostStore) GetPostsBefore(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
+func (s *RetryLayerPostStore) GetPostsBefore(rctx request.CTX, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostsBefore(options, sanitizeOptions)
+		result, err := s.PostStore.GetPostsBefore(rctx, options, sanitizeOptions)
 		if err == nil {
 			return result, nil
 		}
@@ -8157,11 +8157,11 @@ func (s *RetryLayerPostStore) GetPostsCreatedAt(channelID string, timestamp int6
 
 }
 
-func (s *RetryLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
+func (s *RetryLayerPostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostsSince(options, allowFromCache, sanitizeOptions)
+		result, err := s.PostStore.GetPostsSince(rctx, options, allowFromCache, sanitizeOptions)
 		if err == nil {
 			return result, nil
 		}
@@ -13725,11 +13725,11 @@ func (s *RetryLayerThreadStore) GetThreadFollowers(threadID string, fetchOnlyAct
 
 }
 
-func (s *RetryLayerThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool, postPriorityIsEnabled bool) (*model.ThreadResponse, error) {
+func (s *RetryLayerThreadStore) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadMembership, extended bool, postPriorityIsEnabled bool) (*model.ThreadResponse, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetThreadForUser(threadMembership, extended, postPriorityIsEnabled)
+		result, err := s.ThreadStore.GetThreadForUser(rctx, threadMembership, extended, postPriorityIsEnabled)
 		if err == nil {
 			return result, nil
 		}
@@ -13788,11 +13788,11 @@ func (s *RetryLayerThreadStore) GetThreadUnreadReplyCount(threadMembership *mode
 
 }
 
-func (s *RetryLayerThreadStore) GetThreadsForUser(userID string, teamID string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
+func (s *RetryLayerThreadStore) GetThreadsForUser(rctx request.CTX, userID string, teamID string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetThreadsForUser(userID, teamID, opts)
+		result, err := s.ThreadStore.GetThreadsForUser(rctx, userID, teamID, opts)
 		if err == nil {
 			return result, nil
 		}
@@ -14994,11 +14994,11 @@ func (s *RetryLayerUserStore) GetProfileByGroupChannelIdsForUser(userID string, 
 
 }
 
-func (s *RetryLayerUserStore) GetProfileByIds(ctx context.Context, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
+func (s *RetryLayerUserStore) GetProfileByIds(rctx request.CTX, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.GetProfileByIds(ctx, userIds, options, allowFromCache)
+		result, err := s.UserStore.GetProfileByIds(rctx, userIds, options, allowFromCache)
 		if err == nil {
 			return result, nil
 		}

@@ -1102,7 +1102,7 @@ func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int, view
 	return users, nil
 }
 
-func (us SqlUserStore) GetProfileByIds(ctx context.Context, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
+func (us SqlUserStore) GetProfileByIds(rctx request.CTX, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
 	if options == nil {
 		options = &store.UserGetByIdsOpts{}
 	}
@@ -1127,7 +1127,7 @@ func (us SqlUserStore) GetProfileByIds(ctx context.Context, userIds []string, op
 		return nil, errors.Wrap(err, "get_profile_by_ids_tosql")
 	}
 
-	if err := us.SqlStore.DBXFromContext(ctx).Select(&users, queryString, args...); err != nil {
+	if err := us.SqlStore.DBXFromContext(rctx.Context()).Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 

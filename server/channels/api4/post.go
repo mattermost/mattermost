@@ -238,7 +238,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	etag := ""
 
 	if since > 0 {
-		list, err = c.App.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
+		list, err = c.App.GetPostsSince(c.AppContext, model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
 	} else if afterPost != "" {
 		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
 
@@ -246,7 +246,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		list, err = c.App.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelId, PostId: afterPost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
+		list, err = c.App.GetPostsAfterPost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: afterPost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else if beforePost != "" {
 		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
 
@@ -254,7 +254,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		list, err = c.App.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelId, PostId: beforePost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
+		list, err = c.App.GetPostsBeforePost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: beforePost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else {
 		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
 
@@ -262,7 +262,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		list, err = c.App.GetPostsPage(model.GetPostsOptions{ChannelId: channelId, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
+		list, err = c.App.GetPostsPage(c.AppContext, model.GetPostsOptions{ChannelId: channelId, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	}
 
 	if err != nil {
@@ -333,7 +333,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 			return
 		}
 
-		postList, err = c.App.GetPostsPage(model.GetPostsOptions{ChannelId: channelId, Page: app.PageDefault, PerPage: c.Params.LimitBefore, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
+		postList, err = c.App.GetPostsPage(c.AppContext, model.GetPostsOptions{ChannelId: channelId, Page: app.PageDefault, PerPage: c.Params.LimitBefore, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
 		if err != nil {
 			c.Err = err
 			return
@@ -717,7 +717,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		FromCreateAt:             fromCreateAt,
 		FromUpdateAt:             fromUpdateAt,
 	}
-	list, err := c.App.GetPostThread(c.Params.PostId, opts, c.AppContext.Session().UserId)
+	list, err := c.App.GetPostThread(c.AppContext, c.Params.PostId, opts, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return

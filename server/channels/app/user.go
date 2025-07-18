@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -727,8 +726,8 @@ func (a *App) GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppE
 	return users, nil
 }
 
-func (a *App) GetUsersByIds(userIDs []string, options *store.UserGetByIdsOpts) ([]*model.User, *model.AppError) {
-	users, err := a.ch.srv.userService.GetUsersByIds(userIDs, options)
+func (a *App) GetUsersByIds(rctx request.CTX, userIDs []string, options *store.UserGetByIdsOpts) ([]*model.User, *model.AppError) {
+	users, err := a.ch.srv.userService.GetUsersByIds(rctx, userIDs, options)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersByIds", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2337,29 +2336,29 @@ func (a *App) RestrictUsersGetByPermissions(c request.CTX, userID string, option
 
 // FilterNonGroupTeamMembers returns the subset of the given user IDs of the users who are not members of groups
 // associated to the team excluding bots.
-func (a *App) FilterNonGroupTeamMembers(userIDs []string, team *model.Team) ([]string, error) {
+func (a *App) FilterNonGroupTeamMembers(rctx request.CTX, userIDs []string, team *model.Team) ([]string, error) {
 	teamGroupUsers, err := a.GetTeamGroupUsers(team.Id)
 	if err != nil {
 		return nil, err
 	}
-	return a.filterNonGroupUsers(userIDs, teamGroupUsers)
+	return a.filterNonGroupUsers(rctx, userIDs, teamGroupUsers)
 }
 
 // FilterNonGroupChannelMembers returns the subset of the given user IDs of the users who are not members of groups
 // associated to the channel excluding bots
-func (a *App) FilterNonGroupChannelMembers(userIDs []string, channel *model.Channel) ([]string, error) {
+func (a *App) FilterNonGroupChannelMembers(rctx request.CTX, userIDs []string, channel *model.Channel) ([]string, error) {
 	channelGroupUsers, err := a.GetChannelGroupUsers(channel.Id)
 	if err != nil {
 		return nil, err
 	}
-	return a.filterNonGroupUsers(userIDs, channelGroupUsers)
+	return a.filterNonGroupUsers(rctx, userIDs, channelGroupUsers)
 }
 
 // filterNonGroupUsers is a helper function that takes a list of user ids and a list of users
 // and returns the list of normal users present in userIDs but not in groupUsers.
-func (a *App) filterNonGroupUsers(userIDs []string, groupUsers []*model.User) ([]string, error) {
+func (a *App) filterNonGroupUsers(rctx request.CTX, userIDs []string, groupUsers []*model.User) ([]string, error) {
 	nonMemberIds := []string{}
-	users, err := a.Srv().Store().User().GetProfileByIds(context.Background(), userIDs, nil, false)
+	users, err := a.Srv().Store().User().GetProfileByIds(rctx, userIDs, nil, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2661,7 +2660,7 @@ func (a *App) ConvertBotToUser(c request.CTX, bot *model.Bot, userPatch *model.U
 	return user, nil
 }
 
-func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
+func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
 	var result model.Threads
 	var eg errgroup.Group
 	postPriorityIsEnabled := a.IsPostPriorityEnabled()
@@ -2720,7 +2719,7 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 
 	if !options.TotalsOnly {
 		eg.Go(func() error {
-			threads, err := a.Srv().Store().Thread().GetThreadsForUser(userID, teamID, options)
+			threads, err := a.Srv().Store().Thread().GetThreadsForUser(rctx, userID, teamID, options)
 			if err != nil {
 				return errors.Wrapf(err, "failed to get threads for user id=%s", userID)
 			}
@@ -2760,8 +2759,8 @@ func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.Thread
 	return threadMembership, nil
 }
 
-func (a *App) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
-	thread, nErr := a.Srv().Store().Thread().GetThreadForUser(threadMembership, extended, a.IsPostPriorityEnabled())
+func (a *App) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
+	thread, nErr := a.Srv().Store().Thread().GetThreadForUser(rctx, threadMembership, extended, a.IsPostPriorityEnabled())
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -2815,7 +2814,7 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 	return nil
 }
 
-func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, teamID, threadID string) *model.AppError {
+func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, teamID, threadID string) *model.AppError {
 	opts := store.ThreadMembershipOpts{
 		Following:             true,
 		IncrementMentions:     false,
@@ -2828,7 +2827,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	post, appErr := a.GetSinglePost(c, threadID, false)
+	post, appErr := a.GetSinglePost(rctx, threadID, false)
 	if appErr != nil {
 		return appErr
 	}
@@ -2836,7 +2835,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 	if appErr != nil {
 		return appErr
 	}
-	tm.UnreadMentions, appErr = a.countThreadMentions(c, user, post, teamID, post.CreateAt-1)
+	tm.UnreadMentions, appErr = a.countThreadMentions(rctx, user, post, teamID, post.CreateAt-1)
 	if appErr != nil {
 		return appErr
 	}
@@ -2847,7 +2846,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, teamID, "", userID, nil, "")
-	userThread, err := a.Srv().Store().Thread().GetThreadForUser(tm, true, a.IsPostPriorityEnabled())
+	userThread, err := a.Srv().Store().Thread().GetThreadForUser(rctx, tm, true, a.IsPostPriorityEnabled())
 	if err != nil {
 		var errNotFound *store.ErrNotFound
 		if errors.As(err, &errNotFound) {
@@ -2857,7 +2856,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 	}
 	a.sanitizeProfiles(userThread.Participants, false)
 	userThread.Post.SanitizeProps()
-	sanitizedPost, appErr := a.SanitizePostMetadataForUser(c, userThread.Post, userID)
+	sanitizedPost, appErr := a.SanitizePostMetadataForUser(rctx, userThread.Post, userID)
 	if appErr != nil {
 		return appErr
 	}
@@ -2875,8 +2874,8 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 	return nil
 }
 
-func (a *App) UpdateThreadReadForUserByPost(c request.CTX, currentSessionId, userID, teamID, threadID, postID string) (*model.ThreadResponse, *model.AppError) {
-	post, err := a.GetSinglePost(c, postID, false)
+func (a *App) UpdateThreadReadForUserByPost(rctx request.CTX, currentSessionId, userID, teamID, threadID, postID string) (*model.ThreadResponse, *model.AppError) {
+	post, err := a.GetSinglePost(rctx, postID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2885,10 +2884,10 @@ func (a *App) UpdateThreadReadForUserByPost(c request.CTX, currentSessionId, use
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user_by_post.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	return a.UpdateThreadReadForUser(c, currentSessionId, userID, teamID, threadID, post.CreateAt-1)
+	return a.UpdateThreadReadForUser(rctx, currentSessionId, userID, teamID, threadID, post.CreateAt-1)
 }
 
-func (a *App) UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
+func (a *App) UpdateThreadReadForUser(rctx request.CTX, currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
 	user, err := a.GetUser(userID)
 	if err != nil {
 		return nil, err
@@ -2906,11 +2905,11 @@ func (a *App) UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, t
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	post, err := a.GetSinglePost(c, threadID, false)
+	post, err := a.GetSinglePost(rctx, threadID, false)
 	if err != nil {
 		return nil, err
 	}
-	membership.UnreadMentions, err = a.countThreadMentions(c, user, post, teamID, timestamp)
+	membership.UnreadMentions, err = a.countThreadMentions(rctx, user, post, teamID, timestamp)
 	if err != nil {
 		return nil, err
 	}
@@ -2925,13 +2924,13 @@ func (a *App) UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, t
 	if nErr != nil {
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
-	thread, err := a.GetThreadForUser(membership, false)
+	thread, err := a.GetThreadForUser(rctx, membership, false)
 	if err != nil {
 		return nil, err
 	}
 
 	// Clear if user has read the messages
-	if thread.UnreadReplies == 0 && a.IsCRTEnabledForUser(c, userID) {
+	if thread.UnreadReplies == 0 && a.IsCRTEnabledForUser(rctx, userID) {
 		a.clearPushNotification(currentSessionId, userID, post.ChannelId, threadID)
 	}
 

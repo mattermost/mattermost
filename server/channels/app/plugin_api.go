@@ -810,7 +810,7 @@ func (api *PluginAPI) DeletePost(postID string) *model.AppError {
 }
 
 func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppError) {
-	list, appErr := api.app.GetPostThread(postID, model.GetPostsOptions{}, "")
+	list, appErr := api.app.GetPostThread(api.ctx, postID, model.GetPostsOptions{}, "")
 	if list != nil {
 		list = list.ForPlugin()
 	}
@@ -826,7 +826,7 @@ func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
 }
 
 func (api *PluginAPI) GetPostsSince(channelID string, time int64) (*model.PostList, *model.AppError) {
-	list, appErr := api.app.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelID, Time: time})
+	list, appErr := api.app.GetPostsSince(api.ctx, model.GetPostsSinceOptions{ChannelId: channelID, Time: time})
 	if list != nil {
 		list = list.ForPlugin()
 	}
@@ -834,7 +834,7 @@ func (api *PluginAPI) GetPostsSince(channelID string, time int64) (*model.PostLi
 }
 
 func (api *PluginAPI) GetPostsAfter(channelID, postID string, page, perPage int) (*model.PostList, *model.AppError) {
-	list, appErr := api.app.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
+	list, appErr := api.app.GetPostsAfterPost(api.ctx, model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
 	if list != nil {
 		list = list.ForPlugin()
 	}
@@ -842,7 +842,7 @@ func (api *PluginAPI) GetPostsAfter(channelID, postID string, page, perPage int)
 }
 
 func (api *PluginAPI) GetPostsBefore(channelID, postID string, page, perPage int) (*model.PostList, *model.AppError) {
-	list, appErr := api.app.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
+	list, appErr := api.app.GetPostsBeforePost(api.ctx, model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
 	if list != nil {
 		list = list.ForPlugin()
 	}
@@ -850,7 +850,7 @@ func (api *PluginAPI) GetPostsBefore(channelID, postID string, page, perPage int
 }
 
 func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*model.PostList, *model.AppError) {
-	list, appErr := api.app.GetPostsPage(model.GetPostsOptions{ChannelId: channelID, Page: page, PerPage: perPage})
+	list, appErr := api.app.GetPostsPage(api.ctx, model.GetPostsOptions{ChannelId: channelID, Page: page, PerPage: perPage})
 	if list != nil {
 		list = list.ForPlugin()
 	}

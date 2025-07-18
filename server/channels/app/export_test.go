@@ -410,11 +410,12 @@ func TestExportDMChannel(t *testing.T) {
 		assert.Equal(t, 1, len(channels))
 
 		// Ensure the posts of the deleted DM channel do not leak to the self-DM channel
-		posts, nErr := th2.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{
-			ChannelId:      channels[0].Id,
-			PerPage:        1000,
-			IncludeDeleted: true,
-		}, false, nil)
+		posts, nErr := th2.App.Srv().Store().Post().GetPosts(th2.Context,
+			model.GetPostsOptions{
+				ChannelId:      channels[0].Id,
+				PerPage:        1000,
+				IncludeDeleted: true,
+			}, false, nil)
 		require.NoError(t, nErr)
 		assert.Equal(t, 1, len(posts.Posts))
 	})
@@ -1739,10 +1740,11 @@ func TestExportDeactivatedUserDMs(t *testing.T) {
 	require.Equal(t, 1, len(channels), "Direct channel should be imported")
 
 	// 9. Verify all posts were imported
-	posts, nErr := th2.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{
-		ChannelId: channels[0].Id,
-		PerPage:   1000,
-	}, false, nil)
+	posts, nErr := th2.App.Srv().Store().Post().GetPosts(th2.Context,
+		model.GetPostsOptions{
+			ChannelId: channels[0].Id,
+			PerPage:   1000,
+		}, false, nil)
 	require.NoError(t, nErr)
 
 	// We should have exactly 3 posts

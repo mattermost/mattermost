@@ -326,7 +326,7 @@ func (a *App) GetOrCreateDirectChannel(c request.CTX, userID, otherUserID string
 
 	if *a.Config().TeamSettings.RestrictDirectMessage == model.DirectMessageTeam &&
 		!a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem) {
-		users, err := a.GetUsersByIds([]string{userID, otherUserID}, &store.UserGetByIdsOpts{})
+		users, err := a.GetUsersByIds(c, []string{userID, otherUserID}, &store.UserGetByIdsOpts{})
 		if err != nil {
 			return nil, err
 		}
@@ -529,7 +529,7 @@ func (a *App) CreateGroupChannel(c request.CTX, userIDs []string, creatorId stri
 // shared channel record attached. It can be empty if the caller
 // doesn't know who the creator is (e.g. the import process) and the
 // resulting group channel will not be shared
-func (a *App) createGroupChannel(c request.CTX, userIDs []string, creatorID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
+func (a *App) createGroupChannel(rctx request.CTX, userIDs []string, creatorID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
 	if len(userIDs) > model.ChannelGroupMaxUsers || len(userIDs) < model.ChannelGroupMinUsers {
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -537,8 +537,7 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string, creatorID stri
 	// we skip cache and use master when fetching profiles to avoid
 	// issues in shared channels and HA, when users are created from a
 	// shared channels GM invite right before creating the GM
-	ctx := sqlstore.RequestContextWithMaster(c).Context()
-	users, err := a.Srv().Store().User().GetProfileByIds(ctx, userIDs, nil, false)
+	users, err := a.Srv().Store().User().GetProfileByIds(sqlstore.RequestContextWithMaster(rctx), userIDs, nil, false)
 	if err != nil {
 		return nil, model.NewAppError("createGroupChannel", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -576,7 +575,7 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string, creatorID stri
 		Shared:      model.NewPointer(channelIsShared),
 	}
 
-	channel, nErr := a.Srv().Store().Channel().Save(c, group, *a.Config().TeamSettings.MaxChannelsPerTeam, channelOptions...)
+	channel, nErr := a.Srv().Store().Channel().Save(rctx, group, *a.Config().TeamSettings.MaxChannelsPerTeam, channelOptions...)
 	if nErr != nil {
 		var invErr *store.ErrInvalidInput
 		var cErr *store.ErrConflict
@@ -612,7 +611,7 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string, creatorID stri
 			SchemeUser:  !user.IsGuest(),
 		}
 
-		if _, nErr = a.Srv().Store().Channel().SaveMember(c, cm); nErr != nil {
+		if _, nErr = a.Srv().Store().Channel().SaveMember(rctx, cm); nErr != nil {
 			var appErr *model.AppError
 			var cErr *store.ErrConflict
 			switch {
@@ -649,8 +648,8 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string, creatorID stri
 			Type:             channel.Type,
 		}
 
-		if _, err := a.ShareChannel(c, sc); err != nil {
-			c.Logger().Error("Failed to share newly created group channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
+		if _, err := a.ShareChannel(rctx, sc); err != nil {
+			rctx.Logger().Error("Failed to share newly created group channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 		} else {
 			// if we could successfully share the channel, we invite
 			// the remotes involved to it
@@ -658,7 +657,7 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string, creatorID stri
 				for remoteID := range remoteIDs {
 					rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, false)
 					if err != nil {
-						c.Logger().Error("Failed to send invite to group message channel, can't retrieve remote cluster", mlog.String("channel_id", channel.Id), mlog.String("remote_id", remoteID), mlog.Err(err))
+						rctx.Logger().Error("Failed to send invite to group message channel, can't retrieve remote cluster", mlog.String("channel_id", channel.Id), mlog.String("remote_id", remoteID), mlog.Err(err))
 						continue
 					}
 
@@ -667,7 +666,7 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string, creatorID stri
 						opts = append(opts, sharedchannel.WithDirectParticipant(user, remoteID))
 					}
 					if err := sc.SendChannelInvite(channel, creatorID, rc, opts...); err != nil {
-						c.Logger().Error("Failed to send invite to group message channel, error sending the invite", mlog.String("channel_id", channel.Id), mlog.String("remote_id", remoteID), mlog.Err(err))
+						rctx.Logger().Error("Failed to send invite to group message channel, error sending the invite", mlog.String("channel_id", channel.Id), mlog.String("remote_id", remoteID), mlog.Err(err))
 					}
 				}
 			}
@@ -675,7 +674,7 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string, creatorID stri
 	}
 
 	a.Srv().Go(func() {
-		pluginContext := pluginContext(c)
+		pluginContext := pluginContext(rctx)
 		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.ChannelHasBeenCreated(pluginContext, channel)
 			return true
@@ -685,12 +684,12 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string, creatorID stri
 	return channel, nil
 }
 
-func (a *App) GetGroupChannel(c request.CTX, userIDs []string) (*model.Channel, *model.AppError) {
+func (a *App) GetGroupChannel(rctx request.CTX, userIDs []string) (*model.Channel, *model.AppError) {
 	if len(userIDs) > model.ChannelGroupMaxUsers || len(userIDs) < model.ChannelGroupMinUsers {
 		return nil, model.NewAppError("GetGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	users, err := a.Srv().Store().User().GetProfileByIds(context.Background(), userIDs, nil, true)
+	users, err := a.Srv().Store().User().GetProfileByIds(rctx, userIDs, nil, true)
 	if err != nil {
 		return nil, model.NewAppError("GetGroupChannel", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -699,7 +698,7 @@ func (a *App) GetGroupChannel(c request.CTX, userIDs []string) (*model.Channel, 
 		return nil, model.NewAppError("GetGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJSON(userIDs), http.StatusBadRequest)
 	}
 
-	channel, appErr := a.GetChannelByName(c, model.GetGroupNameFromUserIds(userIDs), "", true)
+	channel, appErr := a.GetChannelByName(rctx, model.GetGroupNameFromUserIds(userIDs), "", true)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1622,7 +1621,7 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 	return nil
 }
 
-func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
+func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
 	if channel.Type != model.ChannelTypeOpen && channel.Type != model.ChannelTypePrivate {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -1638,7 +1637,7 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 	}
 
 	if channel.IsGroupConstrained() {
-		nonMembers, err := a.FilterNonGroupChannelMembers([]string{user.Id}, channel)
+		nonMembers, err := a.FilterNonGroupChannelMembers(rctx, []string{user.Id}, channel)
 		if err != nil {
 			return nil, model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -1665,7 +1664,7 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 	}
 
 	if channel.Type == model.ChannelTypePrivate {
-		if ok, appErr := a.ChannelAccessControlled(c, channel.Id); ok {
+		if ok, appErr := a.ChannelAccessControlled(rctx, channel.Id); ok {
 			if acs := a.Srv().Channels().AccessControl; acs != nil {
 				groupID, err := a.CpaGroupID()
 				if err != nil {
@@ -1673,13 +1672,13 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 						fmt.Sprintf("failed to get group: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusInternalServerError)
 				}
 
-				s, err := a.Srv().Store().Attributes().GetSubject(c, user.Id, groupID)
+				s, err := a.Srv().Store().Attributes().GetSubject(rctx, user.Id, groupID)
 				if err != nil {
 					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
 						fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusNotFound)
 				}
 
-				decision, evalErr := acs.AccessEvaluation(c, model.AccessRequest{
+				decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
 					Subject: *s,
 					Resource: model.Resource{
 						Type: model.AccessControlPolicyTypeChannel,
@@ -1698,7 +1697,7 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 		}
 	}
 
-	newMember, nErr = a.Srv().Store().Channel().SaveMember(c, newMember)
+	newMember, nErr = a.Srv().Store().Channel().SaveMember(rctx, newMember)
 	if nErr != nil {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
 			fmt.Sprintf("failed to add member: %v, user_id: %s, channel_id: %s", nErr, user.Id, channel.Id), http.StatusInternalServerError)
@@ -2666,7 +2665,7 @@ func (a *App) postRemoveFromChannelMessage(c request.CTX, removerUserId string, 
 	return nil
 }
 
-func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
+func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
 	user, nErr := a.Srv().Store().User().Get(context.Background(), userIDToRemove)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
@@ -2686,7 +2685,7 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 	}
 
 	if channel.IsGroupConstrained() && userIDToRemove != removerUserId && !user.IsBot {
-		nonMembers, err := a.FilterNonGroupChannelMembers([]string{userIDToRemove}, channel)
+		nonMembers, err := a.FilterNonGroupChannelMembers(rctx, []string{userIDToRemove}, channel)
 		if err != nil {
 			return model.NewAppError("removeUserFromChannel", "api.channel.remove_user_from_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -2695,12 +2694,12 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 		}
 	}
 
-	cm, err := a.GetChannelMember(c, channel.Id, userIDToRemove)
+	cm, err := a.GetChannelMember(rctx, channel.Id, userIDToRemove)
 	if err != nil {
 		return err
 	}
 
-	if err := a.Srv().Store().Channel().RemoveMember(c, channel.Id, userIDToRemove); err != nil {
+	if err := a.Srv().Store().Channel().RemoveMember(rctx, channel.Id, userIDToRemove); err != nil {
 		return model.NewAppError("removeUserFromChannel", "app.channel.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if err := a.Srv().Store().ChannelMemberHistory().LogLeaveEvent(userIDToRemove, channel.Id, model.GetMillis()); err != nil {
@@ -2711,21 +2710,21 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 	}
 
 	if isGuest {
-		currentMembers, err := a.GetChannelMembersForUser(c, channel.TeamId, userIDToRemove)
+		currentMembers, err := a.GetChannelMembersForUser(rctx, channel.TeamId, userIDToRemove)
 		if err != nil {
 			return err
 		}
 		if len(currentMembers) == 0 {
-			teamMember, err := a.GetTeamMember(c, channel.TeamId, userIDToRemove)
+			teamMember, err := a.GetTeamMember(rctx, channel.TeamId, userIDToRemove)
 			if err != nil {
 				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 
-			if err := a.ch.srv.teamService.RemoveTeamMember(c, teamMember); err != nil {
+			if err := a.ch.srv.teamService.RemoveTeamMember(rctx, teamMember); err != nil {
 				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 
-			if err = a.postProcessTeamMemberLeave(c, teamMember, removerUserId); err != nil {
+			if err = a.postProcessTeamMemberLeave(rctx, teamMember, removerUserId); err != nil {
 				return err
 			}
 		}
@@ -2740,7 +2739,7 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 	}
 
 	a.Srv().Go(func() {
-		pluginContext := pluginContext(c)
+		pluginContext := pluginContext(rctx)
 		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.UserHasLeftChannel(pluginContext, cm, actorUser)
 			return true
@@ -2934,8 +2933,8 @@ func (a *App) MarkChannelAsUnreadFromPost(c request.CTX, postID string, userID s
 	return channelUnread, nil
 }
 
-func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID string, userID string) (*model.ChannelUnreadAt, *model.AppError) {
-	post, appErr := a.GetSinglePost(c, postID, false)
+func (a *App) markChannelAsUnreadFromPostCRTUnsupported(rctx request.CTX, postID string, userID string) (*model.ChannelUnreadAt, *model.AppError) {
+	post, appErr := a.GetSinglePost(rctx, postID, false)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -2950,7 +2949,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 		threadId = post.Id
 	}
 
-	unreadMentions, unreadMentionsRoot, urgentMentions, appErr := a.countMentionsFromPost(c, user, post)
+	unreadMentions, unreadMentionsRoot, urgentMentions, appErr := a.countMentionsFromPost(rctx, user, post)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -2964,7 +2963,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 			return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 
-		a.sendWebSocketPostUnreadEvent(c, channelUnread, postID)
+		a.sendWebSocketPostUnreadEvent(rctx, channelUnread, postID)
 		a.UpdateMobileAppBadge(userID)
 		return channelUnread, nil
 	}
@@ -2974,7 +2973,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 	//                          If there are replies with mentions below the marked reply in the thread, then sum the mentions for the threads mention badge.
 	// In CRT Unsupported Client: Channel is marked as unread and new messages line inserted above the marked post.
 	//                            Badge on channel sums mentions in all posts (root & replies) including and below the post that was marked unread.
-	rootPost, appErr := a.GetSinglePost(c, post.RootId, false)
+	rootPost, appErr := a.GetSinglePost(rctx, post.RootId, false)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -3007,7 +3006,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 		// If threadmembership already exists but user had previously unfollowed the thread, then follow the thread again.
 		threadMembership.Following = true
 		threadMembership.LastViewed = post.CreateAt - 1
-		threadMembership.UnreadMentions, appErr = a.countThreadMentions(c, user, rootPost, channel.TeamId, post.CreateAt-1)
+		threadMembership.UnreadMentions, appErr = a.countThreadMentions(rctx, user, rootPost, channel.TeamId, post.CreateAt-1)
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -3015,14 +3014,14 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 		if mErr != nil {
 			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
-		thread, mErr := a.Srv().Store().Thread().GetThreadForUser(threadMembership, true, a.IsPostPriorityEnabled())
+		thread, mErr := a.Srv().Store().Thread().GetThreadForUser(rctx, threadMembership, true, a.IsPostPriorityEnabled())
 		if mErr != nil {
 			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
 		a.sanitizeProfiles(thread.Participants, false)
 		thread.Post.SanitizeProps()
 
-		if a.IsCRTEnabledForUser(c, userID) {
+		if a.IsCRTEnabledForUser(rctx, userID) {
 			payload, jsonErr := json.Marshal(thread)
 			if jsonErr != nil {
 				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
@@ -3037,7 +3036,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 	if nErr != nil {
 		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
-	a.sendWebSocketPostUnreadEvent(c, channelUnread, postID)
+	a.sendWebSocketPostUnreadEvent(rctx, channelUnread, postID)
 	a.UpdateMobileAppBadge(userID)
 	return channelUnread, nil
 }

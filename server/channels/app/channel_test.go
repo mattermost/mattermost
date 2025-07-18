@@ -281,7 +281,7 @@ func TestMoveChannel(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Check that the thread count before move
-		threads, appErr := th.App.GetThreadsForUser(th.BasicUser.Id, targetTeam.Id, model.GetUserThreadsOpts{})
+		threads, appErr := th.App.GetThreadsForUser(th.Context, th.BasicUser.Id, targetTeam.Id, model.GetUserThreadsOpts{})
 		require.Nil(t, appErr)
 
 		require.Zero(t, threads.Total)
@@ -291,12 +291,12 @@ func TestMoveChannel(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Check that the thread was moved
-		threads, appErr = th.App.GetThreadsForUser(th.BasicUser.Id, targetTeam.Id, model.GetUserThreadsOpts{})
+		threads, appErr = th.App.GetThreadsForUser(th.Context, th.BasicUser.Id, targetTeam.Id, model.GetUserThreadsOpts{})
 		require.Nil(t, appErr)
 
 		require.Equal(t, int64(1), threads.Total)
 		// Check that the thread count after move
-		threads, appErr = th.App.GetThreadsForUser(th.BasicUser.Id, sourceTeam.Id, model.GetUserThreadsOpts{})
+		threads, appErr = th.App.GetThreadsForUser(th.Context, th.BasicUser.Id, sourceTeam.Id, model.GetUserThreadsOpts{})
 		require.Nil(t, appErr)
 
 		require.Zero(t, threads.Total)
@@ -855,7 +855,7 @@ func TestLeaveDefaultChannel(t *testing.T) {
 		_, appErr = th.App.CreatePost(th.Context, reply, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
-		threads, appErr := th.App.GetThreadsForUser(th.BasicUser.Id, townSquare.TeamId, model.GetUserThreadsOpts{})
+		threads, appErr := th.App.GetThreadsForUser(th.Context, th.BasicUser.Id, townSquare.TeamId, model.GetUserThreadsOpts{})
 		require.Nil(t, appErr)
 		require.Len(t, threads.Threads, 1)
 
@@ -863,7 +863,7 @@ func TestLeaveDefaultChannel(t *testing.T) {
 		assert.NotNil(t, appErr, "It should fail to remove a regular user from the default channel")
 		assert.Equal(t, appErr.Id, "api.channel.remove.default.app_error")
 
-		threads, appErr = th.App.GetThreadsForUser(th.BasicUser.Id, townSquare.TeamId, model.GetUserThreadsOpts{})
+		threads, appErr = th.App.GetThreadsForUser(th.Context, th.BasicUser.Id, townSquare.TeamId, model.GetUserThreadsOpts{})
 		require.Nil(t, appErr)
 		require.Len(t, threads.Threads, 1)
 	})
@@ -902,7 +902,7 @@ func TestLeaveChannel(t *testing.T) {
 		channel2 := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
 		createThread(channel2)
 
-		threads, appErr := th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicChannel.TeamId, model.GetUserThreadsOpts{})
+		threads, appErr := th.App.GetThreadsForUser(th.Context, th.BasicUser.Id, th.BasicChannel.TeamId, model.GetUserThreadsOpts{})
 		require.Nil(t, appErr)
 		require.Len(t, threads.Threads, 2)
 
@@ -912,7 +912,7 @@ func TestLeaveChannel(t *testing.T) {
 		_, appErr = th.App.GetChannelMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NotNil(t, appErr, "It should remove channel membership")
 
-		threads, appErr = th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicChannel.TeamId, model.GetUserThreadsOpts{})
+		threads, appErr = th.App.GetThreadsForUser(th.Context, th.BasicUser.Id, th.BasicChannel.TeamId, model.GetUserThreadsOpts{})
 		require.Nil(t, appErr)
 		require.Len(t, threads.Threads, 1)
 	})
@@ -989,7 +989,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	}
 	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
 
-	postList, nErr := th.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
+	postList, nErr := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 	require.NoError(t, nErr)
 
 	if assert.Len(t, postList.Order, 1) {
@@ -2621,7 +2621,7 @@ func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Check we have unread mention in the thread
-	threads, appErr := th.App.GetThreadsForUser(u1.Id, c1.TeamId, model.GetUserThreadsOpts{})
+	threads, appErr := th.App.GetThreadsForUser(th.Context, u1.Id, c1.TeamId, model.GetUserThreadsOpts{})
 	require.Nil(t, appErr)
 	found := false
 	for _, thread := range threads.Threads {
@@ -2638,7 +2638,7 @@ func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Thread should be marked as read because CRT has been turned off by user
-	threads, appErr = th.App.GetThreadsForUser(u1.Id, c1.TeamId, model.GetUserThreadsOpts{})
+	threads, appErr = th.App.GetThreadsForUser(th.Context, u1.Id, c1.TeamId, model.GetUserThreadsOpts{})
 	require.Nil(t, appErr)
 	found = false
 	for _, thread := range threads.Threads {
@@ -2717,7 +2717,7 @@ func TestMarkChannelAsUnreadFromPostCollapsedThreadsTurnedOff(t *testing.T) {
 
 		threadMembership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost1.Id)
 		require.Nil(t, appErr)
-		thread, appErr := th.App.GetThreadForUser(threadMembership, false)
+		thread, appErr := th.App.GetThreadForUser(th.Context, threadMembership, false)
 		require.Nil(t, appErr)
 		require.Equal(t, int64(2), thread.UnreadMentions)
 		require.Equal(t, int64(3), thread.UnreadReplies)

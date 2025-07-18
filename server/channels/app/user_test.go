@@ -2182,7 +2182,7 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 		require.Nil(t, appErr)
 		replyPost, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
-		threads, appErr := th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+		threads, appErr := th.App.GetThreadsForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
 		require.Nil(t, appErr)
 		require.Zero(t, threads.Total)
 

@@ -6118,10 +6118,10 @@ func (s *TimerLayerPostStore) Delete(rctx request.CTX, postID string, timestamp 
 	return err
 }
 
-func (s *TimerLayerPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
+func (s *TimerLayerPostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.Get(ctx, id, opts, userID, sanitizeOptions)
+	result, err := s.PostStore.Get(rctx, id, opts, userID, sanitizeOptions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6390,10 +6390,10 @@ func (s *TimerLayerPostStore) GetPostReminders(now int64) ([]*model.PostReminder
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
+func (s *TimerLayerPostStore) GetPosts(rctx request.CTX, options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.GetPosts(options, allowFromCache, sanitizeOptions)
+	result, err := s.PostStore.GetPosts(rctx, options, allowFromCache, sanitizeOptions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6406,10 +6406,10 @@ func (s *TimerLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromC
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostsAfter(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
+func (s *TimerLayerPostStore) GetPostsAfter(rctx request.CTX, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.GetPostsAfter(options, sanitizeOptions)
+	result, err := s.PostStore.GetPostsAfter(rctx, options, sanitizeOptions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6438,10 +6438,10 @@ func (s *TimerLayerPostStore) GetPostsBatchForIndexing(startTime int64, startPos
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostsBefore(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
+func (s *TimerLayerPostStore) GetPostsBefore(rctx request.CTX, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.GetPostsBefore(options, sanitizeOptions)
+	result, err := s.PostStore.GetPostsBefore(rctx, options, sanitizeOptions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6502,10 +6502,10 @@ func (s *TimerLayerPostStore) GetPostsCreatedAt(channelID string, timestamp int6
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
+func (s *TimerLayerPostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.GetPostsSince(options, allowFromCache, sanitizeOptions)
+	result, err := s.PostStore.GetPostsSince(rctx, options, allowFromCache, sanitizeOptions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -10787,10 +10787,10 @@ func (s *TimerLayerThreadStore) GetThreadFollowers(threadID string, fetchOnlyAct
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool, postPriorityIsEnabled bool) (*model.ThreadResponse, error) {
+func (s *TimerLayerThreadStore) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadMembership, extended bool, postPriorityIsEnabled bool) (*model.ThreadResponse, error) {
 	start := time.Now()
 
-	result, err := s.ThreadStore.GetThreadForUser(threadMembership, extended, postPriorityIsEnabled)
+	result, err := s.ThreadStore.GetThreadForUser(rctx, threadMembership, extended, postPriorityIsEnabled)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -10835,10 +10835,10 @@ func (s *TimerLayerThreadStore) GetThreadUnreadReplyCount(threadMembership *mode
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetThreadsForUser(userID string, teamID string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
+func (s *TimerLayerThreadStore) GetThreadsForUser(rctx request.CTX, userID string, teamID string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
 	start := time.Now()
 
-	result, err := s.ThreadStore.GetThreadsForUser(userID, teamID, opts)
+	result, err := s.ThreadStore.GetThreadsForUser(rctx, userID, teamID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -11809,10 +11809,10 @@ func (s *TimerLayerUserStore) GetProfileByGroupChannelIdsForUser(userID string, 
 	return result, err
 }
 
-func (s *TimerLayerUserStore) GetProfileByIds(ctx context.Context, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
+func (s *TimerLayerUserStore) GetProfileByIds(rctx request.CTX, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
 	start := time.Now()
 
-	result, err := s.UserStore.GetProfileByIds(ctx, userIds, options, allowFromCache)
+	result, err := s.UserStore.GetProfileByIds(rctx, userIds, options, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

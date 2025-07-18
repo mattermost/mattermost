@@ -1710,37 +1710,37 @@ func testUserStoreGetProfilesByIds(t *testing.T, rctx request.CTX, ss store.Stor
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u4.Id)) }()
 
 	t.Run("get u1 by id, no caching", func(t *testing.T) {
-		users, err := ss.User().GetProfileByIds(context.Background(), []string{u1.Id}, nil, false)
+		users, err := ss.User().GetProfileByIds(rctx, []string{u1.Id}, nil, false)
 		require.NoError(t, err)
 		assert.Equal(t, []*model.User{u1}, users)
 	})
 
 	t.Run("get u1 by id, caching", func(t *testing.T) {
-		users, err := ss.User().GetProfileByIds(context.Background(), []string{u1.Id}, nil, true)
+		users, err := ss.User().GetProfileByIds(rctx, []string{u1.Id}, nil, true)
 		require.NoError(t, err)
 		assert.Equal(t, []*model.User{u1}, users)
 	})
 
 	t.Run("get u1, u2, u3 by id, no caching", func(t *testing.T) {
-		users, err := ss.User().GetProfileByIds(context.Background(), []string{u1.Id, u2.Id, u3.Id}, nil, false)
+		users, err := ss.User().GetProfileByIds(rctx, []string{u1.Id, u2.Id, u3.Id}, nil, false)
 		require.NoError(t, err)
 		assert.Equal(t, []*model.User{u1, u2, u3}, users)
 	})
 
 	t.Run("get u1, u2, u3 by id, caching", func(t *testing.T) {
-		users, err := ss.User().GetProfileByIds(context.Background(), []string{u1.Id, u2.Id, u3.Id}, nil, true)
+		users, err := ss.User().GetProfileByIds(rctx, []string{u1.Id, u2.Id, u3.Id}, nil, true)
 		require.NoError(t, err)
 		assert.Equal(t, []*model.User{u1, u2, u3}, users)
 	})
 
 	t.Run("get unknown id, caching", func(t *testing.T) {
-		users, err := ss.User().GetProfileByIds(context.Background(), []string{"123"}, nil, true)
+		users, err := ss.User().GetProfileByIds(rctx, []string{"123"}, nil, true)
 		require.NoError(t, err)
 		assert.Equal(t, []*model.User{}, users)
 	})
 
 	t.Run("should only return users with UpdateAt greater than the since time", func(t *testing.T) {
-		users, err := ss.User().GetProfileByIds(context.Background(), []string{u1.Id, u2.Id, u3.Id, u4.Id}, &store.UserGetByIdsOpts{
+		users, err := ss.User().GetProfileByIds(rctx, []string{u1.Id, u2.Id, u3.Id, u4.Id}, &store.UserGetByIdsOpts{
 			Since: u2.CreateAt,
 		}, true)
 		require.NoError(t, err)
