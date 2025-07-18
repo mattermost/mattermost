@@ -3156,8 +3156,6 @@ func TestSanitizePostMetadataForUser(t *testing.T) {
 }
 
 func TestGetLinkMetadataFromCache(t *testing.T) {
-	mainHelper.Parallel(t)
-
 	testURL := "https://example.com/test"
 	testTimestamp := int64(1640995200000) // 2022-01-01 00:00:00 UTC
 
