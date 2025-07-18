@@ -676,7 +676,7 @@ func (c *Client4) DoAPIGet(ctx context.Context, url string, etag string) (*http.
 // DoAPIPost makes a POST request to the specified URL with optional string data.
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIPost(ctx context.Context, url, data string) (*http.Response, error) {
-	return c.doAPIRequest(ctx, http.MethodPost, c.APIURL+url, "", "")
+	return c.doAPIRequest(ctx, http.MethodPost, c.APIURL+url, data, "")
 }
 
 // DoAPIPostJSON marshals the provided data to JSON and makes a POST request to the specified URL.
@@ -692,7 +692,7 @@ func (c *Client4) DoAPIPostJSON(ctx context.Context, url string, data any) (*htt
 // DoAPIPut makes a PUT request to the specified URL with optional string data.
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIPut(ctx context.Context, url, data string) (*http.Response, error) {
-	return c.doAPIRequest(ctx, http.MethodPut, c.APIURL+url, "", "")
+	return c.doAPIRequest(ctx, http.MethodPut, c.APIURL+url, data, "")
 }
 
 // DoAPIPutJSON marshals the provided data to JSON and makes a PUT request to the specified URL.
