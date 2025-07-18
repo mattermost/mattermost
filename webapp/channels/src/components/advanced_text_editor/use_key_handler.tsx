@@ -374,12 +374,11 @@ const useKeyHandler = (
             pasteHandler(event, location, draft.message, isNonFormattedPaste.current, caretPosition, isInEditMode);
         }
 
-        // Register paste event listener
         document.addEventListener('paste', onPaste);
         return () => {
             document.removeEventListener('paste', onPaste);
         };
-    }, [location, draft.message, caretPosition, draft, isInEditMode]);
+    }, [location, draft.message, caretPosition, isInEditMode]);
 
     const reactToLastMessage = useCallback((e: KeyboardEvent) => {
         e.preventDefault();
@@ -424,7 +423,7 @@ const useKeyHandler = (
         if (draft.message !== messageHistory[messageHistoryIndex.current]) {
             messageHistoryIndex.current = messageHistory.length;
         }
-    }, [draft.message, messageHistory]);
+    }, [draft.message]);
 
     useEffect(() => {
         messageHistoryIndex.current = messageHistory.length;
