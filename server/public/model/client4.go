@@ -666,12 +666,7 @@ func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response
 }
 
 func (c *Client4) CreateScheduledPost(ctx context.Context, scheduledPost *ScheduledPost) (*ScheduledPost, *Response, error) {
-	buf, err := json.Marshal(scheduledPost)
-	if err != nil {
-		return nil, nil, NewAppError("CreateScheduledPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPost(ctx, c.postsRoute()+"/schedule", string(buf))
+	r, err := c.DoAPIPostJSON(ctx, c.postsRoute()+"/schedule", scheduledPost)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -694,12 +689,7 @@ func (c *Client4) GetUserScheduledPosts(ctx context.Context, teamId string, incl
 }
 
 func (c *Client4) UpdateScheduledPost(ctx context.Context, scheduledPost *ScheduledPost) (*ScheduledPost, *Response, error) {
-	buf, err := json.Marshal(scheduledPost)
-	if err != nil {
-		return nil, nil, NewAppError("UpdateScheduledPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPut(ctx, c.postsRoute()+"/schedule/"+scheduledPost.Id, string(buf))
+	r, err := c.DoAPIPutJSON(ctx, c.postsRoute()+"/schedule/"+scheduledPost.Id, scheduledPost)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -731,51 +721,88 @@ func (c *Client4) clientPerfMetricsRoute() string {
 	return "/client_perf"
 }
 
+// DoAPIGet makes a GET request to the specified URL with an optional ETag for caching.
+// Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIGet(ctx context.Context, url string, etag string) (*http.Response, error) {
-	return c.DoAPIRequest(ctx, http.MethodGet, c.APIURL+url, "", etag)
+	return c.doAPIRequest(ctx, http.MethodGet, c.APIURL+url, "", etag)
 }
 
-func (c *Client4) DoAPIPost(ctx context.Context, url string, data string) (*http.Response, error) {
-	return c.DoAPIRequest(ctx, http.MethodPost, c.APIURL+url, data, "")
+// DoAPIPost makes a POST request to the specified URL with optional string data.
+// Returns the HTTP response or any error that occurred during the request.
+func (c *Client4) DoAPIPost(ctx context.Context, url, data string) (*http.Response, error) {
+	return c.doAPIRequest(ctx, http.MethodPost, c.APIURL+url, "", "")
 }
 
-func (c *Client4) DoAPIDeleteBytes(ctx context.Context, url string, data []byte) (*http.Response, error) {
-	return c.DoAPIRequestBytes(ctx, http.MethodDelete, c.APIURL+url, data, "")
+// DoAPIPostJSON marshals the provided data to JSON and makes a POST request to the specified URL.
+// Returns the HTTP response or any error that occurred during marshaling or request.
+func (c *Client4) DoAPIPostJSON(ctx context.Context, url string, data any) (*http.Response, error) {
+	buf, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	return c.doAPIRequestBytes(ctx, http.MethodPost, c.APIURL+url, buf, "")
 }
 
-func (c *Client4) DoAPIPatchBytes(ctx context.Context, url string, data []byte) (*http.Response, error) {
-	return c.DoAPIRequestBytes(ctx, http.MethodPatch, c.APIURL+url, data, "")
+// DoAPIPut makes a PUT request to the specified URL with optional string data.
+// Returns the HTTP response or any error that occurred during the request.
+func (c *Client4) DoAPIPut(ctx context.Context, url, data string) (*http.Response, error) {
+	return c.doAPIRequest(ctx, http.MethodPut, c.APIURL+url, "", "")
 }
 
-func (c *Client4) DoAPIPostBytes(ctx context.Context, url string, data []byte) (*http.Response, error) {
-	return c.DoAPIRequestBytes(ctx, http.MethodPost, c.APIURL+url, data, "")
+// DoAPIPutJSON marshals the provided data to JSON and makes a PUT request to the specified URL.
+// Returns the HTTP response or any error that occurred during marshaling or request.
+func (c *Client4) DoAPIPutJSON(ctx context.Context, url string, data any) (*http.Response, error) {
+	buf, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	return c.doAPIRequestBytes(ctx, http.MethodPut, c.APIURL+url, buf, "")
 }
 
-func (c *Client4) DoAPIPut(ctx context.Context, url string, data string) (*http.Response, error) {
-	return c.DoAPIRequest(ctx, http.MethodPut, c.APIURL+url, data, "")
+// DoAPIPatchJSON marshals the provided data to JSON and makes a PATCH request to the specified URL.
+// Returns the HTTP response or any error that occurred during marshaling or request.
+func (c *Client4) DoAPIPatchJSON(ctx context.Context, url string, data any) (*http.Response, error) {
+	buf, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	return c.doAPIRequestBytes(ctx, http.MethodPatch, c.APIURL+url, buf, "")
 }
 
-func (c *Client4) DoAPIPutBytes(ctx context.Context, url string, data []byte) (*http.Response, error) {
-	return c.DoAPIRequestBytes(ctx, http.MethodPut, c.APIURL+url, data, "")
-}
-
+// DoAPIDelete makes a DELETE request to the specified URL.
+// Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIDelete(ctx context.Context, url string) (*http.Response, error) {
-	return c.DoAPIRequest(ctx, http.MethodDelete, c.APIURL+url, "", "")
+	return c.doAPIRequest(ctx, http.MethodDelete, c.APIURL+url, "", "")
 }
 
-func (c *Client4) DoAPIRequest(ctx context.Context, method, url, data, etag string) (*http.Response, error) {
-	return c.DoAPIRequestReader(ctx, method, url, strings.NewReader(data), map[string]string{HeaderEtagClient: etag})
+// DoAPIDeleteJSON marshals the provided data to JSON and makes a DELETE request to the specified URL.
+// Returns the HTTP response or any error that occurred during marshaling or request.
+func (c *Client4) DoAPIDeleteJSON(ctx context.Context, url string, data any, funcName string) (*http.Response, error) {
+	buf, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	return c.doAPIRequestBytes(ctx, http.MethodDelete, c.APIURL+url, buf, "")
 }
 
+// DoAPIRequestWithHeaders makes an HTTP request with the specified method, URL, and custom headers.
+// Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIRequestWithHeaders(ctx context.Context, method, url, data string, headers map[string]string) (*http.Response, error) {
-	return c.DoAPIRequestReader(ctx, method, url, strings.NewReader(data), headers)
+	return c.doAPIRequestReader(ctx, method, url, strings.NewReader(""), headers)
 }
 
-func (c *Client4) DoAPIRequestBytes(ctx context.Context, method, url string, data []byte, etag string) (*http.Response, error) {
-	return c.DoAPIRequestReader(ctx, method, url, bytes.NewReader(data), map[string]string{HeaderEtagClient: etag})
+func (c *Client4) doAPIRequest(ctx context.Context, method, url, data, etag string) (*http.Response, error) {
+	return c.doAPIRequestReader(ctx, method, url, strings.NewReader(data), map[string]string{HeaderEtagClient: etag})
 }
 
-func (c *Client4) DoAPIRequestReader(ctx context.Context, method, url string, data io.Reader, headers map[string]string) (*http.Response, error) {
+func (c *Client4) doAPIRequestBytes(ctx context.Context, method, url string, data []byte, etag string) (*http.Response, error) {
+	return c.doAPIRequestReader(ctx, method, url, bytes.NewReader(data), map[string]string{HeaderEtagClient: etag})
+}
+
+// doAPIRequestReader makes an HTTP request using an io.Reader for the request body and custom headers.
+// This is the most flexible DoAPI method, supporting streaming data and custom headers.
+// Returns the HTTP response or any error that occurred during the request.
+func (c *Client4) doAPIRequestReader(ctx context.Context, method, url string, data io.Reader, headers map[string]string) (*http.Response, error) {
 	rq, err := http.NewRequestWithContext(ctx, method, url, data)
 	if err != nil {
 		return nil, err
@@ -948,7 +975,7 @@ func (c *Client4) LoginWithMFA(ctx context.Context, loginId, password, mfaToken 
 }
 
 func (c *Client4) login(ctx context.Context, m map[string]string) (*User, *Response, error) {
-	r, err := c.DoAPIPost(ctx, "/users/login", MapToJSON(m))
+	r, err := c.DoAPIPostJSON(ctx, "/users/login", m)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -963,7 +990,7 @@ func (c *Client4) LoginWithDesktopToken(ctx context.Context, token, deviceId str
 	m := make(map[string]string)
 	m["token"] = token
 	m["deviceId"] = deviceId
-	r, err := c.DoAPIPost(ctx, "/users/login/desktop_token", MapToJSON(m))
+	r, err := c.DoAPIPostJSON(ctx, "/users/login/desktop_token", m)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -988,11 +1015,7 @@ func (c *Client4) Logout(ctx context.Context) (*Response, error) {
 
 // SwitchAccountType changes a user's login type from one type to another.
 func (c *Client4) SwitchAccountType(ctx context.Context, switchRequest *SwitchRequest) (string, *Response, error) {
-	buf, err := json.Marshal(switchRequest)
-	if err != nil {
-		return "", BuildResponse(nil), NewAppError("SwitchAccountType", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.usersRoute()+"/login/switch", buf)
+	r, err := c.DoAPIPostJSON(ctx, c.usersRoute()+"/login/switch", switchRequest)
 	if err != nil {
 		return "", BuildResponse(r), err
 	}
@@ -1008,12 +1031,7 @@ func (c *Client4) SwitchAccountType(ctx context.Context, switchRequest *SwitchRe
 
 // CreateUser creates a user in the system based on the provided user struct.
 func (c *Client4) CreateUser(ctx context.Context, user *User) (*User, *Response, error) {
-	userJSON, err := json.Marshal(user)
-	if err != nil {
-		return nil, nil, NewAppError("CreateUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPost(ctx, c.usersRoute(), string(userJSON))
+	r, err := c.DoAPIPostJSON(ctx, c.usersRoute(), user)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1029,11 +1047,7 @@ func (c *Client4) CreateUserWithToken(ctx context.Context, user *User, tokenId s
 	}
 
 	query := "?t=" + tokenId
-	buf, err := json.Marshal(user)
-	if err != nil {
-		return nil, nil, NewAppError("CreateUserWithToken", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.usersRoute()+query, buf)
+	r, err := c.DoAPIPostJSON(ctx, c.usersRoute()+query, user)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1049,11 +1063,7 @@ func (c *Client4) CreateUserWithInviteId(ctx context.Context, user *User, invite
 	}
 
 	query := "?iid=" + url.QueryEscape(inviteId)
-	buf, err := json.Marshal(user)
-	if err != nil {
-		return nil, nil, NewAppError("CreateUserWithInviteId", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.usersRoute()+query, buf)
+	r, err := c.DoAPIPostJSON(ctx, c.usersRoute()+query, user)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1337,7 +1347,7 @@ func (c *Client4) GetUsersInGroupByDisplayName(ctx context.Context, groupID stri
 
 // GetUsersByIds returns a list of users based on the provided user ids.
 func (c *Client4) GetUsersByIds(ctx context.Context, userIds []string) ([]*User, *Response, error) {
-	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/ids", ArrayToJSON(userIds))
+	r, err := c.DoAPIPostJSON(ctx, c.usersRoute()+"/ids", userIds)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1358,7 +1368,7 @@ func (c *Client4) GetUsersByIdsWithOptions(ctx context.Context, userIds []string
 		url += "?" + v.Encode()
 	}
 
-	r, err := c.DoAPIPost(ctx, url, ArrayToJSON(userIds))
+	r, err := c.DoAPIPostJSON(ctx, url, userIds)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1369,7 +1379,7 @@ func (c *Client4) GetUsersByIdsWithOptions(ctx context.Context, userIds []string
 
 // GetUsersByUsernames returns a list of users based on the provided usernames.
 func (c *Client4) GetUsersByUsernames(ctx context.Context, usernames []string) ([]*User, *Response, error) {
-	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/usernames", ArrayToJSON(usernames))
+	r, err := c.DoAPIPostJSON(ctx, c.usersRoute()+"/usernames", usernames)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1381,7 +1391,7 @@ func (c *Client4) GetUsersByUsernames(ctx context.Context, usernames []string) (
 // GetUsersByGroupChannelIds returns a map with channel ids as keys
 // and a list of users as values based on the provided user ids.
 func (c *Client4) GetUsersByGroupChannelIds(ctx context.Context, groupChannelIds []string) (map[string][]*User, *Response, error) {
-	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/group_channels", ArrayToJSON(groupChannelIds))
+	r, err := c.DoAPIPostJSON(ctx, c.usersRoute()+"/group_channels", groupChannelIds)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1392,11 +1402,7 @@ func (c *Client4) GetUsersByGroupChannelIds(ctx context.Context, groupChannelIds
 
 // SearchUsers returns a list of users based on some search criteria.
 func (c *Client4) SearchUsers(ctx context.Context, search *UserSearch) ([]*User, *Response, error) {
-	buf, err := json.Marshal(search)
-	if err != nil {
-		return nil, nil, NewAppError("SearchUsers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.usersRoute()+"/search", buf)
+	r, err := c.DoAPIPostJSON(ctx, c.usersRoute()+"/search", search)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1407,11 +1413,7 @@ func (c *Client4) SearchUsers(ctx context.Context, search *UserSearch) ([]*User,
 
 // UpdateUser updates a user in the system based on the provided user struct.
 func (c *Client4) UpdateUser(ctx context.Context, user *User) (*User, *Response, error) {
-	buf, err := json.Marshal(user)
-	if err != nil {
-		return nil, nil, NewAppError("UpdateUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.userRoute(user.Id), buf)
+	r, err := c.DoAPIPutJSON(ctx, c.userRoute(user.Id), user)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1422,11 +1424,7 @@ func (c *Client4) UpdateUser(ctx context.Context, user *User) (*User, *Response,
 
 // PatchUser partially updates a user in the system. Any missing fields are not updated.
 func (c *Client4) PatchUser(ctx context.Context, userId string, patch *UserPatch) (*User, *Response, error) {
-	buf, err := json.Marshal(patch)
-	if err != nil {
-		return nil, nil, NewAppError("PatchUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.userRoute(userId)+"/patch", buf)
+	r, err := c.DoAPIPutJSON(ctx, c.userRoute(userId)+"/patch", patch)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1437,11 +1435,7 @@ func (c *Client4) PatchUser(ctx context.Context, userId string, patch *UserPatch
 
 // UpdateUserAuth updates a user AuthData (uthData, authService and password) in the system.
 func (c *Client4) UpdateUserAuth(ctx context.Context, userId string, userAuth *UserAuth) (*UserAuth, *Response, error) {
-	buf, err := json.Marshal(userAuth)
-	if err != nil {
-		return nil, nil, NewAppError("UpdateUserAuth", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.userRoute(userId)+"/auth", buf)
+	r, err := c.DoAPIPutJSON(ctx, c.userRoute(userId)+"/auth", userAuth)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1458,7 +1452,7 @@ func (c *Client4) UpdateUserMfa(ctx context.Context, userId, code string, activa
 	requestBody["activate"] = activate
 	requestBody["code"] = code
 
-	r, err := c.DoAPIPut(ctx, c.userRoute(userId)+"/mfa", StringInterfaceToJSON(requestBody))
+	r, err := c.DoAPIPutJSON(ctx, c.userRoute(userId)+"/mfa", requestBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1481,7 +1475,7 @@ func (c *Client4) GenerateMfaSecret(ctx context.Context, userId string) (*MfaSec
 // UpdateUserPassword updates a user's password. Must be logged in as the user or be a system administrator.
 func (c *Client4) UpdateUserPassword(ctx context.Context, userId, currentPassword, newPassword string) (*Response, error) {
 	requestBody := map[string]string{"current_password": currentPassword, "new_password": newPassword}
-	r, err := c.DoAPIPut(ctx, c.userRoute(userId)+"/password", MapToJSON(requestBody))
+	r, err := c.DoAPIPutJSON(ctx, c.userRoute(userId)+"/password", requestBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1492,7 +1486,7 @@ func (c *Client4) UpdateUserPassword(ctx context.Context, userId, currentPasswor
 // UpdateUserHashedPassword updates a user's password with an already-hashed password. Must be a system administrator.
 func (c *Client4) UpdateUserHashedPassword(ctx context.Context, userId, newHashedPassword string) (*Response, error) {
 	requestBody := map[string]string{"already_hashed": "true", "new_password": newHashedPassword}
-	r, err := c.DoAPIPut(ctx, c.userRoute(userId)+"/password", MapToJSON(requestBody))
+	r, err := c.DoAPIPutJSON(ctx, c.userRoute(userId)+"/password", requestBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1523,7 +1517,7 @@ func (c *Client4) DemoteUserToGuest(ctx context.Context, guestId string) (*Respo
 // UpdateUserRoles updates a user's roles in the system. A user can have "system_user" and "system_admin" roles.
 func (c *Client4) UpdateUserRoles(ctx context.Context, userId, roles string) (*Response, error) {
 	requestBody := map[string]string{"roles": roles}
-	r, err := c.DoAPIPut(ctx, c.userRoute(userId)+"/roles", MapToJSON(requestBody))
+	r, err := c.DoAPIPutJSON(ctx, c.userRoute(userId)+"/roles", requestBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1535,7 +1529,7 @@ func (c *Client4) UpdateUserRoles(ctx context.Context, userId, roles string) (*R
 func (c *Client4) UpdateUserActive(ctx context.Context, userId string, active bool) (*Response, error) {
 	requestBody := make(map[string]any)
 	requestBody["active"] = active
-	r, err := c.DoAPIPut(ctx, c.userRoute(userId)+"/active", StringInterfaceToJSON(requestBody))
+	r, err := c.DoAPIPutJSON(ctx, c.userRoute(userId)+"/active", requestBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1590,11 +1584,7 @@ func (c *Client4) ConvertBotToUser(ctx context.Context, userId string, userPatch
 	if setSystemAdmin {
 		query = "?set_system_admin=true"
 	}
-	buf, err := json.Marshal(userPatch)
-	if err != nil {
-		return nil, nil, NewAppError("ConvertBotToUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.botRoute(userId)+"/convert_to_user"+query, buf)
+	r, err := c.DoAPIPostJSON(ctx, c.botRoute(userId)+"/convert_to_user"+query, userPatch)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1616,7 +1606,7 @@ func (c *Client4) PermanentDeleteAllUsers(ctx context.Context) (*Response, error
 // provided email.
 func (c *Client4) SendPasswordResetEmail(ctx context.Context, email string) (*Response, error) {
 	requestBody := map[string]string{"email": email}
-	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/password/reset/send", MapToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, c.usersRoute()+"/password/reset/send", requestBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1627,7 +1617,7 @@ func (c *Client4) SendPasswordResetEmail(ctx context.Context, email string) (*Re
 // ResetPassword uses a recovery code to update reset a user's password.
 func (c *Client4) ResetPassword(ctx context.Context, token, newPassword string) (*Response, error) {
 	requestBody := map[string]string{"token": token, "new_password": newPassword}
-	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/password/reset", MapToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, c.usersRoute()+"/password/reset", requestBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1648,7 +1638,7 @@ func (c *Client4) GetSessions(ctx context.Context, userId, etag string) ([]*Sess
 // RevokeSession revokes a user session based on the provided user id and session id strings.
 func (c *Client4) RevokeSession(ctx context.Context, userId, sessionId string) (*Response, error) {
 	requestBody := map[string]string{"session_id": sessionId}
-	r, err := c.DoAPIPost(ctx, c.userRoute(userId)+"/sessions/revoke", MapToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, c.userRoute(userId)+"/sessions/revoke", requestBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1678,7 +1668,7 @@ func (c *Client4) RevokeSessionsFromAllUsers(ctx context.Context) (*Response, er
 
 // AttachDeviceProps attaches a mobile device ID to the current session and other props.
 func (c *Client4) AttachDeviceProps(ctx context.Context, newProps map[string]string) (*Response, error) {
-	r, err := c.DoAPIPut(ctx, c.usersRoute()+"/sessions/device", MapToJSON(newProps))
+	r, err := c.DoAPIPutJSON(ctx, c.usersRoute()+"/sessions/device", newProps)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1725,7 +1715,7 @@ func (c *Client4) GetUserAudits(ctx context.Context, userId string, page int, pe
 // VerifyUserEmail will verify a user's email using the supplied token.
 func (c *Client4) VerifyUserEmail(ctx context.Context, token string) (*Response, error) {
 	requestBody := map[string]string{"token": token}
-	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/email/verify", MapToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, c.usersRoute()+"/email/verify", requestBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1748,7 +1738,7 @@ func (c *Client4) VerifyUserEmailWithoutToken(ctx context.Context, userId string
 // email address.
 func (c *Client4) SendVerificationEmail(ctx context.Context, email string) (*Response, error) {
 	requestBody := map[string]string{"email": email}
-	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/email/verify/send", MapToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, c.usersRoute()+"/email/verify/send", requestBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1812,7 +1802,7 @@ func (c *Client4) SetProfileImage(ctx context.Context, userId string, data []byt
 // permission. A non-blank description is required.
 func (c *Client4) CreateUserAccessToken(ctx context.Context, userId, description string) (*UserAccessToken, *Response, error) {
 	requestBody := map[string]string{"description": description}
-	r, err := c.DoAPIPost(ctx, c.userRoute(userId)+"/tokens", MapToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, c.userRoute(userId)+"/tokens", requestBody)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1865,7 +1855,7 @@ func (c *Client4) GetUserAccessTokensForUser(ctx context.Context, userId string,
 // 'edit_other_users' permission.
 func (c *Client4) RevokeUserAccessToken(ctx context.Context, tokenId string) (*Response, error) {
 	requestBody := map[string]string{"token_id": tokenId}
-	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/tokens/revoke", MapToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, c.usersRoute()+"/tokens/revoke", requestBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1875,11 +1865,7 @@ func (c *Client4) RevokeUserAccessToken(ctx context.Context, tokenId string) (*R
 
 // SearchUserAccessTokens returns user access tokens matching the provided search term.
 func (c *Client4) SearchUserAccessTokens(ctx context.Context, search *UserAccessTokenSearch) ([]*UserAccessToken, *Response, error) {
-	buf, err := json.Marshal(search)
-	if err != nil {
-		return nil, nil, NewAppError("SearchUserAccessTokens", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.usersRoute()+"/tokens/search", buf)
+	r, err := c.DoAPIPostJSON(ctx, c.usersRoute()+"/tokens/search", search)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1892,7 +1878,7 @@ func (c *Client4) SearchUserAccessTokens(ctx context.Context, search *UserAccess
 // 'edit_other_users' permission.
 func (c *Client4) DisableUserAccessToken(ctx context.Context, tokenId string) (*Response, error) {
 	requestBody := map[string]string{"token_id": tokenId}
-	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/tokens/disable", MapToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, c.usersRoute()+"/tokens/disable", requestBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1905,7 +1891,7 @@ func (c *Client4) DisableUserAccessToken(ctx context.Context, tokenId string) (*
 // 'edit_other_users' permission.
 func (c *Client4) EnableUserAccessToken(ctx context.Context, tokenId string) (*Response, error) {
 	requestBody := map[string]string{"token_id": tokenId}
-	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/tokens/enable", MapToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, c.usersRoute()+"/tokens/enable", requestBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -1964,11 +1950,7 @@ func (c *Client4) GetUsersForReporting(ctx context.Context, options *UserReportO
 
 // CreateBot creates a bot in the system based on the provided bot struct.
 func (c *Client4) CreateBot(ctx context.Context, bot *Bot) (*Bot, *Response, error) {
-	buf, err := json.Marshal(bot)
-	if err != nil {
-		return nil, nil, NewAppError("CreateBot", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.botsRoute(), buf)
+	r, err := c.DoAPIPostJSON(ctx, c.botsRoute(), bot)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1979,11 +1961,7 @@ func (c *Client4) CreateBot(ctx context.Context, bot *Bot) (*Bot, *Response, err
 
 // PatchBot partially updates a bot. Any missing fields are not updated.
 func (c *Client4) PatchBot(ctx context.Context, userId string, patch *BotPatch) (*Bot, *Response, error) {
-	buf, err := json.Marshal(patch)
-	if err != nil {
-		return nil, nil, NewAppError("PatchBot", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.botRoute(userId), buf)
+	r, err := c.DoAPIPutJSON(ctx, c.botRoute(userId), patch)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2052,7 +2030,7 @@ func (c *Client4) GetBotsOrphaned(ctx context.Context, page, perPage int, etag s
 
 // DisableBot disables the given bot in the system.
 func (c *Client4) DisableBot(ctx context.Context, botUserId string) (*Bot, *Response, error) {
-	r, err := c.DoAPIPostBytes(ctx, c.botRoute(botUserId)+"/disable", nil)
+	r, err := c.DoAPIPost(ctx, c.botRoute(botUserId)+"/disable", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2063,7 +2041,7 @@ func (c *Client4) DisableBot(ctx context.Context, botUserId string) (*Bot, *Resp
 
 // EnableBot disables the given bot in the system.
 func (c *Client4) EnableBot(ctx context.Context, botUserId string) (*Bot, *Response, error) {
-	r, err := c.DoAPIPostBytes(ctx, c.botRoute(botUserId)+"/enable", nil)
+	r, err := c.DoAPIPost(ctx, c.botRoute(botUserId)+"/enable", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2074,7 +2052,7 @@ func (c *Client4) EnableBot(ctx context.Context, botUserId string) (*Bot, *Respo
 
 // AssignBot assigns the given bot to the given user
 func (c *Client4) AssignBot(ctx context.Context, botUserId, newOwnerId string) (*Bot, *Response, error) {
-	r, err := c.DoAPIPostBytes(ctx, c.botRoute(botUserId)+"/assign/"+newOwnerId, nil)
+	r, err := c.DoAPIPost(ctx, c.botRoute(botUserId)+"/assign/"+newOwnerId, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2087,11 +2065,7 @@ func (c *Client4) AssignBot(ctx context.Context, botUserId, newOwnerId string) (
 
 // CreateTeam creates a team in the system based on the provided team struct.
 func (c *Client4) CreateTeam(ctx context.Context, team *Team) (*Team, *Response, error) {
-	buf, err := json.Marshal(team)
-	if err != nil {
-		return nil, nil, NewAppError("CreateTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.teamsRoute(), buf)
+	r, err := c.DoAPIPostJSON(ctx, c.teamsRoute(), team)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2159,11 +2133,7 @@ func (c *Client4) GetTeamByName(ctx context.Context, name, etag string) (*Team, 
 
 // SearchTeams returns teams matching the provided search term.
 func (c *Client4) SearchTeams(ctx context.Context, search *TeamSearch) ([]*Team, *Response, error) {
-	buf, err := json.Marshal(search)
-	if err != nil {
-		return nil, nil, NewAppError("SearchTeams", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.teamsRoute()+"/search", buf)
+	r, err := c.DoAPIPostJSON(ctx, c.teamsRoute()+"/search", search)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2179,11 +2149,7 @@ func (c *Client4) SearchTeamsPaged(ctx context.Context, search *TeamSearch) ([]*
 	if search.PerPage == nil {
 		search.PerPage = NewPointer(100)
 	}
-	buf, err := json.Marshal(search)
-	if err != nil {
-		return nil, 0, BuildResponse(nil), NewAppError("SearchTeamsPaged", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.teamsRoute()+"/search", buf)
+	r, err := c.DoAPIPostJSON(ctx, c.teamsRoute()+"/search", search)
 	if err != nil {
 		return nil, 0, BuildResponse(r), err
 	}
@@ -2229,7 +2195,7 @@ func (c *Client4) GetTeamMember(ctx context.Context, teamId, userId, etag string
 // UpdateTeamMemberRoles will update the roles on a team for a user.
 func (c *Client4) UpdateTeamMemberRoles(ctx context.Context, teamId, userId, newRoles string) (*Response, error) {
 	requestBody := map[string]string{"roles": newRoles}
-	r, err := c.DoAPIPut(ctx, c.teamMemberRoute(teamId, userId)+"/roles", MapToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, c.teamMemberRoute(teamId, userId)+"/roles", requestBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -2239,11 +2205,7 @@ func (c *Client4) UpdateTeamMemberRoles(ctx context.Context, teamId, userId, new
 
 // UpdateTeamMemberSchemeRoles will update the scheme-derived roles on a team for a user.
 func (c *Client4) UpdateTeamMemberSchemeRoles(ctx context.Context, teamId string, userId string, schemeRoles *SchemeRoles) (*Response, error) {
-	buf, err := json.Marshal(schemeRoles)
-	if err != nil {
-		return nil, NewAppError("UpdateTeamMemberSchemeRoles", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.teamMemberRoute(teamId, userId)+"/schemeRoles", buf)
+	r, err := c.DoAPIPutJSON(ctx, c.teamMemberRoute(teamId, userId)+"/schemeRoles", schemeRoles)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -2253,11 +2215,7 @@ func (c *Client4) UpdateTeamMemberSchemeRoles(ctx context.Context, teamId string
 
 // UpdateTeam will update a team.
 func (c *Client4) UpdateTeam(ctx context.Context, team *Team) (*Team, *Response, error) {
-	buf, err := json.Marshal(team)
-	if err != nil {
-		return nil, nil, NewAppError("UpdateTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.teamRoute(team.Id), buf)
+	r, err := c.DoAPIPutJSON(ctx, c.teamRoute(team.Id), team)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2267,11 +2225,7 @@ func (c *Client4) UpdateTeam(ctx context.Context, team *Team) (*Team, *Response,
 
 // PatchTeam partially updates a team. Any missing fields are not updated.
 func (c *Client4) PatchTeam(ctx context.Context, teamId string, patch *TeamPatch) (*Team, *Response, error) {
-	buf, err := json.Marshal(patch)
-	if err != nil {
-		return nil, nil, NewAppError("PatchTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.teamRoute(teamId)+"/patch", buf)
+	r, err := c.DoAPIPutJSON(ctx, c.teamRoute(teamId)+"/patch", patch)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2324,7 +2278,7 @@ func (c *Client4) PermanentDeleteTeam(ctx context.Context, teamId string) (*Resp
 // the corresponding AllowOpenInvite appropriately.
 func (c *Client4) UpdateTeamPrivacy(ctx context.Context, teamId string, privacy string) (*Team, *Response, error) {
 	requestBody := map[string]string{"privacy": privacy}
-	r, err := c.DoAPIPut(ctx, c.teamRoute(teamId)+"/privacy", MapToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, c.teamRoute(teamId)+"/privacy", requestBody)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2368,7 +2322,7 @@ func (c *Client4) GetTeamMembersForUser(ctx context.Context, userId string, etag
 // GetTeamMembersByIds will return an array of team members based on the
 // team id and a list of user ids provided. Must be authenticated.
 func (c *Client4) GetTeamMembersByIds(ctx context.Context, teamId string, userIds []string) ([]*TeamMember, *Response, error) {
-	r, err := c.DoAPIPost(ctx, fmt.Sprintf("/teams/%v/members/ids", teamId), ArrayToJSON(userIds))
+	r, err := c.DoAPIPostJSON(ctx, fmt.Sprintf("/teams/%v/members/ids", teamId), userIds)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2379,11 +2333,7 @@ func (c *Client4) GetTeamMembersByIds(ctx context.Context, teamId string, userId
 // AddTeamMember adds user to a team and return a team member.
 func (c *Client4) AddTeamMember(ctx context.Context, teamId, userId string) (*TeamMember, *Response, error) {
 	member := &TeamMember{TeamId: teamId, UserId: userId}
-	buf, err := json.Marshal(member)
-	if err != nil {
-		return nil, nil, NewAppError("AddTeamMember", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.teamMembersRoute(teamId), buf)
+	r, err := c.DoAPIPostJSON(ctx, c.teamMembersRoute(teamId), member)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2419,11 +2369,7 @@ func (c *Client4) AddTeamMembers(ctx context.Context, teamId string, userIds []s
 		member := &TeamMember{TeamId: teamId, UserId: userId}
 		members = append(members, member)
 	}
-	js, err := json.Marshal(members)
-	if err != nil {
-		return nil, nil, NewAppError("AddTeamMembers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPost(ctx, c.teamMembersRoute(teamId)+"/batch", string(js))
+	r, err := c.DoAPIPostJSON(ctx, c.teamMembersRoute(teamId)+"/batch", members)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2438,12 +2384,7 @@ func (c *Client4) AddTeamMembersGracefully(ctx context.Context, teamId string, u
 		member := &TeamMember{TeamId: teamId, UserId: userId}
 		members = append(members, member)
 	}
-	js, err := json.Marshal(members)
-	if err != nil {
-		return nil, nil, NewAppError("AddTeamMembersGracefully", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPost(ctx, c.teamMembersRoute(teamId)+"/batch?graceful="+c.boolString(true), string(js))
+	r, err := c.DoAPIPostJSON(ctx, c.teamMembersRoute(teamId)+"/batch?graceful="+c.boolString(true), members)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2536,7 +2477,7 @@ func (c *Client4) ImportTeam(ctx context.Context, data []byte, filesize int, imp
 
 // InviteUsersToTeam invite users by email to the team.
 func (c *Client4) InviteUsersToTeam(ctx context.Context, teamId string, userEmails []string) (*Response, error) {
-	r, err := c.DoAPIPost(ctx, c.teamRoute(teamId)+"/invite/email", ArrayToJSON(userEmails))
+	r, err := c.DoAPIPostJSON(ctx, c.teamRoute(teamId)+"/invite/email", userEmails)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -2551,11 +2492,7 @@ func (c *Client4) InviteGuestsToTeam(ctx context.Context, teamId string, userEma
 		Channels: channels,
 		Message:  message,
 	}
-	buf, err := json.Marshal(guestsInvite)
-	if err != nil {
-		return nil, NewAppError("InviteGuestsToTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.teamRoute(teamId)+"/invite-guests/email", buf)
+	r, err := c.DoAPIPostJSON(ctx, c.teamRoute(teamId)+"/invite-guests/email", guestsInvite)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -2565,7 +2502,7 @@ func (c *Client4) InviteGuestsToTeam(ctx context.Context, teamId string, userEma
 
 // InviteUsersToTeam invite users by email to the team.
 func (c *Client4) InviteUsersToTeamGracefully(ctx context.Context, teamId string, userEmails []string) ([]*EmailInviteWithError, *Response, error) {
-	r, err := c.DoAPIPost(ctx, c.teamRoute(teamId)+"/invite/email?graceful="+c.boolString(true), ArrayToJSON(userEmails))
+	r, err := c.DoAPIPostJSON(ctx, c.teamRoute(teamId)+"/invite/email?graceful="+c.boolString(true), userEmails)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2580,11 +2517,7 @@ func (c *Client4) InviteUsersToTeamAndChannelsGracefully(ctx context.Context, te
 		ChannelIds: channelIds,
 		Message:    message,
 	}
-	buf, err := json.Marshal(memberInvite)
-	if err != nil {
-		return nil, nil, NewAppError("InviteMembersToTeamAndChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.teamRoute(teamId)+"/invite/email?graceful="+c.boolString(true), buf)
+	r, err := c.DoAPIPostJSON(ctx, c.teamRoute(teamId)+"/invite/email?graceful="+c.boolString(true), memberInvite)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2599,11 +2532,7 @@ func (c *Client4) InviteGuestsToTeamGracefully(ctx context.Context, teamId strin
 		Channels: channels,
 		Message:  message,
 	}
-	buf, err := json.Marshal(guestsInvite)
-	if err != nil {
-		return nil, nil, NewAppError("InviteGuestsToTeamGracefully", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.teamRoute(teamId)+"/invite-guests/email?graceful="+c.boolString(true), buf)
+	r, err := c.DoAPIPostJSON(ctx, c.teamRoute(teamId)+"/invite-guests/email?graceful="+c.boolString(true), guestsInvite)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2741,11 +2670,7 @@ func (c *Client4) GetAllChannelsWithCount(ctx context.Context, page int, perPage
 
 // CreateChannel creates a channel based on the provided channel struct.
 func (c *Client4) CreateChannel(ctx context.Context, channel *Channel) (*Channel, *Response, error) {
-	channelJSON, err := json.Marshal(channel)
-	if err != nil {
-		return nil, nil, NewAppError("CreateChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPost(ctx, c.channelsRoute(), string(channelJSON))
+	r, err := c.DoAPIPostJSON(ctx, c.channelsRoute(), channel)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2756,11 +2681,7 @@ func (c *Client4) CreateChannel(ctx context.Context, channel *Channel) (*Channel
 
 // UpdateChannel updates a channel based on the provided channel struct.
 func (c *Client4) UpdateChannel(ctx context.Context, channel *Channel) (*Channel, *Response, error) {
-	channelJSON, err := json.Marshal(channel)
-	if err != nil {
-		return nil, nil, NewAppError("UpdateChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPut(ctx, c.channelRoute(channel.Id), string(channelJSON))
+	r, err := c.DoAPIPutJSON(ctx, c.channelRoute(channel.Id), channel)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2771,11 +2692,7 @@ func (c *Client4) UpdateChannel(ctx context.Context, channel *Channel) (*Channel
 
 // PatchChannel partially updates a channel. Any missing fields are not updated.
 func (c *Client4) PatchChannel(ctx context.Context, channelId string, patch *ChannelPatch) (*Channel, *Response, error) {
-	buf, err := json.Marshal(patch)
-	if err != nil {
-		return nil, nil, NewAppError("PatchChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.channelRoute(channelId)+"/patch", buf)
+	r, err := c.DoAPIPutJSON(ctx, c.channelRoute(channelId)+"/patch", patch)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2787,7 +2704,7 @@ func (c *Client4) PatchChannel(ctx context.Context, channelId string, patch *Cha
 // UpdateChannelPrivacy updates channel privacy
 func (c *Client4) UpdateChannelPrivacy(ctx context.Context, channelId string, privacy ChannelType) (*Channel, *Response, error) {
 	requestBody := map[string]string{"privacy": string(privacy)}
-	r, err := c.DoAPIPut(ctx, c.channelRoute(channelId)+"/privacy", MapToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, c.channelRoute(channelId)+"/privacy", requestBody)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2811,7 +2728,7 @@ func (c *Client4) RestoreChannel(ctx context.Context, channelId string) (*Channe
 // ids provided.
 func (c *Client4) CreateDirectChannel(ctx context.Context, userId1, userId2 string) (*Channel, *Response, error) {
 	requestBody := []string{userId1, userId2}
-	r, err := c.DoAPIPost(ctx, c.channelsRoute()+"/direct", ArrayToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, c.channelsRoute()+"/direct", requestBody)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2822,7 +2739,7 @@ func (c *Client4) CreateDirectChannel(ctx context.Context, userId1, userId2 stri
 
 // CreateGroupChannel creates a group message channel based on userIds provided.
 func (c *Client4) CreateGroupChannel(ctx context.Context, userIds []string) (*Channel, *Response, error) {
-	r, err := c.DoAPIPost(ctx, c.channelsRoute()+"/group", ArrayToJSON(userIds))
+	r, err := c.DoAPIPostJSON(ctx, c.channelsRoute()+"/group", userIds)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2856,7 +2773,7 @@ func (c *Client4) GetChannelStats(ctx context.Context, channelId string, etag st
 // GetChannelsMemberCount get channel member count for a given array of channel ids
 func (c *Client4) GetChannelsMemberCount(ctx context.Context, channelIDs []string) (map[string]int64, *Response, error) {
 	route := c.channelsRoute() + "/stats/member_count"
-	r, err := c.DoAPIPost(ctx, route, ArrayToJSON(channelIDs))
+	r, err := c.DoAPIPostJSON(ctx, route, channelIDs)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2923,7 +2840,7 @@ func (c *Client4) GetDeletedChannelsForTeam(ctx context.Context, teamId string, 
 
 // GetPublicChannelsByIdsForTeam returns a list of public channels based on provided team id string.
 func (c *Client4) GetPublicChannelsByIdsForTeam(ctx context.Context, teamId string, channelIds []string) ([]*Channel, *Response, error) {
-	r, err := c.DoAPIPost(ctx, c.channelsForTeamRoute(teamId)+"/ids", ArrayToJSON(channelIds))
+	r, err := c.DoAPIPostJSON(ctx, c.channelsForTeamRoute(teamId)+"/ids", channelIds)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2971,11 +2888,7 @@ func (c *Client4) GetChannelsForUserWithLastDeleteAt(ctx context.Context, userID
 
 // SearchChannels returns the channels on a team matching the provided search term.
 func (c *Client4) SearchChannels(ctx context.Context, teamId string, search *ChannelSearch) ([]*Channel, *Response, error) {
-	searchJSON, err := json.Marshal(search)
-	if err != nil {
-		return nil, nil, NewAppError("SearchChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPost(ctx, c.channelsForTeamRoute(teamId)+"/search", string(searchJSON))
+	r, err := c.DoAPIPostJSON(ctx, c.channelsForTeamRoute(teamId)+"/search", search)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2986,11 +2899,7 @@ func (c *Client4) SearchChannels(ctx context.Context, teamId string, search *Cha
 
 // SearchArchivedChannels returns the archived channels on a team matching the provided search term.
 func (c *Client4) SearchArchivedChannels(ctx context.Context, teamId string, search *ChannelSearch) ([]*Channel, *Response, error) {
-	searchJSON, err := json.Marshal(search)
-	if err != nil {
-		return nil, nil, NewAppError("SearchArchivedChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPost(ctx, c.channelsForTeamRoute(teamId)+"/search_archived", string(searchJSON))
+	r, err := c.DoAPIPostJSON(ctx, c.channelsForTeamRoute(teamId)+"/search_archived", search)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3001,11 +2910,7 @@ func (c *Client4) SearchArchivedChannels(ctx context.Context, teamId string, sea
 
 // SearchAllChannels search in all the channels. Must be a system administrator.
 func (c *Client4) SearchAllChannels(ctx context.Context, search *ChannelSearch) (ChannelListWithTeamData, *Response, error) {
-	searchJSON, err := json.Marshal(search)
-	if err != nil {
-		return nil, nil, NewAppError("SearchAllChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPost(ctx, c.channelsRoute()+"/search", string(searchJSON))
+	r, err := c.DoAPIPostJSON(ctx, c.channelsRoute()+"/search", search)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3019,11 +2924,7 @@ func (c *Client4) SearchAllChannelsForUser(ctx context.Context, term string) (Ch
 	search := &ChannelSearch{
 		Term: term,
 	}
-	searchJSON, err := json.Marshal(search)
-	if err != nil {
-		return nil, nil, NewAppError("SearchAllChannelsForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPost(ctx, c.channelsRoute()+"/search?system_console=false", string(searchJSON))
+	r, err := c.DoAPIPostJSON(ctx, c.channelsRoute()+"/search?system_console=false", search)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3034,11 +2935,7 @@ func (c *Client4) SearchAllChannelsForUser(ctx context.Context, term string) (Ch
 
 // SearchAllChannelsPaged searches all the channels and returns the results paged with the total count.
 func (c *Client4) SearchAllChannelsPaged(ctx context.Context, search *ChannelSearch) (*ChannelsWithCount, *Response, error) {
-	searchJSON, err := json.Marshal(search)
-	if err != nil {
-		return nil, nil, NewAppError("SearchAllChannelsPaged", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPost(ctx, c.channelsRoute()+"/search", string(searchJSON))
+	r, err := c.DoAPIPostJSON(ctx, c.channelsRoute()+"/search", search)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3049,11 +2946,7 @@ func (c *Client4) SearchAllChannelsPaged(ctx context.Context, search *ChannelSea
 
 // SearchGroupChannels returns the group channels of the user whose members' usernames match the search term.
 func (c *Client4) SearchGroupChannels(ctx context.Context, search *ChannelSearch) ([]*Channel, *Response, error) {
-	searchJSON, err := json.Marshal(search)
-	if err != nil {
-		return nil, nil, NewAppError("SearchGroupChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPost(ctx, c.channelsRoute()+"/group/search", string(searchJSON))
+	r, err := c.DoAPIPostJSON(ctx, c.channelsRoute()+"/group/search", search)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3088,7 +2981,7 @@ func (c *Client4) MoveChannel(ctx context.Context, channelId, teamId string, for
 		"team_id": teamId,
 		"force":   force,
 	}
-	r, err := c.DoAPIPost(ctx, c.channelRoute(channelId)+"/move", StringInterfaceToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, c.channelRoute(channelId)+"/move", requestBody)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3199,7 +3092,7 @@ func (c *Client4) GetChannelMembersWithTeamData(ctx context.Context, userID stri
 
 // GetChannelMembersByIds gets the channel members in a channel for a list of user ids.
 func (c *Client4) GetChannelMembersByIds(ctx context.Context, channelId string, userIds []string) (ChannelMembers, *Response, error) {
-	r, err := c.DoAPIPost(ctx, c.channelMembersRoute(channelId)+"/ids", ArrayToJSON(userIds))
+	r, err := c.DoAPIPostJSON(ctx, c.channelMembersRoute(channelId)+"/ids", userIds)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3233,11 +3126,7 @@ func (c *Client4) GetChannelMembersForUser(ctx context.Context, userId, teamId, 
 // ViewChannel performs a view action for a user. Synonymous with switching channels or marking channels as read by a user.
 func (c *Client4) ViewChannel(ctx context.Context, userId string, view *ChannelView) (*ChannelViewResponse, *Response, error) {
 	url := fmt.Sprintf(c.channelsRoute()+"/members/%v/view", userId)
-	buf, err := json.Marshal(view)
-	if err != nil {
-		return nil, nil, NewAppError("ViewChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, url, buf)
+	r, err := c.DoAPIPostJSON(ctx, url, view)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3249,11 +3138,7 @@ func (c *Client4) ViewChannel(ctx context.Context, userId string, view *ChannelV
 // ReadMultipleChannels performs a view action on several channels at the same time for a user.
 func (c *Client4) ReadMultipleChannels(ctx context.Context, userId string, channelIds []string) (*ChannelViewResponse, *Response, error) {
 	url := fmt.Sprintf(c.channelsRoute()+"/members/%v/mark_read", userId)
-	buf, err := json.Marshal(channelIds)
-	if err != nil {
-		return nil, nil, NewAppError("ReadMultipleChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, url, buf)
+	r, err := c.DoAPIPostJSON(ctx, url, channelIds)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3277,7 +3162,7 @@ func (c *Client4) GetChannelUnread(ctx context.Context, channelId, userId string
 // UpdateChannelRoles will update the roles on a channel for a user.
 func (c *Client4) UpdateChannelRoles(ctx context.Context, channelId, userId, roles string) (*Response, error) {
 	requestBody := map[string]string{"roles": roles}
-	r, err := c.DoAPIPut(ctx, c.channelMemberRoute(channelId, userId)+"/roles", MapToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, c.channelMemberRoute(channelId, userId)+"/roles", requestBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3287,11 +3172,7 @@ func (c *Client4) UpdateChannelRoles(ctx context.Context, channelId, userId, rol
 
 // UpdateChannelMemberSchemeRoles will update the scheme-derived roles on a channel for a user.
 func (c *Client4) UpdateChannelMemberSchemeRoles(ctx context.Context, channelId string, userId string, schemeRoles *SchemeRoles) (*Response, error) {
-	buf, err := json.Marshal(schemeRoles)
-	if err != nil {
-		return nil, NewAppError("UpdateChannelMemberSchemeRoles", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.channelMemberRoute(channelId, userId)+"/schemeRoles", buf)
+	r, err := c.DoAPIPutJSON(ctx, c.channelMemberRoute(channelId, userId)+"/schemeRoles", schemeRoles)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3301,7 +3182,7 @@ func (c *Client4) UpdateChannelMemberSchemeRoles(ctx context.Context, channelId 
 
 // UpdateChannelNotifyProps will update the notification properties on a channel for a user.
 func (c *Client4) UpdateChannelNotifyProps(ctx context.Context, channelId, userId string, props map[string]string) (*Response, error) {
-	r, err := c.DoAPIPut(ctx, c.channelMemberRoute(channelId, userId)+"/notify_props", MapToJSON(props))
+	r, err := c.DoAPIPostJSON(ctx, c.channelMemberRoute(channelId, userId)+"/notify_props", props)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3312,7 +3193,7 @@ func (c *Client4) UpdateChannelNotifyProps(ctx context.Context, channelId, userI
 // AddChannelMember adds user to channel and return a channel member.
 func (c *Client4) AddChannelMember(ctx context.Context, channelId, userId string) (*ChannelMember, *Response, error) {
 	requestBody := map[string]string{"user_id": userId}
-	r, err := c.DoAPIPost(ctx, c.channelMembersRoute(channelId)+"", MapToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, c.channelMembersRoute(channelId)+"", requestBody)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3324,7 +3205,7 @@ func (c *Client4) AddChannelMember(ctx context.Context, channelId, userId string
 // AddChannelMembers adds users to a channel and return an array of channel members.
 func (c *Client4) AddChannelMembers(ctx context.Context, channelId, postRootId string, userIds []string) ([]*ChannelMember, *Response, error) {
 	requestBody := map[string]any{"user_ids": userIds, "post_root_id": postRootId}
-	r, err := c.DoAPIPost(ctx, c.channelMembersRoute(channelId)+"", StringInterfaceToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, c.channelMembersRoute(channelId)+"", requestBody)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3336,7 +3217,7 @@ func (c *Client4) AddChannelMembers(ctx context.Context, channelId, postRootId s
 // AddChannelMemberWithRootId adds user to channel and return a channel member. Post add to channel message has the postRootId.
 func (c *Client4) AddChannelMemberWithRootId(ctx context.Context, channelId, userId, postRootId string) (*ChannelMember, *Response, error) {
 	requestBody := map[string]string{"user_id": userId, "post_root_id": postRootId}
-	r, err := c.DoAPIPost(ctx, c.channelMembersRoute(channelId)+"", MapToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, c.channelMembersRoute(channelId)+"", requestBody)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3383,11 +3264,7 @@ func (c *Client4) AutocompleteChannelsForTeamForSearch(ctx context.Context, team
 
 // CreatePost creates a post based on the provided post struct.
 func (c *Client4) CreatePost(ctx context.Context, post *Post) (*Post, *Response, error) {
-	postJSON, err := json.Marshal(post)
-	if err != nil {
-		return nil, nil, NewAppError("CreatePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPost(ctx, c.postsRoute(), string(postJSON))
+	r, err := c.DoAPIPostJSON(ctx, c.postsRoute(), post)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3397,11 +3274,7 @@ func (c *Client4) CreatePost(ctx context.Context, post *Post) (*Post, *Response,
 
 // CreatePostEphemeral creates a ephemeral post based on the provided post struct which is send to the given user id.
 func (c *Client4) CreatePostEphemeral(ctx context.Context, post *PostEphemeral) (*Post, *Response, error) {
-	postJSON, err := json.Marshal(post)
-	if err != nil {
-		return nil, nil, NewAppError("CreatePostEphemeral", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPost(ctx, c.postsEphemeralRoute(), string(postJSON))
+	r, err := c.DoAPIPostJSON(ctx, c.postsEphemeralRoute(), post)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3411,11 +3284,7 @@ func (c *Client4) CreatePostEphemeral(ctx context.Context, post *PostEphemeral) 
 
 // UpdatePost updates a post based on the provided post struct.
 func (c *Client4) UpdatePost(ctx context.Context, postId string, post *Post) (*Post, *Response, error) {
-	postJSON, err := json.Marshal(post)
-	if err != nil {
-		return nil, nil, NewAppError("UpdatePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPut(ctx, c.postRoute(postId), string(postJSON))
+	r, err := c.DoAPIPutJSON(ctx, c.postRoute(postId), post)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3425,11 +3294,7 @@ func (c *Client4) UpdatePost(ctx context.Context, postId string, post *Post) (*P
 
 // PatchPost partially updates a post. Any missing fields are not updated.
 func (c *Client4) PatchPost(ctx context.Context, postId string, patch *PostPatch) (*Post, *Response, error) {
-	buf, err := json.Marshal(patch)
-	if err != nil {
-		return nil, nil, NewAppError("PatchPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.postRoute(postId)+"/patch", buf)
+	r, err := c.DoAPIPutJSON(ctx, c.postRoute(postId)+"/patch", patch)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3439,11 +3304,8 @@ func (c *Client4) PatchPost(ctx context.Context, postId string, patch *PostPatch
 
 // SetPostUnread marks channel where post belongs as unread on the time of the provided post.
 func (c *Client4) SetPostUnread(ctx context.Context, userId string, postId string, collapsedThreadsSupported bool) (*Response, error) {
-	b, err := json.Marshal(map[string]bool{"collapsed_threads_supported": collapsedThreadsSupported})
-	if err != nil {
-		return nil, NewAppError("SetPostUnread", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.userRoute(userId)+c.postRoute(postId)+"/set_unread", b)
+	reqData := map[string]bool{"collapsed_threads_supported": collapsedThreadsSupported}
+	r, err := c.DoAPIPostJSON(ctx, c.userRoute(userId)+c.postRoute(postId)+"/set_unread", reqData)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3455,12 +3317,7 @@ func (c *Client4) SetPostUnread(ctx context.Context, userId string, postId strin
 // The time needs to be in UTC epoch in seconds. It is always truncated to a
 // 5 minute resolution minimum.
 func (c *Client4) SetPostReminder(ctx context.Context, reminder *PostReminder) (*Response, error) {
-	b, err := json.Marshal(reminder)
-	if err != nil {
-		return nil, NewAppError("SetPostReminder", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPostBytes(ctx, c.userRoute(reminder.UserId)+c.postRoute(reminder.PostId)+"/reminder", b)
+	r, err := c.DoAPIPostJSON(ctx, c.userRoute(reminder.UserId)+c.postRoute(reminder.PostId)+"/reminder", reminder)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3606,11 +3463,7 @@ func (c *Client4) GetPostsForChannel(ctx context.Context, channelId string, page
 
 // GetPostsByIds gets a list of posts by taking an array of post ids
 func (c *Client4) GetPostsByIds(ctx context.Context, postIds []string) ([]*Post, *Response, error) {
-	js, err := json.Marshal(postIds)
-	if err != nil {
-		return nil, nil, NewAppError("SearchFilesWithParams", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPost(ctx, c.postsRoute()+"/ids", string(js))
+	r, err := c.DoAPIPostJSON(ctx, c.postsRoute()+"/ids", postIds)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3723,12 +3576,7 @@ func (c *Client4) GetPostsBefore(ctx context.Context, channelId, postId string, 
 
 // MoveThread moves a thread based on provided post id, and channel id string.
 func (c *Client4) MoveThread(ctx context.Context, postId string, params *MoveThreadParams) (*Response, error) {
-	js, err := json.Marshal(params)
-	if err != nil {
-		return nil, NewAppError("MoveThread", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPost(ctx, c.postRoute(postId)+"/move", string(js))
+	r, err := c.DoAPIPostJSON(ctx, c.postRoute(postId)+"/move", params)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3761,16 +3609,11 @@ func (c *Client4) SearchFiles(ctx context.Context, teamId string, terms string, 
 
 // SearchFilesWithParams returns any posts with matching terms string.
 func (c *Client4) SearchFilesWithParams(ctx context.Context, teamId string, params *SearchParameter) (*FileInfoList, *Response, error) {
-	js, err := json.Marshal(params)
-	if err != nil {
-		return nil, nil, NewAppError("SearchFilesWithParams", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
 	route := c.teamRoute(teamId) + "/files/search"
 	if teamId == "" {
 		route = c.filesRoute() + "/search"
 	}
-	r, err := c.DoAPIPost(ctx, route, string(js))
+	r, err := c.DoAPIPostJSON(ctx, route, params)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3799,17 +3642,13 @@ func (c *Client4) SearchPosts(ctx context.Context, teamId string, terms string, 
 
 // SearchPostsWithParams returns any posts with matching terms string.
 func (c *Client4) SearchPostsWithParams(ctx context.Context, teamId string, params *SearchParameter) (*PostList, *Response, error) {
-	js, err := json.Marshal(params)
-	if err != nil {
-		return nil, nil, NewAppError("SearchFilesWithParams", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
 	var route string
 	if teamId == "" {
 		route = c.postsRoute() + "/search"
 	} else {
 		route = c.teamRoute(teamId) + "/posts/search"
 	}
-	r, err := c.DoAPIPost(ctx, route, string(js))
+	r, err := c.DoAPIPostJSON(ctx, route, params)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3826,7 +3665,7 @@ func (c *Client4) SearchPostsWithMatches(ctx context.Context, teamId string, ter
 	} else {
 		route = c.teamRoute(teamId) + "/posts/search"
 	}
-	r, err := c.DoAPIPost(ctx, route, StringInterfaceToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, route, requestBody)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3846,18 +3685,20 @@ func (c *Client4) DoPostAction(ctx context.Context, postId, actionId string) (*R
 
 // DoPostActionWithCookie performs a post action with extra arguments
 func (c *Client4) DoPostActionWithCookie(ctx context.Context, postId, actionId, selected, cookieStr string) (*Response, error) {
-	var body []byte
-	if selected != "" || cookieStr != "" {
-		var err error
-		body, err = json.Marshal(DoPostActionRequest{
-			SelectedOption: selected,
-			Cookie:         cookieStr,
-		})
+	if selected == "" && cookieStr == "" {
+		r, err := c.DoAPIPost(ctx, c.postRoute(postId)+"/actions/"+actionId, "")
 		if err != nil {
-			return nil, NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return BuildResponse(r), err
 		}
+		defer closeBody(r)
+		return BuildResponse(r), nil
 	}
-	r, err := c.DoAPIPost(ctx, c.postRoute(postId)+"/actions/"+actionId, string(body))
+
+	req := DoPostActionRequest{
+		SelectedOption: selected,
+		Cookie:         cookieStr,
+	}
+	r, err := c.DoAPIPostJSON(ctx, c.postRoute(postId)+"/actions/"+actionId, req)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3870,11 +3711,7 @@ func (c *Client4) DoPostActionWithCookie(ctx context.Context, postId, actionId, 
 // provided data. Used with interactive message buttons, menus and
 // slash commands.
 func (c *Client4) OpenInteractiveDialog(ctx context.Context, request OpenDialogRequest) (*Response, error) {
-	b, err := json.Marshal(request)
-	if err != nil {
-		return nil, NewAppError("OpenInteractiveDialog", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPost(ctx, "/actions/dialogs/open", string(b))
+	r, err := c.DoAPIPostJSON(ctx, "/actions/dialogs/open", request)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3885,11 +3722,7 @@ func (c *Client4) OpenInteractiveDialog(ctx context.Context, request OpenDialogR
 // SubmitInteractiveDialog will submit the provided dialog data to the integration
 // configured by the URL. Used with the interactive dialogs integration feature.
 func (c *Client4) SubmitInteractiveDialog(ctx context.Context, request SubmitDialogRequest) (*SubmitDialogResponse, *Response, error) {
-	b, err := json.Marshal(request)
-	if err != nil {
-		return nil, nil, NewAppError("SubmitInteractiveDialog", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPost(ctx, "/actions/dialogs/submit", string(b))
+	r, err := c.DoAPIPostJSON(ctx, "/actions/dialogs/submit", request)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4122,11 +3955,7 @@ func (c *Client4) GetPingWithOptions(ctx context.Context, options SystemPingOpti
 
 // TestEmail will attempt to connect to the configured SMTP server.
 func (c *Client4) TestEmail(ctx context.Context, config *Config) (*Response, error) {
-	buf, err := json.Marshal(config)
-	if err != nil {
-		return nil, NewAppError("TestEmail", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.testEmailRoute(), buf)
+	r, err := c.DoAPIPostJSON(ctx, c.testEmailRoute(), config)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -4147,7 +3976,7 @@ func (c *Client4) TestNotifications(ctx context.Context) (*Response, error) {
 func (c *Client4) TestSiteURL(ctx context.Context, siteURL string) (*Response, error) {
 	requestBody := make(map[string]string)
 	requestBody["site_url"] = siteURL
-	r, err := c.DoAPIPost(ctx, c.testSiteURLRoute(), MapToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, c.testSiteURLRoute(), requestBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -4157,11 +3986,7 @@ func (c *Client4) TestSiteURL(ctx context.Context, siteURL string) (*Response, e
 
 // TestS3Connection will attempt to connect to the AWS S3.
 func (c *Client4) TestS3Connection(ctx context.Context, config *Config) (*Response, error) {
-	buf, err := json.Marshal(config)
-	if err != nil {
-		return nil, NewAppError("TestS3Connection", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.testS3Route(), buf)
+	r, err := c.DoAPIPostJSON(ctx, c.testS3Route(), config)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -4269,11 +4094,7 @@ func (c *Client4) InvalidateCaches(ctx context.Context) (*Response, error) {
 
 // UpdateConfig will update the server configuration.
 func (c *Client4) UpdateConfig(ctx context.Context, config *Config) (*Config, *Response, error) {
-	buf, err := json.Marshal(config)
-	if err != nil {
-		return nil, nil, NewAppError("UpdateConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.configRoute(), buf)
+	r, err := c.DoAPIPutJSON(ctx, c.configRoute(), config)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4290,7 +4111,7 @@ func (c *Client4) MigrateConfig(ctx context.Context, from, to string) (*Response
 	m := make(map[string]string, 2)
 	m["from"] = from
 	m["to"] = to
-	r, err := c.DoAPIPost(ctx, c.configRoute()+"/migrate", MapToJSON(m))
+	r, err := c.DoAPIPostJSON(ctx, c.configRoute()+"/migrate", m)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -4381,11 +4202,7 @@ func (c *Client4) GetAnalyticsOld(ctx context.Context, name, teamId string) (Ana
 
 // CreateIncomingWebhook creates an incoming webhook for a channel.
 func (c *Client4) CreateIncomingWebhook(ctx context.Context, hook *IncomingWebhook) (*IncomingWebhook, *Response, error) {
-	buf, err := json.Marshal(hook)
-	if err != nil {
-		return nil, nil, NewAppError("CreateIncomingWebhook", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.incomingWebhooksRoute(), buf)
+	r, err := c.DoAPIPostJSON(ctx, c.incomingWebhooksRoute(), hook)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4396,11 +4213,7 @@ func (c *Client4) CreateIncomingWebhook(ctx context.Context, hook *IncomingWebho
 
 // UpdateIncomingWebhook updates an incoming webhook for a channel.
 func (c *Client4) UpdateIncomingWebhook(ctx context.Context, hook *IncomingWebhook) (*IncomingWebhook, *Response, error) {
-	buf, err := json.Marshal(hook)
-	if err != nil {
-		return nil, nil, NewAppError("UpdateIncomingWebhook", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.incomingWebhookRoute(hook.Id), buf)
+	r, err := c.DoAPIPutJSON(ctx, c.incomingWebhookRoute(hook.Id), hook)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4464,11 +4277,7 @@ func (c *Client4) DeleteIncomingWebhook(ctx context.Context, hookID string) (*Re
 
 // CreateOutgoingWebhook creates an outgoing webhook for a team or channel.
 func (c *Client4) CreateOutgoingWebhook(ctx context.Context, hook *OutgoingWebhook) (*OutgoingWebhook, *Response, error) {
-	buf, err := json.Marshal(hook)
-	if err != nil {
-		return nil, nil, NewAppError("CreateOutgoingWebhook", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.outgoingWebhooksRoute(), buf)
+	r, err := c.DoAPIPostJSON(ctx, c.outgoingWebhooksRoute(), hook)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4478,11 +4287,7 @@ func (c *Client4) CreateOutgoingWebhook(ctx context.Context, hook *OutgoingWebho
 
 // UpdateOutgoingWebhook creates an outgoing webhook for a team or channel.
 func (c *Client4) UpdateOutgoingWebhook(ctx context.Context, hook *OutgoingWebhook) (*OutgoingWebhook, *Response, error) {
-	buf, err := json.Marshal(hook)
-	if err != nil {
-		return nil, nil, NewAppError("UpdateOutgoingWebhook", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.outgoingWebhookRoute(hook.Id), buf)
+	r, err := c.DoAPIPutJSON(ctx, c.outgoingWebhookRoute(hook.Id), hook)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4568,11 +4373,7 @@ func (c *Client4) GetPreferences(ctx context.Context, userId string) (Preference
 
 // UpdatePreferences saves the user's preferences.
 func (c *Client4) UpdatePreferences(ctx context.Context, userId string, preferences Preferences) (*Response, error) {
-	buf, err := json.Marshal(preferences)
-	if err != nil {
-		return nil, NewAppError("UpdatePreferences", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.preferencesRoute(userId), buf)
+	r, err := c.DoAPIPutJSON(ctx, c.preferencesRoute(userId), preferences)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -4582,11 +4383,7 @@ func (c *Client4) UpdatePreferences(ctx context.Context, userId string, preferen
 
 // DeletePreferences deletes the user's preferences.
 func (c *Client4) DeletePreferences(ctx context.Context, userId string, preferences Preferences) (*Response, error) {
-	buf, err := json.Marshal(preferences)
-	if err != nil {
-		return nil, NewAppError("DeletePreferences", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.preferencesRoute(userId)+"/delete", buf)
+	r, err := c.DoAPIPostJSON(ctx, c.preferencesRoute(userId)+"/delete", preferences)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -4736,7 +4533,7 @@ func (c *Client4) GetSamlCertificateStatus(ctx context.Context) (*SamlCertificat
 func (c *Client4) GetSamlMetadataFromIdp(ctx context.Context, samlMetadataURL string) (*SamlMetadataResponse, *Response, error) {
 	requestBody := make(map[string]string)
 	requestBody["saml_metadata_url"] = samlMetadataURL
-	r, err := c.DoAPIPost(ctx, c.samlRoute()+"/metadatafromidp", MapToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, c.samlRoute()+"/metadatafromidp", requestBody)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4752,11 +4549,7 @@ func (c *Client4) ResetSamlAuthDataToEmail(ctx context.Context, includeDeleted b
 		"dry_run":         dryRun,
 		"user_ids":        userIDs,
 	}
-	b, err := json.Marshal(params)
-	if err != nil {
-		return 0, nil, NewAppError("ResetSamlAuthDataToEmail", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.samlRoute()+"/reset_auth_data", b)
+	r, err := c.DoAPIPostJSON(ctx, c.samlRoute()+"/reset_auth_data", params)
 	if err != nil {
 		return 0, BuildResponse(r), err
 	}
@@ -4772,11 +4565,7 @@ func (c *Client4) ResetSamlAuthDataToEmail(ctx context.Context, includeDeleted b
 
 // CreateComplianceReport creates an incoming webhook for a channel.
 func (c *Client4) CreateComplianceReport(ctx context.Context, report *Compliance) (*Compliance, *Response, error) {
-	buf, err := json.Marshal(report)
-	if err != nil {
-		return nil, nil, NewAppError("CreateComplianceReport", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.complianceReportsRoute(), buf)
+	r, err := c.DoAPIPostJSON(ctx, c.complianceReportsRoute(), report)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4845,7 +4634,7 @@ func (c *Client4) GetClusterStatus(ctx context.Context) ([]*ClusterInfo, *Respon
 
 // SyncLdap starts a run of the LDAP sync job.
 func (c *Client4) SyncLdap(ctx context.Context) (*Response, error) {
-	r, err := c.DoAPIPostBytes(ctx, c.ldapRoute()+"/sync", nil)
+	r, err := c.DoAPIPost(ctx, c.ldapRoute()+"/sync", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -4916,9 +4705,9 @@ func (c *Client4) UnlinkLdapGroup(ctx context.Context, dn string) (*Group, *Resp
 
 // MigrateIdLdap migrates the LDAP enabled users to given attribute
 func (c *Client4) MigrateIdLdap(ctx context.Context, toAttribute string) (*Response, error) {
-	r, err := c.DoAPIPost(ctx, c.ldapRoute()+"/migrateid", MapToJSON(map[string]string{
+	r, err := c.DoAPIPostJSON(ctx, c.ldapRoute()+"/migrateid", map[string]string{
 		"toAttribute": toAttribute,
-	}))
+	})
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5044,11 +4833,11 @@ func (c *Client4) GetGroupsByUserId(ctx context.Context, userId string) ([]*Grou
 }
 
 func (c *Client4) MigrateAuthToLdap(ctx context.Context, fromAuthService string, matchField string, force bool) (*Response, error) {
-	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/migrate_auth/ldap", StringInterfaceToJSON(map[string]any{
+	r, err := c.DoAPIPostJSON(ctx, c.usersRoute()+"/migrate_auth/ldap", map[string]any{
 		"from":        fromAuthService,
 		"force":       force,
 		"match_field": matchField,
-	}))
+	})
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5057,11 +4846,11 @@ func (c *Client4) MigrateAuthToLdap(ctx context.Context, fromAuthService string,
 }
 
 func (c *Client4) MigrateAuthToSaml(ctx context.Context, fromAuthService string, usersMap map[string]string, auto bool) (*Response, error) {
-	r, err := c.DoAPIPost(ctx, c.usersRoute()+"/migrate_auth/saml", StringInterfaceToJSON(map[string]any{
+	r, err := c.DoAPIPostJSON(ctx, c.usersRoute()+"/migrate_auth/saml", map[string]any{
 		"from":    fromAuthService,
 		"auto":    auto,
 		"matches": usersMap,
-	}))
+	})
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5219,7 +5008,7 @@ func (c *Client4) DownloadLogs(ctx context.Context) ([]byte, *Response, error) {
 // the server-side logs. For example we typically log javascript error messages
 // into the server-side. It returns the log message if the logging was successful.
 func (c *Client4) PostLog(ctx context.Context, message map[string]string) (map[string]string, *Response, error) {
-	r, err := c.DoAPIPost(ctx, "/logs", MapToJSON(message))
+	r, err := c.DoAPIPostJSON(ctx, "/logs", message)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5231,11 +5020,7 @@ func (c *Client4) PostLog(ctx context.Context, message map[string]string) (map[s
 
 // CreateOAuthApp will register a new OAuth 2.0 client application with Mattermost acting as an OAuth 2.0 service provider.
 func (c *Client4) CreateOAuthApp(ctx context.Context, app *OAuthApp) (*OAuthApp, *Response, error) {
-	buf, err := json.Marshal(app)
-	if err != nil {
-		return nil, nil, NewAppError("CreateOAuthApp", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.oAuthAppsRoute(), buf)
+	r, err := c.DoAPIPostJSON(ctx, c.oAuthAppsRoute(), app)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5246,11 +5031,7 @@ func (c *Client4) CreateOAuthApp(ctx context.Context, app *OAuthApp) (*OAuthApp,
 
 // UpdateOAuthApp updates a page of registered OAuth 2.0 client applications with Mattermost acting as an OAuth 2.0 service provider.
 func (c *Client4) UpdateOAuthApp(ctx context.Context, app *OAuthApp) (*OAuthApp, *Response, error) {
-	buf, err := json.Marshal(app)
-	if err != nil {
-		return nil, nil, NewAppError("UpdateOAuthApp", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.oAuthAppRoute(app.Id), buf)
+	r, err := c.DoAPIPutJSON(ctx, c.oAuthAppRoute(app.Id), app)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5322,11 +5103,7 @@ func (c *Client4) GetAuthorizedOAuthAppsForUser(ctx context.Context, userId stri
 
 // AuthorizeOAuthApp will authorize an OAuth 2.0 client application to access a user's account and provide a redirect link to follow.
 func (c *Client4) AuthorizeOAuthApp(ctx context.Context, authRequest *AuthorizeRequest) (string, *Response, error) {
-	buf, err := json.Marshal(authRequest)
-	if err != nil {
-		return "", BuildResponse(nil), NewAppError("AuthorizeOAuthApp", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/authorize", buf, "")
+	r, err := c.DoAPIPostJSON(ctx, c.URL+"/oauth/authorize", authRequest)
 	if err != nil {
 		return "", BuildResponse(r), err
 	}
@@ -5341,7 +5118,7 @@ func (c *Client4) AuthorizeOAuthApp(ctx context.Context, authRequest *AuthorizeR
 // DeauthorizeOAuthApp will deauthorize an OAuth 2.0 client application from accessing a user's account.
 func (c *Client4) DeauthorizeOAuthApp(ctx context.Context, appId string) (*Response, error) {
 	requestData := map[string]string{"client_id": appId}
-	r, err := c.DoAPIRequest(ctx, http.MethodPost, c.URL+"/oauth/deauthorize", MapToJSON(requestData), "")
+	r, err := c.DoAPIPostJSON(ctx, c.URL+"/oauth/deauthorize", requestData)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5409,11 +5186,7 @@ func (c *Client4) DeleteOutgoingOAuthConnection(ctx context.Context, id string) 
 
 // UpdateOutgoingOAuthConnection updates the outgoing OAuth connection with the given ID.
 func (c *Client4) UpdateOutgoingOAuthConnection(ctx context.Context, connection *OutgoingOAuthConnection) (*OutgoingOAuthConnection, *Response, error) {
-	buf, err := json.Marshal(connection)
-	if err != nil {
-		return nil, nil, NewAppError("UpdateOutgoingOAuthConnection", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.outgoingOAuthConnectionRoute(connection.Id), buf)
+	r, err := c.DoAPIPutJSON(ctx, c.outgoingOAuthConnectionRoute(connection.Id), connection)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5423,11 +5196,7 @@ func (c *Client4) UpdateOutgoingOAuthConnection(ctx context.Context, connection 
 
 // CreateOutgoingOAuthConnection creates a new outgoing OAuth connection.
 func (c *Client4) CreateOutgoingOAuthConnection(ctx context.Context, connection *OutgoingOAuthConnection) (*OutgoingOAuthConnection, *Response, error) {
-	buf, err := json.Marshal(connection)
-	if err != nil {
-		return nil, nil, NewAppError("CreateOutgoingOAuthConnection", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.outgoingOAuthConnectionsRoute(), buf)
+	r, err := c.DoAPIPostJSON(ctx, c.outgoingOAuthConnectionsRoute(), connection)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5525,11 +5294,7 @@ func (c *Client4) GetDataRetentionPolicies(ctx context.Context, page, perPage in
 // CreateDataRetentionPolicy will create a new granular data retention policy which will be applied to
 // the specified teams and channels. The Id field of `policy` must be empty.
 func (c *Client4) CreateDataRetentionPolicy(ctx context.Context, policy *RetentionPolicyWithTeamAndChannelIDs) (*RetentionPolicyWithTeamAndChannelCounts, *Response, error) {
-	policyJSON, err := json.Marshal(policy)
-	if err != nil {
-		return nil, nil, NewAppError("CreateDataRetentionPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.dataRetentionRoute()+"/policies", policyJSON)
+	r, err := c.DoAPIPostJSON(ctx, c.dataRetentionRoute()+"/policies", policy)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5550,11 +5315,7 @@ func (c *Client4) DeleteDataRetentionPolicy(ctx context.Context, policyID string
 // PatchDataRetentionPolicy will patch the granular data retention policy with the specified ID.
 // The Id field of `patch` must be non-empty.
 func (c *Client4) PatchDataRetentionPolicy(ctx context.Context, patch *RetentionPolicyWithTeamAndChannelIDs) (*RetentionPolicyWithTeamAndChannelCounts, *Response, error) {
-	patchJSON, err := json.Marshal(patch)
-	if err != nil {
-		return nil, nil, NewAppError("PatchDataRetentionPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPatchBytes(ctx, c.dataRetentionPolicyRoute(patch.ID), patchJSON)
+	r, err := c.DoAPIPatchJSON(ctx, c.dataRetentionPolicyRoute(patch.ID), patch)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5574,11 +5335,7 @@ func (c *Client4) GetTeamsForRetentionPolicy(ctx context.Context, policyID strin
 
 // SearchTeamsForRetentionPolicy will search the teams to which the specified policy is currently applied.
 func (c *Client4) SearchTeamsForRetentionPolicy(ctx context.Context, policyID string, term string) ([]*Team, *Response, error) {
-	body, err := json.Marshal(map[string]any{"term": term})
-	if err != nil {
-		return nil, nil, NewAppError("SearchTeamsForRetentionPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.dataRetentionPolicyRoute(policyID)+"/teams/search", body)
+	r, err := c.DoAPIPostJSON(ctx, c.dataRetentionPolicyRoute(policyID)+"/teams/search", map[string]any{"term": term})
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5588,11 +5345,7 @@ func (c *Client4) SearchTeamsForRetentionPolicy(ctx context.Context, policyID st
 // AddTeamsToRetentionPolicy will add the specified teams to the granular data retention policy
 // with the specified ID.
 func (c *Client4) AddTeamsToRetentionPolicy(ctx context.Context, policyID string, teamIDs []string) (*Response, error) {
-	body, err := json.Marshal(teamIDs)
-	if err != nil {
-		return nil, NewAppError("AddTeamsToRetentionPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.dataRetentionPolicyRoute(policyID)+"/teams", body)
+	r, err := c.DoAPIPostJSON(ctx, c.dataRetentionPolicyRoute(policyID)+"/teams", teamIDs)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5603,11 +5356,7 @@ func (c *Client4) AddTeamsToRetentionPolicy(ctx context.Context, policyID string
 // RemoveTeamsFromRetentionPolicy will remove the specified teams from the granular data retention policy
 // with the specified ID.
 func (c *Client4) RemoveTeamsFromRetentionPolicy(ctx context.Context, policyID string, teamIDs []string) (*Response, error) {
-	body, err := json.Marshal(teamIDs)
-	if err != nil {
-		return nil, NewAppError("RemoveTeamsFromRetentionPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIDeleteBytes(ctx, c.dataRetentionPolicyRoute(policyID)+"/teams", body)
+	r, err := c.DoAPIDeleteJSON(ctx, c.dataRetentionPolicyRoute(policyID)+"/teams", teamIDs, "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5627,11 +5376,7 @@ func (c *Client4) GetChannelsForRetentionPolicy(ctx context.Context, policyID st
 
 // SearchChannelsForRetentionPolicy will search the channels to which the specified policy is currently applied.
 func (c *Client4) SearchChannelsForRetentionPolicy(ctx context.Context, policyID string, term string) (ChannelListWithTeamData, *Response, error) {
-	body, err := json.Marshal(map[string]any{"term": term})
-	if err != nil {
-		return nil, nil, NewAppError("SearchChannelsForRetentionPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.dataRetentionPolicyRoute(policyID)+"/channels/search", body)
+	r, err := c.DoAPIPostJSON(ctx, c.dataRetentionPolicyRoute(policyID)+"/channels/search", map[string]any{"term": term})
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5641,11 +5386,7 @@ func (c *Client4) SearchChannelsForRetentionPolicy(ctx context.Context, policyID
 // AddChannelsToRetentionPolicy will add the specified channels to the granular data retention policy
 // with the specified ID.
 func (c *Client4) AddChannelsToRetentionPolicy(ctx context.Context, policyID string, channelIDs []string) (*Response, error) {
-	body, err := json.Marshal(channelIDs)
-	if err != nil {
-		return nil, NewAppError("AddChannelsToRetentionPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.dataRetentionPolicyRoute(policyID)+"/channels", body)
+	r, err := c.DoAPIPostJSON(ctx, c.dataRetentionPolicyRoute(policyID)+"/channels", channelIDs)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5656,11 +5397,7 @@ func (c *Client4) AddChannelsToRetentionPolicy(ctx context.Context, policyID str
 // RemoveChannelsFromRetentionPolicy will remove the specified channels from the granular data retention policy
 // with the specified ID.
 func (c *Client4) RemoveChannelsFromRetentionPolicy(ctx context.Context, policyID string, channelIDs []string) (*Response, error) {
-	body, err := json.Marshal(channelIDs)
-	if err != nil {
-		return nil, NewAppError("RemoveChannelsFromRetentionPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIDeleteBytes(ctx, c.dataRetentionPolicyRoute(policyID)+"/channels", body)
+	r, err := c.DoAPIDeleteJSON(ctx, c.dataRetentionPolicyRoute(policyID)+"/channels", channelIDs, "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5690,12 +5427,7 @@ func (c *Client4) GetChannelPoliciesForUser(ctx context.Context, userID string, 
 
 // UpsertDraft will create a new draft or update a draft if it already exists
 func (c *Client4) UpsertDraft(ctx context.Context, draft *Draft) (*Draft, *Response, error) {
-	buf, err := json.Marshal(draft)
-	if err != nil {
-		return nil, nil, NewAppError("UpsertDraft", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPostBytes(ctx, c.draftsRoute(), buf)
+	r, err := c.DoAPIPostJSON(ctx, c.draftsRoute(), draft)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5728,11 +5460,7 @@ func (c *Client4) DeleteDraft(ctx context.Context, userId, channelId, rootId str
 
 // CreateCommand will create a new command if the user have the right permissions.
 func (c *Client4) CreateCommand(ctx context.Context, cmd *Command) (*Command, *Response, error) {
-	buf, err := json.Marshal(cmd)
-	if err != nil {
-		return nil, nil, NewAppError("CreateCommand", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.commandsRoute(), buf)
+	r, err := c.DoAPIPostJSON(ctx, c.commandsRoute(), cmd)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5743,11 +5471,7 @@ func (c *Client4) CreateCommand(ctx context.Context, cmd *Command) (*Command, *R
 
 // UpdateCommand updates a command based on the provided Command struct.
 func (c *Client4) UpdateCommand(ctx context.Context, cmd *Command) (*Command, *Response, error) {
-	buf, err := json.Marshal(cmd)
-	if err != nil {
-		return nil, nil, NewAppError("UpdateCommand", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.commandRoute(cmd.Id), buf)
+	r, err := c.DoAPIPutJSON(ctx, c.commandRoute(cmd.Id), cmd)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5758,11 +5482,7 @@ func (c *Client4) UpdateCommand(ctx context.Context, cmd *Command) (*Command, *R
 // MoveCommand moves a command to a different team.
 func (c *Client4) MoveCommand(ctx context.Context, teamId string, commandId string) (*Response, error) {
 	cmr := CommandMoveRequest{TeamId: teamId}
-	buf, err := json.Marshal(cmr)
-	if err != nil {
-		return nil, NewAppError("MoveCommand", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.commandMoveRoute(commandId), buf)
+	r, err := c.DoAPIPutJSON(ctx, c.commandMoveRoute(commandId), cmr)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5820,11 +5540,7 @@ func (c *Client4) ExecuteCommand(ctx context.Context, channelId, command string)
 		ChannelId: channelId,
 		Command:   command,
 	}
-	buf, err := json.Marshal(commandArgs)
-	if err != nil {
-		return nil, nil, NewAppError("ExecuteCommand", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.commandsRoute()+"/execute", buf)
+	r, err := c.DoAPIPostJSON(ctx, c.commandsRoute()+"/execute", commandArgs)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5845,11 +5561,7 @@ func (c *Client4) ExecuteCommandWithTeam(ctx context.Context, channelId, teamId,
 		TeamId:    teamId,
 		Command:   command,
 	}
-	buf, err := json.Marshal(commandArgs)
-	if err != nil {
-		return nil, nil, NewAppError("ExecuteCommandWithTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.commandsRoute()+"/execute", buf)
+	r, err := c.DoAPIPostJSON(ctx, c.commandsRoute()+"/execute", commandArgs)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5900,7 +5612,7 @@ func (c *Client4) GetUserStatus(ctx context.Context, userId, etag string) (*Stat
 
 // GetUsersStatusesByIds returns a list of users status based on the provided user ids.
 func (c *Client4) GetUsersStatusesByIds(ctx context.Context, userIds []string) ([]*Status, *Response, error) {
-	r, err := c.DoAPIPost(ctx, c.userStatusesRoute()+"/ids", ArrayToJSON(userIds))
+	r, err := c.DoAPIPostJSON(ctx, c.userStatusesRoute()+"/ids", userIds)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5910,11 +5622,7 @@ func (c *Client4) GetUsersStatusesByIds(ctx context.Context, userIds []string) (
 
 // UpdateUserStatus sets a user's status based on the provided user id string.
 func (c *Client4) UpdateUserStatus(ctx context.Context, userId string, userStatus *Status) (*Status, *Response, error) {
-	buf, err := json.Marshal(userStatus)
-	if err != nil {
-		return nil, nil, NewAppError("UpdateUserStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.userStatusRoute(userId), buf)
+	r, err := c.DoAPIPutJSON(ctx, c.userStatusRoute(userId), userStatus)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5926,11 +5634,7 @@ func (c *Client4) UpdateUserStatus(ctx context.Context, userId string, userStatu
 // The returned CustomStatus object is the same as the one passed, and it should be just
 // ignored. It's only kept to maintain compatibility.
 func (c *Client4) UpdateUserCustomStatus(ctx context.Context, userId string, userCustomStatus *CustomStatus) (*CustomStatus, *Response, error) {
-	buf, err := json.Marshal(userCustomStatus)
-	if err != nil {
-		return nil, nil, NewAppError("UpdateUserCustomStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.userStatusRoute(userId)+"/custom", buf)
+	r, err := c.DoAPIPutJSON(ctx, c.userStatusRoute(userId)+"/custom", userCustomStatus)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6022,12 +5726,7 @@ func (c *Client4) GetSortedEmojiList(ctx context.Context, page, perPage int, sor
 
 // GetEmojisByNames takes an array of custom emoji names and returns an array of those emojis.
 func (c *Client4) GetEmojisByNames(ctx context.Context, names []string) ([]*Emoji, *Response, error) {
-	buf, err := json.Marshal(names)
-	if err != nil {
-		return nil, nil, NewAppError("GetEmojisByNames", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPostBytes(ctx, c.emojisRoute()+"/names", buf)
+	r, err := c.DoAPIPostJSON(ctx, c.emojisRoute()+"/names", names)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6079,11 +5778,7 @@ func (c *Client4) GetEmojiImage(ctx context.Context, emojiId string) ([]byte, *R
 
 // SearchEmoji returns a list of emoji matching some search criteria.
 func (c *Client4) SearchEmoji(ctx context.Context, search *EmojiSearch) ([]*Emoji, *Response, error) {
-	buf, err := json.Marshal(search)
-	if err != nil {
-		return nil, nil, NewAppError("SearchEmoji", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.emojisRoute()+"/search", buf)
+	r, err := c.DoAPIPostJSON(ctx, c.emojisRoute()+"/search", search)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6106,11 +5801,7 @@ func (c *Client4) AutocompleteEmoji(ctx context.Context, name string, etag strin
 
 // SaveReaction saves an emoji reaction for a post. Returns the saved reaction if successful, otherwise an error will be returned.
 func (c *Client4) SaveReaction(ctx context.Context, reaction *Reaction) (*Reaction, *Response, error) {
-	buf, err := json.Marshal(reaction)
-	if err != nil {
-		return nil, nil, NewAppError("SaveReaction", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.reactionsRoute(), buf)
+	r, err := c.DoAPIPostJSON(ctx, c.reactionsRoute(), reaction)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6140,7 +5831,7 @@ func (c *Client4) DeleteReaction(ctx context.Context, reaction *Reaction) (*Resp
 
 // FetchBulkReactions returns a map of postIds and corresponding reactions
 func (c *Client4) GetBulkReactions(ctx context.Context, postIds []string) (map[string][]*Reaction, *Response, error) {
-	r, err := c.DoAPIPost(ctx, c.postsRoute()+"/ids/reactions", ArrayToJSON(postIds))
+	r, err := c.DoAPIPostJSON(ctx, c.postsRoute()+"/ids/reactions", postIds)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6194,11 +5885,7 @@ func (c *Client4) GetJobsByType(ctx context.Context, jobType string, page int, p
 
 // CreateJob creates a job based on the provided job struct.
 func (c *Client4) CreateJob(ctx context.Context, job *Job) (*Job, *Response, error) {
-	buf, err := json.Marshal(job)
-	if err != nil {
-		return nil, nil, NewAppError("CreateJob", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.jobsRoute(), buf)
+	r, err := c.DoAPIPostJSON(ctx, c.jobsRoute(), job)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6229,14 +5916,11 @@ func (c *Client4) DownloadJob(ctx context.Context, jobId string) ([]byte, *Respo
 
 // UpdateJobStatus updates the status of a job
 func (c *Client4) UpdateJobStatus(ctx context.Context, jobId string, status string, force bool) (*Response, error) {
-	buf, err := json.Marshal(map[string]any{
+	data := map[string]any{
 		"status": status,
 		"force":  force,
-	})
-	if err != nil {
-		return nil, NewAppError("UpdateJobStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPatchBytes(ctx, c.jobsRoute()+fmt.Sprintf("/%v/status", jobId), buf)
+	r, err := c.DoAPIPatchJSON(ctx, c.jobsRoute()+fmt.Sprintf("/%v/status", jobId), data)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6278,7 +5962,7 @@ func (c *Client4) GetRoleByName(ctx context.Context, name string) (*Role, *Respo
 
 // GetRolesByNames returns a list of roles based on the provided role names.
 func (c *Client4) GetRolesByNames(ctx context.Context, roleNames []string) ([]*Role, *Response, error) {
-	r, err := c.DoAPIPost(ctx, c.rolesRoute()+"/names", ArrayToJSON(roleNames))
+	r, err := c.DoAPIPostJSON(ctx, c.rolesRoute()+"/names", roleNames)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6288,11 +5972,7 @@ func (c *Client4) GetRolesByNames(ctx context.Context, roleNames []string) ([]*R
 
 // PatchRole partially updates a role in the system. Any missing fields are not updated.
 func (c *Client4) PatchRole(ctx context.Context, roleId string, patch *RolePatch) (*Role, *Response, error) {
-	buf, err := json.Marshal(patch)
-	if err != nil {
-		return nil, nil, NewAppError("PatchRole", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.rolesRoute()+fmt.Sprintf("/%v/patch", roleId), buf)
+	r, err := c.DoAPIPutJSON(ctx, c.rolesRoute()+fmt.Sprintf("/%v/patch", roleId), patch)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6304,11 +5984,7 @@ func (c *Client4) PatchRole(ctx context.Context, roleId string, patch *RolePatch
 
 // CreateScheme creates a new Scheme.
 func (c *Client4) CreateScheme(ctx context.Context, scheme *Scheme) (*Scheme, *Response, error) {
-	buf, err := json.Marshal(scheme)
-	if err != nil {
-		return nil, nil, NewAppError("CreateScheme", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.schemesRoute(), buf)
+	r, err := c.DoAPIPostJSON(ctx, c.schemesRoute(), scheme)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6348,11 +6024,7 @@ func (c *Client4) DeleteScheme(ctx context.Context, id string) (*Response, error
 
 // PatchScheme partially updates a scheme in the system. Any missing fields are not updated.
 func (c *Client4) PatchScheme(ctx context.Context, id string, patch *SchemePatch) (*Scheme, *Response, error) {
-	buf, err := json.Marshal(patch)
-	if err != nil {
-		return nil, nil, NewAppError("PatchScheme", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.schemeRoute(id)+"/patch", buf)
+	r, err := c.DoAPIPutJSON(ctx, c.schemeRoute(id)+"/patch", patch)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6454,11 +6126,7 @@ func (c *Client4) InstallPluginFromURL(ctx context.Context, downloadURL string, 
 
 // InstallMarketplacePlugin will install marketplace plugin.
 func (c *Client4) InstallMarketplacePlugin(ctx context.Context, request *InstallMarketplacePluginRequest) (*Manifest, *Response, error) {
-	buf, err := json.Marshal(request)
-	if err != nil {
-		return nil, nil, NewAppError("InstallMarketplacePlugin", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPost(ctx, c.pluginsRoute()+"/marketplace", string(buf))
+	r, err := c.DoAPIPostJSON(ctx, c.pluginsRoute()+"/marketplace", request)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6471,11 +6139,7 @@ func (c *Client4) InstallMarketplacePlugin(ctx context.Context, request *Install
 //
 // Only available in local mode, and currently only used for testing.
 func (c *Client4) ReattachPlugin(ctx context.Context, request *PluginReattachRequest) (*Response, error) {
-	buf, err := json.Marshal(request)
-	if err != nil {
-		return nil, NewAppError("ReattachPlugin", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPost(ctx, c.pluginsRoute()+"/reattach", string(buf))
+	r, err := c.DoAPIPostJSON(ctx, c.pluginsRoute()+"/reattach", request)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6587,11 +6251,7 @@ func (c *Client4) GetMarketplacePlugins(ctx context.Context, filter *Marketplace
 // UpdateChannelScheme will update a channel's scheme.
 func (c *Client4) UpdateChannelScheme(ctx context.Context, channelId, schemeId string) (*Response, error) {
 	sip := &SchemeIDPatch{SchemeID: &schemeId}
-	buf, err := json.Marshal(sip)
-	if err != nil {
-		return nil, NewAppError("UpdateChannelScheme", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.channelSchemeRoute(channelId), buf)
+	r, err := c.DoAPIPutJSON(ctx, c.channelSchemeRoute(channelId), sip)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6602,11 +6262,7 @@ func (c *Client4) UpdateChannelScheme(ctx context.Context, channelId, schemeId s
 // UpdateTeamScheme will update a team's scheme.
 func (c *Client4) UpdateTeamScheme(ctx context.Context, teamId, schemeId string) (*Response, error) {
 	sip := &SchemeIDPatch{SchemeID: &schemeId}
-	buf, err := json.Marshal(sip)
-	if err != nil {
-		return nil, NewAppError("UpdateTeamScheme", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.teamSchemeRoute(teamId), buf)
+	r, err := c.DoAPIPutJSON(ctx, c.teamSchemeRoute(teamId), sip)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6666,7 +6322,7 @@ func (c *Client4) GetServerBusy(ctx context.Context) (*ServerBusyState, *Respons
 func (c *Client4) RegisterTermsOfServiceAction(ctx context.Context, userId, termsOfServiceId string, accepted bool) (*Response, error) {
 	url := c.userTermsOfServiceRoute(userId)
 	data := map[string]any{"termsOfServiceId": termsOfServiceId, "accepted": accepted}
-	r, err := c.DoAPIPost(ctx, url, StringInterfaceToJSON(data))
+	r, err := c.DoAPIPostJSON(ctx, url, data)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6700,7 +6356,7 @@ func (c *Client4) GetUserTermsOfService(ctx context.Context, userId, etag string
 func (c *Client4) CreateTermsOfService(ctx context.Context, text, userId string) (*TermsOfService, *Response, error) {
 	url := c.termsOfServiceRoute()
 	data := map[string]any{"text": text}
-	r, err := c.DoAPIPost(ctx, url, StringInterfaceToJSON(data))
+	r, err := c.DoAPIPostJSON(ctx, url, data)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6718,11 +6374,7 @@ func (c *Client4) GetGroup(ctx context.Context, groupID, etag string) (*Group, *
 }
 
 func (c *Client4) CreateGroup(ctx context.Context, group *Group) (*Group, *Response, error) {
-	groupJSON, err := json.Marshal(group)
-	if err != nil {
-		return nil, nil, NewAppError("CreateGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, "/groups", groupJSON)
+	r, err := c.DoAPIPostJSON(ctx, "/groups", group)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6749,11 +6401,7 @@ func (c *Client4) RestoreGroup(ctx context.Context, groupID string, etag string)
 }
 
 func (c *Client4) PatchGroup(ctx context.Context, groupID string, patch *GroupPatch) (*Group, *Response, error) {
-	payload, err := json.Marshal(patch)
-	if err != nil {
-		return nil, nil, NewAppError("PatchGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPut(ctx, c.groupRoute(groupID)+"/patch", string(payload))
+	r, err := c.DoAPIPutJSON(ctx, c.groupRoute(groupID)+"/patch", patch)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6771,11 +6419,7 @@ func (c *Client4) GetGroupMembers(ctx context.Context, groupID string) (*GroupMe
 }
 
 func (c *Client4) UpsertGroupMembers(ctx context.Context, groupID string, userIds *GroupModifyMembers) ([]*GroupMember, *Response, error) {
-	payload, err := json.Marshal(userIds)
-	if err != nil {
-		return nil, nil, NewAppError("UpsertGroupMembers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.groupRoute(groupID)+"/members", payload)
+	r, err := c.DoAPIPostJSON(ctx, c.groupRoute(groupID)+"/members", userIds)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6784,11 +6428,7 @@ func (c *Client4) UpsertGroupMembers(ctx context.Context, groupID string, userId
 }
 
 func (c *Client4) DeleteGroupMembers(ctx context.Context, groupID string, userIds *GroupModifyMembers) ([]*GroupMember, *Response, error) {
-	payload, err := json.Marshal(userIds)
-	if err != nil {
-		return nil, nil, NewAppError("DeleteGroupMembers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIDeleteBytes(ctx, c.groupRoute(groupID)+"/members", payload)
+	r, err := c.DoAPIDeleteJSON(ctx, c.groupRoute(groupID)+"/members", userIds, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6797,12 +6437,8 @@ func (c *Client4) DeleteGroupMembers(ctx context.Context, groupID string, userId
 }
 
 func (c *Client4) LinkGroupSyncable(ctx context.Context, groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response, error) {
-	payload, err := json.Marshal(patch)
-	if err != nil {
-		return nil, nil, NewAppError("LinkGroupSyncable", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
 	url := fmt.Sprintf("%s/link", c.groupSyncableRoute(groupID, syncableID, syncableType))
-	r, err := c.DoAPIPost(ctx, url, string(payload))
+	r, err := c.DoAPIPostJSON(ctx, url, patch)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6839,11 +6475,7 @@ func (c *Client4) GetGroupSyncables(ctx context.Context, groupID string, syncabl
 }
 
 func (c *Client4) PatchGroupSyncable(ctx context.Context, groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response, error) {
-	payload, err := json.Marshal(patch)
-	if err != nil {
-		return nil, nil, NewAppError("PatchGroupSyncable", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPut(ctx, c.groupSyncableRoute(groupID, syncableID, syncableType)+"/patch", string(payload))
+	r, err := c.DoAPIPutJSON(ctx, c.groupSyncableRoute(groupID, syncableID, syncableType)+"/patch", patch)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6883,11 +6515,7 @@ func (c *Client4) ChannelMembersMinusGroupMembers(ctx context.Context, channelID
 }
 
 func (c *Client4) PatchConfig(ctx context.Context, config *Config) (*Config, *Response, error) {
-	buf, err := json.Marshal(config)
-	if err != nil {
-		return nil, nil, NewAppError("PatchConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.configRoute()+"/patch", buf)
+	r, err := c.DoAPIPutJSON(ctx, c.configRoute()+"/patch", config)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6907,12 +6535,7 @@ func (c *Client4) GetChannelModerations(ctx context.Context, channelID string, e
 }
 
 func (c *Client4) PatchChannelModerations(ctx context.Context, channelID string, patch []*ChannelModerationPatch) ([]*ChannelModeration, *Response, error) {
-	payload, err := json.Marshal(patch)
-	if err != nil {
-		return nil, nil, NewAppError("PatchChannelModerations", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPut(ctx, c.channelRoute(channelID)+"/moderations/patch", string(payload))
+	r, err := c.DoAPIPutJSON(ctx, c.channelRoute(channelID)+"/moderations/patch", patch)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6932,11 +6555,7 @@ func (c *Client4) GetKnownUsers(ctx context.Context) ([]string, *Response, error
 
 // PublishUserTyping publishes a user is typing websocket event based on the provided TypingRequest.
 func (c *Client4) PublishUserTyping(ctx context.Context, userID string, typingRequest TypingRequest) (*Response, error) {
-	buf, err := json.Marshal(typingRequest)
-	if err != nil {
-		return nil, NewAppError("PublishUserTyping", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.publishUserTypingRoute(userID), buf)
+	r, err := c.DoAPIPostJSON(ctx, c.publishUserTypingRoute(userID), typingRequest)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6955,12 +6574,7 @@ func (c *Client4) GetChannelMemberCountsByGroup(ctx context.Context, channelID s
 }
 
 func (c *Client4) RequestTrialLicenseWithExtraFields(ctx context.Context, trialRequest *TrialLicenseRequest) (*Response, error) {
-	b, err := json.Marshal(trialRequest)
-	if err != nil {
-		return nil, NewAppError("RequestTrialLicense", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPost(ctx, "/trial-license", string(b))
+	r, err := c.DoAPIPostJSON(ctx, "/trial-license", trialRequest)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6972,11 +6586,8 @@ func (c *Client4) RequestTrialLicenseWithExtraFields(ctx context.Context, trialR
 // RequestTrialLicense will request a trial license and install it in the server
 // DEPRECATED - USE RequestTrialLicenseWithExtraFields (this method remains for backwards compatibility)
 func (c *Client4) RequestTrialLicense(ctx context.Context, users int) (*Response, error) {
-	b, err := json.Marshal(map[string]any{"users": users, "terms_accepted": true})
-	if err != nil {
-		return nil, NewAppError("RequestTrialLicense", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPost(ctx, "/trial-license", string(b))
+	reqData := map[string]any{"users": users, "terms_accepted": true}
+	r, err := c.DoAPIPostJSON(ctx, "/trial-license", reqData)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7005,12 +6616,8 @@ func (c *Client4) GetSidebarCategoriesForTeamForUser(ctx context.Context, userID
 }
 
 func (c *Client4) CreateSidebarCategoryForTeamForUser(ctx context.Context, userID, teamID string, category *SidebarCategoryWithChannels) (*SidebarCategoryWithChannels, *Response, error) {
-	payload, err := json.Marshal(category)
-	if err != nil {
-		return nil, nil, NewAppError("CreateSidebarCategoryForTeamForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
 	route := c.userCategoryRoute(userID, teamID)
-	r, err := c.DoAPIPostBytes(ctx, route, payload)
+	r, err := c.DoAPIPostJSON(ctx, route, category)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7019,13 +6626,9 @@ func (c *Client4) CreateSidebarCategoryForTeamForUser(ctx context.Context, userI
 }
 
 func (c *Client4) UpdateSidebarCategoriesForTeamForUser(ctx context.Context, userID, teamID string, categories []*SidebarCategoryWithChannels) ([]*SidebarCategoryWithChannels, *Response, error) {
-	payload, err := json.Marshal(categories)
-	if err != nil {
-		return nil, nil, NewAppError("UpdateSidebarCategoriesForTeamForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
 	route := c.userCategoryRoute(userID, teamID)
 
-	r, err := c.DoAPIPutBytes(ctx, route, payload)
+	r, err := c.DoAPIPutJSON(ctx, route, categories)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7046,12 +6649,8 @@ func (c *Client4) GetSidebarCategoryOrderForTeamForUser(ctx context.Context, use
 }
 
 func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(ctx context.Context, userID, teamID string, order []string) ([]string, *Response, error) {
-	payload, err := json.Marshal(order)
-	if err != nil {
-		return nil, nil, NewAppError("UpdateSidebarCategoryOrderForTeamForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
 	route := c.userCategoryRoute(userID, teamID) + "/order"
-	r, err := c.DoAPIPutBytes(ctx, route, payload)
+	r, err := c.DoAPIPutJSON(ctx, route, order)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7072,12 +6671,8 @@ func (c *Client4) GetSidebarCategoryForTeamForUser(ctx context.Context, userID, 
 }
 
 func (c *Client4) UpdateSidebarCategoryForTeamForUser(ctx context.Context, userID, teamID, categoryID string, category *SidebarCategoryWithChannels) (*SidebarCategoryWithChannels, *Response, error) {
-	payload, err := json.Marshal(category)
-	if err != nil {
-		return nil, nil, NewAppError("UpdateSidebarCategoryForTeamForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
 	route := c.userCategoryRoute(userID, teamID) + "/" + categoryID
-	r, err := c.DoAPIPutBytes(ctx, route, payload)
+	r, err := c.DoAPIPutJSON(ctx, route, category)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7121,7 +6716,7 @@ func (c *Client4) GetNotices(ctx context.Context, lastViewed int64, teamId strin
 }
 
 func (c *Client4) MarkNoticesViewed(ctx context.Context, ids []string) (*Response, error) {
-	r, err := c.DoAPIPut(ctx, "/system/notices/view", ArrayToJSON(ids))
+	r, err := c.DoAPIPutJSON(ctx, "/system/notices/view", ids)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7130,11 +6725,7 @@ func (c *Client4) MarkNoticesViewed(ctx context.Context, ids []string) (*Respons
 }
 
 func (c *Client4) CompleteOnboarding(ctx context.Context, request *CompleteOnboardingRequest) (*Response, error) {
-	buf, err := json.Marshal(request)
-	if err != nil {
-		return nil, NewAppError("CompleteOnboarding", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPost(ctx, c.systemRoute()+"/onboarding/complete", string(buf))
+	r, err := c.DoAPIPostJSON(ctx, c.systemRoute()+"/onboarding/complete", request)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7145,11 +6736,7 @@ func (c *Client4) CompleteOnboarding(ctx context.Context, request *CompleteOnboa
 
 // CreateUpload creates a new upload session.
 func (c *Client4) CreateUpload(ctx context.Context, us *UploadSession) (*UploadSession, *Response, error) {
-	buf, err := json.Marshal(us)
-	if err != nil {
-		return nil, nil, NewAppError("CreateUpload", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.uploadsRoute(), buf)
+	r, err := c.DoAPIPostJSON(ctx, c.uploadsRoute(), us)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7183,7 +6770,7 @@ func (c *Client4) GetUploadsForUser(ctx context.Context, userId string) ([]*Uplo
 // a FileInfo object.
 func (c *Client4) UploadData(ctx context.Context, uploadId string, data io.Reader) (*FileInfo, *Response, error) {
 	url := c.uploadRoute(uploadId)
-	r, err := c.DoAPIRequestReader(ctx, "POST", c.APIURL+url, data, nil)
+	r, err := c.doAPIRequestReader(ctx, http.MethodPost, c.APIURL+url, data, nil)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7196,7 +6783,7 @@ func (c *Client4) UploadData(ctx context.Context, uploadId string, data io.Reade
 
 func (c *Client4) UpdatePassword(ctx context.Context, userId, currentPassword, newPassword string) (*Response, error) {
 	requestBody := map[string]string{"current_password": currentPassword, "new_password": newPassword}
-	r, err := c.DoAPIPut(ctx, c.userRoute(userId)+"/password", MapToJSON(requestBody))
+	r, err := c.DoAPIPostJSON(ctx, c.userRoute(userId)+"/password", requestBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7248,12 +6835,7 @@ func (c *Client4) GetIPFilters(ctx context.Context) (*AllowedIPRanges, *Response
 }
 
 func (c *Client4) ApplyIPFilters(ctx context.Context, allowedRanges *AllowedIPRanges) (*AllowedIPRanges, *Response, error) {
-	payload, err := json.Marshal(allowedRanges)
-	if err != nil {
-		return nil, nil, NewAppError("ApplyIPFilters", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPostBytes(ctx, c.ipFiltersRoute(), payload)
+	r, err := c.DoAPIPostJSON(ctx, c.ipFiltersRoute(), allowedRanges)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7285,12 +6867,7 @@ func (c *Client4) ValidateWorkspaceBusinessEmail(ctx context.Context) (*Response
 }
 
 func (c *Client4) NotifyAdmin(ctx context.Context, nr *NotifyAdminToUpgradeRequest) (int, error) {
-	nrJSON, err := json.Marshal(nr)
-	if err != nil {
-		return 0, err
-	}
-
-	r, err := c.DoAPIPost(ctx, "/users/notify-admin", string(nrJSON))
+	r, err := c.DoAPIPostJSON(ctx, "/users/notify-admin", nr)
 	if err != nil {
 		return r.StatusCode, err
 	}
@@ -7301,12 +6878,7 @@ func (c *Client4) NotifyAdmin(ctx context.Context, nr *NotifyAdminToUpgradeReque
 }
 
 func (c *Client4) TriggerNotifyAdmin(ctx context.Context, nr *NotifyAdminToUpgradeRequest) (int, error) {
-	nrJSON, err := json.Marshal(nr)
-	if err != nil {
-		return 0, err
-	}
-
-	r, err := c.DoAPIPost(ctx, "/users/trigger-notify-admin-posts", string(nrJSON))
+	r, err := c.DoAPIPostJSON(ctx, "/users/trigger-notify-admin-posts", nr)
 	if err != nil {
 		return r.StatusCode, err
 	}
@@ -7317,8 +6889,7 @@ func (c *Client4) TriggerNotifyAdmin(ctx context.Context, nr *NotifyAdminToUpgra
 }
 
 func (c *Client4) ValidateBusinessEmail(ctx context.Context, email *ValidateBusinessEmailRequest) (*Response, error) {
-	payload, _ := json.Marshal(email)
-	r, err := c.DoAPIPostBytes(ctx, c.cloudRoute()+"/validate-business-email", payload)
+	r, err := c.DoAPIPostJSON(ctx, c.cloudRoute()+"/validate-business-email", email)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7358,11 +6929,7 @@ func (c *Client4) GetInvoicesForSubscription(ctx context.Context) ([]*Invoice, *
 }
 
 func (c *Client4) UpdateCloudCustomer(ctx context.Context, customerInfo *CloudCustomerInfo) (*CloudCustomer, *Response, error) {
-	customerBytes, err := json.Marshal(customerInfo)
-	if err != nil {
-		return nil, nil, NewAppError("UpdateCloudCustomer", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.cloudRoute()+"/customer", customerBytes)
+	r, err := c.DoAPIPutJSON(ctx, c.cloudRoute()+"/customer", customerInfo)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7372,11 +6939,7 @@ func (c *Client4) UpdateCloudCustomer(ctx context.Context, customerInfo *CloudCu
 }
 
 func (c *Client4) UpdateCloudCustomerAddress(ctx context.Context, address *Address) (*CloudCustomer, *Response, error) {
-	addressBytes, err := json.Marshal(address)
-	if err != nil {
-		return nil, nil, NewAppError("UpdateCloudCustomerAddress", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPutBytes(ctx, c.cloudRoute()+"/customer/address", addressBytes)
+	r, err := c.DoAPIPutJSON(ctx, c.cloudRoute()+"/customer/address", address)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7443,7 +7006,7 @@ func (c *Client4) DownloadExport(ctx context.Context, name string, wr io.Writer,
 }
 
 func (c *Client4) GeneratePresignedURL(ctx context.Context, name string) (*PresignURLResponse, *Response, error) {
-	r, err := c.DoAPIRequest(ctx, http.MethodPost, c.APIURL+c.exportRoute(name)+"/presign-url", "", "")
+	r, err := c.doAPIRequest(ctx, http.MethodPost, c.APIURL+c.exportRoute(name)+"/presign-url", "", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7658,12 +7221,7 @@ func (c *Client4) GetRemoteClusters(ctx context.Context, page, perPage int, filt
 }
 
 func (c *Client4) CreateRemoteCluster(ctx context.Context, rcWithPassword *RemoteClusterWithPassword) (*RemoteClusterWithInvite, *Response, error) {
-	rcJSON, err := json.Marshal(rcWithPassword)
-	if err != nil {
-		return nil, nil, NewAppError("CreateRemoteCluster", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPost(ctx, c.remoteClusterRoute(), string(rcJSON))
+	r, err := c.DoAPIPostJSON(ctx, c.remoteClusterRoute(), rcWithPassword)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7673,13 +7231,8 @@ func (c *Client4) CreateRemoteCluster(ctx context.Context, rcWithPassword *Remot
 }
 
 func (c *Client4) RemoteClusterAcceptInvite(ctx context.Context, rcAcceptInvite *RemoteClusterAcceptInvite) (*RemoteCluster, *Response, error) {
-	rcAcceptInviteJSON, err := json.Marshal(rcAcceptInvite)
-	if err != nil {
-		return nil, nil, NewAppError("RemoteClusterAcceptInvite", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
 	url := fmt.Sprintf("%s/accept_invite", c.remoteClusterRoute())
-	r, err := c.DoAPIPost(ctx, url, string(rcAcceptInviteJSON))
+	r, err := c.DoAPIPostJSON(ctx, url, rcAcceptInvite)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7690,7 +7243,7 @@ func (c *Client4) RemoteClusterAcceptInvite(ctx context.Context, rcAcceptInvite 
 
 func (c *Client4) GenerateRemoteClusterInvite(ctx context.Context, remoteClusterId, password string) (string, *Response, error) {
 	url := fmt.Sprintf("%s/%s/generate_invite", c.remoteClusterRoute(), remoteClusterId)
-	r, err := c.DoAPIPost(ctx, url, MapToJSON(map[string]string{"password": password}))
+	r, err := c.DoAPIPostJSON(ctx, url, map[string]string{"password": password})
 	if err != nil {
 		return "", BuildResponse(r), err
 	}
@@ -7710,13 +7263,8 @@ func (c *Client4) GetRemoteCluster(ctx context.Context, remoteClusterId string) 
 }
 
 func (c *Client4) PatchRemoteCluster(ctx context.Context, remoteClusterId string, patch *RemoteClusterPatch) (*RemoteCluster, *Response, error) {
-	patchJSON, err := json.Marshal(patch)
-	if err != nil {
-		return nil, nil, NewAppError("PatchRemoteCluster", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
 	url := fmt.Sprintf("%s/%s", c.remoteClusterRoute(), remoteClusterId)
-	r, err := c.DoAPIPatchBytes(ctx, url, patchJSON)
+	r, err := c.DoAPIPatchJSON(ctx, url, patch)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7794,7 +7342,7 @@ func (c *Client4) UninviteRemoteClusterToChannel(ctx context.Context, remoteId, 
 func (c *Client4) GetAncillaryPermissions(ctx context.Context, subsectionPermissions []string) ([]string, *Response, error) {
 	var returnedPermissions []string
 	url := fmt.Sprintf("%s/ancillary", c.permissionsRoute())
-	r, err := c.DoAPIPost(ctx, url, ArrayToJSON(subsectionPermissions))
+	r, err := c.DoAPIPostJSON(ctx, url, subsectionPermissions)
 	if err != nil {
 		return returnedPermissions, BuildResponse(r), err
 	}
@@ -7910,11 +7458,7 @@ func (c *Client4) CheckCWSConnection(ctx context.Context, userId string) (*Respo
 
 // CreateChannelBookmark creates a channel bookmark based on the provided struct.
 func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *ChannelBookmark) (*ChannelBookmarkWithFileInfo, *Response, error) {
-	channelBookmarkJSON, err := json.Marshal(channelBookmark)
-	if err != nil {
-		return nil, nil, NewAppError("CreateChannelBookmark", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.bookmarksRoute(channelBookmark.ChannelId), channelBookmarkJSON)
+	r, err := c.DoAPIPostJSON(ctx, c.bookmarksRoute(channelBookmark.ChannelId), channelBookmark)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7925,11 +7469,7 @@ func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *Ch
 
 // UpdateChannelBookmark updates a channel bookmark based on the provided struct.
 func (c *Client4) UpdateChannelBookmark(ctx context.Context, channelId, bookmarkId string, patch *ChannelBookmarkPatch) (*UpdateChannelBookmarkResponse, *Response, error) {
-	buf, err := json.Marshal(patch)
-	if err != nil {
-		return nil, nil, NewAppError("UpdateChannelBookmark", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPatchBytes(ctx, c.bookmarkRoute(channelId, bookmarkId), buf)
+	r, err := c.DoAPIPatchJSON(ctx, c.bookmarkRoute(channelId, bookmarkId), patch)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7940,11 +7480,7 @@ func (c *Client4) UpdateChannelBookmark(ctx context.Context, channelId, bookmark
 
 // UpdateChannelBookmarkSortOrder updates a channel bookmark's sort order based on the provided new index.
 func (c *Client4) UpdateChannelBookmarkSortOrder(ctx context.Context, channelId, bookmarkId string, sortOrder int64) ([]*ChannelBookmarkWithFileInfo, *Response, error) {
-	buf, err := json.Marshal(sortOrder)
-	if err != nil {
-		return nil, nil, NewAppError("UpdateChannelBookmarkSortOrder", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.bookmarkRoute(channelId, bookmarkId)+"/sort_order", buf)
+	r, err := c.DoAPIPostJSON(ctx, c.bookmarkRoute(channelId, bookmarkId)+"/sort_order", sortOrder)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7976,11 +7512,7 @@ func (c *Client4) ListChannelBookmarksForChannel(ctx context.Context, channelId 
 }
 
 func (c *Client4) SubmitClientMetrics(ctx context.Context, report *PerformanceReport) (*Response, error) {
-	buf, err := json.Marshal(report)
-	if err != nil {
-		return nil, NewAppError("SubmitClientMetrics", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	res, err := c.DoAPIPostBytes(ctx, c.clientPerfMetricsRoute(), buf)
+	res, err := c.DoAPIPostJSON(ctx, c.clientPerfMetricsRoute(), report)
 	if err != nil {
 		return BuildResponse(res), err
 	}
@@ -8028,11 +7560,7 @@ func (c *Client4) RestorePostVersion(ctx context.Context, postId, versionId stri
 }
 
 func (c *Client4) CreateCPAField(ctx context.Context, field *PropertyField) (*PropertyField, *Response, error) {
-	buf, err := json.Marshal(field)
-	if err != nil {
-		return nil, nil, NewAppError("CreateCPAField", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostBytes(ctx, c.customProfileAttributeFieldsRoute(), buf)
+	r, err := c.DoAPIPostJSON(ctx, c.customProfileAttributeFieldsRoute(), field)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8052,11 +7580,7 @@ func (c *Client4) ListCPAFields(ctx context.Context) ([]*PropertyField, *Respons
 }
 
 func (c *Client4) PatchCPAField(ctx context.Context, fieldID string, patch *PropertyFieldPatch) (*PropertyField, *Response, error) {
-	buf, err := json.Marshal(patch)
-	if err != nil {
-		return nil, nil, NewAppError("PatchCPAField", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPatchBytes(ctx, c.customProfileAttributeFieldRoute(fieldID), buf)
+	r, err := c.DoAPIPatchJSON(ctx, c.customProfileAttributeFieldRoute(fieldID), patch)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8085,12 +7609,7 @@ func (c *Client4) ListCPAValues(ctx context.Context, userID string) (map[string]
 }
 
 func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]json.RawMessage) (map[string]json.RawMessage, *Response, error) {
-	buf, err := json.Marshal(values)
-	if err != nil {
-		return nil, nil, NewAppError("PatchCPAValues", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPatchBytes(ctx, c.customProfileAttributeValuesRoute(), buf)
+	r, err := c.DoAPIPatchJSON(ctx, c.customProfileAttributeValuesRoute(), values)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8103,12 +7622,7 @@ func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]json.Raw
 
 // CreateAccessControlPolicy creates a new access control policy.
 func (c *Client4) CreateAccessControlPolicy(ctx context.Context, policy *AccessControlPolicy) (*AccessControlPolicy, *Response, error) {
-	b, err := json.Marshal(policy)
-	if err != nil {
-		return nil, nil, NewAppError("CreateAccessControlPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPutBytes(ctx, c.accessControlPoliciesRoute(), b)
+	r, err := c.DoAPIPutJSON(ctx, c.accessControlPoliciesRoute(), policy)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8143,12 +7657,7 @@ func (c *Client4) CheckExpression(ctx context.Context, expression string) ([]CEL
 	}{
 		Expression: expression,
 	}
-	b, err := json.Marshal(checkExpressionRequest)
-	if err != nil {
-		return nil, nil, NewAppError("CheckExpression", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPostBytes(ctx, c.celRoute()+"/check", b)
+	r, err := c.DoAPIPostJSON(ctx, c.celRoute()+"/check", checkExpressionRequest)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8158,12 +7667,7 @@ func (c *Client4) CheckExpression(ctx context.Context, expression string) ([]CEL
 }
 
 func (c *Client4) TestExpression(ctx context.Context, params QueryExpressionParams) (*AccessControlPolicyTestResponse, *Response, error) {
-	b, err := json.Marshal(params)
-	if err != nil {
-		return nil, nil, NewAppError("TestExpression", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPostBytes(ctx, c.celRoute()+"/test", b)
+	r, err := c.DoAPIPostJSON(ctx, c.celRoute()+"/test", params)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8173,12 +7677,7 @@ func (c *Client4) TestExpression(ctx context.Context, params QueryExpressionPara
 }
 
 func (c *Client4) SearchAccessControlPolicies(ctx context.Context, options AccessControlPolicySearch) (*AccessControlPoliciesWithCount, *Response, error) {
-	b, err := json.Marshal(options)
-	if err != nil {
-		return nil, nil, NewAppError("SearchAccessControlPolicies", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPostBytes(ctx, c.accessControlPoliciesRoute()+"/search", b)
+	r, err := c.DoAPIPostJSON(ctx, c.accessControlPoliciesRoute()+"/search", options)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8193,12 +7692,7 @@ func (c *Client4) AssignAccessControlPolicies(ctx context.Context, policyID stri
 	}
 	assignments.ChannelIds = resourceIDs
 
-	b, err := json.Marshal(assignments)
-	if err != nil {
-		return nil, NewAppError("AssignAccessControlPolicies", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPostBytes(ctx, c.accessControlPolicyRoute(policyID)+"/assign", b)
+	r, err := c.DoAPIPostJSON(ctx, c.accessControlPolicyRoute(policyID)+"/assign", assignments)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -8213,12 +7707,7 @@ func (c *Client4) UnassignAccessControlPolicies(ctx context.Context, policyID st
 	}
 	unassignments.ChannelIds = resourceIDs
 
-	b, err := json.Marshal(unassignments)
-	if err != nil {
-		return nil, NewAppError("UnassignAccessControlPolicies", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIDeleteBytes(ctx, c.accessControlPolicyRoute(policyID)+"/unassign", b)
+	r, err := c.DoAPIDeleteJSON(ctx, c.accessControlPolicyRoute(policyID)+"/unassign", unassignments, "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -8238,12 +7727,7 @@ func (c *Client4) GetChannelsForAccessControlPolicy(ctx context.Context, policyI
 }
 
 func (c *Client4) SearchChannelsForAccessControlPolicy(ctx context.Context, policyID string, options ChannelSearch) (*ChannelsWithCount, *Response, error) {
-	b, err := json.Marshal(options)
-	if err != nil {
-		return nil, nil, NewAppError("SearchChannelsForAccessControlPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPostBytes(ctx, c.accessControlPolicyRoute(policyID)+"/resources/channels/search", b)
+	r, err := c.DoAPIPostJSON(ctx, c.accessControlPolicyRoute(policyID)+"/resources/channels/search", options)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

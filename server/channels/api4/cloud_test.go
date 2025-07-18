@@ -173,7 +173,7 @@ func TestValidateBusinessEmail(t *testing.T) {
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		r, err := th.SystemAdminClient.DoAPIPostBytes(context.Background(), "/cloud/validate-business-email", nil)
+		r, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/cloud/validate-business-email", "")
 		require.Error(t, err)
 		closeBody(r)
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "Status Bad Request")
@@ -282,7 +282,7 @@ func TestValidateWorkspaceBusinessEmail(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		r, err := th.SystemAdminClient.DoAPIPostBytes(context.Background(), "/cloud/validate-workspace-business-email", nil)
+		r, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/cloud/validate-workspace-business-email", "")
 		require.Error(t, err)
 		closeBody(r)
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "Status Bad Request")
