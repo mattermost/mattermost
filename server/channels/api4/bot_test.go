@@ -1203,6 +1203,42 @@ func TestDisableBot(t *testing.T) {
 			require.Equal(t, bot, disabledBot2)
 		})
 	})
+
+	t.Run("disable system bot should be forbidden", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		defaultPerms := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultPerms)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
+
+		// Create a system bot
+		systemBot, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
+			Username:    model.BotSystemBotUsername,
+			Description: "system bot",
+		})
+
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		defer func() {
+			appErr := th.App.PermanentDeleteBot(th.Context, systemBot.UserId)
+			assert.Nil(t, appErr)
+		}()
+
+		// Try to disable the system bot - should be forbidden
+		_, resp, err = th.SystemAdminClient.DisableBot(context.Background(), systemBot.UserId)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.bot.system_bot_disable_forbidden.app_error")
+
+		// Verify the system bot is still active
+		bot, resp, err := th.SystemAdminClient.GetBot(context.Background(), systemBot.UserId, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int64(0), bot.DeleteAt)
+	})
 }
 
 func TestEnableBot(t *testing.T) {

@@ -267,6 +267,13 @@ func (a *App) PatchBot(rctx request.CTX, botUserId string, botPatch *model.BotPa
 		return bot, nil
 	}
 
+	// Prevent updating the name of the system bot
+	if bot.Username == model.BotSystemBotUsername {
+		if botPatch.Username != nil && *botPatch.Username != bot.Username {
+			return nil, model.NewAppError("PatchBot", "api.bot.system_bot_name_update_forbidden.app_error", nil, "", http.StatusForbidden)
+		}
+	}
+
 	bot.Patch(botPatch)
 
 	user, nErr := a.Srv().Store().User().Get(context.Background(), botUserId)
@@ -462,11 +469,12 @@ func (a *App) disableUserBots(rctx request.CTX, userID string) *model.AppError {
 	perPage := 20
 	for {
 		options := &model.BotGetOptions{
-			OwnerId:        userID,
-			IncludeDeleted: false,
-			OnlyOrphaned:   false,
-			Page:           0,
-			PerPage:        perPage,
+			OwnerId:          userID,
+			IncludeDeleted:   false,
+			OnlyOrphaned:     false,
+			Page:             0,
+			PerPage:          perPage,
+			ExcludeSystemBot: true,
 		}
 		userBots, err := a.GetBots(rctx, options)
 		if err != nil {
@@ -494,11 +502,12 @@ func (a *App) disableUserBots(rctx request.CTX, userID string) *model.AppError {
 func (a *App) notifySysadminsBotOwnerDeactivated(rctx request.CTX, userID string) *model.AppError {
 	perPage := 25
 	botOptions := &model.BotGetOptions{
-		OwnerId:        userID,
-		IncludeDeleted: false,
-		OnlyOrphaned:   false,
-		Page:           0,
-		PerPage:        perPage,
+		OwnerId:          userID,
+		IncludeDeleted:   false,
+		OnlyOrphaned:     false,
+		Page:             0,
+		PerPage:          perPage,
+		ExcludeSystemBot: true,
 	}
 	// get owner bots
 	var userBots []*model.Bot
