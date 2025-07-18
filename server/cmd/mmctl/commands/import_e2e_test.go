@@ -162,7 +162,7 @@ func (s *MmctlE2ETestSuite) TestImportListAvailableCmdF() {
 		}
 
 		numImports := 3
-		for i := 0; i < numImports; i++ {
+		for range numImports {
 			err := importUploadCmdF(c, cmd, []string{importFilePath})
 			s.Require().Nil(err)
 		}

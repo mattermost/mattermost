@@ -183,7 +183,7 @@ func (ts *TelemetryService) ensureTelemetryID() error {
 	id := model.NewId()
 	var err error
 
-	for i := 0; i < DBAccessAttempts; i++ {
+	for range DBAccessAttempts {
 		ts.log.Info("Ensuring the telemetry ID..")
 		systemID := &model.System{Name: model.SystemTelemetryId, Value: id}
 		systemID, err = ts.dbStore.System().InsertIfExists(systemID)
@@ -294,7 +294,7 @@ func isDefaultArray(setting, defaultValue []string) bool {
 	if len(setting) != len(defaultValue) {
 		return false
 	}
-	for i := 0; i < len(setting); i++ {
+	for i := range setting {
 		if setting[i] != defaultValue[i] {
 			return false
 		}

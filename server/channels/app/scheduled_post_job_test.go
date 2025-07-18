@@ -337,7 +337,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 		th.App.handleFailedScheduledPosts(rctx, failedScheduledPosts)
 
 		// Validate that the WebSocket events for both users are sent and received correctly
-		for i := 0; i < len(failedScheduledPosts); i++ {
+		for i := range failedScheduledPosts {
 			var received *model.WebSocketEvent
 			select {
 			case received = <-messagesUser1:

@@ -31,7 +31,7 @@ func TestIncomingWebhook(t *testing.T) {
 	url := apiClient.URL + "/hooks/" + hook.Id
 
 	tooLongText := ""
-	for i := 0; i < 8200; i++ {
+	for range 8200 {
 		tooLongText += "a"
 	}
 
@@ -264,7 +264,7 @@ func TestCommandWebhooks(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		response, err2 := http.Post(apiClient.URL+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
 		require.NoError(t, err2)
 		require.Equal(t, http.StatusOK, response.StatusCode)
