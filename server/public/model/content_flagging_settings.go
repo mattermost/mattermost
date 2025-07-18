@@ -25,6 +25,14 @@ const (
 	TargetReporter  NotificationTarget = "reporter"
 )
 
+var ContentFlaggingDefaultReasons = []string{
+	"Inappropriate content",
+	"Sensitive data",
+	"Security concern",
+	"Harassment or abuse",
+	"Spam or phishing",
+}
+
 type ContentFlaggingNotificationSettings struct {
 	EventTargetMapping map[ContentFlaggingEvent][]NotificationTarget
 }
@@ -124,9 +132,9 @@ func (rs *ReviewerSettings) IsValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// if additional reviewers are specified, no extra validation is needed in team specific settings as
+	// if Additional Reviewers are specified, no extra validation is needed in team specific settings as
 	// settings team reviewers keeping team feature disabled is valid, as well as
-	// enabling team feature and not specified reviews is fine as well (since additional reviewers are set)
+	// enabling team feature and not specified reviews is fine as well (since Additional Reviewers are set)
 	if !additionalReviewersEnabled {
 		for _, setting := range *rs.TeamReviewersSetting {
 			if *setting.Enabled && (setting.ReviewerIds == nil || len(*setting.ReviewerIds) == 0) {
@@ -147,13 +155,7 @@ type AdditionalContentFlaggingSettings struct {
 
 func (acfs *AdditionalContentFlaggingSettings) SetDefaults() {
 	if acfs.Reasons == nil {
-		acfs.Reasons = &[]string{
-			"Inappropriate content",
-			"Sensitive data",
-			"Security concern",
-			"Harassment or abuse",
-			"Spam or phishing",
-		}
+		acfs.Reasons = &ContentFlaggingDefaultReasons
 	}
 
 	if acfs.ReporterCommentRequired == nil {
@@ -222,4 +224,9 @@ func (cfs *ContentFlaggingSettings) IsValid() *AppError {
 	}
 
 	return nil
+}
+
+type ContentFlaggingReportingConfig struct {
+	Reasons                 *[]string `json:"reasons"`
+	ReporterCommentRequired *bool     `json:"reporter_comment_required"`
 }
