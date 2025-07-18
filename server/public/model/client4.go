@@ -655,60 +655,6 @@ func (c *Client4) accessControlPolicyRoute(policyID string) string {
 	return fmt.Sprintf(c.accessControlPoliciesRoute()+"/%v", url.PathEscape(policyID))
 }
 
-func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	return DecodeJSONFromResponse[*ServerLimits](r)
-}
-
-func (c *Client4) CreateScheduledPost(ctx context.Context, scheduledPost *ScheduledPost) (*ScheduledPost, *Response, error) {
-	r, err := c.DoAPIPostJSON(ctx, c.postsRoute()+"/schedule", scheduledPost)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	return DecodeJSONFromResponse[*ScheduledPost](r)
-}
-
-func (c *Client4) GetUserScheduledPosts(ctx context.Context, teamId string, includeDirectChannels bool) (map[string][]*ScheduledPost, *Response, error) {
-	query := url.Values{}
-	query.Set("includeDirectChannels", fmt.Sprintf("%t", includeDirectChannels))
-
-	r, err := c.DoAPIGet(ctx, c.postsRoute()+"/scheduled/team/"+teamId+"?"+query.Encode(), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	return DecodeJSONFromResponse[map[string][]*ScheduledPost](r)
-}
-
-func (c *Client4) UpdateScheduledPost(ctx context.Context, scheduledPost *ScheduledPost) (*ScheduledPost, *Response, error) {
-	r, err := c.DoAPIPutJSON(ctx, c.postsRoute()+"/schedule/"+scheduledPost.Id, scheduledPost)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	return DecodeJSONFromResponse[*ScheduledPost](r)
-}
-
-func (c *Client4) DeleteScheduledPost(ctx context.Context, scheduledPostId string) (*ScheduledPost, *Response, error) {
-	r, err := c.DoAPIDelete(ctx, c.postsRoute()+"/schedule/"+scheduledPostId)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-
-	defer closeBody(r)
-
-	return DecodeJSONFromResponse[*ScheduledPost](r)
-}
-
 func (c *Client4) bookmarksRoute(channelId string) string {
 	return c.channelRoute(channelId) + "/bookmarks"
 }
@@ -3598,6 +3544,50 @@ func (c *Client4) GetPostsAroundLastUnread(ctx context.Context, userId, channelI
 	return DecodeJSONFromResponse[*PostList](r)
 }
 
+func (c *Client4) CreateScheduledPost(ctx context.Context, scheduledPost *ScheduledPost) (*ScheduledPost, *Response, error) {
+	r, err := c.DoAPIPostJSON(ctx, c.postsRoute()+"/schedule", scheduledPost)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return DecodeJSONFromResponse[*ScheduledPost](r)
+}
+
+func (c *Client4) GetUserScheduledPosts(ctx context.Context, teamId string, includeDirectChannels bool) (map[string][]*ScheduledPost, *Response, error) {
+	query := url.Values{}
+	query.Set("includeDirectChannels", fmt.Sprintf("%t", includeDirectChannels))
+
+	r, err := c.DoAPIGet(ctx, c.postsRoute()+"/scheduled/team/"+teamId+"?"+query.Encode(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return DecodeJSONFromResponse[map[string][]*ScheduledPost](r)
+}
+
+func (c *Client4) UpdateScheduledPost(ctx context.Context, scheduledPost *ScheduledPost) (*ScheduledPost, *Response, error) {
+	r, err := c.DoAPIPutJSON(ctx, c.postsRoute()+"/schedule/"+scheduledPost.Id, scheduledPost)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return DecodeJSONFromResponse[*ScheduledPost](r)
+}
+
+func (c *Client4) DeleteScheduledPost(ctx context.Context, scheduledPostId string) (*ScheduledPost, *Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.postsRoute()+"/schedule/"+scheduledPostId)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+
+	return DecodeJSONFromResponse[*ScheduledPost](r)
+}
+
 // SearchFiles returns any posts with matching terms string.
 func (c *Client4) SearchFiles(ctx context.Context, teamId string, terms string, isOrSearch bool) (*FileInfoList, *Response, error) {
 	params := SearchParameter{
@@ -3951,6 +3941,16 @@ func (c *Client4) GetPingWithOptions(ctx context.Context, options SystemPingOpti
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[map[string]string](r)
+}
+
+func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return DecodeJSONFromResponse[*ServerLimits](r)
 }
 
 // TestEmail will attempt to connect to the configured SMTP server.
