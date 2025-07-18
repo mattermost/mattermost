@@ -120,57 +120,6 @@ export const SuggestionListContents = React.forwardRef<HTMLElement, SuggestionLi
 });
 SuggestionListContents.displayName = 'SuggestionListContents';
 
-export function SuggestionItems({
-    items,
-    terms,
-    components,
-    matchedPretext,
-
-    getItemId,
-    setItemRef,
-    onItemClick,
-    onItemHover,
-    selectedTerm,
-}: {
-
-    // From ProviderResults
-    items: unknown[];
-    terms: string[];
-    components: Array<React.ComponentType<any>>;
-    matchedPretext: string;
-
-    getItemId: (term: string) => string;
-    setItemRef: (term: string, ref: HTMLUListElement | null) => void;
-    onItemClick: (term: string, matchedPretext: string) => void;
-    onItemHover: (term: string) => void;
-    selectedTerm: string;
-}) {
-    const contents = [];
-    for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        const term = terms[i];
-        const Component = components[i];
-
-        const isSelection = term === selectedTerm;
-
-        contents.push(
-            <Component
-                key={term}
-                ref={(ref: HTMLUListElement) => setItemRef(term, ref)}
-                id={getItemId(term)}
-                item={item}
-                term={term}
-                matchedPretext={matchedPretext}
-                isSelection={isSelection}
-                onClick={onItemClick}
-                onMouseMove={onItemHover}
-            />,
-        );
-    }
-
-    return <>{contents}</>;
-}
-
 type UngroupedSuggestionsProps = Omit<React.HTMLAttributes<HTMLUListElement>, 'aria-label' | 'id' | 'role'> & {
     id: string;
 };
