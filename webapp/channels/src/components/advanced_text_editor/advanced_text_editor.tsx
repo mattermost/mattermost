@@ -21,6 +21,7 @@ import {get, getBool, getInt, getTeammateNameDisplaySetting} from 'mattermost-re
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId, getCurrentUser, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName, getUsersByUsername, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
+import type {CreatePostOptions} from 'actions/post_actions';
 
 import * as GlobalActions from 'actions/global_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
@@ -400,6 +401,21 @@ const AdvancedTextEditor = ({
         isInEditMode,
         postId,
     );
+
+    const handleSubmitWithErrorHandling = useCallback((submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
+        // 送信時にTextboxから生の値（username形式）を取得
+        let finalDraft = submittingDraft || draft;
+
+        if (textboxRef.current && typeof textboxRef.current.getRawValue === 'function') {
+            const rawValue = textboxRef.current.getRawValue();
+            finalDraft = {
+                ...finalDraft,
+                message: rawValue,
+            };
+        }
+
+        handleSubmit(finalDraft, schedulingInfo, options);
+    }, [errorClass, handleSubmit, draft, textboxRef]);
 
     const handleCancel = useCallback(() => {
         handleDraftChange({
@@ -840,14 +856,14 @@ const AdvancedTextEditor = ({
                             disabled={isDisabled}
                             characterLimit={maxPostSize}
                             preview={showPreview}
+                            usersByUsername={usersByUsername}
+                            teammateNameDisplay={teammateNameDisplay}
+                            mentionKeys={mentionKeys}
                             badConnection={badConnection}
                             useChannelMentions={useChannelMentions}
                             rootId={rootId}
                             onWidthChange={handleWidthChange}
                             isInEditMode={isInEditMode}
-                            usersByUsername={usersByUsername}
-                            teammateNameDisplay={teammateNameDisplay}
-                            mentionKeys={mentionKeys}
                         />
                         {attachmentPreview}
                         {!isDisabled && (showFormattingBar || showPreview) && (
