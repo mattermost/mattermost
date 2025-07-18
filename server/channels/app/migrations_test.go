@@ -12,6 +12,10 @@ import (
 
 func TestDoSetupContentFlaggingProperties(t *testing.T) {
 	t.Run("should register property group and fields", func(t *testing.T) {
+		//we need to call the Setup method and run the full setup instead of
+		//just creating a new server via NewServer() because the Setup method
+		//also care of using the correct database DSN based on environment,
+		//setting up the store and initializing services used in store such as property services.
 		th := Setup(t)
 		defer th.TearDown()
 
