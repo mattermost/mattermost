@@ -68,12 +68,7 @@ func TestSaveEnterpriseAdvancedLicense(t *testing.T) {
 
 	_, appErr := th.Service.SaveLicense(licenseBytes)
 
-	if *th.Service.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
-		require.NotNil(t, appErr, "shouldn't have saved license")
-		require.Equal(t, "addLicense: api.license.add_license.mysql.app_error, mysql is not supported for this license", appErr.Error())
-	} else {
-		require.Nil(t, appErr, "should have saved license")
-	}
+	require.Nil(t, appErr, "should have saved license")
 }
 
 func TestRemoveLicense(t *testing.T) {

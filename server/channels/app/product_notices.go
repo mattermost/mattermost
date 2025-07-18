@@ -127,7 +127,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 		}
 
 		switch cnd.DeprecatingDependency.Name {
-		case model.DatabaseDriverMysql, model.DatabaseDriverPostgres:
+		case model.DatabaseDriverPostgres:
 			if dbName != cnd.DeprecatingDependency.Name {
 				return false, nil
 			}

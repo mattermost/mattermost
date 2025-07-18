@@ -368,28 +368,15 @@ func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *sqlxTxWrapper, reaction *model.Reaction) error {
 	reaction.DeleteAt = 0
 
-	if s.DriverName() == model.DatabaseDriverMysql {
-		if _, err := transaction.NamedExec(
-			`INSERT INTO
-				Reactions
-				(UserId, PostId, EmojiName, CreateAt, UpdateAt, DeleteAt, RemoteId, ChannelId)
-			VALUES
-				(:UserId, :PostId, :EmojiName, :CreateAt, :UpdateAt, :DeleteAt, :RemoteId, :ChannelId)
-			ON DUPLICATE KEY UPDATE
-				UpdateAt = :UpdateAt, DeleteAt = :DeleteAt, RemoteId = :RemoteId, ChannelId = :ChannelId`, reaction); err != nil {
-			return err
-		}
-	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		if _, err := transaction.NamedExec(
-			`INSERT INTO
-				Reactions
-				(UserId, PostId, EmojiName, CreateAt, UpdateAt, DeleteAt, RemoteId, ChannelId)
-			VALUES
-				(:UserId, :PostId, :EmojiName, :CreateAt, :UpdateAt, :DeleteAt, :RemoteId, :ChannelId)
-			ON CONFLICT (UserId, PostId, EmojiName)
-				DO UPDATE SET UpdateAt = :UpdateAt, DeleteAt = :DeleteAt, RemoteId = :RemoteId, ChannelId = :ChannelId`, reaction); err != nil {
-			return err
-		}
+	if _, err := transaction.NamedExec(
+		`INSERT INTO
+			Reactions
+			(UserId, PostId, EmojiName, CreateAt, UpdateAt, DeleteAt, RemoteId, ChannelId)
+		VALUES
+			(:UserId, :PostId, :EmojiName, :CreateAt, :UpdateAt, :DeleteAt, :RemoteId, :ChannelId)
+		ON CONFLICT (UserId, PostId, EmojiName)
+			DO UPDATE SET UpdateAt = :UpdateAt, DeleteAt = :DeleteAt, RemoteId = :RemoteId, ChannelId = :ChannelId`, reaction); err != nil {
+		return err
 	}
 	return updatePostForReactionsOnInsert(transaction, reaction.PostId)
 }

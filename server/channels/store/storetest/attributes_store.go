@@ -213,12 +213,7 @@ func testAttributesStoreSearchUsers(t *testing.T, rctx request.CTX, ss store.Sto
 	})
 
 	t.Run("Search users with a valid value query", func(t *testing.T) {
-		var query string
-		if s.DriverName() == model.DatabaseDriverMysql {
-			query = "Attributes ->> '$." + testPropertyB + "' = ?"
-		} else {
-			query = "Attributes ->> '" + testPropertyB + "' = $1::text"
-		}
+		query := "Attributes ->> '" + testPropertyB + "' = $1::text"
 		subjects, count, err := ss.Attributes().SearchUsers(rctx, model.SubjectSearchOptions{
 			Query: query,
 			Args:  []any{testPropertyValueB1},
@@ -230,12 +225,7 @@ func testAttributesStoreSearchUsers(t *testing.T, rctx request.CTX, ss store.Sto
 	})
 
 	t.Run("Search users with a valid value query and limit", func(t *testing.T) {
-		var query string
-		if s.DriverName() == model.DatabaseDriverMysql {
-			query = "Attributes ->> '$." + testPropertyA + "' = ?"
-		} else {
-			query = "Attributes ->> '" + testPropertyA + "' = $1::text"
-		}
+		query := "Attributes ->> '" + testPropertyA + "' = $1::text"
 		subjects, count, err := ss.Attributes().SearchUsers(rctx, model.SubjectSearchOptions{
 			Query: query,
 			Args:  []any{testPropertyValueA1},
@@ -252,12 +242,7 @@ func testAttributesStoreSearchUsers(t *testing.T, rctx request.CTX, ss store.Sto
 	})
 
 	t.Run("Search users with pagination", func(t *testing.T) {
-		var query string
-		if s.DriverName() == model.DatabaseDriverMysql {
-			query = "Attributes ->> '$." + testPropertyA + "' = ?"
-		} else {
-			query = "Attributes ->> '" + testPropertyA + "' = $1::text"
-		}
+		query := "Attributes ->> '" + testPropertyA + "' = $1::text"
 
 		cursor := strings.Repeat("0", 26)
 		for i := 0; i < 5; i++ {

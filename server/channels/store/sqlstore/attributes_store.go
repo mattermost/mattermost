@@ -117,31 +117,18 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 
 	if opts.TeamID != "" {
 		argCount++
-		if s.DriverName() == model.DatabaseDriverMysql {
-			query = query.Where("Users.Id IN (SELECT UserId FROM TeamMembers WHERE TeamId = ? AND DeleteAt = 0)", opts.TeamID)
-			count = count.Where("Users.Id IN (SELECT UserId FROM TeamMembers WHERE TeamId = ? AND DeleteAt = 0)", opts.TeamID)
-		} else {
-			query = query.Where(sq.Expr(fmt.Sprintf("Users.Id IN (SELECT UserId FROM TeamMembers WHERE TeamId = $%d AND DeleteAt = 0)", argCount), opts.TeamID))
-			count = count.Where(sq.Expr(fmt.Sprintf("Users.Id IN (SELECT UserId FROM TeamMembers WHERE TeamId = $%d AND DeleteAt = 0)", argCount), opts.TeamID))
-		}
+		query = query.Where(sq.Expr(fmt.Sprintf("Users.Id IN (SELECT UserId FROM TeamMembers WHERE TeamId = $%d AND DeleteAt = 0)", argCount), opts.TeamID))
+		count = count.Where(sq.Expr(fmt.Sprintf("Users.Id IN (SELECT UserId FROM TeamMembers WHERE TeamId = $%d AND DeleteAt = 0)", argCount), opts.TeamID))
 	}
 
 	if opts.ExcludeChannelMembers != "" {
 		argCount++
-		if s.DriverName() == model.DatabaseDriverMysql {
-			query = query.Where(sq.Expr("NOT EXISTS (SELECT 1 FROM ChannelMembers WHERE ChannelMembers.UserId = Users.Id AND ChannelMembers.ChannelId = ?)", opts.ExcludeChannelMembers))
-		} else {
-			query = query.Where(sq.Expr(fmt.Sprintf("NOT EXISTS (SELECT 1 FROM ChannelMembers WHERE ChannelMembers.UserId = Users.Id AND ChannelMembers.ChannelId = $%d)", argCount), opts.ExcludeChannelMembers))
-		}
+		query = query.Where(sq.Expr(fmt.Sprintf("NOT EXISTS (SELECT 1 FROM ChannelMembers WHERE ChannelMembers.UserId = Users.Id AND ChannelMembers.ChannelId = $%d)", argCount), opts.ExcludeChannelMembers))
 	}
 
 	if opts.Cursor.TargetID != "" {
 		argCount++
-		if s.DriverName() == model.DatabaseDriverMysql {
-			query = query.Where(sq.Expr("TargetID > ?", opts.Cursor.TargetID))
-		} else {
-			query = query.Where(sq.Expr(fmt.Sprintf("TargetID > $%d", argCount), opts.Cursor.TargetID))
-		}
+		query = query.Where(sq.Expr(fmt.Sprintf("TargetID > $%d", argCount), opts.Cursor.TargetID))
 	}
 
 	searchFields := make([]string, 0, len(UserSearchTypeNames))
@@ -191,12 +178,8 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 
 	argCount := len(opts.Args)
 
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.Where(sq.Eq{"ChannelMembers.ChannelId": channelID})
-	} else {
-		argCount++
-		query = query.Where(sq.Expr(fmt.Sprintf("ChannelMembers.ChannelId = $%d", argCount), channelID))
-	}
+	argCount++
+	query = query.Where(sq.Expr(fmt.Sprintf("ChannelMembers.ChannelId = $%d", argCount), channelID))
 
 	if opts.Limit > 0 {
 		query = query.Limit(uint64(opts.Limit))
@@ -206,11 +189,7 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 
 	if opts.Cursor.TargetID != "" {
 		argCount++
-		if s.DriverName() == model.DatabaseDriverMysql {
-			query = query.Where(sq.Expr("ChannelMembers.UserId > ?", opts.Cursor.TargetID))
-		} else {
-			query = query.Where(sq.Expr(fmt.Sprintf("ChannelMembers.UserId > $%d", argCount), opts.Cursor.TargetID))
-		}
+		query = query.Where(sq.Expr(fmt.Sprintf("ChannelMembers.UserId > $%d", argCount), opts.Cursor.TargetID))
 	}
 
 	q, args, err := query.ToSql()
