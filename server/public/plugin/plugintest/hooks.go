@@ -57,6 +57,36 @@ func (_m *Hooks) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, 
 	return r0, r1
 }
 
+// EmailNotificationWillBeSent provides a mock function with given fields: emailNotification
+func (_m *Hooks) EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailNotification, string) {
+	ret := _m.Called(emailNotification)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EmailNotificationWillBeSent")
+	}
+
+	var r0 *model.EmailNotification
+	var r1 string
+	if rf, ok := ret.Get(0).(func(*model.EmailNotification) (*model.EmailNotification, string)); ok {
+		return rf(emailNotification)
+	}
+	if rf, ok := ret.Get(0).(func(*model.EmailNotification) *model.EmailNotification); ok {
+		r0 = rf(emailNotification)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.EmailNotification)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.EmailNotification) string); ok {
+		r1 = rf(emailNotification)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	return r0, r1
+}
+
 // ExecuteCommand provides a mock function with given fields: c, args
 func (_m *Hooks) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	ret := _m.Called(c, args)
