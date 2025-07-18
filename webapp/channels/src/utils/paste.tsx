@@ -137,7 +137,6 @@ type FormatMarkdownLinkMessage = {
  * @returns The resulting markdown link from the clipboard data.
  */
 export function formatMarkdownLinkMessage({message, clipboardData, selectionStart, selectionEnd}: FormatMarkdownLinkMessage) {
-    console.log('formatMarkdownLinkMessage');
     const selectedText = message.slice(selectionStart, selectionEnd);
     const clipboardUrl = clipboardData.getData('text/plain');
 
@@ -161,31 +160,31 @@ export function formatMarkdownLinkMessage({message, clipboardData, selectionStar
     return markdownLink;
 }
 
-export function pasteHandler(event: ClipboardEvent, location: string, message: string, isNonFormattedPaste: boolean, caretPosition?: number, isInEditMode?: boolean) {
-    // if (location === Locations.CENTER && isInEditMode && )
-
-
-    const {clipboardData, target} = event;
-
-    // const textboxId = location === Locations.RHS_COMMENT ? 'reply_textbox' : 'post_textbox';
+export function isKnownTargetForPaste(event: ClipboardEvent, location: string, isInEditMode?: boolean): boolean {
     let isKnownTarget = false;
-    switch (location) {
-    case Locations.RHS_COMMENT:
-        isKnownTarget = isInEditMode ? (target as TextboxElement)?.id === 'edit_textbox' : (target as TextboxElement)?.id === 'reply_textbox';
-        break;
-    case Locations.CENTER:
-        isKnownTarget = isInEditMode ? (target as TextboxElement)?.id === 'edit_textbox' : (target as TextboxElement)?.id === 'post_textbox';
-        break;
-    default:
-        isKnownTarget = (target as TextboxElement)?.id === 'post_textbox';
-        break;
+
+    if (isInEditMode) {
+        isKnownTarget = (event.target as TextboxElement)?.id === 'edit_textbox';
+    } else if (location === Locations.CENTER) {
+        isKnownTarget = (event.target as TextboxElement)?.id === 'post_textbox';
+    } else if (location === Locations.RHS_COMMENT) {
+        isKnownTarget = (event.target as TextboxElement)?.id === 'reply_textbox';
+    } else {
+        isKnownTarget = (event.target as TextboxElement)?.id === 'post_textbox';
     }
 
-    if (!clipboardData || !clipboardData.items || !target || !isKnownTarget) {
+    return isKnownTarget;
+}
+
+export function pasteHandler(event: ClipboardEvent, location: string, message: string, isNonFormattedPaste: boolean, caretPosition?: number, isInEditMode?: boolean) {
+    const isKnownTarget = isKnownTargetForPaste(event, location, isInEditMode);
+    if (!isKnownTarget || isNonFormattedPaste) {
         return;
     }
 
-    if (isNonFormattedPaste) {
+    const {clipboardData, target} = event;
+
+    if (!clipboardData || !clipboardData.items || !target) {
         return;
     }
 

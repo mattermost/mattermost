@@ -30,8 +30,6 @@ import type {PostDraft} from 'types/store/draft';
 
 const KeyCodes = Constants.KeyCodes;
 
-let a = 1;
-
 const useKeyHandler = (
     draft: PostDraft,
     channelId: string,
@@ -366,17 +364,17 @@ const useKeyHandler = (
         toggleAdvanceTextEditor,
         toggleEmojiPicker,
         toggleShowPreview,
+        isInEditMode,
+        location,
     ]);
-
 
     // Register paste events
     useEffect(() => {
         function onPaste(event: ClipboardEvent) {
-            console.log({message: draft.message, draft, location});
             pasteHandler(event, location, draft.message, isNonFormattedPaste.current, caretPosition, isInEditMode);
         }
 
-        console.log({location, message: draft.message});
+        // Register paste event listener
         document.addEventListener('paste', onPaste);
         return () => {
             document.removeEventListener('paste', onPaste);

@@ -55,7 +55,6 @@ func requireScheduledPostsEnabled(c *Context) {
 }
 
 func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.App.PropertyService()
 	requireScheduledPostsEnabled(c)
 	if c.Err != nil {
 		return
