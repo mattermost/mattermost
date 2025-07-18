@@ -5103,11 +5103,17 @@ func (c *Client4) GetAuthorizedOAuthAppsForUser(ctx context.Context, userId stri
 
 // AuthorizeOAuthApp will authorize an OAuth 2.0 client application to access a user's account and provide a redirect link to follow.
 func (c *Client4) AuthorizeOAuthApp(ctx context.Context, authRequest *AuthorizeRequest) (string, *Response, error) {
-	r, err := c.DoAPIPostJSON(ctx, c.URL+"/oauth/authorize", authRequest)
+	buf, err := json.Marshal(authRequest)
+	if err != nil {
+		return "", nil, err
+	}
+	// The request doesn't go to the /api/v4 subpath, so we can't use the usuall helper methods
+	r, err := c.doAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/authorize", buf, "")
 	if err != nil {
 		return "", BuildResponse(r), err
 	}
 	defer closeBody(r)
+
 	result, resp, err := DecodeJSONFromResponse[map[string]string](r)
 	if err != nil {
 		return "", resp, err
@@ -5118,7 +5124,12 @@ func (c *Client4) AuthorizeOAuthApp(ctx context.Context, authRequest *AuthorizeR
 // DeauthorizeOAuthApp will deauthorize an OAuth 2.0 client application from accessing a user's account.
 func (c *Client4) DeauthorizeOAuthApp(ctx context.Context, appId string) (*Response, error) {
 	requestData := map[string]string{"client_id": appId}
-	r, err := c.DoAPIPostJSON(ctx, c.URL+"/oauth/deauthorize", requestData)
+	buf, err := json.Marshal(requestData)
+	if err != nil {
+		return nil, err
+	}
+	// The request doesn't go to the /api/v4 subpath, so we can't use the usuall helper methods
+	r, err := c.doAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/deauthorize", buf, "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
