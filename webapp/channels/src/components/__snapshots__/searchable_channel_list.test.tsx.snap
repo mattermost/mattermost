@@ -127,6 +127,27 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
           onClick={[Function]}
           trailingElements={null}
         />
+        <MenuItemSeparator
+          key="channelsMoreDropdownSeparator"
+        />
+        <MenuItem
+          aria-label="Archived channels"
+          id="channelsMoreDropdownArchived"
+          key="channelsMoreDropdownArchived"
+          labels={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Archived channels"
+              id="suggestion.archive"
+            />
+          }
+          leadingElement={
+            <ArchiveOutlineIcon
+              size={16}
+            />
+          }
+          onClick={[Function]}
+          trailingElements={null}
+        />
       </Menu>
       <div
         aria-checked={false}

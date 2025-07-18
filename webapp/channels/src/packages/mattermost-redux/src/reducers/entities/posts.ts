@@ -279,19 +279,12 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
         };
     }
 
-    case ChannelTypes.RECEIVED_CHANNEL_DELETED:
-    case ChannelTypes.DELETE_CHANNEL_SUCCESS:
     case ChannelTypes.LEAVE_CHANNEL: {
-        if (action.data && action.data.viewArchivedChannels) {
-            // Nothing to do since we still want to store posts in archived channels
-            return state;
-        }
-
         const channelId = action.data.id;
 
         let postDeleted = false;
 
-        // Remove any posts in the deleted channel
+        // Remove any posts from the channel left by the user
         const nextState = {...state};
         for (const post of Object.values(state)) {
             if (post.channel_id === channelId) {
@@ -604,8 +597,8 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
                 const recentBlock = postsForChannel[recentBlockIndex];
 
                 if (recentBlock.order.length === order.length &&
-                    recentBlock.order[0] === order[0] &&
-                    recentBlock.order[recentBlock.order.length - 1] === order[order.length - 1]) {
+                        recentBlock.order[0] === order[0] &&
+                        recentBlock.order[recentBlock.order.length - 1] === order[order.length - 1]) {
                     // The newly received posts are identical to the most recent block, so there's nothing to do
                     return state;
                 }
@@ -839,14 +832,7 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
         };
     }
 
-    case ChannelTypes.RECEIVED_CHANNEL_DELETED:
-    case ChannelTypes.DELETE_CHANNEL_SUCCESS:
     case ChannelTypes.LEAVE_CHANNEL: {
-        if (action.data && action.data.viewArchivedChannels) {
-            // Nothing to do since we still want to store posts in archived channels
-            return state;
-        }
-
         const channelId = action.data.id;
 
         if (!state[channelId]) {
@@ -1116,14 +1102,7 @@ export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action:
         return nextState;
     }
 
-    case ChannelTypes.RECEIVED_CHANNEL_DELETED:
-    case ChannelTypes.DELETE_CHANNEL_SUCCESS:
     case ChannelTypes.LEAVE_CHANNEL: {
-        if (action.data && action.data.viewArchivedChannels) {
-            // Nothing to do since we still want to store posts in archived channels
-            return state;
-        }
-
         const channelId = action.data.id;
 
         let postDeleted = false;
@@ -1534,14 +1513,7 @@ export function limitedViews(
         }
         return state;
     }
-    case ChannelTypes.RECEIVED_CHANNEL_DELETED:
-    case ChannelTypes.DELETE_CHANNEL_SUCCESS:
     case ChannelTypes.LEAVE_CHANNEL: {
-        if (action.data && action.data.viewArchivedChannels) {
-            // Nothing to do since we still want to store posts in archived channels
-            return state;
-        }
-
         const channelId = action.data.id;
         if (!state.channels[channelId]) {
             return state;

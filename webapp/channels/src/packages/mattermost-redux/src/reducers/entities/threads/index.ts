@@ -171,13 +171,8 @@ function reducer(state: ThreadsState = initialState, action: MMReduxAction): Thr
     };
 
     // acting as a 'middleware'
-    if (
-        action.type === ChannelTypes.LEAVE_CHANNEL ||
-        action.type === ChannelTypes.RECEIVED_CHANNEL_DELETED
-    ) {
-        if (!action.data.viewArchivedChannels) {
-            extra.threadsToDelete = getThreadsOfChannel(state.threads, action.data.id);
-        }
+    if (action.type === ChannelTypes.LEAVE_CHANNEL) {
+        extra.threadsToDelete = getThreadsOfChannel(state.threads, action.data.id);
     }
 
     const nextState = {
