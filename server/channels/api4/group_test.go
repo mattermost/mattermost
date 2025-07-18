@@ -1154,7 +1154,7 @@ func TestGetGroupTeams(t *testing.T) {
 		AutoAdd: model.NewPointer(true),
 	}
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		team := th.CreateTeam()
 		_, response, _ := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, team.Id, model.GroupSyncableTypeTeam, patch)
 		assert.Equal(t, http.StatusCreated, response.StatusCode)
@@ -1209,7 +1209,7 @@ func TestGetGroupChannels(t *testing.T) {
 		AutoAdd: model.NewPointer(true),
 	}
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		channel := th.CreatePublicChannel()
 		_, response, _ := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, channel.Id, model.GroupSyncableTypeChannel, patch)
 		assert.Equal(t, http.StatusCreated, response.StatusCode)
@@ -2472,7 +2472,7 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 	var groups []*model.Group
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		id := model.NewId()
 		group, err := th.App.CreateGroup(&model.Group{
 			DisplayName: fmt.Sprintf("dn-foo_%d", i),
@@ -2570,7 +2570,7 @@ func TestAddMembersToGroup(t *testing.T) {
 
 		// Create test users with random usernames to prevent collisions
 		users := make([]*model.User, 3)
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			randomId := model.NewId()
 			user, appErr := th.App.CreateUser(th.Context, &model.User{
 				Email:    th.GenerateTestEmail(),

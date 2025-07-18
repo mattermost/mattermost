@@ -1537,7 +1537,7 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 				session *model.Session
 			}
 			var userSessions []userSession
-			for i := 0; i < 3; i++ {
+			for range 3 {
 				u := th.CreateUser()
 				sess, err := th.App.CreateSession(th.Context, &model.Session{
 					UserId:    u.Id,

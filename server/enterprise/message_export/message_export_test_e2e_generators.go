@@ -240,7 +240,7 @@ func generateActianceBatchTest1(t *testing.T, th *api4.TestHelper, attachmentDir
 	require.NoError(t, err)
 	attachments := []*model.FileInfo{attachment}
 
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		_, e := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			UserId:    st.NewTestID(),
@@ -297,7 +297,7 @@ func generateActianceBatchTest2(t *testing.T, th *api4.TestHelper, attachmentDir
 		}
 	})
 
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		_, e := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			UserId:    st.NewTestID(),

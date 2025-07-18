@@ -107,7 +107,7 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 	users := make([]*model.User, 0)
 	users = append(users, user2)
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		users = append(users, th.CreateUser())
 	}
 
@@ -225,7 +225,7 @@ func TestWebSocketReconnectRace(t *testing.T) {
 
 	WebSocketClient.Close()
 
-	for i := 0; i < n; i++ {
+	for range n {
 		go func() {
 			defer wg.Done()
 			ws, err := th.CreateReliableWebSocketClient(connID, seq+1)

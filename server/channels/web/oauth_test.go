@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"slices"
 	"strings"
 	"testing"
 
@@ -845,10 +846,8 @@ func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 		panic(err1)
 	}
 
-	for _, existingPermission := range role.Permissions {
-		if existingPermission == permission {
-			return
-		}
+	if slices.Contains(role.Permissions, permission) {
+		return
 	}
 
 	role.Permissions = append(role.Permissions, permission)

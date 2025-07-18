@@ -1204,7 +1204,7 @@ func TestGetTeamMembers(t *testing.T) {
 	users = append(users, *th.BasicUser)
 	users = append(users, *th.BasicUser2)
 
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		user := model.User{
 			Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
 			Username: fmt.Sprintf("user%v", i),
@@ -1513,7 +1513,7 @@ func TestClearTeamMembersCache(t *testing.T) {
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockTeamStore := mocks.TeamStore{}
 	tms := []*model.TeamMember{}
-	for i := 0; i < 200; i++ {
+	for range 200 {
 		tms = append(tms, &model.TeamMember{
 			TeamId: "1",
 		})

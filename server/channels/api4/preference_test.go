@@ -638,7 +638,7 @@ func TestDeletePreferences(t *testing.T) {
 
 	// save 10 preferences
 	var preferences model.Preferences
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		preference := model.Preference{
 			UserId:   th.BasicUser.Id,
 			Category: model.PreferenceCategoryDirectChannelShow,

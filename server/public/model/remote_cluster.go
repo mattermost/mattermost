@@ -262,8 +262,8 @@ func (rc *RemoteCluster) fixTopics() {
 	var sb strings.Builder
 	sb.WriteString(" ")
 
-	ss := strings.Split(rc.Topics, " ")
-	for _, c := range ss {
+	ss := strings.SplitSeq(rc.Topics, " ")
+	for c := range ss {
 		cc := strings.TrimSpace(c)
 		if cc != "" {
 			sb.WriteString(cc)

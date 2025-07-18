@@ -260,7 +260,7 @@ func testAttributesStoreSearchUsers(t *testing.T, rctx request.CTX, ss store.Sto
 		}
 
 		cursor := strings.Repeat("0", 26)
-		for i := 0; i < 5; i++ {
+		for range 5 {
 			subjects, count, err := ss.Attributes().SearchUsers(rctx, model.SubjectSearchOptions{
 				Query: query,
 				Args:  []any{testPropertyValueA1},

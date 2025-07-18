@@ -65,7 +65,7 @@ func (a *App) compileCSVChunks(prefix string, numberOfChunks int, headers []stri
 		return model.NewAppError("saveCSVChunk", "app.save_csv_chunk.write_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	for i := 0; i < numberOfChunks; i++ {
+	for i := range numberOfChunks {
 		chunkFilePath := makeFilePath(prefix, i, "csv")
 		chunk, err := a.ReadFile(chunkFilePath)
 		if err != nil {
@@ -149,7 +149,7 @@ func (a *App) CleanupReportChunks(format string, prefix string, numberOfChunks i
 }
 
 func (a *App) cleanupCSVChunks(prefix string, numberOfChunks int) *model.AppError {
-	for i := 0; i < numberOfChunks; i++ {
+	for i := range numberOfChunks {
 		chunkFilePath := makeFilePath(prefix, i, "csv")
 		if err := a.RemoveFile(chunkFilePath); err != nil {
 			return err

@@ -44,7 +44,7 @@ func TestGetAllSharedChannels(t *testing.T) {
 	savedIds := make([]string, 0, pages*pageSize)
 
 	// make some shared channels
-	for i := 0; i < pages*pageSize; i++ {
+	for i := range pages * pageSize {
 		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
 		sc := &model.SharedChannel{
 			ChannelId: channel.Id,
@@ -63,7 +63,7 @@ func TestGetAllSharedChannels(t *testing.T) {
 
 	t.Run("get shared channels paginated", func(t *testing.T) {
 		channelIds := make([]string, 0, 21)
-		for i := 0; i < pages; i++ {
+		for i := range pages {
 			channels, _, err := th.Client.GetAllSharedChannels(context.Background(), th.BasicTeam.Id, i, pageSize)
 			require.NoError(t, err)
 			channelIds = append(channelIds, getIds(channels)...)

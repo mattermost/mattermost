@@ -74,7 +74,7 @@ func TestExtractTarGz(t *testing.T) {
 
 	t.Run("huge tar", func(t *testing.T) {
 		files := make([]*tar.Header, 0, 10000)
-		for i := 0; i < 10000; i++ {
+		for i := range 10000 {
 			files = append(files, &tar.Header{
 				Name:     fmt.Sprintf("%d.txt", i),
 				Typeflag: tar.TypeReg,

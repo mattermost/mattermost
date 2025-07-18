@@ -818,7 +818,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 
 	waitUntilWebhookResponseIsCreatedAsPost := func(channel *model.Channel, th *TestHelper, createdPost chan *model.Post) {
 		go func() {
-			for i := 0; i < 5; i++ {
+			for range 5 {
 				time.Sleep(time.Second)
 				posts, _ := th.App.GetPosts(channel.Id, 0, 5)
 				if len(posts.Posts) > 0 {

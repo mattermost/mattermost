@@ -682,7 +682,7 @@ func testCountForGroup(t *testing.T, _ request.CTX, ss store.Store) {
 		groupID := model.NewId()
 
 		// Create 5 property fields
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			field := &model.PropertyField{
 				GroupID: groupID,
 				Name:    fmt.Sprintf("Field %d", i),
@@ -701,7 +701,7 @@ func testCountForGroup(t *testing.T, _ request.CTX, ss store.Store) {
 		groupID := model.NewId()
 
 		// Create 5 property fields
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			field := &model.PropertyField{
 				GroupID: groupID,
 				Name:    fmt.Sprintf("Field %d", i),
@@ -733,7 +733,7 @@ func testCountForGroup(t *testing.T, _ request.CTX, ss store.Store) {
 		groupID := model.NewId()
 
 		// Create 5 property fields
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			field := &model.PropertyField{
 				GroupID: groupID,
 				Name:    fmt.Sprintf("Field %d", i),

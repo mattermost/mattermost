@@ -33,7 +33,7 @@ func NewTestPool(logger mlog.LoggerIFace, driverName string, poolSize int) (*Tes
 
 	var mut sync.Mutex
 	var eg errgroup.Group
-	for i := 0; i < poolSize; i++ {
+	for range poolSize {
 		eg.Go(func() error {
 			settings := storetest.MakeSqlSettings(driverName, false)
 			sqlStore, err := New(*settings, logger, nil)
@@ -103,7 +103,6 @@ func (p *TestPool) Close() {
 	var wg sync.WaitGroup
 	wg.Add(len(p.entries))
 	for _, entry := range p.entries {
-		entry := entry
 		go func() {
 			defer wg.Done()
 			entry.Store.Close()

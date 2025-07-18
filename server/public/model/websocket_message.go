@@ -153,9 +153,7 @@ func (wb *WebsocketBroadcast) copy() *WebsocketBroadcast {
 	var c WebsocketBroadcast
 	if wb.OmitUsers != nil {
 		c.OmitUsers = make(map[string]bool, len(wb.OmitUsers))
-		for k, v := range wb.OmitUsers {
-			c.OmitUsers[k] = v
-		}
+		maps.Copy(c.OmitUsers, wb.OmitUsers)
 	}
 	c.UserId = wb.UserId
 	c.ChannelId = wb.ChannelId

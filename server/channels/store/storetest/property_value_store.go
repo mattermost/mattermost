@@ -160,7 +160,7 @@ func testGetManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 
 	groupID := model.NewId()
 	newValues := []*model.PropertyValue{}
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		newValue := &model.PropertyValue{
 			TargetID:   model.NewId(),
 			TargetType: "test_type",

@@ -123,7 +123,7 @@ func (ps *PlatformService) hubStart(broadcastHooks map[string]BroadcastHook) {
 
 	hubs := make([]*Hub, numberOfHubs)
 
-	for i := 0; i < numberOfHubs; i++ {
+	for i := range numberOfHubs {
 		hubs[i] = newWebHub(ps)
 		hubs[i].connectionIndex = i
 		hubs[i].broadcastHooks = broadcastHooks
@@ -505,7 +505,7 @@ func (h *Hub) Stop() {
 	<-h.didStop
 	// Ensure that all remaining elements are processed
 	// before shutting down.
-	for i := 0; i < hubSemaphoreCount; i++ {
+	for range hubSemaphoreCount {
 		h.hubSemaphore <- struct{}{}
 	}
 }

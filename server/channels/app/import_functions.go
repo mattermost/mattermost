@@ -1037,7 +1037,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 		} else {
 			rawRoles := *tdata.Roles
 			explicitRoles := []string{}
-			for _, role := range strings.Fields(rawRoles) {
+			for role := range strings.FieldsSeq(rawRoles) {
 				if role == model.TeamGuestRoleId {
 					isGuestByTeamID[team.Id] = true
 					isUserByTeamId[team.Id] = false
@@ -1194,7 +1194,7 @@ func (a *App) importUserChannels(rctx request.CTX, user *model.User, team *model
 		if cdata.Roles != nil {
 			rawRoles := *cdata.Roles
 			explicitRoles := []string{}
-			for _, role := range strings.Fields(rawRoles) {
+			for role := range strings.FieldsSeq(rawRoles) {
 				if role == model.ChannelGuestRoleId {
 					isGuestByChannelId[channel.Id] = true
 					isUserByChannelId[channel.Id] = false
@@ -1365,7 +1365,6 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 	var err *model.AppError
 	usernames := []string{}
 	for _, replyData := range data {
-		replyData := replyData
 		if err = imports.ValidateReplyImportData(&replyData, post.CreateAt, a.MaxPostSize()); err != nil {
 			return err
 		}
@@ -1394,7 +1393,6 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 	)
 
 	for _, replyData := range data {
-		replyData := replyData
 		user := users[strings.ToLower(*replyData.User)]
 
 		// Check if this post already exists.
@@ -1987,7 +1985,6 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 	}
 
 	for _, postWithData := range postsWithData {
-		postWithData := postWithData
 		if postWithData.postData.FlaggedBy != nil {
 			var preferences model.Preferences
 
@@ -2011,7 +2008,6 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 
 		if postWithData.postData.Reactions != nil {
 			for _, reaction := range *postWithData.postData.Reactions {
-				reaction := reaction
 				if err := a.importReaction(&reaction, postWithData.post); err != nil {
 					return postWithData.lineNumber, err
 				}
@@ -2036,7 +2032,6 @@ func (a *App) uploadAttachments(rctx request.CTX, attachments *[]imports.Attachm
 	}
 	fileIDs := make(map[string]bool)
 	for _, attachment := range *attachments {
-		attachment := attachment
 		fileInfo, err := a.importAttachment(rctx, &attachment, post, teamID, extractContent)
 		if err != nil {
 			if attachment.Path != nil {
@@ -2521,7 +2516,6 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 
 		if postWithData.directPostData.Reactions != nil {
 			for _, reaction := range *postWithData.directPostData.Reactions {
-				reaction := reaction
 				if err := a.importReaction(&reaction, postWithData.post); err != nil {
 					return postWithData.lineNumber, err
 				}

@@ -49,13 +49,13 @@ var (
 func BenchmarkMapStringsToQueryParams(b *testing.B) {
 	b.Run("one item", func(b *testing.B) {
 		input := []string{"apple"}
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			keys, params = MapStringsToQueryParams(input, "Fruit")
 		}
 	})
 	b.Run("multiple items", func(b *testing.B) {
 		input := []string{"carrot", "tomato", "potato"}
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			keys, params = MapStringsToQueryParams(input, "Vegetable")
 		}
 	})

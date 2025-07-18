@@ -19,14 +19,14 @@ import (
 )
 
 func TestNewId(t *testing.T) {
-	for i := 0; i < 1000; i++ {
+	for range 1000 {
 		id := NewId()
 		require.LessOrEqual(t, len(id), 26, "ids shouldn't be longer than 26 chars")
 	}
 }
 
 func TestRandomString(t *testing.T) {
-	for i := 0; i < 1000; i++ {
+	for i := range 1000 {
 		str := NewRandomString(i)
 		require.Len(t, str, i)
 		require.NotContains(t, str, "=")
@@ -279,7 +279,7 @@ func TestSortedArrayFromJSON(t *testing.T) {
 	t.Run("Duplicate keys, returns one", func(t *testing.T) {
 		var ids []string
 		id := NewId()
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			ids = append(ids, id)
 		}
 		b, _ := json.Marshal(ids)

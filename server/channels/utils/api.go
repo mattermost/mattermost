@@ -28,12 +28,7 @@ func CheckOrigin(r *http.Request, allowedOrigins string) bool {
 	if allowedOrigins == "*" {
 		return true
 	}
-	for _, allowed := range strings.Split(allowedOrigins, " ") {
-		if allowed == origin {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(strings.Split(allowedOrigins, " "), origin)
 }
 
 func OriginChecker(allowedOrigins string) func(*http.Request) bool {

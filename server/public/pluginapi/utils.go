@@ -4,16 +4,6 @@ import (
 	"time"
 )
 
-func stringInSlice(a string, slice []string) bool {
-	for _, b := range slice {
-		if b == a {
-			return true
-		}
-	}
-
-	return false
-}
-
 var backoffTimeouts = []time.Duration{
 	50 * time.Millisecond,
 	100 * time.Millisecond,
@@ -27,7 +17,7 @@ var backoffTimeouts = []time.Duration{
 func progressiveRetry(operation func() error) error {
 	var err error
 
-	for attempts := 0; attempts < len(backoffTimeouts); attempts++ {
+	for attempts := range backoffTimeouts {
 		err = operation()
 		if err == nil {
 			return nil

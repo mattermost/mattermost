@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"maps"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -461,14 +462,10 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 	p.Set("trigger_id", args.TriggerId)
 
 	userMentionMap := a.MentionsToTeamMembers(c, message, team.Id)
-	for key, values := range userMentionMap.ToURLValues() {
-		p[key] = values
-	}
+	maps.Copy(p, userMentionMap.ToURLValues())
 
 	channelMentionMap := a.MentionsToPublicChannels(c, message, team.Id)
-	for key, values := range channelMentionMap.ToURLValues() {
-		p[key] = values
-	}
+	maps.Copy(p, channelMentionMap.ToURLValues())
 
 	hook, appErr := a.CreateCommandWebhook(cmd.Id, args)
 	if appErr != nil {

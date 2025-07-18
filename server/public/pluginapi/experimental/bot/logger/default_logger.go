@@ -5,6 +5,7 @@ package logger
 
 import (
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/pluginapi/experimental/common"
@@ -32,9 +33,7 @@ func (l *defaultLogger) With(logContext LogContext) Logger {
 	if len(newLogger.logContext) == 0 {
 		newLogger.logContext = map[string]any{}
 	}
-	for k, v := range logContext {
-		newLogger.logContext[k] = v
-	}
+	maps.Copy(newLogger.logContext, logContext)
 	return &newLogger
 }
 

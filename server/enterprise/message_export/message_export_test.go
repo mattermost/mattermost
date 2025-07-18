@@ -12,6 +12,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -364,7 +365,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			*cfg.MessageExportSettings.BatchSize = 2
 		})
 
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			_, err2 := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 				ChannelId: th.BasicChannel.Id,
 				UserId:    st.NewTestID(),
@@ -568,7 +569,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 					zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
 					require.NoError(t, err)
 
-					for i := 0; i < 3; i++ {
+					for i := range 3 {
 						num := b*3 + i
 						attachmentInZip, err := zipReader.Open(attachments[num].Path)
 						require.NoError(t, err)
@@ -1745,13 +1746,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 		export := openZipAndReadFileNum(t, exportBackend, batches[0], 0)
 
-		matched := false
-		for _, perm := range expectedExports {
-			if export == perm {
-				matched = true
-				break
-			}
-		}
+		matched := slices.Contains(expectedExports, export)
 		assert.True(t, matched, "batch 1 didn't match one of the expected permutations")
 
 		expectedExports = []string{
@@ -1776,13 +1771,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 		export = openZipAndReadFileNum(t, exportBackend, batches[1], 0)
 
-		matched = false
-		for _, perm := range expectedExports {
-			if export == perm {
-				matched = true
-				break
-			}
-		}
+		matched = slices.Contains(expectedExports, export)
 		assert.True(t, matched, "batch 2 didn't match one of the expected permutations")
 	})
 
@@ -2157,7 +2146,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			}
 
 			numMessages := 0
-			for _, l := range strings.Split(msg, "\n") {
+			for l := range strings.SplitSeq(msg, "\n") {
 				if strings.Contains(l, "<li class=3D\"message\">") {
 					numMessages += 1
 				}
@@ -2486,7 +2475,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		})
 		require.NoError(t, err)
 
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			_, e := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 				ChannelId: th.BasicChannel.Id,
 				UserId:    st.NewTestID(),

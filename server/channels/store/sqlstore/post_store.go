@@ -2141,7 +2141,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	searchType := "Message"
 	if params.IsHashtag {
 		searchType = "Hashtags"
-		for _, term := range strings.Split(terms, " ") {
+		for term := range strings.SplitSeq(terms, " ") {
 			termMap[strings.ToUpper(term)] = true
 		}
 	}
@@ -2225,7 +2225,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			termsClause = terms + excludeClause
 		} else {
 			splitTerms := []string{}
-			for _, t := range strings.Fields(terms) {
+			for t := range strings.FieldsSeq(terms) {
 				splitTerms = append(splitTerms, "+"+t)
 			}
 			termsClause = strings.Join(splitTerms, " ") + excludeClause
@@ -2277,7 +2277,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		for _, p := range posts {
 			if searchType == "Hashtags" {
 				exactMatch := false
-				for _, tag := range strings.Split(p.Hashtags, " ") {
+				for tag := range strings.SplitSeq(p.Hashtags, " ") {
 					if termMap[strings.ToUpper(tag)] {
 						exactMatch = true
 						break
@@ -2304,8 +2304,8 @@ func removeMysqlStopWordsFromTerms(terms string) (string, error) {
 	}
 
 	newTerms := make([]string, 0)
-	separatedTerms := strings.Fields(terms)
-	for _, term := range separatedTerms {
+	separatedTerms := strings.FieldsSeq(terms)
+	for term := range separatedTerms {
 		term = strings.TrimSpace(term)
 		if term = re.ReplaceAllString(term, ""); term != "" {
 			newTerms = append(newTerms, term)
@@ -2781,11 +2781,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 	}
 
 	// Assume a worst-case representation of four bytes per rune.
-	maxPostSize := int(maxPostSizeBytes) / 4
-
-	if maxPostSize < model.PostMessageMaxRunesV2 {
-		maxPostSize = model.PostMessageMaxRunesV2
-	}
+	maxPostSize := max(int(maxPostSizeBytes)/4, model.PostMessageMaxRunesV2)
 
 	mlog.Info("Post.Message has size restrictions", mlog.Int("max_characters", maxPostSize), mlog.Int("max_bytes", maxPostSizeBytes))
 

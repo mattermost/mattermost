@@ -1171,7 +1171,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 		err := userInviteCmdF(s.client, &cobra.Command{}, append([]string{argUser}, argTeam...))
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), len(argTeam))
-		for i := 0; i < len(argTeam); i++ {
+		for i := range argTeam {
 			s.Require().Equal("Invites may or may not have been sent.", printer.GetLines()[i])
 		}
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1331,7 +1331,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 		err := userInviteCmdF(s.client, &cobra.Command{}, append([]string{argUser}, argTeam...))
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 4)
-		for i := 0; i < 4; i++ {
+		for i := range 4 {
 			s.Require().Equal("Invites may or may not have been sent.", printer.GetLines()[i])
 		}
 		s.Require().Len(printer.GetErrorLines(), 2)
@@ -2319,7 +2319,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		argEmails := []string{mockUser1.Email, mockUser2.Email, mockUser3.Email}
 		argUsers := []model.User{mockUser1, mockUser2, mockUser3}
 
-		for i := 0; i < len(argEmails); i++ {
+		for i := range argEmails {
 			s.client.
 				EXPECT().
 				GetUserByEmail(context.TODO(), argEmails[i], "").
@@ -2327,7 +2327,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 				Times(1)
 		}
 
-		for i := 0; i < len(argEmails); i++ {
+		for i := range argEmails {
 			s.client.
 				EXPECT().
 				UpdateUserActive(context.TODO(), argUsers[i].Id, false).

@@ -50,7 +50,6 @@ func (s SqlPreferenceStore) Save(preferences model.Preferences) (err error) {
 
 	defer finalizeTransactionX(transaction, &err)
 	for _, preference := range preferences {
-		preference := preference
 		if upsertErr := s.saveTx(transaction, &preference); upsertErr != nil {
 			return upsertErr
 		}

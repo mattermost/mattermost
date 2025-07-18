@@ -70,7 +70,7 @@ func (cfg *AutoTeamCreator) CreateTestTeams(num utils.Range) ([]*model.Team, err
 	numTeams := utils.RandIntFromRange(num)
 	teams := make([]*model.Team, numTeams)
 
-	for i := 0; i < numTeams; i++ {
+	for i := range numTeams {
 		var err error
 		teams[i], err = cfg.createRandomTeam()
 		if err != nil {

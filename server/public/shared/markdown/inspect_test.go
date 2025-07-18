@@ -106,7 +106,7 @@ Some bold text **Text for markdown?** to go with it.
 
 At the end, some more lines`
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		Inspect(text, func(_ any) bool {
 			counterSink++
 			return true
