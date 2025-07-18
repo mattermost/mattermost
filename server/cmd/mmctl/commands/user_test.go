@@ -3206,7 +3206,7 @@ func (s *MmctlUnitTestSuite) TestUserEditAuthdataCmd() {
 
 		err := userEditAuthdataCmdF(s.client, &command, []string{userArg, newAuthdata})
 
-		s.Require().EqualError(err, "cannot clear authdata as the user is using gitlab to log in; use mmctl user migrate-auth to change the authentication service")
+		s.Require().EqualError(err, "cannot clear authdata as the user is using gitlab to log in")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
