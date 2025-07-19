@@ -2892,3 +2892,250 @@ func TestPluginServeHTTPCompatibility(t *testing.T) {
 		})
 	}
 }
+
+func TestPluginAPICreatePropertyFieldLimit(t *testing.T) {
+	mainHelper.Parallel(t)
+	
+	t.Run("should enforce 20 property field limit per group", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		api := th.SetupPluginAPI()
+
+		// Create 20 property fields successfully
+		groupID := "test-group-id"
+		for i := 1; i <= 20; i++ {
+			field := &model.PropertyField{
+				GroupID:    groupID,
+				Name:       fmt.Sprintf("field_%d", i),
+				Type:       model.PropertyFieldTypeText,
+				CreateAt:   model.GetMillis(),
+				UpdateAt:   model.GetMillis(),
+			}
+			
+			created, err := api.CreatePropertyField(field)
+			require.Nil(t, err)
+			assert.Equal(t, field.Name, created.Name)
+			assert.Equal(t, field.GroupID, created.GroupID)
+		}
+
+		// 21st field should fail with limit error
+		field21 := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "field_21",
+			Type:       model.PropertyFieldTypeText,
+			CreateAt:   model.GetMillis(),
+			UpdateAt:   model.GetMillis(),
+		}
+		
+		created, err := api.CreatePropertyField(field21)
+		require.NotNil(t, err)
+		assert.Nil(t, created)
+		assert.Contains(t, err.Error(), "maximum number of property fields (20) reached")
+	})
+
+	t.Run("should allow creation after deleting fields", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		api := th.SetupPluginAPI()
+
+		// Create 20 property fields
+		groupID := "test-group-id-2"
+		var createdFields []*model.PropertyField
+		for i := 1; i <= 20; i++ {
+			field := &model.PropertyField{
+				GroupID:    groupID,
+				Name:       fmt.Sprintf("field_%d", i),
+				Type:       model.PropertyFieldTypeText,
+				CreateAt:   model.GetMillis(),
+				UpdateAt:   model.GetMillis(),
+			}
+			
+			created, err := api.CreatePropertyField(field)
+			require.Nil(t, err)
+			createdFields = append(createdFields, created)
+		}
+
+		// Delete one field
+		err := api.DeletePropertyField(createdFields[0].ID)
+		require.Nil(t, err)
+
+		// Should now be able to create another field
+		newField := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "new_field",
+			Type:       model.PropertyFieldTypeText,
+			CreateAt:   model.GetMillis(),
+			UpdateAt:   model.GetMillis(),
+		}
+		
+		created, err := api.CreatePropertyField(newField)
+		require.Nil(t, err)
+		assert.Equal(t, newField.Name, created.Name)
+	})
+
+	t.Run("should not count deleted fields toward limit", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		api := th.SetupPluginAPI()
+
+		groupID := "test-group-id-3"
+		
+		// Create and delete 5 fields
+		for i := 1; i <= 5; i++ {
+			field := &model.PropertyField{
+				GroupID:    groupID,
+				Name:       fmt.Sprintf("deleted_field_%d", i),
+				Type:       model.PropertyFieldTypeText,
+				CreateAt:   model.GetMillis(),
+				UpdateAt:   model.GetMillis(),
+			}
+			
+			created, err := api.CreatePropertyField(field)
+			require.Nil(t, err)
+			
+			err = api.DeletePropertyField(created.ID)
+			require.Nil(t, err)
+		}
+
+		// Should still be able to create 20 active fields
+		for i := 1; i <= 20; i++ {
+			field := &model.PropertyField{
+				GroupID:    groupID,
+				Name:       fmt.Sprintf("active_field_%d", i),
+				Type:       model.PropertyFieldTypeText,
+				CreateAt:   model.GetMillis(),
+				UpdateAt:   model.GetMillis(),
+			}
+			
+			created, err := api.CreatePropertyField(field)
+			require.Nil(t, err)
+			assert.Equal(t, field.Name, created.Name)
+		}
+	})
+
+	t.Run("should handle empty or missing group ID", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		api := th.SetupPluginAPI()
+
+		// Test with empty group ID
+		field := &model.PropertyField{
+			GroupID:    "",
+			Name:       "test_field",
+			Type:       model.PropertyFieldTypeText,
+			CreateAt:   model.GetMillis(),
+			UpdateAt:   model.GetMillis(),
+		}
+		
+		created, err := api.CreatePropertyField(field)
+		require.Nil(t, err) // Should work without limit check
+		assert.Equal(t, field.Name, created.Name)
+
+		// Test with nil field
+		created, err = api.CreatePropertyField(nil)
+		require.Nil(t, err) // Should work without limit check
+	})
+}
+
+func TestPluginAPICountPropertyFields(t *testing.T) {
+	mainHelper.Parallel(t)
+	
+	t.Run("should count active property fields only", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		api := th.SetupPluginAPI()
+
+		groupID := "test-group-count-1"
+		
+		// Create 5 fields
+		var createdFields []*model.PropertyField
+		for i := 1; i <= 5; i++ {
+			field := &model.PropertyField{
+				GroupID:    groupID,
+				Name:       fmt.Sprintf("field_%d", i),
+				Type:       model.PropertyFieldTypeText,
+				CreateAt:   model.GetMillis(),
+				UpdateAt:   model.GetMillis(),
+			}
+			
+			created, err := api.CreatePropertyField(field)
+			require.Nil(t, err)
+			createdFields = append(createdFields, created)
+		}
+
+		// Count active fields
+		count, err := api.CountPropertyFields(groupID, false)
+		require.Nil(t, err)
+		assert.Equal(t, int64(5), count)
+
+		// Delete 2 fields
+		err = api.DeletePropertyField(createdFields[0].ID)
+		require.Nil(t, err)
+		err = api.DeletePropertyField(createdFields[1].ID)
+		require.Nil(t, err)
+
+		// Count should now be 3
+		count, err = api.CountPropertyFields(groupID, false)
+		require.Nil(t, err)
+		assert.Equal(t, int64(3), count)
+	})
+
+	t.Run("should count all property fields including deleted", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		api := th.SetupPluginAPI()
+
+		groupID := "test-group-count-2"
+		
+		// Create 5 fields
+		var createdFields []*model.PropertyField
+		for i := 1; i <= 5; i++ {
+			field := &model.PropertyField{
+				GroupID:    groupID,
+				Name:       fmt.Sprintf("field_%d", i),
+				Type:       model.PropertyFieldTypeText,
+				CreateAt:   model.GetMillis(),
+				UpdateAt:   model.GetMillis(),
+			}
+			
+			created, err := api.CreatePropertyField(field)
+			require.Nil(t, err)
+			createdFields = append(createdFields, created)
+		}
+
+		// Count all fields
+		count, err := api.CountPropertyFields(groupID, true)
+		require.Nil(t, err)
+		assert.Equal(t, int64(5), count)
+
+		// Delete 2 fields
+		err = api.DeletePropertyField(createdFields[0].ID)
+		require.Nil(t, err)
+		err = api.DeletePropertyField(createdFields[1].ID)
+		require.Nil(t, err)
+
+		// Count all should still be 5
+		count, err = api.CountPropertyFields(groupID, true)
+		require.Nil(t, err)
+		assert.Equal(t, int64(5), count)
+
+		// Count active should be 3
+		count, err = api.CountPropertyFields(groupID, false)
+		require.Nil(t, err)
+		assert.Equal(t, int64(3), count)
+	})
+
+	t.Run("should return 0 for empty group", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		api := th.SetupPluginAPI()
+
+		count, err := api.CountPropertyFields("non-existent-group", false)
+		require.Nil(t, err)
+		assert.Equal(t, int64(0), count)
+
+		count, err = api.CountPropertyFields("non-existent-group", true)
+		require.Nil(t, err)
+		assert.Equal(t, int64(0), count)
+	})
+}
