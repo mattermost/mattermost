@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 type PluginAPI struct {
@@ -608,7 +609,7 @@ func (api *PluginAPI) AddUserToChannel(channelID, userID, asUserID string) (*mod
 }
 
 func (api *PluginAPI) GetChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
-	return api.app.GetChannelMember(api.ctx, channelID, userID)
+	return nil, model.NewAppError("GetTeamMember", "app.team.get_member.missing.app_error", nil, "", http.StatusNotFound).Wrap(store.NewErrNotFound("TeamMember", fmt.Sprintf("channelId=%s, userId=%s", channelID, userID)))
 }
 
 func (api *PluginAPI) GetChannelMembers(channelID string, page, perPage int) (model.ChannelMembers, *model.AppError) {
