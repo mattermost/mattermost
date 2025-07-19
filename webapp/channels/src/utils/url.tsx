@@ -78,6 +78,12 @@ export function getRelativeChannelURL(teamName: string, channelName: string): st
 }
 
 export function isUrlSafe(url: string): boolean {
+    // Special handling for app scheme URLs - we consider them safe
+    // This covers mattermost:// and any custom app schemes
+    if (/^[a-zA-Z0-9.+-]+:\/\//.test(url) && !url.startsWith('http://') && !url.startsWith('https://')) {
+        return true;
+    }
+
     let unescaped: string;
 
     try {
@@ -241,10 +247,21 @@ export function mightTriggerExternalRequest(url: string, siteURL?: string): bool
 }
 
 export function isInternalURL(url: string, siteURL?: string): boolean {
+    // Handle app scheme URLs - these are considered internal
+    // This covers mattermost:// and any custom app schemes
+    if (/^[a-zA-Z0-9.+-]+:\/\//.test(url) && !url.startsWith('http://') && !url.startsWith('https://')) {
+        return true;
+    }
     return url.startsWith(siteURL || '') || url.startsWith('/') || url.startsWith('#');
 }
 
 export function shouldOpenInNewTab(url: string, siteURL?: string, managedResourcePaths?: string[]): boolean {
+    // Handle app scheme URLs - these should not open in a new tab
+    // This covers mattermost:// and any custom app schemes
+    if (/^[a-zA-Z0-9.+-]+:\/\//.test(url) && !url.startsWith('http://') && !url.startsWith('https://')) {
+        return false;
+    }
+
     if (!isInternalURL(url, siteURL)) {
         return true;
     }
@@ -281,7 +298,7 @@ export function isPermalinkURL(url: string): boolean {
 }
 
 export function isValidUrl(url = '') {
-    const regex = /^https?:\/\//i;
+    const regex = /^(https?:\/\/|[a-zA-Z0-9.+-]+:\/\/)/i;
     return regex.test(url);
 }
 
@@ -348,6 +365,12 @@ export function parseLink(href: string, defaultSecure = location.protocol === 'h
         }
     }
 
+    // Special handling for app scheme URLs - we don't want to apply the URL safety check
+    // since these are internal app links (covers mattermost:// and any custom app schemes)
+    if (/^[a-zA-Z0-9.+-]+:\/\//.test(outHref) && !outHref.startsWith('http://') && !outHref.startsWith('https://')) {
+        return outHref;
+    }
+
     if (!isUrlSafe(unescapeHtmlEntities(href))) {
         return undefined;
     }
@@ -360,6 +383,20 @@ export const validHttpUrl = (input: string) => {
 
     if (!val || !isValidUrl(val)) {
         return null;
+    }
+
+    // Handle app scheme URLs separately (covers mattermost:// and any custom app schemes)
+    const appSchemeMatch = val.match(/^([a-zA-Z0-9.+-]+):\/\//);
+    if (appSchemeMatch && appSchemeMatch[1] !== 'http' && appSchemeMatch[1] !== 'https') {
+        try {
+            // Create a URL object with a dummy http scheme to validate the URL structure
+            const scheme = appSchemeMatch[1];
+            const dummyUrl = new URL(val.replace(`${scheme}://`, 'http://'));
+            // Return the original URL with the app scheme
+            return new URL(val);
+        } catch {
+            return null;
+        }
     }
 
     let url;
