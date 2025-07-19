@@ -307,14 +307,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         }
         includeDetailedError={true}
         requestAction={[MockFunction]}
-        saveNeeded={false}
         showSuccessMessage={false}
-        successMessage={
-          Object {
-            "defaultMessage": "Test Successful",
-            "id": "admin.requestButton.requestSuccess",
-          }
-        }
       />
       <Memo(BooleanSetting)
         disabled={false}
