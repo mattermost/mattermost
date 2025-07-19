@@ -799,6 +799,23 @@ func (wc *WebConn) IsAuthenticated() bool {
 	return true
 }
 
+// IsFullyAuthenticated returns whether the given WebConn is authenticated and MFA compliant.
+func (wc *WebConn) IsFullyAuthenticated() bool {
+	if !wc.IsAuthenticated() {
+		return false
+	}
+
+	session := wc.GetSession()
+	c := request.EmptyContext(wc.Platform.logger).WithSession(session)
+
+	// Check if MFA is required and if user has completed MFA
+	if appErr := wc.Suite.MFARequired(c); appErr != nil {
+		return false
+	}
+
+	return true
+}
+
 func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
 	ee := wc.Platform.LicenseManager() != nil
 
@@ -856,8 +873,8 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 
 // ShouldSendEvent returns whether the message should be sent or not.
 func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
-	// IMPORTANT: Do not send event if WebConn does not have a session
-	if !wc.IsAuthenticated() {
+	// IMPORTANT: Do not send event if WebConn does not have a session and completed MFA
+	if !wc.IsFullyAuthenticated() {
 		return false
 	}
 
