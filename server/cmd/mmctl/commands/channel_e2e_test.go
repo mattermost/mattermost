@@ -549,15 +549,25 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 		})
 		s.Require().Nil(appErr)
 
-		args := []string{team.Id, channel.Id}
-		cmd := &cobra.Command{}
+		_, appErr := s.th.App.AddChannelMember(s.th.Context, s.th.BasicUser.Id, channel, app.ChannelMemberOpts{})
+		s.Require().Nil(appErr)
 
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("auto-add-users", true, "")
+
+		args := []string{team.Id, channel.Id}
 		err := moveChannelCmdF(c, cmd, args)
 
 		s.Require().NoError(err)
-		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Len(printer.GetErrorLines(), 0)
-		actualChannel, ok := printer.GetLines()[0].(*model.Channel)
+
+		usersMessage, ok := printer.GetLines()[0].(map[string]interface{})
+		s.Require().True(ok)
+		s.Require().Contains(usersMessage["TeamName"], testTeamName)
+		s.Require().Len(usersMessage["Users"], 1)
+
+		actualChannel, ok := printer.GetLines()[1].(*model.Channel)
 		s.Require().True(ok)
 		s.Require().Equal(channel.Name, actualChannel.Name)
 		s.Require().Equal(team.Id, actualChannel.TeamId)
