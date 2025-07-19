@@ -20,7 +20,7 @@ import {getMyTeams, getMyTeamMembers, getMyTeamUnreads} from 'mattermost-redux/a
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getServerVersion, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getServerVersion, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUser as selectUser, getUsers, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
@@ -81,7 +81,13 @@ export function loadMe(): ActionFuncAsync<boolean> {
                 dispatch(getMyTeamMembers()),
             ]);
 
-            if (getFeatureFlagValue(getState(), 'CustomProfileAttributes') === 'true') {
+            // Check both feature flag and license before calling custom profile attributes
+            const state = getState();
+            const hasFeatureFlag = getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true';
+            const license = getLicense(state);
+            const hasEnterpriseLicense = license?.IsLicensed === 'true' && license?.SkuShortName === 'enterprise';
+
+            if (hasFeatureFlag && hasEnterpriseLicense) {
                 dispatch(getCustomProfileAttributeFields());
             }
 
