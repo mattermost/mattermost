@@ -10,10 +10,40 @@ on:
         required: true
 
 jobs:
+  generate-test-variables:
+    runs-on: ubuntu-latest
+    outputs:
+      BRANCH: "${{ steps.generate.outputs.BRANCH }}"
+      BUILD_ID: "${{ steps.generate.outputs.BUILD_ID }}"
+      SERVER_IMAGE: "${{ steps.generate.outputs.SERVER_IMAGE }}"
+    steps:
+      - name: ci/smoke/generate-test-variables
+        id: generate
+        run: |
+          ### Populate support variables
+          COMMIT_SHA=${{ inputs.commit_sha }}
+          SERVER_IMAGE_TAG="${COMMIT_SHA::7}"
+
+          # BUILD_ID format: $pipelineID-$imageTag-$testType-$serverType-$serverEdition
+          # Reference on BUILD_ID parsing: https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23
+          BUILD_ID="${{ github.run_id }}_${{ github.run_attempt }}-${SERVER_IMAGE_TAG}-smoketest-onprem-ent"
+          echo "BRANCH="server-smoketest-${COMMIT_SHA::7}" >> $GITHUB_OUTPUT
+          echo "BUILD_ID=${BUILD_ID}" >> $GITHUB_OUTPUT
+          echo "SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
   e2e-smoketest:
+    needs:
+      - generate-test-variables
     uses: ./.github/workflows/e2e-tests-ci-template.yml
     with:
       commit_sha: "${{ inputs.commit_sha }}"
       status_check_context: "E2E Tests/smoketests"
+      TEST: cypress
+      REPORT_TYPE: none
+      SERVER: onprem
+      BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
+      BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}"
+      SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
+      AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
+      AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_TOKEN }}"
