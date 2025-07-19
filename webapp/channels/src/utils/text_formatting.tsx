@@ -16,6 +16,10 @@ import type EmojiMap from './emoji_map.js';
 import * as Emoticons from './emoticons';
 import * as Markdown from './markdown';
 
+import { displayUsername } from 'mattermost-redux/utils/user_utils';
+import { UserProfile } from '@mattermost/types/users';
+import { getMentionDetails } from './post_utils';
+
 const punctuationRegex = /[^\p{L}\d]/u;
 const UNICODE_EMOJI_REGEX = emojiRegex();
 const htmlEmojiPattern = /^<p>\s*(?:<img class="emoticon"[^>]*>|<span data-emoticon[^>]*>[^<]*<\/span>\s*|<span class="emoticon emoticon--unicode">[^<]*<\/span>\s*)+<\/p>$/;
@@ -514,7 +518,7 @@ export function autoPlanMentions(text: string, tokens: Tokens): string {
     return output;
 }
 
-export function autolinkAtMentions(text: string, tokens: Tokens): string {
+export function autolinkAtMentions(text: string, tokens: Tokens, tokenValueHandler = (username: string) => `<span data-mention="${username}">@${username}</span>`): string {
     function replaceAtMentionWithToken(fullMatch: string, username: string) {
         let originalText = fullMatch;
 
@@ -527,7 +531,7 @@ export function autolinkAtMentions(text: string, tokens: Tokens): string {
         const alias = `$MM_ATMENTION${index}$`;
 
         tokens.set(alias, {
-            value: `<span data-mention="${username}">@${username}</span>`,
+            value: tokenValueHandler(username),
             originalText,
         });
 
@@ -554,6 +558,17 @@ export function autolinkAtMentions(text: string, tokens: Tokens): string {
 
 export function allAtMentions(text: string): string[] {
     return text.match(Constants.SPECIAL_MENTIONS_REGEX && Constants.MENTIONS_REGEX) || [];
+}
+
+export function convertMentionNicknameOrFullName(text: string, usersByUsername: Record<string, UserProfile>, teammateNameDisplay: string): string {
+    let output = text;
+    const tokens = new Tokens();
+    const displayUserNameHandler = (username: string) => {
+        const mentionedUser = getMentionDetails(usersByUsername, username);
+        return mentionedUser ? `@${displayUsername(mentionedUser, teammateNameDisplay)}` : `@${username}`;
+    }
+    output = autolinkAtMentions(output, tokens, displayUserNameHandler);
+    return replaceTokens(output, tokens) || text;
 }
 
 export function autolinkChannelMentions(
