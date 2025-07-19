@@ -343,9 +343,9 @@ func (s SqlSharedChannelStore) SaveRemote(remote *model.SharedChannelRemote) (*m
 
 	query, args, err := s.getQueryBuilder().Insert("SharedChannelRemotes").
 		Columns("Id", "ChannelId", "CreatorId", "CreateAt", "UpdateAt", "DeleteAt", "IsInviteAccepted", "IsInviteConfirmed", "RemoteId",
-			"LastPostCreateAt", "LastPostCreateId", "LastPostUpdateAt", "LastPostId").
+			"LastPostCreateAt", "LastPostCreateId", "LastPostUpdateAt", "LastPostId", "SyncOutbound").
 		Values(remote.Id, remote.ChannelId, remote.CreatorId, remote.CreateAt, remote.UpdateAt, remote.DeleteAt, remote.IsInviteAccepted, remote.IsInviteConfirmed,
-			remote.RemoteId, remote.LastPostCreateAt, remote.LastPostCreateID, remote.LastPostUpdateAt, remote.LastPostUpdateID).
+			remote.RemoteId, remote.LastPostCreateAt, remote.LastPostCreateID, remote.LastPostUpdateAt, remote.LastPostUpdateID, remote.SyncOutbound).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "savesharedchannelremote_tosql")
@@ -375,6 +375,7 @@ func (s SqlSharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (
 		Set("LastPostCreateId", remote.LastPostCreateID).
 		Set("LastPostUpdateAt", remote.LastPostUpdateAt).
 		Set("LastPostId", remote.LastPostUpdateID).
+		Set("SyncOutbound", remote.SyncOutbound).
 		Where(sq.And{
 			sq.Eq{"Id": remote.Id},
 			sq.Eq{"ChannelId": remote.ChannelId},
@@ -418,6 +419,7 @@ func sharedChannelRemoteFields(prefix string) []string {
 		prefix + "LastPostUpdateAt",
 		"COALESCE(" + prefix + "LastPostId,'') AS LastPostUpdateID",
 		prefix + "LastMembersSyncAt",
+		prefix + "SyncOutbound",
 	}
 }
 
@@ -677,7 +679,7 @@ func (s SqlSharedChannelStore) GetRemotesStatus(channelId string) ([]*model.Shar
 	status := []*model.SharedChannelRemoteStatus{}
 
 	query := s.getQueryBuilder().
-		Select("scr.ChannelId, rc.DisplayName, rc.SiteURL, rc.LastPingAt, sc.ReadOnly, scr.IsInviteAccepted").
+		Select("scr.ChannelId, rc.DisplayName, rc.SiteURL, rc.LastPingAt, sc.ReadOnly, scr.IsInviteAccepted, scr.SyncOutbound").
 		From("SharedChannelRemotes scr, RemoteClusters rc, SharedChannels sc").
 		Where("scr.RemoteId = rc.RemoteId").
 		Where("scr.DeleteAt = 0").
