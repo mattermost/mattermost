@@ -9489,3 +9489,78 @@ func TestSearchUsersWithMfaEnforced(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 }
+
+func TestAPIEnforcementTermsOfService(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Enable custom ToS
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.SupportSettings.CustomTermsOfServiceEnabled = true
+	})
+
+	// Set license with ToS feature
+	license := model.NewTestLicense()
+	license.Features.CustomTermsOfService = model.NewPointer(true)
+	th.App.Srv().SetLicense(license)
+
+	// Create ToS
+	termsOfService, appErr := th.App.CreateTermsOfService("Test ToS for API enforcement", th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	t.Run("API calls blocked when user hasn't accepted ToS", func(t *testing.T) {
+		// API call should be blocked
+		_, resp, err := th.Client.GetUser(context.Background(), th.BasicUser.Id, "")
+		CheckErrorID(t, err, "api.context.terms_of_service_required.app_error")
+		CheckForbiddenStatus(t, resp)
+
+		// Another API call should also be blocked
+		_, resp, err = th.Client.GetMe(context.Background(), "")
+		CheckErrorID(t, err, "api.context.terms_of_service_required.app_error")
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("ToS endpoints remain accessible", func(t *testing.T) {
+		// Get latest ToS should work
+		_, _, err := th.Client.GetTermsOfService(context.Background(), "")
+		require.NoError(t, err)
+
+		// Get user ToS status should work (even if returns error for no acceptance)
+		_, resp, _ := th.Client.GetUserTermsOfService(context.Background(), th.BasicUser.Id, "")
+		// This should return 404 but not be blocked by ToS validation
+		CheckNotFoundStatus(t, resp)
+
+		// Accept ToS should work
+		_, err = th.Client.RegisterTermsOfServiceAction(context.Background(), th.BasicUser.Id, termsOfService.Id, true)
+		require.NoError(t, err)
+	})
+
+	t.Run("API calls allowed after accepting ToS", func(t *testing.T) {
+		// Now API calls should work
+		_, _, err := th.Client.GetUser(context.Background(), th.BasicUser.Id, "")
+		require.NoError(t, err)
+
+		_, _, err = th.Client.GetMe(context.Background(), "")
+		require.NoError(t, err)
+	})
+
+	t.Run("API calls blocked again after new ToS version", func(t *testing.T) {
+		// Create new ToS version
+		newTermsOfService, appErr := th.App.CreateTermsOfService("Updated ToS for API enforcement", th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.NotEqual(t, termsOfService.Id, newTermsOfService.Id)
+
+		// API call should be blocked again
+		_, resp, err := th.Client.GetUser(context.Background(), th.BasicUser.Id, "")
+		CheckErrorID(t, err, "api.context.terms_of_service_required.app_error")
+		CheckForbiddenStatus(t, resp)
+
+		// Accept new ToS
+		_, err = th.Client.RegisterTermsOfServiceAction(context.Background(), th.BasicUser.Id, newTermsOfService.Id, true)
+		require.NoError(t, err)
+
+		// API calls should work again
+		_, _, err = th.Client.GetUser(context.Background(), th.BasicUser.Id, "")
+		require.NoError(t, err)
+	})
+}

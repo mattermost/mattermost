@@ -1866,6 +1866,10 @@
     "translation": "Invalid or expired session, please login again."
   },
   {
+    "id": "api.context.terms_of_service_required.app_error",
+    "translation": "Terms of Service acceptance required to access this resource."
+  },
+  {
     "id": "api.context.token_provided.app_error",
     "translation": "Session is not OAuth but token was provided in the query string."
   },
