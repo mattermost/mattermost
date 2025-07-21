@@ -124,23 +124,23 @@ func (sp *ShareProvider) getAutoCompleteUnInviteRemote(a *app.App, _ *model.Comm
 
 func (sp *ShareProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !a.HasPermissionTo(args.UserId, model.PermissionManageSharedChannels) {
-		return responsef(args.T("api.command_share.permission_required", map[string]any{"Permission": "manage_shared_channels"}))
+		return response(args.T("api.command_share.permission_required", map[string]any{"Permission": "manage_shared_channels"}))
 	}
 
 	syncService := a.Srv().GetSharedChannelSyncService()
 	if syncService == nil || !syncService.Active() {
-		return responsef(args.T("api.command_share.service_disabled"))
+		return response(args.T("api.command_share.service_disabled"))
 	}
 
 	rcService := a.Srv().GetRemoteClusterService()
 	if rcService == nil || !rcService.Active() {
-		return responsef(args.T("api.command_remote.service_disabled"))
+		return response(args.T("api.command_remote.service_disabled"))
 	}
 
 	margs := parseNamedArgs(args.Command)
 	action, ok := margs[ActionKey]
 	if !ok {
-		return responsef(args.T("api.command_share.missing_action", map[string]any{"Actions": AvailableShareActions}))
+		return response(args.T("api.command_share.missing_action", map[string]any{"Actions": AvailableShareActions}))
 	}
 
 	switch action {
@@ -155,14 +155,14 @@ func (sp *ShareProvider) DoCommand(a *app.App, c request.CTX, args *model.Comman
 	case "status":
 		return sp.doStatus(a, args, margs)
 	}
-	return responsef(args.T("api.command_share.unknown_action", map[string]any{"Action": action, "Actions": AvailableShareActions}))
+	return response(args.T("api.command_share.unknown_action", map[string]any{"Action": action, "Actions": AvailableShareActions}))
 }
 
 func (sp *ShareProvider) doShareChannel(a *app.App, c request.CTX, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
 	// fetch defaults for missing channel props
 	channel, errApp := a.GetChannel(c, args.ChannelId)
 	if errApp != nil {
-		return responsef(args.T("api.command_share.share_channel.error", map[string]any{"Error": errApp.Error()}))
+		return response(args.T("api.command_share.share_channel.error", map[string]any{"Error": errApp.Error()}))
 	}
 
 	if name := margs["name"]; name == "" {
@@ -183,7 +183,7 @@ func (sp *ShareProvider) doShareChannel(a *app.App, c request.CTX, args *model.C
 
 	readonly, err := parseBool(margs["readonly"])
 	if err != nil {
-		return responsef(args.T("api.command_share.invalid_value.error", map[string]any{"Arg": "readonly", "Error": err.Error()}))
+		return response(args.T("api.command_share.invalid_value.error", map[string]any{"Arg": "readonly", "Error": err.Error()}))
 	}
 
 	sc := &model.SharedChannel{
@@ -199,36 +199,36 @@ func (sp *ShareProvider) doShareChannel(a *app.App, c request.CTX, args *model.C
 	}
 
 	if _, err := a.ShareChannel(c, sc); err != nil {
-		return responsef(args.T("api.command_share.share_channel.error", map[string]any{"Error": err.Error()}))
+		return response(args.T("api.command_share.share_channel.error", map[string]any{"Error": err.Error()}))
 	}
 
-	return responsef("##### " + args.T("api.command_share.channel_shared"))
+	return response("##### " + args.T("api.command_share.channel_shared"))
 }
 
 func (sp *ShareProvider) doUnshareChannel(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
 	deleted, err := a.UnshareChannel(args.ChannelId)
 	if err != nil {
-		return responsef(args.T("api.command_share.shared_channel_unshare.error", map[string]any{"Error": err.Error()}))
+		return response(args.T("api.command_share.shared_channel_unshare.error", map[string]any{"Error": err.Error()}))
 	}
 	if !deleted {
-		return responsef(args.T("api.command_share.not_shared_channel_unshare"))
+		return response(args.T("api.command_share.not_shared_channel_unshare"))
 	}
 
-	return responsef("##### " + args.T("api.command_share.shared_channel_unavailable"))
+	return response("##### " + args.T("api.command_share.shared_channel_unavailable"))
 }
 
 func (sp *ShareProvider) doInviteRemote(a *app.App, c request.CTX, args *model.CommandArgs, margs map[string]string) (resp *model.CommandResponse) {
 	remoteID, ok := margs["connectionID"]
 	if !ok || remoteID == "" {
-		return responsef(args.T("api.command_share.must_specify_valid_remote"))
+		return response(args.T("api.command_share.must_specify_valid_remote"))
 	}
 
 	hasRemote, err := a.HasRemote(args.ChannelId, remoteID)
 	if err != nil {
-		return responsef(args.T("api.command_share.fetch_remote.error", map[string]any{"Error": err.Error()}))
+		return response(args.T("api.command_share.fetch_remote.error", map[string]any{"Error": err.Error()}))
 	}
 	if hasRemote {
-		return responsef(args.T("api.command_share.remote_already_invited"))
+		return response(args.T("api.command_share.remote_already_invited"))
 	}
 
 	// Check if channel is shared or not.
@@ -236,7 +236,7 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, c request.CTX, args *model.C
 	//       since `a.InviteRemoteToChannel` will share the channel automatically.
 	hasChan, err := a.HasSharedChannel(args.ChannelId)
 	if err != nil {
-		return responsef(args.T("api.command_share.check_channel_exist.error", map[string]any{"ChannelID": args.ChannelId, "Error": err.Error()}))
+		return response(args.T("api.command_share.check_channel_exist.error", map[string]any{"ChannelID": args.ChannelId, "Error": err.Error()}))
 	}
 	if !hasChan {
 		// If it doesn't exist, then create it.
@@ -250,44 +250,44 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, c request.CTX, args *model.C
 
 	rc, appErr := a.GetRemoteCluster(remoteID, false)
 	if appErr != nil {
-		return responsef(args.T("api.command_share.remote_id_invalid.error", map[string]any{"Error": appErr.Error()}))
+		return response(args.T("api.command_share.remote_id_invalid.error", map[string]any{"Error": appErr.Error()}))
 	}
 
 	if err = a.InviteRemoteToChannel(args.ChannelId, remoteID, args.UserId, true); err != nil {
-		return responsef(args.T("api.command_share.invite_remote_to_channel.error", map[string]any{"Error": err.Error()}))
+		return response(args.T("api.command_share.invite_remote_to_channel.error", map[string]any{"Error": err.Error()}))
 	}
 
-	return responsef("##### " + args.T("api.command_share.invitation_sent", map[string]any{"Name": rc.DisplayName, "SiteURL": rc.SiteURL}))
+	return response("##### " + args.T("api.command_share.invitation_sent", map[string]any{"Name": rc.DisplayName, "SiteURL": rc.SiteURL}))
 }
 
 func (sp *ShareProvider) doUninviteRemote(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
 	remoteID, ok := margs["connectionID"]
 	if !ok || remoteID == "" {
-		return responsef(args.T("api.command_share.remote_not_valid"))
+		return response(args.T("api.command_share.remote_not_valid"))
 	}
 
 	err := a.UninviteRemoteFromChannel(args.ChannelId, remoteID)
 	if err != nil {
-		return responsef(err.Error())
+		return response(err.Error())
 	}
 
-	return responsef("##### " + args.T("api.command_share.remote_uninvited", map[string]any{"RemoteId": remoteID}))
+	return response("##### " + args.T("api.command_share.remote_uninvited", map[string]any{"RemoteId": remoteID}))
 }
 
 func (sp *ShareProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[string]string) *model.CommandResponse {
 	statuses, err := a.GetSharedChannelRemotesStatus(args.ChannelId)
 	if err != nil {
-		return responsef(args.T("api.command_share.fetch_remote_status.error", map[string]any{"Error": err.Error()}))
+		return response(args.T("api.command_share.fetch_remote_status.error", map[string]any{"Error": err.Error()}))
 	}
 	if len(statuses) == 0 {
-		return responsef(args.T("api.command_share.no_remote_invited"))
+		return response(args.T("api.command_share.no_remote_invited"))
 	}
 
 	var sb strings.Builder
 
-	fmt.Fprintf(&sb, args.T("api.command_share.channel_status_id", map[string]any{"ChannelId": statuses[0].ChannelId})+"\n\n")
+	fmt.Fprintf(&sb, "%s\n\n", args.T("api.command_share.channel_status_id", map[string]any{"ChannelId": statuses[0].ChannelId}))
 
-	fmt.Fprintf(&sb, args.T("api.command_share.remote_table_header")+" \n")
+	fmt.Fprintf(&sb, "%s \n", args.T("api.command_share.remote_table_header"))
 	// "| Secure Connection | SiteURL | ReadOnly | InviteAccepted | Online | Last Sync |"
 	fmt.Fprintf(&sb, "| ---- | ---- | ---- | ---- | ---- | ---- | \n")
 
@@ -301,5 +301,5 @@ func (sp *ShareProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[str
 		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s | %s |\n",
 			status.DisplayName, status.SiteURL, readonly, accepted, online, lastSync)
 	}
-	return responsef(sb.String())
+	return response(sb.String())
 }

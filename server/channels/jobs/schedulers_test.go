@@ -3,6 +3,7 @@
 package jobs
 
 import (
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -35,6 +36,10 @@ func (scheduler *MockScheduler) ScheduleJob(c request.CTX, cfg *model.Config, pe
 }
 
 func TestScheduler(t *testing.T) {
+	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
+		t.Parallel()
+	}
+
 	mockStore := &storetest.Store{}
 	defer mockStore.AssertExpectations(t)
 
@@ -171,6 +176,10 @@ func TestScheduler(t *testing.T) {
 }
 
 func TestRandomDelay(t *testing.T) {
+	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
+		t.Parallel()
+	}
+
 	cases := []int64{5, 10, 100}
 	for _, c := range cases {
 		out := getRandomDelay(c)

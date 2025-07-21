@@ -20,11 +20,23 @@ const ProfilePopoverEmail = ({
         return null;
     }
 
+    function handleEmailClick(e: React.MouseEvent<HTMLAnchorElement>) {
+        e.preventDefault();
+        window.open(`mailto:${email}`);
+    }
+
     // Generate a unique ID for accessibility
     const titleId = `user-popover__custom_attributes-title-${userId}`;
 
     return (
-        <div className='user-popover__custom_attributes'>
+        <div
+            title={email}
+            className='user-profile-popover__email'
+        >
+            <i
+                className='icon icon-email-outline'
+                aria-hidden='true'
+            />
             <strong
                 id={titleId}
                 className='user-popover__subtitle'
@@ -40,6 +52,7 @@ const ProfilePopoverEmail = ({
             >
                 <a
                     href={`mailto:${email}`}
+                    onClick={handleEmailClick}
                 >
                     {email}
                 </a>

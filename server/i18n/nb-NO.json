@@ -137,7 +137,7 @@
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "August"
+    "translation": "Ingen fil under \"sertifikat\" i forespørslen."
   },
   {
     "id": "api.channel.bookmark.channel_bookmark.license.error",
@@ -450,5 +450,26 @@
   {
     "id": "api.command_join.desc",
     "translation": "Bli med i den åpne kanalen"
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": {
+      "one": "{{.User}} er allerede i kanalen.",
+      "other": "{{.User}} er allerede i kanalen."
+    }
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "Kan ikke finne brukeren: {{.Users}}",
+      "other": "Kan ikke finne brukerne: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subject",
+    "translation": {
+      "one": "[{{.SiteName}}] Nytt varsel for {{.Month}} {{.Day}}, {{.Year}}",
+      "other": "[{{.SiteName}}] Nye varsler for {{.Month}} {{.Day}}, {{.Year}}"
+    }
   }
 ]

@@ -168,6 +168,7 @@ func init() {
 	gob.Register(&model.AutocompleteStaticListArg{})
 	gob.Register(&model.AutocompleteTextArg{})
 	gob.Register(&model.PreviewPost{})
+	gob.Register(model.PropertyOptions[*model.PluginPropertyOption]{})
 }
 
 // These enforce compile time checks to make sure types implement the interface
@@ -877,6 +878,62 @@ func (s *apiRPCServer) LogError(args *Z_LogErrorArgs, returns *Z_LogErrorReturns
 		hook.LogError(args.A, args.B...)
 	} else {
 		return encodableError(fmt.Errorf("API LogError called but not implemented"))
+	}
+	return nil
+}
+
+type Z_LogAuditRecArgs struct {
+	A *model.AuditRecord
+}
+
+type Z_LogAuditRecReturns struct {
+}
+
+// Custom audit logging methods with gob safety checks
+func (g *apiRPCClient) LogAuditRec(rec *model.AuditRecord) {
+	gobSafeRec := makeAuditRecordGobSafe(*rec)
+	_args := &Z_LogAuditRecArgs{&gobSafeRec}
+	_returns := &Z_LogAuditRecReturns{}
+	if err := g.client.Call("Plugin.LogAuditRec", _args, _returns); err != nil {
+		log.Printf("RPC call to LogAuditRec API failed: %s", err.Error())
+	}
+}
+
+func (s *apiRPCServer) LogAuditRec(args *Z_LogAuditRecArgs, returns *Z_LogAuditRecReturns) error {
+	if hook, ok := s.impl.(interface {
+		LogAuditRec(rec *model.AuditRecord)
+	}); ok {
+		hook.LogAuditRec(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API LogAuditRec called but not implemented"))
+	}
+	return nil
+}
+
+type Z_LogAuditRecWithLevelArgs struct {
+	A *model.AuditRecord
+	B mlog.Level
+}
+
+type Z_LogAuditRecWithLevelReturns struct {
+}
+
+func (g *apiRPCClient) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level) {
+	gobSafeRec := makeAuditRecordGobSafe(*rec)
+	_args := &Z_LogAuditRecWithLevelArgs{&gobSafeRec, level}
+	_returns := &Z_LogAuditRecWithLevelReturns{}
+	if err := g.client.Call("Plugin.LogAuditRecWithLevel", _args, _returns); err != nil {
+		log.Printf("RPC call to LogAuditRecWithLevel API failed: %s", err.Error())
+	}
+}
+
+func (s *apiRPCServer) LogAuditRecWithLevel(args *Z_LogAuditRecWithLevelArgs, returns *Z_LogAuditRecWithLevelReturns) error {
+	if hook, ok := s.impl.(interface {
+		LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
+	}); ok {
+		hook.LogAuditRecWithLevel(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API LogAuditRecWithLevel called but not implemented"))
 	}
 	return nil
 }

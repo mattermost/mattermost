@@ -1,20 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import type {AccessControlVisualAST} from '@mattermost/types/access_control';
+import type {UserPropertyField} from '@mattermost/types/properties';
+
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
-import {Client4} from 'mattermost-redux/client';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AttributeSelectorMenu from './attribute_selector_menu';
 import OperatorSelectorMenu from './operator_selector_menu';
-import type {TableRow} from './table_row';
-import ValuesEditor from './values_editor';
+import type {TableRow} from './value_selector_menu';
+import ValueSelectorMenu from './value_selector_menu';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
 import TestResultsModal from '../../modals/policy_test/test_modal';
-import {AddAttributeButton, TestButton, HelpText} from '../shared';
+import {AddAttributeButton, TestButton, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel} from '../shared';
 
 import './table_editor.scss';
 
@@ -23,53 +26,36 @@ interface TableEditorProps {
     onChange: (value: string) => void;
     onValidate?: (isValid: boolean) => void;
     disabled?: boolean;
-    userAttributes: Array<{
-        attribute: string;
-        values: string[];
-    }>;
+    userAttributes: UserPropertyField[];
+    onParseError: (error: string) => void;
+    actions: {
+        getVisualAST: (expr: string) => Promise<ActionResult>;
+    };
 }
 
-// Parse CEL expression into table rows
-const parseExpression = async (expr: string): Promise<TableRow[]> => {
+// Parses a CEL (Common Expression Language) string into a structured array of TableRow objects.
+// This allows the expression to be displayed and edited in a user-friendly table format.
+export const parseExpression = (visualAST: AccessControlVisualAST): TableRow[] => {
     const tableRows: TableRow[] = [];
 
-    if (!expr) {
+    if (!visualAST) {
         return tableRows;
     }
 
-    const rawVisualAST = await Client4.expressionToVisualFormat(expr);
-    for (const node of rawVisualAST.conditions) {
+    for (const node of visualAST.conditions) {
         let attr;
 
+        // Extracts the attribute name, removing the 'user.attributes.' prefix.
         if (node.attribute.startsWith('user.attributes.')) {
-            attr = node.attribute.slice(16); // wow, there is no trim-prefix
+            attr = node.attribute.slice(16); // Length of 'user.attributes.'
         } else {
             throw new Error(`Unknown attribute: ${node.attribute}`);
         }
 
-        let op;
-
-        switch (node.operator) {
-        case '==':
-            op = 'is';
-            break;
-        case 'in':
-            op = 'in';
-            break;
-        case '!=':
-            op = 'is not';
-            break;
-        case 'startsWith':
-            op = 'starts with';
-            break;
-        case 'endsWith':
-            op = 'ends with';
-            break;
-        case 'contains':
-            op = 'contains';
-            break;
-        default:
-            throw new Error(`Unknown operator: ${node.operator}`);
+        let op = OPERATOR_LABELS[node.operator];
+        if (!op) {
+            // Fallback for unknown operators, defaulting to 'is' logic
+            op = OperatorLabel.IS;
         }
 
         let values;
@@ -89,181 +75,246 @@ const parseExpression = async (expr: string): Promise<TableRow[]> => {
     return tableRows;
 };
 
+// TableEditor provides a user-friendly table interface for constructing and editing
+// CEL (Common Expression Language) expressions based on user attributes.
+// It parses incoming CEL expressions into rows and reconstructs the expression upon changes.
+// The biggest limitation is that all expressions are ANDed together, so it's not possible to
+// have OR logic.
 function TableEditor({
     value,
     onChange,
     onValidate,
     disabled = false,
     userAttributes,
+    onParseError,
+    actions,
 }: TableEditorProps): JSX.Element {
     const {formatMessage} = useIntl();
+
     const [rows, setRows] = useState<TableRow[]>([]);
     const [showTestResults, setShowTestResults] = useState(false);
     const [showHelpModal, setShowHelpModal] = useState(false);
+    const [autoOpenAttributeMenuForRow, setAutoOpenAttributeMenuForRow] = useState<number | null>(null);
 
-    // Update rows when value changes externally
+    // Effect to parse the incoming CEL expression string (value prop)
+    // and update the internal rows state. Handles errors during parsing.
     useEffect(() => {
-        parseExpression(value).then((rows) => {
-            setRows(rows);
+        actions.getVisualAST(value).then((result) => {
+            if (result.error) {
+                setRows([]);
+                onParseError(result.error.message);
+                return;
+            }
+
+            setRows(parseExpression(result.data));
+        }).catch((err) => {
+            setRows([]);
+            if (onValidate) {
+                onValidate(false);
+            }
+            onParseError(err.message);
         });
-    }, [value]);
+    }, [value, onValidate, onParseError]);
 
-    // Update the CEL expression when table changes
-    const updateExpression = (newRows: TableRow[]) => {
-        const validRows = newRows.filter((row) => row.attribute && row.values.length > 0);
-        const expr = validRows.map((row) => {
-            if (row.operator === 'is') {
-                return `user.attributes.${row.attribute} == "${row.values[0]}"`;
+    // Converts the internal rows state back into a CEL expression string
+    // and calls the onChange and onValidate props.
+    const updateExpression = useCallback((newRows: TableRow[]) => {
+        const rowsThatCanFormExpressions = newRows.filter((row) => row.attribute); // Only include rows that have an attribute selected
+
+        const expr = rowsThatCanFormExpressions.map((row) => {
+            const attributeExpr = `user.attributes.${row.attribute}`;
+            const config = OPERATOR_CONFIG[row.operator];
+
+            if (!config) {
+                // Fallback for unknown operators, defaulting to 'in' logic
+                // This handles cases where row.operator might be an unexpected string.
+                const valuesStr = row.values.map((val: string) => `"${val}"`).join(', ');
+                return `${attributeExpr} in [${valuesStr}]`;
             }
 
-            if (row.operator === 'is not') {
-                return `user.attributes.${row.attribute} != "${row.values[0]}"`;
+            if (config.type === 'list') { // Handles 'in'
+                const valuesStr = row.values.map((val: string) => `"${val}"`).join(', ');
+                return `${attributeExpr} ${config.celOp} [${valuesStr}]`;
             }
 
-            if (row.operator === 'starts with') {
-                return `user.attributes.${row.attribute}.startsWith("${row.values[0]}")`;
+            // For 'comparison' and 'method' types, they operate on a single value.
+            const value = row.values.length > 0 ? row.values[0] : '';
+
+            if (config.type === 'comparison') {
+                return `${attributeExpr} ${config.celOp} "${value}"`;
             }
 
-            if (row.operator === 'ends with') {
-                return `user.attributes.${row.attribute}.endsWith("${row.values[0]}")`;
-            }
-
-            if (row.operator === 'contains') {
-                return `user.attributes.${row.attribute}.contains("${row.values[0]}")`;
-            }
-
-            const valuesStr = row.values.map((val) => `"${val}"`).join(', ');
-            return `user.attributes.${row.attribute} in [${valuesStr}]`;
+            // config.type must be 'method'
+            return `${attributeExpr}.${config.celOp}("${value}")`;
         }).join(' && ');
 
         onChange(expr);
         if (onValidate) {
-            onValidate(true);
+            // Basic validation: if we can build an expression, or if the expression is empty
+            // (e.g. no rows, or rows without attributes yet), it's valid from table perspective.
+            onValidate(expr === '' || rowsThatCanFormExpressions.length > 0);
         }
-    };
+    }, [onChange, onValidate]);
 
-    const addRow = () => {
-        // Find first available attribute
-        const availableAttrs = getAvailableAttributes();
-        if (availableAttrs.length === 0) {
-            return;
+    // Row Manipulation Handlers
+    const addRow = useCallback(() => {
+        if (userAttributes.length === 0) {
+            return; // Do not add a row if no attributes are available
         }
+        setRows((currentRows) => {
+            const newRow = {
+                attribute: userAttributes[0]?.name || '', // Default to the first available attribute
+                operator: OperatorLabel.IS, // Default operator
+                values: [],
+            };
+            const newRows = [...currentRows, newRow];
+            updateExpression(newRows); // Ensure expression is updated immediately
+            setAutoOpenAttributeMenuForRow(newRows.length - 1); // Set for the new row
+            return newRows;
+        });
+    }, [userAttributes, updateExpression]);
 
-        const newRows = [...rows, {
-            attribute: availableAttrs[0].attribute,
-            operator: 'is',
-            values: [],
-        }];
+    const removeRow = useCallback((index: number) => {
+        setRows((currentRows) => {
+            const newRows = currentRows.toSpliced(index, 1);
+            updateExpression(newRows);
+            return newRows;
+        });
+    }, [updateExpression]);
 
-        setRows(newRows);
-        updateExpression(newRows);
-    };
+    const updateRowAttribute = useCallback((index: number, attribute: string) => {
+        setRows((currentRows) => {
+            const newRows = [...currentRows];
+            const oldAttribute = newRows[index].attribute;
+            newRows[index] = {...newRows[index], attribute};
 
-    const removeRow = (index: number) => {
-        const newRows = rows.filter((_, i) => i !== index);
-        setRows(newRows);
-        updateExpression(newRows);
-    };
+            // If attribute changes, we are resetting values.
+            if (oldAttribute !== attribute) {
+                newRows[index].values = [];
+                newRows[index].operator = OperatorLabel.IS;
+            }
+            updateExpression(newRows);
+            return newRows;
+        });
+    }, [updateExpression]);
 
-    const updateRowAttribute = (index: number, attribute: string) => {
-        const newRows = [...rows];
-        newRows[index].attribute = attribute;
-        setRows(newRows);
-        updateExpression(newRows);
-    };
+    const updateRowOperator = useCallback((index: number, newOperator: string) => {
+        setRows((currentRows) => {
+            const oldOperator = currentRows[index].operator;
+            let newValues = [...currentRows[index].values]; // Start with a copy of current values
 
-    const updateRowOperator = (index: number, operator: string) => {
-        const newRows = [...rows];
-        newRows[index].operator = operator;
+            if (newOperator === OperatorLabel.IN && oldOperator !== OperatorLabel.IN) {
+                // Transitioning TO 'in' FROM a non-'in' (likely single-value) operator:
+                // Trim each value and then filter out any that become empty strings.
+                newValues = newValues.map((v) => v.trim()).filter((v) => v !== '');
+            } else if (newOperator !== OperatorLabel.IN) {
+                // Transitioning TO a non-'in' (single-value) operator (or staying as one):
+                // If there are multiple values (e.g., coming from 'in'), take only the first one.
+                if (newValues.length > 1) {
+                    newValues = [newValues[0]];
+                }
+            }
 
-        if ((operator !== 'in') && newRows[index].values.length > 1) {
-            newRows[index].values = newRows[index].values.length > 0 ? [newRows[index].values[0]] : [];
-        }
+            const newRows = [...currentRows];
+            newRows[index] = {
+                ...currentRows[index],
+                operator: newOperator,
+                values: newValues,
+            };
 
-        setRows(newRows);
-        updateExpression(newRows);
-    };
+            updateExpression(newRows);
+            return newRows;
+        });
+    }, [updateExpression]);
 
-    const updateRowValues = (index: number, values: string[]) => {
-        const newRows = [...rows];
-        newRows[index].values = values;
-        setRows(newRows);
-        updateExpression(newRows);
-    };
-
-    // Get available attributes (excluding ones already used)
-    const getAvailableAttributes = () => {
-        const usedAttributes = new Set(rows.map((row) => row.attribute));
-        return userAttributes.filter((attr) => !usedAttributes.has(attr.attribute));
-    };
+    const updateRowValues = useCallback((index: number, values: string[]) => {
+        setRows((currentRows) => {
+            const newRows = [...currentRows];
+            newRows[index] = {...newRows[index], values};
+            updateExpression(newRows);
+            return newRows;
+        });
+    }, [updateExpression]);
 
     return (
         <div className='table-editor'>
-            <div className='table-editor__table'>
-                <div className='table-editor__header'>
-                    <div className='table-editor__column-header'>
-                        <FormattedMessage
-                            id='admin.access_control.table_editor.attribute'
-                            defaultMessage='Attribute'
-                        />
-                    </div>
-                    <div className='table-editor__column-header'>
-                        <FormattedMessage
-                            id='admin.access_control.table_editor.operator'
-                            defaultMessage='Operator'
-                        />
-                    </div>
-                    <div className='table-editor__column-header'>
-                        <FormattedMessage
-                            id='admin.access_control.table_editor.values'
-                            defaultMessage='Values'
-                        />
-                    </div>
-                    <div className='table-editor__column-header-actions'/>
-                </div>
-
-                <div className='table-editor__rows'>
-                    {rows.length === 0 ? (
-                        <div className='table-editor__blank-state'>
-                            <span>
-                                {formatMessage({
-                                    id: 'admin.access_control.table_editor.blank_state',
-                                    defaultMessage: 'Select a user attribute and values to create a rule',
-                                })}
+            <table className='table-editor__table'>
+                <thead>
+                    <tr className='table-editor__header-row'>
+                        <th className='table-editor__column-header'>
+                            <FormattedMessage
+                                id='admin.access_control.table_editor.attribute'
+                                defaultMessage='Attribute'
+                            />
+                        </th>
+                        <th className='table-editor__column-header'>
+                            <FormattedMessage
+                                id='admin.access_control.table_editor.operator'
+                                defaultMessage='Operator'
+                            />
+                        </th>
+                        <th className='table-editor__column-header'>
+                            <span className='table-editor__column-header-value'>
+                                <FormattedMessage
+                                    id='admin.access_control.table_editor.values'
+                                    defaultMessage='Values'
+                                />
                             </span>
-                        </div>
+                        </th>
+                        <th className='table-editor__column-header-actions'/>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows.length === 0 ? (
+                        <tr>
+                            <td
+                                colSpan={4}
+                                className='table-editor__blank-state'
+                            >
+                                <span>
+                                    {formatMessage({
+                                        id: 'admin.access_control.table_editor.blank_state',
+                                        defaultMessage: 'Select a user attribute and values to create a rule',
+                                    })}
+                                </span>
+                            </td>
+                        </tr>
                     ) : (
                         rows.map((row, index) => (
-                            <div
+                            <tr
                                 key={index}
                                 className='table-editor__row'
                             >
-                                <div className='table-editor__cell'>
+                                <td className='table-editor__cell'>
                                     <AttributeSelectorMenu
                                         currentAttribute={row.attribute}
-                                        availableAttributes={getAvailableAttributes().concat(
-                                            row.attribute ? [{attribute: row.attribute, values: []}] : [],
-                                        )}
+                                        availableAttributes={userAttributes}
                                         disabled={disabled}
                                         onChange={(attribute) => updateRowAttribute(index, attribute)}
+                                        menuId={`attribute-selector-menu-${index}`}
+                                        buttonId={`attribute-selector-button-${index}`}
+                                        autoOpen={index === autoOpenAttributeMenuForRow}
+                                        onMenuOpened={() => setAutoOpenAttributeMenuForRow(null)}
                                     />
-                                </div>
-                                <div className='table-editor__cell'>
+                                </td>
+                                <td className='table-editor__cell'>
                                     <OperatorSelectorMenu
                                         currentOperator={row.operator}
                                         disabled={disabled}
                                         onChange={(operator) => updateRowOperator(index, operator)}
                                     />
-                                </div>
-                                <div className='table-editor__cell'>
-                                    <ValuesEditor
+                                </td>
+                                <td className='table-editor__cell'>
+                                    <ValueSelectorMenu
                                         row={row}
                                         disabled={disabled}
-                                        updateValues={(values) => updateRowValues(index, values)}
+                                        updateValues={(values: string[]) => updateRowValues(index, values)}
+                                        options={row.attribute ? userAttributes.find((attr) => attr.name === row.attribute)?.attrs?.options || [] : []}
                                     />
-                                </div>
-                                <div className='table-editor__cell-actions'>
+                                </td>
+                                <td className='table-editor__cell-actions'>
                                     <button
+                                        type='button'
                                         className='table-editor__row-remove'
                                         onClick={() => removeRow(index)}
                                         disabled={disabled}
@@ -271,22 +322,32 @@ function TableEditor({
                                     >
                                         <i className='icon icon-trash-can-outline'/>
                                     </button>
-                                </div>
-                            </div>
+                                </td>
+                            </tr>
                         ))
                     )}
-                </div>
-                <div className='table-editor__add-button-container'>
-                    <AddAttributeButton
-                        onClick={addRow}
-                        disabled={disabled || getAvailableAttributes().length === 0}
-                    />
-                </div>
-            </div>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td
+                            colSpan={4}
+                            className='table-editor__add-button-container'
+                        >
+                            <AddAttributeButton
+                                onClick={addRow}
+                                disabled={disabled || userAttributes.length === 0}
+                            />
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
 
             <div className='table-editor__actions-row'>
                 <HelpText
-                    message={'Each row is a single condition that must be met for a user to comply with the policy. All rules are combined with logical AND operator (`&&`).'}
+                    message={formatMessage({
+                        id: 'admin.access_control.table_editor.help_text',
+                        defaultMessage: 'Each row is a single condition that must be met for a user to comply with the policy. All rules are combined with logical AND operator (`&&`).',
+                    })}
                 />
                 <TestButton
                     onClick={() => setShowTestResults(true)}

@@ -65,6 +65,9 @@ on:
       ROLLING_RELEASE_SERVER_IMAGE:
         type: string
         required: false
+      PR_NUMBER:
+        type: string
+        required: false
     secrets:
       MM_LICENSE:
         required: false
@@ -84,6 +87,10 @@ on:
         required: false
       CWS_EXTRA_HTTP_HEADERS:
         required: false
+      AWS_ACCESS_KEY_ID:
+        required: false
+      AWS_SECRET_ACCESS_KEY:
+        required: false
     outputs:
       passed:
         value: "${{ jobs.report.outputs.passed }}"
@@ -93,6 +100,8 @@ on:
         value: "${{ jobs.report.outputs.failed_expected }}"
       pass_rate:
         value: "${{ jobs.report.outputs.pass_rate }}"
+      playwright_report_url:
+        value: ${{ jobs.report.outputs.playwright_report_url }}
 
 jobs:
   update-initial-status:
@@ -381,6 +390,7 @@ jobs:
       failed_expected: "${{ steps.calculate-results.outputs.failed_expected }}"
       pass_rate: "${{ steps.calculate-results.outputs.pass_rate }}"
       commit_status_message: "${{ steps.calculate-results.outputs.commit_status_message }}"
+      playwright_report_url: "${{ steps.upload-to-s3.outputs.report_url }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -434,6 +444,51 @@ jobs:
             e2e-tests/${{ inputs.TEST }}/logs/
             e2e-tests/${{ inputs.TEST }}/results/
           overwrite: true
+
+      # Configure AWS credentials
+      - name: ci/aws-configure
+        if: (inputs.TEST == 'playwright')
+        uses: aws-actions/configure-aws-credentials@v4.2.0
+        with:
+          aws-region: us-east-1
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      # Upload the playwright reports to S3
+      - name: ci/upload-results-to-s3
+        if: (inputs.TEST == 'playwright')
+        id: upload-to-s3
+        run: |
+          echo "🔍 Checking if results directory exists..."
+
+          PR_NUMBER="${{ inputs.PR_NUMBER }}"
+          LOCAL_RESULTS_PATH="${{ inputs.TEST }}/results/"
+          LOCAL_LOGS_PATH="${{ inputs.TEST }}/logs/"
+          RUN_ID="${{ github.run_id }}"
+          S3_PATH="server-pr-${PR_NUMBER}/e2e-reports/${{ inputs.TEST }}/${RUN_ID}"
+
+          echo "📤 Uploading to s3://${AWS_S3_BUCKET}/${S3_PATH}/"
+
+          if [[ -d "$LOCAL_LOGS_PATH" ]]; then
+            aws s3 sync "$LOCAL_LOGS_PATH" "s3://${AWS_S3_BUCKET}/${S3_PATH}/logs/" \
+              --acl public-read \
+              --cache-control "no-cache"
+          fi
+
+          if [[ -d "$LOCAL_RESULTS_PATH" ]]; then
+            aws s3 sync "$LOCAL_RESULTS_PATH" "s3://${AWS_S3_BUCKET}/${S3_PATH}/results/" \
+              --acl public-read \
+              --cache-control "no-cache"
+          fi
+
+          REPORT_URL="https://${AWS_S3_BUCKET}.s3.amazonaws.com/${S3_PATH}/results/reporter/index.html"
+          echo "✅ Report uploaded to: $REPORT_URL"
+
+          echo "report_url=$REPORT_URL" >> "$GITHUB_OUTPUT"
+        env:
+          AWS_REGION: us-east-1
+          AWS_S3_BUCKET: mattermost-cypress-report
+
       - name: ci/report-calculate-results
         id: calculate-results
         env:
@@ -488,7 +543,11 @@ jobs:
           context: ${{ inputs.status_check_context }}
           description: ${{ needs.report.outputs.commit_status_message || 'Error during test execution' }}
           status: failure
-          target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"
+          target_url: >-
+            ${{ inputs.TEST == 'playwright'
+              && needs.report.outputs.playwright_report_url
+              || needs.generate-test-cycle.outputs.status_check_url }}
+
 
   update-success-final-status:
     runs-on: ubuntu-latest
@@ -507,4 +566,7 @@ jobs:
           context: ${{ inputs.status_check_context }}
           description: ${{ needs.report.outputs.commit_status_message || 'Error during test execution' }}
           status: success
-          target_url: "${{ needs.generate-test-cycle.outputs.status_check_url }}"
+          target_url: >-
+            ${{ inputs.TEST == 'playwright'
+              && needs.report.outputs.playwright_report_url
+              || needs.generate-test-cycle.outputs.status_check_url }}

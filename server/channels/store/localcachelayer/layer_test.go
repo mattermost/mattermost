@@ -45,7 +45,6 @@ func StoreTest(t *testing.T, f func(*testing.T, request.CTX, store.Store)) {
 		}
 	}()
 	for _, st := range storeTypes {
-		st := st
 		rctx := request.TestContext(t)
 
 		t.Run(st.Name, func(t *testing.T) {
@@ -65,7 +64,6 @@ func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, request.CTX, store.S
 		}
 	}()
 	for _, st := range storeTypes {
-		st := st
 		rctx := request.TestContext(t)
 
 		t.Run(st.Name, func(t *testing.T) {
@@ -104,7 +102,6 @@ func initStores(logger mlog.LoggerIFace) {
 	}()
 	var eg errgroup.Group
 	for _, st := range storeTypes {
-		st := st
 		eg.Go(func() error {
 			var err error
 
@@ -137,7 +134,6 @@ func tearDownStores() {
 		var wg sync.WaitGroup
 		wg.Add(len(storeTypes))
 		for _, st := range storeTypes {
-			st := st
 			go func() {
 				if st.Store != nil {
 					st.Store.Close()

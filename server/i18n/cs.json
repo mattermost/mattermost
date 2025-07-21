@@ -3293,11 +3293,11 @@
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel byl deaktivován, protože kanál má více než {{.Users}} uživatelů."
+    "translation": "Oznámení @channel jsou zakázána v kanálech s více než {{.Users}} uživateli. Pro více informací kontaktujte svého systémového administrátora."
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all byl deaktivován, protože kanál má více než {{.Users}} uživatelů."
+    "translation": "Oznámení @all jsou zakázána v kanálech s více než {{.Users}} uživateli. Pro více informací kontaktujte svého systémového administrátora."
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
@@ -10650,5 +10650,21 @@
   {
     "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
     "translation": "Nelze aktualizovat hodnotu pro synchronizované pole vlastního atributu profilu"
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "Limit pro získání kanálů není platný."
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "Limit pro získání polí není platný."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "Uživatel nemá potřebné atributy pro připojení ke kanálu."
+  },
+  {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "Kanály s vynucenými zásadami nelze aktualizovat."
   }
 ]

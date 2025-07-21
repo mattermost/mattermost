@@ -49,6 +49,22 @@ if (typeof Event === 'undefined') {
     };
 }
 
+// Mock CloseEvent class if it's not defined
+if (typeof CloseEvent === 'undefined') {
+    (global as any).CloseEvent = class MockCloseEvent extends (global as any).Event {
+        code: number;
+        reason: string;
+        wasClean: boolean;
+
+        constructor(type: string, options?: {code?: number; reason?: string; wasClean?: boolean}) {
+            super(type);
+            this.code = options?.code || 0;
+            this.reason = options?.reason || '';
+            this.wasClean = options?.wasClean || false;
+        }
+    };
+}
+
 class MockWebSocket {
     readonly binaryType: BinaryType = 'blob';
     readonly bufferedAmount: number = 0;

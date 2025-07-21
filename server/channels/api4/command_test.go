@@ -20,6 +20,7 @@ import (
 )
 
 func TestCreateCommand(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -36,7 +37,8 @@ func TestCreateCommand(t *testing.T) {
 		TeamId:    th.BasicTeam.Id,
 		URL:       "http://nowhere.com",
 		Method:    model.CommandMethodPost,
-		Trigger:   "trigger"}
+		Trigger:   "trigger",
+	}
 
 	_, resp, err := client.CreateCommand(context.Background(), newCmd)
 	require.Error(t, err)
@@ -82,6 +84,7 @@ func TestCreateCommand(t *testing.T) {
 }
 
 func TestUpdateCommand(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	user := th.SystemAdminUser
@@ -154,13 +157,15 @@ func TestUpdateCommand(t *testing.T) {
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
-	th.SystemAdminClient.Logout(context.Background())
+	_, err := th.SystemAdminClient.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err := th.SystemAdminClient.UpdateCommand(context.Background(), cmd2)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestMoveCommand(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	user := th.SystemAdminUser
@@ -212,13 +217,15 @@ func TestMoveCommand(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	th.SystemAdminClient.Logout(context.Background())
+	_, err = th.SystemAdminClient.Logout(context.Background())
+	require.NoError(t, err)
 	resp, err = th.SystemAdminClient.MoveCommand(context.Background(), newTeam.Id, rcmd2.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestDeleteCommand(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	user := th.SystemAdminUser
@@ -270,13 +277,15 @@ func TestDeleteCommand(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	th.SystemAdminClient.Logout(context.Background())
+	_, err = th.SystemAdminClient.Logout(context.Background())
+	require.NoError(t, err)
 	resp, err = th.SystemAdminClient.DeleteCommand(context.Background(), rcmd2.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestListCommands(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -292,11 +301,10 @@ func TestListCommands(t *testing.T) {
 		TeamId:    th.BasicTeam.Id,
 		URL:       "http://nowhere.com",
 		Method:    model.CommandMethodPost,
-		Trigger:   "custom_command"}
-
-	_, _, err := th.SystemAdminClient.CreateCommand(context.Background(), newCmd)
-	require.NoError(t, err)
-
+		Trigger:   "custom_command",
+	}
+	_, _, rootErr := th.SystemAdminClient.CreateCommand(context.Background(), newCmd)
+	require.NoError(t, rootErr)
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		listCommands, _, err := c.ListCommands(context.Background(), th.BasicTeam.Id, false)
 		require.NoError(t, err)
@@ -348,10 +356,13 @@ func TestListCommands(t *testing.T) {
 	})
 
 	t.Run("NoMember", func(t *testing.T) {
-		client.Logout(context.Background())
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+
 		user := th.CreateUser()
-		th.SystemAdminClient.RemoveTeamMember(context.Background(), th.BasicTeam.Id, user.Id)
-		client.Login(context.Background(), user.Email, user.Password)
+		_, _, err = client.Login(context.Background(), user.Email, user.Password)
+		require.NoError(t, err)
+
 		_, resp, err := client.ListCommands(context.Background(), th.BasicTeam.Id, false)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
@@ -361,7 +372,8 @@ func TestListCommands(t *testing.T) {
 	})
 
 	t.Run("NotLoggedIn", func(t *testing.T) {
-		client.Logout(context.Background())
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
 		_, resp, err := client.ListCommands(context.Background(), th.BasicTeam.Id, false)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
@@ -372,6 +384,7 @@ func TestListCommands(t *testing.T) {
 }
 
 func TestListAutocompleteCommands(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -381,7 +394,8 @@ func TestListAutocompleteCommands(t *testing.T) {
 		TeamId:    th.BasicTeam.Id,
 		URL:       "http://nowhere.com",
 		Method:    model.CommandMethodPost,
-		Trigger:   "custom_command"}
+		Trigger:   "custom_command",
+	}
 
 	_, _, err := th.SystemAdminClient.CreateCommand(context.Background(), newCmd)
 	require.NoError(t, err)
@@ -423,17 +437,21 @@ func TestListAutocompleteCommands(t *testing.T) {
 	})
 
 	t.Run("NoMember", func(t *testing.T) {
-		client.Logout(context.Background())
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+
 		user := th.CreateUser()
-		th.SystemAdminClient.RemoveTeamMember(context.Background(), th.BasicTeam.Id, user.Id)
-		client.Login(context.Background(), user.Email, user.Password)
+		_, _, err = client.Login(context.Background(), user.Email, user.Password)
+		require.NoError(t, err)
+
 		_, resp, err := client.ListAutocompleteCommands(context.Background(), th.BasicTeam.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("NotLoggedIn", func(t *testing.T) {
-		client.Logout(context.Background())
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
 		_, resp, err := client.ListAutocompleteCommands(context.Background(), th.BasicTeam.Id)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
@@ -441,6 +459,7 @@ func TestListAutocompleteCommands(t *testing.T) {
 }
 
 func TestListCommandAutocompleteSuggestions(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -450,7 +469,8 @@ func TestListCommandAutocompleteSuggestions(t *testing.T) {
 		TeamId:    th.BasicTeam.Id,
 		URL:       "http://nowhere.com",
 		Method:    model.CommandMethodPost,
-		Trigger:   "custom_command"}
+		Trigger:   "custom_command",
+	}
 
 	_, _, err := th.SystemAdminClient.CreateCommand(context.Background(), newCmd)
 	require.NoError(t, err)
@@ -515,17 +535,21 @@ func TestListCommandAutocompleteSuggestions(t *testing.T) {
 	})
 
 	t.Run("NoMember", func(t *testing.T) {
-		client.Logout(context.Background())
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+
 		user := th.CreateUser()
-		th.SystemAdminClient.RemoveTeamMember(context.Background(), th.BasicTeam.Id, user.Id)
-		client.Login(context.Background(), user.Email, user.Password)
+		_, _, err = client.Login(context.Background(), user.Email, user.Password)
+		require.NoError(t, err)
+
 		_, resp, err := client.ListCommandAutocompleteSuggestions(context.Background(), "/", th.BasicTeam.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("NotLoggedIn", func(t *testing.T) {
-		client.Logout(context.Background())
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
 		_, resp, err := client.ListCommandAutocompleteSuggestions(context.Background(), "/", th.BasicTeam.Id)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
@@ -533,6 +557,7 @@ func TestListCommandAutocompleteSuggestions(t *testing.T) {
 }
 
 func TestGetCommand(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -547,10 +572,10 @@ func TestGetCommand(t *testing.T) {
 		TeamId:    th.BasicTeam.Id,
 		URL:       "http://nowhere.com",
 		Method:    model.CommandMethodPost,
-		Trigger:   "roger"}
-
-	newCmd, _, err := th.SystemAdminClient.CreateCommand(context.Background(), newCmd)
-	require.NoError(t, err)
+		Trigger:   "roger",
+	}
+	newCmd, _, rootErr := th.SystemAdminClient.CreateCommand(context.Background(), newCmd)
+	require.NoError(t, rootErr)
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		t.Run("ValidId", func(t *testing.T) {
 			cmd, _, err := client.GetCommandById(context.Background(), newCmd.Id)
@@ -576,17 +601,21 @@ func TestGetCommand(t *testing.T) {
 	})
 
 	t.Run("NoMember", func(t *testing.T) {
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
+
 		user := th.CreateUser()
-		th.SystemAdminClient.RemoveTeamMember(context.Background(), th.BasicTeam.Id, user.Id)
-		th.Client.Login(context.Background(), user.Email, user.Password)
+		_, _, err = th.Client.Login(context.Background(), user.Email, user.Password)
+		require.NoError(t, err)
+
 		_, resp, err := th.Client.GetCommandById(context.Background(), newCmd.Id)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("NotLoggedIn", func(t *testing.T) {
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 		_, resp, err := th.Client.GetCommandById(context.Background(), newCmd.Id)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
@@ -594,6 +623,7 @@ func TestGetCommand(t *testing.T) {
 }
 
 func TestRegenToken(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -609,7 +639,8 @@ func TestRegenToken(t *testing.T) {
 		TeamId:    th.BasicTeam.Id,
 		URL:       "http://nowhere.com",
 		Method:    model.CommandMethodPost,
-		Trigger:   "trigger"}
+		Trigger:   "trigger",
+	}
 
 	createdCmd, resp, err := th.SystemAdminClient.CreateCommand(context.Background(), newCmd)
 	require.NoError(t, err)
@@ -626,6 +657,7 @@ func TestRegenToken(t *testing.T) {
 }
 
 func TestExecuteInvalidCommand(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -679,13 +711,15 @@ func TestExecuteInvalidCommand(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	otherUser := th.CreateUser()
-	client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	_, _, err = client.Login(context.Background(), otherUser.Email, otherUser.Password)
+	require.NoError(t, err)
 
 	_, resp, err = client.ExecuteCommand(context.Background(), channel.Id, "/getcommand")
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 
 	_, resp, err = client.ExecuteCommand(context.Background(), channel.Id, "/getcommand")
 	require.Error(t, err)
@@ -696,6 +730,7 @@ func TestExecuteInvalidCommand(t *testing.T) {
 }
 
 func TestExecuteGetCommand(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -758,6 +793,7 @@ func TestExecuteGetCommand(t *testing.T) {
 }
 
 func TestExecutePostCommand(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -785,7 +821,8 @@ func TestExecutePostCommand(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		require.Equal(t, http.MethodPost, r.Method)
 
-		r.ParseForm()
+		err := r.ParseForm()
+		require.NoError(t, err)
 
 		require.Equal(t, token, r.FormValue("token"))
 		require.Equal(t, th.BasicTeam.Name, r.FormValue("team_domain"))
@@ -818,6 +855,7 @@ func TestExecutePostCommand(t *testing.T) {
 }
 
 func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -871,6 +909,7 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 }
 
 func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -927,6 +966,7 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 }
 
 func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -991,6 +1031,7 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 }
 
 func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1020,7 +1061,8 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		require.Equal(t, http.MethodPost, r.Method)
-		r.ParseForm()
+		err := r.ParseForm()
+		require.NoError(t, err)
 		require.Equal(t, team2.Name, r.FormValue("team_domain"))
 
 		w.Header().Set("Content-Type", "application/json")
@@ -1067,6 +1109,7 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 }
 
 func TestExecuteCommandReadOnly(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1093,7 +1136,8 @@ func TestExecuteCommandReadOnly(t *testing.T) {
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		require.Equal(t, http.MethodPost, r.Method)
-		r.ParseForm()
+		err := r.ParseForm()
+		require.NoError(t, err)
 		require.Equal(t, th.BasicTeam.Name, r.FormValue("team_domain"))
 
 		w.Header().Set("Content-Type", "application/json")
@@ -1122,7 +1166,8 @@ func TestExecuteCommandReadOnly(t *testing.T) {
 	// Enable Enterprise features
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	th.App.SetPhase2PermissionsMigrationStatus(true)
+	err = th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
 
 	_, appErr = th.App.PatchChannelModerationsForChannel(
 		th.Context,

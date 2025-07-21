@@ -30,7 +30,6 @@ type Props = {
     filters: ChannelSearchOpts;
     policyId?: string;
     onRemoveCallback: (channel: ChannelWithTeamData) => void;
-    onUndoRemoveCallback: (channel: ChannelWithTeamData) => void;
     channelsToRemove: Record<string, ChannelWithTeamData>;
     channelsToAdd: Record<string, ChannelWithTeamData>;
     actions: {
@@ -196,15 +195,8 @@ export default class ChannelList extends React.PureComponent<Props, State> {
     };
 
     private removeChannel = (channel: ChannelWithTeamData) => {
-        const {channelsToRemove, onRemoveCallback, onUndoRemoveCallback} = this.props;
+        const {onRemoveCallback} = this.props;
         const {page} = this.state;
-
-        // Toggle between adding and removing the channel
-        if (channelsToRemove[channel.id] === channel) {
-            // If the channel is already marked for removal, undo it
-            onUndoRemoveCallback(channel);
-            return;
-        }
 
         // If the channel is not marked for removal, mark it
         onRemoveCallback(channel);
@@ -253,7 +245,7 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         // Combine channels to add with existing channels
         const channelsToDisplay = [
             ...Object.values(channelsToAdd),
-            ...channels,
+            ...channels.filter((channel) => !channelsToRemove[channel.id]),
         ].slice(startCount - 1, endCount);
 
         return channelsToDisplay.map((channel) => {
@@ -271,16 +263,8 @@ export default class ChannelList extends React.PureComponent<Props, State> {
                 );
             }
 
-            const isMarkedForRemoval = channelsToRemove[channel.id] === channel;
-
             // Determine the button text and action based on the channel state
-            const buttonClassName = `group-actions TeamList_editText${isMarkedForRemoval ? ' marked-for-removal' : ''}`;
-            const buttonText = isMarkedForRemoval ? (
-                <FormattedMessage
-                    id='admin.access_control.policy.edit_policy.channel_selector.to_be_removed'
-                    defaultMessage='To be removed'
-                />
-            ) : (
+            const buttonText = (
                 <FormattedMessage
                     id='admin.access_control.policy.edit_policy.channel_selector.remove'
                     defaultMessage='Remove'
@@ -307,7 +291,7 @@ export default class ChannelList extends React.PureComponent<Props, State> {
                     remove: (
                         <a
                             id={`remove-channel-${channel.id}`}
-                            className={buttonClassName}
+                            className={'group-actions TeamList_editText'}
                             onClick={(e) => {
                                 e.preventDefault();
                                 this.removeChannel(channel);

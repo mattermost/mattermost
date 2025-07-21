@@ -150,3 +150,10 @@ export function searchUsersForExpression(expression: string, term: string, after
         return {data};
     };
 }
+
+export function getVisualAST(expression: string) {
+    return bindClientFunc({
+        clientFunc: Client4.expressionToVisualFormat,
+        params: [expression],
+    });
+}

@@ -262,6 +262,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     const handleEdit = async () => {
         if (scheduledPost) {
             await handleEditScheduledPost();
+            afterSave?.();
             return;
         }
 

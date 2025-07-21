@@ -98,7 +98,7 @@ func generateDevCSP(c Context) string {
 
 	// Add supported flags for debugging during development, even if not on a dev build.
 	if *c.App.Config().ServiceSettings.DeveloperFlags != "" {
-		for _, devFlagKVStr := range strings.Split(*c.App.Config().ServiceSettings.DeveloperFlags, ",") {
+		for devFlagKVStr := range strings.SplitSeq(*c.App.Config().ServiceSettings.DeveloperFlags, ",") {
 			devFlagKVSplit := strings.SplitN(devFlagKVStr, "=", 2)
 			if len(devFlagKVSplit) != 2 {
 				c.Logger.Warn("Unable to parse developer flag", mlog.String("developer_flag", devFlagKVStr))
@@ -161,8 +161,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			mlog.String("url", r.URL.Path),
 			mlog.String("request_id", requestID),
 		}
-		// if there is a session then include the user_id
-		if c.AppContext.Session() != nil {
+		// if there is a valid session and userID then include the user_id
+		if c.AppContext.Session() != nil && c.AppContext.Session().UserId != "" {
 			responseLogFields = append(responseLogFields, mlog.String("user_id", c.AppContext.Session().UserId))
 		}
 

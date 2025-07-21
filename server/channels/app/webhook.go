@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"maps"
 	"net/http"
 	"regexp"
 	"strings"
@@ -265,9 +266,7 @@ func splitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 		for {
 			lastSplit := splits[len(splits)-1]
 			newProps := make(map[string]any)
-			for k, v := range lastSplit.GetProps() {
-				newProps[k] = v
-			}
+			maps.Copy(newProps, lastSplit.GetProps())
 			origAttachments, _ := newProps[model.PostPropsAttachments].([]*model.SlackAttachment)
 			newProps[model.PostPropsAttachments] = append(origAttachments, &newAttachment)
 			newPropsString := model.StringInterfaceToJSON(newProps)
@@ -344,7 +343,7 @@ func (a *App) CreateWebhookPost(c request.CTX, userID string, channel *model.Cha
 			post.AddProp(model.PostPropsOverrideIconURL, overrideIconURL)
 		}
 		if overrideIconEmoji != "" {
-			post.AddProp(model.PostPropsOverrideIconURL, overrideIconEmoji)
+			post.AddProp(model.PostPropsOverrideIconEmoji, overrideIconEmoji)
 		}
 	}
 

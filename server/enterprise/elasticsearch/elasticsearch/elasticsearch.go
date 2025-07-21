@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -283,7 +284,7 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 	var filters, notFilters []types.Query
 	for i, params := range searchParams {
 		newTerms := []string{}
-		for _, term := range strings.Split(params.Terms, " ") {
+		for term := range strings.SplitSeq(params.Terms, " ") {
 			if searchengine.EmailRegex.MatchString(term) {
 				term = `"` + term + `"`
 			}
@@ -439,7 +440,7 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 				termQueries = append(termQueries, query)
 
 				hashtagTerms := []string{}
-				for _, term := range strings.Split(params.Terms, " ") {
+				for term := range strings.SplitSeq(params.Terms, " ") {
 					hashtagTerms = append(hashtagTerms, "#"+term)
 				}
 
@@ -554,9 +555,9 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 			Query:     query,
 			Highlight: highlight,
 		}).
-		Sort(types.SortOptions{SortOptions: map[string]types.FieldSort{
+		Sort(NewSortOptions().SortOptions(map[string]types.FieldSort{
 			"create_at": {Order: &sortorder.Desc},
-		}}).
+		})).
 		From(page * perPage).
 		Size(perPage)
 
@@ -1282,7 +1283,7 @@ func (es *ElasticsearchInterfaceImpl) PurgeIndexes(rctx request.CTX) *model.AppE
 		// we are checking if provided indexes exist. If an index doesn't exist,
 		// elasticsearch returns an error while trying to purge it even we intend to
 		// ignore it.
-		for _, ignorePurgeIndex := range strings.Split(ignorePurgeIndexes, ",") {
+		for ignorePurgeIndex := range strings.SplitSeq(ignorePurgeIndexes, ",") {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*es.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
 			defer cancel()
 
@@ -1327,13 +1328,7 @@ func (es *ElasticsearchInterfaceImpl) PurgeIndexList(rctx request.CTX, indexes [
 	indexPrefix := *es.Platform.Config().ElasticsearchSettings.IndexPrefix
 	indexToDeleteMap := map[string]bool{}
 	for _, index := range indexes {
-		isKnownIndex := false
-		for _, allowedIndex := range purgeIndexListAllowedIndexes {
-			if index == allowedIndex {
-				isKnownIndex = true
-				break
-			}
-		}
+		isKnownIndex := slices.Contains(purgeIndexListAllowedIndexes, index)
 
 		if !isKnownIndex {
 			return model.NewAppError("Elasticsearch.PurgeIndexList", "ent.elasticsearch.purge_indexes.unknown_index", map[string]any{"unknown_index": index}, "", http.StatusBadRequest)
@@ -1344,7 +1339,7 @@ func (es *ElasticsearchInterfaceImpl) PurgeIndexList(rctx request.CTX, indexes [
 
 	if ign := *es.Platform.Config().ElasticsearchSettings.IgnoredPurgeIndexes; ign != "" {
 		// make sure we're not purging any index configured to be ignored
-		for _, ix := range strings.Split(ign, ",") {
+		for ix := range strings.SplitSeq(ign, ",") {
 			delete(indexToDeleteMap, ix)
 		}
 	}
@@ -1472,7 +1467,7 @@ func (es *ElasticsearchInterfaceImpl) SearchFiles(channels model.ChannelList, se
 	var filters, notFilters []types.Query
 	for i, params := range searchParams {
 		newTerms := []string{}
-		for _, term := range strings.Split(params.Terms, " ") {
+		for term := range strings.SplitSeq(params.Terms, " ") {
 			if searchengine.EmailRegex.MatchString(term) {
 				term = `"` + term + `"`
 			}
@@ -1668,9 +1663,9 @@ func (es *ElasticsearchInterfaceImpl) SearchFiles(channels model.ChannelList, se
 		Request(&search.Request{
 			Query: query,
 		}).
-		Sort(types.SortOptions{SortOptions: map[string]types.FieldSort{
+		Sort(NewSortOptions().SortOptions(map[string]types.FieldSort{
 			"create_at": {Order: &sortorder.Desc},
-		}}).
+		})).
 		From(page * perPage).
 		Size(perPage)
 

@@ -9,6 +9,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -21,15 +22,16 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	oauthgitlab "github.com/mattermost/mattermost/server/v8/channels/app/oauthproviders/gitlab"
-	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
+	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
 func TestCreateOAuthUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -87,6 +89,7 @@ func TestCreateOAuthUser(t *testing.T) {
 }
 
 func TestUpdateDefaultProfileImage(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	startTime := model.GetMillis()
@@ -109,6 +112,7 @@ func TestUpdateDefaultProfileImage(t *testing.T) {
 }
 
 func TestAdjustProfileImage(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -134,6 +138,7 @@ func TestAdjustProfileImage(t *testing.T) {
 }
 
 func TestUpdateUserToRestrictedDomain(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -194,6 +199,7 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 }
 
 func TestUpdateUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -237,6 +243,7 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestUpdateUserMissingFields(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -270,6 +277,7 @@ func TestUpdateUserMissingFields(t *testing.T) {
 }
 
 func TestCreateUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -340,6 +348,7 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestUpdateUserActive(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -358,6 +367,7 @@ func TestUpdateUserActive(t *testing.T) {
 }
 
 func TestUpdateActiveBotsSideEffect(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -410,6 +420,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 }
 
 func TestUpdateOAuthUserAttrs(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -519,6 +530,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 }
 
 func TestCreateUserConflict(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -559,6 +571,7 @@ func TestCreateUserConflict(t *testing.T) {
 }
 
 func TestUpdateUserEmail(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -739,6 +752,7 @@ func createGitlabUser(t *testing.T, a *App, c request.CTX, id int64, username st
 }
 
 func TestGetUsersByStatus(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -868,7 +882,128 @@ func TestGetUsersByStatus(t *testing.T) {
 	})
 }
 
+func TestGetUsersNotInAbacChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Set license to EnterpriseAdvanced
+	th.App.Srv().SetLicense(model.NewTestLicense("enterprise.advanced"))
+
+	// Enable ABAC in config
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	// Create an ABAC channel
+	abacChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+
+	// Create three test users and add them to the team
+	user1 := th.CreateUser() // Will have matching attributes for ABAC
+	user2 := th.CreateUser() // Won't have matching attributes
+	user3 := th.CreateUser() // Won't have matching attributes
+	th.LinkUserToTeam(user1, th.BasicTeam)
+	th.LinkUserToTeam(user2, th.BasicTeam)
+	th.LinkUserToTeam(user3, th.BasicTeam)
+
+	// Create a policy with the same ID as the ABAC channel
+	channelPolicy := &model.AccessControlPolicy{
+		Type:     model.AccessControlPolicyTypeChannel,
+		ID:       abacChannel.Id,
+		Name:     "Test Channel Policy",
+		Revision: 1,
+		Version:  model.AccessControlPolicyVersionV0_1,
+		Rules: []model.AccessControlPolicyRule{
+			{
+				Actions:    []string{"view", "join_channel"},
+				Expression: "user.attributes.program == \"test-program\"",
+			},
+		},
+	}
+
+	// Save the channel policy
+	var storeErr error
+	channelPolicy, storeErr = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, channelPolicy)
+	require.NoError(t, storeErr)
+	require.NotNil(t, channelPolicy)
+	t.Cleanup(func() {
+		dErr := th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, channelPolicy.ID)
+		require.NoError(t, dErr)
+	})
+
+	// Mock the AccessControl service
+	mockAccessControl := &mocks.AccessControlServiceInterface{}
+	originalAccessControl := th.App.Srv().ch.AccessControl
+	th.App.Srv().ch.AccessControl = mockAccessControl
+	defer func() {
+		th.App.Srv().ch.AccessControl = originalAccessControl
+	}()
+
+	t.Run("Returns users with matching attributes using cursor pagination", func(t *testing.T) {
+		// Set up the mock to return user1 when querying for users
+		mockAccessControl.On("QueryUsersForResource",
+			mock.Anything,
+			abacChannel.Id,
+			"*",
+			mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+				return opts.TeamID == th.BasicTeam.Id &&
+					opts.Limit == 50 &&
+					opts.Cursor.TargetID == ""
+			})).Return([]*model.User{user1}, int64(1), nil).Once()
+
+		// Call the new ABAC-specific function with th.Context as first parameter
+		users, appErr := th.App.GetUsersNotInAbacChannel(th.Context, th.BasicTeam.Id, abacChannel.Id, false, "", 50, true, nil)
+		require.Nil(t, appErr)
+
+		// Create a map of user IDs for easier lookup
+		userMap := make(map[string]bool)
+		for _, u := range users {
+			userMap[u.Id] = true
+		}
+
+		// Verify only user1 is returned
+		assert.True(t, userMap[user1.Id], "User1 should be returned for ABAC channel")
+		assert.False(t, userMap[user2.Id], "User2 should not be returned for ABAC channel")
+		assert.False(t, userMap[user3.Id], "User3 should not be returned for ABAC channel")
+		assert.Len(t, users, 1, "Should return exactly 1 user")
+	})
+
+	t.Run("Works with cursor-based pagination", func(t *testing.T) {
+		cursorID := "some-cursor-id"
+
+		// Set up the mock to return user1 when querying with cursor
+		mockAccessControl.On("QueryUsersForResource",
+			mock.Anything,
+			abacChannel.Id,
+			"*",
+			mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+				return opts.TeamID == th.BasicTeam.Id &&
+					opts.Limit == 25 &&
+					opts.Cursor.TargetID == cursorID
+			})).Return([]*model.User{user1}, int64(1), nil).Once()
+
+		// Call with cursor ID and th.Context as first parameter
+		users, appErr := th.App.GetUsersNotInAbacChannel(th.Context, th.BasicTeam.Id, abacChannel.Id, false, cursorID, 25, true, nil)
+		require.Nil(t, appErr)
+		assert.Len(t, users, 1, "Should return exactly 1 user with cursor pagination")
+	})
+
+	t.Run("Returns error when AccessControl service is unavailable", func(t *testing.T) {
+		// Temporarily set AccessControl to nil
+		th.App.Srv().ch.AccessControl = nil
+		defer func() {
+			th.App.Srv().ch.AccessControl = mockAccessControl
+		}()
+
+		// Call should return error with th.Context as first parameter
+		users, appErr := th.App.GetUsersNotInAbacChannel(th.Context, th.BasicTeam.Id, abacChannel.Id, false, "", 50, true, nil)
+		require.NotNil(t, appErr)
+		require.Nil(t, users)
+		assert.Equal(t, "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error", appErr.Id)
+	})
+}
+
 func TestCreateUserWithInviteId(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -897,6 +1032,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 }
 
 func TestCreateUserWithToken(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1091,6 +1227,7 @@ func TestCreateUserWithToken(t *testing.T) {
 }
 
 func TestPermanentDeleteUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic().DeleteBots()
 	defer th.TearDown()
 
@@ -1113,13 +1250,12 @@ func TestPermanentDeleteUser(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	bots1 := []*model.Bot{}
-	bots2 := []*model.Bot{}
+	var botCount1 int
+	var botCount2 int
 
-	sqlStore := mainHelper.GetSQLStore()
-	err1 := sqlStore.GetMaster().Select(&bots1, "SELECT * FROM Bots")
+	err1 := th.SQLStore.GetMaster().Get(&botCount1, "SELECT COUNT(*) FROM Bots")
 	assert.NoError(t, err1)
-	assert.Equal(t, 1, len(bots1))
+	assert.Equal(t, 1, botCount1)
 
 	// test that bot is deleted from bots table
 	retUser1, err := th.App.GetUser(bot.UserId)
@@ -1128,9 +1264,9 @@ func TestPermanentDeleteUser(t *testing.T) {
 	err = th.App.PermanentDeleteUser(th.Context, retUser1)
 	assert.Nil(t, err)
 
-	err1 = sqlStore.GetMaster().Select(&bots2, "SELECT * FROM Bots")
+	err1 = th.SQLStore.GetMaster().Get(&botCount2, "SELECT COUNT(*) FROM Bots")
 	assert.NoError(t, err1)
-	assert.Equal(t, 0, len(bots2))
+	assert.Equal(t, 0, botCount2)
 
 	scheduledPost1 := &model.ScheduledPost{
 		Draft: model.Draft{
@@ -1187,6 +1323,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 }
 
 func TestPasswordRecovery(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1242,11 +1379,12 @@ func TestPasswordRecovery(t *testing.T) {
 }
 
 func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("remove manually added tokens", func(t *testing.T) {
-		for i := 0; i < 5; i++ {
+		for range 5 {
 			token := model.NewToken(
 				TokenTypePasswordRecovery,
 				model.MapToJSON(map[string]string{"UserId": th.BasicUser.Id, "email": th.BasicUser.Email}),
@@ -1280,6 +1418,7 @@ func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
 }
 
 func TestPasswordChangeSessionTermination(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1427,6 +1566,7 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 }
 
 func TestGetViewUsersRestrictions(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1562,6 +1702,7 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 }
 
 func TestPromoteGuestToUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1698,6 +1839,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 }
 
 func TestDemoteUserToGuest(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1883,6 +2025,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 }
 
 func TestDeactivateGuests(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1907,6 +2050,7 @@ func TestDeactivateGuests(t *testing.T) {
 }
 
 func TestUpdateUserRolesWithUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	// InitBasic is used to let the first CreateUser call not be
 	// a system_admin
 	th := Setup(t).InitBasic()
@@ -1932,6 +2076,7 @@ func TestUpdateUserRolesWithUser(t *testing.T) {
 }
 
 func TestUpdateLastAdminUserRolesWithUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	// InitBasic is used to let the first CreateUser call not be
 	// a system_admin
 	th := Setup(t).InitBasic()
@@ -1970,6 +2115,7 @@ func TestUpdateLastAdminUserRolesWithUser(t *testing.T) {
 }
 
 func TestDeactivateMfa(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("MFA is disabled", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -1985,6 +2131,7 @@ func TestDeactivateMfa(t *testing.T) {
 }
 
 func TestPatchUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2023,6 +2170,7 @@ func TestPatchUser(t *testing.T) {
 }
 
 func TestUpdateThreadReadForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("Ensure thread membership exists before updating read", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -2051,6 +2199,7 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 }
 
 func TestCreateUserWithInitialPreferences(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2107,6 +2256,7 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 }
 
 func TestSendSubscriptionHistoryEvent(t *testing.T) {
+	mainHelper.Parallel(t)
 	cloudProduct := &model.Product{
 		ID:                "prod_test1",
 		Name:              "name1",
@@ -2188,6 +2338,7 @@ func TestSendSubscriptionHistoryEvent(t *testing.T) {
 }
 
 func TestGetUsersForReporting(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("should throw error on invalid date range", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -2263,159 +2414,73 @@ func TestGetUsersForReporting(t *testing.T) {
 	})
 }
 
-func TestCreateUserOrGuest(t *testing.T) {
-	t.Run("base case - you can create a user", func(t *testing.T) {
-		th := Setup(t)
-		defer th.TearDown()
-
-		user := &model.User{
-			Email:         "TestCreateUserOrGuest@example.com",
-			Username:      "username_123",
-			Nickname:      "nn_username_123",
-			Password:      "Password1",
-			EmailVerified: true,
-		}
-		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
-		require.Nil(t, appErr)
-		require.Equal(t, "username_123", createdUser.Username)
-	})
-
-	t.Run("cannot create user when user count has exceeded the permissible limit", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		mockUserStore := storemocks.UserStore{}
-		mockUserStore.On("Count", mock.Anything).Return(int64(12000), nil)
-
-		mockStore := th.App.Srv().Store().(*storemocks.Store)
-		mockStore.On("User").Return(&mockUserStore)
-
-		user := &model.User{
-			Email:         "TestCreateUserOrGuest@example.com",
-			Username:      "username_123",
-			Nickname:      "nn_username_123",
-			Password:      "Password1",
-			EmailVerified: true,
-		}
-		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
-		require.NotNil(t, appErr)
-		require.Nil(t, createdUser)
-	})
-
-	t.Run("can create user when server is exactly on limit", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		id := NewTestId()
-		userCreationMocks(t, th, id, 5000)
-
-		user := &model.User{
-			Email:         "TestCreateUserOrGuest@example.com",
-			Username:      "username_123",
-			Nickname:      "nn_username_123",
-			Password:      "Password1",
-			EmailVerified: true,
-		}
-		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
-		require.Nil(t, appErr)
-		require.Equal(t, "username_123", createdUser.Username)
-	})
-
-	t.Run("licensed server can create user when server is OVER limit", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		id := NewTestId()
-		userCreationMocks(t, th, id, 20000)
-
-		user := &model.User{
-			Email:         "TestCreateUserOrGuest@example.com",
-			Username:      "username_123",
-			Nickname:      "nn_username_123",
-			Password:      "Password1",
-			EmailVerified: true,
-		}
-
-		th.App.Srv().SetLicense(model.NewTestLicense(""))
-		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
-		require.Nil(t, appErr)
-		require.Equal(t, "username_123", createdUser.Username)
-	})
-
-	t.Run("licensed server can create user when server is UNDER limit", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		id := NewTestId()
-		userCreationMocks(t, th, id, 10)
-
-		user := &model.User{
-			Email:         "TestCreateUserOrGuest@example.com",
-			Username:      "username_123",
-			Nickname:      "nn_username_123",
-			Password:      "Password1",
-			EmailVerified: true,
-		}
-
-		th.App.Srv().SetLicense(model.NewTestLicense(""))
-		createdUser, appErr := th.App.createUserOrGuest(th.Context, user, false)
-		require.Nil(t, appErr)
-		require.Equal(t, "username_123", createdUser.Username)
-	})
+// Helper functions for remote user testing
+func setupRemoteClusterTest(t *testing.T) (*TestHelper, store.Store) {
+	os.Setenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELSDMS", "true")
+	t.Cleanup(func() { os.Unsetenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELSDMS") })
+	th := setupSharedChannels(t).InitBasic()
+	t.Cleanup(th.TearDown)
+	return th, th.App.Srv().Store()
 }
 
-func userCreationMocks(t *testing.T, th *TestHelper, userID string, activeUserCount int64) {
-	mockUserStore := storemocks.UserStore{}
-	mockUserStore.On("Count", mock.Anything).Return(activeUserCount, nil)
-	mockUserStore.On("IsEmpty", mock.Anything).Return(false, nil)
-	mockUserStore.On("VerifyEmail", mock.Anything, "TestCreateUserOrGuest@example.com").Return("", nil)
-	mockUserStore.On("InvalidateProfilesInChannelCacheByUser", mock.Anything).Return()
-	mockUserStore.On("InvalidateProfileCacheForUser", mock.Anything).Return()
-	mockUserStore.On("Save", mock.Anything, mock.Anything).Return(&model.User{
-		Id:            userID,
-		Email:         "TestCreateUserOrGuest@example.com",
-		Username:      "username_123",
-		Nickname:      "nn_username_123",
-		Password:      "Password1",
-		EmailVerified: true,
-	}, nil)
-
-	mockUserStore.On("Get", mock.Anything, userID).Return(&model.User{
-		Id:            userID,
-		Email:         "TestCreateUserOrGuest@example.com",
-		Username:      "username_123",
-		Nickname:      "nn_username_123",
-		Password:      "Password1",
-		EmailVerified: true,
-	}, nil)
-
-	mockGroupStore := storemocks.GroupStore{}
-	mockGroupStore.On("GetByName", "username_123", mock.Anything).Return(nil, nil)
-
-	mockChannelStore := storemocks.ChannelStore{}
-	mockChannelStore.On("InvalidateAllChannelMembersForUser", mock.Anything).Return()
-
-	mockPreferencesStore := storemocks.PreferenceStore{}
-	mockPreferencesStore.On("Save", mock.Anything).Return(nil)
-
-	mockProductNoticeStore := storemocks.ProductNoticesStore{}
-	mockProductNoticeStore.On("View", userID, mock.Anything).Return(nil)
-
-	mockStore := th.App.Srv().Store().(*storemocks.Store)
-	mockStore.On("User").Return(&mockUserStore)
-	mockStore.On("Group").Return(&mockGroupStore)
-	mockStore.On("Channel").Return(&mockChannelStore)
-	mockStore.On("Preference").Return(&mockPreferencesStore)
-	mockStore.On("ProductNotices").Return(&mockProductNoticeStore)
-
-	var err error
-	th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
-		UserStore:    &mockUserStore,
-		SessionStore: &storemocks.SessionStore{},
-		OAuthStore:   &storemocks.OAuthStore{},
-		ConfigFn:     th.App.ch.srv.platform.Config,
-		LicenseFn:    th.App.ch.srv.License,
-	})
-
+func createTestRemoteCluster(t *testing.T, th *TestHelper, ss store.Store, name, siteURL string, confirmed bool) *model.RemoteCluster {
+	cluster := &model.RemoteCluster{
+		RemoteId:   model.NewId(),
+		Name:       name,
+		SiteURL:    siteURL,
+		CreateAt:   model.GetMillis(),
+		LastPingAt: model.GetMillis(),
+		Token:      model.NewId(),
+		CreatorId:  th.BasicUser.Id,
+	}
+	if confirmed {
+		cluster.RemoteToken = model.NewId()
+	}
+	savedCluster, err := ss.RemoteCluster().Save(cluster)
 	require.NoError(t, err)
+	return savedCluster
+}
+
+func createRemoteUser(t *testing.T, th *TestHelper, remoteCluster *model.RemoteCluster) *model.User {
+	user := th.CreateUser()
+	user.RemoteId = &remoteCluster.RemoteId
+	updatedUser, appErr := th.App.UpdateUser(th.Context, user, false)
+	require.Nil(t, appErr)
+	return updatedUser
+}
+
+func ensureRemoteClusterConnected(t *testing.T, ss store.Store, cluster *model.RemoteCluster, connected bool) {
+	if connected {
+		cluster.SiteURL = "https://example.com"
+		cluster.RemoteToken = model.NewId()
+		cluster.LastPingAt = model.GetMillis()
+	} else {
+		cluster.SiteURL = model.SiteURLPending + "example.com"
+		cluster.RemoteToken = ""
+	}
+	_, err := ss.RemoteCluster().Update(cluster)
+	require.NoError(t, err)
+}
+
+// TestRemoteUserDirectChannelCreation tests direct channel creation with remote users
+func TestRemoteUserDirectChannelCreation(t *testing.T) {
+	th, ss := setupRemoteClusterTest(t)
+
+	connectedRC := createTestRemoteCluster(t, th, ss, "connected-cluster", "https://example-connected.com", true)
+
+	user1 := createRemoteUser(t, th, connectedRC)
+
+	t.Run("Can create DM with user from connected remote", func(t *testing.T) {
+		ensureRemoteClusterConnected(t, ss, connectedRC, true)
+
+		scs := th.App.Srv().GetSharedChannelSyncService()
+		service, ok := scs.(*sharedchannel.Service)
+		require.True(t, ok)
+		require.True(t, service.IsRemoteClusterDirectlyConnected(connectedRC.RemoteId))
+
+		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user1.Id)
+		assert.NotNil(t, channel)
+		assert.Nil(t, appErr)
+		assert.Equal(t, model.ChannelTypeDirect, channel.Type)
+	})
 }

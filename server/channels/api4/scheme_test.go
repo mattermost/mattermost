@@ -15,6 +15,7 @@ import (
 )
 
 func TestCreateScheme(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -193,6 +194,7 @@ func TestCreateScheme(t *testing.T) {
 }
 
 func TestGetScheme(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -260,6 +262,7 @@ func TestGetScheme(t *testing.T) {
 }
 
 func TestGetSchemes(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -328,6 +331,7 @@ func TestGetSchemes(t *testing.T) {
 }
 
 func TestGetTeamsForScheme(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -425,6 +429,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 }
 
 func TestGetChannelsForScheme(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -524,6 +529,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 }
 
 func TestPatchScheme(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -652,6 +658,7 @@ func TestPatchScheme(t *testing.T) {
 }
 
 func TestDeleteScheme(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -871,6 +878,7 @@ func TestDeleteScheme(t *testing.T) {
 }
 
 func TestUpdateTeamSchemeWithTeamMembers(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

@@ -49,6 +49,7 @@ export const SettingsTypes = {
     TYPE_FILE_UPLOAD: 'fileupload' as const,
     TYPE_CUSTOM: 'custom' as const,
     TYPE_ROLES: 'roles' as const,
+    TYPE_EXPANDABLE_SETTING: 'expandable_setting' as const,
 };
 
 export const InviteTypes = {
@@ -91,6 +92,8 @@ export const Preferences = {
     CLICK_TO_REPLY: 'click_to_reply',
     CLICK_TO_REPLY_DEFAULT: 'true',
     COLLAPSED_REPLY_THREADS_FALLBACK_DEFAULT: 'off',
+    RENDER_EMOTICONS_AS_EMOJI: 'render_emoticons_as_emoji',
+    RENDER_EMOTICONS_AS_EMOJI_DEFAULT: 'true',
     LINK_PREVIEW_DISPLAY: 'link_previews',
     LINK_PREVIEW_DISPLAY_DEFAULT: 'true',
     COLLAPSE_DISPLAY: 'collapse_previews',
@@ -326,6 +329,9 @@ export const ActionTypes = keyMirror({
 
     SET_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES: null,
     CLEAR_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES: null,
+
+    SET_READOUT: 'SET_READOUT',
+    CLEAR_READOUT: 'CLEAR_READOUT',
 });
 
 export const PostRequestTypes = keyMirror({
@@ -925,6 +931,7 @@ export const ErrorPageTypes = {
     PERMALINK_NOT_FOUND: 'permalink_not_found',
     TEAM_NOT_FOUND: 'team_not_found',
     CHANNEL_NOT_FOUND: 'channel_not_found',
+    POST_NOT_FOUND: 'post_not_found',
     CLOUD_ARCHIVED: 'cloud_archived',
 };
 
@@ -1558,7 +1565,7 @@ export const Constants = {
     HERE_MENTION_REGEX: /(?:\B|\b_+)@(here)(?!(\.|-|_)*[^\W_])/gi,
     NOTIFY_ALL_MEMBERS: 5,
     ALL_MEMBERS_MENTIONS_REGEX: /(?:\B|\b_+)@(channel|all)(?!(\.|-|_)*[^\W_])/gi,
-    MENTIONS_REGEX: /(?:\B|\b_+)@([a-z0-9.\-_]+)/gi,
+    MENTIONS_REGEX: /(?:\B|\b_+)@([a-z0-9.\-_]+(?::[a-z0-9.\-_]+)?)/gi,
     DEFAULT_CHARACTER_LIMIT: 4000,
     IMAGE_TYPE_GIF: 'gif',
     TEXT_TYPES: ['txt', 'rtf', 'vtt'],
