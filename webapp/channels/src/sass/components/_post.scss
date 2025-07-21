@@ -2255,9 +2255,14 @@
     }
 
     &.post--comment {
+        .post__body {
+            border-color: rgba(var(--button-bg-rgb), 0.24);
+        }
+
         &.other--root {
             .post-comment {
                 border-color: rgba(var(--center-channel-color-rgb), 0.1);
+                background-color: rgba(var(--center-channel-color-rgb), 0.05);
             }
         }
     }
