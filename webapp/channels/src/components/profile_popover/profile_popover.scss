@@ -169,10 +169,10 @@ $profilePopoverBorderWidth: 1px;
 
         .user-profile-popover__email {
             display: flex;
-            flex-direction: column;
-            gap: 4px;
             width: calc($profilePopoverWidth - (2 * $profilePopoverBorderWidth));
+            flex-direction: column;
             padding: 0 16px 10px 16px;
+            gap: 4px;
             justify-self: start;
 
             strong {

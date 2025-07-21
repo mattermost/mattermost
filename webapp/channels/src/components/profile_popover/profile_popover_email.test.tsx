@@ -20,6 +20,7 @@ describe('components/ProfilePopoverEmail', () => {
         email: 'test@example.com',
         haveOverrideProp: false,
         isBot: false,
+        userId: 'test-user-id',
     };
 
     beforeEach(() => {
