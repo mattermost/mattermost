@@ -303,7 +303,6 @@ const SearchBox = forwardRef(
                     searchType={searchType}
                     providerResults={providerResults}
                     selectedOption={selectedOption}
-                    showFilterHaveBeenReset={false}
                     focus={focus}
                 />
             </SearchBoxContainer>
