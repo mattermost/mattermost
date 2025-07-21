@@ -17,7 +17,7 @@ import (
 
 // ResolvePersistentNotification stops the persistent notifications, if a loggedInUserID(except the post owner) reacts, reply or ack on the post.
 // Post-owner can only delete the original post to stop the notifications.
-func (a *App) ResolvePersistentNotification(c request.CTX, post *model.Post, loggedInUserID string) *model.AppError {
+func (a *App) ResolvePersistentNotification(rctx request.CTX, post *model.Post, loggedInUserID string) *model.AppError {
 	// Ignore the post owner's actions to their own post
 	if loggedInUserID == post.UserId {
 		return nil
@@ -78,7 +78,7 @@ func (a *App) ResolvePersistentNotification(c request.CTX, post *model.Post, log
 }
 
 // DeletePersistentNotification stops the persistent notifications.
-func (a *App) DeletePersistentNotification(c request.CTX, post *model.Post) *model.AppError {
+func (a *App) DeletePersistentNotification(rctx request.CTX, post *model.Post) *model.AppError {
 	if !a.IsPersistentNotificationsEnabled() {
 		return nil
 	}
@@ -205,39 +205,39 @@ func (a *App) persistentNotificationsAuxiliaryData(channelsMap map[string]*model
 	channelProfileMap := make(map[string]model.UserMap, len(channelsMap))
 	channelKeywords := make(map[string]MentionKeywords, len(channelsMap))
 	channelNotifyProps := make(map[string]map[string]model.StringMap, len(channelsMap))
-	for _, c := range channelsMap {
+	for _, rctx := range channelsMap {
 		// In DM, notifications can't be send to any 3rd person.
-		if c.Type != model.ChannelTypeDirect {
-			groups, err := a.getGroupsAllowedForReferenceInChannel(c, teamsMap[c.TeamId])
+		if rctx.Type != model.ChannelTypeDirect {
+			groups, err := a.getGroupsAllowedForReferenceInChannel(rctx, teamsMap[rctx.TeamId])
 			if err != nil {
-				return nil, nil, nil, nil, errors.Wrapf(err, "failed to get profiles for channel %s", c.Id)
+				return nil, nil, nil, nil, errors.Wrapf(err, "failed to get profiles for channel %s", rctx.Id)
 			}
-			channelGroupMap[c.Id] = make(map[string]*model.Group, len(groups))
+			channelGroupMap[rctx.Id] = make(map[string]*model.Group, len(groups))
 			for groupID, group := range groups {
-				channelGroupMap[c.Id][groupID] = group
+				channelGroupMap[rctx.Id][groupID] = group
 			}
-			props, err := a.Srv().Store().Channel().GetAllChannelMembersNotifyPropsForChannel(c.Id, true)
+			props, err := a.Srv().Store().Channel().GetAllChannelMembersNotifyPropsForChannel(rctx.Id, true)
 			if err != nil {
-				return nil, nil, nil, nil, errors.Wrapf(err, "failed to get profiles for channel %s", c.Id)
+				return nil, nil, nil, nil, errors.Wrapf(err, "failed to get profiles for channel %s", rctx.Id)
 			}
-			channelNotifyProps[c.Id] = props
+			channelNotifyProps[rctx.Id] = props
 		}
 
-		profileMap, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), c.Id, true)
+		profileMap, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), rctx.Id, true)
 		if err != nil {
-			return nil, nil, nil, nil, errors.Wrapf(err, "failed to get profiles for channel %s", c.Id)
+			return nil, nil, nil, nil, errors.Wrapf(err, "failed to get profiles for channel %s", rctx.Id)
 		}
 
-		channelKeywords[c.Id] = make(MentionKeywords, len(profileMap))
+		channelKeywords[rctx.Id] = make(MentionKeywords, len(profileMap))
 		validProfileMap := make(map[string]*model.User, len(profileMap))
 		for userID, user := range profileMap {
 			if user.IsBot {
 				continue
 			}
 			validProfileMap[userID] = user
-			channelKeywords[c.Id].AddUserKeyword(userID, "@"+user.Username)
+			channelKeywords[rctx.Id].AddUserKeyword(userID, "@"+user.Username)
 		}
-		channelProfileMap[c.Id] = validProfileMap
+		channelProfileMap[rctx.Id] = validProfileMap
 	}
 	return channelGroupMap, channelProfileMap, channelKeywords, channelNotifyProps, nil
 }
@@ -252,14 +252,14 @@ func (a *App) channelTeamMapsForPosts(posts []*model.Post) (map[string]*model.Ch
 		return nil, nil, errors.Wrap(err, "failed to get teams by IDs")
 	}
 	channelsMap := make(map[string]*model.Channel, len(channels))
-	for _, c := range channels {
-		channelsMap[c.Id] = c
+	for _, rctx := range channels {
+		channelsMap[rctx.Id] = rctx
 	}
 
 	teamIds := make(model.StringSet)
-	for _, c := range channels {
-		if c.TeamId != "" {
-			teamIds.Add(c.TeamId)
+	for _, rctx := range channels {
+		if rctx.TeamId != "" {
+			teamIds.Add(rctx.TeamId)
 		}
 	}
 	teams := make([]*model.Team, 0, len(teamIds))

@@ -31,7 +31,7 @@ func (scheduler *MockScheduler) NextScheduleTime(cfg *model.Config, now time.Tim
 	return &nextTime
 }
 
-func (scheduler *MockScheduler) ScheduleJob(c request.CTX, cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
+func (scheduler *MockScheduler) ScheduleJob(rctx request.CTX, cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
 	return nil, nil
 }
 
@@ -181,8 +181,8 @@ func TestRandomDelay(t *testing.T) {
 	}
 
 	cases := []int64{5, 10, 100}
-	for _, c := range cases {
-		out := getRandomDelay(c)
-		require.Less(t, out.Milliseconds(), c)
+	for _, rctx := range cases {
+		out := getRandomDelay(rctx)
+		require.Less(t, out.Milliseconds(), rctx)
 	}
 }
