@@ -13,6 +13,8 @@ import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 
 import globalStore from 'stores/redux_store';
 
+import usePrefixedIds from 'components/common/hooks/usePrefixedIds';
+
 import {Constants} from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
 
@@ -32,7 +34,7 @@ const OPEN_COMMAND_IN_MODAL_ITEM_ID = Constants.Integrations.OPEN_COMMAND_IN_MOD
 const COMMAND_SUGGESTION_ERROR = Constants.Integrations.COMMAND_SUGGESTION_ERROR;
 
 const CommandSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<AutocompleteSuggestion>>((props, ref) => {
-    const {item} = props;
+    const {id, item} = props;
 
     let symbolSpan = <span>{'/'}</span>;
     switch (item.IconData) {
@@ -57,21 +59,38 @@ const CommandSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Autoco
                 className='slash-command__icon'
                 style={{backgroundColor: 'transparent'}}
             >
-                <img src={item.IconData}/>
-            </div>);
+                <img
+                    src={item.IconData}
+                    alt=''
+                />
+            </div>
+        );
     }
+
+    const ids = usePrefixedIds(id, {
+        label: null,
+        description: null,
+    });
 
     return (
         <SuggestionContainer
             ref={ref}
             {...props}
+            aria-describedby={ids.description}
+            aria-labelledby={ids.label}
         >
             {icon}
             <div className='slash-command__info'>
-                <div className='slash-command__title'>
+                <div
+                    id={ids.label}
+                    className='slash-command__title'
+                >
                     {item.Suggestion.substring(1) + ' ' + item.Hint}
                 </div>
-                <div className='slash-command__desc'>
+                <div
+                    id={ids.description}
+                    className='slash-command__desc'
+                >
                     {item.Description}
                 </div>
             </div>
