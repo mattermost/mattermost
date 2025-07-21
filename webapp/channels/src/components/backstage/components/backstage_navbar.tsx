@@ -3,7 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router-dom';
+import BlockableLink from 'components/admin_console/blockable_link';
 
 import type {Team} from '@mattermost/types/teams';
 
@@ -19,7 +19,7 @@ const BackstageNavbar = ({team, siteName}: Props) => {
 
     return (
         <div className='backstage-navbar'>
-            <Link
+            <BlockableLink
                 className='backstage-navbar__back'
                 to={`/${teamExists ? team?.name : ''}`}
             >
@@ -38,7 +38,7 @@ const BackstageNavbar = ({team, siteName}: Props) => {
                         />
                     )}
                 </span>
-            </Link>
+            </BlockableLink>
         </div>
     );
 };
