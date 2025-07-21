@@ -111,9 +111,9 @@ func (h *HTTPServiceImpl) MakeTransport(trustURLs bool) *MattermostTransport {
 		}
 
 		if reservedIP {
-			return fmt.Errorf("IP %s is in a reserved range and not in AllowedUntrustedInternalConnections", ip.String())
+			return fmt.Errorf("IP %s is in a reserved range and not in AllowedUntrustedInternalConnections", ip)
 		}
-		return fmt.Errorf("IP %s is a self-assigned IP and not in AllowedUntrustedInternalConnections", ip.String())
+		return fmt.Errorf("IP %s is a self-assigned IP and not in AllowedUntrustedInternalConnections", ip)
 	}
 
 	return NewTransport(insecure, allowHost, allowIP)

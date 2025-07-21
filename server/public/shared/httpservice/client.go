@@ -147,7 +147,7 @@ func dialContextFilter(dial DialContextFunction, allowHost func(host string) boo
 			}
 
 			if allowIP == nil {
-				forbiddenReasons = append(forbiddenReasons, fmt.Sprintf("IP %s is not allowed", ip.String()))
+				forbiddenReasons = append(forbiddenReasons, fmt.Sprintf("IP %s is not allowed", ip))
 				continue
 			}
 
@@ -181,7 +181,7 @@ func getProxyFn() func(r *http.Request) (*url.URL, error) {
 		// TODO: Consider removing this code once MM-61938 is fixed upstream.
 		if r.URL != nil {
 			if addr, err := netip.ParseAddr(r.URL.Hostname()); err == nil && addr.Is6() && addr.Zone() != "" {
-				return nil, fmt.Errorf("invalid IPv6 address in URL: %q", addr.String())
+				return nil, fmt.Errorf("invalid IPv6 address in URL: %q", addr)
 			}
 		}
 

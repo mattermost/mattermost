@@ -158,7 +158,7 @@ func TestDialContextFilter(t *testing.T) {
 			return nil, nil
 		}, func(host string) bool { return host == "10.0.0.1" }, func(ip net.IP) error {
 			if IsReservedIP(ip) {
-				return fmt.Errorf("IP %s is reserved", ip.String())
+				return fmt.Errorf("IP %s is reserved", ip)
 			}
 			return nil
 		})
@@ -231,8 +231,9 @@ func TestIsOwnIP(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, _ := IsOwnIP(tt.ip)
-			assert.Equalf(t, tt.want, got, "IsOwnIP() = %v, want %v for IP %s", got, tt.want, tt.ip.String())
+			got, err := IsOwnIP(tt.ip)
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
