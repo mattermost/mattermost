@@ -183,7 +183,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 	s.Run("Print server status", func() {
 		printer.Clean()
 
-		expectedStatus := map[string]string{"status": "OK"}
+		expectedStatus := map[string]any{"status": "OK"}
 		s.client.
 			EXPECT().
 			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
