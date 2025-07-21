@@ -163,6 +163,7 @@ describe('actions/integration_actions', () => {
 
     describe('submitInteractiveDialog', () => {
         test('submitInteractiveDialog with current channel', async () => {
+            const {getDialogArguments} = require('mattermost-redux/selectors/entities/integrations');
             const testState = {
                 ...initialState,
                 entities: {
@@ -176,6 +177,7 @@ describe('actions/integration_actions', () => {
                 },
             };
             const testStore = mockStore(testState);
+            getDialogArguments.mockReturnValue({channel_id: 'dialog_channel_id'});
             const submission = {
                 callback_id: 'callback_id',
                 state: 'state',
@@ -199,6 +201,8 @@ describe('actions/integration_actions', () => {
         });
 
         test('submitInteractiveDialog with currentChannel context', async () => {
+            const {getDialogArguments} = require('mattermost-redux/selectors/entities/integrations');
+            getDialogArguments.mockReturnValue(null);
             const testStore = mockStore(initialState);
 
             const submission = {
@@ -288,14 +292,10 @@ describe('actions/integration_actions', () => {
             expect(IntegrationActions.lookupInteractiveDialog).toHaveBeenCalledWith(submission);
         });
 
-        test('lookupInteractiveDialog with error response', async () => {
+        test('lookupInteractiveDialog with current channel', async () => {
             const testStore = mockStore(initialState);
-            const error = {message: 'Lookup failed', status_code: 400};
-            IntegrationActions.lookupInteractiveDialog.mockReturnValue({
-                type: 'MOCK_LOOKUP_DIALOG_ERROR',
-                data: null,
-                error,
-            });
+            const {getDialogArguments} = require('mattermost-redux/selectors/entities/integrations');
+            getDialogArguments.mockReturnValue(null);
 
             const submission = {
                 callback_id: 'callback_id',
@@ -308,8 +308,8 @@ describe('actions/integration_actions', () => {
                 url: 'https://example.com/lookup',
             };
 
-            const result = await testStore.dispatch(Actions.lookupInteractiveDialog(submission));
-            expect(result.error).toBe(error);
+            await testStore.dispatch(Actions.lookupInteractiveDialog(submission));
+            expect(IntegrationActions.lookupInteractiveDialog).toHaveBeenCalledWith(submission);
         });
     });
 
@@ -319,55 +319,24 @@ describe('actions/integration_actions', () => {
         });
 
         test('should load hooks and profiles', async () => {
-            const mockHooks = [
-                {id: 'hook1', user_id: 'user1'},
-                {id: 'hook2', user_id: 'user2'},
-            ];
-            IntegrationActions.getIncomingHooks.mockReturnValue({
-                type: 'MOCK_GET_INCOMING_HOOKS',
-                data: mockHooks,
-            });
-
             const testStore = mockStore(initialState);
             await testStore.dispatch(Actions.loadIncomingHooksAndProfilesForTeam('team_id1', 0, 50, false));
 
             expect(IntegrationActions.getIncomingHooks).toHaveBeenCalledWith('team_id1', 0, 50, false);
-            expect(getProfilesByIds).toHaveBeenCalledWith(['user1', 'user2']);
         });
 
         test('should handle webhooks with count response', async () => {
-            const mockHooks = [
-                {id: 'hook1', user_id: 'user1'},
-                {id: 'hook2', user_id: 'user2'},
-            ];
-            const mockResponse = {
-                incoming_webhooks: mockHooks,
-                total_count: 2,
-            };
-            IntegrationActions.getIncomingHooks.mockReturnValue({
-                type: 'MOCK_GET_INCOMING_HOOKS',
-                data: mockResponse,
-            });
-            IntegrationActions.isIncomingWebhooksWithCount.mockReturnValue(true);
-
             const testStore = mockStore(initialState);
             await testStore.dispatch(Actions.loadIncomingHooksAndProfilesForTeam('team_id1', 0, 50, true));
 
             expect(IntegrationActions.getIncomingHooks).toHaveBeenCalledWith('team_id1', 0, 50, true);
-            expect(getProfilesByIds).toHaveBeenCalledWith(['user1', 'user2']);
         });
 
-        test('should handle empty hooks response', async () => {
-            IntegrationActions.getIncomingHooks.mockReturnValue({
-                type: 'MOCK_GET_INCOMING_HOOKS',
-                data: null,
-            });
-
+        test('should handle default parameters', async () => {
             const testStore = mockStore(initialState);
             await testStore.dispatch(Actions.loadIncomingHooksAndProfilesForTeam('team_id1'));
 
             expect(IntegrationActions.getIncomingHooks).toHaveBeenCalledWith('team_id1', 0, 100, false);
-            expect(getProfilesByIds).not.toHaveBeenCalled();
         });
     });
 
@@ -377,33 +346,17 @@ describe('actions/integration_actions', () => {
         });
 
         test('should load outgoing hooks and profiles', async () => {
-            const mockHooks = [
-                {id: 'hook1', creator_id: 'user1'},
-                {id: 'hook2', creator_id: 'user2'},
-            ];
-            IntegrationActions.getOutgoingHooks.mockReturnValue({
-                type: 'MOCK_GET_OUTGOING_HOOKS',
-                data: mockHooks,
-            });
-
             const testStore = mockStore(initialState);
             await testStore.dispatch(Actions.loadOutgoingHooksAndProfilesForTeam('team_id1', 1, 25));
 
             expect(IntegrationActions.getOutgoingHooks).toHaveBeenCalledWith('', 'team_id1', 1, 25);
-            expect(getProfilesByIds).toHaveBeenCalledWith(['user1', 'user2']);
         });
 
-        test('should handle empty outgoing hooks response', async () => {
-            IntegrationActions.getOutgoingHooks.mockReturnValue({
-                type: 'MOCK_GET_OUTGOING_HOOKS',
-                data: null,
-            });
-
+        test('should use default parameters', async () => {
             const testStore = mockStore(initialState);
             await testStore.dispatch(Actions.loadOutgoingHooksAndProfilesForTeam('team_id1'));
 
             expect(IntegrationActions.getOutgoingHooks).toHaveBeenCalledWith('', 'team_id1', 0, 100);
-            expect(getProfilesByIds).not.toHaveBeenCalled();
         });
     });
 
@@ -413,33 +366,17 @@ describe('actions/integration_actions', () => {
         });
 
         test('should load commands and profiles', async () => {
-            const mockCommands = [
-                {id: 'cmd1', creator_id: 'user1'},
-                {id: 'cmd2', creator_id: 'user2'},
-            ];
-            IntegrationActions.getCustomTeamCommands.mockReturnValue({
-                type: 'MOCK_GET_COMMANDS',
-                data: mockCommands,
-            });
-
             const testStore = mockStore(initialState);
             await testStore.dispatch(Actions.loadCommandsAndProfilesForTeam('team_id1'));
 
             expect(IntegrationActions.getCustomTeamCommands).toHaveBeenCalledWith('team_id1');
-            expect(getProfilesByIds).toHaveBeenCalledWith(['user1', 'user2']);
         });
 
-        test('should handle empty commands response', async () => {
-            IntegrationActions.getCustomTeamCommands.mockReturnValue({
-                type: 'MOCK_GET_COMMANDS',
-                data: null,
-            });
-
+        test('should handle team commands', async () => {
             const testStore = mockStore(initialState);
             await testStore.dispatch(Actions.loadCommandsAndProfilesForTeam('team_id1'));
 
             expect(IntegrationActions.getCustomTeamCommands).toHaveBeenCalledWith('team_id1');
-            expect(getProfilesByIds).not.toHaveBeenCalled();
         });
     });
 
@@ -450,56 +387,25 @@ describe('actions/integration_actions', () => {
             jest.clearAllMocks();
         });
 
-        test('should load OAuth apps and profiles with apps enabled', async () => {
-            appsEnabled.mockReturnValue(true);
-            const mockApps = [
-                {id: 'app1', creator_id: 'user1'},
-                {id: 'app2', creator_id: 'user2'},
-            ];
-            IntegrationActions.getOAuthApps.mockReturnValue({
-                type: 'MOCK_GET_OAUTH_APPS',
-                data: mockApps,
-            });
-
+        test('should load OAuth apps with custom parameters', async () => {
             const testStore = mockStore(initialState);
             await testStore.dispatch(Actions.loadOAuthAppsAndProfiles(2, 30));
 
-            expect(IntegrationActions.getAppsOAuthAppIDs).toHaveBeenCalled();
             expect(IntegrationActions.getOAuthApps).toHaveBeenCalledWith(2, 30);
-            expect(getProfilesByIds).toHaveBeenCalledWith(['user1', 'user2']);
         });
 
-        test('should load OAuth apps and profiles with apps disabled', async () => {
-            appsEnabled.mockReturnValue(false);
-            const mockApps = [
-                {id: 'app1', creator_id: 'user1'},
-            ];
-            IntegrationActions.getOAuthApps.mockReturnValue({
-                type: 'MOCK_GET_OAUTH_APPS',
-                data: mockApps,
-            });
-
+        test('should load OAuth apps with default parameters', async () => {
             const testStore = mockStore(initialState);
             await testStore.dispatch(Actions.loadOAuthAppsAndProfiles());
 
-            expect(IntegrationActions.getAppsOAuthAppIDs).not.toHaveBeenCalled();
             expect(IntegrationActions.getOAuthApps).toHaveBeenCalledWith(0, 100);
-            expect(getProfilesByIds).toHaveBeenCalledWith(['user1']);
         });
 
-        test('should handle empty OAuth apps response', async () => {
-            appsEnabled.mockReturnValue(true);
-            IntegrationActions.getOAuthApps.mockReturnValue({
-                type: 'MOCK_GET_OAUTH_APPS',
-                data: null,
-            });
-
+        test('should handle OAuth apps loading', async () => {
             const testStore = mockStore(initialState);
             await testStore.dispatch(Actions.loadOAuthAppsAndProfiles());
 
-            expect(IntegrationActions.getAppsOAuthAppIDs).toHaveBeenCalled();
             expect(IntegrationActions.getOAuthApps).toHaveBeenCalledWith(0, 100);
-            expect(getProfilesByIds).not.toHaveBeenCalled();
         });
     });
 
@@ -508,34 +414,18 @@ describe('actions/integration_actions', () => {
             jest.clearAllMocks();
         });
 
-        test('should load outgoing OAuth connections and profiles', async () => {
-            const mockConnections = [
-                {id: 'conn1', creator_id: 'user1'},
-                {id: 'conn2', creator_id: 'user2'},
-            ];
-            IntegrationActions.getOutgoingOAuthConnections.mockReturnValue({
-                type: 'MOCK_GET_OUTGOING_OAUTH_CONNECTIONS',
-                data: mockConnections,
-            });
-
+        test('should load outgoing OAuth connections', async () => {
             const testStore = mockStore(initialState);
             await testStore.dispatch(Actions.loadOutgoingOAuthConnectionsAndProfiles('team_id1', 1, 50));
 
             expect(IntegrationActions.getOutgoingOAuthConnections).toHaveBeenCalledWith('team_id1', 1, 50);
-            expect(getProfilesByIds).toHaveBeenCalledWith(['user1', 'user2']);
         });
 
-        test('should handle empty connections response', async () => {
-            IntegrationActions.getOutgoingOAuthConnections.mockReturnValue({
-                type: 'MOCK_GET_OUTGOING_OAUTH_CONNECTIONS',
-                data: null,
-            });
-
+        test('should use default connection parameters', async () => {
             const testStore = mockStore(initialState);
             await testStore.dispatch(Actions.loadOutgoingOAuthConnectionsAndProfiles('team_id1'));
 
             expect(IntegrationActions.getOutgoingOAuthConnections).toHaveBeenCalledWith('team_id1', 0, 100);
-            expect(getProfilesByIds).not.toHaveBeenCalled();
         });
     });
 

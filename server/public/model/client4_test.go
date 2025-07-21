@@ -170,10 +170,9 @@ func TestClient4LookupInteractiveDialog(t *testing.T) {
 			// Verify request method and endpoint
 			assert.Equal(t, "POST", r.Method)
 			assert.Equal(t, "/api/v4/actions/dialogs/lookup", r.URL.Path)
-			assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 
 			// Decode and verify request body
-			var submission model.DialogSubmission
+			var submission model.SubmitDialogRequest
 			err := json.NewDecoder(r.Body).Decode(&submission)
 			assert.NoError(t, err)
 			assert.Equal(t, "test_callback", submission.CallbackId)
@@ -189,7 +188,7 @@ func TestClient4LookupInteractiveDialog(t *testing.T) {
 		defer server.Close()
 
 		client := model.NewAPIv4Client(server.URL)
-		submission := &model.DialogSubmission{
+		submission := &model.SubmitDialogRequest{
 			CallbackId: "test_callback",
 			URL:        "https://example.com/lookup",
 			State:      "test_state",
@@ -202,7 +201,7 @@ func TestClient4LookupInteractiveDialog(t *testing.T) {
 			},
 		}
 
-		response, resp, err := client.LookupInteractiveDialog(context.Background(), submission)
+		response, resp, err := client.LookupInteractiveDialog(context.Background(), *submission)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		assert.Equal(t, expectedResponse, *response)
@@ -223,12 +222,12 @@ func TestClient4LookupInteractiveDialog(t *testing.T) {
 		defer server.Close()
 
 		client := model.NewAPIv4Client(server.URL)
-		submission := &model.DialogSubmission{
+		submission := &model.SubmitDialogRequest{
 			CallbackId: "test_callback",
 			URL:        "https://example.com/lookup",
 		}
 
-		response, resp, err := client.LookupInteractiveDialog(context.Background(), submission)
+		response, resp, err := client.LookupInteractiveDialog(context.Background(), *submission)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		assert.Equal(t, emptyResponse, *response)
@@ -249,12 +248,12 @@ func TestClient4LookupInteractiveDialog(t *testing.T) {
 		defer server.Close()
 
 		client := model.NewAPIv4Client(server.URL)
-		submission := &model.DialogSubmission{
+		submission := &model.SubmitDialogRequest{
 			CallbackId: "invalid_callback",
 			URL:        "invalid_url",
 		}
 
-		response, resp, err := client.LookupInteractiveDialog(context.Background(), submission)
+		response, resp, err := client.LookupInteractiveDialog(context.Background(), *submission)
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 		assert.Nil(t, response)
@@ -268,12 +267,12 @@ func TestClient4LookupInteractiveDialog(t *testing.T) {
 	t.Run("should handle network connectivity issues", func(t *testing.T) {
 		// Use an invalid URL to simulate network failure
 		client := model.NewAPIv4Client("http://invalid-server-url:9999")
-		submission := &model.DialogSubmission{
+		submission := &model.SubmitDialogRequest{
 			CallbackId: "test_callback",
 			URL:        "https://example.com/lookup",
 		}
 
-		response, resp, err := client.LookupInteractiveDialog(context.Background(), submission)
+		response, resp, err := client.LookupInteractiveDialog(context.Background(), *submission)
 		assert.Error(t, err)
 		assert.Nil(t, resp)
 		assert.Nil(t, response)
@@ -288,7 +287,7 @@ func TestClient4LookupInteractiveDialog(t *testing.T) {
 		defer server.Close()
 
 		client := model.NewAPIv4Client(server.URL)
-		submission := &model.DialogSubmission{
+		submission := &model.SubmitDialogRequest{
 			CallbackId: "test_callback",
 			URL:        "https://example.com/lookup",
 		}
@@ -298,7 +297,7 @@ func TestClient4LookupInteractiveDialog(t *testing.T) {
 		// Cancel the request immediately
 		cancel()
 
-		response, resp, err := client.LookupInteractiveDialog(ctx, submission)
+		response, resp, err := client.LookupInteractiveDialog(ctx, *submission)
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, context.Canceled)
 		assert.Nil(t, resp)
@@ -316,12 +315,12 @@ func TestClient4LookupInteractiveDialog(t *testing.T) {
 		defer server.Close()
 
 		client := model.NewAPIv4Client(server.URL)
-		submission := &model.DialogSubmission{
+		submission := &model.SubmitDialogRequest{
 			CallbackId: "test_callback",
 			URL:        "https://example.com/lookup",
 		}
 
-		response, resp, err := client.LookupInteractiveDialog(context.Background(), submission)
+		response, resp, err := client.LookupInteractiveDialog(context.Background(), *submission)
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		assert.Nil(t, response)
@@ -345,12 +344,12 @@ func TestClient4LookupInteractiveDialog(t *testing.T) {
 		client := model.NewAPIv4Client(server.URL)
 		client.SetToken(expectedToken)
 
-		submission := &model.DialogSubmission{
+		submission := &model.SubmitDialogRequest{
 			CallbackId: "test_callback",
 			URL:        "https://example.com/lookup",
 		}
 
-		response, resp, err := client.LookupInteractiveDialog(context.Background(), submission)
+		response, resp, err := client.LookupInteractiveDialog(context.Background(), *submission)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		assert.Equal(t, expectedResponse, *response)

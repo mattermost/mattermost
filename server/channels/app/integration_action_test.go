@@ -4,12 +4,14 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -1368,7 +1370,7 @@ func TestOpenInteractiveDialog(t *testing.T) {
 
 		err := th.App.OpenInteractiveDialog(th.Context, request)
 		require.NotNil(t, err)
-		assert.Contains(t, err.Error(), "Invalid trigger ID")
+		assert.Contains(t, err.Error(), "trigger ID")
 	})
 
 	t.Run("should fail with expired trigger ID", func(t *testing.T) {

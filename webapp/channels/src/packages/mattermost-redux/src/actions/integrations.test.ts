@@ -1002,12 +1002,12 @@ describe('Actions.Integrations', () => {
                 submission: {
                     query: 'complex query',
                     selected_field: 'dynamic_select_field',
-                    additional_data: {
+                    additional_data: JSON.stringify({
                         nested_field: 'nested_value',
                         array_field: ['item1', 'item2'],
-                    },
-                    boolean_field: true,
-                    number_field: 42,
+                    }),
+                    boolean_field: 'true',
+                    number_field: '42',
                 },
                 cancelled: false,
                 team_id: 'team_id',
