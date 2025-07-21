@@ -9,7 +9,7 @@ type MyPlugin struct {
     plugin.MattermostPlugin
 }
 
-func (p *MyPlugin) EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailNotification, string) {
+func (p *MyPlugin) EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailContent, string) {
     %s
 }
 

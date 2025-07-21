@@ -233,7 +233,7 @@ func (hooks *hooksTimerLayer) ConfigurationWillBeSaved(newCfg *model.Config) (*m
 	return _returnsA, _returnsB
 }
 
-func (hooks *hooksTimerLayer) EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailNotification, string) {
+func (hooks *hooksTimerLayer) EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailContent, string) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := hooks.hooksImpl.EmailNotificationWillBeSent(emailNotification)
 	hooks.recordTime(startTime, "EmailNotificationWillBeSent", true)

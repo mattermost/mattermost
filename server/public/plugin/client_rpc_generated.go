@@ -887,11 +887,11 @@ type Z_EmailNotificationWillBeSentArgs struct {
 }
 
 type Z_EmailNotificationWillBeSentReturns struct {
-	A *model.EmailNotification
+	A *model.EmailContent
 	B string
 }
 
-func (g *hooksRPCClient) EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailNotification, string) {
+func (g *hooksRPCClient) EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailContent, string) {
 	_args := &Z_EmailNotificationWillBeSentArgs{emailNotification}
 	_returns := &Z_EmailNotificationWillBeSentReturns{}
 	if g.implemented[EmailNotificationWillBeSentID] {
@@ -904,7 +904,7 @@ func (g *hooksRPCClient) EmailNotificationWillBeSent(emailNotification *model.Em
 
 func (s *hooksRPCServer) EmailNotificationWillBeSent(args *Z_EmailNotificationWillBeSentArgs, returns *Z_EmailNotificationWillBeSentReturns) error {
 	if hook, ok := s.impl.(interface {
-		EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailNotification, string)
+		EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailContent, string)
 	}); ok {
 		returns.A, returns.B = hook.EmailNotificationWillBeSent(args.A)
 	} else {

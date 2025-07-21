@@ -126,14 +126,16 @@ func (a *App) buildEmailNotification(
 		UseMilitaryTime: useMilitaryTime,
 
 		// Customizable content fields
-		Subject:     subject,
-		Title:       title,
-		SubTitle:    subtitle,
-		MessageHTML: messageHTML,
-		MessageText: messageText,
-		ButtonText:  translateFunc("api.templates.post_body.button"),
-		ButtonURL:   buttonURL,
-		FooterText:  translateFunc("app.notification.footer.title"),
+		EmailContent: model.EmailContent{
+			Subject:     subject,
+			Title:       title,
+			SubTitle:    subtitle,
+			MessageHTML: messageHTML,
+			MessageText: messageText,
+			ButtonText:  translateFunc("api.templates.post_body.button"),
+			ButtonURL:   buttonURL,
+			FooterText:  translateFunc("app.notification.footer.title"),
+		},
 	}
 }
 
@@ -171,22 +173,14 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 	// Call plugin hook to allow customization of emailNotification
 	rejectionReason := ""
 	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		var replacementNotification *model.EmailNotification
-		replacementNotification, rejectionReason = hooks.EmailNotificationWillBeSent(emailNotification)
+		var replacementContent *model.EmailContent
+		replacementContent, rejectionReason = hooks.EmailNotificationWillBeSent(emailNotification)
 		if rejectionReason != "" {
 			c.Logger().Info("Email notification cancelled by plugin.", mlog.String("rejection reason", rejectionReason))
 			return false
 		}
-		if replacementNotification != nil {
-			// Only update mutable fields from plugins
-			emailNotification.Subject = replacementNotification.Subject
-			emailNotification.Title = replacementNotification.Title
-			emailNotification.SubTitle = replacementNotification.SubTitle
-			emailNotification.MessageHTML = replacementNotification.MessageHTML
-			emailNotification.MessageText = replacementNotification.MessageText
-			emailNotification.ButtonText = replacementNotification.ButtonText
-			emailNotification.ButtonURL = replacementNotification.ButtonURL
-			emailNotification.FooterText = replacementNotification.FooterText
+		if replacementContent != nil {
+			emailNotification.EmailContent = *replacementContent
 		}
 		return true
 	}, plugin.EmailNotificationWillBeSentID)

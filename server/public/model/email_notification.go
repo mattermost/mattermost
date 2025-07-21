@@ -3,8 +3,18 @@
 
 package model
 
+type EmailContent struct {
+	Subject     string `json:"subject,omitempty"`
+	Title       string `json:"title,omitempty"`
+	SubTitle    string `json:"subtitle,omitempty"`
+	MessageHTML string `json:"message_html,omitempty"`
+	MessageText string `json:"message_text,omitempty"`
+	ButtonText  string `json:"button_text,omitempty"`
+	ButtonURL   string `json:"button_url,omitempty"`
+	FooterText  string `json:"footer_text,omitempty"`
+}
+
 type EmailNotification struct {
-	// Core identifiers (immutable)
 	PostId            string `json:"post_id"`
 	ChannelId         string `json:"channel_id"`
 	TeamId            string `json:"team_id"`
@@ -13,7 +23,6 @@ type EmailNotification struct {
 	RecipientId       string `json:"recipient_id"`
 	RootId            string `json:"root_id,omitempty"`
 
-	// Context for plugin decision-making (immutable)
 	ChannelType     string `json:"channel_type"`
 	ChannelName     string `json:"channel_name"`
 	TeamName        string `json:"team_name"`
@@ -24,13 +33,5 @@ type EmailNotification struct {
 	IsCRTEnabled    bool   `json:"is_crt_enabled"`
 	UseMilitaryTime bool   `json:"use_military_time"`
 
-	// Customizable content fields
-	Subject     string `json:"subject,omitempty"`
-	Title       string `json:"title,omitempty"`
-	SubTitle    string `json:"subtitle,omitempty"`
-	MessageHTML string `json:"message_html,omitempty"`
-	MessageText string `json:"message_text,omitempty"`
-	ButtonText  string `json:"button_text,omitempty"`
-	ButtonURL   string `json:"button_url,omitempty"`
-	FooterText  string `json:"footer_text,omitempty"`
+	EmailContent
 }

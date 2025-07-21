@@ -320,15 +320,15 @@ type Hooks interface {
 	// title, subtitle, message content, buttons, and other email properties.
 	//
 	// To reject an email notification, return an non-empty string describing why the notification was rejected.
-	// To modify the notification, return the replacement, non-nil *model.EmailNotification and an empty string.
-	// To allow the notification without modification, return a nil *model.EmailNotification and an empty string.
+	// To modify the notification, return the replacement, non-nil *model.EmailContent and an empty string.
+	// To allow the notification without modification, return a nil *model.EmailContent and an empty string.
 	//
 	// Note that core identifiers (PostId, ChannelId, TeamId, SenderId, RecipientId, RootId) and
 	// context fields (ChannelType, IsDirectMessage, etc.) are immutable and changes to them will be ignored.
 	// Only customizable content fields can be modified.
 	//
 	// Minimum server version: 10.12
-	EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailNotification, string)
+	EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailContent, string)
 
 	// NotificationWillBePushed is invoked before a push notification is sent to the push
 	// notification server.
