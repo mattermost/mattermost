@@ -3,6 +3,7 @@
 exports[`components/suggestion/search_channel_suggestion should match snapshot 1`] = `
 <SuggestionContainer
   currentUserId="userid1"
+  id="test-suggestion"
   isSelection={false}
   item={
     Object {
@@ -52,6 +53,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot 1
 exports[`components/suggestion/search_channel_suggestion should match snapshot, channel type DM_CHANNEL 1`] = `
 <SuggestionContainer
   currentUserId="userid1"
+  id="test-suggestion"
   isSelection={true}
   item={
     Object {
@@ -97,6 +99,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, channel type GM_CHANNEL 1`] = `
 <SuggestionContainer
   currentUserId="userid1"
+  id="test-suggestion"
   isSelection={true}
   item={
     Object {
@@ -147,6 +150,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, channel type OPEN_CHANNEL 1`] = `
 <SuggestionContainer
   currentUserId="userid1"
+  id="test-suggestion"
   isSelection={true}
   item={
     Object {
@@ -196,6 +200,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, channel type PRIVATE_CHANNEL 1`] = `
 <SuggestionContainer
   currentUserId="userid1"
+  id="test-suggestion"
   isSelection={true}
   item={
     Object {
@@ -245,6 +250,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, isSelection is false 1`] = `
 <SuggestionContainer
   currentUserId="userid1"
+  id="test-suggestion"
   isSelection={false}
   item={
     Object {
@@ -294,6 +300,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, isSelection is true 1`] = `
 <SuggestionContainer
   currentUserId="userid1"
+  id="test-suggestion"
   isSelection={true}
   item={
     Object {
