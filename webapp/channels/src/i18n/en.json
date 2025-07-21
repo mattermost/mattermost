@@ -6497,5 +6497,6 @@
   "flag_message_modal.heading": "Flag message",
   "flag_message_modal.subheading": "Flagged messages will be sent to Content Reviewers for review.",
   "flag_message_modal.post_preview.title": "Message to be flagged",
-  "flag_message_modal.flag_reason": "Reason for flagging this message"
+  "flag_message_modal.flag_reason": "Reason for flagging this message",
+  "flag_message_modal.empty_comment_error": "TODO: Comment is required when flagging a post"
 }

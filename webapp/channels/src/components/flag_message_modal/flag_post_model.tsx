@@ -16,12 +16,12 @@ import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import PostMessagePreview from 'components/post_view/post_message_preview';
+import type {TextboxElement} from 'components/textbox';
+import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 
 import type {GlobalState} from 'types/store';
 
 import './flag_post_modal.scss';
-import AdvancedTextbox from "components/widgets/advanced_textbox/advanced_textbox";
-import type {TextboxElement} from "components/textbox";
 
 const noop = () => {};
 
@@ -44,7 +44,9 @@ export default function FlagPostModal({postId, onExited}: Props) {
     }, [dispatch]);
 
     const [comment, setComment] = React.useState<string>('');
+    const [reason, setReason] = React.useState<string>('');
     const [commentError, setCommentError] = React.useState<string>('');
+    const [reasonError, setReasonError] = React.useState<string>('');
     const [showCommentPreview, setShowCommentPreview] = React.useState<boolean>(false);
 
     const label = formatMessage({id: 'flag_message_modal.heading', defaultMessage: 'Flag message'});
@@ -63,41 +65,85 @@ export default function FlagPostModal({postId, onExited}: Props) {
             return [];
         }
 
-        return contentFlaggingSettings.reasons.map((reason) => {
-            return {
-                value: reason.replaceAll(' ', '_').toLowerCase(),
-                label: reason,
-            };
-        });
+        return contentFlaggingSettings.reasons.map((reason) => ({
+            value: reason,
+            label: reason,
+        }));
     }, [contentFlaggingSettings]);
 
-    const previewMetadata: PostPreviewMetadata = {
-        post,
-        post_id: post.id,
-        team_name: currentTeam?.name || '',
-        channel_display_name: channel?.display_name || '',
-        channel_type: channel?.type || 'O',
-        channel_id: channel?.id || '',
-    };
+    const previewMetadata: PostPreviewMetadata = useMemo(() => {
+        return {
+            post,
+            post_id: post.id,
+            team_name: currentTeam?.name || '',
+            channel_display_name: channel?.display_name || '',
+            channel_type: channel?.type || 'O',
+            channel_id: channel?.id || '',
+        };
+    }, [channel?.display_name, channel?.id, channel?.type, currentTeam?.name, post]);
 
-    const reactStyles = {
-        menuPortal: (provided) => ({
-            ...provided,
-            zIndex: 9999,
-        }),
-    } satisfies StylesConfig<SelectedOption, boolean>;
+    const reactStyles = useMemo(() => {
+        return {
+            menuPortal: (provided) => ({
+                ...provided,
+                zIndex: 9999,
+            }),
+        } satisfies StylesConfig<SelectedOption, boolean>;
+    }, []);
+
+    const handleOptionChange = useCallback((selectedOption: SelectedOption | null) => {
+        const reason = selectedOption ? selectedOption.label : '';
+        setReason(reason);
+
+        if (reason === '') {
+            setReasonError(formatMessage({id: 'flag_message_modal.reason_required_error', defaultMessage: 'TODO: Reason for flagging is required'}));
+        } else {
+            setReasonError('');
+        }
+    }, [formatMessage]);
 
     const handleCommentChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
         setComment(e.target.value);
 
         if (contentFlaggingSettings.reporter_comment_required && e.target.value.trim() === '') {
-            setCommentError('Comment is required when flagging a post.');
+            setCommentError(formatMessage({id: 'flag_message_modal.empty_comment_error', defaultMessage: 'TODO: Comment is required when flagging a post'}));
+        } else {
+            setCommentError('');
         }
-    }, [contentFlaggingSettings.reporter_comment_required]);
+    }, [contentFlaggingSettings.reporter_comment_required, formatMessage]);
 
     const handleToggleCommentPreview = useCallback(() => {
         setShowCommentPreview((prev) => !prev);
     }, []);
+
+    const validateForm = useCallback((): boolean => {
+        let hasError = false;
+
+        if (contentFlaggingSettings.reporter_comment_required && comment.trim() === '') {
+            setCommentError(formatMessage({id: 'flag_message_modal.empty_comment_error', defaultMessage: 'TODO: Comment is required when flagging a post'}));
+            hasError = true;
+        } else {
+            setCommentError('');
+        }
+
+        if (reason === '') {
+            setReasonError(formatMessage({id: 'flag_message_modal.reason_required_error', defaultMessage: 'TODO: Reason for flagging is required'}));
+            hasError = true;
+        } else {
+            setReasonError('');
+        }
+
+        return hasError;
+    }, [comment, contentFlaggingSettings.reporter_comment_required, formatMessage, reason]);
+
+    const handleConfirm = useCallback(() => {
+        const hasError = validateForm();
+        if (hasError) {
+            return;
+        }
+
+        onExited();
+    }, [validateForm, onExited]);
 
     return (
         <GenericModal
@@ -108,7 +154,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
             compassDesign={true}
             keyboardEscape={true}
             enforceFocus={false}
-            handleConfirm={noop}
+            handleConfirm={handleConfirm}
             handleCancel={noop}
             confirmButtonText={submitButtonText}
             onExited={onExited}
@@ -148,7 +194,14 @@ export default function FlagPostModal({postId, onExited}: Props) {
                         isClearable={false}
                         options={reasons}
                         styles={reactStyles}
+                        onChange={handleOptionChange}
                     />
+                    {reasonError &&
+                        <div className='FlagPostModal__reason__error-message'>
+                            <i className='icon icon-alert-circle-outline'/>
+                            <span>{reasonError}</span>
+                        </div>
+                    }
                 </div>
 
                 <div className='FlagPostModal__section FlagPostModal__comment'>
@@ -167,7 +220,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
                         useChannelMentions={false}
                         onKeyPress={() => {}}
                         hasError={false}
-                        errorMessage={''}
+                        errorMessage={commentError}
                         maxLength={1000}
                     />
                 </div>

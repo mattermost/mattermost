@@ -30,6 +30,16 @@
         }
     }
 
+    .FlagPostModal__flagging_reason {
+        .FlagPostModal__reason__error-message {
+            display: flex;
+            width: 90%;
+            align-items: center;
+            color: var(--error-text);
+            font-size: 12px;
+        }
+    }
+
     .FlagPostModal__comment {
         #PreviewInputTextButton {
             position: absolute;
