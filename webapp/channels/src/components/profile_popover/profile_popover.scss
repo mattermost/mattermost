@@ -169,10 +169,19 @@ $profilePopoverBorderWidth: 1px;
 
         .user-profile-popover__email {
             display: flex;
+            flex-direction: column;
+            gap: 4px;
             width: calc($profilePopoverWidth - (2 * $profilePopoverBorderWidth));
-            align-items: center;
             padding: 0 16px 10px 16px;
             justify-self: start;
+
+            strong {
+                font-size: 11px;
+            }
+
+            p {
+                margin-bottom: 0;
+            }
 
             i.icon-email-outline {
                 margin-inline-end: 8px;

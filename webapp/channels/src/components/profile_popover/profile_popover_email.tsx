@@ -33,10 +33,6 @@ const ProfilePopoverEmail = ({
             title={email}
             className='user-profile-popover__email'
         >
-            <i
-                className='icon icon-email-outline'
-                aria-hidden='true'
-            />
             <strong
                 id={titleId}
                 className='user-popover__subtitle'
