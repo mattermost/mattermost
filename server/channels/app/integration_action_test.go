@@ -1323,6 +1323,291 @@ func TestLookupInteractiveDialog(t *testing.T) {
 	})
 }
 
+func TestOpenInteractiveDialog(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("should successfully open dialog with valid trigger ID", func(t *testing.T) {
+		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
+		require.Nil(t, err)
+
+		request := model.OpenDialogRequest{
+			TriggerId: triggerId,
+			URL:       "http://localhost:8065",
+			Dialog: model.Dialog{
+				CallbackId: "callbackid",
+				Title:      "Test Dialog",
+				Elements: []model.DialogElement{
+					{
+						DisplayName: "Field Name",
+						Name:        "field_name",
+						Type:        "text",
+						Placeholder: "Enter value",
+					},
+				},
+				SubmitLabel:    "Submit",
+				NotifyOnCancel: false,
+				State:          "somestate",
+			},
+		}
+
+		err = th.App.OpenInteractiveDialog(th.Context, request)
+		require.Nil(t, err)
+	})
+
+	t.Run("should fail with invalid trigger ID", func(t *testing.T) {
+		request := model.OpenDialogRequest{
+			TriggerId: "invalid_trigger_id",
+			URL:       "http://localhost:8065",
+			Dialog: model.Dialog{
+				CallbackId: "callbackid",
+				Title:      "Test Dialog",
+			},
+		}
+
+		err := th.App.OpenInteractiveDialog(th.Context, request)
+		require.NotNil(t, err)
+		assert.Contains(t, err.Error(), "Invalid trigger ID")
+	})
+
+	t.Run("should fail with expired trigger ID", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
+		})
+
+		// Generate trigger ID and wait for it to expire
+		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
+		require.Nil(t, err)
+
+		time.Sleep(2 * time.Second)
+
+		request := model.OpenDialogRequest{
+			TriggerId: triggerId,
+			URL:       "http://localhost:8065",
+			Dialog: model.Dialog{
+				CallbackId: "callbackid",
+				Title:      "Test Dialog",
+			},
+		}
+
+		err = th.App.OpenInteractiveDialog(th.Context, request)
+		require.NotNil(t, err)
+		assert.Contains(t, err.Error(), "Trigger ID for interactive dialog is expired")
+	})
+
+	t.Run("should handle dialog with invalid elements", func(t *testing.T) {
+		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
+		require.Nil(t, err)
+
+		request := model.OpenDialogRequest{
+			TriggerId: triggerId,
+			URL:       "http://localhost:8065",
+			Dialog: model.Dialog{
+				CallbackId: "callbackid",
+				Title:      "Test Dialog",
+				Elements: []model.DialogElement{
+					{
+						DisplayName: strings.Repeat("A", 500), // Too long display name
+						Name:        "field_name",
+						Type:        "text",
+					},
+				},
+			},
+		}
+
+		// Should succeed but log warning about invalid dialog
+		err = th.App.OpenInteractiveDialog(th.Context, request)
+		require.Nil(t, err)
+	})
+}
+
+func TestDoActionRequest(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	t.Run("should handle successful external request", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "POST", r.Method)
+			assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+			assert.Equal(t, "application/json", r.Header.Get("Accept"))
+
+			body, err := io.ReadAll(r.Body)
+			require.NoError(t, err)
+			assert.NotEmpty(t, body)
+
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{"success": true}`))
+		}))
+		defer ts.Close()
+
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, ts.URL, requestBody)
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		body, readErr := io.ReadAll(resp.Body)
+		require.NoError(t, readErr)
+		assert.Equal(t, `{"success": true}`, string(body))
+		resp.Body.Close()
+	})
+
+	t.Run("should handle non-200 status code", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusBadRequest)
+			_, _ = w.Write([]byte("Bad request"))
+		}))
+		defer ts.Close()
+
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, ts.URL, requestBody)
+		require.NotNil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		assert.Contains(t, err.Error(), "status=400")
+		resp.Body.Close()
+	})
+
+	t.Run("should handle invalid URL", func(t *testing.T) {
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, "invalid-url", requestBody)
+		require.NotNil(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "unsupported protocol scheme")
+	})
+
+	t.Run("should handle plugin URL", func(t *testing.T) {
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, "/plugins/myplugin/action", requestBody)
+		require.NotNil(t, err) // Will fail because plugin doesn't exist, but URL handling should work
+		assert.Nil(t, resp)
+	})
+
+	t.Run("should handle context timeout", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			time.Sleep(2 * time.Second)
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+		defer cancel()
+		c := th.Context.WithContext(ctx)
+
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(c, ts.URL, requestBody)
+		require.NotNil(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "context deadline exceeded")
+	})
+
+	t.Run("should handle network error", func(t *testing.T) {
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, "http://invalid-host-that-does-not-exist:9999", requestBody)
+		require.NotNil(t, err)
+		assert.Nil(t, resp)
+	})
+}
+
+func TestDoLocalRequest(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("should delegate to doPluginRequest", func(t *testing.T) {
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoLocalRequest(th.Context, "/plugins/nonexistent/action", requestBody)
+		require.NotNil(t, err) // Will fail because plugin doesn't exist
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "Unable to find pluginId")
+	})
+}
+
+func TestDoPostActionWithCookieEdgeCases(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	t.Run("should handle missing post with valid cookie", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{}`))
+		}))
+		defer ts.Close()
+
+		cookie := &model.PostActionCookie{
+			PostId:    "nonexistent_post_id",
+			ChannelId: th.BasicChannel.Id,
+			Type:      model.PostActionTypeButton,
+			Integration: &model.PostActionIntegration{
+				URL: ts.URL,
+			},
+		}
+
+		_, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", th.BasicUser.Id, "", cookie)
+		require.Nil(t, err)
+	})
+
+	t.Run("should handle cookie with mismatched post ID", func(t *testing.T) {
+		cookie := &model.PostActionCookie{
+			PostId:    "different_post_id",
+			ChannelId: th.BasicChannel.Id,
+			Type:      model.PostActionTypeButton,
+			Integration: &model.PostActionIntegration{
+				URL: "http://example.com",
+			},
+		}
+
+		_, err := th.App.DoPostActionWithCookie(th.Context, "actual_post_id", "action_id", th.BasicUser.Id, "", cookie)
+		require.NotNil(t, err)
+		assert.Contains(t, err.Error(), "postId doesn't match")
+	})
+
+	t.Run("should handle cookie with nil integration", func(t *testing.T) {
+		cookie := &model.PostActionCookie{
+			PostId:      "nonexistent_post_id",
+			ChannelId:   th.BasicChannel.Id,
+			Type:        model.PostActionTypeButton,
+			Integration: nil,
+		}
+
+		_, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", th.BasicUser.Id, "", cookie)
+		require.NotNil(t, err)
+		assert.Contains(t, err.Error(), "no Integration in action cookie")
+	})
+
+	t.Run("should handle missing user error", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{}`))
+		}))
+		defer ts.Close()
+
+		cookie := &model.PostActionCookie{
+			PostId:    "nonexistent_post_id",
+			ChannelId: th.BasicChannel.Id,
+			Type:      model.PostActionTypeButton,
+			Integration: &model.PostActionIntegration{
+				URL: ts.URL,
+			},
+		}
+
+		_, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", "nonexistent_user_id", "", cookie)
+		require.NotNil(t, err)
+		assert.Contains(t, err.Error(), "Unable to find the account")
+	})
+}
+
 func TestDoPluginRequest(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
