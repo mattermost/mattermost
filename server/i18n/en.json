@@ -3267,6 +3267,10 @@
     "translation": "Error while sending the email"
   },
   {
+    "id": "api.team.invite_members.deactivated_email.app_error",
+    "translation": "This user has been deactivated and cannot be invited again. Please contact the admin for assistance."
+  },
+  {
     "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
     "translation": "SMTP is not configured in System Console"
   },
