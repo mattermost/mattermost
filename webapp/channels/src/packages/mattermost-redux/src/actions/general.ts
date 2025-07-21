@@ -107,6 +107,30 @@ export function getFirstAdminSetupComplete(): ActionFuncAsync<SystemSetting> {
     };
 }
 
+export function checkCWSAvailability(): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const config = state.entities.general.config;
+        const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
+
+        if (!isEnterpriseReady) {
+            dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_SUCCESS, data: 'not_applicable'});
+            return {data: 'not_applicable'};
+        }
+
+        dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_REQUEST});
+
+        try {
+            await Client4.cwsAvailabilityCheck();
+            dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_SUCCESS, data: 'available'});
+            return {data: 'available'};
+        } catch (error) {
+            dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_FAILURE});
+            return {data: 'unavailable'};
+        }
+    };
+}
+
 export default {
     getClientConfig,
     getLicenseConfig,

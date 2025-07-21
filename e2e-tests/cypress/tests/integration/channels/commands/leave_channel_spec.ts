@@ -27,7 +27,8 @@ describe('Leave Channel Command', () => {
     it('Should be redirected to last channel when user leaves channel with /leave command', () => {
         // # Go to newly created channel
         cy.get('#sidebarItem_' + testChannel.name).click({force: true});
-        cy.findAllByTestId('postView').should('be.visible');
+
+        cy.findAllByTestId('postView').last().scrollIntoView().should('be.visible');
 
         // # Post /leave command in center channel
         cy.postMessage('/leave ');

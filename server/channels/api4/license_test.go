@@ -22,6 +22,7 @@ import (
 )
 
 func TestGetOldClientLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -193,6 +194,7 @@ func TestUploadLicenseFile(t *testing.T) {
 }
 
 func TestRemoveLicenseFile(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -407,6 +409,7 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 }
 
 func TestRequestTrialLicense(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -585,7 +588,7 @@ func TestGetLicenseLoadMetric(t *testing.T) {
 		require.NoError(t, initialErr)
 
 		// Add 50 active users (50/1000 * 1000 = 50)
-		for i := 0; i < 49; i++ { // 49 + 1 basic user = 50 active users
+		for range 49 { // 49 + 1 basic user = 50 active users
 			user := th.CreateUser()
 
 			// Make user active
@@ -628,7 +631,7 @@ func TestGetLicenseLoadMetric(t *testing.T) {
 		require.NoError(t, initialErr)
 
 		// Add 19 active users (19/20 * 1000 = 950)
-		for i := 0; i < 18; i++ { // 18 + 1 basic user = 19 active users
+		for range 18 { // 18 + 1 basic user = 19 active users
 			user := th.CreateUser()
 
 			// Make user active
@@ -671,7 +674,7 @@ func TestGetLicenseLoadMetric(t *testing.T) {
 		require.NoError(t, initialErr)
 
 		// Add 30 active users (30/20 * 1000 = 1500)
-		for i := 0; i < 29; i++ { // 29 + 1 basic user = 30 active users
+		for range 29 { // 29 + 1 basic user = 30 active users
 			user := th.CreateUser()
 
 			// Make user active

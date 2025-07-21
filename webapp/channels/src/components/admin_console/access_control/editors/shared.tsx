@@ -7,6 +7,48 @@ import {FormattedMessage} from 'react-intl';
 import './shared.scss';
 import Markdown from 'components/markdown';
 
+// CEL operator constants
+export enum CELOperator {
+    EQUALS = '==',
+    NOT_EQUALS = '!=',
+    STARTS_WITH = 'startsWith',
+    ENDS_WITH = 'endsWith',
+    CONTAINS = 'contains',
+    IN = 'in',
+}
+
+// Operator label constants
+export enum OperatorLabel {
+    IS = 'is',
+    IS_NOT = 'is not',
+    STARTS_WITH = 'starts with',
+    ENDS_WITH = 'ends with',
+    CONTAINS = 'contains',
+    IN = 'in',
+}
+
+// Map from CEL operator to UI label
+export const OPERATOR_LABELS: Record<string, string> = {
+    [CELOperator.EQUALS]: OperatorLabel.IS,
+    [CELOperator.NOT_EQUALS]: OperatorLabel.IS_NOT,
+    [CELOperator.STARTS_WITH]: OperatorLabel.STARTS_WITH,
+    [CELOperator.ENDS_WITH]: OperatorLabel.ENDS_WITH,
+    [CELOperator.CONTAINS]: OperatorLabel.CONTAINS,
+    [CELOperator.IN]: OperatorLabel.IN,
+};
+
+type OperatorType = 'comparison' | 'method' | 'list';
+
+// Map from UI label to operator configuration
+export const OPERATOR_CONFIG: Record<string, {type: OperatorType; celOp: CELOperator}> = {
+    [OperatorLabel.IS]: {type: 'comparison', celOp: CELOperator.EQUALS},
+    [OperatorLabel.IS_NOT]: {type: 'comparison', celOp: CELOperator.NOT_EQUALS},
+    [OperatorLabel.STARTS_WITH]: {type: 'method', celOp: CELOperator.STARTS_WITH},
+    [OperatorLabel.ENDS_WITH]: {type: 'method', celOp: CELOperator.ENDS_WITH},
+    [OperatorLabel.CONTAINS]: {type: 'method', celOp: CELOperator.CONTAINS},
+    [OperatorLabel.IN]: {type: 'list', celOp: CELOperator.IN},
+};
+
 interface TestButtonProps {
     onClick: () => void;
     disabled: boolean;

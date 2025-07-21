@@ -47,6 +47,7 @@ var testUserAgents = []testUserAgent{
 }
 
 func TestGetPlatformName(t *testing.T) {
+	mainHelper.Parallel(t)
 	expected := []string{
 		"Windows",
 		"Macintosh",
@@ -88,6 +89,7 @@ func TestGetPlatformName(t *testing.T) {
 }
 
 func TestGetOSName(t *testing.T) {
+	mainHelper.Parallel(t)
 	expected := []string{
 		"Windows 7",
 		"Mac OS",
@@ -129,6 +131,7 @@ func TestGetOSName(t *testing.T) {
 }
 
 func TestGetBrowserName(t *testing.T) {
+	mainHelper.Parallel(t)
 	expected := []string{
 		"Firefox",
 		"Chrome",
@@ -170,6 +173,7 @@ func TestGetBrowserName(t *testing.T) {
 }
 
 func TestGetBrowserVersion(t *testing.T) {
+	mainHelper.Parallel(t)
 	expected := []string{
 		"40.1",
 		"60.0.3112", // Doesn't report the fourth part of the version

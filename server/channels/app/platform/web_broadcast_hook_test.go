@@ -25,6 +25,7 @@ func (h *testBroadcastHook) Process(msg *HookedWebSocketEvent, webConn *WebConn,
 }
 
 func TestRunBroadcastHooks(t *testing.T) {
+	mainHelper.Parallel(t)
 	hub := &Hub{
 		broadcastHooks: map[string]BroadcastHook{
 			broadcastTest: &testBroadcastHook{},
@@ -109,7 +110,7 @@ func TestRunBroadcastHooks(t *testing.T) {
 
 		var hookIDs []string
 		var hookArgs []map[string]any
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			hookIDs = append(hookIDs, broadcastTest)
 			hookArgs = append(hookArgs, map[string]any{
 				"makes_changes": i == 6,
@@ -131,7 +132,7 @@ func TestRunBroadcastHooks(t *testing.T) {
 
 		var hookIDs []string
 		var hookArgs []map[string]any
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			hookIDs = append(hookIDs, broadcastTest)
 			hookArgs = append(hookArgs, map[string]any{
 				"makes_changes": true,

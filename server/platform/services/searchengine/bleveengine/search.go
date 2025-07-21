@@ -162,7 +162,7 @@ func (b *BleveEngine) SearchPosts(channels model.ChannelList, searchParams []*mo
 		} else {
 			if params.Terms != "" {
 				terms := []string{}
-				for _, term := range strings.Split(params.Terms, " ") {
+				for term := range strings.SplitSeq(params.Terms, " ") {
 					if strings.HasSuffix(term, "*") {
 						messageQ := bleve.NewWildcardQuery(term)
 						messageQ.SetField("Message")
@@ -709,7 +709,7 @@ func (b *BleveEngine) SearchFiles(channels model.ChannelList, searchParams []*mo
 
 		if params.Terms != "" {
 			terms := []string{}
-			for _, term := range strings.Split(params.Terms, " ") {
+			for term := range strings.SplitSeq(params.Terms, " ") {
 				if strings.HasSuffix(term, "*") {
 					nameQ := bleve.NewWildcardQuery(term)
 					nameQ.SetField("Name")

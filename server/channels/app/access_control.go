@@ -30,6 +30,7 @@ func (a *App) GetChannelsForPolicy(rctx request.CTX, policyID string, cursor mod
 		}
 		channelIDs := make([]string, 0, len(policies))
 
+		// channel IDs are the same as policy IDs
 		for _, p := range policies {
 			channelIDs = append(channelIDs, p.ID)
 		}
@@ -173,18 +174,19 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID str
 	return policies, nil
 }
 
-func (a *App) UnAssignPoliciesFromChannels(rctx request.CTX, policyID string, channelIDs []string) *model.AppError {
+func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, channelIDs []string) *model.AppError {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
-		return model.NewAppError("UnAssignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+		return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
 	cps, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
 		Type:     model.AccessControlPolicyTypeChannel,
 		ParentID: policyID,
+		Limit:    1000,
 	})
 	if err != nil {
-		return model.NewAppError("UnAssignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	childPolicies := make(map[string]bool)

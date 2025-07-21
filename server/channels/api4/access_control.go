@@ -11,7 +11,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitAccessControlPolicy() {
@@ -42,9 +41,9 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createAccessControlPolicy", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateAccessControlPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "requested", &policy)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "requested", &policy)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
@@ -113,9 +112,9 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 	policyID := c.Params.PolicyId
 
-	auditRec := c.MakeAuditRecord("deleteAccessControlPolicy", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteAccessControlPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "id", policyID)
+	model.AddEventParameterToAuditRec(auditRec, "id", policyID)
 
 	appErr := c.App.DeleteAccessControlPolicy(c.AppContext, policyID)
 	if appErr != nil {
@@ -246,9 +245,9 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	policyID := c.Params.PolicyId
 
-	auditRec := c.MakeAuditRecord("updateActiveStatus", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateActiveStatus, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "id", policyID)
+	model.AddEventParameterToAuditRec(auditRec, "id", policyID)
 
 	active := r.URL.Query().Get("active")
 	if active != "true" && active != "false" {
@@ -260,7 +259,7 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("active", err)
 		return
 	}
-	audit.AddEventParameter(auditRec, "active", activeBool)
+	model.AddEventParameterToAuditRec(auditRec, "active", activeBool)
 
 	appErr := c.App.UpdateAccessControlPolicyActive(c.AppContext, policyID, activeBool)
 	if appErr != nil {
@@ -293,10 +292,10 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("assignAccessPolicy", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAssignAccessPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "id", policyID)
-	audit.AddEventParameter(auditRec, "channel_ids", assignments.ChannelIds)
+	model.AddEventParameterToAuditRec(auditRec, "id", policyID)
+	model.AddEventParameterToAuditRec(auditRec, "channel_ids", assignments.ChannelIds)
 
 	if len(assignments.ChannelIds) != 0 {
 		_, appErr := c.App.AssignAccessControlPolicyToChannels(c.AppContext, policyID, assignments.ChannelIds)
@@ -325,10 +324,10 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		ChannelIds []string `json:"channel_ids"`
 	}
 
-	auditRec := c.MakeAuditRecord("unassignAccessPolicy", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUnassignAccessPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "id", policyID)
-	audit.AddEventParameter(auditRec, "channel_ids", assignments.ChannelIds)
+	model.AddEventParameterToAuditRec(auditRec, "id", policyID)
+	model.AddEventParameterToAuditRec(auditRec, "channel_ids", assignments.ChannelIds)
 
 	err := json.NewDecoder(r.Body).Decode(&assignments)
 	if err != nil {
@@ -337,7 +336,7 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(assignments.ChannelIds) != 0 {
-		appErr := c.App.UnAssignPoliciesFromChannels(c.AppContext, policyID, assignments.ChannelIds)
+		appErr := c.App.UnassignPoliciesFromChannels(c.AppContext, policyID, assignments.ChannelIds)
 		if appErr != nil {
 			c.Err = appErr
 			return

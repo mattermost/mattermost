@@ -251,12 +251,6 @@ const SearchBox = forwardRef(
             <SearchBoxContainer
                 ref={ref}
                 id='searchBox'
-                aria-label={intl.formatMessage({
-                    id: 'search_bar.search',
-                    defaultMessage: 'Search',
-                })}
-                aria-describedby='searchHints'
-                role='searchbox'
             >
                 <CloseIcon
                     data-testid='searchBoxClose'
