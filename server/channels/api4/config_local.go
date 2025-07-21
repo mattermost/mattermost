@@ -50,12 +50,6 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	appCfg := c.App.Config()
 
-	// Do not allow plugin uploads to be toggled through the API
-	cfg.PluginSettings.EnableUploads = appCfg.PluginSettings.EnableUploads
-
-	// Do not allow certificates to be changed through the API
-	cfg.PluginSettings.SignaturePublicKeyFiles = appCfg.PluginSettings.SignaturePublicKeyFiles
-
 	c.App.HandleMessageExportConfig(cfg, appCfg)
 
 	appErr := cfg.IsValid()

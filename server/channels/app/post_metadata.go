@@ -33,6 +33,7 @@ type linkMetadataCache struct {
 	OpenGraph *opengraph.OpenGraph
 	PostImage *model.PostImage
 	Permalink *model.Permalink
+	URL       string
 }
 
 const MaxMetadataImageSize = MaxOpenGraphResponseSize
@@ -808,6 +809,11 @@ func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.Op
 		return nil, nil, nil, false
 	}
 
+	// Verify that the cached entry matches the requested URL
+	if cached.URL != requestURL {
+		return nil, nil, nil, false
+	}
+
 	return cached.OpenGraph, cached.PostImage, cached.Permalink, true
 }
 
@@ -856,6 +862,7 @@ func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGra
 		OpenGraph: og,
 		PostImage: image,
 		Permalink: permalink,
+		URL:       requestURL,
 	}
 
 	platform.LinkCache().SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, platform.LinkCacheDuration)
