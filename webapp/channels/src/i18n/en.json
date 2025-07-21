@@ -5337,7 +5337,6 @@
   "search_hint.enter_to_search": "Press Enter to search",
   "search_hint.enter_to_select": "Press Enter to select",
   "search_hint.filter": "Filter your search with:",
-  "search_hint.reset_filters": "Your filters were reset because you chose a different team",
   "search_item.channelArchived": "Archived",
   "search_item.direct": "Direct Message (with {username})",
   "search_item.file_tag.direct_message": "Direct Message",
