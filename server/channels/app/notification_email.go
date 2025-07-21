@@ -126,7 +126,7 @@ func (a *App) buildEmailNotification(
 		UseMilitaryTime: useMilitaryTime,
 
 		// Customizable content fields
-		EmailContent: model.EmailContent{
+		EmailNotificationContent: model.EmailNotificationContent{
 			Subject:     subject,
 			Title:       title,
 			SubTitle:    subtitle,
@@ -173,14 +173,14 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 	// Call plugin hook to allow customization of emailNotification
 	rejectionReason := ""
 	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		var replacementContent *model.EmailContent
+		var replacementContent *model.EmailNotificationContent
 		replacementContent, rejectionReason = hooks.EmailNotificationWillBeSent(emailNotification)
 		if rejectionReason != "" {
 			c.Logger().Info("Email notification cancelled by plugin.", mlog.String("rejection reason", rejectionReason))
 			return false
 		}
 		if replacementContent != nil {
-			emailNotification.EmailContent = *replacementContent
+			emailNotification.EmailNotificationContent = *replacementContent
 		}
 		return true
 	}, plugin.EmailNotificationWillBeSentID)

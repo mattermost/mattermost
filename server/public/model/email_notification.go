@@ -3,7 +3,7 @@
 
 package model
 
-type EmailContent struct {
+type EmailNotificationContent struct {
 	Subject     string `json:"subject,omitempty"`
 	Title       string `json:"title,omitempty"`
 	SubTitle    string `json:"subtitle,omitempty"`
@@ -33,5 +33,5 @@ type EmailNotification struct {
 	IsCRTEnabled    bool   `json:"is_crt_enabled"`
 	UseMilitaryTime bool   `json:"use_military_time"`
 
-	EmailContent
+	EmailNotificationContent
 }

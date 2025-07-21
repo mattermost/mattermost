@@ -1641,7 +1641,7 @@ func TestHookEmailNotificationWillBeSent(t *testing.T) {
 		},
 		{
 			name: "email notification modified",
-			testCode: `content := &model.EmailContent{
+			testCode: `content := &model.EmailNotificationContent{
 		Subject: "Modified Subject by Plugin",
 		Title: "Modified Title by Plugin",
 		ButtonText: "Modified Button by Plugin",
