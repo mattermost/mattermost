@@ -1123,7 +1123,7 @@ func TestShouldSendPushNotifications(t *testing.T) {
 
 		status := &model.Status{UserId: user.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: post.ChannelId}
 
-		result := th.App.ShouldSendPushNotification(user, channelNotifyProps, false, status, post, false)
+		result := th.App.ShouldSendPushNotification(th.Context, user, channelNotifyProps, false, status, post, false)
 		assert.True(t, result)
 	})
 
@@ -1137,7 +1137,7 @@ func TestShouldSendPushNotifications(t *testing.T) {
 
 		status := &model.Status{UserId: user.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: post.ChannelId}
 
-		result := th.App.ShouldSendPushNotification(user, channelNotifyProps, false, status, post, false)
+		result := th.App.ShouldSendPushNotification(th.Context, user, channelNotifyProps, false, status, post, false)
 		assert.False(t, result)
 	})
 }
@@ -1396,9 +1396,9 @@ func TestSendTestPushNotification(t *testing.T) {
 	})
 
 	// Per mock definition, first time will send remove, second time will send OK
-	result := th.App.SendTestPushNotification("platform:id")
+	result := th.App.SendTestPushNotification(th.Context, "platform:id")
 	assert.Equal(t, "false", result)
-	result = th.App.SendTestPushNotification("platform:id")
+	result = th.App.SendTestPushNotification(th.Context, "platform:id")
 	assert.Equal(t, "true", result)
 
 	// Server side verification.
@@ -1442,7 +1442,7 @@ func TestSendAckToPushProxy(t *testing.T) {
 		Id:               "testid",
 		NotificationType: model.PushTypeMessage,
 	}
-	err := th.App.SendAckToPushProxy(ack)
+	err := th.App.SendAckToPushProxy(th.Context, ack)
 	require.NoError(t, err)
 	// Server side verification.
 	// We verify that 1 request has been sent, and also check the message contents.
