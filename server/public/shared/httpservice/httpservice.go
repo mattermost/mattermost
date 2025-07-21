@@ -104,7 +104,7 @@ func (h *HTTPServiceImpl) MakeTransport(trustURLs bool) *MattermostTransport {
 		}
 
 		// In the case it's the self-assigned IP, enforce that it needs to be explicitly added to the AllowedUntrustedInternalConnections
-		for _, allowed := range strings.FieldsFunc(*h.configService.Config().ServiceSettings.AllowedUntrustedInternalConnections, splitFields) {
+		for _, allowed := range strings.FieldsFunc(model.SafeDereference(h.configService.Config().ServiceSettings.AllowedUntrustedInternalConnections), splitFields) {
 			if _, ipRange, err := net.ParseCIDR(allowed); err == nil && ipRange.Contains(ip) {
 				return nil
 			}
