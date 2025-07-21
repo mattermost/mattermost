@@ -736,7 +736,6 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 				mlog.String("reason", model.NotificationReasonPushProxySendError),
 				mlog.Err(err),
 			)
-
 		} else {
 			c.App.CountNotificationReason(model.NotificationStatusSuccess, model.NotificationTypePush, model.NotificationReason(""), ack.ClientPlatform)
 		}
