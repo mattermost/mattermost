@@ -4044,10 +4044,6 @@
     "translation": "دریافت وضعیت پلاگین از خوشه امکان پذیر نیست."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "تنظیم پلاگین بصورت مدیریت شده توسط فروشگاه پرونده امکان پذیر نیست."
-  },
-  {
     "id": "app.plugin.filesystem.app_error",
     "translation": "خطای سیستم پرونده روبرو شد."
   },
