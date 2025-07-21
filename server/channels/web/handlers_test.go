@@ -227,7 +227,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	// Fallback Behavior Used - Success expected
 	// ToDo (DSchalla) 2019/01/04: Remove once legacy CSRF Handling is removed
 	th.App.UpdateConfig(func(config *model.Config) {
-		*config.ServiceSettings.ExperimentalStrictCSRFEnforcement = false
+		*config.ServiceSettings.StrictCSRFEnforcement = false
 	})
 	request = httptest.NewRequest("POST", "/api/v4/test", nil)
 	request.AddCookie(cookie)
@@ -244,7 +244,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	// Fallback Behavior Used with Strict Enforcement - Failure Expected
 	// ToDo (DSchalla) 2019/01/04: Remove once legacy CSRF Handling is removed
 	th.App.UpdateConfig(func(config *model.Config) {
-		*config.ServiceSettings.ExperimentalStrictCSRFEnforcement = true
+		*config.ServiceSettings.StrictCSRFEnforcement = true
 	})
 	response = httptest.NewRecorder()
 	handler.ServeHTTP(response, request)
@@ -666,7 +666,7 @@ func TestCheckCSRFToken(t *testing.T) {
 		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement = true
+			*cfg.ServiceSettings.StrictCSRFEnforcement = true
 		})
 
 		h := &Handler{
