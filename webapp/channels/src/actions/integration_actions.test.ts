@@ -381,8 +381,6 @@ describe('actions/integration_actions', () => {
     });
 
     describe('loadOAuthAppsAndProfiles', () => {
-        const {appsEnabled} = require('mattermost-redux/selectors/entities/apps');
-
         beforeEach(() => {
             jest.clearAllMocks();
         });

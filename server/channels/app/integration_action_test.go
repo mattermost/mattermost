@@ -1606,7 +1606,7 @@ func TestDoPostActionWithCookieEdgeCases(t *testing.T) {
 
 		_, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", "nonexistent_user_id", "", cookie)
 		require.NotNil(t, err)
-		assert.Contains(t, err.Error(), "Unable to find the account")
+		assert.Contains(t, err.Error(), "Unable to find the user.")
 	})
 }
 
