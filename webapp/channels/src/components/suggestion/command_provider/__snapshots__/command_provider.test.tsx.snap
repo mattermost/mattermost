@@ -2,6 +2,7 @@
 
 exports[`CommandSuggestion should match snapshot 1`] = `
 <SuggestionContainer
+  id="test-suggestion"
   isSelection={true}
   item={
     Object {
