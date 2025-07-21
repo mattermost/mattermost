@@ -902,7 +902,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 		_, _, err := th.Client.CreateUserWithInviteId(context.Background(), &user, "")
 		require.Error(t, err)
-		assert.ErrorContains(t, err, "missing invite ID parameter")
+		assert.ErrorContains(t, err, "invite ID is required")
 	})
 
 	t.Run("ExpiredInviteId", func(t *testing.T) {
