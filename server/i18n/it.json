@@ -4616,10 +4616,6 @@
     "translation": "User AuthService e AuthData sono mutualmente inclusivi."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Impossibile impostare il plugin come gestito dall'archivio file."
-  },
-  {
     "id": "app.plugin.invalid_version.app_error",
     "translation": "La versione del plugin non può essere interpretata."
   },

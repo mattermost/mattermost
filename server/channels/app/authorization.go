@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -68,10 +69,8 @@ func (a *App) SessionHasPermissionToTeams(c request.CTX, session model.Session, 
 		return true
 	}
 
-	for _, teamID := range teamIDs {
-		if teamID == "" {
-			return false
-		}
+	if slices.Contains(teamIDs, "") {
+		return false
 	}
 
 	// Check session permission, if it allows access, no need to check teams.
@@ -356,10 +355,8 @@ func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool
 		}
 
 		permissions := role.Permissions
-		for _, permission := range permissions {
-			if permission == permissionId {
-				return true
-			}
+		if slices.Contains(permissions, permissionId) {
+			return true
 		}
 	}
 

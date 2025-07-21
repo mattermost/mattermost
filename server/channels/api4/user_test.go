@@ -3830,7 +3830,7 @@ func TestResetPassword(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	code := ""
-	for i := 0; i < model.TokenSize; i++ {
+	for range model.TokenSize {
 		code += "a"
 	}
 	resp, err = th.Client.ResetPassword(context.Background(), code, "newpwd")
@@ -7166,7 +7166,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		client := th.Client
 
 		var rootIds []*model.Post
-		for i := 0; i < 30; i++ {
+		for range 30 {
 			rpost, resp, err := client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
 			require.NoError(t, err)
 			CheckCreatedStatus(t, resp)
@@ -7197,7 +7197,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		client := th.Client
 
 		var rootIds []*model.Post
-		for i := 0; i < 30; i++ {
+		for i := range 30 {
 			rpost, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: fmt.Sprintf("testMsg-%d", i)})
 			rootIds = append(rootIds, rpost)
 			postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: fmt.Sprintf("testReply-%d", i), RootId: rpost.Id})
@@ -7246,7 +7246,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		sysadminClient := th.SystemAdminClient
 
 		var rootIds []*model.Post
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			rpost, resp, err := client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
 			require.NoError(t, err)
 			CheckCreatedStatus(t, resp)
@@ -7285,7 +7285,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		sysadminClient := th.SystemAdminClient
 
 		var rootIds []*model.Post
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			rpost, resp, err := client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
 			require.NoError(t, err)
 			CheckCreatedStatus(t, resp)
@@ -9261,7 +9261,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 
 		th.App.Channels().Ldap = mockLdap
 
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			mockedLdapUser := ldapUser
 			mockedLdapUser.FailedAttempts = i
 			mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(mockedLdapUser, &model.AppError{Id: "ent.ldap.do_login.invalid_password.app_error"})

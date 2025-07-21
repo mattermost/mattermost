@@ -1512,7 +1512,7 @@ func TestSearchFilesAcrossTeams(t *testing.T) {
 
 	var teams [2]*model.Team
 	var channels [2]*model.Channel
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		teams[i] = th.CreateTeam()
 		channels[i] = th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, teams[i].Id)
 
