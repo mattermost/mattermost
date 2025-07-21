@@ -153,7 +153,7 @@ PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
 PLUGIN_PACKAGES += mattermost-plugin-ai-v0.8.3
-PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.3
+PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.5
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.2.1
 
