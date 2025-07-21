@@ -52,11 +52,11 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 	}
 
 	for _, v := range clientVersions {
-		rctx, err2 := semver.NewConstraint(v)
+		c, err2 := semver.NewConstraint(v)
 		if err2 != nil {
 			return false, errors.Wrapf(err2, "Cannot parse version range %s", v)
 		}
-		if !rctx.Check(clientVersionParsed) {
+		if !c.Check(clientVersionParsed) {
 			return false, nil
 		}
 	}
@@ -82,11 +82,11 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 			return false, nil
 		}
 		for _, v := range cnd.ServerVersion {
-			rctx, err := semver.NewConstraint(v)
+			c, err := semver.NewConstraint(v)
 			if err != nil {
 				return false, errors.Wrapf(err, "Cannot parse version range %s", v)
 			}
-			if !rctx.Check(serverVersionSemver) {
+			if !c.Check(serverVersionSemver) {
 				return false, nil
 			}
 		}

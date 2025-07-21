@@ -181,8 +181,8 @@ func TestRandomDelay(t *testing.T) {
 	}
 
 	cases := []int64{5, 10, 100}
-	for _, rctx := range cases {
-		out := getRandomDelay(rctx)
-		require.Less(t, out.Milliseconds(), rctx)
+	for _, c := range cases {
+		out := getRandomDelay(c)
+		require.Less(t, out.Milliseconds(), c)
 	}
 }

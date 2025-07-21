@@ -270,11 +270,11 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 		progress.TotalFilesCount = count
 	}
 
-	var rctx request.CTX = request.EmptyContext(worker.logger)
+	var cancelContext request.CTX = request.EmptyContext(worker.logger)
 	cancelCtx, cancelCancelWatcher := context.WithCancel(context.Background())
 	cancelWatcherChan := make(chan struct{}, 1)
-	rctx = rctx.WithContext(cancelCtx)
-	go worker.jobServer.CancellationWatcher(rctx, job.Id, cancelWatcherChan)
+	cancelContext = cancelContext.WithContext(cancelCtx)
+	go worker.jobServer.CancellationWatcher(cancelContext, job.Id, cancelWatcherChan)
 	defer cancelCancelWatcher()
 
 	for {

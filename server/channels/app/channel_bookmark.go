@@ -33,7 +33,7 @@ func (a *App) GetBookmark(bookmarkId string, includeDeleted bool) (*model.Channe
 
 func (a *App) CreateChannelBookmark(rctx request.CTX, newBookmark *model.ChannelBookmark, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError) {
 	newBookmark.OwnerId = rctx.Session().UserId //ensure that the bookmark is being created by the user who owns the session
-	newBookmark.Id = ""                      // ensure that creating a new bookmark generates a new ID
+	newBookmark.Id = ""                         // ensure that creating a new bookmark generates a new ID
 	bookmark, err := a.Srv().Store().ChannelBookmark().Save(newBookmark, true)
 	if err != nil {
 		return nil, model.NewAppError("CreateChannelBookmark", "app.channel.bookmark.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
