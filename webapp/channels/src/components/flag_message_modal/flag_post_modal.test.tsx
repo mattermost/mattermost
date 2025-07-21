@@ -28,7 +28,7 @@ jest.mock('mattermost-redux/selectors/entities/posts', () => ({
 }));
 
 jest.mock('mattermost-redux/selectors/entities/channels', () => ({
-    getChannel: jest.fn().mockImplementation((state: GlobalState, channelId: string) => {
+    getChannel: jest.fn().mockImplementation((state, channelId) => {
         return {
             id: channelId,
             name: 'test-channel',
