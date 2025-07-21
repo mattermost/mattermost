@@ -95,7 +95,7 @@ func CreateTestEnvironmentInTeam(a *app.App, c request.CTX, client *model.Client
 
 	numPosts := utils.RandIntFromRange(rangePosts)
 	numImages := utils.RandIntFromRange(rangePosts) / 4
-	for j := 0; j < numPosts; j++ {
+	for range numPosts {
 		user := users[utils.RandIntFromRange(utils.Range{Begin: 0, End: len(users) - 1})]
 		_, _, err := client.LoginById(context.Background(), user.Id, UserPassword)
 		if err != nil {

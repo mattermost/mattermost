@@ -125,7 +125,7 @@ func createPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("policy", jsonErr)
 		return
 	}
-	auditRec := c.MakeAuditRecord("createPolicy", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreatePolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "policy", &policy)
 
@@ -163,7 +163,7 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	patch.ID = c.Params.PolicyId
 
-	auditRec := c.MakeAuditRecord("patchPolicy", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventPatchPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "patch", &patch)
 
@@ -196,7 +196,7 @@ func deletePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
 
-	auditRec := c.MakeAuditRecord("deletePolicy", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeletePolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteComplianceDataRetentionPolicy) {
@@ -282,7 +282,7 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("addTeamsToPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
-	auditRec := c.MakeAuditRecord("addTeamsToPolicy", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddTeamsToPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
 	model.AddEventParameterToAuditRec(auditRec, "team_ids", teamIDs)
@@ -309,7 +309,7 @@ func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("removeTeamsFromPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
-	auditRec := c.MakeAuditRecord("removeTeamsFromPolicy", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveTeamsFromPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
 	model.AddEventParameterToAuditRec(auditRec, "team_ids", teamIDs)
@@ -405,7 +405,7 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("addChannelsToPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
-	auditRec := c.MakeAuditRecord("addChannelsToPolicy", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddChannelsToPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
 	model.AddEventParameterToAuditRec(auditRec, "channel_ids", channelIDs)
@@ -433,7 +433,7 @@ func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request
 		c.Err = model.NewAppError("removeChannelsFromPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
-	auditRec := c.MakeAuditRecord("removeChannelsFromPolicy", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveChannelsFromPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "policy_id", policyId)
 	model.AddEventParameterToAuditRec(auditRec, "channel_ids", channelIDs)

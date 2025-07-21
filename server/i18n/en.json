@@ -6459,10 +6459,6 @@
     "translation": "Encountered filesystem error."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Unable to set plugin as managed by the file store."
-  },
-  {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
     "translation": "Unable to get plugin statuses from the cluster."
   },
@@ -10854,11 +10850,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 134+"
+    "translation": "Version 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 134+"
+    "translation": "Version 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
