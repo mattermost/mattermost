@@ -59,11 +59,7 @@ jest.mock('mattermost-redux/selectors/entities/content_flagging', () => {
         contentFlaggingConfig: jest.fn().mockImplementation(() => {
             return {
                 reporter_comment_required: true,
-                reasons: [
-                    {id: 'Reason 1', label: 'Reason 1'},
-                    {id: 'Reason 2', label: 'Reason 2'},
-                    {id: 'Reason 3', label: 'Reason 3'},
-                ],
+                reasons: ['Reason 1', 'Reason 2', 'Reason 3'],
             };
         }),
     };
