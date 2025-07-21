@@ -1249,7 +1249,7 @@ func testPluginList(t *testing.T, rctx request.CTX, ss store.Store) {
 		pluginID := model.NewId()
 
 		var keys []string
-		for i := 0; i < 150; i++ {
+		for range 150 {
 			key := model.NewId()
 			kv := &model.PluginKeyValue{
 				PluginId: pluginID,
@@ -1287,7 +1287,7 @@ func testPluginList(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		var keys []string
 		now := model.GetMillis()
-		for i := 0; i < 150; i++ {
+		for i := range 150 {
 			key := model.NewId()
 			var expireAt int64
 
@@ -1336,7 +1336,7 @@ func testPluginList(t *testing.T, rctx request.CTX, ss store.Store) {
 		pluginID := model.NewId()
 
 		var keys []string
-		for i := 0; i < 150; i++ {
+		for range 150 {
 			key := model.NewId()
 			kv := &model.PluginKeyValue{
 				PluginId: pluginID,

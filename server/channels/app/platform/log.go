@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-multierror"
@@ -259,13 +260,7 @@ func isLogFilteredByLevel(logFilter *model.LogFilter, entry *model.LogEntry) boo
 		return false
 	}
 
-	for _, level := range logLevels {
-		if entry.Level == level {
-			return false
-		}
-	}
-
-	return true
+	return !slices.Contains(logLevels, entry.Level)
 }
 
 func isLogFilteredByDate(rctx request.CTX, logFilter *model.LogFilter, entry *model.LogEntry) bool {

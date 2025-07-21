@@ -215,7 +215,7 @@ func TestGetUploadsForUser(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		uploads := make([]*model.UploadSession, 4)
-		for i := 0; i < len(uploads); i++ {
+		for i := range uploads {
 			us := &model.UploadSession{
 				Id:        model.NewId(),
 				Type:      model.UploadTypeAttachment,

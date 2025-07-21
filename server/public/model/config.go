@@ -4558,8 +4558,8 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 	}
 
 	if ign := *s.IgnoredPurgeIndexes; ign != "" {
-		s := strings.Split(ign, ",")
-		for _, ix := range s {
+		s := strings.SplitSeq(ign, ",")
+		for ix := range s {
 			if strings.HasPrefix(ix, "-") {
 				return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error", nil, "", http.StatusBadRequest)
 			}

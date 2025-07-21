@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
 	"strconv"
 	"time"
 
@@ -1233,12 +1234,10 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userHasEmailDomain := len(c.App.Config().WranglerSettings.AllowedEmailDomain) == 0
-	for _, domain := range c.App.Config().WranglerSettings.AllowedEmailDomain {
-		if user.EmailDomain() == domain {
-			userHasEmailDomain = true
-			break
-		}
+	userHasEmailDomain := true
+	// Only check the user's email domain if a list of allowed domains is configured
+	if len(c.App.Config().WranglerSettings.AllowedEmailDomain) > 0 {
+		userHasEmailDomain = slices.Contains(c.App.Config().WranglerSettings.AllowedEmailDomain, user.EmailDomain())
 	}
 
 	if !userHasEmailDomain && !user.IsSystemAdmin() {
