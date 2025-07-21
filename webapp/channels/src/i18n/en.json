@@ -5370,7 +5370,7 @@
   "shared_channel_indicator.tooltip_with_names": "Shared with: {remoteNames}",
   "shared_channel_indicator.tooltip_with_names.few": "Shared with: {organizations}",
   "shared_channel_indicator.tooltip_with_names.many": "Shared with: {organizations} and {count, number} {count, plural, one {other} other {others}}",
-  "shared_user_indicator.aria_label": "shared user indicator",
+  "shared_user_indicator.aria_label": "shared user",
   "shared_user_indicator.tooltip": "From a trusted organization",
   "shared_user_indicator.tooltip_with_names": "From: {remoteNames}",
   "shortcuts.browser.channel_next": "Forward in history:\tAlt|Right",
