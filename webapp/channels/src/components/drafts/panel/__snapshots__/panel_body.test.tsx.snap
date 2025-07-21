@@ -173,16 +173,6 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                         }
                       >
                         <Markdown
-                          autolinkedUrlSchemes={
-                            Array [
-                              "http",
-                              "https",
-                              "ftp",
-                              "mailto",
-                              "tel",
-                              "mattermost",
-                            ]
-                          }
                           channelNamesMap={Object {}}
                           dispatch={[Function]}
                           emojiMap={
@@ -405,16 +395,6 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                         }
                       >
                         <Markdown
-                          autolinkedUrlSchemes={
-                            Array [
-                              "http",
-                              "https",
-                              "ftp",
-                              "mailto",
-                              "tel",
-                              "mattermost",
-                            ]
-                          }
                           channelNamesMap={Object {}}
                           dispatch={[Function]}
                           emojiMap={
@@ -703,16 +683,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                         }
                       >
                         <Markdown
-                          autolinkedUrlSchemes={
-                            Array [
-                              "http",
-                              "https",
-                              "ftp",
-                              "mailto",
-                              "tel",
-                              "mattermost",
-                            ]
-                          }
                           channelNamesMap={Object {}}
                           dispatch={[Function]}
                           emojiMap={
@@ -978,16 +948,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                         }
                       >
                         <Markdown
-                          autolinkedUrlSchemes={
-                            Array [
-                              "http",
-                              "https",
-                              "ftp",
-                              "mailto",
-                              "tel",
-                              "mattermost",
-                            ]
-                          }
                           channelNamesMap={Object {}}
                           dispatch={[Function]}
                           emojiMap={
