@@ -165,7 +165,7 @@ func dialContextFilter(dial DialContextFunction, allowHost func(host string) boo
 			}
 		}
 		if firstDialErr == nil {
-			// If we didn't found an allowed IP address, return a error explaining why
+			// If we didn't find an allowed IP address, return an error explaining why
 			if len(forbiddenReasons) > 0 {
 				return nil, fmt.Errorf("%s: %s", ErrAddressForbidden.Error(), strings.Join(forbiddenReasons, "; "))
 			}
