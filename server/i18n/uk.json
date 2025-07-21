@@ -5128,10 +5128,6 @@
     "translation": "Виникла помилка при отриманні відкритого ключа зі сховища."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Не вдалося встановити плагін як керований файловим сховищем."
-  },
-  {
     "id": "app.plugin.delete_public_key.delete.app_error",
     "translation": "Виникла помилка при видаленні відкритого ключа."
   },

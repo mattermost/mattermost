@@ -5132,10 +5132,6 @@
     "translation": "Ocorreu um erro enquanto obtinha a chave pública do armazenamento."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Não é possível definir o plugin como gerenciado pelo armazenamento de arquivos."
-  },
-  {
     "id": "app.plugin.delete_public_key.delete.app_error",
     "translation": "Ocorreu um erro ao deletar a chave pública."
   },
