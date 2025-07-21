@@ -39,6 +39,7 @@ import type {
     ValidBusinessEmail,
     NewsletterRequestBody,
     Installation,
+    PreviewModalContentData,
 } from '@mattermost/types/cloud';
 import type {Compliance} from '@mattermost/types/compliance';
 import type {
@@ -401,6 +402,10 @@ export default class Client4 {
 
     getOutgoingHookRoute(hookId: string) {
         return `${this.getBaseRoute()}/hooks/outgoing/${hookId}`;
+    }
+
+    getSharedChannelsRoute() {
+        return `${this.getBaseRoute()}/sharedchannels`;
     }
 
     getOAuthRoute() {
@@ -961,6 +966,13 @@ export default class Client4 {
     getUserByEmail = (email: string) => {
         return this.doFetch<UserProfile>(
             `${this.getUsersRoute()}/email/${email}`,
+            {method: 'get'},
+        );
+    };
+
+    canUserDirectMessage = (userId: string, otherUserId: string) => {
+        return this.doFetch<{can_dm: boolean}>(
+            `${this.getSharedChannelsRoute()}/users/${userId}/can_dm/${otherUserId}`,
             {method: 'get'},
         );
     };
@@ -4129,6 +4141,13 @@ export default class Client4 {
     getInstallation = () => {
         return this.doFetch<Installation>(
             `${this.getCloudRoute()}/installation`,
+            {method: 'get'},
+        );
+    };
+
+    getCloudPreviewModalData = () => {
+        return this.doFetch<PreviewModalContentData[]>(
+            `${this.getCloudRoute()}/preview/modal_data`,
             {method: 'get'},
         );
     };

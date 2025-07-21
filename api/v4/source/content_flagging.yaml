@@ -3,6 +3,7 @@
       summary: Get content flagging configuration
       description: |
         Returns the configuration for content flagging, including the list of available reasons for flagging content. This data is used to gather details from the user when they flag content.
+        An enterprise advanced license is required.
       tags:
         - Content Flagging
       responses:
@@ -22,9 +23,11 @@
                     type: boolean
                     description: Indicates if a comment from the reporter is required when flagging content
         '500':
-          description: Internal server error
+          description: Internal server error.
         '501':
-          description: Feature is disabled either via config or feature flag
+          description: Feature is disabled either via config or an Enterprise Advanced license is not available.
+        '404':
+          description: Feature is disabled via the feature flag.
   /api/v4/content_flagging/team/{team_id}/status:
     get:
       summary: Get content flagging status for a team
@@ -51,10 +54,10 @@
                     type: boolean
                     description: Indicates if content flagging is enabled for the team
         '404':
-          description: Team not found
+          description: The specified team was not found or the feature is disabled via the feature flag.
         '500':
-          description: Internal server error
+          description: Internal server error.
         '403':
-          description: Forbidden - User does not have permission to access this team
+          description: Forbidden - User does not have permission to access this team.
         '501':
-          description: Feature is disabled either via config or feature flag
+          description: Feature is disabled either via config or an Enterprise Advanced license is not available.

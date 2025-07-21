@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
@@ -39,10 +41,10 @@ func getFlaggingConfiguration(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	flaggingConfig := c.App.GetFlaggingConfiguration()
+	config := getFlaggingConfig(c.App.Config().ContentFlaggingSettings)
 
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(flaggingConfig); err != nil {
+	if err := json.NewEncoder(w).Encode(config); err != nil {
 		mlog.Error("failed to encode content flagging configuration to return API response", mlog.Err(err))
 		return
 	}
@@ -65,7 +67,7 @@ func getTeamPostFlaggingFeatureStatus(c *Context, w http.ResponseWriter, r *http
 		return
 	}
 
-	enabled := c.App.GetTeamPostFlaggingFeatureStatus(teamID)
+	enabled := app.ContentFlaggingEnabledForTeam(c.App.Config(), teamID)
 
 	payload := map[string]bool{
 		"enabled": enabled,
@@ -74,5 +76,12 @@ func getTeamPostFlaggingFeatureStatus(c *Context, w http.ResponseWriter, r *http
 	if err := json.NewEncoder(w).Encode(payload); err != nil {
 		mlog.Error("failed to encode content flagging configuration to return API response", mlog.Err(err))
 		return
+	}
+}
+
+func getFlaggingConfig(contentFlaggingSettings model.ContentFlaggingSettings) *model.ContentFlaggingReportingConfig {
+	return &model.ContentFlaggingReportingConfig{
+		Reasons:                 contentFlaggingSettings.AdditionalSettings.Reasons,
+		ReporterCommentRequired: contentFlaggingSettings.AdditionalSettings.ReporterCommentRequired,
 	}
 }

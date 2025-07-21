@@ -35,7 +35,7 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createCommand", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateCommand, model.AuditStatusFail)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
@@ -76,7 +76,7 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateCommand", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateCommand, model.AuditStatusFail)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
@@ -136,7 +136,7 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("moveCommand", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventMoveCommand, model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "command_move_request", cmr.TeamId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
@@ -188,7 +188,7 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteCommand", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteCommand, model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "command_id", c.Params.CommandId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
@@ -318,7 +318,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("executeCommand", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventExecuteCommand, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "command_args", &commandArgs)
 
@@ -449,7 +449,7 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("regenCommandToken", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRegenCommandToken, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 

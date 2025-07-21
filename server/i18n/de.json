@@ -1326,15 +1326,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all wurde deaktiviert, da der Kanal mehr als {{.Users}} Benutzer hat."
+    "translation": "@all-Benachrichtigungen sind in Kanälen mit mehr als {{.Users}} Benutzern deaktiviert. Weitere Informationen erhältst du von deinem Systemadministrator."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel wurde deaktiviert, da der Kanal mehr als {{.Users}} Benutzer hat."
+    "translation": "@channel Benachrichtigungen sind in Kanälen mit mehr als {{.Users}} Benutzern deaktiviert. Weitere Informationen erhältst du von deinem Systemadministrator."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here wurde deaktiviert, da der Kanal mehr als {{.Users}} Benutzer hat."
+    "translation": "@here-Benachrichtigungen sind in Kanälen mit mehr als {{.Users}} Nutzern deaktiviert. Weitere Informationen erhältst du von deinem Systemadministrator."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -10894,5 +10894,57 @@
   {
     "id": "api.command_share.service_inactive",
     "translation": "Der Dienst \"Gemeinsame Kanäle\" ist aktiviert, aber nicht aktiv."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Ungültige Aktualisierung eines Kanalmitglieds: Ein Kanalmitglied hat immer ein Benutzerschema."
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "Ungültige Aktualisierung eines Teammitglieds: Ein Teammitglied hat immer ein Benutzerschema."
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Datei kann nicht hochgeladen werden. Der Upload-Kanal wird nicht mit der Gegenstelle geteilt."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.thread_follower.error",
+    "translation": "Die Validierung der Followerdaten von Direct Post Threads ist fehlgeschlagen."
+  },
+  {
+    "id": "app.import.validate_post_import_data.thread_follower.error",
+    "translation": "Die Daten der Post-Thread-Follower konnten nicht validiert werden."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.empty.error",
+    "translation": "Importierte Follower-Daten sind leer."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.user_missing.error",
+    "translation": "Fehlende erforderliche Follower-Eigenschaft: user."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
+    "translation": "Gemeinsame Prüfer oder zusätzliche Prüfer müssen festgelegt werden, wenn \"Gleiche Prüfer für alle Teams\" aktiviert ist."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.reasons_not_set.app_error",
+    "translation": "Die Gründe für die Kennzeichnung dürfen nicht leer sein."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
+    "translation": "Team-Prüfer oder zusätzliche Prüfer müssen bei der Einstellung \"Aktiviert\" für ein Team festgelegt werden."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_target",
+    "translation": "Ungültiges Markierungs-Ereignisziel angegeben."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_event",
+    "translation": "Ungültiges Markierungsereignis angegeben."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
+    "translation": "Benachrichtigungen für neu markierte Beiträge können für Überprüfer nicht deaktiviert werden."
   }
 ]

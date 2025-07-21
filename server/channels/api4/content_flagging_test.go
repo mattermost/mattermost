@@ -15,197 +15,112 @@ import (
 
 func TestGetFlaggingConfiguration(t *testing.T) {
 	mainHelper.Parallel(t)
+	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
+		t.Skip("Content flagging tests are not supported on MySQL")
+	}
+
 	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer func() {
 		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
 	}()
 
-	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
-		t.Skip("Content flagging tests are not supported on MySQL")
-	}
+	client := th.Client
 
-	setupContentFlagging := func() {
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	t.Run("Should return 501 when Enterprise Advanced license is not present even if feature is enabled", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 		th.App.UpdateConfig(func(config *model.Config) {
-			config.FeatureFlags.ContentFlagging = true
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
 			config.ContentFlaggingSettings.SetDefaults()
 		})
-	}
 
-	client := th.Client
-
-	t.Run("should return flagging configuration", func(t *testing.T) {
-		setupContentFlagging()
-
-		config, resp, err := client.GetFlaggingConfiguration(context.Background())
-		require.NotNil(t, config)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode)
-		require.Equal(t, 5, len(*config.Reasons), "Expected 5 default reasons in the reporting configuration")
-		require.True(t, *config.ReporterCommentRequired)
+		status, resp, err := client.GetFlaggingConfiguration(context.Background())
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+		require.Nil(t, status)
 	})
 
-	t.Run("should return 501 when content flagging is not enabled", func(t *testing.T) {
+	t.Run("Should return 501 when feature is disabled", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		th.App.UpdateConfig(func(config *model.Config) {
-			config.FeatureFlags.ContentFlagging = false
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(false)
+			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		_, resp, err := client.GetFlaggingConfiguration(context.Background())
+		status, resp, err := client.GetFlaggingConfiguration(context.Background())
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
-	})
-
-	t.Run("should return 501 when license is not enterprise advanced", func(t *testing.T) {
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
-		th.App.UpdateConfig(func(config *model.Config) {
-			config.FeatureFlags.ContentFlagging = true
-			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
-		})
-
-		_, resp, err := client.GetFlaggingConfiguration(context.Background())
-		require.Error(t, err)
-		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
-	})
-
-	t.Run("should work for guest users", func(t *testing.T) {
-		setupContentFlagging()
-
-		th.App.UpdateConfig(func(config *model.Config) {
-			config.GuestAccountsSettings.Enable = model.NewPointer(true)
-		})
-
-		_, guestClient := th.CreateGuestAndClient(t)
-		config, resp, err := guestClient.GetFlaggingConfiguration(context.Background())
-		require.NotNil(t, config)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode)
-		require.Equal(t, 5, len(*config.Reasons), "Expected 5 default reasons in the reporting configuration")
-		require.True(t, *config.ReporterCommentRequired)
+		require.Nil(t, status)
 	})
 }
 
 func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 	mainHelper.Parallel(t)
+	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
+		t.Skip("Content flagging tests are not supported on MySQL")
+	}
+
 	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer func() {
 		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
 	}()
 
-	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
-		t.Skip("Content flagging tests are not supported on MySQL")
-	}
+	client := th.Client
 
-	setupContentFlagging := func() {
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	t.Run("Should return 501 when Enterprise Advanced license is not present even if feature is enabled", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 		th.App.UpdateConfig(func(config *model.Config) {
-			config.FeatureFlags.ContentFlagging = true
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
 			config.ContentFlaggingSettings.SetDefaults()
 		})
-	}
 
-	client := th.Client
+		status, resp, err := client.GetTeamPostFlaggingFeatureStatus(context.Background(), model.NewId())
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+		require.Nil(t, status)
+	})
 
-	basicTeam2 := th.CreateTeam()
-
-	t.Run("should return enabled status for team with common reviewers", func(t *testing.T) {
-		setupContentFlagging()
-
+	t.Run("Should return 501 when feature is disabled", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		th.App.UpdateConfig(func(config *model.Config) {
+			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(false)
+			config.ContentFlaggingSettings.SetDefaults()
+		})
+
+		status, resp, err := client.GetTeamPostFlaggingFeatureStatus(context.Background(), model.NewId())
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+		require.Nil(t, status)
+	})
+
+	t.Run("Should return Forbidden error when calling for a team without the team membership", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
+			config.ContentFlaggingSettings.SetDefaults()
 			config.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(true)
+			config.ContentFlaggingSettings.ReviewerSettings.CommonReviewerIds = &[]string{"reviewer_user_id_1", "reviewer_user_id_2"}
 		})
 
-		status, resp, err := client.GetTeamPostFlaggingFeatureStatus(context.Background(), th.BasicTeam.Id)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode)
-		require.True(t, status["enabled"])
-	})
+		// using basic user because the default user is a system admin, and they have
+		// access to all teams even without being an explicit team member
+		th.LoginBasic()
+		team := th.CreateTeam()
+		// unlinking from the created team as by default the team's creator is
+		// a team member, so we need to leave the team explicitly
+		th.UnlinkUserFromTeam(th.BasicUser, team)
 
-	t.Run("should return enabled status for team with specific reviewers", func(t *testing.T) {
-		setupContentFlagging()
+		status, resp, err := client.GetTeamPostFlaggingFeatureStatus(context.Background(), team.Id)
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		require.Nil(t, status)
 
-		th.App.UpdateConfig(func(config *model.Config) {
-			config.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(false)
-			config.ContentFlaggingSettings.ReviewerSettings.TeamReviewersSetting = &map[string]model.TeamReviewerSetting{
-				th.BasicTeam.Id: {
-					Enabled:     model.NewPointer(true),
-					ReviewerIds: model.NewPointer([]string{th.BasicUser.Id}),
-				},
-			}
-		})
-
-		status, resp, err := client.GetTeamPostFlaggingFeatureStatus(context.Background(), th.BasicTeam.Id)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode)
-		require.True(t, status["enabled"])
-
-		status, resp, err = client.GetTeamPostFlaggingFeatureStatus(context.Background(), basicTeam2.Id)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode)
-		require.False(t, status["enabled"])
-	})
-
-	t.Run("should return disabled status for team without reviewers", func(t *testing.T) {
-		setupContentFlagging()
-
-		th.App.UpdateConfig(func(config *model.Config) {
-			config.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(false)
-			config.ContentFlaggingSettings.ReviewerSettings.TeamReviewersSetting = &map[string]model.TeamReviewerSetting{
-				th.BasicTeam.Id: {
-					Enabled:     model.NewPointer(false),
-					ReviewerIds: model.NewPointer([]string{}),
-				},
-			}
-		})
-
-		status, resp, err := client.GetTeamPostFlaggingFeatureStatus(context.Background(), th.BasicTeam.Id)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode)
-		require.False(t, status["enabled"])
-	})
-
-	t.Run("should return enabled status with additional reviewers", func(t *testing.T) {
-		setupContentFlagging()
-
-		th.App.UpdateConfig(func(config *model.Config) {
-			config.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(true)
-			config.ContentFlaggingSettings.ReviewerSettings.TeamReviewersSetting = &map[string]model.TeamReviewerSetting{
-				th.BasicTeam.Id: {
-					Enabled:     model.NewPointer(true),
-					ReviewerIds: model.NewPointer([]string{}),
-				},
-			}
-			config.ContentFlaggingSettings.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(true)
-		})
-
-		status, resp, err := client.GetTeamPostFlaggingFeatureStatus(context.Background(), th.BasicTeam.Id)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode)
-		require.True(t, status["enabled"])
-
-		th.App.UpdateConfig(func(config *model.Config) {
-			config.ContentFlaggingSettings.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(false)
-			config.ContentFlaggingSettings.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(true)
-		})
-
-		status, resp, err = client.GetTeamPostFlaggingFeatureStatus(context.Background(), th.BasicTeam.Id)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode)
-		require.True(t, status["enabled"])
-
-		th.App.UpdateConfig(func(config *model.Config) {
-			config.ContentFlaggingSettings.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(true)
-			config.ContentFlaggingSettings.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(true)
-		})
-
-		status, resp, err = client.GetTeamPostFlaggingFeatureStatus(context.Background(), th.BasicTeam.Id)
+		// now we will join the team and that will allow us to call the endpoint without error
+		th.LinkUserToTeam(th.BasicUser, team)
+		status, resp, err = client.GetTeamPostFlaggingFeatureStatus(context.Background(), team.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.True(t, status["enabled"])

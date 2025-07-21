@@ -5,19 +5,10 @@ package app
 
 import "github.com/mattermost/mattermost/server/public/model"
 
-func (a *App) GetFlaggingConfiguration() *model.ContentFlaggingReportingConfig {
-	contentFlaggingSettings := a.Config().ContentFlaggingSettings
+func ContentFlaggingEnabledForTeam(config *model.Config, teamId string) bool {
+	reviewerSettings := config.ContentFlaggingSettings.ReviewerSettings
 
-	return &model.ContentFlaggingReportingConfig{
-		Reasons:                 contentFlaggingSettings.AdditionalSettings.Reasons,
-		ReporterCommentRequired: contentFlaggingSettings.AdditionalSettings.ReporterCommentRequired,
-	}
-}
-
-func (a *App) GetTeamPostFlaggingFeatureStatus(teamId string) bool {
-	reviewerSettings := a.Config().ContentFlaggingSettings.ReviewerSettings
-
-	hasCommonReviewers := reviewerSettings.CommonReviewers != nil && *reviewerSettings.CommonReviewers
+	hasCommonReviewers := *reviewerSettings.CommonReviewers
 	if hasCommonReviewers {
 		return true
 	}
