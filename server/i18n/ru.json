@@ -4712,10 +4712,6 @@
     "translation": "Неверный параметр показа непрочитанного раздела для пользователя"
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Невозможно задать плагин как управляемый файловым хранилищем."
-  },
-  {
     "id": "app.plugin.install_marketplace_plugin.app_error",
     "translation": "Не удалось установить плагин из магазина плагинов."
   },

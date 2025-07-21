@@ -1156,10 +1156,6 @@
     "translation": "Nepodařilo se získat stavy zásuvných modulů z clusteru."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Nelze nastavit zásuvný modul jako spravovaný úložištěm souborů."
-  },
-  {
     "id": "app.plugin.filesystem.app_error",
     "translation": "Došlo k chybě souborového systému."
   },

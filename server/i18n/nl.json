@@ -5151,10 +5151,6 @@
     "translation": "Er is een fout opgetreden bij het ophalen van de publieke sleutel."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Plugin kan niet worden ingesteld als beheerd door het bestandsarchief."
-  },
-  {
     "id": "app.plugin.delete_public_key.delete.app_error",
     "translation": "Er deed zich een fout voor tijdens het verwijderen van publieke sleutel."
   },

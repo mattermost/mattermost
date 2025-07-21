@@ -5128,10 +5128,6 @@
     "translation": "Wystąpił błąd podczas pobierania klucza publicznego ze sklepu."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Nie można ustawić wtyczki z magazynu plików."
-  },
-  {
     "id": "app.plugin.delete_public_key.delete.app_error",
     "translation": "Wystąpił błąd podczas usuwania klucza publicznego."
   },

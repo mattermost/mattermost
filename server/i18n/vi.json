@@ -1728,10 +1728,6 @@
     "translation": "Mô tả không hợp lệ."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Không thể đặt plugin như được quản lý bởi kho lưu trữ tệp."
-  },
-  {
     "id": "api.command_invite.name",
     "translation": "mời"
   },

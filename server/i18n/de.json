@@ -5167,10 +5167,6 @@
     "translation": "Es ist ein Fehler beim Abrufen des öffentlichen Schlüssels aus dem Speicher aufgetreten."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Konnte das Plugin nicht so einstellen, dass es vom Dateispeicher verwaltet wird."
-  },
-  {
     "id": "app.plugin.delete_public_key.delete.app_error",
     "translation": "Es ist ein Fehler beim Löschen des öffentlichen Schlüssels aufgetreten."
   },

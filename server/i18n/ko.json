@@ -5116,10 +5116,6 @@
     "translation": "공개키를 가져 오는동안 오류가 발생했습니다."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "파일 저장소에서 관리하는 플러그인을 설정할 수 없습니다."
-  },
-  {
     "id": "app.plugin.delete_public_key.delete.app_error",
     "translation": "인증서를 삭제하는 동안 오류가 발생하였습니다."
   },

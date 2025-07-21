@@ -4614,10 +4614,6 @@
     "translation": "AuthService 与 AuthData 必须同时使用。"
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "无法设定插件由文件储存管理。"
-  },
-  {
     "id": "app.plugin.get_public_key.get_file.app_error",
     "translation": "从储存获取公钥时遇到错误。"
   },

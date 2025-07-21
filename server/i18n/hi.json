@@ -6981,10 +6981,6 @@
     "translation": "क्लस्टर से प्लगइन स्थिति प्राप्त करने में असमर्थ।"
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "फ़ाइल स्टोर द्वारा प्रबंधित प्लगइन सेट करने में असमर्थ।"
-  },
-  {
     "id": "app.plugin.filesystem.app_error",
     "translation": "फाइल सिस्टम त्रुटि का सामना करना पड़ा।"
   },

@@ -1176,10 +1176,6 @@
     "translation": "Nem sikerült beolvasni a plugin állapotokat a fürtből."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Nem lehet beállítani a bővítményt úgy, hogy a fájltár kezelje."
-  },
-  {
     "id": "app.plugin.filesystem.app_error",
     "translation": "Fájlrendszer hiba történt."
   },

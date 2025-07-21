@@ -5644,10 +5644,6 @@
     "translation": "Немагчыма атрымаць статуты плагінаў з кластара."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Немагчыма задаць убудову як кіраваны файлавым сховішчам."
-  },
-  {
     "id": "app.plugin.extract.app_error",
     "translation": "Выяўлена памылка пры выманні камплекта плагіна."
   },
