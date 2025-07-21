@@ -65,6 +65,16 @@ jest.mock('mattermost-redux/selectors/entities/content_flagging', () => {
     };
 });
 
+jest.mock('mattermost-redux/actions/content_flagging', () => {
+    return {
+        getContentFlaggingConfig: jest.fn().mockImplementation(() => {
+            return {
+                type: 'GET_CONTENT_FLAGGING_CONFIG',
+            };
+        }),
+    };
+});
+
 describe('components/FlagPostModal', () => {
     beforeEach(() => {
         jest.clearAllMocks();
