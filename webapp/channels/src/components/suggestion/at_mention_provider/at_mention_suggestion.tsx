@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {ReactNode} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -39,8 +39,6 @@ function isGroup(o: unknown): o is Group {
 const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item>>((props, ref) => {
     const {item} = props;
 
-    const intl = useIntl();
-
     let itemname: string;
     let description: ReactNode;
     let icon: JSX.Element;
@@ -58,10 +56,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
                 className='suggestion-list__icon suggestion-list__icon--large'
                 aria-hidden='true'
             >
-                <i
-                    className='icon icon-account-multiple-outline'
-                    title={intl.formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'})}
-                />
+                <i className='icon icon-account-multiple-outline'/>
             </span>
         );
     } else if (item.username === 'channel') {
@@ -77,10 +72,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
                 className='suggestion-list__icon suggestion-list__icon--large'
                 aria-hidden='true'
             >
-                <i
-                    className='icon icon-account-multiple-outline'
-                    title={intl.formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'})}
-                />
+                <i className='icon icon-account-multiple-outline'/>
             </span>
         );
     } else if (item.username === 'here') {
@@ -96,10 +88,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
                 className='suggestion-list__icon suggestion-list__icon--large'
                 aria-hidden='true'
             >
-                <i
-                    className='icon icon-account-multiple-outline'
-                    title={intl.formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'})}
-                />
+                <i className='icon icon-account-multiple-outline'/>
             </span>
         );
     } else if (isGroup(item)) {
@@ -112,10 +101,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
                 className='suggestion-list__icon suggestion-list__icon--large'
                 aria-hidden='true'
             >
-                <i
-                    className='icon icon-account-multiple-outline'
-                    title={intl.formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'})}
-                />
+                <i className='icon icon-account-multiple-outline'/>
             </span>
         );
     } else {
