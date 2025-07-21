@@ -149,12 +149,12 @@ export function MenuItem(props: Props) {
 
     function handleClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         if (isCorrectKeyPressedOnMenuItem(event)) {
+            event.stopPropagation();
+
             // If the menu item is a checkbox or radio button, we don't want to close the menu when it is clicked.
             // unless forceCloseOnSelect is set to true.
             // see https://www.w3.org/WAI/ARIA/apg/patterns/menubar/
-            if (isRoleCheckboxOrRadio(role) && !forceCloseOnSelect) {
-                event.stopPropagation();
-            } else {
+            if (!isRoleCheckboxOrRadio(role) || forceCloseOnSelect) {
                 // close submenu first if it is open
                 if (subMenuContext.close) {
                     subMenuContext.close();
