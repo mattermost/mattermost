@@ -147,7 +147,7 @@ func dialContextFilter(dial DialContextFunction, allowHost func(host string) boo
 			}
 
 			if allowIP == nil {
-				forbiddenReasons = append(forbiddenReasons, "IP "+ip.String()+" is not allowed")
+				forbiddenReasons = append(forbiddenReasons, fmt.Sprintf("IP %s is not allowed", ip.String()))
 				continue
 			}
 
