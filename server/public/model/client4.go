@@ -3898,7 +3898,7 @@ func (c *Client4) GetPing(ctx context.Context) (string, *Response, error) {
 	ping, resp, err := c.GetPingWithOptions(ctx, SystemPingOptions{})
 	status := ""
 	if ping != nil {
-		status = ping["status"]
+		status = ping["status"].(string)
 	}
 	return status, resp, err
 }
@@ -3910,7 +3910,7 @@ func (c *Client4) GetPingWithServerStatus(ctx context.Context) (string, *Respons
 	ping, resp, err := c.GetPingWithOptions(ctx, SystemPingOptions{FullStatus: true})
 	status := ""
 	if ping != nil {
-		status = ping["status"]
+		status = ping["status"].(string)
 	}
 	return status, resp, err
 }
@@ -3918,12 +3918,12 @@ func (c *Client4) GetPingWithServerStatus(ctx context.Context) (string, *Respons
 // GetPingWithFullServerStatus will return the full status if several basic server
 // health checks all pass successfully.
 // DEPRECATED: Use GetPingWithOptions method instead.
-func (c *Client4) GetPingWithFullServerStatus(ctx context.Context) (map[string]string, *Response, error) {
+func (c *Client4) GetPingWithFullServerStatus(ctx context.Context) (map[string]any, *Response, error) {
 	return c.GetPingWithOptions(ctx, SystemPingOptions{FullStatus: true})
 }
 
 // GetPingWithOptions will return the status according to the options
-func (c *Client4) GetPingWithOptions(ctx context.Context, options SystemPingOptions) (map[string]string, *Response, error) {
+func (c *Client4) GetPingWithOptions(ctx context.Context, options SystemPingOptions) (map[string]any, *Response, error) {
 	pingURL, err := url.Parse(c.systemRoute() + "/ping")
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not parse query: %w", err)
@@ -3935,13 +3935,13 @@ func (c *Client4) GetPingWithOptions(ctx context.Context, options SystemPingOpti
 	r, err := c.DoAPIGet(ctx, pingURL.String(), "")
 	if r != nil && r.StatusCode == 500 {
 		defer r.Body.Close()
-		return map[string]string{"status": StatusUnhealthy}, BuildResponse(r), err
+		return map[string]any{"status": StatusUnhealthy}, BuildResponse(r), err
 	}
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[map[string]string](r)
+	return DecodeJSONFromResponse[map[string]any](r)
 }
 
 func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response, error) {
