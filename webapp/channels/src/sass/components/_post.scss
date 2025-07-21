@@ -2253,4 +2253,12 @@
             }
         }
     }
+
+    &.post--comment {
+        &.other--root {
+            .post-comment {
+                border-color: rgba(var(--center-channel-color-rgb), 0.1);
+            }
+        }
+    }
 }
