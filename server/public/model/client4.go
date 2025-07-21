@@ -2142,7 +2142,7 @@ func (c *Client4) GetTeamMember(ctx context.Context, teamId, userId, etag string
 // UpdateTeamMemberRoles will update the roles on a team for a user.
 func (c *Client4) UpdateTeamMemberRoles(ctx context.Context, teamId, userId, newRoles string) (*Response, error) {
 	requestBody := map[string]string{"roles": newRoles}
-	r, err := c.DoAPIPostJSON(ctx, c.teamMemberRoute(teamId, userId)+"/roles", requestBody)
+	r, err := c.DoAPIPutJSON(ctx, c.teamMemberRoute(teamId, userId)+"/roles", requestBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -2651,7 +2651,7 @@ func (c *Client4) PatchChannel(ctx context.Context, channelId string, patch *Cha
 // UpdateChannelPrivacy updates channel privacy
 func (c *Client4) UpdateChannelPrivacy(ctx context.Context, channelId string, privacy ChannelType) (*Channel, *Response, error) {
 	requestBody := map[string]string{"privacy": string(privacy)}
-	r, err := c.DoAPIPostJSON(ctx, c.channelRoute(channelId)+"/privacy", requestBody)
+	r, err := c.DoAPIPutJSON(ctx, c.channelRoute(channelId)+"/privacy", requestBody)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3109,7 +3109,7 @@ func (c *Client4) GetChannelUnread(ctx context.Context, channelId, userId string
 // UpdateChannelRoles will update the roles on a channel for a user.
 func (c *Client4) UpdateChannelRoles(ctx context.Context, channelId, userId, roles string) (*Response, error) {
 	requestBody := map[string]string{"roles": roles}
-	r, err := c.DoAPIPostJSON(ctx, c.channelMemberRoute(channelId, userId)+"/roles", requestBody)
+	r, err := c.DoAPIPutJSON(ctx, c.channelMemberRoute(channelId, userId)+"/roles", requestBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3129,7 +3129,7 @@ func (c *Client4) UpdateChannelMemberSchemeRoles(ctx context.Context, channelId 
 
 // UpdateChannelNotifyProps will update the notification properties on a channel for a user.
 func (c *Client4) UpdateChannelNotifyProps(ctx context.Context, channelId, userId string, props map[string]string) (*Response, error) {
-	r, err := c.DoAPIPostJSON(ctx, c.channelMemberRoute(channelId, userId)+"/notify_props", props)
+	r, err := c.DoAPIPutJSON(ctx, c.channelMemberRoute(channelId, userId)+"/notify_props", props)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6795,7 +6795,7 @@ func (c *Client4) UploadData(ctx context.Context, uploadId string, data io.Reade
 
 func (c *Client4) UpdatePassword(ctx context.Context, userId, currentPassword, newPassword string) (*Response, error) {
 	requestBody := map[string]string{"current_password": currentPassword, "new_password": newPassword}
-	r, err := c.DoAPIPostJSON(ctx, c.userRoute(userId)+"/password", requestBody)
+	r, err := c.DoAPIPutJSON(ctx, c.userRoute(userId)+"/password", requestBody)
 	if err != nil {
 		return BuildResponse(r), err
 	}
