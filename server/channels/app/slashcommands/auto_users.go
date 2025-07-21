@@ -140,7 +140,7 @@ func (cfg *AutoUserCreator) CreateTestUsers(rctx request.CTX, num utils.Range) (
 	numUsers := utils.RandIntFromRange(num)
 	users := make([]*model.User, numUsers)
 
-	for i := 0; i < numUsers; i++ {
+	for i := range numUsers {
 		var err error
 		users[i], err = cfg.createRandomUser(rctx)
 		if err != nil {

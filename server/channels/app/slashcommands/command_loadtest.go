@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"path"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -207,8 +208,8 @@ func (*LoadTestProvider) HelpCommand(args *model.CommandArgs, message string) *m
 
 func (*LoadTestProvider) SetupCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	tokens := strings.Fields(strings.TrimPrefix(message, "setup"))
-	doTeams := contains(tokens, "teams")
-	doFuzz := contains(tokens, "fuzz")
+	doTeams := slices.Contains(tokens, "teams")
+	doFuzz := slices.Contains(tokens, "fuzz")
 
 	numArgs := 0
 	if doTeams {
@@ -445,7 +446,7 @@ func (*LoadTestProvider) DMsCommand(a *app.App, rctx request.CTX, args *model.Co
 	postCreator.CreateTime = time
 	postCreator.UsersToPostFrom = []string{user.Id}
 	numPosts := utils.RandIntFromRange(rng)
-	for i := 0; i < numPosts; i++ {
+	for range numPosts {
 		if _, err := postCreator.CreateRandomPost(rctx); err != nil {
 			return &model.CommandResponse{Text: "Failed to create test DMs: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
@@ -497,7 +498,7 @@ func (*LoadTestProvider) ThreadedPostCommand(a *app.App, rctx request.CTX, args 
 		return &model.CommandResponse{Text: "Failed to create a post", ResponseType: model.CommandResponseTypeEphemeral}, err2
 	}
 	numPosts := utils.RandIntFromRange(rng)
-	for i := 0; i < numPosts; i++ {
+	for range numPosts {
 		_, err = testPoster.CreateRandomPostNested(rctx, rpost.Id)
 		if err != nil {
 			return &model.CommandResponse{Text: "Failed to create nested post", ResponseType: model.CommandResponseTypeEphemeral}, err
@@ -561,7 +562,7 @@ func (*LoadTestProvider) PostsCommand(a *app.App, rctx request.CTX, args *model.
 
 	numImages := utils.RandIntFromRange(utils.Range{Begin: 0, End: maxImages})
 	numPosts := utils.RandIntFromRange(rng)
-	for i := 0; i < numPosts; i++ {
+	for i := range numPosts {
 		testPoster.HasImage = (i < numImages)
 		_, err := testPoster.CreateRandomPost(rctx)
 		if err != nil {
@@ -751,13 +752,4 @@ func parseRange(rng string) (utils.Range, error) {
 		return utils.Range{Begin: 0, End: 0}, errors.New("Invalid range parameter")
 	}
 	return utils.Range{Begin: begin, End: end}, nil
-}
-
-func contains(items []string, token string) bool {
-	for _, elem := range items {
-		if elem == token {
-			return true
-		}
-	}
-	return false
 }

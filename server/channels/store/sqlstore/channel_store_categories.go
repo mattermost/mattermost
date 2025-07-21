@@ -644,13 +644,7 @@ func (s SqlChannelStore) UpdateSidebarCategoryOrder(userId, teamId string, categ
 	}
 
 	for _, originalCategoryId := range existingOrder {
-		found := false
-		for _, newCategoryId := range categoryOrder {
-			if newCategoryId == originalCategoryId {
-				found = true
-				break
-			}
-		}
+		found := slices.Contains(categoryOrder, originalCategoryId)
 		if !found {
 			return store.NewErrInvalidInput("SidebarCategories", "id", fmt.Sprintf("%v", categoryOrder))
 		}
@@ -873,8 +867,6 @@ func (s SqlChannelStore) UpdateSidebarChannelsByPreferences(preferences model.Pr
 	defer finalizeTransactionX(transaction, &err)
 
 	for _, preference := range preferences {
-		preference := preference
-
 		if preference.Category != model.PreferenceCategoryFavoriteChannel {
 			continue
 		}
@@ -1021,8 +1013,6 @@ func (s SqlChannelStore) DeleteSidebarChannelsByPreferences(preferences model.Pr
 	defer finalizeTransactionX(transaction, &err)
 
 	for _, preference := range preferences {
-		preference := preference
-
 		if preference.Category != model.PreferenceCategoryFavoriteChannel {
 			continue
 		}

@@ -67,7 +67,7 @@ func (cfg *AutoChannelCreator) CreateTestChannels(rctx request.CTX, num utils.Ra
 	numChannels := utils.RandIntFromRange(num)
 	channels := make([]*model.Channel, numChannels)
 
-	for i := 0; i < numChannels; i++ {
+	for i := range numChannels {
 		var err error
 		channels[i], err = cfg.createRandomChannel(rctx)
 		if err != nil {

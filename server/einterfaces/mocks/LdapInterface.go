@@ -15,9 +15,9 @@ type LdapInterface struct {
 	mock.Mock
 }
 
-// CheckProviderAttributes provides a mock function with given fields: rctx, LS, ouser, patch
-func (_m *LdapInterface) CheckProviderAttributes(rctx request.CTX, LS *model.LdapSettings, ouser *model.User, patch *model.UserPatch) string {
-	ret := _m.Called(rctx, LS, ouser, patch)
+// CheckProviderAttributes provides a mock function with given fields: crctx, LS, ouser, patch
+func (_m *LdapInterface) CheckProviderAttributes(crctx request.CTX, LS *model.LdapSettings, ouser *model.User, patch *model.UserPatch) string {
+	ret := _m.Called(crctx, LS, ouser, patch)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CheckProviderAttributes")
@@ -25,7 +25,7 @@ func (_m *LdapInterface) CheckProviderAttributes(rctx request.CTX, LS *model.Lda
 
 	var r0 string
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.LdapSettings, *model.User, *model.UserPatch) string); ok {
-		r0 = rf(rctx, LS, ouser, patch)
+		r0 = rf(crctx, LS, ouser, patch)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
@@ -309,9 +309,9 @@ func (_m *LdapInterface) MigrateIDAttribute(rctx request.CTX, toAttribute string
 	return r0
 }
 
-// StartSynchronizeJob provides a mock function with given fields: rctx, waitForJobToFinish, reAddRemovedMembers
-func (_m *LdapInterface) StartSynchronizeJob(rctx request.CTX, waitForJobToFinish bool, reAddRemovedMembers *bool) (*model.Job, *model.AppError) {
-	ret := _m.Called(rctx, waitForJobToFinish, reAddRemovedMembers)
+// StartSynchronizeJob provides a mock function with given fields: rctx, waitForJobToFinish
+func (_m *LdapInterface) StartSynchronizeJob(rctx request.CTX, waitForJobToFinish bool) (*model.Job, *model.AppError) {
+	ret := _m.Called(rctx, waitForJobToFinish)
 
 	if len(ret) == 0 {
 		panic("no return value specified for StartSynchronizeJob")
@@ -319,19 +319,19 @@ func (_m *LdapInterface) StartSynchronizeJob(rctx request.CTX, waitForJobToFinis
 
 	var r0 *model.Job
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, bool, *bool) (*model.Job, *model.AppError)); ok {
-		return rf(rctx, waitForJobToFinish, reAddRemovedMembers)
+	if rf, ok := ret.Get(0).(func(request.CTX, bool) (*model.Job, *model.AppError)); ok {
+		return rf(rctx, waitForJobToFinish)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, bool, *bool) *model.Job); ok {
-		r0 = rf(rctx, waitForJobToFinish, reAddRemovedMembers)
+	if rf, ok := ret.Get(0).(func(request.CTX, bool) *model.Job); ok {
+		r0 = rf(rctx, waitForJobToFinish)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Job)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, bool, *bool) *model.AppError); ok {
-		r1 = rf(rctx, waitForJobToFinish, reAddRemovedMembers)
+	if rf, ok := ret.Get(1).(func(request.CTX, bool) *model.AppError); ok {
+		r1 = rf(rctx, waitForJobToFinish)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

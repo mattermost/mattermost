@@ -13,9 +13,9 @@ type LdapInterface interface {
 	GetUser(rctx request.CTX, id string) (*model.User, *model.AppError)
 	GetLDAPUserForMMUser(rctx request.CTX, mmUser *model.User) (*model.User, string, *model.AppError)
 	GetUserAttributes(rctx request.CTX, id string, attributes []string) (map[string]string, *model.AppError)
-	CheckProviderAttributes(rctx request.CTX, LS *model.LdapSettings, ouser *model.User, patch *model.UserPatch) string
+	CheckProviderAttributes(crctx request.CTX, LS *model.LdapSettings, ouser *model.User, patch *model.UserPatch) string
 	SwitchToLdap(rctx request.CTX, userID, ldapID, ldapPassword string) *model.AppError
-	StartSynchronizeJob(rctx request.CTX, waitForJobToFinish bool, reAddRemovedMembers *bool) (*model.Job, *model.AppError)
+	StartSynchronizeJob(rctx request.CTX, waitForJobToFinish bool) (*model.Job, *model.AppError)
 	GetAllLdapUsers(rctx request.CTX) ([]*model.User, *model.AppError)
 	MigrateIDAttribute(rctx request.CTX, toAttribute string) error
 	GetGroup(rctx request.CTX, groupUID string) (*model.Group, *model.AppError)

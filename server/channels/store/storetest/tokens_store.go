@@ -21,7 +21,7 @@ func TestTokensStore(t *testing.T, rctx request.CTX, ss store.Store) {
 func testTokensCleanup(t *testing.T, rctx request.CTX, ss store.Store) {
 	now := model.GetMillis()
 
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		err := ss.Token().Save(&model.Token{
 			Token:    model.NewRandomString(model.TokenSize),
 			CreateAt: now - int64(i),
