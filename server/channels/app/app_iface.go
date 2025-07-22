@@ -469,7 +469,7 @@ type AppIface interface {
 	AppendFile(fr io.Reader, path string) (int64, *model.AppError)
 	AsymmetricSigningKey() *ecdsa.PrivateKey
 	AttachCloudSessionCookie(c request.CTX, w http.ResponseWriter, r *http.Request)
-	AttachDeviceId(sessionID string, deviceID string, expiresAt int64) *model.AppError
+	AttachDeviceId(sessionID string, deviceID string, voipDeviceID string, expiresAt int64) *model.AppError
 	AttachSessionCookies(c request.CTX, w http.ResponseWriter, r *http.Request)
 	AuthenticateUserForLogin(c request.CTX, id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError)
 	AuthorizeOAuthUser(c request.CTX, w http.ResponseWriter, r *http.Request, service, code, state, redirectURI string) (io.ReadCloser, string, map[string]string, *model.User, *model.AppError)
@@ -609,7 +609,7 @@ type AppIface interface {
 	DoEmojisPermissionsMigration() error
 	DoGuestRolesCreationMigration() error
 	DoLocalRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError)
-	DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile, isOAuthUser, isSaml bool) (*model.Session, *model.AppError)
+	DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, voipDeviceID string, isMobile, isOAuthUser, isSaml bool) (*model.Session, *model.AppError)
 	DoPostActionWithCookie(c request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError)
 	DoSystemConsoleRolesCreationMigration() error
 	DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte, extractContent bool) (*model.FileInfo, *model.AppError)

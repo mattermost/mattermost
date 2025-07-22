@@ -731,7 +731,7 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", "", false, false, false)
 
 	assert.Contains(t, err.Id, "Login rejected by plugin", "Expected Login rejected by plugin, got %s", err.Id)
 	assert.Nil(t, session)
@@ -771,7 +771,7 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", "", false, false, false)
 
 	assert.Nil(t, err, "Expected nil, got %s", err)
 	require.NotNil(t, session)
@@ -813,7 +813,7 @@ func TestUserHasLoggedIn(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", "", false, false, false)
 
 	assert.Nil(t, err, "Expected nil, got %s", err)
 	assert.NotNil(t, session)

@@ -9483,7 +9483,7 @@ func (s *OpenTracingLayerSessionStore) Save(c request.CTX, session *model.Sessio
 	return result, err
 }
 
-func (s *OpenTracingLayerSessionStore) UpdateDeviceId(id string, deviceID string, expiresAt int64) (string, error) {
+func (s *OpenTracingLayerSessionStore) UpdateDeviceId(id string, deviceID string, voipDeviceID string, expiresAt int64) (string, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SessionStore.UpdateDeviceId")
 	s.Root.Store.SetContext(newCtx)
@@ -9492,7 +9492,7 @@ func (s *OpenTracingLayerSessionStore) UpdateDeviceId(id string, deviceID string
 	}()
 
 	defer span.Finish()
-	result, err := s.SessionStore.UpdateDeviceId(id, deviceID, expiresAt)
+	result, err := s.SessionStore.UpdateDeviceId(id, deviceID, voipDeviceID, expiresAt)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
