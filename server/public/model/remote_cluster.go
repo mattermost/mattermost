@@ -406,7 +406,7 @@ func (rci *RemoteClusterInvite) Encrypt(password string) ([]byte, error) {
 	var key []byte
 	if rci.Version >= 3 {
 		// Use PBKDF2 for version 3 and above
-		key = pbkdf2.Key([]byte(password), salt, 100000, 32, sha256.New)
+		key = pbkdf2.Key([]byte(password), salt, 600000, 32, sha256.New)
 	} else {
 		// Use scrypt for older versions
 		key, err = scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)
@@ -461,7 +461,7 @@ func (rci *RemoteClusterInvite) tryDecrypt(encrypted []byte, password string, sa
 
 	if usePBKDF2 {
 		// Use PBKDF2 for version 3 and above
-		key = pbkdf2.Key([]byte(password), salt, 100000, 32, sha256.New)
+		key = pbkdf2.Key([]byte(password), salt, 600000, 32, sha256.New)
 	} else {
 		// Use scrypt for older versions
 		key, err = scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)
