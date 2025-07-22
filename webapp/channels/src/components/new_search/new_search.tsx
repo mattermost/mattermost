@@ -1,8 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {
+    useFloating,
+    autoUpdate,
+    useClick,
+    useDismiss,
+    useInteractions,
+    useRole,
+    FloatingFocusManager,
+    FloatingPortal,
+    offset,
+} from '@floating-ui/react';
 import React, {useEffect, useState, useRef, useCallback} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import styled from 'styled-components';
 
@@ -16,29 +27,14 @@ import {updateSearchTerms, showSearchResults, updateSearchType, updateSearchTeam
 import {getSearchButtons} from 'selectors/plugins';
 import {getSearchTeam, getSearchTerms, getSearchType} from 'selectors/rhs';
 
-import Popover from 'components/widgets/popover';
-
 import a11yController from 'utils/a11y_controller_instance';
 import {focusElement} from 'utils/a11y_utils';
-import Constants from 'utils/constants';
+import {RootHtmlPortalId, Constants} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
 import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
 
 import SearchBox from './search_box';
-
-const PopoverStyled = styled(Popover)`
-    min-width: 600px;
-    left: -90px;
-    top: -12px;
-    border-radius: 12px;
-    max-height: 90vh;
-    overflow-y: auto;
-
-    .popover-content {
-        padding: 0px;
-    }
-`;
 
 const SearchTypeBadge = styled.div`
     display: flex;
@@ -106,7 +102,18 @@ const NewSearchTerms = styled.span`
     white-space: nowrap;
 `;
 
+const SearchBoxContainer = styled.div`
+    min-width: 600px;
+    border-radius: 12px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: var(--center-channel-bg);
+    box-shadow: 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.16), 0 4px 6px rgba(0, 0, 0, 0.12);
+    z-index: 1050;
+`;
+
 const NewSearch = (): JSX.Element => {
+    const intl = useIntl();
     const currentChannelName = useSelector(getCurrentChannelNameForSearchShortcut);
     const searchTerms = useSelector(getSearchTerms) || '';
     const searchType = useSelector(getSearchType) || '';
@@ -120,7 +127,25 @@ const NewSearch = (): JSX.Element => {
     const [focused, setFocused] = useState<boolean>(false);
     const [currentChannel, setCurrentChannel] = useState('');
     const searchBoxRef = useRef<HTMLDivElement | null>(null);
-    const searchButtonRef = useRef<HTMLDivElement | null>(null);
+
+    const {refs, floatingStyles, context: floatingContext} = useFloating<HTMLDivElement>({
+        open: focused,
+        onOpenChange: setFocused,
+        whileElementsMounted: autoUpdate,
+        placement: 'bottom',
+        middleware: [offset({mainAxis: -28})],
+    });
+    const searchButtonRef = refs.reference as React.RefObject<HTMLDivElement>;
+
+    const clickInteractions = useClick(floatingContext);
+    const dismissInteraction = useDismiss(floatingContext);
+    const role = useRole(floatingContext);
+
+    const {getReferenceProps, getFloatingProps} = useInteractions([
+        clickInteractions,
+        dismissInteraction,
+        role,
+    ]);
 
     useEffect(() => {
         const isDesktop = isDesktopApp() && isServerVersionGreaterThanOrEqualTo(getDesktopVersion(), '4.7.0');
@@ -255,75 +280,89 @@ const NewSearch = (): JSX.Element => {
     const clearSearchType = useCallback(() => dispatch(updateSearchType('')), []);
 
     return (
-        <NewSearchContainer
-            tabIndex={0}
-            onKeyDown={openSearchBoxOnKeyPress}
-            onClick={openSearchBox}
-            id='searchFormContainer'
-            role='button'
-            className='a11y__region'
-            ref={searchButtonRef}
-        >
-            <i className='icon icon-magnify'/>
-            {(searchType === 'messages' || searchType === 'files') && (
-                <SearchTypeBadge>
-                    {searchType === 'messages' && (
-                        <FormattedMessage
-                            id='search_bar.search_types.messages'
-                            defaultMessage='MESSAGES'
+        <>
+            <NewSearchContainer
+                tabIndex={0}
+                id='searchFormContainer'
+                role='button'
+                className='a11y__region'
+                ref={refs.setReference}
+                {...getReferenceProps({
+                    onKeyDown: openSearchBoxOnKeyPress,
+                    onClick: openSearchBox,
+                })}
+            >
+                <i className='icon icon-magnify'/>
+                {(searchType === 'messages' || searchType === 'files') && (
+                    <SearchTypeBadge data-testid='searchTypeBadge'>
+                        {searchType === 'messages' && (
+                            <FormattedMessage
+                                id='search_bar.search_types.messages'
+                                defaultMessage='MESSAGES'
+                            />
+                        )}
+                        {searchType === 'files' && (
+                            <FormattedMessage
+                                id='search_bar.search_types.files'
+                                defaultMessage='FILES'
+                            />
+                        )}
+                        <i
+                            className='icon icon-close icon-12'
+                            onClick={clearSearchType}
                         />
-                    )}
-                    {searchType === 'files' && (
-                        <FormattedMessage
-                            id='search_bar.search_types.files'
-                            defaultMessage='FILES'
-                        />
-                    )}
-                    <i
-                        className='icon icon-close icon-12'
-                        onClick={clearSearchType}
-                    />
-                </SearchTypeBadge>
-            )}
-            {searchTerms && <NewSearchTerms tabIndex={0}>{searchTerms}</NewSearchTerms>}
-            {searchTerms && (
-                <CloseIcon
-                    data-testid='input-clear'
-                    role='button'
-                    onClick={onClose}
-                >
-                    <span
-                        className='input-clear-x'
-                        aria-hidden='true'
+                    </SearchTypeBadge>
+                )}
+                {searchTerms && <NewSearchTerms tabIndex={0}>{searchTerms}</NewSearchTerms>}
+                {searchTerms && (
+                    <CloseIcon
+                        data-testid='input-clear'
+                        role='button'
+                        onClick={onClose}
                     >
-                        <i className='icon icon-close-circle'/>
-                    </span>
-                </CloseIcon>
-            )}
-            {!searchTerms && (
-                <FormattedMessage
-                    id='search_bar.search'
-                    defaultMessage='Search'
-                />
-            )}
-            {focused && (
-                <PopoverStyled
-                    id='searchPopover'
-                    placement='bottom'
-                >
-                    <SearchBox
-                        ref={searchBoxRef}
-                        onClose={closeSearchBox}
-                        onSearch={runSearch}
-                        initialSearchTerms={currentChannel ? `in:${currentChannel} ` : searchTerms}
-                        initialSearchType={searchType}
-                        initialSearchTeam={searchTeam}
-                        crossTeamSearchEnabled={crossTeamSearchEnabled}
-                        myTeams={myTeams}
+                        <span
+                            className='input-clear-x'
+                            aria-hidden='true'
+                        >
+                            <i className='icon icon-close-circle'/>
+                        </span>
+                    </CloseIcon>
+                )}
+                {!searchTerms && (
+                    <FormattedMessage
+                        id='search_bar.search'
+                        defaultMessage='Search'
                     />
-                </PopoverStyled>
+                )}
+            </NewSearchContainer>
+
+            {focused && (
+                <FloatingPortal id={RootHtmlPortalId}>
+                    <FloatingFocusManager context={floatingContext}>
+                        <SearchBoxContainer
+                            ref={refs.setFloating}
+                            style={floatingStyles}
+                            {...getFloatingProps()}
+                            aria-label={intl.formatMessage({
+                                id: 'search_bar.search_box',
+                                defaultMessage: 'Search box',
+                            })}
+                        >
+                            <SearchBox
+                                ref={searchBoxRef}
+                                onClose={closeSearchBox}
+                                onSearch={runSearch}
+                                initialSearchTerms={currentChannel ? `in:${currentChannel} ` : searchTerms}
+                                initialSearchType={searchType}
+                                initialSearchTeam={searchTeam}
+                                crossTeamSearchEnabled={crossTeamSearchEnabled}
+                                myTeams={myTeams}
+                            />
+                        </SearchBoxContainer>
+                    </FloatingFocusManager>
+                </FloatingPortal>
             )}
-        </NewSearchContainer>
+        </>
     );
 };
 

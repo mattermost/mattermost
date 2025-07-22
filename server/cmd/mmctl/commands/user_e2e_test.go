@@ -125,8 +125,70 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 		err := searchUserCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
-		user := printer.GetLines()[0].(*model.User)
+		user := printer.GetLines()[0].(userOut)
 		s.Equal(s.th.BasicUser.Username, user.Username)
+		s.False(user.Deactivated)
+		s.Empty(user.AuthData)
+		s.Empty(user.AuthService)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForAllClients("Search for a disabled user", func(c client.Client) {
+		printer.Clean()
+
+		// Create a disabled user
+		disabledUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
+			Email:    s.th.GenerateTestEmail(),
+			Username: model.NewUsername(),
+			Password: model.NewId(),
+			DeleteAt: model.GetMillis(), // Set DeleteAt to disable the user
+		})
+		s.Require().Nil(appErr)
+
+		err := searchUserCmdF(c, &cobra.Command{}, []string{disabledUser.Email})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		user := printer.GetLines()[0].(userOut)
+		s.Equal(disabledUser.Username, user.Username)
+		s.True(user.Deactivated) // Verify user shows as deactivated
+		s.Empty(user.AuthData)
+		s.Empty(user.AuthService)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	// Create a LDAP user
+	ldapUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
+		Email:       s.th.GenerateTestEmail(),
+		Username:    model.NewUsername(),
+		AuthData:    model.NewPointer("1234"),
+		AuthService: model.UserAuthServiceLdap,
+	})
+	s.Require().Nil(appErr)
+
+	s.RunForSystemAdminAndLocal("Search for a user with authData", func(c client.Client) {
+		printer.Clean()
+		err := searchUserCmdF(c, &cobra.Command{}, []string{ldapUser.Email})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		user := printer.GetLines()[0].(userOut)
+		s.Equal(ldapUser.Username, user.Username)
+		s.False(user.Deactivated)
+		s.Equal(*ldapUser.AuthData, user.AuthData)
+		s.Equal(ldapUser.AuthService, user.AuthService)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Search for a user with authData/Client", func() {
+		printer.Clean()
+		// Non-admin should not be able to see AuthData or AuthService
+		err := searchUserCmdF(s.th.Client, &cobra.Command{}, []string{ldapUser.Email})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		user := printer.GetLines()[0].(userOut)
+		s.Equal(ldapUser.Username, user.Username)
+		s.False(user.Deactivated)
+		s.Equal("", user.AuthData)
+		s.Equal("", user.AuthService)
 		s.Len(printer.GetErrorLines(), 0)
 	})
 
@@ -153,7 +215,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		s.th.SystemAdminUser.Username,
 		s.th.SystemManagerUser.Username,
 	}
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		userData := model.User{
 			Username: "fakeuser" + model.NewRandomString(10),
 			Password: "Pa$$word11",
@@ -166,7 +228,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 
 	inactivePool := []string{}
 	// create inactive users
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		userData := model.User{
 			Username: "fakeuser" + model.NewRandomString(10),
 			Password: "Pa$$word11",
@@ -232,7 +294,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	})
 
 	// create users with team
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		userData := model.User{
 			Username: "teamuser" + model.NewRandomString(10),
 			Password: "Pa$$word11",
@@ -265,7 +327,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	// create inactive users with team
 	inactiveUserPool := []string{}
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		userData := model.User{
 			Username: "inactiveteamuser" + model.NewRandomString(10),
 			Password: "Pa$$word11",
@@ -455,7 +517,7 @@ func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 		var expected error
 
 		expected = multierror.Append(
-			expected, fmt.Errorf("unable to verify user "+user.Id+" email: You do not have the appropriate permissions."),
+			expected, fmt.Errorf("unable to verify user %s email: You do not have the appropriate permissions.", user.Id),
 		)
 
 		s.Require().EqualError(err, expected.Error())
@@ -727,6 +789,9 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		printer.Clean()
 		emailArg := "nonexistentUser@example.com"
 
+		var expectedErr *multierror.Error
+		expectedErr = multierror.Append(expectedErr, fmt.Errorf("user %s not found", emailArg))
+
 		previousVal := s.th.App.Config().ServiceSettings.EnableAPIUserDeletion
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = true })
 		defer func() {
@@ -738,10 +803,8 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
 		err := deleteUsersCmdF(c, cmd, []string{emailArg})
-		s.Require().Nil(err)
-		s.Len(printer.GetLines(), 0)
-		s.Len(printer.GetErrorLines(), 1)
-		s.Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", emailArg), printer.GetErrorLines()[0])
+		s.Require().NotNil(err)
+		s.Require().EqualError(err, expectedErr.Error())
 	})
 
 	s.Run("Delete user without permission", func() {
@@ -758,11 +821,14 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
 		newUser := s.th.CreateUser()
+
+		var expectedErr *multierror.Error
+		expectedErr = multierror.Append(expectedErr, fmt.Errorf("unable to delete user %s error: %w", newUser.Username,
+			fmt.Errorf("You do not have the appropriate permissions.")))
+
 		err := deleteUsersCmdF(s.th.Client, cmd, []string{newUser.Email})
-		s.Require().Nil(err)
-		s.Len(printer.GetLines(), 0)
-		s.Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Sprintf("Unable to delete user '%s' error: You do not have the appropriate permissions.", newUser.Username), printer.GetErrorLines()[0])
+		s.Require().NotNil(err)
+		s.Require().EqualError(err, expectedErr.Error())
 
 		// expect user not deleted
 		user, err := s.th.App.GetUser(newUser.Id)
@@ -784,11 +850,14 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
 		newUser := s.th.CreateUser()
+
+		var expectedErr *multierror.Error
+		expectedErr = multierror.Append(expectedErr, fmt.Errorf("unable to delete user %s error: %w", newUser.Username,
+			fmt.Errorf("Permanent user deletion feature is not enabled. Please contact your System Administrator.")))
+
 		err := deleteUsersCmdF(s.th.SystemAdminClient, cmd, []string{newUser.Email})
-		s.Require().Nil(err)
-		s.Len(printer.GetLines(), 0)
-		s.Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Sprintf("Unable to delete user '%s' error: Permanent user deletion feature is not enabled. Please contact your System Administrator.", newUser.Username), printer.GetErrorLines()[0])
+		s.Require().NotNil(err)
+		s.Require().EqualError(err, expectedErr.Error())
 
 		// expect user not deleted
 		user, err := s.th.App.GetUser(newUser.Id)
@@ -968,7 +1037,7 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 		printer.Clean()
 
 		// populate with some user
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			userData := model.User{
 				Username: "fakeuser" + model.NewRandomString(10),
 				Password: "Pa$$word11",
@@ -1426,7 +1495,6 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 	})
 
 	s.Run("update existing preference for single user", func() {
-		s.T().Skip("https://mattermost.atlassian.net/browse/MM-63420")
 		setup()
 		printer.Clean()
 
@@ -1444,9 +1512,11 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser1, 3)
-		s.Require().Equal(preferenceUpdated, actualPreferencesUser1[0])
-		s.Require().Equal(preference2, actualPreferencesUser1[1])
-		s.Require().Equal(preference3, actualPreferencesUser1[2])
+
+		// We can't guarantee the order of preferences returned by the database since they are not sorted at SQL query level.
+		s.Require().Contains(actualPreferencesUser1, preferenceUpdated)
+		s.Require().Contains(actualPreferencesUser1, preference2)
+		s.Require().Contains(actualPreferencesUser1, preference3)
 
 		// Second user unaffected
 		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser2.Id)
@@ -1456,7 +1526,6 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 	})
 
 	s.Run("update existing preference for multiple users as admin", func() {
-		s.T().Skip("https://mattermost.atlassian.net/browse/MM-63420")
 		setup()
 		printer.Clean()
 
@@ -1475,9 +1544,11 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser.Id)
 		s.NoError(err)
 		s.Require().Len(actualPreferencesUser1, 3)
-		s.Require().Equal(preferenceUpdated, actualPreferencesUser1[0])
-		s.Require().Equal(preference2, actualPreferencesUser1[1])
-		s.Require().Equal(preference3, actualPreferencesUser1[2])
+
+		// We can't guarantee the order of preferences returned by the database since they are not sorted at SQL query level.
+		s.Require().Contains(actualPreferencesUser1, preferenceUpdated)
+		s.Require().Contains(actualPreferencesUser1, preference2)
+		s.Require().Contains(actualPreferencesUser1, preference3)
 
 		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.TODO(), s.th.BasicUser2.Id)
 		s.NoError(err)

@@ -4,8 +4,8 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {RefObject} from 'react';
-import type {MessageDescriptor} from 'react-intl';
-import {FormattedMessage, defineMessages} from 'react-intl';
+import type {MessageDescriptor, IntlShape} from 'react-intl';
+import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import {components} from 'react-select';
 import type {FormatOptionLabelMeta, InputActionMeta, InputProps, Options, StylesConfig, SelectInstance, MultiValue, SingleValue, OptionsOrGroups, GroupBase, MultiValueRemoveProps} from 'react-select';
 import AsyncCreatable from 'react-select/async-creatable';
@@ -50,6 +50,7 @@ type Props = {
     autoFocus?: boolean;
     suppressNoOptionsMessage?: boolean;
     onPaste?: (e: ClipboardEvent) => void;
+    intl: IntlShape;
 }
 
 export type EmailInvite = {
@@ -79,7 +80,7 @@ const messages = defineMessages({
     },
 });
 
-export default class UsersEmailsInput extends React.PureComponent<Props, State> {
+export class UsersEmailsInput extends React.PureComponent<Props, State> {
     static defaultProps = {
         noMatchMessage: messages.noMatchDefault,
         validAddress: messages.validAddressDefault,
@@ -259,12 +260,43 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
         );
     };
 
+    private renderAriaLabel = (option: UserProfile | EmailInvite): string => {
+        if (!option) {
+            return '';
+        }
+
+        if (this.isUserProfile(option)) {
+            return (option as UserProfile).username;
+        }
+
+        return (option as EmailInvite).value;
+    };
+
     MultiValueRemove = (props: MultiValueRemoveProps<EmailInvite | UserProfile, true>) => {
         const {children, innerProps} = props;
 
-        return (<div {...innerProps}>
-            {children || <CloseCircleSolidIcon/>}
-        </div>);
+        return (
+            <div
+                {...innerProps}
+                role='button'
+                tabIndex={0}
+                aria-label={this.props.intl.formatMessage({
+                    id: 'multiselect.remove',
+                    defaultMessage: 'Remove {label}',
+                }, {
+                    label: this.renderAriaLabel(props.data),
+                })}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        innerProps.onClick?.(e as unknown as React.MouseEvent<HTMLDivElement, MouseEvent>);
+                    }
+                }}
+            >
+                {children || <CloseCircleSolidIcon/>}
+            </div>
+        );
     };
 
     components = {
@@ -551,3 +583,5 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
         );
     }
 }
+
+export default injectIntl(UsersEmailsInput);

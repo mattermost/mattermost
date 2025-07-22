@@ -174,7 +174,7 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
 }
 
 const getNotificationTitle = (channel: Pick<Channel, 'type' | 'display_name'>, msgProps: NewPostMessageProps, isCrtReply: boolean) => {
-    let title = Utils.localizeMessage({id: 'channel_loader.posted', defaultMessage: 'Posted'});
+    let title = Utils.localizeMessage({id: 'channel_loader.title', defaultMessage: 'Posted'});
     if (channel.type === Constants.DM_CHANNEL) {
         title = Utils.localizeMessage({id: 'notification.dm', defaultMessage: 'Direct Message'});
     } else {
@@ -241,7 +241,7 @@ const getNotificationBody = (state: GlobalState, post: Post, msgProps: NewPostMe
         } else if (image) {
             body += Utils.localizeMessage({id: 'channel_loader.postedImage', defaultMessage: ' posted an image'});
         } else {
-            body += Utils.localizeMessage({id: 'channel_loader.something', defaultMessage: ' did something new'});
+            body += Utils.localizeMessage({id: 'channel_loader.posted', defaultMessage: ' posted a message'});
         }
     } else {
         body += `: ${strippedMarkdownNotifyText}`;

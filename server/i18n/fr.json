@@ -208,10 +208,6 @@
     "translation": "Impossible de quitter un canal de messages personnels."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Vous êtes le seul membre restant, essayez de supprimer le groupe privé plutôt que d'essayer de le quitter."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v a quitté le canal."
   },
@@ -5130,10 +5126,6 @@
   {
     "id": "app.plugin.get_public_key.get_file.app_error",
     "translation": "Une erreur s'est produite lors de la récupération de la clé publique à partir du magasin."
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Impossible de définir le plugin comme géré par le gestionnaire de fichiers."
   },
   {
     "id": "app.plugin.delete_public_key.delete.app_error",

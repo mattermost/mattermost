@@ -28,8 +28,8 @@ func (a *App) SetStatusOnline(userID string, manual bool) {
 	a.Srv().Platform().SetStatusOnline(userID, manual)
 }
 
-func (a *App) SetStatusOffline(userID string, manual bool) {
-	a.Srv().Platform().SetStatusOffline(userID, manual)
+func (a *App) SetStatusOffline(userID string, manual bool, force bool) {
+	a.Srv().Platform().SetStatusOffline(userID, manual, force)
 }
 
 func (a *App) SetStatusAwayIfNeeded(userID string, manual bool) {
@@ -71,7 +71,7 @@ func (a *App) UpdateDNDStatusOfUsers() {
 		return
 	}
 
-	scs, _ := a.getSharedChannelsService()
+	scs, _ := a.getSharedChannelsService(false)
 	for i := range statuses {
 		a.Srv().Platform().AddStatusCache(statuses[i])
 		a.Srv().Platform().BroadcastStatus(statuses[i])

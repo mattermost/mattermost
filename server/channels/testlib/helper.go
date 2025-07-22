@@ -31,21 +31,24 @@ type MainHelper struct {
 	SQLStore         *sqlstore.SqlStore
 	ClusterInterface *FakeClusterInterface
 	Logger           *mlog.Logger
+	Options          HelperOptions
 
 	status           int
 	testResourcePath string
 	replicas         []string
+	storePool        *sqlstore.TestPool
 }
 
 type HelperOptions struct {
 	EnableStore     bool
 	EnableResources bool
-	WithReadReplica bool
+	RunParallel     bool
+	Parallelism     int
 }
 
 func NewMainHelper() *MainHelper {
 	// Ignore any globally defined datasource if a test dsn defined
-	if os.Getenv("TEST_DATABASE_MYSQL_DSN") != "" || os.Getenv("TEST_DATABASE_POSTGRESQL_DSN") != "" {
+	if os.Getenv("TEST_DATABASE_POSTGRESQL_DSN") != "" {
 		os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
 	}
 
@@ -57,7 +60,7 @@ func NewMainHelper() *MainHelper {
 
 func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 	// Ignore any globally defined datasource if a test dsn defined
-	if os.Getenv("TEST_DATABASE_MYSQL_DSN") != "" || os.Getenv("TEST_DATABASE_POSTGRESQL_DSN") != "" {
+	if os.Getenv("TEST_DATABASE_POSTGRESQL_DSN") != "" {
 		os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
 	}
 
@@ -85,12 +88,28 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 	}
 
 	if options != nil {
+		mainHelper.Options = *options
+
 		if options.EnableStore && !testing.Short() {
-			mainHelper.setupStore(options.WithReadReplica)
+			mainHelper.setupStore()
 		}
 
 		if options.EnableResources {
 			mainHelper.setupResources()
+		}
+
+		if options.RunParallel && options.EnableStore {
+			driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
+			if driverName == "" {
+				driverName = model.DatabaseDriverPostgres
+			}
+			// NOTE: we use a poolSize higher than the parallelism value (coming from -test.parallel flag) as we need a bit of extra buffer to cover
+			// for subtests that might also run in parallel and initialize a new store.
+			storePool, err := sqlstore.NewTestPool(mainHelper.Logger, driverName, options.Parallelism*2)
+			if err != nil {
+				panic(err)
+			}
+			mainHelper.storePool = storePool
 		}
 	}
 
@@ -127,13 +146,43 @@ func (h *MainHelper) Main(m *testing.M) {
 	h.status = m.Run()
 }
 
-func (h *MainHelper) setupStore(withReadReplica bool) {
+func (h *MainHelper) GetNewStores(tb testing.TB) (store.Store, *sqlstore.SqlStore, *model.SqlSettings, *searchengine.Broker) {
 	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
 	if driverName == "" {
 		driverName = model.DatabaseDriverPostgres
 	}
 
-	h.Settings = storetest.MakeSqlSettings(driverName, withReadReplica)
+	config := &model.Config{}
+	config.SetDefaults()
+
+	searchEngine := searchengine.NewBroker(config)
+
+	storePoolEntry := h.storePool.Get(tb)
+	if storePoolEntry == nil {
+		panic("no store available in the pool")
+	}
+	settings := storePoolEntry.Settings
+	sqlStore := storePoolEntry.Store
+	sqlStore.DropAllTables()
+
+	store := searchlayer.NewSearchLayer(&TestStore{
+		sqlStore,
+	}, searchEngine, config)
+
+	store.MarkSystemRanUnitTests()
+
+	preloadMigrations(driverName, sqlStore)
+
+	return store, sqlStore, settings, searchEngine
+}
+
+func (h *MainHelper) setupStore() {
+	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
+	if driverName == "" {
+		driverName = model.DatabaseDriverPostgres
+	}
+
+	h.Settings = storetest.MakeSqlSettings(driverName)
 	h.replicas = h.Settings.DataSourceReplicas
 
 	config := &model.Config{}
@@ -143,7 +192,7 @@ func (h *MainHelper) setupStore(withReadReplica bool) {
 	h.ClusterInterface = &FakeClusterInterface{}
 
 	var err error
-	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil)
+	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil, sqlstore.DisableMorphLogging())
 	if err != nil {
 		panic(err)
 	}
@@ -160,7 +209,7 @@ func (h *MainHelper) ToggleReplicasOff() {
 	lic := h.SQLStore.GetLicense()
 
 	var err error
-	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil)
+	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil, sqlstore.DisableMorphLogging())
 	if err != nil {
 		panic(err)
 	}
@@ -175,7 +224,7 @@ func (h *MainHelper) ToggleReplicasOn() {
 	lic := h.SQLStore.GetLicense()
 
 	var err error
-	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil)
+	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil, sqlstore.DisableMorphLogging())
 	if err != nil {
 		panic(err)
 	}
@@ -204,29 +253,29 @@ func (h *MainHelper) setupResources() {
 // pg_dump -a -h localhost -U mmuser -d <> --no-comments --inserts -t roles -t systems
 // mysqldump -u root -p <> --no-create-info --extended-insert=FALSE Systems Roles
 // And keep only the permission related rows in the systems table output.
-func (h *MainHelper) PreloadMigrations() {
+func preloadMigrations(driverName string, sqlStore *sqlstore.SqlStore) {
 	var buf []byte
 	var err error
 
-	switch *h.Settings.DriverName {
+	switch driverName {
 	case model.DatabaseDriverPostgres:
 		finalPath := filepath.Join(server.GetPackagePath(), "channels", "testlib", "testdata", "postgres_migration_warmup.sql")
 		buf, err = os.ReadFile(finalPath)
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
-	case model.DatabaseDriverMysql:
-		finalPath := filepath.Join(server.GetPackagePath(), "channels", "testlib", "testdata", "mysql_migration_warmup.sql")
-		buf, err = os.ReadFile(finalPath)
-		if err != nil {
-			panic(fmt.Errorf("cannot read file: %v", err))
-		}
+	default:
+		panic(fmt.Errorf("unsupported database driver: %s", driverName))
 	}
-	handle := h.SQLStore.GetMaster()
+	handle := sqlStore.GetMaster()
 	_, err = handle.Exec(string(buf))
 	if err != nil {
-		panic(errors.Wrap(err, "Error preloading migrations. Check if you have &multiStatements=true in your DSN if you are using MySQL. Or perhaps the schema changed? If yes, then update the warmup files accordingly"))
+		panic(errors.Wrap(err, "Error preloading migrations. Perhaps the schema changed? If yes, then update the warmup files accordingly"))
 	}
+}
+
+func (h *MainHelper) PreloadMigrations() {
+	preloadMigrations(*h.Settings.DriverName, h.SQLStore)
 }
 
 func (h *MainHelper) Close() error {
@@ -238,6 +287,10 @@ func (h *MainHelper) Close() error {
 	}
 	if h.testResourcePath != "" {
 		os.RemoveAll(h.testResourcePath)
+	}
+
+	if h.storePool != nil {
+		h.storePool.Close()
 	}
 
 	if r := recover(); r != nil {
@@ -289,35 +342,8 @@ func (h *MainHelper) GetSearchEngine() *searchengine.Broker {
 	return h.SearchEngine
 }
 
-func (h *MainHelper) SetReplicationLagForTesting(seconds int) error {
-	if dn := h.SQLStore.DriverName(); dn != model.DatabaseDriverMysql {
-		return fmt.Errorf("method not implemented for %q database driver, only %q is supported", dn, model.DatabaseDriverMysql)
+func (h *MainHelper) Parallel(t *testing.T) {
+	if h.Options.RunParallel {
+		t.Parallel()
 	}
-
-	err := h.execOnEachReplica("STOP SLAVE SQL_THREAD FOR CHANNEL ''")
-	if err != nil {
-		return err
-	}
-
-	err = h.execOnEachReplica(fmt.Sprintf("CHANGE MASTER TO MASTER_DELAY = %d", seconds))
-	if err != nil {
-		return err
-	}
-
-	err = h.execOnEachReplica("START SLAVE SQL_THREAD FOR CHANNEL ''")
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (h *MainHelper) execOnEachReplica(query string, args ...any) error {
-	for _, replica := range h.SQLStore.ReplicaXs {
-		_, err := replica.Load().Exec(query, args...)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }

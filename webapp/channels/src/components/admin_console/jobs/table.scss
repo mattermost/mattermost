@@ -26,3 +26,18 @@
         width: 30px;
     }
 }
+
+.JobTable {
+    .clickable {
+        cursor: pointer;
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+    }
+
+    .DataGrid_footer {
+        padding: 8px;
+        border-top: solid 1px rgba(0, 0, 0, 0.1);
+        text-align: right;
+    }
+}

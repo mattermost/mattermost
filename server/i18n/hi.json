@@ -1348,10 +1348,6 @@
     "translation": "%v ने चैनल छोड़ दिया।"
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "आप अकेले सदस्य हैं, छोड़ने के बजाय निजी चैनल को निकालने का प्रयास करें।"
-  },
-  {
     "id": "api.command_code.name",
     "translation": "कोड"
   },
@@ -6983,10 +6979,6 @@
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
     "translation": "क्लस्टर से प्लगइन स्थिति प्राप्त करने में असमर्थ।"
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "फ़ाइल स्टोर द्वारा प्रबंधित प्लगइन सेट करने में असमर्थ।"
   },
   {
     "id": "app.plugin.filesystem.app_error",

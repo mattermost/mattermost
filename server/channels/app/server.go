@@ -401,31 +401,6 @@ func NewServer(options ...Option) (*Server, error) {
 		s.EmailService.InitEmailBatching()
 	})
 
-	isTrial := false
-	if licence := s.License(); licence != nil {
-		isTrial = licence.IsTrial
-	}
-
-	logCurrentVersion := fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
-	mlog.Info(
-		logCurrentVersion,
-		mlog.String("current_version", model.CurrentVersion),
-		mlog.String("build_number", model.BuildNumber),
-		mlog.String("build_date", model.BuildDate),
-		mlog.String("build_hash", model.BuildHash),
-		mlog.String("build_hash_enterprise", model.BuildHashEnterprise),
-		mlog.String("service_environment", model.GetServiceEnvironment()),
-	)
-	if model.BuildEnterpriseReady == "true" {
-		mlog.Info(
-			"Enterprise Build",
-			mlog.Bool("enterprise_build", true),
-			mlog.Bool("is_trial", isTrial),
-		)
-	} else {
-		mlog.Info("Team Edition Build", mlog.Bool("enterprise_build", false))
-	}
-
 	pwd, _ := os.Getwd()
 	mlog.Info("Printing current working", mlog.String("directory", pwd))
 	mlog.Info("Loaded config", mlog.String("source", s.platform.DescribeConfig()))
@@ -1421,7 +1396,6 @@ func (s *Server) doLicenseExpirationCheck() {
 
 	// send email to admin(s)
 	for _, user := range users {
-		user := user
 		if user.Email == "" {
 			mlog.Error("Invalid system admin email.", mlog.String("user_email", user.Email))
 			continue
@@ -1497,6 +1471,11 @@ func (s *Server) initJobs() {
 	if jobsLdapSyncInterface != nil {
 		builder := jobsLdapSyncInterface(New(ServerConnector(s.Channels())))
 		s.Jobs.RegisterJobType(model.JobTypeLdapSync, builder.MakeWorker(), builder.MakeScheduler())
+	}
+
+	if jobsAccessControlSyncJobInterface != nil {
+		builder := jobsAccessControlSyncJobInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeAccessControlSync, builder.MakeWorker(), builder.MakeScheduler())
 	}
 
 	s.Jobs.RegisterJobType(

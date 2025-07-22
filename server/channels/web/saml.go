@@ -13,7 +13,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
@@ -104,7 +103,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps = model.MapFromJSON(strings.NewReader(stateStr))
 	}
 
-	auditRec := c.MakeAuditRecord("completeSaml", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCompleteSaml, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -182,10 +181,16 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		AcceptLanguage: c.AppContext.AcceptLanguage(),
 		UserAgent:      c.AppContext.UserAgent(),
 	}
+
+	var hookErr error
 	c.App.Channels().RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
-		err := hooks.OnSAMLLogin(pluginContext, user, assertion)
-		return err == nil
+		hookErr = hooks.OnSAMLLogin(pluginContext, user, assertion)
+		return hookErr == nil
 	}, plugin.OnSAMLLoginID)
+	if hookErr != nil {
+		handleError(model.NewAppError("completeSaml", "api.user.authorize_oauth_user.saml_hook_error.app_error", nil, "", http.StatusInternalServerError).Wrap(hookErr))
+		return
+	}
 
 	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")

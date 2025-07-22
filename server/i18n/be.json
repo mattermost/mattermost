@@ -5644,10 +5644,6 @@
     "translation": "Немагчыма атрымаць статуты плагінаў з кластара."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Немагчыма задаць убудову як кіраваны файлавым сховішчам."
-  },
-  {
     "id": "app.plugin.extract.app_error",
     "translation": "Выяўлена памылка пры выманні камплекта плагіна."
   },
@@ -7350,10 +7346,6 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v пакінуў канал."
-  },
-  {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Вы адзіны ўдзельнік, паспрабуйце выдаліць прыватны канал замест таго, каб пакінуць."
   },
   {
     "id": "api.channel.leave.direct.app_error",

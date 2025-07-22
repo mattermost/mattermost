@@ -25,6 +25,12 @@ const SearchHintsContainer = styled.div`
         margin-right: 8px;
         color: var(--center-channel-color-56);
     }
+    h2 {
+        all: inherit;
+        display: inline;
+        margin: 0;
+        padding: 0;
+    }
 `;
 
 const SearchFilter = styled.button`
@@ -97,11 +103,16 @@ const SearchHints = ({onSelectFilter, searchType, searchTerms, searchTeam, hasSe
 
     return (
         <SearchHintsContainer id='searchHints'>
-            <i className='icon icon-lightbulb-outline'/>
-            <FormattedMessage
-                id='search_hint.filter'
-                defaultMessage='Filter your search with:'
+            <i
+                className='icon icon-lightbulb-outline'
+                aria-hidden='true'
             />
+            <h2>
+                <FormattedMessage
+                    id='search_hint.filter'
+                    defaultMessage='Filter your search with:'
+                />
+            </h2>
             {filters.map((filter) => (
                 <SearchFilter
                     key={filter.searchTerm}
@@ -117,4 +128,3 @@ const SearchHints = ({onSelectFilter, searchType, searchTerms, searchTeam, hasSe
 };
 
 export default SearchHints;
-

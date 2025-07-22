@@ -61,33 +61,40 @@ describe('components/widgets/inputs/Input', () => {
     });
 
     describe('minLength validation', () => {
-        test('should show error styling when input is empty with minLength set', () => {
+        test('should show error styling when input is empty with minLength set', async () => {
             renderWithContext(
                 <Input
                     value={''}
-                    minLength={5}
+                    minLength={2}
                 />,
             );
 
-            // Check for the +X indicator
-            const indicator = screen.getByText('+5');
-            expect(indicator).toBeInTheDocument();
+            // Find the input and blur it to trigger validation
+            const inputElement = screen.getByRole('textbox');
+            await act(async () => {
+                inputElement.focus();
+                inputElement.blur();
+            });
 
             // Check for error styling
-            const fieldset = screen.getByRole('group');
+            const fieldset = screen.getByTestId('input-wrapper');
             expect(fieldset).toHaveClass('Input_fieldset___error');
+
+            // Check for error message
+            const errorMessage = screen.getByText(/Must be at least 2 characters/i);
+            expect(errorMessage).toBeInTheDocument();
         });
 
         test('should show error styling and message when input length < minLength', async () => {
             renderWithContext(
                 <Input
-                    value={'abc'}
-                    minLength={5}
+                    value={'a'}
+                    minLength={2}
                 />,
             );
 
             // Find the input
-            const inputElement = screen.getByDisplayValue('abc');
+            const inputElement = screen.getByDisplayValue('a');
 
             // Simulate change to trigger validation
             await act(async () => {
@@ -95,19 +102,17 @@ describe('components/widgets/inputs/Input', () => {
                 userEvent.clear(inputElement);
 
                 // Then type the new value
-                userEvent.type(inputElement, 'abc');
+                userEvent.type(inputElement, 'a');
+
+                inputElement.blur();
             });
 
-            // Check for the +X indicator
-            const indicator = screen.getByText('+2');
-            expect(indicator).toBeInTheDocument();
-
             // Check for error styling
-            const fieldset = screen.getByRole('group');
+            const fieldset = screen.getByTestId('input-wrapper');
             expect(fieldset).toHaveClass('Input_fieldset___error');
 
             // Check for error message
-            const errorMessage = await screen.findByText(/Must be at least 5 characters/i);
+            const errorMessage = await screen.findByText(/Must be at least 2 characters/i);
             expect(errorMessage).toBeInTheDocument();
         });
 
@@ -116,19 +121,19 @@ describe('components/widgets/inputs/Input', () => {
 
             renderWithContext(
                 <Input
-                    value={'abcde'}
-                    minLength={5}
+                    value={'ab'}
+                    minLength={2}
                     onChange={onChange}
                 />,
             );
 
-            // With exactly 5 characters and minLength of 5, there should be no error
+            // With exactly 2 characters and minLength of 2, there should be no error
 
             // Check that the +X indicator is not present
             expect(screen.queryByText(/\+\d+/)).not.toBeInTheDocument();
 
             // Check that error message is not present
-            expect(screen.queryByText(/Must be at least 5 characters/i)).not.toBeInTheDocument();
+            expect(screen.queryByText(/Must be at least 2 characters/i)).not.toBeInTheDocument();
         });
     });
 
@@ -146,14 +151,15 @@ describe('components/widgets/inputs/Input', () => {
                 />,
             );
 
-            // With 6 characters and limit of 5, there should be an error
-
-            // Check for the -X indicator
-            const indicator = screen.getByText('-1');
-            expect(indicator).toBeInTheDocument();
+            // Find the input and blur it to trigger validation
+            const inputElement = screen.getByRole('textbox');
+            await act(async () => {
+                inputElement.focus();
+                inputElement.blur();
+            });
 
             // Check for error styling
-            const fieldset = screen.getByRole('group');
+            const fieldset = screen.getByTestId('input-wrapper');
             expect(fieldset).toHaveClass('Input_fieldset___error');
         });
 
@@ -167,11 +173,6 @@ describe('components/widgets/inputs/Input', () => {
                     onChange={onChange}
                 />,
             );
-
-            // With exactly 5 characters and limit of 5, there should be no error
-
-            // Check that the -X indicator is not present
-            expect(screen.queryByText(/-\d+/)).not.toBeInTheDocument();
 
             // Check that error message is not present
             expect(screen.queryByText(/Must be no more than 5 characters/i)).not.toBeInTheDocument();
@@ -204,7 +205,7 @@ describe('components/widgets/inputs/Input', () => {
             expect(errorMessage).toBeInTheDocument();
 
             // Check for error styling
-            const fieldset = screen.getByRole('group');
+            const fieldset = screen.getByTestId('input-wrapper');
             expect(fieldset).toHaveClass('Input_fieldset___error');
         });
 
@@ -236,7 +237,7 @@ describe('components/widgets/inputs/Input', () => {
                 <Input
                     value={''}
                     required={true}
-                    minLength={5}
+                    minLength={2}
                 />,
             );
 
@@ -254,21 +255,7 @@ describe('components/widgets/inputs/Input', () => {
             expect(errorMessage).toBeInTheDocument();
 
             // Check that minLength error message is not present
-            expect(screen.queryByText(/Must be at least 5 characters/i)).not.toBeInTheDocument();
-        });
-
-        test('should show both minLength indicator and limit indicator when applicable', () => {
-            renderWithContext(
-                <Input
-                    value={'abc'}
-                    minLength={5}
-                    limit={10}
-                />,
-            );
-
-            // Check for the +X indicator for minLength
-            const indicator = screen.getByText('+2');
-            expect(indicator).toBeInTheDocument();
+            expect(screen.queryByText(/Must be at least 2 characters/i)).not.toBeInTheDocument();
         });
     });
 });

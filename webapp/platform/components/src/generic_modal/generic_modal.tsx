@@ -4,9 +4,10 @@
 import classNames from 'classnames';
 import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import {useFocusTrap} from '../hooks/useFocusTrap';
+import {useStackedModal} from '../hooks/useStackedModal';
 import './generic_modal.scss';
 
 export type ModalLocation = 'top' | 'center' | 'bottom';
@@ -17,6 +18,7 @@ export type Props = {
     onEntered?: () => void;
     onHide?: () => void;
     modalHeaderText?: React.ReactNode;
+    modalHeaderTextId?: string;
     modalSubheaderText?: React.ReactNode;
     show?: boolean;
     handleCancel?: () => void;
@@ -54,6 +56,13 @@ export type Props = {
     headerButton?: React.ReactNode;
     showCloseButton?: boolean;
     showHeader?: boolean;
+
+    /**
+     * Whether this modal is stacked on top of another modal.
+     * When true, the modal will not render its own backdrop and will
+     * adjust the z-index of the parent modal's backdrop.
+     */
+    isStacked?: boolean;
 
     /*
      * Controls the vertical location of the modal.
@@ -97,6 +106,7 @@ export const GenericModal: React.FC<Props> = ({
     onEntered,
     onHide,
     modalHeaderText,
+    modalHeaderTextId,
     modalSubheaderText,
     handleCancel,
     handleConfirm,
@@ -115,7 +125,6 @@ export const GenericModal: React.FC<Props> = ({
     compassDesign,
     backdrop,
     backdropClassName,
-    tabIndex,
     children,
     autoFocusConfirmButton,
     headerInput,
@@ -127,25 +136,35 @@ export const GenericModal: React.FC<Props> = ({
     headerButton,
     dataTestId,
     delayFocusTrap,
+    isStacked = false,
 }) => {
+    const intl = useIntl();
+
     // Create a ref for the modal container
     const containerRef = useRef<HTMLDivElement>(null);
 
     const [showState, setShowState] = useState(show);
+
+    const onHideCallback = useCallback(() => {
+        setShowState(false);
+        onHide?.();
+    }, [onHide]);
 
     // Use focus trap to keep focus within the modal when it's open
     useFocusTrap(showState, containerRef, {
         delayMs: delayFocusTrap ? 500 : undefined,
     });
 
+    // Use stacked modal hook to manage backdrop and z-index
+    // Only pass isStacked=true when it's explicitly set to true
+    const {
+        shouldRenderBackdrop,
+        modalStyle,
+    } = useStackedModal(Boolean(isStacked), showState);
+
     useEffect(() => {
         setShowState(show);
     }, [show]);
-
-    const onHideCallback = useCallback(() => {
-        setShowState(false);
-        onHide?.();
-    }, [onHide]);
 
     const handleCancelCallback = useCallback((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         event.preventDefault();
@@ -230,7 +249,7 @@ export const GenericModal: React.FC<Props> = ({
     // Build header text if provided.
     const headerText = modalHeaderText && (
         <div className='GenericModal__header'>
-            <h1 id='genericModalLabel' className='modal-title'>
+            <h1 id={modalHeaderTextId || 'genericModalLabel'} className='modal-title'>
                 {modalHeaderText}
             </h1>
             {headerButton}
@@ -276,21 +295,22 @@ export const GenericModal: React.FC<Props> = ({
             enforceFocus={enforceFocus}
             onHide={onHideCallback}
             onExited={onExited}
-            backdrop={backdrop}
+            backdrop={shouldRenderBackdrop ? backdrop : false}
+            backdropStyle={isStacked ? {zIndex: 1051} : undefined}
             backdropClassName={backdropClassName}
             container={container}
             keyboard={keyboardEscape}
             onEntered={onEntered}
             data-testid={dataTestId}
+            style={modalStyle}
         >
             <div
                 ref={containerRef}
                 onKeyDown={onEnterKeyDown}
-                tabIndex={tabIndex || 0}
                 className='GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher'
             >
                 {showHeader && (
-                    <Modal.Header closeButton={showCloseButton}>
+                    <Modal.Header closeButton={false}>
                         <div className='GenericModal__header__text_container'>
                             {compassDesign && (
                                 <>
@@ -306,6 +326,19 @@ export const GenericModal: React.FC<Props> = ({
                                 </div>
                             )}
                         </div>
+                        {showCloseButton && (
+                            <button
+                                type='button'
+                                className='close'
+                                onClick={onHideCallback}
+                                aria-label={intl.formatMessage({id: 'generic_modal.close', defaultMessage: 'Close'})}
+                            >
+                                <span aria-hidden='true'>{'×'}</span>
+                                <span className='sr-only'>
+                                    <FormattedMessage id='generic_modal.close' defaultMessage='Close' />
+                                </span>
+                            </button>
+                        )}
                     </Modal.Header>
                 )}
                 <Modal.Body className={classNames({divider: bodyDivider, 'overflow-visible': bodyOverflowVisible})}>

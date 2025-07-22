@@ -193,7 +193,6 @@ func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun 
 
 	var team *model.Team
 	team, err := a.Srv().Store().Team().GetByName(teamName)
-
 	if err != nil {
 		team = &model.Team{
 			Name: teamName,
@@ -1038,7 +1037,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 		} else {
 			rawRoles := *tdata.Roles
 			explicitRoles := []string{}
-			for _, role := range strings.Fields(rawRoles) {
+			for role := range strings.FieldsSeq(rawRoles) {
 				if role == model.TeamGuestRoleId {
 					isGuestByTeamID[team.Id] = true
 					isUserByTeamId[team.Id] = false
@@ -1195,7 +1194,7 @@ func (a *App) importUserChannels(rctx request.CTX, user *model.User, team *model
 		if cdata.Roles != nil {
 			rawRoles := *cdata.Roles
 			explicitRoles := []string{}
-			for _, role := range strings.Fields(rawRoles) {
+			for role := range strings.FieldsSeq(rawRoles) {
 				if role == model.ChannelGuestRoleId {
 					isGuestByChannelId[channel.Id] = true
 					isUserByChannelId[channel.Id] = false
@@ -1366,7 +1365,6 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 	var err *model.AppError
 	usernames := []string{}
 	for _, replyData := range data {
-		replyData := replyData
 		if err = imports.ValidateReplyImportData(&replyData, post.CreateAt, a.MaxPostSize()); err != nil {
 			return err
 		}
@@ -1395,7 +1393,6 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 	)
 
 	for _, replyData := range data {
-		replyData := replyData
 		user := users[strings.ToLower(*replyData.User)]
 
 		// Check if this post already exists.
@@ -1988,7 +1985,6 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 	}
 
 	for _, postWithData := range postsWithData {
-		postWithData := postWithData
 		if postWithData.postData.FlaggedBy != nil {
 			var preferences model.Preferences
 
@@ -2012,7 +2008,6 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 
 		if postWithData.postData.Reactions != nil {
 			for _, reaction := range *postWithData.postData.Reactions {
-				reaction := reaction
 				if err := a.importReaction(&reaction, postWithData.post); err != nil {
 					return postWithData.lineNumber, err
 				}
@@ -2037,7 +2032,6 @@ func (a *App) uploadAttachments(rctx request.CTX, attachments *[]imports.Attachm
 	}
 	fileIDs := make(map[string]bool)
 	for _, attachment := range *attachments {
-		attachment := attachment
 		fileInfo, err := a.importAttachment(rctx, &attachment, post, teamID, extractContent)
 		if err != nil {
 			if attachment.Path != nil {
@@ -2063,6 +2057,7 @@ func (a *App) updateFileInfoWithPostId(rctx request.CTX, post *model.Post) {
 		}
 	}
 }
+
 func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelImportData, dryRun bool) *model.AppError {
 	var err *model.AppError
 	if err = imports.ValidateDirectChannelImportData(data); err != nil {
@@ -2105,7 +2100,7 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 		}
 		channel = ch
 	} else {
-		ch, err2 := a.createGroupChannel(rctx, userIDs)
+		ch, err2 := a.createGroupChannel(rctx, userIDs, "")
 		if err2 != nil && err2.Id != store.ChannelExistsError {
 			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_group_channel.error", nil, "", http.StatusBadRequest).Wrap(err2)
 		}
@@ -2117,7 +2112,7 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 		return model.NewAppError("BulkImport", "app.import.import_direct_channel.get_channel_members.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	var ems = make([]model.ChannelMember, 0, totalMembers)
+	ems := make([]model.ChannelMember, 0, totalMembers)
 	var page int
 
 	for int64(len(ems)) < totalMembers {
@@ -2350,7 +2345,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 			}
 			channel = ch
 		} else if len(userIDs) > 2 {
-			ch, err = a.createGroupChannel(rctx, userIDs)
+			ch, err = a.createGroupChannel(rctx, userIDs, "")
 			if err != nil && err.Id != store.ChannelExistsError {
 				return line.LineNumber, model.NewAppError("BulkImport", "app.import.import_direct_post.create_group_channel.error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
@@ -2521,7 +2516,6 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 
 		if postWithData.directPostData.Reactions != nil {
 			for _, reaction := range *postWithData.directPostData.Reactions {
-				reaction := reaction
 				if err := a.importReaction(&reaction, postWithData.post); err != nil {
 					return postWithData.lineNumber, err
 				}

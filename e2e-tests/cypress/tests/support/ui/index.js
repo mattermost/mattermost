@@ -19,7 +19,6 @@ import './login';
 import './menu';
 import './mfa';
 import './modal';
-import './playbooks';
 import './post';
 import './post_dropdown_menu';
 import './search';

@@ -15,8 +15,6 @@ import (
 	"math"
 	"net/http"
 	"net/url"
-	"os"
-	"path"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -1407,32 +1405,14 @@ func (a *App) CopyFileInfos(rctx request.CTX, userID string, fileIDs []string) (
 	return newFileIds, nil
 }
 
-// This function zip's up all the files in fileDatas array and then saves it to the directory specified with the specified zip file name
-// Ensure the zip file name ends with a .zip
-func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error {
-	// Create Zip File (temporarily stored on disk)
-	conglomerateZipFile, err := os.Create(zipFileName)
-	if err != nil {
-		return fmt.Errorf("failed to create temporary zip file %q: %w", zipFileName, err)
-	}
-	defer os.Remove(zipFileName)
+// WriteZipFile writes a zip file to the provided writer from the provided file data.
+func (a *App) WriteZipFile(w io.Writer, fileDatas []model.FileData) error {
+	zipWriter := zip.NewWriter(w)
 
-	// Create a new zip archive.
-	zipFileWriter := zip.NewWriter(conglomerateZipFile)
-
-	// Populate Zip file with File Datas array
-	err = populateZipfile(zipFileWriter, fileDatas)
+	// Populate zip file with file data
+	err := populateZipfile(zipWriter, fileDatas)
 	if err != nil {
-		return err
-	}
-
-	_, err = conglomerateZipFile.Seek(0, 0)
-	if err != nil {
-		return fmt.Errorf("failed to seek to beginning of zip file %q: %w", conglomerateZipFile.Name(), err)
-	}
-	_, err = fileBackend.WriteFile(conglomerateZipFile, path.Join(directory, zipFileName))
-	if err != nil {
-		return fmt.Errorf("failed to write zip file to file backend at path %s: %w", path.Join(directory, zipFileName), err)
+		return fmt.Errorf("failed to populate zip file: %w", err)
 	}
 
 	return nil

@@ -1098,7 +1098,7 @@ export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts
             groupsByName = getAllGroupsByName(state);
         }
 
-        const pattern = /\B@(([a-z0-9_.-]*[a-z0-9_])[.-]*)/gi;
+        const pattern = /\B@(([a-z0-9.\-_:]*[a-z0-9_])[.\-:]*)/gi;
 
         let match;
         while ((match = pattern.exec(text)) !== null) {
@@ -1243,6 +1243,13 @@ export function doPostActionWithCookie(postId: string, actionId: string, actionC
                 type: IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID,
                 data: data.trigger_id,
             });
+            const state = getState();
+            const post = PostSelectors.getPost(state, postId);
+            dispatch({
+                type: IntegrationTypes.RECEIVED_DIALOG_ARGUMENTS,
+                data: {
+                    channel_id: post.channel_id,
+                }});
         }
 
         return {data};

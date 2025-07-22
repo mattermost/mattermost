@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"time"
 
@@ -96,9 +97,7 @@ func (s *Server) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model
 				logData[filteredNodeName] = clusterLogs[filteredNodeName]
 			}
 		} else {
-			for nodeName, logs := range clusterLogs {
-				logData[nodeName] = logs
-			}
+			maps.Copy(logData, clusterLogs)
 		}
 	}
 
@@ -131,14 +130,11 @@ func (a *App) GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *mo
 	return a.Srv().GetLogsSkipSend(rctx, page, perPage, logFilter)
 }
 
-func (a *App) GetClusterStatus(rctx request.CTX) []*model.ClusterInfo {
-	infos := make([]*model.ClusterInfo, 0)
-
-	if a.Cluster() != nil {
-		infos = a.Cluster().GetClusterInfos()
+func (a *App) GetClusterStatus(rctx request.CTX) ([]*model.ClusterInfo, error) {
+	if a.Cluster() == nil {
+		return make([]*model.ClusterInfo, 0), nil
 	}
-
-	return infos
+	return a.Cluster().GetClusterInfos()
 }
 
 func (s *Server) InvalidateAllCaches() *model.AppError {

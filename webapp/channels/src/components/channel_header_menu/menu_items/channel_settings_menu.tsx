@@ -3,7 +3,7 @@
 
 import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {
     CogOutlineIcon,
@@ -11,18 +11,27 @@ import {
 import type {Channel} from '@mattermost/types/channels';
 
 import {openModal} from 'actions/views/modals';
+import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 
 import ChannelSettingsModal from 'components/channel_settings_modal/channel_settings_modal';
 import * as Menu from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
 
+import type {GlobalState} from 'types/store';
+
 type Props = {
     channel: Channel;
 }
 
-const ChannelSettingsMenu = ({channel}: Props): JSX.Element => {
+const ChannelSettingsMenu = ({channel}: Props): JSX.Element | null => {
     const dispatch = useDispatch();
+    const canAccess = useSelector((state: GlobalState) => canAccessChannelSettings(state, channel.id));
+
+    // Don't render the menu item if the user doesn't have access to any channel settings tab
+    if (!canAccess) {
+        return null;
+    }
 
     const handleOpenChannelSettings = () => {
         dispatch(

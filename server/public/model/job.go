@@ -44,6 +44,7 @@ const (
 	JobTypeExportUsersToCSV              = "export_users_to_csv"
 	JobTypeDeleteDmsPreferencesMigration = "delete_dms_preferences_migration"
 	JobTypeMobileSessionMetadata         = "mobile_session_metadata"
+	JobTypeAccessControlSync             = "access_control_sync"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"

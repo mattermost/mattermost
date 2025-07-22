@@ -35,7 +35,8 @@ func TestConfigDefaults(t *testing.T) {
 				// Ignoring these 2 settings.
 				// TODO: remove them completely in v8.0.
 				if name == "config.BleveSettings.BulkIndexingTimeWindowSeconds" ||
-					name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" {
+					name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" ||
+					name == "config.ClusterSettings.EnableExperimentalGossipEncryption" {
 					return
 				}
 
@@ -205,6 +206,94 @@ func TestConfigDefaultFileSettingsS3SSE(t *testing.T) {
 	c1.SetDefaults()
 
 	require.False(t, *c1.FileSettings.AmazonS3SSE)
+}
+
+func TestFileSettingsDirectoryWhitespaceValidation(t *testing.T) {
+	// Define Unicode whitespace characters to test
+	unicodeWhitespaces := []struct {
+		name string
+		char string
+	}{
+		{"Regular Space", " "},
+		{"Standard Space (U+0020)", "\u0020"},
+		{"No-Break Space (U+00A0)", "\u00A0"},
+		{"En Space (U+2002)", "\u2002"},
+	}
+
+	// Define all FileSettings path fields to test
+	pathSettings := []struct {
+		name         string
+		validValue   string
+		configSetter func(*Config, *string)
+	}{
+		{
+			"Directory",
+			"/path/to/directory",
+			func(cfg *Config, value *string) { cfg.FileSettings.Directory = value },
+		},
+		{
+			"AmazonS3PathPrefix",
+			"files/",
+			func(cfg *Config, value *string) { cfg.FileSettings.AmazonS3PathPrefix = value },
+		},
+		{
+			"ExportAmazonS3PathPrefix",
+			"exports/",
+			func(cfg *Config, value *string) { cfg.FileSettings.ExportAmazonS3PathPrefix = value },
+		},
+		{
+			"ExportDirectory",
+			"/path/to/exports",
+			func(cfg *Config, value *string) { cfg.FileSettings.ExportDirectory = value },
+		},
+	}
+
+	// Test valid paths first
+	for _, setting := range pathSettings {
+		t.Run(fmt.Sprintf("Valid %s", setting.name), func(t *testing.T) {
+			cfg := &Config{}
+			cfg.SetDefaults()
+			setting.configSetter(cfg, NewPointer(setting.validValue))
+
+			err := cfg.FileSettings.isValid()
+			require.Nil(t, err, "Expected no error but got: %v", err)
+		})
+	}
+
+	// Test path with space in the middle (should be valid)
+	t.Run("Directory with space in the middle (valid)", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.Directory = NewPointer("/path/to/my directory")
+
+		err := cfg.FileSettings.isValid()
+		require.Nil(t, err, "Expected no error but got: %v", err)
+	})
+
+	// Test all combinations of settings, whitespace characters, and positions
+	for _, setting := range pathSettings {
+		for _, ws := range unicodeWhitespaces {
+			for _, position := range []string{"leading", "trailing"} {
+				t.Run(fmt.Sprintf("%s with %s %s whitespace", setting.name, position, ws.name), func(t *testing.T) {
+					cfg := &Config{}
+					cfg.SetDefaults()
+
+					var testValue string
+					if position == "leading" {
+						testValue = ws.char + setting.validValue
+					} else {
+						testValue = setting.validValue + ws.char
+					}
+
+					setting.configSetter(cfg, NewPointer(testValue))
+
+					err := cfg.FileSettings.isValid()
+					require.NotNil(t, err, "Expected an error but got none")
+					assert.Equal(t, "model.config.is_valid.directory_whitespace.app_error", err.Id)
+				})
+			}
+		}
+	}
 }
 
 func TestConfigDefaultSignatureAlgorithm(t *testing.T) {
@@ -1314,6 +1403,8 @@ func TestLdapSettingsIsValid(t *testing.T) {
 }
 
 func TestLogSettingsIsValid(t *testing.T) {
+	t.Parallel()
+
 	for name, test := range map[string]struct {
 		LogSettings LogSettings
 		ExpectError bool
@@ -1433,7 +1524,7 @@ func TestConfigSanitize(t *testing.T) {
 		QueryTimeLag:     NewPointer("QueryTimeLag"),
 	}}
 
-	c.Sanitize(nil)
+	c.Sanitize(nil, nil)
 
 	assert.Equal(t, FakeSetting, *c.LdapSettings.BindPassword)
 	assert.Equal(t, FakeSetting, *c.FileSettings.PublicLinkSalt)
@@ -1455,9 +1546,19 @@ func TestConfigSanitize(t *testing.T) {
 	t.Run("with default config", func(t *testing.T) {
 		c := Config{}
 		c.SetDefaults()
-		c.Sanitize(nil)
+		c.Sanitize(nil, nil)
 
 		assert.Len(t, c.SqlSettings.ReplicaLagSettings, 0)
+	})
+
+	t.Run("partially sanitize DataSource", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		*c.SqlSettings.DataSource = "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable"
+		c.Sanitize(nil, &SanitizeOptions{PartiallyRedactDataSources: true})
+
+		expectedURL := "postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost:5432/mattermost_test?sslmode=disable"
+		assert.Equal(t, expectedURL, *c.SqlSettings.DataSource)
 	})
 }
 
@@ -1599,6 +1700,38 @@ func TestPluginSettingsSanitize(t *testing.T) {
 			assert.Equal(t, tc.expected, c.Plugins, name)
 		})
 	}
+}
+
+func TestSanitizeDataSource(t *testing.T) {
+	t.Run(DatabaseDriverPostgres, func(t *testing.T) {
+		testCases := []struct {
+			Original  string
+			Sanitized string
+		}{
+			{
+				"",
+				"",
+			},
+			{
+				"postgres://mmuser:mostest@localhost",
+				"postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost",
+			},
+			{
+				"postgres://mmuser:mostest@localhost/dummy?sslmode=disable",
+				"postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost/dummy?sslmode=disable",
+			},
+			{
+				"postgres://localhost/dummy?sslmode=disable&user=mmuser&password=mostest",
+				"postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost/dummy?sslmode=disable",
+			},
+		}
+		driver := DatabaseDriverPostgres
+		for _, tc := range testCases {
+			out, err := SanitizeDataSource(driver, tc.Original)
+			require.NoError(t, err)
+			assert.Equal(t, tc.Sanitized, out)
+		}
+	})
 }
 
 func TestConfigFilteredByTag(t *testing.T) {
@@ -2015,6 +2148,115 @@ func TestConfigDefaultConnectedWorkspacesSettings(t *testing.T) {
 	})
 }
 
+func TestExperimentalAuditSettingsIsValid(t *testing.T) {
+	t.Parallel()
+
+	for name, test := range map[string]struct {
+		ExperimentalAuditSettings ExperimentalAuditSettings
+		ExpectError               bool
+	}{
+		"empty settings": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{},
+			ExpectError:               false,
+		},
+		"file enabled with empty filename": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled: NewPointer(true),
+				FileName:    NewPointer(""),
+			},
+			ExpectError: true,
+		},
+		"file enabled with valid filename": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:      NewPointer(true),
+				FileName:         NewPointer("audit.log"),
+				FileMaxSizeMB:    NewPointer(100),
+				FileMaxAgeDays:   NewPointer(5),
+				FileMaxBackups:   NewPointer(10),
+				FileMaxQueueSize: NewPointer(1000),
+			},
+			ExpectError: false,
+		},
+		"invalid file max size": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:   NewPointer(true),
+				FileName:      NewPointer("audit.log"),
+				FileMaxSizeMB: NewPointer(0),
+			},
+			ExpectError: true,
+		},
+		"negative file max size": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:   NewPointer(true),
+				FileName:      NewPointer("audit.log"),
+				FileMaxSizeMB: NewPointer(-10),
+			},
+			ExpectError: true,
+		},
+		"negative file max age": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:    NewPointer(true),
+				FileName:       NewPointer("audit.log"),
+				FileMaxSizeMB:  NewPointer(100),
+				FileMaxAgeDays: NewPointer(-5),
+			},
+			ExpectError: true,
+		},
+		"negative file max backups": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:    NewPointer(true),
+				FileName:       NewPointer("audit.log"),
+				FileMaxSizeMB:  NewPointer(100),
+				FileMaxAgeDays: NewPointer(5),
+				FileMaxBackups: NewPointer(-10),
+			},
+			ExpectError: true,
+		},
+		"zero file max queue size": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:      NewPointer(true),
+				FileName:         NewPointer("audit.log"),
+				FileMaxSizeMB:    NewPointer(100),
+				FileMaxAgeDays:   NewPointer(5),
+				FileMaxBackups:   NewPointer(10),
+				FileMaxQueueSize: NewPointer(0),
+			},
+			ExpectError: true,
+		},
+		"negative file max queue size": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:      NewPointer(true),
+				FileName:         NewPointer("audit.log"),
+				FileMaxSizeMB:    NewPointer(100),
+				FileMaxAgeDays:   NewPointer(5),
+				FileMaxBackups:   NewPointer(10),
+				FileMaxQueueSize: NewPointer(-1000),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON has JSON error ": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"foo": "bar",
+				`),
+			},
+			ExpectError: true,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			test.ExperimentalAuditSettings.SetDefaults()
+
+			appErr := test.ExperimentalAuditSettings.isValid()
+			if test.ExpectError {
+				require.NotNil(t, appErr)
+			} else {
+				require.Nil(t, appErr)
+			}
+		})
+	}
+}
+
 func TestFilterConfig(t *testing.T) {
 	t.Run("should clear default values", func(t *testing.T) {
 		cfg := &Config{}
@@ -2058,7 +2300,7 @@ func TestFilterConfig(t *testing.T) {
 		require.NotEmpty(t, m)
 		require.Equal(t, dsn, m["SqlSettings"].(map[string]any)["DataSource"])
 
-		cfg.Sanitize(nil)
+		cfg.Sanitize(nil, nil)
 		m, err = FilterConfig(cfg, ConfigFilterOptions{
 			GetConfigOptions: GetConfigOptions{
 				RemoveDefaults: true,
@@ -2068,7 +2310,7 @@ func TestFilterConfig(t *testing.T) {
 		require.NotEmpty(t, m)
 		require.Equal(t, FakeSetting, m["SqlSettings"].(map[string]any)["DataSource"])
 
-		cfg.Sanitize(nil)
+		cfg.Sanitize(nil, nil)
 		m, err = FilterConfig(cfg, ConfigFilterOptions{
 			GetConfigOptions: GetConfigOptions{
 				RemoveDefaults: true,

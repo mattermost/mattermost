@@ -88,4 +88,25 @@ describe('NotificationPermissionBar', () => {
 
         expect(container).toBeEmptyDOMElement();
     });
+
+    test('should not render anything in cloud preview environment', () => {
+        jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
+        jest.spyOn(utilsNotifications, 'getNotificationPermission').mockReturnValue(utilsNotifications.NotificationPermissionNeverGranted);
+
+        const stateWithCloudPreview = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                cloud: {
+                    subscription: {
+                        is_cloud_preview: true,
+                    },
+                },
+            },
+        };
+
+        const {container} = renderWithContext(<NotificationPermissionBar/>, stateWithCloudPreview);
+
+        expect(container).toBeEmptyDOMElement();
+    });
 });
