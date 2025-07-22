@@ -230,14 +230,14 @@ func (s *MmctlUnitTestSuite) TestLdapJobShowCmdF() {
 
 		s.Run("more elements then the limit match", func() {
 			var mockJobs []*model.Job
-			for i := 0; i < 100; i++ {
+			for i := range 100 {
 				mockJobs = append(mockJobs, &model.Job{
 					Id: fmt.Sprintf("id_%d", i),
 				})
 			}
 
 			var expected []string
-			for i := 0; i < shellCompletionMaxItems; i++ {
+			for i := range shellCompletionMaxItems {
 				expected = append(expected, fmt.Sprintf("id_%d", i))
 			}
 

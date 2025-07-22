@@ -186,7 +186,7 @@ const (
 	SamlSettingsSignatureAlgorithmSha1    = "RSAwithSHA1"
 	SamlSettingsSignatureAlgorithmSha256  = "RSAwithSHA256"
 	SamlSettingsSignatureAlgorithmSha512  = "RSAwithSHA512"
-	SamlSettingsDefaultSignatureAlgorithm = SamlSettingsSignatureAlgorithmSha1
+	SamlSettingsDefaultSignatureAlgorithm = SamlSettingsSignatureAlgorithmSha256
 
 	SamlSettingsCanonicalAlgorithmC14n    = "Canonical1.0"
 	SamlSettingsCanonicalAlgorithmC14n11  = "Canonical1.1"
@@ -4619,8 +4619,8 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 	}
 
 	if ign := *s.IgnoredPurgeIndexes; ign != "" {
-		s := strings.Split(ign, ",")
-		for _, ix := range s {
+		s := strings.SplitSeq(ign, ",")
+		for ix := range s {
 			if strings.HasPrefix(ix, "-") {
 				return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error", nil, "", http.StatusBadRequest)
 			}
