@@ -9,6 +9,7 @@ import type {RelationOneToOne} from '@mattermost/types/utilities';
 import {Permissions} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getDataRetentionCustomPolicy} from 'mattermost-redux/selectors/entities/admin';
+import {contentFlaggingFeatureEnabled} from 'mattermost-redux/selectors/entities/content_flagging';
 import {getConfig, isCompatibleWithJoinViewTeamPermissions} from 'mattermost-redux/selectors/entities/general';
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles_helpers';
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
@@ -16,7 +17,6 @@ import {sortTeamsWithLocale, filterTeamsStartingWithTerm} from 'mattermost-redux
 import {isTeamAdmin} from 'mattermost-redux/utils/user_utils';
 
 import {isCollapsedThreadsEnabled} from './preferences';
-import { contentFlaggingFeatureEnabled } from "mattermost-redux/selectors/entities/content_flagging";
 
 export function getCurrentTeamId(state: GlobalState) {
     return state.entities.teams.currentTeamId;

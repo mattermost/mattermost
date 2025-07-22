@@ -17,8 +17,8 @@ import {
     getCurrentTeamId,
     getCurrentTeam,
     getTeam,
-    contentFlaggingEnabledInTeam
-} from "mattermost-redux/selectors/entities/teams";
+    contentFlaggingEnabledInTeam,
+} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';

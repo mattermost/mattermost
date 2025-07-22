@@ -3,9 +3,9 @@
 
 .FlagPostModal {
     &__section_title {
-        font-weight: 600;
-        font-size: 14px;
         color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
     }
 
     &__post_preview {
@@ -21,9 +21,9 @@
     }
 
     &__section {
-        gap: 8px;
         display: flex;
         flex-direction: column;
+        gap: 8px;
 
         .post.forward-post__post-preview--override {
             padding: 0;
@@ -43,16 +43,13 @@
     .FlagPostModal__comment {
         #PreviewInputTextButton {
             position: absolute;
+            z-index: 2;
             top: 8px;
             right: 8px;
         }
 
         textarea#FlagPostModal__comment, .textbox-preview-area {
             height: 110px !important;
-        }
-
-        #PreviewInputTextButton {
-            z-index: 2;
         }
     }
 }

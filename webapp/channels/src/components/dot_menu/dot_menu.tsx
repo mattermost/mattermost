@@ -29,7 +29,10 @@ import type {UserThread} from '@mattermost/types/threads';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
+import {closeModal} from 'actions/views/modals';
+
 import DeletePostModal from 'components/delete_post_modal';
+import FlagPostModal from 'components/flag_message_modal/flag_post_model';
 import ForwardPostModal from 'components/forward_post_modal';
 import * as Menu from 'components/menu';
 import MoveThreadModal from 'components/move_thread_modal';
@@ -48,8 +51,6 @@ import {trackDotMenuEvent} from './utils';
 import type {ChangeEvent} from './utils';
 
 import './dot_menu.scss';
-import FlagPostModal from "components/flag_message_modal/flag_post_model";
-import { closeModal } from "actions/views/modals";
 
 type ShortcutKeyProps = {
     shortcutKey: string;
@@ -428,8 +429,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
     };
 
     render(): JSX.Element {
-        console.log({canFlagContent: this.props.canFlagContent});
-
         const {formatMessage} = this.props.intl;
         const isFollowingThread = this.props.isFollowingThread ?? this.props.isMentionedInRootPost;
         const isMobile = this.props.isMobileView;
