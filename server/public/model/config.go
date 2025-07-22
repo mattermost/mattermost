@@ -186,7 +186,7 @@ const (
 	SamlSettingsSignatureAlgorithmSha1    = "RSAwithSHA1"
 	SamlSettingsSignatureAlgorithmSha256  = "RSAwithSHA256"
 	SamlSettingsSignatureAlgorithmSha512  = "RSAwithSHA512"
-	SamlSettingsDefaultSignatureAlgorithm = SamlSettingsSignatureAlgorithmSha1
+	SamlSettingsDefaultSignatureAlgorithm = SamlSettingsSignatureAlgorithmSha256
 
 	SamlSettingsCanonicalAlgorithmC14n    = "Canonical1.0"
 	SamlSettingsCanonicalAlgorithmC14n11  = "Canonical1.1"
@@ -3788,8 +3788,9 @@ func (s *ExportSettings) SetDefaults() {
 }
 
 type AccessControlSettings struct {
-	EnableAttributeBasedAccessControl *bool `access:"write_restrictable,cloud_restrictable"`
-	EnableChannelScopeAccessControl   *bool `access:"cloud_restrictable"`
+	EnableAttributeBasedAccessControl *bool `access:"write_restrictable"`
+	EnableChannelScopeAccessControl   *bool `access:"write_restrictable"`
+	EnableUserManagedAttributes       *bool `access:"write_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
@@ -3799,6 +3800,10 @@ func (s *AccessControlSettings) SetDefaults() {
 
 	if s.EnableChannelScopeAccessControl == nil {
 		s.EnableChannelScopeAccessControl = NewPointer(false)
+	}
+
+	if s.EnableUserManagedAttributes == nil {
+		s.EnableUserManagedAttributes = NewPointer(false)
 	}
 }
 
