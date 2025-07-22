@@ -215,7 +215,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		s.th.SystemAdminUser.Username,
 		s.th.SystemManagerUser.Username,
 	}
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		userData := model.User{
 			Username: "fakeuser" + model.NewRandomString(10),
 			Password: "Pa$$word11",
@@ -228,7 +228,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 
 	inactivePool := []string{}
 	// create inactive users
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		userData := model.User{
 			Username: "fakeuser" + model.NewRandomString(10),
 			Password: "Pa$$word11",
@@ -294,7 +294,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	})
 
 	// create users with team
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		userData := model.User{
 			Username: "teamuser" + model.NewRandomString(10),
 			Password: "Pa$$word11",
@@ -327,7 +327,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	// create inactive users with team
 	inactiveUserPool := []string{}
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		userData := model.User{
 			Username: "inactiveteamuser" + model.NewRandomString(10),
 			Password: "Pa$$word11",
@@ -1037,7 +1037,7 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 		printer.Clean()
 
 		// populate with some user
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			userData := model.User{
 				Username: "fakeuser" + model.NewRandomString(10),
 				Password: "Pa$$word11",
