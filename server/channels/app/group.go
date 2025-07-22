@@ -815,6 +815,7 @@ func (a *App) UpsertGroupMembers(groupID string, userIDs []string) ([]*model.Gro
 		if _, ok := uniqueMembers[id]; ok {
 			return nil, model.NewAppError("UpsertGroupMembers", "app.group.uniqueness_error", map[string]any{"UserId": id}, "", http.StatusBadRequest)
 		}
+		uniqueMembers[id] = struct{}{}
 	}
 
 	members, err := a.Srv().Store().Group().UpsertMembers(groupID, userIDs)
