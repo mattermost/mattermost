@@ -84,7 +84,7 @@ export type GlobalState = {
             remotesByRemoteId?: Record<string, RemoteClusterInfo>;
         };
         contentFlagging: {
-            settings: ContentFlaggingConfig;
+            settings?: ContentFlaggingConfig;
         };
     };
     errors: any[];

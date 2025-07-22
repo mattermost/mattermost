@@ -147,7 +147,6 @@ describe('components/dot_menu/DotMenu', () => {
         userId: 'user_id_1',
         isMilitaryTime: false,
         canMove: true,
-        canFlagContent: false,
     };
 
     test('should match snapshot, on Center', () => {

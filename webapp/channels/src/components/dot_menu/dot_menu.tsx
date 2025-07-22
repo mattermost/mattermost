@@ -82,7 +82,7 @@ type Props = {
     timezone?: string;
     isMilitaryTime: boolean;
     canMove: boolean;
-    canFlagContent: boolean;
+    canFlagContent?: boolean;
 
     actions: {
 

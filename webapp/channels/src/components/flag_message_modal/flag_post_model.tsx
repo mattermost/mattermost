@@ -105,12 +105,12 @@ export default function FlagPostModal({postId, onExited}: Props) {
     const handleCommentChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
         setComment(e.target.value);
 
-        if (contentFlaggingSettings.reporter_comment_required && e.target.value.trim() === '') {
+        if (contentFlaggingSettings?.reporter_comment_required && e.target.value.trim() === '') {
             setCommentError(formatMessage({id: 'flag_message_modal.empty_comment_error', defaultMessage: 'TODO: Comment is required when flagging a post'}));
         } else {
             setCommentError('');
         }
-    }, [contentFlaggingSettings.reporter_comment_required, formatMessage]);
+    }, [contentFlaggingSettings, formatMessage]);
 
     const handleToggleCommentPreview = useCallback(() => {
         setShowCommentPreview((prev) => !prev);
@@ -119,7 +119,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
     const validateForm = useCallback((): boolean => {
         let hasError = false;
 
-        if (contentFlaggingSettings.reporter_comment_required && comment.trim() === '') {
+        if (contentFlaggingSettings?.reporter_comment_required && comment.trim() === '') {
             setCommentError(formatMessage({id: 'flag_message_modal.empty_comment_error', defaultMessage: 'TODO: Comment is required when flagging a post'}));
             hasError = true;
         } else {
@@ -134,7 +134,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
         }
 
         return hasError;
-    }, [comment, contentFlaggingSettings.reporter_comment_required, formatMessage, reason]);
+    }, [comment, contentFlaggingSettings?.reporter_comment_required, formatMessage, reason]);
 
     const handleConfirm = useCallback(() => {
         const hasError = validateForm();
@@ -212,7 +212,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
                         className='FlagPostModal__section_title'
                         data-testid='FlagPostModal__comment_section_title'
                     >
-                        {contentFlaggingSettings.reporter_comment_required ? requiredCommentSectionTitle : optionalCommentSectionTitle}
+                        {contentFlaggingSettings?.reporter_comment_required ? requiredCommentSectionTitle : optionalCommentSectionTitle}
                     </div>
 
                     <AdvancedTextbox
