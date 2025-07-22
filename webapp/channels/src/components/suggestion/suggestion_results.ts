@@ -31,17 +31,23 @@ export type SuggestionResultsGroup<Item> = {
     label: MessageDescriptor;
 
     /**
-     * A list of strings which the previously typed text may be replaced by
+     * A list of strings which the previously typed text may be replaced by.
+     *
+     * The lengths of `terms`, `items`, and `components` MUST be the same because their entries correspond to each other.
      */
     terms: string[];
 
     /**
-     * A list of objects backing the terms which may be used in rendering
+     * A list of objects backing the terms which may be used in rendering.
+     *
+     * The lengths of `terms`, `items`, and `components` MUST be the same because their entries correspond to each other.
      */
     items: Array<Item | Loading>;
 
     /**
-     * A list of react components that can be used to render their corresponding item
+     * A list of react components that can be used to render their corresponding item.
+     *
+     * The lengths of `terms`, `items`, and `components` MUST be the same because their entries correspond to each other.
      */
     components: React.ElementType[];
 };
@@ -54,17 +60,23 @@ export type SuggestionResultsUngrouped<Item> = {
     matchedPretext: string;
 
     /**
-     * A list of strings which the previously typed text may be replaced by
+     * A list of strings which the previously typed text may be replaced by.
+     *
+     * The lengths of `terms`, `items`, and `components` MUST be the same because their entries correspond to each other.
      */
     terms: string[];
 
     /**
-     * A list of objects backing the terms which may be used in rendering
+     * A list of objects backing the terms which may be used in rendering.
+     *
+     * The lengths of `terms`, `items`, and `components` MUST be the same because their entries correspond to each other.
      */
     items: Array<Item | Loading>;
 
     /**
-     * A list of react components that can be used to render their corresponding item
+     * A list of react components that can be used to render their corresponding item.
+     *
+     * The lengths of `terms`, `items`, and `components` MUST be the same because their entries correspond to each other.
      */
     components: React.ElementType[];
 };
@@ -73,6 +85,9 @@ export type Loading = {
     loading: boolean;
 };
 
+/**
+ * Returns true if the item is an actual item and not an indicator that more results are being loaded.
+ */
 export function isItemLoaded<Item>(item: Item | Loading): item is Item {
     return !item || typeof item !== 'object' || !('loading' in item) || !item.loading;
 }
@@ -86,10 +101,16 @@ export function emptyResults<Item>(): SuggestionResults<Item> {
     };
 }
 
+/**
+ * Returns true if there are any items being suggested or if suggestions are being loaded.
+ */
 export function hasResults<Item>(results: SuggestionResults<Item>): boolean {
     return countResults(results) > 0;
 }
 
+/**
+ * Returns true if there are any items being suggested, even if more are being loaded.
+ */
 export function hasLoadedResults<Item>(results: SuggestionResults<Item>): boolean {
     if ('groups' in results) {
         return results.groups.some((group) => group.items.some(isItemLoaded));
@@ -98,6 +119,9 @@ export function hasLoadedResults<Item>(results: SuggestionResults<Item>): boolea
     return results.items.some(isItemLoaded);
 }
 
+/**
+ * Returns the number of items being suggested and loading indicators in the results.
+ */
 export function countResults<Item>(results: SuggestionResults<Item>): number {
     if ('groups' in results) {
         return results.groups.reduce((count, group) => count + group.items.length, 0);
@@ -106,6 +130,9 @@ export function countResults<Item>(results: SuggestionResults<Item>): number {
     return results.items.length;
 }
 
+/**
+ * Given a term in the suggestions, returns the corresponding item or undefined if it can't be found.
+ */
 export function getItemForTerm<Item>(results: SuggestionResults<Item>, term: string): Item | undefined {
     if ('groups' in results) {
         for (const group of results.groups) {
@@ -122,6 +149,9 @@ export function getItemForTerm<Item>(results: SuggestionResults<Item>, term: str
     return index === -1 ? undefined : results.items[index] as Item;
 }
 
+/**
+ * Returns a flat array of terms being suggested for cases where that's needed like for keyboard navigation.
+ */
 export function flattenTerms<Item>(results: SuggestionResults<Item> | ProviderResults<Item>): string[] {
     if ('groups' in results) {
         return results.groups.flatMap((group) => group.terms);
@@ -130,6 +160,9 @@ export function flattenTerms<Item>(results: SuggestionResults<Item> | ProviderRe
     return results.terms;
 }
 
+/**
+ * Returns a flat array of items being suggested for cases where we need to iterate over them.
+ */
 export function flattenItems<Item>(results: SuggestionResults<Item> | ProviderResults<Item>): Item[] {
     if ('groups' in results) {
         return results.groups.flatMap((group) => group.items as Item);
@@ -140,6 +173,9 @@ export function flattenItems<Item>(results: SuggestionResults<Item> | ProviderRe
     return results.items as Item[];
 }
 
+/**
+ * Returns true if any of the items being suggested is rendered with the corresponding component.
+ */
 export function hasSuggestionWithComponent<Item>(results: SuggestionResults<Item>, componentType: React.ElementType) {
     if ('groups' in results) {
         return results.groups.some((group) => group.components.includes(componentType));
