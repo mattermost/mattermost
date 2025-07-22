@@ -31,6 +31,10 @@ RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins \
   && curl -L $MM_PACKAGE | tar -xvz \
   && chown -R mattermost:mattermost /mattermost /mattermost/data /mattermost/plugins /mattermost/client/plugins
 
+# Create PostgreSQL client SSL directory structure for ssl_mode=require
+RUN mkdir -p /mattermost/.postgresql \
+  && chmod 700 /mattermost/.postgresql
+
 # Final stage using distroless for minimal attack surface
 FROM gcr.io/distroless/base-debian12
 
@@ -41,7 +45,7 @@ ENV MM_SERVICESETTINGS_ENABLELOCALMODE="true"
 # Copy over metadata files needed by runtime
 COPY --from=builder /etc/mime.types /etc
 
-# Copy CA certificates for SSL/TLS validation with proper ownership - required for ssl_mode=require database connections
+# Copy CA certificates for SSL/TLS validation with proper ownership
 COPY --from=builder --chown=2000:2000 /etc/ssl/certs /etc/ssl/certs
 
 # Copy document processing utilities and necessary support files
