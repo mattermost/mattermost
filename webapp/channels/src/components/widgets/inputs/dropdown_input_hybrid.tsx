@@ -6,7 +6,7 @@ import React, {useState, useEffect, useRef} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
-import type {Props as SelectProps, IndicatorsContainerProps, ControlProps, OptionProps, StylesConfig, SingleValue} from 'react-select';
+import type {Props as SelectProps, IndicatorsContainerProps, ControlProps, OptionProps, StylesConfig, SingleValue, GroupBase} from 'react-select';
 
 import 'components/widgets/inputs/input/input.scss';
 import './dropdown_input_hybrid.scss';
@@ -73,7 +73,7 @@ const Control = <T extends OptionType>(props: ControlProps<T, false>) => (
     </div>
 );
 
-const Option = <T extends OptionType>(props: OptionProps<T, false>) => (
+const Option = <T extends OptionType>(props: OptionProps<T, false, GroupBase<T>>) => (
     <div
         className={classNames('DropdownInput__option', {
             selected: props.isSelected,
