@@ -1487,8 +1487,10 @@ func TestDoActionRequest(t *testing.T) {
 	t.Run("should handle plugin URL", func(t *testing.T) {
 		requestBody := []byte(`{"test": "data"}`)
 		resp, err := th.App.DoActionRequest(th.Context, "/plugins/myplugin/action", requestBody)
-		require.NotNil(t, err) // Will fail because plugin doesn't exist, but URL handling should work
-		assert.Nil(t, resp)
+		require.Nil(t, err) // Plugin URLs return HTTP response, not Go error
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode) // Plugin doesn't exist, returns 404
+		resp.Body.Close()
 	})
 
 	t.Run("should handle context timeout", func(t *testing.T) {
