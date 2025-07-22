@@ -100,6 +100,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                 "getVisualAST": [MockFunction],
               }
             }
+            enableUserManagedAttributes={false}
             onChange={[Function]}
             onParseError={[Function]}
             onValidate={[Function]}
@@ -142,7 +143,6 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             channelsToAdd={Object {}}
             channelsToRemove={Object {}}
             onRemoveCallback={[Function]}
-            onUndoRemoveCallback={[Function]}
             policyId="policy1"
           />
         </CardBody>
@@ -304,6 +304,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                 "getVisualAST": [MockFunction],
               }
             }
+            enableUserManagedAttributes={false}
             onChange={[Function]}
             onParseError={[Function]}
             onValidate={[Function]}
@@ -346,7 +347,6 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             channelsToAdd={Object {}}
             channelsToRemove={Object {}}
             onRemoveCallback={[Function]}
-            onUndoRemoveCallback={[Function]}
             policyId=""
           />
         </CardBody>
