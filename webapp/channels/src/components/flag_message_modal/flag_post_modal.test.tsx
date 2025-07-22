@@ -74,12 +74,14 @@ describe('components/FlagPostModal', () => {
     });
 
     it('should render "optional" title when comment is not required', () => {
+        const state = JSON.parse(JSON.stringify(baseState));
+        state.entities!.contentFlagging!.settings!.reporter_comment_required = false;
         renderWithContext(
             <FlagPostModal
                 postId={'post_id'}
                 onExited={() => {}}
             />,
-            baseState,
+            state,
         );
 
         expect(screen.getByTestId('FlagPostModal__comment_section_title')).toHaveTextContent('Comment (optional)');
