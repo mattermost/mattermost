@@ -1525,9 +1525,9 @@ func TestDoLocalRequest(t *testing.T) {
 	t.Run("should delegate to doPluginRequest", func(t *testing.T) {
 		requestBody := []byte(`{"test": "data"}`)
 		resp, err := th.App.DoLocalRequest(th.Context, "/plugins/nonexistent/action", requestBody)
-		require.NotNil(t, err) // Will fail because plugin doesn't exist
-		assert.Nil(t, resp)
-		assert.Contains(t, err.Error(), "Unable to find pluginId")
+		require.Nil(t, err) // DoLocalRequest returns HTTP response, not error
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode) // Plugin doesn't exist, returns 404
 	})
 }
 
