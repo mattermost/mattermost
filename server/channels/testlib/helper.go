@@ -342,10 +342,6 @@ func (h *MainHelper) GetSearchEngine() *searchengine.Broker {
 	return h.SearchEngine
 }
 
-func (h *MainHelper) SetReplicationLagForTesting(seconds int) error {
-	return fmt.Errorf("method not implemented for PostgreSQL database driver")
-}
-
 func (h *MainHelper) Parallel(t *testing.T) {
 	if h.Options.RunParallel {
 		t.Parallel()

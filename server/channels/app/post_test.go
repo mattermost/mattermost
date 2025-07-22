@@ -3237,42 +3237,6 @@ func TestCollapsedThreadFetch(t *testing.T) {
 	})
 }
 
-func TestReplyToPostWithLag(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	t.Skip("MySQL driver no longer supported")
-
-	mainHelper.SQLStore.UpdateLicense(model.NewTestLicense("somelicense"))
-
-	t.Run("replication lag time great than reply time", func(t *testing.T) {
-		err := mainHelper.SetReplicationLagForTesting(5)
-		require.NoError(t, err)
-		defer func() {
-			err := mainHelper.SetReplicationLagForTesting(0)
-			require.NoError(t, err)
-		}()
-		mainHelper.ToggleReplicasOn()
-		defer mainHelper.ToggleReplicasOff()
-
-		root, appErr := th.App.CreatePost(th.Context, &model.Post{
-			UserId:    th.BasicUser.Id,
-			ChannelId: th.BasicChannel.Id,
-			Message:   "root post",
-		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
-		require.Nil(t, appErr)
-
-		reply, appErr := th.App.CreatePost(th.Context, &model.Post{
-			UserId:    th.BasicUser2.Id,
-			ChannelId: th.BasicChannel.Id,
-			RootId:    root.Id,
-			Message:   fmt.Sprintf("@%s", th.BasicUser2.Username),
-		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
-		require.Nil(t, appErr)
-		require.NotNil(t, reply)
-	})
-}
-
 func TestSharedChannelSyncForPostActions(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("creating a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
