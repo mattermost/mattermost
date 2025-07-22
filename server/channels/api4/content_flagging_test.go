@@ -15,9 +15,6 @@ import (
 
 func TestGetFlaggingConfiguration(t *testing.T) {
 	mainHelper.Parallel(t)
-	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
-		t.Skip("Content flagging tests are not supported on MySQL")
-	}
 
 	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t)
@@ -57,9 +54,6 @@ func TestGetFlaggingConfiguration(t *testing.T) {
 
 func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 	mainHelper.Parallel(t)
-	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
-		t.Skip("Content flagging tests are not supported on MySQL")
-	}
 
 	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t)
