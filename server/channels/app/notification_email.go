@@ -174,11 +174,14 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 
 	// Call plugin hook to allow customization of emailNotification
 	rejectionReason := ""
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
 		var replacementContent *model.EmailNotificationContent
 		replacementContent, rejectionReason = hooks.EmailNotificationWillBeSent(emailNotification)
 		if rejectionReason != "" {
-			c.Logger().Info("Email notification cancelled by plugin.", mlog.String("rejection reason", rejectionReason))
+			c.Logger().Info("Email notification cancelled by plugin.",
+				mlog.String("rejection_reason", rejectionReason),
+				mlog.String("plugin_id", manifest.Id),
+				mlog.String("plugin_name", manifest.Name))
 			return false
 		}
 		if replacementContent != nil {
