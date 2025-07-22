@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net/url"
 	"strconv"
 	"strings"
@@ -168,9 +169,7 @@ func scanRowsIntoMap[K comparable, V any](rows *sql.Rows, scanner func(rows *sql
 	results := make(map[K]V, len(defaults))
 
 	// Initialize with default values if provided
-	for k, v := range defaults {
-		results[k] = v
-	}
+	maps.Copy(results, defaults)
 
 	for rows.Next() {
 		key, value, err := scanner(rows)

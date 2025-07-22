@@ -2700,10 +2700,6 @@
     "translation": "Не могат да се получат статусите на приставки от клъстера."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Не може да се зададе приставка, като управлявана от файловото хранилище."
-  },
-  {
     "id": "app.plugin.filesystem.app_error",
     "translation": "Възникна грешка във файловата система."
   },

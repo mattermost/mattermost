@@ -1085,7 +1085,7 @@ func TestCleanUp(t *testing.T) {
 	ds.config.JobSettings.CleanupConfigThresholdDays = model.NewPointer(30) // we set 30 days as threshold
 
 	now := time.Now()
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		// 20 days, we expect to remove at least 3 configuration values from the store
 		// first 2 (0 and 1) will be within a month constraint, others will be older than
 		// a month hence we expect 3 configurations to be removed from the database.

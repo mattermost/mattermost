@@ -2059,7 +2059,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	searchType := "Message"
 	if params.IsHashtag {
 		searchType = "Hashtags"
-		for _, term := range strings.Split(terms, " ") {
+		for term := range strings.SplitSeq(terms, " ") {
 			termMap[strings.ToUpper(term)] = true
 		}
 	}
@@ -2160,7 +2160,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		for _, p := range posts {
 			if searchType == "Hashtags" {
 				exactMatch := false
-				for _, tag := range strings.Split(p.Hashtags, " ") {
+				for tag := range strings.SplitSeq(p.Hashtags, " ") {
 					if termMap[strings.ToUpper(tag)] {
 						exactMatch = true
 						break
@@ -2607,11 +2607,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 	}
 
 	// Assume a worst-case representation of four bytes per rune.
-	maxPostSize := int(maxPostSizeBytes) / 4
-
-	if maxPostSize < model.PostMessageMaxRunesV2 {
-		maxPostSize = model.PostMessageMaxRunesV2
-	}
+	maxPostSize := max(int(maxPostSizeBytes)/4, model.PostMessageMaxRunesV2)
 
 	mlog.Info("Post.Message has size restrictions", mlog.Int("max_characters", maxPostSize), mlog.Int("max_bytes", maxPostSizeBytes))
 

@@ -1989,7 +1989,7 @@ func TestGetChannelsForUser(t *testing.T) {
 	assert.Equal(t, 2, numTownSquare)
 
 	// Creating some more channels to be exactly 100 to test page size boundaries.
-	for i := 0; i < 91; i++ {
+	for range 91 {
 		ch1 = th.CreateChannelWithClientAndTeam(client, model.ChannelTypeOpen, myTeam.Id)
 		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, ch1, false)
 		require.Nil(t, appErr)

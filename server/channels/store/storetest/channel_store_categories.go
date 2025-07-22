@@ -149,7 +149,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 
 		var wg sync.WaitGroup
 
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			wg.Add(1)
 
 			go func() {
@@ -2212,8 +2212,7 @@ func testSidebarCategoryDeadlock(t *testing.T, rctx request.CTX, ss store.Store)
 }
 
 func testSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
-	for i := 0; i < 2; i++ {
-		i := i
+	for i := range 2 {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			t.Parallel()
 			doTestSidebarCategoryConcurrentAccess(t, rctx, ss)
@@ -2229,7 +2228,7 @@ func doTestSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss st
 
 	// Create regular channels
 	channels := make([]*model.Channel, 5)
-	for i := 0; i < len(channels); i++ {
+	for i := range channels {
 		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
 			Name:        fmt.Sprintf("channel-%d", i),
 			DisplayName: fmt.Sprintf("Channel %d", i),
@@ -2248,7 +2247,7 @@ func doTestSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss st
 
 	// Create DM channels to exercise different code paths
 	dmChannels := make([]*model.Channel, 3)
-	for i := 0; i < len(dmChannels); i++ {
+	for i := range dmChannels {
 		otherUserID := model.NewId()
 		dmChannel, nErr := ss.Channel().CreateDirectChannel(rctx, &model.User{
 			Id: userID,
@@ -2281,7 +2280,7 @@ func doTestSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss st
 
 	// Create custom categories
 	customCategories := make([]*model.SidebarCategoryWithChannels, 2)
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		customCategory, createErr := ss.Channel().CreateSidebarCategory(userID, team.Id, &model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
 				DisplayName: fmt.Sprintf("Custom Category %d", i),
@@ -2294,7 +2293,7 @@ func doTestSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss st
 	// Run concurrent operations
 	var wg sync.WaitGroup
 
-	for i := 0; i < numGoroutines; i++ {
+	for i := range numGoroutines {
 		wg.Add(1)
 		// Run GetSidebarCategoriesForTeamForUser
 		go func() {

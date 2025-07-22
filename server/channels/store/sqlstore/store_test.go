@@ -88,7 +88,6 @@ func StoreTest(t *testing.T, f func(*testing.T, request.CTX, store.Store)) {
 	}
 
 	for _, st := range stores {
-		st := st
 		rctx := request.TestContext(t)
 
 		t.Run(st.Name, func(t *testing.T) {
@@ -116,7 +115,6 @@ func StoreTestWithSearchTestEngine(t *testing.T, f func(*testing.T, store.Store,
 	}
 
 	for _, st := range stores {
-		st := st
 		searchTestEngine := &searchtest.SearchTestEngine{
 			Driver: *st.SqlSettings.DriverName,
 		}
@@ -142,7 +140,6 @@ func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, request.CTX, store.S
 	}
 
 	for _, st := range stores {
-		st := st
 		rctx := request.TestContext(t)
 
 		t.Run(st.Name, func(t *testing.T) {
@@ -199,7 +196,6 @@ func initStores(logger mlog.LoggerIFace, parallelism int) {
 
 	var eg errgroup.Group
 	for _, st := range storeTypes {
-		st := st
 		eg.Go(func() error {
 			var err error
 			st.SqlStore, err = New(*st.SqlSettings, logger, nil)
@@ -228,7 +224,6 @@ func tearDownStores() {
 		var wg sync.WaitGroup
 		wg.Add(len(storeTypes))
 		for _, st := range storeTypes {
-			st := st
 			go func() {
 				if st.Store != nil {
 					st.Store.Close()
@@ -243,7 +238,6 @@ func tearDownStores() {
 		var wgPool sync.WaitGroup
 		wgPool.Add(len(storePools))
 		for _, pool := range storePools {
-			pool := pool
 			go func() {
 				defer wgPool.Done()
 				pool.Close()
@@ -383,12 +377,12 @@ func TestGetReplica(t *testing.T) {
 			store.UpdateLicense(&model.License{})
 
 			replicas := make(map[*sqlxDBWrapper]bool)
-			for i := 0; i < 5; i++ {
+			for range 5 {
 				replicas[store.GetReplica()] = true
 			}
 
 			searchReplicas := make(map[*sqlxDBWrapper]bool)
-			for i := 0; i < 5; i++ {
+			for range 5 {
 				searchReplicas[store.GetSearchReplicaX()] = true
 			}
 
@@ -454,12 +448,12 @@ func TestGetReplica(t *testing.T) {
 			}()
 
 			replicas := make(map[*sqlxDBWrapper]bool)
-			for i := 0; i < 5; i++ {
+			for range 5 {
 				replicas[store.GetReplica()] = true
 			}
 
 			searchReplicas := make(map[*sqlxDBWrapper]bool)
-			for i := 0; i < 5; i++ {
+			for range 5 {
 				searchReplicas[store.GetSearchReplicaX()] = true
 			}
 
