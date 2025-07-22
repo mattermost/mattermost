@@ -3,10 +3,10 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import BlockableLink from 'components/admin_console/blockable_link';
 
 import type {Team} from '@mattermost/types/teams';
 
+import BlockableLink from 'components/admin_console/blockable_link';
 import BackIcon from 'components/widgets/icons/fa_back_icon';
 
 type Props = {
