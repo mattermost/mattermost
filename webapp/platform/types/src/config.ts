@@ -130,6 +130,7 @@ export type ClientConfig = {
     FeatureFlagCustomProfileAttributes: string;
     FeatureFlagAttributeBasedAccessControl: string;
     FeatureFlagWebSocketEventScope: string;
+    FeatureFlagContentFlagging: string;
     ForgotPasswordLink: string;
     GiphySdkKey: string;
     GoogleDeveloperKey: string;
@@ -225,6 +226,7 @@ export type ClientConfig = {
     YoutubeReferrerPolicy: 'true' | 'false';
     ScheduledPosts: string;
     DeleteAccountLink: string;
+    ContentFlaggingEnabled: 'true' | 'false';
 };
 
 export type License = {
@@ -806,7 +808,7 @@ export type ClusterSettings = {
     AdvertiseAddress: string;
     UseIPAddress: boolean;
     EnableGossipCompression: boolean;
-    EnableExperimentalGossipEncryption: boolean;
+    EnableGossipEncryption: boolean;
     ReadOnlyConfig: boolean;
     GossipPort: number;
 };
@@ -990,6 +992,7 @@ export type ExportSettings = {
 export type AccessControlSettings = {
     EnableAttributeBasedAccessControl: boolean;
     EnableChannelScopeAccessControl: boolean;
+    EnableUserManagedAttributes: boolean;
 };
 
 export type ContentFlaggingNotificationSettings = {
