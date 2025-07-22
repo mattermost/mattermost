@@ -36,8 +36,10 @@ func (a *App) buildEmailNotification(
 
 	var useMilitaryTime bool
 	if data, err := a.Srv().Store().Preference().Get(
-		user.Id, model.PreferenceCategoryDisplaySettings,
-		model.PreferenceNameUseMilitaryTime); err != nil {
+		user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime,
+	); err != nil {
+		ctx.Logger().Debug("Failed to retrieve user military time preference, defaulting to false",
+			mlog.String("user_id", user.Id), mlog.Err(err))
 		useMilitaryTime = false
 	} else {
 		useMilitaryTime = data.Value == "true"
