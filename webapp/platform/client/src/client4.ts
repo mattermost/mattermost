@@ -55,6 +55,7 @@ import type {
     FetchIPResponse,
     LdapSettings,
 } from '@mattermost/types/config';
+import type {ContentFlaggingConfig} from '@mattermost/types/content_flagging';
 import type {
     DataRetentionCustomPolicies,
     CreateDataRetentionCustomPolicy,
@@ -151,7 +152,6 @@ import type {DeepPartial, PartialExcept, RelationOneToOne} from '@mattermost/typ
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';
 import type {TelemetryHandler} from './telemetry';
-import type {ContentFlaggingConfig} from "@mattermost/types/lib/content_flagging";
 
 export enum LdapDiagnosticTestType {
     FILTERS = 'filters',
