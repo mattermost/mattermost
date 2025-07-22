@@ -16,7 +16,7 @@ export type SuggestionListContentsProps = {
     className?: string;
     style?: React.CSSProperties;
 
-    results: SuggestionResults<unknown>;
+    results: SuggestionResults;
     selectedTerm: string;
 
     getItemId: (term: string) => string;

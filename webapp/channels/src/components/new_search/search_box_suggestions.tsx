@@ -37,7 +37,7 @@ type Props = {
     searchTerms: string;
     selectedTerm: string;
     setSelectedTerm: (newSelectedTerm: string) => void;
-    results: SuggestionResults<unknown>;
+    results: SuggestionResults;
     onSearch: (searchType: string, searchTeam: string, searchTerms: string) => void;
     onSuggestionSelected: (value: string, matchedPretext: string) => void;
 }

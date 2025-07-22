@@ -6,9 +6,9 @@ import type {MessageDescriptor} from 'react-intl';
 /**
  * SuggestionResult stores a list of suggestions rendered by the SuggestionBox/SuggestionList.
  */
-export type SuggestionResults<Item> = SuggestionResultsGrouped<Item> | SuggestionResultsUngrouped<Item>;
+export type SuggestionResults<Item = unknown> = SuggestionResultsGrouped<Item> | SuggestionResultsUngrouped<Item>;
 
-export type SuggestionResultsGrouped<Item> = {
+export type SuggestionResultsGrouped<Item = unknown> = {
 
     /**
      * The text before the cursor that will be replaced if the corresponding autocomplete term is selected
@@ -18,7 +18,7 @@ export type SuggestionResultsGrouped<Item> = {
     groups: Array<SuggestionResultsGroup<Item>>;
 };
 
-export type SuggestionResultsGroup<Item> = {
+export type SuggestionResultsGroup<Item = unknown> = {
 
     /**
      * A unique identifier for this type of group
@@ -52,7 +52,7 @@ export type SuggestionResultsGroup<Item> = {
     components: React.ElementType[];
 };
 
-export type SuggestionResultsUngrouped<Item> = {
+export type SuggestionResultsUngrouped<Item = unknown> = {
 
     /**
      * The text before the cursor that will be replaced if the corresponding autocomplete term is selected
@@ -104,14 +104,14 @@ export function emptyResults<Item>(): SuggestionResults<Item> {
 /**
  * Returns true if there are any items being suggested or if suggestions are being loaded.
  */
-export function hasResults<Item>(results: SuggestionResults<Item>): boolean {
+export function hasResults(results: SuggestionResults): boolean {
     return countResults(results) > 0;
 }
 
 /**
  * Returns true if there are any items being suggested, even if more are being loaded.
  */
-export function hasLoadedResults<Item>(results: SuggestionResults<Item>): boolean {
+export function hasLoadedResults(results: SuggestionResults): boolean {
     if ('groups' in results) {
         return results.groups.some((group) => group.items.some(isItemLoaded));
     }
@@ -122,7 +122,7 @@ export function hasLoadedResults<Item>(results: SuggestionResults<Item>): boolea
 /**
  * Returns the number of items being suggested and loading indicators in the results.
  */
-export function countResults<Item>(results: SuggestionResults<Item>): number {
+export function countResults(results: SuggestionResults): number {
     if ('groups' in results) {
         return results.groups.reduce((count, group) => count + group.items.length, 0);
     }
@@ -152,7 +152,7 @@ export function getItemForTerm<Item>(results: SuggestionResults<Item>, term: str
 /**
  * Returns a flat array of terms being suggested for cases where that's needed like for keyboard navigation.
  */
-export function flattenTerms<Item>(results: SuggestionResults<Item> | ProviderResults<Item>): string[] {
+export function flattenTerms(results: SuggestionResults | ProviderResults): string[] {
     if ('groups' in results) {
         return results.groups.flatMap((group) => group.terms);
     }
@@ -176,7 +176,7 @@ export function flattenItems<Item>(results: SuggestionResults<Item> | ProviderRe
 /**
  * Returns true if any of the items being suggested is rendered with the corresponding component.
  */
-export function hasSuggestionWithComponent<Item>(results: SuggestionResults<Item>, componentType: React.ElementType) {
+export function hasSuggestionWithComponent(results: SuggestionResults, componentType: React.ElementType) {
     if ('groups' in results) {
         return results.groups.some((group) => group.components.includes(componentType));
     }
@@ -188,14 +188,14 @@ export function hasSuggestionWithComponent<Item>(results: SuggestionResults<Item
  * ProviderResults is similar to {@link SuggestionResults}, but it accepts a single component for convenience in cases where
  * all of the results are rendered with the same component. It's up to the calling code to normalize this object
  */
-export type ProviderResults<Item> = ProviderResultsGrouped<Item> | ProviderResultsUngrouped<Item>;
+export type ProviderResults<Item = unknown> = ProviderResultsGrouped<Item> | ProviderResultsUngrouped<Item>;
 
-export type ProviderResultsGrouped<Item> = {
+export type ProviderResultsGrouped<Item = unknown> = {
     matchedPretext: string;
     groups: Array<ProviderResultsGroup<Item>>;
 }
 
-export type ProviderResultsGroup<Item> = {
+export type ProviderResultsGroup<Item = unknown> = {
     key: string;
     label: MessageDescriptor;
 
@@ -203,7 +203,7 @@ export type ProviderResultsGroup<Item> = {
     items: Array<Item | Loading>;
 } & ComponentOrComponents;
 
-export type ProviderResultsUngrouped<Item> = {
+export type ProviderResultsUngrouped<Item = unknown> = {
     matchedPretext: string;
     terms: string[];
     items: Array<Item | Loading>;
@@ -256,7 +256,7 @@ export function normalizeResultsFromProvider<Item>(providerResults: ProviderResu
  *
  * This function modifies the provided results.
  */
-export function trimResults(results: SuggestionResults<unknown>, max: number) {
+export function trimResults(results: SuggestionResults, max: number) {
     if ('groups' in results) {
         let remaining = max;
 

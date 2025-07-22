@@ -33,7 +33,7 @@ const SuggestionDate = ({
     }
 
     // This is safe to do because SearchDateProvider only returns ungrouped results
-    const ungroupedResults = results as SuggestionResultsUngrouped<unknown>;
+    const ungroupedResults = results as SuggestionResultsUngrouped;
 
     const item = ungroupedResults.items[0];
     const term = ungroupedResults.terms[0];

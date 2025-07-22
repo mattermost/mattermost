@@ -141,7 +141,7 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
         }
     };
 
-    private handleSuggestionsReceived = (suggestions: SuggestionResults<unknown>): void => {
+    private handleSuggestionsReceived = (suggestions: SuggestionResults): void => {
         const suggestionItems = flattenItems(suggestions);
         const loadingPropPresent = suggestionItems.some((item) => !isItemLoaded(item));
         this.setState({

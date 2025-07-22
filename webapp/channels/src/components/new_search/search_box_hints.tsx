@@ -19,7 +19,7 @@ type Props = {
     setSearchTerms: (searchTerms: string) => void;
     searchType: string;
     selectedTerm: string;
-    results: SuggestionResults<unknown>;
+    results: SuggestionResults;
     focus: (pos: number) => void;
     showFilterHaveBeenReset: boolean;
 }

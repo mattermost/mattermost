@@ -14,7 +14,7 @@ type SuggestionListProps = {
     onItemHover: (term: string) => void;
     onCompleteWord: (term: string, matchedPretext: string, e?: React.KeyboardEventHandler<HTMLDivElement>) => boolean;
     pretext: string;
-    results: SuggestionResults<unknown>;
+    results: SuggestionResults;
     selection: string;
 
     // suggestionBoxAlgn is an optional object that can be passed to align the SuggestionList with the keyboard caret

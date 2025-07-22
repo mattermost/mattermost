@@ -20,7 +20,7 @@ export interface Props {
     onItemHover: (term: string) => void;
     pretext: string;
     cleared: boolean;
-    results: SuggestionResults<any>;
+    results: SuggestionResults;
     selection: string;
 
     // suggestionBoxAlgn is an optional object that can be passed to align the SuggestionList with the keyboard caret

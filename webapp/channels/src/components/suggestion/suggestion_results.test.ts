@@ -19,7 +19,7 @@ describe('isItemLoaded', () => {
 describe('hasLoadedResults', () => {
     const testCases: Array<{
         name: string;
-        input: SuggestionResults<unknown>;
+        input: SuggestionResults;
         expected: boolean;
     }> = [
         {
@@ -104,7 +104,7 @@ describe('hasLoadedResults', () => {
 describe('countResults', () => {
     const testCases: Array<{
         name: string;
-        input: SuggestionResults<string>;
+        input: SuggestionResults;
         expected: number;
     }> = [
         {
@@ -170,7 +170,7 @@ describe('countResults', () => {
 describe('getItemForTerm', () => {
     const testCases: Array<{
         name: string;
-        inputResults: SuggestionResults<string>;
+        inputResults: SuggestionResults;
         inputTerm: string;
         expected: string | undefined;
     }> = [
@@ -242,7 +242,7 @@ describe('getItemForTerm', () => {
 describe('flattenTerms and flattenItems', () => {
     const testCases: Array<{
         name: string;
-        input: SuggestionResults<string>;
+        input: SuggestionResults;
         expectedTerms: string[];
         expectedItems: string[];
     }> = [
@@ -303,8 +303,8 @@ describe('trimResults', () => {
 
     const testCases: Array<{
         name: string;
-        input: SuggestionResults<string>;
-        expected: SuggestionResults<string> | undefined;
+        input: SuggestionResults;
+        expected: SuggestionResults | undefined;
     }> = [
         {
             name: 'should do nothing with empty ungrouped results',

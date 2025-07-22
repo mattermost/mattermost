@@ -19,10 +19,10 @@ import {emptyResults, flattenTerms, normalizeResultsFromProvider, trimResults} f
 
 import {SearchFileExtensionProvider} from './extension_suggestions_provider';
 
-export const useSearchSuggestions = (searchType: string, searchTerms: string, searchTeam: string, caretPosition: number, getCaretPosition: () => number): SuggestionResults<unknown> => {
+export const useSearchSuggestions = (searchType: string, searchTerms: string, searchTeam: string, caretPosition: number, getCaretPosition: () => number): SuggestionResults => {
     const dispatch = useDispatch();
 
-    const [results, setResults] = useState<SuggestionResults<unknown>>(emptyResults());
+    const [results, setResults] = useState<SuggestionResults>(emptyResults());
 
     const suggestionProviders = useRef<Provider[]>([
         new SearchDateProvider(),
@@ -47,7 +47,7 @@ export const useSearchSuggestions = (searchType: string, searchTerms: string, se
         }
 
         suggestionProviders.current.forEach((provider, idx) => {
-            provider.handlePretextChanged(partialSearchTerms, (res: ProviderResults<unknown>) => {
+            provider.handlePretextChanged(partialSearchTerms, (res: ProviderResults) => {
                 if (idx === 3 && searchType !== 'files') {
                     return;
                 }
@@ -66,7 +66,7 @@ export const useSearchSuggestions = (searchType: string, searchTerms: string, se
     return results;
 };
 
-export function useSearchSuggestionSelection(results: SuggestionResults<unknown>) {
+export function useSearchSuggestionSelection(results: SuggestionResults) {
     const [selectedTerm, setSelectedTerm] = useState('');
 
     const flattenedTerms = useMemo(() => flattenTerms(results), [results]);
