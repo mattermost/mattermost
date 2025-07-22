@@ -5092,10 +5092,6 @@
     "translation": "Se ha producido un error al obtener la clave pública."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "No se puede marcar el plugin como gestionado automáticamente por el almacenamiento de archivos."
-  },
-  {
     "id": "app.plugin.delete_public_key.delete.app_error",
     "translation": "Se ha producido un error al eliminar la clave pública."
   },
