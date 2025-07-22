@@ -497,7 +497,7 @@ func GenGIFData(width, height uint16, nFrames int) []byte {
 	}
 	trailer := []byte{0x3b}
 	gifData := header
-	for i := 0; i < nFrames; i++ {
+	for range nFrames {
 		gifData = append(gifData, frame...)
 	}
 	gifData = append(gifData, trailer...)
