@@ -186,12 +186,8 @@ func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*mode
 		Where(sq.GtOrEq{"ExpiresAt": now}).
 		Where(sq.NotEq{"DeviceId": ""})
 
-	// Add the last_removed_device_id condition based on the driver
-	if me.DriverName() == model.DatabaseDriverMysql {
-		builder = builder.Where("DeviceId != COALESCE(Props->>'$.last_removed_device_id', '')")
-	} else {
-		builder = builder.Where("DeviceId != COALESCE(Props->>'last_removed_device_id', '')")
-	}
+	// Add the last_removed_device_id condition
+	builder = builder.Where("DeviceId != COALESCE(Props->>'last_removed_device_id', '')")
 
 	sessions := []*model.Session{}
 
@@ -205,11 +201,6 @@ func (me SqlSessionStore) GetMobileSessionMetadata() ([]*model.MobileSessionMeta
 	versionProp := model.SessionPropMobileVersion
 	notificationDisabledProp := model.SessionPropDeviceNotificationDisabled
 	platformQuery := "NULLIF(SPLIT_PART(deviceid, ':', 1), '')"
-	if me.DriverName() == model.DatabaseDriverMysql {
-		versionProp = "$." + versionProp
-		notificationDisabledProp = "$." + notificationDisabledProp
-		platformQuery = "NULLIF(SUBSTRING_INDEX(deviceid, ':', 1), deviceid)"
-	}
 
 	query, args, err := me.getQueryBuilder().
 		Select(fmt.Sprintf(

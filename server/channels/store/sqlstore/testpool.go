@@ -35,7 +35,7 @@ func NewTestPool(logger mlog.LoggerIFace, driverName string, poolSize int) (*Tes
 	var eg errgroup.Group
 	for range poolSize {
 		eg.Go(func() error {
-			settings := storetest.MakeSqlSettings(driverName, false)
+			settings := storetest.MakeSqlSettings(driverName)
 			sqlStore, err := New(*settings, logger, nil)
 			if err != nil {
 				return err

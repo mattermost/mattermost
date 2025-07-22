@@ -13,14 +13,11 @@ import (
 	"strconv"
 	"sync"
 
-	sqlUtils "github.com/mattermost/mattermost/server/public/utils/sql"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/db"
 	"github.com/mattermost/morph"
 	"github.com/mattermost/morph/drivers"
-	ms "github.com/mattermost/morph/drivers/mysql"
 	ps "github.com/mattermost/morph/drivers/postgres"
 	"github.com/mattermost/morph/models"
 	mbindata "github.com/mattermost/morph/sources/embedded"
@@ -54,11 +51,6 @@ func NewMigrator(settings model.SqlSettings, logger mlog.LoggerIFace, dryRun boo
 	ok, err := ss.ensureMinimumDBVersion(ver)
 	if !ok {
 		return nil, fmt.Errorf("error while checking DB version: %w", err)
-	}
-
-	err = ss.ensureDatabaseCollation()
-	if err != nil {
-		return nil, fmt.Errorf("error while checking DB collation: %w", err)
 	}
 
 	engine, err := ss.initMorph(dryRun, true)
@@ -121,26 +113,6 @@ func (ss *SqlStore) initMorph(dryRun, enableLogging bool) (*morph.Morph, error) 
 
 	var driver drivers.Driver
 	switch ss.DriverName() {
-	case model.DatabaseDriverMysql:
-		dataSource, rErr := sqlUtils.ResetReadTimeout(*ss.settings.DataSource)
-		if rErr != nil {
-			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(rErr), mlog.String("src", *ss.settings.DataSource))
-			return nil, rErr
-		}
-		dataSource, err = sqlUtils.AppendMultipleStatementsFlag(dataSource)
-		if err != nil {
-			return nil, err
-		}
-		db, err2 := sqlUtils.SetupConnection(ss.Logger(), "master", dataSource, ss.settings, DBPingAttempts)
-		if err2 != nil {
-			return nil, err2
-		}
-
-		driver, err = ms.WithInstance(db)
-		if err != nil {
-			return nil, err
-		}
-		defer db.Close()
 	case model.DatabaseDriverPostgres:
 		driver, err = ps.WithInstance(ss.GetMaster().DB.DB)
 	default:

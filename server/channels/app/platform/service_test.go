@@ -45,7 +45,7 @@ func TestSetLicenseOnStart(t *testing.T) {
 	if driverName == "" {
 		driverName = model.DatabaseDriverPostgres
 	}
-	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName, false)
+	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName)
 
 	configStore := config.NewTestMemoryStore()
 	_, _, err = configStore.Set(&cfg)
@@ -66,7 +66,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 	if driverName == "" {
 		driverName = model.DatabaseDriverPostgres
 	}
-	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName, false)
+	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName)
 	cfg.SqlSettings.DataSourceReplicas = []string{*cfg.SqlSettings.DataSource}
 	cfg.SqlSettings.DataSourceSearchReplicas = []string{*cfg.SqlSettings.DataSource}
 
