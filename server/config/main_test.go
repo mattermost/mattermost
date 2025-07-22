@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 
@@ -35,18 +34,6 @@ func truncateTable(t *testing.T, table string) {
 	sqlStore := mainHelper.GetSQLStore()
 
 	switch *sqlSetting.DriverName {
-	case model.DatabaseDriverMysql:
-		_, err := sqlStore.GetMaster().Exec(fmt.Sprintf("TRUNCATE TABLE %s", table))
-		if err != nil {
-			if driverErr, ok := err.(*mysql.MySQLError); ok {
-				// Ignore if the Configurations table does not exist.
-				if driverErr.Number == 1146 {
-					return
-				}
-			}
-		}
-		require.NoError(t, err)
-
 	case model.DatabaseDriverPostgres:
 		_, err := sqlStore.GetMaster().Exec(fmt.Sprintf("TRUNCATE TABLE %s", table))
 		if err != nil {
