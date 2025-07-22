@@ -142,6 +142,8 @@ export default function FlagPostModal({postId, onExited}: Props) {
             return;
         }
 
+        // TODO: Implement the flagging action here
+
         onExited();
     }, [validateForm, onExited]);
 

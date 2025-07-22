@@ -317,7 +317,7 @@ describe('components/dot_menu/DotMenu', () => {
         });
     });
 
-    test('should show flag post when allowed', () => {
+    test('should show flag post menu option when allowed', () => {
         const props = {
             ...baseProps,
             canFlagContent: true,
