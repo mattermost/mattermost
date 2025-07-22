@@ -267,13 +267,6 @@ func (a *App) PatchBot(rctx request.CTX, botUserId string, botPatch *model.BotPa
 		return bot, nil
 	}
 
-	// Prevent updating the name of the system bot
-	if bot.Username == model.BotSystemBotUsername {
-		if botPatch.Username != nil && *botPatch.Username != bot.Username {
-			return nil, model.NewAppError("PatchBot", "api.bot.system_bot_name_update_forbidden.app_error", nil, "", http.StatusForbidden)
-		}
-	}
-
 	bot.Patch(botPatch)
 
 	user, nErr := a.Srv().Store().User().Get(context.Background(), botUserId)

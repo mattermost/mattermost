@@ -590,6 +590,90 @@ func TestPatchBot(t *testing.T) {
 		require.Error(t, err1)
 		CheckBadRequestStatus(t, resp1)
 	})
+
+	t.Run("patch system bot username should be forbidden", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		defaultPerms := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultPerms)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
+
+		// Create a system bot
+		systemBot, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
+			Username:    model.BotSystemBotUsername,
+			Description: "system bot",
+		})
+
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		defer func() {
+			appErr := th.App.PermanentDeleteBot(th.Context, systemBot.UserId)
+			assert.Nil(t, appErr)
+		}()
+
+		// Try to update the system bot's username - should be forbidden
+		botPatch := &model.BotPatch{
+			Username: model.NewPointer("new-username"),
+		}
+
+		_, resp, err = th.SystemAdminClient.PatchBot(context.Background(), systemBot.UserId, botPatch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.bot.system_bot_name_update_forbidden.app_error")
+
+		// Verify the system bot username hasn't changed
+		bot, resp, err := th.SystemAdminClient.GetBot(context.Background(), systemBot.UserId, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, model.BotSystemBotUsername, bot.Username)
+	})
+
+	t.Run("patch system bot username should be forbidden for regular user", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		defaultPerms := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultPerms)
+
+		th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.TeamUserRoleId)
+		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
+		assert.Nil(t, appErr)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
+
+		// Create a system bot as system admin
+		systemBot, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
+			Username:    model.BotSystemBotUsername,
+			Description: "system bot",
+		})
+
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		defer func() {
+			appErr := th.App.PermanentDeleteBot(th.Context, systemBot.UserId)
+			assert.Nil(t, appErr)
+		}()
+
+		// Try to update the system bot's username as regular user - should be forbidden
+		botPatch := &model.BotPatch{
+			Username: model.NewPointer("new-username"),
+		}
+
+		_, resp, err = th.Client.PatchBot(context.Background(), systemBot.UserId, botPatch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.bot.system_bot_name_update_forbidden.app_error")
+
+		// Verify the system bot username hasn't changed
+		bot, resp, err := th.SystemAdminClient.GetBot(context.Background(), systemBot.UserId, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, model.BotSystemBotUsername, bot.Username)
+	})
 }
 
 func TestGetBot(t *testing.T) {
