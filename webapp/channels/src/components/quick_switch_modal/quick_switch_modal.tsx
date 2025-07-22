@@ -15,7 +15,7 @@ import {NoResultsVariant} from 'components/no_results_indicator/types';
 import SuggestionBox from 'components/suggestion/suggestion_box';
 import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list';
-import {flattenItems, type SuggestionResults} from 'components/suggestion/suggestion_results';
+import {flattenItems, isItemLoaded, type SuggestionResults} from 'components/suggestion/suggestion_results';
 import SwitchChannelProvider from 'components/suggestion/switch_channel_provider';
 
 import {focusElement} from 'utils/a11y_utils';
@@ -143,7 +143,7 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
 
     private handleSuggestionsReceived = (suggestions: SuggestionResults<unknown>): void => {
         const suggestionItems = flattenItems(suggestions);
-        const loadingPropPresent = suggestionItems.some((item: any) => item.loading);
+        const loadingPropPresent = suggestionItems.some((item) => !isItemLoaded(item));
         this.setState({
             shouldShowLoadingSpinner: loadingPropPresent,
             pretext: suggestions.matchedPretext,

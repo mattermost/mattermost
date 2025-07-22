@@ -73,6 +73,10 @@ export type Loading = {
     loading: boolean;
 };
 
+export function isItemLoaded<Item>(item: Item | Loading): item is Item {
+    return !item || typeof item !== 'object' || !('loading' in item) || !item.loading;
+}
+
 export function emptyResults<Item>(): SuggestionResults<Item> {
     return {
         matchedPretext: '',
@@ -87,10 +91,6 @@ export function hasResults<Item>(results: SuggestionResults<Item>): boolean {
 }
 
 export function hasLoadedResults<Item>(results: SuggestionResults<Item>): boolean {
-    function isItemLoaded(item: Item | Loading) {
-        return !item || typeof item !== 'object' || !('loading' in item) || !item.loading;
-    }
-
     if ('groups' in results) {
         return results.groups.some((group) => group.items.some(isItemLoaded));
     }

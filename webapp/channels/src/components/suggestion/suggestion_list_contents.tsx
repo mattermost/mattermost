@@ -9,7 +9,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {formatAsComponent} from 'utils/i18n';
 
-import type {SuggestionResults} from './suggestion_results';
+import {isItemLoaded, type SuggestionResults} from './suggestion_results';
 
 export type SuggestionListContentsProps = {
     id: string;
@@ -41,7 +41,7 @@ const SuggestionListContents = React.forwardRef<HTMLElement, SuggestionListConte
     onMouseDown,
 }, ref) => {
     function renderItem(item: unknown, term: string, Component: React.ElementType<any>) {
-        if (item && typeof item === 'object' && 'loading' in item && item.loading) {
+        if (!isItemLoaded(item)) {
             return <LoadingSpinner key={term}/>;
         }
 
