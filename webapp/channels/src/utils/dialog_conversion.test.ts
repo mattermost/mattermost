@@ -330,6 +330,8 @@ describe('dialog_conversion', () => {
                 'Test description',
                 undefined,
                 undefined,
+                'http://example.com',
+                '',
                 legacyOptions,
             );
 
@@ -351,6 +353,8 @@ describe('dialog_conversion', () => {
                 '<script>alert("xss")</script>Description',
                 undefined,
                 undefined,
+                'http://example.com',
+                '',
                 legacyOptions,
             );
 
@@ -364,6 +368,8 @@ describe('dialog_conversion', () => {
                 undefined,
                 undefined,
                 undefined,
+                'http://example.com',
+                '',
                 legacyOptions,
             );
 
@@ -379,6 +385,8 @@ describe('dialog_conversion', () => {
                 undefined,
                 undefined,
                 undefined,
+                'http://example.com',
+                '',
                 legacyOptions,
             );
 
@@ -409,6 +417,8 @@ describe('dialog_conversion', () => {
                 undefined,
                 undefined,
                 undefined,
+                'http://example.com',
+                '',
                 legacyOptions,
             );
 
@@ -440,6 +450,8 @@ describe('dialog_conversion', () => {
                 undefined,
                 undefined,
                 undefined,
+                'http://example.com',
+                '',
                 enhancedOptions,
             );
 
@@ -458,6 +470,8 @@ describe('dialog_conversion', () => {
                 undefined,
                 undefined,
                 undefined,
+                'http://example.com',
+                '',
                 enhancedOptions,
             );
 
@@ -515,6 +529,8 @@ describe('dialog_conversion', () => {
                 undefined,
                 undefined,
                 undefined,
+                'http://example.com',
+                '',
                 legacyOptions,
             );
 
@@ -550,6 +566,8 @@ describe('dialog_conversion', () => {
                 undefined,
                 undefined,
                 undefined,
+                'http://example.com',
+                '',
                 legacyOptions,
             );
 
@@ -560,6 +578,158 @@ describe('dialog_conversion', () => {
             expect(form.fields?.[0].type).toBe('text'); // Converted to text as fallback
             expect(form.fields?.[0].description).toBe('This field could not be converted properly');
             expect(form.fields?.[1].name).toBe('valid_field');
+        });
+
+        it('should handle refresh property for select fields', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'refreshable_select',
+                    type: 'select',
+                    display_name: 'Refreshable Select',
+                    optional: false,
+                    refresh: true,
+                    options: [
+                        {text: 'Option A', value: 'optA'},
+                        {text: 'Option B', value: 'optB'},
+                    ],
+                } as DialogElement,
+                {
+                    name: 'normal_select',
+                    type: 'select',
+                    display_name: 'Normal Select',
+                    optional: false,
+                    options: [
+                        {text: 'Option X', value: 'optX'},
+                    ],
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com',
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields).toHaveLength(2);
+
+            // Check that refresh property is copied
+            expect(form.fields?.[0].refresh).toBe(true);
+            expect(form.fields?.[1].refresh).toBeUndefined();
+        });
+
+        it('should set source property from sourceUrl parameter', () => {
+            const {form, errors} = convertDialogToAppForm(
+                [],
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com/source',
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.source).toBeDefined();
+            expect(form.source?.path).toBe('http://example.com/source');
+            expect(form.source?.expand).toEqual({});
+        });
+
+        it('should not set source property when sourceUrl is empty and no refresh fields', () => {
+            const {form, errors} = convertDialogToAppForm(
+                [],
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                '', // Empty sourceUrl
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.source).toBeUndefined();
+        });
+
+        it('should set default source when refresh fields exist but no sourceUrl', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'refreshable_select',
+                    type: 'select',
+                    display_name: 'Refreshable Select',
+                    optional: false,
+                    refresh: true,
+                    options: [
+                        {text: 'Option A', value: 'optA'},
+                    ],
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                '', // Empty sourceUrl but has refresh fields
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.source).toBeDefined();
+            expect(form.source?.path).toBe('/refresh'); // Default path
+            expect(form.fields?.[0].refresh).toBe(true);
+        });
+
+        it('should include state in submit and source AppCall objects', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'test_field',
+                    type: 'text',
+                    display_name: 'Test Field',
+                    optional: false,
+                    refresh: true,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com/source',
+                'step1_data', // State parameter
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.submit?.state).toBe('step1_data');
+            expect(form.source?.state).toBe('step1_data');
+        });
+
+        it('should not include undefined state in AppCall objects', () => {
+            const {form, errors} = convertDialogToAppForm(
+                [],
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com/source',
+                '', // Empty state
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.submit?.state).toBeUndefined();
+            expect(form.source?.state).toBeUndefined();
         });
     });
 
