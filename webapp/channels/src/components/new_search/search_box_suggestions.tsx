@@ -8,7 +8,7 @@ import styled from 'styled-components';
 import {getSearchPluginSuggestions} from 'selectors/plugins';
 
 import {SuggestionListStatus} from 'components/suggestion/suggestion_list';
-import {SuggestionListContents} from 'components/suggestion/suggestion_list_structure';
+import SuggestionListContents from 'components/suggestion/suggestion_list_contents';
 import type {SuggestionResults} from 'components/suggestion/suggestion_results';
 import {hasResults} from 'components/suggestion/suggestion_results';
 

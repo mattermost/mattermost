@@ -8,7 +8,7 @@ import Popover from 'components/widgets/popover';
 
 import type {Props} from './suggestion_list';
 import SuggestionList from './suggestion_list';
-import {SuggestionListContents} from './suggestion_list_structure';
+import SuggestionListContents from './suggestion_list_contents';
 import {hasResults} from './suggestion_results';
 
 export default class SearchSuggestionList extends SuggestionList {

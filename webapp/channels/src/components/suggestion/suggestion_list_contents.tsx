@@ -26,7 +26,7 @@ export type SuggestionListContentsProps = {
     onMouseDown?: () => void;
 };
 
-export const SuggestionListContents = React.forwardRef<HTMLElement, SuggestionListContentsProps>(({
+const SuggestionListContents = React.forwardRef<HTMLElement, SuggestionListContentsProps>(({
     id,
     className,
     style,
@@ -119,6 +119,7 @@ export const SuggestionListContents = React.forwardRef<HTMLElement, SuggestionLi
     );
 });
 SuggestionListContents.displayName = 'SuggestionListContents';
+export default SuggestionListContents;
 
 type UngroupedSuggestionsProps = Omit<React.HTMLAttributes<HTMLUListElement>, 'aria-label' | 'id' | 'role'> & {
     id: string;

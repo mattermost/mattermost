@@ -6,7 +6,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import {Constants} from 'utils/constants';
 
-import {SuggestionListContents, UngroupedSuggestions} from './suggestion_list_structure';
+import SuggestionListContents, {UngroupedSuggestions} from './suggestion_list_contents';
 import type {SuggestionResults} from './suggestion_results';
 import {countResults, hasResults} from './suggestion_results';
 
