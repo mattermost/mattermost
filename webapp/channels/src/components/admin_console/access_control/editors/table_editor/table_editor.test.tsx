@@ -70,6 +70,7 @@ describe('parseExpression', () => {
                 attribute: 'role',
                 operator: 'is not',
                 values: ['guest'],
+                attribute_type: 'text',
             },
         ]);
     });
