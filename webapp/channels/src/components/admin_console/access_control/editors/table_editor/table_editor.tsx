@@ -27,11 +27,27 @@ interface TableEditorProps {
     onValidate?: (isValid: boolean) => void;
     disabled?: boolean;
     userAttributes: UserPropertyField[];
+    enableUserManagedAttributes: boolean;
     onParseError: (error: string) => void;
     actions: {
         getVisualAST: (expr: string) => Promise<ActionResult>;
     };
 }
+
+// Finds the first available (non-disabled) attribute from a list of user attributes.
+// An attribute is considered available if it doesn't have spaces in its name (CEL incompatible)
+// and is considered "safe" (synced from LDAP/SAML OR enableUserManagedAttributes is true).
+export const findFirstAvailableAttributeFromList = (
+    userAttributes: UserPropertyField[],
+    enableUserManagedAttributes: boolean,
+): UserPropertyField | undefined => {
+    return userAttributes.find((attr) => {
+        const hasSpaces = attr.name.includes(' ');
+        const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
+        const allowed = isSynced || enableUserManagedAttributes;
+        return !hasSpaces && allowed;
+    });
+};
 
 // Parses a CEL (Common Expression Language) string into a structured array of TableRow objects.
 // This allows the expression to be displayed and edited in a user-friendly table format.
@@ -86,6 +102,7 @@ function TableEditor({
     onValidate,
     disabled = false,
     userAttributes,
+    enableUserManagedAttributes,
     onParseError,
     actions,
 }: TableEditorProps): JSX.Element {
@@ -156,14 +173,25 @@ function TableEditor({
         }
     }, [onChange, onValidate]);
 
+    // Helper function to find the first available (non-disabled) attribute
+    const findFirstAvailableAttribute = useCallback(() => {
+        return findFirstAvailableAttributeFromList(userAttributes, enableUserManagedAttributes);
+    }, [userAttributes, enableUserManagedAttributes]);
+
     // Row Manipulation Handlers
     const addRow = useCallback(() => {
         if (userAttributes.length === 0) {
             return; // Do not add a row if no attributes are available
         }
+
+        const firstAvailableAttribute = findFirstAvailableAttribute();
+        if (!firstAvailableAttribute) {
+            return; // Do not add a row if no attributes are available
+        }
+
         setRows((currentRows) => {
             const newRow = {
-                attribute: userAttributes[0]?.name || '', // Default to the first available attribute
+                attribute: firstAvailableAttribute.name, // Default to the first available attribute
                 operator: OperatorLabel.IS, // Default operator
                 values: [],
             };
@@ -172,7 +200,7 @@ function TableEditor({
             setAutoOpenAttributeMenuForRow(newRows.length - 1); // Set for the new row
             return newRows;
         });
-    }, [userAttributes, updateExpression]);
+    }, [userAttributes, updateExpression, findFirstAvailableAttribute]);
 
     const removeRow = useCallback((index: number) => {
         setRows((currentRows) => {
@@ -295,6 +323,7 @@ function TableEditor({
                                         buttonId={`attribute-selector-button-${index}`}
                                         autoOpen={index === autoOpenAttributeMenuForRow}
                                         onMenuOpened={() => setAutoOpenAttributeMenuForRow(null)}
+                                        enableUserManagedAttributes={enableUserManagedAttributes}
                                     />
                                 </td>
                                 <td className='table-editor__cell'>

@@ -1738,6 +1738,14 @@
     "translation": "Failed to update server translations."
   },
   {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "Content flagging feature is disabled."
+  },
+  {
+    "id": "api.content_flagging.error.license",
+    "translation": "Your license does not support content flagging."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Sorry, we could not find the page."
   },
@@ -3855,10 +3863,6 @@
     "translation": "Error creating zip file."
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Error reading file from backend"
-  },
-  {
     "id": "api.unmarshal_error",
     "translation": "Failed to unmarshal."
   },
@@ -5001,6 +5005,18 @@
   {
     "id": "app.channel_member_history.log_leave_event.internal_error",
     "translation": "Failed to record channel member history. Failed to update existing join record"
+  },
+  {
+    "id": "app.cloud.preview_modal_bucket_url_not_configured",
+    "translation": "Preview bucket URL is not configured"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "Failed to fetch preview modal data"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_parse_error",
+    "translation": "Failed to parse preview modal data"
   },
   {
     "id": "app.cloud.trial_plan_bot_message",
@@ -6445,10 +6461,6 @@
   {
     "id": "app.plugin.filesystem.app_error",
     "translation": "Encountered filesystem error."
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Unable to set plugin as managed by the file store."
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
@@ -9217,6 +9229,18 @@
     "translation": "ThreadAutoFollow must be true to enable CollapsedThreads"
   },
   {
+    "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
+    "translation": "Common reviewers or additional reviewers must be set when \"Same reviewers for all teams\" is enabled."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.reasons_not_set.app_error",
+    "translation": "Reasons for flagging cannot be empty."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
+    "translation": "Team reviewers or additional reviewers must be set when setting \"Enabled\" for a team."
+  },
+  {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
     "translation": "Data retention job start time must be a 24-hour time stamp in the form HH:MM."
   },
@@ -9551,6 +9575,18 @@
   {
     "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
     "translation": "Invalid domain for move thread settings"
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_event",
+    "translation": "Invalid flagging event specified."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_target",
+    "translation": "Invalid flaggig event target specified."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
+    "translation": "Notifications for new flagged post cannot be disabled for reviewers."
   },
   {
     "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
@@ -10818,11 +10854,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 134+"
+    "translation": "Version 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 134+"
+    "translation": "Version 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
