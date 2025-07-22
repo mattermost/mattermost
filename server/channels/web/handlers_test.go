@@ -616,58 +616,8 @@ func TestCheckCSRFToken(t *testing.T) {
 		assert.Nil(t, c.Err)
 	})
 
-	t.Run("should allow a POST request with an X-Requested-With header", func(t *testing.T) {
+	t.Run("should not allow a POST request with an X-Requested-With header", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-
-		h := &Handler{
-			RequireSession: true,
-			TrustRequester: false,
-		}
-
-		token := "token"
-		tokenLocation := app.TokenLocationCookie
-
-		c := &Context{
-			App:        th.App,
-			Logger:     th.App.Log(),
-			AppContext: th.Context,
-		}
-		r, _ := http.NewRequest(http.MethodPost, "", nil)
-		r.Header.Set(model.HeaderRequestedWith, model.HeaderRequestedWithXML)
-		session := &model.Session{
-			Props: map[string]string{
-				"csrf": token,
-			},
-		}
-
-		checked, passed := h.checkCSRFToken(c, r, token, tokenLocation, session)
-
-		assert.True(t, checked)
-		assert.True(t, passed)
-		assert.Nil(t, c.Err)
-	})
-
-	t.Run("should not allow a POST request with an X-Requested-With header with strict CSRF enforcement enabled", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-
-		mockStore := th.App.Srv().Store().(*mocks.Store)
-		mockUserStore := mocks.UserStore{}
-		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
-		mockPostStore := mocks.PostStore{}
-		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
-		mockSystemStore := mocks.SystemStore{}
-		mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
-		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
-		mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
-
-		mockStore.On("User").Return(&mockUserStore)
-		mockStore.On("Post").Return(&mockPostStore)
-		mockStore.On("System").Return(&mockSystemStore)
-		mockStore.On("GetDBSchemaVersion").Return(1, nil)
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.StrictCSRFEnforcement = true
-		})
 
 		h := &Handler{
 			RequireSession: true,
