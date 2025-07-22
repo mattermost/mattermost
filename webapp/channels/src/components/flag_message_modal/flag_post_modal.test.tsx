@@ -2,83 +2,45 @@
 // See LICENSE.txt for license information.
 
 import {screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {renderWithContext} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
 
 import FlagPostModal from './flag_post_model';
 
-jest.mock('mattermost-redux/selectors/entities/posts', () => {
-    return {
-        getPost: jest.fn().mockImplementation((state, postId) => {
-            return {
-                id: postId,
-                channel_id: 'channel_id',
-                message: 'Test message',
-            };
-        }),
-        getAllPosts: jest.fn().mockImplementation(() => {
-            return {
-                post_id: {
-                    id: 'post_id',
-                    channel_id: 'channel_id',
-                    message: 'Test message',
-                },
-            };
-        }),
-    };
-});
-
-jest.mock('mattermost-redux/selectors/entities/channels', () => {
-    return {
-        getChannel: jest.fn().mockImplementation((state, channelId) => {
-            return {
-                id: channelId,
-                name: 'test-channel',
-                display_name: 'Test Channel',
-                type: 'O',
-            };
-        }),
-    };
-});
-
-jest.mock('mattermost-redux/selectors/entities/teams', () => {
-    return {
-        getCurrentTeam: jest.fn().mockImplementation(() => {
-            return {
-                id: 'team_id',
-                name: 'test-team',
-                display_name: 'Test Team',
-            };
-        }),
-    };
-});
-
-jest.mock('mattermost-redux/selectors/entities/content_flagging', () => {
-    return {
-        contentFlaggingConfig: jest.fn().mockImplementation(() => {
-            return {
-                reporter_comment_required: true,
-                reasons: ['Reason 1', 'Reason 2', 'Reason 3'],
-            };
-        }),
-    };
-});
-
-jest.mock('mattermost-redux/actions/content_flagging', () => {
-    return {
-        getContentFlaggingConfig: jest.fn().mockImplementation(() => {
-            return {
-                type: 'GET_CONTENT_FLAGGING_CONFIG',
-            };
-        }),
-    };
-});
-
 describe('components/FlagPostModal', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
+    const baseState: DeepPartial<GlobalState> = {
+        entities: {
+            posts: {
+                posts: {
+                    post_id: TestHelper.getPostMock({id: 'post_id', channel_id: 'channel_id', message: 'Test message'}),
+                },
+            },
+            channels: {
+                channels: {
+                    channel_id: TestHelper.getChannelMock({id: 'channel_id', name: 'test-channel', display_name: 'Test Channel', type: 'O'}),
+                },
+            },
+            teams: {
+                teams: {
+                    team_id: TestHelper.getTeamMock({id: 'team_id', name: 'test-team', display_name: 'Test Team'}),
+                },
+                currentTeamId: 'team_id',
+            },
+            contentFlagging: {
+                settings: {
+                    reporter_comment_required: true,
+                    reasons: ['Reason 1', 'Reason 2', 'Reason 3'],
+                },
+            },
+        },
+    };
 
     it('should render modal with reasons and post preview', () => {
         renderWithContext(
@@ -86,8 +48,40 @@ describe('components/FlagPostModal', () => {
                 postId={'post_id'}
                 onExited={() => {}}
             />,
+            baseState,
         );
 
-        expect(screen.getByText('Channel Settings')).toBeInTheDocument();
+        userEvent.click(screen.getByText('Select...'));
+
+        expect(screen.getByText('Reason 1')).toBeVisible();
+        expect(screen.getByText('Reason 2')).toBeVisible();
+        expect(screen.getByText('Reason 3')).toBeVisible();
+
+        expect(screen.getByTestId('FlagPostModal__post-preview_container')).toHaveTextContent('Test message');
+        expect(screen.getByTestId('FlagPostModal__comment_section_title')).toHaveTextContent('Comment (required)');
+    });
+
+    it('should render "required" title when comment is required', () => {
+        renderWithContext(
+            <FlagPostModal
+                postId={'post_id'}
+                onExited={() => {}}
+            />,
+            baseState,
+        );
+
+        expect(screen.getByTestId('FlagPostModal__comment_section_title')).toHaveTextContent('Comment (required)');
+    });
+
+    it('should render "optional" title when comment is not required', () => {
+        renderWithContext(
+            <FlagPostModal
+                postId={'post_id'}
+                onExited={() => {}}
+            />,
+            baseState,
+        );
+
+        expect(screen.getByTestId('FlagPostModal__comment_section_title')).toHaveTextContent('Comment (optional)');
     });
 });

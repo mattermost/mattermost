@@ -170,6 +170,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
                     </div>
                     <div
                         className='post forward-post__post-preview--override'
+                        data-testid='FlagPostModal__post-preview_container'
                     >
                         <PostMessagePreview
                             metadata={previewMetadata}
@@ -205,7 +206,10 @@ export default function FlagPostModal({postId, onExited}: Props) {
                 </div>
 
                 <div className='FlagPostModal__section FlagPostModal__comment'>
-                    <div className='FlagPostModal__section_title'>
+                    <div
+                        className='FlagPostModal__section_title'
+                        data-testid='FlagPostModal__comment_section_title'
+                    >
                         {contentFlaggingSettings.reporter_comment_required ? requiredCommentSectionTitle : optionalCommentSectionTitle}
                     </div>
 

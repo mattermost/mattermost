@@ -428,6 +428,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
     };
 
     render(): JSX.Element {
+        console.log({canFlagContent: this.props.canFlagContent});
+
         const {formatMessage} = this.props.intl;
         const isFollowingThread = this.props.isFollowingThread ?? this.props.isMentionedInRootPost;
         const isMobile = this.props.isMobileView;
@@ -722,6 +724,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                             />
                         }
                         onClick={this.handleFlagPostMenuItemClicked}
+                        isDestructive={true}
                     />
                 }
             </Menu.Container>

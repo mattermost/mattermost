@@ -147,6 +147,7 @@ describe('components/dot_menu/DotMenu', () => {
         userId: 'user_id_1',
         isMilitaryTime: false,
         canMove: true,
+        canFlagContent: false,
     };
 
     test('should match snapshot, on Center', () => {
@@ -314,5 +315,22 @@ describe('components/dot_menu/DotMenu', () => {
             expect(menuItem).toBeVisible();
             expect(menuItem).toHaveTextContent(text);
         });
+    });
+
+    test('should show flag post when allowed', () => {
+        const props = {
+            ...baseProps,
+            canFlagContent: true,
+        };
+        renderWithContext(
+            <DotMenu {...props}/>,
+            initialState,
+        );
+
+        const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
+        fireEvent.click(button);
+
+        const flagPostOption = screen.getByTestId(`flag_post_${baseProps.post.id}`);
+        expect(flagPostOption).toBeVisible();
     });
 });
