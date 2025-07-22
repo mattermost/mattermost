@@ -78,6 +78,7 @@ jobs:
             $BUILD_IMAGE \
             make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
       - name: Upload coverage to Codecov
+        if: ${{ inputs.enablecoverage }}
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

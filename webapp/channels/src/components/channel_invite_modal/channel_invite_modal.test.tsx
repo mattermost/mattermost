@@ -717,4 +717,94 @@ describe('components/channel_invite_modal', () => {
         );
         expect(guestInviteLinks).toHaveLength(0);
     });
+
+    test('should NOT filter out groups when  NOT ABAC is enforced', async () => {
+        const mockGroups = [
+            {
+                id: 'group1',
+                name: 'developers',
+                display_name: 'Developers',
+                description: 'Development team',
+                source: 'ldap',
+                remote_id: 'dev-group',
+                create_at: 1234567890,
+                update_at: 1234567890,
+                delete_at: 0,
+                has_syncables: false,
+                member_count: 5,
+                scheme_admin: false,
+                allow_reference: true,
+            },
+        ];
+
+        const channelWithPolicy = {
+            ...channel,
+            policy_enforced: false,
+        };
+
+        const props = {
+            ...baseProps,
+            channel: channelWithPolicy,
+            groups: mockGroups,
+            profilesNotInCurrentChannel: [users[0]],
+        };
+
+        await act(async () => {
+            renderWithContext(<ChannelInviteModal {...props}/>);
+        });
+
+        const input = screen.getByRole('combobox', {name: /search for people/i});
+        await userEvent.type(input, '@');
+
+        // Should only show users, not groups when ABAC is enforced
+        expect(getUserSpan('user-1')).toBeInTheDocument();
+
+        // Groups should appear in the dropdown
+        expect(getUserSpan('Developers')).toBeInTheDocument();
+    });
+
+    test('should filter out groups when ABAC is enforced', async () => {
+        const mockGroups = [
+            {
+                id: 'group1',
+                name: 'developers',
+                display_name: 'Developers',
+                description: 'Development team',
+                source: 'ldap',
+                remote_id: 'dev-group',
+                create_at: 1234567890,
+                update_at: 1234567890,
+                delete_at: 0,
+                has_syncables: false,
+                member_count: 5,
+                scheme_admin: false,
+                allow_reference: true,
+            },
+        ];
+
+        const channelWithPolicy = {
+            ...channel,
+            policy_enforced: true,
+        };
+
+        const props = {
+            ...baseProps,
+            channel: channelWithPolicy,
+            groups: mockGroups,
+            profilesNotInCurrentChannel: [users[0]],
+        };
+
+        await act(async () => {
+            renderWithContext(<ChannelInviteModal {...props}/>);
+        });
+
+        const input = screen.getByRole('combobox', {name: /search for people/i});
+        await userEvent.type(input, '@');
+
+        // Should only show users, not groups when ABAC is enforced
+        expect(getUserSpan('user-1')).toBeInTheDocument();
+
+        // Groups should not appear in the dropdown
+        expect(screen.queryByText('Developers')).toBeNull();
+    });
 });

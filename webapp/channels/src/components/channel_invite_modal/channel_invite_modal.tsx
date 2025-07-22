@@ -183,11 +183,11 @@ const ChannelInviteModalComponent = (props: Props) => {
 
         let users: UserProfileValue[];
         if (props.channel.policy_enforced) {
-        // When ABAC is enabled, only use the ABAC-filtered profilesNotInCurrentChannel
+            // When ABAC is enabled, only use the ABAC-filtered profilesNotInCurrentChannel
             const filteredUsers = filterProfilesStartingWithTerm(props.profilesNotInCurrentChannel, term);
             users = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredUsers, excludedAndNotInTeamUserIds);
         } else {
-        // When ABAC is not enabled, use the current logic
+            // When ABAC is not enabled, use the current logic
             const filteredUsers = filterProfilesStartingWithTerm(props.profilesNotInCurrentChannel.concat(props.profilesInCurrentChannel), term);
             users = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredUsers, excludedAndNotInTeamUserIds);
         }
@@ -198,7 +198,9 @@ const ChannelInviteModalComponent = (props: Props) => {
         }
 
         const groupsAndUsers = [
-            ...filterGroupsMatchingTerm(props.groups, term) as GroupValue[],
+
+            // Only include groups if ABAC policy is NOT enforced
+            ...(props.channel.policy_enforced ? [] : filterGroupsMatchingTerm(props.groups, term) as GroupValue[]),
             ...users,
         ].sort(sortUsersAndGroups);
 
@@ -342,7 +344,9 @@ const ChannelInviteModalComponent = (props: Props) => {
                 const promises = [
                     props.actions.searchProfiles(term, options),
                 ];
-                if (props.isGroupsEnabled) {
+
+                // Only search for groups if groups are enabled AND ABAC policy is NOT enforced
+                if (props.isGroupsEnabled && !props.channel.policy_enforced) {
                     promises.push(props.actions.searchAssociatedGroupsForReference(term, props.channel.team_id, props.channel.id, opts));
                 }
                 await Promise.all(promises);
@@ -451,11 +455,6 @@ const ChannelInviteModalComponent = (props: Props) => {
         props.channel.team_id,
         props.channel.group_constrained,
         props.actions,
-
-        // Removing these dependencies as they cause an infinite loop
-        // These profiles are updated by the actions above, which triggers the effect again
-        // props.profilesNotInCurrentChannel,
-        // props.profilesInCurrentChannel,
     ]);
 
     // Compute options with useMemo to ensure they're always fresh

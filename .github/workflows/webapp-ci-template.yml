@@ -79,6 +79,8 @@ jobs:
         run: |
           npm run test-ci
       - name: Upload coverage to Codecov
+        # Skip coverage upload for cherry-pick PRs into release branches.
+        if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

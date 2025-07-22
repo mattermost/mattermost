@@ -223,6 +223,6 @@ describe('Verify Guest User Identification in different screens', () => {
         });
 
         // # Close and Clear the Search Autocomplete
-        cy.get('#searchFormContainer').find('.input-clear-x').click({force: true});
+        cy.findByTestId('searchBoxClose').click({force: true});
     });
 });

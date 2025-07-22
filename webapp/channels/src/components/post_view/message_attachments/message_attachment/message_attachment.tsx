@@ -430,7 +430,6 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                                 atMentions: false,
                                 mentionHighlight: false,
                                 renderer: new LinkOnlyRenderer(),
-                                autolinkedUrlSchemes: [],
                             }}
                             postId={this.props.postId}
                         />

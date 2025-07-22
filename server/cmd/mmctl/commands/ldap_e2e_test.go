@@ -213,6 +213,15 @@ func (s *MmctlE2ETestSuite) TestLdapJobShowCmdF() {
 		s.Require().Empty(printer.GetErrorLines())
 	})
 
+	s.RunForSystemAdminAndLocal("no args", func(c client.Client) {
+		printer.Clean()
+
+		err := ldapJobShowCmdF(c, &cobra.Command{}, []string{})
+		s.Require().EqualError(err, "expected at least one argument (ldapJobID). See help text for details")
+		s.Require().Empty(printer.GetLines())
+		s.Require().Empty(printer.GetErrorLines())
+	})
+
 	s.RunForSystemAdminAndLocal("not found", func(c client.Client) {
 		printer.Clean()
 
