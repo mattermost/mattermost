@@ -802,10 +802,7 @@ func (scs *Service) shouldUserSyncGlobal(user *model.User, rc *model.RemoteClust
 	}
 
 	// Calculate latest update time for this user (profile or picture)
-	latestUserUpdateTime := user.UpdateAt
-	if user.LastPictureUpdate > latestUserUpdateTime {
-		latestUserUpdateTime = user.LastPictureUpdate
-	}
+	latestUserUpdateTime := max(user.LastPictureUpdate, user.UpdateAt)
 
 	// For initial sync (LastGlobalUserSyncAt=0), sync all users
 	// For incremental sync, only sync users updated after the last sync

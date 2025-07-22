@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -1820,7 +1821,7 @@ func testPostStorePermDeleteLimitExceeded(t *testing.T, rctx request.CTX, ss sto
 	}, -1)
 	require.NoError(t, err)
 
-	for i := 0; i < maxPosts+100; i++ {
+	for range maxPosts + 100 {
 		post := &model.Post{
 			ChannelId: channel.Id,
 			UserId:    userID,
@@ -2008,7 +2009,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		userID := model.NewId()
 
 		var posts []*model.Post
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			post, err := ss.Post().Save(rctx, &model.Post{
 				ChannelId: channelID,
 				UserId:    userID,
@@ -4247,7 +4248,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 	require.Equal(t, int64(0), deleted)
 
 	t.Run("with pagination", func(t *testing.T) {
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			_, err = ss.Post().Save(rctx, &model.Post{
 				ChannelId: channel.Id,
 				UserId:    model.NewId(),
@@ -4965,7 +4966,7 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, rctx r
 	o1.Type = model.ChannelTypeDirect
 
 	var postIds []string
-	for i := 0; i < 150; i++ {
+	for range 150 {
 		u1 := &model.User{}
 		u1.Email = MakeEmail()
 		u1.Nickname = model.NewId()
@@ -5003,7 +5004,7 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, rctx r
 		require.NoError(t, nErr)
 		postIds = append(postIds, p1.Id)
 	}
-	sort.Slice(postIds, func(i, j int) bool { return postIds[i] < postIds[j] })
+	slices.Sort(postIds)
 
 	// Get all posts
 	r1, err := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26), false)
@@ -5013,7 +5014,7 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, rctx r
 	for i := range r1 {
 		exportedPostIds = append(exportedPostIds, r1[i].Id)
 	}
-	sort.Slice(exportedPostIds, func(i, j int) bool { return exportedPostIds[i] < exportedPostIds[j] })
+	slices.Sort(exportedPostIds)
 	assert.ElementsMatch(t, postIds, exportedPostIds)
 
 	// Get 100
@@ -5024,7 +5025,7 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, rctx r
 	for i := range r1 {
 		exportedPostIds = append(exportedPostIds, r1[i].Id)
 	}
-	sort.Slice(exportedPostIds, func(i, j int) bool { return exportedPostIds[i] < exportedPostIds[j] })
+	slices.Sort(exportedPostIds)
 	assert.ElementsMatch(t, postIds[:100], exportedPostIds)
 
 	// Manually truncate Channels table until testlib can handle cleanups
