@@ -5,12 +5,12 @@ package app
 
 import (
 	"archive/zip"
+	"bytes"
 	"errors"
 	"fmt"
 	"image"
 	"io"
 	"os"
-	"path"
 	"path/filepath"
 	"testing"
 	"time"
@@ -26,7 +26,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	eMocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
-	filesStoreMocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
 
 func TestGeneratePublicLinkHash(t *testing.T) {
@@ -311,60 +310,100 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	assert.Equal(t, 0, len(infos))
 }
 
-func TestCreateZipFileAndAddFiles(t *testing.T) {
+func TestWriteZipFile(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
-	const (
-		zipName   = "zip-file-name-to-heaven.zip"
-		directory = "directory-to-heaven"
-	)
-
-	t.Run("write file fails", func(t *testing.T) {
-		mockBackend := filesStoreMocks.FileBackend{}
-		mockBackend.On("WriteFile", mock.Anything, path.Join(directory, zipName)).Return(int64(666), errors.New("only those who dare to fail greatly can ever achieve greatly"))
-
-		err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{}, zipName, directory)
-
-		require.Error(t, err)
-		require.Equal(t, err.Error(), "failed to write zip file to file backend at path directory-to-heaven/zip-file-name-to-heaven.zip: only those who dare to fail greatly can ever achieve greatly")
-	})
-
 	t.Run("write no file", func(t *testing.T) {
-		mockBackend := filesStoreMocks.FileBackend{}
-		mockBackend.On("WriteFile", mock.Anything, path.Join(directory, zipName)).Return(int64(666), nil)
-		err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{}, zipName, directory)
+		buf := new(bytes.Buffer)
+		err := th.App.WriteZipFile(buf, []model.FileData{})
 		require.NoError(t, err)
+
+		// Verify it's a valid zip file
+		reader := bytes.NewReader(buf.Bytes())
+		z, err := zip.NewReader(reader, int64(buf.Len()))
+		require.NoError(t, err)
+		require.Len(t, z.File, 0)
 	})
 
 	t.Run("write one file", func(t *testing.T) {
-		mockBackend := filesStoreMocks.FileBackend{}
-		mockBackend.On("WriteFile", mock.Anything, path.Join(directory, zipName)).Return(int64(666), nil).Run(func(args mock.Arguments) {
-			r, err := zip.OpenReader(zipName)
-			require.NoError(t, err)
-			require.Len(t, r.File, 1)
-
-			file := r.File[0]
-			assert.Equal(t, "file1", file.Name)
-			now := time.Now().Truncate(time.Second) // Files are stored with a second precision
-			// Confirm that the file was created in the last 10 seconds
-			assert.GreaterOrEqual(t, file.Modified, now.Add(-10*time.Second))
-			assert.GreaterOrEqual(t, now, file.Modified)
-
-			fr, err := file.Open()
-			require.NoError(t, err)
-			b, err := io.ReadAll(fr)
-			require.NoError(t, err)
-			assert.Equal(t, []byte("content1"), b)
-		})
-		err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{
+		buf := new(bytes.Buffer)
+		err := th.App.WriteZipFile(buf, []model.FileData{
 			{
-				Filename: "file1",
+				Filename: "file1.txt",
 				Body:     []byte("content1"),
 			},
-		}, zipName, directory)
+		})
 		require.NoError(t, err)
+
+		// Verify the zip contents
+		reader := bytes.NewReader(buf.Bytes())
+		z, err := zip.NewReader(reader, int64(buf.Len()))
+		require.NoError(t, err)
+		require.Len(t, z.File, 1)
+
+		file := z.File[0]
+		assert.Equal(t, "file1.txt", file.Name)
+
+		now := time.Now().Truncate(time.Second) // Files are stored with a second precision
+		// Confirm that the file was created in the last 10 seconds
+		assert.GreaterOrEqual(t, file.Modified, now.Add(-10*time.Second))
+		assert.GreaterOrEqual(t, now, file.Modified)
+
+		// Check file content
+		fr, err := file.Open()
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = fr.Close()
+			require.NoError(t, err)
+		})
+
+		content, err := io.ReadAll(fr)
+		require.NoError(t, err)
+		assert.Equal(t, []byte("content1"), content)
+	})
+
+	t.Run("write multiple files", func(t *testing.T) {
+		buf := new(bytes.Buffer)
+		fileDatas := []model.FileData{
+			{
+				Filename: "file1.txt",
+				Body:     []byte("content1"),
+			},
+			{
+				Filename: "file2.txt",
+				Body:     []byte("content2"),
+			},
+			{
+				Filename: "dir/file3.txt",
+				Body:     []byte("content3"),
+			},
+		}
+
+		err := th.App.WriteZipFile(buf, fileDatas)
+		require.NoError(t, err)
+
+		// Verify the zip contents
+		reader := bytes.NewReader(buf.Bytes())
+		z, err := zip.NewReader(reader, int64(buf.Len()))
+		require.NoError(t, err)
+		require.Len(t, z.File, 3)
+
+		// Check each file
+		for i, zf := range z.File {
+			assert.Equal(t, fileDatas[i].Filename, zf.Name)
+
+			fr, err := zf.Open()
+			require.NoError(t, err)
+
+			content, err := io.ReadAll(fr)
+			require.NoError(t, err)
+			assert.Equal(t, fileDatas[i].Body, content)
+
+			err = fr.Close()
+			require.NoError(t, err)
+		}
 	})
 }
 
