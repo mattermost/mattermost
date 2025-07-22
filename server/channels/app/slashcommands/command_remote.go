@@ -288,3 +288,24 @@ func getRemoteClusterAutocompleteListItemsNotInChannel(a *app.App, channelID str
 	}
 	return list, nil
 }
+
+func getRemoteClusterAutocompleteListItemsInChannel(a *app.App, channelID string, includeOffline bool) ([]model.AutocompleteListItem, error) {
+	filter := model.RemoteClusterQueryFilter{
+		ExcludeOffline: !includeOffline,
+		InChannel:      channelID,
+	}
+	all, err := a.GetAllRemoteClusters(0, 999999, filter)
+	if err != nil || len(all) == 0 {
+		return []model.AutocompleteListItem{}, nil
+	}
+
+	list := make([]model.AutocompleteListItem, 0, len(all))
+
+	for _, rc := range all {
+		item := model.AutocompleteListItem{
+			Item:     rc.RemoteId,
+			HelpText: fmt.Sprintf("%s  (%s)", rc.DisplayName, rc.GetSiteURL())}
+		list = append(list, item)
+	}
+	return list, nil
+}
