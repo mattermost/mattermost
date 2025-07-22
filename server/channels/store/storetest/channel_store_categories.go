@@ -2212,10 +2212,6 @@ func testSidebarCategoryDeadlock(t *testing.T, rctx request.CTX, ss store.Store)
 }
 
 func testSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
-	if s.DriverName() == model.DatabaseDriverMysql {
-		t.Skip("This is known to fail on MySQL")
-	}
-
 	for i := range 2 {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			t.Parallel()

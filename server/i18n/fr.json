@@ -5128,10 +5128,6 @@
     "translation": "Une erreur s'est produite lors de la récupération de la clé publique à partir du magasin."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Impossible de définir le plugin comme géré par le gestionnaire de fichiers."
-  },
-  {
     "id": "app.plugin.delete_public_key.delete.app_error",
     "translation": "Une erreur s'est produite lors de la suppression de la clé publique."
   },
