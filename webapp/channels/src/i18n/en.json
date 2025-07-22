@@ -323,6 +323,7 @@
   "admin.access_control.table_editor.create_value": "Create \"{value}\"",
   "admin.access_control.table_editor.help_text": "Each row is a single condition that must be met for a user to comply with the policy. All rules are combined with logical AND operator (`&&`).",
   "admin.access_control.table_editor.learnMore": "Learn more about creating access expressions with examples.",
+  "admin.access_control.table_editor.not_safe_to_use": "Values for this attribute are managed by users and should not be used for access control. Please link attribute to AD/LDAP for use in access policies.",
   "admin.access_control.table_editor.operator": "Operator",
   "admin.access_control.table_editor.operator.contains": "contains",
   "admin.access_control.table_editor.operator.ends_with": "ends with",

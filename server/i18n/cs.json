@@ -1156,10 +1156,6 @@
     "translation": "Nepodařilo se získat stavy zásuvných modulů z clusteru."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Nelze nastavit zásuvný modul jako spravovaný úložištěm souborů."
-  },
-  {
     "id": "app.plugin.filesystem.app_error",
     "translation": "Došlo k chybě souborového systému."
   },
@@ -3289,7 +3285,7 @@
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here byl deaktivován, protože kanál má více než {{.Users}} uživatelů."
+    "translation": "Oznámení @here jsou zakázána v kanálech s více než {{.Users}} uživateli. Pro více informací kontaktujte svého systémového administrátora."
   },
   {
     "id": "api.post.disabled_channel",
@@ -9837,7 +9833,7 @@
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Nelze aktivovat uživatele. Server překračuje bezpečný limit uživatelů. Kontaktujte svého administrátora s kódem: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Nelze aktivovat uživatele. Server překročil bezpečný limit uživatelů. ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -10666,5 +10662,9 @@
   {
     "id": "api.channel.update_channel.not_allowed.app_error",
     "translation": "Kanály s vynucenými zásadami nelze aktualizovat."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Neplatná aktualizace člena kanálu: Člen kanálu vždy musí mít uživatelský plán."
   }
 ]
