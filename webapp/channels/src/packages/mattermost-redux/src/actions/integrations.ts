@@ -522,6 +522,7 @@ export function lookupInteractiveDialog(submission: DialogSubmission): ActionFun
         const state = getState();
         submission.channel_id = getCurrentChannelId(state);
         submission.team_id = getCurrentTeamId(state);
+        submission.user_id = getCurrentUserId(state);
 
         let data;
         try {

@@ -24,6 +24,10 @@ describe('Actions.Integrations', () => {
         store = configureStore();
     });
 
+    afterEach(() => {
+        nock.cleanAll();
+    });
+
     afterAll(() => {
         TestHelper.tearDown();
     });
@@ -903,13 +907,9 @@ describe('Actions.Integrations', () => {
                 post('/actions/dialogs/lookup', lookup).
                 reply(400, errorResponse);
 
-            try {
-                await store.dispatch(Actions.lookupInteractiveDialog(lookup));
-                expect(false).toBe(true); // Should not reach here
-            } catch (error: any) {
-                expect(error.status_code).toBe(400);
-                expect(error.message).toBe('Dialog lookup failed');
-            }
+            const {error} = await store.dispatch(Actions.lookupInteractiveDialog(lookup));
+            expect(error.status_code).toBe(400);
+            expect(error.message).toBe('Dialog lookup failed');
         });
 
         it('lookupInteractiveDialog uses current state information', async () => {
@@ -979,12 +979,8 @@ describe('Actions.Integrations', () => {
                 post('/actions/dialogs/lookup', lookup).
                 replyWithError('Network error');
 
-            try {
-                await store.dispatch(Actions.lookupInteractiveDialog(lookup));
-                expect(false).toBe(true); // Should not reach here
-            } catch (error: any) {
-                expect(error.message).toContain('Network error');
-            }
+            const {error} = await store.dispatch(Actions.lookupInteractiveDialog(lookup));
+            expect(error.message).toContain('Network error');
         });
 
         it('lookupInteractiveDialog with complex submission data', async () => {
