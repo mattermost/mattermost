@@ -1738,6 +1738,14 @@
     "translation": "Failed to update server translations."
   },
   {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "Content flagging feature is disabled."
+  },
+  {
+    "id": "api.content_flagging.error.license",
+    "translation": "Your license does not support content flagging."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Sorry, we could not find the page."
   },
