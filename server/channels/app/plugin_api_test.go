@@ -992,7 +992,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
 		utils.CompileGo(t, pluginCode, backend)
 
-		err := os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(fmt.Sprintf(`{"id": "%s", "server": {"executable": "backend.exe"}}`, pluginID)), 0600)
+		err := os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), fmt.Appendf(nil, `{"id": "%s", "server": {"executable": "backend.exe"}}`, pluginID), 0600)
 		require.NoError(t, err)
 		manifest, activated, reterr := env.Activate(pluginID)
 
@@ -2047,7 +2047,7 @@ func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
 	resp := <-wsc.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk)
 
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		wsc.SendMessage("custom_action", map[string]any{"value": i})
 		var resp *model.WebSocketResponse
 		select {
@@ -2479,7 +2479,7 @@ func TestSendPushNotification(t *testing.T) {
 		session *model.Session
 	}
 	var userSessions []userSession
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		u := th.CreateUser()
 		sess, err := th.App.CreateSession(th.Context, &model.Session{
 			UserId:    u.Id,
@@ -2879,7 +2879,7 @@ func TestPluginServeHTTPCompatibility(t *testing.T) {
 	}
 	`
 
-	for _, goVersion := range strings.Fields(os.Getenv("GO_COMPATIBILITY_TEST_VERSIONS")) {
+	for goVersion := range strings.FieldsSeq(os.Getenv("GO_COMPATIBILITY_TEST_VERSIONS")) {
 		t.Run(goVersion, func(t *testing.T) {
 			tearDown, ids, errs := SetAppEnvironmentWithPluginsGoVersion(t, []string{pluginCode}, th.App, th.NewPluginAPI, goVersion)
 			defer tearDown()

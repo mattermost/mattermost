@@ -1323,15 +1323,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "チャンネルに{{.Users}}以上のユーザーがいるため@allは無効化されています。"
+    "translation": "{{.Users}}以上のユーザーがいるチャンネルでは@allは無効化されます。詳細についてはシステム管理者に問い合わせてください。"
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "チャンネルに{{.Users}}以上のユーザーがいるため@channelは無効化されています。"
+    "translation": "{{.Users}}以上のユーザーがいるチャンネルでは@channelは無効化されます。詳細についてはシステム管理者に問い合わせてください。"
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "チャンネルに{{.Users}}以上のユーザーがいるため@hereは無効化されています。"
+    "translation": "{{.Users}}以上のユーザーがいるチャンネルでは@hereが無効化されます。詳細についてはシステム管理者に問い合わせてください。"
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -5120,10 +5120,6 @@
   {
     "id": "app.plugin.get_public_key.get_file.app_error",
     "translation": "ストアから公開鍵を取得する際にエラーが発生しました。"
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "ファイルストアで管理されているプラグインを設定できませんでした。"
   },
   {
     "id": "app.plugin.delete_public_key.delete.app_error",
@@ -9667,7 +9663,7 @@
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "ユーザーを有効化できません。安全なユーザー数を超えています。ERROR_SAFETY_LIMITS_EXCEEDEDについて管理者に連絡してください。"
+    "translation": "ユーザーを有効化できません。安全なユーザー数を超えています: ERROR_SAFETY_LIMITS_EXCEEDED。"
   },
   {
     "id": "bleveengine.purge_list.not_implemented",
@@ -10636,5 +10632,317 @@
   {
     "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
     "translation": "同期されたカスタムプロフィール属性のフィールドの値を更新できません"
+  },
+  {
+    "id": "app.import.validate_attachment_import_data.invalid_path.error",
+    "translation": "添付インポートデータを検証できませんでした。不正なパス: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.attachment.error",
+    "translation": "ダイレクト投稿の添付データを検証できませんでした。"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.attachment.error",
+    "translation": "返信添付データを検証できませんでした。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.attachment.error",
+    "translation": "投稿添付データを検証できませんでした。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.invalid_image_path.error",
+    "translation": "ユーザープロフィール画像パスが不正です: \"{{.Path}}\""
+  },
+  {
+    "id": "ent.access_control.job_data_conversion.app_error",
+    "translation": "以前のジョブからデータを抽出できませんでした。"
+  },
+  {
+    "id": "api.license.request-trial.mysql.app_error",
+    "translation": "トライアルライセンスはMySQLデータベースをサポートしていません。トライアルの機能にアクセスするにはPostgreSQLを使用してください。"
+  },
+  {
+    "id": "api.license.add_license.mysql.app_error",
+    "translation": "このライセンスはMySQLをサポートしていません。"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "不正なチャンネルメンバーの更新: チャンネルメンバーは常にユーザースキームが必要です。"
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "不正なチームメンバーの更新: チームメンバーには常にユーザースキームが必要です。"
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
+    "translation": "インポート絵文字画像フィールドのパスが不正です: \"{{.Path}}\""
+  },
+  {
+    "id": "app.pap.init.app_error",
+    "translation": "アクセス制御サービスを初期化できませんでした。"
+  },
+  {
+    "id": "app.pap.is_ready.app_error",
+    "translation": "アクセス制御サービスの準備ができていません。"
+  },
+  {
+    "id": "app.pap.update_access_control_policy_active.app_error",
+    "translation": "アクセス制御ポリシーの有効化状況を変更できませんでした。"
+  },
+  {
+    "id": "app.pdp.access_evaluation.app_error",
+    "translation": "アクセス制御ポリシーを評価できませんでした。"
+  },
+  {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "{{.Setting}}の先頭または末尾に空白が検出されました。\"{{.Value}}\"が見つかりました。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "監査ログ設定の最大ファイルキューは0より大きい値でなくてはなりません。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "監査ログ設定の最大ファイルサイズは0より大きな値でなくてはなりません。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "監査ファイルロギングが有効な場合、ファイル名を指定しなければなりません。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "ファイル名はディレクトリであってはなりません。"
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "ファイルをアップロードできませんでした。アップロードチャンネルがリモートと共有されていません。"
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "アクセスコントロールサービスは利用できません。ABACが有効化されたチャンネルのユーザーはフィルタリングできません。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.thread_follower.error",
+    "translation": "投稿スレッドフォロワーのデータを検証できませんでした。"
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.empty.error",
+    "translation": "インポートフォロワーデータが空です。"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.thread_follower.error",
+    "translation": "ダイレクト投稿のスレッドフォロワーのデータを検証できませんでした。"
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.user_missing.error",
+    "translation": "必須のフォロワープロパティーがありません: user。"
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.reasons_not_set.app_error",
+    "translation": "フラグする理由を空にすることはできません。"
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_target",
+    "translation": "不正なフラグイベントターゲットが指定されました。"
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
+    "translation": "新しいフラグ付き投稿の通知は、レビュワーに対して無効に設定することはできません。"
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_event",
+    "translation": "不正なフラグイベントが指定されました。"
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "チャンネル取得のlimitが不正です。"
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "フィールド取得のlimitが不正です。"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "ユーザーはチャンネルに参加するために必要な属性を持っていません。"
+  },
+  {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "ポリシーが強制されたチャンネルは更新できません。"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "OnSamlLoginフックでエラーが発生しました。システム管理者に問い合わせてください。"
+  },
+  {
+    "id": "app.channel.get.app_error",
+    "translation": "チャネルを取得できませんでした。"
+  },
+  {
+    "id": "app.group.user_not_found",
+    "translation": "グループ更新エラー。ユーザー名 \"{{.Username}}\" のユーザーが見つかりません。"
+  },
+  {
+    "id": "app.pap.check_expression.app_error",
+    "translation": "式をチェックできませんでした。"
+  },
+  {
+    "id": "app.pap.create_access_control_policy.app_error",
+    "translation": "アクセス制御ポリシーを作成できませんでした。"
+  },
+  {
+    "id": "app.pap.get_access_control_auto_complete.app_error",
+    "translation": "アクセス制御の自動補完を取得できませんでした。"
+  },
+  {
+    "id": "app.pap.get_all_access_control_policies.app_error",
+    "translation": "アクセス制御ポリシーを取得できませんでした。"
+  },
+  {
+    "id": "app.pap.delete_access_control_policy.app_error",
+    "translation": "アクセス制御ポリシーを削除できませんでした。"
+  },
+  {
+    "id": "app.pap.delete_policy.app_error",
+    "translation": "アクセス制御ポリシーを削除できませんでした。"
+  },
+  {
+    "id": "app.pap.expression_to_visual_ast.app_error",
+    "translation": "式から視覚的なASTを生成することができませんでした。"
+  },
+  {
+    "id": "app.pap.save_policy.app_error",
+    "translation": "アクセス制御ポリシーを保存できませんでした。"
+  },
+  {
+    "id": "app.pap.missing_attribute.app_error",
+    "translation": "式に属性が足りません。"
+  },
+  {
+    "id": "app.pap.query_expression.app_error",
+    "translation": "式を問い合わせることができませんでした。"
+  },
+  {
+    "id": "app.pap.normalize_policy.app_error",
+    "translation": "ポリシーの式を正規化できませんでした。"
+  },
+  {
+    "id": "app.pap.search_access_control_policies.app_error",
+    "translation": "アクセス制御ポリシーを検索できませんでした。"
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
+    "translation": "チャンネルからアクセス制御ポリシーの割り当てを解除することができませんでした。"
+  },
+  {
+    "id": "model.access_policy.inherit.version.app_error",
+    "translation": "アクセス制御ポリシーを継承できませんでした。"
+  },
+  {
+    "id": "ent.access_control.sync_job.app_error",
+    "translation": "アクセス制御同期ジョブを実行できませんでした。"
+  },
+  {
+    "id": "app.cloud.preview_modal_bucket_url_not_configured",
+    "translation": "Bucket URLのプレビューは設定されていません"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "プレビューモーダルのデータを取得できませんでした"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_parse_error",
+    "translation": "プレビューモーダルのデータを解析できませんでした"
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
+    "translation": "チームの設定が\"有効\"の場合、チームレビュワーまたは追加のレビュワーを設定しなくてはなりません。"
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
+    "translation": "\"すべてのチームで同じレビュワー\"が有効な場合、共通のレビュワーまたは追加のレビュワーが追加されていなくてはなりません。"
+  },
+  {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "ユーザーを作成できません。サーバーが最大ライセンスユーザーを超えています。システム管理者に次のエラーについて連絡してください: ERROR_LICENSED_USERS_LIMIT_EXCEEDED。"
+  },
+  {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "確認オブジェクトを一括保存できませんでした"
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "存在しない投稿の確認は削除できません"
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "存在しない投稿の確認を保存できません"
+  },
+  {
+    "id": "app.pap.get_channel_access_control_attributes.app_error",
+    "translation": "チャンネルの属性を取得できませんでした。"
+  },
+  {
+    "id": "app.pap.get_channel_members_to_remove.app_error",
+    "translation": "チャンネルメンバーを削除できませんでした。"
+  },
+  {
+    "id": "app.pap.get_policy.app_error",
+    "translation": "アクセス制御ポリシーを取得できませんでした。"
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_channels.app_error",
+    "translation": "チャンネルにアクセス制御ポリシーを割り当てられませんでした。"
+  },
+  {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "ユーザーを有効化できません。サーバーが最大ライセンスユーザー数を超えています。ERROR_LICENSED_USERS_LIMIT_EXCEEDED。"
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "不正なchannel idです。"
+  },
+  {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "グループ同期可能なメンバーシップを作成できませんでした。"
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "不正なグループ同期可能なメンバーシップを削除できませんでした。"
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "不正なテストタイプ: {{.TestType}}"
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "リモートクラスターのインポートは許可されていません"
+  },
+  {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "LDAP接続テストに失敗しました。Server: {{.Server}}:{{.Port}}、接続セキュリティ: {{.ConnectionType}}、秘密鍵ファイル名: {{.PrivateKeyFilename}}、公開証明書ファイル名: {{.PublicCertFilename}}、バインドユーザー名: {{.BindUsername}}。エラー: {{.Error}}"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
+    "translation": "チャンネルバナーの色は有効な16新数カラーでなくてはなりません(例, #FF0000 または #F00)"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "監査ログ設定の最長ファイル保持日数は負の値であってはなりません。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "監査ログ設定の最大ファイルバックアップ数は負の値であってはなりません。"
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "ユーザー属性に基づくアクセス制限が設定されているため、このチャンネルにゲストユーザーは招待できません。"
+  },
+  {
+    "id": "app.pap.get_policy_attributes.app_error",
+    "translation": "ポリシーの属性を取得できませんでした。"
+  },
+  {
+    "id": "api.command_share.service_inactive",
+    "translation": "チャンネル共有サービスが有効ですが、アクティブではありません。"
   }
 ]

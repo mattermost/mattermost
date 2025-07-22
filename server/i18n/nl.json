@@ -1326,15 +1326,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all is uitgeschakeld in dit kanaal omdat dit kanaal meer dan {{.Users}} gebruikers bevat."
+    "translation": "@all-meldingen zijn uitgeschakeld in kanalen met meer dan {{.Users}} gebruikers. Neem contact op met je systeembeheerder voor meer informatie."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel is uitgeschakeld in dit kanaal omdat dit kanaal meer dan {{.Users}} gebruikers bevat."
+    "translation": "@kanaal-meldingen zijn uitgeschakeld in kanalen met meer dan {{.Users}} gebruikers. Neem contact op met je systeembeheerder voor meer informatie."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here is uitgeschakeld in dit kanaal omdat dit kanaal meer dan {{.Users}} gebruikers bevat."
+    "translation": "@here-meldingen zijn uitgeschakeld in kanalen met meer dan {{.Users}} gebruikers. Neem contact op met je systeembeheerder voor meer informatie."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -5149,10 +5149,6 @@
   {
     "id": "app.plugin.get_public_key.get_file.app_error",
     "translation": "Er is een fout opgetreden bij het ophalen van de publieke sleutel."
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Plugin kan niet worden ingesteld als beheerd door het bestandsarchief."
   },
   {
     "id": "app.plugin.delete_public_key.delete.app_error",
@@ -10910,5 +10906,65 @@
   {
     "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
     "translation": "Ongeldige update kanaallid: Een kanaallid heeft altijd een gebruikersschema."
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "Ongeldige update teamlid: Een teamlid heeft altijd een gebruikersschema."
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Bestand kon niet worden geüpload. Uploadkanaal wordt niet gedeeld met remote."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.thread_follower.error",
+    "translation": "Fout bij het valideren van volggegevens van het directe berichtdraadje."
+  },
+  {
+    "id": "app.import.validate_post_import_data.thread_follower.error",
+    "translation": "Fout bij het valideren van de volggegevens van het postdraadje."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.empty.error",
+    "translation": "Importeer volgergegevens leeg."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.user_missing.error",
+    "translation": "Vereiste volger eigenschap ontbreekt: user."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.reasons_not_set.app_error",
+    "translation": "Redenen voor markeren kunnen niet leeg zijn."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
+    "translation": "Teambeoordelaars of extra beoordelaars moeten worden ingesteld wanneer je \"Ingeschakeld\" voor een team instelt."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
+    "translation": "Gemeenschappelijke beoordelaars of extra beoordelaars moeten worden ingesteld als \"Dezelfde beoordelaars voor alle teams\" is ingeschakeld."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_event",
+    "translation": "Ongeldige markeringsgebeurtenis gespecificeerd."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_target",
+    "translation": "Ongeldig markering gebeurtenisdoel opgegeven."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
+    "translation": "Meldingen voor nieuwe gemarkeerde berichten kunnen niet worden uitgeschakeld voor beoordelaars."
+  },
+  {
+    "id": "app.cloud.preview_modal_bucket_url_not_configured",
+    "translation": "Voorbeeld bucket URL is niet geconfigureerd"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "Afhalen van modale voorbeeldgegevens mislukt"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_parse_error",
+    "translation": "Fout bij het parsen van preview modal-gegevens"
   }
 ]

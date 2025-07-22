@@ -28,7 +28,7 @@ func localCreateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("localCreateCommand", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalCreateCommand, model.AuditStatusFail)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")

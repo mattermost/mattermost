@@ -183,7 +183,7 @@ func (ts *TelemetryService) ensureTelemetryID() error {
 	id := model.NewId()
 	var err error
 
-	for i := 0; i < DBAccessAttempts; i++ {
+	for range DBAccessAttempts {
 		ts.log.Info("Ensuring the telemetry ID..")
 		systemID := &model.System{Name: model.SystemTelemetryId, Value: id}
 		systemID, err = ts.dbStore.System().InsertIfExists(systemID)
@@ -294,7 +294,7 @@ func isDefaultArray(setting, defaultValue []string) bool {
 	if len(setting) != len(defaultValue) {
 		return false
 	}
-	for i := 0; i < len(setting); i++ {
+	for i := range setting {
 		if setting[i] != defaultValue[i] {
 			return false
 		}
@@ -823,14 +823,13 @@ func (ts *TelemetryService) trackConfig() {
 	}
 
 	configs[TrackConfigCluster] = map[string]any{
-		"enable":                                *cfg.ClusterSettings.Enable,
-		"network_interface":                     isDefault(*cfg.ClusterSettings.NetworkInterface, ""),
-		"bind_address":                          isDefault(*cfg.ClusterSettings.BindAddress, ""),
-		"advertise_address":                     isDefault(*cfg.ClusterSettings.AdvertiseAddress, ""),
-		"use_ip_address":                        *cfg.ClusterSettings.UseIPAddress,
-		"enable_experimental_gossip_encryption": *cfg.ClusterSettings.EnableExperimentalGossipEncryption,
-		"enable_gossip_compression":             *cfg.ClusterSettings.EnableGossipCompression,
-		"read_only_config":                      *cfg.ClusterSettings.ReadOnlyConfig,
+		"enable":                    *cfg.ClusterSettings.Enable,
+		"network_interface":         isDefault(*cfg.ClusterSettings.NetworkInterface, ""),
+		"bind_address":              isDefault(*cfg.ClusterSettings.BindAddress, ""),
+		"advertise_address":         isDefault(*cfg.ClusterSettings.AdvertiseAddress, ""),
+		"use_ip_address":            *cfg.ClusterSettings.UseIPAddress,
+		"enable_gossip_compression": *cfg.ClusterSettings.EnableGossipCompression,
+		"read_only_config":          *cfg.ClusterSettings.ReadOnlyConfig,
 	}
 
 	configs[TrackConfigMetrics] = map[string]any{
