@@ -14,30 +14,6 @@ import EmojiMap from 'utils/emoji_map';
 import InteractiveDialogAdapter from './interactive_dialog_adapter';
 
 // Mock AppsFormContainer to avoid dynamic import complexity in tests
-const MockAppsFormContainer = jest.fn((props: any) => {
-    if (!props || !props.form) {
-        return <div data-testid='apps-form-container-loading'>{'Loading...'}</div>;
-    }
-
-    return (
-        <div data-testid='apps-form-container'>
-            <div data-testid='form-title'>{props.form?.title || ''}</div>
-            <div data-testid='form-header'>{props.form?.header || ''}</div>
-            <div data-testid='form-icon'>{props.form?.icon || ''}</div>
-            <div data-testid='form-fields-count'>{props.form?.fields?.length || 0}</div>
-            {props.form?.fields?.map((field: any) => (
-                <div
-                    key={field.name}
-                    data-testid={`field-${field.name}`}
-                >
-                    <span data-testid={`field-type-${field.name}`}>{field.type}</span>
-                    <span data-testid={`field-value-${field.name}`}>{JSON.stringify(field.value)}</span>
-                    <span data-testid={`field-required-${field.name}`}>{field.is_required ? 'required' : 'optional'}</span>
-                </div>
-            )) || []}
-        </div>
-    );
-});
 
 jest.mock('components/apps_form/apps_form_container', () => {
     return {
@@ -1194,6 +1170,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                     ]),
                 }),
             );
+        });
 
         test('should handle missing required values during conversion', async () => {
             const requiredElement: DialogElement = {
@@ -1214,6 +1191,9 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             const props = {
                 ...baseProps,
                 elements: [requiredElement],
+                conversionOptions: {
+                    enhanced: true,
+                },
                 actions: {
                     submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
                 },
@@ -1323,13 +1303,14 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             const {
                 doAppLookup,
                 doAppFetchForm,
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 postEphemeralCallResponseForContext,
             } = mockCall.actions;
 
-            await lookupHandler({
+            await doAppLookup({
                 values: {},
             });
-            await refreshHandler({
+            await doAppFetchForm({
                 values: {},
                 selected_field: 'test-field',
             });
@@ -1360,6 +1341,17 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             await waitFor(() => {
                 expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get all handlers
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const {
+                doAppLookup,
+                doAppFetchForm,
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                postEphemeralCallResponseForContext,
+            } = mockCall.actions;
+
             // Test lookup handler returns empty items
             const lookupResult = await doAppLookup();
             expect(lookupResult.data).toEqual({
@@ -1382,14 +1374,20 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             // Should log warnings about unsupported features
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 '[InteractiveDialogAdapter]',
-                'Unexpected lookup call in Interactive Dialog adapter - this should not happen',
-                '',
+                'Lookup calls are not supported in Interactive Dialogs',
+                expect.objectContaining({
+                    feature: 'dynamic lookup',
+                    suggestion: 'Consider migrating to full Apps Framework',
+                }),
             );
 
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 '[InteractiveDialogAdapter]',
-                'Unexpected refresh call in Interactive Dialog adapter - this should not happen',
-                '',
+                'Field refresh requested but no sourceUrl provided',
+                expect.objectContaining({
+                    fieldName: undefined,
+                    suggestion: 'Add sourceUrl to dialog definition',
+                }),
             );
         });
     });
