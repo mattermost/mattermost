@@ -1329,15 +1329,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all zostało zablokowane ponieważ kanał ma więcej niż {{.Users}} użytkowników."
+    "translation": "Powiadomienia @all są wyłączone w Kanałach z więcej niż {{.Users}} użytkownikami. Skontaktuj się z administratorem systemu, aby uzyskać więcej informacji."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel zostało zablokowane ponieważ kanał ma więcej niż {{.Users}} użytkowników."
+    "translation": "Powiadomienia @channel są wyłączone w Kanałach z więcej niż {{.Users}} użytkownikami. Skontaktuj się z administratorem systemu, aby uzyskać więcej informacji."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here zostało zablokowane ponieważ kanał ma więcej niż {{.Users}} użytkowników."
+    "translation": "Powiadomienia @here są wyłączone w Kanałach z więcej niż {{.Users}} użytkownikami. Skontaktuj się z administratorem systemu, aby uzyskać więcej informacji."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -10726,5 +10726,17 @@
   {
     "id": "app.group.delete_invalid_syncable_memberships.error",
     "translation": "Nie można usunąć nieprawidłowych członkostw synchronizowanych grup."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Nieprawidłowa aktualizacja członka kanału: Członek kanału zawsze ma schemat użytkownika."
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Nieprawidłowy typ testu: {{.TestType}}"
+  },
+  {
+    "id": "api.command_share.service_inactive",
+    "translation": "Usługa Udostępnij Kanały jest włączona, ale nieaktywna."
   }
 ]
