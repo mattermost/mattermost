@@ -3470,6 +3470,7 @@ func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 			for _, definedSetting := range manifest.SettingsSchema.Settings {
 				if strings.EqualFold(definedSetting.Key, key) && !definedSetting.Secret {
 					notASecret = true
+					break
 				}
 			}
 			if !notASecret {
