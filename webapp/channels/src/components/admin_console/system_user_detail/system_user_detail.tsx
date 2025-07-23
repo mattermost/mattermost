@@ -367,7 +367,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             isLoading={this.state.isLoading}
                             body={
                                 <>
-                                    <span>{this.state?.user?.position ?? ''}</span>
+                                    <span>{this.state.user?.position ?? ''}</span>
                                     <label>
                                         <FormattedMessage
                                             id='admin.userManagement.userDetail.email'
@@ -388,7 +388,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                             defaultMessage='Username'
                                         />
                                         <AtIcon/>
-                                        <span>{this.state?.user?.username}</span>
+                                        <span>{this.state.user?.username}</span>
                                     </label>
                                     <label>
                                         <FormattedMessage
@@ -398,6 +398,16 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                         <SheidOutlineIcon/>
                                         <span>{getUserAuthenticationTextField(this.props.intl, this.props.mfaEnabled, this.state.user)}</span>
                                     </label>
+                                    {Boolean(this.state.user?.auth_data && this.state.user?.auth_service) && (
+                                        <label>
+                                            <FormattedMessage
+                                                id='admin.userManagement.userDetail.authData'
+                                                defaultMessage='Auth Data'
+                                            />
+                                            <SheidOutlineIcon/>
+                                            <span>{this.state.user?.auth_data}</span>
+                                        </label>
+                                    )}
                                 </>
                             }
                             footer={

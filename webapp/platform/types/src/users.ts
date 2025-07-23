@@ -39,6 +39,7 @@ export type UserProfile = {
     delete_at: number;
     username: string;
     password: string;
+    auth_data?: string;
     auth_service: string;
     email: string;
     nickname: string;
