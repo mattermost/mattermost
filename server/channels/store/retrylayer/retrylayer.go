@@ -1815,11 +1815,11 @@ func (s *RetryLayerChannelStore) GetChannelsWithTeamDataByIds(channelIds []strin
 
 }
 
-func (s *RetryLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Context, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
+func (s *RetryLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(rctx request.CTX, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, resultVar2, err := s.ChannelStore.GetChannelsWithUnreadsAndWithMentions(ctx, channelIDs, userID, userNotifyProps)
+		result, resultVar1, resultVar2, err := s.ChannelStore.GetChannelsWithUnreadsAndWithMentions(rctx, channelIDs, userID, userNotifyProps)
 		if err == nil {
 			return result, resultVar1, resultVar2, nil
 		}
@@ -1962,11 +1962,11 @@ func (s *RetryLayerChannelStore) GetMany(ids []string, allowFromCache bool) (mod
 
 }
 
-func (s *RetryLayerChannelStore) GetMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
+func (s *RetryLayerChannelStore) GetMember(rctx request.CTX, channelID string, userID string) (*model.ChannelMember, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetMember(ctx, channelID, userID)
+		result, err := s.ChannelStore.GetMember(rctx, channelID, userID)
 		if err == nil {
 			return result, nil
 		}
@@ -2010,11 +2010,11 @@ func (s *RetryLayerChannelStore) GetMemberCountFromCache(channelID string) int64
 
 }
 
-func (s *RetryLayerChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error) {
+func (s *RetryLayerChannelStore) GetMemberCountsByGroup(rctx request.CTX, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetMemberCountsByGroup(ctx, channelID, includeTimezones)
+		result, err := s.ChannelStore.GetMemberCountsByGroup(rctx, channelID, includeTimezones)
 		if err == nil {
 			return result, nil
 		}
@@ -2052,11 +2052,11 @@ func (s *RetryLayerChannelStore) GetMemberForPost(postID string, userID string, 
 
 }
 
-func (s *RetryLayerChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error) {
+func (s *RetryLayerChannelStore) GetMemberLastViewedAt(rctx request.CTX, channelID string, userID string) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetMemberLastViewedAt(ctx, channelID, userID)
+		result, err := s.ChannelStore.GetMemberLastViewedAt(rctx, channelID, userID)
 		if err == nil {
 			return result, nil
 		}
