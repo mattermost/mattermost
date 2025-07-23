@@ -1270,7 +1270,7 @@ func (a *App) UpdateChannelMemberRoles(c request.CTX, channelID string, userID s
 	member.SchemeUser = false
 	member.SchemeAdmin = false
 
-	for _, roleName := range strings.Fields(newRoles) {
+	for roleName := range strings.FieldsSeq(newRoles) {
 		var role *model.Role
 		role, err = a.GetRoleByName(context.Background(), roleName)
 		if err != nil {
@@ -2307,7 +2307,6 @@ func (a *App) GetChannelMembersForUserWithPagination(c request.CTX, userID strin
 
 	members := make([]*model.ChannelMember, 0, len(m))
 	for _, member := range m {
-		member := member
 		members = append(members, &member.ChannelMember)
 	}
 	return members, nil
@@ -3744,7 +3743,7 @@ func (a *App) GetGroupMessageMembersCommonTeams(c request.CTX, channelID string)
 	})
 
 	userIDs := make([]string, len(users))
-	for i := 0; i < len(users); i++ {
+	for i := range users {
 		userIDs[i] = users[i].Id
 	}
 
