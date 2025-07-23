@@ -171,6 +171,22 @@ func (settings *FileBackendSettings) CheckMandatoryS3Fields() error {
 	return nil
 }
 
+func (settings *FileBackendSettings) CheckMandatoryAzureFields() error {
+	if settings.AzureStorageAccount == "" {
+		return errors.New("missing azure storage account settings")
+	}
+
+	if settings.AzureContainer == "" {
+		return errors.New("missing azure container settings")
+	}
+
+	if settings.AzureAccessSecret == "" {
+		return errors.New("missing azure access secret settings")
+	}
+
+	return nil
+}
+
 // NewFileBackend creates a new file backend
 func NewFileBackend(settings FileBackendSettings) (FileBackend, error) {
 	return newFileBackend(settings, true)

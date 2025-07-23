@@ -62,10 +62,16 @@ func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppErr
 		fileBackendSettings = filestore.NewFileBackendSettingsFromConfig(settings, false, false)
 	}
 
-	if fileBackendSettings.DriverName == "s3" {
+	switch fileBackendSettings.DriverName {
+	case model.ImageDriverS3:
 		err := fileBackendSettings.CheckMandatoryS3Fields()
 		if err != nil {
 			return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+	case model.ImageDriverAzure:
+		err := fileBackendSettings.CheckMandatoryAzureFields()
+		if err != nil {
+			return model.NewAppError("CheckMandatoryAzureFields", "api.admin.test_azure.missing_azure_settings", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
 	return nil
