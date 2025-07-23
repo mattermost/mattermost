@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ContentFlaggingEvent, NotificationTarget} from './content_flagging';
+
 export type ClientConfig = {
     AboutLink: string;
     AllowBannerDismissal: string;
@@ -128,6 +130,7 @@ export type ClientConfig = {
     FeatureFlagCustomProfileAttributes: string;
     FeatureFlagAttributeBasedAccessControl: string;
     FeatureFlagWebSocketEventScope: string;
+    FeatureFlagContentFlagging: string;
     ForgotPasswordLink: string;
     GiphySdkKey: string;
     GoogleDeveloperKey: string;
@@ -223,6 +226,7 @@ export type ClientConfig = {
     YoutubeReferrerPolicy: 'true' | 'false';
     ScheduledPosts: string;
     DeleteAccountLink: string;
+    ContentFlaggingEnabled: 'true' | 'false';
 };
 
 export type License = {
@@ -529,7 +533,10 @@ export type ConnectedWorkspacesSettings = {
     EnableSharedChannels: boolean;
     EnableRemoteClusterService: boolean;
     DisableSharedChannelsStatusSync: boolean;
+    SyncUsersOnConnectionOpen: boolean;
+    GlobalUserSyncBatchSize: number;
     MaxPostsPerSync: number;
+    MemberSyncBatchSize: number;
 }
 
 export type FileSettings = {
@@ -715,6 +722,7 @@ export type LdapSettings = {
     LoginIdAttribute: string;
     PictureAttribute: string;
     SyncIntervalMinutes: number;
+    ReAddRemovedMembers: boolean;
     SkipCertificateVerification: boolean;
     PublicCertificateFile: string;
     PrivateKeyFile: string;
@@ -800,7 +808,7 @@ export type ClusterSettings = {
     AdvertiseAddress: string;
     UseIPAddress: boolean;
     EnableGossipCompression: boolean;
-    EnableExperimentalGossipEncryption: boolean;
+    EnableGossipEncryption: boolean;
     ReadOnlyConfig: boolean;
     GossipPort: number;
 };
@@ -894,6 +902,7 @@ export type DataRetentionSettings = {
     BoardsRetentionDays: number;
     TimeBetweenBatchesMilliseconds: number;
     RetentionIdsBatchSize: number;
+    PreservePinnedPosts: boolean;
 };
 
 export type MessageExportSettings = {
@@ -983,7 +992,38 @@ export type ExportSettings = {
 export type AccessControlSettings = {
     EnableAttributeBasedAccessControl: boolean;
     EnableChannelScopeAccessControl: boolean;
+    EnableUserManagedAttributes: boolean;
 };
+
+export type ContentFlaggingNotificationSettings = {
+    ReviewerSettings: ContentFlaggingReviewerSetting;
+    EventTargetMapping: Record<ContentFlaggingEvent, NotificationTarget[]>;
+    AdditionalSettings: ContentFlaggingAdditionalSettings;
+}
+
+export type TeamReviewerSetting = {
+    Enabled: boolean;
+    ReviewerIds: string[];
+}
+
+export type ContentFlaggingReviewerSetting = {
+    CommonReviewers: boolean;
+    CommonReviewerIds: string[];
+    TeamReviewersSetting: Record<string, TeamReviewerSetting>;
+    SystemAdminsAsReviewers: boolean;
+    TeamAdminsAsReviewers: boolean;
+}
+
+export type ContentFlaggingAdditionalSettings = {
+    Reasons: string[];
+    ReporterCommentRequired: boolean;
+    ReviewerCommentRequired: boolean;
+    HideFlaggedContent: boolean;
+}
+
+export type ContentFlaggingSettings = {
+    NotificationSettings: ContentFlaggingNotificationSettings;
+}
 
 export type AdminConfig = {
     ServiceSettings: ServiceSettings;
@@ -1031,6 +1071,7 @@ export type AdminConfig = {
     WranglerSettings: WranglerSettings;
     ConnectedWorkspacesSettings: ConnectedWorkspacesSettings;
     AccessControlSettings: AccessControlSettings;
+    ContentFlaggingSettings: ContentFlaggingSettings;
 };
 
 export type ReplicaLagSetting = {
