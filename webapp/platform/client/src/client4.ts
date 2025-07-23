@@ -39,6 +39,7 @@ import type {
     ValidBusinessEmail,
     NewsletterRequestBody,
     Installation,
+    PreviewModalContentData,
 } from '@mattermost/types/cloud';
 import type {Compliance} from '@mattermost/types/compliance';
 import type {
@@ -536,6 +537,10 @@ export default class Client4 {
 
     getClientMetricsRoute() {
         return `${this.getBaseRoute()}/client_perf`;
+    }
+
+    getContentFlaggingRoute() {
+        return `${this.getBaseRoute()}/content_flagging`;
     }
 
     getCSRFFromCookie() {
@@ -4139,6 +4144,13 @@ export default class Client4 {
         );
     };
 
+    getCloudPreviewModalData = () => {
+        return this.doFetch<PreviewModalContentData[]>(
+            `${this.getCloudRoute()}/preview/modal_data`,
+            {method: 'get'},
+        );
+    };
+
     getInvoices = () => {
         return this.doFetch<Invoice[]>(
             `${this.getCloudRoute()}/subscription/invoices`,
@@ -4576,6 +4588,13 @@ export default class Client4 {
     getChannelAccessControlAttributes = (channelId: string) => {
         return this.doFetch<AccessControlAttributes>(
             `${this.getChannelRoute(channelId)}/access_control/attributes`,
+            {method: 'get'},
+        );
+    };
+
+    getTeamContentFlaggingStatus = (teamId: string) => {
+        return this.doFetch<{enabled: boolean}>(
+            `${this.getContentFlaggingRoute()}/team/${teamId}/status`,
             {method: 'get'},
         );
     };

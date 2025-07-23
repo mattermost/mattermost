@@ -88,7 +88,7 @@ func TestElasticsearchAggregation(t *testing.T) {
 		ChannelId: "channel",
 		Message:   "hi",
 	}
-	for i := 0; i < indexDeletionBatchSize+1; i++ {
+	for i := range indexDeletionBatchSize + 1 {
 		indexPost(t, th, esImpl.(*ElasticsearchInterfaceImpl),
 			post,
 			time.Now().Add(-time.Duration(4+i)*24*time.Hour))

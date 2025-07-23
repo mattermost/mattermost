@@ -13,7 +13,7 @@ import (
 func TestNewTestId(t *testing.T) {
 	rg := regexp.MustCompile(`(\S\d){13}`)
 
-	for i := 0; i < 1000; i++ {
+	for range 1000 {
 		id := NewTestID()
 		require.LessOrEqual(t, len(id), 26, "test ids shouldn't be longer than 26 chars")
 		require.Regexp(t, rg, id, "test ids should have pattern e.g a1b2c3...")
