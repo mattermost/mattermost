@@ -4455,49 +4455,6 @@ func TestLogin(t *testing.T) {
 	})
 }
 
-func TestLoginWithLag(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	_, err := th.Client.Logout(context.Background())
-	require.NoError(t, err)
-
-	t.Run("with replication lag, caches cleared", func(t *testing.T) {
-		if !replicaFlag {
-			t.Skipf("requires test flag: -mysql-replica")
-		}
-
-		if *th.App.Config().SqlSettings.DriverName != model.DatabaseDriverMysql {
-			t.Skipf("requires %q database driver", model.DatabaseDriverMysql)
-		}
-
-		mainHelper.SQLStore.UpdateLicense(model.NewTestLicense("ldap"))
-		mainHelper.ToggleReplicasOff()
-
-		appErr := th.App.RevokeAllSessions(th.Context, th.BasicUser.Id)
-		require.Nil(t, appErr)
-
-		mainHelper.ToggleReplicasOn()
-		defer mainHelper.ToggleReplicasOff()
-
-		cmdErr := mainHelper.SetReplicationLagForTesting(5)
-		require.NoError(t, cmdErr)
-		defer func() {
-			err = mainHelper.SetReplicationLagForTesting(0)
-			require.NoError(t, err)
-		}()
-
-		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
-		require.NoError(t, err)
-
-		appErr = th.App.Srv().InvalidateAllCaches()
-		require.Nil(t, appErr)
-
-		session, appErr := th.App.GetSession(th.Client.AuthToken)
-		require.Nil(t, appErr)
-		require.NotNil(t, session)
-	})
-}
-
 func TestLoginCookies(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should return cookies with X-Requested-With header", func(t *testing.T) {

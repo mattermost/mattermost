@@ -312,6 +312,10 @@ func (c *Client4) postsRoute() string {
 	return "/posts"
 }
 
+func (c *Client4) contentFlaggingRoute() string {
+	return "/content_flagging"
+}
+
 func (c *Client4) postsEphemeralRoute() string {
 	return "/posts/ephemeral"
 }
@@ -3587,6 +3591,26 @@ func (c *Client4) DeleteScheduledPost(ctx context.Context, scheduledPostId strin
 	defer closeBody(r)
 
 	return DecodeJSONFromResponse[*ScheduledPost](r)
+}
+
+func (c *Client4) GetFlaggingConfiguration(ctx context.Context) (*ContentFlaggingReportingConfig, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/flag/config", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return DecodeJSONFromResponse[*ContentFlaggingReportingConfig](r)
+}
+
+func (c *Client4) GetTeamPostFlaggingFeatureStatus(ctx context.Context, teamId string) (map[string]bool, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/team/"+teamId+"/status", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return DecodeJSONFromResponse[map[string]bool](r)
 }
 
 // SearchFiles returns any posts with matching terms string.

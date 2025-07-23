@@ -1892,10 +1892,6 @@
     "translation": "Unable to get plugin statuses from the cluster."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Unable to set plugin as managed by the file store."
-  },
-  {
     "id": "app.plugin.filesystem.app_error",
     "translation": "Encountered filesystem error."
   },

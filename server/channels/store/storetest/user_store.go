@@ -6451,11 +6451,6 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	})
 
 	t.Run("should return accurate post stats for various date ranges", func(t *testing.T) {
-		// These stats are disabled for MySQL
-		if s.DriverName() == model.DatabaseDriverMysql {
-			return
-		}
-
 		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
 			ReportingBaseOptions: model.ReportingBaseOptions{
 				SortColumn: "Username",
