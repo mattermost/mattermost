@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Channel, ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/channels';
+import type {AccessControlSettings} from '@mattermost/types/config';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {filterChannelsMatchingTerm} from 'mattermost-redux/utils/channel_utils';
@@ -9,6 +10,10 @@ import {filterChannelsMatchingTerm} from 'mattermost-redux/utils/channel_utils';
 import {filterChannelList} from './channels';
 
 import {createSelector} from '../create_selector';
+
+export function getAccessControlSettings(state: GlobalState): AccessControlSettings {
+    return state.entities.admin.config.AccessControlSettings as AccessControlSettings;
+}
 
 export function getAccessControlPolicy(state: GlobalState, id: string) {
     return state.entities.admin.accessControlPolicies[id];
