@@ -132,6 +132,8 @@ type API interface {
 
 	// GetUsers a list of users based on search options.
 	//
+	// Not all fields in UserGetOptions are supported by this API.
+	//
 	// @tag User
 	// Minimum server version: 5.10
 	GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError)
