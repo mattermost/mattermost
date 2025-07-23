@@ -7,7 +7,6 @@ import (
 	"errors"
 	"net/http"
 	"path"
-	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -307,33 +306,9 @@ func (a *App) MFARequired(rctx request.CTX) *model.AppError {
 		return nil
 	}
 
-	// Try to get MFA status from session cache first
-	var mfaActive bool
-	var hasCachedMfaStatus bool
-	if cachedMfaStatus, ok := session.Props[model.SessionPropMfaActive]; ok {
-		if parsedMfaStatus, parseErr := strconv.ParseBool(cachedMfaStatus); parseErr == nil {
-			mfaActive = parsedMfaStatus
-			hasCachedMfaStatus = true
-		}
-	}
-
-	// Fallback to database lookup if cache miss or parse error
-	var user *model.User
-	var err *model.AppError
-	if !hasCachedMfaStatus {
-		user, err = a.GetUser(session.UserId)
-		if err != nil {
-			return model.NewAppError("MfaRequired", "api.context.get_user.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
-		}
-		mfaActive = user.MfaActive
-	}
-
-	// For exemption checks, we need the full user object if we don't have it yet
-	if user == nil {
-		user, err = a.GetUser(session.UserId)
-		if err != nil {
-			return model.NewAppError("MfaRequired", "api.context.get_user.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
-		}
+	user, err := a.GetUser(session.UserId)
+	if err != nil {
+		return model.NewAppError("MfaRequired", "api.context.get_user.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
 	}
 
 	if user.IsGuest() && !*a.Config().GuestAccountsSettings.EnforceMultifactorAuthentication {
@@ -357,7 +332,7 @@ func (a *App) MFARequired(rctx request.CTX) *model.AppError {
 		return nil
 	}
 
-	if !mfaActive {
+	if !user.MfaActive {
 		return model.NewAppError("MfaRequired", "api.context.mfa_required.app_error", nil, "", http.StatusForbidden)
 	}
 
