@@ -214,7 +214,7 @@ func (api *PluginAPI) CreateTeamMembersGracefully(teamID string, userIDs []strin
 }
 
 func (api *PluginAPI) DeleteTeamMember(teamID, userID, requestorId string) *model.AppError {
-	return api.app.RemoveUserFromTeam(api.ctx, teamID, userID, requestorId)
+	return model.NewAppError("DeleteTeamMember", "app.group.license_error", nil, "", http.StatusForbidden)
 }
 
 func (api *PluginAPI) GetTeamMembers(teamID string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
