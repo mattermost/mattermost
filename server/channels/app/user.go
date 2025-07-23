@@ -807,6 +807,7 @@ func (a *App) ActivateMfa(userID, token string) *model.AppError {
 
 	// Make sure old MFA status is not cached locally or in cluster nodes.
 	a.InvalidateCacheForUser(userID)
+	a.ClearSessionCacheForUser(userID)
 
 	return nil
 }
@@ -823,6 +824,7 @@ func (a *App) DeactivateMfa(userID string) *model.AppError {
 
 	// Make sure old MFA status is not cached locally or in cluster nodes.
 	a.InvalidateCacheForUser(userID)
+	a.ClearSessionCacheForUser(userID)
 
 	return nil
 }
@@ -1354,6 +1356,11 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 	}
 
 	newUser := userUpdate.New
+
+	// If MFA status has changed, clear the session cache for the user
+	if userUpdate.Old.MfaActive != newUser.MfaActive {
+		a.ClearSessionCacheForUser(user.Id)
+	}
 
 	if (newUser.Username != userUpdate.Old.Username) && (newUser.LastPictureUpdate <= 0) {
 		// When a username is updated and the profile is still using a default profile picture, generate a new one based on their username

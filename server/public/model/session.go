@@ -33,6 +33,7 @@ const (
 	SessionTypeCloudKey                   = "CloudKey"
 	SessionTypeRemoteclusterToken         = "RemoteClusterToken"
 	SessionPropIsGuest                    = "is_guest"
+	SessionPropMfaActive                  = "mfa_active"
 	SessionActivityTimeout                = 1000 * 60 * 5  // 5 minutes
 	SessionUserAccessTokenExpiryHours     = 100 * 365 * 24 // 100 years
 )

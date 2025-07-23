@@ -172,6 +172,7 @@ func (a *App) DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, use
 		model.UserAuthServiceIsMobile: strconv.FormatBool(isMobile),
 		model.UserAuthServiceIsSaml:   strconv.FormatBool(isSaml),
 		model.UserAuthServiceIsOAuth:  strconv.FormatBool(isOAuthUser),
+		model.SessionPropMfaActive:    strconv.FormatBool(user.MfaActive),
 	}}
 	session.GenerateCSRF()
 

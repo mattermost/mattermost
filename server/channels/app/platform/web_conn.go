@@ -808,7 +808,7 @@ func (wc *WebConn) IsFullyAuthenticated() bool {
 	session := wc.GetSession()
 	c := request.EmptyContext(wc.Platform.logger).WithSession(session)
 
-	// Check if MFA is required and if user has completed MFA
+	// Check if MFA is required and user has NOT completed MFA
 	if appErr := wc.Suite.MFARequired(c); appErr != nil {
 		return false
 	}
