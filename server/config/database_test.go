@@ -4,7 +4,6 @@
 package config
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -20,9 +19,6 @@ import (
 )
 
 func getDsn(driver string, source string) string {
-	if driver == model.DatabaseDriverMysql {
-		return driver + "://" + source
-	}
 	return source
 }
 
@@ -560,26 +556,6 @@ func TestDatabaseStoreSet(t *testing.T) {
 		assert.Equal(t, "", *ds.Get().ServiceSettings.SiteURL)
 	})
 
-	t.Run("persist failed: too long", func(t *testing.T) {
-		if *mainHelper.Settings.DriverName == "postgres" {
-			t.Skip("No limit for postgres")
-		}
-		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
-		defer tearDown()
-
-		ds, err := newTestDatabaseStore(nil)
-		require.NoError(t, err)
-		defer ds.Close()
-
-		longSiteURL := fmt.Sprintf("http://%s", strings.Repeat("a", MaxWriteLength))
-		newCfg := emptyConfig.Clone()
-		newCfg.ServiceSettings.SiteURL = model.NewPointer(longSiteURL)
-
-		_, _, err = ds.Set(newCfg)
-		require.Error(t, err)
-		assert.True(t, strings.HasPrefix(err.Error(), "failed to persist: marshalled configuration failed length check: value is too long"), "unexpected error: "+err.Error())
-	})
-
 	t.Run("listeners notified", func(t *testing.T) {
 		activeID, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
@@ -947,28 +923,6 @@ func TestDatabaseSetFile(t *testing.T) {
 		data, err := ds.GetFile("existing")
 		require.NoError(t, err)
 		require.Equal(t, []byte("overwritten file"), data)
-	})
-
-	t.Run("max length", func(t *testing.T) {
-		if *mainHelper.Settings.DriverName == "postgres" {
-			t.Skip("No limit for postgres")
-		}
-		longFile := bytes.Repeat([]byte("a"), MaxWriteLength)
-
-		err := ds.SetFile("toolong", longFile)
-		require.NoError(t, err)
-	})
-
-	t.Run("too long", func(t *testing.T) {
-		if *mainHelper.Settings.DriverName == "postgres" {
-			t.Skip("No limit for postgres")
-		}
-		longFile := bytes.Repeat([]byte("a"), MaxWriteLength+1)
-
-		err := ds.SetFile("toolong", longFile)
-		if assert.Error(t, err) {
-			assert.True(t, strings.HasPrefix(err.Error(), "file data failed length check: value is too long"))
-		}
 	})
 }
 
