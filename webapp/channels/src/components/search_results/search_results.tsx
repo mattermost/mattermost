@@ -326,7 +326,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         contentItems = sortedResults.map((item: string|Post|FileSearchResultItemType, index: number) => {
             if (searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE && !props.isChannelFiles) {
                 if (typeof item === 'string' && isDateLine(item)) {
-                    const date = getDateForDateLine(item as string);
+                    const date = getDateForDateLine(item);
                     return (
                         <DateSeparator
                             key={date}
