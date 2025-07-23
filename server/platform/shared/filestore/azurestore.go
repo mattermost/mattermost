@@ -47,13 +47,13 @@ func (b *AzureFileBackend) Reader(path string) (ReadCloseSeeker, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 
-	// Usamos DownloadStream en el cliente principal
+	// Use DownloadStream on the main client
 	download, err := b.containerClient.NewBlobClient(path).DownloadStream(ctx, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to read file %s", path)
 	}
 
-	// Wrap the body in a seekable reader - Body ya es un ReadCloser, no una función
+	// Wrap the body in a seekable reader - Body is already a ReadCloser, not a function
 	data, err := io.ReadAll(download.Body)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read response body")
@@ -84,7 +84,7 @@ func (b *AzureFileBackend) FileExists(path string) (bool, error) {
 	blobClient := b.containerClient.NewBlockBlobClient(path)
 	_, err := blobClient.GetProperties(ctx, nil)
 	if err != nil {
-		// La estructura de errores cambió en la nueva versión del SDK
+		// The error structure changed in the new version of the SDK
 		if strings.Contains(err.Error(), "BlobNotFound") {
 			return false, nil
 		}
@@ -160,7 +160,7 @@ func (b *AzureFileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 		return 0, errors.Wrap(err, "failed to read input")
 	}
 
-	// Usar UploadBuffer en lugar de Upload ya que acepta []byte directamente
+	// Use UploadBuffer instead of Upload since it accepts []byte directly
 	_, err = blobClient.UploadBuffer(ctx, data, &blockblob.UploadBufferOptions{})
 	if err != nil {
 		return 0, errors.Wrapf(err, "unable to write file %s", path)
@@ -169,7 +169,7 @@ func (b *AzureFileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 	return int64(len(data)), nil
 }
 
-// noCopyReader es un wrapper sobre bytes.Reader que también implementa Close()
+// noCopyReader is a wrapper around bytes.Reader that also implements Close()
 type noCopyReader struct {
 	*bytes.Reader
 }
@@ -193,10 +193,10 @@ func (b *AzureFileBackend) AppendFile(fr io.Reader, path string) (int64, error) 
 		return 0, errors.Wrap(err, "failed to read input")
 	}
 
-	// La nueva API no tiene un AppendBlobClient específico, necesitamos usar ContainerClient para crear un cliente específico
+	// The new API doesn't have a specific AppendBlobClient, we need to use ContainerClient to create a specific client
 	blobClient := b.containerClient.NewBlockBlobClient(path)
 
-	// Primera, verificamos si el blob existe
+	// First, we check if the blob exists
 	exists, err := b.FileExists(strings.TrimPrefix(path, b.pathPrefix))
 	if err != nil {
 		return 0, errors.Wrapf(err, "unable to check if file %s exists", path)
@@ -204,29 +204,29 @@ func (b *AzureFileBackend) AppendFile(fr io.Reader, path string) (int64, error) 
 
 	var offset int64
 	if !exists {
-		// Si no existe, creamos un nuevo blob
+		// If it doesn't exist, we create a new blob
 		_, err = blobClient.UploadBuffer(ctx, data, nil)
 		if err != nil {
 			return 0, errors.Wrapf(err, "unable to create new file %s", path)
 		}
 		offset = 0
 	} else {
-		// Si existe, obtenemos el tamaño actual y luego agregamos datos
+		// If it exists, we get the current size and then append data
 		size, err := b.FileSize(strings.TrimPrefix(path, b.pathPrefix))
 		if err != nil {
 			return 0, errors.Wrapf(err, "unable to get size of file %s", path)
 		}
 
-		// Descargamos el contenido existente
+		// Download the existing content
 		existingContent, err := b.ReadFile(strings.TrimPrefix(path, b.pathPrefix))
 		if err != nil {
 			return 0, errors.Wrapf(err, "unable to read existing file %s", path)
 		}
 
-		// Concatenamos el contenido existente con los nuevos datos
+		// Concatenate the existing content with the new data
 		newContent := append(existingContent, data...)
 
-		// Subimos el contenido combinado
+		// Upload the combined content
 		_, err = blobClient.UploadBuffer(ctx, newContent, nil)
 		if err != nil {
 			return 0, errors.Wrapf(err, "unable to append to file %s", path)
@@ -262,7 +262,7 @@ func (b *AzureFileBackend) ListDirectory(path string) ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 
-	// Usar el nuevo paginador para listar blobs jerárquicamente
+	// Use the new paginator to list blobs hierarchically
 	pager := b.containerClient.NewListBlobsHierarchyPager("/", &container.ListBlobsHierarchyOptions{
 		Prefix: &path,
 	})
@@ -300,7 +300,7 @@ func (b *AzureFileBackend) ListDirectoryRecursively(path string) ([]string, erro
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 
-	// Usar el nuevo paginador para listar blobs de forma plana (sin jerarquía)
+	// Use the new paginator to list blobs flat (without hierarchy)
 	pager := b.containerClient.NewListBlobsFlatPager(&container.ListBlobsFlatOptions{
 		Prefix: &path,
 	})
@@ -348,7 +348,7 @@ func (b *AzureFileBackend) GeneratePublicLink(path string) (string, time.Duratio
 		Read: true,
 	}
 
-	startTime := time.Now().UTC().Add(-1 * time.Minute) // Comenzar 1 minuto antes para evitar problemas de reloj
+	startTime := time.Now().UTC().Add(-1 * time.Minute) // Start 1 minute earlier to avoid clock issues
 	expiryTime := time.Now().UTC().Add(b.presignExpires)
 
 	blobSASBuilder := sas.BlobSignatureValues{
@@ -506,13 +506,13 @@ func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error
 
 	serviceURL := fmt.Sprintf("https://%s.blob.core.windows.net", settings.AzureStorageAccount)
 
-	// Crear el cliente del servicio primero
+	// Create the service client first
 	serviceClient, err := azblob.NewClientWithSharedKeyCredential(serviceURL, credential, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	// Obtener el cliente del contenedor
+	// Get the container client
 	containerClient := serviceClient.ServiceClient().NewContainerClient(settings.AzureContainer)
 
 	backend := &AzureFileBackend{
