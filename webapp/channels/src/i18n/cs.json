@@ -1590,6 +1590,7 @@
   "admin.ldap.userFilterEx": "Např.: \"(objectClass=user)\"",
   "admin.ldap.userFilterTitle": "Filtr uživatelů:",
   "admin.ldap.usernameAttrDesc": "Atribut na serveru AD/LDAP, který se používá k vyplnění pole uživatelského jména v Mattermostu.",
+  "admin.ldap.usernameAttrDescHover": "Toto může být stejné jako atribut přihlašovacího ID.",
   "admin.ldap.usernameAttrEx": "Například: \"sAMAccountName\"",
   "admin.ldap.usernameAttrTitle": "Atribut uživatele:",
   "admin.ldap_feature_discovery.call_to_action.primary": "Spustit zkoušku",
