@@ -192,16 +192,16 @@ func (b *AzureFileBackend) AppendFile(fr io.Reader, path string) (int64, error) 
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to read input")
 	}
-	
+
 	// La nueva API no tiene un AppendBlobClient específico, necesitamos usar ContainerClient para crear un cliente específico
 	blobClient := b.containerClient.NewBlockBlobClient(path)
-	
+
 	// Primera, verificamos si el blob existe
 	exists, err := b.FileExists(strings.TrimPrefix(path, b.pathPrefix))
 	if err != nil {
 		return 0, errors.Wrapf(err, "unable to check if file %s exists", path)
 	}
-	
+
 	var offset int64
 	if !exists {
 		// Si no existe, creamos un nuevo blob
@@ -216,25 +216,25 @@ func (b *AzureFileBackend) AppendFile(fr io.Reader, path string) (int64, error) 
 		if err != nil {
 			return 0, errors.Wrapf(err, "unable to get size of file %s", path)
 		}
-		
+
 		// Descargamos el contenido existente
 		existingContent, err := b.ReadFile(strings.TrimPrefix(path, b.pathPrefix))
 		if err != nil {
 			return 0, errors.Wrapf(err, "unable to read existing file %s", path)
 		}
-		
+
 		// Concatenamos el contenido existente con los nuevos datos
 		newContent := append(existingContent, data...)
-		
+
 		// Subimos el contenido combinado
 		_, err = blobClient.UploadBuffer(ctx, newContent, nil)
 		if err != nil {
 			return 0, errors.Wrapf(err, "unable to append to file %s", path)
 		}
-		
+
 		offset = size
 	}
-	
+
 	return offset, nil
 }
 
@@ -343,14 +343,14 @@ func (b *AzureFileBackend) GeneratePublicLink(path string) (string, time.Duratio
 	if err != nil {
 		return "", 0, errors.Wrap(err, "failed to create shared key credential")
 	}
-	
+
 	permissions := sas.BlobPermissions{
 		Read: true,
 	}
-	
+
 	startTime := time.Now().UTC().Add(-1 * time.Minute) // Comenzar 1 minuto antes para evitar problemas de reloj
 	expiryTime := time.Now().UTC().Add(b.presignExpires)
-	
+
 	blobSASBuilder := sas.BlobSignatureValues{
 		Protocol:      sas.ProtocolHTTPS,
 		StartTime:     startTime,
@@ -505,13 +505,13 @@ func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error
 	}
 
 	serviceURL := fmt.Sprintf("https://%s.blob.core.windows.net", settings.AzureStorageAccount)
-	
+
 	// Crear el cliente del servicio primero
 	serviceClient, err := azblob.NewClientWithSharedKeyCredential(serviceURL, credential, nil)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Obtener el cliente del contenedor
 	containerClient := serviceClient.ServiceClient().NewContainerClient(settings.AzureContainer)
 
