@@ -3460,12 +3460,12 @@ func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 				manifest.SettingsSchema == nil {
 				// Don't return any stored plugin settings if
 				//   - The plugin is no longer installed
-				//   - The plugin doesn't defines any settings
+				//   - The plugin doesn't define any settings
 				delete(s.Plugins, id)
 				break
 			}
 
-			// notASecret is true when the plugin declared the settings key and it's not a declared as secret
+			// notASecret is true when the plugin declared the settings key and it's not declared as secret
 			var notASecret bool
 			for _, definedSetting := range manifest.SettingsSchema.Settings {
 				if strings.EqualFold(definedSetting.Key, key) && !definedSetting.Secret {
