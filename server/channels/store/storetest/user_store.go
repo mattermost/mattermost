@@ -151,7 +151,7 @@ func testUserStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.User().Save(rctx, &u3)
 	require.Error(t, err, "auto responder message size should not be greater than maxPostSize")
 
-	for i := 0; i < 49; i++ {
+	for range 49 {
 		u := model.User{
 			Email:    MakeEmail(),
 			Username: model.NewUsername(),
@@ -5058,7 +5058,7 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, rctx request.CTX, ss store.Sto
 
 	// create users
 	var testUsers []*model.User
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		id = model.NewId()
 		user, userErr := ss.User().Save(rctx, &model.User{
 			Email:     id + "@test.com",
@@ -5085,7 +5085,7 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, rctx request.CTX, ss store.Sto
 
 	// create groups
 	var testGroups []*model.Group
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		id = model.NewId()
 
 		var group *model.Group
@@ -5179,7 +5179,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, rctx request.CTX, ss store.
 
 	// create users
 	var testUsers []*model.User
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		id = model.NewId()
 		user, userErr := ss.User().Save(rctx, &model.User{
 			Email:     id + "@test.com",
@@ -5207,7 +5207,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, rctx request.CTX, ss store.
 
 	// create groups
 	var testGroups []*model.Group
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		id = model.NewId()
 		var group *model.Group
 		group, err = ss.Group().Create(&model.Group{
@@ -6236,7 +6236,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	now := time.Now()
 
 	users := make([]*model.User, numUsers)
-	for i := 0; i < numUsers; i++ {
+	for i := range numUsers {
 		user := &model.User{Username: fmt.Sprintf("username_%d", i), DeleteAt: 0}
 		user.Email = MakeEmail()
 
@@ -6265,7 +6265,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	}()
 
 	for _, user := range users {
-		for i := 0; i < numPostsPerUser; i++ {
+		for i := range numPostsPerUser {
 			post := model.Post{UserId: user.Id, ChannelId: model.NewId(), Message: NewTestID(), CreateAt: now.AddDate(0, 0, -i).UnixMilli()}
 			_, err := ss.Post().Save(rctx, &post)
 			require.NoError(t, err)

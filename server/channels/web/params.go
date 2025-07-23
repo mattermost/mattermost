@@ -26,6 +26,7 @@ const (
 
 type Params struct {
 	UserId                             string
+	OtherUserId                        string
 	TeamId                             string
 	InviteId                           string
 	TokenId                            string
@@ -129,6 +130,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	query := r.URL.Query()
 
 	params.UserId = props["user_id"]
+	params.OtherUserId = props["other_user_id"]
 	params.TeamId = props["team_id"]
 	params.CategoryId = props["category_id"]
 	params.InviteId = props["invite_id"]

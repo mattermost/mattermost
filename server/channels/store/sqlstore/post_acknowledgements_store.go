@@ -133,10 +133,7 @@ func (s *SqlPostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.Po
 
 	perPage := 200
 	for i := 0; i < len(postIds); i += perPage {
-		j := i + perPage
-		if len(postIds) < j {
-			j = len(postIds)
-		}
+		j := min(len(postIds), i+perPage)
 
 		query := s.getQueryBuilder().
 			Select("PostId", "UserId", "ChannelId", "AcknowledgedAt", "RemoteId").
