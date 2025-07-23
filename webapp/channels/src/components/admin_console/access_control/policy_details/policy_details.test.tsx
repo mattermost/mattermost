@@ -20,7 +20,7 @@ const mockFormatMessage = jest.fn((descriptor, values?) => {
     let message = descriptor.defaultMessage || descriptor.id;
     if (values) {
         // Simple string interpolation for testing
-        Object.keys(values).forEach(key => {
+        Object.keys(values).forEach((key) => {
             message = message.replace(`{${key}}`, values[key]);
         });
     }
@@ -51,7 +51,7 @@ const createMockActions = (overrides = {}) => ({
 });
 
 // Extract business logic functions as pure functions for testing
-const createPolicyOperations = (actions: any, policyId?: string, formatMessage = mockFormatMessage) => {
+const createPolicyOperations = (actions: any, policyId?: string) => {
     const createOrUpdatePolicy = async (formData: any) => {
         try {
             const result = await actions.createPolicy({
@@ -172,7 +172,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         mockFormatMessage.mockImplementation((descriptor, values?) => {
             let message = descriptor.defaultMessage || descriptor.id;
             if (values) {
-                Object.keys(values).forEach(key => {
+                Object.keys(values).forEach((key) => {
                     message = message.replace(`{${key}}`, values[key]);
                 });
             }
@@ -296,7 +296,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             const mockActions = createMockActions({
                 deletePolicy: jest.fn().mockRejectedValue(new Error('Deletion failed')),
             });
-            
+
             const operations = createPolicyOperations(mockActions, 'policy-to-delete');
 
             const result = await operations.deletePolicy({removed: {}, added: {}, removedCount: 0});
