@@ -3717,8 +3717,9 @@ func (s *ExportSettings) SetDefaults() {
 }
 
 type AccessControlSettings struct {
-	EnableAttributeBasedAccessControl *bool `access:"write_restrictable,cloud_restrictable"`
-	EnableChannelScopeAccessControl   *bool `access:"cloud_restrictable"`
+	EnableAttributeBasedAccessControl *bool `access:"write_restrictable"`
+	EnableChannelScopeAccessControl   *bool `access:"write_restrictable"`
+	EnableUserManagedAttributes       *bool `access:"write_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
@@ -3728,6 +3729,10 @@ func (s *AccessControlSettings) SetDefaults() {
 
 	if s.EnableChannelScopeAccessControl == nil {
 		s.EnableChannelScopeAccessControl = NewPointer(false)
+	}
+
+	if s.EnableUserManagedAttributes == nil {
+		s.EnableUserManagedAttributes = NewPointer(false)
 	}
 }
 
