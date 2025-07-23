@@ -300,7 +300,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	uri := c.GetSiteURLHeader() + "/signup/" + service + "/complete"
 
-	body, teamId, props, tokenUser, err := c.App.AuthorizeOAuthUser(c.AppContext, w, r, service, code, state, uri)
+	body, props, tokenUser, err := c.App.AuthorizeOAuthUser(c.AppContext, w, r, service, code, state, uri)
 
 	action := ""
 	hasRedirectURL := false
@@ -331,7 +331,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.CompleteOAuth(c.AppContext, service, body, teamId, props, tokenUser)
+	user, err := c.App.CompleteOAuth(c.AppContext, service, body, props, tokenUser)
 	if err != nil {
 		err.Translate(c.AppContext.T)
 		c.LogErrorByCode(err)
@@ -443,13 +443,11 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("service", c.Params.Service)
 	defer c.LogAuditRec(auditRec)
 
-	teamId, err := c.App.GetTeamIdFromQuery(c.AppContext, r.URL.Query())
-	if err != nil {
-		c.Err = err
-		return
-	}
+	// Get invite token or ID instead of team_id
+	tokenID := r.URL.Query().Get("t")
+	inviteId := r.URL.Query().Get("id")
 
-	authURL, err := c.App.GetOAuthLoginEndpoint(c.AppContext, w, r, c.Params.Service, teamId, model.OAuthActionLogin, redirectURL, loginHint, false, desktopToken)
+	authURL, err := c.App.GetOAuthLoginEndpoint(c.AppContext, w, r, c.Params.Service, model.OAuthActionLogin, redirectURL, loginHint, false, desktopToken, tokenID, inviteId)
 	if err != nil {
 		c.Err = err
 		return
@@ -479,13 +477,11 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("service", c.Params.Service)
 	defer c.LogAuditRec(auditRec)
 
-	teamId, err := c.App.GetTeamIdFromQuery(c.AppContext, r.URL.Query())
-	if err != nil {
-		c.Err = err
-		return
-	}
+	// Get invite token or ID instead of team_id
+	tokenID := r.URL.Query().Get("t")
+	inviteId := r.URL.Query().Get("id")
 
-	authURL, err := c.App.GetOAuthLoginEndpoint(c.AppContext, w, r, c.Params.Service, teamId, model.OAuthActionMobile, redirectURL, "", true, "")
+	authURL, err := c.App.GetOAuthLoginEndpoint(c.AppContext, w, r, c.Params.Service, model.OAuthActionMobile, redirectURL, "", true, "", tokenID, inviteId)
 	if err != nil {
 		c.Err = err
 		return
@@ -514,15 +510,13 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("service", c.Params.Service)
 	defer c.LogAuditRec(auditRec)
 
-	teamId, err := c.App.GetTeamIdFromQuery(c.AppContext, r.URL.Query())
-	if err != nil {
-		c.Err = err
-		return
-	}
+	// Get invite token or ID instead of team_id
+	tokenID := r.URL.Query().Get("t")
+	inviteId := r.URL.Query().Get("id")
 
 	desktopToken := r.URL.Query().Get("desktop_token")
 
-	authURL, err := c.App.GetOAuthSignupEndpoint(c.AppContext, w, r, c.Params.Service, teamId, desktopToken)
+	authURL, err := c.App.GetOAuthSignupEndpoint(c.AppContext, w, r, c.Params.Service, desktopToken, tokenID, inviteId)
 	if err != nil {
 		c.Err = err
 		return
