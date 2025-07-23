@@ -5163,7 +5163,7 @@
   "post_priority.picker.cancel": "Abbrechen",
   "post_priority.picker.header": "Nachrichten Priorität",
   "post_priority.priority.important": "Wichtig",
-  "post_priority.priority.standard": "Normal",
+  "post_priority.priority.standard": "Standard",
   "post_priority.priority.urgent": "Dringend",
   "post_priority.remove": "Lösche {priority} Kennzeichnung",
   "post_priority.request_acknowledgement": "Empfangsbestätigung anfordern",
