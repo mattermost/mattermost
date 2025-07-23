@@ -5151,10 +5151,6 @@
     "translation": "Kullanıcının takım teması geçersiz"
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Uygulama eki dosya depolama alanı tarafından yönetilecek şekilde ayarlanamadı."
-  },
-  {
     "id": "app.plugin.get_public_key.get_file.app_error",
     "translation": "Herkese açık anahtar depodan alınırken bir sorun çıktı."
   },

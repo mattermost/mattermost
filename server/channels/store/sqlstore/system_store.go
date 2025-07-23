@@ -41,11 +41,7 @@ func (s SqlSystemStore) SaveOrUpdate(system *model.System) error {
 		Columns("Name", "Value").
 		Values(system.Name, system.Value)
 
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Value = ?", system.Value))
-	} else {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (name) DO UPDATE SET Value = ?", system.Value))
-	}
+	query = query.SuffixExpr(sq.Expr("ON CONFLICT (name) DO UPDATE SET Value = ?", system.Value))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
