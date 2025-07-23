@@ -82,6 +82,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
         };
     }, [channel?.display_name, channel?.id, channel?.type, currentTeam?.name, post]);
 
+    // This is to bring react select dropdown above the modal body
     const reactStyles = useMemo(() => {
         return {
             menuPortal: (provided) => ({
@@ -142,7 +143,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
             return;
         }
 
-        // TODO: Implement the flagging action here
+        // TODO: Implement the flagging action here in a follow up PR
 
         onExited();
     }, [validateForm, onExited]);
