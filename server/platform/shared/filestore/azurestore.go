@@ -499,7 +499,7 @@ func (s *seekableReader) Close() error {
 }
 
 func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error) {
-	credential, err := azblob.NewSharedKeyCredential(settings.AzureAccessKey, settings.AzureAccessSecret)
+	credential, err := azblob.NewSharedKeyCredential(settings.AzureStorageAccount, settings.AzureAccessSecret)
 	if err != nil {
 		return nil, err
 	}
