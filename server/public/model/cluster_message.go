@@ -41,6 +41,7 @@ const (
 	ClusterEventRemovePlugin                                ClusterEvent = "remove_plugin"
 	ClusterEventPluginEvent                                 ClusterEvent = "plugin_event"
 	ClusterEventInvalidateCacheForTermsOfService            ClusterEvent = "inv_terms_of_service"
+	ClusterEventInvalidateCacheForUserTermsOfService        ClusterEvent = "inv_user_terms_of_service"
 	ClusterEventBusyStateChanged                            ClusterEvent = "busy_state_change"
 	// Note: if you are adding a new event, please also add it in the slice of
 	// m.ClusterEventMap in metrics/metrics.go file.

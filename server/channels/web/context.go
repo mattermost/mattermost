@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -211,12 +212,7 @@ func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
 
 // isExactPathMatch checks if path exactly matches any of the provided exempt paths
 func isExactPathMatch(path string, exemptPaths []string) bool {
-	for _, exemptPath := range exemptPaths {
-		if path == exemptPath {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(exemptPaths, path)
 }
 
 // matchesUserResourcePattern checks if path matches the pattern /prefix/{user_id}/suffix

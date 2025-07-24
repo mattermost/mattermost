@@ -153,6 +153,13 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockTermsOfServiceStore.On("Get", "123", false).Return(&fakeTermsOfService, nil)
 	mockStore.On("TermsOfService").Return(&mockTermsOfServiceStore)
 
+	fakeUserTermsOfService := model.UserTermsOfService{UserId: "user123", TermsOfServiceId: "123", CreateAt: 11111}
+	mockUserTermsOfServiceStore := mocks.UserTermsOfServiceStore{}
+	mockUserTermsOfServiceStore.On("GetByUser", "user123").Return(&fakeUserTermsOfService, nil)
+	mockUserTermsOfServiceStore.On("Save", &fakeUserTermsOfService).Return(&fakeUserTermsOfService, nil)
+	mockUserTermsOfServiceStore.On("Delete", "user123", "123").Return(nil)
+	mockStore.On("UserTermsOfService").Return(&mockUserTermsOfServiceStore)
+
 	fakeUser := []*model.User{{
 		Id:          "123",
 		AuthData:    model.NewPointer("authData"),
