@@ -329,7 +329,7 @@ GOLANGCI_VERSION ?= v2.1.6
 
 golangci-lint: ## Run golangci-lint on codebase
 	@echo Installing golangci-lint $(GOLANGCI_VERSION)
-	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_VERSION); \
+	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_VERSION)
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(call execute_tool,golangci-lint,run ./... ./public/... $(BUILD_ENTERPRISE_DIR)/...)
 else
