@@ -8,6 +8,7 @@ services:
       POSTGRES_USER: mmuser
       POSTGRES_PASSWORD: mostest
       POSTGRES_DB: mattermost_test
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
     command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
     volumes:
      - "./docker/postgres.conf:/etc/postgresql/postgresql.conf"
