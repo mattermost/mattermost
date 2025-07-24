@@ -33,6 +33,7 @@ function makeMapStateToProps() {
     let fileResults: FileSearchResultItem[];
     let files: FileSearchResultItem[] = [];
     let posts: Post[];
+    const addDateSeparatorsForSearchResults = makeAddDateSeparatorsForSearchResults();
 
     return function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         const config = getConfig(state);
@@ -53,6 +54,10 @@ function makeMapStateToProps() {
 
                 posts.push(post);
             });
+
+            if (ownProps.isPinnedPosts) {
+                results = results.sort((postA: Post|FileSearchResultItem, postB: Post|FileSearchResultItem) => postB.create_at - postA.create_at);
+            }
         }
 
         const newFilesResults = getSearchFilesResults(state);
@@ -81,11 +86,6 @@ function makeMapStateToProps() {
         const currentSearch = (getCurrentSearchForSearchTeam(state) as unknown as Record<string, any>) || {};
         const currentTeamName = getCurrentTeam(state)?.name ?? '';
 
-        if (ownProps.isPinnedPosts) {
-            results = results.sort((postA: Post|FileSearchResultItem, postB: Post|FileSearchResultItem) => postB.create_at - postA.create_at);
-        }
-
-        const addDateSeparatorsForSearchResults = makeAddDateSeparatorsForSearchResults();
         const resultsWithDateSeparators = addDateSeparatorsForSearchResults(state, results);
 
         return {
