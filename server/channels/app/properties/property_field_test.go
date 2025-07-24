@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package properties
 
 import (
@@ -185,7 +188,7 @@ func TestPropertyService_CountAllPropertyFieldsForGroup(t *testing.T) {
 		// Call both methods
 		activeCount, err := service.CountActivePropertyFieldsForGroup("group1")
 		require.NoError(t, err)
-		
+
 		allCount, err := service.CountAllPropertyFieldsForGroup("group1")
 		require.NoError(t, err)
 
