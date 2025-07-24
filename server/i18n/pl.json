@@ -10738,5 +10738,89 @@
   {
     "id": "api.command_share.service_inactive",
     "translation": "Usługa Udostępnij Kanały jest włączona, ale nieaktywna."
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "Nieprawidłowa aktualizacja członka zespołu: Członek zespołu zawsze ma schemat użytkownika."
+  },
+  {
+    "id": "app.pap.delete_policy.app_error",
+    "translation": "Nie można usunąć polityki kontroli dostępu."
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Przesyłanie pliku nie powiodło się. Kanał przesyłania nie jest udostępniany zdalnie."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.user_missing.error",
+    "translation": "Brakująca wymagana właściwość użytkownika: user."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.empty.error",
+    "translation": "Zaimportuj puste dane obserwujących."
+  },
+  {
+    "id": "app.pap.get_access_control_auto_complete.app_error",
+    "translation": "Nie można uzyskać automatycznego zakończenia kontroli dostępu."
+  },
+  {
+    "id": "app.pap.get_all_access_control_policies.app_error",
+    "translation": "Nie można uzyskać polityki kontroli dostępu."
+  },
+  {
+    "id": "app.cloud.preview_modal_bucket_url_not_configured",
+    "translation": "Adres URL zasobnika podglądu nie jest skonfigurowany"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "Nie udało się pobrać danych modalnych podglądu"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_parse_error",
+    "translation": "Nie udało się przeanalizować danych modalnych podglądu"
+  },
+  {
+    "id": "app.import.validate_post_import_data.thread_follower.error",
+    "translation": "Nie udało się zweryfikować danych obserwujących wątek."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.thread_follower.error",
+    "translation": "Nie udało się zweryfikować danych bezpośredniego obserwatora wątku."
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Nie możesz usunąć potwierdzenia braku postu"
+  },
+  {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Nie można utworzyć użytkownika. Serwer przekracza maksymalną liczbę licencjonowanych użytkowników. Skontaktuj się z administratorem: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "Nie udało się zapisać partii obiektów potwierdzenia"
+  },
+  {
+    "id": "app.pap.expression_to_visual_ast.app_error",
+    "translation": "Nie można wygenerować wizualnego AST z wyrażenia."
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Zdalny import klastrów jest niedozwolony"
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Usługa kontroli dostępu niedostępna. Nie można filtrować użytkowników dla kanału obsługującego ABAC."
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Nie możesz zaprosić użytkowników-gości do tego kanału, ponieważ ma on ograniczenia dostępu oparte na atrybutach użytkownika."
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Nie możesz zapisać potwierdzenia brakującego postu"
+  },
+  {
+    "id": "app.pap.delete_access_control_policy.app_error",
+    "translation": "Nie można usunąć polityki kontroli dostępu."
   }
 ]
