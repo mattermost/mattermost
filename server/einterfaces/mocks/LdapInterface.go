@@ -15,9 +15,9 @@ type LdapInterface struct {
 	mock.Mock
 }
 
-// CheckProviderAttributes provides a mock function with given fields: crctx, LS, ouser, patch
-func (_m *LdapInterface) CheckProviderAttributes(crctx request.CTX, LS *model.LdapSettings, ouser *model.User, patch *model.UserPatch) string {
-	ret := _m.Called(crctx, LS, ouser, patch)
+// CheckProviderAttributes provides a mock function with given fields: rctx, LS, ouser, patch
+func (_m *LdapInterface) CheckProviderAttributes(rctx request.CTX, LS *model.LdapSettings, ouser *model.User, patch *model.UserPatch) string {
+	ret := _m.Called(rctx, LS, ouser, patch)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CheckProviderAttributes")
@@ -25,7 +25,7 @@ func (_m *LdapInterface) CheckProviderAttributes(crctx request.CTX, LS *model.Ld
 
 	var r0 string
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.LdapSettings, *model.User, *model.UserPatch) string); ok {
-		r0 = rf(crctx, LS, ouser, patch)
+		r0 = rf(rctx, LS, ouser, patch)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
