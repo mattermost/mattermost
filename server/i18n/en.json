@@ -10947,5 +10947,9 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user {{.user}}"
+  },
+  {
+    "id": "app.content_flagging.group_id.app_error",
+    "translation": "Cannot fetch Content Flagging property group"
   }
 ]
