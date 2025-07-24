@@ -39,10 +39,9 @@ const EmoticonSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Emoji
         >
             <div className='pull-left emoticon-suggestion__image-container'>
                 <img
-                    alt={text}
                     className='emoticon-suggestion__image'
                     src={getEmojiImageUrl(emoji)}
-                    title={text}
+                    alt=''
                 />
             </div>
             <div className='pull-left'>

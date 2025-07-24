@@ -3,12 +3,13 @@
 
 import React from 'react';
 import type {ReactNode} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
 
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
+import usePrefixedIds, {joinIds} from 'components/common/hooks/usePrefixedIds';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import SharedUserIndicator from 'components/shared_user_indicator';
 import StatusIcon from 'components/status_icon';
@@ -37,9 +38,18 @@ function isGroup(o: unknown): o is Group {
 }
 
 const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item>>((props, ref) => {
-    const {item} = props;
+    const {id, item} = props;
 
-    const intl = useIntl();
+    const ids = usePrefixedIds(id, {
+        atMention: null,
+        description: null,
+        youElement: null,
+        status: null,
+        botTag: null,
+        sharedIcon: null,
+        guestTag: null,
+        groupMembers: null,
+    });
 
     let itemname: string;
     let description: ReactNode;
@@ -58,10 +68,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
                 className='suggestion-list__icon suggestion-list__icon--large'
                 aria-hidden='true'
             >
-                <i
-                    className='icon icon-account-multiple-outline'
-                    title={intl.formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'})}
-                />
+                <i className='icon icon-account-multiple-outline'/>
             </span>
         );
     } else if (item.username === 'channel') {
@@ -77,10 +84,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
                 className='suggestion-list__icon suggestion-list__icon--large'
                 aria-hidden='true'
             >
-                <i
-                    className='icon icon-account-multiple-outline'
-                    title={intl.formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'})}
-                />
+                <i className='icon icon-account-multiple-outline'/>
             </span>
         );
     } else if (item.username === 'here') {
@@ -96,10 +100,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
                 className='suggestion-list__icon suggestion-list__icon--large'
                 aria-hidden='true'
             >
-                <i
-                    className='icon icon-account-multiple-outline'
-                    title={intl.formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'})}
-                />
+                <i className='icon icon-account-multiple-outline'/>
             </span>
         );
     } else if (isGroup(item)) {
@@ -112,10 +113,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
                 className='suggestion-list__icon suggestion-list__icon--large'
                 aria-hidden='true'
             >
-                <i
-                    className='icon icon-account-multiple-outline'
-                    title={intl.formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'})}
-                />
+                <i className='icon icon-account-multiple-outline'/>
             </span>
         );
     } else {
@@ -136,9 +134,13 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
                         username={item && item.username}
                         size='sm'
                         url={Utils.imageURLForUser(item.id, item.last_picture_update)}
+                        alt=''
                     />
                 </span>
-                <StatusIcon status={item && item.status}/>
+                <StatusIcon
+                    id={ids.status}
+                    status={item && item.status}
+                />
             </span>
         );
 
@@ -155,29 +157,36 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
     }
 
     const youElement = item.isCurrentUser ? (
-        <FormattedMessage
-            id='suggestion.user.isCurrent'
-            defaultMessage='(you)'
-        />
+        <span id={ids.youElement}>
+            <FormattedMessage
+                id='suggestion.user.isCurrent'
+                defaultMessage='(you)'
+            />
+        </span>
     ) : null;
 
     const sharedIcon = item.remote_id ? (
-        <SharedUserIndicator
-            className='shared-user-icon'
-        />
+        <span id={ids.sharedIcon}>
+            <SharedUserIndicator
+                className='shared-user-icon'
+            />
+        </span>
     ) : null;
 
     let countBadge;
     if (isGroup(item)) {
         countBadge = (
-            <span className='suggestion-list__group-count'>
+            <span
+                id={ids.groupMembers}
+                className='suggestion-list__group-count'
+            >
                 <Tag
                     text={
                         <FormattedMessage
                             id='suggestion.group.members'
                             defaultMessage='{member_count} {member_count, plural, one {member} other {members}}'
                             values={{
-                                member_count: (item as Group).member_count,
+                                member_count: item.member_count,
                             }}
                         />
                     }
@@ -190,15 +199,20 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
         <SuggestionContainer
             ref={ref}
             {...props}
+            aria-labelledby={ids.atMention}
+            aria-describedby={joinIds(ids.description, ids.youElement, ids.status, ids.botTag, ids.sharedIcon, ids.guestTag, ids.groupMembers)}
             data-testid={`mentionSuggestion_${itemname}`}
         >
             {icon}
             <span className='suggestion-list__ellipsis'>
-                <span className='suggestion-list__main'>
+                <span
+                    id={ids.atMention}
+                    className='suggestion-list__main'
+                >
                     {'@' + itemname}
                 </span>
-                {item.is_bot && <BotTag/>}
-                {description}
+                {item.is_bot && <span id={ids.botTag}><BotTag/></span>}
+                {description && <span id={ids.description}>{description}</span>}
                 {youElement}
                 {customStatus}
                 {sharedIcon}
