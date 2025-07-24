@@ -209,10 +209,7 @@ func (scs *Service) syncMembersInBatches(channelID, remoteID string, members mod
 	batchSize := scs.GetMemberSyncBatchSize()
 
 	for i := 0; i < len(members); i += batchSize {
-		end := i + batchSize
-		if end > len(members) {
-			end = len(members)
-		}
+		end := min(i+batchSize, len(members))
 
 		// Create a batch of members
 		batchMembers := members[i:end]

@@ -43,7 +43,6 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
         enterpriseReady: true,
         totalUsers: 10,
         environmentConfig: {},
-        isMySql: false,
         actions: {
             getLicenseConfig: jest.fn(),
             uploadLicense: jest.fn(),

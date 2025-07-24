@@ -847,10 +847,6 @@ func TestPatchChannel(t *testing.T) {
 	})
 
 	t.Run("Should be able to configure channel banner on a channel", func(t *testing.T) {
-		if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
-			t.Skip("Channel banner tests are not supported on MySQL")
-		}
-
 		_, err := client.Logout(context.Background())
 		require.NoError(t, err)
 		th.LoginBasic()
@@ -910,10 +906,6 @@ func TestPatchChannel(t *testing.T) {
 	})
 
 	t.Run("Should be able to configure channel banner as a team admin", func(t *testing.T) {
-		if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
-			t.Skip("Channel banner tests are not supported on MySQL")
-		}
-
 		_, err := client.Logout(context.Background())
 		require.NoError(t, err)
 		th.LoginTeamAdmin()
@@ -941,10 +933,6 @@ func TestPatchChannel(t *testing.T) {
 	})
 
 	t.Run("Cannot enable channel banner without configuring it", func(t *testing.T) {
-		if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
-			t.Skip("Channel banner tests are not supported on MySQL")
-		}
-
 		_, err := client.Logout(context.Background())
 		require.NoError(t, err)
 		th.LoginBasic()
@@ -1068,10 +1056,6 @@ func TestPatchChannel(t *testing.T) {
 func TestCanEditChannelBanner(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-
-	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
-		t.Skip("Channel banner tests are not supported on MySQL")
-	}
 
 	t.Run("when license is nil", func(t *testing.T) {
 		channel := &model.Channel{
@@ -2005,7 +1989,7 @@ func TestGetChannelsForUser(t *testing.T) {
 	assert.Equal(t, 2, numTownSquare)
 
 	// Creating some more channels to be exactly 100 to test page size boundaries.
-	for i := 0; i < 91; i++ {
+	for range 91 {
 		ch1 = th.CreateChannelWithClientAndTeam(client, model.ChannelTypeOpen, myTeam.Id)
 		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, ch1, false)
 		require.Nil(t, appErr)
