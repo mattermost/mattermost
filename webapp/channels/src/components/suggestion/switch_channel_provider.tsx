@@ -3,8 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {defineMessage, injectIntl, useIntl} from 'react-intl';
-import type {WrappedComponentProps} from 'react-intl';
+import {defineMessage, useIntl} from 'react-intl';
 import {connect, useSelector} from 'react-redux';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
@@ -115,7 +114,7 @@ export interface WrappedChannel {
     unread_mentions?: number;
 }
 
-type Props = SuggestionProps<WrappedChannel> & WrappedComponentProps & {
+type Props = SuggestionProps<WrappedChannel> & {
     id: string;
     channelMember: ChannelMembership;
     collapsedThreads: boolean;
@@ -126,7 +125,7 @@ type Props = SuggestionProps<WrappedChannel> & WrappedComponentProps & {
     team?: Team;
 }
 
-const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
+export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     id,
     item,
     channelMember: member,
@@ -330,6 +329,8 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     }
     const showSlug = (isPartOfOnlyOneTeam || channel.type === Constants.DM_CHANNEL) && channel.type !== Constants.THREADS;
 
+    Reflect.deleteProperty(otherProps, 'dispatch');
+
     return (
         <SuggestionContainer
             ref={ref}
@@ -408,7 +409,7 @@ function mapStateToPropsForSwitchChannelSuggestion(state: GlobalState, ownProps:
     };
 }
 
-const ConnectedSwitchChannelSuggestion = connect(mapStateToPropsForSwitchChannelSuggestion, null, null, {forwardRef: true})(injectIntl(SwitchChannelSuggestion, {forwardRef: true}));
+export const ConnectedSwitchChannelSuggestion = connect(mapStateToPropsForSwitchChannelSuggestion, null, null, {forwardRef: true})(SwitchChannelSuggestion);
 
 let prefix = '';
 
