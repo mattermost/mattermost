@@ -75,16 +75,13 @@ describe('at mention suggestion', () => {
                 expectedLabel: '@test-user',
                 expectedDescription: 'First Last (Nickname)',
             },
-
-            // This test fails due to https://github.com/eps1lon/dom-accessibility-api/issues/955
-            // {
-            //     name: 'at-mention suggestions should include status in the description',
-            //     term: '@test-user',
-            //     item: {...TestHelper.getUserMock({username: 'test-user', first_name: 'First', last_name: 'Last'}), status: 'online'},
-            //     expectedLabel: '@test-user',
-            //     expectedDescription: 'First Last Online',
-            // },
-
+            {
+                name: 'at-mention suggestions should include status in the description',
+                term: '@test-user',
+                item: {...TestHelper.getUserMock({username: 'test-user', first_name: 'First', last_name: 'Last'}), status: 'online'},
+                expectedLabel: '@test-user',
+                expectedDescription: 'First Last Online',
+            },
             {
                 name: 'at-mention suggestions should include if the user is the current user',
                 term: '@test-user',
@@ -99,16 +96,13 @@ describe('at mention suggestion', () => {
                 expectedLabel: '@test-user',
                 expectedDescription: '(Nickname) BOT',
             },
-
-            // This test fails due to https://github.com/eps1lon/dom-accessibility-api/issues/955
-            // {
-            //     name: 'at-mention suggestions should include if the user is a remote user',
-            //     term: '@test-user:remote',
-            //     item: {...TestHelper.getUserMock({username: 'test-user:remote', first_name: '', last_name: '', remote_id: 'remote1'})},
-            //     expectedLabel: '@test-user:remote',
-            //     expectedDescription: 'shared user',
-            // },
-
+            {
+                name: 'at-mention suggestions should include if the user is a remote user',
+                term: '@test-user:remote',
+                item: {...TestHelper.getUserMock({username: 'test-user:remote', first_name: '', last_name: '', remote_id: 'remote1'})},
+                expectedLabel: '@test-user:remote',
+                expectedDescription: 'shared user',
+            },
             {
                 name: 'group suggestions should be labeled with the group slug and described with the group name',
                 term: '@test-group',
