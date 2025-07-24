@@ -80,6 +80,7 @@ export type Props = {
     id?: string;
     onInput?: (e?: React.FormEvent<HTMLInputElement>) => void;
     tabIndex?: number;
+    size?: 'md' | 'lg';
     role?: string;
 }
 
@@ -102,6 +103,8 @@ export const QuickInput = React.memo(({
     clearableWithoutValue,
     clearableTooltipText,
     onClear: onClearFromProps,
+    className,
+    size = 'md',
     ...restProps
 }: Props) => {
     const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
@@ -169,6 +172,9 @@ export const QuickInput = React.memo(({
             ...restProps,
             ref: setInputRef,
             defaultValue: value, // Only set the defaultValue since the real one will be updated using the 'useEffect' above
+            className: classNames(className, {
+                'form-control--lg': size === 'lg',
+            }),
         },
     );
 
