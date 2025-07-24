@@ -4,52 +4,79 @@
 name: Server CI Template
 on:
   workflow_call:
+    inputs:
+      fips-enabled:
+        required: false
+        default: false
+        type: boolean
+
+env:
+  FIPS_ENABLED: ${{ inputs.fips-enabled }}
+  CHAINCTL_IDENTITY: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   check-mocks:
     name: Check mocks
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        if: ${{ inputs.fips-enabled }}
+        with:
+          identity: ${{ env.CHAINCTL_IDENTITY }}
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Calculate Golang Version
         id: go
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
+        if: ${{ inputs.fips-enabled }}
         uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
         with:
           go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+
       - name: Run setup-go-work
         run: make setup-go-work
+      - name: Install mock deps
+        run: make install-mock-deps
       - name: Generate mocks
         run: make mocks
       - name: Check mocks
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make mocks`"; exit 1; fi
   check-go-mod-tidy:
     name: Check go mod tidy
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        if: ${{ inputs.fips-enabled }}
+        with:
+          identity: ${{ env.CHAINCTL_IDENTITY }}
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Calculate Golang Version
         id: go
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
+        if: ${{ ! inputs.fips-enabled }}
         uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
         with:
           go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run go mod tidy
@@ -58,17 +85,22 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git diff; exit 1; fi
   golangci:
     name: golangci-lint
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        if: ${{ inputs.fips-enabled }}
+        with:
+          identity: ${{ env.CHAINCTL_IDENTITY }}
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Calculate Golang Version
         id: go
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
+        if: ${{ ! inputs.fips-enabled }}
         uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
         with:
           go-version: ${{ steps.go.outputs.GO_VERSION }}
@@ -78,20 +110,27 @@ jobs:
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run golangci
+        env:
+          GOFLAGS: -buildvcs=false
         run: make golangci-lint
   check-gen-serialized:
     name: Check serialization methods for hot structs
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        if: ${{ inputs.fips-enabled }}
+        with:
+          identity: ${{ env.CHAINCTL_IDENTITY }}
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Calculate Golang Version
         id: go
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
+        if: ${{ ! inputs.fips-enabled }}
         uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
         with:
           go-version: ${{ steps.go.outputs.GO_VERSION }}
@@ -106,17 +145,22 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
   check-mattermost-vet:
     name: Check style
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        if: ${{ inputs.fips-enabled }}
+        with:
+          identity: ${{ env.CHAINCTL_IDENTITY }}
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Calculate Golang Version
         id: go
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
+        if: ${{ ! inputs.fips-enabled }}
         uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
         with:
           go-version: ${{ steps.go.outputs.GO_VERSION }}
@@ -126,24 +170,33 @@ jobs:
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Reset config
+        env:
+          OUTPUT_CONFIG: config/config.json
         run: make config-reset
       - name: Run plugin-checker
         run: make plugin-checker
       - name: Run mattermost-vet
+        env:
+          MM_NO_ENTERPRISE_LINT: true
         run: make vet BUILD_NUMBER='${GITHUB_HEAD_REF}'
   check-mattermost-vet-api:
     name: Vet API
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        if: ${{ inputs.fips-enabled }}
+        with:
+          identity: ${{ env.CHAINCTL_IDENTITY }}
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Calculate Golang Version
         id: go
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
+        if: ${{ ! inputs.fips-enabled }}
         uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
         with:
           go-version: ${{ steps.go.outputs.GO_VERSION }}
@@ -156,20 +209,35 @@ jobs:
         run: make vet-api
   check-migrations:
     name: Check migration files
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        if: ${{ inputs.fips-enabled }}
+        with:
+          identity: ${{ env.CHAINCTL_IDENTITY }}
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+      - name: Setup Go
+        if: ${{ ! inputs.fips-enabled }}
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Extract migrations files
         run: make migrations-extract
       - name: Check migration files
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the migrations using make migrations-extract"; exit 1; fi
   check-email-templates:
     name: Generate email templates
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
@@ -184,17 +252,22 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the email templates using `make build-templates`"; exit 1; fi
   check-store-layers:
     name: Check store layers
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        if: ${{ inputs.fips-enabled }}
+        with:
+          identity: ${{ env.CHAINCTL_IDENTITY }}
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Calculate Golang Version
         id: go
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
+        if: ${{ ! inputs.fips-enabled }}
         uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
         with:
           go-version: ${{ steps.go.outputs.GO_VERSION }}
@@ -207,19 +280,25 @@ jobs:
         run: make store-layers
       - name: Check generated code
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
+
   check-mmctl-docs:
     name: Check mmctl docs
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        if: ${{ inputs.fips-enabled }}
+        with:
+          identity: ${{ env.CHAINCTL_IDENTITY }}
       - name: Checkout mattermost-server
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Calculate Golang Version
         id: go
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
+        if: ${{ ! inputs.fips-enabled }}
         uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
         with:
           go-version: ${{ steps.go.outputs.GO_VERSION }}
@@ -244,6 +323,7 @@ jobs:
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
       drivername: postgres
       logsartifact: postgres-binary-server-test-logs
+      fips-enabled: ${{ inputs.fips-enabled }}
   test-postgres-normal:
     name: Postgres
     needs: check-mattermost-vet
@@ -254,6 +334,7 @@ jobs:
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: postgres-server-test-logs
+      fips-enabled: ${{ inputs.fips-enabled }}
   test-coverage:
     # Skip coverage generation for cherry-pick PRs into release branches.
     if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
@@ -268,6 +349,7 @@ jobs:
       logsartifact: coverage-server-test-logs
       fullyparallel: true
       enablecoverage: true
+      fips-enabled: ${{ inputs.fips-enabled }}
   test-mmctl:
     name: Run mmctl tests
     needs: check-mattermost-vet
@@ -278,20 +360,28 @@ jobs:
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: mmctl-test-logs
+      fips-enabled: ${{ inputs.fips-enabled }}
   build-mattermost-server:
     name: Build mattermost server app
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    env:
+      BUILD_NUMBER: "${{ github.head_ref }}-${{ github.run_id }}"
     defaults:
       run:
         working-directory: server
     needs: check-mattermost-vet
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        if: ${{ inputs.fips-enabled }}
+        with:
+          identity: ${{ env.CHAINCTL_IDENTITY }}
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Calculate Golang Version
         id: go
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
+        if: ${{ ! inputs.fips-enabled }}
         uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
         with:
           go-version: ${{ steps.go.outputs.GO_VERSION }}
@@ -299,23 +389,48 @@ jobs:
             server/go.sum
             server/public/go.sum
       - name: ci/setup-node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
           cache: npm
           cache-dependency-path: "webapp/package-lock.json"
-      - name: Run setup-go-work
-        run: make setup-go-work
-      - name: Build
+      - name: Setup FIPS Go Bin
+        if: ${{ inputs.fips-enabled }}
+        run: mkdir -p .go/bin
+      - name: Run common work
+        env:
+          OUTPUT_CONFIG: config/config.json
         run: |
+          make setup-go-work
           make config-reset
-          make build-cmd BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
-          make package BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
+      - name: Build FIPS enabled server
+        if: ${{ inputs.fips-enabled }}
+        run: |
+          make build-client
+          make build-cmd-linux-amd64
+          make package-linux-amd64
+      - name: Build
+        if: ${{ ! inputs.fips-enabled }}
+        run: |
+          make build-cmd
+          make package
+
+      - name: Setup LOG_ARTIFACT_NAME
+        id: build
+        run: |
+          if [[ ${{ inputs.fips-enabled }} == 'true' ]]; then
+            echo "SERVER_DIST_ARTIFACT_NAME=server-dist-artifact-fips" >> "${GITHUB_OUTPUT}"
+            echo "SERVER_BUILD_ARTIFACT_NAME=server-build-artifact-fips" >> "${GITHUB_OUTPUT}"
+          else
+            echo "SERVER_DIST_ARTIFACT_NAME=server-dist-artifact" >> "${GITHUB_OUTPUT}"
+            echo "SERVER_BUILD_ARTIFACT_NAME=server-build-artifact" >> "${GITHUB_OUTPUT}"
+          fi
+
       - name: Persist dist artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: server-dist-artifact
+          name: ${{ steps.build.outputs.SERVER_DIST_ARTIFACT_NAME }}
           path: server/dist/
           if-no-files-found: error
           compression-level: 0
@@ -323,6 +438,6 @@ jobs:
       - name: Persist build artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: server-build-artifact
+          name: ${{ steps.build.outputs.SERVER_BUILD_ARTIFACT_NAME }}
           path: server/build/
           retention-days: 2
