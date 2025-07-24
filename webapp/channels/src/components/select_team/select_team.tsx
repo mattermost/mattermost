@@ -226,8 +226,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                 const canJoinBasedOnType = (listableTeam.allow_open_invite && canJoinPublicTeams) || (!listableTeam.allow_open_invite && canJoinPrivateTeams);
 
                 // Skip group-constrained teams as they will fail to join and show error
-                const isGroupConstrained = listableTeam.group_constrained;
-                if (canJoinBasedOnType && !isGroupConstrained) {
+                if (canJoinBasedOnType && !listableTeam.group_constrained) {
                     joinableTeamContents.push(
                         <SelectTeamItem
                             key={'team_' + listableTeam.name}

@@ -153,6 +153,7 @@ describe('components/select_team/SelectTeam', () => {
                 {id: 'team_id_1', delete_at: 0, name: 'team-a', display_name: 'Team A', allow_open_invite: true, group_constrained: false} as Team,
                 {id: 'team_id_2', delete_at: 0, name: 'team-b', display_name: 'Team B', allow_open_invite: true, group_constrained: true} as Team,
                 {id: 'team_id_3', delete_at: 0, name: 'team-c', display_name: 'Team C', allow_open_invite: true, group_constrained: false} as Team,
+                {id: 'team_id_4', delete_at: 0, name: 'team-d', display_name: 'Team D', allow_open_invite: true} as Team, // undefined group_constrained
             ],
         };
 
@@ -160,14 +161,15 @@ describe('components/select_team/SelectTeam', () => {
             <SelectTeam {...props}/>,
         );
 
-        // Should only show teams that are not group-constrained
+        // Should show teams that are not group-constrained (false, undefined, null)
         const teamItems = wrapper.find('Memo(SelectTeamItem)');
-        expect(teamItems).toHaveLength(2);
+        expect(teamItems).toHaveLength(3);
 
         // Check that only non-group-constrained teams are rendered
         const renderedTeamIds = teamItems.map((item) => (item.prop('team') as Team).id);
-        expect(renderedTeamIds).toContain('team_id_1');
-        expect(renderedTeamIds).toContain('team_id_3');
-        expect(renderedTeamIds).not.toContain('team_id_2');
+        expect(renderedTeamIds).toContain('team_id_1'); // group_constrained: false
+        expect(renderedTeamIds).toContain('team_id_3'); // group_constrained: false
+        expect(renderedTeamIds).toContain('team_id_4'); // group_constrained: undefined
+        expect(renderedTeamIds).not.toContain('team_id_2'); // group_constrained: true
     });
 });
