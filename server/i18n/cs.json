@@ -5285,11 +5285,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Verze 134+"
+    "translation": "Verze 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Verze 134+"
+    "translation": "Verze 138+"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
