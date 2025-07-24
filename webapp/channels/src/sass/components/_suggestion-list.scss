@@ -68,7 +68,7 @@
     background-color: functions.v(center-channel-bg);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     -webkit-overflow-scrolling: touch;
-    overflow-x: auto;
+    overflow-x: hidden;
     overflow-y: auto;
 
     &::-webkit-scrollbar-track {
@@ -116,6 +116,7 @@
 }
 
 .slash-command__info {
+    overflow: hidden;
     margin-left: 12px;
     line-height: 1;
 }
@@ -126,6 +127,7 @@
     font-size: 12px;
     line-height: 1.2;
     opacity: 0.75;
+    text-overflow: ellipsis;
     white-space: break-spaces;
 }
 
@@ -151,6 +153,13 @@
     font-size: 1.2rem;
     font-weight: 600;
     text-transform: uppercase;
+
+    h2 {
+        all: inherit;
+        display: flex;
+        padding: 0;
+        margin: 0;
+    }
 
     &:first-child {
         &::before {
@@ -195,7 +204,6 @@
     cursor: pointer;
     font-size: inherit;
     line-height: 20px;
-    white-space: nowrap;
 
     .modal & {
         padding: 8px 3.2rem;

@@ -78,6 +78,7 @@ const (
 	TrackConfigExport              = "config_export"
 	TrackConfigWrangler            = "config_wrangler"
 	TrackConfigConnectedWorkspaces = "config_connected_workspaces"
+	TrackConfigAccessControl       = "config_access_control"
 	TrackFeatureFlags              = "config_feature_flags"
 	TrackPermissionsGeneral        = "permissions_general"
 	TrackPermissionsSystemScheme   = "permissions_system_scheme"
@@ -97,8 +98,9 @@ const (
 type TrackSKU string
 
 const (
-	TrackProfessionalSKU TrackSKU = "professional"
-	TrackEnterpriseSKU   TrackSKU = "enterprise"
+	TrackProfessionalSKU       TrackSKU = "professional"
+	TrackEnterpriseSKU         TrackSKU = "enterprise"
+	TrackEnterpriseAdvancedSKU TrackSKU = "advanced"
 )
 
 type TrackFeature string
@@ -181,7 +183,7 @@ func (ts *TelemetryService) ensureTelemetryID() error {
 	id := model.NewId()
 	var err error
 
-	for i := 0; i < DBAccessAttempts; i++ {
+	for range DBAccessAttempts {
 		ts.log.Info("Ensuring the telemetry ID..")
 		systemID := &model.System{Name: model.SystemTelemetryId, Value: id}
 		systemID, err = ts.dbStore.System().InsertIfExists(systemID)
@@ -292,7 +294,7 @@ func isDefaultArray(setting, defaultValue []string) bool {
 	if len(setting) != len(defaultValue) {
 		return false
 	}
-	for i := 0; i < len(setting); i++ {
+	for i := range setting {
 		if setting[i] != defaultValue[i] {
 			return false
 		}
@@ -526,6 +528,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_channel_viewed_messages":                          *cfg.ServiceSettings.EnableChannelViewedMessages,
 		"time_between_user_typing_updates_milliseconds":           *cfg.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds,
 		"cluster_log_timeout_milliseconds":                        *cfg.ServiceSettings.ClusterLogTimeoutMilliseconds,
+		"enable_cross_team_search":                                *cfg.ServiceSettings.EnableCrossTeamSearch,
 		"enable_post_search":                                      *cfg.ServiceSettings.EnablePostSearch,
 		"minimum_hashtag_length":                                  *cfg.ServiceSettings.MinimumHashtagLength,
 		"enable_user_statuses":                                    *cfg.ServiceSettings.EnableUserStatuses,
@@ -542,7 +545,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_api_post_deletion":                                *cfg.ServiceSettings.EnableAPIPostDeletion,
 		"enable_api_channel_deletion":                             *cfg.ServiceSettings.EnableAPIChannelDeletion,
 		"experimental_enable_hardened_mode":                       *cfg.ServiceSettings.ExperimentalEnableHardenedMode,
-		"experimental_strict_csrf_enforcement":                    *cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement,
+		"strict_csrf_enforcement":                                 *cfg.ServiceSettings.StrictCSRFEnforcement,
 		"enable_email_invitations":                                *cfg.ServiceSettings.EnableEmailInvitations,
 		"disable_bots_when_owner_is_deactivated":                  *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated,
 		"enable_bot_account_creation":                             *cfg.ServiceSettings.EnableBotAccountCreation,
@@ -744,6 +747,8 @@ func (ts *TelemetryService) trackConfig() {
 		"custom_terms_of_service_enabled":              *cfg.SupportSettings.CustomTermsOfServiceEnabled,
 		"custom_terms_of_service_re_acceptance_period": *cfg.SupportSettings.CustomTermsOfServiceReAcceptancePeriod,
 		"enable_ask_community_link":                    *cfg.SupportSettings.EnableAskCommunityLink,
+		"report_a_problem_type":                        *cfg.SupportSettings.ReportAProblemType,
+		"allow_download_logs":                          *cfg.SupportSettings.AllowDownloadLogs,
 	}
 
 	configs[TrackConfigLDAP] = map[string]any{
@@ -818,14 +823,13 @@ func (ts *TelemetryService) trackConfig() {
 	}
 
 	configs[TrackConfigCluster] = map[string]any{
-		"enable":                                *cfg.ClusterSettings.Enable,
-		"network_interface":                     isDefault(*cfg.ClusterSettings.NetworkInterface, ""),
-		"bind_address":                          isDefault(*cfg.ClusterSettings.BindAddress, ""),
-		"advertise_address":                     isDefault(*cfg.ClusterSettings.AdvertiseAddress, ""),
-		"use_ip_address":                        *cfg.ClusterSettings.UseIPAddress,
-		"enable_experimental_gossip_encryption": *cfg.ClusterSettings.EnableExperimentalGossipEncryption,
-		"enable_gossip_compression":             *cfg.ClusterSettings.EnableGossipCompression,
-		"read_only_config":                      *cfg.ClusterSettings.ReadOnlyConfig,
+		"enable":                    *cfg.ClusterSettings.Enable,
+		"network_interface":         isDefault(*cfg.ClusterSettings.NetworkInterface, ""),
+		"bind_address":              isDefault(*cfg.ClusterSettings.BindAddress, ""),
+		"advertise_address":         isDefault(*cfg.ClusterSettings.AdvertiseAddress, ""),
+		"use_ip_address":            *cfg.ClusterSettings.UseIPAddress,
+		"enable_gossip_compression": *cfg.ClusterSettings.EnableGossipCompression,
+		"read_only_config":          *cfg.ClusterSettings.ReadOnlyConfig,
 	}
 
 	configs[TrackConfigMetrics] = map[string]any{
@@ -967,6 +971,11 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_remote_cluster_service":       *cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
 		"disable_shared_channels_status_sync": *cfg.ConnectedWorkspacesSettings.DisableSharedChannelsStatusSync,
 		"max_posts_per_sync":                  *cfg.ConnectedWorkspacesSettings.MaxPostsPerSync,
+	}
+
+	configs[TrackConfigAccessControl] = map[string]any{
+		"enable_attribute_based_access_control": *cfg.AccessControlSettings.EnableAttributeBasedAccessControl,
+		"enable_channel_scope_access_control":   *cfg.AccessControlSettings.EnableChannelScopeAccessControl,
 	}
 
 	// Convert feature flags to map[string]any for sending

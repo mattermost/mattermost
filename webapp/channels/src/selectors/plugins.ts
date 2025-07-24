@@ -74,6 +74,14 @@ export const getChannelHeaderMenuPluginComponents = createShallowSelector(
     },
 );
 
+export const getChannelMobileHeaderPluginButtons = createSelector(
+    'getChannelMobileHeaderPluginButtons',
+    (state: GlobalState) => state.plugins.components.MobileChannelHeaderButton,
+    (components = []) => {
+        return components;
+    },
+);
+
 export const getChannelIntroPluginButtons = createSelector(
     'getChannelIntroPluginButtons',
     (state: GlobalState) => state.plugins.components.ChannelIntroButton,
@@ -85,6 +93,14 @@ export const getChannelIntroPluginButtons = createSelector(
 export const getAppBarPluginComponents = createSelector(
     'getAppBarPluginComponents',
     (state: GlobalState) => state.plugins.components.AppBar,
+    (components = []) => {
+        return components;
+    },
+);
+
+export const getMainMenuPluginComponents = createSelector(
+    'getMainMenuPluginComponents',
+    (state: GlobalState) => state.plugins.components.MainMenu,
     (components = []) => {
         return components;
     },

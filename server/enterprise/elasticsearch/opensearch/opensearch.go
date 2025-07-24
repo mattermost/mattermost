@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -313,7 +314,7 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 	var filters, notFilters []types.Query
 	for i, params := range searchParams {
 		newTerms := []string{}
-		for _, term := range strings.Split(params.Terms, " ") {
+		for term := range strings.SplitSeq(params.Terms, " ") {
 			if searchengine.EmailRegex.MatchString(term) {
 				term = `"` + term + `"`
 			}
@@ -469,7 +470,7 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 				termQueries = append(termQueries, query)
 
 				hashtagTerms := []string{}
-				for _, term := range strings.Split(params.Terms, " ") {
+				for term := range strings.SplitSeq(params.Terms, " ") {
 					hashtagTerms = append(hashtagTerms, "#"+term)
 				}
 
@@ -618,7 +619,7 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 
 	var searchResult searchResp
 	_, err = os.client.Client.Do(ctx, &opensearchapi.SearchReq{
-		Indices: []string{*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBasePosts + "*"},
+		Indices: []string{common.SearchIndexName(os.Platform.Config().ElasticsearchSettings, common.IndexBasePosts+"*")},
 		Body:    bytes.NewReader(searchBuf),
 		Params: opensearchapi.SearchParams{
 			From: model.NewPointer(page * perPage),
@@ -910,7 +911,7 @@ func (os *OpensearchInterfaceImpl) SearchChannels(teamId, userID string, term st
 		return []string{}, model.NewAppError("Opensearch.SearchChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	searchResult, err := os.client.Search(ctx, &opensearchapi.SearchReq{
-		Indices: []string{*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels},
+		Indices: []string{common.SearchIndexName(os.Platform.Config().ElasticsearchSettings, common.IndexBaseChannels)},
 		Body:    bytes.NewReader(buf),
 		Params: opensearchapi.SearchParams{
 			Size: model.NewPointer(model.ChannelSearchDefaultLimit),
@@ -1097,7 +1098,7 @@ func (os *OpensearchInterfaceImpl) autocompleteUsers(contextCategory string, cat
 	}
 
 	searchResults, err := os.client.Search(ctx, &opensearchapi.SearchReq{
-		Indices: []string{*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseUsers},
+		Indices: []string{common.SearchIndexName(os.Platform.Config().ElasticsearchSettings, common.IndexBaseUsers)},
 		Body:    bytes.NewReader(buf),
 		Params: opensearchapi.SearchParams{
 			Size: model.NewPointer(options.Limit),
@@ -1223,7 +1224,7 @@ func (os *OpensearchInterfaceImpl) autocompleteUsersNotInChannel(teamId, channel
 	}
 
 	searchResults, err := os.client.Search(ctx, &opensearchapi.SearchReq{
-		Indices: []string{*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseUsers},
+		Indices: []string{common.SearchIndexName(os.Platform.Config().ElasticsearchSettings, common.IndexBaseUsers)},
 		Body:    bytes.NewReader(buf),
 		Params: opensearchapi.SearchParams{
 			Size: model.NewPointer(options.Limit),
@@ -1390,7 +1391,7 @@ func (os *OpensearchInterfaceImpl) PurgeIndexes(rctx request.CTX) *model.AppErro
 		// we are checking if provided indexes exist. If an index doesn't exist,
 		// opensearch returns an error while trying to purge it even we intend to
 		// ignore it.
-		for _, ignorePurgeIndex := range strings.Split(ignorePurgeIndexes, ",") {
+		for ignorePurgeIndex := range strings.SplitSeq(ignorePurgeIndexes, ",") {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*os.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
 			defer cancel()
 
@@ -1439,13 +1440,7 @@ func (os *OpensearchInterfaceImpl) PurgeIndexList(rctx request.CTX, indexes []st
 	indexPrefix := *os.Platform.Config().ElasticsearchSettings.IndexPrefix
 	indexToDeleteMap := map[string]bool{}
 	for _, index := range indexes {
-		isKnownIndex := false
-		for _, allowedIndex := range purgeIndexListAllowedIndexes {
-			if index == allowedIndex {
-				isKnownIndex = true
-				break
-			}
-		}
+		isKnownIndex := slices.Contains(purgeIndexListAllowedIndexes, index)
 
 		if !isKnownIndex {
 			return model.NewAppError("Opensearch.PurgeIndexList", "ent.elasticsearch.purge_indexes.unknown_index", map[string]any{"unknown_index": index}, "", http.StatusBadRequest)
@@ -1456,7 +1451,7 @@ func (os *OpensearchInterfaceImpl) PurgeIndexList(rctx request.CTX, indexes []st
 
 	if ign := *os.Platform.Config().ElasticsearchSettings.IgnoredPurgeIndexes; ign != "" {
 		// make sure we're not purging any index configured to be ignored
-		for _, ix := range strings.Split(ign, ",") {
+		for ix := range strings.SplitSeq(ign, ",") {
 			delete(indexToDeleteMap, ix)
 		}
 	}
@@ -1596,7 +1591,7 @@ func (os *OpensearchInterfaceImpl) SearchFiles(channels model.ChannelList, searc
 	var filters, notFilters []types.Query
 	for i, params := range searchParams {
 		newTerms := []string{}
-		for _, term := range strings.Split(params.Terms, " ") {
+		for term := range strings.SplitSeq(params.Terms, " ") {
 			if searchengine.EmailRegex.MatchString(term) {
 				term = `"` + term + `"`
 			}
@@ -1798,7 +1793,7 @@ func (os *OpensearchInterfaceImpl) SearchFiles(channels model.ChannelList, searc
 	}
 
 	searchResult, err := os.client.Search(ctx, &opensearchapi.SearchReq{
-		Indices: []string{*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseFiles},
+		Indices: []string{common.SearchIndexName(os.Platform.Config().ElasticsearchSettings, common.IndexBaseFiles)},
 		Body:    bytes.NewReader(searchBuf),
 		Params: opensearchapi.SearchParams{
 			From: model.NewPointer(page * perPage),

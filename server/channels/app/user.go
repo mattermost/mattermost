@@ -236,12 +236,16 @@ func (a *App) CreateGuest(c request.CTX, user *model.User) (*model.User, *model.
 }
 
 func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*model.User, *model.AppError) {
-	exceeded, limitErr := a.isHardUserLimitExceeded()
+	atUserLimit, limitErr := a.isAtUserLimit()
 	if limitErr != nil {
 		return nil, limitErr
 	}
 
-	if exceeded {
+	if atUserLimit {
+		// Use different error messages based on whether server is licensed
+		if a.License() != nil {
+			return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.license_user_limits.exceeded", nil, "", http.StatusBadRequest)
+		}
 		return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.user_limits.exceeded", nil, "", http.StatusBadRequest)
 	}
 
@@ -331,8 +335,13 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		// So, we log the error, not return
 		c.Logger().Error("Error fetching user limits in createUserOrGuest", mlog.Err(limitErr))
 	} else {
-		if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
-			c.Logger().Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Created user exceeds the total activated users limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+		if userLimits.MaxUsersLimit > 0 && userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
+			// Use different warning messages based on whether server is licensed
+			if a.License() != nil {
+				c.Logger().Warn("ERROR_LICENSED_USERS_LIMIT_EXCEEDED: Created user exceeds the maximum licensed users.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+			} else {
+				c.Logger().Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Created user exceeds the total activated users limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+			}
 		}
 	}
 
@@ -658,6 +667,28 @@ func (a *App) GetUsersNotInChannelPage(teamID string, channelID string, groupCon
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
+func (a *App) GetUsersNotInAbacChannel(ctx request.CTX, teamID string, channelID string, groupConstrained bool, cursorID string, limit int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	// Get the AccessControl service
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		return nil, model.NewAppError("GetUsersNotInAbacChannel", "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	// Use cursor-based pagination for ABAC channels
+	users, _, appErr := acs.QueryUsersForResource(ctx, channelID, "*", model.SubjectSearchOptions{
+		TeamID: teamID,
+		Limit:  limit,
+		Cursor: model.SubjectCursor{
+			TargetID: cursorID, // Empty string means start from beginning
+		},
+	})
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	return a.sanitizeProfiles(users, asAdmin), nil
+}
+
 func (a *App) GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersWithoutTeamPage(options, asAdmin)
 	if err != nil {
@@ -876,20 +907,24 @@ func (a *App) SetProfileImage(c request.CTX, userID string, imageData *multipart
 
 func (a *App) SetProfileImageFromMultiPartFile(c request.CTX, userID string, file multipart.File) *model.AppError {
 	if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
-		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest).Wrap(limitErr)
 	}
 
 	return a.SetProfileImageFromFile(c, userID, file)
 }
 
-func (a *App) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
+func (a *App) AdjustImage(rctx request.CTX, file io.ReadSeeker) (*bytes.Buffer, *model.AppError) {
 	// Decode image into Image object
-	img, _, err := a.ch.imgDecoder.Decode(file)
+	img, format, err := a.ch.imgDecoder.Decode(file)
 	if err != nil {
 		return nil, model.NewAppError("SetProfileImage", "api.user.upload_profile_user.decode.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	orientation, _ := imaging.GetImageOrientation(file)
+	orientation, err := imaging.GetImageOrientation(file, format)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get image orientation", mlog.Err(err))
+	}
+
 	img = imaging.MakeImageUpright(img, orientation)
 
 	// Scale profile image
@@ -904,8 +939,8 @@ func (a *App) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
 	return buf, nil
 }
 
-func (a *App) SetProfileImageFromFile(c request.CTX, userID string, file io.Reader) *model.AppError {
-	buf, err := a.AdjustImage(file)
+func (a *App) SetProfileImageFromFile(c request.CTX, userID string, file io.ReadSeeker) *model.AppError {
+	buf, err := a.AdjustImage(c, file)
 	if err != nil {
 		return err
 	}
@@ -955,7 +990,7 @@ func (a *App) UpdatePasswordAsUser(c request.CTX, userID, currentPassword, newPa
 }
 
 func (a *App) userDeactivated(c request.CTX, userID string) *model.AppError {
-	a.SetStatusOffline(userID, false)
+	a.SetStatusOffline(userID, false, true)
 
 	user, err := a.GetUser(userID)
 	if err != nil {
@@ -1009,12 +1044,16 @@ func (a *App) invalidateUserChannelMembersCaches(c request.CTX, userID string) *
 
 func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model.User, *model.AppError) {
 	if active {
-		exceeded, appErr := a.isHardUserLimitExceeded()
+		atUserLimit, appErr := a.isAtUserLimit()
 		if appErr != nil {
 			return nil, appErr
 		}
 
-		if exceeded {
+		if atUserLimit {
+			// Use different error messages based on whether server is licensed
+			if a.License() != nil {
+				return nil, model.NewAppError("UpdateActive", "app.user.update_active.license_user_limit.exceeded", nil, "", http.StatusBadRequest)
+			}
 			return nil, model.NewAppError("UpdateActive", "app.user.update_active.user_limit.exceeded", nil, "", http.StatusBadRequest)
 		}
 	}
@@ -1040,6 +1079,7 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 		}
 	}
 	ruser := userUpdate.New
+	a.InvalidateCacheForUser(user.Id)
 
 	if !active {
 		if err := a.RevokeAllSessions(c, ruser.Id); err != nil {
@@ -1053,8 +1093,6 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 	if appErr := a.invalidateUserChannelMembersCaches(c, user.Id); appErr != nil {
 		c.Logger().Warn("Error while invalidating user channel members caches", mlog.Err(appErr))
 	}
-	a.InvalidateCacheForUser(user.Id)
-
 	a.sendUpdatedUserEvent(ruser)
 
 	if !active && user.DeleteAt != 0 {
@@ -1073,7 +1111,12 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 			c.Logger().Error("Error fetching user limits in UpdateActive", mlog.Err(appErr))
 		} else {
 			if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
-				c.Logger().Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Activated user exceeds the total active user limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+				// Use different warning messages based on whether server is licensed
+				if a.License() != nil {
+					c.Logger().Warn("ERROR_LICENSED_USERS_LIMIT_EXCEEDED: Activated user exceeds the maximum licensed users.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+				} else {
+					c.Logger().Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Activated user exceeds the total active user limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+				}
 			}
 		}
 	}
@@ -1363,7 +1406,6 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 
 func (a *App) UpdateUserActive(c request.CTX, userID string, active bool) *model.AppError {
 	user, err := a.GetUser(userID)
-
 	if err != nil {
 		return err
 	}
@@ -1591,7 +1633,7 @@ func (a *App) SendPasswordReset(rctx request.CTX, email string, siteURL string) 
 
 	result, eErr := a.Srv().EmailService.SendPasswordResetEmail(user.Email, token, user.Locale, siteURL)
 	if eErr != nil {
-		return result, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+eErr.Error(), http.StatusInternalServerError)
+		return result, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "", http.StatusInternalServerError).Wrap(eErr)
 	}
 
 	return result, nil
@@ -1671,7 +1713,6 @@ func (a *App) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppEr
 
 func (a *App) GetTokenById(token string) (*model.Token, *model.AppError) {
 	rtoken, err := a.Srv().Store().Token().GetByToken(token)
-
 	if err != nil {
 		var status int
 
@@ -1830,6 +1871,10 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.App
 
 	if err := a.Srv().Store().ScheduledPost().PermanentDeleteByUser(user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.scheduled_post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if err := a.Srv().Store().Draft().PermanentDeleteByUser(user.Id); err != nil {
+		return model.NewAppError("PermanentDeleteUser", "app.drafts.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if err := a.Srv().Store().Bot().PermanentDelete(user.Id); err != nil {
@@ -2039,7 +2084,6 @@ func (a *App) VerifyUserEmail(userID, email string) *model.AppError {
 	a.InvalidateCacheForUser(userID)
 
 	user, err := a.GetUser(userID)
-
 	if err != nil {
 		return err
 	}
@@ -2086,6 +2130,26 @@ func (a *App) SearchUsersInChannel(channelID string, term string, options *model
 
 func (a *App) SearchUsersNotInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
+
+	ctx := request.EmptyContext(a.Log())
+	if ok, err := a.ChannelAccessControlled(ctx, channelID); err != nil {
+		return nil, err
+	} else if ok {
+		acs := a.Srv().Channels().AccessControl
+		if acs != nil {
+			users, _, appErr := acs.QueryUsersForResource(ctx, channelID, "*", model.SubjectSearchOptions{
+				Term:   term,
+				TeamID: teamID,
+				Limit:  options.Limit,
+			})
+			if appErr != nil {
+				return nil, appErr
+			}
+
+			return users, nil
+		}
+	}
+
 	users, err := a.Srv().Store().User().SearchNotInChannel(teamID, channelID, term, options)
 	if err != nil {
 		return nil, model.NewAppError("SearchUsersNotInChannel", "app.user.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -2784,7 +2848,6 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 
 	message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, teamID, "", userID, nil, "")
 	userThread, err := a.Srv().Store().Thread().GetThreadForUser(tm, true, a.IsPostPriorityEnabled())
-
 	if err != nil {
 		var errNotFound *store.ErrNotFound
 		if errors.As(err, &errNotFound) {
@@ -2913,12 +2976,19 @@ func (a *App) UserIsFirstAdmin(rctx request.CTX, user *model.User) bool {
 	}
 
 	for _, systemAdminUser := range systemAdminUsers {
-		systemAdminUser := systemAdminUser
-
 		if systemAdminUser.CreateAt < user.CreateAt {
 			return false
 		}
 	}
 
 	return true
+}
+
+func (a *App) ResetPasswordFailedAttempts(c request.CTX, user *model.User) *model.AppError {
+	err := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0)
+	if err != nil {
+		return model.NewAppError("ResetPasswordFailedAttempts", "app.user.reset_password_failed_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
 }

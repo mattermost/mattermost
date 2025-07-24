@@ -43,7 +43,7 @@ function getNextDay(timestamp?: number): number {
 export default function CenterMessageLock(props: Props) {
     const intl = useIntl();
 
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
     const isAdminUser = isAdmin(useSelector(getCurrentUser).roles);
     const [cloudLimits, limitsLoaded] = useGetLimits();
     const currentTeam = useSelector(getCurrentTeam);
@@ -96,7 +96,7 @@ export default function CenterMessageLock(props: Props) {
         },
     );
 
-    let cta = (
+    let cta: React.ReactNode = (
         <button
             className='btn btn-primary'
             onClick={(e) => notifyAdmin(e, 'center_channel_posts_over_limit_banner')}
@@ -111,28 +111,40 @@ export default function CenterMessageLock(props: Props) {
             defaultMessage: 'Unlock messages prior to {date} in {team}',
         }, titleValues);
 
-        description = intl.formatMessage(
-            {
-                id: 'workspace_limits.message_history.locked.description.admin',
-                defaultMessage: 'To view and search all of the messages in your workspace’s history, rather than just the most recent {limit} messages, upgrade to one of our paid plans. <a>Review our plan options and pricing.</a>',
-            },
-            {
-                limit,
-                a: (chunks: React.ReactNode | React.ReactNodeArray) => (
-                    <a
-                        href='#'
-                        onClick={(e: React.MouseEvent) => {
-                            e.preventDefault();
-                            openPricingModal({trackingLocation: 'center_channel_posts_over_limit_banner'});
-                        }}
-                    >
-                        {chunks}
-                    </a>
-                ),
-            },
-        );
+        if (isAirGapped) {
+            description = intl.formatMessage(
+                {
+                    id: 'workspace_limits.message_history.locked.description.admin.airgapped',
+                    defaultMessage: 'To view and search all of the messages in your workspace\'s history, rather than just the most recent {limit} messages, upgrade to one of our paid plans.',
+                },
+                {
+                    limit,
+                },
+            );
+        } else {
+            description = intl.formatMessage(
+                {
+                    id: 'workspace_limits.message_history.locked.description.admin',
+                    defaultMessage: 'To view and search all of the messages in your workspace\'s history, rather than just the most recent {limit} messages, upgrade to one of our paid plans. <a>Review our plan options and pricing.</a>',
+                },
+                {
+                    limit,
+                    a: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                        <a
+                            href='#'
+                            onClick={(e: React.MouseEvent) => {
+                                e.preventDefault();
+                                openPricingModal({trackingLocation: 'center_channel_posts_over_limit_banner'});
+                            }}
+                        >
+                            {chunks}
+                        </a>
+                    ),
+                },
+            );
+        }
 
-        cta = (
+        cta = isAirGapped ? null : (
             <button
                 className='btn is-admin'
                 onClick={() => openPricingModal({trackingLocation: 'center_channel_posts_over_limit_banner'})}

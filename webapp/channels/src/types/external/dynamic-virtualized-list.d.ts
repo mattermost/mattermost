@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-declare module 'dynamic-virtualized-list' {
+declare module '@mattermost/dynamic-virtualized-list' {
     export type OnScrollArgs = {
         scrollDirection: 'backward' | 'forward';
         scrollOffset: number;
@@ -34,6 +34,7 @@ declare module 'dynamic-virtualized-list' {
         style: CSSProperties;
         width: number;
 
+        id?: string;
         className?: string;
         correctScrollToBottom?: boolean;
         innerListStyle?: CSSProperties;

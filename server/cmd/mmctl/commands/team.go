@@ -100,8 +100,6 @@ var ModifyTeamsCmd = &cobra.Command{
 func init() {
 	TeamCreateCmd.Flags().String("name", "", "Team Name")
 	TeamCreateCmd.Flags().String("display-name", "", "Team Display Name")
-	TeamCreateCmd.Flags().String("display_name", "", "")
-	_ = TeamCreateCmd.Flags().MarkDeprecated("display_name", "please use display-name instead")
 	TeamCreateCmd.Flags().Bool("private", false, "Create a private team.")
 	TeamCreateCmd.Flags().String("email", "", "Administrator Email (anyone with this email is automatically a team admin)")
 
@@ -114,9 +112,7 @@ func init() {
 	// Add flag declaration for RenameTeam
 	RenameTeamCmd.Flags().String("name", "", "Team Name")
 	RenameTeamCmd.Flags().String("display-name", "", "Team Display Name")
-	// _ = RenameTeamCmd.MarkFlagRequired("display-name") // Uncomment this after fully deprecation of display_name
-	RenameTeamCmd.Flags().String("display_name", "", "")
-	_ = RenameTeamCmd.Flags().MarkDeprecated("display_name", "please use display-name instead")
+	_ = RenameTeamCmd.MarkFlagRequired("display-name")
 
 	TeamCmd.AddCommand(
 		TeamCreateCmd,
@@ -141,10 +137,7 @@ func createTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 	displayname, errdn := cmd.Flags().GetString("display-name")
 	if errdn != nil || displayname == "" {
-		displayname, errdn = cmd.Flags().GetString("display_name")
-		if errdn != nil || displayname == "" {
-			return errors.New("display Name is required")
-		}
+		return errors.New("display-name is required")
 	}
 	email, _ := cmd.Flags().GetString("email")
 	useprivate, _ := cmd.Flags().GetBool("private")

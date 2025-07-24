@@ -5,10 +5,12 @@ import React from 'react';
 import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import NextIcon from 'components/widgets/icons/fa_next_icon';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 const NEXT_BUTTON_TIMEOUT = 500;
 
 interface Props extends WrappedComponentProps {
+    loading: boolean;
     logs: string[];
     page: number;
     perPage: number;
@@ -65,6 +67,14 @@ class PlainLogList extends React.PureComponent<Props, State> {
     };
 
     render() {
+        if (this.props.loading) {
+            return (
+                <div className='log__panel'>
+                    <LoadingSpinner/>
+                </div>
+            );
+        }
+
         let content = null;
         let nextButton;
         let previousButton;

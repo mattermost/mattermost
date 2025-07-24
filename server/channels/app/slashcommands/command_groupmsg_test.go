@@ -54,17 +54,16 @@ func TestGroupMsgUsernames(t *testing.T) {
 }
 
 func TestGroupMsgProvider(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
-	user3 := th.createUser()
+	user3 := th.createUser(t)
 	targetUsers := "@" + th.BasicUser2.Username + ",@" + user3.Username + " "
 
-	team := th.createTeam()
-	th.linkUserToTeam(th.BasicUser, team)
+	team := th.createTeam(t)
+	th.linkUserToTeam(t, th.BasicUser, team)
 	cmd := &groupmsgProvider{}
 
-	th.removePermissionFromRole(model.PermissionCreateGroupChannel.Id, model.SystemUserRoleId)
+	th.removePermissionFromRole(t, model.PermissionCreateGroupChannel.Id, model.SystemUserRoleId)
 
 	t.Run("Check without permission to create a GM channel.", func(t *testing.T) {
 		resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
@@ -78,11 +77,11 @@ func TestGroupMsgProvider(t *testing.T) {
 		assert.Equal(t, "", resp.GotoLocation)
 	})
 
-	th.addPermissionToRole(model.PermissionCreateGroupChannel.Id, model.SystemUserRoleId)
+	th.addPermissionToRole(t, model.PermissionCreateGroupChannel.Id, model.SystemUserRoleId)
 
 	t.Run("Check without permissions to view a user in the list.", func(t *testing.T) {
-		th.removePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
-		defer th.addPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
+		th.removePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+		t.Cleanup(func() { th.addPermissionToRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId) })
 		resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 			T:       i18n.IdentityTfunc(),
 			SiteURL: "http://test.url",

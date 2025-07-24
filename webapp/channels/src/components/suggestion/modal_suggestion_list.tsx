@@ -80,7 +80,7 @@ export default class ModalSuggestionList extends React.PureComponent<Props, Stat
     onModalScroll = (e: Event) => {
         const eventTarget = e.target as HTMLElement;
         if (this.state.scroll !== eventTarget.scrollTop &&
-            this.latestHeight !== 0) {
+            this.props.open) {
             this.setState({scroll: eventTarget.scrollTop});
         }
     };
@@ -132,7 +132,7 @@ export default class ModalSuggestionList extends React.PureComponent<Props, Stat
             return 0;
         }
 
-        const listElement = this.suggestionList?.current?.getContent()?.[0];
+        const listElement = this.suggestionList?.current?.getContent();
         if (!listElement) {
             return 0;
         }
@@ -180,7 +180,7 @@ export default class ModalSuggestionList extends React.PureComponent<Props, Stat
             return;
         }
 
-        const modalBodyContainer = this.container.current.closest('.modal-body');
+        const modalBodyContainer = this.container.current.closest('.modal-content');
         const modalBounds = modalBodyContainer?.getBoundingClientRect();
 
         if (modalBounds) {
@@ -200,11 +200,13 @@ export default class ModalSuggestionList extends React.PureComponent<Props, Stat
         let position = {};
         if (this.state.position === 'top') {
             position = {bottom: this.state.modalBounds.bottom - this.state.inputBounds.top};
+        } else {
+            position = {top: this.state.inputBounds.bottom - this.state.modalBounds.top};
         }
 
         return (
             <div
-                style={{position: 'absolute', zIndex: 101, width: this.state.inputBounds.width, ...position}}
+                style={{position: 'fixed', zIndex: 101, width: this.state.inputBounds.width, ...position}}
                 ref={this.container}
             >
                 <SuggestionList

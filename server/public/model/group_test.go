@@ -55,7 +55,7 @@ func TestGroupLogClone(t *testing.T) {
 		l := g.LogClone()
 		require.NotNil(t, l)
 
-		m, ok := l.(map[string]interface{})
+		m, ok := l.(map[string]any)
 		require.True(t, ok)
 		assert.Equal(t, "", m["remote_id"])
 	})
@@ -77,7 +77,7 @@ func TestGroupLogClone(t *testing.T) {
 			AllowReference: true,
 		}
 		l := g.LogClone()
-		m, ok := l.(map[string]interface{})
+		m, ok := l.(map[string]any)
 		require.True(t, ok)
 
 		expected := map[string]any{

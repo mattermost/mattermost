@@ -37,7 +37,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 		cmd.Flags().String("name", mockTeamName, "")
 
 		err := createTeamCmdF(s.client, cmd, []string{})
-		s.Require().Equal(err, errors.New("display Name is required"))
+		s.Require().Equal(err, errors.New("display-name is required"))
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
@@ -392,7 +392,7 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 		printer.Clean()
 
 		mockTeamsPage1 := make([]*model.Team, DefaultPageSize)
-		for i := 0; i < DefaultPageSize; i++ {
+		for i := range DefaultPageSize {
 			mockTeamsPage1[i] = &model.Team{Name: fmt.Sprintf("Team%d", i)}
 		}
 		mockTeamsPage2 := []*model.Team{{Name: fmt.Sprintf("Team%d", DefaultPageSize)}}
@@ -412,7 +412,7 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 		err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), DefaultPageSize+1)
-		for i := 0; i < DefaultPageSize+1; i++ {
+		for i := range DefaultPageSize + 1 {
 			s.Require().Equal(printer.GetLines()[i].(*model.Team).Name, fmt.Sprintf("Team%d", i))
 		}
 		s.Require().Len(printer.GetErrorLines(), 0)

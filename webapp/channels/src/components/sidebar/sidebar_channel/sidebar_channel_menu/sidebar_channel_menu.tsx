@@ -148,8 +148,8 @@ const SidebarChannelMenu = ({
         if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
             muteChannelText = (
                 <FormattedMessage
-                    id='sidebar_left.sidebar_channel_menu.unmuteConversation'
-                    defaultMessage='Unmute Conversation'
+                    id='sidebar_left.sidebar_channel_menu.unmute'
+                    defaultMessage='Unmute'
                 />
             );
         }
@@ -176,8 +176,8 @@ const SidebarChannelMenu = ({
         if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
             muteChannelText = (
                 <FormattedMessage
-                    id='sidebar_left.sidebar_channel_menu.muteConversation'
-                    defaultMessage='Mute Conversation'
+                    id='sidebar_left.sidebar_channel_menu.mute'
+                    defaultMessage='Mute'
                 />
             );
         }

@@ -1176,10 +1176,6 @@
     "translation": "Nem sikerült beolvasni a plugin állapotokat a fürtből."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Nem lehet beállítani a bővítményt úgy, hogy a fájltár kezelje."
-  },
-  {
     "id": "app.plugin.filesystem.app_error",
     "translation": "Fájlrendszer hiba történt."
   },
@@ -6957,10 +6953,6 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v kilépett a csatornából."
-  },
-  {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Ön az egyetlen megmaradt tag, kilépés helyett próbálkozzon a privát csatorna eltávolításával."
   },
   {
     "id": "api.channel.leave.direct.app_error",

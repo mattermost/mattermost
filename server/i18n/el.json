@@ -1115,10 +1115,6 @@
     "translation": "%v έφυγε από το κανάλι."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Είσαι το μόνο μέλος που έμεινε στο κανάλι, δοκίμασε να αλλάξεις 'Ιδιωτικό Κανάλι', αντί να το φύγεις."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Αδύνατο να αφήσετε ένα άμεσο μήνυμα στο κανάλι."
   },

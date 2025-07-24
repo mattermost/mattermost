@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 var ImportCmd = &cobra.Command{
@@ -94,7 +93,7 @@ func slackImportCmdF(command *cobra.Command, args []string) error {
 	CommandPrettyPrintln("Finished Slack Import.")
 	CommandPrettyPrintln("")
 
-	auditRec := a.MakeAuditRecord(rctx, "slackImport", audit.Success)
+	auditRec := a.MakeAuditRecord(rctx, model.AuditEventSlackImport, model.AuditStatusSuccess)
 	auditRec.AddMeta("team", team)
 	auditRec.AddMeta("file", args[1])
 	a.LogAuditRec(rctx, auditRec, nil)
@@ -156,7 +155,7 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 
 	CommandPrettyPrintln("")
 
-	if err, lineNumber := a.BulkImportWithPath(rctx, fileReader, nil, true, !apply, workers, importPath); err != nil {
+	if lineNumber, err := a.BulkImportWithPath(rctx, fileReader, nil, true, !apply, workers, importPath); err != nil {
 		CommandPrintErrorln(err.Error())
 		if lineNumber != 0 {
 			CommandPrintErrorln(fmt.Sprintf("Error occurred on data file line %v", lineNumber))
@@ -166,7 +165,7 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 
 	if apply {
 		CommandPrettyPrintln("Finished Bulk Import.")
-		auditRec := a.MakeAuditRecord(rctx, "bulkImport", audit.Success)
+		auditRec := a.MakeAuditRecord(rctx, model.AuditEventBulkImport, model.AuditStatusSuccess)
 		auditRec.AddMeta("file", args[0])
 		a.LogAuditRec(rctx, auditRec, nil)
 	} else {

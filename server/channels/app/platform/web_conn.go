@@ -62,17 +62,18 @@ type pluginWSPostedHook struct {
 }
 
 type WebConnConfig struct {
-	WebSocket     *websocket.Conn
-	Session       model.Session
-	TFunc         i18n.TranslateFunc
-	Locale        string
-	ConnectionID  string
-	Active        bool
-	ReuseCount    int
-	OriginClient  string
-	PostedAck     bool
-	RemoteAddress string
-	XForwardedFor string
+	WebSocket         *websocket.Conn
+	Session           model.Session
+	TFunc             i18n.TranslateFunc
+	Locale            string
+	ConnectionID      string
+	Active            bool
+	ReuseCount        int
+	OriginClient      string
+	PostedAck         bool
+	RemoteAddress     string
+	XForwardedFor     string
+	DisconnectErrCode string
 
 	// These aren't necessary to be exported to api layer.
 	sequence         int64
@@ -85,16 +86,17 @@ type WebConnConfig struct {
 // It contains all the necessary state to manage sending/receiving data to/from
 // a websocket.
 type WebConn struct {
-	sessionExpiresAt int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
-	Platform         *PlatformService
-	Suite            SuiteIFace
-	HookRunner       HookRunner
-	WebSocket        *websocket.Conn
-	T                i18n.TranslateFunc
-	Locale           string
-	Sequence         int64
-	UserId           string
-	PostedAck        bool
+	sessionExpiresAt  int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
+	Platform          *PlatformService
+	Suite             SuiteIFace
+	HookRunner        HookRunner
+	WebSocket         *websocket.Conn
+	T                 i18n.TranslateFunc
+	Locale            string
+	Sequence          int64
+	UserId            string
+	PostedAck         bool
+	DisconnectErrCode string
 
 	allChannelMembers         map[string]string
 	lastAllChannelMembersTime int64
@@ -246,6 +248,7 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		T:                  cfg.TFunc,
 		Locale:             cfg.Locale,
 		PostedAck:          cfg.PostedAck,
+		DisconnectErrCode:  cfg.DisconnectErrCode,
 		reuseCount:         cfg.ReuseCount,
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
@@ -523,7 +526,7 @@ func (wc *WebConn) writePump() {
 				return
 			}
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEvent(reconnectFound)
+				m.IncrementWebsocketReconnectEventWithDisconnectErrCode(reconnectFound, wc.DisconnectErrCode)
 			}
 		} else if wc.hasMsgLoss() {
 			// If the seq number is not in dead queue, but it was supposed to be,
@@ -541,11 +544,11 @@ func (wc *WebConn) writePump() {
 				return
 			}
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEvent(reconnectNotFound)
+				m.IncrementWebsocketReconnectEventWithDisconnectErrCode(reconnectNotFound, wc.DisconnectErrCode)
 			}
 		} else {
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEvent(reconnectLossless)
+				m.IncrementWebsocketReconnectEventWithDisconnectErrCode(reconnectLossless, wc.DisconnectErrCode)
 			}
 		}
 	}
@@ -699,7 +702,7 @@ func _hasMsgLoss(deadQueue []*model.WebSocketEvent, deadQueuePtr int, seq int64)
 func _isInDeadQueue(deadQueue []*model.WebSocketEvent, seq int64) (bool, int) {
 	// Can be optimized to traverse backwards from deadQueuePointer
 	// Hopefully, traversing 128 elements is not too much overhead.
-	for i := 0; i < deadQueueSize; i++ {
+	for i := range deadQueueSize {
 		elem := deadQueue[i]
 		if elem == nil {
 			return false, 0
@@ -713,7 +716,7 @@ func _isInDeadQueue(deadQueue []*model.WebSocketEvent, seq int64) (bool, int) {
 }
 
 func (wc *WebConn) clearDeadQueue() {
-	for i := 0; i < deadQueueSize; i++ {
+	for i := range deadQueueSize {
 		if wc.deadQueue[i] == nil {
 			break
 		}

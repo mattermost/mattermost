@@ -73,7 +73,7 @@ describe('Managing bots in Teams and Channels', () => {
             cy.postMessage(`/invite @${bot.username} `);
 
             // * Verify system message in-channel
-            cy.uiWaitUntilMessagePostedIncludes(`@${bot.username} is not a member of the team.`);
+            cy.uiWaitUntilMessagePostedIncludes(`You can add @${bot.username} to this channel once they are members of`);
         });
     });
 

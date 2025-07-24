@@ -16,6 +16,246 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestPostAction_IsValid(t *testing.T) {
+	tests := map[string]struct {
+		action  *PostAction
+		wantErr string
+	}{
+		"valid button action with http URL": {
+			action: &PostAction{
+				Id:   "validid",
+				Name: "Test Button",
+				Type: PostActionTypeButton,
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "",
+		},
+		"valid button action with http URL without Id": {
+			action: &PostAction{
+				Name: "Test Button",
+				Type: PostActionTypeButton,
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "",
+		},
+		"valid button action with plugin path": {
+			action: &PostAction{
+				Id:   "validid",
+				Name: "Test Button",
+				Type: PostActionTypeButton,
+				Integration: &PostActionIntegration{
+					URL: "/plugins/myplugin/action",
+				},
+			},
+			wantErr: "",
+		},
+		"valid button action with relative plugin path": {
+			action: &PostAction{
+				Id:   "validid",
+				Name: "Test Button",
+				Type: PostActionTypeButton,
+				Integration: &PostActionIntegration{
+					URL: "plugins/myplugin/action",
+				},
+			},
+			wantErr: "",
+		},
+		"invalid integration URL": {
+			action: &PostAction{
+				Id:   "validid",
+				Name: "Test Button",
+				Type: PostActionTypeButton,
+				Integration: &PostActionIntegration{
+					URL: "invalid-url",
+				},
+			},
+			wantErr: "action must have an valid integration URL",
+		},
+		"valid select action with datasource": {
+			action: &PostAction{
+				Id:         "validid",
+				Name:       "Test Select",
+				Type:       PostActionTypeSelect,
+				DataSource: PostActionDataSourceUsers,
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "",
+		},
+		"valid select action with options": {
+			action: &PostAction{
+				Id:   "validid",
+				Name: "Test Select",
+				Type: PostActionTypeSelect,
+				Options: []*PostActionOptions{
+					{Text: "Opt1", Value: "opt1"},
+				},
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "",
+		},
+		"select action with nil option": {
+			action: &PostAction{
+				Id:   "validid",
+				Name: "Test Select",
+				Type: PostActionTypeSelect,
+				Options: []*PostActionOptions{
+					nil,
+					{Text: "Opt1", Value: "opt1"},
+				},
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "select action contains nil option",
+		},
+		"missing name": {
+			action: &PostAction{
+				Id:   "validid",
+				Type: PostActionTypeButton,
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "action must have a name",
+		},
+		"invalid style": {
+			action: &PostAction{
+				Id:    "validid",
+				Name:  "Test Button",
+				Type:  PostActionTypeButton,
+				Style: "invalid",
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "invalid style 'invalid' - must be one of [default, primary, success, good, warning, danger] or a hex color",
+		},
+		"valid style": {
+			action: &PostAction{
+				Id:    "validid",
+				Name:  "Test Button",
+				Type:  PostActionTypeButton,
+				Style: "primary",
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "",
+		},
+		"button with options": {
+			action: &PostAction{
+				Id:   "validid",
+				Name: "Test Button",
+				Type: PostActionTypeButton,
+				Options: []*PostActionOptions{
+					{Text: "Opt1", Value: "opt1"},
+				},
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "button action must not have options",
+		},
+		"button with datasource": {
+			action: &PostAction{
+				Id:         "validid",
+				Name:       "Test Button",
+				Type:       PostActionTypeButton,
+				DataSource: PostActionDataSourceUsers,
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "button action must not have a data source",
+		},
+		"select without datasource or options": {
+			action: &PostAction{
+				Id:   "validid",
+				Name: "Test Select",
+				Type: PostActionTypeSelect,
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "select action must have either DataSource or Options set",
+		},
+		"select with both datasource and options": {
+			action: &PostAction{
+				Id:         "validid",
+				Name:       "Test Select",
+				Type:       PostActionTypeSelect,
+				DataSource: PostActionDataSourceUsers,
+				Options: []*PostActionOptions{
+					{Text: "Opt1", Value: "opt1"},
+				},
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "select action cannot have both DataSource and Options set",
+		},
+		"invalid datasource": {
+			action: &PostAction{
+				Id:         "validid",
+				Name:       "Test Select",
+				Type:       PostActionTypeSelect,
+				DataSource: "invalid",
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "invalid data_source 'invalid' for select action",
+		},
+		"missing integration": {
+			action: &PostAction{
+				Id:   "validid",
+				Name: "Test Button",
+				Type: PostActionTypeButton,
+			},
+			wantErr: "action must have integration settings",
+		},
+		"missing integration URL": {
+			action: &PostAction{
+				Id:          "validid",
+				Name:        "Test Button",
+				Type:        PostActionTypeButton,
+				Integration: &PostActionIntegration{},
+			},
+			wantErr: "action must have an integration URL",
+		},
+		"invalid type": {
+			action: &PostAction{
+				Id:   "validid",
+				Name: "Test Action",
+				Type: "invalid",
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "invalid action type: must be 'button' or 'select'",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := tc.action.IsValid()
+			if tc.wantErr == "" {
+				assert.NoError(t, err, name)
+			} else {
+				assert.ErrorContains(t, err, tc.wantErr, name)
+			}
+		})
+	}
+}
+
 func TestTriggerIdDecodeAndVerification(t *testing.T) {
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	require.NoError(t, err)
@@ -180,6 +420,44 @@ func TestPostActionIntegrationEquals(t *testing.T) {
 
 		require.True(t, pa1.Equals(pa2))
 	})
+}
+
+func TestPostActionOptions_IsValid(t *testing.T) {
+	tests := map[string]struct {
+		options *PostActionOptions
+		wantErr string
+	}{
+		"valid options": {
+			options: &PostActionOptions{
+				Text:  "Option 1",
+				Value: "opt1",
+			},
+			wantErr: "",
+		},
+		"missing text": {
+			options: &PostActionOptions{
+				Value: "opt1",
+			},
+			wantErr: "text is required",
+		},
+		"missing value": {
+			options: &PostActionOptions{
+				Text: "Option 1",
+			},
+			wantErr: "value is required",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := tc.options.IsValid()
+			if tc.wantErr == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorContains(t, err, tc.wantErr)
+			}
+		})
+	}
 }
 
 func TestOpenDialogRequestIsValid(t *testing.T) {

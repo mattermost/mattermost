@@ -136,8 +136,10 @@ describe('Multi-user group header', () => {
     });
 
     function editHeader(header) {
-        // # Click edit conversation header
-        cy.uiOpenChannelMenu('Edit Conversation Header');
+        // # Click edit header
+        cy.uiOpenChannelMenu('');
+        cy.findByRole('menuitem', {name: 'Settings'}).trigger('mouseover');
+        cy.findByText('Edit Header').click();
 
         // * Verify the modal open to add header
         cy.get('#editChannelHeaderModalLabel').should('be.visible').wait(TIMEOUTS.ONE_SEC);

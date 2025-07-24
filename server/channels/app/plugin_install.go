@@ -12,7 +12,6 @@
 //   - plugins prepackged with the server in the prepackaged_plugins/ directory
 //   - plugins transitionally prepackaged with the server in the prepackaged_plugins/ directory
 //   - plugins installed to the filestore (amazons3 or local, alongisde files and images)
-//   - unmanaged plugins manually extracted to the confgured local directory
 //     ┌────────────────────────────┐
 //     │ ┌────────────────────────┐ │
 //     │ │prepackaged_plugins/    │ │
@@ -23,14 +22,11 @@
 //     │              │             │
 //     │              ▼             │
 //     │ ┌────────────────────────┐ │
-//     │ │plugins/                │ │
-//     │ │    unmanaged/          │ │
-//     │ │    filestore/          │ │   ┌────────────────────────┐
-//     │ │      .filestore        │ │   │s3://bucket/plugins/    │
+//     │ │plugins/                │ │   ┌────────────────────────┐
+//     │ │    filestore/          │ │   │s3://bucket/plugins/    │
 //     │ │    prepackaged/        │◀┼───│    filestore.tar.gz    │
-//     │ │      .filestore        │ │   │    transitional.tar.gz │
-//     │ │    transitional/       │ │   └────────────────────────┘
-//     │ │      .filestore        │ │
+//     │ │    transitional/       │ │   │    transitional.tar.gz │
+//     │ │                        │ │   └────────────────────────┘
 //     │ └────────────────────────┘ │
 //     │                   ┌────────┤
 //     │                   │ server │
@@ -45,13 +41,8 @@
 // release. On first startup, they are unpacked just like prepackaged plugins, but also get copied
 // to the filestore. On future startups, the server uses the version in the filestore.
 //
-// Plugins are installed to the filestore when the user installs via the marketplace or manually
-// uploads a plugin bundle. (Or because the plugin is transitionally prepackaged).
-//
-// Unmanaged plugins were manually extracted by into the configured local directory. This legacy
-// method of installing plugins is distinguished from other extracted plugins by the absence of a
-// flag file (.filestore). Managed plugins unconditionally override unmanaged plugins. A future
-// version of Mattermost will likely drop support for unmanaged plugins.
+// Plugins are installed to the filestore when the user installs via the marketplace or system
+// console. (Or because the plugin is transitionally prepackaged).
 //
 // ### Enabling a Plugin
 //
@@ -98,10 +89,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
-// managedPluginFileName is the file name of the flag file that marks
-// a local plugin folder as "managed" by the file store.
-const managedPluginFileName = ".filestore"
-
 // fileStorePluginFolder is the folder name in the file store of the plugin bundles installed.
 const fileStorePluginFolder = "plugins"
 
@@ -123,6 +110,11 @@ func (ch *Channels) installPluginFromClusterMessage(pluginID string) {
 		return
 	}
 
+	logger = logger.With(
+		mlog.String("bundle_path", plugin.bundlePath),
+		mlog.String("signature_path", plugin.signaturePath),
+	)
+
 	bundle, appErr := ch.srv.fileReader(plugin.bundlePath)
 	if appErr != nil {
 		logger.Error("Failed to open plugin bundle from file store.", mlog.Err(appErr))
@@ -139,7 +131,7 @@ func (ch *Channels) installPluginFromClusterMessage(pluginID string) {
 		}
 		defer signature.Close()
 
-		if err := ch.verifyPlugin(bundle, signature); err != nil {
+		if err := ch.verifyPlugin(logger, bundle, signature); err != nil {
 			logger.Error("Failed to validate plugin signature.", mlog.Err(appErr))
 			return
 		}
@@ -270,7 +262,11 @@ func (ch *Channels) installPluginToFilestore(manifest *model.Manifest, bundle, s
 // plugin bundle from the prepackaged folder, if available, or remotely if EnableRemoteMarketplace
 // is true.
 func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError) {
-	logger := ch.srv.Log().With(mlog.String("plugin_id", request.Id))
+	logger := ch.srv.Log().With(
+		mlog.String("plugin_id", request.Id),
+		mlog.String("requested_version", request.Version),
+	)
+	logger.Info("Installing plugin from marketplace")
 
 	var pluginFile, signatureFile io.ReadSeeker
 
@@ -281,12 +277,19 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 	if prepackagedPlugin != nil {
 		fileReader, err := os.Open(prepackagedPlugin.Path)
 		if err != nil {
-			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, fmt.Sprintf("failed to open prepackaged plugin %s: %s", prepackagedPlugin.Path, err.Error()), http.StatusInternalServerError)
+			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, fmt.Sprintf("failed to open prepackaged plugin %s", prepackagedPlugin.Path), http.StatusInternalServerError).Wrap(err)
 		}
 		defer fileReader.Close()
 
+		signatureReader, err := os.Open(prepackagedPlugin.SignaturePath)
+		if err != nil {
+			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, fmt.Sprintf("failed to open prepackaged plugin signature %s", prepackagedPlugin.SignaturePath), http.StatusInternalServerError).Wrap(err)
+		}
+		defer signatureReader.Close()
+
 		pluginFile = fileReader
-		signatureFile = bytes.NewReader(prepackagedPlugin.Signature)
+		signatureFile = signatureReader
+		logger.Debug("Found matching pre-packaged plugin", mlog.String("bundle_path", prepackagedPlugin.Path), mlog.String("signature_path", prepackagedPlugin.SignaturePath))
 	}
 
 	if *ch.cfgSvc.Config().PluginSettings.EnableRemoteMarketplace {
@@ -313,6 +316,8 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 			}
 
 			if prepackagedVersion.LT(marketplaceVersion) { // Always true if no prepackaged plugin was found
+				logger.Debug("Found upgraded plugin from remote marketplace", mlog.String("version", plugin.Manifest.Version), mlog.String("download_url", plugin.DownloadURL))
+
 				downloadedPluginBytes, err := ch.srv.downloadFromURL(plugin.DownloadURL)
 				if err != nil {
 					return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -323,6 +328,8 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 				}
 				pluginFile = bytes.NewReader(downloadedPluginBytes)
 				signatureFile = signature
+			} else {
+				logger.Debug("Preferring pre-packaged plugin over version in remote marketplace", mlog.String("version", plugin.Manifest.Version), mlog.String("download_url", plugin.DownloadURL))
 			}
 		}
 	}
@@ -334,7 +341,7 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 		return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.marketplace_plugins.signature_not_found.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	appErr = ch.verifyPlugin(pluginFile, signatureFile)
+	appErr = ch.verifyPlugin(logger, pluginFile, signatureFile)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -459,12 +466,12 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 
 			version, err = semver.Parse(manifest.Version)
 			if err != nil {
-				return nil, model.NewAppError("installExtractedPlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
+				return nil, model.NewAppError("installExtractedPlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 
 			existingVersion, err = semver.Parse(existingManifest.Version)
 			if err != nil {
-				return nil, model.NewAppError("installExtractedPlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusInternalServerError)
+				return nil, model.NewAppError("installExtractedPlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 
 			if version.LTE(existingVersion) {
@@ -476,7 +483,7 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 		// Otherwise remove the existing installation prior to installing below.
 		logger.Info("Removing existing installation of plugin before local install", mlog.String("existing_version", existingManifest.Version))
 		if err := ch.removePluginLocally(existingManifest.Id); err != nil {
-			return nil, model.NewAppError("installExtractedPlugin", "app.plugin.install_id_failed_remove.app_error", nil, "", http.StatusInternalServerError)
+			return nil, model.NewAppError("installExtractedPlugin", "app.plugin.install_id_failed_remove.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -485,13 +492,6 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 	if err != nil {
 		return nil, model.NewAppError("installExtractedPlugin", "app.plugin.mvdir.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-
-	// Flag plugin locally as managed by the filestore.
-	f, err := os.Create(filepath.Join(bundlePath, managedPluginFileName))
-	if err != nil {
-		return nil, model.NewAppError("installExtractedPlugin", "app.plugin.flag_managed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	f.Close()
 
 	if manifest.HasWebapp() {
 		updatedManifest, err := pluginsEnvironment.UnpackWebappBundle(manifest.Id)

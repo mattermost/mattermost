@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useCallback, useMemo} from 'react';
+import React, {useState, useCallback, useMemo, useRef} from 'react';
 import {Modal} from 'react-bootstrap';
 import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 
+import {useFocusTrap} from '@mattermost/components/src/hooks/useFocusTrap';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -33,6 +34,9 @@ const AddUsersToGroupModal = (props: Props) => {
     const [usersToAdd, setUsersToAdd] = useState<UserProfile[]>([]);
     const [showUnknownError, setShowUnknownError] = useState(false);
     const {formatMessage} = useIntl();
+
+    const modalRef = useRef<HTMLDivElement>(null);
+    useFocusTrap(show, modalRef);
 
     const doHide = useCallback(() => {
         setShow(false);
@@ -97,63 +101,79 @@ const AddUsersToGroupModal = (props: Props) => {
             aria-labelledby='createUserGroupsModalLabel'
             id='addUsersToGroupsModal'
         >
-            <Modal.Header closeButton={true}>
-                <div className='d-flex align-items-center'>
+            <div ref={modalRef}>
+                <Modal.Header>
+                    <div className='d-flex align-items-center'>
+                        <button
+                            type='button'
+                            className='modal-header-back-button btn btn-icon'
+                            aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
+                            onClick={goBack}
+                        >
+                            <i className='icon icon-arrow-left'/>
+                        </button>
+                        <Modal.Title
+                            componentClass='h1'
+                            id='addUsersToGroupsModalLabel'
+                        >
+                            <FormattedMessage
+                                id='user_groups_modal.addPeopleTitle'
+                                defaultMessage='Add people to {group}'
+                                values={titleValue}
+                            />
+                        </Modal.Title>
+                    </div>
                     <button
                         type='button'
-                        className='modal-header-back-button btn btn-icon'
-                        aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
-                        onClick={goBack}
+                        className='close'
+                        onClick={props.onExited}
+                        aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
                     >
-                        <i className='icon icon-arrow-left'/>
-                    </button>
-                    <Modal.Title
-                        componentClass='h1'
-                        id='addUsersToGroupsModalLabel'
-                    >
-                        <FormattedMessage
-                            id='user_groups_modal.addPeopleTitle'
-                            defaultMessage='Add people to {group}'
-                            values={titleValue}
-                        />
-                    </Modal.Title>
-                </div>
-            </Modal.Header>
-            <Modal.Body
-                className='overflow--visible'
-            >
-                <div className='user-groups-modal__content'>
-                    <form role='form'>
-                        <div className='group-add-user'>
-                            <AddUserToGroupMultiSelect
-                                multilSelectKey={'addUsersToGroupKey'}
-                                onSubmitCallback={addUsersToGroup}
-                                focusOnLoad={false}
-                                savingEnabled={isSaveEnabled()}
-                                addUserCallback={addUserCallback}
-                                deleteUserCallback={deleteUserCallback}
-                                groupId={props.groupId}
-                                searchOptions={searchOptions}
-                                buttonSubmitText={defineMessage({id: 'multiselect.addPeopleToGroup', defaultMessage: 'Add People'})}
-                                buttonSubmitLoadingText={defineMessage({id: 'multiselect.adding', defaultMessage: 'Adding...'})}
-                                backButtonClick={goBack}
-                                backButtonClass={'multiselect-back'}
-                                saving={saving}
+                        <span aria-hidden='true'>{'×'}</span>
+                        <span className='sr-only'>
+                            <FormattedMessage
+                                id='generic.close'
+                                defaultMessage='Close'
                             />
-                        </div>
-                        {
-                            showUnknownError &&
-                            <div className='Input___error group-error'>
-                                <i className='icon icon-alert-outline'/>
-                                <FormattedMessage
-                                    id='user_groups_modal.unknownError'
-                                    defaultMessage='An unknown error has occurred.'
+                        </span>
+                    </button>
+                </Modal.Header>
+                <Modal.Body
+                    className='overflow--visible'
+                >
+                    <div className='user-groups-modal__content'>
+                        <form role='form'>
+                            <div className='group-add-user'>
+                                <AddUserToGroupMultiSelect
+                                    multilSelectKey={'addUsersToGroupKey'}
+                                    onSubmitCallback={addUsersToGroup}
+                                    focusOnLoad={false}
+                                    savingEnabled={isSaveEnabled()}
+                                    addUserCallback={addUserCallback}
+                                    deleteUserCallback={deleteUserCallback}
+                                    groupId={props.groupId}
+                                    searchOptions={searchOptions}
+                                    buttonSubmitText={defineMessage({id: 'multiselect.addPeopleToGroup', defaultMessage: 'Add People'})}
+                                    buttonSubmitLoadingText={defineMessage({id: 'multiselect.adding', defaultMessage: 'Adding...'})}
+                                    backButtonClick={goBack}
+                                    backButtonClass={'multiselect-back'}
+                                    saving={saving}
                                 />
                             </div>
-                        }
-                    </form>
-                </div>
-            </Modal.Body>
+                            {
+                                showUnknownError &&
+                                <div className='Input___error group-error'>
+                                    <i className='icon icon-alert-outline'/>
+                                    <FormattedMessage
+                                        id='user_groups_modal.unknownError'
+                                        defaultMessage='An unknown error has occurred.'
+                                    />
+                                </div>
+                            }
+                        </form>
+                    </div>
+                </Modal.Body>
+            </div>
         </Modal>
     );
 };

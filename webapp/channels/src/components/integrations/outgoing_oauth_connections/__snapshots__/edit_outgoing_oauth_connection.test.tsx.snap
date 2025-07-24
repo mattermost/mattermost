@@ -548,45 +548,32 @@ https://myothersite.com/api/v2"
                       />
                     }
                   >
-                    <Modal
-                      animation={true}
-                      aria-describedby="confirmModalBody"
-                      aria-labelledby="confirmModalLabel"
-                      aria-modal={true}
-                      autoFocus={true}
-                      backdrop={true}
-                      bsClass="modal"
-                      className="modal-confirm integrations-backstage-modal"
-                      dialogClassName="a11y__modal"
-                      dialogComponentClass={[Function]}
-                      enforceFocus={true}
+                    <GenericModal
+                      ariaLabelledby="confirmModalLabel"
+                      className="ConfirmModal a11y__modal integrations-backstage-modal"
+                      compassDesign={true}
                       id="confirmModal"
-                      keyboard={true}
-                      manager={
-                        ModalManager {
-                          "add": [Function],
-                          "containers": Array [],
-                          "data": Array [],
-                          "handleContainerOverflow": true,
-                          "hideSiblingNodes": true,
-                          "isTopModal": [Function],
-                          "modals": Array [],
-                          "remove": [Function],
-                        }
+                      modalHeaderText={
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Edit Outgoing OAuth Connection"
+                          id="update_outgoing_oauth_connection.confirm"
+                        />
                       }
+                      onExited={[Function]}
                       onHide={[Function]}
-                      renderBackdrop={[Function]}
-                      restoreFocus={true}
-                      role="none"
                       show={false}
                     >
                       <Modal
+                        animation={true}
+                        aria-labelledby="confirmModalLabel"
+                        aria-modal="true"
                         autoFocus={true}
                         backdrop={true}
-                        backdropClassName="modal-backdrop"
-                        backdropTransition={[Function]}
-                        containerClassName="modal-open"
+                        bsClass="modal"
+                        dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal integrations-backstage-modal"
+                        dialogComponentClass={[Function]}
                         enforceFocus={true}
+                        id="confirmModal"
                         keyboard={true}
                         manager={
                           ModalManager {
@@ -600,15 +587,44 @@ https://myothersite.com/api/v2"
                             "remove": [Function],
                           }
                         }
-                        onEntering={[Function]}
                         onExited={[Function]}
                         onHide={[Function]}
                         renderBackdrop={[Function]}
                         restoreFocus={true}
+                        role="none"
                         show={false}
-                        transition={[Function]}
-                      />
-                    </Modal>
+                        style={Object {}}
+                      >
+                        <Modal
+                          autoFocus={true}
+                          backdrop={true}
+                          backdropClassName="modal-backdrop"
+                          backdropTransition={[Function]}
+                          containerClassName="modal-open"
+                          enforceFocus={true}
+                          keyboard={true}
+                          manager={
+                            ModalManager {
+                              "add": [Function],
+                              "containers": Array [],
+                              "data": Array [],
+                              "handleContainerOverflow": true,
+                              "hideSiblingNodes": true,
+                              "isTopModal": [Function],
+                              "modals": Array [],
+                              "remove": [Function],
+                            }
+                          }
+                          onEntering={[Function]}
+                          onExited={[Function]}
+                          onHide={[Function]}
+                          renderBackdrop={[Function]}
+                          restoreFocus={true}
+                          show={false}
+                          transition={[Function]}
+                        />
+                      </Modal>
+                    </GenericModal>
                   </ConfirmModal>
                 </div>
               </form>
@@ -648,46 +664,27 @@ https://myothersite.com/api/v2"
               show={false}
               title="Save Outgoing OAuth Connection"
             >
-              <Modal
-                animation={true}
-                aria-describedby="confirmModalBody"
-                aria-labelledby="confirmModalLabel"
-                aria-modal={true}
-                autoFocus={true}
-                backdrop={true}
-                bsClass="modal"
-                className="modal-confirm "
-                dialogClassName="a11y__modal"
-                dialogComponentClass={[Function]}
-                enforceFocus={true}
+              <GenericModal
+                ariaLabelledby="confirmModalLabel"
+                className="ConfirmModal a11y__modal "
+                compassDesign={true}
                 id="confirmModal"
-                keyboard={true}
-                manager={
-                  ModalManager {
-                    "add": [Function],
-                    "containers": Array [],
-                    "data": Array [],
-                    "handleContainerOverflow": true,
-                    "hideSiblingNodes": true,
-                    "isTopModal": [Function],
-                    "modals": Array [],
-                    "remove": [Function],
-                  }
-                }
+                modalHeaderText="Save Outgoing OAuth Connection"
                 onExited={[Function]}
                 onHide={[Function]}
-                renderBackdrop={[Function]}
-                restoreFocus={true}
-                role="none"
                 show={false}
               >
                 <Modal
+                  animation={true}
+                  aria-labelledby="confirmModalLabel"
+                  aria-modal="true"
                   autoFocus={true}
                   backdrop={true}
-                  backdropClassName="modal-backdrop"
-                  backdropTransition={[Function]}
-                  containerClassName="modal-open"
+                  bsClass="modal"
+                  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal "
+                  dialogComponentClass={[Function]}
                   enforceFocus={true}
+                  id="confirmModal"
                   keyboard={true}
                   manager={
                     ModalManager {
@@ -701,15 +698,44 @@ https://myothersite.com/api/v2"
                       "remove": [Function],
                     }
                   }
-                  onEntering={[Function]}
                   onExited={[Function]}
                   onHide={[Function]}
                   renderBackdrop={[Function]}
                   restoreFocus={true}
+                  role="none"
                   show={false}
-                  transition={[Function]}
-                />
-              </Modal>
+                  style={Object {}}
+                >
+                  <Modal
+                    autoFocus={true}
+                    backdrop={true}
+                    backdropClassName="modal-backdrop"
+                    backdropTransition={[Function]}
+                    containerClassName="modal-open"
+                    enforceFocus={true}
+                    keyboard={true}
+                    manager={
+                      ModalManager {
+                        "add": [Function],
+                        "containers": Array [],
+                        "data": Array [],
+                        "handleContainerOverflow": true,
+                        "hideSiblingNodes": true,
+                        "isTopModal": [Function],
+                        "modals": Array [],
+                        "remove": [Function],
+                      }
+                    }
+                    onEntering={[Function]}
+                    onExited={[Function]}
+                    onHide={[Function]}
+                    renderBackdrop={[Function]}
+                    restoreFocus={true}
+                    show={false}
+                    transition={[Function]}
+                  />
+                </Modal>
+              </GenericModal>
             </ConfirmModal>
           </div>
         </AbstractOutgoingOAuthConnection>
@@ -1268,45 +1294,32 @@ https://myothersite.com/api/v2"
                       />
                     }
                   >
-                    <Modal
-                      animation={true}
-                      aria-describedby="confirmModalBody"
-                      aria-labelledby="confirmModalLabel"
-                      aria-modal={true}
-                      autoFocus={true}
-                      backdrop={true}
-                      bsClass="modal"
-                      className="modal-confirm integrations-backstage-modal"
-                      dialogClassName="a11y__modal"
-                      dialogComponentClass={[Function]}
-                      enforceFocus={true}
+                    <GenericModal
+                      ariaLabelledby="confirmModalLabel"
+                      className="ConfirmModal a11y__modal integrations-backstage-modal"
+                      compassDesign={true}
                       id="confirmModal"
-                      keyboard={true}
-                      manager={
-                        ModalManager {
-                          "add": [Function],
-                          "containers": Array [],
-                          "data": Array [],
-                          "handleContainerOverflow": true,
-                          "hideSiblingNodes": true,
-                          "isTopModal": [Function],
-                          "modals": Array [],
-                          "remove": [Function],
-                        }
+                      modalHeaderText={
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Edit Outgoing OAuth Connection"
+                          id="update_outgoing_oauth_connection.confirm"
+                        />
                       }
+                      onExited={[Function]}
                       onHide={[Function]}
-                      renderBackdrop={[Function]}
-                      restoreFocus={true}
-                      role="none"
                       show={false}
                     >
                       <Modal
+                        animation={true}
+                        aria-labelledby="confirmModalLabel"
+                        aria-modal="true"
                         autoFocus={true}
                         backdrop={true}
-                        backdropClassName="modal-backdrop"
-                        backdropTransition={[Function]}
-                        containerClassName="modal-open"
+                        bsClass="modal"
+                        dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal integrations-backstage-modal"
+                        dialogComponentClass={[Function]}
                         enforceFocus={true}
+                        id="confirmModal"
                         keyboard={true}
                         manager={
                           ModalManager {
@@ -1320,15 +1333,44 @@ https://myothersite.com/api/v2"
                             "remove": [Function],
                           }
                         }
-                        onEntering={[Function]}
                         onExited={[Function]}
                         onHide={[Function]}
                         renderBackdrop={[Function]}
                         restoreFocus={true}
+                        role="none"
                         show={false}
-                        transition={[Function]}
-                      />
-                    </Modal>
+                        style={Object {}}
+                      >
+                        <Modal
+                          autoFocus={true}
+                          backdrop={true}
+                          backdropClassName="modal-backdrop"
+                          backdropTransition={[Function]}
+                          containerClassName="modal-open"
+                          enforceFocus={true}
+                          keyboard={true}
+                          manager={
+                            ModalManager {
+                              "add": [Function],
+                              "containers": Array [],
+                              "data": Array [],
+                              "handleContainerOverflow": true,
+                              "hideSiblingNodes": true,
+                              "isTopModal": [Function],
+                              "modals": Array [],
+                              "remove": [Function],
+                            }
+                          }
+                          onEntering={[Function]}
+                          onExited={[Function]}
+                          onHide={[Function]}
+                          renderBackdrop={[Function]}
+                          restoreFocus={true}
+                          show={false}
+                          transition={[Function]}
+                        />
+                      </Modal>
+                    </GenericModal>
                   </ConfirmModal>
                 </div>
               </form>
@@ -1368,46 +1410,27 @@ https://myothersite.com/api/v2"
               show={false}
               title="Save Outgoing OAuth Connection"
             >
-              <Modal
-                animation={true}
-                aria-describedby="confirmModalBody"
-                aria-labelledby="confirmModalLabel"
-                aria-modal={true}
-                autoFocus={true}
-                backdrop={true}
-                bsClass="modal"
-                className="modal-confirm "
-                dialogClassName="a11y__modal"
-                dialogComponentClass={[Function]}
-                enforceFocus={true}
+              <GenericModal
+                ariaLabelledby="confirmModalLabel"
+                className="ConfirmModal a11y__modal "
+                compassDesign={true}
                 id="confirmModal"
-                keyboard={true}
-                manager={
-                  ModalManager {
-                    "add": [Function],
-                    "containers": Array [],
-                    "data": Array [],
-                    "handleContainerOverflow": true,
-                    "hideSiblingNodes": true,
-                    "isTopModal": [Function],
-                    "modals": Array [],
-                    "remove": [Function],
-                  }
-                }
+                modalHeaderText="Save Outgoing OAuth Connection"
                 onExited={[Function]}
                 onHide={[Function]}
-                renderBackdrop={[Function]}
-                restoreFocus={true}
-                role="none"
                 show={false}
               >
                 <Modal
+                  animation={true}
+                  aria-labelledby="confirmModalLabel"
+                  aria-modal="true"
                   autoFocus={true}
                   backdrop={true}
-                  backdropClassName="modal-backdrop"
-                  backdropTransition={[Function]}
-                  containerClassName="modal-open"
+                  bsClass="modal"
+                  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal "
+                  dialogComponentClass={[Function]}
                   enforceFocus={true}
+                  id="confirmModal"
                   keyboard={true}
                   manager={
                     ModalManager {
@@ -1421,15 +1444,44 @@ https://myothersite.com/api/v2"
                       "remove": [Function],
                     }
                   }
-                  onEntering={[Function]}
                   onExited={[Function]}
                   onHide={[Function]}
                   renderBackdrop={[Function]}
                   restoreFocus={true}
+                  role="none"
                   show={false}
-                  transition={[Function]}
-                />
-              </Modal>
+                  style={Object {}}
+                >
+                  <Modal
+                    autoFocus={true}
+                    backdrop={true}
+                    backdropClassName="modal-backdrop"
+                    backdropTransition={[Function]}
+                    containerClassName="modal-open"
+                    enforceFocus={true}
+                    keyboard={true}
+                    manager={
+                      ModalManager {
+                        "add": [Function],
+                        "containers": Array [],
+                        "data": Array [],
+                        "handleContainerOverflow": true,
+                        "hideSiblingNodes": true,
+                        "isTopModal": [Function],
+                        "modals": Array [],
+                        "remove": [Function],
+                      }
+                    }
+                    onEntering={[Function]}
+                    onExited={[Function]}
+                    onHide={[Function]}
+                    renderBackdrop={[Function]}
+                    restoreFocus={true}
+                    show={false}
+                    transition={[Function]}
+                  />
+                </Modal>
+              </GenericModal>
             </ConfirmModal>
           </div>
         </AbstractOutgoingOAuthConnection>
@@ -1987,45 +2039,32 @@ https://myothersite.com/api/v2"
                       />
                     }
                   >
-                    <Modal
-                      animation={true}
-                      aria-describedby="confirmModalBody"
-                      aria-labelledby="confirmModalLabel"
-                      aria-modal={true}
-                      autoFocus={true}
-                      backdrop={true}
-                      bsClass="modal"
-                      className="modal-confirm integrations-backstage-modal"
-                      dialogClassName="a11y__modal"
-                      dialogComponentClass={[Function]}
-                      enforceFocus={true}
+                    <GenericModal
+                      ariaLabelledby="confirmModalLabel"
+                      className="ConfirmModal a11y__modal integrations-backstage-modal"
+                      compassDesign={true}
                       id="confirmModal"
-                      keyboard={true}
-                      manager={
-                        ModalManager {
-                          "add": [Function],
-                          "containers": Array [],
-                          "data": Array [],
-                          "handleContainerOverflow": true,
-                          "hideSiblingNodes": true,
-                          "isTopModal": [Function],
-                          "modals": Array [],
-                          "remove": [Function],
-                        }
+                      modalHeaderText={
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Edit Outgoing OAuth Connection"
+                          id="update_outgoing_oauth_connection.confirm"
+                        />
                       }
+                      onExited={[Function]}
                       onHide={[Function]}
-                      renderBackdrop={[Function]}
-                      restoreFocus={true}
-                      role="none"
                       show={false}
                     >
                       <Modal
+                        animation={true}
+                        aria-labelledby="confirmModalLabel"
+                        aria-modal="true"
                         autoFocus={true}
                         backdrop={true}
-                        backdropClassName="modal-backdrop"
-                        backdropTransition={[Function]}
-                        containerClassName="modal-open"
+                        bsClass="modal"
+                        dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal integrations-backstage-modal"
+                        dialogComponentClass={[Function]}
                         enforceFocus={true}
+                        id="confirmModal"
                         keyboard={true}
                         manager={
                           ModalManager {
@@ -2039,15 +2078,44 @@ https://myothersite.com/api/v2"
                             "remove": [Function],
                           }
                         }
-                        onEntering={[Function]}
                         onExited={[Function]}
                         onHide={[Function]}
                         renderBackdrop={[Function]}
                         restoreFocus={true}
+                        role="none"
                         show={false}
-                        transition={[Function]}
-                      />
-                    </Modal>
+                        style={Object {}}
+                      >
+                        <Modal
+                          autoFocus={true}
+                          backdrop={true}
+                          backdropClassName="modal-backdrop"
+                          backdropTransition={[Function]}
+                          containerClassName="modal-open"
+                          enforceFocus={true}
+                          keyboard={true}
+                          manager={
+                            ModalManager {
+                              "add": [Function],
+                              "containers": Array [],
+                              "data": Array [],
+                              "handleContainerOverflow": true,
+                              "hideSiblingNodes": true,
+                              "isTopModal": [Function],
+                              "modals": Array [],
+                              "remove": [Function],
+                            }
+                          }
+                          onEntering={[Function]}
+                          onExited={[Function]}
+                          onHide={[Function]}
+                          renderBackdrop={[Function]}
+                          restoreFocus={true}
+                          show={false}
+                          transition={[Function]}
+                        />
+                      </Modal>
+                    </GenericModal>
                   </ConfirmModal>
                 </div>
               </form>
@@ -2087,46 +2155,27 @@ https://myothersite.com/api/v2"
               show={false}
               title="Save Outgoing OAuth Connection"
             >
-              <Modal
-                animation={true}
-                aria-describedby="confirmModalBody"
-                aria-labelledby="confirmModalLabel"
-                aria-modal={true}
-                autoFocus={true}
-                backdrop={true}
-                bsClass="modal"
-                className="modal-confirm "
-                dialogClassName="a11y__modal"
-                dialogComponentClass={[Function]}
-                enforceFocus={true}
+              <GenericModal
+                ariaLabelledby="confirmModalLabel"
+                className="ConfirmModal a11y__modal "
+                compassDesign={true}
                 id="confirmModal"
-                keyboard={true}
-                manager={
-                  ModalManager {
-                    "add": [Function],
-                    "containers": Array [],
-                    "data": Array [],
-                    "handleContainerOverflow": true,
-                    "hideSiblingNodes": true,
-                    "isTopModal": [Function],
-                    "modals": Array [],
-                    "remove": [Function],
-                  }
-                }
+                modalHeaderText="Save Outgoing OAuth Connection"
                 onExited={[Function]}
                 onHide={[Function]}
-                renderBackdrop={[Function]}
-                restoreFocus={true}
-                role="none"
                 show={false}
               >
                 <Modal
+                  animation={true}
+                  aria-labelledby="confirmModalLabel"
+                  aria-modal="true"
                   autoFocus={true}
                   backdrop={true}
-                  backdropClassName="modal-backdrop"
-                  backdropTransition={[Function]}
-                  containerClassName="modal-open"
+                  bsClass="modal"
+                  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal "
+                  dialogComponentClass={[Function]}
                   enforceFocus={true}
+                  id="confirmModal"
                   keyboard={true}
                   manager={
                     ModalManager {
@@ -2140,15 +2189,44 @@ https://myothersite.com/api/v2"
                       "remove": [Function],
                     }
                   }
-                  onEntering={[Function]}
                   onExited={[Function]}
                   onHide={[Function]}
                   renderBackdrop={[Function]}
                   restoreFocus={true}
+                  role="none"
                   show={false}
-                  transition={[Function]}
-                />
-              </Modal>
+                  style={Object {}}
+                >
+                  <Modal
+                    autoFocus={true}
+                    backdrop={true}
+                    backdropClassName="modal-backdrop"
+                    backdropTransition={[Function]}
+                    containerClassName="modal-open"
+                    enforceFocus={true}
+                    keyboard={true}
+                    manager={
+                      ModalManager {
+                        "add": [Function],
+                        "containers": Array [],
+                        "data": Array [],
+                        "handleContainerOverflow": true,
+                        "hideSiblingNodes": true,
+                        "isTopModal": [Function],
+                        "modals": Array [],
+                        "remove": [Function],
+                      }
+                    }
+                    onEntering={[Function]}
+                    onExited={[Function]}
+                    onHide={[Function]}
+                    renderBackdrop={[Function]}
+                    restoreFocus={true}
+                    show={false}
+                    transition={[Function]}
+                  />
+                </Modal>
+              </GenericModal>
             </ConfirmModal>
           </div>
         </AbstractOutgoingOAuthConnection>

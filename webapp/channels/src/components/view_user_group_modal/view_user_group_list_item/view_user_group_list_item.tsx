@@ -2,14 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
+import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {GroupSource} from '@mattermost/types/groups';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
+import {isSyncableSource} from 'mattermost-redux/utils/group_utils';
 
 import StatusIcon from 'components/status_icon';
 import Avatar from 'components/widgets/users/avatar';
@@ -31,6 +32,7 @@ export type Props = {
 }
 
 const ViewUserGroupListItem = (props: Props) => {
+    const {formatMessage} = useIntl();
     const {
         user,
         group,
@@ -72,14 +74,18 @@ const ViewUserGroupListItem = (props: Props) => {
                 {`@${user.username}`}
             </div>
             {
-                (group.source.toLowerCase() !== GroupSource.Ldap && props.permissionToLeaveGroup) &&
+                (!isSyncableSource(group.source.toLowerCase()) && props.permissionToLeaveGroup) &&
                 <button
                     type='button'
                     className='remove-group-member btn btn-icon btn-xs'
-                    aria-label='Close'
+                    aria-label={formatMessage({
+                        id: 'view_user_group_list_item.removeUserFromGroup',
+                        defaultMessage: 'Remove {user} from group',
+                    }, {user: Utils.getFullName(user)})}
                     onClick={removeUserFromGroup}
                 >
                     <i
+                        aria-hidden='true'
                         className='icon icon-trash-can-outline'
                     />
                 </button>

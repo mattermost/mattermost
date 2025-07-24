@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef, useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled, {css} from 'styled-components';
@@ -10,7 +10,8 @@ import {CloseIcon, PlaylistCheckIcon} from '@mattermost/compass-icons/components
 
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getMyPreferences, savePreferences} from 'mattermost-redux/actions/preferences';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {
     getBool,
     getMyPreferences as getMyPreferencesSelector,
@@ -128,6 +129,10 @@ const Button = styled.button<{open: boolean}>(({open}) => {
 const OnBoardingTaskList = (): JSX.Element | null => {
     const {formatMessage} = useIntl();
     const hasPreferences = useSelector((state: GlobalState) => Object.keys(getMyPreferencesSelector(state)).length !== 0);
+    const subscription = useSelector(getCloudSubscription);
+    const license = useSelector(getLicense);
+    const isCloud = license?.Cloud === 'true';
+    const isCloudPreview = subscription?.is_cloud_preview === true;
 
     useEffect(() => {
         dispatch(getPrevTrialLicense());
@@ -137,7 +142,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
     }, []);
 
     const open = useSelector(((state: GlobalState) => getBool(state, OnboardingTaskCategory, OnboardingTaskList.ONBOARDING_TASK_LIST_OPEN)));
-    const trigger = useRef<HTMLButtonElement>(null);
+    const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null);
     const dispatch = useDispatch();
     const currentUserId = useSelector(getCurrentUserId);
     const handleTaskTrigger = useHandleOnBoardingTaskTrigger();
@@ -244,7 +249,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
         trackEvent(OnboardingTaskCategory, open ? OnboardingTaskList.ONBOARDING_TASK_LIST_CLOSE : OnboardingTaskList.ONBOARDING_TASK_LIST_OPEN);
     }, [open, currentUserId]);
 
-    if (!hasPreferences || !showTaskList || !isEnableOnboardingFlow) {
+    if (!hasPreferences || !showTaskList || !isEnableOnboardingFlow || (isCloud && isCloudPreview)) {
         return null;
     }
 
@@ -253,7 +258,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
             <CompletedAnimation completed={showAnimation}/>
             <Button
                 onClick={toggleTaskList}
-                ref={trigger}
+                ref={(element) => setTrigger(element)}
                 open={open}
                 data-cy='onboarding-task-list-action-button'
                 aria-label={formatMessage({id: 'onboardingTask.checklist.start_onboarding_process', defaultMessage: 'Start the onboarding process.'})}
@@ -303,7 +308,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
                             >
                                 <FormattedMessage
                                     id='onboardingTask.checklist.dismiss_link'
-                                    defaultMessage='No thanks, I’ll figure it out myself'
+                                    defaultMessage="No thanks, I'll figure it out myself"
                                 />
                             </span>
                         </>

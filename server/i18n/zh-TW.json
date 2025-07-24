@@ -208,10 +208,6 @@
     "translation": "無法退出私人訊息頻道。"
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "您是最後一位成員，請移除私人頻道而不是退出。"
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v 已離開頻道。"
   },
@@ -5122,10 +5118,6 @@
   {
     "id": "app.plugin.get_public_key.get_file.app_error",
     "translation": "從儲存空間取得公鑰時發生錯誤。"
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "無法設定模組為被檔案儲存空間管理。"
   },
   {
     "id": "app.plugin.delete_public_key.delete.app_error",

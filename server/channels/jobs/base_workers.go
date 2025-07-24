@@ -8,7 +8,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 type SimpleWorker struct {
@@ -73,23 +72,14 @@ func (worker *SimpleWorker) DoJob(job *model.Job) {
 	logger := worker.logger.With(JobLoggerFields(job)...)
 	logger.Debug("Worker: Received a new candidate job.")
 
-	if claimed, err := worker.jobServer.ClaimJob(job); err != nil {
-		logger.Warn("SimpleWorker experienced an error while trying to claim job", mlog.Err(err))
-		return
-	} else if !claimed {
-		return
-	}
-
-	c := request.EmptyContext(worker.logger)
-
-	// We get the job again because ClaimJob changes the job status.
-	newJob, appErr := worker.jobServer.GetJob(c, job.Id)
+	var appErr *model.AppError
+	job, appErr = worker.jobServer.ClaimJob(job)
 	if appErr != nil {
-		logger.Error("SimpleWorker: job execution error", mlog.Err(appErr))
-		worker.setJobError(logger, job, appErr)
+		logger.Warn("SimpleWorker experienced an error while trying to claim job", mlog.Err(appErr))
+		return
+	} else if job == nil {
 		return
 	}
-	job = newJob
 
 	err := worker.execute(logger, job)
 	if err != nil {

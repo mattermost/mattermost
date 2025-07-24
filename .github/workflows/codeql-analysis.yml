@@ -3,9 +3,9 @@ name: "CodeQL"
 on:
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [ master ]
+    branches: [master]
   schedule:
-    - cron: '30 5,17 * * *'
+    - cron: "30 5,17 * * *"
 
 permissions:
   contents: read
@@ -13,7 +13,7 @@ permissions:
 jobs:
   analyze:
     permissions:
-      security-events: write  # for github/codeql-action/autobuild to send a status report
+      security-events: write # for github/codeql-action/autobuild to send a status report
     name: Analyze
     if: github.repository_owner == 'mattermost'
     runs-on: ubuntu-latest
@@ -21,38 +21,37 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'go', 'javascript' ]
+        language: ["go", "javascript"]
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-    # Initializes the CodeQL tools for scanning.
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3.28.9
-      with:
-        languages: ${{ matrix.language }}
-        debug: false
-        config-file: ./.github/codeql/codeql-config.yml
+      # Initializes the CodeQL tools for scanning.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@ff0a06e83cb2de871e5a09832bc6a81e7276941f # v3.28.18
+        with:
+          languages: ${{ matrix.language }}
+          debug: false
+          config-file: ./.github/codeql/codeql-config.yml
 
-    - name: Build JavaScript
-      uses: github/codeql-action/autobuild@v3.28.9
-      if: ${{ matrix.language  == 'javascript' }}
+      - name: Build JavaScript
+        uses: github/codeql-action/autobuild@ff0a06e83cb2de871e5a09832bc6a81e7276941f # v3.28.18
+        if: ${{ matrix.language  == 'javascript' }}
 
-    - name: Setup go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.22'
-      if: ${{ matrix.language == 'go' }}
+      - name: Setup go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: server/go.mod
+        if: ${{ matrix.language == 'go' }}
 
+      - name: Build Golang
+        run: |
+          cd server
+          make setup-go-work
+          make build-linux-amd64
+        if: ${{ matrix.language == 'go' }}
 
-    - name: Build Golang
-      run: |
-        cd server
-        make setup-go-work
-        make build-linux-amd64
-      if: ${{ matrix.language == 'go' }}
-
-    # Perform Analysis
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3.28.9
+      # Perform Analysis
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@ff0a06e83cb2de871e5a09832bc6a81e7276941f # v3.28.18

@@ -270,8 +270,34 @@ describe('handleGroupAddedMemberEvent', () => {
 
         testStore.dispatch(handleGroupAddedMemberEvent(msg));
         expect(store.dispatch).toHaveBeenCalledWith({
-            type: 'ADD_MY_GROUP',
-            id: 'group-1',
+            meta: {batch: true},
+            payload: [
+                {
+                    type: 'ADD_MY_GROUP',
+                    id: 'group-1',
+                },
+                {
+                    data: {
+                        create_at: 1691178673417,
+                        delete_at: 0,
+                        group_id: 'group-1',
+                        user_id: 'currentUserId',
+                    },
+                    id: 'group-1',
+                    type: 'RECEIVED_MEMBER_TO_ADD_TO_GROUP',
+                },
+                {
+                    data: [{
+                        create_at: 1691178673417,
+                        delete_at: 0,
+                        group_id: 'group-1',
+                        user_id: 'currentUserId',
+                    }],
+                    id: 'group-1',
+                    type: 'RECEIVED_PROFILES_FOR_GROUP',
+                },
+            ],
+            type: 'BATCHING_REDUCER.BATCH',
         });
     });
 
@@ -1390,9 +1416,9 @@ describe('handleCustomAttributeCRUD', () => {
 
         let cpaFields = getCustomProfileAttributes(testStore.getState());
         expect(cpaFields).toBeTruthy();
-        expect(Object.keys(cpaFields).length).toEqual(1);
-        expect(cpaFields.field1.type).toEqual(field1.type);
-        expect(cpaFields.field1.name).toEqual(field1.name);
+        expect(cpaFields.length).toEqual(1);
+        expect(cpaFields.filter(({id}) => id === field1.id)[0].type).toEqual(field1.type);
+        expect(cpaFields.filter(({id}) => id === field1.id)[0].name).toEqual(field1.name);
 
         // create second field
         testStore.dispatch(handleCustomAttributesCreated({
@@ -1404,9 +1430,9 @@ describe('handleCustomAttributeCRUD', () => {
 
         cpaFields = getCustomProfileAttributes(testStore.getState());
         expect(cpaFields).toBeTruthy();
-        expect(Object.keys(cpaFields).length).toEqual(2);
-        expect(cpaFields.field2.type).toEqual(field2.type);
-        expect(cpaFields.field2.name).toEqual(field2.name);
+        expect(cpaFields.length).toEqual(2);
+        expect(cpaFields.filter(({id}) => id === field2.id)[0].type).toEqual(field2.type);
+        expect(cpaFields.filter(({id}) => id === field2.id)[0].name).toEqual(field2.name);
 
         // update field
         testStore.dispatch(handleCustomAttributesUpdated({
@@ -1418,9 +1444,9 @@ describe('handleCustomAttributeCRUD', () => {
 
         cpaFields = getCustomProfileAttributes(testStore.getState());
         expect(cpaFields).toBeTruthy();
-        expect(Object.keys(cpaFields).length).toEqual(2);
-        expect(cpaFields.field1.name).toEqual('Updated Name');
-        expect(cpaFields.field2.name).toEqual(field2.name);
+        expect(cpaFields.length).toEqual(2);
+        expect(cpaFields.filter(({id}) => id === field1.id)[0].name).toEqual('Updated Name');
+        expect(cpaFields.filter(({id}) => id === field2.id)[0].name).toEqual(field2.name);
 
         // delete field
         testStore.dispatch(handleCustomAttributesDeleted({
@@ -1432,7 +1458,184 @@ describe('handleCustomAttributeCRUD', () => {
 
         cpaFields = getCustomProfileAttributes(testStore.getState());
         expect(cpaFields).toBeTruthy();
-        expect(Object.keys(cpaFields).length).toEqual(1);
-        expect(cpaFields.field2).toBeTruthy();
+        expect(cpaFields.length).toEqual(1);
+        expect(cpaFields.filter(({id}) => id === field2.id)[0]).toBeTruthy();
+    });
+
+    describe('handleCustomAttributesUpdated', () => {
+        test('should update the CustomAttributeField in the state', () => {
+            const testStore = realConfigureStore(makeInitialState());
+
+            // First create a field
+            testStore.dispatch(handleCustomAttributesCreated({
+                event: SocketEvents.CPA_FIELD_CREATED,
+                data: {
+                    field: field1,
+                },
+            }));
+
+            let cpaFields = getCustomProfileAttributes(testStore.getState());
+            expect(cpaFields).toBeTruthy();
+            expect(cpaFields.length).toEqual(1);
+            expect(cpaFields.filter(({id}) => id === field1.id)[0].name).toEqual(field1.name);
+
+            // Update the field
+            const updatedField = {...field1, name: 'Updated Field Name'};
+            testStore.dispatch(handleCustomAttributesUpdated({
+                event: SocketEvents.CPA_FIELD_UPDATED,
+                data: {
+                    field: updatedField,
+                },
+            }));
+
+            cpaFields = getCustomProfileAttributes(testStore.getState());
+            expect(cpaFields).toBeTruthy();
+            expect(cpaFields.length).toEqual(1);
+            expect(cpaFields.filter(({id}) => id === field1.id)[0].name).toEqual('Updated Field Name');
+        });
+
+        test('should clear values when delete_values is true', () => {
+            // Set up a state with a user that has a custom profile attribute value
+            const testStore = realConfigureStore({
+                entities: {
+                    general: {},
+                    users: {
+                        profiles: {
+                            user1: {
+                                id: 'user1',
+                                custom_profile_attributes: {
+                                    [field1.id]: 'some value',
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+
+            // First create a field
+            testStore.dispatch(handleCustomAttributesCreated({
+                event: SocketEvents.CPA_FIELD_CREATED,
+                data: {
+                    field: field1,
+                },
+            }));
+
+            // Update the field with delete_values flag
+            const updatedField = {...field1, type: 'select'};
+            testStore.dispatch(handleCustomAttributesUpdated({
+                event: SocketEvents.CPA_FIELD_UPDATED,
+                data: {
+                    field: updatedField,
+                    delete_values: true,
+                },
+            }));
+
+            // Check that the field was updated
+            const cpaFields = getCustomProfileAttributes(testStore.getState());
+            expect(cpaFields).toBeTruthy();
+            expect(cpaFields.length).toEqual(1);
+            expect(cpaFields.filter(({id}) => id === field1.id)[0].type).toEqual('select');
+
+            // Check that the user's values for this field were cleared
+            const user = testStore.getState().entities.users.profiles.user1;
+            expect(user.custom_profile_attributes?.[field1.id]).toBeFalsy();
+        });
+
+        test('should not clear values when delete_values is false', () => {
+            // Set up a state with a user that has a custom profile attribute value
+            const testStore = realConfigureStore({
+                entities: {
+                    general: {},
+                    users: {
+                        profiles: {
+                            user1: {
+                                id: 'user1',
+                                custom_profile_attributes: {
+                                    [field1.id]: 'some value',
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+
+            // First create a field
+            testStore.dispatch(handleCustomAttributesCreated({
+                event: SocketEvents.CPA_FIELD_CREATED,
+                data: {
+                    field: field1,
+                },
+            }));
+
+            // Update the field but with delete_values flag set to false
+            const updatedField = {...field1, name: 'Updated Field Name', type: 'text'};
+            testStore.dispatch(handleCustomAttributesUpdated({
+                event: SocketEvents.CPA_FIELD_UPDATED,
+                data: {
+                    field: updatedField,
+                    delete_values: false,
+                },
+            }));
+
+            // Check that the field was updated
+            const cpaFields = getCustomProfileAttributes(testStore.getState());
+            expect(cpaFields).toBeTruthy();
+            expect(cpaFields.length).toEqual(1);
+            expect(cpaFields.filter(({id}) => id === field1.id)[0].name).toEqual('Updated Field Name');
+
+            // Check that the user's values for this field were NOT cleared
+            const user = testStore.getState().entities.users.profiles.user1;
+            expect(user.custom_profile_attributes).toBeTruthy();
+            expect(user.custom_profile_attributes[field1.id]).toEqual('some value');
+        });
+
+        test('should not clear values when delete_values is not specified', () => {
+            // Set up a state with a user that has a custom profile attribute value
+            const testStore = realConfigureStore({
+                entities: {
+                    general: {},
+                    users: {
+                        profiles: {
+                            user1: {
+                                id: 'user1',
+                                custom_profile_attributes: {
+                                    [field1.id]: 'some value',
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+
+            // First create a field
+            testStore.dispatch(handleCustomAttributesCreated({
+                event: SocketEvents.CPA_FIELD_CREATED,
+                data: {
+                    field: field1,
+                },
+            }));
+
+            // Update the field without specifying delete_values
+            const updatedField = {...field1, type: 'number'};
+            testStore.dispatch(handleCustomAttributesUpdated({
+                event: SocketEvents.CPA_FIELD_UPDATED,
+                data: {
+                    field: updatedField,
+
+                    // delete_values not specified
+                },
+            }));
+
+            // Check that the field was updated
+            const cpaFields = getCustomProfileAttributes(testStore.getState());
+            expect(cpaFields).toBeTruthy();
+            expect(cpaFields.length).toEqual(1);
+            expect(cpaFields.filter(({id}) => id === field1.id)[0].type).toEqual('number');
+
+            // Check that the user's values for this field were NOT cleared
+            const user = testStore.getState().entities.users.profiles.user1;
+            expect(user.custom_profile_attributes).toBeTruthy();
+            expect(user.custom_profile_attributes[field1.id]).toEqual('some value');
+        });
     });
 });

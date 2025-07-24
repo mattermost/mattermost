@@ -31,7 +31,7 @@ func TestValidateLicense(t *testing.T) {
 		var licenseData bytes.Buffer
 		var inputData []byte
 
-		for i := 0; i < 255; i++ {
+		for range 255 {
 			inputData = append(inputData, 'A')
 		}
 		inputData = append(inputData, 0x00)
@@ -51,7 +51,7 @@ func TestValidateLicense(t *testing.T) {
 		var licenseData bytes.Buffer
 		var inputData []byte
 
-		for i := 0; i < 256; i++ {
+		for range 256 {
 			inputData = append(inputData, 0x00)
 		}
 
@@ -112,7 +112,8 @@ func TestGetLicenseFileFromDisk(t *testing.T) {
 		f, err := os.CreateTemp("", "TestGetLicenseFileFromDisk")
 		require.NoError(t, err)
 		defer os.Remove(f.Name())
-		os.WriteFile(f.Name(), []byte("not a license"), 0777)
+		err = os.WriteFile(f.Name(), []byte("not a license"), 0777)
+		require.NoError(t, err)
 
 		fileBytes := GetLicenseFileFromDisk(f.Name())
 		require.NotEmpty(t, fileBytes, "should have read the file")

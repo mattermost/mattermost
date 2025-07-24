@@ -30,7 +30,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
             testChannel = channel;
             testUser = user;
 
-            cy.apiCreateUser().then(({user: newUser}) => {
+            cy.apiCreateUser({prefix: 'user000b'}).then(({user: newUser}) => {
                 cy.apiAddUserToTeam(testTeam.id, newUser.id).then(() => {
                     cy.apiAddUserToChannel(testChannel.id, newUser.id);
                 });
@@ -44,7 +44,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
     });
 
-    it.skip('MM-T1466 Accessibility Support in Direct Messages Dialog screen', () => {
+    it('MM-T1466 Accessibility Support in Direct Messages Dialog screen', () => {
         // * Verify the aria-label in create direct message button
         cy.uiAddDirectMessage().click();
 
@@ -53,11 +53,11 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
             cy.findByRole('heading', {name: 'Direct Messages'});
 
             // * Verify the accessibility support in search input
-            cy.findByRole('textbox', {name: 'Search for people'}).
+            cy.findByLabelText('Search for people').
                 should('have.attr', 'aria-autocomplete', 'list');
 
             // # Search for a text and then check up and down arrow
-            cy.findByRole('textbox', {name: 'Search for people'}).
+            cy.findByLabelText('Search for people').
                 typeWithForce('s').
                 wait(TIMEOUTS.HALF_SEC).
                 typeWithForce('{downarrow}{downarrow}{downarrow}{uparrow}');
@@ -71,7 +71,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
             });
 
             // * Verify if the reader is able to read out the selected row
-            cy.get('.filtered-user-list .sr-only').
+            cy.get('.filtered-user-list div.sr-only:not([role="status"])').
                 should('have.attr', 'aria-live', 'polite').
                 and('have.attr', 'aria-atomic', 'true').
                 invoke('text').then((text) => {
@@ -80,7 +80,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
 
             // # Search for an invalid text
             const additionalSearchTerm = 'somethingwhichdoesnotexist';
-            cy.findByRole('textbox', {name: 'Search for people'}).clear().
+            cy.findByLabelText('Search for people').clear().
                 typeWithForce(additionalSearchTerm).
                 wait(TIMEOUTS.HALF_SEC);
 
@@ -120,8 +120,8 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
                     // # Hide already joined channels
                     cy.findByText('Hide Joined').click();
 
-                    // # Focus on the Create Channel button and TAB four time
-                    cy.get('#createNewChannelButton').focus().tab().tab().tab().tab();
+                    // # Focus on the Create Channel button and TAB five time
+                    cy.get('#createNewChannelButton').focus().tab().tab().tab().tab().tab();
 
                     // * Verify channel name is highlighted and reader reads the channel name and channel description
                     cy.get('#moreChannelsList').within(() => {
@@ -137,7 +137,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
         });
     });
 
-    it.skip('MM-T1468 Accessibility Support in Add people to Channel Dialog screen', () => {
+    it('MM-T1468 Accessibility Support in Add people to Channel Dialog screen', () => {
         // # Add atleast 5 users
         for (let i = 0; i < 5; i++) {
             cy.apiCreateUser().then(({user}) => { // eslint-disable-line
@@ -149,8 +149,8 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
         cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
         // # Open Add Members Dialog
-        cy.get('#channelHeaderDropdownIcon').click();
-        cy.findByText('Add Members').click();
+        cy.uiOpenChannelMenu('Members');
+        cy.uiGetButton('Add').click();
 
         // * Verify the accessibility support in Add people Dialog
         cy.findAllByRole('dialog').eq(0).within(() => {
@@ -159,17 +159,17 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
             cy.wait(TIMEOUTS.ONE_SEC);
 
             // * Verify the accessibility support in search input
-            cy.findByRole('textbox', {name: 'Search for people or groups'}).
+            cy.findByLabelText('Search for people or groups').
                 should('have.attr', 'aria-autocomplete', 'list');
 
             // # Search for a text and then check up and down arrow
-            cy.findByRole('textbox', {name: 'Search for people or groups'}).
+            cy.findByLabelText('Search for people or groups').
                 wait(TIMEOUTS.HALF_SEC).
                 typeWithForce('u').
                 wait(TIMEOUTS.HALF_SEC).
-                typeWithForce('{downarrow}{downarrow}{downarrow}{uparrow}');
+                typeWithForce('{downarrow}{downarrow}{downarrow}{downarrow}{uparrow}');
             cy.get('#multiSelectList').
-                children().eq(1).
+                children().eq(2).
                 should('have.class', 'more-modal__row--selected').
                 within(() => {
                     cy.get('.more-modal__name').invoke('text').then((user) => {
@@ -181,7 +181,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
                 });
 
             // * Verify if the reader is able to read out the selected row
-            cy.get('.filtered-user-list .sr-only').
+            cy.get('.filtered-user-list div.sr-only:not([role="status"])').
                 should('have.attr', 'aria-live', 'polite').
                 and('have.attr', 'aria-atomic', 'true').
                 invoke('text').then((text) => {
@@ -189,7 +189,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
                 });
 
             // # Search for an invalid text and check if reader can read no results
-            cy.findByRole('textbox', {name: 'Search for people or groups'}).
+            cy.findByLabelText('Search for people or groups').
                 typeWithForce('somethingwhichdoesnotexist').
                 wait(TIMEOUTS.HALF_SEC);
 
@@ -203,10 +203,10 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
     it('MM-T1515 Verify Accessibility Support in Invite People Flow', () => {
         // # Open Invite People
         cy.uiGetLHSHeader().click();
-        cy.get('#invitePeople').should('be.visible').click();
+        cy.get("#sidebarTeamMenu li:contains('Invite people')").should('be.visible').click();
 
         // * Verify accessibility support in Invite People Dialog
-        cy.get('.InvitationModal').should('have.attr', 'aria-modal', 'true').and('have.attr', 'aria-labelledby', 'invitation_modal_title').and('have.attr', 'role', 'dialog');
+        cy.findByTestId('invitationModal').should('have.attr', 'aria-modal', 'true').and('have.attr', 'aria-labelledby', 'invitation_modal_title').and('have.attr', 'role', 'dialog');
         cy.get('#invitation_modal_title').should('be.visible').and('contain.text', 'Invite people to');
 
         // # Press tab

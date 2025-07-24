@@ -43,9 +43,20 @@ export type Group = {
     member_ids?: string[];
 };
 
+/**
+ * Main sources for groups
+ */
 export enum GroupSource {
     Ldap = 'ldap',
     Custom = 'custom',
+}
+
+/**
+ * Special prefixes that can be added to group sources when they come from plugins
+ * Used for identifying plugin-created groups by checking if source starts with this prefix
+ */
+export enum PluginGroupSourcePrefix {
+    Plugin = 'plugin_'
 }
 
 export type GroupTeam = {
@@ -169,6 +180,13 @@ export type GroupSearchParams = GetGroupsParams & {
     filter_has_member?: string;
     include_timezones?: string;
     include_channel_member_count?: string;
+}
+
+export type GroupMember = {
+    group_id: string;
+    user_id: string;
+    create_at: number;
+    deleted_at: number;
 }
 
 export type GroupMembership = {

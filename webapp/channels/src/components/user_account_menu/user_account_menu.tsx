@@ -30,6 +30,7 @@ import './user_account_menu.scss';
 type Props = PropsFromRedux;
 
 export const ELEMENT_ID_FOR_USER_ACCOUNT_MENU_BUTTON = 'userAccountMenuButton';
+export const ELEMENT_ID_FOR_USER_ACCOUNT_MENU = 'userAccountMenu';
 
 export default function UserAccountMenu(props: Props) {
     const {formatMessage} = useIntl();
@@ -63,7 +64,7 @@ export default function UserAccountMenu(props: Props) {
                 ),
             }}
             menu={{
-                id: 'userAccountMenu',
+                id: ELEMENT_ID_FOR_USER_ACCOUNT_MENU,
                 width: '264px',
             }}
             anchorOrigin={{

@@ -35,7 +35,7 @@ const SettingsButton = (props: Props): JSX.Element | null => {
                 size={'sm'}
                 icon={'settings-outline'}
                 onClick={(): void => {
-                    props.actions.openModal({modalId: ModalIdentifiers.USER_SETTINGS, dialogType: UserSettingsModal, dialogProps: {isContentProductSettings: true}});
+                    props.actions.openModal({modalId: ModalIdentifiers.USER_SETTINGS, dialogType: UserSettingsModal, dialogProps: {isContentProductSettings: true, focusOriginElement: 'settings_button'}});
                 }}
                 inverted={true}
                 compact={true}

@@ -2,20 +2,18 @@
 
 exports[`components/MoreDirectChannels should exclude deleted users if there is not direct channel between users 1`] = `
 <GenericModal
-  autoCloseOnCancelButton={true}
-  autoCloseOnConfirmButton={true}
   bodyPadding={false}
   className="a11y__modal more-modal more-direct-channels more-direct-channels-generic-modal"
   compassDesign={true}
-  enforceFocus={true}
+  delayFocusTrap={true}
   id="moreDmModal"
-  keyboardEscape={true}
   modalHeaderText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Direct Messages"
       id="more_direct_channels.title"
     />
   }
+  modalLocation="top"
   onEntered={[Function]}
   onExited={[Function]}
   onHide={[Function]}
@@ -248,20 +246,18 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
 
 exports[`components/MoreDirectChannels should match snapshot 1`] = `
 <GenericModal
-  autoCloseOnCancelButton={true}
-  autoCloseOnConfirmButton={true}
   bodyPadding={false}
   className="a11y__modal more-modal more-direct-channels more-direct-channels-generic-modal"
   compassDesign={true}
-  enforceFocus={true}
+  delayFocusTrap={true}
   id="moreDmModal"
-  keyboardEscape={true}
   modalHeaderText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Direct Messages"
       id="more_direct_channels.title"
     />
   }
+  modalLocation="top"
   onEntered={[Function]}
   onExited={[Function]}
   onHide={[Function]}

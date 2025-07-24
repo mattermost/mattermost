@@ -52,10 +52,10 @@ func (s *BleveEngineTestSuite) setupStore() {
 	if driverName == "" {
 		driverName = model.DatabaseDriverPostgres
 	}
-	s.SQLSettings = storetest.MakeSqlSettings(driverName, false)
+	s.SQLSettings = storetest.MakeSqlSettings(driverName)
 
 	var err error
-	s.SQLStore, err = sqlstore.New(*s.SQLSettings, s.Context.Logger(), nil)
+	s.SQLStore, err = sqlstore.New(*s.SQLSettings, s.Context.Logger(), nil, sqlstore.DisableMorphLogging())
 	if err != nil {
 		s.Require().FailNow("Cannot initialize store: %s", err.Error())
 	}
@@ -119,7 +119,7 @@ func (s *BleveEngineTestSuite) TestDeleteChannelPosts() {
 		userID := model.NewId()
 		channelID := model.NewId()
 		channelToAvoidID := model.NewId()
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			post := createPost(userID, channelID)
 			appErr := s.SearchEngine.BleveEngine.IndexPost(post, teamID)
 			require.Nil(s.T(), appErr)
@@ -165,7 +165,7 @@ func (s *BleveEngineTestSuite) TestDeleteUserPosts() {
 		userID := model.NewId()
 		userToAvoidID := model.NewId()
 		channelID := model.NewId()
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			post := createPost(userID, channelID)
 			appErr := s.SearchEngine.BleveEngine.IndexPost(post, teamID)
 			require.Nil(s.T(), appErr)
@@ -210,7 +210,7 @@ func (s *BleveEngineTestSuite) TestDeletePosts() {
 	userID := model.NewId()
 	userToAvoidID := model.NewId()
 	channelID := model.NewId()
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		post := createPost(userID, channelID)
 		appErr := s.SearchEngine.BleveEngine.IndexPost(post, teamID)
 		require.Nil(s.T(), appErr)

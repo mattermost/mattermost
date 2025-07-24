@@ -33,8 +33,10 @@ describe('components/TeamGroupsManageModal', () => {
         const wrapper = renderWithContext(<TeamGroupsManageModal {...baseProps}/>);
         expect(await wrapper.findByTestId('group-name')).toBeInTheDocument();
         userEvent.click(wrapper.getByTestId('menu-button'));
+
         userEvent.click(wrapper.getByTestId('remove-group-button'));
-        expect(wrapper.getByTestId('confirm-modal')).toBeInTheDocument();
+
+        expect(await wrapper.findByTestId('confirm-modal')).toBeInTheDocument();
     });
 
     test('should call loadItems on render', async () => {
@@ -44,10 +46,12 @@ describe('components/TeamGroupsManageModal', () => {
 
     test('should hide confirm modal when cancel button is clicked', async () => {
         const wrapper = renderWithContext(<TeamGroupsManageModal {...baseProps}/>);
-        await wrapper.findByTestId('group-name');
+        expect(await wrapper.findByTestId('group-name')).toBeInTheDocument();
         userEvent.click(wrapper.getByTestId('menu-button'));
+
         userEvent.click(wrapper.getByTestId('remove-group-button'));
-        expect(wrapper.getByTestId('confirm-modal')).toBeInTheDocument();
+        expect(await wrapper.findByTestId('confirm-modal')).toBeInTheDocument();
+
         userEvent.click(wrapper.getByTestId('cancel-button'));
         await waitForElementToBeRemoved(() => wrapper.queryByTestId('confirm-modal'));
         expect(wrapper.queryByTestId('confirm-modal')).toBeNull();
