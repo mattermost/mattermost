@@ -306,7 +306,7 @@ describe('rhs view actions', () => {
                 type: ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TYPE,
                 searchType: 'messages',
             });
-            compareStore.dispatch(performSearch(terms, ''));
+            compareStore.dispatch(performSearch(terms, currentTeamId));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
         });
@@ -897,7 +897,7 @@ describe('rhs view actions', () => {
                 searchType: 'messages',
             });
 
-            compareStore.dispatch(performSearch(terms, ''));
+            compareStore.dispatch(performSearch(terms, currentTeamId));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
         });
