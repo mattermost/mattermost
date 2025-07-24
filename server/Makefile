@@ -327,14 +327,9 @@ golang-versions: ## Install Golang versions used for compatibility testing (e.g.
 
 GOLANGCI_VERSION ?= v2.1.6
 
-$(GOLANGCI_BIN):
+golangci-lint: ## Run golangci-lint on codebase
 	@echo Installing golangci-lint $(GOLANGCI_VERSION)
-	@if [ "$(FIPS_ENABLED)" = "true" ]; then \
-		$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_VERSION); \
-	else \
-		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(GOBIN) $(GOLANGCI_VERSION); \
-
-golangci-lint: $(GOLANGCI_BIN) ## Run golangci-lint on codebase
+	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_VERSION); \
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(call execute_tool,golangci-lint,run ./... ./public/... $(BUILD_ENTERPRISE_DIR)/...)
 else
@@ -405,6 +400,10 @@ platform-mocks: $(MOCKERY_BIN) ## Creates mocks for platform interfaces.
 
 mmctl-mocks: $(MOCKGEN_BIN) ## Creates mocks for mmctl
 	$(call execute_tool,mockgen,-destination=cmd/mmctl/mocks/client_mock.go -copyright_file=cmd/mmctl/mocks/copyright.txt -package=mocks github.com/mattermost/mattermost/server/v8/cmd/mmctl/client Client)
+
+install-mock-deps: ## Install manual mock dependencies
+	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
+	$(GO) install github.com/golang/mock/mockgen@v1.6.0
 
 $(MOCKERY_BIN):
 	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
