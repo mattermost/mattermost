@@ -56,8 +56,11 @@ func (a *App) ContentFlaggingGroupId() (string, *model.AppError) {
 }
 
 func (a *App) FlagPost(postId, flaggingUserId string, flagData model.FlagContentRequest) *model.AppError {
-	// check if post is already flagged
+	if appErr := a.CanFlagPost(postId); appErr != nil {
+		return appErr
+	}
 
+	return nil
 }
 
 func (a *App) GetPostContentFlaggingProperties(postId string) ([]*model.PropertyValue, *model.AppError) {
@@ -74,26 +77,27 @@ func (a *App) GetPostContentFlaggingProperties(postId string) ([]*model.Property
 	return propertyValues, nil
 }
 
-func (a *App) CanFlagPost(postId string) (bool, *model.AppError) {
+func (a *App) CanFlagPost(postId string) *model.AppError {
 	postPropertyValues, appErr := a.GetPostContentFlaggingProperties(postId)
 	if appErr != nil {
-		return false, appErr
+		return appErr
 	}
 
 	if len(postPropertyValues) == 0 {
-		return true, nil // If no properties exist for the post, we can flag it
+		// If no properties exist for the post, we can flag it
+		return nil
 	}
 
 	// Analyze the value of status property
 	groupID, appErr := a.ContentFlaggingGroupId()
 	if appErr != nil {
-		return false, appErr
+		return appErr
 	}
 
 	// TODO: replace "status" string with model.contentFlaggingPropertyNameStatus
 	statusPropertyField, err := a.Srv().propertyService.GetPropertyFieldByName(groupID, "", "status")
 	if err != nil {
-		return false, model.NewAppError("CanFlagPost", "app.content_flagging.get_property_field_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("CanFlagPost", "app.content_flagging.get_property_field_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	var statusValue *model.PropertyValue
@@ -105,7 +109,8 @@ func (a *App) CanFlagPost(postId string) (bool, *model.AppError) {
 	}
 
 	if statusValue == nil {
-		return true, nil // If no status property exists, we can flag the post
+		// If no status property exists, we can flag the post
+		return nil
 	}
 
 	var reason string
@@ -121,5 +126,5 @@ func (a *App) CanFlagPost(postId string) (bool, *model.AppError) {
 		reason = "app.content_flagging.can_flag_post.unknown"
 	}
 
-	return false, model.NewAppError("CanFlagPost", reason, nil, "", http.StatusBadRequest)
+	return model.NewAppError("CanFlagPost", reason, nil, "", http.StatusBadRequest)
 }
