@@ -258,7 +258,6 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
             </span>
         );
     } else if (teammate) {
-        // TODO
         icon = (
             <ProfilePicture
                 src={Utils.imageURLForUser(teammate.id, teammate.last_picture_update)}
