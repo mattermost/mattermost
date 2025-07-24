@@ -44,6 +44,10 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 		s.Len(printer.GetLines(), 1)
 		s.Equal("'"+s.th.BasicTeam.Name+"' team renamed", printer.GetLines()[0])
 		s.Len(printer.GetErrorLines(), 0)
+
+		team, appErr := s.th.App.GetTeam(s.th.BasicTeam.Id)
+		s.Require().Nil(appErr)
+		s.Equal("newName", team.Name)
 	})
 
 	s.RunForSystemAdminAndLocal("Changing display name of an existing team", func(c client.Client) {
@@ -58,6 +62,10 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 		s.Len(printer.GetLines(), 1)
 		s.Equal("'"+s.th.BasicTeam.Name+"' team renamed", printer.GetLines()[0])
 		s.Len(printer.GetErrorLines(), 0)
+
+		team, appErr := s.th.App.GetTeam(s.th.BasicTeam.Id)
+		s.Require().Nil(appErr)
+		s.Equal("newDisplayName", team.DisplayName)
 	})
 
 	s.Run("Permission error renaming an existing team", func() {

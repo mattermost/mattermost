@@ -80,7 +80,7 @@ var SearchTeamCmd = &cobra.Command{
 
 // RenameTeamCmd is the command to rename team along with its display name
 var RenameTeamCmd = &cobra.Command{
-	Use:     "rename [team] [flag]",
+	Use:     "rename [team]",
 	Short:   "Rename team",
 	Long:    "Rename an existing team",
 	Example: "  team rename old-team --name mynewteam --display-name 'New Display Name'",
