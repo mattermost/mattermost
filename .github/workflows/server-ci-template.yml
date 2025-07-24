@@ -279,7 +279,7 @@ jobs:
       - name: Generate store layers
         run: make store-layers
       - name: Check generated code
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; git diff; exit 1; fi
 
   check-mmctl-docs:
     name: Check mmctl docs

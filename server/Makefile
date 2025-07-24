@@ -375,7 +375,7 @@ filestore-mocks: $(MOCKERY_BIN) ## Creates mock files.
 	$(call execute_tool,mockery,--config platform/shared/filestore/.mockery.yaml)
 
 ldap-mocks: $(MOCKERY_BIN) ## Creates mock files for ldap.
-	$(call execute_tool,mockery,--dir $(BUILD_ENTERPRISE_DIR)/ldap --all --inpackage --note ')Regenerate this file using `make ldap-mocks`.'
+	$(call execute_tool,mockery,--dir $(BUILD_ENTERPRISE_DIR)/ldap --all --inpackage --note 'Regenerate this file using `make ldap-mocks`.')
 
 plugin-mocks: $(MOCKERY_BIN) ## Creates mock files for plugins.
 	$(call execute_tool,mockery,--config public/plugin/.mockery.yaml)
@@ -402,7 +402,7 @@ mmctl-mocks: $(MOCKGEN_BIN) ## Creates mocks for mmctl
 	$(call execute_tool,mockgen,-destination=cmd/mmctl/mocks/client_mock.go -copyright_file=cmd/mmctl/mocks/copyright.txt -package=mocks github.com/mattermost/mattermost/server/v8/cmd/mmctl/client Client)
 
 install-mock-deps: ## Install manual mock dependencies
-	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
+	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
 	$(GO) install github.com/golang/mock/mockgen@v1.6.0
 
 $(MOCKERY_BIN):
@@ -414,7 +414,7 @@ $(MOCKGEN_BIN):
 pluginapi: ## Generates api and hooks glue code for plugins
 	cd ./public && $(GO) generate $(GOFLAGS) ./plugin
 
-mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks mocks-public cache-mocks
+mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks
 
 layers: store-layers pluginapi
 
