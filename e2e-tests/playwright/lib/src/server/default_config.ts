@@ -170,7 +170,7 @@ const defaultServerConfig: AdminConfig = {
         EnableAPIPostDeletion: false,
         EnableDesktopLandingPage: true,
         ExperimentalEnableHardenedMode: false,
-        ExperimentalStrictCSRFEnforcement: false,
+        StrictCSRFEnforcement: false,
         EnableEmailInvitations: false,
         DisableBotsWhenOwnerIsDeactivated: true,
         EnableBotAccountCreation: false,
