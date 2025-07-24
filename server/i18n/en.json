@@ -8413,10 +8413,6 @@
     "translation": "Empty LDAP attribute value"
   },
   {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "Error(s) patching CPA value"
-  },
-  {
     "id": "ent.ldap.validate_admin_filter.app_error",
     "translation": "Invalid AD/LDAP Admin Filter."
   },
@@ -8635,10 +8631,6 @@
   {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "SAML assertion attribute statement is invalid"
-  },
-  {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "Error(s) updating CPA values"
   },
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
