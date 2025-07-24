@@ -2545,7 +2545,7 @@ func TestGetMemberCountsByGroup(t *testing.T) {
 			ChannelMemberTimezonesCount: int64(i),
 		})
 	}
-	mockChannelStore.On("GetMemberCountsByGroup", context.Background(), "channelID", true).Return(cmc, nil)
+	mockChannelStore.On("GetMemberCountsByGroup", mock.AnythingOfType("*request.Context"), "channelID", true).Return(cmc, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 	resp, appErr := th.App.GetMemberCountsByGroup(th.Context, "channelID", true)
