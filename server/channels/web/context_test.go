@@ -435,6 +435,6 @@ func TestTermsOfServiceRequired(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Equal(t, "api.context.terms_of_service_required.app_error", err.Id)
 		assert.Equal(t, http.StatusForbidden, err.StatusCode)
-		assert.Contains(t, err.DetailedError, "Database error retrieving terms of service")
+		assert.Equal(t, "", err.DetailedError)
 	})
 }
