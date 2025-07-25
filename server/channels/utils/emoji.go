@@ -31,7 +31,7 @@ func CreateTestAnimatedGif(tb testing.TB, width int, height int, frames int) []b
 		Image: make([]*image.Paletted, frames),
 		Delay: make([]int, frames),
 	}
-	for i := 0; i < frames; i++ {
+	for i := range frames {
 		img.Image[i] = image.NewPaletted(image.Rect(0, 0, width, height), color.Palette{color.Black})
 		img.Delay[i] = 0
 	}

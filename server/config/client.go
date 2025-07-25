@@ -239,6 +239,10 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
 		}
+
+		if model.MinimumEnterpriseAdvancedLicense(license) {
+			props["ContentFlaggingEnabled"] = strconv.FormatBool(c.FeatureFlags.ContentFlagging && *c.ContentFlaggingSettings.EnableContentFlagging)
+		}
 	}
 
 	return props
@@ -408,6 +412,11 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 			props["MobileEnableBiometrics"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableBiometrics)
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
+		}
+
+		if model.MinimumEnterpriseAdvancedLicense(license) {
+			props["MobileEnableSecureFilePreview"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableSecureFilePreview)
+			props["MobileAllowPdfLinkNavigation"] = strconv.FormatBool(*c.NativeAppSettings.MobileAllowPdfLinkNavigation)
 		}
 	}
 

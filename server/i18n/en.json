@@ -576,6 +576,10 @@
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member."
   },
   {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Invalid channel member update: A channel member always has a user scheme."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
     "translation": "Invalid channel member update: A guest cannot be set for a single channel, a System Admin must promote or demote users to/from guests."
   },
@@ -1622,6 +1626,10 @@
     "translation": "Shared Channels Service is disabled."
   },
   {
+    "id": "api.command_share.service_inactive",
+    "translation": "Shared Channels Service is enabled but not active."
+  },
+  {
     "id": "api.command_share.share_channel.error",
     "translation": "Cannot share this channel: {{.Error}}"
   },
@@ -1728,6 +1736,14 @@
   {
     "id": "api.config.update_config.translations.app_error",
     "translation": "Failed to update server translations."
+  },
+  {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "Content flagging feature is disabled."
+  },
+  {
+    "id": "api.content_flagging.error.license",
+    "translation": "Your license does not support content flagging."
   },
   {
     "id": "api.context.404.app_error",
@@ -2321,10 +2337,6 @@
     "translation": "Unable to count total unique users."
   },
   {
-    "id": "api.license.add_license.mysql.app_error",
-    "translation": "This license does not support MySQL."
-  },
-  {
     "id": "api.license.add_license.no_file.app_error",
     "translation": "No file under 'license' in request."
   },
@@ -2375,10 +2387,6 @@
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
     "translation": "Failed to apply new trial license as your workspace has already applied a trial license. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
-  },
-  {
-    "id": "api.license.request-trial.mysql.app_error",
-    "translation": "Trial licenses are not supported for MySQL databases. Please use PostgreSQL to access trial features."
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -2626,15 +2634,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all has been disabled because the channel has more than {{.Users}} users."
+    "translation": "@all notifications are disabled in channels with more than {{.Users}} users. Contact your system administrator for more information."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel has been disabled because the channel has more than {{.Users}} users."
+    "translation": "@channel notifications are disabled in channels with more than {{.Users}} users. Contact your system administrator for more information."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here has been disabled because the channel has more than {{.Users}} users."
+    "translation": "@here notifications are disabled in channels with more than {{.Users}} users. Contact your system administrator for more information."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -2877,6 +2885,10 @@
   {
     "id": "api.remote_cluster.get.not_found",
     "translation": "Remote Cluster not found"
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Remote cluster import is not allowed"
   },
   {
     "id": "api.remote_cluster.invalid_id.app_error",
@@ -3227,6 +3239,10 @@
     "translation": "The channels of the invite must be part of the team of the invite."
   },
   {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Cannot invite guests users to this channel because it has access restrictions based on user attributes."
+  },
+  {
     "id": "api.team.invite_guests_to_channels.disabled.error",
     "translation": "Guest accounts are disabled"
   },
@@ -3377,6 +3393,10 @@
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
     "translation": "Invalid team member update: A user must be a guest or a user but not both."
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "Invalid team member update: A team member always has a user scheme."
   },
   {
     "id": "api.team.update_team_member_roles.user_and_guest.app_error",
@@ -3835,10 +3855,6 @@
     "translation": "Error creating zip file."
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Error reading file from backend"
-  },
-  {
     "id": "api.unmarshal_error",
     "translation": "Failed to unmarshal."
   },
@@ -3893,6 +3909,10 @@
   {
     "id": "api.upload.get_upload.forbidden.app_error",
     "translation": "Failed to get upload."
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Failed to upload file. Upload channel is not shared with remote."
   },
   {
     "id": "api.upload.upload_data.invalid_content_length",
@@ -4125,6 +4145,10 @@
   {
     "id": "api.user.get_users.validation.app_error",
     "translation": "Error fetching roles during validation."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Access control service unavailable. Cannot filter users for ABAC-enabled channel."
   },
   {
     "id": "api.user.invalidate_password_recovery_tokens.error",
@@ -4987,6 +5011,18 @@
     "translation": "Failed to record channel member history. Failed to update existing join record"
   },
   {
+    "id": "app.cloud.preview_modal_bucket_url_not_configured",
+    "translation": "Preview bucket URL is not configured"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "Failed to fetch preview modal data"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_parse_error",
+    "translation": "Failed to parse preview modal data"
+  },
+  {
     "id": "app.cloud.trial_plan_bot_message",
     "translation": "{{.UsersNum}} members of the {{.WorkspaceName}} workspace have requested starting the Enterprise trial for access to: "
   },
@@ -5747,6 +5783,10 @@
     "translation": "Missing required direct post property: message"
   },
   {
+    "id": "app.import.validate_direct_post_import_data.thread_follower.error",
+    "translation": "Failed to validate direct post thread follower data."
+  },
+  {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
     "translation": "Direct post can only be flagged by members of the channel it is in. \"{{.Username}}\" is not a member."
   },
@@ -5801,6 +5841,10 @@
   {
     "id": "app.import.validate_post_import_data.team_missing.error",
     "translation": "Missing required Post property: Team."
+  },
+  {
+    "id": "app.import.validate_post_import_data.thread_follower.error",
+    "translation": "Failed to validate post thread follower data."
   },
   {
     "id": "app.import.validate_post_import_data.user_missing.error",
@@ -5933,6 +5977,14 @@
   {
     "id": "app.import.validate_team_import_data.type_missing.error",
     "translation": "Missing required team property: type."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.empty.error",
+    "translation": "Import follower data empty."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.user_missing.error",
+    "translation": "Missing required follower property: user."
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
@@ -6413,10 +6465,6 @@
   {
     "id": "app.plugin.filesystem.app_error",
     "translation": "Encountered filesystem error."
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Unable to set plugin as managed by the file store."
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
@@ -8373,10 +8421,6 @@
     "translation": "Empty LDAP attribute value"
   },
   {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "Error(s) patching CPA value"
-  },
-  {
     "id": "ent.ldap.validate_admin_filter.app_error",
     "translation": "Invalid AD/LDAP Admin Filter."
   },
@@ -8595,10 +8639,6 @@
   {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "SAML assertion attribute statement is invalid"
-  },
-  {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "Error(s) updating CPA values"
   },
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
@@ -9185,6 +9225,18 @@
     "translation": "ThreadAutoFollow must be true to enable CollapsedThreads"
   },
   {
+    "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
+    "translation": "Common reviewers or additional reviewers must be set when \"Same reviewers for all teams\" is enabled."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.reasons_not_set.app_error",
+    "translation": "Reasons for flagging cannot be empty."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
+    "translation": "Team reviewers or additional reviewers must be set when setting \"Enabled\" for a team."
+  },
+  {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
     "translation": "Data retention job start time must be a 24-hour time stamp in the form HH:MM."
   },
@@ -9303,6 +9355,30 @@
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
     "translation": "Invalid at rest encrypt key for SQL settings. Must be 32 chars or more."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "Max File Age of audit logs config must not be negative."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "Maximum File Backups of audit logs config must not be negative."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "Maximum File Queue of audit logs config must be greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "Maximum File Size of audit logs config must be greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "When audit file logging is enabled, a file name must be specified."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "The file name must not be a directory."
   },
   {
     "id": "model.config.is_valid.export.directory.app_error",
@@ -9497,6 +9573,18 @@
     "translation": "Invalid domain for move thread settings"
   },
   {
+    "id": "model.config.is_valid.notification_settings.invalid_event",
+    "translation": "Invalid flagging event specified."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_target",
+    "translation": "Invalid flaggig event target specified."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
+    "translation": "Notifications for new flagged post cannot be disabled for reviewers."
+  },
+  {
     "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
     "translation": "Invalid Outgoing Integrations Request Timeout for service settings. Must be a positive number."
   },
@@ -9626,7 +9714,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Invalid driver name for SQL settings. Must be 'mysql' or 'postgres'."
+    "translation": "Invalid driver name for SQL settings. Must be 'postgres'."
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
@@ -10410,7 +10498,7 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Invalid user, auth data must be set with auth type."
+    "translation": "Invalid user: Auth data can only be set if the user uses an external auth service, not email/password, for authentication."
   },
   {
     "id": "model.user.is_valid.create_at.app_error",
@@ -10762,11 +10850,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 134+"
+    "translation": "Version 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 134+"
+    "translation": "Version 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",

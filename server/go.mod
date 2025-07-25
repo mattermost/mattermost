@@ -18,7 +18,6 @@ require (
 	github.com/fatih/color v1.18.0
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/getsentry/sentry-go v0.32.0
-	github.com/go-sql-driver/mysql v1.9.2
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/golang-migrate/migrate/v4 v4.18.3
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
@@ -131,6 +130,7 @@ require (
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-resty/resty/v2 v2.16.5 // indirect
+	github.com/go-sql-driver/mysql v1.9.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
@@ -249,10 +249,6 @@ exclude (
 	github.com/dyatlov/go-opengraph v0.0.0-20210112100619-dae8665a5b09
 	github.com/willf/bitset v1.2.0
 )
-
-// Prevent from being upgraded because this library has a minimum requirement
-// of Go 1.24.
-replace github.com/ledongthuc/pdf => github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06
 
 // Also prevent tablewriter from being upgraded because the downstream dependency
 // jaytaylor/html2text does not have a go.mod file which makes it bump to the latest

@@ -278,7 +278,7 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 		cmd.Flags().String("name", model.NewId(), "")
 
 		err := createTeamCmdF(c, cmd, []string{})
-		s.EqualError(err, "display Name is required")
+		s.EqualError(err, "display-name is required")
 		s.Require().Empty(printer.GetLines())
 	})
 
