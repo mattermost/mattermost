@@ -1114,6 +1114,7 @@ type PropertyFieldStore interface {
 
 type PropertyValueStore interface {
 	Create(value *model.PropertyValue) (*model.PropertyValue, error)
+	CreateMany(values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Get(groupID, id string) (*model.PropertyValue, error)
 	GetMany(groupID string, ids []string) ([]*model.PropertyValue, error)
 	SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)

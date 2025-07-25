@@ -7,5 +7,4 @@ type FlagContentRequest struct {
 	TargetId string `json:"target_id"`
 	Reason   string `json:"reason"`
 	Comment  string `json:"comment,omitempty"`
-	UserId   string `json:"-"` // This field is not expected to be sent by client. User ID will be set by the server based on the session.
 }

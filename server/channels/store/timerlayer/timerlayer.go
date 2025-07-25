@@ -7573,6 +7573,22 @@ func (s *TimerLayerPropertyValueStore) Create(value *model.PropertyValue) (*mode
 	return result, err
 }
 
+func (s *TimerLayerPropertyValueStore) CreateMany(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	start := time.Now()
+
+	result, err := s.PropertyValueStore.CreateMany(values)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyValueStore.CreateMany", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyValueStore) Delete(groupID string, id string) error {
 	start := time.Now()
 

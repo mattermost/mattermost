@@ -4,6 +4,8 @@
 package app
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/mattermost/mattermost/server/public/model"
 	"net/http"
 )
@@ -55,20 +57,71 @@ func (a *App) ContentFlaggingGroupId() (string, *model.AppError) {
 	return contentFlaggingGroupId, nil
 }
 
-func (a *App) FlagPost(postId, flaggingUserId string, flagData model.FlagContentRequest) *model.AppError {
-	if appErr := a.CanFlagPost(postId); appErr != nil {
+func (a *App) FlagPost(postId, reportingUserId string, flagData model.FlagContentRequest) *model.AppError {
+	groupId, appErr := a.ContentFlaggingGroupId()
+	if appErr != nil {
 		return appErr
+	}
+
+	if appErr := a.CanFlagPost(groupId, postId); appErr != nil {
+		return appErr
+	}
+
+	mappedFields, appErr := a.getContentFlaggingMappedFields(groupId)
+	if appErr != nil {
+		return appErr
+	}
+
+	// TODO: use constant or target type and field names
+
+	// TODO: these need to be on the review post, not the flagged post
+	propertyValues := []*model.PropertyValue{
+		{
+			TargetID:   postId,
+			TargetType: "post",
+			GroupID:    groupId,
+			FieldID:    mappedFields["status"].ID,
+			Value:      json.RawMessage(contentFLaggingStatusPending),
+		},
+		{
+			TargetID:   postId,
+			TargetType: "post",
+			GroupID:    groupId,
+			FieldID:    mappedFields["reporting_user_id"].ID,
+			Value:      json.RawMessage(reportingUserId),
+		},
+		{
+			TargetID:   postId,
+			TargetType: "post",
+			GroupID:    groupId,
+			FieldID:    mappedFields["reporting_reason"].ID,
+			Value:      json.RawMessage(flagData.Reason),
+		},
+		{
+			TargetID:   postId,
+			TargetType: "post",
+			GroupID:    groupId,
+			FieldID:    mappedFields["reporting_comment"].ID,
+			Value:      json.RawMessage(flagData.Comment),
+		},
+		{
+			TargetID:   postId,
+			TargetType: "post",
+			GroupID:    groupId,
+			FieldID:    mappedFields["reporting_time"].ID,
+			Value:      json.RawMessage(fmt.Sprintf("%d", model.GetMillis())),
+		},
+	}
+
+	_, err := a.Srv().propertyService.CreatePropertyValues(propertyValues)
+	if err != nil {
+		return model.NewAppError("FlagPost", "app.content_flagging.create_property_values.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
 }
 
-func (a *App) GetPostContentFlaggingProperties(postId string) ([]*model.PropertyValue, *model.AppError) {
-	groupID, appErr := a.ContentFlaggingGroupId()
-	if appErr != nil {
-		return nil, appErr
-	}
-
+func (a *App) GetPostContentFlaggingProperties(groupID, postId string) ([]*model.PropertyValue, *model.AppError) {
 	propertyValues, err := a.Srv().propertyService.SearchPropertyValues(groupID, postId, model.PropertyValueSearchOpts{PerPage: 100})
 	if err != nil {
 		return nil, model.NewAppError("GetPostContentFlaggingProperties", "app.content_flagging.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -77,8 +130,8 @@ func (a *App) GetPostContentFlaggingProperties(postId string) ([]*model.Property
 	return propertyValues, nil
 }
 
-func (a *App) CanFlagPost(postId string) *model.AppError {
-	postPropertyValues, appErr := a.GetPostContentFlaggingProperties(postId)
+func (a *App) CanFlagPost(groupId, postId string) *model.AppError {
+	postPropertyValues, appErr := a.GetPostContentFlaggingProperties(groupId, postId)
 	if appErr != nil {
 		return appErr
 	}
@@ -127,4 +180,18 @@ func (a *App) CanFlagPost(postId string) *model.AppError {
 	}
 
 	return model.NewAppError("CanFlagPost", reason, nil, "", http.StatusBadRequest)
+}
+
+func (a *App) getContentFlaggingMappedFields(groupId string) (map[string]*model.PropertyField, *model.AppError) {
+	fields, err := a.Srv().propertyService.SearchPropertyFields(groupId, "", model.PropertyFieldSearchOpts{PerPage: 100})
+	if err != nil {
+		return nil, model.NewAppError("getContentFlaggingMappedFields", "app.content_flagging.search_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	mappedFields := map[string]*model.PropertyField{}
+	for _, field := range fields {
+		mappedFields[field.Name] = field
+	}
+
+	return mappedFields, nil
 }

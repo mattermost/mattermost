@@ -11,6 +11,10 @@ func (ps *PropertyService) CreatePropertyValue(value *model.PropertyValue) (*mod
 	return ps.valueStore.Create(value)
 }
 
+func (ps *PropertyService) CreatePropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	return ps.valueStore.CreateMany(values)
+}
+
 func (ps *PropertyService) GetPropertyValue(groupID, id string) (*model.PropertyValue, error) {
 	return ps.valueStore.Get(groupID, id)
 }
