@@ -6,7 +6,7 @@ package web
 import (
 	"errors"
 	"net/http"
-	"path/filepath"
+	"path"
 	"regexp"
 	"slices"
 	"strings"
@@ -170,6 +170,12 @@ func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
 		return nil
 	}
 
+	// Exempt bot accounts - bots are automated systems and do not need to accept ToS
+	session := c.AppContext.Session()
+	if session.IsBotUser() {
+		return nil
+	}
+
 	// Get latest ToS document - FAIL CLOSED on errors
 	latestToS, err := c.App.Srv().Store().TermsOfService().GetLatest(true)
 	if err != nil {
@@ -184,7 +190,6 @@ func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
 	}
 
 	// Check session cache for user's ToS acceptance
-	session := c.AppContext.Session()
 	if acceptedToSId, exists := session.Props[model.SessionPropTermsOfServiceId]; exists {
 		if acceptedToSId == latestToS.Id {
 			return nil // User already accepted latest ToS
@@ -214,8 +219,8 @@ func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
 
 // isExactPathMatch checks if path exactly matches any of the provided exempt paths
 // Uses explicit path cleaning to prevent bypass attempts via path traversal
-func isExactPathMatch(path string, exemptPaths []string) bool {
-	cleanPath := filepath.Clean(path)
+func isExactPathMatch(requestPath string, exemptPaths []string) bool {
+	cleanPath := path.Clean(requestPath)
 	return slices.Contains(exemptPaths, cleanPath)
 }
 
