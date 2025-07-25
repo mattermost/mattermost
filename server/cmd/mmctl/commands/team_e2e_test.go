@@ -155,7 +155,7 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 		config.ServiceSettings.EnableAPITeamDeletion = &enableConfig
 		_, _, _ = c.UpdateConfig(context.TODO(), config)
 
-		// Deletion should succeed for both local and SystemAdmin client now
+		// Deletion should succeed for local client now
 		err = deleteTeamsCmdF(c, cmd, args)
 		s.Require().Nil(err)
 		team := printer.GetLines()[0].(*model.Team)
