@@ -212,7 +212,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 					mlog.String("user_id", userID),
 				}
 
-				if *ch.cfgSvc.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
+				if *ch.cfgSvc.Config().ServiceSettings.StrictCSRFEnforcement {
 					mlog.Warn(csrfErrorMessage, fields...)
 				} else {
 					mlog.Debug(csrfErrorMessage, fields...)
