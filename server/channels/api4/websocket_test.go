@@ -560,7 +560,7 @@ func setupUserWithMFA(t *testing.T, th *TestHelper, user *model.User) string {
 
 func TestWebSocketMFAEnforcement(t *testing.T) {
 	mainHelper.Parallel(t)
-	
+
 	t.Run("WebSocket works when MFA enforcement is disabled", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -576,10 +576,10 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 			require.Nil(t, resp.Error, "WebSocket should work when MFA enforcement is disabled")
 			require.Equal(t, resp.Status, model.StatusOk)
 		case <-time.After(3 * time.Second):
-			t.Fatal("Expected WebSocket response but got timeout")
+			require.Fail(t, "Expected WebSocket response but got timeout")
 		}
 	})
-	
+
 	t.Run("WebSocket blocked when MFA required but user has no MFA", func(t *testing.T) {
 		th := SetupEnterprise(t).InitBasic()
 		defer th.TearDown()
@@ -592,10 +592,10 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 				*cfg.ServiceSettings.EnforceMultifactorAuthentication = false
 			})
 		}()
-		
+
 		// Create user without MFA using existing basic user to avoid license timing issues
 		user := th.BasicUser
-		
+
 		// Login user (this should work for initial authentication)
 		client := th.CreateClient()
 		_, _, err := client.Login(context.Background(), user.Email, "Pa$$word11")
@@ -609,7 +609,7 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 		authResp := <-webSocketClient.ResponseChannel
 		require.Nil(t, authResp.Error, "Authentication challenge should succeed")
 		require.Equal(t, authResp.Status, model.StatusOk)
-		
+
 		// Individual WebSocket requests should be blocked due to MFA requirement
 		webSocketClient.GetStatuses()
 
@@ -618,10 +618,10 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 		case resp := <-webSocketClient.ResponseChannel:
 			t.Logf("Received response: Error=%v, Status=%s, SeqReply=%d", resp.Error, resp.Status, resp.SeqReply)
 			require.NotNil(t, resp.Error, "Should get authentication error due to MFA requirement")
-			require.Equal(t, "api.web_socket_router.not_authenticated.app_error", resp.Error.Id, 
+			require.Equal(t, "api.web_socket_router.not_authenticated.app_error", resp.Error.Id,
 				"Should get specific 'not authenticated' error ID due to MFA requirement")
 		case <-time.After(3 * time.Second):
-			t.Fatal("Expected WebSocket error response but got timeout")
+			require.Fail(t, "Expected WebSocket error response but got timeout")
 		}
 	})
 
@@ -637,7 +637,7 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 				*cfg.ServiceSettings.EnforceMultifactorAuthentication = false
 			})
 		}()
-		
+
 		// Create user and set up MFA
 		user := &model.User{
 			Email:    th.GenerateTestEmail(),
@@ -657,7 +657,7 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 		// Generate TOTP token from the user's MFA secret
 		code := dgoogauth.ComputeCode(secretString, time.Now().UTC().Unix()/30)
 		token := fmt.Sprintf("%06d", code)
-		
+
 		client := th.CreateClient()
 		_, _, err = client.LoginWithMFA(context.Background(), user.Email, user.Password, token)
 		require.NoError(t, err)
@@ -674,7 +674,7 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 			require.Nil(t, resp.Error, "WebSocket should work when MFA is properly set up")
 			require.Equal(t, resp.Status, model.StatusOk)
 		case <-time.After(5 * time.Second):
-			t.Fatal("Expected WebSocket response but got timeout")
+			require.Fail(t, "Expected WebSocket response but got timeout")
 		}
 	})
 }
