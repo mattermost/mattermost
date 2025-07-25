@@ -628,89 +628,146 @@ func TestGetAnalyticsOld(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
-func TestS3TestConnection(t *testing.T) {
+func TestFileConnection(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
 
-	s3Host := os.Getenv("CI_MINIO_HOST")
-	if s3Host == "" {
-		s3Host = "localhost"
-	}
+	t.Run("S3", func(t *testing.T) {
+		s3Host := os.Getenv("CI_MINIO_HOST")
+		if s3Host == "" {
+			s3Host = "localhost"
+		}
 
-	s3Port := os.Getenv("CI_MINIO_PORT")
-	if s3Port == "" {
-		s3Port = "9000"
-	}
+		s3Port := os.Getenv("CI_MINIO_PORT")
+		if s3Port == "" {
+			s3Port = "9000"
+		}
 
-	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
+		s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 
-	fs := model.FileSettings{}
-	fs.SetDefaults(false)
+		fs := model.FileSettings{}
+		fs.SetDefaults(false)
 
-	fs.DriverName = model.NewPointer(model.ImageDriverS3)
-	fs.AmazonS3AccessKeyId = model.NewPointer(model.MinioAccessKey)
-	fs.AmazonS3SecretAccessKey = model.NewPointer(model.MinioSecretKey)
-	fs.AmazonS3Bucket = model.NewPointer("")
-	fs.AmazonS3Endpoint = model.NewPointer(s3Endpoint)
-	fs.AmazonS3Region = model.NewPointer("")
-	fs.AmazonS3PathPrefix = model.NewPointer("")
-	fs.AmazonS3SSL = model.NewPointer(false)
+		fs.DriverName = model.NewPointer(model.ImageDriverS3)
+		fs.AmazonS3AccessKeyId = model.NewPointer(model.MinioAccessKey)
+		fs.AmazonS3SecretAccessKey = model.NewPointer(model.MinioSecretKey)
+		fs.AmazonS3Bucket = model.NewPointer("")
+		fs.AmazonS3Endpoint = model.NewPointer(s3Endpoint)
+		fs.AmazonS3Region = model.NewPointer("")
+		fs.AmazonS3PathPrefix = model.NewPointer("")
+		fs.AmazonS3SSL = model.NewPointer(false)
 
-	config := model.Config{
-		FileSettings: fs,
-	}
+		config := model.Config{
+			FileSettings: fs,
+		}
 
-	t.Run("as system user", func(t *testing.T) {
-		resp, err := client.TestS3Connection(context.Background(), &config)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		t.Run("as system user", func(t *testing.T) {
+			resp, err := client.TestS3Connection(context.Background(), &config)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+		})
+
+		t.Run("as system admin", func(t *testing.T) {
+			resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &config)
+			CheckBadRequestStatus(t, resp)
+			CheckErrorMessage(t, err, "S3 Bucket is required")
+			// If this fails, check the test configuration to ensure minio is setup with the
+			// `mattermost-test` bucket defined by model.MINIO_BUCKET.
+			*config.FileSettings.AmazonS3Bucket = model.MinioBucket
+			config.FileSettings.AmazonS3PathPrefix = model.NewPointer("")
+			*config.FileSettings.AmazonS3Region = "us-east-1"
+			resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+
+			config.FileSettings.AmazonS3Region = model.NewPointer("")
+			resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+
+			config.FileSettings.AmazonS3Bucket = model.NewPointer("Wrong_bucket")
+			resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
+			CheckInternalErrorStatus(t, resp)
+			CheckErrorID(t, err, "api.file.test_connection_s3_bucket_does_not_exist.app_error")
+
+			*config.FileSettings.AmazonS3Bucket = "shouldnotcreatenewbucket"
+			resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
+			CheckInternalErrorStatus(t, resp)
+			CheckErrorID(t, err, "api.file.test_connection_s3_bucket_does_not_exist.app_error")
+		})
+
+		t.Run("with incorrect credentials", func(t *testing.T) {
+			configCopy := config
+			*configCopy.FileSettings.AmazonS3AccessKeyId = "invalidaccesskey"
+			resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &configCopy)
+			CheckInternalErrorStatus(t, resp)
+			CheckErrorID(t, err, "api.file.test_connection_s3_auth.app_error")
+		})
+
+		t.Run("empty file settings", func(t *testing.T) {
+			config := model.Config{FileSettings: model.FileSettings{}}
+			resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &config)
+			require.Error(t, err)
+			CheckErrorID(t, err, "api.file.test_connection_s3_settings_nil.app_error")
+			CheckBadRequestStatus(t, resp)
+		})
 	})
 
-	t.Run("as system admin", func(t *testing.T) {
-		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &config)
-		CheckBadRequestStatus(t, resp)
-		CheckErrorMessage(t, err, "S3 Bucket is required")
-		// If this fails, check the test configuration to ensure minio is setup with the
-		// `mattermost-test` bucket defined by model.MINIO_BUCKET.
-		*config.FileSettings.AmazonS3Bucket = model.MinioBucket
-		config.FileSettings.AmazonS3PathPrefix = model.NewPointer("")
-		*config.FileSettings.AmazonS3Region = "us-east-1"
-		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
+	t.Run("Azure", func(t *testing.T) {
+		fs := model.FileSettings{}
+		fs.SetDefaults(false)
 
-		config.FileSettings.AmazonS3Region = model.NewPointer("")
-		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
+		fs.DriverName = model.NewPointer(model.ImageDriverAzure)
+		fs.AzureStorageAccount = model.NewPointer("")
+		fs.AzureAccessSecret = model.NewPointer("test-access-secret")
+		fs.AzureContainer = model.NewPointer("")
+		fs.AzurePathPrefix = model.NewPointer("")
 
-		config.FileSettings.AmazonS3Bucket = model.NewPointer("Wrong_bucket")
-		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
-		CheckInternalErrorStatus(t, resp)
-		CheckErrorID(t, err, "api.file.test_connection_s3_bucket_does_not_exist.app_error")
+		config := model.Config{
+			FileSettings: fs,
+		}
 
-		*config.FileSettings.AmazonS3Bucket = "shouldnotcreatenewbucket"
-		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
-		CheckInternalErrorStatus(t, resp)
-		CheckErrorID(t, err, "api.file.test_connection_s3_bucket_does_not_exist.app_error")
-	})
+		t.Run("as system user", func(t *testing.T) {
+			resp, err := client.TestS3Connection(context.Background(), &config)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+		})
 
-	t.Run("with incorrect credentials", func(t *testing.T) {
-		configCopy := config
-		*configCopy.FileSettings.AmazonS3AccessKeyId = "invalidaccesskey"
-		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &configCopy)
-		CheckInternalErrorStatus(t, resp)
-		CheckErrorID(t, err, "api.file.test_connection_s3_auth.app_error")
-	})
+		t.Run("missing mandatory fields", func(t *testing.T) {
+			t.Run("missing storage account", func(t *testing.T) {
+				resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &config)
+				CheckBadRequestStatus(t, resp)
+				CheckErrorMessage(t, err, "missing azure storage account settings")
+			})
 
-	t.Run("empty file settings", func(t *testing.T) {
-		config.FileSettings = model.FileSettings{}
-		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &config)
-		require.Error(t, err)
-		CheckErrorID(t, err, "api.file.test_connection_s3_settings_nil.app_error")
-		CheckBadRequestStatus(t, resp)
+			t.Run("missing container", func(t *testing.T) {
+				configCopy := config
+				*configCopy.FileSettings.AzureStorageAccount = "test-storage-account"
+				resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &configCopy)
+				CheckBadRequestStatus(t, resp)
+				CheckErrorMessage(t, err, "missing azure container settings")
+			})
+
+			t.Run("missing access secret", func(t *testing.T) {
+				configCopy := config
+				*configCopy.FileSettings.AzureStorageAccount = "test-storage-account"
+				*configCopy.FileSettings.AzureContainer = "test-container"
+				*configCopy.FileSettings.AzureAccessSecret = ""
+				resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &configCopy)
+				CheckBadRequestStatus(t, resp)
+				CheckErrorMessage(t, err, "missing azure access secret settings")
+			})
+		})
+
+		t.Run("empty file settings", func(t *testing.T) {
+			config := model.Config{FileSettings: model.FileSettings{}}
+			resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &config)
+			require.Error(t, err)
+			CheckErrorID(t, err, "api.file.test_connection_file_settings_nil.app_error")
+			CheckBadRequestStatus(t, resp)
+		})
 	})
 }
 

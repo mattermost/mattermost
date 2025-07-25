@@ -288,16 +288,63 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  /api/v4/file/test:
+    post:
+      tags:
+        - system
+      summary: Test file storage connection
+      description: >
+        Send a test to validate if the server can connect to the configured file storage backend.
+        This endpoint supports testing connections to various file storage providers including
+        AWS S3, Azure Blob Storage, and local file storage. Optionally provide a configuration
+        in the request body to test. If no valid configuration is present in the request body,
+        the current server configuration will be tested.
+
+        The appropriate validation will be performed based on the `DriverName` specified in the
+        file settings:
+        - `amazons3`: Tests AWS S3 connection and validates required S3 fields
+        - `azure`: Tests Azure Blob Storage connection and validates required Azure fields  
+        - `local`: Tests local file system access
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+        __Minimum server version__: 9.5
+      operationId: TestFileConnection
+      requestBody:
+        description: Mattermost configuration
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Config"
+      responses:
+        "200":
+          description: File storage test successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /api/v4/file/s3_test:
     post:
       tags:
         - system
-      summary: Test AWS S3 connection
+      summary: Test AWS S3 connection (deprecated)
+      deprecated: true
       description: >
-        Send a test to validate if can connect to AWS S3. Optionally provide a
-        configuration in the request body to test. If no valid configuration is
-        present in the request body the current server configuration will be
-        tested.
+        **Deprecated**: Use `/api/v4/file/test` instead.
+
+        This endpoint tests the currently configured file storage backend, not specifically AWS S3.
+        Despite its name, it will test whatever file storage provider is configured (S3, Azure Blob, or local).
+        Optionally provide a configuration in the request body to test. If no valid configuration is
+        present in the request body, the current server configuration will be tested.
 
         ##### Permissions
 
@@ -314,11 +361,13 @@
               $ref: "#/components/schemas/Config"
       responses:
         "200":
-          description: S3 Test successful
+          description: File storage test successful
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
         "500":

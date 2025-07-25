@@ -47,7 +47,8 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/notifications/test", api.APISessionRequired(testNotifications)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/email/test", api.APISessionRequired(testEmail)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/site_url/test", api.APISessionRequired(testSiteURL)).Methods(http.MethodPost)
-	api.BaseRoutes.APIRoot.Handle("/file/s3_test", api.APISessionRequired(testS3)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/file/test", api.APISessionRequired(testFile)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/file/s3_test", api.APISessionRequired(testFile)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/database/recycle", api.APISessionRequired(databaseRecycle)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/caches/invalidate", api.APISessionRequired(invalidateCaches)).Methods(http.MethodPost)
 
@@ -550,7 +551,7 @@ func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
+func testFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	var cfg *model.Config
 	err := json.NewDecoder(r.Body).Decode(&cfg)
 	if err != nil {
@@ -561,7 +562,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if checkHasNilFields(&cfg.FileSettings) {
-		c.Err = model.NewAppError("testS3", "api.file.test_connection_s3_settings_nil.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("testFile", "api.file.test_connection_file_settings_nil.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -576,8 +577,14 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Handle S3 fake settings
 	if *cfg.FileSettings.AmazonS3SecretAccessKey == model.FakeSetting {
 		cfg.FileSettings.AmazonS3SecretAccessKey = c.App.Config().FileSettings.AmazonS3SecretAccessKey
+	}
+
+	// Handle Azure fake settings
+	if *cfg.FileSettings.AzureAccessSecret == model.FakeSetting {
+		cfg.FileSettings.AzureAccessSecret = c.App.Config().FileSettings.AzureAccessSecret
 	}
 
 	appErr = c.App.TestFileStoreConnectionWithConfig(&cfg.FileSettings)
