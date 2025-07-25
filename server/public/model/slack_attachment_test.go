@@ -229,7 +229,7 @@ func TestSlackAttachment_Equals_PrimitiveAndNonPrimitiveField(t *testing.T) {
 		Fields: []*SlackAttachmentField{
 			{
 				Title: "Field1",
-				Value: []interface{}{"value", 2},
+				Value: []any{"value", 2},
 				Short: true,
 			},
 		},
@@ -238,7 +238,7 @@ func TestSlackAttachment_Equals_PrimitiveAndNonPrimitiveField(t *testing.T) {
 		Fields: []*SlackAttachmentField{
 			{
 				Title: "Field1",
-				Value: []interface{}{"value", 2},
+				Value: []any{"value", 2},
 				Short: true,
 			},
 		},

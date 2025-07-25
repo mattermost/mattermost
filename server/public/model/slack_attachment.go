@@ -230,11 +230,7 @@ func (s *SlackAttachmentField) Equals(input *SlackAttachmentField) bool {
 		}
 	}
 
-	if s.Short != input.Short {
-		return false
-	}
-
-	return true
+	return s.Short == input.Short
 }
 
 func StringifySlackFieldValue(a []*SlackAttachment) []*SlackAttachment {
