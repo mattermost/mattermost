@@ -4,8 +4,11 @@
 package web
 
 import (
+	"errors"
 	"net/http"
+	"path"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -13,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
@@ -127,7 +131,7 @@ func (c *Context) IsSystemAdmin() bool {
 	return c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 }
 
-func (c *Context) SessionRequired() {
+func (c *Context) SessionRequired(r *http.Request) {
 	if !*c.App.Config().ServiceSettings.EnableUserAccessTokens &&
 		c.AppContext.Session().Props[model.SessionPropType] == model.SessionTypeUserAccessToken &&
 		c.AppContext.Session().Props[model.SessionPropIsBot] != model.SessionPropIsBotValue {
@@ -139,6 +143,135 @@ func (c *Context) SessionRequired() {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserRequired", http.StatusUnauthorized)
 		return
 	}
+
+	// Terms of Service validation
+	if appErr := c.TermsOfServiceRequired(r); appErr != nil {
+		c.Err = appErr
+		return
+	}
+}
+
+func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
+	// Exempt ToS-related endpoints using exact path matching to prevent bypasses
+	path := r.URL.Path
+	if c.isTermsOfServiceExemptEndpoint(path) {
+		return nil
+	}
+
+	// Check if custom ToS is enabled
+	if c.App.Config().SupportSettings.CustomTermsOfServiceEnabled == nil ||
+		!*c.App.Config().SupportSettings.CustomTermsOfServiceEnabled {
+		return nil
+	}
+
+	// Check license feature - bypass ToS enforcement if no license or feature not enabled
+	if license := c.App.Channels().License(); license == nil ||
+		!*license.Features.CustomTermsOfService {
+		return nil
+	}
+
+	// Exempt bot accounts - bots are automated systems and do not need to accept ToS
+	session := c.AppContext.Session()
+	if session == nil {
+		return model.NewAppError("TermsOfServiceRequired", "api.context.session_expired.app_error", nil, "Session is nil", http.StatusUnauthorized)
+	}
+	if session.IsBotUser() {
+		return nil
+	}
+
+	// Get latest ToS document - FAIL CLOSED on errors
+	latestToS, err := c.App.Srv().Store().TermsOfService().GetLatest(true)
+	if err != nil {
+		// Check if this is specifically "no ToS exists" vs database error
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			c.Logger.Critical("No Terms of Service document found - ToS enforcement disabled system-wide", mlog.String("context", "TermsOfServiceRequired"))
+			return nil // No ToS exists, allow access
+		}
+		// Database error - fail closed for security
+		c.Logger.Error("Database error retrieving terms of service", mlog.Err(err))
+		return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, "", http.StatusForbidden)
+	}
+
+	// Check session cache for user's ToS acceptance
+	if acceptedToSId, exists := session.Props[model.SessionPropTermsOfServiceId]; exists {
+		if acceptedToSId == latestToS.Id {
+			return nil // User already accepted latest ToS
+		}
+	}
+
+	// Cache miss - check database for user's ToS acceptance
+	userToS, appErr := c.App.GetUserTermsOfService(session.UserId)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			// User hasn't accepted ToS yet
+			return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, "", http.StatusForbidden)
+		}
+		c.Logger.Error("Error retrieving user terms of service", mlog.String("user_id", session.UserId), mlog.Err(appErr))
+		return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, "", http.StatusForbidden)
+	}
+
+	// Check if user accepted latest ToS
+	if userToS.TermsOfServiceId != latestToS.Id {
+		return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, "", http.StatusForbidden)
+	}
+
+	// Cache the acceptance in session for future requests
+	session.AddProp(model.SessionPropTermsOfServiceId, userToS.TermsOfServiceId)
+
+	return nil
+}
+
+// isExactPathMatch checks if path exactly matches any of the provided exempt paths
+// Uses explicit path cleaning to prevent bypass attempts via path traversal
+func isExactPathMatch(requestPath string, exemptPaths []string) bool {
+	cleanPath := path.Clean(requestPath)
+	return slices.Contains(exemptPaths, cleanPath)
+}
+
+// matchesUserToSPattern checks if path matches the pattern /api/v4/users/{user_id}/terms_of_service
+// using the same validation pattern as Gorilla Mux: {user_id:[A-Za-z0-9]+}
+func matchesUserToSPattern(path string) (string, bool) {
+	// Quick prefix/suffix check
+	if !strings.HasPrefix(path, "/api/v4/users/") || !strings.HasSuffix(path, "/terms_of_service") {
+		return "", false
+	}
+
+	// Split and validate exact structure: ["", "api", "v4", "users", "user_id", "terms_of_service"]
+	parts := strings.Split(path, "/")
+	if len(parts) != 6 || parts[0] != "" || parts[1] != "api" || parts[2] != "v4" ||
+		parts[3] != "users" || parts[5] != "terms_of_service" {
+		return "", false
+	}
+
+	userId := parts[4]
+	// Use same validation as Gorilla Mux pattern: [A-Za-z0-9]+
+	if userId == "" || !model.IsValidId(userId) {
+		return "", false
+	}
+
+	return userId, true
+}
+
+// isTermsOfServiceExemptEndpoint uses exact path matching to prevent bypass attacks
+func (c *Context) isTermsOfServiceExemptEndpoint(path string) bool {
+	// Exact path matches for ToS endpoints to prevent path traversal attacks
+	exemptPaths := []string{
+		"/api/v4/terms_of_service",
+	}
+
+	// Check exact matches
+	if isExactPathMatch(path, exemptPaths) {
+		return true
+	}
+
+	// Check user-specific ToS endpoints using simplified pattern matching
+	// Pattern: /api/v4/users/{user_id}/terms_of_service
+	if _, matches := matchesUserToSPattern(path); matches {
+		return true
+	}
+
+	return false
 }
 
 func (c *Context) CloudKeyRequired() {
