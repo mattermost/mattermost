@@ -10486,7 +10486,7 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Invalid user, auth data must be set with auth type."
+    "translation": "Invalid user: Auth data can only be set if the user uses an external auth service, not email/password, for authentication."
   },
   {
     "id": "model.user.is_valid.create_at.app_error",
