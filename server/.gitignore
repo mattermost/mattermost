@@ -26,6 +26,10 @@ config/logging.json
 go.work
 go.work.sum
 
+# This is needed to ignore artifacts from FIPS build
+# during CI to keep git status --porcelain untouched.
+.go
+
 #license files
 *.license
 *.mattermost-license
