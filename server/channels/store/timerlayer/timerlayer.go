@@ -4519,6 +4519,22 @@ func (s *TimerLayerGroupStore) GetByName(name string, opts model.GroupSearchOpts
 	return result, err
 }
 
+func (s *TimerLayerGroupStore) GetByNames(names []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
+	start := time.Now()
+
+	result, err := s.GroupStore.GetByNames(names, viewRestrictions)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetByNames", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, error) {
 	start := time.Now()
 
