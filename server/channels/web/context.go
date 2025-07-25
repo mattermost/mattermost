@@ -6,6 +6,7 @@ package web
 import (
 	"errors"
 	"net/http"
+	"path/filepath"
 	"regexp"
 	"slices"
 	"strings"
@@ -163,18 +164,19 @@ func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
 		return nil
 	}
 
-	// Check license feature
+	// Check license feature - bypass ToS enforcement if no license or feature not enabled
 	if license := c.App.Channels().License(); license == nil ||
 		!*license.Features.CustomTermsOfService {
 		return nil
 	}
 
-	// Get latest ToS using cached store layer - FAIL CLOSED on errors
+	// Get latest ToS document - FAIL CLOSED on errors
 	latestToS, err := c.App.Srv().Store().TermsOfService().GetLatest(true)
 	if err != nil {
 		// Check if this is specifically "no ToS exists" vs database error
 		var nfErr *store.ErrNotFound
 		if errors.As(err, &nfErr) {
+			c.Logger.Critical("No Terms of Service document found - ToS enforcement disabled system-wide", mlog.String("context", "TermsOfServiceRequired"))
 			return nil // No ToS exists, allow access
 		}
 		// Database error - fail closed for security
@@ -211,51 +213,30 @@ func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
 }
 
 // isExactPathMatch checks if path exactly matches any of the provided exempt paths
+// Uses explicit path cleaning to prevent bypass attempts via path traversal
 func isExactPathMatch(path string, exemptPaths []string) bool {
-	return slices.Contains(exemptPaths, path)
+	cleanPath := filepath.Clean(path)
+	return slices.Contains(exemptPaths, cleanPath)
 }
 
-// matchesUserResourcePattern checks if path matches the pattern /prefix/{user_id}/suffix
-// and returns the user_id and whether it matches. Uses exact pattern validation to prevent bypass attacks.
-func matchesUserResourcePattern(path, prefix, suffix string) (string, bool) {
-	if !strings.HasPrefix(path, prefix) || !strings.HasSuffix(path, suffix) {
+// matchesUserToSPattern checks if path matches the pattern /api/v4/users/{user_id}/terms_of_service
+// using the same validation pattern as Gorilla Mux: {user_id:[A-Za-z0-9]+}
+func matchesUserToSPattern(path string) (string, bool) {
+	// Quick prefix/suffix check
+	if !strings.HasPrefix(path, "/api/v4/users/") || !strings.HasSuffix(path, "/terms_of_service") {
 		return "", false
 	}
 
-	// Ensure exact pattern with valid structure
+	// Split and validate exact structure: ["", "api", "v4", "users", "user_id", "terms_of_service"]
 	parts := strings.Split(path, "/")
-	expectedParts := strings.Count(prefix, "/") + strings.Count(suffix, "/") + 1 // +1 for user_id segment
-
-	if len(parts) != expectedParts {
+	if len(parts) != 6 || parts[0] != "" || parts[1] != "api" || parts[2] != "v4" ||
+		parts[3] != "users" || parts[5] != "terms_of_service" {
 		return "", false
 	}
 
-	// Validate prefix parts match exactly
-	prefixParts := strings.Split(strings.Trim(prefix, "/"), "/")
-	for i, expectedPart := range prefixParts {
-		if i+1 >= len(parts) || parts[i+1] != expectedPart {
-			return "", false
-		}
-	}
-
-	// Validate suffix parts match exactly
-	suffixParts := strings.Split(strings.Trim(suffix, "/"), "/")
-	suffixStartIndex := len(parts) - len(suffixParts)
-	for i, expectedPart := range suffixParts {
-		if suffixStartIndex+i >= len(parts) || parts[suffixStartIndex+i] != expectedPart {
-			return "", false
-		}
-	}
-
-	// Extract user_id (should be the segment between prefix and suffix)
-	userIdIndex := len(prefixParts) + 1
-	if userIdIndex >= len(parts) {
-		return "", false
-	}
-
-	userId := parts[userIdIndex]
-	// Reject empty user IDs (caused by double slashes or malformed paths)
-	if userId == "" {
+	userId := parts[4]
+	// Use same validation as Gorilla Mux pattern: [A-Za-z0-9]+
+	if userId == "" || !model.IsValidId(userId) {
 		return "", false
 	}
 
@@ -274,11 +255,10 @@ func (c *Context) isTermsOfServiceExemptEndpoint(path string) bool {
 		return true
 	}
 
-	// Check user-specific ToS endpoints with exact pattern matching
+	// Check user-specific ToS endpoints using simplified pattern matching
 	// Pattern: /api/v4/users/{user_id}/terms_of_service
-	if userId, matches := matchesUserResourcePattern(path, "/api/v4/users/", "/terms_of_service"); matches {
-		// Validate that user_id part is a valid ID (prevents injection)
-		return userId != "" && model.IsValidId(userId)
+	if _, matches := matchesUserToSPattern(path); matches {
+		return true
 	}
 
 	return false

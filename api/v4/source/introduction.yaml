@@ -178,7 +178,7 @@ info:
 
       ```
 
-      __Breaking Change Notice__: Starting in server version 10.10, when Custom Terms of Service is enabled and a user has not accepted the latest terms, session-required API endpoints will return `403 Forbidden` responses with error ID `api.context.terms_of_service_required.app_error` and message "Terms of Service acceptance required to access this resource." API clients must handle this error condition and direct users to accept terms through the Terms of Service endpoints before making other API calls.
+      __Breaking Change Notice__: Starting in server version 10.11, when Custom Terms of Service is enabled and a user has not accepted the latest terms, session-required API endpoints will return `403 Forbidden` responses with error ID `api.context.terms_of_service_required.app_error` and message "Terms of Service acceptance required to access this resource." API clients must handle this error condition and direct users to accept terms through the Terms of Service endpoints before making other API calls.
 
     ## WebSocket
      In addition to the HTTP RESTful web service, Mattermost also offers a WebSocket event delivery system and some API functionality.
@@ -458,7 +458,7 @@ tags:
     description: |
       Endpoints for getting and updating custom terms of service.
       
-      __Breaking Change Notice__: Starting in server version 10.10, when Custom Terms of Service is enabled and a user has not accepted the latest terms, all session-required API endpoints will return `403 Forbidden` responses. API clients must handle this error and direct users to accept terms through these endpoints before making other API calls.
+      __Breaking Change Notice__: Starting in server version 10.11, when Custom Terms of Service is enabled and a user has not accepted the latest terms, all session-required API endpoints will return `403 Forbidden` responses. API clients must handle this error and direct users to accept terms through these endpoints before making other API calls.
   - name: imports
     description: Endpoints related to import files.
   - name: exports

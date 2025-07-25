@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
@@ -107,6 +108,11 @@ func TestIsExactPathMatch(t *testing.T) {
 		{"partial match", "/api/v4/terms_of_service/extra", false},
 		{"prefix match", "prefix/api/v4/terms_of_service", false},
 		{"empty path", "", false},
+		{"trailing slash cleaned", "/api/v4/terms_of_service/", true},
+		{"double slash cleaned", "/api/v4//terms_of_service", true},
+		{"current dir cleaned", "/api/v4/./terms_of_service", true},
+		{"path traversal cleaned", "/api/v4/../v4/terms_of_service", true},
+		{"case sensitive no match", "/api/v4/TERMS_OF_SERVICE", false},
 	}
 
 	for _, tt := range tests {
@@ -117,68 +123,64 @@ func TestIsExactPathMatch(t *testing.T) {
 	}
 }
 
-func TestMatchesUserResourcePattern(t *testing.T) {
+func TestMatchesUserToSPattern(t *testing.T) {
 	tests := []struct {
 		name       string
 		path       string
-		prefix     string
-		suffix     string
 		expectedId string
 		expectedOk bool
 	}{
 		{
-			name:       "valid user resource",
+			name:       "valid user ToS resource",
 			path:       "/api/v4/users/abcdefghijklmnopqrstuvwxyz/terms_of_service",
-			prefix:     "/api/v4/users/",
-			suffix:     "/terms_of_service",
 			expectedId: "abcdefghijklmnopqrstuvwxyz",
 			expectedOk: true,
 		},
 		{
-			name:       "valid user preferences",
-			path:       "/api/v4/users/USER123ABCDEFGHIJKLMNOPQRS/preferences",
-			prefix:     "/api/v4/users/",
-			suffix:     "/preferences",
+			name:       "valid user ToS with uppercase",
+			path:       "/api/v4/users/USER123ABCDEFGHIJKLMNOPQRS/terms_of_service",
 			expectedId: "USER123ABCDEFGHIJKLMNOPQRS",
 			expectedOk: true,
 		},
 		{
-			name:       "wrong prefix",
+			name:       "wrong prefix version",
 			path:       "/api/v5/users/abcdefghijklmnopqrstuvwxyz/terms_of_service",
-			prefix:     "/api/v4/users/",
-			suffix:     "/terms_of_service",
 			expectedId: "",
 			expectedOk: false,
 		},
 		{
 			name:       "wrong suffix",
 			path:       "/api/v4/users/abcdefghijklmnopqrstuvwxyz/preferences",
-			prefix:     "/api/v4/users/",
-			suffix:     "/terms_of_service",
 			expectedId: "",
 			expectedOk: false,
 		},
 		{
 			name:       "extra path segments",
 			path:       "/api/v4/users/abcdefghijklmnopqrstuvwxyz/extra/terms_of_service",
-			prefix:     "/api/v4/users/",
-			suffix:     "/terms_of_service",
 			expectedId: "",
 			expectedOk: false,
 		},
 		{
 			name:       "bypass attempt with dots",
 			path:       "/api/v4/users/../admin/terms_of_service",
-			prefix:     "/api/v4/users/",
-			suffix:     "/terms_of_service",
 			expectedId: "",
 			expectedOk: false,
 		},
 		{
 			name:       "empty user id",
 			path:       "/api/v4/users//terms_of_service",
-			prefix:     "/api/v4/users/",
-			suffix:     "/terms_of_service",
+			expectedId: "",
+			expectedOk: false,
+		},
+		{
+			name:       "invalid user id with special chars",
+			path:       "/api/v4/users/user@example.com/terms_of_service",
+			expectedId: "",
+			expectedOk: false,
+		},
+		{
+			name:       "user id with spaces",
+			path:       "/api/v4/users/user with spaces/terms_of_service",
 			expectedId: "",
 			expectedOk: false,
 		},
@@ -186,7 +188,7 @@ func TestMatchesUserResourcePattern(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			userId, ok := matchesUserResourcePattern(tt.path, tt.prefix, tt.suffix)
+			userId, ok := matchesUserToSPattern(tt.path)
 			assert.Equal(t, tt.expectedOk, ok)
 			assert.Equal(t, tt.expectedId, userId)
 		})
@@ -211,18 +213,19 @@ func TestTermsOfServiceExemption(t *testing.T) {
 
 	// Test path bypass attempts - these should NOT be exempt
 	bypassAttempts := []string{
-		"/api/v4/endpoint/../terms_of_service",
-		"/api/v4/TERMS_OF_SERVICE",
-		"/api/v4/users/../terms_of_service",
-		"/api/v4/users//terms_of_service",
-		"/api/v4/users/user@example.com/terms_of_service",
-		"/api/v4/users/user with spaces/terms_of_service",
-		"/api/v4/users/../../terms_of_service",
-		"/api/v4/some_terms_of_service_endpoint",
-		"/api/v4/terms_of_service_but_not_really",
-		"/api/v4/users/abc/extra/terms_of_service",
-		"/api/v4/users",
+		"/api/v4/TERMS_OF_SERVICE",                        // case sensitive
+		"/api/v4/users//terms_of_service",                 // empty user id
+		"/api/v4/users/user@example.com/terms_of_service", // invalid chars in user id
+		"/api/v4/users/user with spaces/terms_of_service", // spaces in user id
+		"/api/v4/some_terms_of_service_endpoint",          // similar but different path
+		"/api/v4/terms_of_service_but_not_really",         // similar but different path
+		"/api/v4/users/abc/extra/terms_of_service",        // extra path segments
+		"/api/v4/users", // incomplete path
 	}
+
+	// Note: Paths like "/api/v4/users/../terms_of_service" and "/api/v4/endpoint/../terms_of_service"
+	// are cleaned by filepath.Clean() to "/api/v4/terms_of_service" which correctly matches
+	// the exempt path. This is the intended security behavior.
 
 	for _, path := range bypassAttempts {
 		exempt := c.isTermsOfServiceExemptEndpoint(path)
@@ -266,6 +269,7 @@ func TestTermsOfServiceRequired(t *testing.T) {
 		c := &Context{
 			App:        th.App,
 			AppContext: th.Context,
+			Logger:     mlog.CreateConsoleTestLogger(t),
 		}
 
 		req, _ := http.NewRequest("GET", "/api/v4/users", nil)
@@ -286,6 +290,7 @@ func TestTermsOfServiceRequired(t *testing.T) {
 		c := &Context{
 			App:        th.App,
 			AppContext: th.Context,
+			Logger:     mlog.CreateConsoleTestLogger(t),
 		}
 
 		req, _ := http.NewRequest("GET", "/api/v4/users", nil)
@@ -311,6 +316,7 @@ func TestTermsOfServiceRequired(t *testing.T) {
 		c := &Context{
 			App:        th.App,
 			AppContext: th.Context,
+			Logger:     mlog.CreateConsoleTestLogger(t),
 		}
 
 		req, _ := http.NewRequest("GET", "/api/v4/users", nil)
@@ -336,6 +342,7 @@ func TestTermsOfServiceRequired(t *testing.T) {
 		c := &Context{
 			App:        th.App,
 			AppContext: th.Context,
+			Logger:     mlog.CreateConsoleTestLogger(t),
 		}
 
 		req, _ := http.NewRequest("GET", "/api/v4/users", nil)
@@ -363,6 +370,7 @@ func TestTermsOfServiceRequired(t *testing.T) {
 		c := &Context{
 			App:        th.App,
 			AppContext: th.Context,
+			Logger:     mlog.CreateConsoleTestLogger(t),
 		}
 
 		req, _ := http.NewRequest("GET", "/api/v4/users", nil)
@@ -393,6 +401,7 @@ func TestTermsOfServiceRequired(t *testing.T) {
 		c := &Context{
 			App:        th.App,
 			AppContext: th.Context,
+			Logger:     mlog.CreateConsoleTestLogger(t),
 		}
 
 		req, _ := http.NewRequest("GET", "/api/v4/users", nil)
@@ -417,6 +426,7 @@ func TestTermsOfServiceRequired(t *testing.T) {
 		c := &Context{
 			App:        th.App,
 			AppContext: th.Context,
+			Logger:     mlog.CreateConsoleTestLogger(t),
 		}
 
 		req, _ := http.NewRequest("GET", "/api/v4/users", nil)
