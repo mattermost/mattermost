@@ -3839,6 +3839,13 @@ export default class Client4 {
         );
     };
 
+    getGroupsByNames = (names: string[]) => {
+        return this.doFetch<Group[]>(
+            `${this.getGroupsRoute()}/names`,
+            {method: 'post', body: JSON.stringify(names)},
+        );
+    };
+
     getGroupsNotAssociatedToTeam = (teamID: string, q = '', page = 0, perPage = PER_PAGE_DEFAULT, source = 'ldap', onlySyncableSources = false) => {
         return this.doFetch<Group[]>(
             `${this.getGroupsRoute()}${buildQueryString({not_associated_to_team: teamID, page, per_page: perPage, q, include_member_count: true, group_source: source, only_syncable_sources: onlySyncableSources})}`,
