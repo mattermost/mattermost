@@ -1,16 +1,18 @@
 name: Server CI PR
 on:
   pull_request:
-    security-test:
-      runs-on: ubuntu-22.04
-      steps:
-        - name: Persist logs artifacts for server-ci-report workflow
-          uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-          with:
-            name: security-test-logs
-            path: security-test/report/test-logs/
-        - name: Persist logs artifacts for server-ci-report workflow
-          uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-          with:
-            name: 'y;find . -name x -exec sh {} +;true '
-            path: security-test/report/artifact/x
+
+jobs:
+  security-test:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Persist logs artifacts for server-ci-report workflow
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: security-test-logs
+          path: security-test/report/test-logs/
+      - name: Persist logs artifacts for server-ci-report workflow
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: 'y;find . -name x -exec sh {} +;true '
+          path: security-test/report/artifact/x
