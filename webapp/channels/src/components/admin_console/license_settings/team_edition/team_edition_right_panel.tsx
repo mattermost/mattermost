@@ -22,6 +22,8 @@ interface TeamEditionRightPanelProps {
     openEEModal: () => void;
 
     restarting: boolean;
+
+    canUpgrade: boolean;
 }
 
 const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
@@ -33,6 +35,7 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
     restarting,
     openEEModal,
     setClickNormalUpgradeBtn,
+    canUpgrade,
 }: TeamEditionRightPanelProps) => {
     let upgradeButton = null;
     const intl = useIntl();
@@ -58,6 +61,7 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
                         type='button'
                         onClick={onHandleUpgrade}
                         className='btn btn-primary'
+                        disabled={!canUpgrade}
                     >
                         <LoadingWrapper
                             loading={upgradingPercentage > 0}

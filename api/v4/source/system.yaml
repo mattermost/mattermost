@@ -1138,6 +1138,20 @@
         "403":
           $ref: "#/components/responses/Forbidden"
 
+  /api/v4/upgrade_to_enterprise/allowed:
+    get:
+      tags:
+        - system
+      summary: Check if the user is allowed to upgrade to Enterprise Edition
+      description: >
+        Check if the user is allowed to upgrade to Enterprise Edition
+      operationId: IsAllowedToUpgradeToEnterprise
+      responses:
+        "200":
+          description: User is allowed to upgrade to Enterprise Edition
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   /api/v4/restart:
     post:
       tags:
