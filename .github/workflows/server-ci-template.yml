@@ -82,7 +82,7 @@ jobs:
       - name: Run go mod tidy
         run: make modules-tidy
       - name: Check modules
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git diff; exit 1; fi
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git status; exit 1; fi
   golangci:
     name: golangci-lint
     runs-on: ubuntu-latest
@@ -279,7 +279,7 @@ jobs:
       - name: Generate store layers
         run: make store-layers
       - name: Check generated code
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; git diff; exit 1; fi
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
 
   check-mmctl-docs:
     name: Check mmctl docs
