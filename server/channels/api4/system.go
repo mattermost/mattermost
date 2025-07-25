@@ -10,7 +10,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -80,7 +79,6 @@ func (api *API) InitSystem() {
 
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	const FileMime = "application/zip"
-	const OutputDirectory = "support_packet"
 
 	// Support Packet generation is limited to system admins (MM-42271).
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -110,32 +108,18 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	outputZipFilename := supportPacketFileName(now, c.App.License().Customer.Company)
 
-	fileStorageBackend := c.App.FileBackend()
-	// We do this incase we get concurrent requests, we will always have a unique directory.
-	// This is to avoid the situation where we try to write to the same directory while we are trying to delete it (further down)
-	outputDirectoryToUse := OutputDirectory + "_" + model.NewId()
-	err := c.App.CreateZipFileAndAddFiles(fileStorageBackend, fileDatas, outputZipFilename, outputDirectoryToUse)
+	// Create a buffer and write the zip file to it
+	buf := new(bytes.Buffer)
+	err := c.App.WriteZipFile(buf, fileDatas)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_create_zip_file", nil, "", http.StatusForbidden).Wrap(err)
 		return
 	}
 
-	fileBytes, err := fileStorageBackend.ReadFile(path.Join(outputDirectoryToUse, outputZipFilename))
-	defer func() {
-		if err = fileStorageBackend.RemoveDirectory(outputDirectoryToUse); err != nil {
-			c.Logger.Warn("Error while removing directory", mlog.Err(err))
-		}
-	}()
-	if err != nil {
-		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_read_file_from_backend", nil, "", http.StatusForbidden).Wrap(err)
-		return
-	}
-	fileBytesReader := bytes.NewReader(fileBytes)
-
 	// Prevent caching so support packets are always fresh
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 
-	err = web.WriteStreamResponse(w, fileBytesReader, outputZipFilename, FileMime, true)
+	err = web.WriteStreamResponse(w, buf, outputZipFilename, FileMime, true)
 	if err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
