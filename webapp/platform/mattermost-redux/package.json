@@ -39,8 +39,8 @@
     "directory": "webapp/platform/mattermost-redux"
   },
   "dependencies": {
-    "@mattermost/client": "10.6.0",
-    "@mattermost/types": "10.6.0",
+    "@mattermost/client": "10.9.0",
+    "@mattermost/types": "10.9.0",
     "@redux-devtools/extension": "^3.2.3",
     "lodash": "^4.17.21",
     "moment-timezone": "^0.5.38",
