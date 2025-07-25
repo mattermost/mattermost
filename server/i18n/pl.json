@@ -4605,11 +4605,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 134+"
+    "translation": "Wersja 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 134+"
+    "translation": "Wersja 138+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -9761,7 +9761,7 @@
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Nie można aktywować użytkownika. Serwer przekroczył limit bezpiecznych użytkowników. Skontaktuj się z administratorem: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Nie można aktywować użytkownika. Serwer przekroczył limit bezpiecznego użytkownika. ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "api.user.create_user.user_limits.exceeded",
@@ -10822,5 +10822,141 @@
   {
     "id": "app.pap.delete_access_control_policy.app_error",
     "translation": "Nie można usunąć polityki kontroli dostępu."
+  },
+  {
+    "id": "ent.access_control.job_data_conversion.app_error",
+    "translation": "Nie udało się wyodrębnić danych z poprzedniego zadania."
+  },
+  {
+    "id": "model.access_policy.inherit.version.app_error",
+    "translation": "Nie można odziedziczyć polityki kontroli dostępu."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
+    "translation": "Kolor banera Kanału musi być prawidłowym kolorem szesnastkowym (np. #FF0000 lub #F00)"
+  },
+  {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "Wiodący lub końcowy biały znak wykryty dla {{.Setting}}. Znaleziono \"{{.Value}}\"."
+  },
+  {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "Nie można aktywować użytkownika. Serwer przekroczył limit licencjonowanych użytkowników. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "Test połączenia LDAP nie powiódł się. Serwer: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Błąd: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "Maksymalna konfiguracja kopii zapasowych plików logów audytu nie może być ujemna."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "Maksymalna kolejka plików konfiguracji logów audytu musi być większa od zera."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "Nieprawidłowy identyfikator kanału."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
+    "translation": "Wspólni recenzenci lub dodatkowi recenzenci muszą być ustawieni, gdy włączona jest opcja \"Ci sami recenzenci dla wszystkich zespołów\"."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.reasons_not_set.app_error",
+    "translation": "Powody oflagowania nie mogą być puste."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
+    "translation": "Recenzenci zespołu lub dodatkowi recenzenci muszą być ustawieni podczas ustawiania opcji \"Włączone\" dla zespołu."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "Maksymalny wiek pliku konfiguracji dzienników audytu nie może być ujemny."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "Maksymalny rozmiar pliku konfiguracji logów audytu musi być większy od zera."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "Nazwa pliku nie może być katalogiem."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "Gdy rejestrowanie plików audytu jest włączone, należy podać nazwę pliku."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_target",
+    "translation": "Określono nieprawidłowy cel zdarzenia flagowania."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_event",
+    "translation": "Określono nieprawidłowe zdarzenie flagowania."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
+    "translation": "Powiadomienia o nowych oflagowanych postach nie mogą być wyłączone dla recenzentów."
+  },
+  {
+    "id": "app.pap.get_channel_access_control_attributes.app_error",
+    "translation": "Nie udało się uzyskać Atrybutów dla Kanału."
+  },
+  {
+    "id": "app.pap.get_channel_members_to_remove.app_error",
+    "translation": "Nie udało się usunąć członków kanału."
+  },
+  {
+    "id": "app.pap.init.app_error",
+    "translation": "Nie można zainicjować usługi kontroli dostępu."
+  },
+  {
+    "id": "app.pap.get_policy.app_error",
+    "translation": "Nie można pobrać polityki kontroli dostępu."
+  },
+  {
+    "id": "app.pap.get_policy_attributes.app_error",
+    "translation": "Nie można uzyskać Atrybutów dla Polityki."
+  },
+  {
+    "id": "app.pap.search_access_control_policies.app_error",
+    "translation": "Nie można znaleźć polityki kontroli dostępu."
+  },
+  {
+    "id": "app.pap.normalize_policy.app_error",
+    "translation": "Nie można znormalizować wyrażenia polityki."
+  },
+  {
+    "id": "app.pap.query_expression.app_error",
+    "translation": "Nie można wykonać zapytania dla wyrażenia."
+  },
+  {
+    "id": "app.pap.save_policy.app_error",
+    "translation": "Nie można zapisać polityki kontroli dostępu."
+  },
+  {
+    "id": "app.pdp.access_evaluation.app_error",
+    "translation": "Nie powiodła się ocena polityki kontroli dostępu."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
+    "translation": "Nie można usunąć polityki kontroli dostępu z Kanałów."
+  },
+  {
+    "id": "app.pap.update_access_control_policy_active.app_error",
+    "translation": "Nie można zmienić aktywnego statusu polityki kontroli dostępu."
+  },
+  {
+    "id": "app.pap.is_ready.app_error",
+    "translation": "Usługa kontroli dostępu nie jest gotowa."
+  },
+  {
+    "id": "app.pap.missing_attribute.app_error",
+    "translation": "W wyrażeniu brakuje atrybutu."
+  },
+  {
+    "id": "ent.access_control.sync_job.app_error",
+    "translation": "Nie udało się uruchomić zadania synchronizacji kontroli dostępu."
   }
 ]
