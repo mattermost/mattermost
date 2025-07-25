@@ -340,7 +340,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// shape IP:PORT (it will be "@" in Linux, for example)
 		isLocalOrigin := !strings.Contains(r.RemoteAddr, ":")
 		if *c.App.Config().ServiceSettings.EnableLocalMode && isLocalOrigin {
-			c.AppContext = c.AppContext.WithSession(&model.Session{Local: true})
+			userID := r.Header.Get("X-Mattermost-Id")
+			c.AppContext = c.AppContext.WithSession(&model.Session{Local: true, UserId: userID})
 		} else if !isLocalOrigin {
 			c.Err = model.NewAppError("", "api.context.local_origin_required.app_error", nil, "LocalOriginRequired", http.StatusUnauthorized)
 		}
