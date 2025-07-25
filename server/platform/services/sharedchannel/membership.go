@@ -319,7 +319,7 @@ func (scs *Service) syncMembershipBatchToRemotes(syncMsg *model.SyncMsg, remotes
 				// Check if user profile needs to be synced
 				doSync, _, sErr := scs.shouldUserSync(user, syncMsg.ChannelId, rc)
 				if sErr == nil && doSync {
-					enrichedSyncMsg.Users[user.Id] = user
+					enrichedSyncMsg.Users[user.Id] = sanitizeUserForSync(user)
 				}
 			}
 		}
