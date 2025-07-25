@@ -5,6 +5,7 @@ package model
 
 import (
 	"fmt"
+	"reflect"
 	"regexp"
 	"slices"
 
@@ -218,8 +219,15 @@ func (s *SlackAttachmentField) Equals(input *SlackAttachmentField) bool {
 		return false
 	}
 
-	if s.Value != input.Value {
-		return false
+	switch s.Value.(type) {
+	case string, bool, int, float64:
+		if s.Value != input.Value {
+			return false
+		}
+	default:
+		if !reflect.DeepEqual(s.Value, input.Value) {
+			return false
+		}
 	}
 
 	if s.Short != input.Short {
