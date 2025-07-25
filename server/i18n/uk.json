@@ -657,7 +657,7 @@
   },
   {
     "id": "api.command_invite.name",
-    "translation": "запросити"
+    "translation": "запрошення"
   },
   {
     "id": "api.command_invite.permission.app_error",
