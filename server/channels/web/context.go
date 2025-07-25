@@ -172,6 +172,9 @@ func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
 
 	// Exempt bot accounts - bots are automated systems and do not need to accept ToS
 	session := c.AppContext.Session()
+	if session == nil {
+		return model.NewAppError("TermsOfServiceRequired", "api.context.session_expired.app_error", nil, "Session is nil", http.StatusUnauthorized)
+	}
 	if session.IsBotUser() {
 		return nil
 	}
@@ -186,7 +189,8 @@ func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
 			return nil // No ToS exists, allow access
 		}
 		// Database error - fail closed for security
-		return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, "Database error retrieving terms of service: "+err.Error(), http.StatusForbidden)
+		c.Logger.Error("Database error retrieving terms of service", mlog.Err(err))
+		return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, "", http.StatusForbidden)
 	}
 
 	// Check session cache for user's ToS acceptance
@@ -203,7 +207,8 @@ func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
 			// User hasn't accepted ToS yet
 			return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, "", http.StatusForbidden)
 		}
-		return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, appErr.Error(), http.StatusForbidden)
+		c.Logger.Error("Error retrieving user terms of service", mlog.String("user_id", session.UserId), mlog.Err(appErr))
+		return model.NewAppError("TermsOfServiceRequired", "api.context.terms_of_service_required.app_error", nil, "", http.StatusForbidden)
 	}
 
 	// Check if user accepted latest ToS
