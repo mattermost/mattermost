@@ -130,6 +130,7 @@ export type ClientConfig = {
     FeatureFlagCustomProfileAttributes: string;
     FeatureFlagAttributeBasedAccessControl: string;
     FeatureFlagWebSocketEventScope: string;
+    FeatureFlagInteractiveDialogAppsForm: string;
     FeatureFlagContentFlagging: string;
     ForgotPasswordLink: string;
     GiphySdkKey: string;
