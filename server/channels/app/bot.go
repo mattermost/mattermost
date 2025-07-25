@@ -166,6 +166,37 @@ func (a *App) CreateBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.Ap
 }
 
 func (a *App) GetSystemBot(rctx request.CTX) (*model.Bot, *model.AppError) {
+	//perPage := 1
+	//userOptions := &model.UserGetOptions{
+	//	Page:     0,
+	//	PerPage:  perPage,
+	//	Role:     model.SystemAdminRoleId,
+	//	Inactive: false,
+	//}
+	//
+	//sysAdminList, err := a.GetUsersFromProfiles(userOptions)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//if len(sysAdminList) == 0 {
+	//	return nil, model.NewAppError("GetSystemBot", "app.bot.get_system_bot.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
+	//}
+	//
+	//T := i18n.GetUserTranslations(sysAdminList[0].Locale)
+	//systemBot := &model.Bot{
+	//	Username:    model.BotSystemBotUsername,
+	//	DisplayName: T("app.system.system_bot.bot_displayname"),
+	//	Description: "",
+	//	OwnerId:     sysAdminList[0].Id,
+	//}
+	//
+	//return a.getOrCreateBot(rctx, systemBot)
+
+	return a.GetOrCreateSystemBot(rctx, "app.system.system_bot.bot_displayname")
+}
+
+func (a *App) GetOrCreateSystemBot(rctx request.CTX, botDisplayNameCode string) (*model.Bot, *model.AppError) {
 	perPage := 1
 	userOptions := &model.UserGetOptions{
 		Page:     0,
@@ -180,13 +211,13 @@ func (a *App) GetSystemBot(rctx request.CTX) (*model.Bot, *model.AppError) {
 	}
 
 	if len(sysAdminList) == 0 {
-		return nil, model.NewAppError("GetSystemBot", "app.bot.get_system_bot.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("GetSystemBot", "app.bot.get_or_create_system_bot.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	T := i18n.GetUserTranslations(sysAdminList[0].Locale)
 	systemBot := &model.Bot{
 		Username:    model.BotSystemBotUsername,
-		DisplayName: T("app.system.system_bot.bot_displayname"),
+		DisplayName: T(botDisplayNameCode),
 		Description: "",
 		OwnerId:     sysAdminList[0].Id,
 	}

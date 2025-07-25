@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"net/http"
 )
 
@@ -43,7 +44,7 @@ func ContentFlaggingEnabledForTeam(config *model.Config, teamId string) bool {
 	return hasAdditionalReviewers
 }
 
-func (a *App) ContentFlaggingGroupId() (string, *model.AppError) {
+func (a *App) contentFlaggingGroupId() (string, *model.AppError) {
 	if contentFlaggingGroupId != "" {
 		return contentFlaggingGroupId, nil
 	}
@@ -57,13 +58,13 @@ func (a *App) ContentFlaggingGroupId() (string, *model.AppError) {
 	return contentFlaggingGroupId, nil
 }
 
-func (a *App) FlagPost(postId, reportingUserId string, flagData model.FlagContentRequest) *model.AppError {
-	groupId, appErr := a.ContentFlaggingGroupId()
+func (a *App) FlagPost(c request.CTX, post *model.Post, reportingUserId string, flagData model.FlagContentRequest) *model.AppError {
+	groupId, appErr := a.contentFlaggingGroupId()
 	if appErr != nil {
 		return appErr
 	}
 
-	if appErr := a.CanFlagPost(groupId, postId); appErr != nil {
+	if appErr := a.canFlagPost(groupId, post.Id); appErr != nil {
 		return appErr
 	}
 
@@ -71,6 +72,8 @@ func (a *App) FlagPost(postId, reportingUserId string, flagData model.FlagConten
 	if appErr != nil {
 		return appErr
 	}
+
+	teamContentFlaggingChannel, appErr := a.ensureTeamContentFlaggingChannel(c)
 
 	// TODO: use constant or target type and field names
 
@@ -121,17 +124,17 @@ func (a *App) FlagPost(postId, reportingUserId string, flagData model.FlagConten
 	return nil
 }
 
-func (a *App) GetPostContentFlaggingProperties(groupID, postId string) ([]*model.PropertyValue, *model.AppError) {
+func (a *App) getPostContentFlaggingProperties(groupID, postId string) ([]*model.PropertyValue, *model.AppError) {
 	propertyValues, err := a.Srv().propertyService.SearchPropertyValues(groupID, postId, model.PropertyValueSearchOpts{PerPage: 100})
 	if err != nil {
-		return nil, model.NewAppError("GetPostContentFlaggingProperties", "app.content_flagging.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("getPostContentFlaggingProperties", "app.content_flagging.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return propertyValues, nil
 }
 
-func (a *App) CanFlagPost(groupId, postId string) *model.AppError {
-	postPropertyValues, appErr := a.GetPostContentFlaggingProperties(groupId, postId)
+func (a *App) canFlagPost(groupId, postId string) *model.AppError {
+	postPropertyValues, appErr := a.getPostContentFlaggingProperties(groupId, postId)
 	if appErr != nil {
 		return appErr
 	}
@@ -142,7 +145,7 @@ func (a *App) CanFlagPost(groupId, postId string) *model.AppError {
 	}
 
 	// Analyze the value of status property
-	groupID, appErr := a.ContentFlaggingGroupId()
+	groupID, appErr := a.contentFlaggingGroupId()
 	if appErr != nil {
 		return appErr
 	}
@@ -150,7 +153,7 @@ func (a *App) CanFlagPost(groupId, postId string) *model.AppError {
 	// TODO: replace "status" string with model.contentFlaggingPropertyNameStatus
 	statusPropertyField, err := a.Srv().propertyService.GetPropertyFieldByName(groupID, "", "status")
 	if err != nil {
-		return model.NewAppError("CanFlagPost", "app.content_flagging.get_property_field_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("canFlagPost", "app.content_flagging.get_property_field_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	var statusValue *model.PropertyValue
@@ -179,7 +182,7 @@ func (a *App) CanFlagPost(groupId, postId string) *model.AppError {
 		reason = "app.content_flagging.can_flag_post.unknown"
 	}
 
-	return model.NewAppError("CanFlagPost", reason, nil, "", http.StatusBadRequest)
+	return model.NewAppError("canFlagPost", reason, nil, "", http.StatusBadRequest)
 }
 
 func (a *App) getContentFlaggingMappedFields(groupId string) (map[string]*model.PropertyField, *model.AppError) {
@@ -194,4 +197,43 @@ func (a *App) getContentFlaggingMappedFields(groupId string) (map[string]*model.
 	}
 
 	return mappedFields, nil
+}
+
+func (a *App) createContentReviewPost(c request.CTX, teamId string) (*model.Post, *model.AppError) {
+	contentFlaggingChannel, appErr := a.ensureTeamContentFlaggingChannel(c, teamId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	a.GetSystemBot()
+
+	post := &model.Post{
+		ChannelId: contentFlaggingChannel.Id,
+		Message:   "Content Review",
+	}
+}
+
+func (a *App) ensureTeamContentFlaggingChannel(c request.CTX, teamId string) (*model.Channel, *model.AppError) {
+	// TODO add lock here
+
+	existingChannel, appErr := a.GetChannelByName(c, "system_flagged_content", teamId, false)
+	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+		return nil, appErr
+	}
+
+	if existingChannel != nil {
+		return existingChannel, nil
+	}
+
+	// Since there was no existing channel, we create a new one.
+
+	// TODD add channel banner here
+	// TODO add default category here
+	channel := &model.Channel{
+		TeamId:      teamId,
+		Type:        model.ChannelTypePrivate,
+		DisplayName: "Flagged Content",
+		Name:        "system_flagged_content",
+	}
+	return a.CreateChannel(c, channel, false)
 }
