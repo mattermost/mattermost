@@ -219,7 +219,7 @@ func (s *SlackAttachmentField) Equals(input *SlackAttachmentField) bool {
 		return false
 	}
 
-	if reflect.ValueOf(input.Value).Type().Comparable() && reflect.ValueOf(s.Value).Type().Comparable() {
+	if reflect.ValueOf(input.Value).Type().Comparable() && reflect.ValueOf(s.Value).Type().Comparable() && reflect.ValueOf(input.Value).Type() == reflect.ValueOf(s.Value).Type() {
 		if s.Value != input.Value {
 			return false
 		}
