@@ -110,7 +110,7 @@ jobs:
               -v $PWD:/mattermost \
               -w /mattermost/server \
               $BUILD_IMAGE \
-              make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
+              test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
           else
             # Non-FIPS version - with GOCACHE mounting
             docker run --net ghactions_mm-test \
