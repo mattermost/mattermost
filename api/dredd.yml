@@ -1,0 +1,47 @@
+reporter: json
+output: ./test-results/dredd-report.json
+color: false
+sorted: true
+names: false
+only: []
+skip: 
+  # Skip file upload endpoints
+  - "/api/v4/files*"
+  # Skip SAML endpoints
+  - "/api/v4/saml/*"
+  # Skip LDAP endpoints
+  - "/api/v4/ldap/*"
+  # Skip plugin endpoints
+  - "/api/v4/plugins/*"
+  # Skip system endpoints that modify state
+  - "/api/v4/database/*"
+  - "/api/v4/cluster/*"
+  # Skip compliance endpoints
+  - "/api/v4/compliance/*"
+  # Skip elasticsearch endpoints
+  - "/api/v4/elasticsearch/*"
+  # Skip OAuth endpoints
+  - "/api/v4/oauth/*"
+  # Skip bot endpoints
+  - "/api/v4/bots*"
+header: 
+  - "Authorization: Bearer TOKEN_PLACEHOLDER"
+user: ''
+inline-errors: false
+details: true
+method: []
+level: warn
+timestamp: false
+silent: false
+path: []
+hooks-worker-timeout: 5000
+hooks-worker-connect-timeout: 1500
+hooks-worker-connect-retry: 500
+hooks-worker-after-connect-wait: 100
+hooks-worker-term-timeout: 5000
+hooks-worker-term-retry: 500
+hooks-worker-handler-host: 127.0.0.1
+hooks-worker-handler-port: 61321
+config: ./dredd.yml
+blueprint: v4/html/static/mattermost-openapi-v4.yaml
+endpoint: 'http://localhost:8065'

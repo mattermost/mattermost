@@ -9,6 +9,9 @@
     "sync-fetch": "0.4.1",
     "yaml": "2.1.1"
   },
+  "devDependencies": {
+    "dredd": "^14.1.0"
+  },
   "overrides": {
     "node-fetch": {
       "whatwg-url": "^12.0.0"
@@ -18,7 +21,9 @@
     }
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test-api-contract": "dredd v4/html/static/mattermost-openapi-v4.yaml http://localhost:8065 --config=dredd.yml",
+    "test-api-schemathesis": "schemathesis run --base-url=http://localhost:8065 --auth-type=header --auth='Authorization: Bearer TOKEN_PLACEHOLDER' v4/html/static/mattermost-openapi-v4.yaml"
   },
   "repository": {
     "type": "git",

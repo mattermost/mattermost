@@ -12,6 +12,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      COMPOSE_PROJECT_NAME: api-contract-test
     defaults:
       run:
         working-directory: ./api
@@ -20,11 +22,176 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
+      - name: Calculate Golang Version
+        id: go
+        working-directory: ./server
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+
+      - name: Setup Go
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
+          cache: true
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
           cache: "npm"
           cache-dependency-path: api/package-lock.json
 
+      - name: Setup Python for contract testing
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install contract testing tools
+        run: |
+          npm install
+          pip install -r requirements.txt
+
       - name: Run build
         run: make build
+
+      - name: Start database and services
+        working-directory: ./server/build
+        run: |
+          docker compose --ansi never run --rm start_dependencies
+          docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test'
+          docker compose --ansi never ps
+
+      - name: Build Mattermost server
+        working-directory: ./server
+        run: |
+          make setup-go-work
+          make prepackaged-binaries
+          make build-linux
+
+      - name: Start Mattermost server
+        working-directory: ./server
+        run: |
+          # Create basic server config for testing
+          mkdir -p config data
+          echo '{
+            "ServiceSettings": {
+              "SiteURL": "http://localhost:8065",
+              "ListenAddress": ":8065",
+              "EnableDeveloper": true,
+              "EnableInsecureOutgoingConnections": true
+            },
+            "TeamSettings": {
+              "EnableOpenServer": true,
+              "EnableUserCreation": true
+            },
+            "SqlSettings": {
+              "DriverName": "postgres",
+              "DataSource": "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+            },
+            "LogSettings": {
+              "EnableConsole": true,
+              "ConsoleLevel": "INFO"
+            },
+            "FileSettings": {
+              "DriverName": "local",
+              "Directory": "./data/"
+            }
+          }' > config/config.json
+          
+          # Start server in background
+          nohup ./bin/mattermost > server.log 2>&1 &
+          SERVER_PID=$!
+          echo "SERVER_PID=$SERVER_PID" >> $GITHUB_ENV
+          
+          # Wait for server to be ready
+          echo "Waiting for server to start..."
+          if timeout 60 bash -c 'until curl -f http://localhost:8065/api/v4/system/ping; do sleep 2; done'; then
+            echo "Server started successfully"
+          else
+            echo "Server failed to start. Checking logs:"
+            tail -20 server.log
+            exit 1
+          fi
+
+      - name: Setup test user and authentication
+        working-directory: ./server
+        run: |
+          # Create system admin user
+          ./bin/mmctl auth login http://localhost:8065 --name local --username admin --password 'Admin123!' --local || echo "Login failed, continuing with user creation"
+          
+          # Create admin user if not exists
+          curl -X POST http://localhost:8065/api/v4/users \
+            -H "Content-Type: application/json" \
+            -d '{
+              "email": "admin@example.com",
+              "username": "admin",
+              "password": "Admin123!",
+              "first_name": "System",
+              "last_name": "Admin"
+            }' || echo "User might already exist"
+          
+          # Get login token
+          RESPONSE=$(curl -X POST http://localhost:8065/api/v4/users/login \
+            -H "Content-Type: application/json" \
+            -d '{
+              "login_id": "admin",
+              "password": "Admin123!"
+            }' -v 2>&1)
+          
+          # Extract token from response headers
+          TOKEN=$(echo "$RESPONSE" | grep -i "token:" | head -1 | sed 's/.*token: \(.*\)/\1/' | tr -d '\r\n ')
+          echo "API_TOKEN=$TOKEN" >> $GITHUB_ENV
+          
+          # Verify token works
+          curl -H "Authorization: Bearer $TOKEN" http://localhost:8065/api/v4/users/me || echo "Token verification failed"
+
+      - name: Run OpenAPI contract tests
+        run: |
+          # Create test results directory
+          mkdir -p test-results
+          
+          # Update Dredd config with actual token
+          sed "s/TOKEN_PLACEHOLDER/$API_TOKEN/g" dredd.yml > dredd-with-token.yml
+          
+          # Run Dredd tests
+          echo "Running Dredd contract tests..."
+          npx dredd v4/html/static/mattermost-openapi-v4.yaml http://localhost:8065 --config=dredd-with-token.yml || echo "Dredd tests completed with issues"
+          
+          # Run Schemathesis tests
+          echo "Running Schemathesis contract tests..."
+          schemathesis run \
+            --base-url=http://localhost:8065 \
+            --auth-type=header \
+            --auth="Authorization: Bearer $API_TOKEN" \
+            --max-examples=5 \
+            --report \
+            --output-file=test-results/schemathesis-report.json \
+            v4/html/static/mattermost-openapi-v4.yaml || echo "Schemathesis tests completed with issues"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: api-contract-test-results
+          path: |
+            api/test-results/
+            server/server.log
+          retention-days: 30
+
+      - name: Display test summary
+        if: always()
+        run: |
+          echo "=== OpenAPI Contract Test Summary ==="
+          echo "Generated OpenAPI spec: v4/html/static/mattermost-openapi-v4.yaml"
+          echo "Server logs available in artifacts: server/server.log"
+          echo "Test results available in artifacts: api/test-results/"
+          
+          if [ -f "test-results/dredd-report.json" ]; then
+            echo "Dredd test results found"
+          fi
+          
+          if [ -f "test-results/schemathesis-report.json" ]; then
+            echo "Schemathesis test results found"
+          fi

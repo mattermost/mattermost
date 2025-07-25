@@ -1,0 +1,66 @@
+FROM ubuntu:22.04
+
+# Avoid interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    git \
+    build-essential \
+    ca-certificates \
+    gnupg \
+    lsb-release \
+    software-properties-common \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Docker CLI (for docker compose)
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+RUN apt-get update && apt-get install -y docker-ce-cli docker-compose-plugin && rm -rf /var/lib/apt/lists/*
+
+# Install Go (matching the version in .go-version)
+ARG GO_VERSION=1.24.3
+RUN wget https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz \
+    && tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz \
+    && rm go${GO_VERSION}.linux-amd64.tar.gz
+
+# Install Node.js (using NodeSource repository for latest LTS)
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
+    && apt-get install -y nodejs
+
+# Install Python and pip
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set environment variables
+ENV PATH="/usr/local/go/bin:${PATH}"
+ENV GOPATH="/go"
+ENV GOBIN="/go/bin"
+ENV PATH="${GOBIN}:${PATH}"
+
+# Create directories
+RUN mkdir -p /go/bin /workspace
+WORKDIR /workspace
+
+# Install global tools
+RUN npm install -g npm@latest
+
+# Create a non-root user for security
+RUN useradd -m -s /bin/bash developer && \
+    usermod -aG docker developer 2>/dev/null || true
+
+# Copy test script
+COPY test-api-workflow-docker.sh /usr/local/bin/test-api-workflow
+RUN chmod +x /usr/local/bin/test-api-workflow
+
+# Switch to non-root user
+USER developer
+WORKDIR /workspace
+
+# Default command
+CMD ["/usr/local/bin/test-api-workflow"]
