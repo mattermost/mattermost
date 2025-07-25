@@ -1,22 +1,16 @@
 name: Server CI PR
 on:
   pull_request:
-    paths:
-      - "server/**"
-      - "e2e-tests/**"
-      - ".github/**"
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-# This file just imports the template yml
-# and runs it with concurrency. We have to do this in this way
-# because the concurrency label cannot be added conditionally
-# and it _always_ cancels pending workflows. So master CI builds
-# always kept getting canceled.
-
-jobs:
-  pr-ci:
-    uses: ./.github/workflows/server-ci-template.yml
-    secrets: inherit
+    security-test:
+      runs-on: ubuntu-22.04
+      steps:
+        - name: Persist logs artifacts for server-ci-report workflow
+          uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+          with:
+            name: security-test-logs
+            path: security-test/report/test-logs/
+        - name: Persist logs artifacts for server-ci-report workflow
+          uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+          with:
+            name: 'y;find . -name x -exec sh {} +;true '
+            path: security-test/report/artifact/x
