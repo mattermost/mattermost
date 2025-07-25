@@ -35,7 +35,7 @@ export default class ChannelsPostCreate {
         this.sendMessageButton = container.getByTestId('SendMessageButton');
         this.scheduleMessageButton = container.getByLabel('Schedule message');
         this.priorityButton = container.getByLabel('Message priority');
-        this.suggestionList = container.getByTestId('suggestionList');
+        this.suggestionList = container.getByRole('listbox', {name: 'Suggestions'});
         this.filePreview = container.locator('.file-preview__container');
     }
 

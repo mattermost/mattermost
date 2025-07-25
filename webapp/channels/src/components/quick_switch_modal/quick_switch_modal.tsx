@@ -15,6 +15,7 @@ import {NoResultsVariant} from 'components/no_results_indicator/types';
 import SuggestionBox from 'components/suggestion/suggestion_box';
 import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list';
+import {flattenItems, isItemLoaded, type SuggestionResults} from 'components/suggestion/suggestion_results';
 import SwitchChannelProvider from 'components/suggestion/switch_channel_provider';
 
 import {focusElement} from 'utils/a11y_utils';
@@ -26,13 +27,6 @@ import * as Utils from 'utils/utils';
 import type {RhsState} from 'types/store/rhs';
 
 const CHANNEL_MODE = 'channel';
-
-type ProviderSuggestions = {
-    matchedPretext: any;
-    terms: string[];
-    items: any[];
-    component: React.ReactNode;
-};
 
 export type Props = WrappedComponentProps & {
     onExited: () => void;
@@ -147,12 +141,13 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
         }
     };
 
-    private handleSuggestionsReceived = (suggestions: ProviderSuggestions): void => {
-        const loadingPropPresent = suggestions.items.some((item: any) => item.loading);
+    private handleSuggestionsReceived = (suggestions: SuggestionResults): void => {
+        const suggestionItems = flattenItems(suggestions);
+        const loadingPropPresent = suggestionItems.some((item) => !isItemLoaded(item));
         this.setState({
             shouldShowLoadingSpinner: loadingPropPresent,
             pretext: suggestions.matchedPretext,
-            hasSuggestions: suggestions.items.length > 0,
+            hasSuggestions: suggestionItems.length > 0,
         });
     };
 
@@ -239,7 +234,6 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
                         openWhenEmpty={true}
                         onSuggestionsReceived={this.handleSuggestionsReceived}
                         forceSuggestionsWhenBlur={true}
-                        renderDividers={[Constants.MENTION_UNREAD, Constants.MENTION_RECENT_CHANNELS]}
                         shouldSearchCompleteText={true}
                     />
                     {
