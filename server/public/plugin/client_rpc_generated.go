@@ -879,6 +879,41 @@ func (s *hooksRPCServer) ConfigurationWillBeSaved(args *Z_ConfigurationWillBeSav
 }
 
 func init() {
+	hookNameToId["EmailNotificationWillBeSent"] = EmailNotificationWillBeSentID
+}
+
+type Z_EmailNotificationWillBeSentArgs struct {
+	A *model.EmailNotification
+}
+
+type Z_EmailNotificationWillBeSentReturns struct {
+	A *model.EmailNotificationContent
+	B string
+}
+
+func (g *hooksRPCClient) EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailNotificationContent, string) {
+	_args := &Z_EmailNotificationWillBeSentArgs{emailNotification}
+	_returns := &Z_EmailNotificationWillBeSentReturns{}
+	if g.implemented[EmailNotificationWillBeSentID] {
+		if err := g.client.Call("Plugin.EmailNotificationWillBeSent", _args, _returns); err != nil {
+			g.log.Error("RPC call EmailNotificationWillBeSent to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) EmailNotificationWillBeSent(args *Z_EmailNotificationWillBeSentArgs, returns *Z_EmailNotificationWillBeSentReturns) error {
+	if hook, ok := s.impl.(interface {
+		EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailNotificationContent, string)
+	}); ok {
+		returns.A, returns.B = hook.EmailNotificationWillBeSent(args.A)
+	} else {
+		return encodableError(fmt.Errorf("Hook EmailNotificationWillBeSent called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
 	hookNameToId["NotificationWillBePushed"] = NotificationWillBePushedID
 }
 
