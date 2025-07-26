@@ -83,6 +83,9 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
               </span>
               <input
                 class="form-control"
+                disabled=""
+                readonly=""
+                style="cursor: not-allowed;"
                 type="text"
                 value=""
               />
@@ -101,9 +104,15 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                   />
                 </svg>
               </span>
-              <span>
-                some-user
-              </span>
+              <input
+                class="form-control"
+                disabled=""
+                placeholder="Enter username"
+                readonly=""
+                style="cursor: not-allowed;"
+                type="text"
+                value="some-user"
+              />
             </label>
             <label>
               Authentication Method
@@ -122,6 +131,27 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
               <span>
                 Email
               </span>
+            </label>
+            <label>
+              Auth Data
+              <span>
+                <svg
+                  height="100%"
+                  viewBox="0 0 24 24"
+                  width="100%"
+                >
+                  <path
+                    d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                    fill="inherit"
+                  />
+                </svg>
+              </span>
+              <input
+                class="form-control"
+                placeholder="Enter auth data"
+                type="text"
+                value=""
+              />
             </label>
           </div>
           <div
@@ -292,6 +322,9 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
               </span>
               <input
                 class="form-control"
+                disabled=""
+                readonly=""
+                style="cursor: not-allowed;"
                 type="text"
                 value=""
               />
@@ -310,9 +343,15 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                   />
                 </svg>
               </span>
-              <span>
-                some-user
-              </span>
+              <input
+                class="form-control"
+                disabled=""
+                placeholder="Enter username"
+                readonly=""
+                style="cursor: not-allowed;"
+                type="text"
+                value="some-user"
+              />
             </label>
             <label>
               Authentication Method
@@ -331,6 +370,27 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
               <span>
                 Email
               </span>
+            </label>
+            <label>
+              Auth Data
+              <span>
+                <svg
+                  height="100%"
+                  viewBox="0 0 24 24"
+                  width="100%"
+                >
+                  <path
+                    d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                    fill="inherit"
+                  />
+                </svg>
+              </span>
+              <input
+                class="form-control"
+                placeholder="Enter auth data"
+                type="text"
+                value=""
+              />
             </label>
           </div>
           <div
@@ -501,6 +561,9 @@ exports[`SystemUserDetail should not show manage user settings button when user 
               </span>
               <input
                 class="form-control"
+                disabled=""
+                readonly=""
+                style="cursor: not-allowed;"
                 type="text"
                 value=""
               />
@@ -519,9 +582,15 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                   />
                 </svg>
               </span>
-              <span>
-                some-user
-              </span>
+              <input
+                class="form-control"
+                disabled=""
+                placeholder="Enter username"
+                readonly=""
+                style="cursor: not-allowed;"
+                type="text"
+                value="some-user"
+              />
             </label>
             <label>
               Authentication Method
@@ -540,6 +609,27 @@ exports[`SystemUserDetail should not show manage user settings button when user 
               <span>
                 Email
               </span>
+            </label>
+            <label>
+              Auth Data
+              <span>
+                <svg
+                  height="100%"
+                  viewBox="0 0 24 24"
+                  width="100%"
+                >
+                  <path
+                    d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                    fill="inherit"
+                  />
+                </svg>
+              </span>
+              <input
+                class="form-control"
+                placeholder="Enter auth data"
+                type="text"
+                value=""
+              />
             </label>
           </div>
           <div
@@ -710,6 +800,9 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
               </span>
               <input
                 class="form-control"
+                disabled=""
+                readonly=""
+                style="cursor: not-allowed;"
                 type="text"
                 value=""
               />
@@ -728,9 +821,15 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                   />
                 </svg>
               </span>
-              <span>
-                some-user
-              </span>
+              <input
+                class="form-control"
+                disabled=""
+                placeholder="Enter username"
+                readonly=""
+                style="cursor: not-allowed;"
+                type="text"
+                value="some-user"
+              />
             </label>
             <label>
               Authentication Method
@@ -749,6 +848,27 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
               <span>
                 Email
               </span>
+            </label>
+            <label>
+              Auth Data
+              <span>
+                <svg
+                  height="100%"
+                  viewBox="0 0 24 24"
+                  width="100%"
+                >
+                  <path
+                    d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                    fill="inherit"
+                  />
+                </svg>
+              </span>
+              <input
+                class="form-control"
+                placeholder="Enter auth data"
+                type="text"
+                value=""
+              />
             </label>
           </div>
           <div
@@ -925,6 +1045,9 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
               </span>
               <input
                 class="form-control"
+                disabled=""
+                readonly=""
+                style="cursor: not-allowed;"
                 type="text"
                 value=""
               />
@@ -943,9 +1066,15 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                   />
                 </svg>
               </span>
-              <span>
-                some-user
-              </span>
+              <input
+                class="form-control"
+                disabled=""
+                placeholder="Enter username"
+                readonly=""
+                style="cursor: not-allowed;"
+                type="text"
+                value="some-user"
+              />
             </label>
             <label>
               Authentication Method
@@ -964,6 +1093,27 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
               <span>
                 Email
               </span>
+            </label>
+            <label>
+              Auth Data
+              <span>
+                <svg
+                  height="100%"
+                  viewBox="0 0 24 24"
+                  width="100%"
+                >
+                  <path
+                    d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                    fill="inherit"
+                  />
+                </svg>
+              </span>
+              <input
+                class="form-control"
+                placeholder="Enter auth data"
+                type="text"
+                value=""
+              />
             </label>
           </div>
           <div
@@ -1134,6 +1284,9 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
               </span>
               <input
                 class="form-control"
+                disabled=""
+                readonly=""
+                style="cursor: not-allowed;"
                 type="text"
                 value=""
               />
@@ -1152,9 +1305,15 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                   />
                 </svg>
               </span>
-              <span>
-                some-user
-              </span>
+              <input
+                class="form-control"
+                disabled=""
+                placeholder="Enter username"
+                readonly=""
+                style="cursor: not-allowed;"
+                type="text"
+                value="some-user"
+              />
             </label>
             <label>
               Authentication Method
@@ -1173,6 +1332,27 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
               <span>
                 LDAP
               </span>
+            </label>
+            <label>
+              Auth Data
+              <span>
+                <svg
+                  height="100%"
+                  viewBox="0 0 24 24"
+                  width="100%"
+                >
+                  <path
+                    d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                    fill="inherit"
+                  />
+                </svg>
+              </span>
+              <input
+                class="form-control"
+                placeholder="Enter auth data"
+                type="text"
+                value=""
+              />
             </label>
           </div>
           <div
