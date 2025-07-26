@@ -10,7 +10,9 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {Preferences} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
+import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import AutosizeTextarea from 'components/autosize_textarea';
 import PostMarkdown from 'components/post_markdown';
@@ -24,6 +26,7 @@ import SuggestionBox from 'components/suggestion/suggestion_box';
 import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list';
 
+import type {MentionKey} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
 import type {TextboxElement} from './index';
@@ -74,6 +77,9 @@ export type Props = {
     hasLabels?: boolean;
     hasError?: boolean;
     isInEditMode?: boolean;
+    usersByUsername?: Record<string, UserProfile>;
+    teammateNameDisplay?: string;
+    mentionKeys?: MentionKey[];
 };
 
 const VISIBLE = {visibility: 'visible'};
@@ -84,6 +90,12 @@ export default class Textbox extends React.PureComponent<Props> {
     private readonly wrapper: React.RefObject<HTMLDivElement>;
     private readonly message: React.RefObject<SuggestionBoxComponent>;
     private readonly preview: React.RefObject<HTMLDivElement>;
+    private readonly textareaRef: React.RefObject<HTMLTextAreaElement>;
+
+    state = {
+        displayValue: '', // UI表示用の値（username→fullname変換済み）
+        rawValue: '', // サーバー送信用の値（username形式のまま）
+    };
 
     static defaultProps = {
         supportsCommands: true,
@@ -130,10 +142,108 @@ export default class Textbox extends React.PureComponent<Props> {
         this.wrapper = React.createRef();
         this.message = React.createRef();
         this.preview = React.createRef();
+        this.textareaRef = React.createRef();
+
+        // state初期化 - propsのvalueからdisplayValueとrawValueを設定
+        this.state = {
+            displayValue: this.convertToDisplayName(props.value),
+            rawValue: props.value,
+        };
     }
 
+    /**
+     * username (@user) をフルネーム/ニックネーム (@Full Name) に変換
+     */
+    convertToDisplayName = (text: string): string => {
+        const {usersByUsername = {}, teammateNameDisplay = Preferences.DISPLAY_PREFER_USERNAME} = this.props;
+
+        return text.replace(/@([a-zA-Z0-9.\-_]+)/g, (match, username) => {
+            const user = usersByUsername[username];
+            if (user) {
+                const displayName = displayUsername(user, teammateNameDisplay, false);
+                return `@${displayName}`;
+            }
+            return match;
+        });
+    };
+
+    /**
+     * フルネーム/ニックネーム (@Full Name) をusername (@user) に変換
+     */
+    convertToRawValue = (text: string): string => {
+        const {usersByUsername = {}, teammateNameDisplay = Preferences.DISPLAY_PREFER_USERNAME} = this.props;
+
+        // usersByUsernameを逆引き用のマップに変換
+        const displayNameToUsername: Record<string, string> = {};
+        Object.entries(usersByUsername).forEach(([username, user]) => {
+            const displayName = displayUsername(user, teammateNameDisplay, false);
+
+            if (displayName && displayName !== username) {
+                displayNameToUsername[displayName] = username;
+            }
+        });
+
+        const sortedDisplayNames = Object.keys(displayNameToUsername).sort((a, b) => b.length - a.length);
+
+        let result = text;
+        for (const displayName of sortedDisplayNames) {
+            const escapedDisplayName = displayName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`@${escapedDisplayName}(?=\\s|$|[^\\w])`, 'g');
+
+            result = result.replace(regex, () => {
+                const username = displayNameToUsername[displayName];
+                return `@${username}`;
+            });
+        }
+
+        return result;
+    };
+
+    /**
+     * サーバー送信用の生の値（username形式）を取得
+     */
+    getRawValue = () => {
+        return this.state.rawValue;
+    };
+
+    /**
+     * サーバー送信用の生の値（username形式）を取得
+     */
+    getValue = () => {
+        return this.state.rawValue;
+    };
+
+    /**
+     * UI表示用の値（fullname形式）を取得
+     */
+    getDisplayValue = () => {
+        return this.state.displayValue;
+    };
+
     handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.props.onChange(e);
+        const inputValue = e.target.value;
+
+        // 生の値（username形式）を更新
+        const newRawValue = this.convertToRawValue(inputValue);
+
+        // 表示用の値（fullname形式）を更新
+        const newDisplayValue = this.convertToDisplayName(newRawValue);
+
+        this.setState({
+            rawValue: newRawValue,
+            displayValue: newDisplayValue,
+        });
+
+        // 親コンポーネントには生の値（username形式）を渡す
+        const syntheticEvent = {
+            ...e,
+            target: {
+                ...e.target,
+                value: newRawValue,
+            },
+        } as React.ChangeEvent<HTMLInputElement>;
+
+        this.props.onChange(syntheticEvent);
     };
 
     updateSuggestions(prevProps: Props) {
@@ -193,6 +303,20 @@ export default class Textbox extends React.PureComponent<Props> {
 
         if (prevProps.value !== this.props.value) {
             this.checkMessageLength(this.props.value);
+
+            // props.valueが変更された場合、stateを更新
+            this.setState({
+                rawValue: this.props.value,
+                displayValue: this.convertToDisplayName(this.props.value),
+            });
+        }
+
+        // usersByUsernameまたはteammateNameDisplayが変更された場合、displayValueを再計算
+        if (prevProps.usersByUsername !== this.props.usersByUsername ||
+            prevProps.teammateNameDisplay !== this.props.teammateNameDisplay) {
+            this.setState({
+                displayValue: this.convertToDisplayName(this.state.rawValue),
+            });
         }
     }
 
@@ -239,7 +363,12 @@ export default class Textbox extends React.PureComponent<Props> {
     };
 
     getInputBox = () => {
-        return this.message.current?.getTextbox();
+        const textbox = this.message.current?.getTextbox();
+        if (textbox && this.textareaRef.current !== textbox) {
+            // textareaRefを更新
+            (this.textareaRef as any).current = textbox;
+        }
+        return textbox;
     };
 
     focus = () => {
@@ -294,8 +423,13 @@ export default class Textbox extends React.PureComponent<Props> {
                     onBlur={this.handleBlur}
                 >
                     <PostMarkdown
-                        message={this.props.value}
+                        message={this.state.displayValue}
                         channelId={this.props.channelId}
+                        options={{
+                            mentionHighlight: true,
+                            atMentions: true,
+                            mentionKeys: this.props.mentionKeys,
+                        }}
                         imageProps={{hideUtilities: true}}
                     />
                 </div>
@@ -323,7 +457,7 @@ export default class Textbox extends React.PureComponent<Props> {
                     listComponent={this.props.suggestionList}
                     listPosition={this.props.suggestionListPosition}
                     providers={this.suggestionProviders}
-                    value={this.props.value}
+                    value={this.state.displayValue}
                     renderDividers={ALL}
                     disabled={this.props.disabled}
                     contextId={this.props.channelId}
