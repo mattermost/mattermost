@@ -9,6 +9,7 @@ import (
 	"html"
 	"net/http"
 	"net/url"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -536,12 +537,25 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string) string {
 	parsed, _ := url.Parse(targetURL)
-	if parsed == nil || parsed.Scheme != "" || parsed.Host != "" {
+	prefixParsed, _ := url.Parse(siteURLPrefix)
+
+	// Check if the targetURL is a valid URL and is within the siteURLPrefix
+	if parsed == nil || (prefixParsed != nil && parsed.Scheme == prefixParsed.Scheme && parsed.Host == prefixParsed.Host && strings.HasPrefix(path.Clean(parsed.Path), path.Clean(prefixParsed.Path))) {
 		return targetURL
+	} else if parsed.Scheme != "" || parsed.Host != "" {
+		return siteURLPrefix
 	}
 
+	// For relative URLs, normalize and join with siteURLPrefix
 	if targetURL != "" && targetURL[0] != '/' {
 		targetURL = "/" + targetURL
 	}
-	return siteURLPrefix + targetURL
+
+	// Check for path traversal
+	parsed, _ = url.Parse(siteURLPrefix + targetURL)
+	if !strings.HasPrefix(path.Clean(parsed.Path), path.Clean(prefixParsed.Path)) {
+		return siteURLPrefix
+	}
+
+	return parsed.String()
 }

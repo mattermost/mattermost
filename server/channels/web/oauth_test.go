@@ -861,11 +861,23 @@ func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 func TestFullyQualifiedRedirectURL(t *testing.T) {
 	const siteURL = "https://xxx.yyy/mm"
 	for target, expected := range map[string]string{
-		"":            "https://xxx.yyy/mm",
-		"/":           "https://xxx.yyy/mm/",
-		"some-path":   "https://xxx.yyy/mm/some-path",
-		"/some-path":  "https://xxx.yyy/mm/some-path",
-		"/some-path/": "https://xxx.yyy/mm/some-path/",
+		"":                                     "https://xxx.yyy/mm",
+		"/":                                    "https://xxx.yyy/mm/",
+		"some-path":                            "https://xxx.yyy/mm/some-path",
+		"/some-path":                           "https://xxx.yyy/mm/some-path",
+		"/some-path/":                          "https://xxx.yyy/mm/some-path/",
+		"/some-path?foo=bar":                   "https://xxx.yyy/mm/some-path?foo=bar",
+		"/some-path#section":                   "https://xxx.yyy/mm/some-path#section",
+		"../bad-path":                          "https://xxx.yyy/mm",
+		"/index.html":                          "https://xxx.yyy/mm/index.html",
+		"//evil.com":                           "https://xxx.yyy/mm",
+		"https://xxx.yyy/mm":                   "https://xxx.yyy/mm",
+		"https://xxx.yyy/other-path/":          "https://xxx.yyy/mm",
+		"https://xxx.yyy/mm/some-path":         "https://xxx.yyy/mm/some-path",
+		"https://yyy.zzz/mm/some-path":         "https://xxx.yyy/mm",
+		"https://xxx.yyy/mm/some-path?foo=bar": "https://xxx.yyy/mm/some-path?foo=bar",
+		"https://xxx.yyy/mm/some-path#section": "https://xxx.yyy/mm/some-path#section",
+		"https://xxx.yyy/mm/../malicious-path": "https://xxx.yyy/mm",
 	} {
 		t.Run(target, func(t *testing.T) {
 			require.Equal(t, expected, fullyQualifiedRedirectURL(siteURL, target))
