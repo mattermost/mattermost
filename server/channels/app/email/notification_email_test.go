@@ -13,7 +13,7 @@ import (
 
 func TestProcessMessageAttachments(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	post := &model.Post{

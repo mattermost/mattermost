@@ -103,7 +103,6 @@ MCOV5SHi05kD42JSSbmw190VAa4QRGikaeWRhDsj
 func TestTestLdap(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		resp, err := client.TestLdap(context.Background())
@@ -130,7 +129,6 @@ func TestTestLdap(t *testing.T) {
 func TestSyncLdap(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		resp, err := client.TestLdap(context.Background())
@@ -165,7 +163,6 @@ func TestSyncLdap(t *testing.T) {
 func TestGetLdapGroups(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	_, resp, err := th.Client.GetLdapGroups(context.Background())
 	require.Error(t, err)
@@ -183,7 +180,6 @@ func TestLinkLdapGroup(t *testing.T) {
 	const entryUUID string = "foo"
 
 	th := Setup(t)
-	defer th.TearDown()
 
 	_, resp, err := th.Client.LinkLdapGroup(context.Background(), entryUUID)
 	require.Error(t, err)
@@ -199,7 +195,6 @@ func TestUnlinkLdapGroup(t *testing.T) {
 	const entryUUID string = "foo"
 
 	th := Setup(t)
-	defer th.TearDown()
 
 	_, resp, err := th.Client.UnlinkLdapGroup(context.Background(), entryUUID)
 	require.Error(t, err)
@@ -213,7 +208,6 @@ func TestUnlinkLdapGroup(t *testing.T) {
 func TestMigrateIdLdap(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	resp, err := th.Client.MigrateIdLdap(context.Background(), "objectGUID")
 	require.Error(t, err)
@@ -233,7 +227,6 @@ func TestMigrateIdLdap(t *testing.T) {
 func TestUploadPublicCertificate(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	_, err := th.Client.UploadLdapPublicCertificate(context.Background(), []byte(spPublicCertificate))
 	require.Error(t, err, "Should have failed. No System Admin privileges")
@@ -255,7 +248,6 @@ func TestUploadPublicCertificate(t *testing.T) {
 func TestUploadPrivateCertificate(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	_, err := th.Client.UploadLdapPrivateCertificate(context.Background(), []byte(spPrivateKey))
 	require.Error(t, err, "Should have failed. No System Admin privileges")
@@ -277,7 +269,6 @@ func TestUploadPrivateCertificate(t *testing.T) {
 func TestAddUserToGroupSyncables(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	resp, err := th.Client.AddUserToGroupSyncables(context.Background(), th.BasicUser.Id)
 	require.Error(t, err)

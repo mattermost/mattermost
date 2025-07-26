@@ -16,7 +16,6 @@ import (
 
 func TestBulkProcessor(t *testing.T) {
 	th := api4.SetupEnterprise(t)
-	defer th.TearDown()
 
 	if os.Getenv("IS_CI") == "true" {
 		os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://opensearch:9201")

@@ -338,7 +338,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 	t.Run("conflicting timestamps", func(t *testing.T) {
 		th := setup(t)
-		defer th.TearDown()
 		defer func() {
 			err := os.RemoveAll(exportDir)
 			assert.NoError(t, err)
@@ -388,7 +387,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 	t.Run("actiance -- multiple batches, 1 zip per batch, output to a single directory", func(t *testing.T) {
 		th := setup(t)
-		defer th.TearDown()
 		defer func() {
 			err := os.RemoveAll(exportDir)
 			assert.NoError(t, err)
@@ -409,7 +407,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 	t.Run("actiance -- multiple batches, using UntilUpdateAt", func(t *testing.T) {
 		th := setup(t)
-		defer th.TearDown()
 		defer func() {
 			err := os.RemoveAll(exportDir)
 			assert.NoError(t, err)
@@ -444,7 +441,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				th := setup(t)
-				defer th.TearDown()
 				defer func() {
 					err := os.RemoveAll(exportDir)
 					assert.NoError(t, err)
@@ -604,7 +600,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				th := setup(t)
-				defer th.TearDown()
 				defer func() {
 					err := os.RemoveAll(exportDir)
 					assert.NoError(t, err)
@@ -890,7 +885,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				th := setup(t)
-				defer th.TearDown()
 				defer func() {
 					err := os.RemoveAll(exportDir)
 					assert.NoError(t, err)
@@ -1007,7 +1001,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 	t.Run("actiance e2e 2 - post from user not in channel", func(t *testing.T) {
 		th := setup(t)
-		defer th.TearDown()
 		defer func() {
 			err := os.RemoveAll(exportDir)
 			assert.NoError(t, err)
@@ -1044,7 +1037,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 	t.Run("GlobalRelay e2e 2 - post from user not in channel", func(t *testing.T) {
 		th := setup(t)
-		defer th.TearDown()
 		defer func() {
 			err := os.RemoveAll(exportDir)
 			assert.NoError(t, err)
@@ -1112,7 +1104,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 	t.Run("CSV e2e 2 - post from user not in channel", func(t *testing.T) {
 		th := setup(t)
-		defer th.TearDown()
 		defer func() {
 			err := os.RemoveAll(exportDir)
 			assert.NoError(t, err)
@@ -1149,7 +1140,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 	t.Run("actiance e2e 3 - test create, update, delete xml fields", func(t *testing.T) {
 		th := setup(t)
-		defer th.TearDown()
 
 		ret, type3Ret := generateE2ETestType3Results(t, th, model.ComplianceExportTypeActiance, attachmentDir, exportDir, attachmentBackend, exportBackend)
 		batches := ret.batches
@@ -1364,7 +1354,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 	t.Run("GlobalRelay e2e 3 - test create, update, delete fields", func(t *testing.T) {
 		th := setup(t)
-		defer th.TearDown()
 
 		ret, type3Ret := generateE2ETestType3Results(t, th, model.ComplianceExportTypeGlobalrelayZip, attachmentDir,
 			exportDir, attachmentBackend, exportBackend)
@@ -1652,7 +1641,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 	t.Run("CSV e2e 3 - test create, update, delete fields", func(t *testing.T) {
 		th := setup(t)
-		defer th.TearDown()
 
 		ret, ret3 := generateE2ETestType3Results(t, th, model.ComplianceExportTypeCsv, attachmentDir,
 			exportDir, attachmentBackend, exportBackend)
@@ -1777,7 +1765,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 	t.Run("actiance e2e 4 - test edits with multiple simultaneous updates", func(t *testing.T) {
 		th := setup(t)
-		defer th.TearDown()
 
 		ret := generateE2ETestType4Results(t, th, model.ComplianceExportTypeActiance, attachmentDir, exportDir, attachmentBackend, exportBackend)
 		batch001 := ret.batches[0]
@@ -1845,7 +1832,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 	t.Run("GlobalRelay e2e 4 - test edits with multiple simultaneous updates", func(t *testing.T) {
 		th := setup(t)
-		defer th.TearDown()
 
 		ret := generateE2ETestType4Results(t, th, model.ComplianceExportTypeGlobalrelayZip, attachmentDir,
 			exportDir, attachmentBackend, exportBackend)
@@ -1919,7 +1905,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 	t.Run("CSV e2e 4 - test edits with multiple simultaneous updates", func(t *testing.T) {
 		th := setup(t)
-		defer th.TearDown()
 
 		ret := generateE2ETestType4Results(t, th, model.ComplianceExportTypeCsv, attachmentDir,
 			exportDir, attachmentBackend, exportBackend)
@@ -1955,7 +1940,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 	t.Run("actiance e2e 5 - test delete and update semantics", func(t *testing.T) {
 		th := setup(t)
-		defer th.TearDown()
 
 		rets, ret5s := generateE2ETestType5Results(t, th, model.ComplianceExportTypeActiance, attachmentDir, exportDir, attachmentBackend, exportBackend)
 		posts := rets[0].posts
@@ -2156,7 +2140,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		}
 
 		th := setup(t)
-		defer th.TearDown()
 
 		rets, ret5s := generateE2ETestType5Results(t, th, model.ComplianceExportTypeGlobalrelayZip, attachmentDir, exportDir, attachmentBackend, exportBackend)
 		posts := rets[0].posts
@@ -2293,7 +2276,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		}
 
 		th := setup(t)
-		defer th.TearDown()
 
 		rets, ret5s := generateE2ETestType5Results(t, th, model.ComplianceExportTypeCsv, attachmentDir, exportDir, attachmentBackend, exportBackend)
 		posts := rets[0].posts
@@ -2425,7 +2407,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 	t.Run("csv -- multiple batches, 1 zip per batch, output to a single directory", func(t *testing.T) {
 		th := setup(t)
-		defer th.TearDown()
 		defer func() {
 			err := os.RemoveAll(exportDir)
 			assert.NoError(t, err)

@@ -32,8 +32,8 @@ import (
 
 func TestCreateOAuthUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.GitLabSettings.Enable = true
@@ -90,8 +90,8 @@ func TestCreateOAuthUser(t *testing.T) {
 
 func TestUpdateDefaultProfileImage(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 	startTime := model.GetMillis()
 	time.Sleep(time.Millisecond)
 
@@ -113,8 +113,8 @@ func TestUpdateDefaultProfileImage(t *testing.T) {
 
 func TestAdjustProfileImage(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	_, appErr := th.App.AdjustImage(th.Context, bytes.NewReader([]byte{}))
 	require.NotNil(t, appErr)
@@ -140,7 +140,7 @@ func TestAdjustProfileImage(t *testing.T) {
 func TestUpdateUserToRestrictedDomain(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	user := th.CreateUser()
 	defer func() {
@@ -201,7 +201,7 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 func TestUpdateUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	user := th.CreateUser()
 	group := th.CreateGroup()
@@ -245,7 +245,7 @@ func TestUpdateUser(t *testing.T) {
 func TestUpdateUserMissingFields(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	user := th.CreateUser()
 	defer func() {
@@ -279,7 +279,7 @@ func TestUpdateUserMissingFields(t *testing.T) {
 func TestCreateUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	t.Run("fails if the username matches a group name", func(t *testing.T) {
 		group := th.CreateGroup()
@@ -350,7 +350,7 @@ func TestCreateUser(t *testing.T) {
 func TestUpdateUserActive(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	user := th.CreateUser()
 
@@ -368,8 +368,8 @@ func TestUpdateUserActive(t *testing.T) {
 
 func TestUpdateActiveBotsSideEffect(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	bot, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username",
@@ -422,7 +422,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 func TestUpdateOAuthUserAttrs(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	id := model.NewId()
 	id2 := model.NewId()
@@ -532,7 +532,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 func TestCreateUserConflict(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	user := &model.User{
 		Email:    "test@localhost",
@@ -573,7 +573,7 @@ func TestCreateUserConflict(t *testing.T) {
 func TestUpdateUserEmail(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	user := th.CreateUser()
 
@@ -754,7 +754,7 @@ func createGitlabUser(t *testing.T, a *App, c request.CTX, id int64, username st
 func TestGetUsersByStatus(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	team := th.CreateTeam()
 	channel, err := th.App.CreateChannel(th.Context, &model.Channel{
@@ -883,8 +883,8 @@ func TestGetUsersByStatus(t *testing.T) {
 }
 
 func TestGetUsersNotInAbacChannel(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	// Set license to EnterpriseAdvanced
 	th.App.Srv().SetLicense(model.NewTestLicense("enterprise.advanced"))
@@ -1004,8 +1004,8 @@ func TestGetUsersNotInAbacChannel(t *testing.T) {
 
 func TestCreateUserWithInviteId(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 
@@ -1033,8 +1033,8 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 func TestCreateUserWithToken(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 
@@ -1228,8 +1228,8 @@ func TestCreateUserWithToken(t *testing.T) {
 
 func TestPermanentDeleteUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic().DeleteBots()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t).DeleteBots(t)
+	defer th.TearDown(t)
 
 	b := []byte("testimage")
 
@@ -1324,8 +1324,8 @@ func TestPermanentDeleteUser(t *testing.T) {
 
 func TestPasswordRecovery(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	t.Run("password token with same email as during creation", func(t *testing.T) {
 		token, err := th.App.CreatePasswordRecoveryToken(th.Context, th.BasicUser.Id, th.BasicUser.Email)
@@ -1380,8 +1380,8 @@ func TestPasswordRecovery(t *testing.T) {
 
 func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	t.Run("remove manually added tokens", func(t *testing.T) {
 		for range 5 {
@@ -1419,8 +1419,8 @@ func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
 
 func TestPasswordChangeSessionTermination(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	t.Run("user-initiated password change with termination enabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(c *model.Config) {
@@ -1567,8 +1567,8 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 
 func TestGetViewUsersRestrictions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	team1 := th.CreateTeam()
 	team2 := th.CreateTeam()
@@ -1703,8 +1703,8 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 
 func TestPromoteGuestToUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	t.Run("Must fail with regular user", func(t *testing.T) {
 		require.Equal(t, "system_user", th.BasicUser.Roles)
@@ -1840,8 +1840,8 @@ func TestPromoteGuestToUser(t *testing.T) {
 
 func TestDemoteUserToGuest(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	t.Run("Must invalidate channel stats cache when demoting a user", func(t *testing.T) {
 		user := th.CreateUser()
@@ -2026,8 +2026,8 @@ func TestDemoteUserToGuest(t *testing.T) {
 
 func TestDeactivateGuests(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	guest1 := th.CreateGuest()
 	guest2 := th.CreateGuest()
@@ -2053,8 +2053,8 @@ func TestUpdateUserRolesWithUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	// InitBasic is used to let the first CreateUser call not be
 	// a system_admin
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	// Create normal user.
 	user := th.CreateUser()
@@ -2079,8 +2079,8 @@ func TestUpdateLastAdminUserRolesWithUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	// InitBasic is used to let the first CreateUser call not be
 	// a system_admin
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	t.Run("Cannot remove if only admin", func(t *testing.T) {
 		// Attempt to downgrade sysadmin.
@@ -2117,8 +2117,8 @@ func TestUpdateLastAdminUserRolesWithUser(t *testing.T) {
 func TestDeactivateMfa(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("MFA is disabled", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableMultifactorAuthentication = false
@@ -2132,8 +2132,8 @@ func TestDeactivateMfa(t *testing.T) {
 
 func TestPatchUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	testUser := th.CreateUser()
 	defer func() {
@@ -2172,8 +2172,8 @@ func TestPatchUser(t *testing.T) {
 func TestUpdateThreadReadForUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Ensure thread membership exists before updating read", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ThreadAutoFollow = true
 			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -2200,8 +2200,8 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 
 func TestCreateUserWithInitialPreferences(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	t.Run("successfully create a user with initial tutorial and recommended steps preferences", func(t *testing.T) {
 		th.ConfigStore.SetReadOnlyFF(false)
@@ -2290,8 +2290,8 @@ func TestSendSubscriptionHistoryEvent(t *testing.T) {
 	}
 
 	t.Run("Should not create SubscriptionHistoryEvent if the license is not cloud", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		th.App.Srv().SetLicense(model.NewTestLicense(""))
 
@@ -2304,7 +2304,7 @@ func TestSendSubscriptionHistoryEvent(t *testing.T) {
 
 	t.Run("Should create SubscriptionHistoryEvent if the license is cloud and the product is yearly", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -2340,8 +2340,8 @@ func TestSendSubscriptionHistoryEvent(t *testing.T) {
 func TestGetUsersForReporting(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should throw error on invalid date range", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		userReports, err := th.App.GetUsersForReporting(&model.UserReportOptions{
 			ReportingBaseOptions: model.ReportingBaseOptions{
@@ -2356,8 +2356,8 @@ func TestGetUsersForReporting(t *testing.T) {
 	})
 
 	t.Run("should throw error on bad sort column", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		userReports, err := th.App.GetUsersForReporting(&model.UserReportOptions{
 			ReportingBaseOptions: model.ReportingBaseOptions{
@@ -2371,7 +2371,7 @@ func TestGetUsersForReporting(t *testing.T) {
 
 	t.Run("should return some formatted reporting data", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		// Mock to get the user count
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
@@ -2418,8 +2418,8 @@ func TestGetUsersForReporting(t *testing.T) {
 func setupRemoteClusterTest(t *testing.T) (*TestHelper, store.Store) {
 	os.Setenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELSDMS", "true")
 	t.Cleanup(func() { os.Unsetenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELSDMS") })
-	th := setupSharedChannels(t).InitBasic()
-	t.Cleanup(th.TearDown)
+	th := setupSharedChannels(t).InitBasic(t)
+	t.Cleanup(func() { th.TearDown(t) })
 	return th, th.App.Srv().Store()
 }
 
