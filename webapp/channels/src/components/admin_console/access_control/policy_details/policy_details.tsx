@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import cloneDeep from 'lodash/cloneDeep';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
@@ -64,6 +64,180 @@ interface ChannelChanges {
     removedCount: number;
 }
 
+interface PolicyFormData {
+    name: string;
+    expression: string;
+    autoSyncMembership: boolean;
+}
+
+// Custom hook to handle policy business logic
+function usePolicySubmission(
+    actions: PolicyActions,
+    policyId?: string,
+) {
+    const {formatMessage} = useIntl();
+
+    const createOrUpdatePolicy = async (formData: PolicyFormData): Promise<{success: boolean; policyId?: string; error?: string}> => {
+        try {
+            const result = await actions.createPolicy({
+                id: policyId || '',
+                name: formData.name,
+                rules: [{expression: formData.expression, actions: ['*']}] as AccessControlPolicyRule[],
+                type: 'parent',
+                version: 'v0.1',
+            });
+
+            if (result.error) {
+                return {success: false, error: result.error.message};
+            }
+
+            return {success: true, policyId: result.data?.id};
+        } catch (error) {
+            return {success: false, error: error.message || 'Unknown error occurred'};
+        }
+    };
+
+    const updatePolicyActiveStatus = async (policyId: string, active: boolean): Promise<{success: boolean; error?: string}> => {
+        try {
+            await actions.updateAccessControlPolicyActive(policyId, active);
+            return {success: true};
+        } catch (error) {
+            return {
+                success: false,
+                error: formatMessage({
+                    id: 'admin.access_control.policy.edit_policy.error.update_active_status',
+                    defaultMessage: 'Error updating policy active status: {error}',
+                }, {error: error.message}),
+            };
+        }
+    };
+
+    const updateChannelAssignments = async (
+        policyId: string,
+        channelChanges: ChannelChanges,
+    ): Promise<{success: boolean; error?: string}> => {
+        try {
+            // Remove channels first
+            if (channelChanges.removedCount > 0) {
+                await actions.unassignChannelsFromAccessControlPolicy(
+                    policyId,
+                    Object.keys(channelChanges.removed),
+                );
+            }
+
+            // Then add new channels
+            if (Object.keys(channelChanges.added).length > 0) {
+                await actions.assignChannelsToAccessControlPolicy(
+                    policyId,
+                    Object.keys(channelChanges.added),
+                );
+            }
+
+            return {success: true};
+        } catch (error) {
+            return {
+                success: false,
+                error: formatMessage({
+                    id: 'admin.access_control.policy.edit_policy.error.assign_channels',
+                    defaultMessage: 'Error assigning channels: {error}',
+                }, {error: error.message}),
+            };
+        }
+    };
+
+    const createSyncJob = async (policyId: string): Promise<{success: boolean; error?: string}> => {
+        try {
+            const job: JobTypeBase & { data: any } = {
+                type: JobTypes.ACCESS_CONTROL_SYNC,
+                data: {parent_id: policyId},
+            };
+            await actions.createJob(job);
+            return {success: true};
+        } catch (error) {
+            return {
+                success: false,
+                error: formatMessage({
+                    id: 'admin.access_control.policy.edit_policy.error.create_job',
+                    defaultMessage: 'Error creating job: {error}',
+                }, {error: error.message}),
+            };
+        }
+    };
+
+    const submitPolicy = async (
+        formData: PolicyFormData,
+        channelChanges: ChannelChanges,
+        shouldApplyImmediately = false,
+    ): Promise<{success: boolean; error?: string}> => {
+        // Step 1: Create or update the policy
+        const policyResult = await createOrUpdatePolicy(formData);
+        if (!policyResult.success || !policyResult.policyId) {
+            return {success: false, error: policyResult.error};
+        }
+
+        const currentPolicyId = policyResult.policyId;
+
+        // Step 2: Update active status
+        const activeResult = await updatePolicyActiveStatus(currentPolicyId, formData.autoSyncMembership);
+        if (!activeResult.success) {
+            return {success: false, error: activeResult.error};
+        }
+
+        // Step 3: Update channel assignments
+        const channelResult = await updateChannelAssignments(currentPolicyId, channelChanges);
+        if (!channelResult.success) {
+            return {success: false, error: channelResult.error};
+        }
+
+        // Step 4: Create sync job if needed
+        if (shouldApplyImmediately) {
+            const jobResult = await createSyncJob(currentPolicyId);
+            if (!jobResult.success) {
+                return {success: false, error: jobResult.error};
+            }
+        }
+
+        return {success: true};
+    };
+
+    const deletePolicy = async (channelChanges: ChannelChanges): Promise<{success: boolean; error?: string}> => {
+        if (!policyId) {
+            return {success: false, error: 'No policy ID provided'};
+        }
+
+        // Step 1: Unassign channels if necessary
+        if (channelChanges.removedCount > 0) {
+            const unassignResult = await updateChannelAssignments(policyId, {
+                removed: channelChanges.removed,
+                added: {},
+                removedCount: channelChanges.removedCount,
+            });
+            if (!unassignResult.success) {
+                return {success: false, error: unassignResult.error};
+            }
+        }
+
+        // Step 2: Delete the policy
+        try {
+            await actions.deletePolicy(policyId);
+            return {success: true};
+        } catch (error) {
+            return {
+                success: false,
+                error: formatMessage({
+                    id: 'admin.access_control.policy.edit_policy.error.delete_policy',
+                    defaultMessage: 'Error deleting policy: {error}',
+                }, {error: error.message}),
+            };
+        }
+    };
+
+    return {
+        submitPolicy,
+        deletePolicy,
+    };
+}
+
 function PolicyDetails({
     policy,
     policyId,
@@ -87,7 +261,10 @@ function PolicyDetails({
     const [attributesLoaded, setAttributesLoaded] = useState(false);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const {formatMessage} = useIntl();
+
+    const {submitPolicy, deletePolicy} = usePolicySubmission(actions, policyId);
 
     useEffect(() => {
         loadPage();
@@ -141,7 +318,7 @@ function PolicyDetails({
         }
     };
 
-    const preSaveCheck = () => {
+    const validateForm = (): boolean => {
         if (policyName.length === 0) {
             setServerError(formatMessage({
                 id: 'admin.access_control.policy.edit_policy.error.name_required',
@@ -160,125 +337,71 @@ function PolicyDetails({
         return true;
     };
 
-    const handleSubmit = async (apply = false) => {
-        let success = true;
-        let currentPolicyId = policyId;
+    const handleFormChange = useCallback(() => {
+        setServerError(undefined);
+        setSaveNeeded(true);
+        actions.setNavigationBlocked(true);
+    }, [actions]);
 
-        // --- Step 1: Create/Update Policy ---
-        await actions.createPolicy({
-            id: currentPolicyId || '',
-            name: policyName,
-            rules: [{expression, actions: ['*']}] as AccessControlPolicyRule[],
-            type: 'parent',
-            version: 'v0.1',
-        }).then((result) => {
-            if (result.error) {
-                setServerError(result.error.message);
-                success = false;
-                return;
-            }
-            currentPolicyId = result.data?.id;
-            setPolicyName(result.data?.name || '');
-            setExpression(result.data?.rules?.[0]?.expression || '');
-            setAutoSyncMembership(result.data?.active || false);
-        });
+    const navigateToAccessControlList = useCallback(() => {
+        getHistory().push('/admin_console/system_attributes/attribute_based_access_control');
+    }, []);
 
-        if (!currentPolicyId || !success) {
-            return;
-        }
-
-        // --- Step 2: Update Policy Active ---
-        try {
-            await actions.updateAccessControlPolicyActive(currentPolicyId, autoSyncMembership);
-        } catch (error) {
-            setServerError(formatMessage({
-                id: 'admin.access_control.policy.edit_policy.error.update_active_status',
-                defaultMessage: 'Error updating policy active status: {error}',
-            }, {error: error.message}));
-            success = false;
-            return;
-        }
-
-        // --- Step 3: Assign Channels ---
-        if (success) {
-            try {
-                if (channelChanges.removedCount > 0) {
-                    await actions.unassignChannelsFromAccessControlPolicy(currentPolicyId, Object.keys(channelChanges.removed));
-                }
-                if (Object.keys(channelChanges.added).length > 0) {
-                    await actions.assignChannelsToAccessControlPolicy(currentPolicyId, Object.keys(channelChanges.added));
-                }
-
-                setChannelChanges({removed: {}, added: {}, removedCount: 0});
-            } catch (error) {
-                setServerError(formatMessage({
-                    id: 'admin.access_control.policy.edit_policy.error.assign_channels',
-                    defaultMessage: 'Error assigning channels: {error}',
-                }, {error: error.message}));
-                success = false;
-                return;
-            }
-        }
-
-        // --- Step 4: Create Job if necessary ---
-        if (apply) {
-            try {
-                const job: JobTypeBase & { data: any } = {
-                    type: JobTypes.ACCESS_CONTROL_SYNC,
-                    data: {parent_id: currentPolicyId},
-                };
-                await actions.createJob(job);
-            } catch (error) {
-                setServerError(formatMessage({
-                    id: 'admin.access_control.policy.edit_policy.error.create_job',
-                    defaultMessage: 'Error creating job: {error}',
-                }, {error: error.message}));
-                success = false;
-                return;
-            }
-        }
-
-        // --- Step 5: Navigate lastly ---
+    const resetFormState = useCallback(() => {
         setSaveNeeded(false);
         setShowConfirmationModal(false);
+        setChannelChanges({removed: {}, added: {}, removedCount: 0});
         actions.setNavigationBlocked(false);
-        getHistory().push('/admin_console/system_attributes/attribute_based_access_control');
+    }, [actions]);
+
+    const handleSubmit = async (shouldApplyImmediately = false) => {
+        if (!validateForm() || isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+        setServerError(undefined);
+
+        const formData: PolicyFormData = {
+            name: policyName,
+            expression,
+            autoSyncMembership,
+        };
+
+        const result = await submitPolicy(formData, channelChanges, shouldApplyImmediately);
+
+        setIsSubmitting(false);
+
+        // Always close the confirmation modal after submission attempt
+        setShowConfirmationModal(false);
+
+        if (result.success) {
+            resetFormState();
+            navigateToAccessControlList();
+        } else {
+            setServerError(result.error);
+        }
     };
 
     const handleDelete = async () => {
-        if (!policyId) {
-            return; // Should not happen if delete button is enabled correctly
+        if (!policyId || isSubmitting) {
+            return;
         }
 
-        let success = true;
+        setIsSubmitting(true);
+        setServerError(undefined);
 
-        // --- Step 1: Unassign Channels (if necessary) ---
-        if (channelChanges.removedCount > 0) {
-            try {
-                await actions.unassignChannelsFromAccessControlPolicy(policyId, Object.keys(channelChanges.removed));
-            } catch (error) {
-                setServerError(formatMessage({
-                    id: 'admin.access_control.policy.edit_policy.error.unassign_channels',
-                    defaultMessage: 'Error unassigning channels: {error}',
-                }, {error: error.message}));
-                success = false;
-            }
-        }
+        const result = await deletePolicy(channelChanges);
 
-        // --- Step 2: Delete Policy and Navigate ---
-        if (success) {
-            try {
-                await actions.deletePolicy(policyId);
-            } catch (error) {
-                setServerError(formatMessage({
-                    id: 'admin.access_control.policy.edit_policy.error.delete_policy',
-                    defaultMessage: 'Error deleting policy: {error}',
-                }, {error: error.message}));
-            }
-        }
+        setIsSubmitting(false);
 
-        if (success) {
-            getHistory().push('/admin_console/system_attributes/attribute_based_access_control');
+        // Always close the delete confirmation modal after deletion attempt
+        setShowDeleteConfirmationModal(false);
+
+        if (result.success) {
+            navigateToAccessControlList();
+        } else {
+            setServerError(result.error);
         }
     };
 
@@ -295,8 +418,7 @@ function PolicyDetails({
             });
             return newChanges;
         });
-        setSaveNeeded(true);
-        actions.setNavigationBlocked(true);
+        handleFormChange();
     };
 
     const addToRemovedChannels = (channel: ChannelWithTeamData) => {
@@ -310,8 +432,7 @@ function PolicyDetails({
             }
             return newChanges;
         });
-        setSaveNeeded(true);
-        actions.setNavigationBlocked(true);
+        handleFormChange();
     };
 
     const hasChannels = () => {
@@ -354,7 +475,7 @@ function PolicyDetails({
                             })}
                             onChange={(_, value) => {
                                 setPolicyName(value);
-                                setSaveNeeded(true);
+                                handleFormChange();
                             }}
                             labelClassName='col-sm-4 vertically-centered-label'
                             inputClassName='col-sm-8'
@@ -373,7 +494,7 @@ function PolicyDetails({
                             value={autoSyncMembership}
                             onChange={(_, value) => {
                                 setAutoSyncMembership(value);
-                                setSaveNeeded(true);
+                                handleFormChange();
                             }}
                             setByEnv={false}
                             helpText={
@@ -457,7 +578,7 @@ function PolicyDetails({
                                     value={expression}
                                     onChange={(value) => {
                                         setExpression(value);
-                                        setSaveNeeded(true);
+                                        handleFormChange();
                                     }}
                                     onValidate={() => {}}
                                     userAttributes={autocompleteResult.
@@ -477,7 +598,7 @@ function PolicyDetails({
                                     value={expression}
                                     onChange={(value) => {
                                         setExpression(value);
-                                        setSaveNeeded(true);
+                                        handleFormChange();
                                     }}
                                     onValidate={() => {}}
                                     userAttributes={autocompleteResult}
@@ -625,9 +746,9 @@ function PolicyDetails({
 
             <div className='admin-console-save'>
                 <SaveButton
-                    disabled={!saveNeeded}
+                    disabled={!saveNeeded || isSubmitting}
                     onClick={() => {
-                        if (!preSaveCheck()) {
+                        if (!validateForm()) {
                             return;
                         }
                         if (hasChannels()) {
