@@ -1457,7 +1457,7 @@
   "admin.license.enterpriseEdition.subtitle": "Це Корпоративна версія для тарифного плану Mattermost {skuName}",
   "admin.license.enterprisePlanSubtitle": "Ми тут, щоб працювати з вами та вашими потребами. Зв'яжіться з нами сьогодні, щоб отримати більше місць у вашому плані.",
   "admin.license.enterprisePlanTitle": "Потрібно збільшити кількість персоналу?",
-  "admin.license.freeEdition.subtitle": "Придбайте Professional або Enterprise, щоб отримати доступ до корпоративних функцій.",
+  "admin.license.freeEdition.subtitle": "Це неліцензійний сервер і не має комерційної підтримки. Щоб розблокувати платні функції, придбайте тарифний план Professional, Enterprise або Enterprise Advanced.",
   "admin.license.freeEdition.title": "Безкоштовно",
   "admin.license.key": "Ліцензійний ключ: ",
   "admin.license.keyAddNew": "Додати нову ліцензію",
