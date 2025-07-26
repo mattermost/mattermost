@@ -1,32 +1,27 @@
 @use "utils/variables";
 
 .file-view--single {
+    height: 100%;
     margin: 0;
 
     .file__image {
         position: relative;
+        height: 100%;
 
         .image-header {
             // this and the following hover block need to use such an excessive
             // number of selectors to override the specificity in _files.scss
             .image-name,
             button.single-image-view__toggle {
-                color: rgba(var(--center-channel-color-rgb), 0.75);
-            }
-
-            &:hover .image-name,
-            &:hover button.single-image-view__toggle {
-                color: rgba(var(--center-channel-color-rgb), 0.75);
-            }
-
-            button.single-image-view__toggle {
-                display: inline-block;
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 padding: 0;
                 border: none;
                 border-radius: 4px;
                 background: transparent;
-                font-size: 18px;
-                line-height: 18px;
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+                transition: transform 250ms ease-in-out;
 
                 .icon {
                     width: 18px;
@@ -39,11 +34,16 @@
                 }
             }
 
+            &:hover .image-name,
+            &:hover button.single-image-view__toggle {
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+            }
+
             &--expanded {
                 position: absolute;
                 z-index: 3;
-                top: -6px;
-                left: -2px;
+                top: 4px;
+                left: 4px;
 
                 button.single-image-view__toggle {
                     display: none;
@@ -64,15 +64,105 @@
         }
 
         &:hover .image-header--expanded button.single-image-view__toggle {
-            display: block;
+            display: flex;
             color: rgba(var(--center-channel-color-rgb), 0.75);
         }
 
         .image-container {
+            display: block;
+            overflow: hidden;
+            height: 100%;
             margin: 5px 0;
+            opacity: 1;
+            transition: all 250ms ease-in-out;
 
-            &.image-permalink {
-                margin: 5px 0 0;
+            &[data-expanded="false"] {
+                max-height: 0;
+                margin: 0;
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            &.image-container--small {
+                width: fit-content;
+                border: 1px solid rgba(var(--center-channel-color-rgb), 0.04);
+                border-radius: 4px;
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+
+                .small-image__container {
+                    display: flex;
+                    width: fit-content;
+                    max-width: 100%;
+                    max-height: 350px;
+                    box-sizing: border-box;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 8px;
+
+                    .image-loaded-container {
+                        display: flex;
+                        width: 100%;
+                        height: 100%;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0;
+                    }
+                }
+            }
+
+            &.hide-controls .file-preview__button:hover .image-preview-utility-buttons-container {
+                display: none;
+            }
+
+            .image-loaded {
+                height: 100%;
+
+                > div {
+                    height: 100%;
+                }
+            }
+
+            .file-preview__button {
+                position: relative;
+                display: inline-flex;
+                width: fit-content;
+
+                &:hover {
+                    img {
+                        transform: scale(1.05);
+                        transition: transform 0.15s ease-in-out;
+                    }
+
+                    .image-preview-utility-buttons-container {
+                        display: inline-flex;
+                    }
+                }
+            }
+
+            .image-loaded-container {
+                display: inline-flex;
+                overflow: hidden;
+                height: 100%;
+                border-radius: 4px;
+
+                &.image-permalink {
+                    margin: 5px 0 0;
+                }
+
+                img {
+                    width: auto;
+                    max-width: 100%;
+                    height: auto;
+                    object-fit: cover;
+
+                    &.small-image--inside-container {
+                        width: auto;
+                        max-width: 100%;
+                        height: auto;
+                        max-height: 100%;
+                        object-fit: cover;
+                    }
+                }
             }
         }
     }
