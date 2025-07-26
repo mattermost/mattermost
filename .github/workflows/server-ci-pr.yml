@@ -20,3 +20,9 @@ jobs:
   pr-ci:
     uses: ./.github/workflows/server-ci-template.yml
     secrets: inherit
+
+  pr-ci-fips:
+    uses: ./.github/workflows/server-ci-template.yml
+    secrets: inherit
+    with:
+      fips-enabled: true
