@@ -1117,10 +1117,10 @@ func (mr *MockClientMockRecorder) GetPing(arg0 interface{}) *gomock.Call {
 }
 
 // GetPingWithFullServerStatus mocks base method.
-func (m *MockClient) GetPingWithFullServerStatus(arg0 context.Context) (map[string]string, *model.Response, error) {
+func (m *MockClient) GetPingWithFullServerStatus(arg0 context.Context) (map[string]interface{}, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPingWithFullServerStatus", arg0)
-	ret0, _ := ret[0].(map[string]string)
+	ret0, _ := ret[0].(map[string]interface{})
 	ret1, _ := ret[1].(*model.Response)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -1133,10 +1133,10 @@ func (mr *MockClientMockRecorder) GetPingWithFullServerStatus(arg0 interface{}) 
 }
 
 // GetPingWithOptions mocks base method.
-func (m *MockClient) GetPingWithOptions(arg0 context.Context, arg1 model.SystemPingOptions) (map[string]string, *model.Response, error) {
+func (m *MockClient) GetPingWithOptions(arg0 context.Context, arg1 model.SystemPingOptions) (map[string]interface{}, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPingWithOptions", arg0, arg1)
-	ret0, _ := ret[0].(map[string]string)
+	ret0, _ := ret[0].(map[string]interface{})
 	ret1, _ := ret[1].(*model.Response)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
