@@ -16,7 +16,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
@@ -342,7 +341,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	if action == model.OAuthActionEmailToSSO {
 		redirectURL = c.GetSiteURLHeader() + "/login?extra=signin_change"
 	} else if action == model.OAuthActionSSOToEmail {
-		redirectURL = app.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
+		redirectURL = c.GetSiteURLHeader() + "/claim?email=" + url.QueryEscape(props["email"])
 	} else {
 		desktopToken := ""
 		if val, ok := props["desktop_token"]; ok {
