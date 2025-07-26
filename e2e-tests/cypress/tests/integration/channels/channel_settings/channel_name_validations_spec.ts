@@ -112,6 +112,11 @@ describe('Channel routing', () => {
         //   i.e. a total of 54 characters separated by 2 spaces
         cy.get('#input_channel-settings-name').clear().type(`${firstWord}${Cypress._.repeat(' ', 2)}${secondWord}`);
 
+        // # Since channel name no longer auto-updates URL, manually set the URL to test the space handling
+        cy.get('.url-input-button').click();
+        cy.get('.url-input-container input').clear().type(`${firstWord}${Cypress._.repeat(' ', 2)}${secondWord}`);
+        cy.get('.url-input-container button.url-input-button').click();
+
         // # Save changes
         cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
 
