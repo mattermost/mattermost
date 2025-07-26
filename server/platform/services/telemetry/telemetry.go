@@ -4,7 +4,6 @@
 package telemetry
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -18,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/marketplace"
@@ -127,7 +127,7 @@ type ServerIface interface {
 	HTTPService() httpservice.HTTPService
 	GetPluginsEnvironment() *plugin.Environment
 	License() *model.License
-	GetRoleByName(context.Context, string) (*model.Role, *model.AppError)
+	GetRoleByName(request.CTX, string) (*model.Role, *model.AppError)
 	GetSchemes(string, int, int) ([]*model.Scheme, *model.AppError)
 }
 
@@ -1105,6 +1105,8 @@ func (ts *TelemetryService) trackServer() {
 }
 
 func (ts *TelemetryService) trackPermissions() {
+	rctx := request.EmptyContext(ts.log)
+
 	phase1Complete := false
 	if _, err := ts.dbStore.System().GetByName(model.AdvancedPermissionsMigrationKey); err == nil {
 		phase1Complete = true
@@ -1121,48 +1123,48 @@ func (ts *TelemetryService) trackPermissions() {
 	})
 
 	systemAdminPermissions := ""
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.SystemAdminRoleId); err == nil {
+	if role, err := ts.srv.GetRoleByName(rctx, model.SystemAdminRoleId); err == nil {
 		systemAdminPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	systemUserPermissions := ""
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.SystemUserRoleId); err == nil {
+	if role, err := ts.srv.GetRoleByName(rctx, model.SystemUserRoleId); err == nil {
 		systemUserPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	teamAdminPermissions := ""
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.TeamAdminRoleId); err == nil {
+	if role, err := ts.srv.GetRoleByName(rctx, model.TeamAdminRoleId); err == nil {
 		teamAdminPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	teamUserPermissions := ""
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.TeamUserRoleId); err == nil {
+	if role, err := ts.srv.GetRoleByName(rctx, model.TeamUserRoleId); err == nil {
 		teamUserPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	teamGuestPermissions := ""
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.TeamGuestRoleId); err == nil {
+	if role, err := ts.srv.GetRoleByName(rctx, model.TeamGuestRoleId); err == nil {
 		teamGuestPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	channelAdminPermissions := ""
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.ChannelAdminRoleId); err == nil {
+	if role, err := ts.srv.GetRoleByName(rctx, model.ChannelAdminRoleId); err == nil {
 		channelAdminPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	channelUserPermissions := ""
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.ChannelUserRoleId); err == nil {
+	if role, err := ts.srv.GetRoleByName(rctx, model.ChannelUserRoleId); err == nil {
 		channelUserPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	channelGuestPermissions := ""
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.ChannelGuestRoleId); err == nil {
+	if role, err := ts.srv.GetRoleByName(rctx, model.ChannelGuestRoleId); err == nil {
 		channelGuestPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	systemManagerPermissions := ""
 	systemManagerPermissionsModified := false
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.SystemManagerRoleId); err == nil {
+	if role, err := ts.srv.GetRoleByName(rctx, model.SystemManagerRoleId); err == nil {
 		systemManagerPermissionsModified = len(model.PermissionsChangedByPatch(role, &model.RolePatch{Permissions: &model.SystemManagerDefaultPermissions})) > 0
 		systemManagerPermissions = strings.Join(role.Permissions, " ")
 	}
@@ -1173,7 +1175,7 @@ func (ts *TelemetryService) trackPermissions() {
 
 	systemUserManagerPermissions := ""
 	systemUserManagerPermissionsModified := false
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.SystemUserManagerRoleId); err == nil {
+	if role, err := ts.srv.GetRoleByName(rctx, model.SystemUserManagerRoleId); err == nil {
 		systemUserManagerPermissionsModified = len(model.PermissionsChangedByPatch(role, &model.RolePatch{Permissions: &model.SystemUserManagerDefaultPermissions})) > 0
 		systemUserManagerPermissions = strings.Join(role.Permissions, " ")
 	}
@@ -1184,7 +1186,7 @@ func (ts *TelemetryService) trackPermissions() {
 
 	systemReadOnlyAdminPermissions := ""
 	systemReadOnlyAdminPermissionsModified := false
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.SystemReadOnlyAdminRoleId); err == nil {
+	if role, err := ts.srv.GetRoleByName(rctx, model.SystemReadOnlyAdminRoleId); err == nil {
 		systemReadOnlyAdminPermissionsModified = len(model.PermissionsChangedByPatch(role, &model.RolePatch{Permissions: &model.SystemReadOnlyAdminDefaultPermissions})) > 0
 		systemReadOnlyAdminPermissions = strings.Join(role.Permissions, " ")
 	}
@@ -1195,7 +1197,7 @@ func (ts *TelemetryService) trackPermissions() {
 
 	systemCustomGroupAdminPermissions := ""
 	systemCustomGroupAdminPermissionsModified := false
-	if role, err := ts.srv.GetRoleByName(context.Background(), model.SystemCustomGroupAdminRoleId); err == nil {
+	if role, err := ts.srv.GetRoleByName(rctx, model.SystemCustomGroupAdminRoleId); err == nil {
 		systemCustomGroupAdminPermissionsModified = len(model.PermissionsChangedByPatch(role, &model.RolePatch{Permissions: &model.SystemReadOnlyAdminDefaultPermissions})) > 0
 		systemCustomGroupAdminPermissions = strings.Join(role.Permissions, " ")
 	}
@@ -1230,32 +1232,32 @@ func (ts *TelemetryService) trackPermissions() {
 	if schemes, err := ts.srv.GetSchemes(model.SchemeScopeTeam, 0, 100); err == nil {
 		for _, scheme := range schemes {
 			teamAdminPermissions := ""
-			if role, err := ts.srv.GetRoleByName(context.Background(), scheme.DefaultTeamAdminRole); err == nil {
+			if role, err := ts.srv.GetRoleByName(rctx, scheme.DefaultTeamAdminRole); err == nil {
 				teamAdminPermissions = strings.Join(role.Permissions, " ")
 			}
 
 			teamUserPermissions := ""
-			if role, err := ts.srv.GetRoleByName(context.Background(), scheme.DefaultTeamUserRole); err == nil {
+			if role, err := ts.srv.GetRoleByName(rctx, scheme.DefaultTeamUserRole); err == nil {
 				teamUserPermissions = strings.Join(role.Permissions, " ")
 			}
 
 			teamGuestPermissions := ""
-			if role, err := ts.srv.GetRoleByName(context.Background(), scheme.DefaultTeamGuestRole); err == nil {
+			if role, err := ts.srv.GetRoleByName(rctx, scheme.DefaultTeamGuestRole); err == nil {
 				teamGuestPermissions = strings.Join(role.Permissions, " ")
 			}
 
 			channelAdminPermissions := ""
-			if role, err := ts.srv.GetRoleByName(context.Background(), scheme.DefaultChannelAdminRole); err == nil {
+			if role, err := ts.srv.GetRoleByName(rctx, scheme.DefaultChannelAdminRole); err == nil {
 				channelAdminPermissions = strings.Join(role.Permissions, " ")
 			}
 
 			channelUserPermissions := ""
-			if role, err := ts.srv.GetRoleByName(context.Background(), scheme.DefaultChannelUserRole); err == nil {
+			if role, err := ts.srv.GetRoleByName(rctx, scheme.DefaultChannelUserRole); err == nil {
 				channelUserPermissions = strings.Join(role.Permissions, " ")
 			}
 
 			channelGuestPermissions := ""
-			if role, err := ts.srv.GetRoleByName(context.Background(), scheme.DefaultChannelGuestRole); err == nil {
+			if role, err := ts.srv.GetRoleByName(rctx, scheme.DefaultChannelGuestRole); err == nil {
 				channelGuestPermissions = strings.Join(role.Permissions, " ")
 			}
 

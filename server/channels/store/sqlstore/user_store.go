@@ -499,10 +499,10 @@ func (us SqlUserStore) GetMfaUsedTimestamps(userId string) ([]int, error) {
 }
 
 // GetMany returns a list of users for the provided list of ids
-func (us SqlUserStore) GetMany(ctx context.Context, ids []string) ([]*model.User, error) {
+func (us SqlUserStore) GetMany(rctx request.CTX, ids []string) ([]*model.User, error) {
 	query := us.usersQuery.Where(sq.Eq{"Id": ids})
 	users := []*model.User{}
-	if err := us.SqlStore.DBXFromContext(ctx).SelectBuilderCtx(ctx, &users, query); err != nil {
+	if err := us.SqlStore.DBXFromContext(rctx.Context()).SelectBuilderCtx(rctx.Context(), &users, query); err != nil {
 		return nil, errors.Wrap(err, "users_get_many_select")
 	}
 
@@ -1102,7 +1102,7 @@ func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int, view
 	return users, nil
 }
 
-func (us SqlUserStore) GetProfileByIds(ctx context.Context, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
+func (us SqlUserStore) GetProfileByIds(rctx request.CTX, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
 	if options == nil {
 		options = &store.UserGetByIdsOpts{}
 	}
@@ -1127,7 +1127,7 @@ func (us SqlUserStore) GetProfileByIds(ctx context.Context, userIds []string, op
 		return nil, errors.Wrap(err, "get_profile_by_ids_tosql")
 	}
 
-	if err := us.SqlStore.DBXFromContext(ctx).Select(&users, queryString, args...); err != nil {
+	if err := us.SqlStore.DBXFromContext(rctx.Context()).Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 

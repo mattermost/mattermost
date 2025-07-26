@@ -983,7 +983,7 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	options.ViewRestrictions = restrictions
 
-	users, appErr := c.App.GetUsersByIds(userIDs, options)
+	users, appErr := c.App.GetUsersByIds(c.AppContext, userIDs, options)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -3315,7 +3315,7 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	thread, err := c.App.GetThreadForUser(threadMembership, extended)
+	thread, err := c.App.GetThreadForUser(c.AppContext, threadMembership, extended)
 	if err != nil {
 		c.Err = err
 		return
@@ -3392,7 +3392,7 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	options.Unread, _ = strconv.ParseBool(unreadStr)
 	options.Extended, _ = strconv.ParseBool(extendedStr)
 
-	threads, err := c.App.GetThreadsForUser(c.Params.UserId, c.Params.TeamId, options)
+	threads, err := c.App.GetThreadsForUser(c.AppContext, c.Params.UserId, c.Params.TeamId, options)
 	if err != nil {
 		c.Err = err
 		return

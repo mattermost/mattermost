@@ -594,7 +594,7 @@ func (a *App) HandleCommandResponse(c request.CTX, command *model.Command, args 
 	return response, nil
 }
 
-func (a *App) HandleCommandResponsePost(c request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.Post, *model.AppError) {
+func (a *App) HandleCommandResponsePost(rctx request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.Post, *model.AppError) {
 	post := &model.Post{}
 	post.ChannelId = args.ChannelId
 	post.RootId = args.RootId
@@ -603,7 +603,7 @@ func (a *App) HandleCommandResponsePost(c request.CTX, command *model.Command, a
 	post.SetProps(response.Props)
 
 	if response.ChannelId != "" {
-		_, err := a.GetChannelMember(c, response.ChannelId, args.UserId)
+		_, err := a.GetChannelMember(rctx, response.ChannelId, args.UserId)
 		if err != nil {
 			err = model.NewAppError("HandleCommandResponsePost", "api.command.command_post.forbidden.app_error", nil, "", http.StatusForbidden).Wrap(err)
 			return nil, err
@@ -641,11 +641,11 @@ func (a *App) HandleCommandResponsePost(c request.CTX, command *model.Command, a
 
 	// Process Slack text replacements if the response does not contain "skip_slack_parsing": true.
 	if !response.SkipSlackParsing {
-		response.Text = a.ProcessSlackText(response.Text)
-		response.Attachments = a.ProcessSlackAttachments(response.Attachments)
+		response.Text = a.ProcessSlackText(rctx, response.Text)
+		response.Attachments = a.ProcessSlackAttachments(rctx, response.Attachments)
 	}
 
-	if _, err := a.CreateCommandPost(c, post, args.TeamId, response, response.SkipSlackParsing); err != nil {
+	if _, err := a.CreateCommandPost(rctx, post, args.TeamId, response, response.SkipSlackParsing); err != nil {
 		return post, err
 	}
 

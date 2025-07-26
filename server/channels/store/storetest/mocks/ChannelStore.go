@@ -5,12 +5,9 @@
 package mocks
 
 import (
-	context "context"
-
 	model "github.com/mattermost/mattermost/server/public/model"
-	mock "github.com/stretchr/testify/mock"
-
 	request "github.com/mattermost/mattermost/server/public/shared/request"
+	mock "github.com/stretchr/testify/mock"
 
 	store "github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -1192,9 +1189,9 @@ func (_m *ChannelStore) GetChannelsWithTeamDataByIds(channelIds []string, includ
 	return r0, r1
 }
 
-// GetChannelsWithUnreadsAndWithMentions provides a mock function with given fields: ctx, channelIDs, userID, userNotifyProps
-func (_m *ChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Context, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
-	ret := _m.Called(ctx, channelIDs, userID, userNotifyProps)
+// GetChannelsWithUnreadsAndWithMentions provides a mock function with given fields: rctx, channelIDs, userID, userNotifyProps
+func (_m *ChannelStore) GetChannelsWithUnreadsAndWithMentions(rctx request.CTX, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
+	ret := _m.Called(rctx, channelIDs, userID, userNotifyProps)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetChannelsWithUnreadsAndWithMentions")
@@ -1204,35 +1201,35 @@ func (_m *ChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Contex
 	var r1 []string
 	var r2 map[string]int64
 	var r3 error
-	if rf, ok := ret.Get(0).(func(context.Context, []string, string, model.StringMap) ([]string, []string, map[string]int64, error)); ok {
-		return rf(ctx, channelIDs, userID, userNotifyProps)
+	if rf, ok := ret.Get(0).(func(request.CTX, []string, string, model.StringMap) ([]string, []string, map[string]int64, error)); ok {
+		return rf(rctx, channelIDs, userID, userNotifyProps)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, []string, string, model.StringMap) []string); ok {
-		r0 = rf(ctx, channelIDs, userID, userNotifyProps)
+	if rf, ok := ret.Get(0).(func(request.CTX, []string, string, model.StringMap) []string); ok {
+		r0 = rf(rctx, channelIDs, userID, userNotifyProps)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, []string, string, model.StringMap) []string); ok {
-		r1 = rf(ctx, channelIDs, userID, userNotifyProps)
+	if rf, ok := ret.Get(1).(func(request.CTX, []string, string, model.StringMap) []string); ok {
+		r1 = rf(rctx, channelIDs, userID, userNotifyProps)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).([]string)
 		}
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, []string, string, model.StringMap) map[string]int64); ok {
-		r2 = rf(ctx, channelIDs, userID, userNotifyProps)
+	if rf, ok := ret.Get(2).(func(request.CTX, []string, string, model.StringMap) map[string]int64); ok {
+		r2 = rf(rctx, channelIDs, userID, userNotifyProps)
 	} else {
 		if ret.Get(2) != nil {
 			r2 = ret.Get(2).(map[string]int64)
 		}
 	}
 
-	if rf, ok := ret.Get(3).(func(context.Context, []string, string, model.StringMap) error); ok {
-		r3 = rf(ctx, channelIDs, userID, userNotifyProps)
+	if rf, ok := ret.Get(3).(func(request.CTX, []string, string, model.StringMap) error); ok {
+		r3 = rf(rctx, channelIDs, userID, userNotifyProps)
 	} else {
 		r3 = ret.Error(3)
 	}
@@ -1416,9 +1413,9 @@ func (_m *ChannelStore) GetMany(ids []string, allowFromCache bool) (model.Channe
 	return r0, r1
 }
 
-// GetMember provides a mock function with given fields: ctx, channelID, userID
-func (_m *ChannelStore) GetMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
-	ret := _m.Called(ctx, channelID, userID)
+// GetMember provides a mock function with given fields: rctx, channelID, userID
+func (_m *ChannelStore) GetMember(rctx request.CTX, channelID string, userID string) (*model.ChannelMember, error) {
+	ret := _m.Called(rctx, channelID, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetMember")
@@ -1426,19 +1423,19 @@ func (_m *ChannelStore) GetMember(ctx context.Context, channelID string, userID 
 
 	var r0 *model.ChannelMember
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*model.ChannelMember, error)); ok {
-		return rf(ctx, channelID, userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (*model.ChannelMember, error)); ok {
+		return rf(rctx, channelID, userID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) *model.ChannelMember); ok {
-		r0 = rf(ctx, channelID, userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.ChannelMember); ok {
+		r0 = rf(rctx, channelID, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ChannelMember)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, channelID, userID)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string) error); ok {
+		r1 = rf(rctx, channelID, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1492,9 +1489,9 @@ func (_m *ChannelStore) GetMemberCountFromCache(channelID string) int64 {
 	return r0
 }
 
-// GetMemberCountsByGroup provides a mock function with given fields: ctx, channelID, includeTimezones
-func (_m *ChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error) {
-	ret := _m.Called(ctx, channelID, includeTimezones)
+// GetMemberCountsByGroup provides a mock function with given fields: rctx, channelID, includeTimezones
+func (_m *ChannelStore) GetMemberCountsByGroup(rctx request.CTX, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error) {
+	ret := _m.Called(rctx, channelID, includeTimezones)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetMemberCountsByGroup")
@@ -1502,19 +1499,19 @@ func (_m *ChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID st
 
 	var r0 []*model.ChannelMemberCountByGroup
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, bool) ([]*model.ChannelMemberCountByGroup, error)); ok {
-		return rf(ctx, channelID, includeTimezones)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) ([]*model.ChannelMemberCountByGroup, error)); ok {
+		return rf(rctx, channelID, includeTimezones)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, bool) []*model.ChannelMemberCountByGroup); ok {
-		r0 = rf(ctx, channelID, includeTimezones)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) []*model.ChannelMemberCountByGroup); ok {
+		r0 = rf(rctx, channelID, includeTimezones)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.ChannelMemberCountByGroup)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, bool) error); ok {
-		r1 = rf(ctx, channelID, includeTimezones)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, bool) error); ok {
+		r1 = rf(rctx, channelID, includeTimezones)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1552,9 +1549,9 @@ func (_m *ChannelStore) GetMemberForPost(postID string, userID string, includeAr
 	return r0, r1
 }
 
-// GetMemberLastViewedAt provides a mock function with given fields: ctx, channelID, userID
-func (_m *ChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error) {
-	ret := _m.Called(ctx, channelID, userID)
+// GetMemberLastViewedAt provides a mock function with given fields: rctx, channelID, userID
+func (_m *ChannelStore) GetMemberLastViewedAt(rctx request.CTX, channelID string, userID string) (int64, error) {
+	ret := _m.Called(rctx, channelID, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetMemberLastViewedAt")
@@ -1562,17 +1559,17 @@ func (_m *ChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID str
 
 	var r0 int64
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (int64, error)); ok {
-		return rf(ctx, channelID, userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (int64, error)); ok {
+		return rf(rctx, channelID, userID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) int64); ok {
-		r0 = rf(ctx, channelID, userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) int64); ok {
+		r0 = rf(rctx, channelID, userID)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, channelID, userID)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string) error); ok {
+		r1 = rf(rctx, channelID, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
