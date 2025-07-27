@@ -1,0 +1,133 @@
+# This GitHub Actions workflow customizes server-ci-artifacts.yml.
+# The differences from server-ci-artifacts.yml are as follows:
+# - It uploads container images to Google Cloud Artifact Registry instead of Docker Hub.
+# - It does not upload build artifacts to S3.
+# - It is triggered by pushes to Git tags that start with 'v'.
+name: Custom Ci Artifacts
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build'
+        required: true
+        default: 'main'
+      tag:
+        description: 'Tag to build'
+        required: false
+        default: ''
+
+jobs:
+  build-artifacts:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && (inputs.branch || inputs.tag) || github.ref }}
+
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+
+      - name: Setup Go
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+
+      - name: ci/setup-node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        id: setup_node
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "webapp/package-lock.json"
+
+      - name: Run setup-go-work
+        run: make setup-go-work
+
+      - name: Build
+        run: |
+          make config-reset
+          make build-cmd BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
+          make package BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
+
+      # In server-ci-artifacts.yml, this step uploads the artifacts to S3.
+      # Here, we place the artifacts in a directory that will be used by the next job.
+      - name: Upload Mattermost Package
+        uses: actions/upload-artifact@v4 # v4.0.0
+        with:
+          name: server-build-artifact
+          path: server/dist/mattermost-team-linux-amd64.tar.gz
+
+  build-and-push-image:
+    needs: build-artifacts
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && (inputs.tag || inputs.branch) || github.ref }}
+
+      - name: Download Mattermost Package
+        uses: actions/download-artifact@v4
+        with:
+          name: server-build-artifact
+          path: server/build
+
+      - name: Setup Google Cloud Auth
+        id: auth
+        uses: "google-github-actions/auth@v2"
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+
+      - name: Set Docker tags
+        id: docker_meta
+        run: |
+          IMAGE_NAME="${{ secrets.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GAR_REPOSITORY_NAME }}/${{ secrets.GAR_IMAGE_NAME }}"
+          DOCKER_TAG_NAME=""
+
+          # Priority order for determining the Docker tag name:
+          # 1. If a Git tag is pushed (e.g., v1.2.3)
+          # 2. If the 'tag' input is provided on workflow_dispatch
+          # 3. Otherwise (use the commit hash)
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            echo "Triggered by tag push. Using git tag: ${{ github.ref_name }}"
+            DOCKER_TAG_NAME="${{ github.ref_name }}"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ inputs.tag }}" ]]; then
+            echo "Triggered by workflow_dispatch with tag. Using input tag: ${{ inputs.tag }}"
+            DOCKER_TAG_NAME="${{ inputs.tag }}"
+          else
+            echo "Triggered by ${{ github.event_name }}. Using commit SHA."
+            DOCKER_TAG_NAME="${{ github.sha }}"
+          fi
+
+          TAGS="-t ${IMAGE_NAME}:${DOCKER_TAG_NAME} -t ${IMAGE_NAME}:latest"
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "Generated tags for docker build: ${TAGS}"
+
+      - name: Build and push Docker image
+        run: |
+          gcloud auth configure-docker ${{ secrets.GAR_LOCATION }}-docker.pkg.dev --quiet
+          docker buildx build \
+            --platform linux/amd64 \
+            --no-cache \
+            --push \
+            --build-arg MM_CUSTOM_PACKAGE=mattermost-team-linux-amd64.tar.gz \
+            ${{ steps.docker_meta.outputs.tags }} \
+            server/build
