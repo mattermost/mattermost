@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 134+"
+    "translation": "Version 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 134+"
+    "translation": "Version 138+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -6732,15 +6732,15 @@
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here är avaktiverad eftersom kanalen har fler än {{.Users}} användare."
+    "translation": "Aviseringar med @here är avaktiverad i kanaler med fler än {{.Users}} användare. Kontakta din systemadministratör för mer information."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel är avaktiverad eftersom kanalen har fler än {{.Users}} användare."
+    "translation": "Aviseringar med @channel är avaktiverad i kanaler med fler än {{.Users}} användare. Kontakta din systemadministratör för mer information."
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all är avaktiverad eftersom kanalen har fler än {{.Users}} användare."
+    "translation": "Aviseringar med @all är avaktiverad i kanaler med fler än {{.Users}} användare. Kontakta din systemadministratör för mer information."
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
@@ -10729,11 +10729,11 @@
   },
   {
     "id": "api.access_control_policy.get_channels.limit.app_error",
-    "translation": "Gränsen för Get Channels är inte giltig."
+    "translation": "Gränsen för Get channels är inte giltig."
   },
   {
     "id": "api.access_control_policy.get_fields.limit.app_error",
-    "translation": "Gränsen för Hämta fält är inte giltig."
+    "translation": "Gränsen för hämta fält är inte giltig."
   },
   {
     "id": "app.pap.assign_access_control_policy_to_channels.app_error",
