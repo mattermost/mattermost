@@ -4624,11 +4624,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 134+"
+    "translation": "Versie 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 134+"
+    "translation": "Versie 13+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
