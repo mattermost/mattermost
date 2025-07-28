@@ -4804,10 +4804,6 @@
     "translation": "Sikeresen frissített a Mattermost Enterprise Edition-re. Kérjük, indítsa újra a szervert a frissítés befejezéséhez."
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Hiba történt a backendből történő fájl olvasásakor"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "Hiba történt a zip fájl létrehozásakor."
   },

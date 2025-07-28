@@ -7362,10 +7362,6 @@
     "translation": "getThreadsForUser に対する Before と After のパラメータが矛盾しています"
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "バックエンドからファイルを読み出す際にエラーが発生しました"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "Zipファイル作成時にエラーが発生しました。"
   },
@@ -10562,16 +10558,8 @@
     "translation": "不正なAD/LDAP Idです"
   },
   {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "CPA値に対するパッチ適用エラー"
-  },
-  {
     "id": "ent.ldap_groups.invalid_ldap_id",
     "translation": "不正なAD/LDAP Idです"
-  },
-  {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "CPA値の更新エラー"
   },
   {
     "id": "web.incoming_webhook.parse_form.app_error",
@@ -10656,14 +10644,6 @@
   {
     "id": "ent.access_control.job_data_conversion.app_error",
     "translation": "以前のジョブからデータを抽出できませんでした。"
-  },
-  {
-    "id": "api.license.request-trial.mysql.app_error",
-    "translation": "トライアルライセンスはMySQLデータベースをサポートしていません。トライアルの機能にアクセスするにはPostgreSQLを使用してください。"
-  },
-  {
-    "id": "api.license.add_license.mysql.app_error",
-    "translation": "このライセンスはMySQLをサポートしていません。"
   },
   {
     "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
