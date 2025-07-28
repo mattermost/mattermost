@@ -8,3 +8,5 @@ type FlagContentRequest struct {
 	Reason   string `json:"reason"`
 	Comment  string `json:"comment,omitempty"`
 }
+
+const ContentFlaggingGroupName = "content_flagging"

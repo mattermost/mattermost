@@ -39,6 +39,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", "SystemConsoleRolesCreationMigrationComplete").Return(&model.System{Name: "SystemConsoleRolesCreationMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "PlaybookRolesCreationMigrationComplete").Return(&model.System{Name: "PlaybookRolesCreationMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "PostPriorityConfigDefaultTrueMigrationComplete").Return(&model.System{Name: "PostPriorityConfigDefaultTrueMigrationComplete", Value: "true"}, nil)
+	systemStore.On("GetByName", "content_flagging_setup_done").Return(&model.System{Name: "content_flagging_setup_done", Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyEmojiPermissionsSplit).Return(&model.System{Name: model.MigrationKeyEmojiPermissionsSplit, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyWebhookPermissionsSplit).Return(&model.System{Name: model.MigrationKeyWebhookPermissionsSplit, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyListJoinPublicPrivateTeams).Return(&model.System{Name: model.MigrationKeyListJoinPublicPrivateTeams, Value: "true"}, nil)
@@ -87,6 +88,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", "elasticsearch_fix_channel_index_migration").Return(&model.System{Name: "elasticsearch_fix_channel_index_migration", Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationAddSysconsoleMobileSecurityPermission).Return(&model.System{Name: model.MigrationAddSysconsoleMobileSecurityPermission, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddChannelBannerPermissions).Return(&model.System{Name: model.MigrationKeyAddChannelBannerPermissions, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MigrationKeyAddChannelAccessRulesPermission).Return(&model.System{Name: model.MigrationKeyAddChannelAccessRulesPermission, Value: "true"}, nil)
 
 	systemStore.On("InsertIfExists", mock.AnythingOfType("*model.System")).Return(&model.System{}, nil).Once()
 	systemStore.On("Save", mock.AnythingOfType("*model.System")).Return(nil)

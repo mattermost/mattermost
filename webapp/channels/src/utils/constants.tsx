@@ -1321,6 +1321,7 @@ export const PermissionsScope = {
     [Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL]: 'channel_scope',
     [Permissions.MANAGE_PUBLIC_CHANNEL_BANNER]: 'channel_scope',
     [Permissions.MANAGE_PRIVATE_CHANNEL_BANNER]: 'channel_scope',
+    [Permissions.MANAGE_CHANNEL_ACCESS_RULES]: 'channel_scope',
 };
 
 export const DefaultRolePermissions = {
@@ -1402,6 +1403,7 @@ export const DefaultRolePermissions = {
         Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.MANAGE_PUBLIC_CHANNEL_BANNER,
         Permissions.MANAGE_PRIVATE_CHANNEL_BANNER,
+        Permissions.MANAGE_CHANNEL_ACCESS_RULES,
     ],
     team_admin: [
         Permissions.EDIT_OTHERS_POSTS,
@@ -1439,6 +1441,7 @@ export const DefaultRolePermissions = {
         Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.MANAGE_PUBLIC_CHANNEL_BANNER,
         Permissions.MANAGE_PRIVATE_CHANNEL_BANNER,
+        Permissions.MANAGE_CHANNEL_ACCESS_RULES,
     ],
     guests: [
         Permissions.EDIT_POST,
