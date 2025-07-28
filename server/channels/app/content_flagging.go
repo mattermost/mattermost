@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"net/http"
+	"strings"
 )
 
 // TODO: move these to model package
@@ -73,42 +74,49 @@ func (a *App) FlagPost(c request.CTX, post *model.Post, reportingUserId string, 
 		return appErr
 	}
 
-	teamContentFlaggingChannel, appErr := a.ensureTeamContentFlaggingChannel(c)
+	channel, appErr := a.GetChannel(c, post.ChannelId)
+	if appErr != nil {
+		return appErr
+	}
 
-	// TODO: use constant or target type and field names
+	contentReviewPost, appErr := a.createContentReviewPost(c, channel.TeamId)
+	if appErr != nil {
+		return appErr
+	}
 
+	// TODO: use constant for target type and field names
 	// TODO: these need to be on the review post, not the flagged post
 	propertyValues := []*model.PropertyValue{
 		{
-			TargetID:   postId,
+			TargetID:   contentReviewPost.Id,
 			TargetType: "post",
 			GroupID:    groupId,
 			FieldID:    mappedFields["status"].ID,
-			Value:      json.RawMessage(contentFLaggingStatusPending),
+			Value:      json.RawMessage(`"` + contentFLaggingStatusPending + `"`),
 		},
 		{
-			TargetID:   postId,
+			TargetID:   contentReviewPost.Id,
 			TargetType: "post",
 			GroupID:    groupId,
 			FieldID:    mappedFields["reporting_user_id"].ID,
-			Value:      json.RawMessage(reportingUserId),
+			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, reportingUserId)),
 		},
 		{
-			TargetID:   postId,
+			TargetID:   contentReviewPost.Id,
 			TargetType: "post",
 			GroupID:    groupId,
 			FieldID:    mappedFields["reporting_reason"].ID,
-			Value:      json.RawMessage(flagData.Reason),
+			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, strings.Trim(flagData.Reason, `"`))),
 		},
 		{
-			TargetID:   postId,
+			TargetID:   contentReviewPost.Id,
 			TargetType: "post",
 			GroupID:    groupId,
 			FieldID:    mappedFields["reporting_comment"].ID,
-			Value:      json.RawMessage(flagData.Comment),
+			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, strings.Trim(flagData.Comment, `"`))),
 		},
 		{
-			TargetID:   postId,
+			TargetID:   contentReviewPost.Id,
 			TargetType: "post",
 			GroupID:    groupId,
 			FieldID:    mappedFields["reporting_time"].ID,
@@ -120,6 +128,8 @@ func (a *App) FlagPost(c request.CTX, post *model.Post, reportingUserId string, 
 	if err != nil {
 		return model.NewAppError("FlagPost", "app.content_flagging.create_property_values.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
 	}
+
+	// TODO: hide the flagged post here
 
 	return nil
 }
@@ -205,12 +215,18 @@ func (a *App) createContentReviewPost(c request.CTX, teamId string) (*model.Post
 		return nil, appErr
 	}
 
-	a.GetSystemBot()
+	bot, appErr := a.GetOrCreateSystemOwnedBot(c, "app.system.content_flagging_bot.bot_displayname")
+	if appErr != nil {
+		return nil, appErr
+	}
 
 	post := &model.Post{
 		ChannelId: contentFlaggingChannel.Id,
 		Message:   "Content Review",
+		UserId:    bot.UserId,
 	}
+
+	return a.CreatePost(c, post, contentFlaggingChannel, model.CreatePostFlags{})
 }
 
 func (a *App) ensureTeamContentFlaggingChannel(c request.CTX, teamId string) (*model.Channel, *model.AppError) {

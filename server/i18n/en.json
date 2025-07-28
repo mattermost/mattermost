@@ -7165,6 +7165,10 @@
     "translation": "System"
   },
   {
+    "id": "app.system.content_flagging_bot.bot_displayname",
+    "translation": "Content Review"
+  },
+  {
     "id": "app.system_install_date.parse_int.app_error",
     "translation": "Failed to parse installation date."
   },

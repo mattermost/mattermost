@@ -81,7 +81,6 @@ func getTeamPostFlaggingFeatureStatus(c *Context, w http.ResponseWriter, r *http
 }
 
 func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
-	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return
 	}
@@ -106,7 +105,13 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.FlagPost(postId, userId, flagRequest)
+	appErr = c.App.FlagPost(c.AppContext, post, userId, flagRequest)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	writeOKResponse(w)
 }
 
 func getFlaggingConfig(contentFlaggingSettings model.ContentFlaggingSettings) *model.ContentFlaggingReportingConfig {
