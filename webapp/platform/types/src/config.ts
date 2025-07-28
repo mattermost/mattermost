@@ -975,6 +975,7 @@ export type CloudSettings = {
     CWSAPIURL: string;
     CWSMock: boolean;
     Disable: boolean;
+    PreviewModalBucketURL: string;
 };
 
 export type FeatureFlags = Record<string, string | boolean>;
@@ -996,9 +997,7 @@ export type AccessControlSettings = {
 };
 
 export type ContentFlaggingNotificationSettings = {
-    ReviewerSettings: ContentFlaggingReviewerSetting;
     EventTargetMapping: Record<ContentFlaggingEvent, NotificationTarget[]>;
-    AdditionalSettings: ContentFlaggingAdditionalSettings;
 }
 
 export type TeamReviewerSetting = {
@@ -1022,7 +1021,10 @@ export type ContentFlaggingAdditionalSettings = {
 }
 
 export type ContentFlaggingSettings = {
+    EnableContentFlagging: boolean;
     NotificationSettings: ContentFlaggingNotificationSettings;
+    ReviewerSettings: ContentFlaggingReviewerSetting;
+    AdditionalSettings: ContentFlaggingAdditionalSettings;
 }
 
 export type AdminConfig = {
