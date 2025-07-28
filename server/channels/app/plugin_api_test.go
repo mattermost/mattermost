@@ -3032,7 +3032,7 @@ func TestPluginAPICreatePropertyFieldLimit(t *testing.T) {
 		assert.Equal(t, field.Name, created.Name)
 
 		// Test with nil field
-		created, err = api.CreatePropertyField(nil)
+		_, err = api.CreatePropertyField(nil)
 		require.NoError(t, err) // Should work without limit check
 	})
 }
