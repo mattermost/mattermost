@@ -1,29 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { act, screen, fireEvent, waitFor } from '@testing-library/react';
+import {act, screen, fireEvent} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import { renderWithContext } from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import Input from './input';
 
 // Mock the WithTooltip component to avoid ref issues
 jest.mock('components/with_tooltip', () => ({
     __esModule: true,
-    default: ({ children }: { children: React.ReactNode }) => children,
+    default: ({children}: {children: React.ReactNode}) => children,
 }));
 
 // Mock the CloseCircleIcon component to avoid ref issues
 jest.mock('@mattermost/compass-icons/components', () => ({
-    CloseCircleIcon: () => <div data-testid='close-circle-icon' />,
+    CloseCircleIcon: () => <div data-testid='close-circle-icon'/>,
 }));
 
 describe('components/widgets/inputs/Input', () => {
     test('should match snapshot', () => {
-        const { container } = renderWithContext(
-            <Input />,
+        const {container} = renderWithContext(
+            <Input/>,
         );
 
         expect(container).toMatchSnapshot();
@@ -65,13 +65,13 @@ describe('components/widgets/inputs/Input', () => {
             const mockValidate = jest.fn();
             const mockOnBlur = jest.fn();
 
-            const { container } = renderWithContext(
+            const {container} = renderWithContext(
                 <Input
-                    name="test"
-                    value=""
+                    name='test'
+                    value=''
                     validate={mockValidate}
                     onBlur={mockOnBlur}
-                />
+                />,
             );
 
             const input = container.querySelector('input') as HTMLInputElement;
@@ -88,12 +88,12 @@ describe('components/widgets/inputs/Input', () => {
         test('should defer validation when relatedTarget has click method', async () => {
             const mockValidate = jest.fn();
 
-            const { container } = renderWithContext(
+            const {container} = renderWithContext(
                 <Input
-                    name="test"
-                    value=""
+                    name='test'
+                    value=''
                     validate={mockValidate}
-                />
+                />,
             );
 
             const input = container.querySelector('input') as HTMLInputElement;

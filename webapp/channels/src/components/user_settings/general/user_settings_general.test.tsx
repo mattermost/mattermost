@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {Provider} from 'react-redux';
+import {act, fireEvent, waitFor} from '@testing-library/react';
 
 import type {UserPropertyField} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
@@ -766,14 +767,26 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
-        userEvent.type(screen.getByRole('textbox', {name: urlAttribute.name}), 'ftp://invalid-scheme');
-        userEvent.tab();
+        const input = screen.getByRole('textbox', {name: urlAttribute.name});
+        
+        // Type the invalid value
+        userEvent.type(input, 'ftp://invalid-scheme');
+        
+        // Focus and blur explicitly to trigger validation without relatedTarget
+        await act(async () => {
+            fireEvent.focus(input);
+            fireEvent.blur(input, { relatedTarget: null });
+        });
 
-        expect(await screen.findByText('Please enter a valid url.')).toBeInTheDocument();
+        // Wait for validation error to appear
+        await waitFor(() => {
+            expect(screen.getByText('Please enter a valid url.')).toBeInTheDocument();
+        });
+        
         expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
 
-        userEvent.clear(screen.getByRole('textbox', {name: urlAttribute.name}));
-        userEvent.type(screen.getByRole('textbox', {name: urlAttribute.name}), 'example.com');
+        userEvent.clear(input);
+        userEvent.type(input, 'example.com');
         userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'http://example.com');
@@ -803,14 +816,26 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
-        userEvent.type(screen.getByRole('textbox', {name: emailAttribute.name}), 'invalid-email');
-        userEvent.tab();
+        const input = screen.getByRole('textbox', {name: emailAttribute.name});
+        
+        // Type the invalid value
+        userEvent.type(input, 'invalid-email');
+        
+        // Focus and blur explicitly to trigger validation without relatedTarget
+        await act(async () => {
+            fireEvent.focus(input);
+            fireEvent.blur(input, { relatedTarget: null });
+        });
 
-        expect(await screen.findByText('Please enter a valid email address.')).toBeInTheDocument();
+        // Wait for validation error to appear
+        await waitFor(() => {
+            expect(screen.getByText('Please enter a valid email address.')).toBeInTheDocument();
+        });
+        
         expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
 
-        userEvent.clear(screen.getByRole('textbox', {name: emailAttribute.name}));
-        userEvent.type(screen.getByRole('textbox', {name: emailAttribute.name}), 'test@example.com');
+        userEvent.clear(input);
+        userEvent.type(input, 'test@example.com');
         userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'test@example.com');
