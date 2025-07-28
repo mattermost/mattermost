@@ -26,6 +26,6 @@ func TestDoSetupContentFlaggingProperties(t *testing.T) {
 
 		propertyFields, err := th.Server.propertyService.SearchPropertyFields(group.ID, "", model.PropertyFieldSearchOpts{PerPage: 100})
 		require.NoError(t, err)
-		require.Len(t, propertyFields, 9)
+		require.Len(t, propertyFields, 10)
 	})
 }

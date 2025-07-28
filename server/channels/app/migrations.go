@@ -29,6 +29,7 @@ const (
 	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
 	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
 
+	contentFlaggingPropertyNameFlaggedPostId    = "flagged_post_id"
 	contentFlaggingPropertyNameStatus           = "status"
 	contentFlaggingPropertyNameReportingUserID  = "reporting_user_id"
 	contentFlaggingPropertyNameReportingReason  = "reporting_reason"
@@ -611,6 +612,11 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 
 	// register status property
 	properties := []*model.PropertyField{
+		{
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyNameFlaggedPostId,
+			Type:    model.PropertyFieldTypeText,
+		},
 		{
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameStatus,
