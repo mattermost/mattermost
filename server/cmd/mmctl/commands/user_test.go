@@ -2622,7 +2622,7 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 
 		err := userConvertCmdF(s.client, cmd, []string{emailArg})
 		s.Require().Error(err)
-		s.Require().Equal("1 error occurred:\n\t* failed to get user: some-message\n\n", err.Error())
+		s.Require().Equal("1 error occurred:\n\t* failed to convert username -  to bot: some-message\n\n", err.Error())
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("some-message", printer.GetErrorLines()[0])
