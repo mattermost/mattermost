@@ -540,10 +540,16 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string) string {
 	prefixParsed, _ := url.Parse(siteURLPrefix)
 
 	// Check if the targetURL is a valid URL and is within the siteURLPrefix
-	if parsed == nil || (prefixParsed != nil && parsed.Scheme == prefixParsed.Scheme && parsed.Host == prefixParsed.Host && strings.HasPrefix(path.Clean(parsed.Path), path.Clean(prefixParsed.Path))) {
-		return targetURL
-	} else if parsed.Scheme != "" || parsed.Host != "" {
-		return siteURLPrefix
+	if parsed != nil && prefixParsed != nil {
+		sameScheme := parsed.Scheme == prefixParsed.Scheme
+		sameHost := parsed.Host == prefixParsed.Host
+		safePath := strings.HasPrefix(path.Clean(parsed.Path), path.Clean(prefixParsed.Path))
+
+		if sameScheme && sameHost && safePath {
+			return targetURL
+		} else if parsed.Scheme != "" || parsed.Host != "" {
+			return siteURLPrefix
+		}
 	}
 
 	// For relative URLs, normalize and join with siteURLPrefix
