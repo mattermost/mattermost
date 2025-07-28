@@ -60,6 +60,7 @@ type Session struct {
 	LastActivityAt int64         `json:"last_activity_at"`
 	UserId         string        `json:"user_id"`
 	DeviceId       string        `json:"device_id"`
+	VoipDeviceId   string        `json:"voip_device_id"`
 	Roles          string        `json:"roles"`
 	IsOAuth        bool          `json:"is_oauth"`
 	ExpiredNotify  bool          `json:"expired_notify"`

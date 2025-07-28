@@ -195,8 +195,8 @@ func (z *Session) DecodeMsg(dc *msgp.Reader) (err error) {
 		err = msgp.WrapError(err)
 		return
 	}
-	if zb0001 != 13 {
-		err = msgp.ArrayError{Wanted: 13, Got: zb0001}
+	if zb0001 != 14 {
+		err = msgp.ArrayError{Wanted: 14, Got: zb0001}
 		return
 	}
 	z.Id, err = dc.ReadString()
@@ -232,6 +232,11 @@ func (z *Session) DecodeMsg(dc *msgp.Reader) (err error) {
 	z.DeviceId, err = dc.ReadString()
 	if err != nil {
 		err = msgp.WrapError(err, "DeviceId")
+		return
+	}
+	z.VoipDeviceId, err = dc.ReadString()
+	if err != nil {
+		err = msgp.WrapError(err, "VoipDeviceId")
 		return
 	}
 	z.Roles, err = dc.ReadString()
@@ -318,8 +323,8 @@ func (z *Session) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *Session) EncodeMsg(en *msgp.Writer) (err error) {
-	// array header, size 13
-	err = en.Append(0x9d)
+	// array header, size 14
+	err = en.Append(0x9e)
 	if err != nil {
 		return
 	}
@@ -356,6 +361,11 @@ func (z *Session) EncodeMsg(en *msgp.Writer) (err error) {
 	err = en.WriteString(z.DeviceId)
 	if err != nil {
 		err = msgp.WrapError(err, "DeviceId")
+		return
+	}
+	err = en.WriteString(z.VoipDeviceId)
+	if err != nil {
+		err = msgp.WrapError(err, "VoipDeviceId")
 		return
 	}
 	err = en.WriteString(z.Roles)
@@ -420,8 +430,8 @@ func (z *Session) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *Session) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// array header, size 13
-	o = append(o, 0x9d)
+	// array header, size 14
+	o = append(o, 0x9e)
 	o = msgp.AppendString(o, z.Id)
 	o = msgp.AppendString(o, z.Token)
 	o = msgp.AppendInt64(o, z.CreateAt)
@@ -429,6 +439,7 @@ func (z *Session) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.AppendInt64(o, z.LastActivityAt)
 	o = msgp.AppendString(o, z.UserId)
 	o = msgp.AppendString(o, z.DeviceId)
+	o = msgp.AppendString(o, z.VoipDeviceId)
 	o = msgp.AppendString(o, z.Roles)
 	o = msgp.AppendBool(o, z.IsOAuth)
 	o = msgp.AppendBool(o, z.ExpiredNotify)
@@ -461,8 +472,8 @@ func (z *Session) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		err = msgp.WrapError(err)
 		return
 	}
-	if zb0001 != 13 {
-		err = msgp.ArrayError{Wanted: 13, Got: zb0001}
+	if zb0001 != 14 {
+		err = msgp.ArrayError{Wanted: 14, Got: zb0001}
 		return
 	}
 	z.Id, bts, err = msgp.ReadStringBytes(bts)
@@ -498,6 +509,11 @@ func (z *Session) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	z.DeviceId, bts, err = msgp.ReadStringBytes(bts)
 	if err != nil {
 		err = msgp.WrapError(err, "DeviceId")
+		return
+	}
+	z.VoipDeviceId, bts, err = msgp.ReadStringBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err, "VoipDeviceId")
 		return
 	}
 	z.Roles, bts, err = msgp.ReadStringBytes(bts)
@@ -584,7 +600,7 @@ func (z *Session) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *Session) Msgsize() (s int) {
-	s = 1 + msgp.StringPrefixSize + len(z.Id) + msgp.StringPrefixSize + len(z.Token) + msgp.Int64Size + msgp.Int64Size + msgp.Int64Size + msgp.StringPrefixSize + len(z.UserId) + msgp.StringPrefixSize + len(z.DeviceId) + msgp.StringPrefixSize + len(z.Roles) + msgp.BoolSize + msgp.BoolSize + msgp.MapHeaderSize
+	s = 1 + msgp.StringPrefixSize + len(z.Id) + msgp.StringPrefixSize + len(z.Token) + msgp.Int64Size + msgp.Int64Size + msgp.Int64Size + msgp.StringPrefixSize + len(z.UserId) + msgp.StringPrefixSize + len(z.DeviceId) + msgp.StringPrefixSize + len(z.VoipDeviceId) + msgp.StringPrefixSize + len(z.Roles) + msgp.BoolSize + msgp.BoolSize + msgp.MapHeaderSize
 	if z.Props != nil {
 		for za0001, za0002 := range z.Props {
 			_ = za0002
