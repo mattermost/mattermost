@@ -160,6 +160,8 @@ type Routes struct {
 
 	AccessControlPolicies *mux.Router // 'api/v4/access_control_policies'
 	AccessControlPolicy   *mux.Router // 'api/v4/access_control_policies/{policy_id:[A-Za-z0-9]+}'
+
+	ContentFlagging *mux.Router // 'api/v4/content_flagging'
 }
 
 type API struct {
@@ -307,6 +309,8 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.AccessControlPolicies = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies").Subrouter()
 	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies/{policy_id:[A-Za-z0-9]+}").Subrouter()
 
+	api.BaseRoutes.ContentFlagging = api.BaseRoutes.APIRoot.PathPrefix("/content_flagging").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -359,6 +363,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitCustomProfileAttributes()
 	api.InitAuditLogging()
 	api.InitAccessControlPolicy()
+	api.InitContentFlagging()
 
 	// If we allow testing then listen for manual testing URL hits
 	if *srv.Config().ServiceSettings.EnableTesting {

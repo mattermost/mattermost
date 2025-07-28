@@ -182,7 +182,7 @@ func (ts *TelemetryService) ensureTelemetryID() error {
 	id := model.NewId()
 	var err error
 
-	for i := 0; i < DBAccessAttempts; i++ {
+	for range DBAccessAttempts {
 		ts.log.Info("Ensuring the telemetry ID..")
 		systemID := &model.System{Name: model.SystemTelemetryId, Value: id}
 		systemID, err = ts.dbStore.System().InsertIfExists(systemID)
@@ -293,7 +293,7 @@ func isDefaultArray(setting, defaultValue []string) bool {
 	if len(setting) != len(defaultValue) {
 		return false
 	}
-	for i := 0; i < len(setting); i++ {
+	for i := range setting {
 		if setting[i] != defaultValue[i] {
 			return false
 		}
@@ -544,7 +544,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_api_post_deletion":                                *cfg.ServiceSettings.EnableAPIPostDeletion,
 		"enable_api_channel_deletion":                             *cfg.ServiceSettings.EnableAPIChannelDeletion,
 		"experimental_enable_hardened_mode":                       *cfg.ServiceSettings.ExperimentalEnableHardenedMode,
-		"experimental_strict_csrf_enforcement":                    *cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement,
+		"strict_csrf_enforcement":                                 *cfg.ServiceSettings.StrictCSRFEnforcement,
 		"enable_email_invitations":                                *cfg.ServiceSettings.EnableEmailInvitations,
 		"disable_bots_when_owner_is_deactivated":                  *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated,
 		"enable_bot_account_creation":                             *cfg.ServiceSettings.EnableBotAccountCreation,

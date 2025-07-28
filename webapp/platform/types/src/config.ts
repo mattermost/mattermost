@@ -130,6 +130,7 @@ export type ClientConfig = {
     FeatureFlagCustomProfileAttributes: string;
     FeatureFlagAttributeBasedAccessControl: string;
     FeatureFlagWebSocketEventScope: string;
+    FeatureFlagContentFlagging: string;
     ForgotPasswordLink: string;
     GiphySdkKey: string;
     GoogleDeveloperKey: string;
@@ -225,6 +226,7 @@ export type ClientConfig = {
     YoutubeReferrerPolicy: 'true' | 'false';
     ScheduledPosts: string;
     DeleteAccountLink: string;
+    ContentFlaggingEnabled: 'true' | 'false';
 };
 
 export type License = {
@@ -379,7 +381,7 @@ export type ServiceSettings = {
     EnableAPITriggerAdminNotifications: boolean;
     EnableAPIUserDeletion: boolean;
     ExperimentalEnableHardenedMode: boolean;
-    ExperimentalStrictCSRFEnforcement: boolean;
+    StrictCSRFEnforcement: boolean;
     EnableEmailInvitations: boolean;
     DisableBotsWhenOwnerIsDeactivated: boolean;
     EnableBotAccountCreation: boolean;
@@ -982,6 +984,7 @@ export type ExportSettings = {
 export type AccessControlSettings = {
     EnableAttributeBasedAccessControl: boolean;
     EnableChannelScopeAccessControl: boolean;
+    EnableUserManagedAttributes: boolean;
 };
 
 export type ContentFlaggingNotificationSettings = {

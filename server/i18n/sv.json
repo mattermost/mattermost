@@ -2516,10 +2516,6 @@
     "translation": "Kunde inte hämta tilläggsstatus från klustret."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Kan inte att ange plugin som hanteras av filarkivet."
-  },
-  {
     "id": "app.plugin.filesystem.app_error",
     "translation": "Det uppstod ett filsystemsfel."
   },

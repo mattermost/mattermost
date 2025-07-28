@@ -170,7 +170,7 @@ const defaultServerConfig: AdminConfig = {
         EnableAPIPostDeletion: false,
         EnableDesktopLandingPage: true,
         ExperimentalEnableHardenedMode: false,
-        ExperimentalStrictCSRFEnforcement: false,
+        StrictCSRFEnforcement: false,
         EnableEmailInvitations: false,
         DisableBotsWhenOwnerIsDeactivated: true,
         EnableBotAccountCreation: false,
@@ -796,6 +796,7 @@ const defaultServerConfig: AdminConfig = {
     AccessControlSettings: {
         EnableAttributeBasedAccessControl: false,
         EnableChannelScopeAccessControl: false,
+        EnableUserManagedAttributes: false,
     },
     ContentFlaggingSettings: {
         NotificationSettings: {
