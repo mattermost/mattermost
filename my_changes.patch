@@ -1,0 +1,2 @@
+this is what i have changed:
+{(isSearchResultItem || (props.location === Locations.CENTER && (props.isPinnedPosts || props.isFlaggedPosts))) && <DateSeparator date={currentPostDay}/>}
