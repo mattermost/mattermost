@@ -26,7 +26,6 @@ import PriorityLabel from 'components/post_priority/post_priority_label';
 import PostProfilePicture from 'components/post_profile_picture';
 import PostAcknowledgements from 'components/post_view/acknowledgements';
 import CommentedOn from 'components/post_view/commented_on/commented_on';
-import DateSeparator from 'components/post_view/date_separator';
 import FailedPostOptions from 'components/post_view/failed_post_options';
 import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
 import PostBodyAdditionalContent from 'components/post_view/post_body_additional_content';
@@ -45,7 +44,7 @@ import Constants, {A11yCustomEventTypes, AppEvents, Locations} from 'utils/const
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import * as PostUtils from 'utils/post_utils';
-import {getDateForUnixTicks, makeIsEligibleForClick} from 'utils/utils';
+import {makeIsEligibleForClick} from 'utils/utils';
 
 import type {PostActionComponent, PostPluginComponent} from 'types/store/plugins';
 
@@ -481,7 +480,6 @@ function PostComponent(props: Props) {
             replyClick={handleThreadClick}
         />
     ) : null;
-    const currentPostDay = getDateForUnixTicks(post.create_at);
     const channelDisplayName = getChannelName();
     const showReactions = props.location !== Locations.SEARCH || props.isPinnedPosts || props.isFlaggedPosts;
 
@@ -522,7 +520,6 @@ function PostComponent(props: Props) {
 
     return (
         <>
-            {(isSearchResultItem || (props.location !== Locations.CENTER && (props.isPinnedPosts || props.isFlaggedPosts))) && <DateSeparator date={currentPostDay}/>}
             <PostAriaLabelDiv
                 ref={postRef}
                 id={getTestId()}
