@@ -7367,10 +7367,6 @@
     "translation": "Använd endast en av parametrarna Before eller After för getThreadsForUser"
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Fel när filen lästes från servern"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "Fel då zip-filen skapades."
   },
@@ -10548,14 +10544,6 @@
     "translation": "Misslyckades att hämta CPA-fält"
   },
   {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "Fel vid uppdatering av CPA-värden"
-  },
-  {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "Fel när CPA-värde uppdaterades"
-  },
-  {
     "id": "ent.ldap.update_cpa.empty_attribute",
     "translation": "Tomt LDAP-attributvärde"
   },
@@ -10688,16 +10676,8 @@
     "translation": "Kunde inte hämta kanalmedlemmar som ska tas bort."
   },
   {
-    "id": "api.license.add_license.mysql.app_error",
-    "translation": "Den här licensen stödjer inte MySQL."
-  },
-  {
     "id": "app.pap.get_policy_attributes.app_error",
     "translation": "Det gick inte att få fram attribut för policyn."
-  },
-  {
-    "id": "api.license.request-trial.mysql.app_error",
-    "translation": "MySQL-databaser stöds inte av testlicenser. Använd PostgreSQL för att få tillgång till testfunktioner."
   },
   {
     "id": "app.group.create_syncable_memberships.error",
