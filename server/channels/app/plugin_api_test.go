@@ -3045,7 +3045,7 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 		defer th.TearDown()
 		api := th.SetupPluginAPI()
 
-		groupID := "test-group-count-1"
+		groupID := model.NewId()
 
 		// Create 5 fields
 		var createdFields []*model.PropertyField
@@ -3085,7 +3085,7 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 		defer th.TearDown()
 		api := th.SetupPluginAPI()
 
-		groupID := "test-group-count-2"
+		groupID := model.NewId()
 
 		// Create 5 fields
 		var createdFields []*model.PropertyField
