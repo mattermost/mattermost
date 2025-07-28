@@ -565,38 +565,19 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *sqlxTxWrapper, channe
 		"purpose":     publicChannel.Purpose,
 	}
 	var err error
-	if s.DriverName() == model.DatabaseDriverMysql {
-		_, err = transaction.NamedExec(`
-			INSERT INTO
-			    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
-			VALUES
-			    (:id, :deleteat, :teamid, :displayname, :name, :header, :purpose)
-		`, vals)
-		if err != nil && IsUniqueConstraintError(err, []string{"PRIMARY"}) {
-			_, err = transaction.NamedExec(`UPDATE PublicChannels
-				SET deleteAt = :deleteat,
-			    TeamId = :teamid,
-			    DisplayName = :displayname,
-			    Name = :name,
-			    Header = :header,
-			    Purpose = :purpose
-			    WHERE Id=:id`, vals)
-		}
-	} else {
-		_, err = transaction.NamedExec(`
-			INSERT INTO
-			    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
-			VALUES
-			    (:id, :deleteat, :teamid, :displayname, :name, :header, :purpose)
-			ON CONFLICT (id) DO UPDATE
-			SET DeleteAt = :deleteat,
-			    TeamId = :teamid,
-			    DisplayName = :displayname,
-			    Name = :name,
-			    Header = :header,
-			    Purpose = :purpose;
-		`, vals)
-	}
+	_, err = transaction.NamedExec(`
+		INSERT INTO
+		    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
+		VALUES
+		    (:id, :deleteat, :teamid, :displayname, :name, :header, :purpose)
+		ON CONFLICT (id) DO UPDATE
+		SET DeleteAt = :deleteat,
+		    TeamId = :teamid,
+		    DisplayName = :displayname,
+		    Name = :name,
+		    Header = :header,
+		    Purpose = :purpose;
+	`, vals)
 	if err != nil {
 		return errors.Wrap(err, "failed to insert public channel")
 	}
@@ -737,12 +718,8 @@ func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model
 	insert := s.getQueryBuilder().
 		Insert("Channels").
 		Columns(channelSliceColumns(false)...).
-		Values(channelToSlice(channel)...)
-	if s.DriverName() == model.DatabaseDriverMysql {
-		insert = insert.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Id=Id"))
-	} else {
-		insert = insert.SuffixExpr(sq.Expr("ON CONFLICT (TeamId, Name) DO NOTHING"))
-	}
+		Values(channelToSlice(channel)...).
+		SuffixExpr(sq.Expr("ON CONFLICT (TeamId, Name) DO NOTHING"))
 
 	query, params, err := insert.ToSql()
 	if err != nil {
@@ -1921,45 +1898,19 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 		return nil, store.NewErrInvalidInput("ChannelMember", "NotifyProps", props)
 	}
 
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		sql, args, err2 := s.getQueryBuilder().
-			Update("channelmembers").
-			Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", jsonNotifyProps)).
-			Set("LastUpdateAt", model.GetMillis()).
-			Where(sq.Eq{
-				"userid":    userID,
-				"channelid": channelID,
-			}).ToSql()
-		if err2 != nil {
-			return nil, errors.Wrapf(err2, "UpdateMemberNotifyProps_Update_Postgres_ToSql channelID=%s and userID=%s", channelID, userID)
-		}
-
-		_, err = tx.Exec(sql, args...)
-	} else if len(props) > 0 {
-		// It's difficult to construct a SQL query for MySQL
-		// to handle a case of empty map. So we just ignore it.
-
-		// unpack the keys and values to pass to MySQL.
-		jsonArgs, jsonSQL := constructMySQLJSONArgs(props)
-		jsonExpr := sq.Expr(fmt.Sprintf("JSON_SET(NotifyProps, %s)", jsonSQL), jsonArgs...)
-
-		// Example: UPDATE ChannelMembers
-		// SET NotifyProps = JSON_SET(NotifyProps, '$.mark_unread', '"yes"' [, ...])
-		// WHERE ...
-		sql, args, err2 := s.getQueryBuilder().
-			Update("ChannelMembers").
-			Set("NotifyProps", jsonExpr).
-			Set("LastUpdateAt", model.GetMillis()).
-			Where(sq.Eq{
-				"UserId":    userID,
-				"ChannelId": channelID,
-			}).ToSql()
-		if err2 != nil {
-			return nil, errors.Wrapf(err2, "UpdateMemberNotifyProps_Update_MySQL_ToSql channelID=%s and userID=%s", channelID, userID)
-		}
-
-		_, err = tx.Exec(sql, args...)
+	sqlStr, args, err2 := s.getQueryBuilder().
+		Update("channelmembers").
+		Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", jsonNotifyProps)).
+		Set("LastUpdateAt", model.GetMillis()).
+		Where(sq.Eq{
+			"userid":    userID,
+			"channelid": channelID,
+		}).ToSql()
+	if err2 != nil {
+		return nil, errors.Wrapf(err2, "UpdateMemberNotifyProps_Update_Postgres_ToSql channelID=%s and userID=%s", channelID, userID)
 	}
+
+	_, err = tx.Exec(sqlStr, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update ChannelMember with channelID=%s and userID=%s", channelID, userID)
 	}
@@ -2013,23 +1964,11 @@ func (s SqlChannelStore) PatchMultipleMembersNotifyProps(members []*model.Channe
 	// Update the channel members
 	builder := s.getQueryBuilder().Update("ChannelMembers")
 
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		jsonNotifyProps := string(model.ToJSON(notifyProps))
-		builder = builder.Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", jsonNotifyProps))
-	} else {
-		// Unpack the keys and values to pass to MySQL
-		jsonArgs, jsonSQL := constructMySQLJSONArgs(notifyProps)
-		jsonExpr := sq.Expr(fmt.Sprintf("JSON_SET(NotifyProps, %s)", jsonSQL), jsonArgs...)
-
-		// Example: UPDATE ChannelMembers
-		// SET NotifyProps = JSON_SET(NotifyProps, '$.mark_unread', '"yes"' [, ...])
-		// WHERE ...
-		builder = builder.Set("NotifyProps", jsonExpr)
-	}
-
-	builder = builder.Set("LastUpdateAt", model.GetMillis())
-
-	builder = builder.Where(whereClause)
+	jsonNotifyProps := string(model.ToJSON(notifyProps))
+	builder = builder.
+		Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", jsonNotifyProps)).
+		Set("LastUpdateAt", model.GetMillis()).
+		Where(whereClause)
 
 	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
@@ -2441,27 +2380,15 @@ func (s SqlChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID s
 	selectStr := "GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount"
 
 	if includeTimezones {
-		if s.DriverName() == model.DatabaseDriverMysql {
-			selectStr += `,
-				COUNT(DISTINCT
-				(
-					CASE WHEN JSON_EXTRACT(Timezone, '$.useAutomaticTimezone') = 'true' AND LENGTH(JSON_UNQUOTE(JSON_EXTRACT(Timezone, '$.automaticTimezone'))) > 0
-					THEN JSON_EXTRACT(Timezone, '$.automaticTimezone')
-					WHEN JSON_EXTRACT(Timezone, '$.useAutomaticTimezone') = 'false' AND LENGTH(JSON_UNQUOTE(JSON_EXTRACT(Timezone, '$.manualTimezone'))) > 0
-					THEN JSON_EXTRACT(Timezone, '$.manualTimezone')
-					END
-				)) AS ChannelMemberTimezonesCount`
-		} else if s.DriverName() == model.DatabaseDriverPostgres {
-			selectStr += `,
-				COUNT(DISTINCT
-				(
-					CASE WHEN Timezone->>'useAutomaticTimezone' = 'true' AND length(Timezone->>'automaticTimezone') > 0
-					THEN Timezone->>'automaticTimezone'
-					WHEN Timezone->>'useAutomaticTimezone' = 'false' AND length(Timezone->>'manualTimezone') > 0
-					THEN Timezone->>'manualTimezone'
-					END
-				)) AS ChannelMemberTimezonesCount`
-		}
+		selectStr += `,
+			COUNT(DISTINCT
+			(
+				CASE WHEN Timezone->>'useAutomaticTimezone' = 'true' AND length(Timezone->>'automaticTimezone') > 0
+				THEN Timezone->>'automaticTimezone'
+				WHEN Timezone->>'useAutomaticTimezone' = 'false' AND length(Timezone->>'manualTimezone') > 0
+				THEN Timezone->>'manualTimezone'
+				END
+			)) AS ChannelMemberTimezonesCount`
 	}
 
 	query := s.getQueryBuilder().
@@ -2515,16 +2442,12 @@ func (s SqlChannelStore) InvalidateGuestCount(channelId string) {
 
 //nolint:unparam
 func (s SqlChannelStore) GetGuestCount(channelId string, allowFromCache bool) (int64, error) {
-	var indexHint string
-	if s.DriverName() == model.DatabaseDriverMysql {
-		indexHint = `USE INDEX(idx_channelmembers_channel_id_scheme_guest_user_id)`
-	}
 	var count int64
 	err := s.GetReplica().Get(&count, `
 		SELECT
 			count(*)
 		FROM
-			ChannelMembers `+indexHint+`,
+			ChannelMembers,
 			Users
 		WHERE
 			ChannelMembers.UserId = Users.Id
@@ -3727,27 +3650,16 @@ func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) 
 	}, fulltextTerm)
 
 	// Prepare the FULLTEXT portion of the query.
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		fulltextTerm = strings.ReplaceAll(fulltextTerm, "|", "")
+	fulltextTerm = strings.ReplaceAll(fulltextTerm, "|", "")
 
-		splitTerm := strings.Fields(fulltextTerm)
-		for i, t := range strings.Fields(fulltextTerm) {
-			splitTerm[i] = t + ":*"
-		}
-
-		fulltextTerm = strings.Join(splitTerm, " & ")
-
-		fulltextClause = fmt.Sprintf("((to_tsvector('%[1]s', %[2]s)) @@ to_tsquery('%[1]s', :FulltextTerm))", s.pgDefaultTextSearchConfig, convertMySQLFullTextColumnsToPostgres(searchColumns))
-	} else if s.DriverName() == model.DatabaseDriverMysql {
-		splitTerm := strings.Fields(fulltextTerm)
-		for i, t := range strings.Fields(fulltextTerm) {
-			splitTerm[i] = "+" + t + "*"
-		}
-
-		fulltextTerm = strings.Join(splitTerm, " ")
-
-		fulltextClause = fmt.Sprintf("MATCH(%s) AGAINST (:FulltextTerm IN BOOLEAN MODE)", searchColumns)
+	splitTerm := strings.Fields(fulltextTerm)
+	for i, t := range strings.Fields(fulltextTerm) {
+		splitTerm[i] = t + ":*"
 	}
+
+	fulltextTerm = strings.Join(splitTerm, " & ")
+
+	fulltextClause = fmt.Sprintf("((to_tsvector('%[1]s', %[2]s)) @@ to_tsquery('%[1]s', :FulltextTerm))", s.pgDefaultTextSearchConfig, convertMySQLFullTextColumnsToPostgres(searchColumns))
 
 	return
 }

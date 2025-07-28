@@ -4,7 +4,6 @@
 package localcachelayer
 
 import (
-	"os"
 	"sync"
 	"testing"
 
@@ -33,7 +32,7 @@ var storeTypes []*storeType
 func newStoreType(name, driver string) *storeType {
 	return &storeType{
 		Name:        name,
-		SqlSettings: storetest.MakeSqlSettings(driver, false),
+		SqlSettings: storetest.MakeSqlSettings(driver),
 	}
 }
 
@@ -80,19 +79,7 @@ func initStores(logger mlog.LoggerIFace) {
 		return
 	}
 
-	// In CI, we already run the entire test suite for both mysql and postgres in parallel.
-	// So we just run the tests for the current database set.
-	if os.Getenv("IS_CI") == "true" {
-		switch os.Getenv("MM_SQLSETTINGS_DRIVERNAME") {
-		case "mysql":
-			storeTypes = append(storeTypes, newStoreType("LocalCache+MySQL", model.DatabaseDriverMysql))
-		case "postgres":
-			storeTypes = append(storeTypes, newStoreType("LocalCache+PostgreSQL", model.DatabaseDriverPostgres))
-		}
-	} else {
-		storeTypes = append(storeTypes, newStoreType("LocalCache+MySQL", model.DatabaseDriverMysql),
-			newStoreType("LocalCache+PostgreSQL", model.DatabaseDriverPostgres))
-	}
+	storeTypes = append(storeTypes, newStoreType("LocalCache+PostgreSQL", model.DatabaseDriverPostgres))
 
 	defer func() {
 		if err := recover(); err != nil {
