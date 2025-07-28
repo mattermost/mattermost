@@ -100,8 +100,8 @@ const SearchBox = forwardRef(
         const addSearchHint = useCallback((newSearchTerms: string) => {
             setSearchTerms(newSearchTerms);
             setTimeout(() => {
-                inputRef.current?.setSelectionRange(newSearchTerms.length, newSearchTerms.length);
                 setCaretPosition(newSearchTerms.length);
+                inputRef.current?.setSelectionRange(newSearchTerms.length, newSearchTerms.length);
             }, 0);
         }, []);
 
