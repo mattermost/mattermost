@@ -7364,10 +7364,6 @@
     "translation": "Параметрите Преди и След за getThreadsForUser се изключват взаимно"
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Грешка при четене на файл от сървъра"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "Грешка при създаването на zip файл."
   },

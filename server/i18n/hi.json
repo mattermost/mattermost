@@ -8004,10 +8004,6 @@
     "translation": "त्रुटि गिनती समूह"
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "बैकएंड से फ़ाइल पढ़ने में त्रुटि"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "ज़िप फ़ाइल बनाने में त्रुटि।"
   },

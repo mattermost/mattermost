@@ -7258,10 +7258,6 @@
     "translation": "回到{{.SiteName}}"
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "从后端读取文件时出错"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "创建 zip 文件出错。"
   },
@@ -10498,14 +10494,6 @@
     "translation": "空的 LDAP 属性值"
   },
   {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "修补 CPA 值时出错"
-  },
-  {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "更新 CPA 值时出错"
-  },
-  {
     "id": "model.access_policy.is_valid.rules.app_error",
     "translation": "规则无效。"
   },
@@ -10762,16 +10750,8 @@
     "translation": "频道横幅颜色必须为有效的十六进制颜色（例如：#FF0000 或 #F00）"
   },
   {
-    "id": "api.license.add_license.mysql.app_error",
-    "translation": "此许可证不支持 MySQL。"
-  },
-  {
     "id": "app.group.create_syncable_memberships.error",
     "translation": "无法创建群组同步成员资格。"
-  },
-  {
-    "id": "api.license.request-trial.mysql.app_error",
-    "translation": "试用许可证不支持 MySQL 数据库。请使用 PostgreSQL 以访问试用功能。"
   },
   {
     "id": "app.group.delete_invalid_syncable_memberships.error",

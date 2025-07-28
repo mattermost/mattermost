@@ -7344,10 +7344,6 @@
     "translation": "Error al procesar."
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Error al leer el archivo desde el backend"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "Error al crear el archivo zip."
   },

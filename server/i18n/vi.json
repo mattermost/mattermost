@@ -8154,10 +8154,6 @@
     "translation": "Trường CreateAt không hợp lệ cho phiên."
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Lỗi đọc file từ backend"
-  },
-  {
     "id": "model.draft.is_valid.user_id.app_error",
     "translation": "ID người dùng không hợp lệ."
   },

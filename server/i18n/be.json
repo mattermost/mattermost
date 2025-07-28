@@ -5496,10 +5496,6 @@
     "translation": "Вы ўжо перайшлі на Mattermost Карпаратыўная рэдакцыя. Калі ласка, перазапусціце сервер, каб завяршыць абнаўленне."
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Памылка чытання файла з бэкэнда"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "Памылка стварэння zip-файла."
   },

@@ -7436,10 +7436,6 @@
     "translation": "Vous avez déjà effectué la mise à niveau vers Mattermost version entreprise. Veuillez redémarrer le serveur pour terminer la mise à niveau."
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Une erreur s'est produite lors de la lecture à partir du backend"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "Une erreur s'est produite lors de la création du fichier ZIP."
   },

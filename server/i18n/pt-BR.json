@@ -7200,10 +7200,6 @@
     "translation": "Voltar para {{.SiteName}}"
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Erro ao ler o arquivo do backend"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "Erro ao criar arquivo zip."
   },
@@ -10114,14 +10110,6 @@
   {
     "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
     "translation": "Sua conta está bloqueada devido ao número excessivo de tentativas de senha com falha. Entre em contato com o administrador do sistema."
-  },
-  {
-    "id": "api.license.add_license.mysql.app_error",
-    "translation": "Esta licença não é compatível com o MySQL."
-  },
-  {
-    "id": "api.license.request-trial.mysql.app_error",
-    "translation": "As licenças de avaliação não são compatíveis com os bancos de dados MySQL. Use o PostgreSQL para acessar os recursos de avaliação."
   },
   {
     "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",

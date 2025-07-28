@@ -8060,10 +8060,6 @@
     "translation": "Помилка створення zip-файлу."
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Помилка читання файлу з бекенду"
-  },
-  {
     "id": "api.upgrade_to_enterprise.generic_error.app_error",
     "translation": "Mattermost не зміг оновитися до Корпоративної версії."
   },
@@ -10572,10 +10568,6 @@
     "translation": "Не вдалося отримати поля CPA"
   },
   {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "Помилки під час виправлення значення CPA"
-  },
-  {
     "id": "ent.saml.cpa_field_mapping.list_error",
     "translation": "Не вдалося отримати поля CPA"
   },
@@ -10612,10 +10604,6 @@
     "translation": "Некоректний ідентифікатор AD/LDAP"
   },
   {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "Помилки під час оновлення значень CPA"
-  },
-  {
     "id": "ent.saml.login.ldap_user_missing",
     "translation": "На сервері AD/LDAP не зареєстровано користувача, який відповідає користувачеві SAML."
   },
@@ -10646,14 +10634,6 @@
   {
     "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
     "translation": "Служба контролю доступу недоступна. Неможливо відфільтрувати користувачів для каналу з підтримкою ABAC."
-  },
-  {
-    "id": "api.license.add_license.mysql.app_error",
-    "translation": "Ця ліцензія не підтримує MySQL."
-  },
-  {
-    "id": "api.license.request-trial.mysql.app_error",
-    "translation": "Ознайомлювальні ліцензії не підтримуються для баз даних MySQL. Будь ласка, використовуйте PostgreSQL для доступу до пробних версій."
   },
   {
     "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",

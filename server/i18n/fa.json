@@ -4404,10 +4404,6 @@
     "translation": "بازگشایی نشد."
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "خطا در خواندن فایل از backend"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "خطا در ایجاد فایل فشرده."
   },

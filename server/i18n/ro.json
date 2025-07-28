@@ -7396,10 +7396,6 @@
     "translation": "Copierea fișierului nu a reușit în timpul exportului."
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Eroare la citirea fișierului din backend"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "Eroare la crearea fișierului zip."
   },

@@ -7736,10 +7736,6 @@
     "translation": "파일을 업로드할 수 없습니다. 파일이 너무 큽니다."
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "백엔드에서 파일 읽기 오류"
-  },
-  {
     "id": "api.templates.welcome_body.subTitle2",
     "translation": "아래를 클릭하여 전자우편 주소를 인증하세요."
   },

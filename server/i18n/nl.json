@@ -7367,10 +7367,6 @@
     "translation": "Voor en Na parameters voor getThreadsForUser sluiten elkaar uit"
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Fout bij het lezen van het bestand vanuit backend"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "Fout bij het maken van het zip-bestand."
   },
@@ -10564,20 +10560,12 @@
     "translation": "Lege LDAP attribuutwaarde"
   },
   {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "Fout(en) bij het patchen van CPA-waarde"
-  },
-  {
     "id": "ent.saml.cpa_field_mapping.list_error",
     "translation": "Fout bij het ophalen van CPA-veld(en)"
   },
   {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "SAML assertie attribuut verklaring is ongeldig"
-  },
-  {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "Fout(en) bij het bijwerken van CPA-waarden"
   },
   {
     "id": "web.incoming_webhook.parse_form.app_error",
@@ -10782,14 +10770,6 @@
   {
     "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
     "translation": "De kleur van de kanaalbanner moet een geldige hexadecimale kleur zijn (bijvoorbeeld #FF0000 of #F00)"
-  },
-  {
-    "id": "api.license.add_license.mysql.app_error",
-    "translation": "Deze licentie ondersteunt MySQL niet."
-  },
-  {
-    "id": "api.license.request-trial.mysql.app_error",
-    "translation": "Proeflicenties worden niet ondersteund voor MySQL databases. Gebruik PostgreSQL om toegang te krijgen tot de proeffuncties."
   },
   {
     "id": "model.config.is_valid.directory_whitespace.app_error",

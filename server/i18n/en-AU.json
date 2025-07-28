@@ -4540,10 +4540,6 @@
     "translation": "You have already upgraded to Mattermost Enterprise Edition. Please restart the server to finish the upgrade."
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Error reading file from backend"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "Error creating zip file."
   },
@@ -10505,20 +10501,12 @@
     "translation": "Failed to retrieve CPA fields"
   },
   {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "Error(s) patching CPA value"
-  },
-  {
     "id": "ent.saml.cpa_field_mapping.list_error",
     "translation": "Failed to retrieve CPA field(s)"
   },
   {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "SAML assertion attribute statement is invalid"
-  },
-  {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "Error(s) updating CPA values"
   },
   {
     "id": "model.access_policy.is_valid.type.app_error",
@@ -10643,14 +10631,6 @@
   {
     "id": "ent.access_control.job_data_conversion.app_error",
     "translation": "Failed to extract data from previous job."
-  },
-  {
-    "id": "api.license.add_license.mysql.app_error",
-    "translation": "This licence does not support MySQL."
-  },
-  {
-    "id": "api.license.request-trial.mysql.app_error",
-    "translation": "Trial licences are not supported for MySQL databases. Please use PostgreSQL to access trial features."
   },
   {
     "id": "app.pap.missing_attribute.app_error",
