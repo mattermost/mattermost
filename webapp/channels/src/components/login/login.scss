@@ -137,6 +137,7 @@
 
                     .login-body-card-form-password-input {
                         margin-top: 24px;
+                        input::-ms-reveal { display: none; }
                     }
 
                     .login-body-card-form-link {
