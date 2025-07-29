@@ -4712,10 +4712,6 @@
     "translation": "Неверный параметр показа непрочитанного раздела для пользователя"
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Невозможно задать плагин как управляемый файловым хранилищем."
-  },
-  {
     "id": "app.plugin.install_marketplace_plugin.app_error",
     "translation": "Не удалось установить плагин из магазина плагинов."
   },
@@ -7394,10 +7390,6 @@
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
     "translation": "Ошибка получения endpoint из Discovery Document."
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Ошибка чтения файла из бэкэнда"
   },
   {
     "id": "api.unable_to_create_zip_file",

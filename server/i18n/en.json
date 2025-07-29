@@ -1738,6 +1738,14 @@
     "translation": "Failed to update server translations."
   },
   {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "Content flagging feature is disabled."
+  },
+  {
+    "id": "api.content_flagging.error.license",
+    "translation": "Your license does not support content flagging."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Sorry, we could not find the page."
   },
@@ -2329,10 +2337,6 @@
     "translation": "Unable to count total unique users."
   },
   {
-    "id": "api.license.add_license.mysql.app_error",
-    "translation": "This license does not support MySQL."
-  },
-  {
     "id": "api.license.add_license.no_file.app_error",
     "translation": "No file under 'license' in request."
   },
@@ -2383,10 +2387,6 @@
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
     "translation": "Failed to apply new trial license as your workspace has already applied a trial license. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
-  },
-  {
-    "id": "api.license.request-trial.mysql.app_error",
-    "translation": "Trial licenses are not supported for MySQL databases. Please use PostgreSQL to access trial features."
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -3853,10 +3853,6 @@
   {
     "id": "api.unable_to_create_zip_file",
     "translation": "Error creating zip file."
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Error reading file from backend"
   },
   {
     "id": "api.unmarshal_error",
@@ -8413,10 +8409,6 @@
     "translation": "Empty LDAP attribute value"
   },
   {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "Error(s) patching CPA value"
-  },
-  {
     "id": "ent.ldap.validate_admin_filter.app_error",
     "translation": "Invalid AD/LDAP Admin Filter."
   },
@@ -8635,10 +8627,6 @@
   {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "SAML assertion attribute statement is invalid"
-  },
-  {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "Error(s) updating CPA values"
   },
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
@@ -9714,7 +9702,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Invalid driver name for SQL settings. Must be 'mysql' or 'postgres'."
+    "translation": "Invalid driver name for SQL settings. Must be 'postgres'."
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
@@ -10498,7 +10486,7 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Invalid user, auth data must be set with auth type."
+    "translation": "Invalid user: Auth data can only be set if the user uses an external auth service, not email/password, for authentication."
   },
   {
     "id": "model.user.is_valid.create_at.app_error",
@@ -10850,11 +10838,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 134+"
+    "translation": "Version 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 134+"
+    "translation": "Version 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",

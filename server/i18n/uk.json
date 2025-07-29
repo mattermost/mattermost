@@ -657,7 +657,7 @@
   },
   {
     "id": "api.command_invite.name",
-    "translation": "запросити"
+    "translation": "запрошення"
   },
   {
     "id": "api.command_invite.permission.app_error",
@@ -1329,15 +1329,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all було вимкнено, оскільки канал має більше ніж {{.Users}} користувачів."
+    "translation": "Сповіщення @all вимкнено у каналах з більш ніж {{.Users}} користувачами. За додатковою інформацією зверніться до системного адміністратора."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel було вимкнено, оскільки канал має більше ніж {{.Users}} користувачів."
+    "translation": "Сповіщення @channel вимкнено у каналах, що мають більше ніж {{.Users}} користувачів. За додатковою інформацією зверніться до системного адміністратора."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here було вимкнено, оскільки канал має більше ніж {{.Users}} користувачів."
+    "translation": "Сповіщення @here вимкнено у каналах з більш ніж {{.Users}} користувачами. За додатковою інформацією зверніться до системного адміністратора."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -1505,7 +1505,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nДодані канали:\n"
+    "translation": "\nКанали додано:\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
@@ -4605,11 +4605,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версія 134+"
+    "translation": "Версія 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версія 134+"
+    "translation": "Версія 138+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5126,10 +5126,6 @@
   {
     "id": "app.plugin.get_public_key.get_file.app_error",
     "translation": "Виникла помилка при отриманні відкритого ключа зі сховища."
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Не вдалося встановити плагін як керований файловим сховищем."
   },
   {
     "id": "app.plugin.delete_public_key.delete.app_error",
@@ -7925,7 +7921,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
-    "translation": "Зв'язатися з відділом продажів"
+    "translation": "Звернутися до відділу продажів"
   },
   {
     "id": "api.templates.cloud_welcome_email.app_market_place",
@@ -8062,10 +8058,6 @@
   {
     "id": "api.unable_to_create_zip_file",
     "translation": "Помилка створення zip-файлу."
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Помилка читання файлу з бекенду"
   },
   {
     "id": "api.upgrade_to_enterprise.generic_error.app_error",
@@ -10576,10 +10568,6 @@
     "translation": "Не вдалося отримати поля CPA"
   },
   {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "Помилки під час виправлення значення CPA"
-  },
-  {
     "id": "ent.saml.cpa_field_mapping.list_error",
     "translation": "Не вдалося отримати поля CPA"
   },
@@ -10616,10 +10604,6 @@
     "translation": "Некоректний ідентифікатор AD/LDAP"
   },
   {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "Помилки під час оновлення значень CPA"
-  },
-  {
     "id": "ent.saml.login.ldap_user_missing",
     "translation": "На сервері AD/LDAP не зареєстровано користувача, який відповідає користувачеві SAML."
   },
@@ -10646,5 +10630,45 @@
   {
     "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
     "translation": "Потрібно надіслати електронного листа для повідомлення про проблему."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Служба контролю доступу недоступна. Неможливо відфільтрувати користувачів для каналу з підтримкою ABAC."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Неправильне оновлення учасника каналу: учасник каналу завжди має схему користувача."
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "Неправильне оновлення члена команди: член команди завжди має схему користувача."
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Не вдалося завантажити файл. Канал завантаження не є спільним з віддаленим користувачем."
+  },
+  {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Неможливо створити користувача. На сервері перевищено максимальну кількість ліцензованих користувачів. Зверніться до свого адміністратора: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "Користувач не має необхідних атрибутів для приєднання до каналу."
+  },
+  {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "Канали, для яких застосовано політику, не можуть бути оновлені."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "Виникла помилка в хуку OnSamlLogin. Будь ласка, зверніться до вашого системного адміністратора."
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Неправильний тип тесту: {{.TestType}}"
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Неможливо запросити користувачів-гостей до цього каналу, оскільки він має обмеження доступу на основі атрибутів користувача."
   }
 ]
