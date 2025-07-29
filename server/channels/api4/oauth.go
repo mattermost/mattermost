@@ -22,7 +22,7 @@ func (api *API) InitOAuth() {
 	api.BaseRoutes.OAuthApp.Handle("/regen_secret", api.APISessionRequired(regenerateOAuthAppSecret)).Methods(http.MethodPost)
 
 	// DCR (Dynamic Client Registration) endpoints as per RFC 7591
-	api.BaseRoutes.OAuthApps.Handle("/register", api.APISessionRequired(registerOAuthClient)).Methods(http.MethodPost)
+	api.BaseRoutes.OAuthApps.Handle("/register", api.APIHandler(registerOAuthClient)).Methods(http.MethodPost)
 
 	api.BaseRoutes.User.Handle("/oauth/apps/authorized", api.APISessionRequired(getAuthorizedOAuthApps)).Methods(http.MethodGet)
 }
@@ -321,11 +321,7 @@ func getAuthorizedOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) 
 // DCR (Dynamic Client Registration) endpoint handlers as per RFC 7591
 
 func registerOAuthClient(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Check permissions for OAuth management if session exists
-	if c.AppContext.Session() != nil && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
-		c.SetPermissionError(model.PermissionManageOAuth)
-		return
-	}
+	// Session and permission checks removed for DCR endpoint to allow external client registration
 
 	var clientRequest model.ClientRegistrationRequest
 	if jsonErr := json.NewDecoder(r.Body).Decode(&clientRequest); jsonErr != nil {
@@ -434,10 +430,8 @@ func registerOAuthClient(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var userID string
-	if c.AppContext.Session() != nil {
-		userID = c.AppContext.Session().UserId
-	}
+	// No user ID for DCR
+	userID := ""
 
 	app, appErr := c.App.RegisterOAuthClient(c.AppContext, &clientRequest, userID)
 	if appErr != nil {

@@ -47,8 +47,10 @@ func (a *App) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppEr
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &appErr):
+			a.Log().Error("Error saving OAuth app", mlog.Err(err), mlog.String("app_id", app.Id), mlog.String("name", app.Name))
 			return nil, appErr
 		case errors.As(err, &invErr):
+			a.Log().Error("Error saving OAuth app", mlog.Err(err), mlog.String("app_id", app.Id), mlog.String("name", app.Name))
 			return nil, model.NewAppError("CreateOAuthApp", "app.oauth.save_app.existing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
 			a.Log().Error("Error saving OAuth app", mlog.Err(err), mlog.String("app_id", app.Id), mlog.String("name", app.Name))
