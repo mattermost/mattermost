@@ -550,6 +550,8 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string) string {
 		} else if parsed.Scheme != "" || parsed.Host != "" {
 			return siteURLPrefix
 		}
+	} else {
+		return siteURLPrefix
 	}
 
 	// For relative URLs, normalize and join with siteURLPrefix
