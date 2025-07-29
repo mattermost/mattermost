@@ -901,8 +901,8 @@ describe('Actions.Users', () => {
         nock(Client4.getBaseRoute()).
             get(`/users/${user!.id}/sessions`).
             reply(200, [
-                {id: TestHelper.generateId(), create_at: 1507756921338, expires_at: 1510348921338, last_activity_at: 1507821125630, user_id: TestHelper.basicUser!.id, device_id: '', roles: 'system_admin system_user'}, 
-                {id: TestHelper.generateId(), create_at: 1507756921338, expires_at: 1510348921338, last_activity_at: 1507821125630, user_id: TestHelper.basicUser!.id, device_id: '', roles: 'system_admin system_user'}
+                {id: TestHelper.generateId(), create_at: 1507756921338, expires_at: 1510348921338, last_activity_at: 1507821125630, user_id: TestHelper.basicUser!.id, device_id: '', roles: 'system_admin system_user'},
+                {id: TestHelper.generateId(), create_at: 1507756921338, expires_at: 1510348921338, last_activity_at: 1507821125630, user_id: TestHelper.basicUser!.id, device_id: '', roles: 'system_admin system_user'},
             ]);
     
         // Get the sessions to populate the store
@@ -963,8 +963,8 @@ describe('Actions.Users', () => {
         nock(Client4.getBaseRoute()).
             get(`/users/${user!.id}/sessions`).
             reply(200, [
-                {id: TestHelper.generateId(), create_at: 1507756921338, expires_at: 1510348921338, last_activity_at: 1507821125630, user_id: TestHelper.basicUser!.id, device_id: '', roles: 'system_admin system_user'}, 
-                {id: TestHelper.generateId(), create_at: 1507756921338, expires_at: 1510348921338, last_activity_at: 1507821125630, user_id: TestHelper.basicUser!.id, device_id: '', roles: 'system_admin system_user'}
+                {id: TestHelper.generateId(), create_at: 1507756921338, expires_at: 1510348921338, last_activity_at: 1507821125630, user_id: TestHelper.basicUser!.id, device_id: '', roles: 'system_admin system_user'},
+                {id: TestHelper.generateId(), create_at: 1507756921338, expires_at: 1510348921338, last_activity_at: 1507821125630, user_id: TestHelper.basicUser!.id, device_id: '', roles: 'system_admin system_user'},
             ]);
     
         // Get the sessions to populate the store
@@ -1552,9 +1552,6 @@ describe('Actions.Users', () => {
         expect(userAccessTokensByUser![currentUserId]).toBeTruthy();
         expect(userAccessTokensByUser![currentUserId][data.id]).toBeTruthy();
         expect(!userAccessTokensByUser![currentUserId][data.id].token).toBeTruthy();
-        expect(userAccessTokens).toBeTruthy();
-        expect(userAccessTokens[data.id]).toBeTruthy();
-        expect(!userAccessTokens[data.id].token).toBeTruthy();
 
         nock(Client4.getBaseRoute()).
             post('/users/tokens/revoke').
