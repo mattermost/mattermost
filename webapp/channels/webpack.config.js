@@ -150,6 +150,7 @@ var config = {
     plugins: [
         new webpack.ProvidePlugin({
             process: 'process/browser.js',
+            Buffer: ['buffer', 'Buffer'],
         }),
         new MiniCssExtractPlugin({
             filename: '[name].[contenthash].css',
