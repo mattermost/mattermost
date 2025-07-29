@@ -231,7 +231,7 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 			}
 			continue
 		}
-		child, appErr = acs.SavePolicy(rctx, child)
+		_, appErr = acs.SavePolicy(rctx, child)
 		if appErr != nil {
 			return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 		}

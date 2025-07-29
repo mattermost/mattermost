@@ -489,6 +489,8 @@ func TestUnassignPoliciesFromChannels(t *testing.T) {
 
 		mockAccessControl.On("DeletePolicy", rctx, ch1.Id).Return(nil).Once()
 		mockAccessControl.On("DeletePolicy", rctx, ch2.Id).Return(nil).Once()
+		mockAccessControl.On("GetPolicy", rctx, ch1.Id).Return(childPolicy1, nil).Once()
+		mockAccessControl.On("GetPolicy", rctx, ch2.Id).Return(childPolicy2, nil).Once()
 
 		appErr := th.App.UnassignPoliciesFromChannels(rctx, parentPolicy.ID, []string{ch1.Id, ch2.Id})
 		require.Nil(t, appErr)
