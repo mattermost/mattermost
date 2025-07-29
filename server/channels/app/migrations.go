@@ -598,7 +598,7 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 
 func (s *Server) doSetupContentFlaggingProperties() error {
 	// This migration is designed in a way to allow adding more properties in the future.
-	// WHen a new property needs to be added, add it to the expectedMappedProperties map and
+	// WHen a new property needs to be added, add it to the expectedPropertiesMap map and
 	// update the contentFlaggingSetupDoneKey to a new value by adding a suffix of v2, or v3, etc.
 
 	// If the migration is already marked as completed, don't do it again.
@@ -609,6 +609,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
+	// RegisterPropertyGroup is idempotent, so no need to check if group is already registered
 	group, err := s.propertyService.RegisterPropertyGroup(model.ContentFlaggingGroupName)
 	if err != nil {
 		return fmt.Errorf("failed to register Content Flagging group: %w", err)
@@ -619,13 +620,12 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 		return fmt.Errorf("failed to search for existing content flagging properties: %w", appErr)
 	}
 
-	existingMappedProperties := map[string]*model.PropertyField{}
+	existingPropertiesMap := map[string]*model.PropertyField{}
 	for _, property := range existingProperties {
-		existingMappedProperties[property.Name] = property
+		existingPropertiesMap[property.Name] = property
 	}
 
-	// register status property
-	expectedMappedProperties := map[string]*model.PropertyField{
+	expectedPropertiesMap := map[string]*model.PropertyField{
 		contentFlaggingPropertyNameFlaggedPostId: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameFlaggedPostId,
@@ -681,9 +681,9 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	var propertiesToUpdate []*model.PropertyField
 	var propertiesToCreate []*model.PropertyField
 
-	for name, expectedProperty := range expectedMappedProperties {
-		if _, exists := existingMappedProperties[name]; exists {
-			property := existingMappedProperties[name]
+	for name, expectedProperty := range expectedPropertiesMap {
+		if _, exists := existingPropertiesMap[name]; exists {
+			property := existingPropertiesMap[name]
 			property.Type = expectedProperty.Type
 			propertiesToUpdate = append(propertiesToUpdate, property)
 		} else {
