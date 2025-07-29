@@ -766,32 +766,27 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         };
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
-
         const input = screen.getByRole('textbox', {name: urlAttribute.name});
-        
+
         // Type the invalid value
         userEvent.type(input, 'ftp://invalid-scheme');
-        
+
         // Focus and blur explicitly to trigger validation without relatedTarget
         await act(async () => {
             fireEvent.focus(input);
-            fireEvent.blur(input, { relatedTarget: null });
+            fireEvent.blur(input, {relatedTarget: null});
         });
 
         // Wait for validation error to appear
         await waitFor(() => {
             expect(screen.getByText('Please enter a valid url.')).toBeInTheDocument();
         });
-        
         expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
-
         userEvent.clear(input);
         userEvent.type(input, 'example.com');
         userEvent.click(screen.getByRole('button', {name: 'Save'}));
-
         expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'http://example.com');
     });
-
     test('should validate email custom attribute field value', async () => {
         const emailAttribute: UserPropertyField = {
             ...customProfileAttribute,
@@ -815,25 +810,22 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         };
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
-
         const input = screen.getByRole('textbox', {name: emailAttribute.name});
-        
+
         // Type the invalid value
         userEvent.type(input, 'invalid-email');
-        
+
         // Focus and blur explicitly to trigger validation without relatedTarget
         await act(async () => {
             fireEvent.focus(input);
-            fireEvent.blur(input, { relatedTarget: null });
+            fireEvent.blur(input, {relatedTarget: null});
         });
 
         // Wait for validation error to appear
         await waitFor(() => {
             expect(screen.getByText('Please enter a valid email address.')).toBeInTheDocument();
         });
-        
         expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
-
         userEvent.clear(input);
         userEvent.type(input, 'test@example.com');
         userEvent.click(screen.getByRole('button', {name: 'Save'}));

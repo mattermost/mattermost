@@ -904,7 +904,7 @@ describe('Actions.Users', () => {
                 {id: TestHelper.generateId(), create_at: 1507756921338, expires_at: 1510348921338, last_activity_at: 1507821125630, user_id: TestHelper.basicUser!.id, device_id: '', roles: 'system_admin system_user'},
                 {id: TestHelper.generateId(), create_at: 1507756921338, expires_at: 1510348921338, last_activity_at: 1507821125630, user_id: TestHelper.basicUser!.id, device_id: '', roles: 'system_admin system_user'},
             ]);
-    
+
         // Get the sessions to populate the store
         await store.dispatch(Actions.getSessions(user!.id));
 
@@ -966,7 +966,7 @@ describe('Actions.Users', () => {
                 {id: TestHelper.generateId(), create_at: 1507756921338, expires_at: 1510348921338, last_activity_at: 1507821125630, user_id: TestHelper.basicUser!.id, device_id: '', roles: 'system_admin system_user'},
                 {id: TestHelper.generateId(), create_at: 1507756921338, expires_at: 1510348921338, last_activity_at: 1507821125630, user_id: TestHelper.basicUser!.id, device_id: '', roles: 'system_admin system_user'},
             ]);
-    
+
         // Get the sessions to populate the store
         await store.dispatch(Actions.getSessions(user!.id));
 
