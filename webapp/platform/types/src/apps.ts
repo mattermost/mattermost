@@ -309,6 +309,7 @@ export type AppForm = {
     header?: string;
     footer?: string;
     icon?: string;
+    submit_label?: string;
     submit_buttons?: string;
     cancel_button?: boolean;
     submit_on_cancel?: boolean;
@@ -348,6 +349,10 @@ function isAppForm(v: unknown): v is AppForm {
     }
 
     if (form.icon !== undefined && typeof form.icon !== 'string') {
+        return false;
+    }
+
+    if (form.submit_label !== undefined && typeof form.submit_label !== 'string') {
         return false;
     }
 
