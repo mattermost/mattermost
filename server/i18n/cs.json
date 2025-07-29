@@ -5285,11 +5285,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Verze 134+"
+    "translation": "Verze 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Verze 134+"
+    "translation": "Verze 138+"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
@@ -6686,10 +6686,6 @@
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
     "translation": "Chyba při získávání endpointu z Discovery Document."
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Chyba při čtení souboru z backendu"
   },
   {
     "id": "api.unable_to_create_zip_file",
@@ -10508,10 +10504,6 @@
     "translation": "Nepodařilo se ověřit hodnotu vlastnosti"
   },
   {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "Chyba(y) opravy hodnoty CPA"
-  },
-  {
     "id": "ent.ldap.update_cpa.empty_attribute",
     "translation": "Prázdná hodnota atributu LDAP"
   },
@@ -10522,10 +10514,6 @@
   {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "Příkaz atributu výrazu SAML je neplatný"
-  },
-  {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "Chyby při aktualizaci hodnot CPA"
   },
   {
     "id": "web.incoming_webhook.parse_form.app_error",
