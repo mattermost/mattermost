@@ -273,7 +273,7 @@ describe('components/new_channel_modal', () => {
 
         await act(async () => {
             fireEvent.focus(ChannelPurposeTextArea);
-            fireEvent.change(ChannelPurposeTextArea, {target:{value}});
+            fireEvent.change(ChannelPurposeTextArea, {target: {value}});
             fireEvent.blur(ChannelPurposeTextArea);
         });
 
