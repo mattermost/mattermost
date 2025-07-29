@@ -7363,10 +7363,6 @@
     "translation": "Kullanıcının konusu bulunamadı ya da izlenmiyor"
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Dosya arka bölümden okunurken sorun çıktı"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "Zip dosyası oluşurulurken sorun çıktı."
   },
@@ -10500,16 +10496,8 @@
     "translation": "CPA alanları alınamadı"
   },
   {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "CPA değeri yamanırken sorun çıktı"
-  },
-  {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "SAML onaylama özniteliği ifadesi geçersiz"
-  },
-  {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "CPA değerleri güncellenirken sorun çıktı"
   },
   {
     "id": "model.access_policy.is_valid.version.app_error",
