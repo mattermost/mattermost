@@ -30,18 +30,18 @@ type Props = {
 }
 
 export default function MessageWithAdditionalContent({post, isEmbedVisible, pluginPostTypes, isRHS, compactDisplay}: Props) {
-    // メンションキーを取得（フルネーム形式を含む）
+    // Get mention keys (including fullname format)
     const mentionKeys = useSelector((state: GlobalState) => {
         const mentionKeysWithoutGroups = getCurrentUserMentionKeys(state);
         const groupMentionKeys = getMyGroupMentionKeys(state, false);
         const baseMentionKeys = mentionKeysWithoutGroups.concat(groupMentionKeys);
 
-        // フルネーム形式のメンションキーを追加
+        // Add fullname format mention keys
         const fullnameMentionKeys = [];
         const users = getUsersByUsername(state);
         const nameDisplaySetting = getTeammateNameDisplaySetting(state);
 
-        // 現在のユーザー自身のフルネーム形式のメンションキーを追加
+        // Add fullname format mention key for current user
         const currentUserInfo = getCurrentUser(state);
         if (currentUserInfo) {
             const currentUserDisplayName = displayUsername(currentUserInfo, nameDisplaySetting, false);
@@ -53,7 +53,7 @@ export default function MessageWithAdditionalContent({post, isEmbedVisible, plug
             }
         }
 
-        // 他のユーザーのフルネーム形式のメンションキーを追加
+        // Add fullname format mention keys for other users
         for (const [username, user] of Object.entries(users)) {
             if (currentUserInfo && user.id === currentUserInfo.id) {
                 continue;

@@ -19,8 +19,8 @@ import * as Markdown from './markdown';
 const punctuationRegex = /[^\p{L}\d]/u;
 const AT_MENTION_PATTERN = /(?:\B|\b_+)@([a-z0-9.\-_]+)/gi;
 
-// フルネーム形式のメンション（正確に2つの単語のみ）を認識するパターン
-// より厳密に2つの単語のみを認識し、既存の単語境界処理に干渉しないように修正
+// Pattern to recognize fullname mentions (exactly two words)
+// More strictly recognizes only two words and avoids interfering with existing word boundary processing
 const AT_MENTION_FULLNAME_PATTERN = /(?:\B|\b_+)@([a-zA-Z][a-zA-Z0-9.\-_]*\s+[a-zA-Z][a-zA-Z0-9.\-_]*)(?=\s|$|[.,!?;:])/gi;
 const UNICODE_EMOJI_REGEX = emojiRegex();
 const htmlEmojiPattern = /^<p>\s*(?:<img class="emoticon"[^>]*>|<span data-emoticon[^>]*>[^<]*<\/span>\s*|<span class="emoticon emoticon--unicode">[^<]*<\/span>\s*)+<\/p>$/;

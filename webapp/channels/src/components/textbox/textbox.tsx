@@ -93,8 +93,8 @@ export default class Textbox extends React.PureComponent<Props> {
     private readonly textareaRef: React.RefObject<HTMLTextAreaElement>;
 
     state = {
-        displayValue: '', // UI表示用の値（username→fullname変換済み）
-        rawValue: '', // サーバー送信用の値（username形式のまま）
+        displayValue: '', // UI display value (username→fullname converted)
+        rawValue: '', // Server submission value (username format)
     };
 
     static defaultProps = {
@@ -152,7 +152,7 @@ export default class Textbox extends React.PureComponent<Props> {
     }
 
     /**
-     * username (@user) をフルネーム/ニックネーム (@Full Name) に変換
+     * Convert username (@user) to fullname/nickname (@Full Name)
      */
     convertToDisplayName = (text: string): string => {
         const {usersByUsername = {}, teammateNameDisplay = Preferences.DISPLAY_PREFER_USERNAME} = this.props;
@@ -168,12 +168,12 @@ export default class Textbox extends React.PureComponent<Props> {
     };
 
     /**
-     * フルネーム/ニックネーム (@Full Name) をusername (@user) に変換
+     * Convert fullname/nickname (@Full Name) to username (@user)
      */
     convertToRawValue = (text: string): string => {
         const {usersByUsername = {}, teammateNameDisplay = Preferences.DISPLAY_PREFER_USERNAME} = this.props;
 
-        // usersByUsernameを逆引き用のマップに変換
+        // Convert usersByUsername to reverse lookup map
         const displayNameToUsername: Record<string, string> = {};
         Object.entries(usersByUsername).forEach(([username, user]) => {
             const displayName = displayUsername(user, teammateNameDisplay, false);
@@ -200,21 +200,21 @@ export default class Textbox extends React.PureComponent<Props> {
     };
 
     /**
-     * サーバー送信用の生の値（username形式）を取得
+     * Get raw value for server submission (username format)
      */
     getRawValue = () => {
         return this.state.rawValue;
     };
 
     /**
-     * サーバー送信用の生の値（username形式）を取得
+     * Get raw value for server submission (username format)
      */
     getValue = () => {
         return this.state.rawValue;
     };
 
     /**
-     * UI表示用の値（fullname形式）を取得
+     * Get display value for UI (fullname format)
      */
     getDisplayValue = () => {
         return this.state.displayValue;
@@ -223,10 +223,10 @@ export default class Textbox extends React.PureComponent<Props> {
     handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const inputValue = e.target.value;
 
-        // 生の値（username形式）を更新
+        // Update raw value (username format)
         const newRawValue = this.convertToRawValue(inputValue);
 
-        // 表示用の値（fullname形式）を更新
+        // Update display value (fullname format)
         const newDisplayValue = this.convertToDisplayName(newRawValue);
 
         this.setState({
@@ -234,7 +234,7 @@ export default class Textbox extends React.PureComponent<Props> {
             displayValue: newDisplayValue,
         });
 
-        // 親コンポーネントには生の値（username形式）を渡す
+        // Pass raw value (username format) to parent component
         const syntheticEvent = {
             ...e,
             target: {
@@ -304,14 +304,14 @@ export default class Textbox extends React.PureComponent<Props> {
         if (prevProps.value !== this.props.value) {
             this.checkMessageLength(this.props.value);
 
-            // props.valueが変更された場合、stateを更新
+            // Update state when props.value changes
             this.setState({
                 rawValue: this.props.value,
                 displayValue: this.convertToDisplayName(this.props.value),
             });
         }
 
-        // usersByUsernameまたはteammateNameDisplayが変更された場合、displayValueを再計算
+        // Recalculate displayValue when usersByUsername or teammateNameDisplay changes
         if (prevProps.usersByUsername !== this.props.usersByUsername ||
             prevProps.teammateNameDisplay !== this.props.teammateNameDisplay) {
             this.setState({
@@ -365,7 +365,7 @@ export default class Textbox extends React.PureComponent<Props> {
     getInputBox = () => {
         const textbox = this.message.current?.getTextbox();
         if (textbox && this.textareaRef.current !== textbox) {
-            // textareaRefを更新
+            // Update textareaRef
             (this.textareaRef as any).current = textbox;
         }
         return textbox;

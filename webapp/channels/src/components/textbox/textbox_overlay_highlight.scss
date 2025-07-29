@@ -10,8 +10,8 @@
     
     .textbox-overlay-content {
         position: absolute;
-        top: 2px;  // 下に少しずらす
-        left: 2px; // 右に少しずらす
+        top: 2px;  // Slightly shift down
+        left: 2px; // Slightly shift right
         box-sizing: border-box;
         padding: 10px 12px;
         border: 1px solid transparent;
@@ -37,7 +37,7 @@
     
     .textbox-overlay-highlight {
         .textbox-overlay-content {
-            // テキストエリアと同じスタイリングを適用
+            // Apply same styling as textarea
             border: none;
             font-family: 'Open Sans', sans-serif;
             font-size: 14px;
@@ -54,7 +54,7 @@
     }
 }
 
-// プレビューモード時はオーバーレイを非表示
+// Hide overlay in preview mode
 .textarea-wrapper-preview {
     .textbox-overlay-highlight {
         display: none;

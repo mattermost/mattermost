@@ -208,22 +208,22 @@ const AdvancedTextEditor = ({
         return enableTutorial && (tutorialStep === tourStep);
     });
 
-    // ユーザー情報とメンションキーを取得
+    // Get user information and mention keys
     const usersByUsername = useSelector((state: GlobalState) => getUsersByUsername(state));
     const teammateNameDisplay = useSelector((state: GlobalState) => getTeammateNameDisplaySetting(state));
 
-    // メンションキーを生成（フルネーム形式を含む）
+    // Generate mention keys (including fullname format)
     const mentionKeys = useSelector((state: GlobalState) => {
         const mentionKeysWithoutGroups = getCurrentUserMentionKeys(state);
         const groupMentionKeys = channel ? getMyGroupMentionKeysForChannel(state, channel.team_id, channelId) : getMyGroupMentionKeys(state, false);
         const baseMentionKeys = mentionKeysWithoutGroups.concat(groupMentionKeys);
 
-        // フルネーム形式のメンションキーを追加
+        // Add fullname format mention keys
         const fullnameMentionKeys = [];
         const users = getUsersByUsername(state);
         const nameDisplaySetting = getTeammateNameDisplaySetting(state);
 
-        // 現在のユーザー自身のフルネーム形式のメンションキーを追加
+        // Add fullname format mention key for current user
         const currentUserInfo = getCurrentUser(state);
         if (currentUserInfo) {
             const currentUserDisplayName = displayUsername(currentUserInfo, nameDisplaySetting, false);
@@ -235,7 +235,7 @@ const AdvancedTextEditor = ({
             }
         }
 
-        // 他のユーザーのフルネーム形式のメンションキーを追加
+        // Add fullname format mention keys for other users
         for (const [username, user] of Object.entries(users)) {
             if (currentUserInfo && user.id === currentUserInfo.id) {
                 continue;
@@ -413,7 +413,7 @@ const AdvancedTextEditor = ({
     );
 
     const handleSubmitWithErrorHandling = useCallback((submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
-        // 送信時にTextboxから生の値（username形式）を取得
+        // Get raw value (username format) from Textbox on submission
         let finalDraft = submittingDraft || draft;
 
         if (textboxRef.current && typeof textboxRef.current.getRawValue === 'function') {
