@@ -15,8 +15,11 @@ export const DialogElementTypes = {
     SELECT: 'select',
     BOOL: 'bool',
     RADIO: 'radio',
+<<<<<<< HEAD
     DATE: 'date',
     DATETIME: 'datetime',
+=======
+>>>>>>> master
 } as const;
 
 // Dialog element length limits (server-side validation constraints)
@@ -206,10 +209,13 @@ export function getFieldType(element: DialogElement): string | null {
         return AppFieldTypes.BOOL;
     case DialogElementTypes.RADIO:
         return AppFieldTypes.RADIO;
+<<<<<<< HEAD
     case 'date':
         return AppFieldTypes.DATE;
     case 'datetime':
         return AppFieldTypes.DATETIME;
+=======
+>>>>>>> master
     default:
         return null; // Skip unknown field types
     }
@@ -511,12 +517,15 @@ export function convertAppFormValuesToDialogSubmission(
             }
             break;
 
+<<<<<<< HEAD
         case DialogElementTypes.DATE:
         case DialogElementTypes.DATETIME:
             // Date and datetime values should be passed through as strings (ISO format)
             submission[element.name] = String(value);
             break;
 
+=======
+>>>>>>> master
         default:
             submission[element.name] = String(value);
         }
