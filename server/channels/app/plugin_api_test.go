@@ -1877,23 +1877,23 @@ func TestPluginAPIGetPostsForChannel(t *testing.T) {
 	}
 
 	postList, err := api.GetPostsForChannel(th.BasicChannel.Id, 0, 0)
-	require.NoError(err)
+	require.Nil(err)
 	require.Nil(postList.ToSlice())
 
 	postList, err = api.GetPostsForChannel(th.BasicChannel.Id, 0, numPosts/2)
-	require.NoError(err)
+	require.Nil(err)
 	require.Equal(expectedPosts[:numPosts/2], postList.ToSlice())
 
 	postList, err = api.GetPostsForChannel(th.BasicChannel.Id, 1, numPosts/2)
-	require.NoError(err)
+	require.Nil(err)
 	require.Equal(expectedPosts[numPosts/2:], postList.ToSlice())
 
 	postList, err = api.GetPostsForChannel(th.BasicChannel.Id, 2, numPosts/2)
-	require.NoError(err)
+	require.Nil(err)
 	require.Nil(postList.ToSlice())
 
 	postList, err = api.GetPostsForChannel(th.BasicChannel.Id, 0, numPosts+1)
-	require.NoError(err)
+	require.Nil(err)
 	require.Equal(expectedPosts, postList.ToSlice())
 }
 
@@ -2902,7 +2902,7 @@ func TestPluginAPICreatePropertyFieldLimit(t *testing.T) {
 		api := th.SetupPluginAPI()
 
 		// Create 20 property fields successfully
-		groupID := "test-group-id"
+		groupID := model.NewId()
 		for i := 1; i <= 20; i++ {
 			field := &model.PropertyField{
 				GroupID:  groupID,
@@ -2939,7 +2939,7 @@ func TestPluginAPICreatePropertyFieldLimit(t *testing.T) {
 		api := th.SetupPluginAPI()
 
 		// Create 20 property fields
-		groupID := "test-group-id-2"
+		groupID := model.NewId()
 		var createdFields []*model.PropertyField
 		for i := 1; i <= 20; i++ {
 			field := &model.PropertyField{
@@ -2978,7 +2978,7 @@ func TestPluginAPICreatePropertyFieldLimit(t *testing.T) {
 		defer th.TearDown()
 		api := th.SetupPluginAPI()
 
-		groupID := "test-group-id-3"
+		groupID := model.NewId()
 
 		// Create and delete 5 fields
 		for i := 1; i <= 5; i++ {
@@ -3013,12 +3013,12 @@ func TestPluginAPICreatePropertyFieldLimit(t *testing.T) {
 		}
 	})
 
-	t.Run("should handle empty or missing group ID", func(t *testing.T) {
+	t.Run("should reject empty or invalid group ID", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		api := th.SetupPluginAPI()
 
-		// Test with empty group ID
+		// Test with empty group ID - should fail validation
 		field := &model.PropertyField{
 			GroupID:  "",
 			Name:     "test_field",
@@ -3028,12 +3028,14 @@ func TestPluginAPICreatePropertyFieldLimit(t *testing.T) {
 		}
 
 		created, err := api.CreatePropertyField(field)
-		require.NoError(t, err) // Should work without limit check
-		assert.Equal(t, field.Name, created.Name)
+		require.Error(t, err) // Should fail due to invalid GroupID
+		assert.Nil(t, created)
+		assert.Contains(t, err.Error(), "group_id")
 
-		// Test with nil field
-		_, err = api.CreatePropertyField(nil)
-		require.NoError(t, err) // Should work without limit check
+		// Test with nil field - should fail gracefully
+		created, err = api.CreatePropertyField(nil)
+		require.Error(t, err) // Should fail when given nil input
+		assert.Nil(t, created)
 	})
 }
 

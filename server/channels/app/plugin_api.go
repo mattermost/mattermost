@@ -1503,10 +1503,14 @@ func (api *PluginAPI) DeleteGroupConstrainedMemberships() *model.AppError {
 }
 
 func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
+	if field == nil {
+		return nil, fmt.Errorf("property field cannot be nil")
+	}
+
 	// Check property field limit (20 per group)
 	const maxPropertyFieldsPerGroup = 20
 
-	if field != nil && field.GroupID != "" {
+	if field.GroupID != "" {
 		currentCount, err := api.app.PropertyService().CountActivePropertyFieldsForGroup(field.GroupID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to count existing property fields: %w", err)
