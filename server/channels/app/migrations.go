@@ -597,6 +597,10 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 }
 
 func (s *Server) doSetupContentFlaggingProperties() error {
+	// This migration is designed in a way to allow adding more properties in the future.
+	// WHen a new property needs to be added, add it to the expectedMappedProperties map and
+	// update the contentFlaggingSetupDoneKey to a new value by adding a suffix of v2, or v3, etc.
+
 	// If the migration is already marked as completed, don't do it again.
 	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(contentFlaggingSetupDoneKey); err == nil {
@@ -610,64 +614,91 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 		return fmt.Errorf("failed to register Content Flagging group: %w", err)
 	}
 
+	existingProperties, appErr := s.propertyService.SearchPropertyFields(group.ID, "", model.PropertyFieldSearchOpts{PerPage: 100})
+	if appErr != nil {
+		return fmt.Errorf("failed to search for existing content flagging properties: %w", appErr)
+	}
+
+	existingMappedProperties := map[string]*model.PropertyField{}
+	for _, property := range existingProperties {
+		existingMappedProperties[property.Name] = property
+	}
+
 	// register status property
-	properties := []*model.PropertyField{
-		{
+	expectedMappedProperties := map[string]*model.PropertyField{
+		contentFlaggingPropertyNameFlaggedPostId: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameFlaggedPostId,
 			Type:    model.PropertyFieldTypeText,
 		},
-		{
+		contentFlaggingPropertyNameStatus: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameStatus,
 			Type:    model.PropertyFieldTypeText,
 		},
-		{
+		contentFlaggingPropertyNameReportingUserID: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameReportingUserID,
 			Type:    model.PropertyFieldTypeUser,
 		},
-		{
+		contentFlaggingPropertyNameReportingReason: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameReportingReason,
 			Type:    model.PropertyFieldTypeText,
 		},
-		{
+		contentFlaggingPropertyNameReportingComment: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameReportingComment,
 			Type:    model.PropertyFieldTypeText,
 		},
-		{
+		contentFlaggingPropertyNameReportingTime: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameReportingTime,
 			Type:    model.PropertyFieldTypeText,
 		},
-		{
+		contentFlaggingPropertyNameReviewerUserID: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameReviewerUserID,
 			Type:    model.PropertyFieldTypeUser,
 		},
-		{
+		contentFlaggingPropertyNameActorUserID: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameActorUserID,
 			Type:    model.PropertyFieldTypeUser,
 		},
-		{
+		contentFlaggingPropertyNameActorComment: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameActorComment,
 			Type:    model.PropertyFieldTypeText,
 		},
-		{
+		contentFlaggingPropertyNameActionTime: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameActionTime,
 			Type:    model.PropertyFieldTypeText,
 		},
 	}
 
-	for _, property := range properties {
+	var propertiesToUpdate []*model.PropertyField
+	var propertiesToCreate []*model.PropertyField
+
+	for name, expectedProperty := range expectedMappedProperties {
+		if _, exists := existingMappedProperties[name]; exists {
+			property := existingMappedProperties[name]
+			property.Type = expectedProperty.Type
+			propertiesToUpdate = append(propertiesToUpdate, property)
+		} else {
+			propertiesToCreate = append(propertiesToCreate, expectedProperty)
+		}
+	}
+
+	for _, property := range propertiesToCreate {
 		if _, err := s.propertyService.CreatePropertyField(property); err != nil {
 			return fmt.Errorf("failed to create content flagging property: %q, error: %w", property.Name, err)
 		}
+	}
+
+	if _, err := s.propertyService.UpdatePropertyFields(group.ID, propertiesToUpdate); err != nil {
+		return fmt.Errorf("failed to update content flagging property fields: %w", err)
 	}
 
 	if err := s.Store().System().Save(&model.System{Name: contentFlaggingSetupDoneKey, Value: "true"}); err != nil {
