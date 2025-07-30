@@ -1415,11 +1415,11 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.MaxIdleConns == nil {
-		s.MaxIdleConns = NewPointer(20)
+		s.MaxIdleConns = NewPointer(50)
 	}
 
 	if s.MaxOpenConns == nil {
-		s.MaxOpenConns = NewPointer(300)
+		s.MaxOpenConns = NewPointer(100)
 	}
 
 	if s.ConnMaxLifetimeMilliseconds == nil {
