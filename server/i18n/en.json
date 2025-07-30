@@ -7265,6 +7265,10 @@
     "translation": "Unable to create the new team membership because the team has reached the limit of members"
   },
   {
+    "id": "app.team.join_user_to_team.rejected_by_plugin.app_error", 
+    "translation": "Team join rejected by plugin: {{ .Reason }}"
+  },
+  {
     "id": "app.team.migrate_team_members.update.app_error",
     "translation": "Failed to update the team member."
   },

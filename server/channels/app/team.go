@@ -741,6 +741,22 @@ func (a *App) AddUserToTeamByInviteId(c request.CTX, inviteId string, userID str
 }
 
 func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
+	a.Log().Info("Joining user to team", mlog.String("team_id", team.Id), mlog.String("user_id", user.Id))
+	var actor *model.User
+	if userRequestorId != "" {
+		actor, _ = a.GetUser(userRequestorId)
+	}
+
+	var rejectionReason string
+	pluginContext := pluginContext(c)
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		rejectionReason = hooks.UserWillJoinTeam(pluginContext, team, user, actor)
+		return rejectionReason == ""
+	}, plugin.UserWillJoinTeamID)
+	if rejectionReason != "" {
+		return nil, model.NewAppError("JoinUserToTeam", "app.team.join_user_to_team.rejected_by_plugin.app_error", map[string]any{"Reason": rejectionReason}, "Team join rejected by plugin: {{ .Reason }}", http.StatusBadRequest)
+	}
+
 	teamMember, alreadyAdded, err := a.ch.srv.teamService.JoinUserToTeam(c, team, user)
 	if err != nil {
 		var appErr *model.AppError
@@ -798,15 +814,11 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 	a.InvalidateCacheForUser(user.Id)
 	a.invalidateCacheForUserTeams(user.Id)
 
-	var actor *model.User
-	if userRequestorId != "" {
-		actor, _ = a.GetUser(userRequestorId)
-	}
-
 	a.Srv().Go(func() {
-		pluginContext := pluginContext(c)
+		a.Log().Info("JOININGED TEAM")
 		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.UserHasJoinedTeam(pluginContext, teamMember, actor)
+			a.Log().Info("JOININGED TEAM RETURN")
 			return true
 		}, plugin.UserHasJoinedTeamID)
 	})
