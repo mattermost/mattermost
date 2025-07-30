@@ -21,6 +21,7 @@ import PostAddChannelMember from 'components/post_view/post_add_channel_member';
 
 import {isChannelNamesMap, type TextFormattingOptions} from 'utils/text_formatting';
 import {getSiteURL} from 'utils/url';
+import DataSpillageReport from "components/post_view/data_spillage_report/data_spillage_report";
 
 export function renderUsername(value: unknown): ReactNode {
     const verifiedValue = ensureString(value);
@@ -424,6 +425,8 @@ export function isAddMemberProps(v: unknown): v is AddMemberProps {
 }
 
 export function renderSystemMessage(post: Post, currentTeamName: string, channel: Channel, hideGuestTags: boolean, isUserCanManageMembers?: boolean, isMilitaryTime?: boolean, timezone?: string): ReactNode {
+    console.log({type: post.type});
+
     const isEphemeral = isPostEphemeral(post);
     if (isEphemeral && post.props?.type === Posts.POST_TYPES.REMINDER) {
         return renderReminderACKMessage(post, currentTeamName, Boolean(isMilitaryTime), timezone);
@@ -467,6 +470,10 @@ export function renderSystemMessage(post: Post, currentTeamName: string, channel
         // which cannot be done outside a react component.
         return (
             <GMConversionMessage post={post}/>
+        );
+    } else if (post.type === Posts.POST_TYPES.DATA_SPILLAGE_REPORT) {
+        return (
+            <DataSpillageReport/>
         );
     }
 
