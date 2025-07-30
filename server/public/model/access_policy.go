@@ -201,10 +201,8 @@ func (p *AccessControlPolicy) Inherit(parent *AccessControlPolicy) *AppError {
 			}
 		}
 	case AccessControlPolicyVersionV0_2:
-		for i := range p.Imports {
-			if p.Imports[i] == parent.ID {
-				return NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.already_imported.app_error", nil, "", 400)
-			}
+		if slices.Contains(p.Imports, parent.ID) {
+			return NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.already_imported.app_error", nil, "", 400)
 		}
 		p.Imports = append(p.Imports, parent.ID)
 
