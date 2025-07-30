@@ -3832,7 +3832,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Ungültiger Treibername in SQL-Einstellungen. Muss 'mysql' oder 'postgres' sein."
+    "translation": "Ungültiger Name des Treibers für die SQL-Einstellungen. Muss 'postgres' sein."
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
@@ -4752,7 +4752,7 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Ungültiger Benutzer, Auth-Daten müssen mit Auth-Typ gesetzt sein."
+    "translation": "Ungültiger Benutzer: Authentifizierungsdaten können nur gesetzt werden, wenn der Benutzer einen externen Authentifizierungsdienst und nicht E-Mail/Passwort zur Authentifizierung verwendet."
   },
   {
     "id": "model.user.is_valid.auth_data_pwd.app_error",
@@ -10934,5 +10934,13 @@
   {
     "id": "app.cloud.preview_modal_bucket_url_not_configured",
     "translation": "Die URL für den Preview-Bucket ist nicht konfiguriert"
+  },
+  {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "Die Funktion zum Markieren von Inhalten ist deaktiviert."
+  },
+  {
+    "id": "api.content_flagging.error.license",
+    "translation": "Deine Lizenz unterstützt das Markieren von Inhalten nicht."
   }
 ]
