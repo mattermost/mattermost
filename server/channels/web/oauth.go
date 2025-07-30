@@ -562,7 +562,19 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string) string {
 	}
 
 	// Check for path traversal
-	parsed, _ = url.Parse(siteURLPrefix + targetURL)
+	joinedURL, err := url.JoinPath(siteURLPrefix, targetURL)
+	if err != nil {
+		return siteURLPrefix
+	}
+	unescapedURL, err := url.PathUnescape(joinedURL)
+	if err != nil {
+		return siteURLPrefix
+	}
+	parsed, err = url.Parse(unescapedURL)
+	if err != nil {
+		return siteURLPrefix
+	}
+
 	if !strings.HasPrefix(path.Clean(parsed.Path), path.Clean(prefixParsed.Path)) {
 		return siteURLPrefix
 	}
