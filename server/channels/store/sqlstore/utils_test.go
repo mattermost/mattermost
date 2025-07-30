@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -49,13 +48,13 @@ var (
 func BenchmarkMapStringsToQueryParams(b *testing.B) {
 	b.Run("one item", func(b *testing.B) {
 		input := []string{"apple"}
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			keys, params = MapStringsToQueryParams(input, "Fruit")
 		}
 	})
 	b.Run("multiple items", func(b *testing.B) {
 		input := []string{"carrot", "tomato", "potato"}
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			keys, params = MapStringsToQueryParams(input, "Vegetable")
 		}
 	})
@@ -119,39 +118,6 @@ func TestRemoveNonAlphaNumericUnquotedTerms(t *testing.T) {
 			got := removeNonAlphaNumericUnquotedTerms(test.term, sep)
 			require.Equal(t, test.want, got)
 		})
-	}
-}
-
-func TestMySQLJSONArgs(t *testing.T) {
-	if enableFullyParallelTests {
-		t.Parallel()
-	}
-
-	tests := []struct {
-		props     map[string]string
-		args      []any
-		argString string
-	}{
-		{
-			props: map[string]string{
-				"desktop": "linux",
-				"mobile":  "android",
-				"notify":  "always",
-			},
-			args:      []any{"$.desktop", "linux", "$.mobile", "android", "$.notify", "always"},
-			argString: "?, ?, ?, ?, ?, ?",
-		},
-		{
-			props:     map[string]string{},
-			args:      nil,
-			argString: "",
-		},
-	}
-
-	for _, test := range tests {
-		args, argString := constructMySQLJSONArgs(test.props)
-		assert.ElementsMatch(t, test.args, args)
-		assert.Equal(t, test.argString, argString)
 	}
 }
 

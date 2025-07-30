@@ -53,7 +53,7 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("addLicense", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddLicense, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -155,7 +155,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("removeLicense", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveLicense, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -176,18 +176,12 @@ func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("requestTrialLicense", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRequestTrialLicense, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
 		c.SetPermissionError(model.PermissionManageLicenseInformation)
-		return
-	}
-
-	// MySQL is not supported for trial licenses
-	if c.App.Config().SqlSettings.DriverName != nil && *c.App.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
-		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.mysql.app_error", nil, "mysql is not supported for trial licenses", http.StatusBadRequest)
 		return
 	}
 

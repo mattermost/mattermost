@@ -469,7 +469,7 @@ Up to and hey without pill that this squid alas brusque on inventoried and sprea
 
 func RandString(l int, charset string) string {
 	ret := make([]byte, l)
-	for i := 0; i < l; i++ {
+	for i := range l {
 		ret[i] = charset[mrand.Intn(len(charset))]
 	}
 	return string(ret)
@@ -479,7 +479,7 @@ func SecureRandString(n int) string {
 	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%&*0123456789"
 
 	var str strings.Builder
-	for i := 0; i < n; i++ {
+	for range n {
 		num, _ := crand.Int(crand.Reader, big.NewInt(int64(len(charset))))
 		str.WriteString(string(charset[num.Int64()]))
 	}
@@ -518,12 +518,12 @@ func RandomText(length Range, hashtags Range, mentions Range, users []string) st
 	startPosition := RandIntFromRange(Range{0, len(GibberishText) - textLength - 1})
 
 	words := strings.Split(GibberishText[startPosition:startPosition+textLength], " ")
-	for i := 0; i < numHashtags; i++ {
+	for range numHashtags {
 		randword := RandIntFromRange(Range{0, len(words) - 1})
 		words = append(words, " #"+words[randword])
 	}
 	if len(users) > 0 {
-		for i := 0; i < numMentions; i++ {
+		for range numMentions {
 			randuser := RandIntFromRange(Range{0, len(users) - 1})
 			words = append(words, " @"+users[randuser])
 		}
