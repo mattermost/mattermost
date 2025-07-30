@@ -12,7 +12,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
-import FlagPostModal from './flag_post_model';
+import FlagPostModal from './flag_post_modal';
 
 describe('components/FlagPostModal', () => {
     const baseState: DeepPartial<GlobalState> = {

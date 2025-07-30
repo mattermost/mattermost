@@ -54,6 +54,8 @@ export default function FlagPostModal({postId, onExited}: Props) {
     const submitButtonText = formatMessage({id: 'generic.submit', defaultMessage: 'Submit'});
     const requiredCommentSectionTitle = formatMessage({id: 'flag_message_modal.required_comment.title', defaultMessage: 'Comment (required)'});
     const optionalCommentSectionTitle = formatMessage({id: 'flag_message_modal.optional_comment.title', defaultMessage: 'Comment (optional)'});
+    const reasonSelectPlaceholder = formatMessage({id: 'flag_message_modal.reason_select.placeholder', defaultMessage: 'Select a reason for flagging'});
+    const commentPlaceholder = formatMessage({id: 'flag_message_modal.comment.placeholder', defaultMessage: 'Describe your concern...'});
 
     const post = useSelector((state: GlobalState) => getPost(state, postId));
     const channel = useSelector((state: GlobalState) => getChannel(state, post.channel_id));
@@ -97,7 +99,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
         setReason(reason);
 
         if (reason === '') {
-            setReasonError(formatMessage({id: 'flag_message_modal.reason_required_error', defaultMessage: 'TODO: Reason for flagging is required'}));
+            setReasonError(formatMessage({id: 'flag_message_modal.reason_required_error', defaultMessage: 'Please select a reason for flagging this message.'}));
         } else {
             setReasonError('');
         }
@@ -107,7 +109,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
         setComment(e.target.value);
 
         if (contentFlaggingSettings?.reporter_comment_required && e.target.value.trim() === '') {
-            setCommentError(formatMessage({id: 'flag_message_modal.empty_comment_error', defaultMessage: 'TODO: Comment is required when flagging a post'}));
+            setCommentError(formatMessage({id: 'flag_message_modal.empty_comment_error', defaultMessage: 'Please add a comment explaining why you’re flagging this message.'}));
         } else {
             setCommentError('');
         }
@@ -121,14 +123,14 @@ export default function FlagPostModal({postId, onExited}: Props) {
         let hasError = false;
 
         if (contentFlaggingSettings?.reporter_comment_required && comment.trim() === '') {
-            setCommentError(formatMessage({id: 'flag_message_modal.empty_comment_error', defaultMessage: 'TODO: Comment is required when flagging a post'}));
+            setCommentError(formatMessage({id: 'flag_message_modal.empty_comment_error', defaultMessage: 'Please add a comment explaining why you’re flagging this message.'}));
             hasError = true;
         } else {
             setCommentError('');
         }
 
         if (reason === '') {
-            setReasonError(formatMessage({id: 'flag_message_modal.reason_required_error', defaultMessage: 'TODO: Reason for flagging is required'}));
+            setReasonError(formatMessage({id: 'flag_message_modal.reason_required_error', defaultMessage: 'Please select a reason for flagging this message.'}));
             hasError = true;
         } else {
             setReasonError('');
@@ -199,6 +201,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
                         options={reasons}
                         styles={reactStyles}
                         onChange={handleOptionChange}
+                        placeholder={reasonSelectPlaceholder}
                     />
                     {reasonError &&
                         <div className='FlagPostModal__reason__error-message'>
@@ -221,7 +224,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
                         channelId={post.channel_id}
                         value={comment}
                         onChange={handleCommentChange}
-                        createMessage={'TODO'}
+                        createMessage={commentPlaceholder}
                         preview={showCommentPreview}
                         togglePreview={handleToggleCommentPreview}
                         useChannelMentions={false}

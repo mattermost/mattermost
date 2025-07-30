@@ -32,7 +32,7 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import {closeModal} from 'actions/views/modals';
 
 import DeletePostModal from 'components/delete_post_modal';
-import FlagPostModal from 'components/flag_message_modal/flag_post_model';
+import FlagPostModal from 'components/flag_message_modal/flag_post_modal';
 import ForwardPostModal from 'components/forward_post_modal';
 import * as Menu from 'components/menu';
 import MoveThreadModal from 'components/move_thread_modal';
