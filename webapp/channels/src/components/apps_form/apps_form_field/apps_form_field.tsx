@@ -146,6 +146,7 @@ export default class AppsFormField extends React.PureComponent<Props> {
             return (
                 <AppsFormSelectField
                     {...this.props}
+                    id={name}
                     teammateNameDisplay={this.props.teammateNameDisplay}
                     field={field}
                     label={displayNameContent}
