@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"context"
+	"crypto/subtle"
 	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -279,7 +280,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.credentials.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 	}
 
-	if oauthApp.ClientSecret != secret {
+	if subtle.ConstantTimeCompare([]byte(oauthApp.ClientSecret), []byte(secret)) == 0 {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.credentials.app_error", nil, "", http.StatusForbidden)
 	}
 
