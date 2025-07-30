@@ -536,21 +536,23 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string) string {
-	parsed, _ := url.Parse(targetURL)
-	prefixParsed, _ := url.Parse(siteURLPrefix)
+	parsed, err := url.Parse(targetURL)
+	if err != nil {
+		return siteURLPrefix
+	}
+	prefixParsed, err := url.Parse(siteURLPrefix)
+	if err != nil {
+		return siteURLPrefix
+	}
 
 	// Check if the targetURL is a valid URL and is within the siteURLPrefix
-	if parsed != nil && prefixParsed != nil {
-		sameScheme := parsed.Scheme == prefixParsed.Scheme
-		sameHost := parsed.Host == prefixParsed.Host
-		safePath := strings.HasPrefix(path.Clean(parsed.Path), path.Clean(prefixParsed.Path))
+	sameScheme := parsed.Scheme == prefixParsed.Scheme
+	sameHost := parsed.Host == prefixParsed.Host
+	safePath := strings.HasPrefix(path.Clean(parsed.Path), path.Clean(prefixParsed.Path))
 
-		if sameScheme && sameHost && safePath {
-			return targetURL
-		} else if parsed.Scheme != "" || parsed.Host != "" {
-			return siteURLPrefix
-		}
-	} else {
+	if sameScheme && sameHost && safePath {
+		return targetURL
+	} else if parsed.Scheme != "" || parsed.Host != "" {
 		return siteURLPrefix
 	}
 
