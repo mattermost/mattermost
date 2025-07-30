@@ -578,7 +578,6 @@ func isMultiSelectDefaultInOptions(defaultValue string, options []*PostActionOpt
 		return true
 	}
 
-	// values := strings.Split(strings.ReplaceAll(defaultValue, " ", ""), ",")
 	for value := range strings.SplitSeq(strings.ReplaceAll(defaultValue, " ", ""), ",") {
 		if value == "" {
 			continue
