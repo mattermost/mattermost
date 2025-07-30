@@ -143,6 +143,9 @@ var PermissionCreateElasticsearchPostAggregationJob *Permission
 var PermissionManageElasticsearchPostAggregationJob *Permission
 var PermissionReadElasticsearchPostIndexingJob *Permission
 var PermissionReadElasticsearchPostAggregationJob *Permission
+var PermissionPurgeBleveIndexes *Permission
+var PermissionCreatePostBleveIndexesJob *Permission
+var PermissionManagePostBleveIndexesJob *Permission
 var PermissionCreateLdapSyncJob *Permission
 var PermissionManageLdapSyncJob *Permission
 var PermissionReadLdapSyncJob *Permission
@@ -359,6 +362,9 @@ var PermissionSysconsoleWriteExperimentalFeatures *Permission
 
 var PermissionSysconsoleReadExperimentalFeatureFlags *Permission
 var PermissionSysconsoleWriteExperimentalFeatureFlags *Permission
+
+var PermissionSysconsoleReadExperimentalBleve *Permission
+var PermissionSysconsoleWriteExperimentalBleve *Permission
 
 var PermissionPublicPlaybookCreate *Permission
 var PermissionPublicPlaybookManageProperties *Permission
@@ -830,6 +836,30 @@ func initializePermissions() {
 
 	PermissionReadAudits = &Permission{
 		"read_audits",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	// DEPRECATED
+	PermissionPurgeBleveIndexes = &Permission{
+		"purge_bleve_indexes",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	// DEPRECATED
+	PermissionCreatePostBleveIndexesJob = &Permission{
+		"create_post_bleve_indexes_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	// DEPRECATED
+	PermissionManagePostBleveIndexesJob = &Permission{
+		"manage_post_bleve_indexes_job",
 		"",
 		"",
 		PermissionScopeSystem,
@@ -2069,6 +2099,21 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	// DEPRECATED
+	PermissionSysconsoleReadExperimentalBleve = &Permission{
+		"sysconsole_read_experimental_bleve",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	// DEPRECATED
+	PermissionSysconsoleWriteExperimentalBleve = &Permission{
+		"sysconsole_write_experimental_bleve",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
 	PermissionCreateCustomGroup = &Permission{
 		"create_custom_group",
 		"authentication.permissions.create_custom_group.name",
@@ -2534,6 +2579,11 @@ func initializePermissions() {
 		PermissionSysconsoleWriteIntegrations,
 		PermissionSysconsoleReadCompliance,
 		PermissionSysconsoleWriteCompliance,
+		PermissionPurgeBleveIndexes,
+		PermissionCreatePostBleveIndexesJob,
+		PermissionManagePostBleveIndexesJob,
+		PermissionSysconsoleReadExperimentalBleve,
+		PermissionSysconsoleWriteExperimentalBleve,
 	}
 
 	PlaybookScopedPermissions := []*Permission{
