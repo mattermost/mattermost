@@ -175,7 +175,7 @@ const SearchBox = forwardRef(
                 }
 
                 setSearchTerms(
-                    searchTerms.slice(0, caretPosition).replace(new RegExp(escapedMatchedPretext + '$', 'i'), '').trimEnd() +
+                    searchTerms.slice(0, caretPosition).trimEnd().replace(new RegExp(escapedMatchedPretext + '$', 'i'), '').trimEnd() +
                     val +
                     extraSpace +
                     searchTerms.slice(caretPosition),
