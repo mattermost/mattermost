@@ -1122,6 +1122,8 @@
   "channel_invite.addNewMembers": "Adicionar pessoas ao {channel}",
   "channel_loader.someone": "Alguém",
   "channel_notifications.checkbox.sameMobileSettingsDesktop": "Utilize as mesmas definições de notificação do PC",
+  "combined_system_message.added_to_channel.many_expanded": "{users} e {lastUser} foram **adicionados ao canal** por {actor}.",
+  "combined_system_message.added_to_channel.one": "{firstUser} **adicionado ao canal** por {actor}.",
   "combined_system_message.joined_channel.one_you": "Você **juntou-se ao canal**.",
   "combined_system_message.joined_team.one_you": "Você **juntou-se à equipa**.",
   "combined_system_message.left_channel.one_you": "Você **deixou o canal**.",
