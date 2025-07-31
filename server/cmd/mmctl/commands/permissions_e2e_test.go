@@ -15,7 +15,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestShowRoleCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	s.RunForAllClients("MM-T3928 Should allow all users to see a role", func(c client.Client) {
 		printer.Clean()
@@ -37,7 +37,7 @@ func (s *MmctlE2ETestSuite) TestShowRoleCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestAddPermissionsCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	role, appErr := s.th.App.GetRoleByName(context.TODO(), model.SystemUserRoleId)
 	s.Require().Nil(appErr)
@@ -73,7 +73,7 @@ func (s *MmctlE2ETestSuite) TestAddPermissionsCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestRemovePermissionsCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	role, appErr := s.th.App.GetRoleByName(context.TODO(), model.SystemUserRoleId)
 	s.Require().Nil(appErr)

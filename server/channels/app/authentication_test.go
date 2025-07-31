@@ -65,8 +65,8 @@ func TestParseAuthTokenFromRequest(t *testing.T) {
 
 func TestCheckPasswordAndAllCriteria(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	const maxFailedLoginAttempts = 3
 	const concurrentAttempts = maxFailedLoginAttempts + 1
@@ -159,8 +159,8 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 }
 
 func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
-	th := SetupEnterprise(t).InitBasic()
-	defer th.TearDown()
+	th := SetupEnterprise(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	// update config
 	const maxFailedLoginAttempts = 3
@@ -256,8 +256,8 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 }
 
 func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
-	th := SetupEnterprise(t).InitBasic()
-	defer th.TearDown()
+	th := SetupEnterprise(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	// update config
 	const maxFailedLoginAttempts = 1

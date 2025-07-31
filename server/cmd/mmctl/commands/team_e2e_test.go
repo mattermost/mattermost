@@ -18,7 +18,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForAllClients("Error renaming team which does not exist", func(c client.Client) {
 		printer.Clean()
@@ -60,7 +60,7 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForAllClients("Error deleting team which does not exist", func(c client.Client) {
 		printer.Clean()
@@ -157,7 +157,7 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForSystemAdminAndLocal("system & local accounts can set a team to private", func(c client.Client) {
 		printer.Clean()
@@ -215,7 +215,7 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForAllClients("Should not create a team w/o name", func(c client.Client) {
 		printer.Clean()
@@ -323,7 +323,7 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestSearchTeamCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForSystemAdminAndLocal("Search for existing team", func(c client.Client) {
 		printer.Clean()
@@ -358,7 +358,7 @@ func (s *MmctlE2ETestSuite) TestSearchTeamCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestArchiveTeamsCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	cmd := &cobra.Command{}
 	cmd.Flags().Bool("confirm", true, "Confirm you really want to archive the team and a DB backup has been performed.")
@@ -407,7 +407,7 @@ func (s *MmctlE2ETestSuite) TestArchiveTeamsCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestListTeamsCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 	mockTeamName := "mockteam" + model.NewId()
 	mockTeamDisplayname := "mockteam_display"
 	_, err := s.th.App.CreateTeam(s.th.Context, &model.Team{Name: mockTeamName, DisplayName: mockTeamDisplayname, Type: model.TeamOpen, DeleteAt: 1})
@@ -436,7 +436,7 @@ func (s *MmctlE2ETestSuite) TestListTeamsCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForAllClients("Restore team", func(c client.Client) {
 		printer.Clean()

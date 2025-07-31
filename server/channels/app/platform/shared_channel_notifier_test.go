@@ -17,7 +17,7 @@ import (
 func TestServerSyncSharedChannelHandler(t *testing.T) {
 	t.Run("sync service inactive, it does nothing", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		mockService := NewMockSharedChannelService(nil)
 		mockService.active = false
@@ -28,14 +28,14 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 	})
 
 	t.Run("sync service active and broadcast envelope has ineligible event, it does nothing", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		mockService := NewMockSharedChannelService(nil)
 		mockService.active = true
 		th.Service.SetSharedChannelService(mockService)
 
-		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
+		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
 		websocketEvent := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, model.NewId(), channel.Id, "", nil, "")
 
 		th.Service.SharedChannelSyncHandler(websocketEvent)
@@ -43,8 +43,8 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 	})
 
 	t.Run("sync service active and broadcast envelope has eligible event but channel does not exist, it does nothing", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		mockService := NewMockSharedChannelService(nil)
 		mockService.active = true
@@ -57,14 +57,14 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 	})
 
 	t.Run("sync service active when received eligible event, it triggers a shared channel content sync", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		mockService := NewMockSharedChannelService(nil)
 		mockService.active = true
 		th.Service.SetSharedChannelService(mockService)
 
-		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
+		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
 		websocketEvent := model.NewWebSocketEvent(model.WebsocketEventPosted, th.BasicTeam.Id, channel.Id, "", nil, "")
 
 		th.Service.SharedChannelSyncHandler(websocketEvent)
@@ -74,7 +74,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 
 	t.Run("sync service doesn't panic when no RemoteId", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		mockStore := th.Service.Store.(*mocks.Store)
 

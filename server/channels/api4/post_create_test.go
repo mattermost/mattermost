@@ -18,8 +18,7 @@ func makePendingPostId(user *model.User) string {
 }
 
 func TestCreatePostWithPendingPostId(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	t.Run("should successfully create a post with PendingPostId", func(t *testing.T) {

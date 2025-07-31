@@ -20,7 +20,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	pluginPath := filepath.Join(server.GetPackagePath(), "tests", "testplugin.tar.gz")
 
@@ -163,7 +163,7 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 	s.th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.EnableUploads = true
@@ -284,7 +284,7 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestPluginDeleteCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	const (
 		jiraURL       = "https://plugins.releases.mattermost.com/release/mattermost-plugin-jira-v3.0.0.tar.gz"
