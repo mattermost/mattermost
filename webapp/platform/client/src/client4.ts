@@ -2656,9 +2656,9 @@ export default class Client4 {
         );
     };
 
-    getClientConfigOld = () => {
+    getClientConfig = () => {
         return this.doFetch<ClientConfig>(
-            `${this.getBaseRoute()}/config/client?format=old`,
+            `${this.getBaseRoute()}/config/client`,
             {method: 'get'},
         );
     };

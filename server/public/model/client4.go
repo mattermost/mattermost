@@ -5051,10 +5051,9 @@ func (c *Client4) ReloadConfig(ctx context.Context) (*Response, error) {
 	return BuildResponse(r), nil
 }
 
-// GetOldClientConfig will retrieve the parts of the server configuration needed by the
-// client, formatted in the old format.
-func (c *Client4) GetOldClientConfig(ctx context.Context, etag string) (map[string]string, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.configRoute()+"/client?format=old", etag)
+// GetClientConfig will retrieve the parts of the server configuration needed by the client.
+func (c *Client4) GetClientConfig(ctx context.Context, etag string) (map[string]string, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.configRoute()+"/client", etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
