@@ -3837,7 +3837,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Nieprawidłowa nazwa sterownika SQL. Dozwolone są 'mysql' oraz 'postgres'."
+    "translation": "Nieprawidłowa nazwa sterownika dla ustawień SQL. Musi być \"postgres\"."
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
@@ -4713,7 +4713,7 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Nieprawidłowy użytkownik, dane autoryzacji muszą być ustawione razem z typem autoryzacji."
+    "translation": "Nieprawidłowy użytkownik: Dane uwierzytelniania można ustawić tylko wtedy, gdy użytkownik używa do uwierzytelniania zewnętrznej usługi uwierzytelniania, a nie adresu e-mail/hasła."
   },
   {
     "id": "model.user.is_valid.auth_data_pwd.app_error",
@@ -10938,5 +10938,13 @@
   {
     "id": "ent.access_control.sync_job.app_error",
     "translation": "Nie udało się uruchomić zadania synchronizacji kontroli dostępu."
+  },
+  {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "Funkcja oznaczania treści jest wyłączona."
+  },
+  {
+    "id": "api.content_flagging.error.license",
+    "translation": "Twoja licencja nie obsługuje flagowania treści."
   }
 ]
