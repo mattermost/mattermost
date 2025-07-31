@@ -20,7 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
-func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotification, user *model.User, team *model.Team, senderProfileImage []byte) error {
+func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotification, user *model.User, team *model.Team, senderProfileImage []byte) error {
 	channel := notification.Channel
 	post := notification.Post
 
@@ -108,7 +108,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 
 	landingURL := a.GetSiteURL() + "/landing#/" + team.Name
 
-	var bodyText, err = a.getNotificationEmailBody(c, user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc, senderPhoto)
+	var bodyText, err = a.getNotificationEmailBody(rctx, user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc, senderPhoto)
 	if err != nil {
 		return errors.Wrap(err, "unable to render the email notification template")
 	}
@@ -130,7 +130,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 
 	a.Srv().Go(func() {
 		if nErr := a.Srv().EmailService.SendMailWithEmbeddedFiles(user.Email, html.UnescapeString(subjectText), bodyText, embeddedFiles, messageID, inReplyTo, references, "Notification"); nErr != nil {
-			c.Logger().Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
+			rctx.Logger().Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
 		}
 	})
 
@@ -217,7 +217,7 @@ type postData struct {
 /**
  * Computes the email body for notification messages
  */
-func (a *App) getNotificationEmailBody(c request.CTX, recipient *model.User, post *model.Post, channel *model.Channel, channelName string, senderName string, teamName string, landingURL string, emailNotificationContentsType string, useMilitaryTime bool, translateFunc i18n.TranslateFunc, senderPhoto string) (string, error) {
+func (a *App) getNotificationEmailBody(rctx request.CTX, recipient *model.User, post *model.Post, channel *model.Channel, channelName string, senderName string, teamName string, landingURL string, emailNotificationContentsType string, useMilitaryTime bool, translateFunc i18n.TranslateFunc, senderPhoto string) (string, error) {
 	pData := postData{
 		SenderName:  truncateUserNames(senderName, 22),
 		SenderPhoto: senderPhoto,
@@ -267,7 +267,7 @@ func (a *App) getNotificationEmailBody(c request.CTX, recipient *model.User, pos
 	}
 
 	// Override title and subtile for replies with CRT enabled
-	if a.IsCRTEnabledForUser(c, recipient.Id) && post.RootId != "" {
+	if a.IsCRTEnabledForUser(rctx, recipient.Id) && post.RootId != "" {
 		// Title is the same in all cases
 		data.Props["Title"] = translateFunc("app.notification.body.thread.title", map[string]any{"SenderName": senderName})
 
