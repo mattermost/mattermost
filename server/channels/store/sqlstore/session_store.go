@@ -32,7 +32,7 @@ func newSqlSessionStore(sqlStore *SqlStore) store.SessionStore {
 	}
 
 	s.sessionSelectQuery = s.getQueryBuilder().
-		Select("Id", "Token", "CreateAt", "ExpiresAt", "LastActivityAt", "UserId", "DeviceId", "Roles", "IsOAuth", "ExpiredNotify", "Props").
+		Select("Id", "Token", "CreateAt", "ExpiresAt", "LastActivityAt", "UserId", "DeviceId", "VoipDeviceId", "Roles", "IsOAuth", "ExpiredNotify", "Props").
 		From("Sessions")
 
 	return s
