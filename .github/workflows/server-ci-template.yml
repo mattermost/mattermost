@@ -406,6 +406,8 @@ jobs:
           make config-reset
       - name: Build FIPS enabled server
         if: ${{ inputs.fips-enabled }}
+        env:
+          GOFLAGS: -buildvcs=false
         run: |
           make build-client
           make build-cmd-linux-amd64

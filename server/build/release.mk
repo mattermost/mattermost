@@ -50,7 +50,7 @@ build-cmd-linux: build-cmd-linux-amd64 build-cmd-linux-arm64
 build-cmd-linux-amd64:
 	@echo Build CMD Linux amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
-	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
+	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -buildvcs=false -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
 else
 	mkdir -p $(GOBIN)/linux_amd64
 	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN)/linux_amd64 $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
@@ -163,7 +163,11 @@ package-general:
 
 	@# Copy binaries
 ifeq ($(BUILDER_GOOS_GOARCH),"$(CURRENT_PACKAGE_ARCH)")
+ifeq ($(FIPS_ENABLED),true)
+	cp .go/bin/$(MM_BIN_NAME) .go/bin/$(MMCTL_BIN_NAME) $(DIST_PATH_GENERIC)/bin # from native bin dir, not cross-compiled
+else
 	cp $(GOBIN)/$(MM_BIN_NAME) $(GOBIN)/$(MMCTL_BIN_NAME) $(DIST_PATH_GENERIC)/bin # from native bin dir, not cross-compiled
+endif
 else
 	cp $(GOBIN)/$(CURRENT_PACKAGE_ARCH)/$(MM_BIN_NAME) $(GOBIN)/$(CURRENT_PACKAGE_ARCH)/$(MMCTL_BIN_NAME) $(DIST_PATH_GENERIC)/bin # from cross-compiled bin dir
 endif
