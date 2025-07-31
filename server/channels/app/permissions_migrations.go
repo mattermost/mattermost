@@ -614,17 +614,12 @@ func (a *App) getAddExperimentalSubsectionPermissions() (permissionsMap, error) 
 		// Give the new subsection READ permissions to any user with READ_EXPERIMENTAL
 		permissionTransformation{
 			On:  permissionExists(model.PermissionSysconsoleReadExperimental.Id),
-			Add: []string{model.PermissionSysconsoleReadExperimentalBleve.Id, model.PermissionSysconsoleReadExperimentalFeatures.Id, model.PermissionSysconsoleReadExperimentalFeatureFlags.Id},
+			Add: []string{model.PermissionSysconsoleReadExperimentalFeatures.Id, model.PermissionSysconsoleReadExperimentalFeatureFlags.Id},
 		},
 		// Give the new subsection WRITE permissions to any user with WRITE_EXPERIMENTAL
 		permissionTransformation{
 			On:  permissionExists(model.PermissionSysconsoleWriteExperimental.Id),
-			Add: []string{model.PermissionSysconsoleWriteExperimentalBleve.Id, model.PermissionSysconsoleWriteExperimentalFeatures.Id, model.PermissionSysconsoleWriteExperimentalFeatureFlags.Id},
-		},
-		// Give the ancillary permissions MANAGE_JOBS and PURGE_BLEVE_INDEXES to anyone with WRITE_EXPERIMENTAL_BLEVE
-		permissionTransformation{
-			On:  permissionExists(model.PermissionSysconsoleWriteExperimentalBleve.Id),
-			Add: []string{model.PermissionCreatePostBleveIndexesJob.Id, model.PermissionPurgeBleveIndexes.Id},
+			Add: []string{model.PermissionSysconsoleWriteExperimentalFeatures.Id, model.PermissionSysconsoleWriteExperimentalFeatureFlags.Id},
 		},
 	}, nil
 }
@@ -1096,10 +1091,6 @@ func (a *App) getAddManageJobAncillaryPermissionsMigration() (permissionsMap, er
 		permissionTransformation{
 			On:  permissionExists(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id),
 			Add: []string{model.PermissionManageDataRetentionJob.Id},
-		},
-		permissionTransformation{
-			On:  permissionExists(model.PermissionSysconsoleWriteExperimentalBleve.Id),
-			Add: []string{model.PermissionManagePostBleveIndexesJob.Id},
 		},
 		permissionTransformation{
 			On:  permissionExists(model.PermissionSysconsoleWriteComplianceComplianceExport.Id),

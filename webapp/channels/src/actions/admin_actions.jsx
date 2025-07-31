@@ -405,20 +405,6 @@ export async function rebuildChannelsIndex(success, error) {
     success();
 }
 
-export async function blevePurgeIndexes(success, error) {
-    const purgeBleveIndexes = bindClientFunc({
-        clientFunc: Client4.purgeBleveIndexes,
-        params: [],
-    });
-
-    const {data, error: err} = await dispatch(purgeBleveIndexes);
-    if (data && success) {
-        success(data);
-    } else if (err && error) {
-        error({id: err.server_error_id, ...err});
-    }
-}
-
 export function setNavigationBlocked(blocked) {
     return {
         type: ActionTypes.SET_NAVIGATION_BLOCKED,

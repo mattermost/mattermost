@@ -502,7 +502,6 @@ func TestGetSupportPacketJobList(t *testing.T) {
 		assert.Empty(t, jobs.MessageExportJobs)
 		assert.Empty(t, jobs.ElasticPostIndexingJobs)
 		assert.Empty(t, jobs.ElasticPostAggregationJobs)
-		assert.Empty(t, jobs.BlevePostIndexingJobs)
 		assert.Empty(t, jobs.MigrationJobs)
 	})
 
@@ -527,7 +526,6 @@ func TestGetSupportPacketJobList(t *testing.T) {
 			getJob(model.JobTypeMessageExport),
 			getJob(model.JobTypeElasticsearchPostIndexing),
 			getJob(model.JobTypeElasticsearchPostAggregation),
-			getJob(model.JobTypeBlevePostIndexing),
 			getJob(model.JobTypeMigrations),
 		}
 
@@ -577,13 +575,9 @@ func TestGetSupportPacketJobList(t *testing.T) {
 		require.Len(t, jobs.ElasticPostAggregationJobs, 1, "Should have 1 elasticsearch post aggregation job")
 		verifyJob(t, expectedJobs[4], jobs.ElasticPostAggregationJobs[0])
 
-		// Verify bleve post indexing jobs
-		require.Len(t, jobs.BlevePostIndexingJobs, 1, "Should have 1 bleve post indexing job")
-		verifyJob(t, expectedJobs[5], jobs.BlevePostIndexingJobs[0])
-
 		// Verify migration jobs
 		require.Len(t, jobs.MigrationJobs, 1, "Should have 1 migration job")
-		verifyJob(t, expectedJobs[6], jobs.MigrationJobs[0])
+		verifyJob(t, expectedJobs[5], jobs.MigrationJobs[0])
 	})
 }
 

@@ -174,10 +174,6 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 		Store:             dbStore,
 	}
 
-	if s.Platform().SearchEngine != nil && s.Platform().SearchEngine.BleveEngine != nil && searchEngine != nil {
-		searchEngine.BleveEngine = s.Platform().SearchEngine.BleveEngine
-	}
-
 	if searchEngine != nil {
 		th.App.SetSearchEngine(searchEngine)
 	}
