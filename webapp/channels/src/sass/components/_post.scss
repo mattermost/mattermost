@@ -862,7 +862,7 @@
         }
 
         .post__body {
-            padding: 2px 0;
+            padding: 2px 0 0 0;
             background: transparent !important;
             line-height: 1.5;
 
@@ -1384,7 +1384,7 @@
 
     .post__body {
         width: 100%;
-        padding: 0.2em 0;
+        padding: 0 0 0.2em;
         word-wrap: break-word;
 
         &-reactions-acks {
