@@ -120,7 +120,7 @@ import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
-import InteractiveDialog from 'components/interactive_dialog';
+import DialogRouter from 'components/dialog_router';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 
 import WebSocketClient from 'client/web_websocket_client';
@@ -1440,7 +1440,7 @@ function handleOpenDialogEvent(msg) {
         return;
     }
 
-    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: InteractiveDialog}));
+    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: DialogRouter}));
 }
 
 function handleGroupUpdatedEvent(msg) {
