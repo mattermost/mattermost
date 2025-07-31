@@ -18,6 +18,7 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {setNavigationBlocked} from 'actions/admin_actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
+import ExternalLink from 'components/external_link';
 import LoadingScreen from 'components/loading_screen';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
@@ -162,10 +163,25 @@ export default function SecureConnectionDetail(props: Props) {
                                         id: 'admin.secure_connections.details.team.label',
                                         defaultMessage: 'Destination Team',
                                     })}
-                                    helpText={formatMessage({
-                                        id: 'admin.secure_connections.details.team.help',
-                                        defaultMessage: 'Select the default team in which any shared channels will be placed. This can be updated later for specific shared channels.',
-                                    })}
+                                    helpText={(
+                                        <FormattedMessage
+                                            id='admin.secure_connections.details.team.help'
+                                            defaultMessage='Select the team where new incoming channels are added. {link}'
+                                            values={{
+                                                link: (
+                                                    <ExternalLink
+                                                        href='https://mattermost.com/pl/connected-workspaces-destination'
+                                                        location='secure_connection_detail'
+                                                    >
+                                                        <FormattedMessage
+                                                            id='admin.secure_connections.details.team.help.learn_more'
+                                                            defaultMessage='Learn more'
+                                                        />
+                                                    </ExternalLink>
+                                                ),
+                                            }}
+                                        />
+                                    )}
                                 >
                                     <TeamSelector
                                         testId='destination-team-input'

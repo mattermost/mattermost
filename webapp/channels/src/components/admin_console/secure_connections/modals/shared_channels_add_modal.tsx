@@ -136,6 +136,13 @@ function SharedChannelsAddModal({
                     defaultMessage='Select channels'
                 />
             )}
+            modalSubheaderText={(
+                <FormattedMessage
+                    tagName={ModalParagraph}
+                    id={'admin.secure_connections.shared_channels.add.message'}
+                    defaultMessage={'Please select a team and channels to share'}
+                />
+            )}
             confirmButtonText={done ? (
                 <FormattedMessage
                     id='admin.secure_connections.shared_channels.add.close.button'
@@ -157,12 +164,6 @@ function SharedChannelsAddModal({
             isConfirmDisabled={!channels.length}
         >
             <ModalBody>
-                <FormattedMessage
-                    tagName={ModalParagraph}
-                    id={'admin.secure_connections.shared_channels.add.message'}
-                    defaultMessage={'Please select a team and channels to share'}
-                />
-
                 <ChannelsInput
                     placeholder={
                         <FormattedMessage
@@ -237,11 +238,14 @@ const ChannelLabelWrapper = styled.span`
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+    align-items: center;
+    display: flex;
 
     svg {
         vertical-align: middle;
-        margin-left: 6px;
-        margin-right: 10px;
+        margin-left: 8px;
+        margin-right: 6px;
+        width: 16px;
     }
 
     .channels-input__multi-value__label & {
