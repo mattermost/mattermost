@@ -28,6 +28,7 @@ export type PropertyValue<T> = {
     target_id: string;
     target_type: string;
     group_id: string;
+    field_id: string;
     value: T;
     create_at: number;
     update_at: number;

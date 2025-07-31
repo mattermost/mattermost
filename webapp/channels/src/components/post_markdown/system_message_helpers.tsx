@@ -425,8 +425,6 @@ export function isAddMemberProps(v: unknown): v is AddMemberProps {
 }
 
 export function renderSystemMessage(post: Post, currentTeamName: string, channel: Channel, hideGuestTags: boolean, isUserCanManageMembers?: boolean, isMilitaryTime?: boolean, timezone?: string): ReactNode {
-    console.log({type: post.type});
-
     const isEphemeral = isPostEphemeral(post);
     if (isEphemeral && post.props?.type === Posts.POST_TYPES.REMINDER) {
         return renderReminderACKMessage(post, currentTeamName, Boolean(isMilitaryTime), timezone);
@@ -473,7 +471,7 @@ export function renderSystemMessage(post: Post, currentTeamName: string, channel
         );
     } else if (post.type === Posts.POST_TYPES.DATA_SPILLAGE_REPORT) {
         return (
-            <DataSpillageReport/>
+            <DataSpillageReport post={post}/>
         );
     }
 
