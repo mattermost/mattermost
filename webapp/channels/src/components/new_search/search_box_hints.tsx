@@ -21,10 +21,9 @@ type Props = {
     selectedOption: number;
     providerResults: ProviderResult<unknown>|null;
     focus: (pos: number) => void;
-    showFilterHaveBeenReset: boolean;
 }
 
-const SearchBoxHints = ({searchTerms, searchTeam, setSearchTerms, searchType, providerResults, selectedOption, focus, showFilterHaveBeenReset}: Props) => {
+const SearchBoxHints = ({searchTerms, searchTeam, setSearchTerms, searchType, providerResults, selectedOption, focus}: Props) => {
     const filterSelectedCallback = useCallback((filter: string) => {
         if (searchTerms.endsWith(' ') || searchTerms.length === 0) {
             setSearchTerms(searchTerms + filter);
@@ -51,7 +50,6 @@ const SearchBoxHints = ({searchTerms, searchTeam, setSearchTerms, searchType, pr
                 searchTerms={searchTerms}
                 searchTeam={searchTeam}
                 hasSelectedOption={Boolean(providerResults && providerResults.items.length > 0 && selectedOption !== -1)}
-                showFilterHaveBeenReset={showFilterHaveBeenReset}
                 isDate={providerResults?.component === SearchDateSuggestion}
             />
         );
