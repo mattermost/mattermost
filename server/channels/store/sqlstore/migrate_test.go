@@ -17,7 +17,6 @@ func TestUpAndDownMigrations(t *testing.T) {
 
 	testDrivers := []string{
 		model.DatabaseDriverPostgres,
-		model.DatabaseDriverMysql,
 	}
 
 	for _, driver := range testDrivers {

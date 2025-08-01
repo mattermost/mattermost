@@ -1,1 +1,0 @@
--- This is no-op migration for MySQL.
