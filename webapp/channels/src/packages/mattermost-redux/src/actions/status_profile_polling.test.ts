@@ -101,7 +101,7 @@ describe('Actions.StatusProfilePolling', () => {
             reply(200, [{id: 'user1', username: 'user1'}]);
 
         const groupMock = nock(Client4.getBaseRoute()).
-            get('/groups').
+            get('/groups/names').
             query(true).
             reply(200, [{id: 'group1', name: 'group1'}]);
 
@@ -119,7 +119,7 @@ describe('Actions.StatusProfilePolling', () => {
             reply(200, [{id: 'user1', username: 'user1'}]);
 
         const groupMock = nock(Client4.getBaseRoute()).
-            get('/groups').
+            get('/groups/names').
             query(true).
             reply(200, [{id: 'group1', name: 'group1'}]);
 
