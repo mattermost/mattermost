@@ -17,7 +17,7 @@ import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {getOldestPostId, getLatestPostId} from 'utils/post_utils';
 
 const MAX_NUMBER_OF_AUTO_RETRIES = 3;
-export const MAX_EXTRA_PAGES_LOADED = 50;
+export const MAX_EXTRA_PAGES_LOADED = 20;
 
 // Post loading page sizes
 const USER_SCROLL_POSTS_PER_PAGE = Constants.POST_CHUNK_SIZE / 2; // 30 posts for user scroll
