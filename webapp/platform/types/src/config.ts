@@ -130,6 +130,7 @@ export type ClientConfig = {
     FeatureFlagCustomProfileAttributes: string;
     FeatureFlagAttributeBasedAccessControl: string;
     FeatureFlagWebSocketEventScope: string;
+    FeatureFlagInteractiveDialogAppsForm: string;
     FeatureFlagContentFlagging: string;
     ForgotPasswordLink: string;
     GiphySdkKey: string;
@@ -381,7 +382,7 @@ export type ServiceSettings = {
     EnableAPITriggerAdminNotifications: boolean;
     EnableAPIUserDeletion: boolean;
     ExperimentalEnableHardenedMode: boolean;
-    ExperimentalStrictCSRFEnforcement: boolean;
+    StrictCSRFEnforcement: boolean;
     EnableEmailInvitations: boolean;
     DisableBotsWhenOwnerIsDeactivated: boolean;
     EnableBotAccountCreation: boolean;
@@ -881,14 +882,6 @@ export type ElasticsearchSettings = {
     IgnoredPurgeIndexes: string;
 };
 
-export type BleveSettings = {
-    IndexDir: string;
-    EnableIndexing: boolean;
-    EnableSearching: boolean;
-    EnableAutocomplete: boolean;
-    BatchSize: number;
-};
-
 export type DataRetentionSettings = {
     EnableMessageDeletion: boolean;
     EnableFileDeletion: boolean;
@@ -975,6 +968,7 @@ export type CloudSettings = {
     CWSAPIURL: string;
     CWSMock: boolean;
     Disable: boolean;
+    PreviewModalBucketURL: string;
 };
 
 export type FeatureFlags = Record<string, string | boolean>;
@@ -996,9 +990,7 @@ export type AccessControlSettings = {
 };
 
 export type ContentFlaggingNotificationSettings = {
-    ReviewerSettings: ContentFlaggingReviewerSetting;
     EventTargetMapping: Record<ContentFlaggingEvent, NotificationTarget[]>;
-    AdditionalSettings: ContentFlaggingAdditionalSettings;
 }
 
 export type TeamReviewerSetting = {
@@ -1022,7 +1014,10 @@ export type ContentFlaggingAdditionalSettings = {
 }
 
 export type ContentFlaggingSettings = {
+    EnableContentFlagging: boolean;
     NotificationSettings: ContentFlaggingNotificationSettings;
+    ReviewerSettings: ContentFlaggingReviewerSetting;
+    AdditionalSettings: ContentFlaggingAdditionalSettings;
 }
 
 export type AdminConfig = {
@@ -1056,7 +1051,6 @@ export type AdminConfig = {
     AnalyticsSettings: AnalyticsSettings;
     CacheSettings: CacheSettings;
     ElasticsearchSettings: ElasticsearchSettings;
-    BleveSettings: BleveSettings;
     DataRetentionSettings: DataRetentionSettings;
     MessageExportSettings: MessageExportSettings;
     JobSettings: JobSettings;

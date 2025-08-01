@@ -70,8 +70,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/awsmeter"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
-	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine"
-	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine/indexer"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
@@ -85,12 +83,7 @@ const (
 	debugScheduledPostJobInterval = 2 * time.Second
 )
 
-var SentryDSN = "https://9d7c9cccf549479799f880bcf4f26323@o94110.ingest.sentry.io/5212327"
-
-// This is a placeholder to allow the existing release pipelines to run without failing to insert
-// the key that's now hard-coded above. Remove this once we converge on the unified delivery
-// pipeline in GitHub.
-var _ = "placeholder_sentry_dsn"
+var SentryDSN = "https://eaf281226106b5bba68694d1316da21c@o94110.ingest.us.sentry.io/5212327"
 
 type Server struct {
 	// RootRouter is the starting point for all HTTP requests to the server.
@@ -1413,7 +1406,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		})
 	}
 
-	//remove the license
+	// remove the license
 	if appErr := s.RemoveLicense(); appErr != nil {
 		mlog.Error("Error while removing the license.", mlog.Err(appErr))
 	}
@@ -1477,12 +1470,6 @@ func (s *Server) initJobs() {
 		builder := jobsAccessControlSyncJobInterface(s)
 		s.Jobs.RegisterJobType(model.JobTypeAccessControlSync, builder.MakeWorker(), builder.MakeScheduler())
 	}
-
-	s.Jobs.RegisterJobType(
-		model.JobTypeBlevePostIndexing,
-		indexer.MakeWorker(s.Jobs, s.platform.SearchEngine.BleveEngine.(*bleveengine.BleveEngine)),
-		nil,
-	)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeMigrations,
