@@ -284,7 +284,7 @@ export default class PostList extends React.PureComponent<Props, State> {
         if (error) {
             if (this.autoRetriesCount < MAX_NUMBER_OF_AUTO_RETRIES) {
                 this.autoRetriesCount++;
-                await this.callLoadPosts(channelId, postId, type);
+                await this.callLoadPosts(channelId, postId, type, perPage);
             } else if (this.mounted) {
                 this.setState({autoRetryEnable: false});
             }

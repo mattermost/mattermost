@@ -95,13 +95,13 @@ describe('components/post_view/post_list', () => {
         wrapper.find(VirtPostList).prop('actions').loadOlderPosts();
         expect(wrapper.state('loadingOlderPosts')).toEqual(true);
         expect(actionsProp.loadPosts).toHaveBeenCalledWith({channelId: baseProps.channelId, postId: postIds[postIds.length - 1], type: PostRequestTypes.BEFORE_ID});
-        await wrapper.instance().callLoadPosts('undefined', 'undefined', undefined);
+        await wrapper.instance().callLoadPosts('undefined', 'undefined', undefined, 30);
         expect(wrapper.state('loadingOlderPosts')).toBe(false);
 
         wrapper.find(VirtPostList).prop('actions').loadNewerPosts();
         expect(wrapper.state('loadingNewerPosts')).toEqual(true);
         expect(actionsProp.loadPosts).toHaveBeenCalledWith({channelId: baseProps.channelId, postId: postIds[0], type: PostRequestTypes.AFTER_ID});
-        await wrapper.instance().callLoadPosts('undefined', 'undefined', undefined);
+        await wrapper.instance().callLoadPosts('undefined', 'undefined', undefined, 30);
         expect(wrapper.state('loadingNewerPosts')).toBe(false);
     });
 
