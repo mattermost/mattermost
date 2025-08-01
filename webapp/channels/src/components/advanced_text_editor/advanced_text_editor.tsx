@@ -13,9 +13,14 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
-import {get, getBool, getInt} from 'mattermost-redux/selectors/entities/preferences';
+import {
+    getMyGroupMentionKeysForChannel,
+    getMyGroupMentionKeys,
+} from 'mattermost-redux/selectors/entities/groups';
+import {get, getBool, getInt, getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, getCurrentUser, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName, getUsersByUsername, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
+import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import * as GlobalActions from 'actions/global_actions';
 import type {CreatePostOptions} from 'actions/post_actions';
@@ -203,6 +208,51 @@ const AdvancedTextEditor = ({
         return enableTutorial && (tutorialStep === tourStep);
     });
 
+    // Get user information and mention keys
+    const usersByUsername = useSelector((state: GlobalState) => getUsersByUsername(state));
+    const teammateNameDisplay = useSelector((state: GlobalState) => getTeammateNameDisplaySetting(state));
+
+    // Generate mention keys (including fullname format)
+    const mentionKeys = useSelector((state: GlobalState) => {
+        const mentionKeysWithoutGroups = getCurrentUserMentionKeys(state);
+        const groupMentionKeys = channel ? getMyGroupMentionKeysForChannel(state, channel.team_id, channelId) : getMyGroupMentionKeys(state, false);
+        const baseMentionKeys = mentionKeysWithoutGroups.concat(groupMentionKeys);
+
+        // Add fullname format mention keys
+        const fullnameMentionKeys = [];
+        const users = getUsersByUsername(state);
+        const nameDisplaySetting = getTeammateNameDisplaySetting(state);
+
+        // Add fullname format mention key for current user
+        const currentUserInfo = getCurrentUser(state);
+        if (currentUserInfo) {
+            const currentUserDisplayName = displayUsername(currentUserInfo, nameDisplaySetting, false);
+            if (currentUserDisplayName !== currentUserInfo.username) {
+                fullnameMentionKeys.push({
+                    key: `@${currentUserDisplayName}`,
+                    caseSensitive: false,
+                });
+            }
+        }
+
+        // Add fullname format mention keys for other users
+        for (const [username, user] of Object.entries(users)) {
+            if (currentUserInfo && user.id === currentUserInfo.id) {
+                continue;
+            }
+
+            const displayName = displayUsername(user, nameDisplaySetting, false);
+            if (displayName !== username) {
+                fullnameMentionKeys.push({
+                    key: `@${displayName}`,
+                    caseSensitive: false,
+                });
+            }
+        }
+
+        return baseMentionKeys.concat(fullnameMentionKeys);
+    });
+
     const editorActionsRef = useRef<HTMLDivElement>(null);
     const editorBodyRef = useRef<HTMLDivElement>(null);
     const textboxRef = useRef<TextboxClass>(null);
@@ -363,17 +413,19 @@ const AdvancedTextEditor = ({
     );
 
     const handleSubmitWithErrorHandling = useCallback((submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
-        handleSubmit(submittingDraft, schedulingInfo, options);
-        if (!errorClass) {
-            const messageStatusElement = messageStatusRef.current;
-            const messageStatusInnerText = messageStatusElement?.textContent;
-            if (messageStatusInnerText === 'Message Sent') {
-                messageStatusElement!.textContent = 'Message Sent &nbsp;';
-            } else {
-                messageStatusElement!.textContent = 'Message Sent';
-            }
+        // Get raw value (username format) from Textbox on submission
+        let finalDraft = submittingDraft || draft;
+
+        if (textboxRef.current && typeof textboxRef.current.getRawValue === 'function') {
+            const rawValue = textboxRef.current.getRawValue();
+            finalDraft = {
+                ...finalDraft,
+                message: rawValue,
+            };
         }
-    }, [errorClass, handleSubmit]);
+
+        handleSubmit(finalDraft, schedulingInfo, options);
+    }, [errorClass, handleSubmit, draft, textboxRef]);
 
     const handleCancel = useCallback(() => {
         handleDraftChange({
@@ -798,6 +850,9 @@ const AdvancedTextEditor = ({
                             disabled={isDisabled}
                             characterLimit={maxPostSize}
                             preview={showPreview}
+                            usersByUsername={usersByUsername}
+                            teammateNameDisplay={teammateNameDisplay}
+                            mentionKeys={mentionKeys}
                             badConnection={badConnection}
                             useChannelMentions={useChannelMentions}
                             rootId={rootId}
