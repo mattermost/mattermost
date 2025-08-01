@@ -2,11 +2,20 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
+import {useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
+import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
+import {getUser} from 'mattermost-redux/selectors/entities/users';
+
+import AtMention from 'components/at_mention';
 import PropertiesCardView from 'components/properties_card_view/properties_card_view';
+
+import type {GlobalState} from 'types/store';
+
 import './data_spillage_report.scss';
 
 function getDummyPropertyFields(): PropertyField[] {
@@ -15,7 +24,7 @@ function getDummyPropertyFields(): PropertyField[] {
             id: 'status_field_id',
             group_id: 'content_flagging_group_id',
             name: 'Status',
-            type: 'text',
+            type: 'select',
             target_type: 'post',
             create_at: 0,
             update_at: 0,
@@ -35,7 +44,7 @@ function getDummyPropertyFields(): PropertyField[] {
             id: 'reason_field_id',
             group_id: 'content_flagging_group_id',
             name: 'Reason',
-            type: 'text',
+            type: 'select',
             target_type: 'post',
             create_at: 0,
             update_at: 0,
@@ -223,8 +232,27 @@ type Props = {
 }
 
 export default function DataSpillageReport({post}: Props) {
+    const dispatch = useDispatch();
+    const {formatMessage} = useIntl();
+
     const [propertyFields, setPropertyFields] = useState<PropertyField[]>([]);
     const [propertyValues, setPropertyValues] = useState<Array<PropertyValue<unknown>>>([]);
+
+    const reportingUserIdValue = propertyValues.find((value) => value.field_id === 'reporting_user_id_field_id');
+    const reportingUser = useSelector((state: GlobalState) => getUser(state, reportingUserIdValue ? reportingUserIdValue.value as string : ''));
+
+    useEffect(() => {
+        if (!reportingUser && reportingUserIdValue) {
+            dispatch(getMissingProfilesByIds([reportingUserIdValue.value as string]));
+        }
+    }, [dispatch, reportingUser, reportingUserIdValue]);
+
+    const title = formatMessage({
+        id: 'data_spillage_report_post.title',
+        defaultMessage: '{user} flagged a message for review',
+    }, {
+        user: (<AtMention mentionName={reportingUser?.username || ''}/>),
+    });
 
     useEffect(() => {
         const reportedPostId = post.props.reported_post_id;
@@ -237,6 +265,7 @@ export default function DataSpillageReport({post}: Props) {
     return (
         <div className={'DataSpillageReport'}>
             <PropertiesCardView
+                title={title}
                 propertyFields={propertyFields}
                 propertyValues={propertyValues}
                 fieldOrder={fieldOrder}

@@ -5,14 +5,19 @@ import React, {useMemo} from 'react';
 
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
+import PropertyValueRenderer from './propertyValueRenderer/propertyValueRenderer';
+
+import './propertyes_card_view.scss';
+
 type Props = {
+    title: React.ReactNode;
     propertyFields: PropertyField[];
     fieldOrder: Array<PropertyField['id']>;
     propertyValues: Array<PropertyValue<unknown>>;
     mode?: 'short' | 'full';
 }
 
-export default function PropertiesCardView({propertyFields, fieldOrder, propertyValues, mode}: Props) {
+export default function PropertiesCardView({title, propertyFields, fieldOrder, propertyValues, mode}: Props) {
     const orderedRows = useMemo<Array<{field: PropertyField; value: PropertyValue<unknown>}>>(() => {
         if (!propertyFields.length || !fieldOrder.length || !propertyValues.length) {
             return [];
@@ -21,23 +26,22 @@ export default function PropertiesCardView({propertyFields, fieldOrder, property
         const fieldsById = propertyFields.reduce((acc, field) => {
             acc[field.id] = field;
             return acc;
-        }, {});
+        }, {} as {[key: string]: PropertyField});
 
         const valuesByFieldId = propertyValues.reduce((acc, value) => {
             acc[value.field_id] = value;
             return acc;
-        }, {});
+        }, {} as {[key: string]: PropertyValue<unknown>});
 
         return fieldOrder.map((fieldId) => {
             const field = fieldsById[fieldId];
             const value = valuesByFieldId[fieldId];
 
-            console.log('Adding', {field, value});
             return {
                 field,
                 value,
             };
-        });
+        }).filter((entry) => Boolean(entry.value));
     }, [fieldOrder, propertyFields, propertyValues]);
 
     if (orderedRows.length === 0) {
@@ -48,18 +52,33 @@ export default function PropertiesCardView({propertyFields, fieldOrder, property
 
     return (
         <div className='PropertyCardView'>
-            {
-                orderedRows.map(({field, value}) => (
-                    <div key={field.id}>
-                        <div className='PropertyCardView__field-name'>
-                            {field.name}
-                        </div>
-                        <div className='PropertyCardView__field-value'>
-                            {value ? String(value.value) : 'N/A'}
-                        </div>
-                    </div>
-                ))
-            }
+            <div className='PropertyCardView_title'>
+                {title}
+            </div>
+
+            <div className='PropertyCardView_fields'>
+                {
+                    orderedRows.map(({field, value}) => {
+                        return (
+                            <div
+                                key={field.id}
+                                className='row'
+                            >
+                                <div className='field'>
+                                    {field.name}
+                                </div>
+
+                                <div className='value'>
+                                    <PropertyValueRenderer
+                                        field={field}
+                                        value={value}
+                                    />
+                                </div>
+                            </div>
+                        );
+                    })
+                }
+            </div>
         </div>
     );
 }

@@ -634,7 +634,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 		contentFlaggingPropertyNameStatus: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameStatus,
-			Type:    model.PropertyFieldTypeText,
+			Type:    model.PropertyFieldTypeSelect,
 		},
 		contentFlaggingPropertyNameReportingUserID: {
 			GroupID: group.ID,
@@ -644,7 +644,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 		contentFlaggingPropertyNameReportingReason: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameReportingReason,
-			Type:    model.PropertyFieldTypeText,
+			Type:    model.PropertyFieldTypeSelect,
 		},
 		contentFlaggingPropertyNameReportingComment: {
 			GroupID: group.ID,
