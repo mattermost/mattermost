@@ -1728,10 +1728,6 @@
     "translation": "Mô tả không hợp lệ."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Không thể đặt plugin như được quản lý bởi kho lưu trữ tệp."
-  },
-  {
     "id": "api.command_invite.name",
     "translation": "mời"
   },
@@ -8156,10 +8152,6 @@
   {
     "id": "model.session.is_valid.create_at.app_error",
     "translation": "Trường CreateAt không hợp lệ cho phiên."
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Lỗi đọc file từ backend"
   },
   {
     "id": "model.draft.is_valid.user_id.app_error",

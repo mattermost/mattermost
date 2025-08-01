@@ -5128,10 +5128,6 @@
     "translation": "Une erreur s'est produite lors de la récupération de la clé publique à partir du magasin."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Impossible de définir le plugin comme géré par le gestionnaire de fichiers."
-  },
-  {
     "id": "app.plugin.delete_public_key.delete.app_error",
     "translation": "Une erreur s'est produite lors de la suppression de la clé publique."
   },
@@ -7438,10 +7434,6 @@
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
     "translation": "Vous avez déjà effectué la mise à niveau vers Mattermost version entreprise. Veuillez redémarrer le serveur pour terminer la mise à niveau."
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Une erreur s'est produite lors de la lecture à partir du backend"
   },
   {
     "id": "api.unable_to_create_zip_file",

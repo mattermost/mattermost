@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 134+"
+    "translation": "Version 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 134+"
+    "translation": "Version 138+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -2514,10 +2514,6 @@
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
     "translation": "Kunde inte hämta tilläggsstatus från klustret."
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Kan inte att ange plugin som hanteras av filarkivet."
   },
   {
     "id": "app.plugin.filesystem.app_error",
@@ -6736,15 +6732,15 @@
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here är avaktiverad eftersom kanalen har fler än {{.Users}} användare."
+    "translation": "Aviseringar med @here är avaktiverad i kanaler med fler än {{.Users}} användare. Kontakta din systemadministratör för mer information."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel är avaktiverad eftersom kanalen har fler än {{.Users}} användare."
+    "translation": "Aviseringar med @channel är avaktiverad i kanaler med fler än {{.Users}} användare. Kontakta din systemadministratör för mer information."
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all är avaktiverad eftersom kanalen har fler än {{.Users}} användare."
+    "translation": "Aviseringar med @all är avaktiverad i kanaler med fler än {{.Users}} användare. Kontakta din systemadministratör för mer information."
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
@@ -7369,10 +7365,6 @@
   {
     "id": "api.getThreadsForUser.bad_params",
     "translation": "Använd endast en av parametrarna Before eller After för getThreadsForUser"
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Fel när filen lästes från servern"
   },
   {
     "id": "api.unable_to_create_zip_file",
@@ -10552,14 +10544,6 @@
     "translation": "Misslyckades att hämta CPA-fält"
   },
   {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "Fel vid uppdatering av CPA-värden"
-  },
-  {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "Fel när CPA-värde uppdaterades"
-  },
-  {
     "id": "ent.ldap.update_cpa.empty_attribute",
     "translation": "Tomt LDAP-attributvärde"
   },
@@ -10692,16 +10676,8 @@
     "translation": "Kunde inte hämta kanalmedlemmar som ska tas bort."
   },
   {
-    "id": "api.license.add_license.mysql.app_error",
-    "translation": "Den här licensen stödjer inte MySQL."
-  },
-  {
     "id": "app.pap.get_policy_attributes.app_error",
     "translation": "Det gick inte att få fram attribut för policyn."
-  },
-  {
-    "id": "api.license.request-trial.mysql.app_error",
-    "translation": "MySQL-databaser stöds inte av testlicenser. Använd PostgreSQL för att få tillgång till testfunktioner."
   },
   {
     "id": "app.group.create_syncable_memberships.error",
@@ -10733,11 +10709,11 @@
   },
   {
     "id": "api.access_control_policy.get_channels.limit.app_error",
-    "translation": "Gränsen för Get Channels är inte giltig."
+    "translation": "Gränsen för Get channels är inte giltig."
   },
   {
     "id": "api.access_control_policy.get_fields.limit.app_error",
-    "translation": "Gränsen för Hämta fält är inte giltig."
+    "translation": "Gränsen för hämta fält är inte giltig."
   },
   {
     "id": "app.pap.assign_access_control_policy_to_channels.app_error",
