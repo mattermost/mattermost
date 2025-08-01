@@ -96,7 +96,7 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                     className="status "
                   >
                     <svg
-                      aria-label="Offline Icon"
+                      aria-label="Offline"
                       className="offline--icon"
                       height="100%"
                       role="img"
@@ -318,7 +318,7 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                     className="status "
                   >
                     <svg
-                      aria-label="Offline Icon"
+                      aria-label="Offline"
                       className="offline--icon"
                       height="100%"
                       role="img"
@@ -546,7 +546,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                     className="status "
                   >
                     <svg
-                      aria-label="Offline Icon"
+                      aria-label="Offline"
                       className="offline--icon"
                       height="100%"
                       role="img"
@@ -834,7 +834,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                     className="status "
                   >
                     <svg
-                      aria-label="Offline Icon"
+                      aria-label="Offline"
                       className="offline--icon"
                       height="100%"
                       role="img"

@@ -15,7 +15,7 @@ export default function StatusOnlineIcon(props: React.HTMLAttributes<HTMLSpanEle
                 viewBox='0 0 20 20'
                 style={style}
                 role='img'
-                aria-label={formatMessage({id: 'mobile.set_status.online.icon', defaultMessage: 'Online Icon'})}
+                aria-label={formatMessage({id: 'mobile.set_status.online.icon', defaultMessage: 'Online'})}
             >
                 <path
                     className='online--icon'
