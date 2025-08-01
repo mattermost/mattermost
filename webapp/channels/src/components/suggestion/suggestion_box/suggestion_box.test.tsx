@@ -314,7 +314,9 @@ describe('SuggestionBox', () => {
 
         // Ensure that the input is correctly linked to the suggestion list
         expect(document.getElementById(input.getAttribute('aria-controls')!)).toBe(screen.getByRole('listbox'));
-        expect(document.getElementById(input.getAttribute('aria-activedescendant')!)).toBe(screen.getByRole('listbox').firstElementChild);
+        expect(input.getAttribute('aria-activedescendant')).toBe(
+            screen.getByRole('group', {name: 'Channel Members'}).firstElementChild!.nextElementSibling!.id,
+        );
 
         // The number of results should also be read out
         expect(screen.getByRole('status')).toHaveTextContent('2 suggestions available');
@@ -322,12 +324,16 @@ describe('SuggestionBox', () => {
         // Pressing the down arrow should change the selection to the second user
         await userEvent.keyboard('{arrowdown}');
 
-        expect(document.getElementById(input.getAttribute('aria-activedescendant')!)).toBe(screen.getByRole('listbox').lastElementChild);
+        expect(input.getAttribute('aria-activedescendant')).toBe(
+            screen.getByRole('group', {name: 'Channel Members'}).lastElementChild!.id,
+        );
 
         // Pressing the up arrow should change the selection back to the first user
         await userEvent.keyboard('{arrowup}');
 
-        expect(document.getElementById(input.getAttribute('aria-activedescendant')!)).toBe(screen.getByRole('listbox').firstElementChild);
+        expect(input.getAttribute('aria-activedescendant')).toBe(
+            screen.getByRole('group', {name: 'Channel Members'}).firstElementChild!.nextElementSibling!.id,
+        );
 
         // Pressing enter should complete the result and close the suggestions
         await userEvent.keyboard('{enter}');
