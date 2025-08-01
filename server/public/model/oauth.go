@@ -129,7 +129,6 @@ func (a *OAuthApp) IsValid() *AppError {
 		}
 	}
 
-
 	// Validate grant types and response types compatibility
 	if len(a.GrantTypes) > 0 && len(a.ResponseTypes) > 0 {
 		if err := ValidateGrantTypesAndResponseTypes(a.GrantTypes, a.ResponseTypes); err != nil {
@@ -204,8 +203,6 @@ func NewOAuthAppFromClientRegistration(req *ClientRegistrationRequest, creatorId
 		app.Name = "Dynamically Registered Client"
 	}
 
-	// Note: Homepage is optional for DCR apps per RFC 7591
-
 	// Set DCR-specific fields
 	if req.TokenEndpointAuthMethod != nil {
 		app.TokenEndpointAuthMethod = req.TokenEndpointAuthMethod
@@ -218,7 +215,6 @@ func NewOAuthAppFromClientRegistration(req *ClientRegistrationRequest, creatorId
 	if len(req.ResponseTypes) > 0 {
 		app.ResponseTypes = req.ResponseTypes
 	}
-
 
 	return app
 }

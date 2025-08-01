@@ -6,7 +6,6 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -376,58 +375,6 @@ func registerOAuthClient(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Logger.Warn("Error writing DCR error response", mlog.Err(err))
 		}
 		return
-	}
-
-	// Mattermost only supports "user" scope - ignore whatever client requests
-	// and always set it to "user" for consistency
-	userScope := "user"
-	clientRequest.Scope = &userScope
-
-	// Check for initial access token if required
-	if c.App.Config().ServiceSettings.DCRRequireInitialAccessToken != nil && *c.App.Config().ServiceSettings.DCRRequireInitialAccessToken {
-		authHeader := r.Header.Get("Authorization")
-		if authHeader == "" {
-			dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, "Initial access token required")
-
-			w.WriteHeader(http.StatusUnauthorized)
-			if _, err := w.Write([]byte(dcrError.ToJSON())); err != nil {
-				c.Logger.Warn("Error writing DCR error response", mlog.Err(err))
-			}
-			return
-		}
-
-		// Validate initial access token format (Bearer <token>)
-		if !strings.HasPrefix(authHeader, "Bearer ") {
-			dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, "Invalid initial access token format")
-
-			w.WriteHeader(http.StatusUnauthorized)
-			if _, err := w.Write([]byte(dcrError.ToJSON())); err != nil {
-				c.Logger.Warn("Error writing DCR error response", mlog.Err(err))
-			}
-			return
-		}
-
-		token := strings.TrimPrefix(authHeader, "Bearer ")
-		if token == "" {
-			dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, "Empty initial access token")
-
-			w.WriteHeader(http.StatusUnauthorized)
-			if _, err := w.Write([]byte(dcrError.ToJSON())); err != nil {
-				c.Logger.Warn("Error writing DCR error response", mlog.Err(err))
-			}
-			return
-		}
-
-		// Validate the token (for now, just check it's a valid format)
-		if len(token) < 10 || len(token) > 256 {
-			dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, "Invalid initial access token")
-
-			w.WriteHeader(http.StatusUnauthorized)
-			if _, err := w.Write([]byte(dcrError.ToJSON())); err != nil {
-				c.Logger.Warn("Error writing DCR error response", mlog.Err(err))
-			}
-			return
-		}
 	}
 
 	// No user ID for DCR
