@@ -73,53 +73,6 @@ func TestGetMattermostLog(t *testing.T) {
 	assert.Positive(t, len(fileData.Body))
 }
 
-func TestGetNotificationLogFile(t *testing.T) {
-	mainHelper.Parallel(t)
-
-	th := Setup(t)
-	defer th.TearDown()
-
-	// Disable notifications file setting in config so we should get an warning
-	th.Service.UpdateConfig(func(cfg *model.Config) {
-		*cfg.NotificationLogSettings.EnableFile = false
-	})
-
-	fileData, err := th.Service.GetNotificationLogFile(th.Context)
-	assert.Nil(t, fileData)
-	assert.ErrorContains(t, err, "Unable to retrieve notifications logs because NotificationLogSettings.EnableFile is set to false")
-
-	dir, err := os.MkdirTemp("", "")
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		err = os.RemoveAll(dir)
-		assert.NoError(t, err)
-	})
-
-	// Enable notifications file but point to an empty directory to get an error trying to read the file
-	th.Service.UpdateConfig(func(cfg *model.Config) {
-		*cfg.NotificationLogSettings.EnableFile = true
-		*cfg.NotificationLogSettings.FileLocation = dir
-	})
-
-	logLocation := config.GetNotificationsLogFileLocation(dir)
-
-	// There is no notifications.log file yet, so this fails
-	fileData, err = th.Service.GetNotificationLogFile(th.Context)
-	assert.Nil(t, fileData)
-	assert.ErrorContains(t, err, "failed read notifcation log file at path "+logLocation)
-
-	// Happy path where we have file and no error
-	d1 := []byte("hello\ngo\n")
-	err = os.WriteFile(logLocation, d1, 0777)
-	require.NoError(t, err)
-
-	fileData, err = th.Service.GetNotificationLogFile(th.Context)
-	assert.NoError(t, err)
-	require.NotNil(t, fileData)
-	assert.Equal(t, "notifications.log", fileData.Filename)
-	assert.Positive(t, len(fileData.Body))
-}
-
 func TestGetAdvancedLogs(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -147,12 +100,6 @@ func TestGetAdvancedLogs(t *testing.T) {
 		dataStd, err := json.Marshal(optStd)
 		require.NoError(t, err)
 
-		optNotif := map[string]string{
-			"filename": path.Join(dir, "notification.log"),
-		}
-		dataNotif, err := json.Marshal(optNotif)
-		require.NoError(t, err)
-
 		// LogSettings config
 		logCfg := mlog.LoggerConfiguration{
 			"ldap-file": mlog.TargetCfg{
@@ -178,38 +125,19 @@ func TestGetAdvancedLogs(t *testing.T) {
 		logCfgData, err := json.Marshal(logCfg)
 		require.NoError(t, err)
 
-		// NotificationLogSettings config
-		notifCfg := mlog.LoggerConfiguration{
-			"notification": mlog.TargetCfg{
-				Type:   "file",
-				Format: "json",
-				Levels: []mlog.Level{
-					mlog.LvlInfo,
-				},
-				Options: dataNotif,
-			},
-		}
-		notifCfgData, err := json.Marshal(notifCfg)
-		require.NoError(t, err)
-
 		th.Service.UpdateConfig(func(c *model.Config) {
 			c.LogSettings.AdvancedLoggingJSON = logCfgData
-			c.NotificationLogSettings.AdvancedLoggingJSON = notifCfgData
 			// Audit logs are not testiable as they as part of the server, not the platform
 		})
 
 		// Write some logs and ensure they're flushed
 		logger := th.Service.Logger()
-		notifLogger := th.Service.NotificationsLogger()
 
 		logger.LogM([]mlog.Level{mlog.LvlLDAPInfo}, "Some LDAP info")
 		logger.Error("Some Error")
-		notifLogger.Info("Some Notification")
 
-		// Flush both loggers and wait a bit for filesystem
+		// Flush logger and wait a bit for filesystem
 		err = logger.Flush()
-		require.NoError(t, err)
-		err = notifLogger.Flush()
 		require.NoError(t, err)
 
 		// Get and verify logs
@@ -218,7 +146,7 @@ func TestGetAdvancedLogs(t *testing.T) {
 		for _, fd := range fileDatas {
 			t.Log(fd.Filename)
 		}
-		require.Len(t, fileDatas, 3)
+		require.Len(t, fileDatas, 2)
 
 		// Helper to find file data by name
 		findFile := func(name string) *model.FileData {
@@ -238,10 +166,6 @@ func TestGetAdvancedLogs(t *testing.T) {
 		stdFile := findFile("std.log")
 		require.NotNil(t, stdFile)
 		testlib.AssertLog(t, bytes.NewBuffer(stdFile.Body), mlog.LvlError.Name, "Some Error")
-
-		notifFile := findFile("notification.log")
-		require.NotNil(t, notifFile)
-		testlib.AssertLog(t, bytes.NewBuffer(notifFile.Body), mlog.LvlInfo.Name, "Some Notification")
 	})
 	// Disable AdvancedLoggingJSON
 	th.Service.UpdateConfig(func(c *model.Config) {

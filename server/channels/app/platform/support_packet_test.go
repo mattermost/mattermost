@@ -39,17 +39,13 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	th.Service.UpdateConfig(func(cfg *model.Config) {
 		*cfg.LogSettings.FileLocation = dir
-		*cfg.NotificationLogSettings.FileLocation = dir
 	})
 
 	logLocation := config.GetLogFileLocation(dir)
-	notificationsLogLocation := config.GetNotificationsLogFileLocation(dir)
 
 	genMockLogFiles := func() {
 		d1 := []byte("hello\ngo\n")
 		genErr := os.WriteFile(logLocation, d1, 0600)
-		require.NoError(t, genErr)
-		genErr = os.WriteFile(notificationsLogLocation, d1, 0600)
 		require.NoError(t, genErr)
 	}
 	genMockLogFiles()
@@ -73,10 +69,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		"goroutines",
 	}
 
-	expectedFileNamesWithLogs := append(expectedFileNames, []string{
-		"mattermost.log",
-		"notifications.log",
-	}...)
+	expectedFileNamesWithLogs := append(expectedFileNames, "mattermost.log")
 
 	var fileDatas []model.FileData
 
@@ -102,8 +95,6 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	t.Run("remove the log files and ensure that an error is returned", func(t *testing.T) {
 		err = os.Remove(logLocation)
-		require.NoError(t, err)
-		err = os.Remove(notificationsLogLocation)
 		require.NoError(t, err)
 		t.Cleanup(genMockLogFiles)
 
