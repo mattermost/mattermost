@@ -351,7 +351,6 @@ type ServiceSettings struct {
 	GoroutineHealthThreshold            *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableOAuthServiceProvider          *bool    `access:"integrations_integration_management"`
 	EnableDynamicClientRegistration     *bool    `access:"integrations_integration_management"`
-	DCRRequireInitialAccessToken        *bool    `access:"integrations_integration_management"`
 	EnableIncomingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableOutgoingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableOutgoingOAuthConnections      *bool    `access:"integrations_integration_management"`
@@ -554,10 +553,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableDynamicClientRegistration == nil {
 		s.EnableDynamicClientRegistration = NewPointer(false)
-	}
-
-	if s.DCRRequireInitialAccessToken == nil {
-		s.DCRRequireInitialAccessToken = NewPointer(false)
 	}
 
 	if s.EnableIncomingWebhooks == nil {

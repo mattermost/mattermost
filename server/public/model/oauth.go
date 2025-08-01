@@ -36,13 +36,7 @@ type OAuthApp struct {
 	GrantTypes              StringArray `json:"grant_types,omitempty"`
 	ResponseTypes           StringArray `json:"response_types,omitempty"`
 	TokenEndpointAuthMethod *string     `json:"token_endpoint_auth_method,omitempty"`
-	ClientURI               *string     `json:"client_uri,omitempty"`
-	LogoURI                 *string     `json:"logo_uri,omitempty"`
-	Scope                   *string     `json:"scope,omitempty"`
-
-	// DCR management fields
-	ClientIDIssuedAt        int64 `json:"client_id_issued_at,omitempty"`
-	IsDynamicallyRegistered bool  `json:"is_dynamically_registered,omitempty"`
+	IsDynamicallyRegistered bool        `json:"is_dynamically_registered,omitempty"`
 }
 
 func (a *OAuthApp) Auditable() map[string]any {
@@ -61,9 +55,6 @@ func (a *OAuthApp) Auditable() map[string]any {
 		"grant_types":                a.GrantTypes,
 		"response_types":             a.ResponseTypes,
 		"token_endpoint_auth_method": a.TokenEndpointAuthMethod,
-		"client_uri":                 a.ClientURI,
-		"logo_uri":                   a.LogoURI,
-		"scope":                      a.Scope,
 		"is_dynamically_registered":  a.IsDynamicallyRegistered,
 	}
 }
@@ -150,15 +141,6 @@ func (a *OAuthApp) IsValid() *AppError {
 		}
 	}
 
-	// Validate DCR URIs
-	if a.ClientURI != nil && *a.ClientURI != "" && !IsValidHTTPURL(*a.ClientURI) {
-		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.client_uri.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
-	}
-
-	if a.LogoURI != nil && *a.LogoURI != "" && !IsValidHTTPURL(*a.LogoURI) {
-		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.logo_uri.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
-	}
-
 	// Validate grant types and response types compatibility
 	if len(a.GrantTypes) > 0 && len(a.ResponseTypes) > 0 {
 		if err := ValidateGrantTypesAndResponseTypes(a.GrantTypes, a.ResponseTypes); err != nil {
@@ -203,11 +185,6 @@ func (a *OAuthApp) PreSave() {
 		a.TokenEndpointAuthMethod = NewPointer(ClientAuthMethodClientSecretPost)
 	}
 
-	// Set timestamps for DCR
-	if a.ClientIDIssuedAt == 0 {
-		a.ClientIDIssuedAt = GetMillis()
-	}
-
 	// Set registration access token for dynamically registered clients
 
 	a.CreateAt = GetMillis()
@@ -248,12 +225,6 @@ func NewOAuthAppFromClientRegistration(req *ClientRegistrationRequest, creatorId
 		app.Name = "Dynamically Registered Client"
 	}
 
-	if req.ClientURI != nil {
-		app.ClientURI = req.ClientURI
-		app.Homepage = *req.ClientURI // Use client_uri as homepage for compatibility
-	}
-	// Note: Homepage is optional for DCR apps per RFC 7591
-
 	// Set DCR-specific fields
 	if req.TokenEndpointAuthMethod != nil {
 		app.TokenEndpointAuthMethod = req.TokenEndpointAuthMethod
@@ -267,15 +238,6 @@ func NewOAuthAppFromClientRegistration(req *ClientRegistrationRequest, creatorId
 		app.ResponseTypes = req.ResponseTypes
 	}
 
-	if req.LogoURI != nil {
-		app.LogoURI = req.LogoURI
-		app.IconURL = *req.LogoURI // Use logo_uri as icon_url for compatibility
-	}
-
-	if req.Scope != nil {
-		app.Scope = req.Scope
-	}
-
 	return app
 }
 
@@ -287,7 +249,6 @@ func (a *OAuthApp) ToClientRegistrationResponse(siteURL string) *ClientRegistrat
 	}
 	resp := &ClientRegistrationResponse{
 		ClientID:                a.Id,
-		ClientIDIssuedAt:        a.ClientIDIssuedAt,
 		RedirectURIs:            a.CallbackUrls,
 		TokenEndpointAuthMethod: authMethod,
 		GrantTypes:              a.GrantTypes,
@@ -303,18 +264,6 @@ func (a *OAuthApp) ToClientRegistrationResponse(siteURL string) *ClientRegistrat
 	// Set optional metadata
 	if a.Name != "" {
 		resp.ClientName = &a.Name
-	}
-
-	if a.ClientURI != nil && *a.ClientURI != "" {
-		resp.ClientURI = a.ClientURI
-	}
-
-	if a.LogoURI != nil && *a.LogoURI != "" {
-		resp.LogoURI = a.LogoURI
-	}
-
-	if a.Scope != nil && *a.Scope != "" {
-		resp.Scope = a.Scope
 	}
 
 	return resp
