@@ -68,7 +68,7 @@ func (c *SearchChannelStore) indexChannel(rctx request.CTX, channel *model.Chann
 
 func (c *SearchChannelStore) bulkIndexChannels(rctx request.CTX, channels []*model.Channel, teamMemberIDs []string) {
 	// Util function to get userIDs, only for private channels
-	getUserIDsForChannel := func(channel *model.Channel) ([]string, error) {
+	getUserIDsForPrivateChannel := func(channel *model.Channel) ([]string, error) {
 		if channel.Type != model.ChannelTypePrivate {
 			return []string{}, nil
 		}
@@ -81,7 +81,7 @@ func (c *SearchChannelStore) bulkIndexChannels(rctx request.CTX, channels []*mod
 		}
 
 		runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
-			appErr := engineCopy.SyncBulkIndexChannels(rctx, channels, getUserIDsForChannel, teamMemberIDs)
+			appErr := engineCopy.SyncBulkIndexChannels(rctx, channels, getUserIDsForPrivateChannel, teamMemberIDs)
 			if appErr != nil {
 				rctx.Logger().Error("Failed to synchronously bulk-index channels.", mlog.String("search_engine", engineCopy.GetName()))
 				return
