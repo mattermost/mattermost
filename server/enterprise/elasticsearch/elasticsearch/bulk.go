@@ -21,7 +21,7 @@ type BulkClient interface {
 }
 
 // NewBulk returns a BulkClient, with the specific implementation depending on
-// the specified thersholds in bulkSettings.
+// the specified thresholds in bulkSettings.
 // NewBulk will return an error if bulkSettings.FlushNumReqs and
 // bulkSettings.FlushBytes are both non-zero: the support of these thresholds
 // by the implementations of BulkClient is mutually exclusive.

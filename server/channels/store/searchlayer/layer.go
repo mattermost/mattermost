@@ -122,7 +122,7 @@ func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string) {
 		return s.channel.GetPublicChannelsForTeam(teamID, page*perPage, perPage)
 	}, perPage)
 	if err != nil {
-		rctx.Logger().Warn("Encountered error while retreiving public channels for indexing", mlog.String("team_id", teamID), mlog.Err(err))
+		rctx.Logger().Warn("Encountered error while retrieving public channels for indexing", mlog.String("team_id", teamID), mlog.Err(err))
 		return
 	}
 
@@ -134,7 +134,7 @@ func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string) {
 	masterRctx := store.RequestContextWithMaster(rctx)
 	teamMemberIDs, err := s.channel.GetTeamMembersForChannel(masterRctx, channels[0].Id)
 	if err != nil {
-		rctx.Logger().Warn("Encountered error while retrveiving team members for channel", mlog.String("channel_id", channels[0].Id), mlog.Err(err))
+		rctx.Logger().Warn("Encountered error while retrieving team members for channel", mlog.String("channel_id", channels[0].Id), mlog.Err(err))
 		return
 	}
 
