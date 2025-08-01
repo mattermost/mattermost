@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"slices"
 	"strings"
 	"testing"
 
@@ -845,10 +846,8 @@ func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 		panic(err1)
 	}
 
-	for _, existingPermission := range role.Permissions {
-		if existingPermission == permission {
-			return
-		}
+	if slices.Contains(role.Permissions, permission) {
+		return
 	}
 
 	role.Permissions = append(role.Permissions, permission)
@@ -862,11 +861,25 @@ func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 func TestFullyQualifiedRedirectURL(t *testing.T) {
 	const siteURL = "https://xxx.yyy/mm"
 	for target, expected := range map[string]string{
-		"":            "https://xxx.yyy/mm",
-		"/":           "https://xxx.yyy/mm/",
-		"some-path":   "https://xxx.yyy/mm/some-path",
-		"/some-path":  "https://xxx.yyy/mm/some-path",
-		"/some-path/": "https://xxx.yyy/mm/some-path/",
+		"":                                     siteURL,
+		"/":                                    siteURL + "/",
+		"some-path":                            siteURL + "/some-path",
+		"/some-path":                           siteURL + "/some-path",
+		"/some-path/":                          siteURL + "/some-path/",
+		"/some-path?foo=bar":                   siteURL + "/some-path?foo=bar",
+		"/some-path#section":                   siteURL + "/some-path#section",
+		"../bad-path":                          siteURL,
+		"/index.html":                          siteURL + "/index.html",
+		"//evil.com":                           siteURL,
+		"https://xxx.yyy/mm":                   siteURL,
+		"https://xxx.yyy/mm//double-concat":    siteURL + "//double-concat",
+		"https://xxx.yyy/other-path/":          siteURL,
+		"https://xxx.yyy/mm/some-path":         siteURL + "/some-path",
+		"https://yyy.zzz/mm/some-path":         siteURL,
+		"https://xxx.yyy/mm/some-path?foo=bar": siteURL + "/some-path?foo=bar",
+		"https://xxx.yyy/mm/some-path#section": siteURL + "/some-path#section",
+		"https://xxx.yyy/mm/../malicious-path": siteURL,
+		":foo":                                 siteURL,
 	} {
 		t.Run(target, func(t *testing.T) {
 			require.Equal(t, expected, fullyQualifiedRedirectURL(siteURL, target))

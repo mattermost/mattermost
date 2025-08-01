@@ -373,12 +373,7 @@ func (as SqlOAuthStore) deleteApp(transaction *sqlxTxWrapper, clientId string) e
 }
 
 func (as SqlOAuthStore) deleteOAuthAppSessions(transaction *sqlxTxWrapper, clientId string) error {
-	query := ""
-	if as.DriverName() == model.DatabaseDriverPostgres {
-		query = "DELETE FROM Sessions s USING OAuthAccessData o WHERE o.Token = s.Token AND o.ClientId = ?"
-	} else if as.DriverName() == model.DatabaseDriverMysql {
-		query = "DELETE s.* FROM Sessions s INNER JOIN OAuthAccessData o ON o.Token = s.Token WHERE o.ClientId = ?"
-	}
+	query := "DELETE FROM Sessions s USING OAuthAccessData o WHERE o.Token = s.Token AND o.ClientId = ?"
 
 	if _, err := transaction.Exec(query, clientId); err != nil {
 		return errors.Wrapf(err, "failed to delete Session with OAuthAccessData.Id=%s", clientId)

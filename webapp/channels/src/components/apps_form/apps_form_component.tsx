@@ -33,6 +33,7 @@ export type AppsFormProps = {
     form: AppForm;
     isEmbedded?: boolean;
     onExited: () => void;
+    onHide?: () => void;
     actions: {
         submit: (submission: {
             values: AppFormValues;
@@ -289,6 +290,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
     };
 
     onHide = () => {
+        this.props.onHide?.();
         this.handleHide(false);
     };
 
@@ -500,9 +502,9 @@ export class AppsForm extends React.PureComponent<Props, State> {
     }
 
     renderFooter() {
-        const {fields} = this.props.form;
+        const {fields, submit_label: submitLabel} = this.props.form;
 
-        const submitText: React.ReactNode = (
+        const submitText: React.ReactNode = submitLabel || (
             <FormattedMessage
                 id='interactive_dialog.submit'
                 defaultMessage='Submit'

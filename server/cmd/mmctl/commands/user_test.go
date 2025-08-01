@@ -1171,7 +1171,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 		err := userInviteCmdF(s.client, &cobra.Command{}, append([]string{argUser}, argTeam...))
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), len(argTeam))
-		for i := 0; i < len(argTeam); i++ {
+		for i := range argTeam {
 			s.Require().Equal("Invites may or may not have been sent.", printer.GetLines()[i])
 		}
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1331,7 +1331,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 		err := userInviteCmdF(s.client, &cobra.Command{}, append([]string{argUser}, argTeam...))
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 4)
-		for i := 0; i < 4; i++ {
+		for i := range 4 {
 			s.Require().Equal("Invites may or may not have been sent.", printer.GetLines()[i])
 		}
 		s.Require().Len(printer.GetErrorLines(), 2)
@@ -2319,7 +2319,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		argEmails := []string{mockUser1.Email, mockUser2.Email, mockUser3.Email}
 		argUsers := []model.User{mockUser1, mockUser2, mockUser3}
 
-		for i := 0; i < len(argEmails); i++ {
+		for i := range argEmails {
 			s.client.
 				EXPECT().
 				GetUserByEmail(context.TODO(), argEmails[i], "").
@@ -2327,7 +2327,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 				Times(1)
 		}
 
-		for i := 0; i < len(argEmails); i++ {
+		for i := range argEmails {
 			s.client.
 				EXPECT().
 				UpdateUserActive(context.TODO(), argUsers[i].Id, false).
@@ -2932,5 +2932,327 @@ func (s *MmctlUnitTestSuite) TestDemoteUserToGuestCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Sprintf("unable to demote user %s: %s", emailArg, "some-error"), printer.GetErrorLines()[0])
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestUserEditUsernameCmd() {
+	s.Run("User not found", func() {
+		printer.Clean()
+
+		command := cobra.Command{}
+		userArg := "testUser"
+		newUsername := "newusername"
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), userArg, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(context.TODO(), userArg, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		err := userEditUsernameCmdF(s.client, &command, []string{userArg, newUsername})
+
+		s.Require().EqualError(err, "user testUser not found")
+	})
+
+	s.Run("Edit username successfully", func() {
+		printer.Clean()
+
+		command := cobra.Command{}
+		userArg := "testUser"
+		newUsername := "newusername"
+		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com"}
+		updatedUser := model.User{Id: "userId", Username: "newusername", Email: "test@example.com"}
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), userArg, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUser(context.TODO(), &updatedUser).
+			Return(&updatedUser, &model.Response{}, nil).
+			Times(1)
+
+		err := userEditUsernameCmdF(s.client, &command, []string{userArg, newUsername})
+
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&updatedUser, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Invalid username", func() {
+		printer.Clean()
+
+		command := cobra.Command{}
+		userArg := "testUser"
+		newUsername := "!invalid!"
+		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com"}
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), userArg, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		err := userEditUsernameCmdF(s.client, &command, []string{userArg, newUsername})
+
+		s.Require().EqualError(err, "invalid username: '!invalid!'")
+	})
+
+	s.Run("UpdateUser API error", func() {
+		printer.Clean()
+
+		command := cobra.Command{}
+		userArg := "testUser"
+		newUsername := "newusername"
+		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com"}
+		updatedUser := model.User{Id: "userId", Username: "newusername", Email: "test@example.com"}
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), userArg, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUser(context.TODO(), &updatedUser).
+			Return(nil, &model.Response{}, errors.New("API error")).
+			Times(1)
+
+		err := userEditUsernameCmdF(s.client, &command, []string{userArg, newUsername})
+
+		s.Require().EqualError(err, "failed to update user username: API error")
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestUserEditEmailCmd() {
+	s.Run("User not found", func() {
+		printer.Clean()
+
+		command := cobra.Command{}
+		userArg := "testUser"
+		newEmail := "newemail@example.com"
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), userArg, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(context.TODO(), userArg, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		err := userEditEmailCmdF(s.client, &command, []string{userArg, newEmail})
+
+		s.Require().EqualError(err, "user testUser not found")
+	})
+
+	s.Run("Edit email successfully", func() {
+		printer.Clean()
+
+		command := cobra.Command{}
+		userArg := "testUser"
+		newEmail := "newemail@example.com"
+		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com"}
+		updatedUser := model.User{Id: "userId", Username: "testUser", Email: "newemail@example.com"}
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), userArg, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUser(context.TODO(), &updatedUser).
+			Return(&updatedUser, &model.Response{}, nil).
+			Times(1)
+
+		err := userEditEmailCmdF(s.client, &command, []string{userArg, newEmail})
+
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&updatedUser, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Invalid email", func() {
+		printer.Clean()
+
+		command := cobra.Command{}
+		userArg := "testUser"
+		newEmail := "invalidemail"
+		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com"}
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), userArg, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		err := userEditEmailCmdF(s.client, &command, []string{userArg, newEmail})
+
+		s.Require().EqualError(err, "invalid email: 'invalidemail'")
+	})
+
+	s.Run("UpdateUser API error", func() {
+		printer.Clean()
+
+		command := cobra.Command{}
+		userArg := "testUser"
+		newEmail := "newemail@example.com"
+		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com"}
+		updatedUser := model.User{Id: "userId", Username: "testUser", Email: "newemail@example.com"}
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), userArg, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUser(context.TODO(), &updatedUser).
+			Return(nil, &model.Response{}, errors.New("API error")).
+			Times(1)
+
+		err := userEditEmailCmdF(s.client, &command, []string{userArg, newEmail})
+
+		s.Require().EqualError(err, "failed to update user email: API error")
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestUserEditAuthdataCmd() {
+	s.Run("User not found", func() {
+		printer.Clean()
+
+		command := cobra.Command{}
+		userArg := "testUser"
+		newAuthdata := "newauth123"
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), userArg, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(context.TODO(), userArg, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		err := userEditAuthdataCmdF(s.client, &command, []string{userArg, newAuthdata})
+
+		s.Require().EqualError(err, "user testUser not found")
+	})
+
+	s.Run("Edit authdata successfully", func() {
+		printer.Clean()
+
+		command := cobra.Command{}
+		userArg := "testUser"
+		newAuthdata := "newauth123"
+		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com", AuthData: nil}
+		userAuth := model.UserAuth{AuthData: &newAuthdata, AuthService: mockUser.AuthService}
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), userArg, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserAuth(context.TODO(), mockUser.Id, &userAuth).
+			Return(&userAuth, &model.Response{}, nil).
+			Times(1)
+
+		err := userEditAuthdataCmdF(s.client, &command, []string{userArg, newAuthdata})
+
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Clear authdata returns error", func() {
+		printer.Clean()
+
+		command := cobra.Command{}
+		userArg := "testUser"
+		newAuthdata := ""
+		authData := "existingauth"
+		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com", AuthData: &authData, AuthService: model.UserAuthServiceGitlab}
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), userArg, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		err := userEditAuthdataCmdF(s.client, &command, []string{userArg, newAuthdata})
+
+		s.Require().EqualError(err, "cannot clear authdata as the user is using gitlab to log in")
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Authdata too long", func() {
+		printer.Clean()
+
+		command := cobra.Command{}
+		userArg := "testUser"
+		newAuthdata := strings.Repeat("x", model.UserAuthDataMaxLength+1)
+		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com"}
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), userArg, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		err := userEditAuthdataCmdF(s.client, &command, []string{userArg, newAuthdata})
+
+		s.Require().EqualError(err, fmt.Sprintf("authdata too long. Maximum length is %d characters", model.UserAuthDataMaxLength))
+	})
+
+	s.Run("UpdateUser API error", func() {
+		printer.Clean()
+
+		command := cobra.Command{}
+		userArg := "testUser"
+		newAuthdata := "newauth123"
+		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com", AuthData: nil}
+		userAuth := model.UserAuth{AuthData: &newAuthdata, AuthService: mockUser.AuthService}
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), userArg, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserAuth(context.TODO(), mockUser.Id, &userAuth).
+			Return(nil, &model.Response{}, errors.New("API error")).
+			Times(1)
+
+		err := userEditAuthdataCmdF(s.client, &command, []string{userArg, newAuthdata})
+
+		s.Require().EqualError(err, "failed to update user authdata: API error")
 	})
 }

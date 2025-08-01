@@ -5120,10 +5120,6 @@
     "translation": "從儲存空間取得公鑰時發生錯誤。"
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "無法設定模組為被檔案儲存空間管理。"
-  },
-  {
     "id": "app.plugin.delete_public_key.delete.app_error",
     "translation": "刪除公鑰檔案時發生錯誤。"
   },
@@ -8410,10 +8406,6 @@
   {
     "id": "api.unable_to_create_zip_file",
     "translation": "建立 ZIP 檔案時發生錯誤。"
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "從後端讀取檔案時發生錯誤"
   },
   {
     "id": "api.upload.upload_data.multipart_error",

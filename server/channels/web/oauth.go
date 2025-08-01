@@ -9,6 +9,7 @@ import (
 	"html"
 	"net/http"
 	"net/url"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -67,7 +68,7 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("authorizeOAuthApp", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAuthorizeOAuthApp, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -95,7 +96,7 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deauthorizeOAuthApp", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeauthorizeOAuthApp, model.AuditStatusFail)
 	auditRec.AddMeta("client_id", clientId)
 	defer c.LogAuditRec(auditRec)
 
@@ -139,7 +140,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("authorizeOAuthPage", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAuthorizeOAuthPage, model.AuditStatusFail)
 	auditRec.AddMeta("client_id", authRequest.ClientId)
 	auditRec.AddMeta("scope", authRequest.Scope)
 	defer c.LogAuditRec(auditRec)
@@ -261,7 +262,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	redirectURI := r.FormValue("redirect_uri")
 
-	auditRec := c.MakeAuditRecord("getAccessToken", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetAccessToken, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("grant_type", grantType)
 	auditRec.AddMeta("client_id", clientId)
@@ -293,7 +294,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	service := c.Params.Service
 
-	auditRec := c.MakeAuditRecord("completeOAuth", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCompleteOAuth, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "service", service)
 
@@ -458,7 +459,7 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("loginWithOAuth", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventLoginWithOAuth, model.AuditStatusFail)
 	auditRec.AddMeta("service", c.Params.Service)
 	defer c.LogAuditRec(auditRec)
 
@@ -494,7 +495,7 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("mobileLoginWithOAuth", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventMobileLoginWithOAuth, model.AuditStatusFail)
 	auditRec.AddMeta("service", c.Params.Service)
 	defer c.LogAuditRec(auditRec)
 
@@ -529,7 +530,7 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("signupWithOAuth", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventSignupWithOAuth, model.AuditStatusFail)
 	auditRec.AddMeta("service", c.Params.Service)
 	defer c.LogAuditRec(auditRec)
 
@@ -554,15 +555,50 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string) string {
-	parsed, _ := url.Parse(targetURL)
-	if parsed == nil || parsed.Scheme != "" || parsed.Host != "" {
-		return targetURL
+	parsed, err := url.Parse(targetURL)
+	if err != nil {
+		return siteURLPrefix
+	}
+	prefixParsed, err := url.Parse(siteURLPrefix)
+	if err != nil {
+		return siteURLPrefix
 	}
 
+	// Check if the targetURL is a valid URL and is within the siteURLPrefix
+	sameScheme := parsed.Scheme == prefixParsed.Scheme
+	sameHost := parsed.Host == prefixParsed.Host
+	safePath := strings.HasPrefix(path.Clean(parsed.Path), path.Clean(prefixParsed.Path))
+
+	if sameScheme && sameHost && safePath {
+		return targetURL
+	} else if parsed.Scheme != "" || parsed.Host != "" {
+		return siteURLPrefix
+	}
+
+	// For relative URLs, normalize and join with siteURLPrefix
 	if targetURL != "" && targetURL[0] != '/' {
 		targetURL = "/" + targetURL
 	}
-	return siteURLPrefix + targetURL
+
+	// Check for path traversal
+	joinedURL, err := url.JoinPath(siteURLPrefix, targetURL)
+	if err != nil {
+		return siteURLPrefix
+	}
+	unescapedURL, err := url.PathUnescape(joinedURL)
+	if err != nil {
+		return siteURLPrefix
+	}
+	parsed, err = url.Parse(unescapedURL)
+	if err != nil {
+		return siteURLPrefix
+	}
+
+	if !strings.HasPrefix(path.Clean(parsed.Path), path.Clean(prefixParsed.Path)) {
+		return siteURLPrefix
+	}
+
+	return parsed.String()
 }
 
 func getAuthorizationServerMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
