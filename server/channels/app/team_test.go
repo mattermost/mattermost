@@ -1562,7 +1562,6 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		require.Nil(t, res[0].Error)
 	})
 
-	// TODO: add test for user deactivated
 	t.Run("it should return an error when inviting a deactivated email account", func(t *testing.T) {
 		var err *model.AppError
 
