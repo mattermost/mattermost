@@ -135,8 +135,7 @@ SuggestionProps<ExtensionItem>
             className={classNames({selected: isSelection})}
             onClick={optionClicked}
             onKeyDown={handleKeyDown}
-            role='button'
-            tabIndex={0}
+            role='option'
             aria-label={ariaLabel}
         >
             <div className={classNames('file-icon', getCompassIconClassName(item.type))}/>
