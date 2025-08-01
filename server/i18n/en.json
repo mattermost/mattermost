@@ -1690,10 +1690,6 @@
     "translation": "shrug"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
-  },
-  {
     "id": "api.config.get_config.restricted_merge.app_error",
     "translation": "Failed to merge given config."
   },
