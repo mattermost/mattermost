@@ -113,8 +113,8 @@ func (s *SearchStore) indexUser(rctx request.CTX, user *model.User) {
 }
 
 func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string) {
+	const perPage = 100
 	var (
-		perPage  = 100
 		channels []*model.Channel
 	)
 
