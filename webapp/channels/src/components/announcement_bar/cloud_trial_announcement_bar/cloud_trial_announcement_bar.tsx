@@ -10,15 +10,12 @@ import type {Subscription} from '@mattermost/types/cloud';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
 import {
     Preferences,
     CloudBanners,
     AnnouncementBarTypes,
-    TELEMETRY_CATEGORIES,
     TrialPeriodDays,
 } from 'utils/constants';
 import {getLocaleDateFromUTC} from 'utils/utils';
@@ -52,18 +49,7 @@ const THREE_DAYS_BANNER = '3_days_banner';
 class CloudTrialAnnouncementBarInternal extends React.PureComponent<PropsWithPricingModal> {
     async componentDidMount() {
         if (!isEmpty(this.props.subscription) && this.shouldShowBanner()) {
-            const {daysLeftOnTrial} = this.props;
-            if (this.isDismissable()) {
-                trackEvent(
-                    TELEMETRY_CATEGORIES.CLOUD_ADMIN,
-                    `bannerview_trial_${daysLeftOnTrial}_days`,
-                );
-            } else {
-                trackEvent(
-                    TELEMETRY_CATEGORIES.CLOUD_ADMIN,
-                    'bannerview_trial_limit_ended',
-                );
-            }
+            // Banner view tracking removed
         }
     }
 
@@ -75,10 +61,6 @@ class CloudTrialAnnouncementBarInternal extends React.PureComponent<PropsWithPri
         } else if (daysLeftOnTrial <= TrialPeriodDays.TRIAL_WARNING_THRESHOLD && daysLeftOnTrial >= TrialPeriodDays.TRIAL_1_DAY) {
             dismissValue = THREE_DAYS_BANNER;
         }
-        trackEvent(
-            TELEMETRY_CATEGORIES.CLOUD_ADMIN,
-            `dismissed_banner_trial_${daysLeftOnTrial}_days`,
-        );
         await this.props.actions.savePreferences(this.props.currentUser.id, [{
             category: Preferences.CLOUD_TRIAL_BANNER,
             user_id: this.props.currentUser.id,
@@ -103,18 +85,6 @@ class CloudTrialAnnouncementBarInternal extends React.PureComponent<PropsWithPri
     };
 
     showModal = () => {
-        const {daysLeftOnTrial} = this.props;
-        if (this.isDismissable()) {
-            trackEvent(
-                TELEMETRY_CATEGORIES.CLOUD_ADMIN,
-                `click_subscribe_from_trial_banner_${daysLeftOnTrial}_days`,
-            );
-        } else {
-            trackEvent(
-                TELEMETRY_CATEGORIES.CLOUD_ADMIN,
-                'click_subscribe_from_banner_trial_ended',
-            );
-        }
         this.props.openPricingModal({trackingLocation: 'cloud_trial_announcement_bar'});
     };
 

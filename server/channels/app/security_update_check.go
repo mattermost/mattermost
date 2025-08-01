@@ -50,7 +50,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 
 		v := url.Values{}
 
-		v.Set(PropSecurityID, s.TelemetryId())
+		v.Set(PropSecurityID, s.ServerId())
 		v.Set(PropSecurityBuild, model.CurrentVersion+"."+model.BuildNumber)
 		v.Set(PropSecurityEnterpriseReady, model.BuildEnterpriseReady)
 		v.Set(PropSecurityDatabase, *s.platform.Config().SqlSettings.DriverName)

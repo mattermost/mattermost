@@ -24,7 +24,6 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {
     getSearchType,
     getSearchTerms,
@@ -468,8 +467,6 @@ export function showMentions(): ActionFunc<boolean> {
         });
 
         const terms = termKeys.map(({key}) => key).join(' ').trim() + ' ';
-
-        trackEvent('api', 'api_posts_search_mention');
 
         dispatch(performSearch(terms, '', true));
         dispatch(batchActions([

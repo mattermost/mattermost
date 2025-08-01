@@ -8,8 +8,6 @@ import styled from 'styled-components';
 
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
@@ -44,13 +42,11 @@ const HistoryButtons = (): JSX.Element => {
     );
 
     const goBack = () => {
-        trackEvent('ui', 'ui_history_back');
         history.goBack();
         requestButtons();
     };
 
     const goForward = () => {
-        trackEvent('ui', 'ui_history_forward');
         history.goForward();
         requestButtons();
     };

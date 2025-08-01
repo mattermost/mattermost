@@ -4,24 +4,15 @@
 import {useCallback} from 'react';
 import {useDispatch} from 'react-redux';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
 
 import DowngradeModal from 'components/downgrade_modal';
 
-import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
-
-interface OpenDowngradeModalOptions{
-    trackingLocation?: string;
-}
-type TelemetryProps = Pick<OpenDowngradeModalOptions, 'trackingLocation'>
+import {ModalIdentifiers} from 'utils/constants';
 
 export default function useOpenDowngradeModal() {
     const dispatch = useDispatch();
-    return useCallback((telemetryProps: TelemetryProps) => {
-        trackEvent(TELEMETRY_CATEGORIES.CLOUD_ADMIN, 'click_open_downgrade_modal', {
-            callerInfo: telemetryProps.trackingLocation,
-        });
+    return useCallback(() => {
         dispatch(openModal({
             modalId: ModalIdentifiers.DOWNGRADE_MODAL,
             dialogType: DowngradeModal,

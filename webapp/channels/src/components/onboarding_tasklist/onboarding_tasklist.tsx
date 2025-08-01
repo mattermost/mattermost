@@ -19,7 +19,6 @@ import {
 } from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {getShowTaskListBool} from 'selectors/onboarding';
 
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
@@ -196,12 +195,6 @@ const OnBoardingTaskList = (): JSX.Element | null => {
         }
     }, []);
 
-    useEffect(() => {
-        if (firstTimeOnboarding && showTaskList && isEnableOnboardingFlow) {
-            trackEvent(OnboardingTaskCategory, OnboardingTaskList.ONBOARDING_TASK_LIST_SHOW);
-        }
-    }, [firstTimeOnboarding, showTaskList, isEnableOnboardingFlow]);
-
     // Done to show task done animation in closed state as well
     useEffect(() => {
         const newCCount = tasksList.filter((task) => task.status).length;
@@ -235,7 +228,6 @@ const OnBoardingTaskList = (): JSX.Element | null => {
             value: 'false',
         }];
         dispatch(savePreferences(currentUserId, preferences));
-        trackEvent(OnboardingTaskCategory, OnboardingTaskList.DECLINED_ONBOARDING_TASK_LIST);
     }, [currentUserId]);
 
     const toggleTaskList = useCallback(() => {
@@ -246,7 +238,6 @@ const OnBoardingTaskList = (): JSX.Element | null => {
             value: String(!open),
         }];
         dispatch(savePreferences(currentUserId, preferences));
-        trackEvent(OnboardingTaskCategory, open ? OnboardingTaskList.ONBOARDING_TASK_LIST_CLOSE : OnboardingTaskList.ONBOARDING_TASK_LIST_OPEN);
     }, [open, currentUserId]);
 
     if (!hasPreferences || !showTaskList || !isEnableOnboardingFlow || (isCloud && isCloudPreview)) {
