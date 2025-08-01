@@ -37,7 +37,7 @@ func newSqlOAuthStore(sqlStore *SqlStore) store.OAuthStore {
 		From("OAuthAccessData")
 
 	s.oAuthAuthDataQuery = s.getQueryBuilder().
-		Select("ClientId", "UserId", "Code", "ExpiresIn", "CreateAt", "RedirectUri", "State", "Scope").
+		Select("ClientId", "UserId", "Code", "ExpiresIn", "CreateAt", "RedirectUri", "State", "Scope", "CodeChallenge", "CodeChallengeMethod").
 		From("OAuthAuthData")
 
 	return &s
@@ -305,9 +305,9 @@ func (as SqlOAuthStore) SaveAuthData(authData *model.AuthData) (*model.AuthData,
 	}
 
 	if _, err := as.GetMaster().NamedExec(`INSERT INTO OAuthAuthData
-		(ClientId, UserId, Code, ExpiresIn, CreateAt, RedirectUri, State, Scope)
+		(ClientId, UserId, Code, ExpiresIn, CreateAt, RedirectUri, State, Scope, CodeChallenge, CodeChallengeMethod)
 		VALUES
-		(:ClientId, :UserId, :Code, :ExpiresIn, :CreateAt, :RedirectUri, :State, :Scope)`, authData); err != nil {
+		(:ClientId, :UserId, :Code, :ExpiresIn, :CreateAt, :RedirectUri, :State, :Scope, :CodeChallenge, :CodeChallengeMethod)`, authData); err != nil {
 		return nil, errors.Wrap(err, "failed to save AuthData")
 	}
 	return authData, nil

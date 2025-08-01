@@ -39,8 +39,6 @@ func (a *App) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppEr
 		return nil, model.NewAppError("CreateOAuthApp", "api.oauth.register_oauth_app.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	app.ClientSecret = model.NewId()
-
 	oauthApp, err := a.Srv().Store().OAuth().SaveApp(app)
 	if err != nil {
 		var appErr *model.AppError
@@ -166,7 +164,16 @@ func (a *App) GetOAuthImplicitRedirect(c request.CTX, userID string, authRequest
 }
 
 func (a *App) GetOAuthCodeRedirect(userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {
-	authData := &model.AuthData{UserId: userID, ClientId: authRequest.ClientId, CreateAt: model.GetMillis(), RedirectUri: authRequest.RedirectURI, State: authRequest.State, Scope: authRequest.Scope}
+	authData := &model.AuthData{
+		UserId:              userID,
+		ClientId:            authRequest.ClientId,
+		CreateAt:            model.GetMillis(),
+		RedirectUri:         authRequest.RedirectURI,
+		State:               authRequest.State,
+		Scope:               authRequest.Scope,
+		CodeChallenge:       authRequest.CodeChallenge,
+		CodeChallengeMethod: authRequest.CodeChallengeMethod,
+	}
 	authData.Code = model.NewId() + model.NewId()
 
 	// parse authRequest.RedirectURI to handle query parameters see: https://mattermost.atlassian.net/browse/MM-46216
@@ -209,6 +216,12 @@ func (a *App) AllowOAuthAppAccessToUser(c request.CTX, userID string, authReques
 
 	if !oauthApp.IsValidRedirectURL(authRequest.RedirectURI) {
 		return "", model.NewAppError("AllowOAuthAppAccessToUser", "api.oauth.allow_oauth.redirect_callback.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Validate PKCE requirements for public clients
+	isPublicClient := oauthApp.TokenEndpointAuthMethod != nil && *oauthApp.TokenEndpointAuthMethod == model.ClientAuthMethodNone
+	if isPublicClient && authRequest.CodeChallenge == "" {
+		return "", model.NewAppError("AllowOAuthAppAccessToUser", "api.oauth.allow_oauth.pkce_required_public.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	var redirectURI string
@@ -272,7 +285,7 @@ func (a *App) GetOAuthAccessTokenForImplicitFlow(c request.CTX, userID string, a
 	return session, nil
 }
 
-func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType, redirectURI, code, secret, refreshToken string) (*model.AccessResponse, *model.AppError) {
+func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType, redirectURI, code, secret, refreshToken, codeVerifier string) (*model.AccessResponse, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -282,8 +295,21 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.credentials.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 	}
 
-	if oauthApp.ClientSecret != secret {
-		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.credentials.app_error", nil, "", http.StatusForbidden)
+	// Validate client authentication based on client type
+	isPublicClient := oauthApp.TokenEndpointAuthMethod != nil && *oauthApp.TokenEndpointAuthMethod == model.ClientAuthMethodNone
+	if isPublicClient {
+		// Public client - client_secret should not be provided, PKCE is required
+		if secret != "" {
+			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.public_client_secret.app_error", nil, "", http.StatusBadRequest)
+		}
+		if codeVerifier == "" {
+			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.pkce_required.app_error", nil, "", http.StatusBadRequest)
+		}
+	} else {
+		// Confidential client - validate client_secret
+		if oauthApp.ClientSecret != secret {
+			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.credentials.app_error", nil, "", http.StatusForbidden)
+		}
 	}
 
 	var accessData *model.AccessData
@@ -305,6 +331,36 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 
 		if authData.RedirectUri != redirectURI {
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.redirect_uri.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		// PKCE verification with different rules for public vs confidential clients
+		if isPublicClient {
+			// Public clients: PKCE is mandatory
+			if authData.CodeChallenge == "" {
+				return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.pkce_required_public.app_error", nil, "", http.StatusBadRequest)
+			}
+			if codeVerifier == "" {
+				return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.pkce_verifier_required.app_error", nil, "", http.StatusBadRequest)
+			}
+			// Verify the code_verifier matches the stored code_challenge
+			if !authData.VerifyPKCE(codeVerifier) {
+				return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.pkce_verification_failed.app_error", nil, "", http.StatusBadRequest)
+			}
+		} else {
+			// Confidential clients: PKCE is optional but enforced if used
+			if authData.CodeChallenge != "" {
+				// Client started flow with PKCE - code_verifier is required
+				if codeVerifier == "" {
+					return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.pkce_verifier_required.app_error", nil, "", http.StatusBadRequest)
+				}
+				// Verify the code_verifier matches the stored code_challenge
+				if !authData.VerifyPKCE(codeVerifier) {
+					return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.pkce_verification_failed.app_error", nil, "", http.StatusBadRequest)
+				}
+			} else if codeVerifier != "" {
+				// Client provided code_verifier but didn't use PKCE in authorization - reject
+				return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.pkce_not_used_in_auth.app_error", nil, "", http.StatusBadRequest)
+			}
 		}
 
 		user, nErr = a.Srv().Store().User().Get(context.Background(), authData.UserId)
@@ -331,10 +387,15 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 				accessRsp = access
 			} else {
 				// Return the same token and no need to create a new session
+				// Don't include refresh token for public clients
+				refreshToken := accessData.RefreshToken
+				if isPublicClient {
+					refreshToken = ""
+				}
 				accessRsp = &model.AccessResponse{
 					AccessToken:      accessData.Token,
 					TokenType:        model.AccessTokenType,
-					RefreshToken:     accessData.RefreshToken,
+					RefreshToken:     refreshToken,
 					ExpiresInSeconds: int32((accessData.ExpiresAt - model.GetMillis()) / 1000),
 				}
 			}
@@ -346,16 +407,26 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 				return nil, err
 			}
 
-			accessData = &model.AccessData{ClientId: clientId, UserId: user.Id, Token: session.Token, RefreshToken: model.NewId(), RedirectUri: redirectURI, ExpiresAt: session.ExpiresAt, Scope: authData.Scope}
+			// Generate refresh token only for confidential clients
+			refreshToken := ""
+			if !isPublicClient {
+				refreshToken = model.NewId()
+			}
+			accessData = &model.AccessData{ClientId: clientId, UserId: user.Id, Token: session.Token, RefreshToken: refreshToken, RedirectUri: redirectURI, ExpiresAt: session.ExpiresAt, Scope: authData.Scope}
 
 			if _, nErr = a.Srv().Store().OAuth().SaveAccessData(accessData); nErr != nil {
 				return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 
+			// Don't include refresh token in response for public clients
+			refreshTokenResponse := accessData.RefreshToken
+			if isPublicClient {
+				refreshTokenResponse = ""
+			}
 			accessRsp = &model.AccessResponse{
 				AccessToken:      session.Token,
 				TokenType:        model.AccessTokenType,
-				RefreshToken:     accessData.RefreshToken,
+				RefreshToken:     refreshTokenResponse,
 				ExpiresInSeconds: int32(*a.Config().ServiceSettings.SessionLengthSSOInHours * 60 * 60),
 			}
 		}
@@ -365,6 +436,11 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 		}
 	} else {
 		// When grantType is refresh_token
+		// Public clients are not allowed to use refresh tokens
+		if isPublicClient {
+			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.public_client_refresh_token.app_error", nil, "", http.StatusBadRequest)
+		}
+
 		accessData, nErr = a.Srv().Store().OAuth().GetAccessDataByRefreshToken(refreshToken)
 		if nErr != nil {
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.refresh_token.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
@@ -425,7 +501,13 @@ func (a *App) newSessionUpdateToken(c request.CTX, app *model.OAuthApp, accessDa
 	}
 
 	accessData.Token = session.Token
-	accessData.RefreshToken = model.NewId()
+	// Generate refresh token only for confidential clients
+	isPublicClient := app.TokenEndpointAuthMethod != nil && *app.TokenEndpointAuthMethod == model.ClientAuthMethodNone
+	if !isPublicClient {
+		accessData.RefreshToken = model.NewId()
+	} else {
+		accessData.RefreshToken = ""
+	}
 	accessData.ExpiresAt = session.ExpiresAt
 
 	if _, err := a.Srv().Store().OAuth().UpdateAccessData(accessData); err != nil {

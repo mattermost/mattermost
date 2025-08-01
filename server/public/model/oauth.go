@@ -86,8 +86,18 @@ func (a *OAuthApp) IsValid() *AppError {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.creator_id.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
-	if a.ClientSecret == "" || len(a.ClientSecret) > 128 {
-		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.client_secret.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
+	// Client secret validation based on client type
+	isPublicClient := a.TokenEndpointAuthMethod != nil && *a.TokenEndpointAuthMethod == ClientAuthMethodNone
+	if isPublicClient {
+		// Public clients must not have a client secret
+		if a.ClientSecret != "" {
+			return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.public_client_secret.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
+		}
+	} else {
+		// Confidential clients require a client secret
+		if a.ClientSecret == "" || len(a.ClientSecret) > 128 {
+			return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.client_secret.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
+		}
 	}
 
 	if a.Name == "" || len(a.Name) > 64 {
@@ -127,11 +137,13 @@ func (a *OAuthApp) IsValid() *AppError {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.mattermost_app_id.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
-	// DCR field validation - we only support client_secret_post
+	// DCR field validation - we support client_secret_post and none
 	if a.TokenEndpointAuthMethod != nil {
 		switch *a.TokenEndpointAuthMethod {
 		case ClientAuthMethodClientSecretPost:
-			// Valid - this is the only method we support
+			// Valid - confidential client method
+		case ClientAuthMethodNone:
+			// Valid - public client method (no client secret)
 		default:
 			return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.token_endpoint_auth_method.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 		}
@@ -163,13 +175,23 @@ func (a *OAuthApp) PreSave() {
 		a.Id = NewId()
 	}
 
-	if a.ClientSecret == "" {
+	// Generate client secret only for confidential clients
+	isPublicClient := a.TokenEndpointAuthMethod != nil && *a.TokenEndpointAuthMethod == ClientAuthMethodNone
+	if a.ClientSecret == "" && !isPublicClient {
 		a.ClientSecret = NewId()
 	}
 
 	// Set DCR defaults if not specified
 	if len(a.GrantTypes) == 0 {
-		a.GrantTypes = GetDefaultGrantTypes()
+		// Set grant types based on client type
+		isPublicClient := a.TokenEndpointAuthMethod != nil && *a.TokenEndpointAuthMethod == ClientAuthMethodNone
+		if isPublicClient {
+			// Public clients can only use authorization_code, not refresh_token
+			a.GrantTypes = []string{GrantTypeAuthorizationCode}
+		} else {
+			// Confidential clients get both authorization_code and refresh_token
+			a.GrantTypes = GetDefaultGrantTypes()
+		}
 	}
 
 	if len(a.ResponseTypes) == 0 {
@@ -277,8 +299,9 @@ func (a *OAuthApp) ToClientRegistrationResponse(siteURL string) *ClientRegistrat
 		ResponseTypes:           a.ResponseTypes,
 	}
 
-	// Include client secret for confidential clients
-	if a.TokenEndpointAuthMethod != nil && *a.TokenEndpointAuthMethod != ClientAuthMethodNone {
+	// Include client secret only for confidential clients
+	isPublicClient := a.TokenEndpointAuthMethod != nil && *a.TokenEndpointAuthMethod == ClientAuthMethodNone
+	if !isPublicClient {
 		resp.ClientSecret = &a.ClientSecret
 	}
 

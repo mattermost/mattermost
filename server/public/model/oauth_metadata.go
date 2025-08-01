@@ -13,9 +13,9 @@ import (
 // Only includes fields that Mattermost actually supports
 type AuthorizationServerMetadata struct {
 	// Required fields
-	Issuer                string   `json:"issuer"`
-	AuthorizationEndpoint string   `json:"authorization_endpoint,omitempty"`
-	TokenEndpoint         string   `json:"token_endpoint,omitempty"`
+	Issuer                 string   `json:"issuer"`
+	AuthorizationEndpoint  string   `json:"authorization_endpoint,omitempty"`
+	TokenEndpoint          string   `json:"token_endpoint,omitempty"`
 	ResponseTypesSupported []string `json:"response_types_supported"`
 
 	// Supported optional fields
@@ -23,6 +23,7 @@ type AuthorizationServerMetadata struct {
 	ScopesSupported                   []string `json:"scopes_supported,omitempty"`
 	GrantTypesSupported               []string `json:"grant_types_supported,omitempty"`
 	TokenEndpointAuthMethodsSupported []string `json:"token_endpoint_auth_methods_supported,omitempty"`
+	CodeChallengeMethodsSupported     []string `json:"code_challenge_methods_supported,omitempty"`
 }
 
 // Constants for OAuth 2.0 grant types (only supported types)
@@ -38,8 +39,8 @@ const (
 
 // Constants for OAuth 2.0 client authentication methods (only supported types)
 const (
-	ClientAuthMethodNone              = "none"                // For future public client support
-	ClientAuthMethodClientSecretPost  = "client_secret_post"  // Currently supported method
+	ClientAuthMethodNone             = "none"               // For future public client support
+	ClientAuthMethodClientSecretPost = "client_secret_post" // Currently supported method
 )
 
 // Constants for OAuth 2.0 scopes (only supported scopes)
@@ -108,10 +109,14 @@ func GetDefaultMetadata(siteURL string) *AuthorizationServerMetadata {
 			GrantTypeRefreshToken,      // Refresh tokens supported
 		},
 		TokenEndpointAuthMethodsSupported: []string{
-			ClientAuthMethodClientSecretPost, // Currently supported method
+			ClientAuthMethodClientSecretPost, // For confidential clients
+			ClientAuthMethodNone,             // For public clients (PKCE required)
 		},
 		ScopesSupported: []string{
 			ScopeUser, // Default Mattermost scope
+		},
+		CodeChallengeMethodsSupported: []string{
+			PKCECodeChallengeMethodS256, // S256 method supported for optional PKCE
 		},
 	}
 }

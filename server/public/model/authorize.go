@@ -4,33 +4,45 @@
 package model
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"net/http"
+	"regexp"
 )
 
 const (
-	AuthCodeExpireTime   = 60 * 10 // 10 minutes
-	AuthCodeResponseType = "code"
-	ImplicitResponseType = "token"
-	DefaultScope         = "user"
+	AuthCodeExpireTime           = 60 * 10 // 10 minutes
+	AuthCodeResponseType         = "code"
+	ImplicitResponseType         = "token"
+	DefaultScope                 = "user"
+	PKCECodeChallengeMethodS256  = "S256"
+	PKCECodeChallengeMinLength   = 43
+	PKCECodeChallengeMaxLength   = 128
+	PKCECodeVerifierMinLength    = 43
+	PKCECodeVerifierMaxLength    = 128
 )
 
 type AuthData struct {
-	ClientId    string `json:"client_id"`
-	UserId      string `json:"user_id"`
-	Code        string `json:"code"`
-	ExpiresIn   int32  `json:"expires_in"`
-	CreateAt    int64  `json:"create_at"`
-	RedirectUri string `json:"redirect_uri"`
-	State       string `json:"state"`
-	Scope       string `json:"scope"`
+	ClientId              string `json:"client_id"`
+	UserId                string `json:"user_id"`
+	Code                  string `json:"code"`
+	ExpiresIn             int32  `json:"expires_in"`
+	CreateAt              int64  `json:"create_at"`
+	RedirectUri           string `json:"redirect_uri"`
+	State                 string `json:"state"`
+	Scope                 string `json:"scope"`
+	CodeChallenge         string `json:"code_challenge,omitempty"`
+	CodeChallengeMethod   string `json:"code_challenge_method,omitempty"`
 }
 
 type AuthorizeRequest struct {
-	ResponseType string `json:"response_type"`
-	ClientId     string `json:"client_id"`
-	RedirectURI  string `json:"redirect_uri"`
-	Scope        string `json:"scope"`
-	State        string `json:"state"`
+	ResponseType        string `json:"response_type"`
+	ClientId            string `json:"client_id"`
+	RedirectURI         string `json:"redirect_uri"`
+	Scope               string `json:"scope"`
+	State               string `json:"state"`
+	CodeChallenge       string `json:"code_challenge,omitempty"`
+	CodeChallengeMethod string `json:"code_challenge_method,omitempty"`
 }
 
 // IsValid validates the AuthData and returns an error if it isn't configured
@@ -68,6 +80,13 @@ func (ad *AuthData) IsValid() *AppError {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.scope.app_error", nil, "client_id="+ad.ClientId, http.StatusBadRequest)
 	}
 
+	// PKCE validation - if one PKCE field is present, both must be present and valid
+	if ad.CodeChallenge != "" || ad.CodeChallengeMethod != "" {
+		if err := ad.validatePKCE(); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -94,6 +113,13 @@ func (ar *AuthorizeRequest) IsValid() *AppError {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.scope.app_error", nil, "client_id="+ar.ClientId, http.StatusBadRequest)
 	}
 
+	// PKCE validation - if one PKCE field is present, both must be present and valid
+	if ar.CodeChallenge != "" || ar.CodeChallengeMethod != "" {
+		if err := ar.validatePKCE(); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -113,4 +139,73 @@ func (ad *AuthData) PreSave() {
 
 func (ad *AuthData) IsExpired() bool {
 	return GetMillis() > ad.CreateAt+int64(ad.ExpiresIn*1000)
+}
+
+// validatePKCEParameters validates PKCE parameters (shared validation logic)
+func validatePKCEParameters(codeChallenge, codeChallengeMethod, clientId, context string) *AppError {
+	if codeChallenge == "" {
+		return NewAppError(context, "model.authorize.is_valid.code_challenge.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
+	}
+
+	if codeChallengeMethod == "" {
+		return NewAppError(context, "model.authorize.is_valid.code_challenge_method.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
+	}
+
+	// Only support S256 method for security
+	if codeChallengeMethod != PKCECodeChallengeMethodS256 {
+		return NewAppError(context, "model.authorize.is_valid.code_challenge_method.unsupported.app_error", nil, "client_id="+clientId+", method="+codeChallengeMethod, http.StatusBadRequest)
+	}
+
+	// Validate code challenge format (base64url encoded)
+	if len(codeChallenge) < PKCECodeChallengeMinLength || len(codeChallenge) > PKCECodeChallengeMaxLength {
+		return NewAppError(context, "model.authorize.is_valid.code_challenge.length.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
+	}
+
+	// Validate base64url format (no padding, URL-safe characters)
+	matched, _ := regexp.MatchString("^[A-Za-z0-9_-]+$", codeChallenge)
+	if !matched {
+		return NewAppError(context, "model.authorize.is_valid.code_challenge.format.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+// validatePKCE validates PKCE parameters for AuthData
+func (ad *AuthData) validatePKCE() *AppError {
+	return validatePKCEParameters(ad.CodeChallenge, ad.CodeChallengeMethod, ad.ClientId, "AuthData.validatePKCE")
+}
+
+// validatePKCE validates PKCE parameters for AuthorizeRequest
+func (ar *AuthorizeRequest) validatePKCE() *AppError {
+	return validatePKCEParameters(ar.CodeChallenge, ar.CodeChallengeMethod, ar.ClientId, "AuthorizeRequest.validatePKCE")
+}
+
+// VerifyPKCE verifies a PKCE code_verifier against the stored code_challenge
+func (ad *AuthData) VerifyPKCE(codeVerifier string) bool {
+	if ad.CodeChallenge == "" || ad.CodeChallengeMethod == "" {
+		// No PKCE challenge stored, so verification passes (for backward compatibility)
+		return true
+	}
+
+	// Validate code verifier length
+	if len(codeVerifier) < PKCECodeVerifierMinLength || len(codeVerifier) > PKCECodeVerifierMaxLength {
+		return false
+	}
+
+	// Validate code verifier format (unreserved characters from RFC 3986)
+	matched, _ := regexp.MatchString("^[A-Za-z0-9\\-._~]+$", codeVerifier)
+	if !matched {
+		return false
+	}
+
+	// Only S256 method is supported
+	if ad.CodeChallengeMethod != PKCECodeChallengeMethodS256 {
+		return false
+	}
+
+	// Calculate S256 challenge: BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))
+	hash := sha256.Sum256([]byte(codeVerifier))
+	calculatedChallenge := base64.RawURLEncoding.EncodeToString(hash[:])
+
+	return calculatedChallenge == ad.CodeChallenge
 }

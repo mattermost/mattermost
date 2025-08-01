@@ -71,6 +71,8 @@ export default class Authorize extends React.PureComponent<Props, State> {
             redirectUri: searchParams.get('redirect_uri'),
             state: searchParams.get('state'),
             scope: searchParams.get('store'),
+            codeChallenge: searchParams.get('code_challenge'),
+            codeChallengeMethod: searchParams.get('code_challenge_method'),
         };
 
         this.props.actions.allowOAuth2(params).then(

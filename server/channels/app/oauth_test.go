@@ -689,7 +689,7 @@ func TestDeactivatedUserOAuthApp(t *testing.T) {
 	_, appErr = th.App.UpdateActive(th.Context, th.BasicUser, false)
 	require.Nil(t, appErr)
 
-	resp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(th.Context, oapp.Id, model.AccessTokenGrantType, oapp.CallbackUrls[0], code, oapp.ClientSecret, "")
+	resp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(th.Context, oapp.Id, model.AccessTokenGrantType, oapp.CallbackUrls[0], code, oapp.ClientSecret, "", "")
 	assert.Nil(t, resp)
 	require.NotNil(t, appErr, "Should not get access token")
 	require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
@@ -967,4 +967,457 @@ func TestGetAuthorizationServerMetadata_NilDCRConfig(t *testing.T) {
 	
 	// Should include registration endpoint when DCR is enabled
 	assert.Equal(t, "https://example.com/api/v4/oauth/apps/register", metadata.RegistrationEndpoint)
+}
+
+func TestGetOAuthAccessTokenForCodeFlow_PublicClient_WithPKCE_Success(t *testing.T) {
+	// Test public client OAuth flow with mandatory PKCE
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	// Create public client
+	publicApp := &model.OAuthApp{
+		Name:                    "Public Client Test",
+		CreatorId:               th.BasicUser2.Id,
+		Homepage:                "https://example.com",
+		Description:             "test public client",
+		CallbackUrls:            []string{"https://example.com/callback"},
+		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+	}
+
+	publicApp, appErr := th.App.CreateOAuthApp(publicApp)
+	require.Nil(t, appErr)
+	require.Empty(t, publicApp.ClientSecret) // Public client should have no secret
+
+	// PKCE parameters
+	codeVerifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+	codeChallenge := "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+	codeChallengeMethod := model.PKCECodeChallengeMethodS256
+
+	// Authorization request with PKCE
+	authRequest := &model.AuthorizeRequest{
+		ResponseType:        model.ResponseTypeCode,
+		ClientId:            publicApp.Id,
+		RedirectURI:         publicApp.CallbackUrls[0],
+		Scope:               "user",
+		State:               "test_state",
+		CodeChallenge:       codeChallenge,
+		CodeChallengeMethod: codeChallengeMethod,
+	}
+
+	// Get authorization code
+	redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
+	require.Nil(t, appErr)
+
+	// Extract authorization code from redirect URL
+	uri, err := url.Parse(redirectURL)
+	require.NoError(t, err)
+	code := uri.Query().Get("code")
+	require.NotEmpty(t, code)
+
+	// Token exchange with PKCE verification (no client secret)
+	accessResponse, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+		th.Context,
+		publicApp.Id,
+		model.AccessTokenGrantType,
+		authRequest.RedirectURI,
+		code,
+		"", // No client secret for public clients
+		"", // No refresh token
+		codeVerifier,
+	)
+
+	require.Nil(t, appErr)
+	require.NotNil(t, accessResponse)
+	require.NotEmpty(t, accessResponse.AccessToken)
+	require.Equal(t, model.AccessTokenType, accessResponse.TokenType)
+	require.Empty(t, accessResponse.RefreshToken) // Public clients don't get refresh tokens
+}
+
+func TestGetOAuthAccessTokenForCodeFlow_PublicClient_WithoutPKCE_ShouldFail(t *testing.T) {
+	// Test that public client OAuth flow fails without PKCE
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	// Create public client
+	publicApp := &model.OAuthApp{
+		Name:                    "Public Client Test",
+		CreatorId:               th.BasicUser2.Id,
+		Homepage:                "https://example.com",
+		Description:             "test public client",
+		CallbackUrls:            []string{"https://example.com/callback"},
+		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+	}
+
+	publicApp, appErr := th.App.CreateOAuthApp(publicApp)
+	require.Nil(t, appErr)
+
+	// Authorization request WITHOUT PKCE (should fail for public clients)
+	authRequest := &model.AuthorizeRequest{
+		ResponseType: model.ResponseTypeCode,
+		ClientId:     publicApp.Id,
+		RedirectURI:  publicApp.CallbackUrls[0],
+		Scope:        "user",
+		State:        "test_state",
+		// No CodeChallenge or CodeChallengeMethod
+	}
+
+	// This should fail because public clients require PKCE
+	_, appErr = th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
+	require.NotNil(t, appErr)
+	require.Contains(t, appErr.Id, "pkce_required") // Should indicate PKCE is required
+}
+
+func TestGetOAuthAccessTokenForCodeFlow_ConfidentialClient_WithPKCE_Success(t *testing.T) {
+	// Test confidential client OAuth flow with optional PKCE
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	// Create confidential client
+	confidentialApp := &model.OAuthApp{
+		Name:                    "Confidential Client Test",
+		CreatorId:               th.BasicUser2.Id,
+		Homepage:                "https://example.com",
+		Description:             "test confidential client",
+		CallbackUrls:            []string{"https://example.com/callback"},
+		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodClientSecretPost),
+	}
+
+	confidentialApp, appErr := th.App.CreateOAuthApp(confidentialApp)
+	require.Nil(t, appErr)
+	require.NotEmpty(t, confidentialApp.ClientSecret) // Confidential client should have secret
+
+	// PKCE parameters
+	codeVerifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+	codeChallenge := "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+	codeChallengeMethod := model.PKCECodeChallengeMethodS256
+
+	// Authorization request with PKCE
+	authRequest := &model.AuthorizeRequest{
+		ResponseType:        model.ResponseTypeCode,
+		ClientId:            confidentialApp.Id,
+		RedirectURI:         confidentialApp.CallbackUrls[0],
+		Scope:               "user",
+		State:               "test_state",
+		CodeChallenge:       codeChallenge,
+		CodeChallengeMethod: codeChallengeMethod,
+	}
+
+	// Get authorization code
+	redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
+	require.Nil(t, appErr)
+
+	// Extract authorization code from redirect URL
+	uri, err := url.Parse(redirectURL)
+	require.NoError(t, err)
+	code := uri.Query().Get("code")
+	require.NotEmpty(t, code)
+
+	// Token exchange with both client secret and PKCE verification
+	accessResponse, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+		th.Context,
+		confidentialApp.Id,
+		model.AccessTokenGrantType,
+		authRequest.RedirectURI,
+		code,
+		confidentialApp.ClientSecret,
+		"", // No refresh token in initial request
+		codeVerifier,
+	)
+
+	require.Nil(t, appErr)
+	require.NotNil(t, accessResponse)
+	require.NotEmpty(t, accessResponse.AccessToken)
+	require.Equal(t, model.AccessTokenType, accessResponse.TokenType)
+	require.NotEmpty(t, accessResponse.RefreshToken) // Confidential clients get refresh tokens
+}
+
+func TestGetOAuthAccessTokenForCodeFlow_ConfidentialClient_WithoutPKCE_Success(t *testing.T) {
+	// Test confidential client OAuth flow without PKCE (legacy flow)
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	// Create confidential client
+	confidentialApp := &model.OAuthApp{
+		Name:                    "Confidential Client Test",
+		CreatorId:               th.BasicUser2.Id,
+		Homepage:                "https://example.com",
+		Description:             "test confidential client",
+		CallbackUrls:            []string{"https://example.com/callback"},
+		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodClientSecretPost),
+	}
+
+	confidentialApp, appErr := th.App.CreateOAuthApp(confidentialApp)
+	require.Nil(t, appErr)
+
+	// Authorization request WITHOUT PKCE (should work for confidential clients)
+	authRequest := &model.AuthorizeRequest{
+		ResponseType: model.ResponseTypeCode,
+		ClientId:     confidentialApp.Id,
+		RedirectURI:  confidentialApp.CallbackUrls[0],
+		Scope:        "user",
+		State:        "test_state",
+		// No PKCE parameters
+	}
+
+	// Get authorization code
+	redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
+	require.Nil(t, appErr)
+
+	// Extract authorization code from redirect URL
+	uri, err := url.Parse(redirectURL)
+	require.NoError(t, err)
+	code := uri.Query().Get("code")
+	require.NotEmpty(t, code)
+
+	// Token exchange with only client secret (no PKCE)
+	accessResponse, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+		th.Context,
+		confidentialApp.Id,
+		model.AccessTokenGrantType,
+		authRequest.RedirectURI,
+		code,
+		confidentialApp.ClientSecret,
+		"", // No refresh token in initial request
+		"", // No code verifier
+	)
+
+	require.Nil(t, appErr)
+	require.NotNil(t, accessResponse)
+	require.NotEmpty(t, accessResponse.AccessToken)
+	require.Equal(t, model.AccessTokenType, accessResponse.TokenType)
+	require.NotEmpty(t, accessResponse.RefreshToken) // Confidential clients get refresh tokens
+}
+
+func TestGetOAuthAccessTokenForCodeFlow_ConfidentialClient_PKCEEnforcement(t *testing.T) {
+	// Test PKCE enforcement - if started with PKCE, must complete with PKCE
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	// Create confidential client
+	confidentialApp := &model.OAuthApp{
+		Name:                    "Confidential Client Test",
+		CreatorId:               th.BasicUser2.Id,
+		Homepage:                "https://example.com",
+		Description:             "test confidential client",
+		CallbackUrls:            []string{"https://example.com/callback"},
+		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodClientSecretPost),
+	}
+
+	confidentialApp, appErr := th.App.CreateOAuthApp(confidentialApp)
+	require.Nil(t, appErr)
+
+	// PKCE parameters
+	codeChallenge := "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+	codeChallengeMethod := model.PKCECodeChallengeMethodS256
+
+	// Authorization request WITH PKCE
+	authRequest := &model.AuthorizeRequest{
+		ResponseType:        model.ResponseTypeCode,
+		ClientId:            confidentialApp.Id,
+		RedirectURI:         confidentialApp.CallbackUrls[0],
+		Scope:               "user",
+		State:               "test_state",
+		CodeChallenge:       codeChallenge,
+		CodeChallengeMethod: codeChallengeMethod,
+	}
+
+	// Get authorization code
+	redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
+	require.Nil(t, appErr)
+
+	// Extract authorization code from redirect URL
+	uri, err := url.Parse(redirectURL)
+	require.NoError(t, err)
+	code := uri.Query().Get("code")
+	require.NotEmpty(t, code)
+
+	// Token exchange WITHOUT code verifier (should fail because we started with PKCE)
+	_, appErr = th.App.GetOAuthAccessTokenForCodeFlow(
+		th.Context,
+		confidentialApp.Id,
+		model.AccessTokenGrantType,
+		authRequest.RedirectURI,
+		code,
+		confidentialApp.ClientSecret,
+		"", // No refresh token in initial request
+		"", // Missing code verifier - should fail
+	)
+
+	require.NotNil(t, appErr)
+	require.Contains(t, appErr.Id, "pkce") // Should indicate PKCE verification failed
+}
+
+func TestGetOAuthAccessTokenForCodeFlow_PublicClient_NoRefreshToken(t *testing.T) {
+	// Test that public clients cannot use refresh tokens
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	// Create public client
+	publicApp := &model.OAuthApp{
+		Name:                    "Public Client Test",
+		CreatorId:               th.BasicUser2.Id,
+		Homepage:                "https://example.com",
+		Description:             "test public client",
+		CallbackUrls:            []string{"https://example.com/callback"},
+		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+	}
+
+	publicApp, appErr := th.App.CreateOAuthApp(publicApp)
+	require.Nil(t, appErr)
+
+	// Attempt to use refresh token grant type (should fail for public clients)
+	_, appErr = th.App.GetOAuthAccessTokenForCodeFlow(
+		th.Context,
+		publicApp.Id,
+		model.RefreshTokenGrantType,
+		"https://example.com/callback",
+		"", // No code for refresh token flow
+		"", // No client secret for public clients
+		"some_fake_refresh_token",
+		"", // No code verifier for refresh token flow
+	)
+
+	require.NotNil(t, appErr)
+	require.Contains(t, appErr.Id, "public_client_refresh_token.app_error")
+}
+
+func TestRegisterOAuthClient_PublicClient_Success(t *testing.T) {
+	// Test DCR for public clients
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { 
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+	})
+
+	// DCR request for public client
+	dcrRequest := &model.ClientRegistrationRequest{
+		RedirectURIs:            []string{"https://example.com/callback"},
+		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+		GrantTypes:              []string{model.GrantTypeAuthorizationCode},
+		ResponseTypes:           []string{model.ResponseTypeCode},
+		ClientName:              model.NewPointer("Test Public Client"),
+		ClientURI:               model.NewPointer("https://example.com"),
+	}
+
+	// Register public client
+	registeredApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, "")
+	require.Nil(t, appErr)
+	require.NotNil(t, registeredApp)
+
+	// Verify public client properties
+	require.Empty(t, registeredApp.ClientSecret) // No secret for public clients
+	require.Equal(t, model.ClientAuthMethodNone, *registeredApp.TokenEndpointAuthMethod)
+	require.Equal(t, []string{model.GrantTypeAuthorizationCode}, registeredApp.GrantTypes)
+	require.NotContains(t, registeredApp.GrantTypes, model.GrantTypeRefreshToken)
+	require.True(t, registeredApp.IsDynamicallyRegistered)
+}
+
+func TestGetOAuthAccessTokenForImplicitFlow_PublicClient_Success(t *testing.T) {
+	// Test that implicit flow still works for public clients (no PKCE required)
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	// Create public client
+	publicApp := &model.OAuthApp{
+		Name:                    "Public Client Test",
+		CreatorId:               th.BasicUser2.Id,
+		Homepage:                "https://example.com",
+		Description:             "test public client",
+		CallbackUrls:            []string{"https://example.com/callback"},
+		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+	}
+
+	publicApp, appErr := th.App.CreateOAuthApp(publicApp)
+	require.Nil(t, appErr)
+	require.Empty(t, publicApp.ClientSecret) // Public client should have no secret
+
+	// Implicit flow authorization request (no PKCE parameters needed)
+	authRequest := &model.AuthorizeRequest{
+		ResponseType: model.ImplicitResponseType, // Using implicit flow
+		ClientId:     publicApp.Id,
+		RedirectURI:  publicApp.CallbackUrls[0],
+		Scope:        "user",
+		State:        "test_state",
+		// No PKCE parameters for implicit flow
+	}
+
+	// Get access token directly via implicit flow
+	session, appErr := th.App.GetOAuthAccessTokenForImplicitFlow(th.Context, th.BasicUser.Id, authRequest)
+	require.Nil(t, appErr)
+	require.NotNil(t, session)
+	require.NotEmpty(t, session.Token)
+	require.Equal(t, th.BasicUser.Id, session.UserId)
+	require.True(t, session.IsOAuth)
+
+	// Verify redirect URL format for implicit flow
+	redirectURL, appErr := th.App.GetOAuthImplicitRedirect(th.Context, th.BasicUser.Id, authRequest)
+	require.Nil(t, appErr)
+	require.Contains(t, redirectURL, "#access_token=")
+	require.Contains(t, redirectURL, "token_type=bearer")
+	require.Contains(t, redirectURL, "state=test_state")
+}
+
+func TestGetOAuthAccessTokenForImplicitFlow_ConfidentialClient_Success(t *testing.T) {
+	// Test that implicit flow works for confidential clients too
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	// Create confidential client
+	confidentialApp := &model.OAuthApp{
+		Name:                    "Confidential Client Test",
+		CreatorId:               th.BasicUser2.Id,
+		Homepage:                "https://example.com",
+		Description:             "test confidential client",
+		CallbackUrls:            []string{"https://example.com/callback"},
+		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodClientSecretPost),
+	}
+
+	confidentialApp, appErr := th.App.CreateOAuthApp(confidentialApp)
+	require.Nil(t, appErr)
+	require.NotEmpty(t, confidentialApp.ClientSecret) // Confidential client should have secret
+
+	// Implicit flow authorization request (no PKCE needed for implicit flow)
+	authRequest := &model.AuthorizeRequest{
+		ResponseType: model.ImplicitResponseType, // Using implicit flow
+		ClientId:     confidentialApp.Id,
+		RedirectURI:  confidentialApp.CallbackUrls[0],
+		Scope:        "user",
+		State:        "test_state",
+		// No PKCE parameters for implicit flow
+	}
+
+	// Get access token directly via implicit flow
+	session, appErr := th.App.GetOAuthAccessTokenForImplicitFlow(th.Context, th.BasicUser.Id, authRequest)
+	require.Nil(t, appErr)
+	require.NotNil(t, session)
+	require.NotEmpty(t, session.Token)
+	require.Equal(t, th.BasicUser.Id, session.UserId)
+	require.True(t, session.IsOAuth)
 }

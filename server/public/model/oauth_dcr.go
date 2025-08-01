@@ -75,7 +75,9 @@ func (r *ClientRegistrationRequest) IsValid() *AppError {
 	if r.TokenEndpointAuthMethod != nil {
 		switch *r.TokenEndpointAuthMethod {
 		case ClientAuthMethodClientSecretPost:
-			// Valid and supported
+			// Valid and supported - confidential client
+		case ClientAuthMethodNone:
+			// Valid and supported - public client
 		default:
 			return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.token_endpoint_auth_method.app_error", nil, "method="+*r.TokenEndpointAuthMethod, http.StatusBadRequest)
 		}
@@ -89,6 +91,17 @@ func (r *ClientRegistrationRequest) IsValid() *AppError {
 				// Valid and supported
 			default:
 				return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.grant_type.app_error", nil, "grant_type="+grantType, http.StatusBadRequest)
+			}
+		}
+	}
+
+	// Validate that public clients don't request refresh token grant type
+	if r.TokenEndpointAuthMethod != nil && *r.TokenEndpointAuthMethod == ClientAuthMethodNone {
+		if len(r.GrantTypes) > 0 {
+			for _, grantType := range r.GrantTypes {
+				if grantType == GrantTypeRefreshToken {
+					return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.public_client_refresh_token.app_error", nil, "", http.StatusBadRequest)
+				}
 			}
 		}
 	}
