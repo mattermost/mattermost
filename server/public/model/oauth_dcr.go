@@ -20,9 +20,6 @@ type ClientRegistrationRequest struct {
 	GrantTypes              []string  `json:"grant_types,omitempty"`
 	ResponseTypes           []string  `json:"response_types,omitempty"`
 	ClientName              *string   `json:"client_name,omitempty"`
-	ClientURI               *string   `json:"client_uri,omitempty"`
-	LogoURI                 *string   `json:"logo_uri,omitempty"`
-	Scope                   *string   `json:"scope,omitempty"`
 
 }
 
@@ -32,8 +29,6 @@ type ClientRegistrationResponse struct {
 	// Client identifier and credentials
 	ClientID                string    `json:"client_id"`
 	ClientSecret            *string   `json:"client_secret,omitempty"`
-	ClientIDIssuedAt        int64     `json:"client_id_issued_at"`
-
 
 	// Client metadata (echoing back what was registered)
 	RedirectURIs            []string  `json:"redirect_uris"`
@@ -41,9 +36,6 @@ type ClientRegistrationResponse struct {
 	GrantTypes              []string  `json:"grant_types"`
 	ResponseTypes           []string  `json:"response_types"`
 	ClientName              *string   `json:"client_name,omitempty"`
-	ClientURI               *string   `json:"client_uri,omitempty"`
-	LogoURI                 *string   `json:"logo_uri,omitempty"`
-	Scope                   *string   `json:"scope,omitempty"`
 }
 
 // DCR Error types as defined in RFC 7591
@@ -105,14 +97,6 @@ func (r *ClientRegistrationRequest) IsValid() *AppError {
 		}
 	}
 
-	// Validate URIs
-	if r.ClientURI != nil && !IsValidHTTPURL(*r.ClientURI) {
-		return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.client_uri.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if r.LogoURI != nil && !IsValidHTTPURL(*r.LogoURI) {
-		return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.logo_uri.app_error", nil, "", http.StatusBadRequest)
-	}
 
 
 	// Validate client name length
