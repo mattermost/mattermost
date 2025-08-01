@@ -66,12 +66,9 @@ func newIndexer(client *elastic.TypedClient, bulkSettings common.BulkSettings, l
 	}
 
 	return esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
-		// NumWorkers:    0,
 		FlushBytes:    bulkSettings.FlushBytes,
 		FlushInterval: interval,
 		Client:        client,
-		// Decoder:       nil,
-		// DebugLogger:   nil,
 		OnError: func(ctx context.Context, err error) {
 			logger.Error("indexer error", mlog.Err(err))
 		},
@@ -82,23 +79,6 @@ func newIndexer(client *elastic.TypedClient, bulkSettings common.BulkSettings, l
 		OnFlushEnd: func(context.Context) {
 			logger.Debug("elasticsearch bulk indexer flush ended")
 		},
-		// Index:         "",
-		// ErrorTrace:    false,
-		// FilterPath:    []string{},
-		// Header: map[string][]string{
-		// 	"": {},
-		// },
-		// Human:               false,
-		// Pipeline:            "",
-		// Pretty:              false,
-		// Refresh:             "",
-		// Routing:             "",
-		// RequireAlias:        false,
-		// Source:              []string{},
-		// SourceExcludes:      []string{},
-		// SourceIncludes:      []string{},
-		// Timeout:             0,
-		// WaitForActiveShards: "",
 	})
 }
 
@@ -144,16 +124,9 @@ func (b *DataBulkClient) IndexOp(op esTypes.IndexOperation, doc any) error {
 		Index:      *op.Index_,
 		Action:     "index",
 		DocumentID: *op.Id_,
-		// Routing:         "",
-		// RequireAlias:    false,
-		// Version:         nil,
-		// VersionType:     "",
-		Body: bodyReader,
-		// RetryOnConflict: nil,
-		// IfSeqNo:         nil,
-		// IfPrimaryTerm:   nil,
-		OnSuccess: b.onSuccess,
-		OnFailure: b.onFailure,
+		Body:       bodyReader,
+		OnSuccess:  b.onSuccess,
+		OnFailure:  b.onFailure,
 	})
 }
 func (b *DataBulkClient) DeleteOp(op esTypes.DeleteOperation) error {
@@ -167,16 +140,9 @@ func (b *DataBulkClient) DeleteOp(op esTypes.DeleteOperation) error {
 		Index:      *op.Index_,
 		Action:     "delete",
 		DocumentID: *op.Id_,
-		// Routing:         "",
-		// RequireAlias:    false,
-		// Version:         nil,
-		// VersionType:     "",
-		Body: nil,
-		// RetryOnConflict: nil,
-		// IfSeqNo:         nil,
-		// IfPrimaryTerm:   nil,
-		OnSuccess: b.onSuccess,
-		OnFailure: b.onFailure,
+		Body:       nil,
+		OnSuccess:  b.onSuccess,
+		OnFailure:  b.onFailure,
 	})
 }
 
