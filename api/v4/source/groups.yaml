@@ -1200,3 +1200,40 @@
           $ref: "#/components/responses/BadRequest"
         "501":
           $ref: "#/components/responses/NotImplemented"
+  "/api/v4/groups/names":
+    post:
+      tags:
+        - groups
+      summary: Get groups by name
+      description: |
+        Get a list of groups based on a provided list of names.
+
+        ##### Permissions
+        Requires an active session but no other permissions.
+        
+        __Minimum server version__: 11.0
+      operationId: GetGroupsByNames
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        description: List of group names
+        required: true
+      responses:
+        "200":
+          description: Group list retrieval successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Group"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
