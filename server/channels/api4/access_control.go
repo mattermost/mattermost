@@ -41,7 +41,7 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createAccessControlPolicy", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateAccessControlPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "requested", &policy)
 
@@ -112,7 +112,7 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 	policyID := c.Params.PolicyId
 
-	auditRec := c.MakeAuditRecord("deleteAccessControlPolicy", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteAccessControlPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "id", policyID)
 
@@ -245,7 +245,7 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	policyID := c.Params.PolicyId
 
-	auditRec := c.MakeAuditRecord("updateActiveStatus", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateActiveStatus, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "id", policyID)
 
@@ -292,7 +292,7 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("assignAccessPolicy", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAssignAccessPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "id", policyID)
 	model.AddEventParameterToAuditRec(auditRec, "channel_ids", assignments.ChannelIds)
@@ -324,7 +324,7 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		ChannelIds []string `json:"channel_ids"`
 	}
 
-	auditRec := c.MakeAuditRecord("unassignAccessPolicy", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUnassignAccessPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "id", policyID)
 	model.AddEventParameterToAuditRec(auditRec, "channel_ids", assignments.ChannelIds)

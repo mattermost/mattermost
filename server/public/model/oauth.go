@@ -6,6 +6,7 @@ package model
 import (
 	"fmt"
 	"net/http"
+	"slices"
 	"unicode/utf8"
 )
 
@@ -207,13 +208,7 @@ func (a *OAuthApp) Sanitize() {
 }
 
 func (a *OAuthApp) IsValidRedirectURL(url string) bool {
-	for _, u := range a.CallbackUrls {
-		if u == url {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(a.CallbackUrls, url)
 }
 
 // NewOAuthAppFromClientRegistration creates a new OAuthApp from a ClientRegistrationRequest

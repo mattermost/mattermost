@@ -83,7 +83,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	team.Email = strings.ToLower(team.Email)
 
-	auditRec := c.MakeAuditRecord("createTeam", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateTeam, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "team", &team)
 
@@ -213,7 +213,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateTeam", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateTeam, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "team", &team)
 
@@ -250,7 +250,7 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchTeam", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventPatchTeam, model.AuditStatusFail)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "team_patch", &team)
 	defer c.LogAuditRec(auditRec)
 
@@ -303,7 +303,7 @@ func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("restoreTeam", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRestoreTeam, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 
@@ -382,7 +382,7 @@ func updateTeamPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateTeamPrivacy", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateTeamPrivacy, model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "privacy", privacy)
 	defer c.LogAuditRec(auditRec)
 
@@ -435,7 +435,7 @@ func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("regenerateTeamInviteId", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRegenerateTeamInviteId, model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 	defer c.LogAuditRec(auditRec)
 
@@ -468,7 +468,7 @@ func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteTeam", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteTeam, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if team, err := c.App.GetTeam(c.Params.TeamId); err == nil {
@@ -736,7 +736,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("addTeamMember", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddTeamMember, model.AuditStatusFail)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "member", &member)
 	defer c.LogAuditRec(auditRec)
 
@@ -823,7 +823,7 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 	var member *model.TeamMember
 	var err *model.AppError
 
-	auditRec := c.MakeAuditRecord("addUserToTeamFromInvite", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddUserToTeamFromInvite, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "invite_id", inviteId)
 
@@ -881,7 +881,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("addTeamMembers", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddTeamMembers, model.AuditStatusFail)
 	model.AddEventParameterAuditableArrayToAuditRec(auditRec, "members", members)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("count", len(members))
@@ -993,7 +993,7 @@ func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("removeTeamMember", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveTeamMember, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if c.AppContext.Session().UserId != c.Params.UserId {
@@ -1103,7 +1103,7 @@ func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateTeamMemberRoles", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateTeamMemberRoles, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "roles", newRoles)
 
@@ -1137,7 +1137,7 @@ func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateTeamMemberSchemeRoles", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateTeamMemberSchemeRoles, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "scheme_roles", &schemeRoles)
 
@@ -1375,7 +1375,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("importTeam", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventImportTeam, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 
@@ -1451,7 +1451,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		emailList[i] = strings.ToLower(emailList[i])
 	}
 
-	auditRec := c.MakeAuditRecord("inviteUsersToTeam", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventInviteUsersToTeam, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "member_invite", memberInvite)
 	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
@@ -1545,7 +1545,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("inviteGuestsToChannels", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventInviteGuestsToChannels, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 
@@ -1662,7 +1662,7 @@ func invalidateAllEmailInvites(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("invalidateAllEmailInvites", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventInvalidateAllEmailInvites, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.InvalidateAllEmailInvites(c.AppContext); err != nil {
@@ -1724,7 +1724,7 @@ func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("setTeamIcon", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventSetTeamIcon, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 
@@ -1775,7 +1775,7 @@ func removeTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("removeTeamIcon", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveTeamIcon, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 
@@ -1813,7 +1813,7 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateTeamScheme", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateTeamScheme, model.AuditStatusFail)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "scheme_id_patch", &p)
 	defer c.LogAuditRec(auditRec)
 
@@ -1876,7 +1876,7 @@ func teamMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Req
 	}
 
 	groupIDs := []string{}
-	for _, gid := range strings.Split(c.Params.GroupIDs, ",") {
+	for gid := range strings.SplitSeq(c.Params.GroupIDs, ",") {
 		if !model.IsValidId(gid) {
 			c.SetInvalidParam("group_ids")
 			return
