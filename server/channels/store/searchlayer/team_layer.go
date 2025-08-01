@@ -47,16 +47,17 @@ func (s SearchTeamStore) RemoveMember(rctx request.CTX, teamId string, userId st
 }
 
 func (s SearchTeamStore) RemoveAllMembersByUser(rctx request.CTX, userId string) error {
-	memberships, err := s.TeamStore.GetTeamsForUser(rctx, userId, "", true)
-	if err != nil {
-		return err
-	}
 	if s.rootStore.searchEngine.ActiveEngine() != "database" && s.rootStore.searchEngine.ActiveEngine() != "none" {
+		memberships, err := s.TeamStore.GetTeamsForUser(rctx, userId, "", true)
+		if err != nil {
+			return err
+		}
 		for _, membership := range memberships {
 			s.rootStore.indexChannelsForTeam(rctx, membership.TeamId)
 		}
 	}
-	err = s.TeamStore.RemoveAllMembersByUser(rctx, userId)
+
+	err := s.TeamStore.RemoveAllMembersByUser(rctx, userId)
 	if err == nil {
 		if s.rootStore.searchEngine.ActiveEngine() != "database" && s.rootStore.searchEngine.ActiveEngine() != "none" {
 			s.rootStore.indexUserFromID(rctx, userId)
