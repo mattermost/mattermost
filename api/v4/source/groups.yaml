@@ -1210,6 +1210,8 @@
 
         ##### Permissions
         Requires an active session but no other permissions.
+        
+        __Minimum server version__: 11.0
       operationId: GetGroupsByNames
       requestBody:
         content:
