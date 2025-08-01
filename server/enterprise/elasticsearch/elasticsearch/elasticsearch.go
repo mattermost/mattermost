@@ -159,7 +159,7 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 		es.Platform.Log())
 	if err != nil {
 		return model.NewAppError("elasticsearch.start",
-			"ent.elasticsearch.create_processor.bulk_processor_create_failed",
+			"ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
 			nil, "",
 			http.StatusInternalServerError).Wrap(err)
 	}
