@@ -17,21 +17,23 @@ import GuestTag from 'components/widgets/tag/guest_tag';
 import Tag from 'components/widgets/tag/tag';
 import Avatar from 'components/widgets/users/avatar';
 
-import {Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import {SuggestionContainer} from '../suggestion';
 import type {SuggestionProps} from '../suggestion';
 
 export interface Item extends UserProfile {
-    display_name: string;
-    name: string;
     isCurrentUser: boolean;
-    type: string;
 }
 
 interface Group extends Item {
+    display_name: string;
+    name: string;
     member_count: number;
+}
+
+function isGroup(o: unknown): o is Group {
+    return Boolean(o && typeof o === 'object' && 'display_name' in o);
 }
 
 const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item>>((props, ref) => {
@@ -100,7 +102,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
                 />
             </span>
         );
-    } else if (item.type === Constants.MENTION_GROUPS) {
+    } else if (isGroup(item)) {
         itemname = item.name;
         description = (
             <span className='ml-1'>{'- '}{item.display_name}</span>
@@ -166,7 +168,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
     ) : null;
 
     let countBadge;
-    if (item.type === Constants.MENTION_GROUPS) {
+    if (isGroup(item)) {
         countBadge = (
             <span className='suggestion-list__group-count'>
                 <Tag
