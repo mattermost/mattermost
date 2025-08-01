@@ -366,16 +366,17 @@ export interface LoadPostsParameters {
     channelId: string;
     postId: string;
     type: CanLoadMorePosts;
+    perPage: number;
 }
 
 export function loadPosts({
     channelId,
     postId,
     type,
+    perPage,
 }: LoadPostsParameters): ThunkActionFunc<Promise<LoadPostsReturnValue>> {
     //type here can be BEFORE_ID or AFTER_ID
     return async (dispatch) => {
-        const POST_INCREASE_AMOUNT = Constants.POST_CHUNK_SIZE / 2;
 
         dispatch({
             type: ActionTypes.LOADING_POSTS,
@@ -386,9 +387,9 @@ export function loadPosts({
         const page = 0;
         let result;
         if (type === PostRequestTypes.BEFORE_ID) {
-            result = await dispatch(PostActions.getPostsBefore(channelId, postId, page, POST_INCREASE_AMOUNT));
+            result = await dispatch(PostActions.getPostsBefore(channelId, postId, page, perPage));
         } else {
-            result = await dispatch(PostActions.getPostsAfter(channelId, postId, page, POST_INCREASE_AMOUNT));
+            result = await dispatch(PostActions.getPostsAfter(channelId, postId, page, perPage));
         }
 
         const {data} = result;
