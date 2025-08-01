@@ -83,7 +83,7 @@ func (c *SearchChannelStore) bulkIndexChannels(rctx request.CTX, channels []*mod
 		runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
 			appErr := engineCopy.SyncBulkIndexChannels(rctx, channels, getUserIDsForPrivateChannel, teamMemberIDs)
 			if appErr != nil {
-				rctx.Logger().Error("Failed to synchronously bulk-index channels.", mlog.String("search_engine", engineCopy.GetName()))
+				rctx.Logger().Error("Failed to synchronously bulk-index channels.", mlog.String("search_engine", engineCopy.GetName()), mlog.Err(appErr))
 				return
 			}
 		})
