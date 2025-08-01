@@ -146,16 +146,20 @@ func (b *DataBulkClient) DeleteOp(op esTypes.DeleteOperation) error {
 	})
 }
 
+func (b *DataBulkClient) _stop() error {
+	ctx, cancel := context.WithTimeout(context.Background(), b.reqTimeout)
+	defer cancel()
+
+	return b.indexer.Close(ctx)
+}
+
 func (b *DataBulkClient) Flush() error {
 	b.mut.Lock()
 	defer b.mut.Unlock()
 
-	ctx, cancel := context.WithTimeout(context.Background(), b.reqTimeout)
-	defer cancel()
-
 	// The esutil.BulkIndexer cannot be manually flushed, but it can be closed,
 	// which does flush all the contents.
-	if err := b.indexer.Close(ctx); err != nil {
+	if err := b._stop(); err != nil {
 		return fmt.Errorf("failed to close the BulkIndexer: %w", err)
 	}
 
@@ -176,8 +180,5 @@ func (b *DataBulkClient) Stop() error {
 
 	b.logger.Info("Stopping Bulk processor")
 
-	ctx, cancel := context.WithTimeout(context.Background(), b.reqTimeout)
-	defer cancel()
-
-	return b.indexer.Close(ctx)
+	return b._stop()
 }
