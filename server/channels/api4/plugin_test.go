@@ -1391,7 +1391,7 @@ func TestGetPrepackagedPlaybooksPluginIn(t *testing.T) {
 		require.Len(t, plugins, 1)
 	})
 
-	t.Run("playbooks v1 is returned if professional licensed", func(t *testing.T) {
+	t.Run("playbooks v2 is returned if professional licensed", func(t *testing.T) {
 		lic := th.App.Srv().License()
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU("professional"))
 		defer th.App.Srv().SetLicense(lic)
@@ -1399,7 +1399,7 @@ func TestGetPrepackagedPlaybooksPluginIn(t *testing.T) {
 		plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
 		require.NoError(t, err)
 
-		expectedPlugins := prepackagePlugins[0]
+		expectedPlugins := prepackagePlugins[1]
 		require.Equal(t, expectedPlugins.Manifest.Version, plugins[0].Manifest.Version)
 		require.Len(t, plugins, 1)
 	})
