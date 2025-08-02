@@ -368,7 +368,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 				if time.Since(begin) > timeout {
 					break
 				}
-				posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
+				posts, appErr = th.App.GetPosts(th.Context, channel.Id, 0, 10)
 				assert.True(t, appErr == nil)
 				if len(posts.Posts) > 0 {
 					break

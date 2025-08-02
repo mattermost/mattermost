@@ -94,8 +94,8 @@ func (us *UserService) GetUser(userID string) (*model.User, error) {
 	return us.store.Get(context.Background(), userID)
 }
 
-func (us *UserService) GetUsers(userIDs []string) ([]*model.User, error) {
-	return us.store.GetMany(context.Background(), userIDs)
+func (us *UserService) GetUsers(rctx request.CTX, userIDs []string) ([]*model.User, error) {
+	return us.store.GetMany(rctx, userIDs)
 }
 
 func (us *UserService) GetUserByUsername(username string) (*model.User, error) {
@@ -135,10 +135,10 @@ func (us *UserService) GetUsersEtag(restrictionsHash string) string {
 	return fmt.Sprintf("%v.%v.%v.%v", us.store.GetEtagForAllProfiles(), us.config().PrivacySettings.ShowFullName, us.config().PrivacySettings.ShowEmailAddress, restrictionsHash)
 }
 
-func (us *UserService) GetUsersByIds(userIDs []string, options *store.UserGetByIdsOpts) ([]*model.User, error) {
+func (us *UserService) GetUsersByIds(rctx request.CTX, userIDs []string, options *store.UserGetByIdsOpts) ([]*model.User, error) {
 	allowFromCache := options.ViewRestrictions == nil
 
-	users, err := us.store.GetProfileByIds(context.Background(), userIDs, options, allowFromCache)
+	users, err := us.store.GetProfileByIds(rctx, userIDs, options, allowFromCache)
 	if err != nil {
 		return nil, err
 	}

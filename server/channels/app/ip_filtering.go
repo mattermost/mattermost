@@ -4,8 +4,6 @@
 package app
 
 import (
-	"context"
-
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
@@ -22,7 +20,7 @@ func (a *App) SendIPFiltersChangedEmail(c request.CTX, userID string) error {
 		}
 	}
 
-	initiatingUser, err := a.Srv().Store().User().GetProfileByIds(context.Background(), []string{userID}, nil, true)
+	initiatingUser, err := a.Srv().Store().User().GetProfileByIds(c, []string{userID}, nil, true)
 	if err != nil {
 		c.Logger().Error("Failed to get initiating user", mlog.Err(err))
 	}
