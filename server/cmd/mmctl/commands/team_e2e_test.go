@@ -26,12 +26,31 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 		cmd := &cobra.Command{}
 		args := []string{nonExistentTeamName}
 		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
+		cmd.Flags().String("name", "newName", "Team Name")
 
 		err := renameTeamCmdF(c, cmd, args)
 		s.Require().EqualError(err, "Unable to find team 'existingName', to see the all teams try 'team list' command")
 	})
 
-	s.RunForSystemAdminAndLocal("Rename an existing team", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("Renaming an existing team", func(c client.Client) {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		args := []string{s.th.BasicTeam.Name}
+		cmd.Flags().String("name", "newName", "Team Name")
+
+		err := renameTeamCmdF(c, cmd, args)
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Equal("'"+s.th.BasicTeam.Name+"' team renamed", printer.GetLines()[0])
+		s.Len(printer.GetErrorLines(), 0)
+
+		team, appErr := s.th.App.GetTeam(s.th.BasicTeam.Id)
+		s.Require().Nil(appErr)
+		s.Equal("newName", team.Name)
+	})
+
+	s.RunForSystemAdminAndLocal("Changing display name of an existing team", func(c client.Client) {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
@@ -43,6 +62,10 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 		s.Len(printer.GetLines(), 1)
 		s.Equal("'"+s.th.BasicTeam.Name+"' team renamed", printer.GetLines()[0])
 		s.Len(printer.GetErrorLines(), 0)
+
+		team, appErr := s.th.App.GetTeam(s.th.BasicTeam.Id)
+		s.Require().Nil(appErr)
+		s.Equal("newDisplayName", team.DisplayName)
 	})
 
 	s.Run("Permission error renaming an existing team", func() {
