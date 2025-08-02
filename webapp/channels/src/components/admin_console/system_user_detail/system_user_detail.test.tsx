@@ -31,6 +31,7 @@ describe('SystemUserDetail', () => {
         showLockedManageUserSettings: false,
         mfaEnabled: false,
         patchUser: jest.fn(),
+        updateUserAuth: jest.fn(),
         updateUserMfa: jest.fn(),
         getUser: getUserMock,
         updateUserActive: jest.fn(),
