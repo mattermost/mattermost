@@ -45,8 +45,19 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "requested", &policy)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
+	switch policy.Type {
+	case model.AccessControlPolicyTypeParent:
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
+	case model.AccessControlPolicyTypeChannel:
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), policy.ID, model.PermissionManageChannelAccessRules) {
+			c.SetPermissionError(model.PermissionManageChannelAccessRules)
+			return
+		}
+	default:
+		c.SetInvalidParam("type")
 		return
 	}
 

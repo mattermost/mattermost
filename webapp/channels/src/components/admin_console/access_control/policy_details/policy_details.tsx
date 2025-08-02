@@ -170,7 +170,7 @@ function PolicyDetails({
             name: policyName,
             rules: [{expression, actions: ['*']}] as AccessControlPolicyRule[],
             type: 'parent',
-            version: 'v0.1',
+            version: 'v0.2',
         }).then((result) => {
             if (result.error) {
                 setServerError(result.error.message);
@@ -581,7 +581,6 @@ function PolicyDetails({
                     onChannelsSelected={(channels) => addToNewChannels(channels)}
                     groupID={''}
                     alreadySelected={Object.values(channelChanges.added).map((channel) => channel.id)}
-                    excludeAccessControlPolicyEnforced={true}
                     excludeTypes={['O', 'D', 'G']}
                 />
             )}
