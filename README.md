@@ -49,6 +49,14 @@ Other install guides:
 - [RHEL 8](https://docs.mattermost.com/install/install-rhel-8.html)
 - [More server install guides](https://docs.mattermost.com/guides/deployment.html)
 
+## Self-Hosting Options
+
+### Elestio
+
+You can deploy Mattermost on Elestio using one-click deployment.
+
+[![Deploy on Elestio](https://elest.io/images/logos/deploy-to-elestio-btn.png)](https://elest.io/open-source/mattermost)
+
 ## Native mobile and desktop apps
 
 In addition to the web interface, you can also download Mattermost clients for [Android](https://mattermost.com/pl/android-app/), [iOS](https://mattermost.com/pl/ios-app/), [Windows PC](https://docs.mattermost.com/install/desktop-app-install.html#windows-10-windows-8-1), [macOS](https://docs.mattermost.com/install/desktop-app-install.html#macos-10-9), and [Linux](https://docs.mattermost.com/install/desktop-app-install.html#linux).
