@@ -1677,7 +1677,7 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 				s, err := a.Srv().Store().Attributes().GetSubject(c, user.Id, groupID)
 				if err != nil {
 					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
-						fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusNotFound)
+						fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusForbidden)
 				}
 
 				decision, evalErr := acs.AccessEvaluation(c, model.AccessRequest{
