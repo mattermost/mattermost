@@ -2255,6 +2255,35 @@ describe('Selectors.Channels.getUnreadStatus', () => {
 
         expect(Selectors.getUnreadStatus(newState)).toBe(1);
     });
+
+    it('should not count unreads and mentions from a muted channel', () => {
+        const mutedChannelId = channel2.id;
+        const newMyMembers = {
+            ...testState.entities.channels.myMembers,
+            [mutedChannelId]: {
+                ...testState.entities.channels.myMembers[mutedChannelId],
+                notify_props: {
+                    ...testState.entities.channels.myMembers[mutedChannelId].notify_props,
+                    mark_unread: 'mention',
+                },
+                mention_count: 3,
+                msg_count: 10,
+            },
+        };
+
+        const newState = {
+            ...testState,
+            entities: {
+                ...testState.entities,
+                channels: {
+                    ...testState.entities.channels,
+                    myMembers: newMyMembers,
+                },
+            },
+        };
+
+        expect(Selectors.getUnreadStatus(newState)).toBe(1);
+    });
 });
 
 describe('Selectors.Channels.getUnreadStatus', () => {
