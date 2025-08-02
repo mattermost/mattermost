@@ -11,3 +11,5 @@ export const contentFlaggingFeatureEnabled = (state: GlobalState): boolean => {
 
     return featureFlagEnabled && featureEnabled;
 };
+
+export const contentFlaggingConfig = (state: GlobalState) => state.entities.contentFlagging.settings;
