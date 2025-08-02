@@ -38,6 +38,7 @@ interface TrialBannerProps {
     openEEModal: () => void;
 
     restarting: boolean;
+    canUpgrade: boolean;
 }
 
 export const EmbargoedEntityTrialError = () => {
@@ -81,6 +82,7 @@ const TrialBanner = ({
     restarting,
     openEEModal,
     openTrialForm,
+    canUpgrade,
 }: TrialBannerProps) => {
     let trialButton;
     let upgradeTermsMessage;
@@ -229,7 +231,7 @@ const TrialBanner = ({
                 type='button'
                 className='btn btn-primary'
                 onClick={handleRequestLicense}
-                disabled={isDisabled || gettingTrialError !== null || gettingTrialResponseCode === 451}
+                disabled={isDisabled || gettingTrialError !== null || gettingTrialResponseCode === 451 || !canUpgrade}
             >
                 {btnText(status)}
             </button>
@@ -273,6 +275,7 @@ const TrialBanner = ({
                 type='button'
                 onClick={onHandleUpgrade}
                 className='btn btn-primary'
+                disabled={!canUpgrade}
             >
                 <LoadingWrapper
                     loading={upgradingPercentage > 0}
