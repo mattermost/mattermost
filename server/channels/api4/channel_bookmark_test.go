@@ -1651,52 +1651,7 @@ func TestListChannelBookmarksForChannel(t *testing.T) {
 		}
 	})
 
-	t.Run("bookmark listing should not work in an archived channel without ExperimentalViewArchivedChannels", func(t *testing.T) {
-		experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
-		defer func() {
-			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
-			})
-		}()
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
-		})
-
-		channelBookmark := &model.ChannelBookmark{
-			ChannelId:   th.BasicDeletedChannel.Id,
-			DisplayName: "Link bookmark test",
-			LinkUrl:     "https://mattermost.com",
-			Type:        model.ChannelBookmarkLink,
-			Emoji:       ":smile:",
-		}
-
-		_, _, _ = th.SystemAdminClient.RestoreChannel(context.Background(), channelBookmark.ChannelId)
-
-		cb, resp, err := th.Client.CreateChannelBookmark(context.Background(), channelBookmark)
-		require.NoError(t, err)
-		CheckCreatedStatus(t, resp)
-		require.NotNil(t, cb)
-
-		_, _ = th.SystemAdminClient.DeleteChannel(context.Background(), cb.ChannelId)
-
-		// try to list the channel bookmarks
-		bookmarks, resp, err := th.Client.ListChannelBookmarksForChannel(context.Background(), cb.ChannelId, 0)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-		require.Nil(t, bookmarks)
-	})
-
-	t.Run("bookmark listing should work in an archived channel with ExperimentalViewArchivedChannels", func(t *testing.T) {
-		experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
-		defer func() {
-			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
-			})
-		}()
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
-		})
-
+	t.Run("bookmark listing should work in an archived channel", func(t *testing.T) {
 		channelBookmark := &model.ChannelBookmark{
 			ChannelId:   th.BasicDeletedChannel.Id,
 			DisplayName: "Link bookmark test",

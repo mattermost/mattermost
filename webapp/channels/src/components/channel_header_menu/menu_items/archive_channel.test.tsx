@@ -97,7 +97,6 @@ describe('components/ChannelHeaderMenu/MenuItems/ArchiveChannel', () => {
             dialogType: DeleteChannelModal,
             dialogProps: {
                 channel,
-                penultimateViewedChannelName: 'current_channel_id',
             },
         });
     });
