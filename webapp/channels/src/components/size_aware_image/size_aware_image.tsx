@@ -6,25 +6,24 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {KeyboardEvent, MouseEvent, SyntheticEvent} from 'react';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
-import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
 import type {PostImage} from '@mattermost/types/posts';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getFileMiniPreviewUrl} from 'mattermost-redux/utils/file_utils';
 
-import LoadingImagePreview from 'components/loading_image_preview';
-import WithTooltip from 'components/with_tooltip';
+import ImageUtilityButtons from './image_utility_buttons';
 
-import {FileTypes} from 'utils/constants';
-import {copyToClipboard, getFileType} from 'utils/utils';
+import {FileTypes} from '../../utils/constants';
+import {copyToClipboard, getFileType} from '../../utils/utils';
+import LoadingImagePreview from '../loading_image_preview';
 
-const MIN_IMAGE_SIZE = 48;
-const MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS = 100;
+const MIN_IMAGE_SIZE = 50;
 const MAX_IMAGE_HEIGHT = 350;
+const MIN_CONTAINER_SIZE = 50;
 
 export type Props = WrappedComponentProps & {
 
@@ -57,7 +56,7 @@ export type Props = WrappedComponentProps & {
     /*
     * A callback that is called as soon as the image component has a height value
     */
-    onImageLoaded?: ({height, width}: {height: number; width: number}) => void;
+    onImageLoaded?: (dimensions: {height: number; width: number}) => void;
 
     /*
     * A callback that is called when image load fails
@@ -93,6 +92,16 @@ export type Props = WrappedComponentProps & {
     * Prevents display of utility buttons when image in a location that makes them inappropriate
     */
     hideUtilities?: boolean;
+
+    /*
+    * Custom threshold for determining if an image is considered "small" (defaults to 216px)
+    */
+    smallImageThreshold?: number;
+
+    /*
+    * Custom minimum size for the container (defaults to 48px)
+    */
+    minContainerSize?: number;
 }
 
 type State = {
@@ -141,7 +150,12 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
     };
 
     isSmallImage = (width: number, height: number) => {
-        return width < MIN_IMAGE_SIZE || height < MIN_IMAGE_SIZE;
+        const threshold = this.props.smallImageThreshold ?? 216;
+        return width < threshold || height < threshold;
+    };
+
+    getContainerSize = () => {
+        return this.props.minContainerSize ?? MIN_CONTAINER_SIZE;
     };
 
     handleLoad = (event: SyntheticEvent<HTMLImageElement, Event>) => {
@@ -196,23 +210,30 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
     renderImageWithContainerIfNeeded = () => {
         const {
             fileInfo,
-            dimensions,
             src,
+            intl,
+            handleSmallImageContainer,
+            className,
+            ...allOtherProps
+        } = this.props;
+
+        // Remove props that shouldn't be passed to the img element
+        /* eslint-disable @typescript-eslint/no-unused-vars */
+        const {
+            dimensions,
+            hideUtilities,
+            getFilePublicLink,
+            smallImageThreshold,
             fileURL,
             enablePublicLink,
-            intl,
-            ...props
-        } = this.props;
-        Reflect.deleteProperty(props, 'showLoader');
-        Reflect.deleteProperty(props, 'onImageLoaded');
-        Reflect.deleteProperty(props, 'onImageLoadFail');
-        Reflect.deleteProperty(props, 'dimensions');
-        Reflect.deleteProperty(props, 'handleSmallImageContainer');
-        Reflect.deleteProperty(props, 'enablePublicLink');
-        Reflect.deleteProperty(props, 'onClick');
-        Reflect.deleteProperty(props, 'hideUtilities');
-        Reflect.deleteProperty(props, 'getFilePublicLink');
-        Reflect.deleteProperty(props, 'intl');
+            onImageLoaded,
+            onImageLoadFail,
+            showLoader,
+            onClick,
+            minContainerSize,
+            ...restProps
+        } = allOtherProps;
+        /* eslint-enable @typescript-eslint/no-unused-vars */
 
         let ariaLabelImage = intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
@@ -224,178 +245,80 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         let conditionalSVGStyleAttribute;
         if (fileType === FileTypes.SVG) {
             conditionalSVGStyleAttribute = {
-                width: dimensions?.width || MIN_IMAGE_SIZE,
+                width: '100%',
                 height: 'auto',
             };
         }
 
         const image = (
             <img
-                {...props}
+                {...restProps}
                 aria-label={ariaLabelImage}
                 tabIndex={0}
                 onClick={this.handleImageClick}
                 onKeyDown={this.onEnterKeyDown}
-                className={
-                    this.props.className +
-                    (this.props.handleSmallImageContainer &&
-                        this.state.isSmallImage ? ' small-image--inside-container' : '')}
+                className={className + (handleSmallImageContainer && this.state.isSmallImage ? ' small-image--inside-container' : '')}
                 src={src}
                 onError={this.handleError}
                 onLoad={this.handleLoad}
-                style={conditionalSVGStyleAttribute}
+                style={{
+                    ...conditionalSVGStyleAttribute,
+                }}
             />
         );
 
-        // copyLink, download are two buttons overlayed on image preview
-        // copyLinkTooltip, downloadTooltip are tooltips for the buttons respectively.
-        // if linkCopiedRecently is true, defaultMessage would be 'Copy Link', else 'Copied!'
+        if (handleSmallImageContainer && this.state.isSmallImage) {
+            const minSize = this.getContainerSize();
 
-        const copyLinkTooltipText = this.state.linkCopiedRecently ? (
-            <FormattedMessage
-                id={'single_image_view.copied_link_tooltip'}
-                defaultMessage={'Copied'}
-            />
-        ) : (
-            <FormattedMessage
-                id={'single_image_view.copy_link_tooltip'}
-                defaultMessage={'Copy link'}
-            />
-        );
-        const copyLink = (
-            <WithTooltip
-                title={copyLinkTooltipText}
-            >
-                <button
-                    className={classNames('style--none', 'size-aware-image__copy_link', {
-                        'size-aware-image__copy_link--recently_copied': this.state.linkCopiedRecently,
-                    })}
-                    aria-label={intl.formatMessage({id: 'single_image_view.copy_link_tooltip', defaultMessage: 'Copy link'})}
-                    onClick={this.copyLinkToAsset}
-                >
-                    {this.state.linkCopiedRecently ? (
-                        <CheckIcon
-                            className={'svg-check style--none'}
-                            size={20}
-                        />
-                    ) : (
-                        <LinkVariantIcon
-                            className={'style--none'}
-                            size={20}
-                        />
-                    )}
-                </button>
-            </WithTooltip>
-        );
-
-        const downloadTooltipText = (
-            <FormattedMessage
-                id='single_image_view.download_tooltip'
-                defaultMessage='Download'
-            />
-        );
-        const download = (
-            <WithTooltip
-                title={downloadTooltipText}
-            >
-                <a
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    href={this.isInternalImage ? fileURL : src}
-                    className='style--none size-aware-image__download'
-                    download={true}
-                    role={this.isInternalImage ? 'button' : undefined}
-                    aria-label={intl.formatMessage({id: 'single_image_view.download_tooltip', defaultMessage: 'Download'})}
-                >
-                    <DownloadOutlineIcon
-                        className={'style--none'}
-                        size={20}
-                    />
-                </a>
-            </WithTooltip>
-        );
-
-        if (this.props.handleSmallImageContainer && this.state.isSmallImage) {
-            let className = 'small-image__container cursor--pointer a11y--active';
-            if (this.state.imageWidth < MIN_IMAGE_SIZE) {
-                className += ' small-image__container--min-width';
-            }
-
-            // 24 is the offset on a 48px wide image, for every pixel added to the width of the image, it's added to the left offset to buttons
-            const wideImageButtonsOffset = (24 + this.state.imageWidth) - MIN_IMAGE_SIZE;
-
-            /**
-             * creation of left offset for 2 nested cases
-             *  - if a small image with larger width
-             *  - if copy link button is enabled
-             */
-            const modifierCopyButton = enablePublicLink ? 0 : 8;
-
-            // decrease modifier if imageWidth > 100
-            const modifierLargerWidth = this.state.imageWidth > MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS ? 40 : 0;
-
-            // since there is a max-width constraint on images, a max-left clause follows.
-            const leftStyle = this.state.imageWidth > MIN_IMAGE_SIZE ? {
-                left: `min(${wideImageButtonsOffset + (modifierCopyButton - modifierLargerWidth)}px, calc(100% - ${31 - (modifierCopyButton - modifierLargerWidth)}px)`,
-            } : {};
-
-            const wideSmallImageStyle = this.state.imageWidth > MIN_IMAGE_SIZE ? {
-                width: this.state.imageWidth + 2, // 2px to account for the border
-            } : {};
             return (
                 <div
-                    className='small-image-utility-buttons-wrapper'
+                    className='small-image__container'
+                    style={{
+                        minWidth: minSize,
+                        minHeight: minSize,
+                    }}
                 >
-                    <div
-                        onClick={this.handleImageClick}
-                        className={classNames(className)}
-                        style={wideSmallImageStyle}
-                    >
+                    <figure className={classNames('image-loaded-container')}>
                         {image}
-                    </div>
-                    <span
-                        className={classNames('image-preview-utility-buttons-container', 'image-preview-utility-buttons-container--small-image', {
-                            'image-preview-utility-buttons-container--small-image-no-copy-button': !enablePublicLink,
-                        })}
-                        style={leftStyle}
-                    >
-                        {enablePublicLink && copyLink}
-                        {download}
-                    </span>
+                    </figure>
                 </div>
             );
         }
 
-        // handling external small images (OR) handling all large internal / large external images
-        const utilityButtonsWrapper = this.props.hideUtilities || (this.state.isSmallImage && !this.isInternalImage) ? null :
-            (
-                <span
-                    className={classNames('image-preview-utility-buttons-container', {
-
-                        // cases for when image isn't a small image but width is < 100px
-                        'image-preview-utility-buttons-container--small-image': this.state.imageWidth < MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS,
-                        'image-preview-utility-buttons-container--small-image-no-copy-button': (!enablePublicLink || !this.isInternalImage) && this.state.imageWidth < MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS,
-                    })}
-                >
-                    {(enablePublicLink || !this.isInternalImage) && copyLink}
-                    {download}
-                </span>
-            );
+        // For regular/large images, just return the figure with the image
         return (
             <figure className={classNames('image-loaded-container')}>
                 {image}
-                {utilityButtonsWrapper}
             </figure>
         );
     };
 
     renderImageOrFallback = () => {
         const {
-            dimensions,
             fileInfo,
+            dimensions,
+            intl,
+            hideUtilities,
+            ...allOtherProps
         } = this.props;
 
-        let ariaLabelImage = this.props.intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
+        // Remove props that shouldn't be passed to the img element
+        /* eslint-disable @typescript-eslint/no-unused-vars */
+        const {
+            src,
+            getFilePublicLink,
+            smallImageThreshold,
+            fileURL,
+            enablePublicLink,
+            onImageLoaded,
+            onImageLoadFail,
+            showLoader,
+            handleSmallImageContainer,
+            ...props
+        } = allOtherProps;
+        /* eslint-enable @typescript-eslint/no-unused-vars */
+
+        let ariaLabelImage = intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
             ariaLabelImage += ` ${fileInfo.name}`.toLowerCase();
         }
@@ -412,12 +335,17 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             if (miniPreview) {
                 fallback = (
                     <div
-                        className={`image-loading__container ${this.props.className}`}
-                        style={{maxWidth: dimensions?.width}}
+                        className={`image-loading__container ${props.className}`}
+                        style={{
+                            width: dimensions?.width,
+                            height: dimensions?.height,
+                            minWidth: MIN_IMAGE_SIZE,
+                            minHeight: MIN_IMAGE_SIZE,
+                        }}
                     >
                         <img
                             aria-label={ariaLabelImage}
-                            className={this.props.className}
+                            className={props.className}
                             src={miniPreview}
                             tabIndex={0}
                             height={height}
@@ -428,8 +356,13 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             } else {
                 fallback = (
                     <div
-                        className={`image-loading__container ${this.props.className}`}
-                        style={{maxWidth: width}}
+                        className={`image-loading__container ${props.className}`}
+                        style={{
+                            width,
+                            height,
+                            minWidth: MIN_IMAGE_SIZE,
+                            minHeight: MIN_IMAGE_SIZE,
+                        }}
                     >
                         {this.renderImageLoaderIfNeeded()}
                         <svg
@@ -443,15 +376,29 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         }
 
         const shouldShowImg = !this.dimensionsAvailable(dimensions) || this.state.loaded;
+        const imageContainer = this.renderImageWithContainerIfNeeded();
 
         return (
             <>
                 {fallback}
                 <div
                     className='file-preview__button'
-                    style={{display: shouldShowImg ? 'inline-block' : 'none'}}
+                    style={{display: shouldShowImg ? 'flex' : 'none'}}
                 >
-                    {this.renderImageWithContainerIfNeeded()}
+                    {imageContainer}
+                    {shouldShowImg && !hideUtilities && (
+                        <ImageUtilityButtons
+                            enablePublicLink={enablePublicLink}
+                            src={src}
+                            fileURL={fileURL}
+                            handleSmallImageContainer={handleSmallImageContainer}
+                            isSmallImage={this.state.isSmallImage}
+                            linkCopiedRecently={this.state.linkCopiedRecently}
+                            imageWidth={this.state.imageWidth}
+                            isInternalImage={this.isInternalImage}
+                            onCopyLink={this.copyLinkToAsset}
+                        />
+                    )}
                 </div>
             </>
         );

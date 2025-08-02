@@ -276,6 +276,7 @@ export default function FileAttachment(props: Props) {
             <a
                 aria-label={ariaLabelImage}
                 className='post-image__thumbnail'
+                data-testid='post-image__thumbnail'
                 href='#'
                 onClick={onAttachmentClick}
             >
@@ -384,6 +385,7 @@ export default function FileAttachment(props: Props) {
                     {'keep-open': keepOpen},
                     {'post-image__column--archived': fileInfo.archived},
                 ])}
+                data-testid='post-image__column'
             >
                 {fileThumbnail}
                 <div className='post-image__details'>
