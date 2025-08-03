@@ -718,9 +718,7 @@ func (si *SlackImporter) oldImportUser(rctx request.CTX, team *model.Team, user 
 		return nil
 	}
 
-	if _, err := si.store.User().VerifyEmail(ruser.Id, ruser.Email); err != nil {
-		rctx.Logger().Warn("Failed to set email verified.", mlog.Err(err))
-	}
+	// Users must verify their emails through the standard verification process
 
 	if _, err := si.actions.JoinUserToTeam(team, user, ""); err != nil {
 		rctx.Logger().Warn("Failed to join team when importing.", mlog.Err(err))

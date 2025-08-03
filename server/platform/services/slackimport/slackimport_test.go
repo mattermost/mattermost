@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -458,4 +459,64 @@ func TestSlackUploadFile(t *testing.T) {
 		_, ok := importer.slackUploadFile(rctx, sf, uploads, "team-id", "channel-id", "user-id", time.Now().String())
 		require.False(t, ok)
 	})
+}
+
+func TestOldImportUserEmailVerificationIsNotAutomatic(t *testing.T) {
+	rctx := request.TestContext(t)
+
+	store := &mocks.Store{}
+	userStore := &mocks.UserStore{}
+	store.On("User").Return(userStore)
+
+	// Track if VerifyEmail is called (it should NOT be called)
+	verifyEmailCalled := false
+	userStore.On("VerifyEmail", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return("user-id", nil).Run(func(args mock.Arguments) {
+		verifyEmailCalled = true
+	})
+
+	savedUser := &model.User{
+		Id:            "test-user-id",
+		Username:      "testuser",
+		Email:         "testuser@restricted-domain.com",
+		EmailVerified: false, // Must remain false after import
+		Roles:         model.SystemUserRoleId,
+	}
+	userStore.On("Save", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.User")).Return(savedUser, nil)
+
+	joinTeamCalled := false
+	actions := Actions{
+		JoinUserToTeam: func(team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
+			joinTeamCalled = true
+			return &model.TeamMember{}, nil
+		},
+	}
+
+	config := &model.Config{}
+	config.SetDefaults()
+
+	importer := New(store, actions, config)
+
+	team := &model.Team{
+		Id:   "test-team-id",
+		Name: "test-team",
+	}
+
+	user := &model.User{
+		Username:  "testuser",
+		Email:     "testuser@restricted-domain.com",
+		FirstName: "Test",
+		LastName:  "User",
+	}
+
+	result := importer.oldImportUser(rctx, team, user)
+
+	require.NotNil(t, result, "User import should succeed")
+	assert.Equal(t, "test-user-id", result.Id, "Should return the saved user")
+	assert.False(t, verifyEmailCalled, "SECURITY: VerifyEmail should NOT be called - this prevents domain bypass vulnerability")
+	assert.True(t, joinTeamCalled, "User should still be joined to the team")
+
+	// Verify the user was saved with unverified email (VerifyEmail should not have been called)
+	userStore.AssertCalled(t, "Save", mock.AnythingOfType("*request.Context"), mock.MatchedBy(func(u *model.User) bool {
+		return u.Email == "testuser@restricted-domain.com" && !u.EmailVerified
+	}))
 }
