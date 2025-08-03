@@ -3832,7 +3832,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Ongeldig stuurprogrammanaam bij SQL-instellingen. Moet 'mysql' of 'postgres' zijn."
+    "translation": "Ongeldige stuurprogrammanaam voor SQL-instellingen. Moet 'postgres' zijn."
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
@@ -4628,7 +4628,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 13+"
+    "translation": "Versie 138+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -4732,7 +4732,7 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Ongeldige gebruiker, auth data moet ingesteld zijn met auth type."
+    "translation": "Ongeldige gebruiker: Auth-gegevens kunnen alleen worden ingesteld als de gebruiker een externe auth-service, en niet e-mail/wachtwoord gebruikt voor authenticatie."
   },
   {
     "id": "model.user.is_valid.auth_data_pwd.app_error",
@@ -10946,5 +10946,13 @@
   {
     "id": "app.cloud.preview_modal_data_parse_error",
     "translation": "Fout bij het parsen van preview modal-gegevens"
+  },
+  {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "De markeerfunctie voor inhoud is uitgeschakeld."
+  },
+  {
+    "id": "api.content_flagging.error.license",
+    "translation": "Je licentie ondersteunt het markeren van inhoud niet."
   }
 ]
