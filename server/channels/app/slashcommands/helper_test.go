@@ -8,6 +8,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -385,10 +386,8 @@ func (th *TestHelper) addPermissionToRole(tb testing.TB, permission string, role
 	role, appErr := th.App.GetRoleByName(context.Background(), roleName)
 	require.Nil(tb, appErr)
 
-	for _, existingPermission := range role.Permissions {
-		if existingPermission == permission {
-			return
-		}
+	if slices.Contains(role.Permissions, permission) {
+		return
 	}
 
 	role.Permissions = append(role.Permissions, permission)

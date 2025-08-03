@@ -2104,18 +2104,18 @@ func (mr *MockClientMockRecorder) SoftDeleteTeam(arg0, arg1 interface{}) *gomock
 }
 
 // SyncLdap mocks base method.
-func (m *MockClient) SyncLdap(arg0 context.Context, arg1 *bool) (*model.Response, error) {
+func (m *MockClient) SyncLdap(arg0 context.Context) (*model.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SyncLdap", arg0, arg1)
+	ret := m.ctrl.Call(m, "SyncLdap", arg0)
 	ret0, _ := ret[0].(*model.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SyncLdap indicates an expected call of SyncLdap.
-func (mr *MockClientMockRecorder) SyncLdap(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) SyncLdap(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncLdap", reflect.TypeOf((*MockClient)(nil).SyncLdap), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncLdap", reflect.TypeOf((*MockClient)(nil).SyncLdap), arg0)
 }
 
 // UpdateChannelPrivacy mocks base method.
@@ -2289,6 +2289,22 @@ func (m *MockClient) UpdateUserActive(arg0 context.Context, arg1 string, arg2 bo
 func (mr *MockClientMockRecorder) UpdateUserActive(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserActive", reflect.TypeOf((*MockClient)(nil).UpdateUserActive), arg0, arg1, arg2)
+}
+
+// UpdateUserAuth mocks base method.
+func (m *MockClient) UpdateUserAuth(arg0 context.Context, arg1 string, arg2 *model.UserAuth) (*model.UserAuth, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserAuth", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.UserAuth)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// UpdateUserAuth indicates an expected call of UpdateUserAuth.
+func (mr *MockClientMockRecorder) UpdateUserAuth(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserAuth", reflect.TypeOf((*MockClient)(nil).UpdateUserAuth), arg0, arg1, arg2)
 }
 
 // UpdateUserHashedPassword mocks base method.

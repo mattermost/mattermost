@@ -29,6 +29,9 @@ import {
 } from 'actions/admin_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
+import ContentFlaggingAdditionalSettingsSection from 'components/admin_console/content_flagging/additional_settings/additional_settings';
+import ContentFlaggingContentReviewers from 'components/admin_console/content_flagging/content_reviewers/content_reviewers';
+import ContentFlaggingNotificationSettingsSection from 'components/admin_console/content_flagging/notificatin_settings/notification_settings';
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
 import CustomProfileAttributes from 'components/admin_console/custom_profile_attributes/custom_profile_attributes';
 import PluginManagement from 'components/admin_console/plugin_management';
@@ -54,7 +57,6 @@ import BillingHistory, {searchableStrings as billingHistorySearchableStrings} fr
 import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchableStrings} from './billing/billing_subscriptions';
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
-import BleveSettings, {searchableStrings as bleveSearchableStrings} from './bleve_settings';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
 import ClientSideUserIdsSetting from './client_side_userids_setting';
 import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
@@ -3266,6 +3268,43 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
             },
+            content_flagging: {
+                url: 'site_config/content_flagging',
+                title: defineMessage({id: 'admin.sidebar.contentFlagging', defaultMessage: 'Content Flagging'}),
+                isHidden: it.any(
+                    it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'ContentFlagging'),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
+                schema: {
+                    id: 'ContentFlaggingSettings',
+                    name: defineMessage({id: 'admin.contentFlagging.title', defaultMessage: 'Content Flagging'}),
+                    settings: [
+                        {
+                            type: 'bool',
+                            key: 'ContentFlaggingSettings.EnableContentFlagging',
+                            label: defineMessage({id: 'admin.contentFlagging.enableTitle', defaultMessage: 'Enable Content Flagging'}),
+                        },
+                        {
+                            type: 'custom',
+                            key: 'ContentFlaggingSettings.ReviewerSettings',
+                            component: ContentFlaggingContentReviewers,
+                        },
+                        {
+                            type: 'custom',
+                            key: 'ContentFlaggingSettings.NotificationSettings',
+                            component: ContentFlaggingNotificationSettingsSection,
+                        },
+                        {
+                            type: 'custom',
+                            key: 'ContentFlaggingSettings.AdditionalSettings',
+                            component: ContentFlaggingAdditionalSettingsSection,
+                        },
+                    ],
+                },
+            },
             wrangler: {
                 url: 'site_config/wrangler',
                 title: defineMessage({id: 'admin.sidebar.move_thread', defaultMessage: 'Move Thread (Beta)'}),
@@ -6234,20 +6273,6 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'Feature Flags',
                     component: FeatureFlags,
-                },
-            },
-            bleve: {
-                url: 'experimental/blevesearch',
-                title: defineMessage({id: 'admin.sidebar.blevesearch', defaultMessage: 'Bleve'}),
-                isHidden: it.any(
-                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.BLEVE)),
-                ),
-                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.BLEVE)),
-                searchableStrings: bleveSearchableStrings,
-                schema: {
-                    id: 'BleveSettings',
-                    component: BleveSettings,
                 },
             },
         },

@@ -98,7 +98,7 @@ func generateDevCSP(c Context) string {
 
 	// Add supported flags for debugging during development, even if not on a dev build.
 	if *c.App.Config().ServiceSettings.DeveloperFlags != "" {
-		for _, devFlagKVStr := range strings.Split(*c.App.Config().ServiceSettings.DeveloperFlags, ",") {
+		for devFlagKVStr := range strings.SplitSeq(*c.App.Config().ServiceSettings.DeveloperFlags, ",") {
 			devFlagKVSplit := strings.SplitN(devFlagKVStr, "=", 2)
 			if len(devFlagKVSplit) != 2 {
 				c.Logger.Warn("Unable to parse developer flag", mlog.String("developer_flag", devFlagKVStr))
@@ -489,7 +489,7 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 				mlog.String("user_id", session.UserId),
 			}
 
-			if *c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
+			if *c.App.Config().ServiceSettings.StrictCSRFEnforcement {
 				c.Logger.Warn(csrfErrorMessage, fields...)
 			} else {
 				c.Logger.Debug(csrfErrorMessage, fields...)

@@ -24,21 +24,19 @@ type Container struct {
 
 func main() {
 	validServices := map[string]int{
-		"mysql":              3306,
-		"postgres":           5432,
-		"minio":              9000,
-		"inbucket":           9001,
-		"openldap":           389,
-		"elasticsearch":      9200,
-		"opensearch":         9201,
-		"redis":              6379,
-		"dejavu":             1358,
-		"keycloak":           8080,
-		"prometheus":         9090,
-		"grafana":            3000,
-		"loki":               3100,
-		"promtail":           3180,
-		"mysql-read-replica": 3306, // FIXME: not recognizing the successfully running service on port 3307.
+		"postgres":      5432,
+		"minio":         9000,
+		"inbucket":      9001,
+		"openldap":      389,
+		"elasticsearch": 9200,
+		"opensearch":    9201,
+		"redis":         6379,
+		"dejavu":        1358,
+		"keycloak":      8080,
+		"prometheus":    9090,
+		"grafana":       3000,
+		"loki":          3100,
+		"promtail":      3180,
 	}
 	command := []string{}
 	for _, arg := range os.Args[1:] {

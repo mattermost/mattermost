@@ -2700,10 +2700,6 @@
     "translation": "Не могат да се получат статусите на приставки от клъстера."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Не може да се зададе приставка, като управлявана от файловото хранилище."
-  },
-  {
     "id": "app.plugin.filesystem.app_error",
     "translation": "Възникна грешка във файловата система."
   },
@@ -7366,10 +7362,6 @@
   {
     "id": "api.getThreadsForUser.bad_params",
     "translation": "Параметрите Преди и След за getThreadsForUser се изключват взаимно"
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Грешка при четене на файл от сървъра"
   },
   {
     "id": "api.unable_to_create_zip_file",

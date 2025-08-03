@@ -1323,15 +1323,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "由于频道拥有超过{{.Users}}位用户，因此已禁用 @all。"
+    "translation": "@all 通知在超过 {{.Users}} 用户的频道中被禁用。联系您的系统管理员以了解更多信息。"
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "由于频道拥有超过{{.Users}}位用户，因此已禁用 @channel。"
+    "translation": "@channel 通知在超过 {{.Users}} 用户的频道中被禁用。联系您的系统管理员以了解更多信息。"
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here 已禁用因为频道超过 {{.Users}} 位用户。"
+    "translation": "@here 通知在超过 {{.Users}} 用户的频道中被禁用。联系您的系统管理员以了解更多信息。"
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -4614,10 +4614,6 @@
     "translation": "AuthService 与 AuthData 必须同时使用。"
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "无法设定插件由文件储存管理。"
-  },
-  {
     "id": "app.plugin.get_public_key.get_file.app_error",
     "translation": "从储存获取公钥时遇到错误。"
   },
@@ -5651,11 +5647,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 134+"
+    "translation": "版本 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 134+"
+    "translation": "版本 138+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -7260,10 +7256,6 @@
   {
     "id": "api.back_to_app",
     "translation": "回到{{.SiteName}}"
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "从后端读取文件时出错"
   },
   {
     "id": "api.unable_to_create_zip_file",
@@ -10502,14 +10494,6 @@
     "translation": "空的 LDAP 属性值"
   },
   {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "修补 CPA 值时出错"
-  },
-  {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "更新 CPA 值时出错"
-  },
-  {
     "id": "model.access_policy.is_valid.rules.app_error",
     "translation": "规则无效。"
   },
@@ -10766,16 +10750,8 @@
     "translation": "频道横幅颜色必须为有效的十六进制颜色（例如：#FF0000 或 #F00）"
   },
   {
-    "id": "api.license.add_license.mysql.app_error",
-    "translation": "此许可证不支持 MySQL。"
-  },
-  {
     "id": "app.group.create_syncable_memberships.error",
     "translation": "无法创建群组同步成员资格。"
-  },
-  {
-    "id": "api.license.request-trial.mysql.app_error",
-    "translation": "试用许可证不支持 MySQL 数据库。请使用 PostgreSQL 以访问试用功能。"
   },
   {
     "id": "app.group.delete_invalid_syncable_memberships.error",
@@ -10880,5 +10856,73 @@
   {
     "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
     "translation": "审计日志配置的最大文件备份数不能为负数。"
+  },
+  {
+    "id": "api.command_share.service_inactive",
+    "translation": "共享频道服务已启用但未激活。"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "频道成员更新无效：频道成员总是有用户方案。"
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "团队成员更新无效：团队成员总是有用户方案。"
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "上传文件失败。上传频道未与远程共享。"
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.empty.error",
+    "translation": "导入的关注者数据为空。"
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.user_missing.error",
+    "translation": "缺少必需关注者属性：user。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.thread_follower.error",
+    "translation": "验证消息对话关注者消息失败。"
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
+    "translation": "“所有团队的审核员相同”启用时，必须设置通用审核员或额外审核员。"
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.reasons_not_set.app_error",
+    "translation": "标记原因不能为空。"
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
+    "translation": "为团队设置“启用时”，必须设置团队审核员或额外审核员。"
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_target",
+    "translation": "指定的标记目标无效。"
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_event",
+    "translation": "指定的标记事件无效。"
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
+    "translation": "不能为审核员关闭新的被标记消息通知。"
+  },
+  {
+    "id": "app.cloud.preview_modal_bucket_url_not_configured",
+    "translation": "预览桶 URL 未配置"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "获取预览对话框数据失败"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_parse_error",
+    "translation": "解析预览对话框数据失败"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.thread_follower.error",
+    "translation": "验证直接消息对话关注者数据失败。"
   }
 ]

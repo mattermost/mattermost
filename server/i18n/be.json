@@ -5496,10 +5496,6 @@
     "translation": "Вы ўжо перайшлі на Mattermost Карпаратыўная рэдакцыя. Калі ласка, перазапусціце сервер, каб завяршыць абнаўленне."
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Памылка чытання файла з бэкэнда"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "Памылка стварэння zip-файла."
   },
@@ -5642,10 +5638,6 @@
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
     "translation": "Немагчыма атрымаць статуты плагінаў з кластара."
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Немагчыма задаць убудову як кіраваны файлавым сховішчам."
   },
   {
     "id": "app.plugin.extract.app_error",

@@ -50,7 +50,6 @@ func (s SqlPreferenceStore) Save(preferences model.Preferences) (err error) {
 
 	defer finalizeTransactionX(transaction, &err)
 	for _, preference := range preferences {
-		preference := preference
 		if upsertErr := s.saveTx(transaction, &preference); upsertErr != nil {
 			return upsertErr
 		}
@@ -73,15 +72,8 @@ func (s SqlPreferenceStore) save(transaction *sqlxTxWrapper, preference *model.P
 	query := s.getQueryBuilder().
 		Insert("Preferences").
 		Columns("UserId", "Category", "Name", "Value").
-		Values(preference.UserId, preference.Category, preference.Name, preference.Value)
-
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Value = ?", preference.Value))
-	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid, category, name) DO UPDATE SET Value = ?", preference.Value))
-	} else {
-		return store.NewErrNotImplemented("failed to update preference because of missing driver")
-	}
+		Values(preference.UserId, preference.Category, preference.Name, preference.Value).
+		SuffixExpr(sq.Expr("ON CONFLICT (userid, category, name) DO UPDATE SET Value = ?", preference.Value))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -104,15 +96,8 @@ func (s SqlPreferenceStore) saveTx(transaction *sqlxTxWrapper, preference *model
 	query := s.getQueryBuilder().
 		Insert("Preferences").
 		Columns("UserId", "Category", "Name", "Value").
-		Values(preference.UserId, preference.Category, preference.Name, preference.Value)
-
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Value = ?", preference.Value))
-	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid, category, name) DO UPDATE SET Value = ?", preference.Value))
-	} else {
-		return store.NewErrNotImplemented("failed to update preference because of missing driver")
-	}
+		Values(preference.UserId, preference.Category, preference.Name, preference.Value).
+		SuffixExpr(sq.Expr("ON CONFLICT (userid, category, name) DO UPDATE SET Value = ?", preference.Value))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
