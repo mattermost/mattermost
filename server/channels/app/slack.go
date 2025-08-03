@@ -49,7 +49,15 @@ func (a *App) SlackImport(c request.CTX, fileData multipart.File, fileSize int64
 		},
 	}
 
-	importer := slackimport.New(a.Srv().Store(), actions, a.Config())
+	// Get the importing user from the context for enhanced security controls
+	var importingUser *model.User
+	if c.Session() != nil && c.Session().UserId != "" {
+		if user, err := a.GetUser(c.Session().UserId); err == nil {
+			importingUser = user
+		}
+	}
+
+	importer := slackimport.NewWithImportingUser(a.Srv().Store(), actions, a.Config(), importingUser)
 	return importer.SlackImport(c, fileData, fileSize, teamID)
 }
 
