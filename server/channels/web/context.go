@@ -179,13 +179,13 @@ func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
 		return nil
 	}
 
-	// Get latest ToS document - FAIL CLOSED on errors
+	// Get latest ToS document - fail closed on database errors, fail open if no ToS exists
 	latestToS, err := c.App.Srv().Store().TermsOfService().GetLatest(true)
 	if err != nil {
 		// Check if this is specifically "no ToS exists" vs database error
 		var nfErr *store.ErrNotFound
 		if errors.As(err, &nfErr) {
-			c.Logger.Critical("No Terms of Service document found - ToS enforcement disabled system-wide", mlog.String("context", "TermsOfServiceRequired"))
+			c.Logger.Error("No Terms of Service document found - ToS enforcement disabled system-wide", mlog.String("context", "TermsOfServiceRequired"))
 			return nil // No ToS exists, allow access
 		}
 		// Database error - fail closed for security
@@ -231,26 +231,21 @@ func isExactPathMatch(requestPath string, exemptPaths []string) bool {
 
 // matchesUserToSPattern checks if path matches the pattern /api/v4/users/{user_id}/terms_of_service
 // using the same validation pattern as Gorilla Mux: {user_id:[A-Za-z0-9]+}
-func matchesUserToSPattern(path string) (string, bool) {
+func matchesUserToSPattern(path string) bool {
 	// Quick prefix/suffix check
 	if !strings.HasPrefix(path, "/api/v4/users/") || !strings.HasSuffix(path, "/terms_of_service") {
-		return "", false
+		return false
 	}
 
 	// Split and validate exact structure: ["", "api", "v4", "users", "user_id", "terms_of_service"]
 	parts := strings.Split(path, "/")
 	if len(parts) != 6 || parts[0] != "" || parts[1] != "api" || parts[2] != "v4" ||
 		parts[3] != "users" || parts[5] != "terms_of_service" {
-		return "", false
+		return false
 	}
 
 	userId := parts[4]
-	// Use same validation as Gorilla Mux pattern: [A-Za-z0-9]+
-	if userId == "" || !model.IsValidId(userId) {
-		return "", false
-	}
-
-	return userId, true
+	return model.IsValidId(userId)
 }
 
 // isTermsOfServiceExemptEndpoint uses exact path matching to prevent bypass attacks
@@ -260,18 +255,7 @@ func (c *Context) isTermsOfServiceExemptEndpoint(path string) bool {
 		"/api/v4/terms_of_service",
 	}
 
-	// Check exact matches
-	if isExactPathMatch(path, exemptPaths) {
-		return true
-	}
-
-	// Check user-specific ToS endpoints using simplified pattern matching
-	// Pattern: /api/v4/users/{user_id}/terms_of_service
-	if _, matches := matchesUserToSPattern(path); matches {
-		return true
-	}
-
-	return false
+	return isExactPathMatch(path, exemptPaths) || matchesUserToSPattern(path)
 }
 
 func (c *Context) CloudKeyRequired() {

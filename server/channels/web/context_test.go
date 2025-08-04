@@ -125,72 +125,61 @@ func TestIsExactPathMatch(t *testing.T) {
 
 func TestMatchesUserToSPattern(t *testing.T) {
 	tests := []struct {
-		name       string
-		path       string
-		expectedId string
-		expectedOk bool
+		name     string
+		path     string
+		expected bool
 	}{
 		{
-			name:       "valid user ToS resource",
-			path:       "/api/v4/users/abcdefghijklmnopqrstuvwxyz/terms_of_service",
-			expectedId: "abcdefghijklmnopqrstuvwxyz",
-			expectedOk: true,
+			name:     "valid user ToS resource",
+			path:     "/api/v4/users/abcdefghijklmnopqrstuvwxyz/terms_of_service",
+			expected: true,
 		},
 		{
-			name:       "valid user ToS with uppercase",
-			path:       "/api/v4/users/USER123ABCDEFGHIJKLMNOPQRS/terms_of_service",
-			expectedId: "USER123ABCDEFGHIJKLMNOPQRS",
-			expectedOk: true,
+			name:     "valid user ToS with uppercase",
+			path:     "/api/v4/users/USER123ABCDEFGHIJKLMNOPQRS/terms_of_service",
+			expected: true,
 		},
 		{
-			name:       "wrong prefix version",
-			path:       "/api/v5/users/abcdefghijklmnopqrstuvwxyz/terms_of_service",
-			expectedId: "",
-			expectedOk: false,
+			name:     "wrong prefix version",
+			path:     "/api/v5/users/abcdefghijklmnopqrstuvwxyz/terms_of_service",
+			expected: false,
 		},
 		{
-			name:       "wrong suffix",
-			path:       "/api/v4/users/abcdefghijklmnopqrstuvwxyz/preferences",
-			expectedId: "",
-			expectedOk: false,
+			name:     "wrong suffix",
+			path:     "/api/v4/users/abcdefghijklmnopqrstuvwxyz/preferences",
+			expected: false,
 		},
 		{
-			name:       "extra path segments",
-			path:       "/api/v4/users/abcdefghijklmnopqrstuvwxyz/extra/terms_of_service",
-			expectedId: "",
-			expectedOk: false,
+			name:     "extra path segments",
+			path:     "/api/v4/users/abcdefghijklmnopqrstuvwxyz/extra/terms_of_service",
+			expected: false,
 		},
 		{
-			name:       "bypass attempt with dots",
-			path:       "/api/v4/users/../admin/terms_of_service",
-			expectedId: "",
-			expectedOk: false,
+			name:     "bypass attempt with dots",
+			path:     "/api/v4/users/../admin/terms_of_service",
+			expected: false,
 		},
 		{
-			name:       "empty user id",
-			path:       "/api/v4/users//terms_of_service",
-			expectedId: "",
-			expectedOk: false,
+			name:     "empty user id",
+			path:     "/api/v4/users//terms_of_service",
+			expected: false,
 		},
 		{
-			name:       "invalid user id with special chars",
-			path:       "/api/v4/users/user@example.com/terms_of_service",
-			expectedId: "",
-			expectedOk: false,
+			name:     "invalid user id with special chars",
+			path:     "/api/v4/users/user@example.com/terms_of_service",
+			expected: false,
 		},
 		{
-			name:       "user id with spaces",
-			path:       "/api/v4/users/user with spaces/terms_of_service",
-			expectedId: "",
-			expectedOk: false,
+			name:     "user id with spaces",
+			path:     "/api/v4/users/user with spaces/terms_of_service",
+			expected: false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			userId, ok := matchesUserToSPattern(tt.path)
-			assert.Equal(t, tt.expectedOk, ok)
-			assert.Equal(t, tt.expectedId, userId)
+			result := matchesUserToSPattern(tt.path)
+			assert.Equal(t, tt.expected, result)
 		})
 	}
 }

@@ -9493,8 +9493,12 @@ func TestAPIEnforcementTermsOfService(t *testing.T) {
 	})
 
 	t.Run("API calls allowed after accepting ToS", func(t *testing.T) {
+		// Accept ToS within this test
+		_, err := th.Client.RegisterTermsOfServiceAction(context.Background(), th.BasicUser.Id, termsOfService.Id, true)
+		require.NoError(t, err)
+
 		// Now API calls should work
-		_, _, err := th.Client.GetUser(context.Background(), th.BasicUser.Id, "")
+		_, _, err = th.Client.GetUser(context.Background(), th.BasicUser.Id, "")
 		require.NoError(t, err)
 
 		_, _, err = th.Client.GetMe(context.Background(), "")
