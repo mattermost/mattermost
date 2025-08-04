@@ -626,3 +626,79 @@ func TestUninviteRemoteClusterToChannel(t *testing.T) {
 		t.Skip("Requires server2server communication: ToBeImplemented")
 	})
 }
+
+func TestCanUserDirectMessage(t *testing.T) {
+	th := setupForSharedChannels(t).InitBasic()
+	defer th.TearDown()
+
+	// Create remote clusters
+	directlyConnectedRC := &model.RemoteCluster{
+		RemoteId:    model.NewId(),
+		Name:        "directly-connected-cluster",
+		DisplayName: "Directly Connected Cluster",
+		SiteURL:     "https://example-connected.com",
+		RemoteToken: model.NewId(),
+		Token:       model.NewId(),
+		CreateAt:    model.GetMillis(),
+		LastPingAt:  model.GetMillis(),
+	}
+
+	indirectlyConnectedRC := &model.RemoteCluster{
+		RemoteId:    model.NewId(),
+		Name:        "indirectly-connected-cluster",
+		DisplayName: "Indirectly Connected Cluster",
+		SiteURL:     model.SiteURLPending + "example-indirect.com",
+		RemoteToken: model.NewId(),
+		Token:       model.NewId(),
+		CreateAt:    model.GetMillis(),
+		LastPingAt:  model.GetMillis(),
+	}
+
+	// Save remote clusters
+	_, appErr := th.App.AddRemoteCluster(directlyConnectedRC)
+	require.Nil(t, appErr)
+	_, appErr = th.App.AddRemoteCluster(indirectlyConnectedRC)
+	require.Nil(t, appErr)
+
+	// Create remote users
+	directlyConnectedUser := &model.User{
+		Email:    "directly-connected@example.com",
+		Username: "directly-connected-user",
+		Password: "password",
+		RemoteId: &directlyConnectedRC.RemoteId,
+		Props:    make(map[string]string),
+	}
+	directlyConnectedUser.Props[model.UserPropsKeyOriginalRemoteId] = model.NewId()
+
+	indirectlyConnectedUser := &model.User{
+		Email:    "indirectly-connected@example.com",
+		Username: "indirectly-connected-user",
+		Password: "password",
+		RemoteId: &indirectlyConnectedRC.RemoteId,
+		Props:    make(map[string]string),
+	}
+	indirectlyConnectedUser.Props[model.UserPropsKeyOriginalRemoteId] = model.NewId()
+
+	directlyConnectedUser, appErr = th.App.CreateUser(th.Context, directlyConnectedUser)
+	require.Nil(t, appErr)
+	indirectlyConnectedUser, appErr = th.App.CreateUser(th.Context, indirectlyConnectedUser)
+	require.Nil(t, appErr)
+
+	t.Run("Regular user cannot DM user from indirectly connected remote", func(t *testing.T) {
+		canSee, appErr := th.App.UserCanSeeOtherUser(th.Context, th.BasicUser.Id, indirectlyConnectedUser.Id)
+		require.Nil(t, appErr)
+		require.False(t, canSee)
+	})
+
+	t.Run("Admin user cannot DM user from indirectly connected remote", func(t *testing.T) {
+		canSee, appErr := th.App.UserCanSeeOtherUser(th.Context, th.SystemAdminUser.Id, indirectlyConnectedUser.Id)
+		require.Nil(t, appErr)
+		require.False(t, canSee)
+	})
+
+	t.Run("Admin user can DM user from directly connected remote", func(t *testing.T) {
+		canSee, appErr := th.App.UserCanSeeOtherUser(th.Context, th.SystemAdminUser.Id, directlyConnectedUser.Id)
+		require.Nil(t, appErr)
+		require.True(t, canSee)
+	})
+}

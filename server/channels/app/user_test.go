@@ -2466,19 +2466,19 @@ func ensureRemoteClusterConnected(t *testing.T, ss store.Store, cluster *model.R
 func TestRemoteUserDirectChannelCreation(t *testing.T) {
 	th, ss := setupRemoteClusterTest(t)
 
-	connectedRC := createTestRemoteCluster(t, th, ss, "connected-cluster", "https://example-connected.com", true)
+	directlyConnectedRC := createTestRemoteCluster(t, th, ss, "directly-connected-cluster", "https://example-connected.com", true)
 
-	user1 := createRemoteUser(t, th, connectedRC)
+	directlyConnectedUser := createRemoteUser(t, th, directlyConnectedRC)
 
-	t.Run("Can create DM with user from connected remote", func(t *testing.T) {
-		ensureRemoteClusterConnected(t, ss, connectedRC, true)
+	t.Run("Can create DM with user from directly connected remote", func(t *testing.T) {
+		ensureRemoteClusterConnected(t, ss, directlyConnectedRC, true)
 
 		scs := th.App.Srv().GetSharedChannelSyncService()
 		service, ok := scs.(*sharedchannel.Service)
 		require.True(t, ok)
-		require.True(t, service.IsRemoteClusterDirectlyConnected(connectedRC.RemoteId))
+		require.True(t, service.IsRemoteClusterDirectlyConnected(directlyConnectedRC.RemoteId))
 
-		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user1.Id)
+		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, directlyConnectedUser.Id)
 		assert.NotNil(t, channel)
 		assert.Nil(t, appErr)
 		assert.Equal(t, model.ChannelTypeDirect, channel.Type)
