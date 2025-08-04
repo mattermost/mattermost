@@ -21,6 +21,9 @@ import type {InputTypes} from 'components/widgets/settings/text_setting';
 
 import AppsFormSelectField from './apps_form_select_field';
 
+import AppsFormDateField from '../apps_form_date_field';
+import AppsFormDateTimeField from '../apps_form_datetime_field';
+
 const TEXT_DEFAULT_MAX_LENGTH = 150;
 const TEXTAREA_DEFAULT_MAX_LENGTH = 3000;
 
@@ -187,6 +190,28 @@ export default class AppsFormField extends React.PureComponent<Props> {
             return (
                 <Markdown
                     message={field.description}
+                />
+            );
+        }
+        case AppFieldTypes.DATE: {
+            return (
+                <AppsFormDateField
+                    field={field}
+                    value={value as string | null}
+                    onChange={onChange}
+                    hasError={Boolean(errorText)}
+                    errorText={errorText}
+                />
+            );
+        }
+        case AppFieldTypes.DATETIME: {
+            return (
+                <AppsFormDateTimeField
+                    field={field}
+                    value={value as string | null}
+                    onChange={onChange}
+                    hasError={Boolean(errorText)}
+                    errorText={errorText}
                 />
             );
         }
