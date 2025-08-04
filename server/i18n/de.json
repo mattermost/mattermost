@@ -1326,15 +1326,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all wurde deaktiviert, da der Kanal mehr als {{.Users}} Benutzer hat."
+    "translation": "@all-Benachrichtigungen sind in Kanälen mit mehr als {{.Users}} Benutzern deaktiviert. Weitere Informationen erhältst du von deinem Systemadministrator."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel wurde deaktiviert, da der Kanal mehr als {{.Users}} Benutzer hat."
+    "translation": "@channel Benachrichtigungen sind in Kanälen mit mehr als {{.Users}} Benutzern deaktiviert. Weitere Informationen erhältst du von deinem Systemadministrator."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here wurde deaktiviert, da der Kanal mehr als {{.Users}} Benutzer hat."
+    "translation": "@here-Benachrichtigungen sind in Kanälen mit mehr als {{.Users}} Nutzern deaktiviert. Weitere Informationen erhältst du von deinem Systemadministrator."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -4644,11 +4644,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 134+"
+    "translation": "Version 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 134+"
+    "translation": "Version 138+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5165,10 +5165,6 @@
   {
     "id": "app.plugin.get_public_key.get_file.app_error",
     "translation": "Es ist ein Fehler beim Abrufen des öffentlichen Schlüssels aus dem Speicher aufgetreten."
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Konnte das Plugin nicht so einstellen, dass es vom Dateispeicher verwaltet wird."
   },
   {
     "id": "app.plugin.delete_public_key.delete.app_error",
@@ -7408,10 +7404,6 @@
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
     "translation": "Apps zu deinem Arbeitsbereich hinzufügen"
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Fehler beim Lesen einer Datei vom Backend"
   },
   {
     "id": "api.unable_to_create_zip_file",
@@ -9755,7 +9747,7 @@
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Benutzer kann nicht aktiviert werden. Der Server überschreitet das Limit für sichere Benutzer. Kontaktiere deinen Administrator mit: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Benutzer kann nicht aktiviert werden. Server überschreitet sichere Benutzergrenze. ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "model.scheme.is_valid.app_error",
@@ -10544,10 +10536,6 @@
     "translation": "Validierung des Eigenschaftswertes fehlgeschlagen"
   },
   {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "Fehler beim Patchen des CPA-Werts"
-  },
-  {
     "id": "ent.ldap.cpa_field_mapping.list_error",
     "translation": "CPA-Felder konnten nicht abgerufen werden"
   },
@@ -10610,10 +10598,6 @@
   {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "SAML-Assertion Attributanweisung ist ungültig"
-  },
-  {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "Fehler bei der Aktualisierung der CPA-Werte"
   },
   {
     "id": "api.license.load_metric.app_error",
@@ -10776,14 +10760,6 @@
     "translation": "Die Farbe des Kanal-Banners muss eine gültige Hex-Farbe sein (z.B. #FF0000 oder #F00)"
   },
   {
-    "id": "api.license.add_license.mysql.app_error",
-    "translation": "Diese Lizenz unterstützt MySQL nicht."
-  },
-  {
-    "id": "api.license.request-trial.mysql.app_error",
-    "translation": "Testlizenzen werden für MySQL-Datenbanken nicht unterstützt. Bitte verwende PostgreSQL, um auf die Testfunktionen zuzugreifen."
-  },
-  {
     "id": "model.config.is_valid.directory_whitespace.app_error",
     "translation": "Führendes oder nachgestelltes Leerzeichen für {{.Setting}} erkannt. Gefunden \"{{.Value}}\"."
   },
@@ -10794,5 +10770,169 @@
   {
     "id": "app.group.delete_invalid_syncable_memberships.error",
     "translation": "Es ist nicht möglich, ungültige synchronisierbare Gruppenmitgliedschaften zu löschen."
+  },
+  {
+    "id": "app.import.validate_attachment_import_data.invalid_path.error",
+    "translation": "Die Importdaten des Anhangs konnten nicht validiert werden. Ungültiger Pfad: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.attachment.error",
+    "translation": "Die Validierung der Anhangsdaten der Direktnachricht ist fehlgeschlagen."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
+    "translation": "Das Feld \"Emoji-Bild importieren\" hat einen ungültigen Pfad: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_post_import_data.attachment.error",
+    "translation": "Die Daten des Nachrichtenanhangs konnten nicht validiert werden."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.attachment.error",
+    "translation": "Die Daten des Antwortanhangs konnten nicht validiert werden."
+  },
+  {
+    "id": "app.import.validate_user_import_data.invalid_image_path.error",
+    "translation": "Der Pfad zum Benutzerprofilbild ist ungültig: \"{{.Path}}\""
+  },
+  {
+    "id": "ent.access_control.job_data_conversion.app_error",
+    "translation": "Die Daten aus dem vorherigen Auftrag konnten nicht extrahiert werden."
+  },
+  {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Benutzer kann nicht erstellt werden. Server überschreitet die maximale Anzahl lizenzierter Benutzer. Kontaktiere deinen Administrator mit: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "Speichern des Stapels von Quittungsobjekten fehlgeschlagen"
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Bestätigung für fehlenden Beitrag kann nicht gelöscht werden"
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Bestätigung für fehlenden Beitrag kann nicht gespeichert werden"
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Ungültiger Testtyp: {{.TestType}}"
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Remote-Cluster-Import ist nicht erlaubt"
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Der Zugriffskontrolldienst ist nicht verfügbar. Benutzer können für ABAC-aktivierte Kanäle nicht gefiltert werden."
+  },
+  {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "Benutzer kann nicht aktiviert werden. Server überschreitet die maximale Anzahl lizenzierter Benutzer. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "LDAP Verbindungstest fehlgeschlagen. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Fehler: {{.Error}}"
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "Ungültige Kanal-ID."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "Das maximale Dateialter der Audit-Logs darf nicht negativ sein."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "Die maximale Datei-Backups der Audit-Logs-Konfiguration dürfen nicht negativ sein."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "Die maximale Datei-Warteschlange der Audit-Logs config muss größer als Null sein."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "Die maximale Dateigröße der Audit-Logs muss größer als Null sein."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "Wenn die Protokollierung von Audit-Dateien aktiviert ist, muss ein Dateiname angegeben werden."
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Du kannst keine Gäste in diesen Kanal einladen, weil der Zugang zu diesem Kanal aufgrund von Benutzerattributen eingeschränkt ist."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "Der Name der Datei darf kein Verzeichnis sein."
+  },
+  {
+    "id": "api.command_share.service_inactive",
+    "translation": "Der Dienst \"Gemeinsame Kanäle\" ist aktiviert, aber nicht aktiv."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Ungültige Aktualisierung eines Kanalmitglieds: Ein Kanalmitglied hat immer ein Benutzerschema."
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "Ungültige Aktualisierung eines Teammitglieds: Ein Teammitglied hat immer ein Benutzerschema."
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Datei kann nicht hochgeladen werden. Der Upload-Kanal wird nicht mit der Gegenstelle geteilt."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.thread_follower.error",
+    "translation": "Die Validierung der Followerdaten von Direct Post Threads ist fehlgeschlagen."
+  },
+  {
+    "id": "app.import.validate_post_import_data.thread_follower.error",
+    "translation": "Die Daten der Post-Thread-Follower konnten nicht validiert werden."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.empty.error",
+    "translation": "Importierte Follower-Daten sind leer."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.user_missing.error",
+    "translation": "Fehlende erforderliche Follower-Eigenschaft: user."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
+    "translation": "Gemeinsame Prüfer oder zusätzliche Prüfer müssen festgelegt werden, wenn \"Gleiche Prüfer für alle Teams\" aktiviert ist."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.reasons_not_set.app_error",
+    "translation": "Die Gründe für die Kennzeichnung dürfen nicht leer sein."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
+    "translation": "Team-Prüfer oder zusätzliche Prüfer müssen bei der Einstellung \"Aktiviert\" für ein Team festgelegt werden."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_target",
+    "translation": "Ungültiges Markierungs-Ereignisziel angegeben."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_event",
+    "translation": "Ungültiges Markierungsereignis angegeben."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
+    "translation": "Benachrichtigungen für neu markierte Beiträge können für Überprüfer nicht deaktiviert werden."
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "Abruf der modalen Daten für die Vorschau fehlgeschlagen"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_parse_error",
+    "translation": "Verarbeitung der modalen Vorschaudaten fehlgeschlagen"
+  },
+  {
+    "id": "app.cloud.preview_modal_bucket_url_not_configured",
+    "translation": "Die URL für den Preview-Bucket ist nicht konfiguriert"
   }
 ]

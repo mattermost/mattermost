@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/mattermost/ldap"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
@@ -35,7 +36,6 @@ const (
 	ImageDriverLocal = "local"
 	ImageDriverS3    = "amazons3"
 
-	DatabaseDriverMysql    = "mysql"
 	DatabaseDriverPostgres = "postgres"
 
 	SearchengineElasticsearch = "elasticsearch"
@@ -47,7 +47,8 @@ const (
 	PasswordMaximumLength = 72
 	PasswordMinimumLength = 5
 
-	ServiceGitlab    = "gitlab"
+	ServiceGitlab = "gitlab"
+
 	ServiceGoogle    = "google"
 	ServiceOffice365 = "office365"
 	ServiceOpenid    = "openid"
@@ -72,6 +73,9 @@ const (
 	PermissionsSystemAdmin  = "system_admin"
 
 	FakeSetting = "********************************"
+
+	// SanitizedPassword is the placeholder used for redacting passwords in data sources
+	SanitizedPassword = "****"
 
 	RestrictEmojiCreationAll         = "all"
 	RestrictEmojiCreationAdmin       = "admin"
@@ -180,7 +184,7 @@ const (
 	SamlSettingsSignatureAlgorithmSha1    = "RSAwithSHA1"
 	SamlSettingsSignatureAlgorithmSha256  = "RSAwithSHA256"
 	SamlSettingsSignatureAlgorithmSha512  = "RSAwithSHA512"
-	SamlSettingsDefaultSignatureAlgorithm = SamlSettingsSignatureAlgorithmSha1
+	SamlSettingsDefaultSignatureAlgorithm = SamlSettingsSignatureAlgorithmSha256
 
 	SamlSettingsCanonicalAlgorithmC14n    = "Canonical1.0"
 	SamlSettingsCanonicalAlgorithmC14n11  = "Canonical1.1"
@@ -219,9 +223,6 @@ const (
 	ElasticsearchSettingsDefaultBatchSize                   = 10000
 	ElasticsearchSettingsESBackend                          = "elasticsearch"
 	ElasticsearchSettingsOSBackend                          = "opensearch"
-
-	BleveSettingsDefaultIndexDir  = ""
-	BleveSettingsDefaultBatchSize = 10000
 
 	DataRetentionSettingsDefaultMessageRetentionDays           = 365
 	DataRetentionSettingsDefaultMessageRetentionHours          = 0
@@ -280,7 +281,8 @@ const (
 
 	LocalModeSocketPath = "/var/tmp/mattermost_local.socket"
 
-	ConnectedWorkspacesSettingsDefaultMaxPostsPerSync = 50 // a bit more than 4 typical screenfulls of posts
+	ConnectedWorkspacesSettingsDefaultMaxPostsPerSync     = 50 // a bit more than 4 typical screenfulls of posts
+	ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize = 20 // optimal batch size for syncing channel members
 
 	// These storage classes are the valid values for the x-amz-storage-class header. More documentation here https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html#AmazonS3-PutObject-request-header-StorageClass
 	StorageClassStandard           = "STANDARD"
@@ -417,7 +419,7 @@ type ServiceSettings struct {
 	EnableAPIPostDeletion                             *bool
 	EnableDesktopLandingPage                          *bool
 	ExperimentalEnableHardenedMode                    *bool `access:"experimental_features"`
-	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	StrictCSRFEnforcement                             *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableEmailInvitations                            *bool `access:"authentication_signup"`
 	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations_bot_accounts"`
 	EnableBotAccountCreation                          *bool `access:"integrations_bot_accounts"`
@@ -449,6 +451,7 @@ type ServiceSettings struct {
 	ScheduledPosts                                    *bool   `access:"site_posts"`
 	EnableWebHubChannelIteration                      *bool   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	FrameAncestors                                    *string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	DeleteAccountLink                                 *string `access:"site_users_and_teams,write_restrictable,cloud_restrictable"`
 }
 
 var MattermostGiphySdkKey string
@@ -849,8 +852,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ExperimentalEnableHardenedMode = NewPointer(false)
 	}
 
-	if s.ExperimentalStrictCSRFEnforcement == nil {
-		s.ExperimentalStrictCSRFEnforcement = NewPointer(false)
+	if s.StrictCSRFEnforcement == nil {
+		s.StrictCSRFEnforcement = NewPointer(true)
 	}
 
 	if s.DisableBotsWhenOwnerIsDeactivated == nil {
@@ -984,6 +987,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.FrameAncestors == nil {
 		s.FrameAncestors = NewPointer("")
 	}
+
+	if !isSafeLink(s.DeleteAccountLink) {
+		*s.DeleteAccountLink = ""
+	}
+
+	if s.DeleteAccountLink == nil {
+		s.DeleteAccountLink = NewPointer("")
+	}
 }
 
 type CacheSettings struct {
@@ -1038,17 +1049,19 @@ func (s *CacheSettings) isValid() *AppError {
 }
 
 type ClusterSettings struct {
-	Enable                             *bool   `access:"environment_high_availability,write_restrictable"`
-	ClusterName                        *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	OverrideHostname                   *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	NetworkInterface                   *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	BindAddress                        *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	AdvertiseAddress                   *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	UseIPAddress                       *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	EnableGossipCompression            *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	EnableExperimentalGossipEncryption *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	ReadOnlyConfig                     *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	GossipPort                         *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	Enable                  *bool   `access:"environment_high_availability,write_restrictable"`
+	ClusterName             *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	OverrideHostname        *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	NetworkInterface        *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	BindAddress             *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	AdvertiseAddress        *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	UseIPAddress            *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	EnableGossipCompression *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	// Deprecated: use EnableGossipEncryption
+	EnableExperimentalGossipEncryption *bool `json:",omitempty"`
+	EnableGossipEncryption             *bool `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	ReadOnlyConfig                     *bool `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	GossipPort                         *int  `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *ClusterSettings) SetDefaults() {
@@ -1080,8 +1093,12 @@ func (s *ClusterSettings) SetDefaults() {
 		s.UseIPAddress = NewPointer(true)
 	}
 
-	if s.EnableExperimentalGossipEncryption == nil {
-		s.EnableExperimentalGossipEncryption = NewPointer(false)
+	if s.EnableGossipEncryption == nil {
+		if s.EnableExperimentalGossipEncryption != nil {
+			s.EnableGossipEncryption = NewPointer(*s.EnableExperimentalGossipEncryption)
+		} else {
+			s.EnableGossipEncryption = NewPointer(true)
+		}
 	}
 
 	if s.EnableGossipCompression == nil {
@@ -1158,6 +1175,7 @@ type ExperimentalSettings struct {
 	DisableWakeUpReconnectHandler                         *bool   `access:"experimental_features"`
 	UsersStatusAndProfileFetchingPollIntervalMilliseconds *int64  `access:"experimental_features"`
 	YoutubeReferrerPolicy                                 *bool   `access:"experimental_features"`
+	ExperimentalChannelCategorySorting                    *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1207,6 +1225,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.YoutubeReferrerPolicy == nil {
 		s.YoutubeReferrerPolicy = NewPointer(false)
+	}
+
+	if s.ExperimentalChannelCategorySorting == nil {
+		s.ExperimentalChannelCategorySorting = NewPointer(false)
 	}
 }
 
@@ -1545,6 +1567,47 @@ type ExperimentalAuditSettings struct {
 	FileMaxQueueSize    *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	AdvancedLoggingJSON json.RawMessage `access:"experimental_features"`
 	Certificate         *string         `access:"experimental_features"` // telemetry: none
+}
+
+func (s *ExperimentalAuditSettings) isValid() *AppError {
+	if *s.FileEnabled {
+		if *s.FileName == "" {
+			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_name_empty", nil, "", http.StatusBadRequest)
+		}
+
+		if strings.HasSuffix(*s.FileName, `\`) {
+			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_name_is_directory", nil, "", http.StatusBadRequest)
+		}
+
+		if *s.FileMaxSizeMB <= 0 {
+			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_size_invalid", nil, "", http.StatusBadRequest)
+		}
+
+		if *s.FileMaxAgeDays < 0 {
+			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_age_invalid", nil, "", http.StatusBadRequest)
+		}
+
+		if *s.FileMaxBackups < 0 {
+			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid", nil, "", http.StatusBadRequest)
+		}
+
+		if *s.FileMaxQueueSize <= 0 {
+			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	cfg := make(mlog.LoggerConfiguration)
+	err := json.Unmarshal(s.AdvancedLoggingJSON, &cfg)
+	if err != nil {
+		return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.log.advanced_logging.json", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	err = cfg.IsValid()
+	if err != nil {
+		return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.log.advanced_logging.parse", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	return nil
 }
 
 func (s *ExperimentalAuditSettings) SetDefaults() {
@@ -2885,14 +2948,16 @@ func (s *SamlSettings) SetDefaults() {
 }
 
 type NativeAppSettings struct {
-	AppCustomURLSchemes        []string `access:"site_customization,write_restrictable,cloud_restrictable"` // telemetry: none
-	AppDownloadLink            *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
-	AndroidAppDownloadLink     *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
-	IosAppDownloadLink         *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
-	MobileExternalBrowser      *bool    `access:"site_customization,write_restrictable,cloud_restrictable"`
-	MobileEnableBiometrics     *bool    `access:"site_customization,write_restrictable"`
-	MobilePreventScreenCapture *bool    `access:"site_customization,write_restrictable"`
-	MobileJailbreakProtection  *bool    `access:"site_customization,write_restrictable"`
+	AppCustomURLSchemes           []string `access:"site_customization,write_restrictable,cloud_restrictable"` // telemetry: none
+	AppDownloadLink               *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	AndroidAppDownloadLink        *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	IosAppDownloadLink            *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	MobileExternalBrowser         *bool    `access:"site_customization,write_restrictable,cloud_restrictable"`
+	MobileEnableBiometrics        *bool    `access:"site_customization,write_restrictable"`
+	MobilePreventScreenCapture    *bool    `access:"site_customization,write_restrictable"`
+	MobileJailbreakProtection     *bool    `access:"site_customization,write_restrictable"`
+	MobileEnableSecureFilePreview *bool    `access:"site_customization,write_restrictable"`
+	MobileAllowPdfLinkNavigation  *bool    `access:"site_customization,write_restrictable"`
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -2926,6 +2991,14 @@ func (s *NativeAppSettings) SetDefaults() {
 
 	if s.MobileJailbreakProtection == nil {
 		s.MobileJailbreakProtection = NewPointer(false)
+	}
+
+	if s.MobileEnableSecureFilePreview == nil {
+		s.MobileEnableSecureFilePreview = NewPointer(false)
+	}
+
+	if s.MobileAllowPdfLinkNavigation == nil {
+		s.MobileAllowPdfLinkNavigation = NewPointer(false)
 	}
 }
 
@@ -3070,37 +3143,6 @@ func (s *ElasticsearchSettings) SetDefaults() {
 	}
 }
 
-type BleveSettings struct {
-	IndexDir                      *string `access:"experimental_bleve"` // telemetry: none
-	EnableIndexing                *bool   `access:"experimental_bleve"`
-	EnableSearching               *bool   `access:"experimental_bleve"`
-	EnableAutocomplete            *bool   `access:"experimental_bleve"`
-	BulkIndexingTimeWindowSeconds *int    `json:",omitempty"` // telemetry: none
-	BatchSize                     *int    `access:"experimental_bleve"`
-}
-
-func (bs *BleveSettings) SetDefaults() {
-	if bs.IndexDir == nil {
-		bs.IndexDir = NewPointer(BleveSettingsDefaultIndexDir)
-	}
-
-	if bs.EnableIndexing == nil {
-		bs.EnableIndexing = NewPointer(false)
-	}
-
-	if bs.EnableSearching == nil {
-		bs.EnableSearching = NewPointer(false)
-	}
-
-	if bs.EnableAutocomplete == nil {
-		bs.EnableAutocomplete = NewPointer(false)
-	}
-
-	if bs.BatchSize == nil {
-		bs.BatchSize = NewPointer(BleveSettingsDefaultBatchSize)
-	}
-}
-
 type DataRetentionSettings struct {
 	EnableMessageDeletion          *bool   `access:"compliance_data_retention_policy"`
 	EnableFileDeletion             *bool   `access:"compliance_data_retention_policy"`
@@ -3114,6 +3156,7 @@ type DataRetentionSettings struct {
 	BatchSize                      *int    `access:"compliance_data_retention_policy"`
 	TimeBetweenBatchesMilliseconds *int    `access:"compliance_data_retention_policy"`
 	RetentionIdsBatchSize          *int    `access:"compliance_data_retention_policy"`
+	PreservePinnedPosts            *bool   `access:"compliance_data_retention_policy"`
 }
 
 func (s *DataRetentionSettings) SetDefaults() {
@@ -3162,6 +3205,10 @@ func (s *DataRetentionSettings) SetDefaults() {
 	}
 	if s.RetentionIdsBatchSize == nil {
 		s.RetentionIdsBatchSize = NewPointer(DataRetentionSettingsDefaultRetentionIdsBatchSize)
+	}
+
+	if s.PreservePinnedPosts == nil {
+		s.PreservePinnedPosts = NewPointer(false)
 	}
 }
 
@@ -3215,10 +3262,11 @@ func (s *JobSettings) SetDefaults() {
 }
 
 type CloudSettings struct {
-	CWSURL    *string `access:"write_restrictable"`
-	CWSAPIURL *string `access:"write_restrictable"`
-	CWSMock   *bool   `access:"write_restrictable"`
-	Disable   *bool   `access:"write_restrictable,cloud_restrictable"`
+	CWSURL                *string `access:"write_restrictable"`
+	CWSAPIURL             *string `access:"write_restrictable"`
+	CWSMock               *bool   `access:"write_restrictable"`
+	Disable               *bool   `access:"write_restrictable,cloud_restrictable"`
+	PreviewModalBucketURL *string `access:"write_restrictable"`
 }
 
 func (s *CloudSettings) SetDefaults() {
@@ -3247,6 +3295,10 @@ func (s *CloudSettings) SetDefaults() {
 
 	if s.Disable == nil {
 		s.Disable = NewPointer(false)
+	}
+
+	if s.PreviewModalBucketURL == nil {
+		s.PreviewModalBucketURL = NewPointer("")
 	}
 }
 
@@ -3435,7 +3487,10 @@ type ConnectedWorkspacesSettings struct {
 	EnableSharedChannels            *bool
 	EnableRemoteClusterService      *bool
 	DisableSharedChannelsStatusSync *bool
+	SyncUsersOnConnectionOpen       *bool
+	GlobalUserSyncBatchSize         *int
 	MaxPostsPerSync                 *int
+	MemberSyncBatchSize             *int // Maximum number of members to process in a single batch during shared channel synchronization
 }
 
 func (c *ConnectedWorkspacesSettings) SetDefaults(isUpdate bool, e ExperimentalSettings) {
@@ -3459,8 +3514,20 @@ func (c *ConnectedWorkspacesSettings) SetDefaults(isUpdate bool, e ExperimentalS
 		c.DisableSharedChannelsStatusSync = NewPointer(false)
 	}
 
+	if c.SyncUsersOnConnectionOpen == nil {
+		c.SyncUsersOnConnectionOpen = NewPointer(false)
+	}
+
+	if c.GlobalUserSyncBatchSize == nil {
+		c.GlobalUserSyncBatchSize = NewPointer(25) // Default to MaxUsersPerSync
+	}
+
 	if c.MaxPostsPerSync == nil {
 		c.MaxPostsPerSync = NewPointer(ConnectedWorkspacesSettingsDefaultMaxPostsPerSync)
+	}
+
+	if c.MemberSyncBatchSize == nil {
+		c.MemberSyncBatchSize = NewPointer(ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize)
 	}
 }
 
@@ -3685,8 +3752,9 @@ func (s *ExportSettings) SetDefaults() {
 }
 
 type AccessControlSettings struct {
-	EnableAttributeBasedAccessControl *bool `access:"write_restrictable,cloud_restrictable"`
-	EnableChannelScopeAccessControl   *bool `access:"cloud_restrictable"`
+	EnableAttributeBasedAccessControl *bool `access:"write_restrictable"`
+	EnableChannelScopeAccessControl   *bool `access:"write_restrictable"`
+	EnableUserManagedAttributes       *bool `access:"write_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
@@ -3696,6 +3764,10 @@ func (s *AccessControlSettings) SetDefaults() {
 
 	if s.EnableChannelScopeAccessControl == nil {
 		s.EnableChannelScopeAccessControl = NewPointer(false)
+	}
+
+	if s.EnableUserManagedAttributes == nil {
+		s.EnableUserManagedAttributes = NewPointer(false)
 	}
 }
 
@@ -3777,7 +3849,6 @@ type Config struct {
 	ExperimentalSettings        ExperimentalSettings
 	AnalyticsSettings           AnalyticsSettings
 	ElasticsearchSettings       ElasticsearchSettings
-	BleveSettings               BleveSettings
 	DataRetentionSettings       DataRetentionSettings
 	MessageExportSettings       MessageExportSettings
 	JobSettings                 JobSettings
@@ -3792,6 +3863,7 @@ type Config struct {
 	WranglerSettings            WranglerSettings
 	ConnectedWorkspacesSettings ConnectedWorkspacesSettings
 	AccessControlSettings       AccessControlSettings
+	ContentFlaggingSettings     ContentFlaggingSettings
 }
 
 func (o *Config) Auditable() map[string]any {
@@ -3888,7 +3960,6 @@ func (o *Config) SetDefaults() {
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()
 	o.ElasticsearchSettings.SetDefaults()
-	o.BleveSettings.SetDefaults()
 	o.NativeAppSettings.SetDefaults()
 	o.DataRetentionSettings.SetDefaults()
 	o.RateLimitSettings.SetDefaults()
@@ -3910,6 +3981,7 @@ func (o *Config) SetDefaults() {
 	o.WranglerSettings.SetDefaults()
 	o.ConnectedWorkspacesSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
 	o.AccessControlSettings.SetDefaults()
+	o.ContentFlaggingSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -3977,15 +4049,15 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
-	if appErr := o.BleveSettings.isValid(); appErr != nil {
-		return appErr
-	}
-
 	if appErr := o.DataRetentionSettings.isValid(); appErr != nil {
 		return appErr
 	}
 
 	if appErr := o.LogSettings.isValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.ExperimentalAuditSettings.isValid(); appErr != nil {
 		return appErr
 	}
 
@@ -4031,6 +4103,10 @@ func (o *Config) IsValid() *AppError {
 				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_link.invalid.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
+	}
+
+	if appErr := o.ContentFlaggingSettings.IsValid(); appErr != nil {
+		return appErr
 	}
 
 	return nil
@@ -4081,7 +4157,7 @@ func (s *SqlSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.encrypt_sql.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(*s.DriverName == DatabaseDriverMysql || *s.DriverName == DatabaseDriverPostgres) {
+	if *s.DriverName != DatabaseDriverPostgres {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_driver.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -4506,8 +4582,8 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 	}
 
 	if ign := *s.IgnoredPurgeIndexes; ign != "" {
-		s := strings.Split(ign, ",")
-		for _, ix := range s {
+		s := strings.SplitSeq(ign, ",")
+		for ix := range s {
 			if strings.HasPrefix(ix, "-") {
 				return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error", nil, "", http.StatusBadRequest)
 			}
@@ -4526,27 +4602,6 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 		if !strings.HasPrefix(*s.IndexPrefix, *s.GlobalSearchPrefix) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error", map[string]any{"IndexPrefix": *s.IndexPrefix, "GlobalSearchPrefix": *s.GlobalSearchPrefix}, "", http.StatusBadRequest)
 		}
-	}
-
-	return nil
-}
-
-func (bs *BleveSettings) isValid() *AppError {
-	if *bs.EnableIndexing {
-		if *bs.IndexDir == "" {
-			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.filename.app_error", nil, "", http.StatusBadRequest)
-		}
-	} else {
-		if *bs.EnableSearching {
-			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.enable_searching.app_error", nil, "", http.StatusBadRequest)
-		}
-		if *bs.EnableAutocomplete {
-			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.enable_autocomplete.app_error", nil, "", http.StatusBadRequest)
-		}
-	}
-	minBatchSize := 1
-	if *bs.BatchSize < minBatchSize {
-		return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error", map[string]any{"BatchSize": minBatchSize}, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -4681,6 +4736,14 @@ func (s *ImageProxySettings) isValid() *AppError {
 	return nil
 }
 
+// SanitizeOptions specifies options for the [Config.Sanitize] method.
+type SanitizeOptions struct {
+	// PartiallyRedactDataSources, when true, only redacts usernames and passwords
+	// from data sources, keeping other connection parameters visible.
+	// When false, replaces the entire data source with FakeSetting.
+	PartiallyRedactDataSources bool
+}
+
 func (o *Config) GetSanitizeOptions() map[string]bool {
 	options := map[string]bool{}
 	options["fullname"] = *o.PrivacySettings.ShowFullName
@@ -4689,7 +4752,32 @@ func (o *Config) GetSanitizeOptions() map[string]bool {
 	return options
 }
 
-func (o *Config) Sanitize(pluginManifests []*Manifest) {
+// Sanitize removes sensitive information from the configuration object.
+// It replaces sensitive fields with [FakeSetting] or sanitizes them.
+//
+// Parameters:
+//   - pluginManifests: Plugin manifests for sanitizing plugin settings.
+//   - opts: Options for controlling sanitization behavior. If nil, defaults are used. See [SanitizeOptions].
+func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
+	if opts == nil {
+		opts = &SanitizeOptions{}
+	}
+
+	var driverName string
+	if o.SqlSettings.DriverName != nil {
+		driverName = *o.SqlSettings.DriverName
+	}
+	sanitizeDataSourceField := func(dataSource string, fieldName string) string {
+		if opts.PartiallyRedactDataSources && driverName != "" {
+			sanitized, err := SanitizeDataSource(driverName, dataSource)
+			if err != nil {
+				mlog.Warn("Failed to sanitize "+fieldName+". Falling back to fully sanitizing the setting.", mlog.Err(err))
+				return FakeSetting
+			}
+			return sanitized
+		}
+		return FakeSetting
+	}
 	if o.LdapSettings.BindPassword != nil && *o.LdapSettings.BindPassword != "" {
 		*o.LdapSettings.BindPassword = FakeSetting
 	}
@@ -4723,7 +4811,7 @@ func (o *Config) Sanitize(pluginManifests []*Manifest) {
 	}
 
 	if o.SqlSettings.DataSource != nil {
-		*o.SqlSettings.DataSource = FakeSetting
+		*o.SqlSettings.DataSource = sanitizeDataSourceField(*o.SqlSettings.DataSource, "SqlSettings.DataSource")
 	}
 
 	if o.SqlSettings.AtRestEncryptKey != nil {
@@ -4735,15 +4823,18 @@ func (o *Config) Sanitize(pluginManifests []*Manifest) {
 	}
 
 	for i := range o.SqlSettings.DataSourceReplicas {
-		o.SqlSettings.DataSourceReplicas[i] = FakeSetting
+		o.SqlSettings.DataSourceReplicas[i] = sanitizeDataSourceField(o.SqlSettings.DataSourceReplicas[i], "SqlSettings.DataSourceReplicas")
 	}
 
 	for i := range o.SqlSettings.DataSourceSearchReplicas {
-		o.SqlSettings.DataSourceSearchReplicas[i] = FakeSetting
+		o.SqlSettings.DataSourceSearchReplicas[i] = sanitizeDataSourceField(o.SqlSettings.DataSourceSearchReplicas[i], "SqlSettings.DataSourceSearchReplicas")
 	}
 
 	for i := range o.SqlSettings.ReplicaLagSettings {
-		o.SqlSettings.ReplicaLagSettings[i].DataSource = NewPointer(FakeSetting)
+		if o.SqlSettings.ReplicaLagSettings[i].DataSource != nil {
+			sanitized := sanitizeDataSourceField(*o.SqlSettings.ReplicaLagSettings[i].DataSource, "SqlSettings.ReplicaLagSettings")
+			o.SqlSettings.ReplicaLagSettings[i].DataSource = NewPointer(sanitized)
+		}
 	}
 
 	if o.MessageExportSettings.GlobalRelaySettings != nil &&
@@ -4761,6 +4852,51 @@ func (o *Config) Sanitize(pluginManifests []*Manifest) {
 	}
 
 	o.PluginSettings.Sanitize(pluginManifests)
+}
+
+// SanitizeDataSource redacts sensitive information (username and password) from a database
+// connection string while preserving other connection parameters.
+//
+// Parameters:
+//   - driverName: The database driver name (postgres or mysql)
+//   - dataSource: The database connection string to sanitize
+//
+// Returns:
+//   - The sanitized connection string with username/password replaced by SanitizedPassword
+//   - An error if the driverName is not supported or if parsing fails
+//
+// Examples:
+//   - PostgreSQL: "postgres://user:pass@host:5432/db" -> "postgres://****:****@host:5432/db"
+//   - MySQL: "user:pass@tcp(host:3306)/db" -> "****:****@tcp(host:3306)/db"
+func SanitizeDataSource(driverName, dataSource string) (string, error) {
+	// Handle empty data source
+	if dataSource == "" {
+		return "", nil
+	}
+
+	switch driverName {
+	case DatabaseDriverPostgres:
+		u, err := url.Parse(dataSource)
+		if err != nil {
+			return "", err
+		}
+		u.User = url.UserPassword(SanitizedPassword, SanitizedPassword)
+
+		// Remove username and password from query string
+		params := u.Query()
+		params.Del("user")
+		params.Del("password")
+		u.RawQuery = params.Encode()
+
+		// Unescape the URL to make it human-readable
+		out, err := url.QueryUnescape(u.String())
+		if err != nil {
+			return "", err
+		}
+		return out, nil
+	default:
+		return "", errors.New("invalid drivername. Not postgres or mysql.")
+	}
 }
 
 type FilterTag struct {

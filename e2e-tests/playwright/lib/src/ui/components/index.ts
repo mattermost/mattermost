@@ -13,7 +13,7 @@ import FindChannelsModal from './channels/find_channels_modal';
 import SettingsModal from './channels/settings/settings_modal';
 import Footer from './footer';
 import GlobalHeader from './global_header';
-import SearchPopover from './channels/search_popover';
+import SearchBox from './channels/search_box';
 import MainHeader from './main_header';
 import PostDotMenu from './channels/post_dot_menu';
 import PostReminderMenu from './channels/post_reminder_menu';
@@ -48,7 +48,7 @@ import DndSubMenu from './dnd_sub_menu';
 
 const components = {
     GlobalHeader,
-    SearchPopover,
+    SearchBox,
     ChannelsCenterView,
     ChannelsSidebarLeft,
     ChannelsSidebarRight,
@@ -96,7 +96,7 @@ const components = {
 export {
     components,
     GlobalHeader,
-    SearchPopover,
+    SearchBox,
     ChannelsCenterView,
     ChannelsSidebarLeft,
     ChannelsSidebarRight,

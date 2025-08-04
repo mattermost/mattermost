@@ -45,7 +45,7 @@ func TestSetLicenseOnStart(t *testing.T) {
 	if driverName == "" {
 		driverName = model.DatabaseDriverPostgres
 	}
-	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName, false)
+	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName)
 
 	configStore := config.NewTestMemoryStore()
 	_, _, err = configStore.Set(&cfg)
@@ -66,7 +66,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 	if driverName == "" {
 		driverName = model.DatabaseDriverPostgres
 	}
-	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName, false)
+	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName)
 	cfg.SqlSettings.DataSourceReplicas = []string{*cfg.SqlSettings.DataSource}
 	cfg.SqlSettings.DataSourceSearchReplicas = []string{*cfg.SqlSettings.DataSource}
 
@@ -211,7 +211,7 @@ func TestShutdown(t *testing.T) {
 
 		// we create plenty of go routines to make sure we wait for all of them
 		// to finish before shutting down
-		for i := 0; i < 1000; i++ {
+		for range 1000 {
 			th.Service.Go(func() {
 				time.Sleep(time.Millisecond * time.Duration(rand.Intn(20)))
 			})

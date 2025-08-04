@@ -36,7 +36,6 @@ test('Theme settings should be keyboard accessible', {tag: '@accessibility'}, as
     await settingsModal.container.focus();
     await page.keyboard.press('Tab');
     await page.keyboard.press('Tab');
-    await page.keyboard.press('Tab');
     await page.keyboard.press('ArrowDown');
 
     // * The display tab should be open

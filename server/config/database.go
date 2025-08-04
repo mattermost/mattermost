@@ -15,13 +15,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	sqlUtils "github.com/mattermost/mattermost/server/public/utils/sql"
-
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 
-	// Load the MySQL driver
-	_ "github.com/go-sql-driver/mysql"
 	// Load the Postgres driver
 	_ "github.com/lib/pq"
 
@@ -30,19 +26,12 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/morph/drivers"
-	ms "github.com/mattermost/morph/drivers/mysql"
 	ps "github.com/mattermost/morph/drivers/postgres"
 	mbindata "github.com/mattermost/morph/sources/embedded"
 )
 
 //go:embed migrations
 var assets embed.FS
-
-// MaxWriteLength defines the maximum length accepted for write to the Configurations or
-// ConfigurationFiles table.
-//
-// It is imposed by MySQL's default max_allowed_packet value of 4Mb.
-const MaxWriteLength = 4 * 1024 * 1024
 
 // We use the something different from the default migration table name of morph
 const migrationsTableName = "db_config_migrations"
@@ -120,26 +109,6 @@ func (ds *DatabaseStore) initializeConfigurationsTable() error {
 
 	var driver drivers.Driver
 	switch ds.driverName {
-	case model.DatabaseDriverMysql:
-		dataSource, rErr := sqlUtils.ResetReadTimeout(ds.dataSourceName)
-		if rErr != nil {
-			return fmt.Errorf("failed to reset read timeout from datasource: %w", rErr)
-		}
-
-		dataSource, err = sqlUtils.AppendMultipleStatementsFlag(dataSource)
-		if err != nil {
-			return err
-		}
-
-		var db *sqlx.DB
-		db, err = sqlx.Open(ds.driverName, dataSource)
-		if err != nil {
-			return errors.Wrapf(err, "failed to connect to %s database", ds.driverName)
-		}
-
-		driver, err = ms.WithInstance(db.DB)
-
-		defer db.Close()
 	case model.DatabaseDriverPostgres:
 		driver, err = ps.WithInstance(ds.db.DB)
 	default:
@@ -184,10 +153,6 @@ func parseDSN(dsn string) (string, string, error) {
 
 	scheme := s[0]
 	switch scheme {
-	case "mysql":
-		// Strip off the mysql:// for the dsn with which to connect.
-		dsn = s[1]
-
 	case "postgres", "postgresql":
 		// No changes required
 
@@ -203,15 +168,6 @@ func (ds *DatabaseStore) Set(newCfg *model.Config) error {
 	return ds.persist(newCfg)
 }
 
-// maxLength identifies the maximum length of a configuration or configuration file
-func (ds *DatabaseStore) checkLength(length int) error {
-	if ds.db.DriverName() == "mysql" && length > MaxWriteLength {
-		return errors.Errorf("value is too long: %d > %d bytes", length, MaxWriteLength)
-	}
-
-	return nil
-}
-
 // persist writes the configuration to the configured database.
 func (ds *DatabaseStore) persist(cfg *model.Config) error {
 	b, err := marshalConfig(cfg)
@@ -220,25 +176,11 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 	}
 
 	value := string(b)
-	err = ds.checkLength(len(value))
-	if err != nil {
-		return errors.Wrap(err, "marshalled configuration failed length check")
-	}
-
 	sum := sha256.Sum256(b)
 
 	// Skip the persist altogether if we're effectively writing the same configuration.
 	var oldValue string
-	var row *sql.Row
-	if ds.driverName == model.DatabaseDriverMysql {
-		// We use a sub-query to get the Id first because selecting the Id column using
-		// active uses the index, but selecting SHA column using active does not use the index.
-		// The sub-query uses the active index, and then the top-level query uses the primary key.
-		// This takes 2 queries, but it is actually faster than one slow query for MySQL
-		row = ds.db.QueryRow("SELECT SHA FROM Configurations WHERE Id = (select Id from Configurations Where Active)")
-	} else {
-		row = ds.db.QueryRow("SELECT SHA FROM Configurations WHERE Active")
-	}
+	row := ds.db.QueryRow("SELECT SHA FROM Configurations WHERE Active")
 	if err = row.Scan(&oldValue); err != nil && err != sql.ErrNoRows {
 		return errors.Wrap(err, "failed to query active configuration")
 	}
@@ -265,24 +207,8 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 		}
 	}()
 
-	var oldId string
-	if ds.driverName == model.DatabaseDriverMysql {
-		// the query doesn't use active index if we query for value (mysql, no surprise)
-		// we select Id column which triggers using index hence we do quicker reads
-		// that's the reason we select id first then query against id to get the value.
-		row = tx.QueryRow("SELECT Id FROM Configurations WHERE Active")
-		if err = row.Scan(&oldId); err != nil && err != sql.ErrNoRows {
-			return errors.Wrap(err, "failed to query active configuration")
-		}
-		if oldId != "" {
-			if _, err := tx.NamedExec("UPDATE Configurations SET Active = NULL WHERE Id = :id", map[string]any{"id": oldId}); err != nil {
-				return errors.Wrap(err, "failed to deactivate current configuration")
-			}
-		}
-	} else {
-		if _, err := tx.Exec("UPDATE Configurations SET Active = NULL WHERE Active"); err != nil {
-			return errors.Wrap(err, "failed to deactivate current configuration")
-		}
+	if _, err := tx.Exec("UPDATE Configurations SET Active = NULL WHERE Active"); err != nil {
+		return errors.Wrap(err, "failed to deactivate current configuration")
 	}
 
 	params := map[string]any{
@@ -344,10 +270,6 @@ func (ds *DatabaseStore) GetFile(name string) ([]byte, error) {
 
 // SetFile sets or replaces the contents of a configuration file.
 func (ds *DatabaseStore) SetFile(name string, data []byte) error {
-	err := ds.checkLength(len(data))
-	if err != nil {
-		return errors.Wrap(err, "file data failed length check")
-	}
 	params := map[string]any{
 		"name":      name,
 		"data":      data,
@@ -409,7 +331,7 @@ func (ds *DatabaseStore) RemoveFile(name string) error {
 func (ds *DatabaseStore) String() string {
 	// This is called during the running of MM, so we expect the parsing of DSN
 	// to be successful.
-	sanitized, _ := sqlUtils.SanitizeDataSource(ds.driverName, ds.originalDsn)
+	sanitized, _ := model.SanitizeDataSource(ds.driverName, ds.originalDsn)
 	return sanitized
 }
 

@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {StatusOK} from '@mattermost/types/client4';
-import type {ClientLicense} from '@mattermost/types/config';
+import type {ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
 import type {ServerError} from '@mattermost/types/errors';
 import type {ServerLimits} from '@mattermost/types/limits';
 import type {GetFilteredUsersStatsOpts, UsersStats} from '@mattermost/types/users';
@@ -45,7 +45,7 @@ type Props = {
     totalUsers: number;
     isDisabled: boolean;
     prevTrialLicense: ClientLicense;
-    isMySql: boolean;
+    environmentConfig: Partial<EnvironmentConfig>;
     actions: {
         getLicenseConfig: () => void;
         uploadLicense: (file: File) => Promise<ActionResult>;
@@ -281,7 +281,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
     );
 
     render() {
-        const {license, upgradedFromTE, isDisabled, isMySql} = this.props;
+        const {license, upgradedFromTE, isDisabled} = this.props;
 
         let leftPanel = null;
         let rightPanel = null;
@@ -321,6 +321,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
                     fileInputRef={this.fileInputRef}
                     handleChange={this.handleChange}
                     statsActiveUsers={this.props.totalUsers || 0}
+                    isLicenseSetByEnvVar={Boolean(this.props.environmentConfig?.ServiceSettings?.LicenseFileLocation)}
                 />
             );
 
@@ -363,7 +364,6 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
                             />
                             {!this.state.clickNormalUpgradeBtn && license.IsLicensed !== 'true' &&
                                 this.props.prevTrialLicense?.IsLicensed !== 'true' &&
-                                !isMySql &&
                                 <TrialBanner
                                     isDisabled={isDisabled}
                                     gettingTrialResponseCode={this.state.gettingTrialResponseCode}

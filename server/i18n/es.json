@@ -5092,10 +5092,6 @@
     "translation": "Se ha producido un error al obtener la clave pública."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "No se puede marcar el plugin como gestionado automáticamente por el almacenamiento de archivos."
-  },
-  {
     "id": "app.plugin.delete_public_key.delete.app_error",
     "translation": "Se ha producido un error al eliminar la clave pública."
   },
@@ -7346,10 +7342,6 @@
   {
     "id": "api.unmarshal_error",
     "translation": "Error al procesar."
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Error al leer el archivo desde el backend"
   },
   {
     "id": "api.unable_to_create_zip_file",

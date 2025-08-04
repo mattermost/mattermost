@@ -26,6 +26,7 @@ const (
 
 type Params struct {
 	UserId                             string
+	OtherUserId                        string
 	TeamId                             string
 	InviteId                           string
 	TokenId                            string
@@ -88,6 +89,7 @@ type Params struct {
 	FilterParentTeamPermitted          bool
 	CategoryId                         string
 	ExportName                         string
+	ImportName                         string
 	ExcludePolicyConstrained           bool
 	GroupSource                        model.GroupSource
 	FilterHasMember                    string
@@ -128,6 +130,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	query := r.URL.Query()
 
 	params.UserId = props["user_id"]
+	params.OtherUserId = props["other_user_id"]
 	params.TeamId = props["team_id"]
 	params.CategoryId = props["category_id"]
 	params.InviteId = props["invite_id"]
@@ -278,6 +281,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.IncludeTotalCount, _ = strconv.ParseBool(query.Get("include_total_count"))
 	params.IncludeDeleted, _ = strconv.ParseBool(query.Get("include_deleted"))
 	params.ExportName = props["export_name"]
+	params.ImportName = props["import_name"]
 	params.ExcludePolicyConstrained, _ = strconv.ParseBool(query.Get("exclude_policy_constrained"))
 	params.AccessControlPolicyEnforced, _ = strconv.ParseBool(query.Get("access_control_policy_enforced"))
 	params.ExcludeAccessControlPolicyEnforced, _ = strconv.ParseBool(query.Get("exclude_access_control_policy_enforced"))

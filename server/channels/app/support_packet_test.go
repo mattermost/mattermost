@@ -77,6 +77,11 @@ func TestGenerateSupportPacket(t *testing.T) {
 		"goroutines",
 	}
 
+	// database_schema.yaml is only generated for Postgres
+	if *th.App.Config().SqlSettings.DriverName == model.DatabaseDriverPostgres {
+		expectedFileNames = append(expectedFileNames, "database_schema.yaml")
+	}
+
 	expectedFileNamesWithLogs := append(expectedFileNames, []string{
 		"mattermost.log",
 		"notifications.log",
@@ -143,6 +148,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 		mockStore.On("TotalMasterDbConnections").Return(30)
 		mockStore.On("TotalReadDbConnections").Return(20)
 		mockStore.On("TotalSearchDbConnections").Return(10)
+		mockStore.On("GetSchemaDefinition").Return(&model.SupportPacketDatabaseSchema{
+			Tables: []model.DatabaseTable{},
+		}, nil)
 
 		oldStore := th.App.Srv().Store()
 		t.Cleanup(func() {
@@ -377,19 +385,19 @@ func TestGetSupportPacketStats(t *testing.T) {
 
 	t.Run("Happy path", func(t *testing.T) {
 		var user *model.User
-		for i := 0; i < 4; i++ {
+		for range 4 {
 			user = th.CreateUser()
 		}
 		th.BasicUser = user
 
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			deactivatedUser := th.CreateUser()
 			require.NotNil(t, deactivatedUser)
 			_, appErr := th.App.UpdateActive(th.Context, deactivatedUser, false)
 			require.Nil(t, appErr)
 		}
 
-		for i := 0; i < 2; i++ {
+		for range 2 {
 			guest := th.CreateGuest()
 			require.NotNil(t, guest)
 		}
@@ -399,7 +407,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 		team := th.CreateTeam()
 		channel := th.CreateChannel(th.Context, team)
 
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			p := th.CreatePost(channel)
 			require.NotNil(t, p)
 		}
@@ -454,7 +462,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 			cfg.AnalyticsSettings.MaxUsersForStatistics = model.NewPointer(1)
 		})
 
-		for i := 0; i < 5; i++ {
+		for range 5 {
 			p := th.CreatePost(th.BasicChannel)
 			require.NotNil(t, p)
 		}
@@ -494,7 +502,6 @@ func TestGetSupportPacketJobList(t *testing.T) {
 		assert.Empty(t, jobs.MessageExportJobs)
 		assert.Empty(t, jobs.ElasticPostIndexingJobs)
 		assert.Empty(t, jobs.ElasticPostAggregationJobs)
-		assert.Empty(t, jobs.BlevePostIndexingJobs)
 		assert.Empty(t, jobs.MigrationJobs)
 	})
 
@@ -519,7 +526,6 @@ func TestGetSupportPacketJobList(t *testing.T) {
 			getJob(model.JobTypeMessageExport),
 			getJob(model.JobTypeElasticsearchPostIndexing),
 			getJob(model.JobTypeElasticsearchPostAggregation),
-			getJob(model.JobTypeBlevePostIndexing),
 			getJob(model.JobTypeMigrations),
 		}
 
@@ -569,13 +575,9 @@ func TestGetSupportPacketJobList(t *testing.T) {
 		require.Len(t, jobs.ElasticPostAggregationJobs, 1, "Should have 1 elasticsearch post aggregation job")
 		verifyJob(t, expectedJobs[4], jobs.ElasticPostAggregationJobs[0])
 
-		// Verify bleve post indexing jobs
-		require.Len(t, jobs.BlevePostIndexingJobs, 1, "Should have 1 bleve post indexing job")
-		verifyJob(t, expectedJobs[5], jobs.BlevePostIndexingJobs[0])
-
 		// Verify migration jobs
 		require.Len(t, jobs.MigrationJobs, 1, "Should have 1 migration job")
-		verifyJob(t, expectedJobs[6], jobs.MigrationJobs[0])
+		verifyJob(t, expectedJobs[5], jobs.MigrationJobs[0])
 	})
 }
 
@@ -686,4 +688,99 @@ func TestGetSupportPacketMetadata(t *testing.T) {
 		assert.NotEmpty(t, metadate.ServerID)
 		assert.NotEmpty(t, metadate.GeneratedAt)
 	})
+}
+
+func TestGetSupportPacketDatabaseSchema(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// Mock store for testing
+	mockStore := &smocks.Store{}
+	originalStore := th.App.Srv().Store()
+	th.App.Srv().SetStore(mockStore)
+	defer th.App.Srv().SetStore(originalStore)
+	// Set up mock return for schema definition
+	mockStore.On("GetSchemaDefinition").Return(&model.SupportPacketDatabaseSchema{
+		Tables: []model.DatabaseTable{
+			{
+				Name: "users",
+				Columns: []model.DatabaseColumn{
+					{Name: "id", DataType: "varchar", IsNullable: false},
+					{Name: "username", DataType: "varchar", IsNullable: false},
+					{Name: "email", DataType: "varchar", IsNullable: false},
+				},
+			},
+			{
+				Name: "channels",
+				Columns: []model.DatabaseColumn{
+					{Name: "id", DataType: "varchar", IsNullable: false},
+					{Name: "name", DataType: "varchar", IsNullable: false},
+				},
+			},
+			{
+				Name: "teams",
+				Columns: []model.DatabaseColumn{
+					{Name: "id", DataType: "varchar", IsNullable: false},
+					{Name: "name", DataType: "varchar", IsNullable: false},
+				},
+			},
+			{
+				Name: "posts",
+				Columns: []model.DatabaseColumn{
+					{Name: "id", DataType: "varchar", IsNullable: false},
+					{Name: "message", DataType: "text", IsNullable: false},
+				},
+			},
+		},
+	}, nil)
+
+	// Test with Postgres
+	oldDriverName := *th.App.Config().SqlSettings.DriverName
+	*th.App.Config().SqlSettings.DriverName = model.DatabaseDriverPostgres
+	defer func() {
+		*th.App.Config().SqlSettings.DriverName = oldDriverName
+	}()
+
+	fileData, err := th.App.getSupportPacketDatabaseSchema(th.Context)
+	require.NoError(t, err)
+	require.NotNil(t, fileData)
+	assert.Equal(t, "database_schema.yaml", fileData.Filename)
+	assert.Positive(t, len(fileData.Body))
+
+	var schema model.SupportPacketDatabaseSchema
+	err = yaml.Unmarshal(fileData.Body, &schema)
+	require.NoError(t, err)
+
+	// Verify schema structure
+	assert.NotEmpty(t, schema.Tables)
+
+	// Verify that common tables are present
+	tableNames := make([]string, 0, len(schema.Tables))
+	for _, table := range schema.Tables {
+		tableNames = append(tableNames, table.Name)
+	}
+
+	// Verify some core tables
+	expectedTables := []string{"users", "channels", "teams", "posts"}
+	for _, expected := range expectedTables {
+		assert.Contains(t, tableNames, expected)
+	}
+
+	// Verify table structure
+	for _, table := range schema.Tables {
+		if table.Name == "users" {
+			// Check user table has key columns
+			columnNames := make([]string, 0, len(table.Columns))
+			for _, column := range table.Columns {
+				columnNames = append(columnNames, column.Name)
+			}
+
+			expectedColumns := []string{"id", "username", "email"}
+			for _, expected := range expectedColumns {
+				assert.Contains(t, columnNames, expected)
+			}
+
+			break
+		}
+	}
 }

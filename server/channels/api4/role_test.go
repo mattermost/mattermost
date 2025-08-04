@@ -208,7 +208,7 @@ func TestGetRolesByNames(t *testing.T) {
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		// too many roles should error with bad request
 		roles := []string{}
-		for i := 0; i < GetRolesByNamesMax+10; i++ {
+		for i := range GetRolesByNamesMax + 10 {
 			roles = append(roles, fmt.Sprintf("role1.Name%v", i))
 		}
 
