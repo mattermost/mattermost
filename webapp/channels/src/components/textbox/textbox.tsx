@@ -144,7 +144,7 @@ export default class Textbox extends React.PureComponent<Props> {
         this.preview = React.createRef();
         this.textareaRef = React.createRef();
 
-        // state初期化 - propsのvalueからdisplayValueとrawValueを設定
+        // Initialize state - set displayValue and rawValue from props.value
         this.state = {
             displayValue: this.convertToDisplayName(props.value),
             rawValue: props.value,
