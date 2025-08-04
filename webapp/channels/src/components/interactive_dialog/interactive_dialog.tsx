@@ -96,9 +96,9 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
             callback_id: callbackId ?? '',
             state: state ?? '',
             submission: values as { [x: string]: string },
-            user_id: '', // Populated by submitInteractiveDialog action
-            channel_id: '', // Populated by submitInteractiveDialog action
-            team_id: '', // Populated by submitInteractiveDialog action
+            user_id: '',
+            channel_id: '',
+            team_id: '',
             cancelled: false,
         };
 
@@ -144,9 +144,9 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
                 callback_id: callbackId ?? '',
                 state: state ?? '',
                 cancelled: true,
-                user_id: '', // Populated by submitInteractiveDialog action
-                channel_id: '', // Populated by submitInteractiveDialog action
-                team_id: '', // Populated by submitInteractiveDialog action
+                user_id: '',
+                channel_id: '',
+                team_id: '',
                 submission: {},
             };
 
