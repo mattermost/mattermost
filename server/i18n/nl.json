@@ -4683,10 +4683,6 @@
     "translation": "Download de nieuwste Chrome browser"
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Fout bij leegmaken van Bleve indexen: de engine is uitgeschakeld"
-  },
-  {
     "id": "plugin_api.bot_cant_create_bot",
     "translation": "Een bot-gebruiker kan geen bot-gebruiker aanmaken."
   },
@@ -4795,18 +4791,6 @@
     "translation": "{{.EnableIndexing}} instelling moet worden ingesteld op actief als {{.Autocomplete}} is ingesteld op actief"
   },
   {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "De instelling Bleve IndexingEnabled moet worden ingesteld op waar als de functie Bleve SearchEnabled is ingesteld"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "De instelling Bleve IndexingEnabled moet worden ingesteld op waar als de functie BleveSearchEnabled ingesteld is op waar"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "De Bleve IndexingEnabled instelling moet op waar worden ingesteld als Bleve AutocompleteEnabled is ingesteld op waar"
-  },
-  {
     "id": "model.command.is_valid.autocomplete_data.app_error",
     "translation": "Ongeldige AutoCompleteData"
   },
@@ -4905,122 +4889,6 @@
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "{{.Backend}}-sjabloon voor kanalen kon niet aangemaakt worden"
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Fout bij het sluiten van gebruikersindex."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Fout bij het sluiten van berichtenindex."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Fout bij het sluiten van kanalenindex."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Fout bij het zoeken naar gebruikers."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Fout bij het zoeken naar gebruikers."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Fout bij het zoeken naar gebruikers."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Fout bij het zoeken naar berichten."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Fout bij het zoeken naar kanalen."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Fout bij het opschonen van de gebruikerindexen."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Fout bij het opschonen van de berichtindexen."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Fout bij het opschonen van kanaalindexen."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "We proberen een nieuwe batch te indexeren als alle entiteiten zijn voltooid."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Bleve indexing worker geeft een fout bij het verwerken de starttijd."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Bleve indexing worker geeft een fout bij het verwerken de eindtijd."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "De oudste entititeit (gebruiker,kanaal of bericht) kon niet worden opgehaald vanuit de databank."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Fout bij het uitvoeren van Bleve-indexeertaak: de engine is niet actief."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Fout bij het indexeren van gebruikerbatch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Fout bij het indexeren van berichtenbatch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Fout bij het indexeren van de kanaalbatch."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "De gebruiker kon niet worden geïndexeerd."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Het bericht kon niet worden geïndexeerd."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Het indexeren van het kanaal is mislukt."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Verwijderen van de gebruiker is mislukt."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Verwijderen van het bericht is mislukt."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Verwijderen van het kanaal is mislukt."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Fout bij het maken van de bleve-gebruikersindex."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Fout bij het maken van de bleve-berichtenindex."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Fout bij het maken van de bleve-kanaalindex."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve is reeds gestart."
   },
   {
     "id": "app.user_terms_of_service.save.app_error",
@@ -5687,10 +5555,6 @@
     "translation": "Er is een fout gevonden bij het zoeken naar de audit data."
   },
   {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Fout bij het verwijden van de kanaalberichten"
-  },
-  {
     "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
     "translation": "Service Provider Identifier is verplicht"
   },
@@ -5709,10 +5573,6 @@
   {
     "id": "ent.cluster.json_encode.error",
     "translation": "Er trad een fout op bij het opstellen van het JSON verzoek"
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Fout bij het verwijderen van de berichten van de gebruiker"
   },
   {
     "id": "app.scheme.delete.app_error",
@@ -6859,10 +6719,6 @@
     "translation": "Kanaalleden kunnen niet worden opgehaald."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Kan de kanalenbatch niet ophalen voor indexering."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "De kanalen voor het opgegeven schema kunnen niet worden opgehaald."
   },
@@ -6897,10 +6753,6 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "Fout bij het ophalen van berichten voor het kanaal."
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Kan de berichten-batch niet ophalen voor indexering."
   },
   {
     "id": "app.post.get_posts.app_error",
@@ -7239,34 +7091,6 @@
     "translation": "Fout bij het ophalen van het endpoint van het Discovery Document."
   },
   {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Verwijderen van de bestanden is mislukt."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Verwijderen van het bestand is mislukt."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Fout bij het maken van de bleve-bestandenindex."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Fout bij het indexeren van de batch met bestanden."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "Het bestand kon niet worden geïndexeerd."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Verwijderen van de bestanden van de gebruiker is mislukt."
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Fout bij het verwijderen van de bestanden van het bericht."
-  },
-  {
     "id": "ent.elasticsearch.delete_post_files.error",
     "translation": "Fout bij het verwijderen van de bestanden van het bericht"
   },
@@ -7277,14 +7101,6 @@
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
     "translation": "{{.Backend}}-sjabloon voor berichten aanmaken is mislukt"
-  },
-  {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Fout bij het sluiten van bestanden index."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "Het zoeken naar bestanden is niet voltooid."
   },
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
@@ -7417,14 +7233,6 @@
   {
     "id": "mfa.activate.app_error",
     "translation": "De MFA-actief status kan niet worden bijgewerkt voor de gebruiker."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Fout bij het opschonen van kanaalindexen."
-  },
-  {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "De berichtenbatch voor indexering kan niet worden opgehaald."
   },
   {
     "id": "api.custom_status.recent_custom_statuses.delete.app_error",
@@ -8440,10 +8248,6 @@
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
     "translation": "Bulkzoek Indexering Batchgrootte moet ten minste {{.BatchSize}} zijn."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Bleve Bulk Indexering Batchgrootte moet ten minste {{.BatchSize}} zijn."
   },
   {
     "id": "app.channel.get_file_count.app_error",
@@ -9720,10 +9524,6 @@
   {
     "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
     "translation": "Kanalen automatisch aanvullen kan niet worden ingeschakeld omdat het schema van de kanaalindex verouderd is. Het wordt aanbevolen om je kanaalindex te regenereren. Zie de Mattermost changelog voor meer informatie"
-  },
-  {
-    "id": "bleveengine.purge_list.not_implemented",
-    "translation": "De functie lijst leegmaken is niet beschikbaar voor Bleve."
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
