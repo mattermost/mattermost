@@ -601,8 +601,11 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 		_, _, err := client.Login(context.Background(), user.Email, "Pa$$word11")
 		require.NoError(t, err)
 
-		// WebSocket connection establishment should work (authentication challenge)
-		webSocketClient := th.CreateConnectedWebSocketClientWithClient(t, client)
+		// Create WebSocket client without expecting hello event (MFA enforcement prevents it)
+		webSocketClient, err := th.CreateWebSocketClientWithClient(client)
+		require.NoError(t, err)
+		require.NotNil(t, webSocketClient, "webSocketClient should not be nil")
+		webSocketClient.Listen()
 		defer webSocketClient.Close()
 
 		// First, consume the successful authentication challenge response
