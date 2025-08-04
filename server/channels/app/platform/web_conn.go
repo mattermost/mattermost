@@ -453,7 +453,7 @@ func (wc *WebConn) readPump() {
 		if err := wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime)); err != nil {
 			return err
 		}
-		if wc.IsAuthenticated() {
+		if wc.IsFullyAuthenticated() {
 			userID := wc.UserId
 			wc.Platform.Go(func() {
 				wc.Platform.SetStatusAwayIfNeeded(userID, false)
