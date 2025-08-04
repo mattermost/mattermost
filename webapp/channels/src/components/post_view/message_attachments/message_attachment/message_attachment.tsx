@@ -145,7 +145,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         const content = [] as JSX.Element[];
 
         actions.forEach((action: PostAction) => {
-            if (!action.id) {
+            if (!action.id || !action.name) {
                 return;
             }
 
