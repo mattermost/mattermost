@@ -4527,6 +4527,7 @@
   "integrations.successful": "Setup Successful",
   "interactive_dialog.cancel": "Cancel",
   "interactive_dialog.element.optional": "(optional)",
+  "interactive_dialog.lookup_failed": "Lookup failed",
   "interactive_dialog.refresh_failed": "Field refresh failed",
   "interactive_dialog.submission_failed": "Submission failed",
   "interactive_dialog.submit": "Submit",
