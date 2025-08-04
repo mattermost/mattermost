@@ -187,5 +187,32 @@ describe('actions/integration_actions', () => {
 
             expect(IntegrationActions.submitInteractiveDialog).toHaveBeenCalledWith(submission);
         });
+
+        test('submitInteractiveDialog populates user_id and team_id from Redux state', async () => {
+            const testStore = mockStore(initialState);
+
+            // Components pass empty strings, action should populate from Redux state
+            const submission = {
+                callback_id: 'callback_id',
+                state: 'state',
+                submission: {
+                    name: 'value',
+                },
+                user_id: '', // Empty - should be populated by action
+                team_id: '', // Empty - should be populated by action
+                channel_id: 'current_channel_id',
+                cancelled: false,
+            };
+
+            const expectedSubmission = {
+                ...submission,
+                user_id: 'current_user_id', // Should be populated from getCurrentUserId
+                team_id: 'team_id1',        // Should be populated from getCurrentTeamId
+            };
+
+            await testStore.dispatch(Actions.submitInteractiveDialog(submission));
+
+            expect(IntegrationActions.submitInteractiveDialog).toHaveBeenCalledWith(expectedSubmission);
+        });
     });
 });
