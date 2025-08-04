@@ -56,7 +56,7 @@ const ActionButton = ({
             (action.style.match('^#(?:[0-9a-fA-F]{3}){1,2}$') && action.style);
     }
 
-    const name = action.name || action.id;
+    const name = action.name || action.id || '';
 
     return (
         <ActionBtn
