@@ -1087,7 +1087,7 @@ describe('components/SwitchChannelProvider', () => {
             expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
 
             results = switchProvider.formatGroup('different', channels, users);
-            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately  
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
             expect(results.items.some((item) => item.channel.id === 'dm_channel_2')).toBe(true);
         });
 
