@@ -7392,10 +7392,6 @@
     "translation": "Ошибка получения endpoint из Discovery Document."
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Ошибка чтения файла из бэкэнда"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "Ошибка создания zip-файла."
   },

@@ -4644,11 +4644,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 134+"
+    "translation": "Version 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 134+"
+    "translation": "Version 138+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -7404,10 +7404,6 @@
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
     "translation": "Apps zu deinem Arbeitsbereich hinzufügen"
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Fehler beim Lesen einer Datei vom Backend"
   },
   {
     "id": "api.unable_to_create_zip_file",
@@ -10540,10 +10536,6 @@
     "translation": "Validierung des Eigenschaftswertes fehlgeschlagen"
   },
   {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "Fehler beim Patchen des CPA-Werts"
-  },
-  {
     "id": "ent.ldap.cpa_field_mapping.list_error",
     "translation": "CPA-Felder konnten nicht abgerufen werden"
   },
@@ -10606,10 +10598,6 @@
   {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "SAML-Assertion Attributanweisung ist ungültig"
-  },
-  {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "Fehler bei der Aktualisierung der CPA-Werte"
   },
   {
     "id": "api.license.load_metric.app_error",
@@ -10770,14 +10758,6 @@
   {
     "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
     "translation": "Die Farbe des Kanal-Banners muss eine gültige Hex-Farbe sein (z.B. #FF0000 oder #F00)"
-  },
-  {
-    "id": "api.license.add_license.mysql.app_error",
-    "translation": "Diese Lizenz unterstützt MySQL nicht."
-  },
-  {
-    "id": "api.license.request-trial.mysql.app_error",
-    "translation": "Testlizenzen werden für MySQL-Datenbanken nicht unterstützt. Bitte verwende PostgreSQL, um auf die Testfunktionen zuzugreifen."
   },
   {
     "id": "model.config.is_valid.directory_whitespace.app_error",
