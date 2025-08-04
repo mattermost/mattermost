@@ -377,7 +377,6 @@ export function loadPosts({
 }: LoadPostsParameters): ThunkActionFunc<Promise<LoadPostsReturnValue>> {
     //type here can be BEFORE_ID or AFTER_ID
     return async (dispatch) => {
-
         dispatch({
             type: ActionTypes.LOADING_POSTS,
             data: true,

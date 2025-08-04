@@ -192,7 +192,7 @@ describe('components/post_view/post_list', () => {
             const wrapper = shallow(<PostList {...{...baseProps, isFirstLoad: false, postListIds: postIds}}/>);
             wrapper.setProps({atOldestPost: false});
             wrapper.find(VirtPostList).prop('actions').canLoadMorePosts(undefined);
-            expect(actionsProp.loadPosts).toHaveBeenCalledWith({channelId: baseProps.channelId, postId: postIds[postIds.length - 1], type: PostRequestTypes.BEFORE_ID, perPage: 30});
+            expect(actionsProp.loadPosts).toHaveBeenCalledWith({channelId: baseProps.channelId, postId: postIds[postIds.length - 1], type: PostRequestTypes.BEFORE_ID, perPage: 200});
         });
 
         test('Should call getPostsAfter if all older posts are loaded and not newerPosts', async () => {
@@ -344,7 +344,7 @@ describe('components/post_view/post_list', () => {
             });
         });
 
-        test('Should call getPostsBeforeAutoLoad when canLoadMorePosts is triggered with BEFORE_ID', async () => {
+        test('Should use 200 posts when canLoadMorePosts is triggered with BEFORE_ID', async () => {
             const postIds = createFakePosIds(2);
             const loadPosts = jest.fn().mockImplementation(() => Promise.resolve({moreToLoad: true}));
             const props = {
@@ -361,12 +361,10 @@ describe('components/post_view/post_list', () => {
                 <PostList {...props}/>,
             );
 
-            // Spy on the method to ensure it's called
-            const getPostsBeforeAutoLoadSpy = jest.spyOn(PostList.prototype, 'getPostsBeforeAutoLoad');
+            // Trigger auto-loading via canLoadMorePosts
+            wrapper.find(VirtPostList).prop('actions').canLoadMorePosts(PostRequestTypes.BEFORE_ID);
 
-            await wrapper.find(VirtPostList).prop('actions').canLoadMorePosts(PostRequestTypes.BEFORE_ID);
-
-            expect(getPostsBeforeAutoLoadSpy).toHaveBeenCalled();
+            // Should use auto-load page size (200 posts)
             expect(loadPosts).toHaveBeenCalledWith(expect.objectContaining({
                 perPage: 200,
             }));
