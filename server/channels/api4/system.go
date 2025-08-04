@@ -10,7 +10,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -21,7 +20,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
@@ -81,7 +79,6 @@ func (api *API) InitSystem() {
 
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	const FileMime = "application/zip"
-	const OutputDirectory = "support_packet"
 
 	// Support Packet generation is limited to system admins (MM-42271).
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -111,32 +108,21 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	outputZipFilename := supportPacketFileName(now, c.App.License().Customer.Company)
 
-	fileStorageBackend := c.App.FileBackend()
-	// We do this incase we get concurrent requests, we will always have a unique directory.
-	// This is to avoid the situation where we try to write to the same directory while we are trying to delete it (further down)
-	outputDirectoryToUse := OutputDirectory + "_" + model.NewId()
-	err := c.App.CreateZipFileAndAddFiles(fileStorageBackend, fileDatas, outputZipFilename, outputDirectoryToUse)
+	// Create a buffer and write the zip file to it
+	buf := new(bytes.Buffer)
+	err := c.App.WriteZipFile(buf, fileDatas)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_create_zip_file", nil, "", http.StatusForbidden).Wrap(err)
 		return
 	}
 
-	fileBytes, err := fileStorageBackend.ReadFile(path.Join(outputDirectoryToUse, outputZipFilename))
-	defer func() {
-		if err = fileStorageBackend.RemoveDirectory(outputDirectoryToUse); err != nil {
-			c.Logger.Warn("Error while removing directory", mlog.Err(err))
-		}
-	}()
-	if err != nil {
-		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_read_file_from_backend", nil, "", http.StatusForbidden).Wrap(err)
-		return
-	}
-	fileBytesReader := bytes.NewReader(fileBytes)
+	// Prevent caching so support packets are always fresh
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 
-	// Send the zip file back to client
-	// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
-	// already sets that for us
-	web.WriteFileResponse(outputZipFilename, FileMime, 0, now, *c.App.Config().ServiceSettings.WebserverMode, fileBytesReader, true, w, r)
+	err = web.WriteStreamResponse(w, buf, outputZipFilename, FileMime, true)
+	if err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 // supportPacketFileName returns the ZIP file name in the format mm_support_packet_$CUSTOMER_NAME_YYYY-MM-DDTHH-MM.zip.
@@ -294,7 +280,7 @@ func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("getAudits", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetAudits, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadAudits) {
@@ -309,8 +295,8 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	audit.AddEventParameter(auditRec, "page", c.Params.Page)
-	audit.AddEventParameter(auditRec, "audits_per_page", c.Params.LogsPerPage)
+	model.AddEventParameterToAuditRec(auditRec, "page", c.Params.Page)
+	model.AddEventParameterToAuditRec(auditRec, "audits_per_page", c.Params.LogsPerPage)
 
 	if err := json.NewEncoder(w).Encode(audits); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -323,7 +309,7 @@ func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("databaseRecycle", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDatabaseRecycle, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	c.App.RecycleDatabaseConnection(c.AppContext)
@@ -338,7 +324,7 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("invalidateCaches", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventInvalidateCaches, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	appErr := c.App.Srv().InvalidateAllCaches()
@@ -354,7 +340,7 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("queryLogs", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventQueryLogs, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionGetLogs) {
@@ -397,7 +383,7 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("getLogs", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetLogs, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionGetLogs) {
@@ -411,8 +397,8 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audit.AddEventParameter(auditRec, "page", c.Params.Page)
-	audit.AddEventParameter(auditRec, "logs_per_page", c.Params.LogsPerPage)
+	model.AddEventParameterToAuditRec(auditRec, "page", c.Params.Page)
+	model.AddEventParameterToAuditRec(auditRec, "logs_per_page", c.Params.LogsPerPage)
 
 	if _, err := w.Write([]byte(model.ArrayToJSON(lines))); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -420,7 +406,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func downloadLogs(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("downloadLogs", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDownloadLogs, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionGetLogs) {
@@ -787,9 +773,9 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("setServerBusy", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventSetServerBusy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "seconds", i)
+	model.AddEventParameterToAuditRec(auditRec, "seconds", i)
 
 	c.App.Srv().Platform().Busy.Set(time.Second * time.Duration(i))
 	c.Logger.Warn("server busy state activated - non-critical services disabled", mlog.Int("seconds", i))
@@ -804,7 +790,7 @@ func clearServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("clearServerBusy", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventClearServerBusy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	c.App.Srv().Platform().Busy.Clear()
@@ -833,7 +819,7 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func upgradeToEnterprise(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("upgradeToEnterprise", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpgradeToEnterprise, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -922,7 +908,7 @@ func upgradeToEnterpriseStatus(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func restart(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("restartServer", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRestartServer, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -966,7 +952,7 @@ func getProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("updateViewedProductNotices", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateViewedProductNotices, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -986,7 +972,7 @@ func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Reque
 }
 
 func getOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("getOnboarding", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetOnboarding, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -1013,7 +999,7 @@ func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("completeOnboarding", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCompleteOnboarding, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	onboardingRequest, err := model.CompleteOnboardingRequestFromReader(r.Body)
@@ -1021,8 +1007,8 @@ func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("completeOnboarding", "app.system.complete_onboarding_request.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
-	audit.AddEventParameter(auditRec, "install_plugin", onboardingRequest.InstallPlugins)
-	audit.AddEventParameterAuditable(auditRec, "onboarding_request", onboardingRequest)
+	model.AddEventParameterToAuditRec(auditRec, "install_plugin", onboardingRequest.InstallPlugins)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "onboarding_request", onboardingRequest)
 
 	appErr := c.App.CompleteOnboarding(c.AppContext, onboardingRequest)
 	if appErr != nil {
@@ -1040,7 +1026,7 @@ func getAppliedSchemaMigrations(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("getAppliedSchemaMigrations", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetAppliedSchemaMigrations, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	migrations, appErr := c.App.GetAppliedSchemaMigrations()

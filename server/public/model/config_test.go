@@ -34,8 +34,8 @@ func TestConfigDefaults(t *testing.T) {
 			if v.Type().Kind() == reflect.Ptr {
 				// Ignoring these 2 settings.
 				// TODO: remove them completely in v8.0.
-				if name == "config.BleveSettings.BulkIndexingTimeWindowSeconds" ||
-					name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" {
+				if name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" ||
+					name == "config.ClusterSettings.EnableExperimentalGossipEncryption" {
 					return
 				}
 
@@ -1402,6 +1402,8 @@ func TestLdapSettingsIsValid(t *testing.T) {
 }
 
 func TestLogSettingsIsValid(t *testing.T) {
+	t.Parallel()
+
 	for name, test := range map[string]struct {
 		LogSettings LogSettings
 		ExpectError bool
@@ -1723,24 +1725,6 @@ func TestSanitizeDataSource(t *testing.T) {
 			},
 		}
 		driver := DatabaseDriverPostgres
-		for _, tc := range testCases {
-			out, err := SanitizeDataSource(driver, tc.Original)
-			require.NoError(t, err)
-			assert.Equal(t, tc.Sanitized, out)
-		}
-	})
-
-	t.Run(DatabaseDriverMysql, func(t *testing.T) {
-		testCases := []struct {
-			Original  string
-			Sanitized string
-		}{
-			{
-				"mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s",
-				SanitizedPassword + ":" + SanitizedPassword + "@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s",
-			},
-		}
-		driver := DatabaseDriverMysql
 		for _, tc := range testCases {
 			out, err := SanitizeDataSource(driver, tc.Original)
 			require.NoError(t, err)
@@ -2161,6 +2145,115 @@ func TestConfigDefaultConnectedWorkspacesSettings(t *testing.T) {
 		require.False(t, *c.ConnectedWorkspacesSettings.EnableSharedChannels)
 		require.True(t, *c.ConnectedWorkspacesSettings.EnableRemoteClusterService)
 	})
+}
+
+func TestExperimentalAuditSettingsIsValid(t *testing.T) {
+	t.Parallel()
+
+	for name, test := range map[string]struct {
+		ExperimentalAuditSettings ExperimentalAuditSettings
+		ExpectError               bool
+	}{
+		"empty settings": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{},
+			ExpectError:               false,
+		},
+		"file enabled with empty filename": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled: NewPointer(true),
+				FileName:    NewPointer(""),
+			},
+			ExpectError: true,
+		},
+		"file enabled with valid filename": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:      NewPointer(true),
+				FileName:         NewPointer("audit.log"),
+				FileMaxSizeMB:    NewPointer(100),
+				FileMaxAgeDays:   NewPointer(5),
+				FileMaxBackups:   NewPointer(10),
+				FileMaxQueueSize: NewPointer(1000),
+			},
+			ExpectError: false,
+		},
+		"invalid file max size": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:   NewPointer(true),
+				FileName:      NewPointer("audit.log"),
+				FileMaxSizeMB: NewPointer(0),
+			},
+			ExpectError: true,
+		},
+		"negative file max size": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:   NewPointer(true),
+				FileName:      NewPointer("audit.log"),
+				FileMaxSizeMB: NewPointer(-10),
+			},
+			ExpectError: true,
+		},
+		"negative file max age": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:    NewPointer(true),
+				FileName:       NewPointer("audit.log"),
+				FileMaxSizeMB:  NewPointer(100),
+				FileMaxAgeDays: NewPointer(-5),
+			},
+			ExpectError: true,
+		},
+		"negative file max backups": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:    NewPointer(true),
+				FileName:       NewPointer("audit.log"),
+				FileMaxSizeMB:  NewPointer(100),
+				FileMaxAgeDays: NewPointer(5),
+				FileMaxBackups: NewPointer(-10),
+			},
+			ExpectError: true,
+		},
+		"zero file max queue size": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:      NewPointer(true),
+				FileName:         NewPointer("audit.log"),
+				FileMaxSizeMB:    NewPointer(100),
+				FileMaxAgeDays:   NewPointer(5),
+				FileMaxBackups:   NewPointer(10),
+				FileMaxQueueSize: NewPointer(0),
+			},
+			ExpectError: true,
+		},
+		"negative file max queue size": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:      NewPointer(true),
+				FileName:         NewPointer("audit.log"),
+				FileMaxSizeMB:    NewPointer(100),
+				FileMaxAgeDays:   NewPointer(5),
+				FileMaxBackups:   NewPointer(10),
+				FileMaxQueueSize: NewPointer(-1000),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON has JSON error ": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"foo": "bar",
+				`),
+			},
+			ExpectError: true,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			test.ExperimentalAuditSettings.SetDefaults()
+
+			appErr := test.ExperimentalAuditSettings.isValid()
+			if test.ExpectError {
+				require.NotNil(t, appErr)
+			} else {
+				require.Nil(t, appErr)
+			}
+		})
+	}
 }
 
 func TestFilterConfig(t *testing.T) {

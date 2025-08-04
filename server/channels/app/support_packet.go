@@ -26,6 +26,7 @@ func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPack
 		"jobs":        a.getSupportPacketJobList,
 		"permissions": a.getSupportPacketPermissionsInfo,
 		"plugins":     a.getPluginsFile,
+		"schema":      a.getSupportPacketDatabaseSchema,
 	}
 
 	var (
@@ -259,10 +260,6 @@ func (a *App) getSupportPacketJobList(rctx request.CTX) (*model.FileData, error)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post aggregation jobs"))
 	}
-	jobs.BlevePostIndexingJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeBlevePostIndexing, 0, numberOfJobsRuns)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting bleve post indexing jobs"))
-	}
 	jobs.MigrationJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeMigrations, 0, numberOfJobsRuns)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting migration jobs"))
@@ -374,4 +371,25 @@ func (a *App) getSupportPacketMetadata(_ request.CTX) (*model.FileData, error) {
 		Body:     b,
 	}
 	return fileData, nil
+}
+
+func (a *App) getSupportPacketDatabaseSchema(rctx request.CTX) (*model.FileData, error) {
+	if *a.Config().SqlSettings.DriverName != model.DatabaseDriverPostgres {
+		return nil, nil
+	}
+
+	schemaInfo, err := a.Srv().Store().GetSchemaDefinition()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get schema definition")
+	}
+
+	schemaDump, err := yaml.Marshal(schemaInfo)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal schema into YAML")
+	}
+
+	return &model.FileData{
+		Filename: "database_schema.yaml",
+		Body:     schemaDump,
+	}, nil
 }

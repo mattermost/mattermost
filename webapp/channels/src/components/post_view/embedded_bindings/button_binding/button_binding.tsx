@@ -128,7 +128,6 @@ class ButtonBinding extends React.PureComponent<Props, State> {
                         options={{
                             mentionHighlight: false,
                             markdown: false,
-                            autolinkedUrlSchemes: [],
                         }}
                     />
                 </LoadingWrapper>

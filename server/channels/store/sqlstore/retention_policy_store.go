@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -374,11 +373,6 @@ func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset, limit
 		return "", nil, errors.Wrap(err, "retention_policies_tosql")
 	}
 
-	// MySQL does not support positional params, so we add one param for each WHERE clause.
-	if s.DriverName() == model.DatabaseDriverMysql {
-		args = append(args, args...)
-	}
-
 	return queryString, args, nil
 }
 
@@ -441,8 +435,9 @@ func (s *SqlRetentionPolicyStore) Delete(id string) error {
 }
 
 func (s *SqlRetentionPolicyStore) GetChannels(policyId string, offset, limit int) (model.ChannelListWithTeamData, error) {
-	query := s.getQueryBuilder().Select(`Channels.*, Teams.DisplayName AS TeamDisplayName,
-	  Teams.Name AS TeamName,Teams.UpdateAt AS TeamUpdateAt`).
+	query := s.getQueryBuilder().
+		Select("Teams.DisplayName AS TeamDisplayName", "Teams.Name AS TeamName", "Teams.UpdateAt AS TeamUpdateAt").
+		Columns(channelSliceColumns(true, "Channels")...).
 		From("RetentionPoliciesChannels").
 		InnerJoin("Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id").
 		InnerJoin("Teams ON Channels.TeamId = Teams.Id").
@@ -515,10 +510,6 @@ func (s *SqlRetentionPolicyStore) AddChannels(policyId string, channelIds []stri
 			if dbErr.Code == PGForeignKeyViolationErrorCode {
 				return store.NewErrNotFound("RetentionPolicy", policyId)
 			}
-		case *mysql.MySQLError:
-			if dbErr.Number == MySQLForeignKeyViolationErrorCode {
-				return store.NewErrNotFound("RetentionPolicy", policyId)
-			}
 		}
 	}
 
@@ -550,7 +541,7 @@ func (s *SqlRetentionPolicyStore) RemoveChannels(policyId string, channelIds []s
 
 func (s *SqlRetentionPolicyStore) GetTeams(policyId string, offset, limit int) ([]*model.Team, error) {
 	query := s.getQueryBuilder().
-		Select("Teams.*").
+		Select(teamSliceColumns()...).
 		From("RetentionPoliciesTeams").
 		InnerJoin("Teams ON RetentionPoliciesTeams.TeamId = Teams.Id").
 		Where(sq.Eq{"RetentionPoliciesTeams.PolicyId": policyId}).
@@ -858,7 +849,7 @@ func scanRetentionIdsForDeletion(rows *sql.Rows, isPostgres bool) ([]*model.Rete
 
 func (s *SqlRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, limit int) ([]*model.RetentionIdsForDeletion, error) {
 	query := s.getQueryBuilder().
-		Select("*").
+		Select("Id", "TableName", "Ids").
 		From("RetentionIdsForDeletion").
 		Where(
 			sq.Eq{"TableName": tableName},
@@ -1062,82 +1053,45 @@ func genericRetentionPoliciesDeletion(
 		}
 		defer finalizeTransactionX(txn, &err)
 
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			primaryKeysStr := "(" + strings.Join(r.PrimaryKeys, ",") + ")"
+		primaryKeysStr := "(" + strings.Join(r.PrimaryKeys, ",") + ")"
 
-			query = fmt.Sprintf("DELETE FROM %s WHERE %s IN (%s) RETURNING %s.%s", r.Table, primaryKeysStr, query, r.Table, r.PrimaryKeys[0])
-			var rows *sql.Rows
-			rows, err = txn.Query(query, args...)
-			if err != nil {
-				return 0, errors.Wrap(err, "failed to delete "+r.Table)
-			}
+		query = fmt.Sprintf("DELETE FROM %s WHERE %s IN (%s) RETURNING %s.%s", r.Table, primaryKeysStr, query, r.Table, r.PrimaryKeys[0])
+		var rows *sql.Rows
+		rows, err = txn.Query(query, args...)
+		if err != nil {
+			return 0, errors.Wrap(err, "failed to delete "+r.Table)
+		}
 
-			defer rows.Close()
-			ids := []string{}
-			for rows.Next() {
-				var id string
-				if err = rows.Scan(&id); err != nil {
-					return 0, errors.Wrap(err, "unable to scan from rows")
-				}
-				ids = append(ids, id)
+		defer rows.Close()
+		ids := []string{}
+		for rows.Next() {
+			var id string
+			if err = rows.Scan(&id); err != nil {
+				return 0, errors.Wrap(err, "unable to scan from rows")
 			}
-			if err = rows.Err(); err != nil {
-				return 0, errors.Wrap(err, "failed while iterating over rows")
-			}
-			rowsAffected = int64(len(ids))
+			ids = append(ids, id)
+		}
+		if err = rows.Err(); err != nil {
+			return 0, errors.Wrap(err, "failed while iterating over rows")
+		}
+		rowsAffected = int64(len(ids))
 
-			if len(ids) > 0 {
-				retentionIdsRow := model.RetentionIdsForDeletion{
-					TableName: r.Table,
-					Ids:       ids,
-				}
-				err = insertRetentionIdsForDeletion(txn, &retentionIdsRow, s)
-				if err != nil {
-					return 0, err
-				}
-			}
-		} else {
+		if len(ids) > 0 {
 			retentionIdsRow := model.RetentionIdsForDeletion{
 				TableName: r.Table,
-				Ids:       []string{},
+				Ids:       ids,
 			}
-			// 1. Select rows that will be deleted
-			if err = txn.Select(&retentionIdsRow.Ids, query, args...); err != nil {
+			err = insertRetentionIdsForDeletion(txn, &retentionIdsRow, s)
+			if err != nil {
 				return 0, err
-			}
-
-			if len(retentionIdsRow.Ids) > 0 {
-				// 2. Insert selected ids into RetentionIdsForDeletion table
-				err = insertRetentionIdsForDeletion(txn, &retentionIdsRow, s)
-				if err != nil {
-					return 0, err
-				}
-
-				query = getDeleteQueriesForMySQL(r, query)
-
-				// 3. Delete from Parent table
-				var result sql.Result
-				result, err = txn.Exec(query, args...)
-				if err != nil {
-					return 0, errors.Wrap(err, "failed to delete "+r.Table)
-				}
-
-				rowsAffected, err = result.RowsAffected()
-				if err != nil {
-					return 0, errors.Wrap(err, "failed to get rows affected for "+r.Table)
-				}
 			}
 		}
 		if err = txn.Commit(); err != nil {
 			return 0, err
 		}
 	} else {
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			primaryKeysStr := "(" + strings.Join(r.PrimaryKeys, ",") + ")"
-			query = fmt.Sprintf("DELETE FROM %s WHERE %s IN (%s)", r.Table, primaryKeysStr, query)
-		} else {
-			query = getDeleteQueriesForMySQL(r, query)
-		}
+		primaryKeysStr := "(" + strings.Join(r.PrimaryKeys, ",") + ")"
+		query = fmt.Sprintf("DELETE FROM %s WHERE %s IN (%s)", r.Table, primaryKeysStr, query)
 		result, err := s.GetMaster().Exec(query, args...)
 		if err != nil {
 			return 0, errors.Wrap(err, "failed to delete "+r.Table)
@@ -1148,16 +1102,6 @@ func genericRetentionPoliciesDeletion(
 		}
 	}
 	return
-}
-
-func getDeleteQueriesForMySQL(r RetentionPolicyBatchDeletionInfo, query string) string {
-	// MySQL does not support the LIMIT clause in a subquery with IN
-	clauses := make([]string, len(r.PrimaryKeys))
-	for i, key := range r.PrimaryKeys {
-		clauses[i] = r.Table + "." + key + " = A." + key
-	}
-	joinClause := strings.Join(clauses, " AND ")
-	return fmt.Sprintf("DELETE %s FROM %s INNER JOIN (%s) AS A ON %s", r.Table, r.Table, query, joinClause)
 }
 
 func deleteFromRetentionIdsTx(txn *sqlxTxWrapper, id string) error {

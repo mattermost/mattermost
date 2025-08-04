@@ -5128,10 +5128,6 @@
     "translation": "A apărut o eroare la preluarea cheii publice din magazin."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Nu se poate seta plugin-ul așa cum este gestionat de depozitul de fișiere."
-  },
-  {
     "id": "app.plugin.delete_public_key.delete.app_error",
     "translation": "A apărut o eroare la ștergerea cheii publice."
   },
@@ -7398,10 +7394,6 @@
   {
     "id": "app.export.export_attachment.copy_file.error",
     "translation": "Copierea fișierului nu a reușit în timpul exportului."
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Eroare la citirea fișierului din backend"
   },
   {
     "id": "api.unable_to_create_zip_file",

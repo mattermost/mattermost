@@ -23,6 +23,7 @@ describe('user utils', () => {
             nickname: 'nick',
             first_name: 'test',
             last_name: 'user',
+            props: {RemoteUsername: 'remoteTestUser'},
         });
 
         it('should return username', () => {
@@ -52,6 +53,10 @@ describe('user utils', () => {
         it('should return default username string', () => {
             let noUserObj;
             expect(displayUsername(noUserObj, 'UNKNOWN_PREFERENCE')).toBe('Someone');
+        });
+
+        it('should return remote username string if the user is remote', () => {
+            expect(displayUsername({...userObj, remote_id: 'remoteid'}, Preferences.DISPLAY_PREFER_USERNAME)).toBe('remoteTestUser');
         });
 
         it('should return empty string when user does not exist and useDefaultUserName param is false', () => {

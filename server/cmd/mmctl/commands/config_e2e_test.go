@@ -134,20 +134,20 @@ func (s *MmctlE2ETestSuite) TestConfigSetCmd() {
 	s.RunForSystemAdminAndLocal("Set config value for a given key", func(c client.Client) {
 		printer.Clean()
 
-		args := []string{"SqlSettings.DriverName", "mysql"}
+		args := []string{"SqlSettings.DriverName", "postgres"}
 		err := configSetCmdF(c, &cobra.Command{}, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
 		config, ok := printer.GetLines()[0].(*model.Config)
 		s.Require().True(ok)
-		s.Require().Equal("mysql", *(config.SqlSettings.DriverName))
+		s.Require().Equal("postgres", *(config.SqlSettings.DriverName))
 	})
 
 	s.RunForSystemAdminAndLocal("Get error if the key doesn't exist", func(c client.Client) {
 		printer.Clean()
 
-		args := []string{"SqlSettings.WrongKey", "mysql"}
+		args := []string{"SqlSettings.WrongKey", "postgres"}
 		err := configSetCmdF(c, &cobra.Command{}, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
@@ -157,7 +157,7 @@ func (s *MmctlE2ETestSuite) TestConfigSetCmd() {
 	s.Run("Set config value for a given key without permissions", func() {
 		printer.Clean()
 
-		args := []string{"SqlSettings.DriverName", "mysql"}
+		args := []string{"SqlSettings.DriverName", "postgres"}
 		err := configSetCmdF(s.th.Client, &cobra.Command{}, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)

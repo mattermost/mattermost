@@ -43,10 +43,10 @@ func (a *App) GetJobsByTypesPage(c request.CTX, jobType []string, page int, perP
 	return jobs, nil
 }
 
-func (a *App) GetJobsByTypeAndStatus(c request.CTX, jobTypes []string, status string, page int, perPage int) ([]*model.Job, *model.AppError) {
-	jobs, err := a.Srv().Store().Job().GetAllByTypeAndStatusPage(c, jobTypes, status, page, perPage)
+func (a *App) GetJobsByTypesAndStatuses(c request.CTX, jobTypes []string, status []string, page int, perPage int) ([]*model.Job, *model.AppError) {
+	jobs, err := a.Srv().Store().Job().GetAllByTypesAndStatusesPage(c, jobTypes, status, page*perPage, perPage)
 	if err != nil {
-		return nil, model.NewAppError("GetAllByTypeAndStatusPage", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetAllByTypesAndStatusesPage", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return jobs, nil
 }
@@ -74,8 +74,6 @@ func (a *App) UpdateJobStatus(c request.CTX, job *model.Job, newStatus string) *
 
 func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.Job) (bool, *model.Permission) {
 	switch job.Type {
-	case model.JobTypeBlevePostIndexing:
-		return a.SessionHasPermissionTo(session, model.PermissionCreatePostBleveIndexesJob), model.PermissionCreatePostBleveIndexesJob
 	case model.JobTypeDataRetention:
 		return a.SessionHasPermissionTo(session, model.PermissionCreateDataRetentionJob), model.PermissionCreateDataRetentionJob
 	case model.JobTypeMessageExport:
@@ -110,8 +108,6 @@ func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.
 	var permission *model.Permission
 
 	switch job.Type {
-	case model.JobTypeBlevePostIndexing:
-		permission = model.PermissionManagePostBleveIndexesJob
 	case model.JobTypeDataRetention:
 		permission = model.PermissionManageDataRetentionJob
 	case model.JobTypeMessageExport:
@@ -159,7 +155,6 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 	case model.JobTypeLdapSync:
 		return a.SessionHasPermissionTo(session, model.PermissionReadLdapSyncJob), model.PermissionReadLdapSyncJob
 	case
-		model.JobTypeBlevePostIndexing,
 		model.JobTypeMigrations,
 		model.JobTypePlugins,
 		model.JobTypeProductNotices,
