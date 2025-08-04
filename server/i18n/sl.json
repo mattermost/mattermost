@@ -1024,50 +1024,6 @@
     "translation": "Podatkov o sliki ni mogoče dekodirati."
   },
   {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Iskanje ni bilo mogoče dokončati"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Iskanje ni bilo mogoče dokončati"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Iskanje ni bilo mogoče dokončati"
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Iskanje ni bilo mogoče dokončati"
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Iskanje ni bilo mogoče dokončati"
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Objave ni bilo mogoče indeksirati"
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Objave ni bilo mogoče indeksirati"
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Posodobitev kanala ni uspela"
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Objave ni bilo mogoče izbrisati"
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Objave ni bilo mogoče izbrisati"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Posodobitev kanala ni uspela"
-  },
-  {
     "id": "app.user_access_token.invalid_or_missing",
     "translation": "Neveljaven ali manjkajoč žeton"
   },

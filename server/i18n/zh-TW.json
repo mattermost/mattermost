@@ -4652,10 +4652,6 @@
     "translation": "取得最新的 Chrome 瀏覽器"
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "清除 Bleve 索引錯誤：引擎已被停用"
-  },
-  {
     "id": "plugin_api.bot_cant_create_bot",
     "translation": "機器人帳號不能建立機器人帳號。"
   },
@@ -4764,18 +4760,6 @@
     "translation": "當啟用 ElasticSearch EnableAutocomplete 時必須設定 ElasticSearch EnableIndexing 為啟用"
   },
   {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "當啟用 Bleve IndexingDir 時必須設定 Bleve EnableIndexing 為啟用"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "當啟用 Bleve EnableSearching 時必須設定 Bleve EnableIndexing 為啟用"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "當啟用 Bleve EnableAutocomplete 時必須設定 Bleve EnableIndexing 為啟用"
-  },
-  {
     "id": "model.command.is_valid.autocomplete_data.app_error",
     "translation": "AutocompleteData 無效"
   },
@@ -4874,122 +4858,6 @@
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "為頻道建立 Elasticsearch 範本失敗"
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "關閉使用者索引失敗。"
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "關閉訊息索引失敗。"
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "關閉頻道索引失敗。"
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "無法完成搜尋使用者。"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "無法完成搜尋使用者。"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "無法完成搜尋使用者。"
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "無法完成搜尋訊息。"
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "無法完成搜尋頻道。"
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "清除使用者索引失敗。"
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "清除訊息索引失敗。"
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "清除頻道索引失敗。"
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "在全部項目已完成時嘗試索引新批次。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Bleve 索引工作者工作者解析開始時間時失敗。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Bleve 索引工作者解析中止時間時失敗。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "無法從資料庫取得最老的實體（使用者、頻道或訊息）。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "執行 Bleve 索引工作失敗：引擎尚未啟動。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "對使用者批次建立索引失敗。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "對訊息批次建立索引失敗。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "對頻道批次建立索引失敗。"
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "索引使用者失敗。"
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "索引訊息失敗。"
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "索引頻道時失敗。"
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "刪除使用者時失敗。"
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "刪除訊息時失敗。"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "刪除頻道時失敗。"
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "建立 Bleve 使用者索引時錯誤。"
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "建立 Bleve 訊息索引時錯誤。"
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "建立 Bleve 頻道索引時錯誤。"
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve 已啟動。"
   },
   {
     "id": "app.user_terms_of_service.save.app_error",
@@ -5854,14 +5722,6 @@
   {
     "id": "ent.cluster.json_encode.error",
     "translation": "封裝 JSON 要求時發生錯誤"
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "刪除使用者訊息失敗"
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "刪除頻道訊息失敗"
   },
   {
     "id": "app.user.permanentdeleteuser.internal_error",
@@ -6828,10 +6688,6 @@
     "translation": "無法取得頻道成員。"
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "無法取得頻道批次以建立索引。"
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "無法取得提供的策略當中的頻道。"
   },
@@ -6866,10 +6722,6 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "無法取得頻道的訊息。"
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "無法取得要建立索引的訊息。"
   },
   {
     "id": "app.post.get_posts.app_error",
@@ -7468,22 +7320,6 @@
     "translation": "更新使用者失敗。"
   },
   {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "刪除訊息檔案失敗。"
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "刪除使用者檔案失敗。"
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "索引檔案失敗。"
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "無法完成檔案搜尋。"
-  },
-  {
     "id": "ent.data_retention.policies.invalid_policy",
     "translation": "政策無效。"
   },
@@ -7632,14 +7468,6 @@
     "translation": "無法更新討論串的追蹤狀態"
   },
   {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "對檔案批次建立索引失敗。"
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "清除檔案索引失敗。"
-  },
-  {
     "id": "ent.data_retention.policies.internal_error",
     "translation": "執行請求的操作時發生錯誤。"
   },
@@ -7722,10 +7550,6 @@
   {
     "id": "app.user.update_failed_pwd_attempts.app_error",
     "translation": "無法更新 failed_attempts。"
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "刪除檔案失敗。"
   },
   {
     "id": "ent.data_retention.run_failed.error",
@@ -8552,10 +8376,6 @@
     "translation": "取得團隊時發生錯誤。"
   },
   {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "無法取得索引用的檔案批次。"
-  },
-  {
     "id": "app.post.move_thread_command.direct_or_group.one_message",
     "translation": "訊息已移動至私人/群組訊息\n"
   },
@@ -8696,18 +8516,6 @@
     "translation": "無法從使用者傳送自動回應。"
   },
   {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "建立 Bleve 檔案索引時發生錯誤。"
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "刪除檔案失敗。"
-  },
-  {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "關閉檔案索引失敗。"
-  },
-  {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
     "translation": "無法開啟 Elasticsearch 的 CA 檔案"
   },
@@ -8774,10 +8582,6 @@
   {
     "id": "model.acknowledgement.is_valid.user_id.app_error",
     "translation": "使用者 ID 無效。"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Bleve 批次索引大小必須至少為 {{.BatchSize}}。"
   },
   {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
@@ -9594,10 +9398,6 @@
   {
     "id": "app.save_report_chunk.unsupported_format",
     "translation": "不支援的報告格式。"
-  },
-  {
-    "id": "bleveengine.purge_list.not_implemented",
-    "translation": "清除列表功能不能於 Bleve 使用。"
   },
   {
     "id": "ent.outgoing_oauth_connections.feature_disabled",

@@ -4654,10 +4654,6 @@
     "translation": "最新のChromeブラウザを取得してください"
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Bleve インデックスの破棄中にエラーが発生しました: エンジンが無効化されています"
-  },
-  {
     "id": "plugin_api.bot_cant_create_bot",
     "translation": "BotユーザーはBotユーザーを作成できません。"
   },
@@ -4766,18 +4762,6 @@
     "translation": "{{.Autocomplete}}が有効の場合、{{.EnableIndexing}}も有効でなくてはなりません"
   },
   {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Bleve インデックスを有効化する場合は Bleve IndexingDir を設定しなければなりません"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Bleve 検索有効化設定が有効に設定されている場合、Bleveインデックス有効化設定は有効でなければなりません"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Bleve 自動補完が有効に設定されている場合、Bleve インデックス有効化設定は有効でなければなりません"
-  },
-  {
     "id": "model.command.is_valid.autocomplete_data.app_error",
     "translation": "無効な AutocompleteData です"
   },
@@ -4876,122 +4860,6 @@
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "チャンネルの{{.Backend}}テンプレートを作成できませんでした"
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "ユーザーインデックスを閉じることができませんでした。"
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "投稿インデックスを閉じることができませんでした。"
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "チャンネルインデックスを閉じることができませんでした。"
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "ユーザー検索を完了できませんでした。"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "ユーザー検索を完了できませんでした。"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "ユーザー検索を完了できませんでした。"
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "投稿検索を完了できませんでした。"
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "チャンネル検索を完了できませんでした。"
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "ユーザーインデックスを破棄できませんでした。"
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "投稿インデックスを破棄できませんでした。"
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "チャンネルインデックスを破棄できませんでした。"
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "すべてのエンティティが完了した際に、新しいバッチへのインデックス付与が行われます。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Bleveインデックス付与ワーカーが開始時刻を解析できませんでした。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Bleveインデックス付与ワーカーが終了時刻を解析できませんでした。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "最も古いエンティティ(ユーザー、チャンネル、投稿)をデータベースから取得できませんでした。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Bleveによるインデックス付与ジョブを実行できませんでした: エンジンが無効化されています。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "ユーザーバッチにインデックスを付与できませんでした。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "投稿バッチにインデックスを付与できませんでした。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "チャンネルバッチにインデックスを付与できませんでした。"
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "ユーザーにインデックスを付与できませんでした。"
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "投稿にインデックスを付与できませんでした。"
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "チャンネルにインデックスを付与できませんでした。"
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "ユーザーを削除できませんでした。"
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "投稿を削除できませんでした。"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "チャンネルを削除できませんでした。"
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Bleveによるユーザーインデックスの作成中にエラーが発生しました。"
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Bleveによる投稿インデックスの作成中にエラーが発生しました。"
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Bleveによるチャンネルインデックスの作成中にエラーが発生しました。"
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleveは既に起動しています。"
   },
   {
     "id": "app.user_terms_of_service.save.app_error",
@@ -5658,16 +5526,8 @@
     "translation": "クラスターのレスポンスがタイムアウトしました"
   },
   {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "チャンネル投稿を削除できませんでした"
-  },
-  {
     "id": "ent.cluster.json_encode.error",
     "translation": "JSONリクエストを変換する際にエラーが発生しました"
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "ユーザー投稿を削除できませんでした"
   },
   {
     "id": "app.scheme.delete.app_error",
@@ -6846,10 +6706,6 @@
     "translation": "チャンネルのメンバーを取得できませんでした。"
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "インデックス付与のためのチャンネルのバッチ処理を取得できませんでした。"
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "与えられたスキームにおけるチャンネルを取得できませんでした。"
   },
@@ -6884,10 +6740,6 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "チャンネルへの投稿を取得できませんでした。"
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "インデックス付与のための投稿のバッチ処理を取得できませんでした。"
   },
   {
     "id": "app.post.get_posts.app_error",
@@ -7262,42 +7114,6 @@
     "translation": "ファイルに対する{{.Backend}}テンプレートを作成できませんでした"
   },
   {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "ファイルインデックスを閉じることができませんでした。"
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "ファイル検索を完了できませんでした。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "ファイルバッチにインデックスを付与できませんでした。"
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "ファイルにインデックスを付与できませんでした。"
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "ユーザーのファイルを削除できませんでした。"
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "投稿のファイルを削除できませんでした。"
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "ファイルを削除できませんでした。"
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "ファイルを削除できませんでした。"
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Bleveファイルインデックスを作成する際にエラーが発生しました。"
-  },
-  {
     "id": "api.user.get_authorization_code.endpoint.app_error",
     "translation": "Discovery Documentからエンドポイントを取り出す際にエラーが発生しました。"
   },
@@ -7376,14 +7192,6 @@
   {
     "id": "model.config.is_valid.export.directory.app_error",
     "translation": "ディレクトリに対する値を入力してください。"
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "ファイルインデックスを破棄できませんでした。"
-  },
-  {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "インデックス付与中にファイルを一括取得できませんでした。"
   },
   {
     "id": "app.export.export_attachment.zip_create_header.error",
@@ -8432,10 +8240,6 @@
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
     "translation": "検索の Bulk Indexing Batch Sizeは{{.BatchSize}}以上である必要があります。"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Bleve Bulk Indexing Batch Sizeは{{.BatchSize}}以上である必要があります。"
   },
   {
     "id": "app.channel.get_file_count.app_error",
@@ -9660,10 +9464,6 @@
   {
     "id": "app.user.update_active.user_limit.exceeded",
     "translation": "ユーザーを有効化できません。安全なユーザー数を超えています: ERROR_SAFETY_LIMITS_EXCEEDED。"
-  },
-  {
-    "id": "bleveengine.purge_list.not_implemented",
-    "translation": "リスト破棄機能はBleveでは利用できません。"
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",

@@ -4664,10 +4664,6 @@
     "translation": "Отримайте останню версію браузера Chrome"
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Помилка при очищенні індексів Bleve: механізм вимкнено"
-  },
-  {
     "id": "plugin_api.bot_cant_create_bot",
     "translation": "Користувач бота не може створити іншого користувача бота."
   },
@@ -4776,18 +4772,6 @@
     "translation": "Параметр {{.EnableIndexing}} має бути увімкнений, якщо {{.Autocomplete}} увімкнено"
   },
   {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Параметр Bleve IndexingDir має бути встановлений, якщо параметр Bleve EnableIndexing має значення Так"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Параметр Bleve EnableIndexing повинен мати значення Так, якщо параметр Bleve EnableSearching має значення Так"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Параметр Bleve EnableIndexing має бути встановлений на Так, якщо параметр Bleve EnableAutocomplete встановлений на Так"
-  },
-  {
     "id": "model.command.is_valid.autocomplete_data.app_error",
     "translation": "Неправильні AutocompleteData"
   },
@@ -4886,118 +4870,6 @@
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "Не вдалося створити шаблон {{.Backend}} для каналів"
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Не вдалося закрити індекс користувача."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Не вдалося закрити індекс допису."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Не вдалося закрити індекс каналу."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Пошук користувача не вдалося завершити."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Пошук користувача не вдалося завершити."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Пошук користувача не вдалося завершити."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Пошук по повідомленням не вдалося завершити."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Пошук каналу не вдалося завершити."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Не вдалося очистити індекси користувача."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Не вдалося очистити індекси дописів."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Не вдалося очистити індекси каналу."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Спроба індексувати новий пакет, коли всі сутності вже були завершені."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Індексатор Bleve не зміг розібрати час запуску."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Індексатор Bleve не зміг розібрати кінцевий час."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Не вдалося запустити завдання індексації Bleve: механізм неактивний."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Не вдалося проіндексувати пакет користувачів."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Не вдалося проіндексувати пакет дописів."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Не вдалося проіндексувати пакет каналів."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Не вдалося проіндексувати користувача."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Не вдалося проіндексувати допис."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Не вдалося проіндексувати канал."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Не вдалося видалити користувача."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Не вдалося видалити допис."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Не вдалося видалити канал."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Помилка при створенні індексу користувача bleve."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Помилка при створенні індексу допису bleve."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Помилка при створенні індекс-каналу bleve."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve вже запущено."
   },
   {
     "id": "app.user_terms_of_service.save.app_error",
@@ -5840,14 +5712,6 @@
     "translation": "Не вдалося видалити дописи в каналі"
   },
   {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Не вдалося видалити повідомлення користувача"
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Не вдалося видалити дописи в каналі"
-  },
-  {
     "id": "app.scheme.delete.app_error",
     "translation": "Не вдалося видалити цю схему."
   },
@@ -6216,10 +6080,6 @@
     "translation": "Не вдалося знайти учасників каналу."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Не вдається отримати пакет каналів для індексації."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Не вдалося отримати канали для наданої схеми."
   },
@@ -6250,10 +6110,6 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "Не вдалося отримати дописи для каналу."
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Не вдалось отримати пакет дописів для індексації."
   },
   {
     "id": "app.post.get_posts.app_error",
@@ -8836,10 +8692,6 @@
     "translation": "Неможливо отримати допис, оскільки він перевищив ліміт плану хмари."
   },
   {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "Не вдається отримати пакет файлів для індексації."
-  },
-  {
     "id": "app.post.move_thread_command.error",
     "translation": "Не вдається видалити обговорення"
   },
@@ -9036,10 +8888,6 @@
     "translation": "URL-адреса занадто довга"
   },
   {
-    "id": "bleveengine.search_files.error",
-    "translation": "Пошук файлів не вдалося завершити."
-  },
-  {
     "id": "app.save_scheduled_post.channel_deleted.app_error",
     "translation": "Неможливо запланувати допис в архівному каналі."
   },
@@ -9064,18 +8912,6 @@
     "translation": "Обліковий запис з такою електронною адресою вже існує."
   },
   {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Не вдалося видалити файли."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Не вдалося видалити файли користувача."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Не вдалося очистити індекси файлів."
-  },
-  {
     "id": "brand.save_brand_image.check_image_limits.app_error",
     "translation": "Не вдалося перевірити межі зображення. Роздільна здатність занадто висока."
   },
@@ -9086,10 +8922,6 @@
   {
     "id": "app.user.get_thread_count_for_user.app_error",
     "translation": "Ми не змогли отримати кількість обговорень для користувача."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Помилка при створенні індексу bleve-файлу."
   },
   {
     "id": "app.role.get_all.app_error",
@@ -9158,10 +8990,6 @@
   {
     "id": "app.user.update_thread_read_for_user.app_error",
     "translation": "Не вдалось оновити стан читання для обговорення"
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Не вдалося видалити файли повідомлень."
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -9320,20 +9148,8 @@
     "translation": "Не вдалось позначити всі обговорення користувача як прочитані"
   },
   {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Не вдалося проіндексувати пакет файлів."
-  },
-  {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Не вдалося закрити індекс файлу."
-  },
-  {
     "id": "common.parse_error_int64",
     "translation": "Не вдалося розібрати значення:{{.Value}} на int64"
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Не вдалося видалити файл."
   },
   {
     "id": "app.update_error",
@@ -9380,10 +9196,6 @@
     "translation": "Недійсний post_id"
   },
   {
-    "id": "bleveengine.index_file.error",
-    "translation": "Не вдалося проіндексувати файл."
-  },
-  {
     "id": "app.user.update.countAdmins.app_error",
     "translation": "Помилка при визначенні кількості облікових записів системного адміністратора."
   },
@@ -9404,16 +9216,8 @@
     "translation": "Помилка при читанні файлу."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "Не вдалося отримати найстаріший об'єкт (користувача, канал або повідомлення) з бази даних."
-  },
-  {
     "id": "app.webhooks.get_incoming_count.app_error",
     "translation": "Не вдалося отримати веб-хук для teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
-  },
-  {
-    "id": "bleveengine.purge_list.not_implemented",
-    "translation": "Функція списку очищення недоступна для Bleve."
   },
   {
     "id": "ent.data_retention.run_failed.error",
@@ -9742,10 +9546,6 @@
   {
     "id": "model.channel_bookmark.is_valid.original_id.app_error",
     "translation": "Недійсний початковий ідентифікатор."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Розмір пакета індексування Bleve Bulk повинен бути щонайменше {{.BatchSize}}."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
