@@ -165,6 +165,13 @@ package-general:
 ifeq ($(BUILDER_GOOS_GOARCH),"$(CURRENT_PACKAGE_ARCH)")
 ifeq ($(FIPS_ENABLED),true)
 	cp .go/bin/$(MM_BIN_NAME) .go/bin/$(MMCTL_BIN_NAME) $(DIST_PATH_GENERIC)/bin # from native bin dir, not cross-compiled
+	@# FIPS verification checks
+	@echo "Verifying FIPS build settings..."
+	$(GO) version -m .go/bin/$(MM_BIN_NAME) | grep -q "GOEXPERIMENT=systemcrypto" || (echo "ERROR: FIPS binary missing GOEXPERIMENT=systemcrypto" && exit 1)
+	$(GO) version -m .go/bin/$(MM_BIN_NAME) | grep -q "\-tags=requirefips" || (echo "ERROR: FIPS binary missing -tags=requirefips" && exit 1)
+	@echo "Verifying OpenSSL integration..."
+	$(GO) tool nm .go/bin/$(MM_BIN_NAME) | grep -q "func_go_openssl_OpenSSL_version" || (echo "ERROR: FIPS binary missing OpenSSL integration" && exit 1)
+	@echo "FIPS verification checks passed"
 else
 	cp $(GOBIN)/$(MM_BIN_NAME) $(GOBIN)/$(MMCTL_BIN_NAME) $(DIST_PATH_GENERIC)/bin # from native bin dir, not cross-compiled
 endif
