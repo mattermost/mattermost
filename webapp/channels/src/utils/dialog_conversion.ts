@@ -406,22 +406,21 @@ export function convertElement(element: DialogElement, options: ConversionOption
     if (element.type === DialogElementTypes.SELECT || element.type === DialogElementTypes.RADIO) {
         appField.options = getOptions(element);
 
-<<<<<<< HEAD
         // Add multiselect support for select fields
-        if (element.type === 'select' && element.multiselect) {
+        if (element.type === DialogElementTypes.SELECT && element.multiselect) {
             appField.multiselect = true;
         }
 
         // Copy refresh property for dynamic field updates
         if (element.refresh !== undefined) {
             appField.refresh = element.refresh;
-=======
+        }
+
         // Add lookup support for dynamic selects
         if (element.type === DialogElementTypes.SELECT && element.data_source === 'dynamic') {
             appField.lookup = {
                 path: element.data_source_url || '',
             };
->>>>>>> interactivedialog-dynamic-select
         }
     }
 

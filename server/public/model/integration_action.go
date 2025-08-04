@@ -549,7 +549,6 @@ func (e *DialogElement) IsValid() error {
 			multiErr = multierror.Append(multiErr, errors.Errorf("invalid data source %q, allowed are 'users', 'channels', or 'dynamic'", e.DataSource))
 		}
 		if e.DataSource == "dynamic" {
-
 			// Dynamic selects should have a data_source_url
 			if e.DataSourceURL == "" {
 				multiErr = multierror.Append(multiErr, errors.New("dynamic data_source requires data_source_url"))
