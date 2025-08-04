@@ -35,24 +35,28 @@ const CodePreview = ({
         highlighted: '',
     });
 
-    const [status, setStatus] = useState({loading: true, success: true});
+    const [status, setStatus] = useState<'success' | 'loading' | 'fail'>('success');
     const [prevFileUrl, setPrevFileUrl] = useState<string | undefined>();
 
-    if (fileUrl !== prevFileUrl) {
-        const usedLanguage = SyntaxHighlighting.getLanguageFromFileExtension(fileInfo.extension);
+    useEffect(() => {
+        if (fileUrl !== prevFileUrl) {
+            const usedLanguage = SyntaxHighlighting.getLanguageFromFileExtension(fileInfo.extension);
 
-        if (!usedLanguage || fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE) {
-            setCodeInfo({...codeInfo, code: '', lang: ''});
+            if (!usedLanguage || fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE) {
+                setCodeInfo({...codeInfo, code: '', lang: ''});
 
-            setStatus({loading: false, success: false});
-        } else {
-            setCodeInfo({...codeInfo, code: '', lang: usedLanguage});
+                setStatus('fail');
+            } else {
+                setCodeInfo({...codeInfo, code: '', lang: usedLanguage});
 
-            setStatus({...status, loading: true});
+                setStatus('loading');
+            }
+
+            setPrevFileUrl(fileUrl);
         }
+    }, [codeInfo, fileInfo.extension, fileInfo.size, fileUrl, prevFileUrl]);
 
-        setPrevFileUrl(fileUrl);
-    }
+    const shouldNotGetCode = !codeInfo.lang || fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE;
 
     useEffect(() => {
         const handleReceivedCode = async (data: string | Node) => {
@@ -71,18 +75,15 @@ const CodePreview = ({
                 highlighted: await SyntaxHighlighting.highlight(codeInfo.lang, code),
             });
 
-            setStatus({loading: false, success: true});
+            setStatus('success');
         };
 
         const handleReceivedError = () => {
-            setStatus({loading: false, success: false});
+            setStatus('fail');
         };
 
         const getCode = async () => {
-            if (
-                !codeInfo.lang ||
-                fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE
-            ) {
+            if (shouldNotGetCode) {
                 return;
             }
             try {
@@ -94,10 +95,12 @@ const CodePreview = ({
             }
         };
 
-        getCode();
-    }, [codeInfo, fileInfo.size, fileUrl, getContent]);
+        if (fileUrl !== prevFileUrl) {
+            getCode();
+        }
+    }, [codeInfo, fileUrl, prevFileUrl, getContent, shouldNotGetCode]);
 
-    if (status.loading) {
+    if (status === 'loading') {
         return (
             <div className='view-image__loading'>
                 <LoadingSpinner/>
@@ -105,7 +108,7 @@ const CodePreview = ({
         );
     }
 
-    if (!status.success) {
+    if (status === 'fail') {
         return (
             <FileInfoPreview
                 fileInfo={fileInfo}
