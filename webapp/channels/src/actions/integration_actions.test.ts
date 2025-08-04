@@ -207,7 +207,7 @@ describe('actions/integration_actions', () => {
             const expectedSubmission = {
                 ...submission,
                 user_id: 'current_user_id', // Should be populated from getCurrentUserId
-                team_id: 'team_id1',        // Should be populated from getCurrentTeamId
+                team_id: 'team_id1', // Should be populated from getCurrentTeamId
             };
 
             await testStore.dispatch(Actions.submitInteractiveDialog(submission));
