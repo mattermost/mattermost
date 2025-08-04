@@ -385,6 +385,16 @@ const AdvancedTextEditor = ({
         }
 
         handleSubmit(finalDraft, schedulingInfo, options);
+        
+        if (!errorClass) {
+            const messageStatusElement = messageStatusRef.current;
+            const messageStatusInnerText = messageStatusElement?.textContent;
+            if (messageStatusInnerText === 'Message Sent') {
+                messageStatusElement!.textContent = 'Message Sent &nbsp;';
+            } else {
+                messageStatusElement!.textContent = 'Message Sent';
+            }
+        }
     }, [errorClass, handleSubmit, draft, textboxRef]);
 
     const handleCancel = useCallback(() => {
