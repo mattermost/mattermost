@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {defineMessage} from 'react-intl';
+
 import type {ResultsCallback} from 'components/suggestion/provider';
 import Provider from 'components/suggestion/provider';
 
@@ -56,9 +58,13 @@ export class SearchFileExtensionProvider extends Provider {
 
             resultsCallback({
                 matchedPretext,
-                terms,
-                items: extensions,
-                component: SearchFileExtensionSuggestion,
+                groups: [{
+                    key: 'file_types',
+                    label: defineMessage({id: 'search_bar.file_types', defaultMessage: 'File types'}),
+                    terms,
+                    items: extensions,
+                    component: SearchFileExtensionSuggestion,
+                }],
             });
         }
 

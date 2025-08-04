@@ -31,8 +31,6 @@ import * as Utils from 'utils/utils';
 
 import type {TextboxElement} from './index';
 
-const ALL = ['all'];
-
 export type Props = {
     id: string;
     channelId: string;
