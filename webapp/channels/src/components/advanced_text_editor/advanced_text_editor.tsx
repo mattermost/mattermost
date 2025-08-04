@@ -6,6 +6,8 @@ import React, {lazy, useCallback, useEffect, useMemo, useRef, useState} from 're
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {useFullnameMentionKeys} from './use_fullname_mention_keys';
+
 import type {ServerError} from '@mattermost/types/errors';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
@@ -13,14 +15,10 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
-import {
-    getMyGroupMentionKeysForChannel,
-    getMyGroupMentionKeys,
-} from 'mattermost-redux/selectors/entities/groups';
+import {getMyGroupMentionKeysForChannel} from 'mattermost-redux/selectors/entities/groups';
 import {get, getBool, getInt, getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getCurrentUserId, getCurrentUser, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName, getUsersByUsername, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
-import {displayUsername} from 'mattermost-redux/utils/user_utils';
+import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 
 import * as GlobalActions from 'actions/global_actions';
 import type {CreatePostOptions} from 'actions/post_actions';
@@ -211,47 +209,9 @@ const AdvancedTextEditor = ({
     // Get user information and mention keys
     const usersByUsername = useSelector((state: GlobalState) => getUsersByUsername(state));
     const teammateNameDisplay = useSelector((state: GlobalState) => getTeammateNameDisplaySetting(state));
-
-    // Generate mention keys (including fullname format)
-    const mentionKeys = useSelector((state: GlobalState) => {
-        const mentionKeysWithoutGroups = getCurrentUserMentionKeys(state);
-        const groupMentionKeys = channel ? getMyGroupMentionKeysForChannel(state, channel.team_id, channelId) : getMyGroupMentionKeys(state, false);
-        const baseMentionKeys = mentionKeysWithoutGroups.concat(groupMentionKeys);
-
-        // Add fullname format mention keys
-        const fullnameMentionKeys = [];
-        const users = getUsersByUsername(state);
-        const nameDisplaySetting = getTeammateNameDisplaySetting(state);
-
-        // Add fullname format mention key for current user
-        const currentUserInfo = getCurrentUser(state);
-        if (currentUserInfo) {
-            const currentUserDisplayName = displayUsername(currentUserInfo, nameDisplaySetting, false);
-            if (currentUserDisplayName !== currentUserInfo.username) {
-                fullnameMentionKeys.push({
-                    key: `@${currentUserDisplayName}`,
-                    caseSensitive: false,
-                });
-            }
-        }
-
-        // Add fullname format mention keys for other users
-        for (const [username, user] of Object.entries(users)) {
-            if (currentUserInfo && user.id === currentUserInfo.id) {
-                continue;
-            }
-
-            const displayName = displayUsername(user, nameDisplaySetting, false);
-            if (displayName !== username) {
-                fullnameMentionKeys.push({
-                    key: `@${displayName}`,
-                    caseSensitive: false,
-                });
-            }
-        }
-
-        return baseMentionKeys.concat(fullnameMentionKeys);
-    });
+    
+    // Use the custom hook to get mention keys including fullname format
+    const mentionKeys = useFullnameMentionKeys(channelId, channel?.team_id);
 
     const editorActionsRef = useRef<HTMLDivElement>(null);
     const editorBodyRef = useRef<HTMLDivElement>(null);
