@@ -699,6 +699,8 @@ describe('dialog_conversion', () => {
                 undefined,
                 undefined,
                 undefined,
+                '', // sourceUrl
+                '', // dialogState
                 legacyOptions,
             );
 
@@ -748,7 +750,6 @@ describe('dialog_conversion', () => {
             expect(form.fields?.[1].name).toBe('valid_field');
         });
 
-<<<<<<< HEAD
         it('should handle refresh property for select fields', () => {
             const elements: DialogElement[] = [
                 {
@@ -770,17 +771,6 @@ describe('dialog_conversion', () => {
                     options: [
                         {text: 'Option X', value: 'optX'},
                     ],
-=======
-        it('should convert dynamic select element with data_source_url', () => {
-            const elements: DialogElement[] = [
-                {
-                    name: 'dynamic_field',
-                    type: 'select',
-                    display_name: 'Dynamic Field',
-                    data_source: 'dynamic',
-                    data_source_url: '/plugins/myplugin/lookup',
-                    optional: false,
->>>>>>> interactivedialog-dynamic-select
                 } as DialogElement,
             ];
 
@@ -790,16 +780,12 @@ describe('dialog_conversion', () => {
                 undefined,
                 undefined,
                 undefined,
-<<<<<<< HEAD
                 'http://example.com',
                 '',
-=======
->>>>>>> interactivedialog-dynamic-select
                 legacyOptions,
             );
 
             expect(errors).toHaveLength(0);
-<<<<<<< HEAD
             expect(form.fields).toHaveLength(2);
 
             // Check that refresh property is copied
@@ -852,21 +838,6 @@ describe('dialog_conversion', () => {
                     options: [
                         {text: 'Option A', value: 'optA'},
                     ],
-=======
-            expect(form.fields).toHaveLength(1);
-            expect(form.fields?.[0].type).toBe('dynamic_select');
-            expect(form.fields?.[0].lookup?.path).toBe('/plugins/myplugin/lookup');
-        });
-
-        it('should convert dynamic select element without data_source_url', () => {
-            const elements: DialogElement[] = [
-                {
-                    name: 'dynamic_field',
-                    type: 'select',
-                    display_name: 'Dynamic Field',
-                    data_source: 'dynamic',
-                    optional: false,
->>>>>>> interactivedialog-dynamic-select
                 } as DialogElement,
             ];
 
@@ -876,16 +847,12 @@ describe('dialog_conversion', () => {
                 undefined,
                 undefined,
                 undefined,
-<<<<<<< HEAD
                 '', // Empty sourceUrl but has refresh fields
                 '',
-=======
->>>>>>> interactivedialog-dynamic-select
                 legacyOptions,
             );
 
             expect(errors).toHaveLength(0);
-<<<<<<< HEAD
             expect(form.source).toBeDefined();
             expect(form.source?.path).toBe('/refresh'); // Default path
             expect(form.fields?.[0].refresh).toBe(true);
@@ -933,11 +900,63 @@ describe('dialog_conversion', () => {
             expect(errors).toHaveLength(0);
             expect(form.submit?.state).toBeUndefined();
             expect(form.source?.state).toBeUndefined();
-=======
+        });
+
+        it('should convert dynamic select element with data_source_url', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'dynamic_field',
+                    type: 'select',
+                    display_name: 'Dynamic Field',
+                    data_source: 'dynamic',
+                    data_source_url: '/plugins/myplugin/lookup',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                '', // sourceUrl
+                '', // dialogState
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields).toHaveLength(1);
+            expect(form.fields?.[0].type).toBe('dynamic_select');
+            expect(form.fields?.[0].lookup?.path).toBe('/plugins/myplugin/lookup');
+        });
+
+        it('should convert dynamic select element without data_source_url', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'dynamic_field',
+                    type: 'select',
+                    display_name: 'Dynamic Field',
+                    data_source: 'dynamic',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                '', // sourceUrl
+                '', // dialogState
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
             expect(form.fields).toHaveLength(1);
             expect(form.fields?.[0].type).toBe('dynamic_select');
             expect(form.fields?.[0].lookup?.path).toBe('');
->>>>>>> interactivedialog-dynamic-select
         });
     });
 
