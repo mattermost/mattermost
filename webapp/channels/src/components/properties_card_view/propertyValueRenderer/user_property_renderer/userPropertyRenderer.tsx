@@ -6,7 +6,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import type {PropertyValue} from '@mattermost/types/properties';
 
-import './selectPropertyRenderer.scss';
+import 'components/properties_card_view/propertyValueRenderer/select_property_renderer/selectPropertyRenderer.scss';
 
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
@@ -17,7 +17,7 @@ type Props = {
     value: PropertyValue<unknown>;
 }
 
-export function UserPropertyRenderer({value}: Props) {
+export default function UserPropertyRenderer({value}: Props) {
     const dispatch = useDispatch();
     const loaded = useRef<boolean>(false);
 

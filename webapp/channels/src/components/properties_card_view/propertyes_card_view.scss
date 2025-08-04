@@ -22,17 +22,26 @@
             flex-direction: row;
             margin: 0;
             gap: 16px;
+            min-height: 32px;
+            align-items: baseline;
 
             &::before {
                 content: none;
             }
 
             > .field {
-                min-width: 96px;
-                max-width: 30%;
+                align-items: center;
+                display: flex;
+                max-width: 110px;
+                min-width: 110px;
                 color: var(--center-channel-color, #3F4350);
                 font-size: 12px;
                 font-weight: 600;
+            }
+
+            > .value {
+                align-items: center;
+                display: flex;
             }
         }
     }

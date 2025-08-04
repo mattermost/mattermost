@@ -11,7 +11,7 @@ type Props = {
     value: PropertyValue<unknown>;
 }
 
-export function SelectPropertyRenderer({value}: Props) {
+export default function SelectPropertyRenderer({value}: Props) {
     return (
         <span className='SelectProperty'>
             {value.value}

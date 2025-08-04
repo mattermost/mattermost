@@ -9,7 +9,7 @@ type Props = {
     value: PropertyValue<unknown>;
 }
 
-export function TextPropertyRenderer({value}: Props) {
+export default function TextPropertyRenderer({value}: Props) {
     return (
         <span className='TextProperty'>
             {value.value}

@@ -48,8 +48,6 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, p
         return null;
     }
 
-    console.log({orderedRows});
-
     return (
         <div className='PropertyCardView'>
             <div className='PropertyCardView_title'>

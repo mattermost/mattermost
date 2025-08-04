@@ -110,10 +110,20 @@ function getDummyPropertyFields(): PropertyField[] {
             update_at: 0,
             delete_at: 0,
         },
+        {
+            id: 'post_preview_field_id',
+            group_id: 'content_flagging_group_id',
+            name: 'Message',
+            type: 'post',
+            target_type: 'post',
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        },
     ];
 }
 
-function getDummyPropertyValues(): Array<PropertyValue<unknown>> {
+function getDummyPropertyValues(postId: string): Array<PropertyValue<unknown>> {
     return [
         {
             id: 'status_value_id',
@@ -170,6 +180,17 @@ function getDummyPropertyValues(): Array<PropertyValue<unknown>> {
             update_at: 0,
             delete_at: 0,
         },
+        {
+            id: 'post_preview_value_id',
+            field_id: 'post_preview_field_id',
+            target_id: 'reported_post_id',
+            target_type: 'post',
+            group_id: 'content_flagging_group_id',
+            value: postId,
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        },
 
         // No reviewer assigned yet
         // {
@@ -217,8 +238,9 @@ function getDummyPropertyValues(): Array<PropertyValue<unknown>> {
 
 const fieldOrder = [
     'status_field_id',
-    'reporting_user_id_field_id',
     'reason_field_id',
+    'post_preview_field_id',
+    'reporting_user_id_field_id',
     'comment_field_id',
     'reporting_time_field_id',
     'reviewer_user_id_field_id',
@@ -232,6 +254,8 @@ type Props = {
 }
 
 export default function DataSpillageReport({post}: Props) {
+    console.log({postProps: post.props});
+
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
 
@@ -255,10 +279,11 @@ export default function DataSpillageReport({post}: Props) {
     });
 
     useEffect(() => {
-        const reportedPostId = post.props.reported_post_id;
+        const reportedPostId = post.props.reported_post_id as string;
+        console.log({reportedPostId});
         if (reportedPostId) {
             setPropertyFields(getDummyPropertyFields());
-            setPropertyValues(getDummyPropertyValues());
+            setPropertyValues(getDummyPropertyValues(reportedPostId));
         }
     }, [post.props.reported_post_id]);
 

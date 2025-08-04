@@ -7,7 +7,8 @@ export type FieldType = (
     'multiselect' |
     'date' |
     'user' |
-    'multiuser'
+    'multiuser' |
+    'post'
 );
 
 export type PropertyField = {

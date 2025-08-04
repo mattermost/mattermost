@@ -5,11 +5,12 @@ import React from 'react';
 
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
-import {SelectPropertyRenderer} from 'components/properties_card_view/propertyValueRenderer/selectPropertyRenderer';
-import {TextPropertyRenderer} from 'components/properties_card_view/propertyValueRenderer/textPropertyRenderer';
-import {UserPropertyRenderer} from 'components/properties_card_view/propertyValueRenderer/userPropertyRenderer';
+import PostPreviewPropertyRenderer from './post_preview_property_renderer/post_preview_property_renderer';
+import SelectPropertyRenderer from './select_property_renderer/selectPropertyRenderer';
+import TextPropertyRenderer from './text_property_renderer/textPropertyRenderer';
+import UserPropertyRenderer from './user_property_renderer/userPropertyRenderer';
 
-import './selectPropertyRenderer.scss';
+import './property_value_renderer.scss';
 
 type Props = {
     field: PropertyField;
@@ -22,6 +23,8 @@ export default function PropertyValueRenderer({field, value}: Props) {
         return (<TextPropertyRenderer value={value}/>);
     case 'user':
         return (<UserPropertyRenderer value={value}/>);
+    case 'post':
+        return (<PostPreviewPropertyRenderer value={value}/>);
     case 'select':
         return (<SelectPropertyRenderer value={value}/>);
     default:
