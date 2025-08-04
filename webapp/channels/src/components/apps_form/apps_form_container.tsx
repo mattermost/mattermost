@@ -31,6 +31,7 @@ type Props = {
 
 type State = {
     form?: AppForm;
+    updateType?: 'submit' | 'refresh';
 }
 
 class AppsFormContainer extends React.PureComponent<Props, State> {
@@ -80,7 +81,7 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
             }
             break;
         case AppCallResponseTypes.FORM:
-            this.setState({form: callResp.form});
+            this.setState({form: callResp.form, updateType: 'submit'});
             break;
         case AppCallResponseTypes.NAVIGATE:
             break;
@@ -141,7 +142,7 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
         const callResp = res.data!;
         switch (callResp.type) {
         case AppCallResponseTypes.FORM:
-            this.setState({form: callResp.form});
+            this.setState({form: callResp.form, updateType: 'refresh'});
             break;
         case AppCallResponseTypes.OK:
         case AppCallResponseTypes.NAVIGATE:
@@ -200,6 +201,7 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
         return (
             <AppsForm
                 form={form}
+                updateType={this.state.updateType}
                 onExited={this.props.onExited}
                 onHide={this.props.onHide}
                 actions={{

@@ -39,12 +39,38 @@ export type ValidationError = {
     code: ValidationErrorCode;
 };
 
+// Server dialog response structure (snake_case format from server)
+type ServerDialogResponse = {
+    elements?: DialogElement[];
+    title?: string;
+    introduction_text?: string;
+    icon_url?: string;
+    submit_label?: string;
+    source_url?: string;
+    callback_id?: string;
+    notify_on_cancel?: boolean;
+    state?: string;
+};
+
+// Transformed dialog props structure (camelCase format for components)
+type TransformedDialogProps = {
+    elements?: DialogElement[];
+    title: string;
+    introductionText?: string;
+    iconUrl?: string;
+    submitLabel?: string;
+    sourceUrl?: string;
+    callbackId?: string;
+    notifyOnCancel?: boolean;
+    state?: string;
+};
+
 export type ConversionOptions = {
 
     // Enhanced mode enables stricter validation and error handling
     // When false: Legacy mode with minimal validation (backwards compatible)
     // When true: Enhanced mode with full validation and blocking errors
-    // TODO: Default to true in v11/v12 and eventually remove this option
+    // Note: Legacy mode is maintained for backward compatibility with existing dialogs
     enhanced: boolean;
 };
 
@@ -360,9 +386,32 @@ export function convertElement(element: DialogElement, options: ConversionOption
         if (element.type === 'select' && element.multiselect) {
             appField.multiselect = true;
         }
+
+        // Copy refresh property for dynamic field updates
+        if (element.refresh !== undefined) {
+            appField.refresh = element.refresh;
+        }
     }
 
     return {field: appField, errors};
+}
+
+/**
+ * Transform server dialog response format (snake_case) to props format (camelCase)
+ * Uses the same transformation pattern as mapStateToProps in interactive_dialog/index.tsx
+ */
+export function transformServerDialogToProps(serverDialog: ServerDialogResponse): TransformedDialogProps {
+    return {
+        elements: serverDialog.elements,
+        title: serverDialog.title || '',
+        introductionText: serverDialog.introduction_text,
+        iconUrl: serverDialog.icon_url,
+        submitLabel: serverDialog.submit_label,
+        sourceUrl: serverDialog.source_url,
+        callbackId: serverDialog.callback_id,
+        notifyOnCancel: serverDialog.notify_on_cancel,
+        state: serverDialog.state,
+    };
 }
 
 /**
@@ -374,10 +423,12 @@ export function convertDialogToAppForm(
     introductionText: string | undefined,
     iconUrl: string | undefined,
     submitLabel: string | undefined,
+    sourceUrl: string,
+    dialogState: string,
     options: ConversionOptions,
 ): ConversionResult {
-    const convertedFields: AppField[] = [];
     const allErrors: ValidationError[] = [];
+    const convertedFields: AppField[] = [];
 
     // Validate title if validation is enabled
     if (options.enhanced && !title?.trim()) {
@@ -430,11 +481,117 @@ export function convertDialogToAppForm(
         submit: {
             path: '/submit',
             expand: {},
+            state: dialogState || undefined, // Include dialog state in submit call
         },
         fields: convertedFields,
     };
 
+    // Set source if sourceUrl is provided or if any fields have refresh enabled
+    const hasRefreshFields = convertedFields.some((field) => field.refresh === true);
+    if ((sourceUrl && sourceUrl.trim()) || hasRefreshFields) {
+        form.source = {
+            path: sourceUrl || '/refresh', // Default path for refresh if no sourceUrl
+            expand: {},
+            state: dialogState || undefined, // Include dialog state in source call
+        };
+    }
+
     return {form, errors: allErrors};
+}
+
+/**
+ * Extract primitive values from form field objects for storage/submission
+ * Converts select option objects {label: "Text", value: "val"} to primitive "val"
+ * Filters out null, undefined, empty, and "<nil>" values
+ */
+export function extractPrimitiveValues(values: Record<string, any>): Record<string, any> {
+    const normalized: Record<string, any> = {};
+
+    Object.entries(values).forEach(([key, value]) => {
+        // Skip null, undefined, empty string, and "<nil>" values
+        if (value === null || value === undefined || value === '' || value === '<nil>') {
+            return;
+        }
+
+        if (value && typeof value === 'object' && 'value' in value) {
+            // Extract value from select option object {label: "...", value: "..."}
+            const extractedValue = value.value;
+
+            // Only store if the extracted value is meaningful
+            if (extractedValue !== null && extractedValue !== undefined && extractedValue !== '' && extractedValue !== '<nil>') {
+                normalized[key] = extractedValue;
+            }
+        } else {
+            // Keep primitive values as-is (but skip empty/nil values)
+            normalized[key] = value;
+        }
+    });
+
+    return normalized;
+}
+
+/**
+ * Convert stored primitive values back to form field values
+ * Select fields need option objects {label, value}, other fields need primitive values
+ */
+export function restoreFormFieldValues(storedValues: Record<string, any>, formFields?: AppField[]): Record<string, any> {
+    const converted: Record<string, any> = {};
+
+    if (!formFields) {
+        return storedValues;
+    }
+
+    Object.entries(storedValues).forEach(([key, value]) => {
+        // Skip null, undefined, empty, or "<nil>" values when restoring to form
+        if (value === null || value === undefined || value === '' || value === '<nil>') {
+            return;
+        }
+
+        const field = formFields.find((f) => f.name === key);
+        if (field && (field.type === 'static_select' || field.type === 'radio') && field.options && value) {
+            // For select/radio fields, find the matching option and create option object
+            const matchingOption = field.options.find((option: any) => option.value === value);
+            if (matchingOption) {
+                converted[key] = {
+                    label: matchingOption.label,
+                    value: matchingOption.value,
+                };
+            } else {
+                // Fallback: use the value as-is if no matching option found (but only if meaningful)
+                converted[key] = value;
+            }
+        } else {
+            // For non-select fields, use primitive value
+            converted[key] = value;
+        }
+    });
+
+    return converted;
+}
+
+/**
+ * Convert server dialog response directly to AppForm
+ * Combines server response transformation with dialog-to-form conversion
+ */
+export function convertServerDialogResponseToAppForm(
+    serverResponse: any,
+    options: ConversionOptions,
+): ConversionResult {
+    // Transform server response format to props format
+    const transformedDialog = transformServerDialogToProps(serverResponse);
+
+    const {form, errors} = convertDialogToAppForm(
+        transformedDialog.elements,
+        transformedDialog.title,
+        transformedDialog.introductionText,
+        transformedDialog.iconUrl,
+        transformedDialog.submitLabel,
+        transformedDialog.sourceUrl || '',
+        transformedDialog.state || '',
+        options,
+    );
+
+    return {form, errors};
 }
 
 /**
