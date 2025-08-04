@@ -6,12 +6,15 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import type {PropertyValue} from '@mattermost/types/properties';
 
-import 'components/properties_card_view/propertyValueRenderer/select_property_renderer/selectPropertyRenderer.scss';
-
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
+import PreviewPostAvatar from 'components/post_view/post_message_preview/avatar/avatar';
+import UserProfileComponent from 'components/user_profile';
+
 import type {GlobalState} from 'types/store';
+
+import './user_property_renderer.scss';
 
 type Props = {
     value: PropertyValue<unknown>;
@@ -32,8 +35,13 @@ export default function UserPropertyRenderer({value}: Props) {
     }, [dispatch, user, userId]);
 
     return (
-        <span className='UserPropertyRenderer'>
-            {user?.username}
-        </span>
+        <div className='UserPropertyRenderer'>
+            <PreviewPostAvatar
+                user={user}
+            />
+            <UserProfileComponent
+                userId={user?.id || ''}
+            />
+        </div>
     );
 }

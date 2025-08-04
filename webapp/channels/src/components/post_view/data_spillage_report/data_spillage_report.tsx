@@ -33,7 +33,7 @@ function getDummyPropertyFields(): PropertyField[] {
         {
             id: 'reporting_user_id_field_id',
             group_id: 'content_flagging_group_id',
-            name: 'Reporting User',
+            name: 'Flagged by',
             type: 'user',
             target_type: 'post',
             create_at: 0,
@@ -254,8 +254,6 @@ type Props = {
 }
 
 export default function DataSpillageReport({post}: Props) {
-    console.log({postProps: post.props});
-
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
 
@@ -280,7 +278,6 @@ export default function DataSpillageReport({post}: Props) {
 
     useEffect(() => {
         const reportedPostId = post.props.reported_post_id as string;
-        console.log({reportedPostId});
         if (reportedPostId) {
             setPropertyFields(getDummyPropertyFields());
             setPropertyValues(getDummyPropertyValues(reportedPostId));
