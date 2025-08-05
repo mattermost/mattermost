@@ -120,6 +120,16 @@ function getDummyPropertyFields(): PropertyField[] {
             update_at: 0,
             delete_at: 0,
         },
+        {
+            id: 'channel_field_id',
+            group_id: 'content_flagging_group_id',
+            name: 'Channel',
+            type: 'post',
+            target_type: 'post',
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        },
     ];
 }
 
