@@ -85,6 +85,7 @@ export const parseExpression = (visualAST: AccessControlVisualAST): TableRow[] =
             attribute: attr,
             operator: op,
             values,
+            attribute_type: node.attribute_type,
         });
     }
 
@@ -142,15 +143,28 @@ function TableEditor({
             const attributeExpr = `user.attributes.${row.attribute}`;
             const config = OPERATOR_CONFIG[row.operator];
 
+            // Find the attribute object to check its type
+            const attributeObj = userAttributes.find((attr) => attr.name === row.attribute);
+
             if (!config) {
                 // Fallback for unknown operators, defaulting to 'in' logic
                 // This handles cases where row.operator might be an unexpected string.
                 const valuesStr = row.values.map((val: string) => `"${val}"`).join(', ');
+
+                // For multiselect, reverse the order since multiselect attributes can contain multiple values
+                if (attributeObj?.type === 'multiselect') {
+                    return `[${valuesStr}] in ${attributeExpr}`;
+                }
                 return `${attributeExpr} in [${valuesStr}]`;
             }
 
             if (config.type === 'list') { // Handles 'in'
                 const valuesStr = row.values.map((val: string) => `"${val}"`).join(', ');
+
+                // For multiselect, reverse the order since multiselect attributes can contain multiple values
+                if (attributeObj?.type === 'multiselect') {
+                    return `[${valuesStr}] ${config.celOp} ${attributeExpr}`;
+                }
                 return `${attributeExpr} ${config.celOp} [${valuesStr}]`;
             }
 
@@ -171,7 +185,7 @@ function TableEditor({
             // (e.g. no rows, or rows without attributes yet), it's valid from table perspective.
             onValidate(expr === '' || rowsThatCanFormExpressions.length > 0);
         }
-    }, [onChange, onValidate]);
+    }, [onChange, onValidate, userAttributes]);
 
     // Helper function to find the first available (non-disabled) attribute
     const findFirstAvailableAttribute = useCallback(() => {
@@ -194,6 +208,7 @@ function TableEditor({
                 attribute: firstAvailableAttribute.name, // Default to the first available attribute
                 operator: OperatorLabel.IS, // Default operator
                 values: [],
+                attribute_type: userAttributes[0]?.type || '',
             };
             const newRows = [...currentRows, newRow];
             updateExpression(newRows); // Ensure expression is updated immediately
