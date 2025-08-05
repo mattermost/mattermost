@@ -6087,7 +6087,7 @@ func TestRootMentionsCount(t *testing.T) {
 	channel := th.BasicChannel
 
 	// initially, MentionCountRoot is 0 in the database
-	channelMember, err := th.App.Srv().Store().Channel().GetMember(context.Background(), channel.Id, user.Id)
+	channelMember, err := th.App.Srv().Store().Channel().GetMember(th.Context, channel.Id, user.Id)
 	require.NoError(t, err)
 	require.Equal(t, int64(0), channelMember.MentionCountRoot)
 	require.Equal(t, int64(0), channelMember.MentionCount)
@@ -6108,7 +6108,7 @@ func TestRootMentionsCount(t *testing.T) {
 	// regular count stays the same
 	require.Equal(t, int64(2), channelUnread.MentionCount)
 	// validate that DB is updated
-	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channel.Id, user.Id)
+	channelMember, err = th.App.Srv().Store().Channel().GetMember(th.Context, channel.Id, user.Id)
 	require.NoError(t, err)
 	require.EqualValues(t, int64(1), channelMember.MentionCountRoot)
 

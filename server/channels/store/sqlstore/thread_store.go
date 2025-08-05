@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"context"
 	"database/sql"
 	"strconv"
 	"time"
@@ -14,6 +13,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -270,7 +270,7 @@ func (s *SqlThreadStore) GetTotalUnreadUrgentMentions(userId, teamId string, opt
 	return totalUnreadUrgentMentions, nil
 }
 
-func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
+func (s *SqlThreadStore) GetThreadsForUser(rctx request.CTX, userId, teamId string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
 	pageSize := uint64(30)
 	if opts.PageSize != 0 {
 		pageSize = opts.PageSize
@@ -376,7 +376,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	// Resolve the user objects for all participants, with extended metadata if requested.
 	allParticipants := make(map[string]*model.User, len(participantUserIds))
 	if opts.Extended {
-		users, err := s.User().GetProfileByIds(context.Background(), participantUserIds, &store.UserGetByIdsOpts{}, true)
+		users, err := s.User().GetProfileByIds(rctx, participantUserIds, &store.UserGetByIdsOpts{}, true)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get %d thread profiles for user id=%s", len(participantUserIds), userId)
 		}
@@ -547,7 +547,7 @@ func (s *SqlThreadStore) GetThreadMembershipsForExport(postID string) ([]*model.
 	return members, nil
 }
 
-func (s *SqlThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership, extended, postPriorityEnabled bool) (*model.ThreadResponse, error) {
+func (s *SqlThreadStore) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadMembership, extended, postPriorityEnabled bool) (*model.ThreadResponse, error) {
 	if !threadMembership.Following {
 		return nil, store.NewErrNotFound("ThreadMembership", "<following>")
 	}
@@ -598,7 +598,7 @@ func (s *SqlThreadStore) GetThreadForUser(threadMembership *model.ThreadMembersh
 	users := []*model.User{}
 	if extended {
 		var err error
-		users, err = s.User().GetProfileByIds(context.Background(), thread.Participants, &store.UserGetByIdsOpts{}, true)
+		users, err = s.User().GetProfileByIds(rctx, thread.Participants, &store.UserGetByIdsOpts{}, true)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get thread for user id=%s", threadMembership.UserId)
 		}
