@@ -10,7 +10,9 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {Preferences} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
+import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import AutosizeTextarea from 'components/autosize_textarea';
 import PostMarkdown from 'components/post_markdown';
@@ -24,6 +26,7 @@ import SuggestionBox from 'components/suggestion/suggestion_box';
 import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list';
 
+import type {MentionKey} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
 import type {TextboxElement} from './index';
@@ -74,16 +77,32 @@ export type Props = {
     hasLabels?: boolean;
     hasError?: boolean;
     isInEditMode?: boolean;
+    usersByUsername?: Record<string, UserProfile>;
+    teammateNameDisplay?: string;
+    mentionKeys?: MentionKey[];
 };
 
 const VISIBLE = {visibility: 'visible'};
 const HIDDEN = {visibility: 'hidden'};
 
-export default class Textbox extends React.PureComponent<Props> {
+interface TextboxState {
+    displayValue: string; // UI display value (username→fullname converted)
+    rawValue: string; // Server submission value (username format)
+    selectedMentions: Record<string, string>; // Mapping: displayName -> username (mentions explicitly selected by user)
+}
+
+export default class Textbox extends React.PureComponent<Props, TextboxState> {
     private readonly suggestionProviders: Provider[];
     private readonly wrapper: React.RefObject<HTMLDivElement>;
     private readonly message: React.RefObject<SuggestionBoxComponent>;
     private readonly preview: React.RefObject<HTMLDivElement>;
+    private readonly textareaRef: React.RefObject<HTMLTextAreaElement>;
+
+    state: TextboxState = {
+        displayValue: '', // UI display value (username→fullname converted)
+        rawValue: '', // Server submission value (username format)
+        selectedMentions: {}, // Mapping: displayName -> username (mentions explicitly selected by user)
+    };
 
     static defaultProps = {
         supportsCommands: true,
@@ -130,10 +149,116 @@ export default class Textbox extends React.PureComponent<Props> {
         this.wrapper = React.createRef();
         this.message = React.createRef();
         this.preview = React.createRef();
+        this.textareaRef = React.createRef();
+
+        // Initialize state - set displayValue and rawValue from props.value
+        this.state = {
+            displayValue: this.convertToDisplayName(props.value),
+            rawValue: props.value,
+            selectedMentions: {},
+        };
     }
 
+    /**
+     * Convert username (@user) to fullname/nickname (@Full Name)
+     */
+    convertToDisplayName = (text: string): string => {
+        const {usersByUsername = {}, teammateNameDisplay = Preferences.DISPLAY_PREFER_USERNAME} = this.props;
+
+        return text.replace(/@([a-zA-Z0-9.\-_]+)/g, (match, username) => {
+            const user = usersByUsername[username];
+            if (user) {
+                const displayName = displayUsername(user, teammateNameDisplay, false);
+                return `@${displayName}`;
+            }
+            return match;
+        });
+    };
+
+    /**
+     * Convert fullname/nickname (@Full Name) to username (@user)
+     */
+    convertToRawValue = (text: string): string => {
+        const {usersByUsername = {}, teammateNameDisplay = Preferences.DISPLAY_PREFER_USERNAME} = this.props;
+        const {selectedMentions = {}} = this.state;
+
+        // Convert usersByUsername to reverse lookup map
+        const displayNameToUsername: Record<string, string[]> = {};
+        Object.entries(usersByUsername).forEach(([username, user]) => {
+            const displayName = displayUsername(user, teammateNameDisplay, false);
+
+            if (displayName && displayName !== username) {
+                if (!displayNameToUsername[displayName]) {
+                    displayNameToUsername[displayName] = [];
+                }
+                displayNameToUsername[displayName].push(username);
+            }
+        });
+
+        const sortedDisplayNames = Object.keys(displayNameToUsername).sort((a, b) => b.length - a.length);
+
+        let result = text;
+        for (const displayName of sortedDisplayNames) {
+            const escapedDisplayName = displayName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`@${escapedDisplayName}(?=\\s|$|[^\\w])`, 'g');
+
+            result = result.replace(regex, (match) => {
+                if (selectedMentions[displayName]) {
+                    return `@${selectedMentions[displayName]}`;
+                }                
+                const usernames = displayNameToUsername[displayName];
+                return `@${usernames[0]}`;
+            });
+        }
+
+        return result;
+    };
+
+    /**
+     * Get raw value for server submission (username format)
+     */
+    getRawValue = () => {
+        return this.state.rawValue;
+    };
+
+    /**
+     * Get raw value for server submission (username format)
+     */
+    getValue = () => {
+        return this.state.rawValue;
+    };
+
+    /**
+     * Get display value for UI (fullname format)
+     */
+    getDisplayValue = () => {
+        return this.state.displayValue;
+    };
+
     handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.props.onChange(e);
+        const inputValue = e.target.value;
+
+        // Update raw value (username format)
+        const newRawValue = this.convertToRawValue(inputValue);
+
+        // Update display value (fullname format)
+        const newDisplayValue = this.convertToDisplayName(newRawValue);
+
+        this.setState({
+            rawValue: newRawValue,
+            displayValue: newDisplayValue,
+        });
+
+        // Pass raw value (username format) to parent component
+        const syntheticEvent = {
+            ...e,
+            target: {
+                ...e.target,
+                value: newRawValue,
+            },
+        } as React.ChangeEvent<HTMLInputElement>;
+
+        this.props.onChange(syntheticEvent);
     };
 
     updateSuggestions(prevProps: Props) {
@@ -193,6 +318,20 @@ export default class Textbox extends React.PureComponent<Props> {
 
         if (prevProps.value !== this.props.value) {
             this.checkMessageLength(this.props.value);
+
+            // Update state when props.value changes
+            this.setState({
+                rawValue: this.props.value,
+                displayValue: this.convertToDisplayName(this.props.value),
+            });
+        }
+
+        // Recalculate displayValue when usersByUsername or teammateNameDisplay changes
+        if (prevProps.usersByUsername !== this.props.usersByUsername ||
+            prevProps.teammateNameDisplay !== this.props.teammateNameDisplay) {
+            this.setState({
+                displayValue: this.convertToDisplayName(this.state.rawValue),
+            });
         }
     }
 
@@ -237,9 +376,34 @@ export default class Textbox extends React.PureComponent<Props> {
         // since we do only handle the sending when in preview mode this is fine to be casted
         this.props.onBlur?.(e as FocusEvent<TextboxElement>);
     };
+    
+    /**
+     * Handles when a mention suggestion is selected
+     * Stores information about mentions explicitly selected by the user
+     */
+    handleSuggestionSelected = (item: any) => {
+        // Only process items from AtMentionProvider
+        if (item && item.username && item.type !== 'mention_groups') {
+            const displayName = displayUsername(item, this.props.teammateNameDisplay || Preferences.DISPLAY_PREFER_USERNAME, false);
+            const username = item.username;
+            
+            // Save the selected mention information to state
+            this.setState((prevState) => ({
+                selectedMentions: {
+                    ...prevState.selectedMentions,
+                    [displayName]: username
+                }
+            }));
+        }
+    };
 
     getInputBox = () => {
-        return this.message.current?.getTextbox();
+        const textbox = this.message.current?.getTextbox();
+        if (textbox && this.textareaRef.current !== textbox) {
+            // Update textareaRef
+            (this.textareaRef as any).current = textbox;
+        }
+        return textbox;
     };
 
     focus = () => {
@@ -294,8 +458,13 @@ export default class Textbox extends React.PureComponent<Props> {
                     onBlur={this.handleBlur}
                 >
                     <PostMarkdown
-                        message={this.props.value}
+                        message={this.state.displayValue}
                         channelId={this.props.channelId}
+                        options={{
+                            mentionHighlight: true,
+                            atMentions: true,
+                            mentionKeys: this.props.mentionKeys,
+                        }}
                         imageProps={{hideUtilities: true}}
                     />
                 </div>
@@ -323,12 +492,13 @@ export default class Textbox extends React.PureComponent<Props> {
                     listComponent={this.props.suggestionList}
                     listPosition={this.props.suggestionListPosition}
                     providers={this.suggestionProviders}
-                    value={this.props.value}
+                    value={this.state.displayValue}
                     renderDividers={ALL}
                     disabled={this.props.disabled}
                     contextId={this.props.channelId}
                     openWhenEmpty={this.props.openWhenEmpty}
                     alignWithTextbox={this.props.alignWithTextbox}
+                    onItemSelected={this.handleSuggestionSelected}
                 />
             </div>
         );
