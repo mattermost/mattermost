@@ -5,8 +5,10 @@ import React from 'react';
 
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
+import ChannelPropertyRenderer from './channel_property_renderer/channel_property_renderer';
 import PostPreviewPropertyRenderer from './post_preview_property_renderer/post_preview_property_renderer';
 import SelectPropertyRenderer from './select_property_renderer/selectPropertyRenderer';
+import TeamPropertyRenderer from './team_property_renderer/team_property_renderer';
 import TextPropertyRenderer from './text_property_renderer/textPropertyRenderer';
 import UserPropertyRenderer from './user_property_renderer/userPropertyRenderer';
 
@@ -26,7 +28,16 @@ export default function PropertyValueRenderer({field, value}: Props) {
     case 'post':
         return (<PostPreviewPropertyRenderer value={value}/>);
     case 'select':
-        return (<SelectPropertyRenderer value={value}/>);
+        return (
+            <SelectPropertyRenderer
+                value={value}
+                field={field}
+            />
+        );
+    case 'channel':
+        return (<ChannelPropertyRenderer value={value}/>);
+    case 'team':
+        return (<TeamPropertyRenderer value={value}/>);
     default:
         return null;
     }

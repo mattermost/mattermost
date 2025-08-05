@@ -1,11 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-.SelectProperty {
+.ChannelPropertyRenderer {
     display: flex;
-    padding: 3px 12px;
-    align-items: center;
-    gap: 6px;
-    border-radius: 4px;
-    font-weight: 600;
+    gap: 8px;
+    flex-direction: row;
 }

@@ -3,18 +3,56 @@
 
 import React from 'react';
 
-import type {PropertyValue} from '@mattermost/types/properties';
+import type {PropertyField, PropertyValue, SelectPropertyField} from '@mattermost/types/properties';
 
 import './selectPropertyRenderer.scss';
 
+const DEFAULT_BACKGROUND_COLOR = 'light_gray';
+
 type Props = {
+    field: PropertyField;
     value: PropertyValue<unknown>;
 }
 
-export default function SelectPropertyRenderer({value}: Props) {
+export default function SelectPropertyRenderer({field, value}: Props) {
+    const valueConfig = (field as SelectPropertyField).attrs?.options?.find((option) => option.name === value.value);
+    const {backgroundColor, color} = getOptionColors(valueConfig?.color || DEFAULT_BACKGROUND_COLOR);
+
     return (
-        <span className='SelectProperty'>
+        <div
+            className='SelectProperty'
+            style={{
+                backgroundColor,
+                color,
+            }}
+        >
             {value.value}
-        </span>
+        </div>
     );
+}
+
+function getOptionColors(colorName: string): {backgroundColor: string; color: string} {
+    switch (colorName) {
+    case 'light_blue':
+        return {
+            backgroundColor: 'rgba(var(--button-bg-rgb), 0.08)',
+            color: '#FFF',
+        };
+    case 'dark_blue':
+        return {
+            backgroundColor: 'rgba(var(--sidebar-text-active-border-rgb), 0.92)',
+            color: '#FFF',
+        };
+    case 'dark_red':
+        return {
+            backgroundColor: 'var(--error-text)',
+            color: '#FFF',
+        };
+    default:
+        // Default is light grey color
+        return {
+            backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.12)',
+            color: '#3F4350',
+        };
+    }
 }

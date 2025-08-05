@@ -6,7 +6,10 @@ import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
-import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
+import type {
+    PropertyField,
+    PropertyValue,
+} from '@mattermost/types/properties';
 
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
@@ -17,6 +20,8 @@ import PropertiesCardView from 'components/properties_card_view/properties_card_
 import type {GlobalState} from 'types/store';
 
 import './data_spillage_report.scss';
+import {usePost} from "components/common/hooks/usePost";
+import {useChannel} from "components/common/hooks/useChannel";
 
 function getDummyPropertyFields(): PropertyField[] {
     return [
@@ -29,6 +34,31 @@ function getDummyPropertyFields(): PropertyField[] {
             create_at: 0,
             update_at: 0,
             delete_at: 0,
+            attrs: {
+                editable: false,
+                options: [
+                    {
+                        id: 'option_pending_review',
+                        name: 'Pending review',
+                        color: 'light_gray',
+                    },
+                    {
+                        id: 'option_reviewer_assigned',
+                        name: 'Reviewer assigned',
+                        color: 'light_blue',
+                    },
+                    {
+                        id: 'option_dismissed',
+                        name: 'Flag dismissed',
+                        color: 'dark_blue',
+                    },
+                    {
+                        id: 'option_removed',
+                        name: 'Removed',
+                        color: 'dark_red',
+                    },
+                ],
+            },
         },
         {
             id: 'reporting_user_id_field_id',
@@ -123,8 +153,18 @@ function getDummyPropertyFields(): PropertyField[] {
         {
             id: 'channel_field_id',
             group_id: 'content_flagging_group_id',
-            name: 'Channel',
-            type: 'post',
+            name: 'Posted in',
+            type: 'channel',
+            target_type: 'post',
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        },
+        {
+            id: 'team_field_id',
+            group_id: 'content_flagging_group_id',
+            name: 'Team',
+            type: 'team',
             target_type: 'post',
             create_at: 0,
             update_at: 0,
@@ -133,7 +173,7 @@ function getDummyPropertyFields(): PropertyField[] {
     ];
 }
 
-function getDummyPropertyValues(postId: string): Array<PropertyValue<unknown>> {
+function getDummyPropertyValues(postId: string, channelId: string, teamId: string): Array<PropertyValue<unknown>> {
     return [
         {
             id: 'status_value_id',
@@ -141,7 +181,7 @@ function getDummyPropertyValues(postId: string): Array<PropertyValue<unknown>> {
             target_id: 'reported_post_id',
             target_type: 'post',
             group_id: 'content_flagging_group_id',
-            value: 'Under Review',
+            value: 'Flag dismissed',
             create_at: 0,
             update_at: 0,
             delete_at: 0,
@@ -197,6 +237,28 @@ function getDummyPropertyValues(postId: string): Array<PropertyValue<unknown>> {
             target_type: 'post',
             group_id: 'content_flagging_group_id',
             value: postId,
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        },
+        {
+            id: 'channel_value_id',
+            field_id: 'channel_field_id',
+            target_id: 'reported_post_id',
+            target_type: 'post',
+            group_id: 'content_flagging_group_id',
+            value: channelId,
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        },
+        {
+            id: 'team_value_id',
+            field_id: 'team_field_id',
+            target_id: 'reported_post_id',
+            target_type: 'post',
+            group_id: 'content_flagging_group_id',
+            value: teamId,
             create_at: 0,
             update_at: 0,
             delete_at: 0,
@@ -257,11 +319,13 @@ const fieldOrder = [
     'actor_user_field_id',
     'actor_comment_field_id',
     'action_time_field_id',
+    'channel_field_id',
+    'team_field_id',
 ];
 
 type Props = {
     post: Post;
-}
+};
 
 export default function DataSpillageReport({post}: Props) {
     const dispatch = useDispatch();
@@ -269,6 +333,10 @@ export default function DataSpillageReport({post}: Props) {
 
     const [propertyFields, setPropertyFields] = useState<PropertyField[]>([]);
     const [propertyValues, setPropertyValues] = useState<Array<PropertyValue<unknown>>>([]);
+
+    const reportedPostId = post.props.reported_post_id as string;
+    const reportedPost = usePost(reportedPostId);
+    const channel = useChannel(reportedPost?.channel_id || '');
 
     const reportingUserIdValue = propertyValues.find((value) => value.field_id === 'reporting_user_id_field_id');
     const reportingUser = useSelector((state: GlobalState) => getUser(state, reportingUserIdValue ? reportingUserIdValue.value as string : ''));
@@ -287,12 +355,11 @@ export default function DataSpillageReport({post}: Props) {
     });
 
     useEffect(() => {
-        const reportedPostId = post.props.reported_post_id as string;
-        if (reportedPostId) {
+        if (reportedPost) {
             setPropertyFields(getDummyPropertyFields());
-            setPropertyValues(getDummyPropertyValues(reportedPostId));
+            setPropertyValues(getDummyPropertyValues(reportedPostId, reportedPost.channel_id, channel?.team_id));
         }
-    }, [post.props.reported_post_id]);
+    }, [reportedPost, reportedPostId, channel]);
 
     return (
         <div className={'DataSpillageReport'}>

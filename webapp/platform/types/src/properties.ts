@@ -8,7 +8,9 @@ export type FieldType = (
     'date' |
     'user' |
     'multiuser' |
-    'post'
+    'post' |
+    'channel' |
+    'team'
 );
 
 export type PropertyField = {
@@ -64,5 +66,13 @@ export type UserPropertyField = PropertyField & {
         saml?: string;
     };
 };
+
+// TODO: maybe merge with UserPropertyField?
+export type SelectPropertyField = PropertyField & {
+    attrs?: {
+        editable: boolean;
+        options?: PropertyFieldOption[];
+    };
+}
 
 export type UserPropertyFieldPatch = Partial<Pick<UserPropertyField, 'name' | 'attrs' | 'type'>>;
