@@ -19,7 +19,6 @@ import BooleanSetting from 'components/admin_console/boolean_setting';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import ChannelSelectorModal from 'components/channel_selector_modal';
-import DiscardChangesModal from 'components/discard_changes_modal';
 import SaveButton from 'components/save_button';
 import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
@@ -88,7 +87,6 @@ function PolicyDetails({
     const [attributesLoaded, setAttributesLoaded] = useState(false);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
-    const [cancelNavigation, setCancelNavigation] = useState(false);
     const {formatMessage} = useIntl();
 
     useEffect(() => {
@@ -588,17 +586,6 @@ function PolicyDetails({
                 />
             )}
 
-            <DiscardChangesModal
-                show={cancelNavigation}
-                onConfirm={() => {
-                    setCancelNavigation(false);
-                    getHistory().push('/admin_console/system_attributes/attribute_based_access_control');
-                }}
-                onCancel={() => {
-                    setCancelNavigation(false);
-                }}
-            />
-
             {showConfirmationModal && (
                 <PolicyConfirmationModal
                     active={autoSyncMembership}
@@ -656,21 +643,15 @@ function PolicyDetails({
                         />
                     }
                 />
-                <button
+                <BlockableLink
                     className='btn btn-quaternary'
-                    onClick={() => {
-                        if (saveNeeded) {
-                            setCancelNavigation(true);
-                        } else {
-                            getHistory().push('/admin_console/system_attributes/attribute_based_access_control');
-                        }
-                    }}
+                    to='/admin_console/system_attributes/attribute_based_access_control'
                 >
                     <FormattedMessage
                         id='admin.access_control.edit_policy.cancel'
                         defaultMessage='Cancel'
                     />
-                </button>
+                </BlockableLink>
                 {serverError && (
                     <span className='EditPolicy__error'>
                         <i className='icon icon-alert-outline'/>

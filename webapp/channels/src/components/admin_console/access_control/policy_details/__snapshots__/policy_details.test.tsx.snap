@@ -178,11 +178,6 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
       </Card>
     </div>
   </div>
-  <Memo(DiscardChangesModal)
-    onCancel={[Function]}
-    onConfirm={[Function]}
-    show={false}
-  />
   <div
     className="admin-console-save"
   >
@@ -196,15 +191,15 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
       disabled={true}
       onClick={[Function]}
     />
-    <button
+    <Connect(Component)
       className="btn btn-quaternary"
-      onClick={[Function]}
+      to="/admin_console/system_attributes/attribute_based_access_control"
     >
       <MemoizedFormattedMessage
         defaultMessage="Cancel"
         id="admin.access_control.edit_policy.cancel"
       />
-    </button>
+    </Connect(Component)>
   </div>
 </div>
 `;
@@ -358,11 +353,6 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
       </Card>
     </div>
   </div>
-  <Memo(DiscardChangesModal)
-    onCancel={[Function]}
-    onConfirm={[Function]}
-    show={false}
-  />
   <div
     className="admin-console-save"
   >
@@ -376,15 +366,15 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
       disabled={true}
       onClick={[Function]}
     />
-    <button
+    <Connect(Component)
       className="btn btn-quaternary"
-      onClick={[Function]}
+      to="/admin_console/system_attributes/attribute_based_access_control"
     >
       <MemoizedFormattedMessage
         defaultMessage="Cancel"
         id="admin.access_control.edit_policy.cancel"
       />
-    </button>
+    </Connect(Component)>
   </div>
 </div>
 `;
