@@ -26,7 +26,12 @@ export default function PropertyValueRenderer({field, value}: Props) {
     case 'text':
         return (<TextPropertyRenderer value={value}/>);
     case 'user':
-        return (<UserPropertyRenderer value={value}/>);
+        return (
+            <UserPropertyRenderer
+                field={field}
+                value={value}
+            />
+        );
     case 'post':
         return (<PostPreviewPropertyRenderer value={value}/>);
     case 'select':

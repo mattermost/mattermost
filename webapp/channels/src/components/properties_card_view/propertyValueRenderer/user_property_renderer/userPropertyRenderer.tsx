@@ -4,7 +4,10 @@
 import React, {useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import type {PropertyValue} from '@mattermost/types/properties';
+import type {
+    PropertyField,
+    PropertyValue,
+} from '@mattermost/types/properties';
 
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
@@ -15,12 +18,14 @@ import UserProfileComponent from 'components/user_profile';
 import type {GlobalState} from 'types/store';
 
 import './user_property_renderer.scss';
+import {SelectableUserPropertyRenderer} from './selectable_user_property_renderer';
 
 type Props = {
+    field: PropertyField;
     value: PropertyValue<unknown>;
 }
 
-export default function UserPropertyRenderer({value}: Props) {
+export default function UserPropertyRenderer({field, value}: Props) {
     const dispatch = useDispatch();
     const loaded = useRef<boolean>(false);
 
@@ -33,6 +38,15 @@ export default function UserPropertyRenderer({value}: Props) {
             loaded.current = true;
         }
     }, [dispatch, user, userId]);
+
+    if (field.attrs?.editable) {
+        return (
+            <SelectableUserPropertyRenderer
+                field={field}
+                value={value}
+            />
+        );
+    }
 
     return (
         <div className='UserPropertyRenderer'>

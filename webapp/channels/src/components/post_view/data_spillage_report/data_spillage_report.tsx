@@ -109,6 +109,9 @@ function getDummyPropertyFields(): PropertyField[] {
             create_at: 0,
             update_at: 0,
             delete_at: 0,
+            attrs: {
+                editable: true,
+            },
         },
         {
             id: 'actor_user_field_id',
@@ -307,17 +310,18 @@ function getDummyPropertyValues(postId: string, channelId: string, teamId: strin
         },
 
         // No reviewer assigned yet
-        // {
-        //     id: 'reviewer_user_value_id',
-        //     field_id: 'reviewer_user_id_field_id',
-        //     target_id: 'reported_post_id',
-        //     target_type: 'post',
-        //     group_id: 'content_flagging_group_id',
-        //     value: '',
-        //     create_at: 0,
-        //     update_at: 0,
-        //     delete_at: 0,
-        // },
+        {
+            id: 'reviewer_user_value_id',
+            field_id: 'reviewer_user_id_field_id',
+            target_id: 'reported_post_id',
+            target_type: 'post',
+            group_id: 'content_flagging_group_id',
+            value: '',
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        },
+
         // No action taken yet
         // {
         //     id: 'actor_user_value_id',
