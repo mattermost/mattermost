@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"path"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -315,7 +316,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			hasRedirectURL = redirectURL != ""
 		}
 	}
-	redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL)
+	redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL, c.App.Config().NativeAppSettings.AppCustomURLSchemes)
 
 	renderError := func(err *model.AppError) {
 		if isMobile && hasRedirectURL {
@@ -535,7 +536,7 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, authURL, http.StatusFound)
 }
 
-func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string) string {
+func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string, otherValidSchemes []string) string {
 	parsed, err := url.Parse(targetURL)
 	if err != nil {
 		return siteURLPrefix
@@ -545,8 +546,8 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string) string {
 		return siteURLPrefix
 	}
 
-	// Check if the targetURL is a valid URL and is within the siteURLPrefix
-	sameScheme := parsed.Scheme == prefixParsed.Scheme
+	// Check if the targetURL is a valid URL and is within the siteURLPrefix, also against native app schemes which are like `mmauth://`
+	sameScheme := parsed.Scheme == prefixParsed.Scheme || slices.Contains(otherValidSchemes, fmt.Sprintf("%v://", parsed.Scheme))
 	sameHost := parsed.Host == prefixParsed.Host
 	safePath := strings.HasPrefix(path.Clean(parsed.Path), path.Clean(prefixParsed.Path))
 

@@ -4,6 +4,7 @@
 package utils
 
 import (
+	"fmt"
 	"io"
 	"math"
 	"net"
@@ -199,6 +200,9 @@ func IsValidWebAuthRedirectURL(config *model.Config, redirectURL string) bool {
 		return false
 	}
 	if u.Scheme == siteURL.Scheme && u.Host == siteURL.Host {
+		return true
+	}
+	if slices.Contains(config.NativeAppSettings.AppCustomURLSchemes, fmt.Sprintf("%v://", u.Scheme)) && u.Host == siteURL.Host {
 		return true
 	}
 	return false

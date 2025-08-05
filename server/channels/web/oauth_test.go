@@ -860,6 +860,8 @@ func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 
 func TestFullyQualifiedRedirectURL(t *testing.T) {
 	const siteURL = "https://xxx.yyy/mm"
+	const mobileURL = "mmauth://xxx.yyy/mm"
+
 	for target, expected := range map[string]string{
 		"":                                     siteURL,
 		"/":                                    siteURL + "/",
@@ -880,9 +882,10 @@ func TestFullyQualifiedRedirectURL(t *testing.T) {
 		"https://xxx.yyy/mm/some-path#section": siteURL + "/some-path#section",
 		"https://xxx.yyy/mm/../malicious-path": siteURL,
 		":foo":                                 siteURL,
+		"mmauth://xxx.yyy/mm":                  mobileURL,
 	} {
 		t.Run(target, func(t *testing.T) {
-			require.Equal(t, expected, fullyQualifiedRedirectURL(siteURL, target))
+			require.Equal(t, expected, fullyQualifiedRedirectURL(siteURL, target, []string{"mmauth://"}))
 		})
 	}
 }

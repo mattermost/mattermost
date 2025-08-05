@@ -448,6 +448,21 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		assert.True(t, result)
 	})
 
+	t.Run("Valid mobile URL with matching scheme and host", func(t *testing.T) {
+		config := &model.Config{
+			ServiceSettings: model.ServiceSettings{
+				SiteURL: model.NewPointer("https://example.com"),
+			},
+			NativeAppSettings: model.NativeAppSettings{
+				AppCustomURLSchemes: []string{"mmauth://"},
+			},
+		}
+		redirectURL := "mmauth://example.com/oauth/callback"
+
+		result := IsValidWebAuthRedirectURL(config, redirectURL)
+		assert.True(t, result)
+	})
+
 	t.Run("Valid redirect URL with matching scheme and host with port", func(t *testing.T) {
 		config := &model.Config{
 			ServiceSettings: model.ServiceSettings{
