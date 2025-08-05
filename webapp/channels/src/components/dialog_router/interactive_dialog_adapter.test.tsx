@@ -1372,6 +1372,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             const result = await lookupHandler();
 
+            // Since baseProps has a valid HTTPS URL, it should perform the lookup
             expect(result.data).toEqual({
                 type: 'ok',
                 data: {items: []},
@@ -1436,15 +1437,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 '[InteractiveDialogAdapter]',
-                'Lookup calls are not supported in Interactive Dialogs',
-                expect.objectContaining({
-                    feature: 'dynamic lookup',
-                    suggestion: 'Consider migrating to full Apps Framework',
-                }),
-            );
-
-            expect(mockConsole.warn).toHaveBeenCalledWith(
-                '[InteractiveDialogAdapter]',
                 'Field refresh requested but no sourceUrl provided',
                 expect.objectContaining({
                     fieldName: 'test-field',
@@ -1494,16 +1486,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             }).not.toThrow();
             expect(typeof postEphemeralCallResponseForContext).toBe('function');
 
-            // Should log warnings about unsupported features
-            expect(mockConsole.warn).toHaveBeenCalledWith(
-                '[InteractiveDialogAdapter]',
-                'Lookup calls are not supported in Interactive Dialogs',
-                expect.objectContaining({
-                    feature: 'dynamic lookup',
-                    suggestion: 'Consider migrating to full Apps Framework',
-                }),
-            );
-
+            // Should log warning about field refresh without sourceUrl
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 '[InteractiveDialogAdapter]',
                 'Field refresh requested but no sourceUrl provided',
@@ -1511,8 +1494,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                     fieldName: undefined,
                     suggestion: 'Add sourceUrl to dialog definition',
                 }),
-                'Unexpected refresh call in Interactive Dialog adapter - this should not happen',
-                '',
             );
         });
     });

@@ -401,11 +401,11 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
      * @param call - The app call request containing lookup parameters
      * @returns Promise resolving to lookup response with options or error
      */
-    private performLookupCall = async (call: AppCallRequest): Promise<DoAppCallResult<unknown>> => {
+    private performLookupCall = async (call: AppCallRequest = {} as AppCallRequest): Promise<DoAppCallResult<unknown>> => {
         const {url, callbackId, state} = this.props;
 
         // Get the lookup path from the call or field configuration
-        let lookupPath = call.path;
+        let lookupPath = call?.path;
 
         // If the field has a lookup path defined, use that instead
         if (!lookupPath && call.selected_field) {

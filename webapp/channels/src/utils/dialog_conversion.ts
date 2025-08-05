@@ -544,7 +544,19 @@ export function extractPrimitiveValues(values: Record<string, any>): Record<stri
             return;
         }
 
-        if (value && typeof value === 'object' && 'value' in value) {
+        if (Array.isArray(value)) {
+            // Handle arrays of select options (multiselect)
+            const extractedValues = value.map((item) => {
+                if (item && typeof item === 'object' && 'value' in item) {
+                    return item.value;
+                }
+                return item;
+            }).filter((v) => v !== null && v !== undefined && v !== '' && v !== '<nil>');
+
+            if (extractedValues.length > 0) {
+                normalized[key] = extractedValues;
+            }
+        } else if (value && typeof value === 'object' && 'value' in value) {
             // Extract value from select option object {label: "...", value: "..."}
             const extractedValue = value.value;
 
