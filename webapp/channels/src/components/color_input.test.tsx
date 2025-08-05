@@ -75,14 +75,10 @@ describe('components/ColorInput', () => {
         inputElement.blur();
 
         expect(document.activeElement).not.toBe(inputElement);
-        expect(inputElement).toHaveValue('#ffffff');
+        expect(inputElement).toHaveValue('#aabbcc');
         expect(baseProps.onChange).toHaveBeenLastCalledWith('#aabbcc');
 
-        /**
-         * The icon color is set back to the one provided in props (#ffffff) because the input isn't
-         * focused anymore, and the props value is different from the state value. The RGB value passed
-         * in the assertion is the equivalent of '#ffffff'.
-         */
-        expect(getByTestId('color-icon').style.backgroundColor).toBe('rgb(255, 255, 255)');
+        // The RGB value passed in the assertion is the equivalent of '#aabbcc'.
+        expect(getByTestId('color-icon').style.backgroundColor).toBe('rgb(170, 187, 204)');
     });
 });
