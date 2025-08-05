@@ -170,10 +170,20 @@ function getDummyPropertyFields(): PropertyField[] {
             update_at: 0,
             delete_at: 0,
         },
+        {
+            id: 'post_author_field_id',
+            group_id: 'content_flagging_group_id',
+            name: 'Posted by',
+            type: 'user',
+            target_type: 'post',
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        },
     ];
 }
 
-function getDummyPropertyValues(postId: string, channelId: string, teamId: string): Array<PropertyValue<unknown>> {
+function getDummyPropertyValues(postId: string, channelId: string, teamId: string, authorId: string): Array<PropertyValue<unknown>> {
     return [
         {
             id: 'status_value_id',
@@ -263,6 +273,17 @@ function getDummyPropertyValues(postId: string, channelId: string, teamId: strin
             update_at: 0,
             delete_at: 0,
         },
+        {
+            id: 'post_author_value_id',
+            field_id: 'post_author_field_id',
+            target_id: 'reported_post_id',
+            target_type: 'post',
+            group_id: 'content_flagging_group_id',
+            value: authorId,
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        },
 
         // No reviewer assigned yet
         // {
@@ -321,6 +342,7 @@ const fieldOrder = [
     'action_time_field_id',
     'channel_field_id',
     'team_field_id',
+    'post_author_field_id',
 ];
 
 type Props = {
@@ -343,9 +365,12 @@ export default function DataSpillageReport({post}: Props) {
 
     useEffect(() => {
         if (!reportingUser && reportingUserIdValue) {
-            dispatch(getMissingProfilesByIds([reportingUserIdValue.value as string]));
+            dispatch(getMissingProfilesByIds([
+                reportingUserIdValue.value as string,
+                reportedPost?.user_id,
+            ]));
         }
-    }, [dispatch, reportingUser, reportingUserIdValue]);
+    }, [dispatch, reportedPost?.user_id, reportingUser, reportingUserIdValue]);
 
     const title = formatMessage({
         id: 'data_spillage_report_post.title',
@@ -357,7 +382,7 @@ export default function DataSpillageReport({post}: Props) {
     useEffect(() => {
         if (reportedPost) {
             setPropertyFields(getDummyPropertyFields());
-            setPropertyValues(getDummyPropertyValues(reportedPostId, reportedPost.channel_id, channel?.team_id));
+            setPropertyValues(getDummyPropertyValues(reportedPostId, reportedPost.channel_id, channel?.team_id, reportedPost.user_id));
         }
     }, [reportedPost, reportedPostId, channel]);
 
