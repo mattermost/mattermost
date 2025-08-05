@@ -632,8 +632,12 @@ export const getUnreadStatus: (state: GlobalState) => BasicUnreadStatus = create
                 return counts;
             }
 
+            if (isChannelMuted(membership)) {
+                return counts;
+            }
+
             const mentions = collapsedThreads ? membership.mention_count_root : membership.mention_count;
-            if (mentions && !isChannelMuted(membership)) {
+            if (mentions) {
                 counts.mentions += mentions;
             }
 
