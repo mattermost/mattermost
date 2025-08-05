@@ -479,6 +479,8 @@ export const ModalIdentifiers = {
     SHARED_CHANNEL_REMOTE_UNINVITE: 'shared_channel_remote_uninvite',
     CONFIRM_RESET_FAILED_ATTEMPTS_MODAL: 'confirm_reset_failed_attempts_modal',
     USER_PROPERTY_FIELD_DELETE: 'user_property_field_delete',
+    ATTRIBUTE_MODAL_LDAP: 'attribute_modal_ldap',
+    ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
 };
 
 export const UserStatuses = {
@@ -2106,17 +2108,11 @@ export const Constants = {
     ALLOW_EDIT_POST_NEVER: 'never',
     ALLOW_EDIT_POST_TIME_LIMIT: 'time_limit',
     UNSET_POST_EDIT_TIME_LIMIT: -1,
-    MENTION_CHANNELS: 'mention.channels',
     MENTION_MORE_CHANNELS: 'mention.morechannels',
-    MENTION_UNREAD_CHANNELS: 'mention.unread.channels',
     MENTION_UNREAD: 'mention.unread',
-    MENTION_MEMBERS: 'mention.members',
-    MENTION_MORE_MEMBERS: 'mention.moremembers',
-    MENTION_NONMEMBERS: 'mention.nonmembers',
     MENTION_PUBLIC_CHANNELS: 'mention.public.channels',
     MENTION_PRIVATE_CHANNELS: 'mention.private.channels',
     MENTION_RECENT_CHANNELS: 'mention.recent.channels',
-    MENTION_SPECIAL: 'mention.special',
     MENTION_GROUPS: 'search.group',
     STATUS_INTERVAL: 60000,
     AUTOCOMPLETE_TIMEOUT: 100,

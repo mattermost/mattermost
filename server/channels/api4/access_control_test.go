@@ -22,10 +22,6 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
 	})
 
-	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
-		t.Skip("Access control tests are not supported on MySQL")
-	}
-
 	samplePolicy := &model.AccessControlPolicy{
 		Type:     model.AccessControlPolicyTypeChannel,
 		Version:  model.AccessControlPolicyVersionV0_1,
@@ -213,10 +209,6 @@ func TestGetAccessControlPolicy(t *testing.T) {
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
 	})
 
-	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
-		t.Skip("Access control tests are not supported on MySQL")
-	}
-
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
 		Type:     model.AccessControlPolicyTypeChannel,
@@ -280,10 +272,6 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
 	})
-
-	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
-		t.Skip("Access control tests are not supported on MySQL")
-	}
 
 	samplePolicyID := model.NewId()
 
@@ -349,10 +337,6 @@ func TestCheckExpression(t *testing.T) {
 		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
 	})
-
-	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
-		t.Skip("Access control tests are not supported on MySQL")
-	}
 
 	t.Run("CheckExpression without license", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.CheckExpression(context.Background(), "true")
@@ -427,10 +411,6 @@ func TestTestExpression(t *testing.T) {
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
 	})
 
-	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
-		t.Skip("Access control tests are not supported on MySQL")
-	}
-
 	t.Run("TestExpression without license", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.TestExpression(context.Background(), model.QueryExpressionParams{})
 		require.Error(t, err)
@@ -482,10 +462,6 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
 	})
-
-	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
-		t.Skip("Access control tests are not supported on MySQL")
-	}
 
 	t.Run("SearchAccessControlPolicies without license", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.SearchAccessControlPolicies(context.Background(), model.AccessControlPolicySearch{})
@@ -540,10 +516,6 @@ func TestAssignAccessPolicy(t *testing.T) {
 		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
 	})
-
-	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
-		t.Skip("Access control tests are not supported on MySQL")
-	}
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -611,10 +583,6 @@ func TestUnassignAccessPolicy(t *testing.T) {
 		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
 	})
-
-	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
-		t.Skip("Access control tests are not supported on MySQL")
-	}
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -686,10 +654,6 @@ func TestGetChannelsForAccessControlPolicy(t *testing.T) {
 		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
 	})
-
-	if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
-		t.Skip("Access control tests are not supported on MySQL")
-	}
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -768,10 +732,6 @@ func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 	}
 
 	t.Run("SearchChannelsForAccessControlPolicy with regular user", func(t *testing.T) {
-		if *mainHelper.GetSQLSettings().DriverName == model.DatabaseDriverMysql {
-			t.Skip("Access control tests are not supported on MySQL")
-		}
-
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 

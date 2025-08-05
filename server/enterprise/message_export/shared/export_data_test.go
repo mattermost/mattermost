@@ -61,7 +61,7 @@ func Test_getPostExport(t *testing.T) {
 	defer th.TearDown()
 
 	// the post exports from the db will be random (because they all have the same updateAt), so do it a few times
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		time.Sleep(time.Millisecond)
 		start := model.GetMillis()
 

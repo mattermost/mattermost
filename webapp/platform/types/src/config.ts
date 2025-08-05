@@ -130,6 +130,8 @@ export type ClientConfig = {
     FeatureFlagCustomProfileAttributes: string;
     FeatureFlagAttributeBasedAccessControl: string;
     FeatureFlagWebSocketEventScope: string;
+    FeatureFlagInteractiveDialogAppsForm: string;
+    FeatureFlagContentFlagging: string;
     ForgotPasswordLink: string;
     GiphySdkKey: string;
     GoogleDeveloperKey: string;
@@ -225,6 +227,7 @@ export type ClientConfig = {
     YoutubeReferrerPolicy: 'true' | 'false';
     ScheduledPosts: string;
     DeleteAccountLink: string;
+    ContentFlaggingEnabled: 'true' | 'false';
 };
 
 export type License = {
@@ -379,7 +382,7 @@ export type ServiceSettings = {
     EnableAPITriggerAdminNotifications: boolean;
     EnableAPIUserDeletion: boolean;
     ExperimentalEnableHardenedMode: boolean;
-    ExperimentalStrictCSRFEnforcement: boolean;
+    StrictCSRFEnforcement: boolean;
     EnableEmailInvitations: boolean;
     DisableBotsWhenOwnerIsDeactivated: boolean;
     EnableBotAccountCreation: boolean;
@@ -806,7 +809,7 @@ export type ClusterSettings = {
     AdvertiseAddress: string;
     UseIPAddress: boolean;
     EnableGossipCompression: boolean;
-    EnableExperimentalGossipEncryption: boolean;
+    EnableGossipEncryption: boolean;
     ReadOnlyConfig: boolean;
     GossipPort: number;
 };
@@ -877,14 +880,6 @@ export type ElasticsearchSettings = {
     ClientKey: string;
     Trace: string;
     IgnoredPurgeIndexes: string;
-};
-
-export type BleveSettings = {
-    IndexDir: string;
-    EnableIndexing: boolean;
-    EnableSearching: boolean;
-    EnableAutocomplete: boolean;
-    BatchSize: number;
 };
 
 export type DataRetentionSettings = {
@@ -973,6 +968,7 @@ export type CloudSettings = {
     CWSAPIURL: string;
     CWSMock: boolean;
     Disable: boolean;
+    PreviewModalBucketURL: string;
 };
 
 export type FeatureFlags = Record<string, string | boolean>;
@@ -990,12 +986,11 @@ export type ExportSettings = {
 export type AccessControlSettings = {
     EnableAttributeBasedAccessControl: boolean;
     EnableChannelScopeAccessControl: boolean;
+    EnableUserManagedAttributes: boolean;
 };
 
 export type ContentFlaggingNotificationSettings = {
-    ReviewerSettings: ContentFlaggingReviewerSetting;
     EventTargetMapping: Record<ContentFlaggingEvent, NotificationTarget[]>;
-    AdditionalSettings: ContentFlaggingAdditionalSettings;
 }
 
 export type TeamReviewerSetting = {
@@ -1019,7 +1014,10 @@ export type ContentFlaggingAdditionalSettings = {
 }
 
 export type ContentFlaggingSettings = {
+    EnableContentFlagging: boolean;
     NotificationSettings: ContentFlaggingNotificationSettings;
+    ReviewerSettings: ContentFlaggingReviewerSetting;
+    AdditionalSettings: ContentFlaggingAdditionalSettings;
 }
 
 export type AdminConfig = {
@@ -1053,7 +1051,6 @@ export type AdminConfig = {
     AnalyticsSettings: AnalyticsSettings;
     CacheSettings: CacheSettings;
     ElasticsearchSettings: ElasticsearchSettings;
-    BleveSettings: BleveSettings;
     DataRetentionSettings: DataRetentionSettings;
     MessageExportSettings: MessageExportSettings;
     JobSettings: JobSettings;
