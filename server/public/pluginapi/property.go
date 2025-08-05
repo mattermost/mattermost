@@ -59,6 +59,13 @@ func (p *PropertyService) CountPropertyFields(groupID string, includeDeleted boo
 	return p.api.CountPropertyFields(groupID, includeDeleted)
 }
 
+// CountPropertyFieldsForTarget counts property fields for a specific target.
+//
+// Minimum server version: 10.10
+func (p *PropertyService) CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
+	return p.api.CountPropertyFieldsForTarget(groupID, targetType, targetID, includeDeleted)
+}
+
 // CreatePropertyValue creates a new property value.
 //
 // Minimum server version: 10.10

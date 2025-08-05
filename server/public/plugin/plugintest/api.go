@@ -176,6 +176,34 @@ func (_m *API) CountPropertyFields(groupID string, includeDeleted bool) (int64, 
 	return r0, r1
 }
 
+// CountPropertyFieldsForTarget provides a mock function with given fields: groupID, targetType, targetID, includeDeleted
+func (_m *API) CountPropertyFieldsForTarget(groupID string, targetType string, targetID string, includeDeleted bool) (int64, error) {
+	ret := _m.Called(groupID, targetType, targetID, includeDeleted)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountPropertyFieldsForTarget")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string, bool) (int64, error)); ok {
+		return rf(groupID, targetType, targetID, includeDeleted)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string, bool) int64); ok {
+		r0 = rf(groupID, targetType, targetID, includeDeleted)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string, bool) error); ok {
+		r1 = rf(groupID, targetType, targetID, includeDeleted)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreateBot provides a mock function with given fields: bot
 func (_m *API) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	ret := _m.Called(bot)

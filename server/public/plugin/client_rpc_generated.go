@@ -7420,6 +7420,39 @@ func (s *apiRPCServer) CountPropertyFields(args *Z_CountPropertyFieldsArgs, retu
 	return nil
 }
 
+type Z_CountPropertyFieldsForTargetArgs struct {
+	A string
+	B string
+	C string
+	D bool
+}
+
+type Z_CountPropertyFieldsForTargetReturns struct {
+	A int64
+	B error
+}
+
+func (g *apiRPCClient) CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
+	_args := &Z_CountPropertyFieldsForTargetArgs{groupID, targetType, targetID, includeDeleted}
+	_returns := &Z_CountPropertyFieldsForTargetReturns{}
+	if err := g.client.Call("Plugin.CountPropertyFieldsForTarget", _args, _returns); err != nil {
+		log.Printf("RPC call to CountPropertyFieldsForTarget API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CountPropertyFieldsForTarget(args *Z_CountPropertyFieldsForTargetArgs, returns *Z_CountPropertyFieldsForTargetReturns) error {
+	if hook, ok := s.impl.(interface {
+		CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
+	}); ok {
+		returns.A, returns.B = hook.CountPropertyFieldsForTarget(args.A, args.B, args.C, args.D)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API CountPropertyFieldsForTarget called but not implemented."))
+	}
+	return nil
+}
+
 type Z_CreatePropertyValueArgs struct {
 	A *model.PropertyValue
 }

@@ -42,6 +42,11 @@ func (m *mockPropertyFieldStore) CountForGroup(groupID string, includeDeleted bo
 	return args.Get(0).(int64), args.Error(1)
 }
 
+func (m *mockPropertyFieldStore) CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
+	args := m.Called(groupID, targetType, targetID, includeDeleted)
+	return args.Get(0).(int64), args.Error(1)
+}
+
 func (m *mockPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
 	args := m.Called(opts)
 	return args.Get(0).([]*model.PropertyField), args.Error(1)

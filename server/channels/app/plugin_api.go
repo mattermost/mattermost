@@ -1507,20 +1507,6 @@ func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.Pr
 		return nil, fmt.Errorf("property field cannot be nil")
 	}
 
-	// Check property field limit (20 per group)
-	const maxPropertyFieldsPerGroup = 20
-
-	if field.GroupID != "" {
-		currentCount, err := api.app.PropertyService().CountActivePropertyFieldsForGroup(field.GroupID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to count existing property fields: %w", err)
-		}
-
-		if currentCount >= maxPropertyFieldsPerGroup {
-			return nil, fmt.Errorf("maximum number of property fields (%d) reached for group", maxPropertyFieldsPerGroup)
-		}
-	}
-
 	return api.app.PropertyService().CreatePropertyField(field)
 }
 
@@ -1549,6 +1535,13 @@ func (api *PluginAPI) CountPropertyFields(groupID string, includeDeleted bool) (
 		return api.app.PropertyService().CountAllPropertyFieldsForGroup(groupID)
 	}
 	return api.app.PropertyService().CountActivePropertyFieldsForGroup(groupID)
+}
+
+func (api *PluginAPI) CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
+	if includeDeleted {
+		return api.app.PropertyService().CountAllPropertyFieldsForTarget(groupID, targetType, targetID)
+	}
+	return api.app.PropertyService().CountActivePropertyFieldsForTarget(groupID, targetType, targetID)
 }
 
 func (api *PluginAPI) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {

@@ -295,6 +295,7 @@ func TestPluginProperties(t *testing.T) {
 
 			import (
 				"fmt"
+				"strings"
 				"github.com/mattermost/mattermost/server/public/plugin"
 				"github.com/mattermost/mattermost/server/public/model"
 			)
@@ -310,13 +311,15 @@ func TestPluginProperties(t *testing.T) {
 					return fmt.Errorf("failed to register property group: %w", err)
 				}
 
-				// Create 20 property fields successfully
+				// Create 20 property fields successfully for the same target
+				targetId := model.NewId()
 				for i := 1; i <= 20; i++ {
 					field := &model.PropertyField{
 						GroupID:     group.ID,
 						Name:        fmt.Sprintf("Field %d", i),
 						Type:        model.PropertyFieldTypeText,
 						TargetType:  "user",
+						TargetID:    targetId,
 					}
 
 					_, err := p.API.CreatePropertyField(field)
@@ -334,19 +337,20 @@ func TestPluginProperties(t *testing.T) {
 					return fmt.Errorf("expected 20 active fields, got %d", count)
 				}
 
-				// Try to create the 21st field - should fail
+				// Try to create the 21st field for the same target - should fail
 				field21 := &model.PropertyField{
 					GroupID:     group.ID,
 					Name:        "Field 21",
 					Type:        model.PropertyFieldTypeText,
 					TargetType:  "user",
+					TargetID:    targetId,
 				}
 
 				_, err = p.API.CreatePropertyField(field21)
 				if err == nil {
 					return fmt.Errorf("expected error when creating 21st field, but got none")
 				}
-				if err.Error() != "maximum number of property fields (20) reached for group" {
+				if !strings.Contains(err.Error(), "maximum number of property fields") {
 					return fmt.Errorf("unexpected error message: %s", err.Error())
 				}
 
@@ -383,12 +387,13 @@ func TestPluginProperties(t *testing.T) {
 					return fmt.Errorf("expected 20 total fields including deleted, got %d", totalCount)
 				}
 
-				// Now creating a new field should work again
+				// Now creating a new field for the same target should work again
 				newField := &model.PropertyField{
 					GroupID:     group.ID,
 					Name:        "New Field",
 					Type:        model.PropertyFieldTypeText,
 					TargetType:  "user",
+					TargetID:    targetId,
 				}
 
 				_, err = p.API.CreatePropertyField(newField)
@@ -403,6 +408,32 @@ func TestPluginProperties(t *testing.T) {
 				}
 				if count != 20 {
 					return fmt.Errorf("expected 20 active fields after new creation, got %d", count)
+				}
+
+				// Test that we can create fields for a different target
+				differentTargetId := model.NewId()
+				for i := 1; i <= 20; i++ {
+					field := &model.PropertyField{
+						GroupID:     group.ID,
+						Name:        fmt.Sprintf("Different Target Field %d", i),
+						Type:        model.PropertyFieldTypeText,
+						TargetType:  "user",
+						TargetID:    differentTargetId,
+					}
+
+					_, err := p.API.CreatePropertyField(field)
+					if err != nil {
+						return fmt.Errorf("failed to create property field %d for different target: %w", i, err)
+					}
+				}
+
+				// Total count should now be 40 (20 for each target)
+				totalCount, err = p.API.CountPropertyFields(group.ID, false)
+				if err != nil {
+					return fmt.Errorf("failed to count total property fields: %w", err)
+				}
+				if totalCount != 40 {
+					return fmt.Errorf("expected 40 total active fields, got %d", totalCount)
 				}
 
 				return nil
