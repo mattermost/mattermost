@@ -19,13 +19,6 @@ exports[`components/TextBox should match snapshot with additional, optional prop
         }
       }
       message="some test text"
-      options={
-        Object {
-          "atMentions": true,
-          "mentionHighlight": true,
-          "mentionKeys": undefined,
-        }
-      }
     />
   </div>
   <Connect(SuggestionBox)
@@ -178,13 +171,6 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
         }
       }
       message="some test text"
-      options={
-        Object {
-          "atMentions": true,
-          "mentionHighlight": true,
-          "mentionKeys": undefined,
-        }
-      }
     />
   </div>
   <Connect(SuggestionBox)
@@ -332,13 +318,6 @@ exports[`components/TextBox should throw error when new property is too long 1`]
         }
       }
       message="some test text that exceeds char limit"
-      options={
-        Object {
-          "atMentions": true,
-          "mentionHighlight": true,
-          "mentionKeys": undefined,
-        }
-      }
     />
   </div>
   <Connect(SuggestionBox)
@@ -486,13 +465,6 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
         }
       }
       message="some test text that exceeds char limit"
-      options={
-        Object {
-          "atMentions": true,
-          "mentionHighlight": true,
-          "mentionKeys": undefined,
-        }
-      }
     />
   </div>
   <Connect(SuggestionBox)

@@ -458,7 +458,7 @@ function PostComponent(props: Props) {
                 options={{
                     searchTerm: props.term,
                     searchMatches: props.matches,
-                    mentionHighlight: true,
+                    mentionHighlight: props.isMentionSearch,
                 }}
                 isRHS={isRHS}
             />

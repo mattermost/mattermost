@@ -17,14 +17,6 @@ import * as Emoticons from './emoticons';
 import * as Markdown from './markdown';
 
 const punctuationRegex = /[^\p{L}\d]/u;
-const AT_MENTION_PATTERN = /(?:\B|\b_+)@([a-z0-9.\-_]+)/gi;
-
-// Matches @mentions with exactly two words (firstname lastname)
-// (?:\B|\b_+) - word boundary or underscore prefix
-// @ - literal @ symbol
-// ([a-zA-Z][a-zA-Z0-9.\-_]*\s+[a-zA-Z][a-zA-Z0-9.\-_]*) - two words separated by space
-// (?=\s|$|[.,!?;:]) - positive lookahead for word ending
-const AT_MENTION_FULLNAME_PATTERN = /(?:\B|\b_+)@([a-zA-Z][a-zA-Z0-9.\-_]*\s+[a-zA-Z][a-zA-Z0-9.\-_]*)(?=\s|$|[.,!?;:])/gi;
 const UNICODE_EMOJI_REGEX = emojiRegex();
 const htmlEmojiPattern = /^<p>\s*(?:<img class="emoticon"[^>]*>|<span data-emoticon[^>]*>[^<]*<\/span>\s*|<span class="emoticon emoticon--unicode">[^<]*<\/span>\s*)+<\/p>$/;
 
@@ -550,19 +542,11 @@ export function autolinkAtMentions(text: string, tokens: Tokens): string {
         replaceAtMentionWithToken,
     );
 
-    // handle all standard mentions first (supports trailing punctuation)
-    let match = output.match(AT_MENTION_PATTERN);
+    // handle all other mentions (supports trailing punctuation)
+    let match = output.match(Constants.MENTIONS_REGEX);
     while (match && match.length > 0) {
-        output = output.replace(AT_MENTION_PATTERN, replaceAtMentionWithToken);
-        match = output.match(AT_MENTION_PATTERN);
-    }
-
-    // handle fullname mentions ONLY for remaining text (supports trailing punctuation)
-    // This ensures existing single-word mentions are not affected
-    let fullnameMatch = output.match(AT_MENTION_FULLNAME_PATTERN);
-    while (fullnameMatch && fullnameMatch.length > 0) {
-        output = output.replace(AT_MENTION_FULLNAME_PATTERN, replaceAtMentionWithToken);
-        fullnameMatch = output.match(AT_MENTION_FULLNAME_PATTERN);
+        output = output.replace(Constants.MENTIONS_REGEX, replaceAtMentionWithToken);
+        match = output.match(Constants.MENTIONS_REGEX);
     }
 
     return output;
