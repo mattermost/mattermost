@@ -171,6 +171,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusion() {
 		s.Require().NotZero(ruser.DeleteAt)
 
 		// Verify user does not appear in autocomplete after deactivation
+		// This uses the default API behavior with AllowInactive=false
 		rusers, _, err = s.th.SystemAdminClient.AutocompleteUsersInChannel(
 			context.Background(),
 			s.th.BasicTeam.Id,
@@ -288,6 +289,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusionMultipleCon
 		s.Require().NotZero(ruser.DeleteAt)
 
 		// Test 1 After Deactivation: Team-level autocomplete
+		// This uses the default API behavior with AllowInactive=false
 		teamUsers, _, err = s.th.SystemAdminClient.AutocompleteUsersInTeam(
 			context.Background(),
 			s.th.BasicTeam.Id,
@@ -308,8 +310,10 @@ func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusionMultipleCon
 		s.Require().False(found, "deactivated user should not appear in team autocomplete results")
 
 		// Test 2 After Deactivation: General user search
+		// This uses the default API behavior with AllowInactive=false
 		searchUsers, _, err = s.th.SystemAdminClient.SearchUsers(context.Background(), &model.UserSearch{
 			Term: "autocomplete-multi",
+			// AllowInactive is false by default
 		})
 		s.Require().NoError(err)
 
@@ -324,6 +328,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusionMultipleCon
 		s.Require().False(found, "deactivated user should not appear in user search results")
 
 		// Test 3: Channel autocomplete (should also be excluded)
+		// This uses the default API behavior with AllowInactive=false
 		channelUsers, _, err := s.th.SystemAdminClient.AutocompleteUsersInChannel(
 			context.Background(),
 			s.th.BasicTeam.Id,
@@ -382,6 +387,33 @@ func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusionMultipleCon
 			}
 		}
 		s.Require().True(found, "reactivated user should appear in user search results again")
+
+		// Test 4: Check that deactivated users can be found with AllowInactive=true option
+		// First, deactivate user again
+		err = userDeactivateCmdF(c, &cobra.Command{}, []string{user.Email})
+		s.Require().Nil(err)
+
+		// Verify user is deactivated
+		ruser, err = s.th.App.GetUser(user.Id)
+		s.Require().Nil(err)
+		s.Require().NotZero(ruser.DeleteAt)
+
+		// Search with AllowInactive=true
+		searchUsers, _, err = s.th.SystemAdminClient.SearchUsers(context.Background(), &model.UserSearch{
+			Term:          "autocomplete-multi",
+			AllowInactive: true,
+		})
+		s.Require().NoError(err)
+
+		// Check that the user IS found when AllowInactive=true
+		found = false
+		for _, u := range searchUsers {
+			if u.Id == user.Id {
+				found = true
+				break
+			}
+		}
+		s.Require().True(found, "deactivated user should appear in search results when AllowInactive=true")
 	})
 }
 
