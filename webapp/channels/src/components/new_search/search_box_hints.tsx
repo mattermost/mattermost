@@ -6,8 +6,8 @@ import {useSelector} from 'react-redux';
 
 import {getSearchBoxHints} from 'selectors/plugins';
 
-import type {ProviderResult} from 'components/suggestion/provider';
 import SearchDateSuggestion from 'components/suggestion/search_date_suggestion';
+import {hasResults, hasSuggestionWithComponent, type SuggestionResults} from 'components/suggestion/suggestion_results';
 
 import ErrorBoundary from 'plugins/pluggable/error_boundary';
 
@@ -18,13 +18,13 @@ type Props = {
     searchTeam: string;
     setSearchTerms: (searchTerms: string) => void;
     searchType: string;
-    selectedOption: number;
-    providerResults: ProviderResult<unknown>|null;
+    selectedTerm: string;
+    results: SuggestionResults;
     focus: (pos: number) => void;
     showFilterHaveBeenReset: boolean;
 }
 
-const SearchBoxHints = ({searchTerms, searchTeam, setSearchTerms, searchType, providerResults, selectedOption, focus, showFilterHaveBeenReset}: Props) => {
+const SearchBoxHints = ({searchTerms, searchTeam, setSearchTerms, searchType, results, selectedTerm, focus, showFilterHaveBeenReset}: Props) => {
     const filterSelectedCallback = useCallback((filter: string) => {
         if (searchTerms.endsWith(' ') || searchTerms.length === 0) {
             setSearchTerms(searchTerms + filter);
@@ -50,9 +50,9 @@ const SearchBoxHints = ({searchTerms, searchTeam, setSearchTerms, searchType, pr
                 searchType={searchType}
                 searchTerms={searchTerms}
                 searchTeam={searchTeam}
-                hasSelectedOption={Boolean(providerResults && providerResults.items.length > 0 && selectedOption !== -1)}
+                hasSelectedOption={hasResults(results) && selectedTerm !== ''}
                 showFilterHaveBeenReset={showFilterHaveBeenReset}
-                isDate={providerResults?.component === SearchDateSuggestion}
+                isDate={hasSuggestionWithComponent(results, SearchDateSuggestion)}
             />
         );
     }
