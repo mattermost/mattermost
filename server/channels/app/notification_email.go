@@ -240,7 +240,7 @@ func (a *App) getNotificationEmailBody(c request.CTX, recipient *model.User, pos
 	data := a.Srv().EmailService.NewEmailTemplateData(recipient.Locale)
 	data.Props["SiteURL"] = a.GetSiteURL()
 	if teamName != "select_team" {
-		data.Props["ButtonURL"] = landingURL + "/pl/" + post.Id
+		data.Props["ButtonURL"] = landingURL + "/_redirect/pl/" + post.Id
 	} else {
 		data.Props["ButtonURL"] = landingURL
 	}
