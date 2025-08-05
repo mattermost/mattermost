@@ -22,13 +22,8 @@ const ColorInput = ({
     const colorPicker = useRef<HTMLDivElement>(null);
     const colorInput = useRef<HTMLInputElement>(null);
 
-    const [isFocused, setIsFocused] = useState(false);
     const [isOpened, setIsOpened] = useState(false);
     const [valueFromState, setValueFromState] = useState(valueFromProps);
-
-    if (!isFocused && valueFromProps !== valueFromState) {
-        setValueFromState(valueFromProps);
-    }
 
     useEffect(() => {
         const checkClick = (e: MouseEvent): void => {
@@ -64,7 +59,6 @@ const ColorInput = ({
     };
 
     const handleColorChange = (newColorData: ColorResult) => {
-        setIsFocused(false);
         onChangeFromProps(newColorData.hex);
     };
 
@@ -82,8 +76,6 @@ const ColorInput = ({
     };
 
     const onFocus = (event: React.FocusEvent<HTMLInputElement>): void => {
-        setIsFocused(true);
-
         if (event.target) {
             event.target.setSelectionRange(1, event.target.value.length);
         }
@@ -102,8 +94,6 @@ const ColorInput = ({
         } else {
             setValueFromState(valueFromProps);
         }
-
-        setIsFocused(false);
     };
 
     const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
