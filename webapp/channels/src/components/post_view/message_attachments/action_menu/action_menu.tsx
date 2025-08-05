@@ -99,7 +99,7 @@ export default class ActionMenu extends React.PureComponent<Props, State> {
 
     render() {
         const {action, disabled} = this.props;
-        const name = action.name || action.id;
+        const name = action.name || action.id || '';
 
         return (
             <PostContext.Consumer>
