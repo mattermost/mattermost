@@ -10,7 +10,8 @@ export type FieldType = (
     'multiuser' |
     'post' |
     'channel' |
-    'team'
+    'team' |
+    'timestamp'
 );
 
 export type PropertyField = {

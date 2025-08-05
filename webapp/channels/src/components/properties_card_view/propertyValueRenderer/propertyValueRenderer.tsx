@@ -13,6 +13,8 @@ import TextPropertyRenderer from './text_property_renderer/textPropertyRenderer'
 import UserPropertyRenderer from './user_property_renderer/userPropertyRenderer';
 
 import './property_value_renderer.scss';
+import TimestampPropertyRenderer
+    from "components/properties_card_view/propertyValueRenderer/timestamp_property_renderer/timestamp_property_renderer";
 
 type Props = {
     field: PropertyField;
@@ -38,6 +40,8 @@ export default function PropertyValueRenderer({field, value}: Props) {
         return (<ChannelPropertyRenderer value={value}/>);
     case 'team':
         return (<TeamPropertyRenderer value={value}/>);
+    case 'timestamp':
+        return (<TimestampPropertyRenderer value={value}/>);
     default:
         return null;
     }
