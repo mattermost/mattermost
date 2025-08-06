@@ -7,11 +7,11 @@ export type FieldType = (
     'multiselect' |
     'date' |
     'user' |
-    'multiuser' |
-    'post' |
-    'channel' |
-    'team' |
-    'timestamp'
+    'multiuser'
+    // 'post' |
+    // 'channel' |
+    // 'team' |
+    // 'timestamp'
 );
 
 export type PropertyField = {
@@ -19,7 +19,10 @@ export type PropertyField = {
     group_id: string;
     name: string;
     type: FieldType;
-    attrs?: {[key: string]: unknown};
+    attrs?: {
+        subType?: string;
+        [key: string]: unknown;
+    };
     target_id?: string;
     target_type?: string;
     create_at: number;

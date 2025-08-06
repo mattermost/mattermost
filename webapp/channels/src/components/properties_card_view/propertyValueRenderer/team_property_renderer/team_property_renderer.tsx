@@ -6,11 +6,12 @@ import {useIntl} from 'react-intl';
 
 import type {PropertyValue} from '@mattermost/types/properties';
 
-import './team_property_renderer.scss';
 import {useTeam} from 'components/common/hooks/use_team';
 import {TeamIcon} from 'components/widgets/team_icon/team_icon';
 
 import {imageURLForTeam} from 'utils/utils';
+
+import './team_property_renderer.scss';
 
 type Props = {
     value: PropertyValue<unknown>;
@@ -35,7 +36,6 @@ export default function TeamPropertyRenderer({value}: Props) {
                 intl={intl}
                 url={imageURLForTeam(team)}
             />
-
 
             {team.display_name}
         </div>
