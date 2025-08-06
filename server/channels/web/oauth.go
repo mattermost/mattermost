@@ -23,6 +23,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
+const (
+	callbackHost = "callback"
+)
+
 func (w *Web) InitOAuth() {
 	// API version independent OAuth 2.0 as a service provider endpoints
 	w.MainRouter.Handle("/oauth/authorize", w.APIHandlerTrustRequester(authorizeOAuthPage)).Methods(http.MethodGet)
@@ -546,7 +550,11 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string, otherValidScheme
 		return siteURLPrefix
 	}
 	// mobile access
-	if slices.Contains(otherValidSchemes, fmt.Sprintf("%v://", parsed.Scheme)) && (parsed.Host == "callback") {
+	if slices.Contains(otherValidSchemes, fmt.Sprintf("%v://", parsed.Scheme)) &&
+		parsed.Host == callbackHost &&
+		parsed.Path == "" &&
+		parsed.RawQuery == "" &&
+		parsed.Fragment == "" {
 		return targetURL
 	}
 	// Check if the targetURL is a valid URL and is within the siteURLPrefix, also against native app schemes which are like `mmauth://`
