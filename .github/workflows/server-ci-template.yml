@@ -277,6 +277,7 @@ jobs:
   build-mattermost-server:
     name: Build mattermost server app
     runs-on: ubuntu-22.04
+    container: mattermostdevelopment/mattermost-build-server:1.23.7
     defaults:
       run:
         working-directory: server
