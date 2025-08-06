@@ -39,7 +39,7 @@ jobs:
           docker buildx build \
             --tag mattermostdevelopment/mattermost-build-server:${{ github.event.inputs.tag }} \
             --push \
-            -f Dockerfile.buildenv .
+            -f server/build/Dockerfile.buildenv .
 
       - name: Login to DockerHub (production repo)
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
@@ -53,4 +53,4 @@ jobs:
           docker buildx build \
             --tag mattermost/mattermost-build-server:${{ github.event.inputs.tag }} \
             --push \
-            -f Dockerfile.buildenv .
+            -f server/build/Dockerfile.buildenv .
