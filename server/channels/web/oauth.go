@@ -545,9 +545,12 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string, otherValidScheme
 	if err != nil {
 		return siteURLPrefix
 	}
-
+	// mobile access
+	if slices.Contains(otherValidSchemes, fmt.Sprintf("%v://", parsed.Scheme)) && (parsed.Host == "callback") {
+		return targetURL
+	}
 	// Check if the targetURL is a valid URL and is within the siteURLPrefix, also against native app schemes which are like `mmauth://`
-	sameScheme := parsed.Scheme == prefixParsed.Scheme || slices.Contains(otherValidSchemes, fmt.Sprintf("%v://", parsed.Scheme))
+	sameScheme := parsed.Scheme == prefixParsed.Scheme
 	sameHost := parsed.Host == prefixParsed.Host
 	safePath := strings.HasPrefix(path.Clean(parsed.Path), path.Clean(prefixParsed.Path))
 
