@@ -15,7 +15,7 @@ const TestProviderResultComponent = ({item, term, matchedPretext, isSelection, o
     return (
         <div
             onClick={() => onClick(item.username, matchedPretext)}
-            onMouseMove={() => onMouseMove()}
+            onMouseMove={() => onMouseMove(term)}
             className={isSelection ? 'selected' : ''}
         >
             <span>{item.username}</span>
@@ -38,17 +38,17 @@ const TestPluginProviderComponent = ({searchTerms, onChangeSearch, onRunSearch}:
 
 describe('components/new_search/SearchBoxSuggestions', () => {
     const baseProps = {
+        id: 'test-search-suggestions',
         searchType: 'messages',
         searchTerms: '',
         searchTeam: 'teamId',
-        selectedOption: -1,
-        setSelectedOption: jest.fn(),
-        suggestionsHeader: <p>{'Test Header'}</p>,
-        providerResults: {
+        selectedTerm: '',
+        setSelectedTerm: jest.fn(),
+        results: {
             matchedPretext: '',
             terms: ['user1', 'user2'],
             items: [{username: 'test-username1'}, {username: 'test-username2'}],
-            component: TestProviderResultComponent,
+            components: [TestProviderResultComponent, TestProviderResultComponent],
         },
         onSearch: jest.fn(),
         onSuggestionSelected: jest.fn(),
@@ -56,7 +56,6 @@ describe('components/new_search/SearchBoxSuggestions', () => {
 
     test('should show the suggestions and the suggestion header on messages', () => {
         renderWithContext(<SearchBoxSuggestions {...baseProps}/>);
-        expect(screen.getByText('Test Header')).toBeInTheDocument();
         expect(screen.getByText('test-username1')).toBeInTheDocument();
         expect(screen.getByText('user1')).toBeInTheDocument();
         expect(screen.getByText('test-username2')).toBeInTheDocument();
@@ -70,7 +69,7 @@ describe('components/new_search/SearchBoxSuggestions', () => {
     });
 
     test('should call the onSuggestionSelected on click with matchedPretext and previous text', () => {
-        const props = {...baseProps, searchTerms: 'something from:test-user', providerResults: {...baseProps.providerResults, matchedPretext: 'test-user'}};
+        const props = {...baseProps, searchTerms: 'something from:test-user', results: {...baseProps.results, matchedPretext: 'test-user'}};
         renderWithContext(<SearchBoxSuggestions {...props}/>);
         fireEvent.click(screen.getByText('test-username1'));
         expect(baseProps.onSuggestionSelected).toHaveBeenCalledWith('test-username1', 'test-user');
@@ -80,9 +79,9 @@ describe('components/new_search/SearchBoxSuggestions', () => {
         const props = {...baseProps};
         renderWithContext(<SearchBoxSuggestions {...props}/>);
         fireEvent.mouseMove(screen.getByText('test-username2'));
-        expect(baseProps.setSelectedOption).toHaveBeenCalledWith(1);
+        expect(baseProps.setSelectedTerm).toHaveBeenCalledWith('user2');
         fireEvent.mouseMove(screen.getByText('test-username1'));
-        expect(baseProps.setSelectedOption).toHaveBeenCalledWith(0);
+        expect(baseProps.setSelectedTerm).toHaveBeenCalledWith('user1');
     });
 
     test('should not show the plugin suggestions without license', () => {
