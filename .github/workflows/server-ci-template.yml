@@ -21,7 +21,7 @@ permissions:
 jobs:
   check-mocks:
     name: Check mocks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: server
@@ -54,7 +54,7 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make mocks`"; exit 1; fi
   check-go-mod-tidy:
     name: Check go mod tidy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: server
@@ -85,7 +85,7 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git status; exit 1; fi
   golangci:
     name: golangci-lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: server
@@ -115,7 +115,7 @@ jobs:
         run: make golangci-lint
   check-gen-serialized:
     name: Check serialization methods for hot structs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: server
@@ -145,7 +145,7 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
   check-mattermost-vet:
     name: Check style
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: server
@@ -181,7 +181,7 @@ jobs:
         run: make vet BUILD_NUMBER='${GITHUB_HEAD_REF}'
   check-mattermost-vet-api:
     name: Vet API
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: server
@@ -209,7 +209,7 @@ jobs:
         run: make vet-api
   check-migrations:
     name: Check migration files
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: server
@@ -237,7 +237,7 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the migrations using make migrations-extract"; exit 1; fi
   check-email-templates:
     name: Generate email templates
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: server
@@ -252,7 +252,7 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the email templates using `make build-templates`"; exit 1; fi
   check-store-layers:
     name: Check store layers
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: server
@@ -283,7 +283,7 @@ jobs:
 
   check-mmctl-docs:
     name: Check mmctl docs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: server
@@ -363,7 +363,7 @@ jobs:
       fips-enabled: ${{ inputs.fips-enabled }}
   build-mattermost-server:
     name: Build mattermost server app
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       BUILD_NUMBER: "${{ github.head_ref }}-${{ github.run_id }}"
     defaults:
