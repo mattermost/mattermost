@@ -116,6 +116,7 @@ GOFLAGS ?= $(GOFLAGS:)
 
 ifeq ($(FIPS_ENABLED),true)
 	export GOBIN ?= /root/go/bin
+	export GOBIN_HOST ?= .go/bin
 	GO ?= docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOFLAGS="-buildvcs=false $(GOFLAGS)" -e OUTPUT_CONFIG $(FIPS_IMAGE)
 	BUILD_TAGS += requirefips
 else
@@ -326,6 +327,9 @@ golang-versions: ## Install Golang versions used for compatibility testing (e.g.
 	export GO_COMPATIBILITY_TEST_VERSIONS="${GO_COMPATIBILITY_TEST_VERSIONS}"
 
 GOLANGCI_VERSION ?= v2.1.6
+MOCKERY_VERSION ?= v2.53.4
+MOCKGEN_VERSION ?= v1.6.0
+MSGP_VERSION ?= v1.1.6
 
 golangci-lint: ## Run golangci-lint on codebase
 	@echo Installing golangci-lint $(GOLANGCI_VERSION)
@@ -401,15 +405,13 @@ platform-mocks: $(MOCKERY_BIN) ## Creates mocks for platform interfaces.
 mmctl-mocks: $(MOCKGEN_BIN) ## Creates mocks for mmctl
 	$(call execute_tool,mockgen,-destination=cmd/mmctl/mocks/client_mock.go -copyright_file=cmd/mmctl/mocks/copyright.txt -package=mocks github.com/mattermost/mattermost/server/v8/cmd/mmctl/client Client)
 
-install-mock-deps: ## Install manual mock dependencies
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
-	$(GO) install github.com/golang/mock/mockgen@v1.6.0
+install-mock-deps: $(MOCKGEN_BIN) $(MOCKERY_BIN) ## Install manual mock dependencies
 
 $(MOCKERY_BIN):
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
+	$(GO) install github.com/vektra/mockery/v2/...@$(MOCKERY_VERSION)
 
 $(MOCKGEN_BIN):
-	$(GO) install github.com/golang/mock/mockgen@v1.6.0
+	$(GO) install github.com/golang/mock/mockgen@$(MOCKGEN_VERSION)
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	cd ./public && $(GO) generate $(GOFLAGS) ./plugin
@@ -739,7 +741,7 @@ config-openid: ## Configures OpenID.
 
 config-reset: ## Resets the config/config.json file to the default production values.
 	@echo Resetting configuration to production default
-	rm -rf config/config.json
+	rm -f config/config.json
 	$(GO) $(GOFLAGS) run -tags production ./scripts/config_generator
 
 diff-config: ## Compares default configuration between two mattermost versions
@@ -828,7 +830,7 @@ gen-serialized: ## Generates serialization methods for hot structs
 	# identifiers will be resolved. An alternative to remove the warnings
 	# would be to temporarily move all the structs to the same file,
 	# but that involves a lot of manual work.
-	$(GO) install github.com/tinylib/msgp@v1.1.6
+	$(GO) install github.com/tinylib/msgp@$(MSGP_VERSION)
 	$(call execute_tool,msgp, -file=./public/model/utils.go -tests=false -o=./public/model/utils_serial_gen.go)
 	@echo "$$LICENSE_HEADER" > tmp.go
 	@cat ./public/model/utils_serial_gen.go >> tmp.go

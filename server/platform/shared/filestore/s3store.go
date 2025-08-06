@@ -671,8 +671,8 @@ func (b *S3FileBackend) RemoveDirectory(path string) error {
 
 		// Remove each object individually to avoid MD5 usage
 		ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
+		defer cancel2()
 		err := b.client.RemoveObject(ctx2, b.bucket, object.Key, s3.RemoveObjectOptions{})
-		cancel2()
 		if err != nil {
 			return errors.Wrapf(err, "unable to remove object %s from directory %s", object.Key, path)
 		}
