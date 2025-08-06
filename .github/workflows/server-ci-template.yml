@@ -326,3 +326,21 @@ jobs:
     name: MySQL to PostgreSQL Migration
     uses: ./.github/workflows/migration.yml
     secrets: inherit
+  test-rhel8-compatibility:
+    name: Test RHEL8 compatibility
+    runs-on: ubuntu-22.04
+    needs: build-mattermost-server
+    steps:
+      - name: Download server dist artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: server-dist-artifact
+          path: ./server-dist
+      - name: Test RHEL8 compatibility
+        run: |
+          tar -xzf ./server-dist/mattermost-team-linux-amd64.tar.gz
+          docker run --rm \
+            -v "$(pwd)/mattermost/bin/mattermost:/usr/local/bin/mattermost:ro" \
+            --platform linux/amd64 \
+            registry.access.redhat.com/ubi8/ubi:latest \
+            /usr/local/bin/mattermost --help
