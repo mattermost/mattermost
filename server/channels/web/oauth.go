@@ -557,7 +557,7 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string, otherValidScheme
 		parsed.Fragment == "" {
 		return targetURL
 	}
-	// Check if the targetURL is a valid URL and is within the siteURLPrefix, also against native app schemes which are like `mmauth://`
+	// Check if the targetURL is valid and within the siteURLPrefix, excluding native app schemes like mmauth://
 	sameScheme := parsed.Scheme == prefixParsed.Scheme
 	sameHost := parsed.Host == prefixParsed.Host
 	safePath := strings.HasPrefix(path.Clean(parsed.Path), path.Clean(prefixParsed.Path))
