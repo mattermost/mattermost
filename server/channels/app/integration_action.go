@@ -514,7 +514,9 @@ func (a *App) SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogR
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	// Limit response size to prevent OOM attacks
+	limitedReader := io.LimitReader(resp.Body, MaxDialogResponseSize)
+	body, err := io.ReadAll(limitedReader)
 	if err != nil {
 		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.read_body_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -559,7 +561,9 @@ func (a *App) LookupInteractiveDialog(c request.CTX, request model.SubmitDialogR
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	// Limit response size to prevent OOM attacks
+	limitedReader := io.LimitReader(resp.Body, MaxDialogResponseSize)
+	body, err := io.ReadAll(limitedReader)
 	if err != nil {
 		return nil, model.NewAppError("LookupInteractiveDialog", "app.lookup_interactive_dialog.read_body_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

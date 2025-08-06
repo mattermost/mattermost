@@ -565,17 +565,6 @@ func (e *DialogElement) IsValid() error {
 			multiErr = multierror.Append(multiErr, errors.Errorf("default value %q doesn't exist in options ", e.Default))
 		}
 
-	case "dynamic_select":
-		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementSelectMaxLength))
-		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementSelectMaxLength))
-		// Dynamic selects should not have static options or data_source as they get options via lookup calls
-		if len(e.Options) > 0 {
-			multiErr = multierror.Append(multiErr, errors.New("dynamic_select element should not have static options"))
-		}
-		if e.DataSource != "" {
-			multiErr = multierror.Append(multiErr, errors.New("dynamic_select element should not have a data_source"))
-		}
-
 	default:
 		multiErr = multierror.Append(multiErr, errors.Errorf("invalid element type: %q", e.Type))
 	}

@@ -676,43 +676,6 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 		assert.ErrorContains(t, err, "Placeholder cannot be longer than 150 characters")
 	})
 
-	t.Run("should pass with dynamic select element", func(t *testing.T) {
-		request := getBaseOpenDialogRequest()
-		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
-			DisplayName: "Dynamic select",
-			Name:        "dynamic_select_field",
-			Type:        "dynamic_select",
-			Placeholder: "Type to search",
-		})
-		err := request.IsValid()
-		assert.NoError(t, err)
-	})
-
-	t.Run("should fail dynamic select with static options", func(t *testing.T) {
-		request := getBaseOpenDialogRequest()
-		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
-			DisplayName: "Dynamic select",
-			Name:        "dynamic_select_field",
-			Type:        "dynamic_select",
-			Options: []*PostActionOptions{
-				{Text: "Option 1", Value: "opt1"},
-			},
-		})
-		err := request.IsValid()
-		assert.ErrorContains(t, err, "dynamic_select element should not have static options")
-	})
-
-	t.Run("should fail dynamic select with data_source", func(t *testing.T) {
-		request := getBaseOpenDialogRequest()
-		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
-			DisplayName: "Dynamic select",
-			Name:        "dynamic_select_field",
-			Type:        "dynamic_select",
-			DataSource:  "users",
-		})
-		err := request.IsValid()
-		assert.ErrorContains(t, err, "dynamic_select element should not have a data_source")
-	})
 
 	t.Run("should pass with select element with dynamic data_source", func(t *testing.T) {
 		request := getBaseOpenDialogRequest()

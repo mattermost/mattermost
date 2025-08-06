@@ -141,7 +141,7 @@
         elements. See https://docs.mattermost.com/developer/interactive-dialogs.html
         for more information on interactive dialogs.
 
-        __Minimum server version: 8.0__
+        __Minimum server version: 11.0__
       operationId: LookupInteractiveDialog
       requestBody:
         content:
