@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React, {type ReactElement, useCallback, useEffect, useMemo, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import type {MultiValue} from 'react-select';
+import  { components, MultiValue} from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import type {UserProfile} from '@mattermost/types/users';
@@ -22,6 +22,7 @@ import {UserOptionComponent} from '../../content_flagging/user_multiselector/use
 import {LoadingIndicator} from '../../system_users/system_users_filters_popover/system_users_filter_team';
 
 import './user_multiselect.scss';
+import { SelectComponentsConfig } from "react-select/dist/declarations/src/components";
 
 export type AutocompleteOptionType<T> = {
     label: string | ReactElement;
@@ -35,9 +36,11 @@ type Props = {
     onChange: (selectedUserIds: string[]) => void;
     initialValue?: string[];
     hasError?: boolean;
+    placeholder?: React.ReactNode;
+    showDropdownIndicator?: boolean;
 }
 
-export function UserMultiSelector({id, className, onChange, initialValue, hasError}: Props) {
+export function UserMultiSelector({id, className, onChange, initialValue, hasError, placeholder, showDropdownIndicator}: Props) {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const initialDataLoaded = useRef<boolean>(false);
@@ -64,7 +67,7 @@ export function UserMultiSelector({id, className, onChange, initialValue, hasErr
 
     const userLoadingMessage = useCallback(() => formatMessage({id: 'admin.userMultiSelector.loading', defaultMessage: 'Loading users'}), [formatMessage]);
     const noUsersMessage = useCallback(() => formatMessage({id: 'admin.userMultiSelector.noUsers', defaultMessage: 'No users found'}), [formatMessage]);
-    const placeholder = formatMessage({id: 'admin.userMultiSelector.placeholder', defaultMessage: 'Start typing to search for users...'});
+    const defaultPlaceholder = formatMessage({id: 'admin.userMultiSelector.placeholder', defaultMessage: 'Start typing to search for users...'});
 
     const searchUsers = useMemo(() => debounce(async (searchTerm: string, callback) => {
         try {
@@ -94,6 +97,23 @@ export function UserMultiSelector({id, className, onChange, initialValue, hasErr
         onChange?.(selectedUserIds);
     }
 
+    const components = useMemo(() => {
+        const componentObj = {
+            LoadingIndicator,
+            DropdownIndicator: () => null,
+            IndicatorSeparator: () => null,
+            Option: UserOptionComponent,
+            MultiValue: UserProfilePill,
+        };
+
+        if (showDropdownIndicator) {
+            // @ts-expect-error doing this any other way runs into TypeScript nightmares of very complex ReactSelect types
+            delete componentObj.DropdownIndicator;
+        }
+
+        return componentObj;
+    }, [showDropdownIndicator]);
+
     return (
         <div className='UserMultiSelector'>
             <AsyncSelect
@@ -105,19 +125,14 @@ export function UserMultiSelector({id, className, onChange, initialValue, hasErr
                 isClearable={false}
                 hideSelectedOptions={true}
                 cacheOptions={true}
-                placeholder={placeholder}
+                placeholder={placeholder || defaultPlaceholder}
                 loadingMessage={userLoadingMessage}
                 noOptionsMessage={noUsersMessage}
                 loadOptions={searchUsers}
                 onChange={handleOnChange}
                 value={selectInitialValue}
-                components={{
-                    LoadingIndicator,
-                    DropdownIndicator: () => null,
-                    IndicatorSeparator: () => null,
-                    Option: UserOptionComponent,
-                    MultiValue: UserProfilePill,
-                }}
+                components={components}
+                menuPortalTarget={document.body}
             />
         </div>
     );

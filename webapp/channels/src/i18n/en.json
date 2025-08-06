@@ -4351,6 +4351,7 @@
   "generic.next": "Next",
   "generic.okay": "Okay",
   "generic.previous": "Previous",
+  "generic.unassigned": "Unassigned",
   "get_app.continueToBrowser": "View in Browser",
   "get_app.dontHaveTheDesktopApp": "Don't have the Desktop App?",
   "get_app.dontHaveTheMobileApp": "Don't have the Mobile App?",
