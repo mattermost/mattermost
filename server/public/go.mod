@@ -1,6 +1,6 @@
 module github.com/mattermost/mattermost/server/public
 
-go 1.24.3
+go 1.24.5
 
 require (
 	github.com/blang/semver/v4 v4.0.0
