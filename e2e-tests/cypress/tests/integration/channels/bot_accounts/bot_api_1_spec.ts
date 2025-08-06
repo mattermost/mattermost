@@ -77,7 +77,6 @@ describe('Bot accounts ownership and API', () => {
         const botName3 = 'stay-enabled-bot-' + Date.now();
 
         cy.request({
-            headers: {'X-Requested-With': 'XMLHttpRequest'},
             url: '/api/v4/bots',
             method: 'POST',
             failOnStatusCode: false,

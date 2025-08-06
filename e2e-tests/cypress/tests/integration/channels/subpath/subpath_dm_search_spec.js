@@ -31,7 +31,6 @@ describe('Subpath Direct Message Search', () => {
 
         // # Log into admin account of other subpath server
         cy.request({
-            headers: {'X-Requested-With': 'XMLHttpRequest'},
             url: `${secondServer}/api/v4/users/login`,
             method: 'POST',
             body: {login_id: admin.username, password: admin.password},
@@ -41,7 +40,6 @@ describe('Subpath Direct Message Search', () => {
             // # Create a user on other subpath server
             const newUser = generateRandomUser('otherSubpathUser');
             const createUserOption = {
-                headers: {'X-Requested-With': 'XMLHttpRequest'},
                 method: 'POST',
                 url: `${secondServer}/api/v4/users`,
                 body: newUser,

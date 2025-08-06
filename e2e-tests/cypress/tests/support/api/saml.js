@@ -8,7 +8,6 @@
 
 Cypress.Commands.add('apiGetSAMLCertificateStatus', () => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/saml/certificate/status',
         method: 'GET',
     }).then((response) => {
@@ -19,7 +18,6 @@ Cypress.Commands.add('apiGetSAMLCertificateStatus', () => {
 
 Cypress.Commands.add('apiGetMetadataFromIdp', (samlMetadataUrl) => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/saml/metadatafromidp',
         method: 'POST',
         body: {saml_metadata_url: samlMetadataUrl},

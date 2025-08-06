@@ -164,7 +164,6 @@ function createTrialNotificationForEnterpriseFeatures() {
 function triggerNotifications(url, trial = false, _failOnStatusCode = true) {
     cy.apiAdminLogin().then(() => {
         cy.request({
-            headers: {'X-Requested-With': 'XMLHttpRequest'},
             method: 'POST',
             url: '/api/v4/users/trigger-notify-admin-posts',
             body: {

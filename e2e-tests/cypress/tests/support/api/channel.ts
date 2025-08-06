@@ -50,7 +50,6 @@ function apiCreateChannel(
     header?: string,
     unique: boolean = true): ChainableT<{channel: Channel}> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/channels',
         method: 'POST',
         body: createChannelPatch(teamId, name, displayName, type, purpose, header, unique),
@@ -75,7 +74,6 @@ Cypress.Commands.add('apiCreateChannel', apiCreateChannel);
  */
 function apiCreateDirectChannel(userIds: string[] = []): ChainableT<{channel: Channel}> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/channels/direct',
         method: 'POST',
         body: userIds,
@@ -100,7 +98,6 @@ Cypress.Commands.add('apiCreateDirectChannel', apiCreateDirectChannel);
  */
 function apiCreateGroupChannel(userIds: string[]): ChainableT<{channel: Channel}> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/channels/group',
         method: 'POST',
         body: userIds,
@@ -129,7 +126,6 @@ Cypress.Commands.add('apiCreateGroupChannel', apiCreateGroupChannel);
  */
 function apiUpdateChannel(channelId: string, channel: Channel): ChainableT<{channel: Channel}> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/channels/' + channelId,
         method: 'PUT',
         body: {
@@ -162,7 +158,6 @@ Cypress.Commands.add('apiUpdateChannel', apiUpdateChannel);
  */
 function apiPatchChannel(channelId: string, channel: Partial<Channel>): ChainableT<{channel: Channel}> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         method: 'PUT',
         url: `/api/v4/channels/${channelId}/patch`,
         body: channel,
@@ -186,7 +181,6 @@ Cypress.Commands.add('apiPatchChannel', apiPatchChannel);
  */
 function apiPatchChannelPrivacy(channelId: string, privacy = 'O'): ChainableT<{channel: Channel}> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         method: 'PUT',
         url: `/api/v4/channels/${channelId}/privacy`,
         body: {privacy},
@@ -211,7 +205,6 @@ Cypress.Commands.add('apiPatchChannelPrivacy', apiPatchChannelPrivacy);
  */
 function apiGetChannel(channelId: string): ChainableT<{channel: Channel}> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/channels/${channelId}`,
     }).then((response) => {
         expect(response.status).to.equal(200);
@@ -235,7 +228,6 @@ Cypress.Commands.add('apiGetChannel', apiGetChannel);
  */
 function apiGetChannelByName(teamName: string, channelName: string): ChainableT<{channel: Channel}> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/teams/name/${teamName}/channels/name/${channelName}`,
     }).then((response) => {
         expect(response.status).to.equal(200);
@@ -257,7 +249,6 @@ Cypress.Commands.add('apiGetChannelByName', apiGetChannelByName);
  */
 function apiGetAllChannels(): ChainableT<{channels: Channel[]}> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/channels',
     }).then((response) => {
         expect(response.status).to.equal(200);
@@ -279,7 +270,6 @@ Cypress.Commands.add('apiGetAllChannels', apiGetAllChannels);
  */
 function apiGetChannelsForUser(userId: string, teamId: string): ChainableT<{channels: Channel[]}> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/users/${userId}/teams/${teamId}/channels`,
     }).then((response) => {
         expect(response.status).to.equal(200);
@@ -302,7 +292,6 @@ Cypress.Commands.add('apiGetChannelsForUser', apiGetChannelsForUser);
  */
 function apiDeleteChannel(channelId: string): ChainableT<any> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/channels/' + channelId,
         method: 'DELETE',
     }).then((response) => {
@@ -327,7 +316,6 @@ Cypress.Commands.add('apiDeleteChannel', apiDeleteChannel);
  */
 function apiAddUserToChannel(channelId: string, userId: string): ChainableT<{member: ChannelMembership}> {
     return cy.request<ChannelMembership>({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/channels/' + channelId + '/members',
         method: 'POST',
         body: {
@@ -343,7 +331,6 @@ Cypress.Commands.add('apiAddUserToChannel', apiAddUserToChannel);
 
 function apiRemoveUserFromChannel(channelId, userId): ChainableT<any> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/channels/' + channelId + '/members/' + userId,
         method: 'DELETE',
     }).then((response) => {
@@ -402,7 +389,6 @@ function apiConvertGMToPrivateChannel(channelId: string, teamId: string, display
     };
 
     return cy.request<void>({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/channels/${channelId}/convert_to_channel?team_id=${teamId}`,
         method: 'POST',
         body,

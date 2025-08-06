@@ -11,7 +11,6 @@ Cypress.Commands.add('apiUpdateUserStatus', (status = 'online') => {
         const data = {user_id: cookie.value, status};
 
         return cy.request({
-            headers: {'X-Requested-With': 'XMLHttpRequest'},
             url: '/api/v4/users/me/status',
             method: 'PUT',
             body: data,
@@ -24,7 +23,6 @@ Cypress.Commands.add('apiUpdateUserStatus', (status = 'online') => {
 
 Cypress.Commands.add('apiGetUserStatus', (userId) => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/users/${userId}/status`,
         method: 'GET',
     }).then((response) => {
@@ -35,7 +33,6 @@ Cypress.Commands.add('apiGetUserStatus', (userId) => {
 
 Cypress.Commands.add('apiUpdateUserCustomStatus', (customStatus) => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/users/me/status/custom',
         method: 'PUT',
         body: JSON.stringify(customStatus),
@@ -46,7 +43,6 @@ Cypress.Commands.add('apiUpdateUserCustomStatus', (customStatus) => {
 
 Cypress.Commands.add('apiClearUserCustomStatus', () => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/users/me/status/custom',
         method: 'DELETE',
     }).then((response) => {

@@ -64,7 +64,6 @@ describe('Managing bot accounts', () => {
         // * Validate that creating bot fails
 
         cy.request({
-            headers: {'X-Requested-With': 'XMLHttpRequest'},
             url: '/api/v4/bots',
             method: 'POST',
             failOnStatusCode: false,

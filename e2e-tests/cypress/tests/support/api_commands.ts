@@ -20,7 +20,6 @@ type CypressResponseAny = Cypress.Response<any>
 function apiCreateCommand(command: Record<string, any> = {}): Cypress.Chainable<{data: CypressResponseAny['body']; status: CypressResponseAny['status']}> {
     const options = {
         url: '/api/v4/commands',
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         method: 'POST',
         body: command,
     };
@@ -38,7 +37,6 @@ Cypress.Commands.add('apiCreateCommand', apiCreateCommand);
 // *****************************************************************************
 function apiEmailTest(): ResponseT {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/email/test',
         method: 'POST',
     }).then((response) => {
@@ -54,7 +52,7 @@ Cypress.Commands.add('apiEmailTest', apiEmailTest);
 // *****************************************************************************
 
 function apiCreatePost(channelId: string, message: string, rootId: string, props: Record<string, any>, token = '', failOnStatusCode = true): ResponseT {
-    const headers: Record<string, string> = {'X-Requested-With': 'XMLHttpRequest'};
+    const headers: Record<string, string> = {};
     if (token !== '') {
         headers.Authorization = `Bearer ${token}`;
     }
@@ -89,7 +87,6 @@ Cypress.Commands.add('apiDeletePost', apiDeletePost);
 
 function apiCreateToken(userId: string): Cypress.Chainable<{token: string}> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/users/${userId}/tokens`,
         method: 'POST',
         body: {
@@ -109,7 +106,6 @@ Cypress.Commands.add('apiCreateToken', apiCreateToken);
  */
 function apiUnpinPosts(postId: string): ResponseT {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/posts/' + postId + '/unpin',
         method: 'POST',
     });
@@ -125,7 +121,6 @@ function apiCreateWebhook(hook: Record<string, any> = {}, isIncoming = true): Ch
     const hookUrl = isIncoming ? '/api/v4/hooks/incoming' : '/api/v4/hooks/outgoing';
     const options = {
         url: hookUrl,
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         method: 'POST',
         body: hook,
     };
@@ -140,7 +135,6 @@ Cypress.Commands.add('apiCreateWebhook', apiCreateWebhook);
 
 function apiGetTeam(teamId: string): ChainableT<any> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `api/v4/teams/${teamId}`,
         method: 'GET',
     }).then((response) => {
@@ -171,7 +165,6 @@ interface LDAPSyncResponse {
 
 function apiGetLDAPSync(): Cypress.Chainable<LDAPSyncResponse > {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/jobs/type/ldap_sync?page=0&per_page=50',
         method: 'GET',
         timeout: 60000,
@@ -188,7 +181,6 @@ Cypress.Commands.add('apiGetLDAPSync', apiGetLDAPSync);
 // *****************************************************************************
 function apiGetGroups(page = 0, perPage = 100): ResponseT {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/groups?page=${page}&per_page=${perPage}`,
         method: 'GET',
         timeout: 60000,
@@ -201,7 +193,6 @@ Cypress.Commands.add('apiGetGroups', apiGetGroups);
 
 function apiPatchGroup(groupID: string, patch: Record<string, any>): ResponseT {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/groups/${groupID}/patch`,
         method: 'PUT',
         timeout: 60000,
@@ -215,7 +206,6 @@ Cypress.Commands.add('apiPatchGroup', apiPatchGroup);
 
 function apiGetLDAPGroups(page = 0, perPage = 100): ResponseT {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/ldap/groups?page=${page}&per_page=${perPage}`,
         method: 'GET',
         timeout: 60000,
@@ -229,7 +219,6 @@ Cypress.Commands.add('apiGetLDAPGroups', apiGetLDAPGroups);
 
 function apiAddLDAPGroupLink(remoteId: string) {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/ldap/groups/${remoteId}/link`,
         method: 'POST',
         timeout: 60000,
@@ -241,7 +230,6 @@ Cypress.Commands.add('apiAddLDAPGroupLink', apiAddLDAPGroupLink);
 
 function apiGetTeamGroups(teamId: string) {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/teams/${teamId}/groups`,
         method: 'GET',
         timeout: 60000,
@@ -254,7 +242,6 @@ Cypress.Commands.add('apiGetTeamGroups', apiGetTeamGroups);
 
 function apiDeleteLinkFromTeamToGroup(groupId: string, teamId: string): ResponseT {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/groups/${groupId}/teams/${teamId}/link`,
         method: 'DELETE',
         timeout: 60000,
@@ -277,7 +264,6 @@ Cypress.Commands.add('apiUnlinkGroup', apiUnlinkGroup);
 
 function linkUnlinkGroup(groupID: string, httpMethod: string): ResponseT {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/ldap/groups/${groupID}/link`,
         method: httpMethod,
         timeout: 60000,
@@ -309,7 +295,6 @@ Cypress.Commands.add('apiGetGroupChannel', apiGetGroupChannel);
 
 function getGroupSyncable(groupID: string, syncableType: string, syncableID: string): ResponseT {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/groups/${groupID}/${syncableType}s/${syncableID}`,
         method: 'GET',
         timeout: 60000,
@@ -321,7 +306,6 @@ function getGroupSyncable(groupID: string, syncableType: string, syncableID: str
 
 function getGroupSyncables(groupID: string, syncableType: string): ResponseT {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/groups/${groupID}/${syncableType}s?page=0&per_page=100`,
         method: 'GET',
         timeout: 60000,
@@ -419,7 +403,6 @@ Cypress.Commands.add('simulateSubscription', simulateSubscription);
 
 function linkUnlinkGroupSyncable(groupID: string, syncableID: string, syncableType: string, httpMethod: string) {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/groups/${groupID}/${syncableType}s/${syncableID}/link`,
         method: httpMethod,
         body: {auto_add: true},

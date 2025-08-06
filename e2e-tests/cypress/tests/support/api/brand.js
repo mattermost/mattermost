@@ -8,7 +8,6 @@
 
 Cypress.Commands.add('apiDeleteBrandImage', () => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/brand/image',
         method: 'DELETE',
         failOnStatusCode: false,

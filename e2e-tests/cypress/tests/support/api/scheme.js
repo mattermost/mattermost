@@ -8,7 +8,6 @@
 
 Cypress.Commands.add('apiGetSchemes', (scope) => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/schemes?scope=${scope}`,
         method: 'GET',
     }).then((response) => {
@@ -19,7 +18,6 @@ Cypress.Commands.add('apiGetSchemes', (scope) => {
 
 Cypress.Commands.add('apiCreateScheme', (name, scope, description) => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/schemes',
         method: 'POST',
         body: {display_name: name, scope, description},
@@ -31,7 +29,6 @@ Cypress.Commands.add('apiCreateScheme', (name, scope, description) => {
 
 Cypress.Commands.add('apiDeleteScheme', (schemeId) => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/schemes/' + schemeId,
         method: 'DELETE',
     }).then((response) => {

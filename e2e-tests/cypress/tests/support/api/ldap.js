@@ -8,7 +8,6 @@
 
 Cypress.Commands.add('apiLDAPSync', () => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/ldap/sync',
         method: 'POST',
     }).then((response) => {
@@ -19,7 +18,6 @@ Cypress.Commands.add('apiLDAPSync', () => {
 
 Cypress.Commands.add('apiLDAPTest', () => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/ldap/test',
         method: 'POST',
     }).then((response) => {

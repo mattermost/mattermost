@@ -15,6 +15,30 @@ Cypress.Commands.overwrite('visit', (originalFn, url, options, duration = TIMEOU
     cy.wait(duration);
 });
 
+Cypress.Commands.overwrite('request', (originalFn, options) => {
+    // If it has an Authorization header, skip CSRF token injection
+    if (options.method.toLocaleLowerCase() === 'GET' || options?.headers?.Authorization) {
+        return originalFn(options);
+    }
+
+    // Inject the CSRF token from the MMCSRF cookie into the request headers
+    // This is necessary for POST, PUT, DELETE requests to ensure CSRF protection
+    return cy.getCookie('MMCSRF').then((csrfCookie) => {
+        if (csrfCookie) {
+            if (!options.headers) {
+                options.headers = {};
+            }
+
+            options.headers = {
+                ...options.headers,
+                'X-CSRF-Token': csrfCookie.value,
+            };
+        }
+
+        return originalFn(options);
+    });
+});
+
 Cypress.Commands.add('typeWithForce', {prevSubject: true}, (subject, text, options = {}) => {
     cy.get(subject).type(text, {force: true, ...options});
 });
