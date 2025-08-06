@@ -676,7 +676,6 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 		assert.ErrorContains(t, err, "Placeholder cannot be longer than 150 characters")
 	})
 
-
 	t.Run("should pass with select element with dynamic data_source", func(t *testing.T) {
 		request := getBaseOpenDialogRequest()
 		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
