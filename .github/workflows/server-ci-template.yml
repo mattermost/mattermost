@@ -36,7 +36,7 @@ jobs:
         id: go
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
-        if: ${{ inputs.fips-enabled }}
+        if: ${{ ! inputs.fips-enabled }}
         uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
         with:
           go-version: ${{ steps.go.outputs.GO_VERSION }}
@@ -110,8 +110,6 @@ jobs:
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run golangci
-        env:
-          GOFLAGS: -buildvcs=false
         run: make golangci-lint
   check-gen-serialized:
     name: Check serialization methods for hot structs
@@ -176,8 +174,6 @@ jobs:
       - name: Run plugin-checker
         run: make plugin-checker
       - name: Run mattermost-vet
-        env:
-          MM_NO_ENTERPRISE_LINT: true
         run: make vet BUILD_NUMBER='${GITHUB_HEAD_REF}'
   check-mattermost-vet-api:
     name: Vet API

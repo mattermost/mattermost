@@ -116,7 +116,7 @@ GOFLAGS ?= $(GOFLAGS:)
 
 ifeq ($(FIPS_ENABLED),true)
 	export GOBIN ?= /root/go/bin
-	GO ?= docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOFLAGS -e OUTPUT_CONFIG $(FIPS_IMAGE)
+	GO ?= docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOFLAGS="-buildvcs=false $(GOFLAGS)" -e OUTPUT_CONFIG $(FIPS_IMAGE)
 	BUILD_TAGS += requirefips
 else
 	export GOBIN ?= $(PWD)/bin
@@ -127,7 +127,7 @@ endif
 # Usage: $(call execute_tool,toolname,arguments)
 define execute_tool
 @if [ "$(FIPS_ENABLED)" = "true" ]; then \
-	docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOFLAGS -e OUTPUT_CONFIG --entrypoint $(GOBIN)/$(1) $(FIPS_IMAGE) $(2); \
+	docker run --rm -v $(PWD)/../../:/build -v $(PWD)/.go:/root/go -v ~/.cache:/.cache -w /build/mattermost/server -e GOFLAGS="-buildvcs=false $(GOFLAGS)" -e OUTPUT_CONFIG --entrypoint $(GOBIN)/$(1) $(FIPS_IMAGE) $(2); \
 else \
 	$(GOBIN)/$(1) $(2); \
 fi
