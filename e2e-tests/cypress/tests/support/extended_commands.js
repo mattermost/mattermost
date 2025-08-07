@@ -17,11 +17,11 @@ Cypress.Commands.overwrite('visit', (originalFn, url, options, duration = TIMEOU
 
 Cypress.Commands.overwrite('request', (originalFn, options) => {
     // If it has an Authorization header, skip CSRF token injection
-    if (options.method.toLocaleLowerCase() === 'GET' || options?.headers?.Authorization) {
+    if (options?.headers?.Authorization) {
         return originalFn(options);
     }
 
-    // Inject the CSRF token from the MMCSRF cookie into the request headers
+    // Inject CSRF token into the request headers if it exists
     // This is necessary for POST, PUT, DELETE requests to ensure CSRF protection
     return cy.getCookie('MMCSRF').then((csrfCookie) => {
         if (csrfCookie) {

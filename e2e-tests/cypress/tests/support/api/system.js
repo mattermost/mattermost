@@ -27,7 +27,10 @@ function hasLicenseForFeature(license, key) {
 }
 
 Cypress.Commands.add('apiGetClientLicense', () => {
-    return cy.request('/api/v4/license/client?format=old').then((response) => {
+    return cy.request({
+        url: '/api/v4/license/client?format=old',
+        method: 'GET',
+    }).then((response) => {
         expect(response.status).to.equal(200);
 
         const license = response.body;
@@ -194,23 +197,13 @@ Cypress.Commands.add('apiReloadConfig', () => {
 });
 
 Cypress.Commands.add('apiGetConfig', (old = false) => {
-    return cy.getCookie('MMCSRF').then((csrfCookie) => {
-        let headers = {};
-        if (csrfCookie) {
-            headers = {
-                'X-CSRF-Token': csrfCookie.value,
-            };
-        }
-
-        // # Get current settings
-        return cy.request({
-            url: `/api/v4/config${old ? '/client?format=old' : ''}`,
-            method: 'GET',
-            headers,
-        }).then((response) => {
-            expect(response.status).to.equal(200);
-            return cy.wrap({config: response.body});
-        });
+    // # Get current settings
+    return cy.request({
+        url: `/api/v4/config${old ? '/client?format=old' : ''}`,
+        method: 'GET',
+    }).then((response) => {
+        expect(response.status).to.equal(200);
+        return cy.wrap({config: response.body});
     });
 });
 
