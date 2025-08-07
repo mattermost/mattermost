@@ -216,6 +216,7 @@ export default class SettingItemMax extends React.PureComponent<Props> {
         return (
             <section
                 className={`section-max form-horizontal ${this.props.containerStyle}`}
+                ref={this.settingList}
             >
                 {title}
                 {this.props.extraContentBeforeSettingList}
@@ -227,7 +228,6 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                 >
                     <div
                         tabIndex={-1}
-                        ref={this.settingList}
                         className='setting-list'
                     >
                         {listContent}
