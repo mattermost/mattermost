@@ -451,6 +451,19 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             return true; // Simple check, full validation happens server-side
         }
 
+        // Allow HTTP URLs to localhost and 127.0.0.1 for testing scenarios
+        if (url.startsWith('http://')) {
+            try {
+                const parsedURL = new URL(url);
+                const host = parsedURL.hostname;
+                if (host === 'localhost' || host === '127.0.0.1') {
+                    return true;
+                }
+            } catch {
+                return false;
+            }
+        }
+
         // Only allow plugin paths that start with /plugins/
         if (url.startsWith('/plugins/')) {
             // Additional validation for plugin paths - ensure no path traversal

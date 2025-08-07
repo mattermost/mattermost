@@ -350,6 +350,7 @@ export function convertElement(element: DialogElement, options: ConversionOption
         if (element.type === DialogElementTypes.SELECT && element.data_source === 'dynamic') {
             appField.lookup = {
                 path: element.data_source_url || '',
+                expand: {},
             };
         }
     }
