@@ -435,6 +435,13 @@ func (b *BleveEngine) SearchUsersInChannel(teamId, channelId string, restrictedT
 	channelIdQ.SetField("ChannelsIds")
 	queries = append(queries, channelIdQ)
 
+	// Filter out inactive users if AllowInactive is false
+	if !options.AllowInactive {
+		inactiveQ := bleve.NewTermQuery("0")
+		inactiveQ.SetField("DeleteAt")
+		queries = append(queries, inactiveQ)
+	}
+
 	query := bleve.NewConjunctionQuery(queries...)
 
 	uchanSearch := bleve.NewSearchRequest(query)
@@ -513,6 +520,13 @@ func (b *BleveEngine) SearchUsersInTeam(teamId string, restrictedToChannels []st
 				termQ.SetField("SuggestionsWithoutFullname")
 			}
 			boolQ.AddMust(termQ)
+		}
+
+		// Filter out inactive users if AllowInactive is false
+		if !options.AllowInactive {
+			inactiveQ := bleve.NewTermQuery("0")
+			inactiveQ.SetField("DeleteAt")
+			boolQ.AddMust(inactiveQ)
 		}
 
 		if len(restrictedToChannels) > 0 {
