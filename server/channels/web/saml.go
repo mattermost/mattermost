@@ -117,7 +117,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		redirectURL = val
 		hasRedirectURL = val != ""
 	}
-	redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL)
+	redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL, c.App.Config().NativeAppSettings.AppCustomURLSchemes)
 
 	handleError := func(err *model.AppError) {
 		if isMobile && hasRedirectURL {
