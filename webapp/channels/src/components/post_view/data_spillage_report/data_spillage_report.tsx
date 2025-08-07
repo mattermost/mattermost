@@ -22,6 +22,7 @@ import type {GlobalState} from 'types/store';
 import './data_spillage_report.scss';
 import {usePost} from "components/common/hooks/usePost";
 import {useChannel} from "components/common/hooks/useChannel";
+import DataSpillageAction from "components/post_view/data_spillage_report/data_spillage_actions/data_spillage_actions";
 
 function getDummyPropertyFields(): PropertyField[] {
     return [
@@ -219,7 +220,7 @@ function getDummyPropertyValues(postId: string, channelId: string, teamId: strin
             target_id: 'reported_post_id',
             target_type: 'post',
             group_id: 'content_flagging_group_id',
-            value: '845mry6gk7fjmra1eocyt7akzo',
+            value: 'ewgposajm3fwpjbqu1t6scncia',
             create_at: 0,
             update_at: 0,
             delete_at: 0,
@@ -417,12 +418,16 @@ export default function DataSpillageReport({post}: Props) {
     }, [reportedPost, reportedPostId, channel, post.create_at]);
 
     return (
-        <div className={'DataSpillageReport'}>
+        <div
+            className={'DataSpillageReport'}
+            onClick={(e) => e.stopPropagation()}
+        >
             <PropertiesCardView
                 title={title}
                 propertyFields={propertyFields}
                 propertyValues={propertyValues}
                 fieldOrder={fieldOrder}
+                actionsRow={<DataSpillageAction/>}
             />
         </div>
     );

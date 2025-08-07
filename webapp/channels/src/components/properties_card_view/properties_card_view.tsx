@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo} from 'react';
+import {FormattedMessage} from 'react-intl';
 
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
@@ -15,9 +16,10 @@ type Props = {
     fieldOrder: Array<PropertyField['id']>;
     propertyValues: Array<PropertyValue<unknown>>;
     mode?: 'short' | 'full';
+    actionsRow?: React.ReactNode;
 }
 
-export default function PropertiesCardView({title, propertyFields, fieldOrder, propertyValues, mode}: Props) {
+export default function PropertiesCardView({title, propertyFields, fieldOrder, propertyValues, mode, actionsRow}: Props) {
     const orderedRows = useMemo<Array<{field: PropertyField; value: PropertyValue<unknown>}>>(() => {
         if (!propertyFields.length || !fieldOrder.length || !propertyValues.length) {
             return [];
@@ -75,6 +77,22 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, p
                             </div>
                         );
                     })
+                }
+
+                {
+                    actionsRow &&
+                    <div className='row'>
+                        <div className='field'>
+                            <FormattedMessage
+                                id='property_card.actions_row.label'
+                                defaultMessage='Actions'
+                            />
+                        </div>
+
+                        <div className='value'>
+                            {actionsRow}
+                        </div>
+                    </div>
                 }
             </div>
         </div>
