@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import type {PDFDocumentProxy, PDFPageProxy} from 'pdfjs-dist';
 import React from 'react';
 
 import PDFPreview from 'components/pdf_preview';
 import type {Props} from 'components/pdf_preview';
 
+import {fireEvent, renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 jest.mock('pdfjs-dist', () => ({
@@ -28,51 +27,29 @@ describe('component/PDFPreview', () => {
         handleBgClose: jest.fn(),
     };
 
-    test('should match snapshot, loading', () => {
-        const wrapper = shallow(
-            <PDFPreview {...requiredProps}/>,
-        );
-        expect(wrapper).toMatchSnapshot();
+    test('should show loading spinner when loading', () => {
+        const {getByTestId} = renderWithContext(<PDFPreview {...requiredProps}/>);
+
+        expect(getByTestId('loadingSpinner')).toBeInTheDocument();
+        expect(getByTestId('loadingSpinner')).toBeVisible();
     });
 
-    test('should match snapshot, not successful', () => {
-        const wrapper = shallow(
-            <PDFPreview {...requiredProps}/>,
-        );
-        wrapper.setState({loading: false});
-        expect(wrapper).toMatchSnapshot();
+    test('should show file details on fail', () => {
+        const updatedProps: Props = {...requiredProps, fileUrl: ''};
+
+        const {getByTestId} = renderWithContext(<PDFPreview {...updatedProps}/>);
+
+        expect(getByTestId('file-details__container')).toBeInTheDocument();
+        expect(getByTestId('file-details__container')).toBeVisible();
+
+        expect(getByTestId('loadingSpinner')).not.toBeInTheDocument();
     });
 
-    test('should update state with new value from props when prop changes', () => {
-        const wrapper = shallow<PDFPreview>(
-            <PDFPreview {...requiredProps}/>,
-        );
-        const newFileUrl = 'https://some-new-url';
+    test('should call handleBgClose when clicked', () => {
+        const {getByTestId} = renderWithContext(<PDFPreview {...requiredProps}/>);
 
-        wrapper.setProps({fileUrl: newFileUrl});
-        const {prevFileUrl} = wrapper.instance().state;
-        expect(prevFileUrl).toEqual(newFileUrl);
-    });
+        fireEvent.click(getByTestId('pdf-container'));
 
-    test('should return correct state when onDocumentLoad is called', () => {
-        const wrapper = shallow<PDFPreview>(
-            <PDFPreview {...requiredProps}/>,
-        );
-
-        let pdf = {numPages: 0} as PDFDocumentProxy;
-        wrapper.instance().onDocumentLoad(pdf);
-        expect(wrapper.state('pdf')).toEqual(pdf);
-        expect(wrapper.state('numPages')).toEqual(pdf.numPages);
-
-        pdf = {
-            numPages: 100,
-            getPage: async (i) => {
-                const page = {pageNumber: i} as PDFPageProxy;
-                return Promise.resolve(page);
-            },
-        } as PDFDocumentProxy;
-        wrapper.instance().onDocumentLoad(pdf);
-        expect(wrapper.state('pdf')).toEqual(pdf);
-        expect(wrapper.state('numPages')).toEqual(pdf.numPages);
+        expect(requiredProps.handleBgClose).toHaveBeenCalledTimes(1);
     });
 });
