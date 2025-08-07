@@ -43,18 +43,22 @@ const CodePreview = ({
             const usedLanguage = SyntaxHighlighting.getLanguageFromFileExtension(fileInfo.extension);
 
             if (!usedLanguage || fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE) {
-                setCodeInfo({...codeInfo, code: '', lang: ''});
+                setCodeInfo((prevCodeInfo) => {
+                    return {...prevCodeInfo, code: '', lang: ''};
+                });
 
                 setStatus('fail');
             } else {
-                setCodeInfo({...codeInfo, code: '', lang: usedLanguage});
+                setCodeInfo((prevCodeInfo) => {
+                    return {...prevCodeInfo, code: '', lang: usedLanguage};
+                });
 
                 setStatus('loading');
             }
 
             setPrevFileUrl(fileUrl);
         }
-    }, [codeInfo, fileInfo.extension, fileInfo.size, fileUrl, prevFileUrl]);
+    }, [fileInfo.extension, fileInfo.size, fileUrl, prevFileUrl]);
 
     const shouldNotGetCode = !codeInfo.lang || fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE;
 
