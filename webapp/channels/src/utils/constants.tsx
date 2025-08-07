@@ -856,6 +856,7 @@ export const PostTypes = {
     WRANGLER: 'system_wrangler',
     CUSTOM_CALLS: 'custom_calls',
     CUSTOM_CALLS_RECORDING: 'custom_calls_recording',
+    CUSTOM_DATA_SPILLAGE_REPORT: 'custom_data_spillage_report',
 };
 
 export const StatTypes = keyMirror({

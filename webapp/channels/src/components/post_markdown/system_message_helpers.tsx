@@ -469,11 +469,12 @@ export function renderSystemMessage(post: Post, currentTeamName: string, channel
         return (
             <GMConversionMessage post={post}/>
         );
-    } else if (post.type === Posts.POST_TYPES.DATA_SPILLAGE_REPORT) {
-        return (
-            <DataSpillageReport post={post}/>
-        );
     }
+    // else if (post.type === Posts.POST_TYPES.DATA_SPILLAGE_REPORT) {
+    //     return (
+    //         <DataSpillageReport post={post}/>
+    //     );
+    // }
 
     return null;
 }
