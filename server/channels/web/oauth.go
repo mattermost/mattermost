@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"path"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -21,6 +22,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+)
+
+const (
+	callbackHost = "callback"
 )
 
 func (w *Web) InitOAuth() {
@@ -316,7 +321,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			hasRedirectURL = redirectURL != ""
 		}
 	}
-	redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL)
+	redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL, c.App.Config().NativeAppSettings.AppCustomURLSchemes)
 
 	renderError := func(err *model.AppError) {
 		if isMobile && hasRedirectURL {
@@ -536,7 +541,7 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, authURL, http.StatusFound)
 }
 
-func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string) string {
+func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string, otherValidSchemes []string) string {
 	parsed, err := url.Parse(targetURL)
 	if err != nil {
 		return siteURLPrefix
@@ -545,8 +550,15 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string) string {
 	if err != nil {
 		return siteURLPrefix
 	}
-
-	// Check if the targetURL is a valid URL and is within the siteURLPrefix
+	// mobile access
+	if slices.Contains(otherValidSchemes, fmt.Sprintf("%v://", parsed.Scheme)) &&
+		parsed.Host == callbackHost &&
+		parsed.Path == "" &&
+		parsed.RawQuery == "" &&
+		parsed.Fragment == "" {
+		return targetURL
+	}
+	// Check if the targetURL is valid and within the siteURLPrefix, excluding native app schemes like mmauth://
 	sameScheme := parsed.Scheme == prefixParsed.Scheme
 	sameHost := parsed.Host == prefixParsed.Host
 	safePath := strings.HasPrefix(path.Clean(parsed.Path), path.Clean(prefixParsed.Path))
