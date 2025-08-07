@@ -378,9 +378,10 @@ const fieldOrder = [
 
 type Props = {
     post: Post;
+    isRHS?: boolean;
 };
 
-export default function DataSpillageReport({post}: Props) {
+export default function DataSpillageReport({post, isRHS}: Props) {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
 
@@ -428,6 +429,7 @@ export default function DataSpillageReport({post}: Props) {
                 propertyValues={propertyValues}
                 fieldOrder={fieldOrder}
                 actionsRow={<DataSpillageAction/>}
+                mode={isRHS ? 'full' : 'short'}
             />
         </div>
     );

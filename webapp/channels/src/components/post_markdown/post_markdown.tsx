@@ -47,6 +47,8 @@ export type OwnProps = {
      * Whether or not to render text emoticons (:D) as emojis
      */
     renderEmoticonsAsEmoji?: boolean;
+
+    isRHS?: boolean;
 };
 
 type Props = PropsFromRedux & OwnProps;
@@ -99,7 +101,7 @@ export default class PostMarkdown extends React.PureComponent<Props> {
         }
 
         if (this.props.post && this.props.post.type === PostTypes.CUSTOM_DATA_SPILLAGE_REPORT) {
-            return <div><DataSpillageReport post={this.props.post}/></div>;
+            return <div><DataSpillageReport post={this.props.post} isRHS={this.props.isRHS}/></div>;
         }
 
         // Proxy images if we have an image proxy and the server hasn't already rewritten the this.props.post's image URLs.
