@@ -7253,6 +7253,10 @@
     "translation": "This team has reached the maximum number of allowed accounts. Contact your System Administrator to set a higher limit."
   },
   {
+    "id": "app.team.join_user_to_team.rejected_by_plugin.app_error",
+    "translation": "Team join rejected by plugin: {{ .Reason }}"
+  },
+  {
     "id": "app.team.join_user_to_team.save_member.app_error",
     "translation": "Unable to create the new team membership"
   },
@@ -7263,10 +7267,6 @@
   {
     "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
     "translation": "Unable to create the new team membership because the team has reached the limit of members"
-  },
-  {
-    "id": "app.team.join_user_to_team.rejected_by_plugin.app_error", 
-    "translation": "Team join rejected by plugin: {{ .Reason }}"
   },
   {
     "id": "app.team.migrate_team_members.update.app_error",
