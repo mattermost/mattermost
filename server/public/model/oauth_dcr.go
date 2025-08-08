@@ -16,26 +16,25 @@ type ClientRegistrationRequest struct {
 	RedirectURIs []string `json:"redirect_uris"`
 
 	// Optional client metadata
-	TokenEndpointAuthMethod *string   `json:"token_endpoint_auth_method,omitempty"`
-	GrantTypes              []string  `json:"grant_types,omitempty"`
-	ResponseTypes           []string  `json:"response_types,omitempty"`
-	ClientName              *string   `json:"client_name,omitempty"`
-
+	TokenEndpointAuthMethod *string  `json:"token_endpoint_auth_method,omitempty"`
+	GrantTypes              []string `json:"grant_types,omitempty"`
+	ResponseTypes           []string `json:"response_types,omitempty"`
+	ClientName              *string  `json:"client_name,omitempty"`
 }
 
 // ClientRegistrationResponse represents an OAuth 2.0 Dynamic Client Registration response
 // as defined in RFC 7591 (https://tools.ietf.org/html/rfc7591)
 type ClientRegistrationResponse struct {
 	// Client identifier and credentials
-	ClientID                string    `json:"client_id"`
-	ClientSecret            *string   `json:"client_secret,omitempty"`
+	ClientID     string  `json:"client_id"`
+	ClientSecret *string `json:"client_secret,omitempty"`
 
 	// Client metadata (echoing back what was registered)
-	RedirectURIs            []string  `json:"redirect_uris"`
-	TokenEndpointAuthMethod string    `json:"token_endpoint_auth_method"`
-	GrantTypes              []string  `json:"grant_types"`
-	ResponseTypes           []string  `json:"response_types"`
-	ClientName              *string   `json:"client_name,omitempty"`
+	RedirectURIs            []string `json:"redirect_uris"`
+	TokenEndpointAuthMethod string   `json:"token_endpoint_auth_method"`
+	GrantTypes              []string `json:"grant_types"`
+	ResponseTypes           []string `json:"response_types"`
+	ClientName              *string  `json:"client_name,omitempty"`
 }
 
 // DCR Error types as defined in RFC 7591
@@ -96,8 +95,6 @@ func (r *ClientRegistrationRequest) IsValid() *AppError {
 			}
 		}
 	}
-
-
 
 	// Validate client name length
 	if r.ClientName != nil && len(*r.ClientName) > 64 {
@@ -209,7 +206,7 @@ func ValidateGrantTypesAndResponseTypes(grantTypes, responseTypes []string) *App
 
 		// Special case: refresh token grant type doesn't use response types
 		if !hasCompatibleResponseType && grantType != GrantTypeRefreshToken {
-			return NewAppError("ValidateGrantTypesAndResponseTypes", "model.dcr.validate.incompatible_grant_response.app_error", 
+			return NewAppError("ValidateGrantTypesAndResponseTypes", "model.dcr.validate.incompatible_grant_response.app_error",
 				nil, "grant_type="+grantType+" response_types="+strings.Join(responseTypes, ","), http.StatusBadRequest)
 		}
 	}

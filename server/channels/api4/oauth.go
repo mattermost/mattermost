@@ -318,7 +318,6 @@ func getAuthorizedOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 // DCR (Dynamic Client Registration) endpoint handlers as per RFC 7591
-
 func registerOAuthClient(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Session and permission checks removed for DCR endpoint to allow external client registration
 
