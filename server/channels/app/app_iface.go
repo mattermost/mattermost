@@ -460,6 +460,7 @@ type AppIface interface {
 	AddTeamsToRetentionPolicy(policyID string, teamIDs []string) *model.AppError
 	AddUserToTeam(c request.CTX, teamID string, userID string, userRequestorId string) (*model.Team, *model.TeamMember, *model.AppError)
 	AddUserToTeamByInviteId(c request.CTX, inviteId string, userID string) (*model.Team, *model.TeamMember, *model.AppError)
+	AddUserToTeamByInviteIfNeeded(c request.CTX, user *model.User, inviteToken string, inviteId string) *model.AppError
 	AddUserToTeamByTeamId(c request.CTX, teamID string, user *model.User) *model.AppError
 	AddUserToTeamByToken(c request.CTX, userID string, tokenID string) (*model.Team, *model.TeamMember, *model.AppError)
 	AdjustImage(rctx request.CTX, file io.ReadSeeker) (*bytes.Buffer, *model.AppError)
@@ -472,7 +473,7 @@ type AppIface interface {
 	AttachDeviceId(sessionID string, deviceID string, expiresAt int64) *model.AppError
 	AttachSessionCookies(c request.CTX, w http.ResponseWriter, r *http.Request)
 	AuthenticateUserForLogin(c request.CTX, id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError)
-	AuthorizeOAuthUser(c request.CTX, w http.ResponseWriter, r *http.Request, service, code, state, redirectURI string) (io.ReadCloser, string, map[string]string, *model.User, *model.AppError)
+	AuthorizeOAuthUser(c request.CTX, w http.ResponseWriter, r *http.Request, service, code, state, redirectURI string) (io.ReadCloser, map[string]string, *model.User, *model.AppError)
 	AutocompleteChannels(c request.CTX, userID, term string) (model.ChannelListWithTeamData, *model.AppError)
 	AutocompleteChannelsForSearch(c request.CTX, teamID string, userID string, term string) (model.ChannelList, *model.AppError)
 	AutocompleteChannelsForTeam(c request.CTX, teamID, userID, term string) (model.ChannelList, *model.AppError)
@@ -515,7 +516,7 @@ type AppIface interface {
 	CompareAndDeletePluginKey(rctx request.CTX, pluginID string, key string, oldValue []byte) (bool, *model.AppError)
 	CompareAndSetPluginKey(pluginID string, key string, oldValue, newValue []byte) (bool, *model.AppError)
 	CompileReportChunks(format string, prefix string, numberOfChunks int, headers []string) *model.AppError
-	CompleteOAuth(c request.CTX, service string, body io.ReadCloser, teamID string, props map[string]string, tokenUser *model.User) (*model.User, *model.AppError)
+	CompleteOAuth(c request.CTX, service string, body io.ReadCloser, props map[string]string, tokenUser *model.User) (*model.User, *model.AppError)
 	CompleteOnboarding(c request.CTX, request *model.CompleteOnboardingRequest) *model.AppError
 	CompleteSwitchWithOAuth(c request.CTX, service string, userData io.Reader, email string, tokenUser *model.User) (*model.User, *model.AppError)
 	Compliance() einterfaces.ComplianceInterface
@@ -540,7 +541,7 @@ type AppIface interface {
 	CreateJob(c request.CTX, job *model.Job) (*model.Job, *model.AppError)
 	CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
 	CreateOAuthStateToken(extra string) (*model.Token, *model.AppError)
-	CreateOAuthUser(c request.CTX, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError)
+	CreateOAuthUser(c request.CTX, service string, userData io.Reader, inviteToken string, inviteId string, tokenUser *model.User) (*model.User, *model.AppError)
 	CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	CreatePasswordRecoveryToken(rctx request.CTX, userID, email string) (*model.Token, *model.AppError)
 	CreatePost(c request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (savedPost *model.Post, err *model.AppError)
@@ -763,8 +764,8 @@ type AppIface interface {
 	GetOAuthAppsByCreator(userID string, page, perPage int) ([]*model.OAuthApp, *model.AppError)
 	GetOAuthCodeRedirect(userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError)
 	GetOAuthImplicitRedirect(c request.CTX, userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError)
-	GetOAuthLoginEndpoint(c request.CTX, w http.ResponseWriter, r *http.Request, service, teamID, action, redirectTo, loginHint string, isMobile bool, desktopToken string) (string, *model.AppError)
-	GetOAuthSignupEndpoint(c request.CTX, w http.ResponseWriter, r *http.Request, service, teamID string, desktopToken string) (string, *model.AppError)
+	GetOAuthLoginEndpoint(c request.CTX, w http.ResponseWriter, r *http.Request, service, action, redirectTo, loginHint string, isMobile bool, desktopToken string, inviteToken string, inviteId string) (string, *model.AppError)
+	GetOAuthSignupEndpoint(c request.CTX, w http.ResponseWriter, r *http.Request, service, desktopToken string, inviteToken string, inviteId string) (string, *model.AppError)
 	GetOAuthStateToken(token string) (*model.Token, *model.AppError)
 	GetOnboarding() (*model.System, *model.AppError)
 	GetOpenGraphMetadata(requestURL string) ([]byte, error)
@@ -977,7 +978,7 @@ type AppIface interface {
 	ListPluginKeys(pluginID string, page, perPage int) ([]string, *model.AppError)
 	ListTeamCommands(teamID string) ([]*model.Command, *model.AppError)
 	Log() *mlog.Logger
-	LoginByOAuth(c request.CTX, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError)
+	LoginByOAuth(c request.CTX, service string, userData io.Reader, inviteToken string, inviteId string, tokenUser *model.User) (*model.User, *model.AppError)
 	MFARequired(rctx request.CTX) *model.AppError
 	MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported, isCRTEnabled bool) (map[string]int64, *model.AppError)
 	MaxPostSize() int
