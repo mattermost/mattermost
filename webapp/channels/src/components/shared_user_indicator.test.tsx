@@ -21,7 +21,7 @@ describe('components/SharedUserIndicator', () => {
                     return `From: ${descriptor.values?.remoteNames}`;
                 }
                 if (descriptor.id === 'shared_user_indicator.aria_label') {
-                    return 'shared user indicator';
+                    return 'shared user';
                 }
                 return descriptor.defaultMessage || '';
             }),
