@@ -89,6 +89,11 @@ func (a *App) UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthAp
 	updatedApp.CreatorId = oldApp.CreatorId
 	updatedApp.CreateAt = oldApp.CreateAt
 	updatedApp.ClientSecret = oldApp.ClientSecret
+	
+	// For DCR apps, preserve the DCR registration status
+	if oldApp.IsDynamicallyRegistered {
+		updatedApp.IsDynamicallyRegistered = oldApp.IsDynamicallyRegistered
+	}
 
 	oauthApp, err := a.Srv().Store().OAuth().UpdateApp(updatedApp)
 	if err != nil {
