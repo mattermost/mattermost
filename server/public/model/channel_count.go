@@ -4,7 +4,7 @@
 package model
 
 import (
-	"crypto/md5"
+	"crypto/sha256"
 	"fmt"
 	"sort"
 	"strconv"
@@ -29,7 +29,7 @@ func (o *ChannelCounts) Etag() string {
 		str += id + strconv.FormatInt(o.Counts[id], 10)
 	}
 
-	md5Counts := fmt.Sprintf("%x", md5.Sum([]byte(str)))
+	md5Counts := fmt.Sprintf("%x", sha256.Sum256([]byte(str)))
 
 	var update int64
 	for _, u := range o.UpdateTimes {
