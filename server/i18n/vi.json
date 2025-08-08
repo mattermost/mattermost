@@ -100,10 +100,6 @@
     "translation": "Thiếu thuộc tính bài đăng trực tiếp yêu cầu: người dùng"
   },
   {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Không thể tạo chỉ mục cho kênh"
-  },
-  {
     "id": "api.create_terms_of_service.empty_text.app_error",
     "translation": "Xin vui lòng nhập vào văn bản cho Điều Khoản của Dịch vụ."
   },
@@ -342,10 +338,6 @@
     "translation": "invite_people"
   },
   {
-    "id": "bleveengine.index_post.error",
-    "translation": "Không thể tạo chỉ mục cho thông điệp"
-  },
-  {
     "id": "api.templates.password_change_body.info",
     "translation": "Mật khẩu của bạn đã được cập nhật tại {{.TeamDisplayName}} vào {{.TeamURL}} bởi {{.Method}}."
   },
@@ -424,10 +416,6 @@
   {
     "id": "model.config.is_valid.write_timeout.app_error",
     "translation": "Giá trị không hợp lệ cho thời gian chờ ghi."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Cố gắng lập chỉ mục một đợt mới khi tất cả các thực thể được hoàn thành."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -896,10 +884,6 @@
     "translation": "Nếu bạn không thực hiện thay đổi này, vui lòng liên hệ với quản trị viên hệ thống."
   },
   {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Tìm kiếm không hoàn thành"
-  },
-  {
     "id": "app.plugin.disabled.app_error",
     "translation": "Plugin đã bị vô hiệu hóa. Vui lòng kiểm tra nhật ký của bạn để biết thêm chi tiết."
   },
@@ -992,10 +976,6 @@
     "translation": "Lệnh với một kích hoạt của '{{.Trigger}}' không thành công"
   },
   {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Tìm kiếm không hoàn thành"
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Không thể để lại tin nhắn trực tiếp."
   },
@@ -1026,10 +1006,6 @@
   {
     "id": "app.role.check_roles_exist.role_not_found",
     "translation": "Vai trò được cung cấp không tồn tại"
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Tìm kiếm không hoàn thành"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -2402,10 +2378,6 @@
     "translation": "Trường Create_at phải là thời gian hợp lệ."
   },
   {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Tìm kiếm không hoàn thành"
-  },
-  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Không thể bật phân cụm email khi phân cụm được bật."
   },
@@ -2520,10 +2492,6 @@
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
     "translation": "Vai trò được cung cấp được quản lý bởi một Scheme và do đó không thể được áp dụng trực tiếp cho một Team Member"
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Không thể xoá thông điệp."
   },
   {
     "id": "api.license.client.old_format.app_error",
@@ -2662,10 +2630,6 @@
     "translation": "Đã xảy ra lỗi trong khi tạo tin nhắn trực tiếp."
   },
   {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Tìm kiếm không hoàn thành"
-  },
-  {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Không thể xoá tin nhắn trực tiếp hoặc kênh tin nhắn nhóm"
   },
@@ -2740,10 +2704,6 @@
   {
     "id": "model.outgoing_hook.is_valid.user_id.app_error",
     "translation": "User id không hợp lệ"
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Không thể tạo chỉ mục cho người dùng"
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
@@ -3718,10 +3678,6 @@
     "translation": "Trường Updated_at phải là thời gian hợp lệ"
   },
   {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Cài đặt Elasticsearch IndexingEnabled phải được bật lên khi Elastic Search SearchEnabled được bật."
-  },
-  {
     "id": "model.authorize.is_valid.client_id.app_error",
     "translation": "Cilent ID không hợp lệ"
   },
@@ -4386,10 +4342,6 @@
     "translation": "Tin nhắn được export từ ExportFromTimestamp phải là 1 timestamp (tính bằng giây bởi thời gian unix). Chỉ những tin nhắn được gửi sau timestamp này mới được export."
   },
   {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Cài đặt Elasticsearch IndexingEnabled phải được bật lên khi Elastic Search AutocompleteEnabled được bật."
-  },
-  {
     "id": "interactive_message.generate_trigger_id.signing_failed",
     "translation": "Không thể giải mã base64 cho ID kích hoạt cho hộp thoại tương tác."
   },
@@ -4926,10 +4878,6 @@
     "translation": "Trường CreateAt trong bài đăng không được bằng không."
   },
   {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Không thể xoá kênh."
-  },
-  {
     "id": "app.import.import_line.null_channel.error",
     "translation": "Dòng dữ liệu nhập có loại \"kênh\" nhưng đối tượng kênh không hợp lệ."
   },
@@ -5034,10 +4982,6 @@
     "translation": "Không thể lấy về scheme"
   },
   {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Phần mềm tra cứu mục lục thất bại trong việc phân tích thời gian kết thúc"
-  },
-  {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
     "translation": "Không thể thêm tài khoản Slack {{.Username}} cho kênh.\n"
   },
@@ -5088,10 +5032,6 @@
   {
     "id": "model.channel_member.is_valid.unread_level.app_error",
     "translation": "Cấp đánh dấu chưa đọc không hợp lệ."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Không thể xoá người dùng"
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
@@ -5156,10 +5096,6 @@
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
     "translation": "Không thể tạo mẫu Elaticsearch cho người dùng"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Phần mềm tra cứu mục lục thất bại trong việc phân tích thời gian bắt đầu"
   },
   {
     "id": "model.group_member.user_id.app_error",
@@ -5380,10 +5316,6 @@
   {
     "id": "app.system.system_bot.bot_displayname",
     "translation": "Hệ thống"
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Lỗi khi tạo chỉ mục kênh"
   },
   {
     "id": "error",
@@ -7054,14 +6986,6 @@
     "translation": "Giá trị thời gian chờ không hợp lệ {{.Value}}. Phải là một số dương."
   },
   {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Kích thước lô lập chỉ mục hàng loạt của Bleve phải ít nhất là {{.BatchSize}}."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Cài đặt Bleve IndexingDir phải được đặt khi Bleve EnableIndexing được đặt thành true"
-  },
-  {
     "id": "ent.elasticsearch.search_files.disabled",
     "translation": "Tìm kiếm tệp Elaticsearch bị vô hiệu hóa trên máy chủ này"
   },
@@ -7340,10 +7264,6 @@
   {
     "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
     "translation": "Xác thực thông báo liên tục không thành công."
-  },
-  {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Lỗi xóa chỉ mục Bleve: động cơ bị tắt"
   },
   {
     "id": "sharedchannel.cannot_deliver_post",
@@ -7628,10 +7548,6 @@
   {
     "id": "app.post.get_post_after_time.app_error",
     "translation": "Không thể nhận được bài viết sau thời gian bị ràng buộc."
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Không thể lấy hàng loạt bài viết để lập chỉ mục."
   },
   {
     "id": "app.post.get_posts_since.app_error",
@@ -7938,10 +7854,6 @@
     "translation": "Bộ giải mã đồng thời không hợp lệ {{.Value}}. Phải là số dương hoặc -1."
   },
   {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "Không thể lấy hàng loạt tệp để lập chỉ mục."
-  },
-  {
     "id": "app.role.save.invalid_role.app_error",
     "translation": "Vai trò này không hợp lệ."
   },
@@ -8152,10 +8064,6 @@
   {
     "id": "model.session.is_valid.create_at.app_error",
     "translation": "Trường CreateAt không hợp lệ cho phiên."
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Lỗi đọc file từ backend"
   },
   {
     "id": "model.draft.is_valid.user_id.app_error",
@@ -8410,10 +8318,6 @@
     "translation": "Chúng tôi không thể đếm được số lượng người dùng."
   },
   {
-    "id": "bleveengine.index_file.error",
-    "translation": "Đánh chỉ mục file thất bại."
-  },
-  {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
     "translation": "Giải mã chứng chỉ ứng dụng khách cho Elaticsearch không thành công"
   },
@@ -8434,10 +8338,6 @@
     "translation": "Chúng tôi không thể lấy được số lượng tin nhắn chưa đọc của người dùng."
   },
   {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Lỗi tạo chỉ mục bài viết."
-  },
-  {
     "id": "app.user.demote_user_to_guest.user_update.app_error",
     "translation": "Không thể cập nhật người dùng."
   },
@@ -8454,28 +8354,12 @@
     "translation": "Chúng tôi đã gặp lỗi khi tìm người dùng mới."
   },
   {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Lỗi tạo chỉ mục người dùng."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Đánh chỉ mục người dùng thất bại."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "Không thể truy xuất thực thể cũ nhất (người dùng, kênh hoặc bài đăng) từ cơ sở dữ liệu."
-  },
-  {
     "id": "ent.cluster.timeout.error",
     "translation": "Đã hết thời gian chờ phản hồi của cụm"
   },
   {
     "id": "app.channel.get_channels_member_count.existing.app_error",
     "translation": "Không thể tìm thấy số lượng thành viên cho các kênh nhất định."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "Tìm kiếm tệp không thể hoàn tất."
   },
   {
     "id": "app.cloud.trial_plan_bot_message_single",
@@ -8546,10 +8430,6 @@
     "translation": "Chúng tôi đã gặp lỗi khi tìm hồ sơ người dùng."
   },
   {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Xóa file thất bại."
-  },
-  {
     "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
     "translation": "Matter Extreme không thể nâng cấp lên Phiên bản doanh nghiệp. Người dùng hệ thống Matter Extreme {{.MattermostUsername}} không có quyền ghi vào tệp nhị phân cần thiết. Quản trị viên hệ thống có thể cập nhật quyền của tệp bằng cách thực hiện lệnh sau trên máy chủ nơi Matter Extreme được cài đặt:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nSau khi thay đổi quyền truy cập tệp, hãy thử nâng cấp lại Matter Extreme. Khi bạn đã nâng cấp và khởi động lại, hãy nhớ khôi phục quyền truy cập tệp nhị phân ban đầu:\n\n```\nchmod -w \"{{.Path}}\"\n```"
   },
@@ -8592,10 +8472,6 @@
   {
     "id": "app.channel.get_channel_counts.get.app_error",
     "translation": "Không thể lấy được số lượng kênh."
-  },
-  {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Không thể lấy lô kênh để lập chỉ mục."
   },
   {
     "id": "app.channel.get_channels_by_ids.app_error",
@@ -8952,82 +8828,6 @@
   {
     "id": "app.user.save.app_error",
     "translation": "Không thể lưu tài khoản."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve đã được bắt đầu."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Lỗi tạo chỉ mục tệp."
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Xóa bài viết thất bại"
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Xóa file thất bại."
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Xóa file của bài viết thất bại."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Xóa file của người dùng thất bại."
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Xóa bài viết của người dùng thất bại"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Đánh chỉ mục kênh thất bại."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Đánh chỉ mục file thất bại."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Đánh chỉ mục bài viết thất bại."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Tác vụ đánh chỉ mục Bleve đã thất bại: engine đã bị vô hiệu."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Không thể lọc các chỉ mục kênh."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Không thể lọc các chỉ mục tệp."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Không thể lọc các chỉ mục bài viết."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Không thể xóa chỉ mục người dùng."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Không thể đóng chỉ mục kênh."
-  },
-  {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Không thể đóng chỉ mục tệp."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Không thể đóng chỉ mục bài viết."
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Không thể đóng chỉ mục người dùng."
   },
   {
     "id": "common.parse_error_int64",
