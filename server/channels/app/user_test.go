@@ -42,7 +42,7 @@ func TestCreateOAuthUser(t *testing.T) {
 		js, jsonErr := json.Marshal(glUser)
 		require.NoError(t, jsonErr)
 
-		user, err := th.App.CreateOAuthUser(th.Context, model.UserAuthServiceGitlab, bytes.NewReader(js), th.BasicTeam.Id, nil)
+		user, err := th.App.CreateOAuthUser(th.Context, model.UserAuthServiceGitlab, bytes.NewReader(js), "", "", nil)
 		require.Nil(t, err)
 
 		require.Equal(t, glUser.Username, user.Username, "usernames didn't match")
@@ -71,7 +71,7 @@ func TestCreateOAuthUser(t *testing.T) {
 		assert.Equal(t, dbUser.Id, s)
 
 		// data passed doesn't matter as return is mocked
-		_, err := th.App.CreateOAuthUser(th.Context, model.ServiceOffice365, strings.NewReader("{}"), th.BasicTeam.Id, nil)
+		_, err := th.App.CreateOAuthUser(th.Context, model.ServiceOffice365, strings.NewReader("{}"), "", "", nil)
 		assert.Nil(t, err)
 		u, er := th.App.Srv().Store().User().GetByEmail(dbUser.Email)
 		assert.NoError(t, er)
@@ -81,7 +81,7 @@ func TestCreateOAuthUser(t *testing.T) {
 
 	t.Run("user creation disabled", func(t *testing.T) {
 		*th.App.Config().TeamSettings.EnableUserCreation = false
-		_, err := th.App.CreateOAuthUser(th.Context, model.UserAuthServiceGitlab, strings.NewReader("{}"), th.BasicTeam.Id, nil)
+		_, err := th.App.CreateOAuthUser(th.Context, model.UserAuthServiceGitlab, strings.NewReader("{}"), "", "", nil)
 		require.NotNil(t, err, "should have failed - user creation disabled")
 	})
 }
@@ -743,7 +743,7 @@ func createGitlabUser(t *testing.T, a *App, c request.CTX, id int64, username st
 	var user *model.User
 	var err *model.AppError
 
-	user, err = a.CreateOAuthUser(c, "gitlab", bytes.NewReader(gitlabUser), "", nil)
+	user, err = a.CreateOAuthUser(c, "gitlab", bytes.NewReader(gitlabUser), "", "", nil)
 	require.Nil(t, err, "unable to create the user", err)
 
 	return user, gitlabUserObj
