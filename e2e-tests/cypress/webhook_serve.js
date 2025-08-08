@@ -27,6 +27,8 @@ server.post('/simple_dialog_request', onSimpleDialogRequest);
 server.post('/user_and_channel_dialog_request', onUserAndChannelDialogRequest);
 server.post('/dialog_submit', onDialogSubmit);
 server.post('/boolean_dialog_request', onBooleanDialogRequest);
+server.post('/dynamic_select_dialog_request', onDynamicSelectDialogRequest);
+server.post('/dynamic_select_source', onDynamicSelectSource);
 server.post('/slack_compatible_message_response', postSlackCompatibleMessageResponse);
 server.post('/send_message_to_channel', postSendMessageToChannel);
 server.post('/post_outgoing_webhook', postOutgoingWebhook);
@@ -49,6 +51,8 @@ function ping(req, res) {
             'POST /user_and_channel_dialog_request',
             'POST /dialog_submit',
             'POST /boolean_dialog_request',
+            'POST /dynamic_select_dialog_request',
+            'POST /dynamic_select_source',
             'POST /slack_compatible_message_response',
             'POST /send_message_to_channel',
             'POST /post_outgoing_webhook',
@@ -207,6 +211,51 @@ function onBooleanDialogRequest(req, res) {
 
     res.setHeader('Content-Type', 'application/json');
     return res.json({text: 'Simple dialog triggered via slash command!'});
+}
+
+function onDynamicSelectDialogRequest(req, res) {
+    const {body} = req;
+    if (body.trigger_id) {
+        const dialog = webhookUtils.getDynamicSelectDialog(body.trigger_id, webhookBaseUrl);
+        openDialog(dialog);
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({text: 'Dynamic select dialog triggered via slash command!'});
+}
+
+function onDynamicSelectSource(req, res) {
+    const {body} = req;
+
+    // Simulate dynamic options based on search text
+    const searchText = (body.submission.query || '').toLowerCase();
+
+    const allOptions = [
+        {text: 'Backend Engineer', value: 'backend_eng'},
+        {text: 'Frontend Engineer', value: 'frontend_eng'},
+        {text: 'Full Stack Engineer', value: 'fullstack_eng'},
+        {text: 'DevOps Engineer', value: 'devops_eng'},
+        {text: 'QA Engineer', value: 'qa_eng'},
+        {text: 'Product Manager', value: 'product_mgr'},
+        {text: 'Engineering Manager', value: 'eng_mgr'},
+        {text: 'Senior Backend Engineer', value: 'sr_backend_eng'},
+        {text: 'Senior Frontend Engineer', value: 'sr_frontend_eng'},
+        {text: 'Principal Engineer', value: 'principal_eng'},
+        {text: 'Staff Engineer', value: 'staff_eng'},
+        {text: 'Technical Lead', value: 'tech_lead'},
+    ];
+
+    // Filter options based on search text
+    const filteredOptions = searchText ?
+        allOptions.filter((option) =>
+            option.text.toLowerCase().includes(searchText) ||
+            option.value.toLowerCase().includes(searchText)) :
+        allOptions.slice(0, 6); // Limit to first 6 if no search
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({
+        items: filteredOptions
+    });
 }
 
 function onDialogSubmit(req, res) {
