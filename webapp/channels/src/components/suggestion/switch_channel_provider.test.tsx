@@ -165,7 +165,7 @@ describe('components/SwitchChannelProvider', () => {
         const searchText = 'other';
 
         switchProvider.startNewRequest('');
-        const result = switchProvider.formatList(searchText, channels, users);
+        const result = switchProvider.formatGroup(searchText, channels, users);
 
         const set = new Set(result.terms);
         expect(set.size).toEqual(result.items.length);
@@ -202,7 +202,7 @@ describe('components/SwitchChannelProvider', () => {
         const searchText = 'other';
 
         switchProvider.startNewRequest('');
-        const result = switchProvider.formatList(searchText, channels, users);
+        const result = switchProvider.formatGroup(searchText, channels, users);
 
         const set = new Set(result.terms);
         expect(set.size).toEqual(result.items.length);
@@ -243,7 +243,7 @@ describe('components/SwitchChannelProvider', () => {
         const searchText = 'something else';
 
         switchProvider.startNewRequest('');
-        const results = switchProvider.formatList(searchText, channels, users);
+        const results = switchProvider.formatGroup(searchText, channels, users);
 
         expect(results.terms.length).toEqual(0);
         expect(results.items.length).toEqual(0);
@@ -388,7 +388,7 @@ describe('components/SwitchChannelProvider', () => {
         const searchText = 'other';
 
         switchProvider.startNewRequest('');
-        const results = switchProvider.formatList(searchText, channels, users);
+        const results = switchProvider.formatGroup(searchText, channels, users);
 
         const expectedOrder = [
             'other_user1',
@@ -505,7 +505,7 @@ describe('components/SwitchChannelProvider', () => {
         const searchText = 'other';
 
         switchProvider.startNewRequest('');
-        const results = switchProvider.formatList(searchText, channels, users);
+        const results = switchProvider.formatGroup(searchText, channels, users);
 
         const expectedOrder = [
             'other_user4',
@@ -845,7 +845,7 @@ describe('components/SwitchChannelProvider', () => {
         const searchText = 'other current';
 
         switchProvider.startNewRequest('');
-        const results = switchProvider.formatList(searchText, channels, users);
+        const results = switchProvider.formatGroup(searchText, channels, users);
 
         const expectedOrder = [
             'other_gm_channel',
