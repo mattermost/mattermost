@@ -103,8 +103,8 @@ function isMessageAttachment(v: unknown): v is MessageAttachment {
 }
 
 export type MessageAttachmentField = {
-    title: string;
-    value: any;
+    title?: string;
+    value?: unknown;
     short?: boolean;
 }
 
