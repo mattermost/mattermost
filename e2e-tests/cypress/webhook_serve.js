@@ -27,6 +27,9 @@ server.post('/simple_dialog_request', onSimpleDialogRequest);
 server.post('/user_and_channel_dialog_request', onUserAndChannelDialogRequest);
 server.post('/dialog_submit', onDialogSubmit);
 server.post('/boolean_dialog_request', onBooleanDialogRequest);
+server.post('/dialog/field-refresh', onFieldRefreshDialogRequest);
+server.post('/dialog/multistep', onMultistepDialogRequest);
+server.post('/field_refresh_source', onFieldRefreshSource);
 server.post('/slack_compatible_message_response', postSlackCompatibleMessageResponse);
 server.post('/send_message_to_channel', postSendMessageToChannel);
 server.post('/post_outgoing_webhook', postOutgoingWebhook);
@@ -49,6 +52,9 @@ function ping(req, res) {
             'POST /user_and_channel_dialog_request',
             'POST /dialog_submit',
             'POST /boolean_dialog_request',
+            'POST /dialog/field-refresh',
+            'POST /dialog/multistep',
+            'POST /field_refresh_source',
             'POST /slack_compatible_message_response',
             'POST /send_message_to_channel',
             'POST /post_outgoing_webhook',
@@ -218,11 +224,41 @@ function onDialogSubmit(req, res) {
     if (body.cancelled) {
         message = 'Dialog cancelled';
         sendSysadminResponse(message, body.channel_id);
-    } else {
-        message = 'Dialog submitted';
-        sendSysadminResponse(message, body.channel_id);
+        return res.json({text: message});
     }
 
+    // Check if this is a multistep submission
+    if (body.callback_id === 'multistep_callback') {
+        const currentState = body.state || '';
+
+        // Determine next step based on current state
+        if (currentState === 'step1') {
+            // Move to step 2
+            const nextForm = webhookUtils.getMultistepStep2Dialog(null, webhookBaseUrl);
+            return res.json({
+                type: 'form',
+                form: nextForm,
+            });
+        } else if (currentState === 'step2') {
+            // Move to step 3
+            const nextForm = webhookUtils.getMultistepStep3Dialog(null, webhookBaseUrl);
+            return res.json({
+                type: 'form',
+                form: nextForm,
+            });
+        }
+
+        // Final step - complete the multistep
+        const submission = body.submission || {};
+        message = `Multistep completed successfully! Final step values: ${JSON.stringify(submission, null, 2)}`;
+        sendSysadminResponse(message, body.channel_id);
+        return res.json({text: message});
+    }
+
+    // Regular dialog submission
+    message = 'Dialog submitted';
+
+    sendSysadminResponse(message, body.channel_id);
     return res.json({text: message});
 }
 
@@ -306,4 +342,107 @@ function postOutgoingWebhook(req, res) {
         response_type: responseType,
     };
     res.status(200).send(response);
+}
+
+function onFieldRefreshDialogRequest(req, res) {
+    const {body} = req;
+    if (body.trigger_id) {
+        const dialog = webhookUtils.getFieldRefreshDialog(body.trigger_id, webhookBaseUrl);
+        openDialog(dialog);
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({text: 'Field refresh dialog triggered via slash command!'});
+}
+
+function onMultistepDialogRequest(req, res) {
+    const {body} = req;
+    if (body.trigger_id) {
+        const dialog = webhookUtils.getMultistepStep1Dialog(body.trigger_id, webhookBaseUrl);
+        openDialog(dialog);
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({text: 'Multistep dialog triggered via slash command!'});
+}
+
+function onFieldRefreshSource(req, res) {
+    const {body} = req;
+    const submission = body.submission || {};
+    const projectType = submission.project_type;
+
+    res.setHeader('Content-Type', 'application/json');
+
+    // Return updated form based on project type selection
+    const elements = [
+        {
+            display_name: 'Project Type',
+            name: 'project_type',
+            type: 'select',
+            refresh: true,
+            placeholder: 'Select project type...',
+            default: projectType,
+            options: [
+                {text: 'Web Application', value: 'web'},
+                {text: 'Mobile App', value: 'mobile'},
+                {text: 'API Service', value: 'api'},
+            ],
+        },
+        {
+            display_name: 'Project Name',
+            name: 'project_name',
+            type: 'text',
+            placeholder: 'Enter project name',
+            optional: false,
+        },
+    ];
+
+    // Add different fields based on project type
+    if (projectType === 'web') {
+        elements.push({
+            display_name: 'Framework',
+            name: 'framework',
+            type: 'select',
+            placeholder: 'Select framework...',
+            options: [
+                {text: 'React', value: 'react'},
+                {text: 'Vue', value: 'vue'},
+                {text: 'Angular', value: 'angular'},
+            ],
+        });
+    } else if (projectType === 'mobile') {
+        elements.push({
+            display_name: 'Platform',
+            name: 'platform',
+            type: 'select',
+            placeholder: 'Select platform...',
+            options: [
+                {text: 'iOS', value: 'ios'},
+                {text: 'Android', value: 'android'},
+                {text: 'React Native', value: 'react-native'},
+            ],
+        });
+    } else if (projectType === 'api') {
+        elements.push({
+            display_name: 'Language',
+            name: 'language',
+            type: 'select',
+            placeholder: 'Select language...',
+            options: [
+                {text: 'Go', value: 'go'},
+                {text: 'Node.js', value: 'nodejs'},
+                {text: 'Python', value: 'python'},
+            ],
+        });
+    }
+
+    return res.json({
+        type: 'form',
+        form: {
+            title: 'Field Refresh Demo',
+            introduction_text: 'Select a project type to see different fields',
+            submit_label: 'Submit',
+            elements,
+        },
+    });
 }
