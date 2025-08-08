@@ -1451,6 +1451,12 @@ type API interface {
 	// Minimum server version: 10.10
 	SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
 
+	// CountPropertyFields counts property fields for a group.
+	//
+	// @tag PropertyField
+	// Minimum server version: 10.10
+	CountPropertyFields(groupID string, includeDeleted bool) (int64, error)
+
 	// CreatePropertyValue creates a new property value.
 	//
 	// @tag PropertyValue
