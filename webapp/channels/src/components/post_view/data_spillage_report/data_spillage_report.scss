@@ -3,10 +3,13 @@
 
 .DataSpillageReport {
     max-width: 700px;
-    padding: 16px 19px;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     border-radius: 4px;
-    border-left: 3px solid var(--error-text, #5D89EA);
     background: var(--center-channel-bg, #FFF);
     box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.08);
+
+    &.mode_short {
+        padding: 16px 19px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-left: 3px solid var(--error-text, #5D89EA);
+    }
 }

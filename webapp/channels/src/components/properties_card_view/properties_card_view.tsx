@@ -14,12 +14,13 @@ type Props = {
     title: React.ReactNode;
     propertyFields: PropertyField[];
     fieldOrder: Array<PropertyField['id']>;
+    shortModeFieldOrder: Array<PropertyField['id']>;
     propertyValues: Array<PropertyValue<unknown>>;
     mode?: 'short' | 'full';
     actionsRow?: React.ReactNode;
 }
 
-export default function PropertiesCardView({title, propertyFields, fieldOrder, propertyValues, mode, actionsRow}: Props) {
+export default function PropertiesCardView({title, propertyFields, fieldOrder, shortModeFieldOrder, propertyValues, mode, actionsRow}: Props) {
     const orderedRows = useMemo<Array<{field: PropertyField; value: PropertyValue<unknown>}>>(() => {
         if (!propertyFields.length || !fieldOrder.length || !propertyValues.length) {
             return [];
@@ -35,7 +36,8 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, p
             return acc;
         }, {} as {[key: string]: PropertyValue<unknown>});
 
-        return fieldOrder.map((fieldId) => {
+        const filedOrderToUse = mode === 'short' ? shortModeFieldOrder : fieldOrder;
+        return filedOrderToUse.map((fieldId) => {
             const field = fieldsById[fieldId];
             const value = valuesByFieldId[fieldId];
 
@@ -44,7 +46,7 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, p
                 value,
             };
         }).filter((entry) => Boolean(entry.value));
-    }, [fieldOrder, propertyFields, propertyValues]);
+    }, [fieldOrder, mode, propertyFields, propertyValues, shortModeFieldOrder]);
 
     if (orderedRows.length === 0) {
         return null;
@@ -80,7 +82,7 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, p
                 }
 
                 {
-                    actionsRow &&
+                    mode === 'full' && actionsRow &&
                     <div className='row'>
                         <div className='field'>
                             <FormattedMessage

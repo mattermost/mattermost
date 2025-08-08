@@ -39,19 +39,22 @@
     }
 }
 
-.UserMultiSelector__menu {
-    min-width: 200px;
-    max-width: 400px;
-    margin-top: 0 !important;
+.UserMultiSelector__menu-portal {
+    z-index: 22 !important;
 
-    .UserMultiSelector__control {
-        min-height: unset;
-        max-height: 32px;
-        align-items: baseline;
-    }
+    .UserMultiSelector__menu {
+        min-width: 200px;
+        max-width: 400px;
+        margin-top: 0 !important;
 
-    .UserMultiSelector__indicators {
-        height: 32px;
+        .UserMultiSelector__control {
+            min-height: unset;
+            max-height: 32px;
+            align-items: baseline;
+        }
+
+        .UserMultiSelector__indicators {
+            height: 32px;
+        }
     }
 }
-

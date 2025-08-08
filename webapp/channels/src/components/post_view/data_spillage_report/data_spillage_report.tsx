@@ -15,14 +15,14 @@ import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import AtMention from 'components/at_mention';
+import {useChannel} from 'components/common/hooks/useChannel';
+import {usePost} from 'components/common/hooks/usePost';
 import PropertiesCardView from 'components/properties_card_view/properties_card_view';
 
 import type {GlobalState} from 'types/store';
 
 import './data_spillage_report.scss';
-import {usePost} from "components/common/hooks/usePost";
-import {useChannel} from "components/common/hooks/useChannel";
-import DataSpillageAction from "components/post_view/data_spillage_report/data_spillage_actions/data_spillage_actions";
+import DataSpillageAction from 'components/post_view/data_spillage_report/data_spillage_actions/data_spillage_actions';
 
 function getDummyPropertyFields(): PropertyField[] {
     return [
@@ -376,6 +376,13 @@ const fieldOrder = [
     'post_creation_time_field_id',
 ];
 
+const shortModeFieldOrder = [
+    'status_field_id',
+    'reason_field_id',
+    'post_preview_field_id',
+    'reviewer_user_id_field_id',
+];
+
 type Props = {
     post: Post;
     isRHS?: boolean;
@@ -418,9 +425,11 @@ export default function DataSpillageReport({post, isRHS}: Props) {
         }
     }, [reportedPost, reportedPostId, channel, post.create_at]);
 
+    const mode = isRHS ? 'full' : 'short';
+
     return (
         <div
-            className={'DataSpillageReport'}
+            className={`DataSpillageReport mode_${mode}`}
             onClick={(e) => e.stopPropagation()}
         >
             <PropertiesCardView
@@ -428,8 +437,9 @@ export default function DataSpillageReport({post, isRHS}: Props) {
                 propertyFields={propertyFields}
                 propertyValues={propertyValues}
                 fieldOrder={fieldOrder}
+                shortModeFieldOrder={shortModeFieldOrder}
                 actionsRow={<DataSpillageAction/>}
-                mode={isRHS ? 'full' : 'short'}
+                mode={mode}
             />
         </div>
     );
