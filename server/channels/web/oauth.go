@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"path"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -20,6 +21,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+)
+
+const (
+	callbackHost = "callback"
 )
 
 func (w *Web) InitOAuth() {
@@ -304,7 +309,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	uri := c.GetSiteURLHeader() + "/signup/" + service + "/complete"
 
-	body, teamId, props, tokenUser, err := c.App.AuthorizeOAuthUser(c.AppContext, w, r, service, code, state, uri)
+	body, props, tokenUser, err := c.App.AuthorizeOAuthUser(c.AppContext, w, r, service, code, state, uri)
 
 	action := ""
 	hasRedirectURL := false
@@ -318,7 +323,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			hasRedirectURL = redirectURL != ""
 		}
 	}
-	redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL)
+	redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL, c.App.Config().NativeAppSettings.AppCustomURLSchemes)
 
 	renderError := func(err *model.AppError) {
 		if isMobile && hasRedirectURL {
@@ -335,7 +340,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.CompleteOAuth(c.AppContext, service, body, teamId, props, tokenUser)
+	user, err := c.App.CompleteOAuth(c.AppContext, service, body, props, tokenUser)
 	if err != nil {
 		err.Translate(c.AppContext.T)
 		c.LogErrorByCode(err)
@@ -447,13 +452,11 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("service", c.Params.Service)
 	defer c.LogAuditRec(auditRec)
 
-	teamId, err := c.App.GetTeamIdFromQuery(c.AppContext, r.URL.Query())
-	if err != nil {
-		c.Err = err
-		return
-	}
+	// Get invite token or ID instead of team_id
+	tokenID := r.URL.Query().Get("t")
+	inviteId := r.URL.Query().Get("id")
 
-	authURL, err := c.App.GetOAuthLoginEndpoint(c.AppContext, w, r, c.Params.Service, teamId, model.OAuthActionLogin, redirectURL, loginHint, false, desktopToken)
+	authURL, err := c.App.GetOAuthLoginEndpoint(c.AppContext, w, r, c.Params.Service, model.OAuthActionLogin, redirectURL, loginHint, false, desktopToken, tokenID, inviteId)
 	if err != nil {
 		c.Err = err
 		return
@@ -483,13 +486,11 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("service", c.Params.Service)
 	defer c.LogAuditRec(auditRec)
 
-	teamId, err := c.App.GetTeamIdFromQuery(c.AppContext, r.URL.Query())
-	if err != nil {
-		c.Err = err
-		return
-	}
+	// Get invite token or ID instead of team_id
+	tokenID := r.URL.Query().Get("t")
+	inviteId := r.URL.Query().Get("id")
 
-	authURL, err := c.App.GetOAuthLoginEndpoint(c.AppContext, w, r, c.Params.Service, teamId, model.OAuthActionMobile, redirectURL, "", true, "")
+	authURL, err := c.App.GetOAuthLoginEndpoint(c.AppContext, w, r, c.Params.Service, model.OAuthActionMobile, redirectURL, "", true, "", tokenID, inviteId)
 	if err != nil {
 		c.Err = err
 		return
@@ -518,15 +519,13 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("service", c.Params.Service)
 	defer c.LogAuditRec(auditRec)
 
-	teamId, err := c.App.GetTeamIdFromQuery(c.AppContext, r.URL.Query())
-	if err != nil {
-		c.Err = err
-		return
-	}
+	// Get invite token or ID instead of team_id
+	tokenID := r.URL.Query().Get("t")
+	inviteId := r.URL.Query().Get("id")
 
 	desktopToken := r.URL.Query().Get("desktop_token")
 
-	authURL, err := c.App.GetOAuthSignupEndpoint(c.AppContext, w, r, c.Params.Service, teamId, desktopToken)
+	authURL, err := c.App.GetOAuthSignupEndpoint(c.AppContext, w, r, c.Params.Service, desktopToken, tokenID, inviteId)
 	if err != nil {
 		c.Err = err
 		return
@@ -538,7 +537,7 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, authURL, http.StatusFound)
 }
 
-func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string) string {
+func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string, otherValidSchemes []string) string {
 	parsed, err := url.Parse(targetURL)
 	if err != nil {
 		return siteURLPrefix
@@ -547,8 +546,15 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string) string {
 	if err != nil {
 		return siteURLPrefix
 	}
-
-	// Check if the targetURL is a valid URL and is within the siteURLPrefix
+	// mobile access
+	if slices.Contains(otherValidSchemes, fmt.Sprintf("%v://", parsed.Scheme)) &&
+		parsed.Host == callbackHost &&
+		parsed.Path == "" &&
+		parsed.RawQuery == "" &&
+		parsed.Fragment == "" {
+		return targetURL
+	}
+	// Check if the targetURL is valid and within the siteURLPrefix, excluding native app schemes like mmauth://
 	sameScheme := parsed.Scheme == prefixParsed.Scheme
 	sameHost := parsed.Host == prefixParsed.Host
 	safePath := strings.HasPrefix(path.Clean(parsed.Path), path.Clean(prefixParsed.Path))
