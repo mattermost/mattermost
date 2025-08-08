@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -55,10 +56,18 @@ func (r *ClientRegistrationRequest) IsValid() *AppError {
 		return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.redirect_uris.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// Validate redirect URIs with enhanced DCR security requirements
+	// Validate redirect URIs
 	for _, uri := range r.RedirectURIs {
-		if !IsValidDCRRedirectURI(uri) {
+		if !IsValidHTTPURL(uri) {
 			return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.redirect_uri_format.app_error", nil, "uri="+uri, http.StatusBadRequest)
+		}
+
+		// For HTTP URLs, only allow localhost/loopback addresses for security
+		if u, err := url.ParseRequestURI(uri); err == nil && u.Scheme == "http" {
+			host := u.Hostname()
+			if host != "localhost" && host != "127.0.0.1" && host != "::1" {
+				return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.redirect_uri_http_localhost.app_error", nil, "uri="+uri, http.StatusBadRequest)
+			}
 		}
 	}
 
