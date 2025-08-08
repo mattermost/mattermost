@@ -24,15 +24,17 @@ type AuthorizationServerMetadata struct {
 	TokenEndpointAuthMethodsSupported []string `json:"token_endpoint_auth_methods_supported,omitempty"`
 }
 
-// Constants for OAuth 2.0 grant types (only supported types)
+// Constants for OAuth 2.0 grant types (supported types)
 const (
 	GrantTypeAuthorizationCode = "authorization_code"
+	GrantTypeImplicit          = "implicit"
 	GrantTypeRefreshToken      = "refresh_token"
 )
 
-// Constants for OAuth 2.0 response types (only supported types)
+// Constants for OAuth 2.0 response types (supported types)
 const (
-	ResponseTypeCode = "code"
+	ResponseTypeCode  = "code"
+	ResponseTypeToken = "token"
 )
 
 // Constants for OAuth 2.0 client authentication methods (only supported types)
@@ -77,10 +79,12 @@ func GetDefaultMetadata(siteURL string) *AuthorizationServerMetadata {
 		AuthorizationEndpoint: siteURL + OAuthAuthorizeEndpoint,
 		TokenEndpoint:         siteURL + OAuthAccessTokenEndpoint,
 		ResponseTypesSupported: []string{
-			ResponseTypeCode, // Only authorization code flow supported
+			ResponseTypeCode,  // Authorization code flow
+			ResponseTypeToken, // Implicit flow
 		},
 		GrantTypesSupported: []string{
-			GrantTypeAuthorizationCode, // Primary flow
+			GrantTypeAuthorizationCode, // Authorization code flow
+			GrantTypeImplicit,          // Implicit flow
 			GrantTypeRefreshToken,      // Refresh tokens supported
 		},
 		TokenEndpointAuthMethodsSupported: []string{

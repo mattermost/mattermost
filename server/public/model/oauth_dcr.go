@@ -85,7 +85,7 @@ func (r *ClientRegistrationRequest) IsValid() *AppError {
 	if len(r.GrantTypes) > 0 {
 		for _, grantType := range r.GrantTypes {
 			switch grantType {
-			case GrantTypeAuthorizationCode, GrantTypeRefreshToken:
+			case GrantTypeAuthorizationCode, GrantTypeImplicit, GrantTypeRefreshToken:
 				// Valid and supported
 			default:
 				return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.grant_type.app_error", nil, "grant_type="+grantType, http.StatusBadRequest)
@@ -98,7 +98,9 @@ func (r *ClientRegistrationRequest) IsValid() *AppError {
 		for _, responseType := range r.ResponseTypes {
 			switch responseType {
 			case ResponseTypeCode:
-				// Valid and supported
+				// Authorization code flow - valid and supported
+			case ResponseTypeToken:
+				// Implicit flow - valid and supported
 			default:
 				return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.response_type.app_error", nil, "response_type="+responseType, http.StatusBadRequest)
 			}
@@ -171,8 +173,9 @@ func GetDefaultResponseTypes() []string {
 // Only validates supported grant types and response types
 func IsGrantTypeCompatibleWithResponseType(grantType, responseType string) bool {
 	compatibilityMatrix := map[string][]string{
-		GrantTypeAuthorizationCode: {ResponseTypeCode}, // Only supported response type
-		GrantTypeRefreshToken:      {},                 // No response type needed
+		GrantTypeAuthorizationCode: {ResponseTypeCode},  // Authorization code flow
+		GrantTypeImplicit:          {ResponseTypeToken}, // Implicit flow
+		GrantTypeRefreshToken:      {},                  // No response type needed
 	}
 
 	if responseType == "" {
