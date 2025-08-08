@@ -27,7 +27,8 @@ func newSqlOAuthStore(sqlStore *SqlStore) store.OAuthStore {
 	}
 
 	s.oAuthAppsSelectQuery = s.getQueryBuilder().
-		Select("o.Id", "o.CreatorId", "o.CreateAt", "o.UpdateAt", "o.ClientSecret", "o.Name", "o.Description", "o.IconURL", "o.CallbackUrls", "o.Homepage", "o.IsTrusted", "o.MattermostAppID").
+		Select("o.Id", "o.CreatorId", "o.CreateAt", "o.UpdateAt", "o.ClientSecret", "o.Name", "o.Description", "o.IconURL", "o.CallbackUrls", "o.Homepage", "o.IsTrusted", "o.MattermostAppID",
+			"o.GrantTypes", "o.ResponseTypes", "o.TokenEndpointAuthMethod", "o.IsDynamicallyRegistered").
 		From("OAuthApps o")
 
 	s.oAuthAccessDataQuery = s.getQueryBuilder().
@@ -52,9 +53,11 @@ func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, error) {
 	}
 
 	if _, err := as.GetMaster().NamedExec(`INSERT INTO OAuthApps
-		(Id, CreatorId, CreateAt, UpdateAt, ClientSecret, Name, Description, IconURL, CallbackUrls, Homepage, IsTrusted, MattermostAppID)
+		(Id, CreatorId, CreateAt, UpdateAt, ClientSecret, Name, Description, IconURL, CallbackUrls, Homepage, IsTrusted, MattermostAppID,
+		 GrantTypes, ResponseTypes, TokenEndpointAuthMethod, IsDynamicallyRegistered)
 		VALUES
-		(:Id, :CreatorId, :CreateAt, :UpdateAt, :ClientSecret, :Name, :Description, :IconURL, :CallbackUrls, :Homepage, :IsTrusted, :MattermostAppID)`, app); err != nil {
+		(:Id, :CreatorId, :CreateAt, :UpdateAt, :ClientSecret, :Name, :Description, :IconURL, :CallbackUrls, :Homepage, :IsTrusted, :MattermostAppID,
+		 :GrantTypes, :ResponseTypes, :TokenEndpointAuthMethod, :IsDynamicallyRegistered)`, app); err != nil {
 		return nil, errors.Wrap(err, "failed to save OAuthApp")
 	}
 	return app, nil
@@ -84,7 +87,9 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) 
 	res, err := as.GetMaster().NamedExec(`UPDATE OAuthApps
 		SET UpdateAt=:UpdateAt, ClientSecret=:ClientSecret, Name=:Name,
 			Description=:Description, IconURL=:IconURL, CallbackUrls=:CallbackUrls,
-			Homepage=:Homepage, IsTrusted=:IsTrusted, MattermostAppID=:MattermostAppID
+			Homepage=:Homepage, IsTrusted=:IsTrusted, MattermostAppID=:MattermostAppID,
+			GrantTypes=:GrantTypes, ResponseTypes=:ResponseTypes, TokenEndpointAuthMethod=:TokenEndpointAuthMethod,
+			IsDynamicallyRegistered=:IsDynamicallyRegistered
 		WHERE Id=:Id`, app)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update OAuthApp with id=%s", app.Id)
@@ -153,6 +158,7 @@ func (as SqlOAuthStore) GetAuthorizedApps(userId string, offset, limit int) ([]*
 
 	return apps, nil
 }
+
 
 func (as SqlOAuthStore) DeleteApp(id string) (err error) {
 	// wrap in a transaction so that if one fails, everything fails
