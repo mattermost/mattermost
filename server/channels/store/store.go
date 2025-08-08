@@ -582,7 +582,6 @@ type OAuthStore interface {
 	GetAppByUser(userID string, offset, limit int) ([]*model.OAuthApp, error)
 	GetApps(offset, limit int) ([]*model.OAuthApp, error)
 	GetAuthorizedApps(userID string, offset, limit int) ([]*model.OAuthApp, error)
-	GetOAuthAppsByRedirectURIs(redirectURIs []string) ([]*model.OAuthApp, error)
 	DeleteApp(id string) error
 	SaveAuthData(authData *model.AuthData) (*model.AuthData, error)
 	GetAuthData(code string) (*model.AuthData, error)
