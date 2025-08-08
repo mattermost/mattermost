@@ -24,13 +24,13 @@ import (
 
 func (w *Web) InitOAuth() {
 	// OAuth 2.0 Authorization Server Metadata endpoint (RFC 8414)
-	w.MainRouter.Handle("/.well-known/oauth-authorization-server", w.APIHandlerTrustRequester(getAuthorizationServerMetadata)).Methods(http.MethodGet)
+	w.MainRouter.Handle(model.OAuthMetadataEndpoint, w.APIHandlerTrustRequester(getAuthorizationServerMetadata)).Methods(http.MethodGet)
 
 	// API version independent OAuth 2.0 as a service provider endpoints
-	w.MainRouter.Handle("/oauth/authorize", w.APIHandlerTrustRequester(authorizeOAuthPage)).Methods(http.MethodGet)
-	w.MainRouter.Handle("/oauth/authorize", w.APISessionRequired(authorizeOAuthApp)).Methods(http.MethodPost)
-	w.MainRouter.Handle("/oauth/deauthorize", w.APISessionRequired(deauthorizeOAuthApp)).Methods(http.MethodPost)
-	w.MainRouter.Handle("/oauth/access_token", w.APIHandlerTrustRequester(getAccessToken)).Methods(http.MethodPost)
+	w.MainRouter.Handle(model.OAuthAuthorizeEndpoint, w.APIHandlerTrustRequester(authorizeOAuthPage)).Methods(http.MethodGet)
+	w.MainRouter.Handle(model.OAuthAuthorizeEndpoint, w.APISessionRequired(authorizeOAuthApp)).Methods(http.MethodPost)
+	w.MainRouter.Handle(model.OAuthDeauthorizeEndpoint, w.APISessionRequired(deauthorizeOAuthApp)).Methods(http.MethodPost)
+	w.MainRouter.Handle(model.OAuthAccessTokenEndpoint, w.APIHandlerTrustRequester(getAccessToken)).Methods(http.MethodPost)
 
 	// API version independent OAuth as a client endpoints
 	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods(http.MethodGet)

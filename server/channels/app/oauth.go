@@ -1046,7 +1046,7 @@ func (a *App) GetAuthorizationServerMetadata(c request.CTX) (*model.Authorizatio
 
 	// Add registration endpoint if dynamic client registration is enabled
 	if a.Config().ServiceSettings.EnableDynamicClientRegistration != nil && *a.Config().ServiceSettings.EnableDynamicClientRegistration {
-		metadata.RegistrationEndpoint = siteURL + "/api/v4/oauth/apps/register"
+		metadata.RegistrationEndpoint = siteURL + model.OAuthAppsRegisterEndpoint
 	}
 
 	// Note: Revocation endpoint not currently implemented
