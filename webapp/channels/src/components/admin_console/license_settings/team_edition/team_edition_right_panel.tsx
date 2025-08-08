@@ -25,7 +25,7 @@ interface TeamEditionRightPanelProps {
 
     restarting: boolean;
 
-    canUpgrade: boolean;
+    upgradeDisabled: boolean;
 }
 
 const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
@@ -37,7 +37,7 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
     restarting,
     openEEModal,
     setClickNormalUpgradeBtn,
-    canUpgrade,
+    upgradeDisabled,
 }: TeamEditionRightPanelProps) => {
     let upgradeButton = null;
     const intl = useIntl();
@@ -55,7 +55,7 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
         'Advanced compliance',
         'And more...',
     ];
-    if (!canUpgrade) {
+    if (upgradeDisabled) {
         upgradeButton = (
             <div>
                 <p>

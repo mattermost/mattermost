@@ -89,7 +89,7 @@ type State = {
     restarting: boolean;
     restartError: string | null;
     clickNormalUpgradeBtn: boolean;
-    canUpgrade: boolean;
+    upgradeDisabled: boolean;
 };
 export default class LicenseSettings extends React.PureComponent<Props, State> {
     private interval: ReturnType<typeof setInterval> | null;
@@ -111,7 +111,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
             restarting: false,
             restartError: null,
             clickNormalUpgradeBtn: false,
-            canUpgrade: false,
+            upgradeDisabled: false,
         };
         this.fileInputRef = React.createRef();
     }
@@ -121,7 +121,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
             this.props.actions.getPrevTrialLicense();
         } else {
             this.props.actions.isAllowedToUpgradeToEnterprise().then((error) => {
-                this.setState({canUpgrade: !error.message, upgradeError: error.message});
+                this.setState({upgradeDisabled: Boolean(error.message), upgradeError: error.message});
                 if (!error.message) {
                     this.reloadPercentage();
                 }
@@ -313,7 +313,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
                     restarting={this.state.restarting}
                     openEEModal={this.openEELicenseModal}
                     setClickNormalUpgradeBtn={this.setClickNormalUpgradeBtn}
-                    canUpgrade={this.state.canUpgrade}
+                    upgradeDisabled={this.state.upgradeDisabled}
                 />
             );
         } else if (license.IsLicensed === 'true') {
@@ -386,7 +386,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
                                     handleRestart={this.handleRestart}
                                     restarting={this.state.restarting}
                                     openEEModal={this.openEELicenseModal}
-                                    canUpgrade={this.state.canUpgrade}
+                                    upgradeDisabled={this.state.upgradeDisabled}
                                 />
                             }
                             {this.renewLicenseCard()}

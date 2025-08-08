@@ -103,13 +103,13 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
             className="panel-card"
           >
             <Memo(TeamEditionRightPanel)
-              canUpgrade={true}
               handleRestart={[Function]}
               handleUpgrade={[Function]}
               openEEModal={[Function]}
               restartError={null}
               restarting={false}
               setClickNormalUpgradeBtn={[Function]}
+              upgradeDisabled={false}
               upgradeError={null}
               upgradingPercentage={100}
             />
@@ -224,13 +224,13 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
             className="panel-card"
           >
             <Memo(TeamEditionRightPanel)
-              canUpgrade={true}
               handleRestart={[Function]}
               handleUpgrade={[Function]}
               openEEModal={[Function]}
               restartError={null}
               restarting={false}
               setClickNormalUpgradeBtn={[Function]}
+              upgradeDisabled={false}
               upgradeError={null}
               upgradingPercentage={42}
             />
@@ -1237,7 +1237,6 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           totalUsers={10}
         />
         <Component
-          canUpgrade={false}
           enterpriseReady={true}
           gettingTrial={false}
           gettingTrialError={null}
@@ -1248,6 +1247,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           openEEModal={[Function]}
           restartError={null}
           restarting={false}
+          upgradeDisabled={false}
           upgradeError={null}
           upgradingPercentage={0}
         />
@@ -1359,7 +1359,6 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           totalUsers={10}
         />
         <Component
-          canUpgrade={false}
           enterpriseReady={true}
           gettingTrial={false}
           gettingTrialError={null}
@@ -1370,6 +1369,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           openEEModal={[Function]}
           restartError={null}
           restarting={false}
+          upgradeDisabled={false}
           upgradeError={null}
           upgradingPercentage={0}
         />
@@ -1555,13 +1555,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="panel-card"
           >
             <Memo(TeamEditionRightPanel)
-              canUpgrade={false}
               handleRestart={[Function]}
               handleUpgrade={[Function]}
               openEEModal={[Function]}
               restartError={null}
               restarting={false}
               setClickNormalUpgradeBtn={[Function]}
+              upgradeDisabled={false}
               upgradeError={null}
               upgradingPercentage={0}
             />
@@ -1602,7 +1602,6 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           totalUsers={10}
         />
         <Component
-          canUpgrade={false}
           enterpriseReady={false}
           gettingTrial={false}
           gettingTrialError={null}
@@ -1613,6 +1612,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           openEEModal={[Function]}
           restartError={null}
           restarting={false}
+          upgradeDisabled={false}
           upgradeError={null}
           upgradingPercentage={0}
         />
@@ -1668,13 +1668,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="panel-card"
           >
             <Memo(TeamEditionRightPanel)
-              canUpgrade={false}
               handleRestart={[Function]}
               handleUpgrade={[Function]}
               openEEModal={[Function]}
               restartError={null}
               restarting={false}
               setClickNormalUpgradeBtn={[Function]}
+              upgradeDisabled={false}
               upgradeError={null}
               upgradingPercentage={0}
             />

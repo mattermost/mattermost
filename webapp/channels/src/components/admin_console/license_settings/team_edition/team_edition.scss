@@ -42,6 +42,10 @@
 
     .upgrade-error {
         margin-top: 10px;
+
+        &.unsupported .form-group {
+            margin-bottom: 0;
+        }
     }
 }
 
