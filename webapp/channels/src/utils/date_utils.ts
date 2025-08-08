@@ -12,20 +12,13 @@ export enum DateReference {
     YESTERDAY = 'yesterday',
 
     // Relative time (for datetime fields)
-    PLUS_30M = '+30m',
     PLUS_1H = '+1h',
-    PLUS_2H = '+2h',
     PLUS_4H = '+4h',
 
-    // Relative days
+    // Relative days/weeks/months  
     PLUS_1D = '+1d',
-    PLUS_7D = '+7d',
-    PLUS_30D = '+30d',
-
-    // Relative weeks/months
     PLUS_1W = '+1w',
     PLUS_1M = '+1M',
-    PLUS_3M = '+3M',
 }
 
 /**
@@ -42,20 +35,8 @@ export function stringToMoment(value: string | null, timezone?: string): Moment 
     // Parse as ISO string with timezone validation
     let momentValue: moment.Moment;
 
-    if (timezone) {
-        // Validate timezone to prevent potential attacks
-        try {
-            momentValue = moment.tz(resolved, timezone);
-
-            // Additional check to ensure timezone is valid
-            if (!moment.tz.zone(timezone)) {
-                // Invalid timezone provided - fallback to local time
-                momentValue = moment(resolved);
-            }
-        } catch (error) {
-            // Error parsing timezone - fallback to local time
-            momentValue = moment(resolved);
-        }
+    if (timezone && moment.tz.zone(timezone)) {
+        momentValue = moment.tz(resolved, timezone);
     } else {
         momentValue = moment(resolved);
     }
@@ -84,7 +65,7 @@ export function momentToString(momentValue: Moment | null, isDateTime: boolean):
  * Resolve relative date references to ISO strings
  */
 export function resolveRelativeDate(dateStr: string, timezone?: string): string {
-    const now = timezone ? moment.tz(timezone) : moment();
+    const now = timezone && moment.tz.zone(timezone) ? moment.tz(timezone) : moment();
 
     switch (dateStr) {
     case DateReference.TODAY:
@@ -97,37 +78,21 @@ export function resolveRelativeDate(dateStr: string, timezone?: string): string 
         return now.subtract(1, 'day').format('YYYY-MM-DD');
 
         // Relative time additions (for datetime fields)
-    case DateReference.PLUS_30M:
-        return now.add(30, 'minutes').utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
-
     case DateReference.PLUS_1H:
         return now.add(1, 'hour').utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
-
-    case DateReference.PLUS_2H:
-        return now.add(2, 'hours').utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
 
     case DateReference.PLUS_4H:
         return now.add(4, 'hours').utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
 
-        // Relative day additions
+        // Relative day/week/month additions
     case DateReference.PLUS_1D:
         return now.add(1, 'day').format('YYYY-MM-DD');
 
-    case DateReference.PLUS_7D:
-        return now.add(7, 'days').format('YYYY-MM-DD');
-
-    case DateReference.PLUS_30D:
-        return now.add(30, 'days').format('YYYY-MM-DD');
-
-        // Relative week/month additions
     case DateReference.PLUS_1W:
         return now.add(1, 'week').format('YYYY-MM-DD');
 
     case DateReference.PLUS_1M:
         return now.add(1, 'month').format('YYYY-MM-DD');
-
-    case DateReference.PLUS_3M:
-        return now.add(3, 'months').format('YYYY-MM-DD');
 
     default: {
         // Handle dynamic patterns like "+5d", "+2w", "+1M" (limit to 4 digits for security)

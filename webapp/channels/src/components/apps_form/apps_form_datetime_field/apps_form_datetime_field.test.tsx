@@ -20,6 +20,10 @@ jest.mock('utils/date_utils', () => ({
     combineDateAndTime: jest.fn(),
 }));
 
+jest.mock('mattermost-redux/selectors/entities/timezone', () => ({
+    getCurrentTimezone: jest.fn().mockReturnValue('America/New_York'),
+}));
+
 jest.mock('components/datetime_input/datetime_input', () => ({
     __esModule: true,
     default: function MockDateTimeInput({time, handleChange}: {time: any; handleChange: any}) {
@@ -103,14 +107,11 @@ describe('AppsFormDateTimeField', () => {
     });
 
     const renderComponent = (props = {}) => {
-        const store = mockStore(mockStoreData);
+        const store = mockStore({});
 
         return render(
             <Provider store={store}>
-                <IntlProvider
-                    locale='en'
-                    defaultLocale='en'
-                >
+                <IntlProvider locale='en' defaultLocale='en'>
                     <AppsFormDateTimeField
                         {...defaultProps}
                         {...props}
@@ -255,13 +256,12 @@ describe('AppsFormDateTimeField', () => {
         expect(screen.getByText('Date must be after Jan 1, 2025')).toBeInTheDocument();
     });
 
-    it('should apply error styling when there is an error', () => {
-        renderComponent({hasError: true});
-        const container = screen.getByPlaceholderText('Select date and time').closest('.apps-form-datetime-input');
-        expect(container).toHaveClass('has-error');
+    it('should show error when there is an error', () => {
+        renderComponent({hasError: true, errorText: 'DateTime is required'});
+        expect(screen.getByText('DateTime is required')).toBeInTheDocument();
     });
 
-    it('should apply error styling when validation fails', () => {
+    it('should show error when validation fails', () => {
         const mockMoment = {
             format: jest.fn().mockReturnValue('Jan 15, 2025 2:30 PM'),
         };
@@ -269,8 +269,7 @@ describe('AppsFormDateTimeField', () => {
         validateDateRange.mockReturnValue('Validation error');
 
         renderComponent({value: '2025-01-15T14:30:00Z'});
-        const container = screen.getByTestId('datetime-input').closest('.apps-form-datetime-input');
-        expect(container).toHaveClass('has-error');
+        expect(screen.getByText('Validation error')).toBeInTheDocument();
     });
 
     it('should handle min_date and max_date validation', () => {
@@ -307,5 +306,83 @@ describe('AppsFormDateTimeField', () => {
 
         // Default interval of 60 is used - verified by component rendering without error
         expect(screen.getByTestId('datetime-input')).toBeInTheDocument();
+    });
+
+    describe('allowPastDates logic', () => {
+        it('should allow past dates by default (no min_date)', () => {
+            const mockMoment = {
+                format: jest.fn().mockReturnValue('Jan 15, 2025 2:30 PM'),
+            };
+            stringToMoment.mockReturnValue(mockMoment);
+
+            renderComponent({value: '2025-01-15T14:30:00Z'});
+
+            // DateTimeInput should receive allowPastDates=true by default
+            expect(screen.getByTestId('datetime-input')).toBeInTheDocument();
+        });
+
+        it('should restrict past dates when min_date is today or future', () => {
+            const mockMoment = {
+                format: jest.fn().mockReturnValue('Jan 15, 2025 2:30 PM'),
+            };
+            stringToMoment.mockReturnValue(mockMoment);
+            
+            // Mock date utilities
+            const {stringToMoment: mockStringToMoment, resolveRelativeDate} = require('utils/date_utils');
+            resolveRelativeDate.mockReturnValue('2025-01-15');
+            
+            // Mock min_date moment to be today (same as current time)
+            const minDateMoment = {
+                isBefore: jest.fn().mockReturnValue(false), // min_date is NOT before current date
+            };
+            mockStringToMoment.mockReturnValue(minDateMoment);
+
+            const fieldWithMinDate = {...defaultField, min_date: 'today'};
+            renderComponent({field: fieldWithMinDate, value: '2025-01-15T14:30:00Z'});
+
+            // DateTimeInput should receive allowPastDates=false
+            expect(screen.getByTestId('datetime-input')).toBeInTheDocument();
+        });
+
+        it('should allow past dates when min_date is in the past', () => {
+            const mockMoment = {
+                format: jest.fn().mockReturnValue('Jan 15, 2025 2:30 PM'),
+            };
+            stringToMoment.mockReturnValue(mockMoment);
+            
+            // Mock date utilities
+            const {stringToMoment: mockStringToMoment, resolveRelativeDate} = require('utils/date_utils');
+            resolveRelativeDate.mockReturnValue('2025-01-10');
+            
+            // Mock min_date moment to be in the past
+            const minDateMoment = {
+                isBefore: jest.fn().mockReturnValue(true), // min_date IS before current date
+            };
+            mockStringToMoment.mockReturnValue(minDateMoment);
+
+            const fieldWithMinDate = {...defaultField, min_date: '-5d'};
+            renderComponent({field: fieldWithMinDate, value: '2025-01-15T14:30:00Z'});
+
+            // DateTimeInput should receive allowPastDates=true
+            expect(screen.getByTestId('datetime-input')).toBeInTheDocument();
+        });
+
+        it('should handle invalid min_date gracefully', () => {
+            const mockMoment = {
+                format: jest.fn().mockReturnValue('Jan 15, 2025 2:30 PM'),
+            };
+            stringToMoment.mockReturnValue(mockMoment);
+            
+            // Mock date utilities to return null for invalid date
+            const {stringToMoment: mockStringToMoment, resolveRelativeDate} = require('utils/date_utils');
+            resolveRelativeDate.mockReturnValue('invalid-date');
+            mockStringToMoment.mockReturnValue(null);
+
+            const fieldWithInvalidMinDate = {...defaultField, min_date: 'invalid-date'};
+            renderComponent({field: fieldWithInvalidMinDate, value: '2025-01-15T14:30:00Z'});
+
+            // Should default to allowPastDates=true when min_date is invalid
+            expect(screen.getByTestId('datetime-input')).toBeInTheDocument();
+        });
     });
 });

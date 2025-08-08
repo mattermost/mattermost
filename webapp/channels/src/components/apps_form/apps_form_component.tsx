@@ -55,13 +55,83 @@ export type State = {
     form: AppForm;
 }
 
+const validateAppField = (field: AppField): string[] => {
+    const errors: string[] = [];
+    
+    // Validate time_interval for datetime fields
+    if (field.type === AppFieldTypes.DATETIME && field.time_interval !== undefined) {
+        if (typeof field.time_interval !== 'number' || field.time_interval <= 0 || field.time_interval > 1440) {
+            errors.push(`Field "${field.name}": time_interval must be a positive number between 1 and 1440 minutes`);
+        }
+    }
+    
+    // Validate min_date and max_date for date/datetime fields
+    if (field.type === AppFieldTypes.DATE || field.type === AppFieldTypes.DATETIME) {
+        if (field.min_date) {
+            const {stringToMoment, resolveRelativeDate} = require('utils/date_utils');
+            const resolved = resolveRelativeDate(field.min_date);
+            const moment = stringToMoment(resolved);
+            if (!moment) {
+                errors.push(`Field "${field.name}": min_date "${field.min_date}" is not a valid date format`);
+            }
+        }
+        
+        if (field.max_date) {
+            const {stringToMoment, resolveRelativeDate} = require('utils/date_utils');
+            const resolved = resolveRelativeDate(field.max_date);
+            const moment = stringToMoment(resolved);
+            if (!moment) {
+                errors.push(`Field "${field.name}": max_date "${field.max_date}" is not a valid date format`);
+            }
+        }
+        
+        // Validate that min_date < max_date if both are present
+        if (field.min_date && field.max_date) {
+            const {stringToMoment, resolveRelativeDate} = require('utils/date_utils');
+            const minResolved = resolveRelativeDate(field.min_date);
+            const maxResolved = resolveRelativeDate(field.max_date);
+            const minMoment = stringToMoment(minResolved);
+            const maxMoment = stringToMoment(maxResolved);
+            
+            if (minMoment && maxMoment && minMoment.isAfter(maxMoment)) {
+                errors.push(`Field "${field.name}": min_date cannot be after max_date`);
+            }
+        }
+    }
+    
+    return errors;
+};
+
 const initFormValues = (form: AppForm): AppFormValues => {
     const values: AppFormValues = {};
     if (form && form.fields) {
+        // Validate all fields first and log any validation errors
+        const allErrors: string[] = [];
+        form.fields.forEach((f) => {
+            const fieldErrors = validateAppField(f);
+            allErrors.push(...fieldErrors);
+        });
+        
+        if (allErrors.length > 0) {
+            console.warn('AppForm field validation errors:', allErrors);
+        }
+        
         form.fields.forEach((f) => {
             let defaultValue: AppFormValue = null;
             if (f.type === AppFieldTypes.BOOL) {
                 defaultValue = false;
+            } else if (f.type === AppFieldTypes.DATETIME && f.is_required && !f.value) {
+                // Set default to current time for required datetime fields
+                const {momentToString, getRoundedTime} = require('utils/date_utils');
+                const moment = require('moment-timezone');
+                
+                const currentTime = moment();
+                // Validate time_interval before using it
+                const timePickerInterval = (typeof f.time_interval === 'number' && f.time_interval > 0 && f.time_interval <= 1440) 
+                    ? f.time_interval 
+                    : 60;
+                const defaultMoment = getRoundedTime(currentTime, timePickerInterval);
+                defaultValue = momentToString(defaultMoment, true);
             }
 
             values[f.name] = f.value || defaultValue;

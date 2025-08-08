@@ -62,6 +62,67 @@ export function checkDialogElementForError(elem: DialogElement, value: any): Dia
                 defaultMessage: 'Must be a valid option',
             };
         }
+    } else if (type === 'date' || type === 'datetime') {
+        // Import date utilities for validation
+        const {stringToMoment, resolveRelativeDate} = require('utils/date_utils');
+        
+        // Validate min_date format if present
+        if (elem.min_date) {
+            const minDateResolved = resolveRelativeDate(elem.min_date);
+            const minDateMoment = stringToMoment(minDateResolved);
+            if (!minDateMoment) {
+                return {
+                    id: 'interactive_dialog.error.invalid_min_date',
+                    defaultMessage: 'Invalid min_date format',
+                };
+            }
+        }
+        
+        // Validate max_date format if present
+        if (elem.max_date) {
+            const maxDateResolved = resolveRelativeDate(elem.max_date);
+            const maxDateMoment = stringToMoment(maxDateResolved);
+            if (!maxDateMoment) {
+                return {
+                    id: 'interactive_dialog.error.invalid_max_date',
+                    defaultMessage: 'Invalid max_date format',
+                };
+            }
+        }
+        
+        if (value) {
+            const date = stringToMoment(value);
+            if (!date) {
+                return {
+                    id: 'interactive_dialog.error.invalid_date',
+                    defaultMessage: 'Invalid date format',
+                };
+            }
+
+            // Check min_date constraint
+            if (elem.min_date) {
+                const min = stringToMoment(resolveRelativeDate(elem.min_date));
+                if (min && date.isBefore(min, 'day')) {
+                    return {
+                        id: 'interactive_dialog.error.date_too_early',
+                        defaultMessage: 'Date must be after {minDate}',
+                        values: {minDate: min.format('YYYY-MM-DD')},
+                    };
+                }
+            }
+
+            // Check max_date constraint
+            if (elem.max_date) {
+                const max = stringToMoment(resolveRelativeDate(elem.max_date));
+                if (max && date.isAfter(max, 'day')) {
+                    return {
+                        id: 'interactive_dialog.error.date_too_late',
+                        defaultMessage: 'Date must be before {maxDate}',
+                        values: {maxDate: max.format('YYYY-MM-DD')},
+                    };
+                }
+            }
+        }
     }
 
     return null;

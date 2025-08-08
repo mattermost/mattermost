@@ -195,24 +195,44 @@ export default class AppsFormField extends React.PureComponent<Props> {
         }
         case AppFieldTypes.DATE: {
             return (
-                <AppsFormDateField
-                    field={field}
-                    value={value as string | null}
-                    onChange={onChange}
-                    hasError={Boolean(errorText)}
-                    errorText={errorText}
-                />
+                <div className='form-group'>
+                    {field.label && (
+                        <label className='control-label'>
+                            {displayNameContent}
+                        </label>
+                    )}
+                    <AppsFormDateField
+                        field={field}
+                        value={value as string | null}
+                        onChange={onChange}
+                    />
+                    {helpTextContent && (
+                        <div className='help-text'>
+                            {helpTextContent}
+                        </div>
+                    )}
+                </div>
             );
         }
         case AppFieldTypes.DATETIME: {
             return (
-                <AppsFormDateTimeField
-                    field={field}
-                    value={value as string | null}
-                    onChange={onChange}
-                    hasError={Boolean(errorText)}
-                    errorText={errorText}
-                />
+                <div className='form-group'>
+                    {field.label && (
+                        <label className='control-label'>
+                            {displayNameContent}
+                        </label>
+                    )}
+                    <AppsFormDateTimeField
+                        field={field}
+                        value={value as string | null}
+                        onChange={onChange}
+                    />
+                    {helpTextContent && (
+                        <div className='help-text'>
+                            {helpTextContent}
+                        </div>
+                    )}
+                </div>
             );
         }
         }

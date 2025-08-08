@@ -544,10 +544,12 @@ func (e *DialogElement) IsValid() error {
 	case "date":
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementTextMaxLength))
+		multiErr = multierror.Append(multiErr, validateDateFormat(e.Default))
 
 	case "datetime":
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementTextMaxLength))
+		multiErr = multierror.Append(multiErr, validateDateTimeFormat(e.Default))
 
 	default:
 		multiErr = multierror.Append(multiErr, errors.Errorf("invalid element type: %q", e.Type))
@@ -568,6 +570,82 @@ func isDefaultInOptions(defaultValue string, options []*PostActionOptions) bool 
 	}
 
 	return false
+}
+
+// validateDateFormat validates that a date string is in ISO format (YYYY-MM-DD) 
+// or a supported relative format (today, tomorrow, yesterday, +1d, etc.)
+func validateDateFormat(dateStr string) error {
+	if dateStr == "" {
+		return nil // Empty default is allowed
+	}
+	
+	// Check for relative date formats first
+	relativeFormats := []string{"today", "tomorrow", "yesterday"}
+	for _, format := range relativeFormats {
+		if dateStr == format {
+			return nil
+		}
+	}
+	
+	// Check for dynamic relative patterns (+1d, +7d, +1w, +1M, etc.)
+	if len(dateStr) >= 3 && (dateStr[0] == '+' || dateStr[0] == '-') {
+		// Match pattern like "+5d", "+2w", "+1M"
+		if len(dateStr) <= 5 { // Reasonable length limit
+			lastChar := dateStr[len(dateStr)-1]
+			if lastChar == 'd' || lastChar == 'w' || lastChar == 'M' {
+				// Validate the number part
+				numberPart := dateStr[1 : len(dateStr)-1]
+				if _, err := strconv.Atoi(numberPart); err == nil {
+					return nil
+				}
+			}
+		}
+	}
+	
+	// Check for ISO date format (YYYY-MM-DD)
+	if _, err := time.Parse("2006-01-02", dateStr); err != nil {
+		return fmt.Errorf("invalid date format: %q, expected ISO format (YYYY-MM-DD) or relative format", dateStr)
+	}
+	
+	return nil
+}
+
+// validateDateTimeFormat validates that a datetime string is in ISO format with timezone
+// (YYYY-MM-DDTHH:MM:SSZ) or a supported relative format (+1h, +2H, etc.)
+func validateDateTimeFormat(dateTimeStr string) error {
+	if dateTimeStr == "" {
+		return nil // Empty default is allowed
+	}
+	
+	// Check for relative time formats (+1h, +2h, +1H, etc.)
+	if len(dateTimeStr) >= 3 && (dateTimeStr[0] == '+' || dateTimeStr[0] == '-') {
+		if len(dateTimeStr) <= 5 { // Reasonable length limit
+			lastChar := strings.ToLower(dateTimeStr[len(dateTimeStr)-1:])
+			if lastChar == "h" {
+				// Validate the number part
+				numberPart := dateTimeStr[1 : len(dateTimeStr)-1]
+				if _, err := strconv.Atoi(numberPart); err == nil {
+					return nil
+				}
+			}
+		}
+	}
+	
+	// Try various ISO datetime formats
+	formats := []string{
+		"2006-01-02T15:04:05Z",           // RFC3339 UTC
+		"2006-01-02T15:04:05.000Z",       // RFC3339 with milliseconds UTC
+		"2006-01-02T15:04:05-07:00",      // RFC3339 with timezone
+		"2006-01-02T15:04:05.000-07:00",  // RFC3339 with milliseconds and timezone
+	}
+	
+	for _, format := range formats {
+		if _, err := time.Parse(format, dateTimeStr); err == nil {
+			return nil
+		}
+	}
+	
+	return fmt.Errorf("invalid datetime format: %q, expected ISO format (YYYY-MM-DDTHH:MM:SSZ) or relative format", dateTimeStr)
 }
 
 func checkMaxLength(fieldName string, field string, maxLength int) error {

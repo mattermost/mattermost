@@ -7,6 +7,7 @@ import type {DialogElement} from '@mattermost/types/integrations';
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
 
 import {escapeHtml} from 'utils/text_formatting';
+import {stringToMoment} from 'utils/date_utils';
 
 // Dialog element types (from legacy Interactive Dialog spec)
 export const DialogElementTypes = {
@@ -256,7 +257,16 @@ export function getDefaultValue(element: DialogElement): AppFormValue {
     case DialogElementTypes.DATETIME: {
         // Date and datetime values should be passed through as strings (ISO format)
         const defaultValue = element.default ?? null;
-        return defaultValue === null ? null : String(defaultValue);
+        if (defaultValue === null) {
+            return null;
+        }
+
+        // Validate the default value is a valid date/datetime string
+        const stringValue = String(defaultValue);
+        const testMoment = stringToMoment(stringValue);
+        
+        // If invalid, return null instead of passing invalid data
+        return testMoment?.isValid() ? stringValue : null;
     }
 
     default:

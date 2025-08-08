@@ -18,6 +18,10 @@ jest.mock('utils/date_utils', () => ({
     validateDateRange: jest.fn(),
 }));
 
+jest.mock('mattermost-redux/selectors/entities/timezone', () => ({
+    getCurrentTimezone: jest.fn().mockReturnValue('America/New_York'),
+}));
+
 const {stringToMoment, momentToString, validateDateRange} = require('utils/date_utils');
 
 describe('AppsFormDateField', () => {
@@ -79,20 +83,25 @@ describe('AppsFormDateField', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        // Mock current time to avoid timezone-dependent tests
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2025-01-15T10:00:00.000Z'));
+        
         stringToMoment.mockReturnValue(null);
         momentToString.mockReturnValue('2025-01-15');
         validateDateRange.mockReturnValue(null);
     });
 
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
     const renderComponent = (props = {}) => {
-        const store = mockStore(mockStoreData);
+        const store = mockStore({});
 
         return render(
             <Provider store={store}>
-                <IntlProvider
-                    locale='en'
-                    defaultLocale='en'
-                >
+                <IntlProvider locale='en' defaultLocale='en'>
                     <AppsFormDateField
                         {...defaultProps}
                         {...props}
@@ -171,17 +180,15 @@ describe('AppsFormDateField', () => {
         expect(screen.getByText('Date must be after Jan 1, 2025')).toBeInTheDocument();
     });
 
-    it('should apply error styling when there is an error', () => {
-        renderComponent({hasError: true});
-        const wrapper = screen.getByRole('button').closest('.date-picker__wrapper');
-        expect(wrapper).toBeInTheDocument();
+    it('should show error when there is an error', () => {
+        renderComponent({hasError: true, errorText: 'Date is required'});
+        expect(screen.getByText('Date is required')).toBeInTheDocument();
     });
 
-    it('should apply error styling when validation fails', () => {
+    it('should show error when validation fails', () => {
         validateDateRange.mockReturnValue('Validation error');
         renderComponent({value: '2025-01-15'});
-        const wrapper = screen.getByRole('button').closest('.date-picker__wrapper');
-        expect(wrapper).toBeInTheDocument();
+        expect(screen.getByText('Validation error')).toBeInTheDocument();
     });
 
     it('should call onChange when date is selected', () => {

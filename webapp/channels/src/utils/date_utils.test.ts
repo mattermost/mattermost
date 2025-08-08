@@ -18,13 +18,12 @@ describe('date_utils', () => {
 
     beforeEach(() => {
         // Mock current time to a fixed date for consistent testing
-        jest.spyOn(Date, 'now').mockImplementation(() =>
-            new Date('2025-01-15T10:00:00.000Z').getTime(),
-        );
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2025-01-15T10:00:00.000Z'));
     });
 
     afterEach(() => {
-        jest.restoreAllMocks();
+        jest.useRealTimers();
     });
 
     describe('stringToMoment', () => {
@@ -105,8 +104,8 @@ describe('date_utils', () => {
             expect(result).toBe('2025-01-14');
         });
 
-        it('should resolve +7D to 7 days from now', () => {
-            const result = resolveRelativeDate(DateReference.PLUS_7D, testTimezone);
+        it('should resolve +7d to 7 days from now', () => {
+            const result = resolveRelativeDate('+7d', testTimezone);
             expect(result).toBe('2025-01-22');
         });
 
@@ -224,9 +223,18 @@ describe('date_utils', () => {
             expect(result).toBe('2025-01-15T05:00:00Z'); // EST to UTC conversion
         });
 
-        it('should work without timezone', () => {
+        it('should work without timezone (uses local timezone)', () => {
+            // Set timezone to UTC for consistent testing
+            const originalTz = process.env.TZ;
+            process.env.TZ = 'UTC';
+            moment.tz.setDefault('UTC');
+            
             const result = combineDateAndTime('2025-01-15', '14:30');
-            expect(result).toMatch(/2025-01-15T\d{2}:30:00Z/); // Will depend on system timezone
+            expect(result).toBe('2025-01-15T14:30:00Z'); // UTC: no conversion needed
+            
+            // Restore original timezone
+            process.env.TZ = originalTz;
+            moment.tz.setDefault();
         });
     });
 });
