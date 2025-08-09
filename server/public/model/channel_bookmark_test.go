@@ -251,6 +251,44 @@ func TestChannelBookmarkIsValid(t *testing.T) {
 			true,
 		},
 		{
+			"bookmark of type link with valid mattermost scheme url",
+			&ChannelBookmark{
+				Id:          NewId(),
+				ChannelId:   NewId(),
+				OwnerId:     NewId(),
+				FileId:      "",
+				DisplayName: "display name",
+				SortOrder:   0,
+				LinkUrl:     "mattermost://channel/team-name/channel-name",
+				ImageUrl:    "",
+				Emoji:       "",
+				Type:        ChannelBookmarkLink,
+				CreateAt:    2,
+				UpdateAt:    3,
+				DeleteAt:    4,
+			},
+			true,
+		},
+		{
+			"bookmark of type link with valid custom scheme url",
+			&ChannelBookmark{
+				Id:          NewId(),
+				ChannelId:   NewId(),
+				OwnerId:     NewId(),
+				FileId:      "",
+				DisplayName: "display name",
+				SortOrder:   0,
+				LinkUrl:     "customapp://some/path",
+				ImageUrl:    "",
+				Emoji:       "",
+				Type:        ChannelBookmarkLink,
+				CreateAt:    2,
+				UpdateAt:    3,
+				DeleteAt:    4,
+			},
+			true,
+		},
+		{
 			"bookmark of type link with empty image url",
 			&ChannelBookmark{
 				Id:          NewId(),
@@ -423,6 +461,7 @@ func TestChannelBookmarkIsValid(t *testing.T) {
 			},
 			false,
 		},
+
 		{
 			"bookmark of type file with a url",
 			&ChannelBookmark{
