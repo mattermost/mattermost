@@ -636,7 +636,7 @@ func TestGetEnvironmentConfig(t *testing.T) {
 	})
 }
 
-func TestGetOldClientConfig(t *testing.T) {
+func TestGetClientConfig(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -650,7 +650,7 @@ func TestGetOldClientConfig(t *testing.T) {
 
 		client := th.Client
 
-		config, _, err := client.GetOldClientConfig(context.Background(), "")
+		config, _, err := client.GetClientConfig(context.Background(), "")
 		require.NoError(t, err)
 
 		require.NotEmpty(t, config["Version"], "config not returned correctly")
@@ -664,27 +664,37 @@ func TestGetOldClientConfig(t *testing.T) {
 
 		client := th.CreateClient()
 
-		config, _, err := client.GetOldClientConfig(context.Background(), "")
+		config, _, err := client.GetClientConfig(context.Background(), "")
 		require.NoError(t, err)
 
 		require.NotEmpty(t, config["Version"], "config not returned correctly")
 		require.Empty(t, config["GoogleDeveloperKey"], "config should be missing developer key")
 	})
 
-	t.Run("missing format", func(t *testing.T) {
+	t.Run("format=old (backward compatibility)", func(t *testing.T) {
 		client := th.Client
 
-		resp, err := client.DoAPIGet(context.Background(), "/config/client", "")
-		require.Error(t, err)
-		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+		resp, err := client.DoAPIGet(context.Background(), "/config/client?format=old", "")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var config map[string]string
+		err = json.NewDecoder(resp.Body).Decode(&config)
+		require.NoError(t, err)
+		require.NotEmpty(t, config["Version"], "config not returned correctly")
 	})
 
-	t.Run("invalid format", func(t *testing.T) {
+	t.Run("format=junk (ignored)", func(t *testing.T) {
 		client := th.Client
 
 		resp, err := client.DoAPIGet(context.Background(), "/config/client?format=junk", "")
-		require.Error(t, err)
-		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var config map[string]string
+		err = json.NewDecoder(resp.Body).Decode(&config)
+		require.NoError(t, err)
+		require.NotEmpty(t, config["Version"], "config not returned correctly")
 	})
 }
 

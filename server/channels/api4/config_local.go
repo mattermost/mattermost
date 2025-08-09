@@ -187,18 +187,6 @@ func localGetClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventLocalGetClientConfig, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
-	format := r.URL.Query().Get("format")
-
-	if format == "" {
-		c.Err = model.NewAppError("getClientConfig", "api.config.client.old_format.app_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if format != "old" {
-		c.SetInvalidParam("format")
-		return
-	}
-
 	auditRec.Success()
 
 	_, err := w.Write([]byte(model.MapToJSON(c.App.Srv().Platform().ClientConfigWithComputed())))

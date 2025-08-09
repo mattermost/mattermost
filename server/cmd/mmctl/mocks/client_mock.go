@@ -762,6 +762,22 @@ func (mr *MockClientMockRecorder) GetChannelsForTeamForUser(arg0, arg1, arg2, ar
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChannelsForTeamForUser", reflect.TypeOf((*MockClient)(nil).GetChannelsForTeamForUser), arg0, arg1, arg2, arg3, arg4)
 }
 
+// GetClientConfig mocks base method.
+func (m *MockClient) GetClientConfig(arg0 context.Context, arg1 string) (map[string]string, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetClientConfig", arg0, arg1)
+	ret0, _ := ret[0].(map[string]string)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetClientConfig indicates an expected call of GetClientConfig.
+func (mr *MockClientMockRecorder) GetClientConfig(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClientConfig", reflect.TypeOf((*MockClient)(nil).GetClientConfig), arg0, arg1)
+}
+
 // GetCommandById mocks base method.
 func (m *MockClient) GetCommandById(arg0 context.Context, arg1 string) (*model.Command, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -1018,22 +1034,6 @@ func (m *MockClient) GetOAuthApps(arg0 context.Context, arg1, arg2 int) ([]*mode
 func (mr *MockClientMockRecorder) GetOAuthApps(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOAuthApps", reflect.TypeOf((*MockClient)(nil).GetOAuthApps), arg0, arg1, arg2)
-}
-
-// GetOldClientConfig mocks base method.
-func (m *MockClient) GetOldClientConfig(arg0 context.Context, arg1 string) (map[string]string, *model.Response, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOldClientConfig", arg0, arg1)
-	ret0, _ := ret[0].(map[string]string)
-	ret1, _ := ret[1].(*model.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// GetOldClientConfig indicates an expected call of GetOldClientConfig.
-func (mr *MockClientMockRecorder) GetOldClientConfig(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOldClientConfig", reflect.TypeOf((*MockClient)(nil).GetOldClientConfig), arg0, arg1)
 }
 
 // GetOutgoingWebhook mocks base method.
