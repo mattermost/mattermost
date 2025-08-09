@@ -7,7 +7,6 @@ import type {Dispatch} from 'redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {deleteChannel} from 'actions/views/channel';
@@ -15,10 +14,7 @@ import {deleteChannel} from 'actions/views/channel';
 import DeleteChannelModal from './delete_channel_modal';
 
 function mapStateToProps(state: GlobalState) {
-    const config = getConfig(state);
-
     return {
-        canViewArchivedChannels: config.ExperimentalViewArchivedChannels === 'true',
         currentTeamDetails: getCurrentTeam(state),
     };
 }

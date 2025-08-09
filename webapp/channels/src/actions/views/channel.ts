@@ -32,7 +32,6 @@ import {
     isManuallyUnread,
     getCurrentChannelId,
 } from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getMostRecentPostIdInChannel, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {
     getCurrentRelativeTeamUrl,
@@ -50,7 +49,7 @@ import {openDirectChannelToUserId} from 'actions/channel_actions';
 import {loadCustomStatusEmojisForPostList} from 'actions/emoji_actions';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {markThreadAsRead} from 'actions/views/threads';
-import {getLastViewedChannelName, getPenultimateViewedChannelName} from 'selectors/local_storage';
+import {getLastViewedChannelName} from 'selectors/local_storage';
 import {getSelectedPost, getSelectedPostId} from 'selectors/rhs';
 import {getLastPostsApiTimeForChannel} from 'selectors/views/channel';
 import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
@@ -533,16 +532,6 @@ export function deleteChannel(channelId: string): ActionFuncAsync<boolean> {
         // Validate channel ID
         if (!channel || channel.id.length !== Constants.CHANNEL_ID_LENGTH) {
             return {data: false};
-        }
-
-        const canViewArchivedChannels = getConfig(state).ExperimentalViewArchivedChannels === 'true';
-        const currentTeamDetails = getCurrentTeam(state);
-        const penultimateViewedChannelName = getPenultimateViewedChannelName(state) ||
-            getRedirectChannelNameForTeam(state, getCurrentTeamId(state));
-
-        // Handle redirection before deletion if needed
-        if (!canViewArchivedChannels && penultimateViewedChannelName && currentTeamDetails) {
-            getHistory().push('/' + currentTeamDetails.name + '/channels/' + penultimateViewedChannelName);
         }
 
         // Call the delete channel action

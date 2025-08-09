@@ -40,7 +40,6 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
   onExited={[Function]}
 >
   <injectIntl(SearchableChannelList)
-    canShowArchivedChannels={true}
     changeFilter={[Function]}
     channels={
       Array [
