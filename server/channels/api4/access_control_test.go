@@ -44,6 +44,35 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
+		// Create another user who will create the channel
+		channelCreator := th.CreateUser()
+		th.LinkUserToTeam(channelCreator, th.BasicTeam)
+		channelCreatorClient := th.CreateClient()
+		channelCreatorClient.Login(context.Background(), channelCreator.Email, channelCreator.Password)
+
+		// Create a private channel with the other user (not th.BasicUser)
+		privateChannel, _, err := channelCreatorClient.CreateChannel(context.Background(), &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			Name:        "private-channel-" + model.NewId(),
+			DisplayName: "Private Channel",
+			Type:        model.ChannelTypePrivate,
+		})
+		require.NoError(t, err)
+
+		// Create channel-specific policy (regular user should not have permission)
+		channelPolicy := &model.AccessControlPolicy{
+			ID:       privateChannel.Id, // Set to actual channel ID
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_1,
+			Revision: 1,
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Expression: "user.attributes.team == 'engineering'",
+					Actions:    []string{"*"},
+				},
+			},
+		}
+
 		// Create and set up the mock
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
@@ -52,7 +81,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 		})
 
-		_, resp, err := th.Client.CreateAccessControlPolicy(context.Background(), samplePolicy)
+		_, resp, err := th.Client.CreateAccessControlPolicy(context.Background(), channelPolicy)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})

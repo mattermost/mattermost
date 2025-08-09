@@ -45,10 +45,29 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "requested", &policy)
 
-	// Check if user has system admin permission OR channel-specific permission
+	// Check if user has system admin permission
 	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+
 	if !hasManageSystemPermission {
-		// For non-system admins, validate for the channel specific policy creation
+		// For non-system admins, only channel-type policies are allowed
+		if policy.Type != model.AccessControlPolicyTypeChannel {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
+
+		// Quick permission check: does user have channel admin permission for this specific channel?
+		if policy.ID == "" {
+			c.SetInvalidParam("policy.id")
+			return
+		}
+
+		hasChannelPermission := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, policy.ID, model.PermissionManageChannelAccessRules)
+		if !hasChannelPermission {
+			c.SetPermissionError(model.PermissionManageChannelAccessRules)
+			return
+		}
+
+		// Now do the full validation (channel exists, is private, etc.)
 		if appErr := c.App.ValidateChannelAccessControlPolicyCreation(c.AppContext, c.AppContext.Session().UserId, &policy); appErr != nil {
 			c.Err = appErr
 			return
