@@ -48,7 +48,8 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		channelCreator := th.CreateUser()
 		th.LinkUserToTeam(channelCreator, th.BasicTeam)
 		channelCreatorClient := th.CreateClient()
-		channelCreatorClient.Login(context.Background(), channelCreator.Email, channelCreator.Password)
+		_, _, err := channelCreatorClient.Login(context.Background(), channelCreator.Email, channelCreator.Password)
+		require.NoError(t, err)
 
 		// Create a private channel with the other user (not th.BasicUser)
 		privateChannel, _, err := channelCreatorClient.CreateChannel(context.Background(), &model.Channel{
@@ -101,7 +102,8 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		th.MakeUserChannelAdmin(channelAdmin, privateChannel)
 		channelAdminClient := th.CreateClient()
 		th.LoginBasicWithClient(channelAdminClient)
-		channelAdminClient.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
+		_, _, err := channelAdminClient.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
+		require.NoError(t, err)
 
 		// Create channel-specific policy
 		channelPolicy := &model.AccessControlPolicy{
@@ -144,7 +146,8 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		th.MakeUserChannelAdmin(channelAdmin, privateChannel1)
 		channelAdminClient := th.CreateClient()
 		th.LoginBasicWithClient(channelAdminClient)
-		channelAdminClient.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
+		_, _, err := channelAdminClient.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
+		require.NoError(t, err)
 
 		// Try to create policy for different channel
 		channelPolicy := &model.AccessControlPolicy{
@@ -181,7 +184,8 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		th.MakeUserChannelAdmin(channelAdmin, privateChannel)
 		channelAdminClient := th.CreateClient()
 		th.LoginBasicWithClient(channelAdminClient)
-		channelAdminClient.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
+		_, _, err := channelAdminClient.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
+		require.NoError(t, err)
 
 		// Try to create parent-type policy
 		parentPolicy := &model.AccessControlPolicy{
