@@ -127,9 +127,9 @@ func (s *FileBackendTestSuite) SetupTest() {
 	err = s.backend.TestConnection()
 	if _, ok := err.(*S3FileBackendNoBucketError); ok {
 		s3Backend := s.backend.(*S3FileBackend)
-		s.NoError(s3Backend.MakeBucket())
+		s.Require().NoError(s3Backend.MakeBucket())
 	} else {
-		s.NoError(err)
+		s.Require().NoError(err)
 	}
 }
 
@@ -142,12 +142,12 @@ func (s *FileBackendTestSuite) TestReadWriteFile() {
 	path := "tests/" + randomString()
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path)
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 	defer s.backend.RemoveFile(path)
 
 	read, err := s.backend.ReadFile(path)
-	s.NoError(err)
+	s.Require().NoError(err)
 
 	readString := string(read)
 	s.EqualValues(readString, "test")
@@ -174,12 +174,12 @@ func (s *FileBackendTestSuite) TestReadWriteFileContext() {
 		} else {
 			written, err = s.backend.WriteFile(strings.NewReader(data), path)
 		}
-		s.NoError(err)
+		s.Require().NoError(err)
 		s.EqualValues(len(data), written, "expected given number of bytes to have been written")
 		defer s.backend.RemoveFile(path)
 
 		read, err := s.backend.ReadFile(path)
-		s.NoError(err)
+		s.Require().NoError(err)
 
 		readString := string(read)
 		s.Equal(readString, data)
@@ -200,12 +200,12 @@ func (s *FileBackendTestSuite) TestReadWriteFileContext() {
 		} else {
 			written, err = s.backend.WriteFile(strings.NewReader(data), path)
 		}
-		s.NoError(err)
+		s.Require().NoError(err)
 		s.EqualValues(len(data), written, "expected given number of bytes to have been written")
 		defer s.backend.RemoveFile(path)
 
 		read, err := s.backend.ReadFile(path)
-		s.NoError(err)
+		s.Require().NoError(err)
 
 		readString := string(read)
 		s.Equal(readString, data)
@@ -243,12 +243,12 @@ func (s *FileBackendTestSuite) TestReadWriteFileImage() {
 	path := "tests/" + randomString() + ".png"
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path)
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 	defer s.backend.RemoveFile(path)
 
 	read, err := s.backend.ReadFile(path)
-	s.NoError(err)
+	s.Require().NoError(err)
 
 	readString := string(read)
 	s.EqualValues(readString, "testimage")
@@ -259,15 +259,15 @@ func (s *FileBackendTestSuite) TestFileExists() {
 	path := "tests/" + randomString() + ".png"
 
 	_, err := s.backend.WriteFile(bytes.NewReader(b), path)
-	s.NoError(err)
+	s.Require().NoError(err)
 	defer s.backend.RemoveFile(path)
 
 	res, err := s.backend.FileExists(path)
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.True(res)
 
 	res, err = s.backend.FileExists("tests/idontexist.png")
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.False(res)
 }
 
@@ -277,22 +277,43 @@ func (s *FileBackendTestSuite) TestCopyFile() {
 	path2 := "tests/" + randomString()
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path1)
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 	defer s.backend.RemoveFile(path1)
 
+	// For local backend, test permission copying by setting specific permissions on source file
+	if localBackend, ok := s.backend.(*LocalFileBackend); ok {
+		srcFilePath := filepath.Join(localBackend.directory, path1)
+		err = os.Chmod(srcFilePath, 0644)
+		s.Require().NoError(err)
+	}
+
 	err = s.backend.CopyFile(path1, path2)
-	s.NoError(err)
+	s.Require().NoError(err)
 	defer s.backend.RemoveFile(path2)
 
 	data1, err := s.backend.ReadFile(path1)
-	s.NoError(err)
+	s.Require().NoError(err)
 
 	data2, err := s.backend.ReadFile(path2)
-	s.NoError(err)
+	s.Require().NoError(err)
 
 	s.Equal(b, data1)
 	s.Equal(b, data2)
+
+	// For local backend, verify permissions are copied from source to destination
+	if localBackend, ok := s.backend.(*LocalFileBackend); ok {
+		srcFilePath := filepath.Join(localBackend.directory, path1)
+		dstFilePath := filepath.Join(localBackend.directory, path2)
+
+		srcInfo, err := os.Stat(srcFilePath)
+		s.Require().NoError(err)
+
+		dstInfo, err := os.Stat(dstFilePath)
+		s.Require().NoError(err)
+
+		s.Equal(srcInfo.Mode(), dstInfo.Mode(), "destination file should have same permissions as source file")
+	}
 }
 
 func (s *FileBackendTestSuite) TestCopyFileToDirectoryThatDoesntExist() {
@@ -301,19 +322,19 @@ func (s *FileBackendTestSuite) TestCopyFileToDirectoryThatDoesntExist() {
 	path2 := "tests/newdirectory/" + randomString()
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path1)
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 	defer s.backend.RemoveFile(path1)
 
 	err = s.backend.CopyFile(path1, path2)
-	s.NoError(err)
+	s.Require().NoError(err)
 	defer s.backend.RemoveFile(path2)
 
 	_, err = s.backend.ReadFile(path1)
-	s.NoError(err)
+	s.Require().NoError(err)
 
 	_, err = s.backend.ReadFile(path2)
-	s.NoError(err)
+	s.Require().NoError(err)
 }
 
 func (s *FileBackendTestSuite) TestMoveFile() {
@@ -322,7 +343,7 @@ func (s *FileBackendTestSuite) TestMoveFile() {
 	path2 := "tests/" + randomString()
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path1)
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 	defer s.backend.RemoveFile(path1)
 
@@ -333,7 +354,7 @@ func (s *FileBackendTestSuite) TestMoveFile() {
 	s.Error(err)
 
 	data, err := s.backend.ReadFile(path2)
-	s.NoError(err)
+	s.Require().NoError(err)
 
 	s.Equal(b, data)
 }
@@ -343,7 +364,7 @@ func (s *FileBackendTestSuite) TestRemoveFile() {
 	path := "tests/" + randomString()
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path)
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 	s.Nil(s.backend.RemoveFile(path))
 
@@ -351,15 +372,15 @@ func (s *FileBackendTestSuite) TestRemoveFile() {
 	s.Error(err)
 
 	written, err = s.backend.WriteFile(bytes.NewReader(b), "tests2/foo")
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 
 	written, err = s.backend.WriteFile(bytes.NewReader(b), "tests2/bar")
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 
 	written, err = s.backend.WriteFile(bytes.NewReader(b), "tests2/asdf")
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 
 	s.Nil(s.backend.RemoveDirectory("tests2"))
@@ -371,35 +392,35 @@ func (s *FileBackendTestSuite) TestListDirectory() {
 	path2 := "19800101/" + randomString()
 
 	paths, err := s.backend.ListDirectory("19700101")
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.Len(paths, 0)
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path1)
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 
 	written, err = s.backend.WriteFile(bytes.NewReader(b), path2)
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 
 	paths, err = s.backend.ListDirectory("19700101")
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.Len(paths, 1)
 	s.Equal(path1, (paths)[0])
 
 	paths, err = s.backend.ListDirectory("19800101/")
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.Len(paths, 1)
 	s.Equal(path2, (paths)[0])
 
 	if s.settings.DriverName == driverLocal {
 		paths, err = s.backend.ListDirectory("19800102")
-		s.NoError(err)
+		s.Require().NoError(err)
 		s.Len(paths, 0)
 	}
 
 	paths, err = s.backend.ListDirectory("")
-	s.NoError(err)
+	s.Require().NoError(err)
 	found1 := false
 	found2 := false
 	for _, path := range paths {
@@ -423,39 +444,39 @@ func (s *FileBackendTestSuite) TestListDirectoryRecursively() {
 	longPath := "19800102" + strings.Repeat("/toomuch", MaxRecursionDepth+1) + randomString()
 
 	paths, err := s.backend.ListDirectoryRecursively("19700101")
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.Len(paths, 0)
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path1)
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 
 	written, err = s.backend.WriteFile(bytes.NewReader(b), path2)
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 
 	written, err = s.backend.WriteFile(bytes.NewReader(b), longPath)
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 
 	paths, err = s.backend.ListDirectoryRecursively("19700101")
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.Len(paths, 1)
 	s.Equal(path1, (paths)[0])
 
 	paths, err = s.backend.ListDirectoryRecursively("19800101/")
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.Len(paths, 1)
 	s.Equal(path2, (paths)[0])
 
 	if s.settings.DriverName == driverLocal {
 		paths, err = s.backend.ListDirectory("19800102")
-		s.NoError(err)
+		s.Require().NoError(err)
 		s.Len(paths, 1)
 	}
 
 	paths, err = s.backend.ListDirectoryRecursively("")
-	s.NoError(err)
+	s.Require().NoError(err)
 	found1 := false
 	found2 := false
 	found3 := false
@@ -483,15 +504,15 @@ func (s *FileBackendTestSuite) TestRemoveDirectory() {
 	b := []byte("test")
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), "tests2/foo")
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 
 	written, err = s.backend.WriteFile(bytes.NewReader(b), "tests2/bar")
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 
 	written, err = s.backend.WriteFile(bytes.NewReader(b), "tests2/aaa")
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 
 	s.Nil(s.backend.RemoveDirectory("tests2"))
@@ -520,7 +541,7 @@ func (s *FileBackendTestSuite) TestAppendFile() {
 		path := "tests/" + randomString()
 
 		written, err := s.backend.WriteFile(bytes.NewReader(b), path)
-		s.NoError(err)
+		s.Require().NoError(err)
 		s.EqualValues(len(b), written)
 		defer s.backend.RemoveFile(path)
 
@@ -530,11 +551,11 @@ func (s *FileBackendTestSuite) TestAppendFile() {
 		}
 
 		written, err = s.backend.AppendFile(bytes.NewReader(b2), path)
-		s.NoError(err)
+		s.Require().NoError(err)
 		s.EqualValues(int64(len(b2)), written)
 
 		read, err := s.backend.ReadFile(path)
-		s.NoError(err)
+		s.Require().NoError(err)
 		s.EqualValues(len(b)+len(b2), len(read))
 		s.True(bytes.Equal(append(b, b2...), read))
 
@@ -544,11 +565,11 @@ func (s *FileBackendTestSuite) TestAppendFile() {
 		}
 
 		written, err = s.backend.AppendFile(bytes.NewReader(b3), path)
-		s.NoError(err)
+		s.Require().NoError(err)
 		s.EqualValues(int64(len(b3)), written)
 
 		read, err = s.backend.ReadFile(path)
-		s.NoError(err)
+		s.Require().NoError(err)
 		s.EqualValues(len(b)+len(b2)+len(b3), len(read))
 		s.True(bytes.Equal(append(append(b, b2...), b3...), read))
 	})
@@ -566,12 +587,12 @@ func (s *FileBackendTestSuite) TestFileSize() {
 		path := "tests/" + randomString()
 
 		written, err := s.backend.WriteFile(bytes.NewReader(data), path)
-		s.NoError(err)
+		s.Require().NoError(err)
 		s.EqualValues(len(data), written)
 		defer s.backend.RemoveFile(path)
 
 		size, err := s.backend.FileSize(path)
-		s.NoError(err)
+		s.Require().NoError(err)
 		s.Equal(int64(len(data)), size)
 	})
 }
@@ -588,12 +609,12 @@ func (s *FileBackendTestSuite) TestFileModTime() {
 		data := []byte("some data")
 
 		written, err := s.backend.WriteFile(bytes.NewReader(data), path)
-		s.NoError(err)
+		s.Require().NoError(err)
 		s.EqualValues(len(data), written)
 		defer s.backend.RemoveFile(path)
 
 		modTime, err := s.backend.FileModTime(path)
-		s.NoError(err)
+		s.Require().NoError(err)
 		s.NotEmpty(modTime)
 
 		// We wait 1 second so that the times will differ enough to be testable.
@@ -601,12 +622,12 @@ func (s *FileBackendTestSuite) TestFileModTime() {
 
 		path2 := "tests/" + randomString()
 		written, err = s.backend.WriteFile(bytes.NewReader(data), path2)
-		s.NoError(err)
+		s.Require().NoError(err)
 		s.EqualValues(len(data), written)
 		defer s.backend.RemoveFile(path2)
 
 		modTime2, err := s.backend.FileModTime(path2)
-		s.NoError(err)
+		s.Require().NoError(err)
 		s.NotEmpty(modTime2)
 		s.True(modTime2.After(modTime))
 	})
@@ -1027,7 +1048,7 @@ func (s *FileBackendTestSuite) TestZipReaderSingleFile() {
 	path := "tests/" + randomString() + ".txt"
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path)
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.EqualValues(len(b), written)
 	defer s.backend.RemoveFile(path)
 
@@ -1036,22 +1057,22 @@ func (s *FileBackendTestSuite) TestZipReaderSingleFile() {
 	path2 := "tests/" + randomString() + ".txt"
 
 	written, err = s.backend.WriteFile(bytes.NewReader(b2), path2)
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.EqualValues(len(b2), written)
 	defer s.backend.RemoveFile(path2)
 
 	// Test without compression
 	reader, err := s.backend.ZipReader(path, false)
-	s.NoError(err)
+	s.Require().NoError(err)
 	defer reader.Close()
 
 	// Read the zip file
 	zipBytes, err := io.ReadAll(reader)
-	s.NoError(err)
+	s.Require().NoError(err)
 
 	zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-	s.NoError(err)
-	s.Len(zipReader.File, 1)
+	s.Require().NoError(err)
+	s.Require().Len(zipReader.File, 1)
 
 	// Verify file contents
 	zf := zipReader.File[0]
@@ -1059,11 +1080,11 @@ func (s *FileBackendTestSuite) TestZipReaderSingleFile() {
 	s.Equal(zip.Store, zf.Method)
 
 	rc, err := zf.Open()
-	s.NoError(err)
+	s.Require().NoError(err)
 	defer rc.Close()
 
 	content, err := io.ReadAll(rc)
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.Equal(b, content)
 }
 
@@ -1073,7 +1094,7 @@ func (s *FileBackendTestSuite) TestZipReaderSingleFileCompressed() {
 	path := "tests/" + randomString() + ".txt"
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path)
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.EqualValues(len(b), written)
 	defer s.backend.RemoveFile(path)
 
@@ -1082,31 +1103,31 @@ func (s *FileBackendTestSuite) TestZipReaderSingleFileCompressed() {
 	path2 := "tests/" + randomString() + ".txt"
 
 	written, err = s.backend.WriteFile(bytes.NewReader(b2), path2)
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.EqualValues(len(b2), written)
 	defer s.backend.RemoveFile(path2)
 
 	reader, err := s.backend.ZipReader(path, true)
-	s.NoError(err)
+	s.Require().NoError(err)
 	defer reader.Close()
 
 	zipBytes, err := io.ReadAll(reader)
-	s.NoError(err)
+	s.Require().NoError(err)
 
 	zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-	s.NoError(err)
-	s.Len(zipReader.File, 1)
+	s.Require().NoError(err)
+	s.Require().Len(zipReader.File, 1)
 
 	zf := zipReader.File[0]
 	s.Equal(filepath.Base(path), zf.Name)
 	s.Equal(zip.Deflate, zf.Method)
 
 	rc, err := zf.Open()
-	s.NoError(err)
+	s.Require().NoError(err)
 	defer rc.Close()
 
 	content, err := io.ReadAll(rc)
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.Equal(b, content)
 }
 
@@ -1123,22 +1144,22 @@ func (s *FileBackendTestSuite) TestZipReaderDirectory() {
 	for path, content := range files {
 		fullPath := filepath.Join(dirPath, path)
 		written, err := s.backend.WriteFile(bytes.NewReader(content), fullPath)
-		s.NoError(err)
+		s.Require().NoError(err)
 		s.EqualValues(len(content), written)
 		defer s.backend.RemoveFile(fullPath)
 	}
 
 	// Test without compression
 	reader, err := s.backend.ZipReader(dirPath, false)
-	s.NoError(err)
+	s.Require().NoError(err)
 	defer reader.Close()
 
 	// Read and verify zip contents
 	zipBytes, err := io.ReadAll(reader)
-	s.NoError(err)
+	s.Require().NoError(err)
 
 	zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-	s.NoError(err)
+	s.Require().NoError(err)
 
 	// Verify each file
 	foundFiles := make(map[string]bool)
@@ -1148,10 +1169,10 @@ func (s *FileBackendTestSuite) TestZipReaderDirectory() {
 		delete(files, zf.Name)
 
 		rc, err := zf.Open()
-		s.NoError(err)
+		s.Require().NoError(err)
 
 		content, err := io.ReadAll(rc)
-		s.NoError(err)
+		s.Require().NoError(err)
 		rc.Close()
 
 		s.Equal(expectedContent, content)
@@ -1176,22 +1197,22 @@ func (s *FileBackendTestSuite) TestZipReaderDirectoryCompressed() {
 	for path, content := range files {
 		fullPath := filepath.Join(dirPath, path)
 		written, err := s.backend.WriteFile(bytes.NewReader(content), fullPath)
-		s.NoError(err)
+		s.Require().NoError(err)
 		s.EqualValues(len(content), written)
 		defer s.backend.RemoveFile(fullPath)
 	}
 
 	// Test with compression
 	reader, err := s.backend.ZipReader(dirPath, true)
-	s.NoError(err)
+	s.Require().NoError(err)
 	defer reader.Close()
 
 	// Read and verify zip contents
 	zipBytes, err := io.ReadAll(reader)
-	s.NoError(err)
+	s.Require().NoError(err)
 
 	zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-	s.NoError(err)
+	s.Require().NoError(err)
 
 	// Verify each file
 	foundFiles := make(map[string]bool)
@@ -1202,10 +1223,10 @@ func (s *FileBackendTestSuite) TestZipReaderDirectoryCompressed() {
 		delete(files, zf.Name)
 
 		rc, err := zf.Open()
-		s.NoError(err)
+		s.Require().NoError(err)
 
 		content, err := io.ReadAll(rc)
-		s.NoError(err)
+		s.Require().NoError(err)
 		rc.Close()
 
 		s.Equal(expectedContent, content)
@@ -1225,25 +1246,25 @@ func (s *FileBackendTestSuite) TestZipReaderErrors() {
 		s.Error(err)
 		s.Nil(reader)
 	} else {
-		s.NoError(err)
+		s.Require().NoError(err)
 		defer reader.Close()
 		var content []byte
 		content, err = io.ReadAll(reader)
-		s.NoError(err)
+		s.Require().NoError(err)
 		s.assertEmptyZip(content)
 	}
 
 	// Test empty directory
 	emptyDir := "tests/empty_" + randomString()
 	err = os.MkdirAll(filepath.Join(s.settings.Directory, emptyDir), 0750)
-	s.NoError(err)
+	s.Require().NoError(err)
 	defer os.RemoveAll(filepath.Join(s.settings.Directory, emptyDir))
 
 	reader, err = s.backend.ZipReader(emptyDir, false)
-	s.NoError(err)
+	s.Require().NoError(err)
 	defer reader.Close()
 	content, err := io.ReadAll(reader)
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.assertEmptyZip(content)
 }
 
@@ -1255,25 +1276,25 @@ func (s *FileBackendTestSuite) TestZipReaderErrorsCompressed() {
 		s.Error(err)
 		s.Nil(reader)
 	} else {
-		s.NoError(err)
+		s.Require().NoError(err)
 		defer reader.Close()
 		var content []byte
 		content, err = io.ReadAll(reader)
-		s.NoError(err)
+		s.Require().NoError(err)
 		s.assertEmptyZip(content)
 	}
 
 	// Test empty directory with compression
 	emptyDir := "tests/empty_" + randomString()
 	err = os.MkdirAll(filepath.Join(s.settings.Directory, emptyDir), 0750)
-	s.NoError(err)
+	s.Require().NoError(err)
 	defer os.RemoveAll(filepath.Join(s.settings.Directory, emptyDir))
 
 	reader, err = s.backend.ZipReader(emptyDir, true)
-	s.NoError(err)
+	s.Require().NoError(err)
 	defer reader.Close()
 	content, err := io.ReadAll(reader)
-	s.NoError(err)
+	s.Require().NoError(err)
 	s.assertEmptyZip(content)
 }
 
@@ -1282,6 +1303,6 @@ func (s *FileBackendTestSuite) assertEmptyZip(content []byte) {
 
 	// Verify it's a valid but empty zip
 	zipReader, err := zip.NewReader(bytes.NewReader(content), int64(len(content)))
-	s.NoError(err)
-	s.Len(zipReader.File, 0)
+	s.Require().NoError(err)
+	s.Require().Len(zipReader.File, 0)
 }

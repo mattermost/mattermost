@@ -16,7 +16,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 const (
@@ -76,7 +75,7 @@ func getTestResourcesToSetup() []testResourceDetails {
 	var srcPath string
 	var found bool
 
-	var testResourcesToSetup = []testResourceDetails{
+	testResourcesToSetup := []testResourceDetails{
 		{root, "mattermost-server", resourceTypeFolder, actionSymlink},
 		{"go.mod", "go.mod", resourceTypeFile, actionSymlink},
 		{"i18n", "i18n", resourceTypeFolder, actionSymlink},
@@ -112,14 +111,7 @@ func getTestResourcesToSetup() []testResourceDetails {
 }
 
 func CopyFile(src, dst string) error {
-	fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{DriverName: "local", Directory: ""})
-	if err != nil {
-		return errors.Wrapf(err, "failed to copy file %s to %s", src, dst)
-	}
-	if err = fileBackend.CopyFile(src, dst); err != nil {
-		return errors.Wrapf(err, "failed to copy file %s to %s", src, dst)
-	}
-	return nil
+	return utils.CopyFile(src, dst)
 }
 
 func SetupTestResources() (string, error) {
