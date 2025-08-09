@@ -6419,6 +6419,26 @@
     "translation": "Could not change active status of access control policy."
   },
   {
+    "id": "app.access_control.channel_group_constrained",
+    "translation": "Channel is group constrained and cannot have access control policies applied."
+  },
+  {
+    "id": "app.access_control.channel_not_private",
+    "translation": "Access control policies can only be applied to private channels."
+  },
+  {
+    "id": "app.access_control.channel_shared",
+    "translation": "Channel is shared and cannot have access control policies applied."
+  },
+  {
+    "id": "app.access_control.insufficient_channel_permissions",
+    "translation": "You do not have permission to manage access control for this channel."
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "You do not have permission to manage this access control policy."
+  },
+  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Failed evaluate access control policy."
   },

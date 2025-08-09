@@ -304,20 +304,20 @@ func (a *App) ValidateChannelAccessControlPermission(rctx request.CTX, userID, c
 
 	// Check if user has channel admin permission for the specific channel
 	if !a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionManageChannelAccessRules) {
-		return model.NewAppError("ValidateChannelAccessControlPermission", "app.access_control.insufficient_channel_permissions", nil, "user_id="+userID+" channel_id="+channelID, http.StatusForbidden)
+		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.insufficient_channel_permissions", nil, "user_id="+userID+" channel_id="+channelID, http.StatusForbidden)
 	}
 
 	// Verify the channel is a private channel
 	if channel.Type != model.ChannelTypePrivate {
-		return model.NewAppError("ValidateChannelAccessControlPermission", "app.access_control.channel_not_private", nil, "channel_id="+channelID, http.StatusBadRequest)
+		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.channel_not_private", nil, "channel_id="+channelID, http.StatusBadRequest)
 	}
 
 	if channel.IsGroupConstrained() {
-		return model.NewAppError("ValidateChannelAccessControlPermission", "app.access_control.channel_group_constrained", nil, "channel_id="+channelID, http.StatusBadRequest)
+		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.channel_group_constrained", nil, "channel_id="+channelID, http.StatusBadRequest)
 	}
 
 	if channel.IsShared() {
-		return model.NewAppError("ValidateChannelAccessControlPermission", "app.access_control.channel_shared", nil, "channel_id="+channelID, http.StatusBadRequest)
+		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.channel_shared", nil, "channel_id="+channelID, http.StatusBadRequest)
 	}
 
 	return nil
@@ -338,7 +338,7 @@ func (a *App) ValidateAccessControlPolicyPermission(rctx request.CTX, userID, po
 
 	// Non-system admins can only manage channel-type policies
 	if policy.Type != model.AccessControlPolicyTypeChannel {
-		return model.NewAppError("ValidateAccessControlPolicyPermission", "app.access_control.insufficient_permissions", nil, "user_id="+userID+" policy_type="+policy.Type, http.StatusForbidden)
+		return model.NewAppError("ValidateAccessControlPolicyPermission", "app.pap.access_control.insufficient_permissions", nil, "user_id="+userID+" policy_type="+policy.Type, http.StatusForbidden)
 	}
 
 	// For channel-type policies, validate channel-specific permission (policy ID equals channel ID)
