@@ -233,7 +233,6 @@ describe('System Console > User Management > Users', () => {
 
 function apiLogin(username, password) {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/users/login',
         method: 'POST',
         body: {login_id: username, password},

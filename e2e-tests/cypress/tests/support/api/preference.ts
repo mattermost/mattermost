@@ -22,7 +22,6 @@ import {PreferenceType} from '@mattermost/types/preferences';
  */
 function apiSaveUserPreference(preferences: PreferenceType[] = [], userId = 'me'): ChainableT<any> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/users/${userId}/preferences`,
         method: 'PUT',
         body: preferences,

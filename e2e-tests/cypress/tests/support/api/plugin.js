@@ -10,7 +10,6 @@ import * as TIMEOUTS from '../../fixtures/timeouts';
 
 Cypress.Commands.add('apiGetAllPlugins', () => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/plugins',
         method: 'GET',
         failOnStatusCode: false,
@@ -95,7 +94,6 @@ Cypress.Commands.add('apiUploadAndEnablePlugin', ({filename, url, id, version}) 
 
 Cypress.Commands.add('apiInstallPluginFromUrl', (url, force = true) => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/plugins/install_from_url?plugin_download_url=${encodeURIComponent(url)}&force=${force}`,
         method: 'POST',
         timeout: TIMEOUTS.TWO_MIN,
@@ -110,7 +108,6 @@ Cypress.Commands.add('apiInstallPluginFromUrl', (url, force = true) => {
 
 Cypress.Commands.add('apiEnablePluginById', (pluginId) => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/plugins/${encodeURIComponent(pluginId)}/enable`,
         method: 'POST',
         timeout: TIMEOUTS.TWO_MIN,
@@ -123,7 +120,6 @@ Cypress.Commands.add('apiEnablePluginById', (pluginId) => {
 
 Cypress.Commands.add('apiDisablePluginById', (pluginId) => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/plugins/${encodeURIComponent(pluginId)}/disable`,
         method: 'POST',
         timeout: TIMEOUTS.ONE_MIN,
@@ -163,7 +159,6 @@ Cypress.Commands.add('apiDisableNonPrepackagedPlugins', () => {
 
 Cypress.Commands.add('apiRemovePluginById', (pluginId) => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/plugins/${encodeURIComponent(pluginId)}`,
         method: 'DELETE',
         timeout: TIMEOUTS.TWO_MIN,

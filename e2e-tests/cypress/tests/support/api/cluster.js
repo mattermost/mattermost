@@ -3,7 +3,6 @@
 
 Cypress.Commands.add('apiGetClusterStatus', () => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/cluster/status',
         method: 'GET',
     }).then((response) => {

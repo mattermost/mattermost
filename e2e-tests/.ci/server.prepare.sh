@@ -6,7 +6,6 @@ cd "$(dirname "$0")"
 mme2e_log "Configuring starting server parameters that may be changed at runtime"
 for SETTING in \
   TeamSettings.EnableOpenServer=true \
-  ServiceSettings.StrictCSRFEnforcement=false \
   PluginSettings.Enable=true \
   PluginSettings.EnableUploads=true \
   PluginSettings.AutomaticPrepackagedPlugins=true; do

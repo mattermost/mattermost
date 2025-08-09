@@ -36,7 +36,6 @@ export const defaultRolesPermissions = {
 
 Cypress.Commands.add('getRoleByName', (name) => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/roles/name/${name}`,
         method: 'GET',
     }).then((response) => {
@@ -47,7 +46,6 @@ Cypress.Commands.add('getRoleByName', (name) => {
 
 Cypress.Commands.add('apiGetRolesByNames', (names) => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/roles/names',
         method: 'POST',
         body: names || Object.keys(defaultRolesPermissions),
@@ -59,7 +57,6 @@ Cypress.Commands.add('apiGetRolesByNames', (names) => {
 
 Cypress.Commands.add('apiPatchRole', (roleID, patch) => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/roles/${roleID}/patch`,
         method: 'PUT',
         body: patch,

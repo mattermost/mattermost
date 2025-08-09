@@ -100,7 +100,6 @@ describe('Settings', () => {
 
 function migrateAuthToSAML(body) {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/users/migrate_auth/saml',
         method: 'POST',
         body,

@@ -27,7 +27,6 @@ import {buildQueryString} from './helpers';
  */
 function apiLogin(user: Partial<Pick<UserProfile, 'username' | 'email' | 'password'>>, requestOptions: Record<string, any> = {}): ChainableT<{user: UserProfile} | {error: any}> {
     return cy.request<UserProfile | any>({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/users/login',
         method: 'POST',
         body: {login_id: user.username || user.email, password: user.password},
@@ -65,7 +64,6 @@ Cypress.Commands.add('apiLogin', apiLogin);
  */
 function apiLoginWithMFA(user: {username: string; password: string}, token: string): ChainableT<{user: UserProfile}> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/users/login',
         method: 'POST',
         body: {login_id: user.username, password: user.password, token},
@@ -143,7 +141,6 @@ Cypress.Commands.add('apiAdminLoginWithMFA', apiAdminLoginWithMFA);
  */
 function apiLogout() {
     cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/users/logout',
         method: 'POST',
         log: false,
@@ -192,7 +189,6 @@ Cypress.Commands.add('apiGetMe', apiGetMe);
  */
 function apiGetUserById(userId: string): ChainableT<{user: UserProfile}> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/users/' + userId,
     }).then((response) => {
         expect(response.status).to.equal(200);
@@ -215,7 +211,6 @@ Cypress.Commands.add('apiGetUserById', apiGetUserById);
  */
 function apiGetUserByEmail(email: string, failOnStatusCode = true): ChainableT<{user: UserProfile}> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/users/email/' + email,
         failOnStatusCode,
     }).then((response) => {
@@ -244,7 +239,6 @@ Cypress.Commands.add('apiGetUserByEmail', apiGetUserByEmail);
  */
 function apiGetUsersByUsernames(usernames: string[] = []): ChainableT<{users: UserProfile[]}> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/users/usernames',
         method: 'POST',
         body: usernames,
@@ -270,7 +264,6 @@ Cypress.Commands.add('apiGetUsersByUsernames', apiGetUsersByUsernames);
  */
 function apiPatchUser(userId: string, userData: Partial<UserProfile>): ChainableT<{user: UserProfile}> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         method: 'PUT',
         url: `/api/v4/users/${userId}/patch`,
         body: userData,
@@ -294,7 +287,6 @@ Cypress.Commands.add('apiPatchUser', apiPatchUser);
  */
 function apiPatchMe(data: Partial<UserProfile>): ChainableT<{user: UserProfile}> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/users/me/patch',
         method: 'PUT',
         body: data,
@@ -355,7 +347,6 @@ function apiCreateAdmin() {
     };
 
     const options = {
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         method: 'POST',
         url: '/api/v4/users',
         body: sysadminUser,
@@ -416,7 +407,6 @@ function apiCreateUser({
     const newUser = user || generateRandomUser(prefix, createAt);
 
     const createUserOption = {
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         method: 'POST',
         url: '/api/v4/users',
         body: newUser,
@@ -490,7 +480,6 @@ Cypress.Commands.add('apiCreateGuestUser', apiCreateGuestUser);
  */
 function apiRevokeUserSessions(userId: string): ChainableT<Record<string, any>> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/users/${userId}/sessions/revoke/all`,
         method: 'POST',
     }).then((response) => {
@@ -518,7 +507,6 @@ function apiGetUsers(queryParams: Record<string, any>): ChainableT<{users: UserP
     return cy.request({
         method: 'GET',
         url: `/api/v4/users?${queryString}`,
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
     }).then((response) => {
         expect(response.status).to.equal(200);
         return cy.wrap({users: response.body as UserProfile[]});
@@ -556,7 +544,6 @@ Cypress.Commands.add('apiGetUsersNotInTeam', apiGetUsersNotInTeam);
  */
 function apiPatchUserRoles(userId: string, roleNames: string[] = ['system_user']): any {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/users/${userId}/roles`,
         method: 'PUT',
         body: {roles: roleNames.join(' ')},
@@ -579,7 +566,6 @@ Cypress.Commands.add('apiPatchUserRoles', apiPatchUserRoles);
  */
 function apiDeactivateUser(userId: string): ChainableT<any> {
     const options = {
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         method: 'DELETE',
         url: `/api/v4/users/${userId}`,
     };
@@ -603,7 +589,6 @@ Cypress.Commands.add('apiDeactivateUser', apiDeactivateUser);
  */
 function apiActivateUser(userId: string): ChainableT<any> {
     const options = {
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         method: 'PUT',
         url: `/api/v4/users/${userId}/active`,
         body: {
@@ -631,7 +616,6 @@ Cypress.Commands.add('apiActivateUser', apiActivateUser);
  */
 function apiDemoteUserToGuest(userId: string): ChainableT<{guest: UserProfile}> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/users/${userId}/demote`,
         method: 'POST',
     }).then((response) => {
@@ -655,7 +639,6 @@ Cypress.Commands.add('apiDemoteUserToGuest', apiDemoteUserToGuest);
  */
 function apiPromoteGuestToUser(userId: string): ChainableT<{user: UserProfile}> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/users/${userId}/promote`,
         method: 'POST',
     }).then((response) => {
@@ -679,7 +662,6 @@ Cypress.Commands.add('apiPromoteGuestToUser', apiPromoteGuestToUser);
  */
 function apiVerifyUserEmailById(userId: string): ChainableT<{user: UserProfile}> {
     const options = {
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         method: 'POST',
         url: `/api/v4/users/${userId}/email/verify/member`,
     };
@@ -703,7 +685,6 @@ Cypress.Commands.add('apiVerifyUserEmailById', apiVerifyUserEmailById);
  */
 function apiActivateUserMFA(userId: string, activate: boolean, token: string): ChainableT<any> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/users/${userId}/mfa`,
         method: 'PUT',
         body: {
@@ -720,7 +701,6 @@ Cypress.Commands.add('apiActivateUserMFA', apiActivateUserMFA);
 
 function apiResetPassword(userId, currentPass, newPass) {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         method: 'PUT',
         url: `/api/v4/users/${userId}/password`,
         body: {
@@ -737,7 +717,6 @@ Cypress.Commands.add('apiResetPassword', apiResetPassword);
 
 function apiGenerateMfaSecret(userId) {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         method: 'POST',
         url: `/api/v4/users/${userId}/mfa/generate`,
     }).then((response) => {
@@ -758,7 +737,6 @@ Cypress.Commands.add('apiGenerateMfaSecret', apiGenerateMfaSecret);
  */
 function apiAccessToken(userId: string, description: string): ChainableT<UserAccessToken> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/users/' + userId + '/tokens',
         method: 'POST',
         body: {
@@ -781,7 +759,6 @@ Cypress.Commands.add('apiAccessToken', apiAccessToken);
  */
 function apiRevokeAccessToken(tokenId: string): ChainableT<any> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/users/tokens/revoke',
         method: 'POST',
         body: {
@@ -807,7 +784,6 @@ Cypress.Commands.add('apiRevokeAccessToken', apiRevokeAccessToken);
  */
 function apiUpdateUserAuth(userId: string, authData: string, password: string, authService: string): ChainableT<any> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         method: 'PUT',
         url: `/api/v4/users/${userId}/auth`,
         body: {
@@ -836,7 +812,6 @@ Cypress.Commands.add('apiUpdateUserAuth', apiUpdateUserAuth);
  */
 function apiGetTotalUsers(): ChainableT<number> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         method: 'GET',
         url: '/api/v4/users/stats',
     }).then((response) => {
