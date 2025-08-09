@@ -387,7 +387,7 @@ function isAppForm(v: unknown): v is AppForm {
     return true;
 }
 
-export type AppFormValue = string | AppSelectOption | boolean | null;
+export type AppFormValue = string | AppSelectOption | AppSelectOption[] | boolean | null;
 
 function isAppFormValue(v: unknown): v is AppFormValue {
     if (typeof v === 'string') {
@@ -400,6 +400,10 @@ function isAppFormValue(v: unknown): v is AppFormValue {
 
     if (v === null) {
         return true;
+    }
+
+    if (Array.isArray(v)) {
+        return v.every(isAppSelectOption);
     }
 
     return isAppSelectOption(v);
@@ -463,6 +467,12 @@ export type AppField = {
     subtype?: string;
     min_length?: number;
     max_length?: number;
+
+    // Date props
+    min_date?: string;
+    max_date?: string;
+    time_interval?: number;
+    default_time?: string;
 };
 
 function isAppField(v: unknown): v is AppField {
@@ -533,6 +543,22 @@ function isAppField(v: unknown): v is AppField {
     }
 
     if (field.max_length !== undefined && typeof field.max_length !== 'number') {
+        return false;
+    }
+
+    if (field.min_date !== undefined && typeof field.min_date !== 'string') {
+        return false;
+    }
+
+    if (field.max_date !== undefined && typeof field.max_date !== 'string') {
+        return false;
+    }
+
+    if (field.time_interval !== undefined && typeof field.time_interval !== 'number') {
+        return false;
+    }
+
+    if (field.default_time !== undefined && typeof field.default_time !== 'string') {
         return false;
     }
 
