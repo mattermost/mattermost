@@ -27,11 +27,16 @@ exports[`components/ColorSetting should match snapshot, all 1`] = `
           value="#fff"
         />
         <span
+          aria-label="Color picker"
           class="input-group-addon color-pad"
+          data-testid="color-picker-button"
           id="id-squareColorIcon"
+          role="button"
+          tabindex="0"
         >
           <i
             class="color-icon"
+            data-testid="color-icon"
             id="id-squareColorIconValue"
             style="background-color: rgb(255, 255, 255);"
           />
@@ -75,11 +80,16 @@ exports[`components/ColorSetting should match snapshot, clicked on color setting
           value="#fff"
         />
         <span
+          aria-label="Color picker"
           class="input-group-addon color-pad"
+          data-testid="color-picker-button"
           id="id-squareColorIcon"
+          role="button"
+          tabindex="0"
         >
           <i
             class="color-icon"
+            data-testid="color-icon"
             id="id-squareColorIconValue"
             style="background-color: rgb(255, 255, 255);"
           />
@@ -160,11 +170,16 @@ exports[`components/ColorSetting should match snapshot, no help text 1`] = `
           value="#fff"
         />
         <span
+          aria-label="Color picker"
           class="input-group-addon color-pad"
+          data-testid="color-picker-button"
           id="id-squareColorIcon"
+          role="button"
+          tabindex="0"
         >
           <i
             class="color-icon"
+            data-testid="color-icon"
             id="id-squareColorIconValue"
             style="background-color: rgb(255, 255, 255);"
           />

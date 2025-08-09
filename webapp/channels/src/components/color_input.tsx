@@ -22,6 +22,7 @@ type State = {
 export default class ColorInput extends React.PureComponent<Props, State> {
     private colorPicker: React.RefObject<HTMLDivElement>;
     private colorInput: React.RefObject<HTMLInputElement>;
+    private isMounted: boolean = false;
 
     public constructor(props: Props) {
         super(props);
@@ -33,6 +34,10 @@ export default class ColorInput extends React.PureComponent<Props, State> {
             isOpened: false,
             value: props.value,
         };
+    }
+
+    public componentDidMount() {
+        this.isMounted = true;
     }
 
     static getDerivedStateFromProps(props: Props, state: State) {
@@ -58,7 +63,15 @@ export default class ColorInput extends React.PureComponent<Props, State> {
         }
     }
 
+    public componentWillUnmount() {
+        this.isMounted = false;
+        document.removeEventListener('click', this.checkClick);
+    }
+
     private checkClick = (e: MouseEvent): void => {
+        if (!this.isMounted) {
+            return;
+        }
         if (!this.colorPicker.current || !this.colorPicker.current.contains(e.target as Element)) {
             this.setState({isOpened: false});
         }
@@ -155,6 +168,11 @@ export default class ColorInput extends React.PureComponent<Props, State> {
                         id={`${id}-squareColorIcon`}
                         className='input-group-addon color-pad'
                         onClick={this.togglePicker}
+                        onKeyDown={this.togglePicker}
+                        role='button'
+                        tabIndex={0}
+                        aria-label='Color picker'
+                        data-testid='color-picker-button'
                     >
                         <i
                             id={`${id}-squareColorIconValue`}
@@ -162,6 +180,7 @@ export default class ColorInput extends React.PureComponent<Props, State> {
                             style={{
                                 backgroundColor: value,
                             }}
+                            data-testid='color-icon'
                         />
                     </span>
                 }
@@ -170,6 +189,7 @@ export default class ColorInput extends React.PureComponent<Props, State> {
                         ref={this.colorPicker}
                         className='color-popover'
                         id={`${id}-ChromePickerModal`}
+                        data-testid='color-picker-modal'
                     >
                         <ChromePicker
                             color={value}
