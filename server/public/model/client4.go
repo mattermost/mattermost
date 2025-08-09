@@ -5895,6 +5895,21 @@ func (c *Client4) MigrateIdLdap(ctx context.Context, toAttribute string) (*Respo
 	return BuildResponse(r), nil
 }
 
+func (c *Client4) GetGroupsByNames(ctx context.Context, names []string) ([]*Group, *Response, error) {
+	path := fmt.Sprintf("%s/names", c.groupsRoute())
+
+	r, err := c.DoAPIPost(ctx, path, ArrayToJSON(names))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*Group
+	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
+		return nil, nil, NewAppError("GetGroupsByNames", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return list, BuildResponse(r), nil
+}
+
 // GetGroupsByChannel retrieves the Mattermost Groups associated with a given channel
 func (c *Client4) GetGroupsByChannel(ctx context.Context, channelId string, opts GroupSearchOpts) ([]*GroupWithSchemeAdmin, int, *Response, error) {
 	path := fmt.Sprintf("%s/groups?q=%v&include_member_count=%v&filter_allow_reference=%v", c.channelRoute(channelId), opts.Q, opts.IncludeMemberCount, opts.FilterAllowReference)
