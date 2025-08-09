@@ -45,14 +45,18 @@ else
 	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN)/windows_amd64 $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./...
 endif
 
-build-cmd-linux:
+build-cmd-linux: build-cmd-linux-amd64 build-cmd-linux-arm64
+
+build-cmd-linux-amd64:
 	@echo Build CMD Linux amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
-	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
+	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -buildvcs=false -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
 else
 	mkdir -p $(GOBIN)/linux_amd64
 	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN)/linux_amd64 $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
 endif
+
+build-cmd-linux-arm64:
 	@echo Build CMD Linux arm64
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_arm64")
 	env GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
@@ -159,7 +163,18 @@ package-general:
 
 	@# Copy binaries
 ifeq ($(BUILDER_GOOS_GOARCH),"$(CURRENT_PACKAGE_ARCH)")
+ifeq ($(FIPS_ENABLED),true)
+	cp $(GOBIN_HOST)/$(MM_BIN_NAME) $(GOBIN_HOST)/$(MMCTL_BIN_NAME) $(DIST_PATH_GENERIC)/bin # from native bin dir, not cross-compiled
+	@# FIPS verification checks
+	@echo "Verifying FIPS build settings..."
+	$(GO) version -m $(GOBIN_HOST)/$(MM_BIN_NAME) | grep -q "GOEXPERIMENT=systemcrypto" || (echo "ERROR: FIPS binary missing GOEXPERIMENT=systemcrypto" && exit 1)
+	$(GO) version -m $(GOBIN_HOST)/$(MM_BIN_NAME) | grep -q "\-tags=requirefips" || (echo "ERROR: FIPS binary missing -tags=requirefips" && exit 1)
+	@echo "Verifying OpenSSL integration..."
+	$(GO) tool nm $(GOBIN_HOST)/$(MM_BIN_NAME) | grep -q "func_go_openssl_OpenSSL_version" || (echo "ERROR: FIPS binary missing OpenSSL integration" && exit 1)
+	@echo "FIPS verification checks passed"
+else
 	cp $(GOBIN)/$(MM_BIN_NAME) $(GOBIN)/$(MMCTL_BIN_NAME) $(DIST_PATH_GENERIC)/bin # from native bin dir, not cross-compiled
+endif
 else
 	cp $(GOBIN)/$(CURRENT_PACKAGE_ARCH)/$(MM_BIN_NAME) $(GOBIN)/$(CURRENT_PACKAGE_ARCH)/$(MMCTL_BIN_NAME) $(DIST_PATH_GENERIC)/bin # from cross-compiled bin dir
 endif
