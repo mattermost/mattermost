@@ -133,7 +133,7 @@ const AddMenu = ({buttonClassNames, disabled}: {buttonClassNames?: string; disab
         <Menu.Container
             menuButton={{
                 id: `${menuId}-button`,
-                class: classNames('btn', buttonClassNames ?? 'btn-primary btn-sm', {disabled}),
+                class: classNames('btn', buttonClassNames ?? 'btn-primary', {disabled}),
                 disabled,
                 children: (
                     <>
