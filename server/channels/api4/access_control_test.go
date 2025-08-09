@@ -16,7 +16,7 @@ import (
 
 func TestCreateAccessControlPolicy(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
-	th := Setup(t)
+	th := Setup(t).InitBasic()
 	t.Cleanup(func() {
 		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
@@ -44,6 +44,36 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
+		// Create another user who will create the channel
+		channelCreator := th.CreateUser()
+		th.LinkUserToTeam(channelCreator, th.BasicTeam)
+		channelCreatorClient := th.CreateClient()
+		_, _, err := channelCreatorClient.Login(context.Background(), channelCreator.Email, channelCreator.Password)
+		require.NoError(t, err)
+
+		// Create a private channel with the other user (not th.BasicUser)
+		privateChannel, _, err := channelCreatorClient.CreateChannel(context.Background(), &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			Name:        "private-channel-" + model.NewId(),
+			DisplayName: "Private Channel",
+			Type:        model.ChannelTypePrivate,
+		})
+		require.NoError(t, err)
+
+		// Create channel-specific policy (regular user should not have permission)
+		channelPolicy := &model.AccessControlPolicy{
+			ID:       privateChannel.Id, // Set to actual channel ID
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_1,
+			Revision: 1,
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Expression: "user.attributes.team == 'engineering'",
+					Actions:    []string{"*"},
+				},
+			},
+		}
+
 		// Create and set up the mock
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
@@ -52,7 +82,130 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 		})
 
-		_, resp, err := th.Client.CreateAccessControlPolicy(context.Background(), samplePolicy)
+		_, resp, err := th.Client.CreateAccessControlPolicy(context.Background(), channelPolicy)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("CreateAccessControlPolicy with channel admin for their channel", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		// Add the permission to channel admin role
+		th.AddPermissionToRole(model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
+
+		// Create a private channel and make user channel admin
+		privateChannel := th.CreatePrivateChannel()
+		channelAdmin := th.CreateUser()
+		th.LinkUserToTeam(channelAdmin, th.BasicTeam)
+		th.AddUserToChannel(channelAdmin, privateChannel)
+		th.MakeUserChannelAdmin(channelAdmin, privateChannel)
+		channelAdminClient := th.CreateClient()
+		th.LoginBasicWithClient(channelAdminClient)
+		_, _, err := channelAdminClient.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
+		require.NoError(t, err)
+
+		// Create channel-specific policy
+		channelPolicy := &model.AccessControlPolicy{
+			ID:       privateChannel.Id,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_1,
+			Revision: 1,
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Expression: "user.attributes.team == 'engineering'",
+					Actions:    []string{"*"},
+				},
+			},
+		}
+
+		// Create and set up the mock
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(channelPolicy, nil).Times(1)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		_, resp, err := channelAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("CreateAccessControlPolicy with channel admin for another channel should fail", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		// Create two private channels
+		privateChannel1 := th.CreatePrivateChannel()
+		privateChannel2 := th.CreatePrivateChannel()
+		channelAdmin := th.CreateUser()
+		th.LinkUserToTeam(channelAdmin, th.BasicTeam)
+		th.AddUserToChannel(channelAdmin, privateChannel1)
+		th.MakeUserChannelAdmin(channelAdmin, privateChannel1)
+		channelAdminClient := th.CreateClient()
+		th.LoginBasicWithClient(channelAdminClient)
+		_, _, err := channelAdminClient.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
+		require.NoError(t, err)
+
+		// Try to create policy for different channel
+		channelPolicy := &model.AccessControlPolicy{
+			ID:       privateChannel2.Id,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_1,
+			Revision: 1,
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Expression: "user.attributes.team == 'engineering'",
+					Actions:    []string{"*"},
+				},
+			},
+		}
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		_, resp, err := channelAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("CreateAccessControlPolicy with channel admin creating parent policy should fail", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		// Create a private channel and make user channel admin
+		privateChannel := th.CreatePrivateChannel()
+		channelAdmin := th.CreateUser()
+		th.LinkUserToTeam(channelAdmin, th.BasicTeam)
+		th.AddUserToChannel(channelAdmin, privateChannel)
+		th.MakeUserChannelAdmin(channelAdmin, privateChannel)
+		channelAdminClient := th.CreateClient()
+		th.LoginBasicWithClient(channelAdminClient)
+		_, _, err := channelAdminClient.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
+		require.NoError(t, err)
+
+		// Try to create parent-type policy
+		parentPolicy := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Type:     model.AccessControlPolicyTypeParent,
+			Version:  model.AccessControlPolicyVersionV0_1,
+			Revision: 1,
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Expression: "user.attributes.team == 'engineering'",
+					Actions:    []string{"*"},
+				},
+			},
+		}
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		_, resp, err := channelAdminClient.CreateAccessControlPolicy(context.Background(), parentPolicy)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -83,7 +236,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 
 func TestGetAccessControlPolicy(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
-	th := Setup(t)
+	th := Setup(t).InitBasic()
 	t.Cleanup(func() {
 		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
@@ -115,6 +268,7 @@ func TestGetAccessControlPolicy(t *testing.T) {
 		// Create and set up the mock
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), samplePolicy.ID).Return(samplePolicy, nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
@@ -146,7 +300,7 @@ func TestGetAccessControlPolicy(t *testing.T) {
 
 func TestDeleteAccessControlPolicy(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
-	th := Setup(t)
+	th := Setup(t).InitBasic()
 	t.Cleanup(func() {
 		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
@@ -166,6 +320,21 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+
+		// Mock the GetPolicy call that happens in ValidateAccessControlPolicyPermission
+		channelPolicy := &model.AccessControlPolicy{
+			ID:       samplePolicyID,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_1,
+			Revision: 1,
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Expression: "user.attributes.team == 'engineering'",
+					Actions:    []string{"*"},
+				},
+			},
+		}
+		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), samplePolicyID).Return(channelPolicy, nil)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
@@ -196,7 +365,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 
 func TestCheckExpression(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
-	th := Setup(t)
+	th := Setup(t).InitBasic()
 	t.Cleanup(func() {
 		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
@@ -269,7 +438,7 @@ func TestCheckExpression(t *testing.T) {
 
 func TestTestExpression(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
-	th := Setup(t)
+	th := Setup(t).InitBasic()
 	t.Cleanup(func() {
 		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
@@ -321,7 +490,7 @@ func TestTestExpression(t *testing.T) {
 
 func TestSearchAccessControlPolicies(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
-	th := Setup(t)
+	th := Setup(t).InitBasic()
 	t.Cleanup(func() {
 		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
@@ -375,7 +544,7 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 
 func TestAssignAccessPolicy(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
-	th := Setup(t)
+	th := Setup(t).InitBasic()
 	t.Cleanup(func() {
 		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
@@ -442,7 +611,7 @@ func TestAssignAccessPolicy(t *testing.T) {
 
 func TestUnassignAccessPolicy(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
-	th := Setup(t)
+	th := Setup(t).InitBasic()
 	t.Cleanup(func() {
 		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
