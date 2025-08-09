@@ -4,8 +4,6 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import type {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import CloudTrialSvg from 'components/common/svg_images_components/cloud_trial_svg';
@@ -35,7 +33,6 @@ const ContactSalesCard = (props: Props) => {
             location='contact_sales_card'
             href={CloudLinks.PRICING}
             rel='noopener noreferrer'
-            onClick={() => trackEvent('cloud_admin', 'click_pricing_link')}
         >
             {CloudLinks.PRICING}
         </ExternalLink>
@@ -146,7 +143,6 @@ const ContactSalesCard = (props: Props) => {
                         location='contact_sales_card'
                         href={contactSalesLink}
                         className='btn btn-tertiary PrivateCloudCard__actionButton'
-                        onClick={() => trackEvent('cloud_admin', 'click_contact_sales')}
                     >
                         <FormattedMessage
                             id='admin.billing.subscription.privateCloudCard.contactSales'

@@ -12,8 +12,6 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import BlockableLink from 'components/admin_console/blockable_link';
 import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
@@ -229,12 +227,6 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             }
 
             if (!patchTeamResult.error && !groupResultWithError && !unlinkResultWithError) {
-                if (unlink.length > 0) {
-                    trackEvent('admin_team_config_page', 'groups_removed_from_team', {count: unlink.length, team_id: teamID});
-                }
-                if (link.length > 0) {
-                    trackEvent('admin_team_config_page', 'groups_added_to_team', {count: link.length, team_id: teamID});
-                }
                 await actions.getGroups(teamID);
             }
         }
@@ -257,24 +249,16 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             if (addUserActions.length > 0) {
                 const result = await Promise.all(addUserActions);
                 const resultWithError = result.find((r) => r.error);
-                const count = result.filter((r) => r.data).length;
                 if (resultWithError) {
                     serverError = <FormError error={resultWithError.error?.message}/>;
-                }
-                if (count > 0) {
-                    trackEvent('admin_team_config_page', 'members_added_to_team', {count, team_id: teamID});
                 }
             }
 
             if (removeUserActions.length > 0) {
                 const result = await Promise.all(removeUserActions);
                 const resultWithError = result.find((r) => r.error);
-                const count = result.filter((r) => r.data).length;
                 if (resultWithError) {
                     serverError = <FormError error={resultWithError.error?.message}/>;
-                }
-                if (count > 0) {
-                    trackEvent('admin_team_config_page', 'members_removed_from_team', {count, team_id: teamID});
                 }
             }
 
@@ -292,24 +276,16 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             if (rolesToPromote.length > 0) {
                 const result = await Promise.all(rolesToPromote);
                 const resultWithError = result.find((r) => r.error);
-                const count = result.filter((r) => r.data).length;
                 if (resultWithError) {
                     serverError = <FormError error={resultWithError.error?.message}/>;
-                }
-                if (count > 0) {
-                    trackEvent('admin_team_config_page', 'members_elevated_to_team_admin', {count, team_id: teamID});
                 }
             }
 
             if (rolesToDemote.length > 0) {
                 const result = await Promise.all(rolesToDemote);
                 const resultWithError = result.find((r) => r.error);
-                const count = result.filter((r) => r.data).length;
                 if (resultWithError) {
                     serverError = <FormError error={resultWithError.error?.message}/>;
-                }
-                if (count > 0) {
-                    trackEvent('admin_team_config_page', 'admins_demoted_to_team_member', {count, team_id: teamID});
                 }
             }
         }

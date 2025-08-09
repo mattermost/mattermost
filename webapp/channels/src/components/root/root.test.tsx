@@ -5,9 +5,6 @@ import React from 'react';
 import type {RouteComponentProps} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
 
-import {ServiceEnvironment} from '@mattermost/types/config';
-
-import {Client4} from 'mattermost-redux/client';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import * as GlobalActions from 'actions/global_actions';
@@ -20,26 +17,6 @@ import * as Utils from 'utils/utils';
 import {handleLoginLogoutSignal, redirectToOnboardingOrDefaultTeam} from './actions';
 import type {Props} from './root';
 import Root, {doesRouteBelongToTeamControllerRoutes} from './root';
-
-jest.mock('utils/rudder', () => ({
-    rudderAnalytics: {
-        identify: jest.fn(),
-        load: jest.fn(),
-        page: jest.fn(),
-        ready: jest.fn((callback) => callback()), // Default behavior: calls the callback
-        track: jest.fn(),
-    },
-    RudderTelemetryHandler: jest.fn(),
-}));
-
-jest.mock('rudder-sdk-js', () => {
-    return {
-        identify: jest.fn(),
-        load: jest.fn(),
-        page: jest.fn(),
-        ready: jest.fn((callback) => callback()),
-    };
-});
 
 jest.mock('actions/telemetry_actions');
 
@@ -252,66 +229,6 @@ describe('components/Root', () => {
         window.dispatchEvent(new Event('focus'));
 
         expect(window.location.reload).toBeCalledTimes(1);
-    });
-
-    test('should not set a TelemetryHandler when onConfigLoaded is called if Rudder is not configured', async () => {
-        const props = {
-            ...baseProps,
-            serviceEnvironment: ServiceEnvironment.DEV,
-            actions: {
-                ...baseProps.actions,
-                loadConfigAndMe: jest.fn().mockImplementation(() => {
-                    return Promise.resolve({
-                        isLoaded: true,
-                        isMeRequested: true,
-                    });
-                }),
-            },
-        };
-
-        renderWithContext(<Root {...props}/>);
-
-        // Wait for the component to load config and call onConfigLoaded
-        await waitFor(() => {
-            expect(props.actions.loadConfigAndMe).toHaveBeenCalledTimes(1);
-        });
-
-        Client4.trackEvent('category', 'event');
-
-        expect(Client4.telemetryHandler).not.toBeDefined();
-    });
-
-    test('should set a TelemetryHandler when onConfigLoaded is called if Rudder is configured', async () => {
-        const props = {
-            ...baseProps,
-            isConfigLoaded: false,
-            serviceEnvironment: ServiceEnvironment.TEST,
-            actions: {
-                ...baseProps.actions,
-                loadConfigAndMe: jest.fn().mockImplementation(() => {
-                    return Promise.resolve({
-                        isLoaded: true,
-                        isMeRequested: true,
-                    });
-                }),
-            },
-        };
-
-        const {rerender} = renderWithContext(<Root {...props}/>);
-
-        // Wait for the component to load config and call onConfigLoaded
-        await waitFor(() => {
-            expect(props.actions.loadConfigAndMe).toHaveBeenCalledTimes(1);
-        });
-
-        const props2 = {
-            ...props,
-            isConfigLoaded: true,
-        };
-
-        rerender(<Root {...props2}/>);
-
-        expect(Client4.telemetryHandler).toBeDefined();
     });
 
     describe('showLandingPageIfNecessary', () => {

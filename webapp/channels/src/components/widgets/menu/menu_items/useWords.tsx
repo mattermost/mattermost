@@ -78,7 +78,6 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
         values.a = (chunks: React.ReactNode | React.ReactNodeArray) => (
             <NotifyAdminCTA
                 ctaText={chunks}
-                callerInfo={callerInfo}
                 notifyRequestData={{
                     required_feature: featureToNotifyOn,
                     required_plan: LicenseSkus.Professional,

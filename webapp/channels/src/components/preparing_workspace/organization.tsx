@@ -13,8 +13,6 @@ import type {Team} from '@mattermost/types/teams';
 import {getTeams} from 'mattermost-redux/actions/teams';
 import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import OrganizationSVG from 'components/common/svg_images_components/organization-building_svg';
 import QuickInput from 'components/quick_input';
 
@@ -40,8 +38,7 @@ type Props = PreparingWorkspacePageProps & {
     setInviteId: (inviteId: string) => void;
 }
 
-const reportValidationError = debounce((error: string) => {
-    trackEvent('first_admin_setup', 'admin_onboarding_organization_submit_fail', {error});
+const reportValidationError = debounce(() => {
 }, 700, {leading: false});
 
 const Organization = (props: Props) => {
@@ -125,7 +122,7 @@ const Organization = (props: Props) => {
         }
 
         if (validation.error || teamApiError.current) {
-            reportValidationError(validation.error ? validation.error : teamApiError.current! as string);
+            reportValidationError();
             return;
         }
         props.next?.();

@@ -2,13 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {useCallback} from 'react';
-import {useSelector} from 'react-redux';
-
-import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
-
-import {trackEvent} from 'actions/telemetry_actions';
-
-import {TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import {useExternalLink} from './use_external_link';
 import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from './useCWSAvailabilityCheck';
@@ -23,7 +16,6 @@ export type UseOpenPricingModalReturn = {
 }
 
 export default function useOpenPricingModal(): UseOpenPricingModalReturn {
-    const isCloud = useSelector(isCurrentLicenseCloud);
     const cwsAvailability = useCWSAvailabilityCheck();
     const [externalLink] = useExternalLink('https://mattermost.com/pricing');
 
@@ -31,25 +23,14 @@ export default function useOpenPricingModal(): UseOpenPricingModalReturn {
     const canAccessExternalPricing = cwsAvailability === CSWAvailabilityCheckTypes.Available ||
                                      cwsAvailability === CSWAvailabilityCheckTypes.NotApplicable;
 
-    const openPricingModal = useCallback((telemetryProps?: TelemetryProps) => {
-        let category;
-
-        if (isCloud) {
-            category = TELEMETRY_CATEGORIES.CLOUD_PRICING;
-        } else {
-            category = 'self_hosted_pricing';
-        }
-        trackEvent(category, 'click_open_pricing_modal', {
-            callerInfo: telemetryProps?.trackingLocation,
-        });
-
+    const openPricingModal = useCallback(() => {
         if (canAccessExternalPricing) {
             // Redirect to external pricing page
             window.open(externalLink, '_blank', 'noopener,noreferrer');
         }
 
         // For air-gapped instances, we don't open anything since the pricing modal has been removed
-    }, [isCloud, canAccessExternalPricing]);
+    }, [canAccessExternalPricing]);
 
     return {
         openPricingModal,

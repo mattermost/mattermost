@@ -10,8 +10,6 @@ import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
 import {AnnouncementBarTypes} from 'utils/constants';
@@ -97,7 +95,6 @@ const CloudPreviewAnnouncementBar: React.FC = () => {
 
     const handleContactSalesClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        trackEvent('admin', 'cloud_preview_announcement_bar_contact_sales');
         openContactSales();
     }, [openContactSales]);
 
