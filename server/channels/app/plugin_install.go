@@ -80,6 +80,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/blang/semver/v4"
 
@@ -212,6 +213,17 @@ func (ch *Channels) installPlugin(bundle, signature io.ReadSeeker, installationS
 		logger.Warn("Failed to notify plugin status changed", mlog.Err(err))
 	}
 
+	ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
+		if _, ok := cfg.PluginSettings.Plugins[manifest.Id]; !ok {
+			cfg.PluginSettings.Plugins[manifest.Id] = make(map[string]any)
+
+			if ok := manifest.SettingsSchema; ok != nil {
+				for _, pluginSetting := range manifest.SettingsSchema.Settings {
+					cfg.PluginSettings.Plugins[manifest.Id][strings.ToLower(pluginSetting.Key)] = pluginSetting.Default
+				}
+			}
+		}
+	})
 	return manifest, nil
 }
 
