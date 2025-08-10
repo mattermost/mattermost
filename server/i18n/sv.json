@@ -381,7 +381,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Ogiltigt driver name för SQL-databas. Måste vara 'mysql' eller 'postgres'."
+    "translation": "Ogiltigt drivrutinsnamn för SQL-databas. Måste vara 'postgres'."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -1349,7 +1349,7 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Ogiltig användare, auth-data måste anges med auth typ."
+    "translation": "Ogiltig användare: Auth-data kan endast användas om användaren använder en extern autentiseringstjänst, annat än mejl/lösenord."
   },
   {
     "id": "model.user.is_valid.auth_data_pwd.app_error",
