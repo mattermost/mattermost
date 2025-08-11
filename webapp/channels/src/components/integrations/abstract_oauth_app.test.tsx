@@ -222,7 +222,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
 
         const newState = {saving: false, name: 'name', description: '', homepage: '', callbackUrls: 'https://test.com/callback'};
         const evt = {preventDefault: jest.fn()} as any;
-        
+
         wrapper.setState(newState);
         wrapper.instance().handleSubmit(evt);
         expect(wrapper.state('saving')).toEqual(true);
@@ -242,7 +242,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
 
         const newState = {saving: false, name: 'name', description: '', homepage: '', callbackUrls: 'https://test.com/callback'};
         const evt = {preventDefault: jest.fn()} as any;
-        
+
         wrapper.setState({...newState, description: ''});
         wrapper.instance().handleSubmit(evt);
         expect(wrapper.state('saving')).toEqual(false);

@@ -279,3 +279,5 @@ channels/db/migrations/postgres/000140_add_lastmemberssyncat_to_sharedchannelrem
 channels/db/migrations/postgres/000140_add_lastmemberssyncat_to_sharedchannelremotes.up.sql
 channels/db/migrations/postgres/000141_add_remoteid_channelid_to_post_acknowledgements.down.sql
 channels/db/migrations/postgres/000141_add_remoteid_channelid_to_post_acknowledgements.up.sql
+channels/db/migrations/postgres/000142_add_dcr_fields_to_oauth_apps.down.sql
+channels/db/migrations/postgres/000142_add_dcr_fields_to_oauth_apps.up.sql

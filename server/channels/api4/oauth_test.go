@@ -656,7 +656,6 @@ func TestRegisterOAuthClient(t *testing.T) {
 		request := &model.ClientRegistrationRequest{
 			RedirectURIs: []string{"https://example.com/callback"},
 			ClientName:   model.NewPointer("Test Client"),
-			ClientURI:    model.NewPointer("https://example.com"),
 		}
 
 		response, resp, err := th.SystemAdminClient.RegisterOAuthClient(context.Background(), request)
@@ -708,14 +707,14 @@ func TestRegisterOAuthClient_DuplicateDetection(t *testing.T) {
 	enableDCR := th.App.Config().ServiceSettings.EnableDynamicClientRegistration
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
-		th.App.UpdateConfig(func(cfg *model.Config) { 
+		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider
 			cfg.ServiceSettings.EnableDynamicClientRegistration = enableDCR
 		})
 	}()
 
 	// Enable OAuth and DCR
-	th.App.UpdateConfig(func(cfg *model.Config) { 
+	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewPointer(true)
 		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
 	})
@@ -767,7 +766,7 @@ func TestRegisterOAuthClient_DisabledFeatures(t *testing.T) {
 	enableDCR := th.App.Config().ServiceSettings.EnableDynamicClientRegistration
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
-		th.App.UpdateConfig(func(cfg *model.Config) { 
+		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider
 			cfg.ServiceSettings.EnableDynamicClientRegistration = enableDCR
 		})
@@ -781,31 +780,31 @@ func TestRegisterOAuthClient_DisabledFeatures(t *testing.T) {
 	}
 
 	// Test with OAuth disabled
-	th.App.UpdateConfig(func(cfg *model.Config) { 
+	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewPointer(false)
 		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
 	})
-	
+
 	_, resp, err := adminClient.RegisterOAuthClient(context.Background(), request)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	// Test with DCR disabled
-	th.App.UpdateConfig(func(cfg *model.Config) { 
+	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewPointer(true)
 		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(false)
 	})
-	
+
 	_, resp, err = adminClient.RegisterOAuthClient(context.Background(), request)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	// Test with nil config values (should be disabled by default)
-	th.App.UpdateConfig(func(cfg *model.Config) { 
+	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.EnableOAuthServiceProvider = nil
 		cfg.ServiceSettings.EnableDynamicClientRegistration = nil
 	})
-	
+
 	_, resp, err = adminClient.RegisterOAuthClient(context.Background(), request)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
