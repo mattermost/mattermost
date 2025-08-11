@@ -6368,7 +6368,7 @@ func (c *Client4) AuthorizeOAuthApp(ctx context.Context, authRequest *AuthorizeR
 	if err != nil {
 		return "", BuildResponse(nil), NewAppError("AuthorizeOAuthApp", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/authorize", buf, "")
+	r, err := c.DoAPIRequestBytes(ctx, http.MethodPost, c.URL+OAuthAuthorizeEndpoint, buf, "")
 	if err != nil {
 		return "", BuildResponse(r), err
 	}
@@ -6379,7 +6379,7 @@ func (c *Client4) AuthorizeOAuthApp(ctx context.Context, authRequest *AuthorizeR
 // DeauthorizeOAuthApp will deauthorize an OAuth 2.0 client application from accessing a user's account.
 func (c *Client4) DeauthorizeOAuthApp(ctx context.Context, appId string) (*Response, error) {
 	requestData := map[string]string{"client_id": appId}
-	r, err := c.DoAPIRequest(ctx, http.MethodPost, c.URL+"/oauth/deauthorize", MapToJSON(requestData), "")
+	r, err := c.DoAPIRequest(ctx, http.MethodPost, c.URL+OAuthDeauthorizeEndpoint, MapToJSON(requestData), "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6389,7 +6389,7 @@ func (c *Client4) DeauthorizeOAuthApp(ctx context.Context, appId string) (*Respo
 
 // GetOAuthAccessToken is a test helper function for the OAuth access token endpoint.
 func (c *Client4) GetOAuthAccessToken(ctx context.Context, data url.Values) (*AccessResponse, *Response, error) {
-	url := c.URL + "/oauth/access_token"
+	url := c.URL + OAuthAccessTokenEndpoint
 	rq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, nil, err

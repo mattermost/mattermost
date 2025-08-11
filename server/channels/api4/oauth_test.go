@@ -649,14 +649,10 @@ func TestRegisterOAuthClient(t *testing.T) {
 		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
 	})
 
-	// Add OAuth permissions to system admin
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemAdminRoleId)
-
 	t.Run("Valid DCR request", func(t *testing.T) {
 		request := &model.ClientRegistrationRequest{
 			RedirectURIs: []string{"https://example.com/callback"},
 			ClientName:   model.NewPointer("Test Client"),
-			ClientURI:    model.NewPointer("https://example.com"),
 		}
 
 		response, resp, err := th.SystemAdminClient.RegisterOAuthClient(context.Background(), request)
@@ -681,79 +677,26 @@ func TestRegisterOAuthClient(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	t.Run("No permissions", func(t *testing.T) {
-		// Remove OAuth permissions
-		th.RemovePermissionFromRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	t.Run("Works without authentication", func(t *testing.T) {
+		// Log out to demonstrate DCR works without session
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 
 		request := &model.ClientRegistrationRequest{
 			RedirectURIs: []string{"https://example.com/callback"},
-			ClientName:   model.NewPointer("Test Client"),
+			ClientName:   model.NewPointer("Test Client No Auth"),
 		}
 
-		_, resp, err := th.Client.RegisterOAuthClient(context.Background(), request)
+		response, resp, err := th.Client.RegisterOAuthClient(context.Background(), request)
 
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, response)
+		CheckCreatedStatus(t, resp)
+		assert.Equal(t, request.RedirectURIs, response.RedirectURIs)
+		assert.NotEmpty(t, response.ClientID)
+		assert.NotNil(t, response.ClientSecret)
+		assert.NotEmpty(t, *response.ClientSecret)
 	})
-}
-
-func TestRegisterOAuthClient_DuplicateDetection(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t)
-	defer th.TearDown()
-	adminClient := th.SystemAdminClient
-
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
-	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
-	enableDCR := th.App.Config().ServiceSettings.EnableDynamicClientRegistration
-	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
-		th.App.UpdateConfig(func(cfg *model.Config) { 
-			cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider
-			cfg.ServiceSettings.EnableDynamicClientRegistration = enableDCR
-		})
-	}()
-
-	// Enable OAuth and DCR
-	th.App.UpdateConfig(func(cfg *model.Config) { 
-		cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewPointer(true)
-		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
-	})
-
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
-
-	// Register first client
-	request1 := &model.ClientRegistrationRequest{
-		RedirectURIs: []string{"https://example.com/callback1", "https://example.com/callback2"},
-		ClientName:   model.NewPointer("First Client"),
-	}
-	_, _, err := adminClient.RegisterOAuthClient(context.Background(), request1)
-	require.NoError(t, err)
-
-	// Try to register duplicate client (same redirect URIs)
-	request2 := &model.ClientRegistrationRequest{
-		RedirectURIs: []string{"https://example.com/callback1", "https://example.com/callback2"},
-		ClientName:   model.NewPointer("Duplicate Client"),
-	}
-	_, resp, err := adminClient.RegisterOAuthClient(context.Background(), request2)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
-
-	// Register client with different redirect URIs (should succeed)
-	request3 := &model.ClientRegistrationRequest{
-		RedirectURIs: []string{"https://different.com/callback"},
-		ClientName:   model.NewPointer("Different Client"),
-	}
-	_, _, err = adminClient.RegisterOAuthClient(context.Background(), request3)
-	require.NoError(t, err)
-
-	// Register client with partial overlap (should succeed)
-	request4 := &model.ClientRegistrationRequest{
-		RedirectURIs: []string{"https://example.com/callback1", "https://different.com/callback"},
-		ClientName:   model.NewPointer("Partial Overlap Client"),
-	}
-	_, _, err = adminClient.RegisterOAuthClient(context.Background(), request4)
-	require.NoError(t, err)
 }
 
 func TestRegisterOAuthClient_DisabledFeatures(t *testing.T) {
@@ -767,7 +710,7 @@ func TestRegisterOAuthClient_DisabledFeatures(t *testing.T) {
 	enableDCR := th.App.Config().ServiceSettings.EnableDynamicClientRegistration
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
-		th.App.UpdateConfig(func(cfg *model.Config) { 
+		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider
 			cfg.ServiceSettings.EnableDynamicClientRegistration = enableDCR
 		})
@@ -781,31 +724,31 @@ func TestRegisterOAuthClient_DisabledFeatures(t *testing.T) {
 	}
 
 	// Test with OAuth disabled
-	th.App.UpdateConfig(func(cfg *model.Config) { 
+	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewPointer(false)
 		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
 	})
-	
+
 	_, resp, err := adminClient.RegisterOAuthClient(context.Background(), request)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	// Test with DCR disabled
-	th.App.UpdateConfig(func(cfg *model.Config) { 
+	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewPointer(true)
 		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(false)
 	})
-	
+
 	_, resp, err = adminClient.RegisterOAuthClient(context.Background(), request)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	// Test with nil config values (should be disabled by default)
-	th.App.UpdateConfig(func(cfg *model.Config) { 
+	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.EnableOAuthServiceProvider = nil
 		cfg.ServiceSettings.EnableDynamicClientRegistration = nil
 	})
-	
+
 	_, resp, err = adminClient.RegisterOAuthClient(context.Background(), request)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)

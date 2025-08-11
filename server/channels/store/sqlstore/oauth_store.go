@@ -28,7 +28,7 @@ func newSqlOAuthStore(sqlStore *SqlStore) store.OAuthStore {
 
 	s.oAuthAppsSelectQuery = s.getQueryBuilder().
 		Select("o.Id", "o.CreatorId", "o.CreateAt", "o.UpdateAt", "o.ClientSecret", "o.Name", "o.Description", "o.IconURL", "o.CallbackUrls", "o.Homepage", "o.IsTrusted", "o.MattermostAppID",
-			"o.GrantTypes", "o.ResponseTypes", "o.TokenEndpointAuthMethod", "o.IsDynamicallyRegistered").
+			"o.IsDynamicallyRegistered").
 		From("OAuthApps o")
 
 	s.oAuthAccessDataQuery = s.getQueryBuilder().
@@ -54,10 +54,10 @@ func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, error) {
 
 	if _, err := as.GetMaster().NamedExec(`INSERT INTO OAuthApps
 		(Id, CreatorId, CreateAt, UpdateAt, ClientSecret, Name, Description, IconURL, CallbackUrls, Homepage, IsTrusted, MattermostAppID,
-		 GrantTypes, ResponseTypes, TokenEndpointAuthMethod, IsDynamicallyRegistered)
+		 IsDynamicallyRegistered)
 		VALUES
 		(:Id, :CreatorId, :CreateAt, :UpdateAt, :ClientSecret, :Name, :Description, :IconURL, :CallbackUrls, :Homepage, :IsTrusted, :MattermostAppID,
-		 :GrantTypes, :ResponseTypes, :TokenEndpointAuthMethod, :IsDynamicallyRegistered)`, app); err != nil {
+		 :IsDynamicallyRegistered)`, app); err != nil {
 		return nil, errors.Wrap(err, "failed to save OAuthApp")
 	}
 	return app, nil
@@ -88,7 +88,6 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) 
 		SET UpdateAt=:UpdateAt, ClientSecret=:ClientSecret, Name=:Name,
 			Description=:Description, IconURL=:IconURL, CallbackUrls=:CallbackUrls,
 			Homepage=:Homepage, IsTrusted=:IsTrusted, MattermostAppID=:MattermostAppID,
-			GrantTypes=:GrantTypes, ResponseTypes=:ResponseTypes, TokenEndpointAuthMethod=:TokenEndpointAuthMethod,
 			IsDynamicallyRegistered=:IsDynamicallyRegistered
 		WHERE Id=:Id`, app)
 	if err != nil {
@@ -117,6 +116,7 @@ func (as SqlOAuthStore) GetApp(id string) (*model.OAuthApp, error) {
 	if app.Id == "" {
 		return nil, store.NewErrNotFound("OAuthApp", id)
 	}
+	
 	return &app, nil
 }
 
@@ -154,34 +154,6 @@ func (as SqlOAuthStore) GetAuthorizedApps(userId string, offset, limit int) ([]*
 
 	if err := as.GetReplica().SelectBuilder(&apps, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find OAuthApps with userId=%s", userId)
-	}
-
-	return apps, nil
-}
-
-func (as SqlOAuthStore) GetOAuthAppsByRedirectURIs(redirectURIs []string) ([]*model.OAuthApp, error) {
-	if len(redirectURIs) == 0 {
-		return []*model.OAuthApp{}, nil
-	}
-
-	apps := []*model.OAuthApp{}
-
-	// Use LIKE queries to find potential matches - app layer will do exact matching
-	query := as.oAuthAppsSelectQuery
-
-	// Build OR conditions for each redirect URI using LIKE for candidate matching
-	orConditions := sq.Or{}
-	for _, uri := range redirectURIs {
-		// Use LIKE to search within the JSON array stored as text
-		// This will find potential matches - the app layer handles exact matching logic
-		likePattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(uri, "\\"))
-		orConditions = append(orConditions, sq.Like{"o.CallbackUrls": likePattern})
-	}
-
-	query = query.Where(orConditions)
-
-	if err := as.GetReplica().SelectBuilder(&apps, query); err != nil {
-		return nil, errors.Wrap(err, "failed to find OAuthApps by redirect URIs")
 	}
 
 	return apps, nil

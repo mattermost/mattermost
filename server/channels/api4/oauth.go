@@ -318,7 +318,6 @@ func getAuthorizedOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 // DCR (Dynamic Client Registration) endpoint handlers as per RFC 7591
-
 func registerOAuthClient(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Session and permission checks removed for DCR endpoint to allow external client registration
 
@@ -357,17 +356,6 @@ func registerOAuthClient(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Validate the request
 	if err := clientRequest.IsValid(); err != nil {
-		dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, err.Message)
-
-		w.WriteHeader(http.StatusBadRequest)
-		if _, err := w.Write([]byte(dcrError.ToJSON())); err != nil {
-			c.Logger.Warn("Error writing DCR error response", mlog.Err(err))
-		}
-		return
-	}
-
-	// Check grant types and response types compatibility
-	if err := model.ValidateGrantTypesAndResponseTypes(clientRequest.GrantTypes, clientRequest.ResponseTypes); err != nil {
 		dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, err.Message)
 
 		w.WriteHeader(http.StatusBadRequest)

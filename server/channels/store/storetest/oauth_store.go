@@ -30,7 +30,6 @@ func TestOAuthStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("OAuthGetAuthorizedApps", func(t *testing.T) { testOAuthGetAuthorizedApps(t, rctx, ss) })
 	t.Run("OAuthGetAccessDataByUserForApp", func(t *testing.T) { testOAuthGetAccessDataByUserForApp(t, rctx, ss) })
 	t.Run("DeleteApp", func(t *testing.T) { testOAuthStoreDeleteApp(t, rctx, ss) })
-	t.Run("GetOAuthAppsByRedirectURIs", func(t *testing.T) { testOAuthStoreGetOAuthAppsByRedirectURIs(t, rctx, ss) })
 }
 
 func testOAuthStoreSaveApp(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -396,102 +395,4 @@ func testOAuthStoreDeleteApp(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	_, err = ss.OAuth().GetAccessData(s1.Token)
 	require.Error(t, err, "should error - access data should be deleted")
-}
-
-func testOAuthStoreGetOAuthAppsByRedirectURIs(t *testing.T, rctx request.CTX, ss store.Store) {
-	// Create test apps with different redirect URIs
-	app1 := model.OAuthApp{
-		CreatorId:    model.NewId(),
-		Name:         "TestApp1",
-		CallbackUrls: []string{"https://example.com/callback1", "https://example.com/callback2"},
-		Homepage:     "https://example.com",
-	}
-	_, err := ss.OAuth().SaveApp(&app1)
-	require.NoError(t, err)
-
-	app2 := model.OAuthApp{
-		CreatorId:    model.NewId(),
-		Name:         "TestApp2",
-		CallbackUrls: []string{"https://example.com/callback3", "https://example.com/callback4"},
-		Homepage:     "https://example.com",
-	}
-	_, err = ss.OAuth().SaveApp(&app2)
-	require.NoError(t, err)
-
-	app3 := model.OAuthApp{
-		CreatorId:    model.NewId(),
-		Name:         "TestApp3",
-		CallbackUrls: []string{"https://different.com/callback", "https://example.com/callback2"},
-		Homepage:     "https://different.com",
-	}
-	_, err = ss.OAuth().SaveApp(&app3)
-	require.NoError(t, err)
-
-	testCases := []struct {
-		name          string
-		redirectURIs  []string
-		expectedApps  []string // Names of expected apps
-		expectedCount int
-	}{
-		{
-			name:          "Empty redirect URIs",
-			redirectURIs:  []string{},
-			expectedApps:  []string{},
-			expectedCount: 0,
-		},
-		{
-			name:          "Single matching URI",
-			redirectURIs:  []string{"https://example.com/callback1"},
-			expectedApps:  []string{"TestApp1"},
-			expectedCount: 1,
-		},
-		{
-			name:          "Multiple matching URIs - same app",
-			redirectURIs:  []string{"https://example.com/callback1", "https://example.com/callback2"},
-			expectedApps:  []string{"TestApp1", "TestApp3"},
-			expectedCount: 2,
-		},
-		{
-			name:          "Multiple matching URIs - different apps",
-			redirectURIs:  []string{"https://example.com/callback1", "https://example.com/callback3"},
-			expectedApps:  []string{"TestApp1", "TestApp2"},
-			expectedCount: 2,
-		},
-		{
-			name:          "No matching URIs",
-			redirectURIs:  []string{"https://nonexistent.com/callback"},
-			expectedApps:  []string{},
-			expectedCount: 0,
-		},
-		{
-			name:          "Partial URI match should not return results",
-			redirectURIs:  []string{"https://example.com/callback"},
-			expectedApps:  []string{},
-			expectedCount: 0,
-		},
-		{
-			name:          "Mixed existing and non-existing URIs",
-			redirectURIs:  []string{"https://example.com/callback1", "https://nonexistent.com/callback"},
-			expectedApps:  []string{"TestApp1"},
-			expectedCount: 1,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			apps, err := ss.OAuth().GetOAuthAppsByRedirectURIs(tc.redirectURIs)
-			require.NoError(t, err)
-			assert.Len(t, apps, tc.expectedCount)
-
-			// Check that we got the expected apps
-			actualAppNames := make([]string, len(apps))
-			for i, app := range apps {
-				actualAppNames[i] = app.Name
-			}
-
-			for _, expectedName := range tc.expectedApps {
-				assert.Contains(t, actualAppNames, expectedName)
-			}
-		})
-	}
 }
