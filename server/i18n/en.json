@@ -4536,7 +4536,7 @@
   },
   {
     "id": "app.access_control.insufficient_permissions",
-    "translation": ""
+    "translation": "You do not have permission to manage this access control policy."
   },
   {
     "id": "app.acknowledgement.batch_save.app_error",
