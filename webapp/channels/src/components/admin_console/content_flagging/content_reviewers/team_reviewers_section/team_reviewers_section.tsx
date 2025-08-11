@@ -142,9 +142,10 @@ export default function TeamReviewers({teamReviewersSetting, onChange}: Props): 
                 ),
                 reviewers: (
                     <UserMultiSelector
+                        isMulti={true}
                         id={`team_content_reviewer_${team.id}`}
-                        initialValue={teamReviewersSetting[team.id]?.ReviewerIds || []}
-                        onChange={getHandleReviewersChange(team.id)}
+                        multiSelectInitialValue={teamReviewersSetting[team.id]?.ReviewerIds || []}
+                        multiSelectOnChange={getHandleReviewersChange(team.id)}
                     />
                 ),
                 enabled: (

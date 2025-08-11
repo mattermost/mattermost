@@ -149,9 +149,10 @@ export default function ContentFlaggingContentReviewers(props: SystemConsoleCust
 
                             <div className='setting-content'>
                                 <UserMultiSelector
+                                    isMulti={true}
                                     id='content_reviewers_common_reviewers'
-                                    initialValue={reviewerSetting.CommonReviewerIds}
-                                    onChange={handleCommonReviewersChange}
+                                    multiSelectInitialValue={reviewerSetting.CommonReviewerIds}
+                                    multiSelectOnChange={handleCommonReviewersChange}
                                 />
                             </div>
                         </div>
