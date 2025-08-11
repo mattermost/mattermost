@@ -9,9 +9,8 @@ import type {
     PropertyValue,
 } from '@mattermost/types/properties';
 
-import {UserMultiSelector} from 'components/admin_console/content_flagging/user_multiselector/user_multiselector';
-
 import './seletable_user_property_renderer.scss';
+import {UserSingleSelector} from 'components/admin_console/content_flagging/user_multiselector/user_singleselector';
 
 type Props = {
     field: PropertyField;
@@ -29,7 +28,7 @@ export function SelectableUserPropertyRenderer({field, value}: Props) {
 
     return (
         <div className='SelectableUserPropertyRenderer'>
-            <UserMultiSelector
+            <UserSingleSelector
                 id={`selectable-user-property-renderer-${field.id}`}
                 onChange={() => {}}
                 placeholder={placeholder}

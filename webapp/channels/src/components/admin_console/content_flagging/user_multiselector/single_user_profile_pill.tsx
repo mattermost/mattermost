@@ -3,11 +3,12 @@
 
 import React from 'react';
 import {useSelector} from 'react-redux';
-import type {OptionProps} from 'react-select';
+import type {SingleValueProps} from 'react-select';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import Avatar from 'components/widgets/users/avatar';
+import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
+import Avatar from 'components/widgets/users/avatar/avatar';
 
 import {getDisplayNameByUser, imageURLForUser} from 'utils/utils';
 
@@ -15,39 +16,31 @@ import type {GlobalState} from 'types/store';
 
 import type {AutocompleteOptionType} from './user_multiselector';
 
-import './user_profile_option.scss';
+import './user_profile_pill.scss';
 
-export function MultiUserOptionComponent(props: OptionProps<AutocompleteOptionType<UserProfile>, true>) {
-    const {data, innerProps} = props;
-
-    const userProfile = data.raw;
-    const userDisplayName = useSelector((state: GlobalState) => getDisplayNameByUser(state, userProfile));
+function Remove(props: any) {
+    const {innerProps, children} = props;
 
     return (
         <div
-            className='UserOptionComponent'
+            className='Remove'
             {...innerProps}
+            onClick={props.onClick}
         >
-            <Avatar
-                size='xxs'
-                username={userProfile?.username}
-                url={imageURLForUser(data.value)}
-            />
-
-            {userDisplayName}
+            {children || <CloseCircleSolidIcon/>}
         </div>
     );
 }
 
-export function SingleUserOptionComponent(props: OptionProps<AutocompleteOptionType<UserProfile>, false>) {
-    const {data, innerProps} = props;
+export function SingleUserProfilePill(props: SingleValueProps<AutocompleteOptionType<UserProfile>, false>) {
+    const {data, innerProps, selectProps} = props;
 
     const userProfile = data.raw;
     const userDisplayName = useSelector((state: GlobalState) => getDisplayNameByUser(state, userProfile));
 
     return (
         <div
-            className='UserOptionComponent'
+            className='UserProfilePill'
             {...innerProps}
         >
             <Avatar
@@ -57,6 +50,12 @@ export function SingleUserOptionComponent(props: OptionProps<AutocompleteOptionT
             />
 
             {userDisplayName}
+
+            <Remove
+                data={data}
+                innerProps={innerProps}
+                selectProps={selectProps}
+            />
         </div>
     );
 }

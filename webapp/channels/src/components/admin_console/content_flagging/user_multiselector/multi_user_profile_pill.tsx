@@ -32,7 +32,7 @@ function Remove(props: any) {
     );
 }
 
-export function UserProfilePill(props: MultiValueProps<AutocompleteOptionType<UserProfile>, true>) {
+export function MultiUserProfilePill(props: MultiValueProps<AutocompleteOptionType<UserProfile>, true>) {
     const {data, innerProps, selectProps, removeProps} = props;
 
     const userProfile = data.raw;
