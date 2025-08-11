@@ -3966,6 +3966,9 @@
   "custom_status.suggestions.recent_title": "RECENT",
   "custom_status.suggestions.title": "SUGGESTIONS",
   "custom_status.suggestions.working_from_home": "Working from home",
+  "data_spillage_report_post.title": "{user} flagged a message for review",
+  "data_spillage_report.keep_message.button_text": "Keep message",
+  "data_spillage_report.remove_message.button_text": "Remove message",
   "date_separator.today": "Today",
   "date_separator.tomorrow": "Tomorrow",
   "date_separator.yesterday": "Yesterday",
@@ -5175,6 +5178,7 @@
   "promote_to_user_modal.desc": "This action promotes the guest {username} to a member. It will allow the user to join public channels and interact with users outside of the channels they are currently members of. Are you sure you want to promote guest {username} to member?",
   "promote_to_user_modal.promote": "Promote",
   "promote_to_user_modal.title": "Promote guest {username} to member",
+  "property_card.actions_row.label": "Actions",
   "public_private_selector.private.description": "Only invited members",
   "public_private_selector.private.title": "Private",
   "public_private_selector.public.description": "Anyone",
@@ -6474,9 +6478,5 @@
   "yourcomputer": "Your computer",
   "youtube_video.play_button.aria_label": "Play video",
   "youtube_video.play.aria_label": "Play {videoTitle} on YouTube",
-  "youtube_video.thumbnail.alt_text": "Thumbnail for {videoTitle} on YouTube",
-  "data_spillage_report_post.title": "{user} flagged a message for review",
-  "property_card.actions_row.label": "Actions",
-  "data_spillage_report.remove_message.button_text": "Remove message",
-  "data_spillage_report.keep_message.button_text": "Keep message"
+  "youtube_video.thumbnail.alt_text": "Thumbnail for {videoTitle} on YouTube"
 }
