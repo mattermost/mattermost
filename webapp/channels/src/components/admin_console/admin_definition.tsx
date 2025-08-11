@@ -29,6 +29,9 @@ import {
 } from 'actions/admin_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
+import ContentFlaggingAdditionalSettingsSection from 'components/admin_console/content_flagging/additional_settings/additional_settings';
+import ContentFlaggingContentReviewers from 'components/admin_console/content_flagging/content_reviewers/content_reviewers';
+import ContentFlaggingNotificationSettingsSection from 'components/admin_console/content_flagging/notificatin_settings/notification_settings';
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
 import CustomProfileAttributes from 'components/admin_console/custom_profile_attributes/custom_profile_attributes';
 import PluginManagement from 'components/admin_console/plugin_management';
@@ -54,7 +57,6 @@ import BillingHistory, {searchableStrings as billingHistorySearchableStrings} fr
 import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchableStrings} from './billing/billing_subscriptions';
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
-import BleveSettings, {searchableStrings as bleveSearchableStrings} from './bleve_settings';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
 import ClientSideUserIdsSetting from './client_side_userids_setting';
 import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
@@ -83,6 +85,7 @@ import {
     SystemRolesFeatureDiscovery,
 } from './feature_discovery/features';
 import AttributeBasedAccessControlFeatureDiscovery from './feature_discovery/features/attribute_based_access_control';
+import UserAttributesFeatureDiscovery from './feature_discovery/features/user_attributes';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
@@ -584,10 +587,7 @@ const AdminDefinition: AdminDefinitionType = {
             />
         ),
         sectionTitle: defineMessage({id: 'admin.sidebar.systemAttributes', defaultMessage: 'System Attributes'}),
-        isHidden: it.not(it.all(
-            it.minLicenseTier(LicenseSkus.Enterprise),
-            it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
-        )),
+        isHidden: it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.USER_MANAGEMENT)),
         subsections: {
             system_properties: {
                 url: 'system_attributes/user_attributes',
@@ -601,6 +601,29 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'SystemProperties',
                     component: SystemProperties,
                 },
+            },
+            user_attributes_feature_discovery: {
+                url: 'system_attributes/user_attributes',
+                isDiscovery: true,
+                title: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
+                isHidden: it.any(
+                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.not(it.enterpriseReady),
+                    it.configIsFalse('FeatureFlags', 'CustomProfileAttributes'),
+                ),
+                schema: {
+                    id: 'SystemProperties',
+                    name: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
+                    settings: [
+                        {
+                            type: 'custom',
+                            component: UserAttributesFeatureDiscovery,
+                            key: 'UserAttributesFeatureDiscovery',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
             },
             access_control_policy_details_edit: {
                 url: `system_attributes/attribute_based_access_control/edit_policy/:policy_id(${ID_PATH_PATTERN})`,
@@ -3245,6 +3268,43 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
             },
+            content_flagging: {
+                url: 'site_config/content_flagging',
+                title: defineMessage({id: 'admin.sidebar.contentFlagging', defaultMessage: 'Content Flagging'}),
+                isHidden: it.any(
+                    it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'ContentFlagging'),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
+                schema: {
+                    id: 'ContentFlaggingSettings',
+                    name: defineMessage({id: 'admin.contentFlagging.title', defaultMessage: 'Content Flagging'}),
+                    settings: [
+                        {
+                            type: 'bool',
+                            key: 'ContentFlaggingSettings.EnableContentFlagging',
+                            label: defineMessage({id: 'admin.contentFlagging.enableTitle', defaultMessage: 'Enable Content Flagging'}),
+                        },
+                        {
+                            type: 'custom',
+                            key: 'ContentFlaggingSettings.ReviewerSettings',
+                            component: ContentFlaggingContentReviewers,
+                        },
+                        {
+                            type: 'custom',
+                            key: 'ContentFlaggingSettings.NotificationSettings',
+                            component: ContentFlaggingNotificationSettingsSection,
+                        },
+                        {
+                            type: 'custom',
+                            key: 'ContentFlaggingSettings.AdditionalSettings',
+                            component: ContentFlaggingAdditionalSettingsSection,
+                        },
+                    ],
+                },
+            },
             wrangler: {
                 url: 'site_config/wrangler',
                 title: defineMessage({id: 'admin.sidebar.move_thread', defaultMessage: 'Move Thread (Beta)'}),
@@ -5428,7 +5488,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: `compliance/data_retention_settings/custom_policy/:policy_id(${ID_PATH_PATTERN})`,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('DataRetention')),
-                    it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
                 schema: {
@@ -5441,7 +5501,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'compliance/data_retention_settings/custom_policy',
                 isHidden: it.any(
                     it.not(it.licensedForFeature('DataRetention')),
-                    it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
                 schema: {
@@ -6213,20 +6273,6 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'Feature Flags',
                     component: FeatureFlags,
-                },
-            },
-            bleve: {
-                url: 'experimental/blevesearch',
-                title: defineMessage({id: 'admin.sidebar.blevesearch', defaultMessage: 'Bleve'}),
-                isHidden: it.any(
-                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.BLEVE)),
-                ),
-                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.BLEVE)),
-                searchableStrings: bleveSearchableStrings,
-                schema: {
-                    id: 'BleveSettings',
-                    component: BleveSettings,
                 },
             },
         },

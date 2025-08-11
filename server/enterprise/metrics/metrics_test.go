@@ -250,18 +250,6 @@ func TestExtractDBCluster(t *testing.T) {
 			connectionStr:       "postgres://rds-cluster-multitenant-1234-postgres.cluster-abcd.us-east-1.rds.amazonaws.com:5432/cloud?connect_timeout=10",
 			expectedClusterName: "rds-cluster-multitenant-1234-postgres",
 		},
-		{
-			description:         "mysql full",
-			driver:              "mysql",
-			connectionStr:       "mysql://user1234:password1234@tcp(rds-cluster-multitenant-1234-mysql.cluster-abcd.us-east-1.rds.amazonaws.com:3306)/cloud?charset=utf8mb4%2Cutf8&readTimeout=30s&writeTimeout=30s&tls=skip-verify",
-			expectedClusterName: "rds-cluster-multitenant-1234-mysql",
-		},
-		{
-			description:         "mysql no credentials",
-			driver:              "mysql",
-			connectionStr:       "mysql://tcp(rds-cluster-multitenant-1234-mysql.cluster-abcd.us-east-1.rds.amazonaws.com:3306)/cloud?charset=utf8mb4%2Cutf8&readTimeout=30s&writeTimeout=30s&tls=skip-verify",
-			expectedClusterName: "rds-cluster-multitenant-1234-mysql",
-		},
 	}
 
 	for _, tc := range testCases {

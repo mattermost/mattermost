@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -241,6 +242,19 @@ type UserForIndexing struct {
 type ViewUsersRestrictions struct {
 	Teams    []string
 	Channels []string
+}
+
+//msgp:ignore GetUsersNotInChannelOptions
+type GetUsersNotInChannelOptions struct {
+	TeamID string `json:"team_id"`
+	// Page-based pagination (used for non-ABAC channels)
+	// This will be discarded if the channel has an ABAC policy and CursorID will be used.
+	Page  int `json:"page"`
+	Limit int `json:"limit"`
+	// Cursor-based pagination (used for ABAC channels)
+	// If CursorID is empty for ABAC channels, it will start from the beginning
+	CursorID string `json:"cursor_id"`
+	Etag     string `json:"etag"`
 }
 
 func (r *ViewUsersRestrictions) Hash() string {
@@ -592,7 +606,7 @@ func (u *User) UpdateMentionKeysFromUsername(oldUsername string) {
 func (u *User) GetMentionKeys() []string {
 	var keys []string
 
-	for _, key := range strings.Split(u.NotifyProps[MentionKeysNotifyProp], ",") {
+	for key := range strings.SplitSeq(u.NotifyProps[MentionKeysNotifyProp], ",") {
 		trimmedKey := strings.TrimSpace(key)
 
 		if trimmedKey == "" {
@@ -873,13 +887,7 @@ func (u *User) IsInRole(inRole string) bool {
 func IsInRole(userRoles string, inRole string) bool {
 	roles := strings.Split(userRoles, " ")
 
-	for _, r := range roles {
-		if r == inRole {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(roles, inRole)
 }
 
 func (u *User) IsSSOUser() bool {
@@ -921,6 +929,22 @@ func (u *User) IsRemote() bool {
 // GetRemoteID returns the remote id for this user or "" if not a remote user.
 func (u *User) GetRemoteID() string {
 	return SafeDereference(u.RemoteId)
+}
+
+func (u *User) GetOriginalRemoteID() string {
+	if u.Props == nil {
+		if u.IsRemote() {
+			return UserOriginalRemoteIdUnknown
+		}
+		return "" // Local user
+	}
+	if originalId, exists := u.Props[UserPropsKeyOriginalRemoteId]; exists && originalId != "" {
+		return originalId
+	}
+	if u.IsRemote() {
+		return UserOriginalRemoteIdUnknown
+	}
+	return "" // Local user
 }
 
 func (u *User) GetAuthData() string {

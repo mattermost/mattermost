@@ -10,6 +10,7 @@ import (
 	plugin "github.com/hashicorp/go-plugin"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 // The API can be used to retrieve data or perform actions on behalf of the plugin. Most methods
@@ -130,6 +131,8 @@ type API interface {
 	DeleteUser(userID string) *model.AppError
 
 	// GetUsers a list of users based on search options.
+	//
+	// Not all fields in UserGetOptions are supported by this API.
 	//
 	// @tag User
 	// Minimum server version: 5.10
@@ -1537,6 +1540,18 @@ type API interface {
 	// @tag PropertyValue
 	// Minimum server version: 10.10
 	DeletePropertyValuesForField(groupID, fieldID string) error
+
+	// LogAuditRec logs an audit record using the default audit logger.
+	//
+	// @tag Audit
+	// Minimum server version: 10.10
+	LogAuditRec(rec *model.AuditRecord)
+
+	// LogAuditRecWithLevel logs an audit record with a specific log level.
+	//
+	// @tag Audit
+	// Minimum server version: 10.10
+	LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
 }
 
 var handshake = plugin.HandshakeConfig{

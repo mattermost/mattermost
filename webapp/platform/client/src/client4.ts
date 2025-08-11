@@ -39,6 +39,7 @@ import type {
     ValidBusinessEmail,
     NewsletterRequestBody,
     Installation,
+    PreviewModalContentData,
 } from '@mattermost/types/cloud';
 import type {Compliance} from '@mattermost/types/compliance';
 import type {
@@ -402,6 +403,10 @@ export default class Client4 {
         return `${this.getBaseRoute()}/hooks/outgoing/${hookId}`;
     }
 
+    getSharedChannelsRoute() {
+        return `${this.getBaseRoute()}/sharedchannels`;
+    }
+
     getOAuthRoute() {
         return `${this.url}/oauth`;
     }
@@ -532,6 +537,10 @@ export default class Client4 {
 
     getClientMetricsRoute() {
         return `${this.getBaseRoute()}/client_perf`;
+    }
+
+    getContentFlaggingRoute() {
+        return `${this.getBaseRoute()}/content_flagging`;
     }
 
     getCSRFFromCookie() {
@@ -898,8 +907,16 @@ export default class Client4 {
         );
     };
 
-    getProfilesNotInChannel = (teamId: string, channelId: string, groupConstrained: boolean, page = 0, perPage = PER_PAGE_DEFAULT) => {
-        const queryStringObj: any = {in_team: teamId, not_in_channel: channelId, page, per_page: perPage};
+    getProfilesNotInChannel = (teamId: string, channelId: string, groupConstrained: boolean, page = 0, perPage = PER_PAGE_DEFAULT, cursorId = '') => {
+        const queryStringObj: any = {in_team: teamId, not_in_channel: channelId, per_page: perPage};
+
+        // If cursorId is provided, use cursor-based pagination
+        if (cursorId) {
+            queryStringObj.cursor_id = cursorId;
+        } else {
+            // Otherwise use traditional page-based pagination
+            queryStringObj.page = page;
+        }
         if (groupConstrained) {
             queryStringObj.group_constrained = true;
         }
@@ -948,6 +965,13 @@ export default class Client4 {
     getUserByEmail = (email: string) => {
         return this.doFetch<UserProfile>(
             `${this.getUsersRoute()}/email/${email}`,
+            {method: 'get'},
+        );
+    };
+
+    canUserDirectMessage = (userId: string, otherUserId: string) => {
+        return this.doFetch<{can_dm: boolean}>(
+            `${this.getSharedChannelsRoute()}/users/${userId}/can_dm/${otherUserId}`,
             {method: 'get'},
         );
     };
@@ -4120,6 +4144,13 @@ export default class Client4 {
         );
     };
 
+    getCloudPreviewModalData = () => {
+        return this.doFetch<PreviewModalContentData[]>(
+            `${this.getCloudRoute()}/preview/modal_data`,
+            {method: 'get'},
+        );
+    };
+
     getInvoices = () => {
         return this.doFetch<Invoice[]>(
             `${this.getCloudRoute()}/subscription/invoices`,
@@ -4557,6 +4588,13 @@ export default class Client4 {
     getChannelAccessControlAttributes = (channelId: string) => {
         return this.doFetch<AccessControlAttributes>(
             `${this.getChannelRoute(channelId)}/access_control/attributes`,
+            {method: 'get'},
+        );
+    };
+
+    getTeamContentFlaggingStatus = (teamId: string) => {
+        return this.doFetch<{enabled: boolean}>(
+            `${this.getContentFlaggingRoute()}/team/${teamId}/status`,
             {method: 'get'},
         );
     };

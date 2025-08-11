@@ -1326,15 +1326,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all is uitgeschakeld in dit kanaal omdat dit kanaal meer dan {{.Users}} gebruikers bevat."
+    "translation": "@all-meldingen zijn uitgeschakeld in kanalen met meer dan {{.Users}} gebruikers. Neem contact op met je systeembeheerder voor meer informatie."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel is uitgeschakeld in dit kanaal omdat dit kanaal meer dan {{.Users}} gebruikers bevat."
+    "translation": "@kanaal-meldingen zijn uitgeschakeld in kanalen met meer dan {{.Users}} gebruikers. Neem contact op met je systeembeheerder voor meer informatie."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here is uitgeschakeld in dit kanaal omdat dit kanaal meer dan {{.Users}} gebruikers bevat."
+    "translation": "@here-meldingen zijn uitgeschakeld in kanalen met meer dan {{.Users}} gebruikers. Neem contact op met je systeembeheerder voor meer informatie."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -3832,7 +3832,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Ongeldig stuurprogrammanaam bij SQL-instellingen. Moet 'mysql' of 'postgres' zijn."
+    "translation": "Ongeldige stuurprogrammanaam voor SQL-instellingen. Moet 'postgres' zijn."
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
@@ -4624,11 +4624,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 134+"
+    "translation": "Versie 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 134+"
+    "translation": "Versie 138+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -4683,10 +4683,6 @@
     "translation": "Download de nieuwste Chrome browser"
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Fout bij leegmaken van Bleve indexen: de engine is uitgeschakeld"
-  },
-  {
     "id": "plugin_api.bot_cant_create_bot",
     "translation": "Een bot-gebruiker kan geen bot-gebruiker aanmaken."
   },
@@ -4732,7 +4728,7 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Ongeldige gebruiker, auth data moet ingesteld zijn met auth type."
+    "translation": "Ongeldige gebruiker: Auth-gegevens kunnen alleen worden ingesteld als de gebruiker een externe auth-service, en niet e-mail/wachtwoord gebruikt voor authenticatie."
   },
   {
     "id": "model.user.is_valid.auth_data_pwd.app_error",
@@ -4793,18 +4789,6 @@
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
     "translation": "{{.EnableIndexing}} instelling moet worden ingesteld op actief als {{.Autocomplete}} is ingesteld op actief"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "De instelling Bleve IndexingEnabled moet worden ingesteld op waar als de functie Bleve SearchEnabled is ingesteld"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "De instelling Bleve IndexingEnabled moet worden ingesteld op waar als de functie BleveSearchEnabled ingesteld is op waar"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "De Bleve IndexingEnabled instelling moet op waar worden ingesteld als Bleve AutocompleteEnabled is ingesteld op waar"
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
@@ -4905,122 +4889,6 @@
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "{{.Backend}}-sjabloon voor kanalen kon niet aangemaakt worden"
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Fout bij het sluiten van gebruikersindex."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Fout bij het sluiten van berichtenindex."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Fout bij het sluiten van kanalenindex."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Fout bij het zoeken naar gebruikers."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Fout bij het zoeken naar gebruikers."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Fout bij het zoeken naar gebruikers."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Fout bij het zoeken naar berichten."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Fout bij het zoeken naar kanalen."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Fout bij het opschonen van de gebruikerindexen."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Fout bij het opschonen van de berichtindexen."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Fout bij het opschonen van kanaalindexen."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "We proberen een nieuwe batch te indexeren als alle entiteiten zijn voltooid."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Bleve indexing worker geeft een fout bij het verwerken de starttijd."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Bleve indexing worker geeft een fout bij het verwerken de eindtijd."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "De oudste entititeit (gebruiker,kanaal of bericht) kon niet worden opgehaald vanuit de databank."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Fout bij het uitvoeren van Bleve-indexeertaak: de engine is niet actief."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Fout bij het indexeren van gebruikerbatch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Fout bij het indexeren van berichtenbatch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Fout bij het indexeren van de kanaalbatch."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "De gebruiker kon niet worden geïndexeerd."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Het bericht kon niet worden geïndexeerd."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Het indexeren van het kanaal is mislukt."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Verwijderen van de gebruiker is mislukt."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Verwijderen van het bericht is mislukt."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Verwijderen van het kanaal is mislukt."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Fout bij het maken van de bleve-gebruikersindex."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Fout bij het maken van de bleve-berichtenindex."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Fout bij het maken van de bleve-kanaalindex."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve is reeds gestart."
   },
   {
     "id": "app.user_terms_of_service.save.app_error",
@@ -5149,10 +5017,6 @@
   {
     "id": "app.plugin.get_public_key.get_file.app_error",
     "translation": "Er is een fout opgetreden bij het ophalen van de publieke sleutel."
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Plugin kan niet worden ingesteld als beheerd door het bestandsarchief."
   },
   {
     "id": "app.plugin.delete_public_key.delete.app_error",
@@ -5691,10 +5555,6 @@
     "translation": "Er is een fout gevonden bij het zoeken naar de audit data."
   },
   {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Fout bij het verwijden van de kanaalberichten"
-  },
-  {
     "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
     "translation": "Service Provider Identifier is verplicht"
   },
@@ -5713,10 +5573,6 @@
   {
     "id": "ent.cluster.json_encode.error",
     "translation": "Er trad een fout op bij het opstellen van het JSON verzoek"
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Fout bij het verwijderen van de berichten van de gebruiker"
   },
   {
     "id": "app.scheme.delete.app_error",
@@ -6863,10 +6719,6 @@
     "translation": "Kanaalleden kunnen niet worden opgehaald."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Kan de kanalenbatch niet ophalen voor indexering."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "De kanalen voor het opgegeven schema kunnen niet worden opgehaald."
   },
@@ -6901,10 +6753,6 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "Fout bij het ophalen van berichten voor het kanaal."
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Kan de berichten-batch niet ophalen voor indexering."
   },
   {
     "id": "app.post.get_posts.app_error",
@@ -7243,34 +7091,6 @@
     "translation": "Fout bij het ophalen van het endpoint van het Discovery Document."
   },
   {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Verwijderen van de bestanden is mislukt."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Verwijderen van het bestand is mislukt."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Fout bij het maken van de bleve-bestandenindex."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Fout bij het indexeren van de batch met bestanden."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "Het bestand kon niet worden geïndexeerd."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Verwijderen van de bestanden van de gebruiker is mislukt."
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Fout bij het verwijderen van de bestanden van het bericht."
-  },
-  {
     "id": "ent.elasticsearch.delete_post_files.error",
     "translation": "Fout bij het verwijderen van de bestanden van het bericht"
   },
@@ -7281,14 +7101,6 @@
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
     "translation": "{{.Backend}}-sjabloon voor berichten aanmaken is mislukt"
-  },
-  {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Fout bij het sluiten van bestanden index."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "Het zoeken naar bestanden is niet voltooid."
   },
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
@@ -7371,10 +7183,6 @@
     "translation": "Voor en Na parameters voor getThreadsForUser sluiten elkaar uit"
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Fout bij het lezen van het bestand vanuit backend"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "Fout bij het maken van het zip-bestand."
   },
@@ -7425,14 +7233,6 @@
   {
     "id": "mfa.activate.app_error",
     "translation": "De MFA-actief status kan niet worden bijgewerkt voor de gebruiker."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Fout bij het opschonen van kanaalindexen."
-  },
-  {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "De berichtenbatch voor indexering kan niet worden opgehaald."
   },
   {
     "id": "api.custom_status.recent_custom_statuses.delete.app_error",
@@ -8448,10 +8248,6 @@
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
     "translation": "Bulkzoek Indexering Batchgrootte moet ten minste {{.BatchSize}} zijn."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Bleve Bulk Indexering Batchgrootte moet ten minste {{.BatchSize}} zijn."
   },
   {
     "id": "app.channel.get_file_count.app_error",
@@ -9730,10 +9526,6 @@
     "translation": "Kanalen automatisch aanvullen kan niet worden ingeschakeld omdat het schema van de kanaalindex verouderd is. Het wordt aanbevolen om je kanaalindex te regenereren. Zie de Mattermost changelog voor meer informatie"
   },
   {
-    "id": "bleveengine.purge_list.not_implemented",
-    "translation": "De functie lijst leegmaken is niet beschikbaar voor Bleve."
-  },
-  {
     "id": "ent.elasticsearch.purge_index.delete_failed",
     "translation": "Het is niet gelukt een zoekindex te verwijderen"
   },
@@ -9795,7 +9587,7 @@
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Kan gebruiker niet activeren. Server overschrijdt veilige gebruikerslimiet. Neem contact op met je beheerder met: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Kan gebruiker niet activeren. Server overschrijdt veilige gebruikerslimiet. ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "model.user.is_valid.pwd_max_length.app_error",
@@ -10568,20 +10360,12 @@
     "translation": "Lege LDAP attribuutwaarde"
   },
   {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "Fout(en) bij het patchen van CPA-waarde"
-  },
-  {
     "id": "ent.saml.cpa_field_mapping.list_error",
     "translation": "Fout bij het ophalen van CPA-veld(en)"
   },
   {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "SAML assertie attribuut verklaring is ongeldig"
-  },
-  {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "Fout(en) bij het bijwerken van CPA-waarden"
   },
   {
     "id": "web.incoming_webhook.parse_form.app_error",
@@ -10788,14 +10572,6 @@
     "translation": "De kleur van de kanaalbanner moet een geldige hexadecimale kleur zijn (bijvoorbeeld #FF0000 of #F00)"
   },
   {
-    "id": "api.license.add_license.mysql.app_error",
-    "translation": "Deze licentie ondersteunt MySQL niet."
-  },
-  {
-    "id": "api.license.request-trial.mysql.app_error",
-    "translation": "Proeflicenties worden niet ondersteund voor MySQL databases. Gebruik PostgreSQL om toegang te krijgen tot de proeffuncties."
-  },
-  {
     "id": "model.config.is_valid.directory_whitespace.app_error",
     "translation": "Spatie voor of spatie achteraan gedetecteerd voor {{.Setting}}. Gevonden \"{{.Value}}\"."
   },
@@ -10834,5 +10610,149 @@
   {
     "id": "ent.access_control.job_data_conversion.app_error",
     "translation": "Het is niet gelukt om gegevens uit de vorige opdracht te halen."
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Kan bevestiging voor ontbrekende post niet verwijderen"
+  },
+  {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "De batch met bevesting-objecten is niet bewaard"
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Kan bevestiging voor ontbrekende post niet opslaan"
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "Ongeldig kanaalid."
+  },
+  {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Kan geen gebruiker aanmaken. Server overschrijdt maximum aantal gelicentieerde gebruikers. Neem contact op met je beheerder met: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "Kan gebruiker niet activeren. Server overschrijdt maximum aantal gelicentieerde gebruikers. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Ongeldig testtype: {{.TestType}}"
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Importeren van externe cluster is niet toegestaan"
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Toegangscontroleservice niet beschikbaar. Kan gebruikers niet filteren voor kanaal met kenmerkengebaseerde toegangscontrole."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "Maximum Bestandbackups van audit logs config mag niet negatief zijn."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "Maximum Bestandsqueue van audit logs config moet groter zijn dan nul."
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Kan geen gastgebruikers uitnodigen voor dit kanaal omdat het toegangsbeperkingen heeft op basis van gebruikerskenmerken."
+  },
+  {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "LDAPverbindingstest mislukt: Server: {{.Server}}:{{.Port}}, Verbindingsbeveiliging {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, Publieke certificaatssleutel {{.PublicCertFilename}}, BindGebruikersnaam: {{.BindUsername}}. Fout: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "Maximum Bestandsleeftijd van audit logs config mag niet negatief zijn."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "Maximale bestandsgrootte van audit logs config moet groter zijn dan nul."
+  },
+  {
+    "id": "api.command_share.service_inactive",
+    "translation": "Gedeelde Kanalen Service is ingeschakeld maar niet actief."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "Als het loggen van auditbestanden is ingeschakeld, moet er een bestandsnaam worden opgegeven."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "De bestandsnaam mag geen directory zijn."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Ongeldige update kanaallid: Een kanaallid heeft altijd een gebruikersschema."
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "Ongeldige update teamlid: Een teamlid heeft altijd een gebruikersschema."
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Bestand kon niet worden geüpload. Uploadkanaal wordt niet gedeeld met remote."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.thread_follower.error",
+    "translation": "Fout bij het valideren van volggegevens van het directe berichtdraadje."
+  },
+  {
+    "id": "app.import.validate_post_import_data.thread_follower.error",
+    "translation": "Fout bij het valideren van de volggegevens van het postdraadje."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.empty.error",
+    "translation": "Importeer volgergegevens leeg."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.user_missing.error",
+    "translation": "Vereiste volger eigenschap ontbreekt: user."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.reasons_not_set.app_error",
+    "translation": "Redenen voor markeren kunnen niet leeg zijn."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
+    "translation": "Teambeoordelaars of extra beoordelaars moeten worden ingesteld wanneer je \"Ingeschakeld\" voor een team instelt."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
+    "translation": "Gemeenschappelijke beoordelaars of extra beoordelaars moeten worden ingesteld als \"Dezelfde beoordelaars voor alle teams\" is ingeschakeld."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_event",
+    "translation": "Ongeldige markeringsgebeurtenis gespecificeerd."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_target",
+    "translation": "Ongeldig markering gebeurtenisdoel opgegeven."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
+    "translation": "Meldingen voor nieuwe gemarkeerde berichten kunnen niet worden uitgeschakeld voor beoordelaars."
+  },
+  {
+    "id": "app.cloud.preview_modal_bucket_url_not_configured",
+    "translation": "Voorbeeld bucket URL is niet geconfigureerd"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "Afhalen van modale voorbeeldgegevens mislukt"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_parse_error",
+    "translation": "Fout bij het parsen van preview modal-gegevens"
+  },
+  {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "De markeerfunctie voor inhoud is uitgeschakeld."
+  },
+  {
+    "id": "api.content_flagging.error.license",
+    "translation": "Je licentie ondersteunt het markeren van inhoud niet."
   }
 ]

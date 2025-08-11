@@ -335,7 +335,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		// So, we log the error, not return
 		c.Logger().Error("Error fetching user limits in createUserOrGuest", mlog.Err(limitErr))
 	} else {
-		if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
+		if userLimits.MaxUsersLimit > 0 && userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
 			// Use different warning messages based on whether server is licensed
 			if a.License() != nil {
 				c.Logger().Warn("ERROR_LICENSED_USERS_LIMIT_EXCEEDED: Created user exceeds the maximum licensed users.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
@@ -348,7 +348,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	return ruser, nil
 }
 
-func (a *App) CreateOAuthUser(c request.CTX, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *App) CreateOAuthUser(c request.CTX, service string, userData io.Reader, inviteToken string, inviteId string, tokenUser *model.User) (*model.User, *model.AppError) {
 	if !*a.Config().TeamSettings.EnableUserCreation {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -401,19 +401,40 @@ func (a *App) CreateOAuthUser(c request.CTX, service string, userData io.Reader,
 		return nil, err
 	}
 
-	if teamID != "" {
-		err = a.AddUserToTeamByTeamId(c, teamID, user)
-		if err != nil {
-			return nil, err
-		}
+	if err = a.AddUserToTeamByInviteIfNeeded(c, ruser, inviteToken, inviteId); err != nil {
+		c.Logger().Warn("Failed to add user to team", mlog.Err(err))
+	}
 
-		err = a.AddDirectChannels(c, teamID, user)
+	return ruser, nil
+}
+
+func (a *App) AddUserToTeamByInviteIfNeeded(c request.CTX, user *model.User, inviteToken string, inviteId string) *model.AppError {
+	var team *model.Team
+	var err *model.AppError
+
+	if inviteToken != "" {
+		team, _, err = a.AddUserToTeamByToken(c, user.Id, inviteToken)
 		if err != nil {
+			c.Logger().Warn("Failed to add user to team using invite token", mlog.Err(err))
+			return err
+		}
+	} else if inviteId != "" {
+		team, _, err = a.AddUserToTeamByInviteId(c, inviteId, user.Id)
+		if err != nil {
+			c.Logger().Warn("Failed to add user to team using invite ID", mlog.Err(err))
+			return err
+		}
+	} else {
+		return nil
+	}
+
+	if team != nil {
+		if err = a.AddDirectChannels(c, team.Id, user); err != nil {
 			c.Logger().Warn("Failed to add direct channels", mlog.Err(err))
 		}
 	}
 
-	return ruser, nil
+	return nil
 }
 
 func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
@@ -662,6 +683,28 @@ func (a *App) GetUsersNotInChannelPage(teamID string, channelID string, groupCon
 	users, err := a.GetUsersNotInChannel(teamID, channelID, groupConstrained, page*perPage, perPage, viewRestrictions)
 	if err != nil {
 		return nil, err
+	}
+
+	return a.sanitizeProfiles(users, asAdmin), nil
+}
+
+func (a *App) GetUsersNotInAbacChannel(ctx request.CTX, teamID string, channelID string, groupConstrained bool, cursorID string, limit int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	// Get the AccessControl service
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		return nil, model.NewAppError("GetUsersNotInAbacChannel", "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	// Use cursor-based pagination for ABAC channels
+	users, _, appErr := acs.QueryUsersForResource(ctx, channelID, "*", model.SubjectSearchOptions{
+		TeamID: teamID,
+		Limit:  limit,
+		Cursor: model.SubjectCursor{
+			TargetID: cursorID, // Empty string means start from beginning
+		},
+	})
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	return a.sanitizeProfiles(users, asAdmin), nil
@@ -2954,8 +2997,6 @@ func (a *App) UserIsFirstAdmin(rctx request.CTX, user *model.User) bool {
 	}
 
 	for _, systemAdminUser := range systemAdminUsers {
-		systemAdminUser := systemAdminUser
-
 		if systemAdminUser.CreateAt < user.CreateAt {
 			return false
 		}

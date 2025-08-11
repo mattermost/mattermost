@@ -420,7 +420,7 @@ func (a *App) UpdateTeamMemberRoles(c request.CTX, teamID string, userID string,
 	member.SchemeUser = false
 	member.SchemeAdmin = false
 
-	for _, roleName := range strings.Fields(newRoles) {
+	for roleName := range strings.FieldsSeq(newRoles) {
 		var role *model.Role
 		role, err = a.GetRoleByName(context.Background(), roleName)
 		if err != nil {
@@ -488,6 +488,10 @@ func (a *App) UpdateTeamMemberSchemeRoles(c request.CTX, teamID string, userID s
 
 	if isSchemeGuest {
 		return nil, model.NewAppError("UpdateTeamMemberSchemeRoles", "api.team.update_team_member_roles.user_and_guest.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !isSchemeUser {
+		return nil, model.NewAppError("UpdateTeamMemberSchemeRoles", "api.team.update_team_member_roles.unset_user_scheme.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	member.SchemeAdmin = isSchemeAdmin
@@ -716,6 +720,10 @@ func (a *App) AddUserToTeamByInviteId(c request.CTX, inviteId string, userID str
 	}
 	team := teamChanResult.Data
 
+	if team.IsGroupConstrained() {
+		return nil, nil, model.NewAppError("AddUserToTeamByInviteId", "app.team.invite_id.group_constrained.error", nil, "", http.StatusForbidden)
+	}
+
 	userChanResult := <-uchan
 	if userChanResult.NErr != nil {
 		var nfErr *store.ErrNotFound
@@ -767,11 +775,7 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 		return nil, model.NewAppError("JoinUserToTeam", "app.user.update_update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	opts := &store.SidebarCategorySearchOpts{
-		TeamID:      team.Id,
-		ExcludeTeam: false,
-	}
-	if _, err := a.createInitialSidebarCategories(c, user.Id, opts); err != nil {
+	if _, err := a.createInitialSidebarCategories(c, user.Id, team.Id); err != nil {
 		c.Logger().Warn(
 			"Encountered an issue creating default sidebar categories.",
 			mlog.String("user_id", user.Id),
@@ -1084,13 +1088,9 @@ func (a *App) AddTeamMemberByToken(c request.CTX, userID, tokenID string) (*mode
 }
 
 func (a *App) AddTeamMemberByInviteId(c request.CTX, inviteId, userID string) (*model.TeamMember, *model.AppError) {
-	team, teamMember, err := a.AddUserToTeamByInviteId(c, inviteId, userID)
+	_, teamMember, err := a.AddUserToTeamByInviteId(c, inviteId, userID)
 	if err != nil {
 		return nil, err
-	}
-
-	if team.IsGroupConstrained() {
-		return nil, model.NewAppError("AddTeamMemberByInviteId", "app.team.invite_id.group_constrained.error", nil, "", http.StatusForbidden)
 	}
 
 	return teamMember, nil
@@ -1503,7 +1503,13 @@ func (a *App) prepareInviteGuestsToChannels(teamID string, guestsInvite *model.G
 		if channel.TeamId != teamID {
 			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "api.team.invite_guests.channel_in_invalid_team.app_error", nil, "", http.StatusBadRequest)
 		}
+
+		// Check if the channel has access control policy enforcement
+		if channel.PolicyEnforced {
+			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "api.team.invite_guests.policy_enforced_channel.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
+
 	return user, team, channels, nil
 }
 

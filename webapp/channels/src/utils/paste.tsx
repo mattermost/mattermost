@@ -160,16 +160,31 @@ export function formatMarkdownLinkMessage({message, clipboardData, selectionStar
     return markdownLink;
 }
 
-export function pasteHandler(event: ClipboardEvent, location: string, message: string, isNonFormattedPaste: boolean, caretPosition?: number) {
-    const {clipboardData, target} = event;
+export function isKnownTargetForPaste(event: ClipboardEvent, location: string, isInEditMode?: boolean): boolean {
+    let isKnownTarget = false;
 
-    const textboxId = location === Locations.RHS_COMMENT ? 'reply_textbox' : 'post_textbox';
+    if (isInEditMode) {
+        isKnownTarget = (event.target as TextboxElement)?.id === 'edit_textbox';
+    } else if (location === Locations.CENTER) {
+        isKnownTarget = (event.target as TextboxElement)?.id === 'post_textbox';
+    } else if (location === Locations.RHS_COMMENT) {
+        isKnownTarget = (event.target as TextboxElement)?.id === 'reply_textbox';
+    } else {
+        isKnownTarget = (event.target as TextboxElement)?.id === 'post_textbox';
+    }
 
-    if (!clipboardData || !clipboardData.items || !target || (target as TextboxElement)?.id !== textboxId) {
+    return isKnownTarget;
+}
+
+export function pasteHandler(event: ClipboardEvent, location: string, message: string, isNonFormattedPaste: boolean, caretPosition?: number, isInEditMode?: boolean) {
+    const isKnownTarget = isKnownTargetForPaste(event, location, isInEditMode);
+    if (!isKnownTarget || isNonFormattedPaste) {
         return;
     }
 
-    if (isNonFormattedPaste) {
+    const {clipboardData, target} = event;
+
+    if (!clipboardData || !clipboardData.items || !target) {
         return;
     }
 
