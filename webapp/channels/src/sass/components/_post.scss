@@ -749,10 +749,8 @@
 
         .post__img {
             width: 16px;
-            padding-top: 1px;
 
-            img,
-            button {
+            .profile-icon {
                 display: none;
             }
         }
@@ -811,7 +809,7 @@
 
             .status {
                 position: relative;
-                top: auto;
+                top: -3px;
                 right: auto;
                 bottom: auto;
                 left: -2px;
