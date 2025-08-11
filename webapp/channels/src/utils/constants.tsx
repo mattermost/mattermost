@@ -1511,6 +1511,23 @@ export const ZoomSettings = {
     MAX_SCALE: 3.0,
 };
 
+export const DataSpillagePropertyNames = {
+    Status: 'Status',
+    FlaggedBy: 'Flagged by',
+    Reason: 'Reason',
+    Comment: 'Comment',
+    ReportingTime: 'Reporting Time',
+    ReviewingUser: 'Reviewing User',
+    ActionBy: 'Action By',
+    ActionComment: 'Action Comment',
+    ActionTime: 'Action Time',
+    Message: 'Message',
+    PostedIn: 'Posted in',
+    Team: 'Team',
+    PostedBy: 'Posted by',
+    PostedAt: 'Posted at',
+};
+
 export const Constants = {
     SettingsTypes,
     JobTypes,

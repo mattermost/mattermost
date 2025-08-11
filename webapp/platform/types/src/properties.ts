@@ -67,7 +67,6 @@ export type UserPropertyField = PropertyField & {
     };
 };
 
-// TODO: maybe merge with UserPropertyField?
 export type SelectPropertyField = PropertyField & {
     attrs?: {
         editable: boolean;

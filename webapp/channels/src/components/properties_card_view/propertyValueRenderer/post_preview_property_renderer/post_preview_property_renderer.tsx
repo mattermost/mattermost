@@ -26,7 +26,6 @@ export default function PostPreviewPropertyRenderer({value}: Props) {
     const {formatMessage} = useIntl();
 
     if (!post || !channel || !team) {
-        // If the post, channel, or team is not available, we cannot render the preview.
         return null;
     }
 

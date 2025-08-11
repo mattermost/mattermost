@@ -8,7 +8,7 @@ import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import PropertyValueRenderer from './propertyValueRenderer/propertyValueRenderer';
 
-import './propertyes_card_view.scss';
+import './properties_card_view.scss';
 
 type Props = {
     title: React.ReactNode;
@@ -36,8 +36,8 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
             return acc;
         }, {} as {[key: string]: PropertyValue<unknown>});
 
-        const filedOrderToUse = mode === 'short' ? shortModeFieldOrder : fieldOrder;
-        return filedOrderToUse.map((fieldId) => {
+        const fieldOrderToUse = mode === 'short' ? shortModeFieldOrder : fieldOrder;
+        return fieldOrderToUse.map((fieldId) => {
             const field = fieldsById[fieldId];
             const value = valuesByFieldId[fieldId];
 

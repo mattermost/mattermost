@@ -6,8 +6,8 @@ import {useIntl} from 'react-intl';
 
 import type {PropertyField} from '@mattermost/types/properties';
 
-import './seletable_user_property_renderer.scss';
-import {UserMultiSelector} from 'components/admin_console/content_flagging/user_multiselector/user_multiselector';
+import './selectable_user_property_renderer.scss';
+import {UserSelector} from 'components/admin_console/content_flagging/user_multiselector/user_multiselector';
 
 type Props = {
     field: PropertyField;
@@ -24,7 +24,7 @@ export function SelectableUserPropertyRenderer({field}: Props) {
 
     return (
         <div className='SelectableUserPropertyRenderer'>
-            <UserMultiSelector
+            <UserSelector
                 isMulti={false}
                 id={`selectable-user-property-renderer-${field.id}`}
                 placeholder={placeholder}

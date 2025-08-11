@@ -20,6 +20,8 @@ import {usePost} from 'components/common/hooks/usePost';
 import DataSpillageAction from 'components/post_view/data_spillage_report/data_spillage_actions/data_spillage_actions';
 import PropertiesCardView from 'components/properties_card_view/properties_card_view';
 
+import {DataSpillagePropertyNames} from 'utils/constants';
+
 import type {GlobalState} from 'types/store';
 
 import './data_spillage_report.scss';
@@ -30,7 +32,7 @@ function getDummyPropertyFields(): PropertyField[] {
         {
             id: 'status_field_id',
             group_id: 'content_flagging_group_id',
-            name: 'Status',
+            name: DataSpillagePropertyNames.Status,
             type: 'select',
             target_type: 'post',
             create_at: 0,
@@ -65,7 +67,7 @@ function getDummyPropertyFields(): PropertyField[] {
         {
             id: 'reporting_user_id_field_id',
             group_id: 'content_flagging_group_id',
-            name: 'Flagged by',
+            name: DataSpillagePropertyNames.FlaggedBy,
             type: 'user',
             target_type: 'post',
             create_at: 0,
@@ -75,7 +77,7 @@ function getDummyPropertyFields(): PropertyField[] {
         {
             id: 'reason_field_id',
             group_id: 'content_flagging_group_id',
-            name: 'Reason',
+            name: DataSpillagePropertyNames.Reason,
             type: 'select',
             target_type: 'post',
             create_at: 0,
@@ -85,7 +87,7 @@ function getDummyPropertyFields(): PropertyField[] {
         {
             id: 'comment_field_id',
             group_id: 'content_flagging_group_id',
-            name: 'Comment',
+            name: DataSpillagePropertyNames.Comment,
             type: 'text',
             target_type: 'post',
             create_at: 0,
@@ -95,7 +97,7 @@ function getDummyPropertyFields(): PropertyField[] {
         {
             id: 'reporting_time_field_id',
             group_id: 'content_flagging_group_id',
-            name: 'Reporting Time',
+            name: DataSpillagePropertyNames.ReportingTime,
             type: 'text',
             target_type: 'post',
             create_at: 0,
@@ -105,7 +107,7 @@ function getDummyPropertyFields(): PropertyField[] {
         {
             id: 'reviewer_user_id_field_id',
             group_id: 'content_flagging_group_id',
-            name: 'Reviewing User',
+            name: DataSpillagePropertyNames.ReviewingUser,
             type: 'user',
             target_type: 'post',
             create_at: 0,
@@ -118,7 +120,7 @@ function getDummyPropertyFields(): PropertyField[] {
         {
             id: 'actor_user_field_id',
             group_id: 'content_flagging_group_id',
-            name: 'Action By',
+            name: DataSpillagePropertyNames.ActionBy,
             type: 'user',
             target_type: 'post',
             create_at: 0,
@@ -128,7 +130,7 @@ function getDummyPropertyFields(): PropertyField[] {
         {
             id: 'actor_comment_field_id',
             group_id: 'content_flagging_group_id',
-            name: 'Action Comment',
+            name: DataSpillagePropertyNames.ActionComment,
             type: 'text',
             target_type: 'post',
             create_at: 0,
@@ -138,7 +140,7 @@ function getDummyPropertyFields(): PropertyField[] {
         {
             id: 'action_time_field_id',
             group_id: 'content_flagging_group_id',
-            name: 'Action Time',
+            name: DataSpillagePropertyNames.ActionTime,
             type: 'text',
             target_type: 'post',
             create_at: 0,
@@ -148,7 +150,7 @@ function getDummyPropertyFields(): PropertyField[] {
         {
             id: 'post_preview_field_id',
             group_id: 'content_flagging_group_id',
-            name: 'Message',
+            name: DataSpillagePropertyNames.Message,
             type: 'text',
             attrs: {subType: 'post'},
             target_type: 'post',
@@ -159,7 +161,7 @@ function getDummyPropertyFields(): PropertyField[] {
         {
             id: 'channel_field_id',
             group_id: 'content_flagging_group_id',
-            name: 'Posted in',
+            name: DataSpillagePropertyNames.PostedIn,
             type: 'text',
             attrs: {subType: 'channel'},
             target_type: 'post',
@@ -170,7 +172,7 @@ function getDummyPropertyFields(): PropertyField[] {
         {
             id: 'team_field_id',
             group_id: 'content_flagging_group_id',
-            name: 'Team',
+            name: DataSpillagePropertyNames.Team,
             type: 'text',
             attrs: {subType: 'team'},
             target_type: 'post',
@@ -181,7 +183,7 @@ function getDummyPropertyFields(): PropertyField[] {
         {
             id: 'post_author_field_id',
             group_id: 'content_flagging_group_id',
-            name: 'Posted by',
+            name: DataSpillagePropertyNames.PostedBy,
             type: 'user',
             target_type: 'post',
             create_at: 0,
@@ -191,7 +193,7 @@ function getDummyPropertyFields(): PropertyField[] {
         {
             id: 'post_creation_time_field_id',
             group_id: 'content_flagging_group_id',
-            name: 'Posted by',
+            name: DataSpillagePropertyNames.PostedAt,
             type: 'text',
             attrs: {subType: 'timestamp'},
             target_type: 'post',
@@ -371,7 +373,8 @@ export default function DataSpillageReport({post, isRHS}: Props) {
     const reportedPost = usePost(reportedPostId);
     const channel = useChannel(reportedPost?.channel_id || '');
 
-    const reportingUserIdValue = propertyValues.find((value) => value.field_id === 'reporting_user_id_field_id');
+    const reportingUserFieldId = propertyFields.find((field) => field.id === DataSpillagePropertyNames.FlaggedBy);
+    const reportingUserIdValue = propertyValues.find((value) => value.field_id === reportingUserFieldId?.id);
     const reportingUser = useSelector((state: GlobalState) => getUser(state, reportingUserIdValue ? reportingUserIdValue.value as string : ''));
 
     useEffect(() => {
@@ -383,13 +386,6 @@ export default function DataSpillageReport({post, isRHS}: Props) {
         }
     }, [dispatch, reportedPost, reportingUser, reportingUserIdValue]);
 
-    const title = formatMessage({
-        id: 'data_spillage_report_post.title',
-        defaultMessage: '{user} flagged a message for review',
-    }, {
-        user: (<AtMention mentionName={reportingUser?.username || ''}/>),
-    });
-
     useEffect(() => {
         if (reportedPost && channel) {
             // TODO: this function will be replaced with actual data fetched from API in a later PR
@@ -397,6 +393,13 @@ export default function DataSpillageReport({post, isRHS}: Props) {
             setPropertyValues(getDummyPropertyValues(reportedPostId, reportedPost.channel_id, channel.team_id, reportedPost.user_id, post.create_at));
         }
     }, [reportedPost, reportedPostId, channel, post.create_at]);
+
+    const title = formatMessage({
+        id: 'data_spillage_report_post.title',
+        defaultMessage: '{user} flagged a message for review',
+    }, {
+        user: (<AtMention mentionName={reportingUser?.username || ''}/>),
+    });
 
     const mode = isRHS ? 'full' : 'short';
 

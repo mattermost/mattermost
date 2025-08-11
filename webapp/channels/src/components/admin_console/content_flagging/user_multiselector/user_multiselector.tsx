@@ -45,16 +45,16 @@ type SingleSelectProps = {
     singleSelectInitialValue?: string;
 }
 
-type Props = {
+type Props = MultiSelectProps & SingleSelectProps & {
     id: string;
     isMulti: boolean;
     className?: string;
     hasError?: boolean;
     placeholder?: React.ReactNode;
     showDropdownIndicator?: boolean;
-} & MultiSelectProps & SingleSelectProps;
+};
 
-export function UserMultiSelector({id, isMulti, className, multiSelectOnChange, multiSelectInitialValue, singleSelectOnChange, singleSelectInitialValue, hasError, placeholder, showDropdownIndicator}: Props) {
+export function UserSelector({id, isMulti, className, multiSelectOnChange, multiSelectInitialValue, singleSelectOnChange, singleSelectInitialValue, hasError, placeholder, showDropdownIndicator}: Props) {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const initialDataLoaded = useRef<boolean>(false);
@@ -129,7 +129,7 @@ export function UserMultiSelector({id, isMulti, className, multiSelectOnChange, 
         };
 
         if (showDropdownIndicator) {
-            // @ts-expect-error doing this any other way runs into TypeScript nightmares of very complex ReactSelect types
+            // @ts-expect-error doing this any other way runs into TypeScript nightmares due to very complex ReactSelect types
             delete componentObj.DropdownIndicator;
         }
 
@@ -144,7 +144,7 @@ export function UserMultiSelector({id, isMulti, className, multiSelectOnChange, 
         };
 
         if (showDropdownIndicator) {
-            // @ts-expect-error doing this any other way runs into TypeScript nightmares of very complex ReactSelect types
+            // @ts-expect-error doing this any other way runs into TypeScript nightmares due to very complex ReactSelect types
             delete componentObj.DropdownIndicator;
         }
 

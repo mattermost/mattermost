@@ -34,8 +34,6 @@ export const PostTypes = {
     REMINDER: 'reminder' as PostType,
     WRANGLER: 'system_wrangler' as PostType,
     GM_CONVERTED_TO_CHANNEL: 'system_gm_to_channel' as PostType,
-
-    // DATA_SPILLAGE_REPORT: 'system_spillage_report' as PostType,
 };
 
 export default {

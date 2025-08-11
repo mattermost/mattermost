@@ -24,7 +24,7 @@ export default function TeamPropertyRenderer({value}: Props) {
     const team = useTeam(teamId);
 
     if (!team) {
-        // TODO display a placeholder here in case of deleted channel
+        // TODO display a placeholder here in case of deleted team
         return null;
     }
 
