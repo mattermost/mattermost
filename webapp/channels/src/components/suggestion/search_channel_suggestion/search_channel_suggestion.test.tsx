@@ -12,6 +12,7 @@ describe('components/suggestion/search_channel_suggestion', () => {
     const mockChannel = TestHelper.getChannelMock();
 
     const baseProps = {
+        id: 'test-suggestion',
         item: mockChannel,
         isSelection: false,
         currentUserId: 'userid1',
