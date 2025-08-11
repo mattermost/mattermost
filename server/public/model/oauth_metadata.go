@@ -16,11 +16,9 @@ type AuthorizationServerMetadata struct {
 
 const (
 	GrantTypeAuthorizationCode = "authorization_code"
-	GrantTypeImplicit          = "implicit"
 	GrantTypeRefreshToken      = "refresh_token"
 
-	ResponseTypeCode  = "code"
-	ResponseTypeToken = "token"
+	ResponseTypeCode = "code"
 
 	ClientAuthMethodNone             = "none"
 	ClientAuthMethodClientSecretPost = "client_secret_post"
@@ -43,15 +41,14 @@ func GetDefaultMetadata(siteURL string) *AuthorizationServerMetadata {
 		TokenEndpoint:         siteURL + OAuthAccessTokenEndpoint,
 		ResponseTypesSupported: []string{
 			ResponseTypeCode,
-			ResponseTypeToken,
 		},
 		GrantTypesSupported: []string{
 			GrantTypeAuthorizationCode,
-			GrantTypeImplicit,
 			GrantTypeRefreshToken,
 		},
 		TokenEndpointAuthMethodsSupported: []string{
 			ClientAuthMethodClientSecretPost,
+			ClientAuthMethodNone,
 		},
 		ScopesSupported: []string{
 			ScopeUser,

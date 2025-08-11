@@ -30,12 +30,9 @@ type OAuthApp struct {
 	CallbackUrls    StringArray `json:"callback_urls"`
 	Homepage        string      `json:"homepage"`
 	IsTrusted       bool        `json:"is_trusted"`
-	MattermostAppID string      `json:"mattermost_app_id"`
+	MattermostAppID string `json:"mattermost_app_id"`
 
-	GrantTypes              StringArray `json:"grant_types,omitempty"`
-	ResponseTypes           StringArray `json:"response_types,omitempty"`
-	TokenEndpointAuthMethod *string     `json:"token_endpoint_auth_method,omitempty"`
-	IsDynamicallyRegistered bool        `json:"is_dynamically_registered,omitempty"`
+	IsDynamicallyRegistered bool `json:"is_dynamically_registered,omitempty"`
 }
 
 func (a *OAuthApp) Auditable() map[string]any {
@@ -51,9 +48,7 @@ func (a *OAuthApp) Auditable() map[string]any {
 		"homepage":                   a.Homepage,
 		"is_trusted":                 a.IsTrusted,
 		"mattermost_app_id":          a.MattermostAppID,
-		"grant_types":                a.GrantTypes,
-		"response_types":             a.ResponseTypes,
-		"token_endpoint_auth_method": a.TokenEndpointAuthMethod,
+		"token_endpoint_auth_method": a.GetTokenEndpointAuthMethod(),
 		"is_dynamically_registered":  a.IsDynamicallyRegistered,
 	}
 }
@@ -115,20 +110,6 @@ func (a *OAuthApp) IsValid() *AppError {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.mattermost_app_id.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
-	if a.TokenEndpointAuthMethod != nil {
-		switch *a.TokenEndpointAuthMethod {
-		case ClientAuthMethodClientSecretPost:
-		default:
-			return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.token_endpoint_auth_method.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
-		}
-	}
-
-	if len(a.GrantTypes) > 0 && len(a.ResponseTypes) > 0 {
-		if err := ValidateGrantTypesAndResponseTypes(a.GrantTypes, a.ResponseTypes); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
@@ -139,19 +120,6 @@ func (a *OAuthApp) PreSave() {
 
 	if a.ClientSecret == "" {
 		a.ClientSecret = NewId()
-	}
-
-	// Set DCR defaults if not specified
-	if a.GrantTypes == nil || len(a.GrantTypes) == 0 {
-		a.GrantTypes = GetDefaultGrantTypes()
-	}
-
-	if a.ResponseTypes == nil || len(a.ResponseTypes) == 0 {
-		a.ResponseTypes = GetDefaultResponseTypes()
-	}
-
-	if a.TokenEndpointAuthMethod == nil {
-		a.TokenEndpointAuthMethod = NewPointer(ClientAuthMethodClientSecretPost)
 	}
 
 	a.CreateAt = GetMillis()
@@ -174,6 +142,14 @@ func (a *OAuthApp) IsValidRedirectURL(url string) bool {
 	return slices.Contains(a.CallbackUrls, url)
 }
 
+// GetTokenEndpointAuthMethod returns the token endpoint auth method based on whether the app has a client secret
+func (a *OAuthApp) GetTokenEndpointAuthMethod() string {
+	if a.ClientSecret == "" {
+		return ClientAuthMethodNone
+	}
+	return ClientAuthMethodClientSecretPost
+}
+
 func NewOAuthAppFromClientRegistration(req *ClientRegistrationRequest, creatorId string) *OAuthApp {
 	app := &OAuthApp{
 		CreatorId:               creatorId,
@@ -187,39 +163,20 @@ func NewOAuthAppFromClientRegistration(req *ClientRegistrationRequest, creatorId
 		app.Name = "Dynamically Registered Client"
 	}
 
-	if req.TokenEndpointAuthMethod != nil {
-		app.TokenEndpointAuthMethod = req.TokenEndpointAuthMethod
-	}
-
-	if len(req.GrantTypes) > 0 {
-		app.GrantTypes = req.GrantTypes
-	} else {
-		app.GrantTypes = StringArray{}
-	}
-
-	if len(req.ResponseTypes) > 0 {
-		app.ResponseTypes = req.ResponseTypes
-	} else {
-		app.ResponseTypes = StringArray{}
-	}
-
 	return app
 }
 
 func (a *OAuthApp) ToClientRegistrationResponse(siteURL string) *ClientRegistrationResponse {
-	authMethod := ClientAuthMethodClientSecretPost
-	if a.TokenEndpointAuthMethod != nil {
-		authMethod = *a.TokenEndpointAuthMethod
-	}
+	authMethod := a.GetTokenEndpointAuthMethod()
 	resp := &ClientRegistrationResponse{
 		ClientID:                a.Id,
 		RedirectURIs:            a.CallbackUrls,
 		TokenEndpointAuthMethod: authMethod,
-		GrantTypes:              a.GrantTypes,
-		ResponseTypes:           a.ResponseTypes,
+		GrantTypes:              GetDefaultGrantTypes(),
+		ResponseTypes:           GetDefaultResponseTypes(),
 	}
 
-	if a.TokenEndpointAuthMethod != nil && *a.TokenEndpointAuthMethod != ClientAuthMethodNone {
+	if authMethod != ClientAuthMethodNone {
 		resp.ClientSecret = &a.ClientSecret
 	}
 

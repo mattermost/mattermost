@@ -9573,28 +9573,12 @@
     "translation": "Client name must be 64 characters or less."
   },
   {
-    "id": "model.dcr.is_valid.grant_type.app_error",
-    "translation": "Unsupported grant type. Only 'authorization_code' and 'refresh_token' are supported."
-  },
-  {
     "id": "model.dcr.is_valid.redirect_uri_format.app_error",
     "translation": "Invalid redirect URI format."
   },
   {
     "id": "model.dcr.is_valid.redirect_uris.app_error",
     "translation": "At least one redirect URI is required."
-  },
-  {
-    "id": "model.dcr.is_valid.response_type.app_error",
-    "translation": "Unsupported response type. Only 'code' is supported."
-  },
-  {
-    "id": "model.dcr.is_valid.token_endpoint_auth_method.app_error",
-    "translation": "Unsupported token endpoint authentication method. Only 'client_secret_post' is supported."
-  },
-  {
-    "id": "model.dcr.validate.incompatible_grant_response.app_error",
-    "translation": "Incompatible grant type and response type combination."
   },
   {
     "id": "model.draft.is_valid.channel_id.app_error",
@@ -9895,10 +9879,6 @@
   {
     "id": "model.oauth.is_valid.name.app_error",
     "translation": "Invalid name."
-  },
-  {
-    "id": "model.oauth.is_valid.token_endpoint_auth_method.app_error",
-    "translation": "Unsupported token endpoint authentication method. Only 'client_secret_post' is supported."
   },
   {
     "id": "model.oauth.is_valid.update_at.app_error",
