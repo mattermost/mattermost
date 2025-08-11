@@ -4,6 +4,7 @@
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
+import type {ChannelType} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {renderWithContext, screen, waitFor, act} from 'tests/react_testing_utils';
@@ -17,7 +18,7 @@ describe('components/channel_members_rhs/Member', () => {
             id: 'channel_id',
             display_name: 'Test Channel',
             name: 'test-channel',
-            type: 'O',
+            type: 'O' as ChannelType,
             create_at: 1234567890,
             update_at: 1234567890,
             delete_at: 0,
@@ -25,10 +26,10 @@ describe('components/channel_members_rhs/Member', () => {
             header: '',
             purpose: '',
             last_post_at: 1234567890,
+            last_root_post_at: 1234567890,
             team_id: 'team_id',
-            total_msg_count: 0,
-            extra_update_at: 0,
             scheme_id: '',
+            group_constrained: false,
         },
         index: 0,
         totalUsers: 5,
@@ -48,20 +49,23 @@ describe('components/channel_members_rhs/Member', () => {
         auth_data: '',
         auth_service: '',
         email: 'test@example.com',
-        email_verified: true,
         nickname: 'Test User',
         first_name: 'Test',
         last_name: 'User',
         position: '',
         roles: 'system_user',
-        allow_marketing: false,
         props: {},
         notify_props: {
             email: 'true',
             push: 'mention',
             desktop: 'mention',
             desktop_sound: 'true',
+            calls_desktop_sound: 'true',
+            mark_unread: 'all',
+            push_status: 'online',
+            comments: 'never',
             mention_keys: '',
+            highlight_keys: '',
             channel: 'true',
             first_name: 'false',
             auto_responder_active: 'false',
@@ -69,6 +73,7 @@ describe('components/channel_members_rhs/Member', () => {
         },
         last_password_update: 1234567890,
         last_picture_update: 1234567890,
+        last_activity_at: 1234567890,
         failed_attempts: 0,
         locale: 'en',
         timezone: {
@@ -79,7 +84,6 @@ describe('components/channel_members_rhs/Member', () => {
         mfa_active: false,
         is_bot: false,
         bot_description: '',
-        bot_last_icon_update: 0,
         terms_of_service_id: '',
         terms_of_service_create_at: 0,
     };
@@ -92,6 +96,7 @@ describe('components/channel_members_rhs/Member', () => {
             roles: 'channel_user',
             last_viewed_at: 1234567890,
             msg_count: 0,
+            msg_count_root: 0,
             mention_count: 0,
             mention_count_root: 0,
             urgent_mention_count: 0,
@@ -105,8 +110,6 @@ describe('components/channel_members_rhs/Member', () => {
             last_update_at: 1234567890,
             scheme_user: true,
             scheme_admin: false,
-            explicit_roles: '',
-            scheme_guest: false,
         },
         status: 'online',
         displayName: 'Test User',
