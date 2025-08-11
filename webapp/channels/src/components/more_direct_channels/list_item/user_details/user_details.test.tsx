@@ -93,7 +93,7 @@ describe('components/more_direct_channels/list_item/user_details/UserDetails', (
             initialState,
         );
 
-        expect(screen.getByText('Test User')).toBeInTheDocument();
+        expect(screen.getByText('@testuser')).toBeInTheDocument();
         expect(screen.getByText('test@example.com')).toBeInTheDocument();
         expect(screen.queryByTestId('SharedUserIcon')).not.toBeInTheDocument();
     });
@@ -112,7 +112,7 @@ describe('components/more_direct_channels/list_item/user_details/UserDetails', (
             initialState,
         );
 
-        expect(screen.getByText('Test User')).toBeInTheDocument();
+        expect(screen.getByText('@testuser')).toBeInTheDocument();
         expect(screen.getByText('test@example.com')).toBeInTheDocument();
         expect(screen.getByTestId('SharedUserIcon')).toBeInTheDocument();
     });
@@ -189,7 +189,7 @@ describe('components/more_direct_channels/list_item/user_details/UserDetails', (
             initialState,
         );
 
-        expect(screen.getByText('Test User (you)')).toBeInTheDocument();
+        expect(screen.getByText('(you)')).toBeInTheDocument();
     });
 
     test('should render deactivated user with "- Deactivated" suffix', () => {
@@ -206,7 +206,7 @@ describe('components/more_direct_channels/list_item/user_details/UserDetails', (
             initialState,
         );
 
-        expect(screen.getByText('Test User - Deactivated')).toBeInTheDocument();
+        expect(screen.getByText('- Deactivated')).toBeInTheDocument();
     });
 
     test('should render bot user with bot tag and no email', () => {
@@ -223,7 +223,7 @@ describe('components/more_direct_channels/list_item/user_details/UserDetails', (
             initialState,
         );
 
-        expect(screen.getByText('Test User')).toBeInTheDocument();
+        expect(screen.getByText('@testuser')).toBeInTheDocument();
         expect(screen.getByText('BOT')).toBeInTheDocument();
         expect(screen.queryByText('test@example.com')).not.toBeInTheDocument();
     });
@@ -242,8 +242,8 @@ describe('components/more_direct_channels/list_item/user_details/UserDetails', (
             initialState,
         );
 
-        expect(screen.getByText('Test User')).toBeInTheDocument();
-        expect(screen.getByText('Guest')).toBeInTheDocument();
+        expect(screen.getByText('@testuser')).toBeInTheDocument();
+        expect(screen.getByText('GUEST')).toBeInTheDocument();
     });
 
     afterEach(() => {
