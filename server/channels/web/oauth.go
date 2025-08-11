@@ -604,7 +604,6 @@ func getAuthorizationServerMetadata(c *Context, w http.ResponseWriter, r *http.R
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Cache-Control", "public, max-age=3600") // Cache for 1 hour
 
 	if err := json.NewEncoder(w).Encode(metadata); err != nil {
 		c.Logger.Warn("Error writing authorization server metadata response", mlog.Err(err))

@@ -1765,7 +1765,7 @@
   "admin.notices.enableAdminNoticesTitle": "Enable Admin Notices: ",
   "admin.notices.enableEndUserNoticesDescription": "When enabled, all users will receive notices about available client upgrades and relevant end user features to improve user experience. <link>Learn more about notices</link> in our documentation.",
   "admin.notices.enableEndUserNoticesTitle": "Enable End User Notices: ",
-  "admin.oauth.dcrDescription": "When true, external applications can dynamically register as OAuth 2.0 clients with Mattermost. This follows RFC 7591 for Dynamic Client Registration. Only enable this if you need third-party applications to register OAuth clients programmatically.",
+  "admin.oauth.dcrDescription": "When true, external applications can dynamically register as OAuth 2.0 clients with Mattermost. Only enable this if you need third-party applications to register OAuth clients programmatically.",
   "admin.oauth.dcrTitle": "Enable OAuth 2.0 Dynamic Client Registration: ",
   "admin.oauth.gitlab": "GitLab",
   "admin.oauth.google": "Google Apps",

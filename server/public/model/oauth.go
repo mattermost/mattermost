@@ -32,7 +32,6 @@ type OAuthApp struct {
 	IsTrusted       bool        `json:"is_trusted"`
 	MattermostAppID string      `json:"mattermost_app_id"`
 
-	// DCR (Dynamic Client Registration) fields
 	GrantTypes              StringArray `json:"grant_types,omitempty"`
 	ResponseTypes           StringArray `json:"response_types,omitempty"`
 	TokenEndpointAuthMethod *string     `json:"token_endpoint_auth_method,omitempty"`
@@ -59,8 +58,6 @@ func (a *OAuthApp) Auditable() map[string]any {
 	}
 }
 
-// IsValid validates the app and returns an error if it isn't configured
-// correctly.
 func (a *OAuthApp) IsValid() *AppError {
 	if !IsValidId(a.Id) {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.app_id.app_error", nil, "", http.StatusBadRequest)
@@ -96,7 +93,6 @@ func (a *OAuthApp) IsValid() *AppError {
 		}
 	}
 
-	// Homepage is required for traditional OAuth apps, but optional for DCR apps
 	if a.Homepage == "" && !a.IsDynamicallyRegistered {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.homepage.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
@@ -119,17 +115,14 @@ func (a *OAuthApp) IsValid() *AppError {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.mattermost_app_id.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
-	// DCR field validation - we only support client_secret_post
 	if a.TokenEndpointAuthMethod != nil {
 		switch *a.TokenEndpointAuthMethod {
 		case ClientAuthMethodClientSecretPost:
-			// Valid - this is the only method we support
 		default:
 			return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.token_endpoint_auth_method.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 		}
 	}
 
-	// Validate grant types and response types compatibility
 	if len(a.GrantTypes) > 0 && len(a.ResponseTypes) > 0 {
 		if err := ValidateGrantTypesAndResponseTypes(a.GrantTypes, a.ResponseTypes); err != nil {
 			return err
@@ -139,8 +132,6 @@ func (a *OAuthApp) IsValid() *AppError {
 	return nil
 }
 
-// PreSave will set the Id and ClientSecret if missing.  It will also fill
-// in the CreateAt, UpdateAt times. It should be run before saving the app to the db.
 func (a *OAuthApp) PreSave() {
 	if a.Id == "" {
 		a.Id = NewId()
@@ -151,11 +142,11 @@ func (a *OAuthApp) PreSave() {
 	}
 
 	// Set DCR defaults if not specified
-	if len(a.GrantTypes) == 0 {
+	if a.GrantTypes == nil || len(a.GrantTypes) == 0 {
 		a.GrantTypes = GetDefaultGrantTypes()
 	}
 
-	if len(a.ResponseTypes) == 0 {
+	if a.ResponseTypes == nil || len(a.ResponseTypes) == 0 {
 		a.ResponseTypes = GetDefaultResponseTypes()
 	}
 
@@ -163,23 +154,18 @@ func (a *OAuthApp) PreSave() {
 		a.TokenEndpointAuthMethod = NewPointer(ClientAuthMethodClientSecretPost)
 	}
 
-	// Set registration access token for dynamically registered clients
-
 	a.CreateAt = GetMillis()
 	a.UpdateAt = a.CreateAt
 }
 
-// PreUpdate should be run before updating the app in the db.
 func (a *OAuthApp) PreUpdate() {
 	a.UpdateAt = GetMillis()
 }
 
-// Generate a valid strong etag so the browser can cache the results
 func (a *OAuthApp) Etag() string {
 	return Etag(a.Id, a.UpdateAt)
 }
 
-// Remove any private data from the app object
 func (a *OAuthApp) Sanitize() {
 	a.ClientSecret = ""
 }
@@ -188,7 +174,6 @@ func (a *OAuthApp) IsValidRedirectURL(url string) bool {
 	return slices.Contains(a.CallbackUrls, url)
 }
 
-// NewOAuthAppFromClientRegistration creates a new OAuthApp from a ClientRegistrationRequest
 func NewOAuthAppFromClientRegistration(req *ClientRegistrationRequest, creatorId string) *OAuthApp {
 	app := &OAuthApp{
 		CreatorId:               creatorId,
@@ -196,32 +181,33 @@ func NewOAuthAppFromClientRegistration(req *ClientRegistrationRequest, creatorId
 		IsDynamicallyRegistered: true,
 	}
 
-	// Set basic metadata
 	if req.ClientName != nil {
 		app.Name = *req.ClientName
 	} else {
 		app.Name = "Dynamically Registered Client"
 	}
 
-	// Set DCR-specific fields
 	if req.TokenEndpointAuthMethod != nil {
 		app.TokenEndpointAuthMethod = req.TokenEndpointAuthMethod
 	}
 
 	if len(req.GrantTypes) > 0 {
 		app.GrantTypes = req.GrantTypes
+	} else {
+		app.GrantTypes = StringArray{}
 	}
 
 	if len(req.ResponseTypes) > 0 {
 		app.ResponseTypes = req.ResponseTypes
+	} else {
+		app.ResponseTypes = StringArray{}
 	}
 
 	return app
 }
 
-// ToClientRegistrationResponse converts an OAuthApp to a ClientRegistrationResponse
 func (a *OAuthApp) ToClientRegistrationResponse(siteURL string) *ClientRegistrationResponse {
-	authMethod := ClientAuthMethodClientSecretPost // default
+	authMethod := ClientAuthMethodClientSecretPost
 	if a.TokenEndpointAuthMethod != nil {
 		authMethod = *a.TokenEndpointAuthMethod
 	}
@@ -233,12 +219,10 @@ func (a *OAuthApp) ToClientRegistrationResponse(siteURL string) *ClientRegistrat
 		ResponseTypes:           a.ResponseTypes,
 	}
 
-	// Include client secret for confidential clients
 	if a.TokenEndpointAuthMethod != nil && *a.TokenEndpointAuthMethod != ClientAuthMethodNone {
 		resp.ClientSecret = &a.ClientSecret
 	}
 
-	// Set optional metadata
 	if a.Name != "" {
 		resp.ClientName = &a.Name
 	}

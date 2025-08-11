@@ -117,6 +117,7 @@ func (as SqlOAuthStore) GetApp(id string) (*model.OAuthApp, error) {
 	if app.Id == "" {
 		return nil, store.NewErrNotFound("OAuthApp", id)
 	}
+	
 	return &app, nil
 }
 
@@ -158,7 +159,6 @@ func (as SqlOAuthStore) GetAuthorizedApps(userId string, offset, limit int) ([]*
 
 	return apps, nil
 }
-
 
 func (as SqlOAuthStore) DeleteApp(id string) (err error) {
 	// wrap in a transaction so that if one fails, everything fails

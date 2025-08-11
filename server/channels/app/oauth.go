@@ -89,11 +89,7 @@ func (a *App) UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthAp
 	updatedApp.CreatorId = oldApp.CreatorId
 	updatedApp.CreateAt = oldApp.CreateAt
 	updatedApp.ClientSecret = oldApp.ClientSecret
-	
-	// For DCR apps, preserve the DCR registration status
-	if oldApp.IsDynamicallyRegistered {
-		updatedApp.IsDynamicallyRegistered = oldApp.IsDynamicallyRegistered
-	}
+	updatedApp.IsDynamicallyRegistered = oldApp.IsDynamicallyRegistered
 
 	oauthApp, err := a.Srv().Store().OAuth().UpdateApp(updatedApp)
 	if err != nil {
@@ -1055,27 +1051,18 @@ func (a *App) GetAuthorizationServerMetadata(c request.CTX) (*model.Authorizatio
 		return nil, model.NewAppError("GetAuthorizationServerMetadata", "api.oauth.authorization_server_metadata.site_url_required.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	// Get the default metadata and customize it based on our configuration
 	metadata := model.GetDefaultMetadata(siteURL)
 
-	// Add registration endpoint if dynamic client registration is enabled
 	if a.Config().ServiceSettings.EnableDynamicClientRegistration != nil && *a.Config().ServiceSettings.EnableDynamicClientRegistration {
 		metadata.RegistrationEndpoint = siteURL + model.OAuthAppsRegisterEndpoint
 	}
 
-	// Note: Revocation endpoint not currently implemented
-
 	return metadata, nil
 }
 
-// DCR (Dynamic Client Registration) business logic methods
-
 func (a *App) RegisterOAuthClient(c request.CTX, req *model.ClientRegistrationRequest, userID string) (*model.OAuthApp, *model.AppError) {
-
-	// Create OAuth app from request
 	app := model.NewOAuthAppFromClientRegistration(req, userID)
 
-	// Save the app
 	rapp, err := a.CreateOAuthApp(app)
 	if err != nil {
 		return nil, err

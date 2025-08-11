@@ -111,6 +111,8 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		oauthApp.IsTrusted = oldOAuthApp.IsTrusted
 	}
 
+	oauthApp.IsDynamicallyRegistered = oldOAuthApp.IsDynamicallyRegistered
+
 	updatedOAuthApp, err := c.App.UpdateOAuthApp(oldOAuthApp, &oauthApp)
 	if err != nil {
 		c.Err = err

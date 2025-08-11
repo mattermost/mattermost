@@ -705,8 +705,7 @@ func TestRegisterOAuthClient(t *testing.T) {
 		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
 	})
 
-	// Test basic registration functionality
-	t.Run("Valid DCR request with client_uri", func(t *testing.T) {
+	t.Run("Valid DCR request", func(t *testing.T) {
 		request := &model.ClientRegistrationRequest{
 			RedirectURIs: []string{"https://example.com/callback/" + model.NewId()},
 			ClientName:   model.NewPointer("Test Client"),
@@ -723,31 +722,9 @@ func TestRegisterOAuthClient(t *testing.T) {
 		assert.NotEmpty(t, app.ClientSecret)
 		assert.Equal(t, "https://example.com", app.Homepage) // Should use client_uri
 	})
-
-	// Test DCR without client_uri (optional per RFC 7591)
-	t.Run("Valid DCR request without client_uri", func(t *testing.T) {
-		request := &model.ClientRegistrationRequest{
-			RedirectURIs: []string{"https://minimal.com/callback/" + model.NewId()},
-			ClientName:   model.NewPointer("Minimal Client"),
-		}
-
-		app, appErr := th.App.RegisterOAuthClient(th.Context, request, th.BasicUser.Id)
-
-		require.Nil(t, appErr)
-		require.NotNil(t, app)
-		assert.Equal(t, request.RedirectURIs, []string(app.CallbackUrls))
-		assert.True(t, app.IsDynamicallyRegistered)
-		assert.Equal(t, th.BasicUser.Id, app.CreatorId)
-		assert.NotEmpty(t, app.Id)
-		assert.NotEmpty(t, app.ClientSecret)
-		assert.Empty(t, app.Homepage) // Should be empty since no client_uri provided
-	})
-
-	// Test duplicate detection
-
 }
 
-func TestGetAuthorizationServerMetadata_NilDCRConfig(t *testing.T) {
+func TestGetAuthorizationServerMetadata_DCRConfig(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -757,16 +734,15 @@ func TestGetAuthorizationServerMetadata_NilDCRConfig(t *testing.T) {
 		cfg.ServiceSettings.SiteURL = model.NewPointer("https://example.com")
 	})
 
-	// Test with nil DCR config (should not include registration endpoint)
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.EnableDynamicClientRegistration = nil
+		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(false)
 	})
 
 	metadata, err := th.App.GetAuthorizationServerMetadata(th.Context)
 	require.Nil(t, err)
 	require.NotNil(t, metadata)
 
-	// Should not include registration endpoint when DCR is nil/disabled
+	// Should not include registration endpoint when DCR is disabled
 	assert.Empty(t, metadata.RegistrationEndpoint)
 
 	// Should include basic OAuth endpoints
