@@ -264,7 +264,7 @@ describe('components/ProfilePopover', () => {
     (Client4.getCallsChannelState as jest.Mock).mockImplementation(async () => ({enabled: true}));
 
     test('should correctly handle remote users based on connection status', async () => {
-        // Test 1: Verify shared user indicator is shown for any remote user
+        // Test 1: Verify shared user is shown for any remote user
         {
             const [props, initialState] = getBasePropsAndState();
             initialState.entities!.users!.profiles!.user1!.remote_id = 'fakeuser';
@@ -274,7 +274,7 @@ describe('components/ProfilePopover', () => {
             };
 
             const {unmount} = renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
-            expect(await screen.findByLabelText('shared user indicator')).toBeInTheDocument();
+            expect(await screen.findByLabelText('shared user')).toBeInTheDocument();
             unmount();
         }
 

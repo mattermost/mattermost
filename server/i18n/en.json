@@ -9362,7 +9362,7 @@
   },
   {
     "id": "model.config.is_valid.notification_settings.invalid_target",
-    "translation": "Invalid flaggig event target specified."
+    "translation": "Invalid flagging event target specified."
   },
   {
     "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",

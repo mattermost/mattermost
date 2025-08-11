@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
@@ -18,6 +19,8 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {sortChannelsByTypeAndDisplayName} from 'mattermost-redux/utils/channel_utils';
 
 import store from 'stores/redux_store';
+
+import usePrefixedIds from 'components/common/hooks/usePrefixedIds';
 
 import {Constants} from 'utils/constants';
 
@@ -36,7 +39,9 @@ interface WrappedChannel {
 type ChannelSearchFunction = (teamId: string, channelPrefix: string) => Promise<ActionResult>
 
 const SearchChannelWithPermissionsSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<WrappedChannel>>((props, ref) => {
-    const {item} = props;
+    const {formatMessage} = useIntl();
+
+    const {id, item} = props;
     const channel = item.channel;
     const channelIsArchived = channel.delete_at && channel.delete_at !== 0;
 
@@ -44,26 +49,61 @@ const SearchChannelWithPermissionsSuggestion = React.forwardRef<HTMLLIElement, S
     let icon = null;
     if (channelIsArchived) {
         icon = (
-            <i className='icon icon--no-spacing icon-archive-outline'/>
+            <i
+                className='icon icon--no-spacing icon-archive-outline'
+                aria-label={formatMessage({
+                    id: 'suggestion.archived_channel',
+                    defaultMessage: 'Archived channel',
+                })}
+            />
         );
     } else if (channel.type === Constants.OPEN_CHANNEL) {
         icon = (
-            <i className='icon icon--no-spacing icon-globe'/>
+            <i
+                className='icon icon--no-spacing icon-globe'
+                aria-label={formatMessage({
+                    id: 'suggestion.public_channel',
+                    defaultMessage: 'Public channel',
+                })}
+            />
         );
     } else if (channel.type === Constants.PRIVATE_CHANNEL) {
         icon = (
-            <i className='icon icon--no-spacing icon-lock-outline'/>
+            <i
+                className='icon icon--no-spacing icon-lock-outline'
+                aria-label={formatMessage({
+                    id: 'suggestion.private_channel',
+                    defaultMessage: 'Private channel',
+                })}
+            />
         );
     }
+
+    const ids = usePrefixedIds(id, {
+        name: null,
+        channelType: null,
+    });
 
     return (
         <SuggestionContainer
             ref={ref}
             {...props}
+            aria-labelledby={ids.name}
+            aria-describedby={ids.channelType}
         >
-            <span className='suggestion-list__icon suggestion-list__icon--large'>{icon}</span>
+            <span
+                id={ids.channelType}
+                className='suggestion-list__icon suggestion-list__icon--large'
+            >
+                {icon}
+            </span>
             <div className='suggestion-list__ellipsis'>
-                <span className='suggestion-list__main'>{displayName}</span>
+                <span
+                    id={ids.name}
+                    className='suggestion-list__main'
+                >
+                    {displayName}
+                </span>
             </div>
         </SuggestionContainer>
     );

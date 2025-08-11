@@ -591,15 +591,13 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         const dropDownContainer = (
             <div className='more-modal__dropdown'>
                 <span id='channelCountLabel'>{channelCountLabel}</span>
-                {this.props.isSearch &&
-                    <span
-                        className='sr-only'
-                        role='status'
-                        aria-live='polite'
-                    >
-                        {channelCountLabel}
-                    </span>
-                }
+                <span
+                    className='sr-only'
+                    role='status'
+                    aria-live='polite'
+                >
+                    {channelCountLabel}
+                </span>
                 <div id='modalPreferenceContainer'>
                     {channelDropdown}
                     {hideJoinedPreferenceCheckbox}
