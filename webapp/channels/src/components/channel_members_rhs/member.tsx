@@ -4,11 +4,13 @@
 import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
+import {getRemoteDisplayName} from 'mattermost-redux/selectors/entities/shared_channels';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import ChannelMembersDropdown from 'components/channel_members_dropdown';
@@ -18,6 +20,8 @@ import ProfilePopover from 'components/profile_popover';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import GuestTag from 'components/widgets/tag/guest_tag';
 import WithTooltip from 'components/with_tooltip';
+
+import type {GlobalState} from 'types/store';
 
 import type {ChannelMember as ChannelMemberType} from './member_list';
 
@@ -34,6 +38,10 @@ interface Props {
 
 const Member = ({channel, member, index, totalUsers, editing, actions}: Props) => {
     const {formatMessage} = useIntl();
+
+    const remoteDisplayName = useSelector((state: GlobalState) => (
+        member.user.remote_id ? getRemoteDisplayName(state, member.user.remote_id) : null
+    ));
 
     const userProfileSrc = Client4.getProfilePictureUrl(member.user.id, member.user.last_picture_update);
 
@@ -68,6 +76,7 @@ const Member = ({channel, member, index, totalUsers, editing, actions}: Props) =
                             <span className='channel-members-rhs__shared-icon'>
                                 <SharedChannelIndicator
                                     withTooltip={true}
+                                    remoteNames={remoteDisplayName ? [remoteDisplayName] : undefined}
                                 />
                             </span>
                         )}
