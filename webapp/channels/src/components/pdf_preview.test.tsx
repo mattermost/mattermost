@@ -27,11 +27,19 @@ describe('component/PDFPreview', () => {
         handleBgClose: jest.fn(),
     };
 
+    /**
+     * All tests fail because 'onDocumentLoadError' is called every time.
+     * Tests on 'master' branch pass because they're testing state and snapshots, not how
+     * the user would use the app. Delete this comment after resolution during review.
+     */
+
     test('should show loading spinner when loading', () => {
         const {getByTestId} = renderWithContext(<PDFPreview {...requiredProps}/>);
 
-        expect(getByTestId('loadingSpinner')).toBeInTheDocument();
-        expect(getByTestId('loadingSpinner')).toBeVisible();
+        const loadingSpinner = getByTestId('loadingSpinner');
+
+        expect(loadingSpinner).toBeInTheDocument();
+        expect(loadingSpinner).toBeVisible();
     });
 
     test('should show file details on fail', () => {
@@ -39,8 +47,10 @@ describe('component/PDFPreview', () => {
 
         const {getByTestId} = renderWithContext(<PDFPreview {...updatedProps}/>);
 
-        expect(getByTestId('file-details__container')).toBeInTheDocument();
-        expect(getByTestId('file-details__container')).toBeVisible();
+        const fileDetailsContainer = getByTestId('file-details__container');
+
+        expect(fileDetailsContainer).toBeInTheDocument();
+        expect(fileDetailsContainer).toBeVisible();
 
         expect(getByTestId('loadingSpinner')).not.toBeInTheDocument();
     });
