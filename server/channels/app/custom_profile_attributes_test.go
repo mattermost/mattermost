@@ -214,6 +214,34 @@ func TestCreateCPAField(t *testing.T) {
 		require.Equal(t, fetchedField.CreateAt, fetchedField.UpdateAt)
 	})
 
+	t.Run("should create CPA field with DeleteAt set to 0 even if input has non-zero DeleteAt", func(t *testing.T) {
+		// Create a CPAField with DeleteAt != 0
+		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
+		})
+		require.NoError(t, err)
+
+		// Set DeleteAt to non-zero value before creation
+		field.DeleteAt = time.Now().UnixMilli()
+		require.NotZero(t, field.DeleteAt, "Pre-condition: field should have non-zero DeleteAt")
+
+		createdField, appErr := th.App.CreateCPAField(field)
+		require.Nil(t, appErr)
+		require.NotZero(t, createdField.ID)
+		require.Equal(t, cpaGroupID, createdField.GroupID)
+
+		// Verify that DeleteAt has been reset to 0
+		require.Zero(t, createdField.DeleteAt, "DeleteAt should be 0 after creation")
+
+		// Double-check by fetching the field from the database
+		fetchedField, gErr := th.App.Srv().propertyService.GetPropertyField("", createdField.ID)
+		require.NoError(t, gErr)
+		require.Zero(t, fetchedField.DeleteAt, "DeleteAt should be 0 in database")
+	})
+
 	// reset the server at this point to avoid polluting the state
 	th.TearDown()
 

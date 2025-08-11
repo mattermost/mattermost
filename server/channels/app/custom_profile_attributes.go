@@ -95,6 +95,7 @@ func (a *App) CreateCPAField(field *model.CPAField) (*model.PropertyField, *mode
 	}
 
 	field.GroupID = groupID
+	field.DeleteAt = 0
 
 	if appErr := field.SanitizeAndValidate(); appErr != nil {
 		return nil, appErr
