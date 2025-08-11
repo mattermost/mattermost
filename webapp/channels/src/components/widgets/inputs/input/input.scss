@@ -72,6 +72,10 @@
             cursor: not-allowed;
             opacity: 0.6;
         }
+
+        .form-control:focus {
+            box-shadow: none !important; /* the input wrapper manages its own focus box shadow, this prevent double box shadow in form controls */
+        }
     }
 
     .Input_limit-exceeded {

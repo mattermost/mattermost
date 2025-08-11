@@ -995,6 +995,200 @@ describe('components/SwitchChannelProvider', () => {
             terms: expectedOrder,
         }));
     });
+
+    describe('Smart Email Search Functionality', () => {
+        let switchProvider: SwitchChannelProvider;
+        let store: any;
+        let modifiedState: any;
+
+        beforeEach(() => {
+            const userWithEmail = TestHelper.getUserMock({
+                id: 'user_with_email',
+                username: 'testuser',
+                email: 'prefix-search@domain1.org',
+                first_name: 'Test',
+                last_name: 'User',
+            });
+
+            const userWithCommonDomain = TestHelper.getUserMock({
+                id: 'user_with_common_domain',
+                username: 'anotheruser',
+                email: 'different@domain2.org',
+                first_name: 'Another',
+                last_name: 'User',
+            });
+
+            modifiedState = {
+                ...defaultState,
+                entities: {
+                    ...defaultState.entities,
+                    users: {
+                        ...defaultState.entities.users,
+                        profiles: {
+                            ...defaultState.entities.users.profiles,
+                            [userWithEmail.id]: userWithEmail,
+                            [userWithCommonDomain.id]: userWithCommonDomain,
+                        },
+                        profilesInChannel: {
+                            ...defaultState.entities.users.profilesInChannel,
+                            dm_channel_1: new Set([userWithEmail.id]),
+                            dm_channel_2: new Set([userWithCommonDomain.id]),
+                        },
+                    },
+                    channels: {
+                        ...defaultState.entities.channels,
+                        channels: {
+                            ...defaultState.entities.channels.channels,
+                            dm_channel_1: TestHelper.getChannelMock({
+                                id: 'dm_channel_1',
+                                type: 'D',
+                                name: `current_user_id__${userWithEmail.id}`,
+                                display_name: userWithEmail.username,
+                            }),
+                            dm_channel_2: TestHelper.getChannelMock({
+                                id: 'dm_channel_2',
+                                type: 'D',
+                                name: `current_user_id__${userWithCommonDomain.id}`,
+                                display_name: userWithCommonDomain.username,
+                            }),
+                        },
+                        myMembers: {
+                            ...defaultState.entities.channels.myMembers,
+                            dm_channel_1: {
+                                channel_id: 'dm_channel_1',
+                                user_id: 'current_user_id',
+                            },
+                            dm_channel_2: {
+                                channel_id: 'dm_channel_2',
+                                user_id: 'current_user_id',
+                            },
+                        },
+                        profilesInChannel: {
+                            dm_channel_1: new Set([userWithEmail.id]),
+                            dm_channel_2: new Set([userWithCommonDomain.id]),
+                        },
+                    },
+                },
+            };
+
+            switchProvider = new SwitchChannelProvider();
+            store = mockStore(modifiedState);
+            switchProvider.store = store;
+        });
+
+        it('should match by email prefix when searching without @', () => {
+            const channels = [
+                modifiedState.entities.channels.channels.dm_channel_1,
+                modifiedState.entities.channels.channels.dm_channel_2,
+            ];
+            const users = [
+                modifiedState.entities.users.profiles.user_with_email,
+                modifiedState.entities.users.profiles.user_with_common_domain,
+            ];
+
+            // These should work - searching by email prefix (before @)
+            switchProvider.startNewRequest('');
+            let results = switchProvider.formatGroup('prefix-search', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+
+            results = switchProvider.formatGroup('different', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_2')).toBe(true);
+        });
+
+        it('should match by full email when searching WITH @ symbol', () => {
+            const channels = [
+                modifiedState.entities.channels.channels.dm_channel_1,
+                modifiedState.entities.channels.channels.dm_channel_2,
+            ];
+            const users = [
+                modifiedState.entities.users.profiles.user_with_email,
+                modifiedState.entities.users.profiles.user_with_common_domain,
+            ];
+
+            // These should work - searching by full email when @ is present
+            switchProvider.startNewRequest('');
+            let results = switchProvider.formatGroup('prefix-search@domain1.org', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+
+            results = switchProvider.formatGroup('different@domain2.org', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_2')).toBe(true);
+
+            results = switchProvider.formatGroup('prefix-search@', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+        });
+
+        it('should match by partial email with @ symbol', () => {
+            const channels = [
+                modifiedState.entities.channels.channels.dm_channel_1,
+                modifiedState.entities.channels.channels.dm_channel_2,
+            ];
+            const users = [
+                modifiedState.entities.users.profiles.user_with_email,
+                modifiedState.entities.users.profiles.user_with_common_domain,
+            ];
+
+            // Partial email searches with @ should work
+            switchProvider.startNewRequest('');
+            let results = switchProvider.formatGroup('prefix-search@', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+
+            results = switchProvider.formatGroup('different@', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_2')).toBe(true);
+        });
+
+        it('should handle @ at the beginning correctly', () => {
+            const channels = [
+                modifiedState.entities.channels.channels.dm_channel_1,
+                modifiedState.entities.channels.channels.dm_channel_2,
+            ];
+            const users = [
+                modifiedState.entities.users.profiles.user_with_email,
+                modifiedState.entities.users.profiles.user_with_common_domain,
+            ];
+
+            // @ at the beginning should be stripped and then apply smart logic
+            switchProvider.startNewRequest('');
+            let results = switchProvider.formatGroup('@prefix-search', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+
+            results = switchProvider.formatGroup('@different', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_2')).toBe(true);
+        });
+
+        it('should match domain when @ is present in search term', () => {
+            const channels = [
+                modifiedState.entities.channels.channels.dm_channel_1,
+                modifiedState.entities.channels.channels.dm_channel_2,
+            ];
+            const users = [
+                modifiedState.entities.users.profiles.user_with_email,
+                modifiedState.entities.users.profiles.user_with_common_domain,
+            ];
+
+            // When @ is present, domain matching should work
+            switchProvider.startNewRequest('');
+            let results = switchProvider.formatGroup('@domain1', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+
+            results = switchProvider.formatGroup('@domain2', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_2')).toBe(true);
+
+            results = switchProvider.formatGroup('domain1@', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+        });
+    });
 });
 
 describe('SwitchChannelSuggestion', () => {
