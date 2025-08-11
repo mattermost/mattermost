@@ -417,8 +417,21 @@ function makeChannelSearchFilter(curState: GlobalState, channelPrefix: string) {
                     if (!user) {
                         continue;
                     }
-                    const {nickname, username} = user;
-                    userString = [nickname, username, Utils.getFullName(user)].join(SEPARATOR);
+                    const {nickname, username, email} = user;
+
+                    // Apply smart email search logic - include email based on whether @ is in search term
+                    const includeEmail = channelPrefixLower.includes('@');
+                    let emailPart = '';
+                    if (includeEmail && email) {
+                        emailPart = email;
+                    } else if (email) {
+                        emailPart = email.split('@')[0];
+                    }
+                    const searchParts = [nickname, username, Utils.getFullName(user)];
+                    if (emailPart) {
+                        searchParts.push(emailPart);
+                    }
+                    userString = searchParts.join(SEPARATOR);
                     userSearchStrings[userId] = userString;
                 }
                 searchString += userString;
