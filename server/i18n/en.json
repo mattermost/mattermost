@@ -4535,6 +4535,10 @@
     "translation": "Failed to parse request"
   },
   {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": ""
+  },
+  {
     "id": "app.acknowledgement.batch_save.app_error",
     "translation": "Failed to save the batch of acknowledgement objects"
   },
@@ -6335,6 +6339,26 @@
     "translation": "We encountered an error updating the app."
   },
   {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.access_control.channel_not_private",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": ""
+  },
+  {
     "id": "app.pap.assign_access_control_policy_to_channels.app_error",
     "translation": "Unable to assign access control policy to channels."
   },
@@ -6417,26 +6441,6 @@
   {
     "id": "app.pap.update_access_control_policy_active.app_error",
     "translation": "Could not change active status of access control policy."
-  },
-  {
-    "id": "app.access_control.channel_group_constrained",
-    "translation": "Channel is group constrained and cannot have access control policies applied."
-  },
-  {
-    "id": "app.access_control.channel_not_private",
-    "translation": "Access control policies can only be applied to private channels."
-  },
-  {
-    "id": "app.access_control.channel_shared",
-    "translation": "Channel is shared and cannot have access control policies applied."
-  },
-  {
-    "id": "app.access_control.insufficient_channel_permissions",
-    "translation": "You do not have permission to manage access control for this channel."
-  },
-  {
-    "id": "app.access_control.insufficient_permissions",
-    "translation": "You do not have permission to manage this access control policy."
   },
   {
     "id": "app.pdp.access_evaluation.app_error",
