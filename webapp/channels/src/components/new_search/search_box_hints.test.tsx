@@ -42,12 +42,12 @@ describe('components/new_search/SearchBoxHints', () => {
         searchTeam: 'teamId',
         setSearchTerms: jest.fn(),
         focus: jest.fn(),
-        selectedOption: -1,
-        providerResults: {
+        selectedTerm: '',
+        results: {
             matchedPretext: '',
             terms: ['user1', 'user2'],
             items: [{username: 'test-username1'}, {username: 'test-username2'}],
-            component: TestProviderResultComponent,
+            components: [TestProviderResultComponent, TestProviderResultComponent],
         },
     };
 
@@ -64,7 +64,7 @@ describe('components/new_search/SearchBoxHints', () => {
     });
 
     test('should set the selected option if it is passed from the parent', () => {
-        const props = {...baseProps, selectedOption: 1};
+        const props = {...baseProps, selectedTerm: 'user1'};
         renderWithContext(<SearchBoxHints {...props}/>);
         expect(screen.getByText('Press Enter to select')).toBeInTheDocument();
     });

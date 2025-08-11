@@ -4792,82 +4792,6 @@
     "translation": "Не удалось сохранить условия использования."
   },
   {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Ошибка при создании индекса канала bleve."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Ошибка при создании индекса сообщений bleve."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Не получилось удалить канал."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Не получилось удалить сообщение."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Не получилось удалить пользователя."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Не удалось проиндексировать сообщение."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Не удалось проиндексировать пользователя."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Не удалось проиндексировать пакет сообщений."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Не удалось проиндексировать пакет пользователей."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Работнику индексирования Bleve не удалось проанализировать время начала."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Не удалось очистить индексы канала."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Не удалось очистить индексы сообщений."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Не удалось очистить индексы пользователей."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Поиск каналов не удалось завершить."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Поиск сообщений не удалось завершить."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Поиск пользователей не удалось завершить."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Поиск пользователей не удалось завершить."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Не удалось закрыть индекс сообщения."
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Не удалось закрыть индекс пользователя."
-  },
-  {
     "id": "ent.cluster.timeout.error",
     "translation": "Тайм-аут ожидания ответа кластера"
   },
@@ -4932,14 +4856,6 @@
     "translation": "Неверные AutocompleteData"
   },
   {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Параметр Bleve EnableIndexing должен иметь значение true, если для Bleve EnableSearching установлено значение true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Параметр Bleve IndexingDir должен быть установлен, если для параметра Bleve EnableIndexing установлено значение true"
-  },
-  {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
     "translation": "Неверный атрибут гостя. Должен быть в форме 'поле=значение'."
   },
@@ -4982,10 +4898,6 @@
   {
     "id": "plugin_api.bot_cant_create_bot",
     "translation": "Учетная запись бота не может создать другую учетную запись бота."
-  },
-  {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Ошибка очистки индексов Bleve: движок отключен"
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
@@ -5236,42 +5148,6 @@
     "translation": "Не удалось получить Условия использования."
   },
   {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve уже запущен."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Ошибка при создании индекса пользователей bleve."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Не удалось проиндексировать канал."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Не удалось проиндексировать пакет каналов."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Не удалось запустить задание индексирования Bleve: движок неактивен."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Работнику индексирования Bleve не удалось проанализировать время окончания."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Попытка проиндексировать новый пакет, когда все элементы уже были завершены."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Поиск пользователей не удалось завершить."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Не удалось закрыть индекс канала."
-  },
-  {
     "id": "ent.cluster.json_encode.error",
     "translation": "Произошла ошибка во время маршалирования запроса JSON"
   },
@@ -5314,10 +5190,6 @@
   {
     "id": "model.channel.is_valid.name.app_error",
     "translation": "Имена каналов не могут быть в шестнадцатеричном формате. Пожалуйста, введите другое имя канала."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Параметр Bleve EnableIndexing должен иметь значение true, если для Bleve EnableAutocomplete установлено значение true"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
@@ -5721,14 +5593,6 @@
   },
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
-    "translation": "Не получилось удалить сообщения канала"
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Не получилось удалить сообщения пользователя"
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
     "translation": "Не получилось удалить сообщения канала"
   },
   {
@@ -6484,10 +6348,6 @@
     "translation": "Не удалось получить участников канала."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Невозможно получить пакет каналов для индексации."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Невозможно получить каналы для предоставленной схемы."
   },
@@ -6518,10 +6378,6 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "Не удалось получить сообщения для канала."
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Невозможно получить пакет сообщений для индексации."
   },
   {
     "id": "app.post.get_posts.app_error",
@@ -7076,46 +6932,6 @@
     "translation": "Не удалось создать шаблон {{.Backend}} для файлов"
   },
   {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Не удалось закрыть индекс файлов."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "Поиск файлов не завершился."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Не удалось очистить индексы файлов."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Не удалось проиндексировать пакет файлов."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "Не удалось проиндексировать файл."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Не удалось удалить пользовательские файлы."
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Не удалось удалить файлы сообщений."
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Не удалось удалить файлы."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Не удалось удалить файл."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Ошибка при создании индекса bleve-файла."
-  },
-  {
     "id": "app.user.verify_email.app_error",
     "translation": "Не удалось обновить поле проверки email-адреса."
   },
@@ -7316,10 +7132,6 @@
     "translation": "Ошибка поиска в сообщениях"
   },
   {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "Не удалось получить пакет файлов для индексации."
-  },
-  {
     "id": "app.insert_error",
     "translation": "ошибка insert"
   },
@@ -7390,10 +7202,6 @@
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
     "translation": "Ошибка получения endpoint из Discovery Document."
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Ошибка чтения файла из бэкэнда"
   },
   {
     "id": "api.unable_to_create_zip_file",
@@ -8352,10 +8160,6 @@
     "translation": "Ошибка проверки ограничений изображения. Разрешение слишком высокое."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "Самый старый объект (пользователь, канал или сообщение) не может быть извлечен из базы данных."
-  },
-  {
     "id": "app.valid_password_generic.app_error",
     "translation": "Пароль недействителен"
   },
@@ -8450,10 +8254,6 @@
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
     "translation": "Размер пакета массового индексирования должен быть не менее {{.BatchSize}}."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Размер пакета массового индексирования Bleve должен быть не менее {{.BatchSize}}."
   },
   {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
@@ -9758,10 +9558,6 @@
   {
     "id": "app.user.update_active.user_limit.exceeded",
     "translation": "Невозможно активировать пользователя. На сервере превышен лимит безопасных пользователей. Обратись к своему администратору с сообщением: ERROR_SAFETY_LIMITS_EXCEEDED."
-  },
-  {
-    "id": "bleveengine.purge_list.not_implemented",
-    "translation": "Функция очищения списка недоступна для Bleve."
   },
   {
     "id": "model.scheme.is_valid.app_error",
