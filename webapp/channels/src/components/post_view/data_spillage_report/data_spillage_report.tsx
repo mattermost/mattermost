@@ -17,13 +17,14 @@ import {getUser} from 'mattermost-redux/selectors/entities/users';
 import AtMention from 'components/at_mention';
 import {useChannel} from 'components/common/hooks/useChannel';
 import {usePost} from 'components/common/hooks/usePost';
+import DataSpillageAction from 'components/post_view/data_spillage_report/data_spillage_actions/data_spillage_actions';
 import PropertiesCardView from 'components/properties_card_view/properties_card_view';
 
 import type {GlobalState} from 'types/store';
 
 import './data_spillage_report.scss';
-import DataSpillageAction from 'components/post_view/data_spillage_report/data_spillage_actions/data_spillage_actions';
 
+// TODO: this function will be replaced with actual data fetched from API in a later PR
 function getDummyPropertyFields(): PropertyField[] {
     return [
         {
@@ -201,6 +202,7 @@ function getDummyPropertyFields(): PropertyField[] {
     ];
 }
 
+// TODO: this function will be replaced with actual data fetched from API in a later PR
 function getDummyPropertyValues(postId: string, channelId: string, teamId: string, authorId: string, postCreateAt: number): Array<PropertyValue<unknown>> {
     return [
         {
@@ -326,36 +328,6 @@ function getDummyPropertyValues(postId: string, channelId: string, teamId: strin
             update_at: 0,
             delete_at: 0,
         },
-
-        // No action taken yet
-        // {
-        //     id: 'actor_user_value_id',
-        //     field_id: 'actor_user_field_id',
-        //     target_id: 'reported_post_id',
-        //     target_type: 'post',
-        //     group_id: 'content_flagging_group_id',
-        //     value: '',
-        //     create_at: 0,
-        //     update_at: 0,
-        //     delete_at: 0,
-        // },
-        // {
-        //     id: 'actor_comment_value_id',
-        //     field_id: 'actor_comment_field_id',
-        //     target_id: 'reported_post_id',
-        //     target_type: 'post',
-        //     group_id: 'content_flagging_group_id',
-        //     value: '',
-        //     create_at: 0,
-        //     update_at: 0,
-        //     delete_at: 0,
-        // },
-        // {
-        //     id: 'action_time_value_id',
-        //     field_id: 'action_time_field_id',
-        //     target_id: 'reported_post_id',
-        //     target_type:
-        // }
     ];
 }
 
@@ -403,13 +375,13 @@ export default function DataSpillageReport({post, isRHS}: Props) {
     const reportingUser = useSelector((state: GlobalState) => getUser(state, reportingUserIdValue ? reportingUserIdValue.value as string : ''));
 
     useEffect(() => {
-        if (!reportingUser && reportingUserIdValue) {
+        if (!reportingUser && reportingUserIdValue && reportedPost) {
             dispatch(getMissingProfilesByIds([
                 reportingUserIdValue.value as string,
-                reportedPost?.user_id,
+                reportedPost.user_id,
             ]));
         }
-    }, [dispatch, reportedPost?.user_id, reportingUser, reportingUserIdValue]);
+    }, [dispatch, reportedPost, reportingUser, reportingUserIdValue]);
 
     const title = formatMessage({
         id: 'data_spillage_report_post.title',
@@ -419,9 +391,10 @@ export default function DataSpillageReport({post, isRHS}: Props) {
     });
 
     useEffect(() => {
-        if (reportedPost) {
+        if (reportedPost && channel) {
+            // TODO: this function will be replaced with actual data fetched from API in a later PR
             setPropertyFields(getDummyPropertyFields());
-            setPropertyValues(getDummyPropertyValues(reportedPostId, reportedPost.channel_id, channel?.team_id, reportedPost.user_id, post.create_at));
+            setPropertyValues(getDummyPropertyValues(reportedPostId, reportedPost.channel_id, channel.team_id, reportedPost.user_id, post.create_at));
         }
     }, [reportedPost, reportedPostId, channel, post.create_at]);
 

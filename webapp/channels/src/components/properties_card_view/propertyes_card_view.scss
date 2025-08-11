@@ -7,9 +7,9 @@
     gap: 20px;
 
     .PropertyCardView_title {
+        color: var(--center-channel-color, #3F4350);
         font-size: 25px;
         font-weight: 600;
-        color: var(--center-channel-color, #3F4350);
     }
 
     .PropertyCardView_fields {
@@ -19,30 +19,30 @@
 
         > .row {
             display: flex;
+            min-height: 32px;
             flex-direction: row;
+            align-items: start;
             margin: 0;
             gap: 16px;
-            min-height: 32px;
-            align-items: start;
 
             &::before {
                 content: none;
             }
 
             > .field {
-                align-items: center;
                 display: flex;
-                max-width: 110px;
                 min-width: 110px;
+                max-width: 110px;
+                align-items: center;
                 color: var(--center-channel-color, #3F4350);
                 font-size: 12px;
                 font-weight: 600;
             }
 
             > .value {
-                align-items: center;
                 display: flex;
                 min-height: 32px;
+                align-items: center;
             }
         }
     }

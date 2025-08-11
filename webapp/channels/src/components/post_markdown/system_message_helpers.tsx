@@ -21,7 +21,6 @@ import PostAddChannelMember from 'components/post_view/post_add_channel_member';
 
 import {isChannelNamesMap, type TextFormattingOptions} from 'utils/text_formatting';
 import {getSiteURL} from 'utils/url';
-import DataSpillageReport from "components/post_view/data_spillage_report/data_spillage_report";
 
 export function renderUsername(value: unknown): ReactNode {
     const verifiedValue = ensureString(value);
@@ -470,11 +469,6 @@ export function renderSystemMessage(post: Post, currentTeamName: string, channel
             <GMConversionMessage post={post}/>
         );
     }
-    // else if (post.type === Posts.POST_TYPES.DATA_SPILLAGE_REPORT) {
-    //     return (
-    //         <DataSpillageReport post={post}/>
-    //     );
-    // }
 
     return null;
 }

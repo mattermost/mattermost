@@ -4,11 +4,11 @@
 .SelectableUserPropertyRenderer {
     .UserMultiSelector {
         .UserMultiSelector__control {
+            height: 32px;
+            min-height: unset;
+            align-items: baseline;
             border: none !important;
             box-shadow: none !important;
-            min-height: unset;
-            height: 32px;
-            align-items: baseline;
 
             .UserMultiSelector__indicators {
                 height: 32px;
@@ -20,18 +20,18 @@
 
                 .SelectableUserPropertyRenderer_placeholder {
                     display: flex;
-                    gap: 8px;
                     align-items: center;
+                    gap: 8px;
 
                     i.icon.icon-account-outline {
-                        background: rgba(var(--center-channel-color-rgb), 0.12);
-                        border-radius: 50%;
                         width: 24px;
                         min-width: 24px;
                         height: 24px;
-                        font-size: 12px;
-                        margin: 0;
                         padding: 0;
+                        border-radius: 50%;
+                        margin: 0;
+                        background: rgba(var(--center-channel-color-rgb), 0.12);
+                        font-size: 12px;
                     }
                 }
             }

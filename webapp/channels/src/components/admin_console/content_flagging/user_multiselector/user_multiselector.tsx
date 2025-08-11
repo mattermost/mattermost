@@ -16,7 +16,7 @@ import {getUsersByIDs} from 'mattermost-redux/selectors/entities/users';
 
 import type {GlobalState} from 'types/store';
 
-import {MultiUserProfilePill, SingleUserProfilePill} from './multi_user_profile_pill';
+import {MultiUserProfilePill, SingleUserProfilePill} from './user_profile_pill';
 
 import {MultiUserOptionComponent, SingleUserOptionComponent} from '../../content_flagging/user_multiselector/user_profile_option';
 import {LoadingIndicator} from '../../system_users/system_users_filters_popover/system_users_filter_team';

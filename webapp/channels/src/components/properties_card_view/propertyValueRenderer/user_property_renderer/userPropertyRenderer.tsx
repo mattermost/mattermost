@@ -43,7 +43,6 @@ export default function UserPropertyRenderer({field, value}: Props) {
         return (
             <SelectableUserPropertyRenderer
                 field={field}
-                value={value}
             />
         );
     }

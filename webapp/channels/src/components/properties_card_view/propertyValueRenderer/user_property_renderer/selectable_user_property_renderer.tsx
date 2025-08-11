@@ -4,20 +4,16 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import type {
-    PropertyField,
-    PropertyValue,
-} from '@mattermost/types/properties';
+import type {PropertyField} from '@mattermost/types/properties';
 
 import './seletable_user_property_renderer.scss';
 import {UserMultiSelector} from 'components/admin_console/content_flagging/user_multiselector/user_multiselector';
 
 type Props = {
     field: PropertyField;
-    value: PropertyValue<unknown>;
 }
 
-export function SelectableUserPropertyRenderer({field, value}: Props) {
+export function SelectableUserPropertyRenderer({field}: Props) {
     const {formatMessage} = useIntl();
     const placeholder = (
         <span className='SelectableUserPropertyRenderer_placeholder'>
