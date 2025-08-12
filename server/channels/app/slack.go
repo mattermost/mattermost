@@ -49,9 +49,18 @@ func (a *App) SlackImport(c request.CTX, fileData multipart.File, fileSize int64
 		},
 	}
 
-	// Check if the importing user is a system admin for enhanced security controls
+	// Determine if this is an Admin import:
+	// mattermost cmd imports (no session) are treated as admin imports since only server admins can run them
+	// Web imports (include mmctl calls) check the actual user's role
 	isAdminImport := false
-	if c.Session() != nil && c.Session().UserId != "" {
+
+	if c.Session() == nil {
+		// no session means it's being run directly on the server and only
+		// server admins can run CLI commands, so treat as admin import
+		isAdminImport = true
+		c.Logger().Info("Slack import initiated via CLI, treating as admin import")
+	} else if c.Session().UserId != "" {
+		// Web API + mmctl import - check if the user is a system admin
 		if user, err := a.GetUser(c.Session().UserId); err == nil {
 			isAdminImport = user.IsSystemAdmin()
 		}
