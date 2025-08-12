@@ -8,8 +8,6 @@
 
         __Minimum server version__: 5.4
 
-        __Breaking Change Notice__: Starting in server version 10.11, when Custom Terms of Service is enabled and a user has not accepted the latest terms, all session-required API endpoints will return `403 Forbidden` with error message "Terms of Service acceptance required to access this resource." API clients must handle this error and direct users to accept terms through the Terms of Service endpoints before making other API calls.
-
         ##### Permissions
         Must be authenticated.
       operationId: GetTermsOfService

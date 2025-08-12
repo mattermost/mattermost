@@ -28,14 +28,15 @@ const (
 // granted.
 func (api *API) APIHandler(h handlerFunc, opts ...APIHandlerOption) http.Handler {
 	handler := &web.Handler{
-		Srv:            api.srv,
-		HandleFunc:     h,
-		HandlerName:    web.GetHandlerName(h),
-		RequireSession: false,
-		TrustRequester: false,
-		RequireMfa:     false,
-		IsStatic:       false,
-		IsLocal:        false,
+		Srv:                api.srv,
+		HandleFunc:         h,
+		HandlerName:        web.GetHandlerName(h),
+		RequireSession:     false,
+		TrustRequester:     false,
+		RequireMfa:         false,
+		SkipTermsOfService: false,
+		IsStatic:           false,
+		IsLocal:            false,
 	}
 	setHandlerOpts(handler, opts...)
 
@@ -49,14 +50,37 @@ func (api *API) APIHandler(h handlerFunc, opts ...APIHandlerOption) http.Handler
 // be granted.
 func (api *API) APISessionRequired(h handlerFunc, opts ...APIHandlerOption) http.Handler {
 	handler := &web.Handler{
-		Srv:            api.srv,
-		HandleFunc:     h,
-		HandlerName:    web.GetHandlerName(h),
-		RequireSession: true,
-		TrustRequester: false,
-		RequireMfa:     true,
-		IsStatic:       false,
-		IsLocal:        false,
+		Srv:                api.srv,
+		HandleFunc:         h,
+		HandlerName:        web.GetHandlerName(h),
+		RequireSession:     true,
+		TrustRequester:     false,
+		RequireMfa:         true,
+		SkipTermsOfService: false,
+		IsStatic:           false,
+		IsLocal:            false,
+	}
+	setHandlerOpts(handler, opts...)
+
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
+		return gzhttp.GzipHandler(handler)
+	}
+	return handler
+}
+
+// APISessionRequiredSkipTermsOfService provides a handler for API endpoints which require the user to be logged in
+// but should skip Terms of Service enforcement (e.g., ToS management endpoints).
+func (api *API) APISessionRequiredSkipTermsOfService(h handlerFunc, opts ...APIHandlerOption) http.Handler {
+	handler := &web.Handler{
+		Srv:                api.srv,
+		HandleFunc:         h,
+		HandlerName:        web.GetHandlerName(h),
+		RequireSession:     true,
+		TrustRequester:     false,
+		RequireMfa:         true,
+		SkipTermsOfService: true,
+		IsStatic:           false,
+		IsLocal:            false,
 	}
 	setHandlerOpts(handler, opts...)
 
@@ -69,15 +93,16 @@ func (api *API) APISessionRequired(h handlerFunc, opts ...APIHandlerOption) http
 // CloudAPIKeyRequired provides a handler for webhook endpoints to access Cloud installations from CWS
 func (api *API) CloudAPIKeyRequired(h handlerFunc, opts ...APIHandlerOption) http.Handler {
 	handler := &web.Handler{
-		Srv:             api.srv,
-		HandleFunc:      h,
-		HandlerName:     web.GetHandlerName(h),
-		RequireSession:  false,
-		RequireCloudKey: true,
-		TrustRequester:  false,
-		RequireMfa:      false,
-		IsStatic:        false,
-		IsLocal:         false,
+		Srv:                api.srv,
+		HandleFunc:         h,
+		HandlerName:        web.GetHandlerName(h),
+		RequireSession:     false,
+		RequireCloudKey:    true,
+		TrustRequester:     false,
+		RequireMfa:         false,
+		SkipTermsOfService: false,
+		IsStatic:           false,
+		IsLocal:            false,
 	}
 	setHandlerOpts(handler, opts...)
 
@@ -98,6 +123,7 @@ func (api *API) RemoteClusterTokenRequired(h handlerFunc, opts ...APIHandlerOpti
 		RequireRemoteClusterToken: true,
 		TrustRequester:            false,
 		RequireMfa:                false,
+		SkipTermsOfService:        false,
 		IsStatic:                  false,
 		IsLocal:                   false,
 	}
@@ -114,14 +140,15 @@ func (api *API) RemoteClusterTokenRequired(h handlerFunc, opts ...APIHandlerOpti
 // authentication must be waived.
 func (api *API) APISessionRequiredMfa(h handlerFunc, opts ...APIHandlerOption) http.Handler {
 	handler := &web.Handler{
-		Srv:            api.srv,
-		HandleFunc:     h,
-		HandlerName:    web.GetHandlerName(h),
-		RequireSession: true,
-		TrustRequester: false,
-		RequireMfa:     false,
-		IsStatic:       false,
-		IsLocal:        false,
+		Srv:                api.srv,
+		HandleFunc:         h,
+		HandlerName:        web.GetHandlerName(h),
+		RequireSession:     true,
+		TrustRequester:     false,
+		RequireMfa:         false,
+		SkipTermsOfService: false,
+		IsStatic:           false,
+		IsLocal:            false,
 	}
 	setHandlerOpts(handler, opts...)
 
@@ -136,14 +163,15 @@ func (api *API) APISessionRequiredMfa(h handlerFunc, opts ...APIHandlerOption) h
 // websocket.
 func (api *API) APIHandlerTrustRequester(h handlerFunc, opts ...APIHandlerOption) http.Handler {
 	handler := &web.Handler{
-		Srv:            api.srv,
-		HandleFunc:     h,
-		HandlerName:    web.GetHandlerName(h),
-		RequireSession: false,
-		TrustRequester: true,
-		RequireMfa:     false,
-		IsStatic:       false,
-		IsLocal:        false,
+		Srv:                api.srv,
+		HandleFunc:         h,
+		HandlerName:        web.GetHandlerName(h),
+		RequireSession:     false,
+		TrustRequester:     true,
+		RequireMfa:         false,
+		SkipTermsOfService: false,
+		IsStatic:           false,
+		IsLocal:            false,
 	}
 	setHandlerOpts(handler, opts...)
 

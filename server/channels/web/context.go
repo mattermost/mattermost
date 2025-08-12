@@ -6,9 +6,7 @@ package web
 import (
 	"errors"
 	"net/http"
-	"path"
 	"regexp"
-	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -152,12 +150,6 @@ func (c *Context) SessionRequired(r *http.Request) {
 }
 
 func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
-	// Exempt ToS-related endpoints using exact path matching to prevent bypasses
-	path := r.URL.Path
-	if c.isTermsOfServiceExemptEndpoint(path) {
-		return nil
-	}
-
 	// Check if custom ToS is enabled
 	if c.App.Config().SupportSettings.CustomTermsOfServiceEnabled == nil ||
 		!*c.App.Config().SupportSettings.CustomTermsOfServiceEnabled {
@@ -220,42 +212,6 @@ func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
 	session.AddProp(model.SessionPropTermsOfServiceId, userToS.TermsOfServiceId)
 
 	return nil
-}
-
-// isExactPathMatch checks if path exactly matches any of the provided exempt paths
-// Uses explicit path cleaning to prevent bypass attempts via path traversal
-func isExactPathMatch(requestPath string, exemptPaths []string) bool {
-	cleanPath := path.Clean(requestPath)
-	return slices.Contains(exemptPaths, cleanPath)
-}
-
-// matchesUserToSPattern checks if path matches the pattern /api/v4/users/{user_id}/terms_of_service
-// using the same validation pattern as Gorilla Mux: {user_id:[A-Za-z0-9]+}
-func matchesUserToSPattern(path string) bool {
-	// Quick prefix/suffix check
-	if !strings.HasPrefix(path, "/api/v4/users/") || !strings.HasSuffix(path, "/terms_of_service") {
-		return false
-	}
-
-	// Split and validate exact structure: ["", "api", "v4", "users", "user_id", "terms_of_service"]
-	parts := strings.Split(path, "/")
-	if len(parts) != 6 || parts[0] != "" || parts[1] != "api" || parts[2] != "v4" ||
-		parts[3] != "users" || parts[5] != "terms_of_service" {
-		return false
-	}
-
-	userId := parts[4]
-	return model.IsValidId(userId)
-}
-
-// isTermsOfServiceExemptEndpoint uses exact path matching to prevent bypass attacks
-func (c *Context) isTermsOfServiceExemptEndpoint(path string) bool {
-	// Exact path matches for ToS endpoints to prevent path traversal attacks
-	exemptPaths := []string{
-		"/api/v4/terms_of_service",
-	}
-
-	return isExactPathMatch(path, exemptPaths) || matchesUserToSPattern(path)
 }
 
 func (c *Context) CloudKeyRequired() {

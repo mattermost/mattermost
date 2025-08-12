@@ -13,8 +13,8 @@ import (
 )
 
 func (api *API) InitTermsOfService() {
-	api.BaseRoutes.TermsOfService.Handle("", api.APISessionRequired(getLatestTermsOfService)).Methods(http.MethodGet)
-	api.BaseRoutes.TermsOfService.Handle("", api.APISessionRequired(createTermsOfService)).Methods(http.MethodPost)
+	api.BaseRoutes.TermsOfService.Handle("", api.APISessionRequiredSkipTermsOfService(getLatestTermsOfService)).Methods(http.MethodGet)
+	api.BaseRoutes.TermsOfService.Handle("", api.APISessionRequiredSkipTermsOfService(createTermsOfService)).Methods(http.MethodPost)
 }
 
 func getLatestTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {

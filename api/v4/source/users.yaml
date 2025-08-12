@@ -2413,8 +2413,6 @@
 
         Updates user's last accepted terms of service ID if they accepted it.
 
-        __Breaking Change Notice__: Starting in server version 10.11, accepting terms of service through this endpoint is required to resolve `403 Forbidden` responses with error ID `api.context.terms_of_service_required.app_error` that are returned from other API endpoints when Custom Terms of Service is enabled and the user has not accepted the latest terms.
-
         __Minimum server version__: 5.4
 
         ##### Permissions

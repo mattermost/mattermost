@@ -36,14 +36,15 @@ func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string
 
 func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &Handler{
-		Srv:            w.srv,
-		HandleFunc:     h,
-		HandlerName:    GetHandlerName(h),
-		RequireSession: false,
-		TrustRequester: false,
-		RequireMfa:     false,
-		IsStatic:       false,
-		IsLocal:        false,
+		Srv:                w.srv,
+		HandleFunc:         h,
+		HandlerName:        GetHandlerName(h),
+		RequireSession:     false,
+		TrustRequester:     false,
+		RequireMfa:         false,
+		SkipTermsOfService: false,
+		IsStatic:           false,
+		IsLocal:            false,
 	}
 }
 
@@ -53,13 +54,14 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 	subpath, _ := utils.GetSubpathFromConfig(w.srv.Config())
 
 	return &Handler{
-		Srv:            w.srv,
-		HandleFunc:     h,
-		HandlerName:    GetHandlerName(h),
-		RequireSession: false,
-		TrustRequester: false,
-		RequireMfa:     false,
-		IsStatic:       true,
+		Srv:                w.srv,
+		HandleFunc:         h,
+		HandlerName:        GetHandlerName(h),
+		RequireSession:     false,
+		TrustRequester:     false,
+		RequireMfa:         false,
+		SkipTermsOfService: false,
+		IsStatic:           true,
 
 		cspShaDirective: utils.GetSubpathScriptHash(subpath),
 	}
@@ -74,6 +76,7 @@ type Handler struct {
 	RequireRemoteClusterToken bool
 	TrustRequester            bool
 	RequireMfa                bool
+	SkipTermsOfService        bool
 	IsStatic                  bool
 	IsLocal                   bool
 	DisableWhenBusy           bool
@@ -319,6 +322,12 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.SessionRequired(r)
 	}
 
+	if c.Err == nil && h.RequireSession && !h.SkipTermsOfService {
+		if appErr := c.TermsOfServiceRequired(r); appErr != nil {
+			c.Err = appErr
+		}
+	}
+
 	if c.Err == nil && h.RequireMfa {
 		c.MfaRequired()
 	}
@@ -510,14 +519,15 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 // granted.
 func (w *Web) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &Handler{
-		Srv:            w.srv,
-		HandleFunc:     h,
-		HandlerName:    GetHandlerName(h),
-		RequireSession: false,
-		TrustRequester: false,
-		RequireMfa:     false,
-		IsStatic:       false,
-		IsLocal:        false,
+		Srv:                w.srv,
+		HandleFunc:         h,
+		HandlerName:        GetHandlerName(h),
+		RequireSession:     false,
+		TrustRequester:     false,
+		RequireMfa:         false,
+		SkipTermsOfService: false,
+		IsStatic:           false,
+		IsLocal:            false,
 	}
 	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gzhttp.GzipHandler(handler)
@@ -530,14 +540,15 @@ func (w *Web) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 // websocket.
 func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &Handler{
-		Srv:            w.srv,
-		HandleFunc:     h,
-		HandlerName:    GetHandlerName(h),
-		RequireSession: false,
-		TrustRequester: true,
-		RequireMfa:     false,
-		IsStatic:       false,
-		IsLocal:        false,
+		Srv:                w.srv,
+		HandleFunc:         h,
+		HandlerName:        GetHandlerName(h),
+		RequireSession:     false,
+		TrustRequester:     true,
+		RequireMfa:         false,
+		SkipTermsOfService: false,
+		IsStatic:           false,
+		IsLocal:            false,
 	}
 	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gzhttp.GzipHandler(handler)
@@ -549,14 +560,15 @@ func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 // be granted.
 func (w *Web) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &Handler{
-		Srv:            w.srv,
-		HandleFunc:     h,
-		HandlerName:    GetHandlerName(h),
-		RequireSession: true,
-		TrustRequester: false,
-		RequireMfa:     true,
-		IsStatic:       false,
-		IsLocal:        false,
+		Srv:                w.srv,
+		HandleFunc:         h,
+		HandlerName:        GetHandlerName(h),
+		RequireSession:     true,
+		TrustRequester:     false,
+		RequireMfa:         true,
+		SkipTermsOfService: false,
+		IsStatic:           false,
+		IsLocal:            false,
 	}
 	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gzhttp.GzipHandler(handler)
