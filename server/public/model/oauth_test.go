@@ -70,80 +70,82 @@ func TestOAuthAppIsValid(t *testing.T) {
 }
 
 func TestOAuthApp_PublicClient_IsValid(t *testing.T) {
-	// Test public client validation (no client secret allowed)
+	// Test public client validation (no client secret = public client)
 	app := OAuthApp{
-		Id:                      NewId(),
-		CreatorId:               NewId(),
-		CreateAt:                1,
-		UpdateAt:                1,
-		Name:                    "Test Public Client",
-		CallbackUrls:            []string{"https://example.com/callback"},
-		Homepage:                "https://example.com",
-		TokenEndpointAuthMethod: ClientAuthMethodNone,
+		Id:           NewId(),
+		CreatorId:    NewId(),
+		CreateAt:     1,
+		UpdateAt:     1,
+		Name:         "Test Public Client",
+		CallbackUrls: []string{"https://example.com/callback"},
+		Homepage:     "https://example.com",
+		// ClientSecret is empty, making this a public client
 	}
 
-	// Public client without client secret should be valid
+	// Public client should be valid
 	require.Nil(t, app.IsValid())
-
-	// Public client with client secret should be invalid
-	app.ClientSecret = "should_not_have_secret"
-	require.NotNil(t, app.IsValid())
-	require.Contains(t, app.IsValid().Id, "public_client_secret.app_error")
+	// Verify it's recognized as public client
+	require.True(t, app.IsPublicClient())
+	require.Equal(t, ClientAuthMethodNone, app.GetTokenEndpointAuthMethod())
 }
 
 func TestOAuthApp_ConfidentialClient_IsValid(t *testing.T) {
-	// Test confidential client validation (client secret required)
+	// Test confidential client validation (has client secret = confidential client)
 	app := OAuthApp{
-		Id:                      NewId(),
-		CreatorId:               NewId(),
-		CreateAt:                1,
-		UpdateAt:                1,
-		Name:                    "Test Confidential Client",
-		CallbackUrls:            []string{"https://example.com/callback"},
-		Homepage:                "https://example.com",
-		TokenEndpointAuthMethod: ClientAuthMethodClientSecretPost,
+		Id:           NewId(),
+		CreatorId:    NewId(),
+		CreateAt:     1,
+		UpdateAt:     1,
+		Name:         "Test Confidential Client",
+		CallbackUrls: []string{"https://example.com/callback"},
+		Homepage:     "https://example.com",
+		ClientSecret: NewId(), // Has client secret, making this confidential
 	}
 
-	// Confidential client without client secret should be invalid
-	require.NotNil(t, app.IsValid())
-
-	// Confidential client with client secret should be valid
-	app.ClientSecret = NewId()
+	// Confidential client should be valid
 	require.Nil(t, app.IsValid())
+	// Verify it's recognized as confidential client
+	require.False(t, app.IsPublicClient())
+	require.Equal(t, ClientAuthMethodClientSecretPost, app.GetTokenEndpointAuthMethod())
 }
 
-func TestOAuthApp_PublicClient_PreSave(t *testing.T) {
-	// Test that PreSave doesn't generate client secret for public clients
+func TestOAuthApp_PreSave_NoSecretGeneration(t *testing.T) {
+	// Test that PreSave no longer generates client secrets
 	app := OAuthApp{
-		Name:                    "Test Public Client",
-		CallbackUrls:            []string{"https://example.com/callback"},
-		Homepage:                "https://example.com",
-		TokenEndpointAuthMethod: ClientAuthMethodNone,
+		Name:         "Test Client",
+		CallbackUrls: []string{"https://example.com/callback"},
+		Homepage:     "https://example.com",
+		// No client secret set - PreSave should not generate one
 	}
 
 	app.PreSave()
 
-	// Public client should not have a client secret generated
+	// PreSave should only set ID and timestamps, not generate secrets
 	require.Empty(t, app.ClientSecret)
 	require.NotEmpty(t, app.Id)
 	require.NotZero(t, app.CreateAt)
 	require.NotZero(t, app.UpdateAt)
+	require.True(t, app.IsPublicClient())
+	require.Equal(t, ClientAuthMethodNone, app.GetTokenEndpointAuthMethod())
 }
 
-func TestOAuthApp_ConfidentialClient_PreSave(t *testing.T) {
-	// Test that PreSave generates client secret for confidential clients
+func TestOAuthApp_DynamicClient_PreSave(t *testing.T) {
+	// Test that PreSave doesn't generate client secret for dynamic clients without one
 	app := OAuthApp{
-		Name:                    "Test Confidential Client",
+		Name:                    "Test Dynamic Client",
 		CallbackUrls:            []string{"https://example.com/callback"},
 		Homepage:                "https://example.com",
-		TokenEndpointAuthMethod: ClientAuthMethodClientSecretPost,
+		IsDynamicallyRegistered: true,
+		// No client secret set - for dynamic clients, this means public client
 	}
 
 	app.PreSave()
 
-	// Confidential client should have a client secret generated
-	require.NotEmpty(t, app.ClientSecret)
+	// Dynamic client without secret should remain public
+	require.Empty(t, app.ClientSecret)
 	require.NotEmpty(t, app.Id)
 	require.NotZero(t, app.CreateAt)
 	require.NotZero(t, app.UpdateAt)
+	require.True(t, app.IsPublicClient())
+	require.Equal(t, ClientAuthMethodNone, app.GetTokenEndpointAuthMethod())
 }

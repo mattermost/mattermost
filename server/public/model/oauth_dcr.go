@@ -22,6 +22,7 @@ type ClientRegistrationResponse struct {
 	TokenEndpointAuthMethod string   `json:"token_endpoint_auth_method"`
 	GrantTypes              []string `json:"grant_types"`
 	ResponseTypes           []string `json:"response_types"`
+	Scope                   string   `json:"scope,omitempty"`
 	ClientName              *string  `json:"client_name,omitempty"`
 	ClientURI               *string  `json:"client_uri,omitempty"`
 }
@@ -68,7 +69,7 @@ func (r *ClientRegistrationRequest) IsValid() *AppError {
 		}
 	}
 
-	if r.TokenEndpointAuthMethod != nil && *r.TokenEndpointAuthMethod != ClientAuthMethodClientSecretPost {
+	if r.TokenEndpointAuthMethod != nil && *r.TokenEndpointAuthMethod != ClientAuthMethodClientSecretPost && *r.TokenEndpointAuthMethod != ClientAuthMethodNone {
 		return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.unsupported_auth_method.app_error", nil, "method="+*r.TokenEndpointAuthMethod, http.StatusBadRequest)
 	}
 

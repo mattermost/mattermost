@@ -48,6 +48,7 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	oauthApp.CreatorId = c.AppContext.Session().UserId
+	oauthApp.IsDynamicallyRegistered = false
 
 	rapp, err := c.App.CreateOAuthApp(&oauthApp)
 	if err != nil {
@@ -320,6 +321,7 @@ func getAuthorizedOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) 
 // DCR (Dynamic Client Registration) endpoint handlers as per RFC 7591
 func registerOAuthClient(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Session and permission checks removed for DCR endpoint to allow external client registration
+
 	var clientRequest model.ClientRegistrationRequest
 	if jsonErr := json.NewDecoder(r.Body).Decode(&clientRequest); jsonErr != nil {
 		dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, "Invalid JSON in request body")

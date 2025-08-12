@@ -900,12 +900,12 @@ func TestAuthorizeOAuthPage_PublicClient_PKCERequired(t *testing.T) {
 
 	// Create public client
 	publicApp := &model.OAuthApp{
-		Name:                    "Public Client Test",
-		CreatorId:               th.BasicUser.Id,
-		Homepage:                "https://example.com",
-		Description:             "test public client",
-		CallbackUrls:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: model.ClientAuthMethodNone,
+		Name:         "Public Client Test",
+		CreatorId:    th.BasicUser.Id,
+		Homepage:     "https://example.com",
+		Description:  "test public client",
+		CallbackUrls: []string{"https://example.com/callback"},
+		ClientSecret: "",
 	}
 
 	publicApp, appErr := th.App.CreateOAuthApp(publicApp)
@@ -938,12 +938,12 @@ func TestAuthorizeOAuthPage_PublicClient_WithPKCE_Success(t *testing.T) {
 
 	// Create public client
 	publicApp := &model.OAuthApp{
-		Name:                    "Public Client Test",
-		CreatorId:               th.BasicUser.Id,
-		Homepage:                "https://example.com",
-		Description:             "test public client",
-		CallbackUrls:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: model.ClientAuthMethodNone,
+		Name:         "Public Client Test",
+		CreatorId:    th.BasicUser.Id,
+		Homepage:     "https://example.com",
+		Description:  "test public client",
+		CallbackUrls: []string{"https://example.com/callback"},
+		ClientSecret: "",
 	}
 
 	publicApp, appErr := th.App.CreateOAuthApp(publicApp)
@@ -988,12 +988,12 @@ func TestAuthorizeOAuthPage_ConfidentialClient_PKCEOptional(t *testing.T) {
 
 	// Create confidential client
 	confidentialApp := &model.OAuthApp{
-		Name:                    "Confidential Client Test",
-		CreatorId:               th.BasicUser.Id,
-		Homepage:                "https://example.com",
-		Description:             "test confidential client",
-		CallbackUrls:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: model.ClientAuthMethodClientSecretPost,
+		Name:         "Confidential Client Test",
+		CreatorId:    th.BasicUser.Id,
+		Homepage:     "https://example.com",
+		Description:  "test confidential client",
+		CallbackUrls: []string{"https://example.com/callback"},
+		ClientSecret: "test-secret",
 	}
 
 	confidentialApp, appErr := th.App.CreateOAuthApp(confidentialApp)
@@ -1034,12 +1034,12 @@ func TestAuthorizeOAuthApp_PublicClient_PKCEParameters(t *testing.T) {
 
 	// Create public client
 	publicApp := &model.OAuthApp{
-		Name:                    "Public Client Test",
-		CreatorId:               th.BasicUser.Id,
-		Homepage:                "https://example.com",
-		Description:             "test public client",
-		CallbackUrls:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: model.ClientAuthMethodNone,
+		Name:         "Public Client Test",
+		CreatorId:    th.BasicUser.Id,
+		Homepage:     "https://example.com",
+		Description:  "test public client",
+		CallbackUrls: []string{"https://example.com/callback"},
+		ClientSecret: "",
 	}
 
 	publicApp, appErr := th.App.CreateOAuthApp(publicApp)
@@ -1100,12 +1100,12 @@ func TestGetAccessToken_PublicClient_NoClientSecret(t *testing.T) {
 
 	// Create public client
 	publicApp := &model.OAuthApp{
-		Name:                    "Public Client Test",
-		CreatorId:               th.BasicUser.Id,
-		Homepage:                "https://example.com",
-		Description:             "test public client",
-		CallbackUrls:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: model.ClientAuthMethodNone,
+		Name:         "Public Client Test",
+		CreatorId:    th.BasicUser.Id,
+		Homepage:     "https://example.com",
+		Description:  "test public client",
+		CallbackUrls: []string{"https://example.com/callback"},
+		ClientSecret: "",
 	}
 
 	publicApp, appErr := th.App.CreateOAuthApp(publicApp)

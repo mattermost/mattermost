@@ -31,7 +31,6 @@ type OAuthApp struct {
 	Homepage                string      `json:"homepage"`
 	IsTrusted               bool        `json:"is_trusted"`
 	MattermostAppID         string      `json:"mattermost_app_id"`
-	TokenEndpointAuthMethod string      `json:"token_endpoint_auth_method"`
 
 	IsDynamicallyRegistered bool `json:"is_dynamically_registered,omitempty"`
 }
@@ -49,7 +48,7 @@ func (a *OAuthApp) Auditable() map[string]any {
 		"homepage":                   a.Homepage,
 		"is_trusted":                 a.IsTrusted,
 		"mattermost_app_id":          a.MattermostAppID,
-		"token_endpoint_auth_method": a.TokenEndpointAuthMethod,
+		"token_endpoint_auth_method": a.GetTokenEndpointAuthMethod(),
 		"is_dynamically_registered":  a.IsDynamicallyRegistered,
 	}
 }
@@ -122,15 +121,8 @@ func (a *OAuthApp) PreSave() {
 		a.Id = NewId()
 	}
 
-	// Set TokenEndpointAuthMethod if not set, default to client_secret_post for regular apps
-	if a.TokenEndpointAuthMethod == "" && !a.IsDynamicallyRegistered {
-		a.TokenEndpointAuthMethod = ClientAuthMethodClientSecretPost
-	}
-
-	// Generate client secret only for confidential clients
-	if a.ClientSecret == "" && a.TokenEndpointAuthMethod != ClientAuthMethodNone {
-		a.ClientSecret = NewId()
-	}
+	// PreSave no longer generates client secrets - callers must explicitly set ClientSecret
+	// if they want to create a confidential client
 
 	a.CreateAt = GetMillis()
 	a.UpdateAt = a.CreateAt
@@ -155,9 +147,18 @@ func (a *OAuthApp) IsValidRedirectURL(url string) bool {
 	return slices.Contains(a.CallbackUrls, url)
 }
 
+// GetTokenEndpointAuthMethod returns the OAuth token endpoint authentication method
+// based on whether the client has a secret
+func (a *OAuthApp) GetTokenEndpointAuthMethod() string {
+	if a.ClientSecret == "" {
+		return ClientAuthMethodNone
+	}
+	return ClientAuthMethodClientSecretPost
+}
+
 // IsPublicClient returns true if this is a public client (uses "none" auth method)
 func (a *OAuthApp) IsPublicClient() bool {
-	return a.TokenEndpointAuthMethod == ClientAuthMethodNone
+	return a.GetTokenEndpointAuthMethod() == ClientAuthMethodNone
 }
 
 func NewOAuthAppFromClientRegistration(req *ClientRegistrationRequest, creatorId string) *OAuthApp {
@@ -173,14 +174,13 @@ func NewOAuthAppFromClientRegistration(req *ClientRegistrationRequest, creatorId
 		app.Name = "Dynamically Registered Client"
 	}
 
-	// Set TokenEndpointAuthMethod, default to client_secret_post if not specified
+	// Generate client secret based on requested auth method, default to confidential client
+	requestedAuthMethod := ClientAuthMethodClientSecretPost
 	if req.TokenEndpointAuthMethod != nil {
-		app.TokenEndpointAuthMethod = *req.TokenEndpointAuthMethod
-	} else {
-		app.TokenEndpointAuthMethod = ClientAuthMethodClientSecretPost
+		requestedAuthMethod = *req.TokenEndpointAuthMethod
 	}
 
-	if app.TokenEndpointAuthMethod != ClientAuthMethodNone {
+	if requestedAuthMethod != ClientAuthMethodNone {
 		app.ClientSecret = NewId()
 	}
 
@@ -195,12 +195,13 @@ func (a *OAuthApp) ToClientRegistrationResponse(siteURL string) *ClientRegistrat
 	resp := &ClientRegistrationResponse{
 		ClientID:                a.Id,
 		RedirectURIs:            a.CallbackUrls,
-		TokenEndpointAuthMethod: a.TokenEndpointAuthMethod,
+		TokenEndpointAuthMethod: a.GetTokenEndpointAuthMethod(),
 		GrantTypes:              GetDefaultGrantTypes(),
 		ResponseTypes:           GetDefaultResponseTypes(),
+		Scope:                   ScopeUser,
 	}
 
-	if a.TokenEndpointAuthMethod != ClientAuthMethodNone {
+	if !a.IsPublicClient() {
 		resp.ClientSecret = &a.ClientSecret
 	}
 

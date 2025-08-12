@@ -973,12 +973,11 @@ func TestGetOAuthAccessTokenForCodeFlow_ConfidentialClient_WithoutPKCE_Success(t
 
 	// Create confidential client
 	confidentialApp := &model.OAuthApp{
-		Name:                    "Confidential Client Test",
-		CreatorId:               th.BasicUser2.Id,
-		Homepage:                "https://example.com",
-		Description:             "test confidential client",
-		CallbackUrls:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: model.ClientAuthMethodClientSecretPost,
+		Name:         "Confidential Client Test",
+		CreatorId:    th.BasicUser2.Id,
+		Homepage:     "https://example.com",
+		Description:  "test confidential client",
+		CallbackUrls: []string{"https://example.com/callback"},
 	}
 
 	confidentialApp, appErr := th.App.CreateOAuthApp(confidentialApp)
@@ -1033,12 +1032,11 @@ func TestGetOAuthAccessTokenForCodeFlow_ConfidentialClient_PKCEEnforcement(t *te
 
 	// Create confidential client
 	confidentialApp := &model.OAuthApp{
-		Name:                    "Confidential Client Test",
-		CreatorId:               th.BasicUser2.Id,
-		Homepage:                "https://example.com",
-		Description:             "test confidential client",
-		CallbackUrls:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: model.ClientAuthMethodClientSecretPost,
+		Name:         "Confidential Client Test",
+		CreatorId:    th.BasicUser2.Id,
+		Homepage:     "https://example.com",
+		Description:  "test confidential client",
+		CallbackUrls: []string{"https://example.com/callback"},
 	}
 
 	confidentialApp, appErr := th.App.CreateOAuthApp(confidentialApp)
@@ -1095,12 +1093,12 @@ func TestGetOAuthAccessTokenForCodeFlow_PublicClient_NoRefreshToken(t *testing.T
 
 	// Create public client
 	publicApp := &model.OAuthApp{
-		Name:                    "Public Client Test",
-		CreatorId:               th.BasicUser2.Id,
-		Homepage:                "https://example.com",
-		Description:             "test public client",
-		CallbackUrls:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: model.ClientAuthMethodNone,
+		Name:         "Public Client Test",
+		CreatorId:    th.BasicUser2.Id,
+		Homepage:     "https://example.com",
+		Description:  "test public client",
+		CallbackUrls: []string{"https://example.com/callback"},
+		ClientSecret: "",
 	}
 
 	publicApp, appErr := th.App.CreateOAuthApp(publicApp)
@@ -1135,9 +1133,8 @@ func TestRegisterOAuthClient_PublicClient_Success(t *testing.T) {
 
 	// DCR request for public client
 	dcrRequest := &model.ClientRegistrationRequest{
-		RedirectURIs:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
-		ClientName:              model.NewPointer("Test Public Client"),
+		RedirectURIs: []string{"https://example.com/callback"},
+		ClientName:   model.NewPointer("Test Public Client"),
 	}
 
 	// Register public client
@@ -1148,7 +1145,7 @@ func TestRegisterOAuthClient_PublicClient_Success(t *testing.T) {
 	// Verify public client properties
 	require.Empty(t, registeredApp.ClientSecret) // No secret for public clients
 	require.True(t, registeredApp.IsPublicClient())
-	require.Equal(t, model.ClientAuthMethodNone, registeredApp.TokenEndpointAuthMethod)
+	require.Equal(t, model.ClientAuthMethodNone, registeredApp.GetTokenEndpointAuthMethod())
 	require.True(t, registeredApp.IsDynamicallyRegistered)
 }
 
@@ -1162,12 +1159,12 @@ func TestGetOAuthAccessTokenForImplicitFlow_PublicClient_Success(t *testing.T) {
 
 	// Create public client
 	publicApp := &model.OAuthApp{
-		Name:                    "Public Client Test",
-		CreatorId:               th.BasicUser2.Id,
-		Homepage:                "https://example.com",
-		Description:             "test public client",
-		CallbackUrls:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: model.ClientAuthMethodNone,
+		Name:         "Public Client Test",
+		CreatorId:    th.BasicUser2.Id,
+		Homepage:     "https://example.com",
+		Description:  "test public client",
+		CallbackUrls: []string{"https://example.com/callback"},
+		ClientSecret: "",
 	}
 
 	publicApp, appErr := th.App.CreateOAuthApp(publicApp)
@@ -1210,12 +1207,11 @@ func TestGetOAuthAccessTokenForImplicitFlow_ConfidentialClient_Success(t *testin
 
 	// Create confidential client
 	confidentialApp := &model.OAuthApp{
-		Name:                    "Confidential Client Test",
-		CreatorId:               th.BasicUser2.Id,
-		Homepage:                "https://example.com",
-		Description:             "test confidential client",
-		CallbackUrls:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: model.ClientAuthMethodClientSecretPost,
+		Name:         "Confidential Client Test",
+		CreatorId:    th.BasicUser2.Id,
+		Homepage:     "https://example.com",
+		Description:  "test confidential client",
+		CallbackUrls: []string{"https://example.com/callback"},
 	}
 
 	confidentialApp, appErr := th.App.CreateOAuthApp(confidentialApp)

@@ -21,24 +21,6 @@ type SqlOAuthStore struct {
 	oAuthAuthDataQuery   sq.SelectBuilder
 }
 
-// applyOAuthAppToModel sets the TokenEndpointAuthMethod field based on ClientSecret presence
-func applyOAuthAppToModel(app *model.OAuthApp) *model.OAuthApp {
-	// Compute TokenEndpointAuthMethod based on ClientSecret presence
-	if app.ClientSecret == "" {
-		app.TokenEndpointAuthMethod = model.ClientAuthMethodNone
-	} else {
-		app.TokenEndpointAuthMethod = model.ClientAuthMethodClientSecretPost
-	}
-	return app
-}
-
-// applyOAuthAppSliceToModel applies the TokenEndpointAuthMethod logic to a slice of OAuth apps
-func applyOAuthAppSliceToModel(apps []*model.OAuthApp) []*model.OAuthApp {
-	for _, app := range apps {
-		applyOAuthAppToModel(app)
-	}
-	return apps
-}
 
 func newSqlOAuthStore(sqlStore *SqlStore) store.OAuthStore {
 	s := SqlOAuthStore{
@@ -79,7 +61,7 @@ func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, error) {
 		 :IsDynamicallyRegistered)`, app); err != nil {
 		return nil, errors.Wrap(err, "failed to save OAuthApp")
 	}
-	return applyOAuthAppToModel(app), nil
+	return app, nil
 }
 
 func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) {
@@ -119,7 +101,7 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) 
 	if count > 1 {
 		return nil, store.NewErrInvalidInput("OAuthApp", "Id", app.Id)
 	}
-	return applyOAuthAppToModel(app), nil
+	return app, nil
 }
 
 func (as SqlOAuthStore) GetApp(id string) (*model.OAuthApp, error) {
@@ -136,7 +118,7 @@ func (as SqlOAuthStore) GetApp(id string) (*model.OAuthApp, error) {
 		return nil, store.NewErrNotFound("OAuthApp", id)
 	}
 
-	return applyOAuthAppToModel(&app), nil
+	return &app, nil
 }
 
 func (as SqlOAuthStore) GetAppByUser(userId string, offset, limit int) ([]*model.OAuthApp, error) {
@@ -148,7 +130,7 @@ func (as SqlOAuthStore) GetAppByUser(userId string, offset, limit int) ([]*model
 		return nil, errors.Wrapf(err, "failed to find OAuthApps with userId=%s", userId)
 	}
 
-	return applyOAuthAppSliceToModel(apps), nil
+	return apps, nil
 }
 
 func (as SqlOAuthStore) GetApps(offset, limit int) ([]*model.OAuthApp, error) {
@@ -160,7 +142,7 @@ func (as SqlOAuthStore) GetApps(offset, limit int) ([]*model.OAuthApp, error) {
 		return nil, errors.Wrap(err, "failed to find OAuthApps")
 	}
 
-	return applyOAuthAppSliceToModel(apps), nil
+	return apps, nil
 }
 
 func (as SqlOAuthStore) GetAuthorizedApps(userId string, offset, limit int) ([]*model.OAuthApp, error) {
@@ -175,7 +157,7 @@ func (as SqlOAuthStore) GetAuthorizedApps(userId string, offset, limit int) ([]*
 		return nil, errors.Wrapf(err, "failed to find OAuthApps with userId=%s", userId)
 	}
 
-	return applyOAuthAppSliceToModel(apps), nil
+	return apps, nil
 }
 
 func (as SqlOAuthStore) DeleteApp(id string) (err error) {

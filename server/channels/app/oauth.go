@@ -39,6 +39,8 @@ func (a *App) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppEr
 		return nil, model.NewAppError("CreateOAuthApp", "api.oauth.register_oauth_app.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
 
+	app.ClientSecret = model.NewId()
+
 	oauthApp, err := a.Srv().Store().OAuth().SaveApp(app)
 	if err != nil {
 		var appErr *model.AppError
@@ -1140,12 +1142,28 @@ func (a *App) GetAuthorizationServerMetadata(c request.CTX) (*model.Authorizatio
 }
 
 func (a *App) RegisterOAuthClient(c request.CTX, req *model.ClientRegistrationRequest, userID string) (*model.OAuthApp, *model.AppError) {
-	app := model.NewOAuthAppFromClientRegistration(req, userID)
-
-	rapp, err := a.CreateOAuthApp(app)
-	if err != nil {
-		return nil, err
+	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
+		return nil, model.NewAppError("RegisterOAuthClient", "api.oauth.register_oauth_app.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	return rapp, nil
+	app := model.NewOAuthAppFromClientRegistration(req, userID)
+
+	oauthApp, err := a.Srv().Store().OAuth().SaveApp(app)
+	if err != nil {
+		var appErr *model.AppError
+		var invErr *store.ErrInvalidInput
+
+		a.Log().Error("Error saving OAuth app via DCR", mlog.Err(err), mlog.String("name", app.Name))
+
+		switch {
+		case errors.As(err, &appErr):
+			return nil, appErr
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("RegisterOAuthClient", "app.oauth.save_app.existing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		default:
+			return nil, model.NewAppError("RegisterOAuthClient", "app.oauth.save_app.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	return oauthApp, nil
 }

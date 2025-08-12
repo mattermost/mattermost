@@ -21,18 +21,17 @@ func TestClientRegistrationRequest_PublicClient_IsValid(t *testing.T) {
 	require.Nil(t, req.IsValid())
 }
 
-func TestClientRegistrationRequest_PublicClient_NoRefreshToken(t *testing.T) {
-	// Test that public clients cannot request refresh_token grant type
+func TestClientRegistrationRequest_PublicClient_Valid(t *testing.T) {
+	// Test that public client registration request is valid
 	req := &ClientRegistrationRequest{
 		RedirectURIs:            []string{"https://example.com/callback"},
 		TokenEndpointAuthMethod: NewPointer(ClientAuthMethodNone),
 		ClientName:              NewPointer("Test Public Client"),
 	}
 
-	// Public client requesting refresh_token grant should fail
+	// Public client registration should be valid
 	err := req.IsValid()
-	require.NotNil(t, err)
-	require.Contains(t, err.Id, "public_client_refresh_token.app_error")
+	require.Nil(t, err)
 }
 
 func TestClientRegistrationRequest_PublicClient_AuthMethodValidation(t *testing.T) {
@@ -89,7 +88,7 @@ func TestNewOAuthAppFromClientRegistration_PublicClient(t *testing.T) {
 	// Verify app properties
 	require.Equal(t, creatorId, app.CreatorId)
 	require.Equal(t, req.RedirectURIs, app.CallbackUrls)
-	require.Equal(t, *req.TokenEndpointAuthMethod, app.TokenEndpointAuthMethod)
+	require.Equal(t, *req.TokenEndpointAuthMethod, app.GetTokenEndpointAuthMethod())
 	require.Equal(t, *req.ClientName, app.Name)
 	require.True(t, app.IsDynamicallyRegistered)
 
@@ -106,7 +105,7 @@ func TestClientRegistrationResponse_PublicClient_NoSecret(t *testing.T) {
 	app := &OAuthApp{
 		Id:                      NewId(),
 		CallbackUrls:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: ClientAuthMethodNone,
+		// No ClientSecret = public client
 		Name:                    "Test Public Client",
 	}
 
@@ -114,7 +113,7 @@ func TestClientRegistrationResponse_PublicClient_NoSecret(t *testing.T) {
 
 	// Verify response properties
 	require.Equal(t, app.Id, response.ClientID)
-	require.Equal(t, app.CallbackUrls, response.RedirectURIs)
+	require.Equal(t, []string(app.CallbackUrls), response.RedirectURIs)
 	require.Equal(t, ClientAuthMethodNone, response.TokenEndpointAuthMethod)
 	require.Equal(t, app.Name, *response.ClientName)
 

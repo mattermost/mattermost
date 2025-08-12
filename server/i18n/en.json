@@ -2417,6 +2417,10 @@
     "translation": "E10 or E20 license required to use this endpoint."
   },
   {
+    "id": "api.oauth.allow_oauth.pkce_required_public.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) is required for public OAuth clients using authorization code flow."
+  },
+  {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
     "translation": "invalid_request: Supplied redirect_uri did not match registered callback_url."
   },
@@ -2451,10 +2455,6 @@
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Bad client_id."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Missing client_secret."
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
@@ -2499,6 +2499,34 @@
   {
     "id": "api.oauth.get_access_token.missing_refresh_token.app_error",
     "translation": "invalid_request: Missing refresh_token."
+  },
+  {
+    "id": "api.oauth.get_access_token.pkce_not_used_in_auth.app_error",
+    "translation": "Code verifier provided but PKCE was not used during authorization. Either use PKCE for the entire flow or omit the code verifier."
+  },
+  {
+    "id": "api.oauth.get_access_token.pkce_required.app_error",
+    "translation": "Code verifier is required for public OAuth clients."
+  },
+  {
+    "id": "api.oauth.get_access_token.pkce_required_public.app_error",
+    "translation": "PKCE challenge is required for public OAuth clients but was not found in authorization data."
+  },
+  {
+    "id": "api.oauth.get_access_token.pkce_verification_failed.app_error",
+    "translation": "PKCE verification failed. The code verifier does not match the code challenge."
+  },
+  {
+    "id": "api.oauth.get_access_token.pkce_verifier_required.app_error",
+    "translation": "Code verifier is required when PKCE was used during authorization."
+  },
+  {
+    "id": "api.oauth.get_access_token.public_client_refresh_token.app_error",
+    "translation": "Public OAuth clients are not allowed to use refresh tokens."
+  },
+  {
+    "id": "api.oauth.get_access_token.public_client_secret.app_error",
+    "translation": "Public OAuth clients must not provide a client secret."
   },
   {
     "id": "api.oauth.get_access_token.redirect_uri.app_error",
@@ -8661,6 +8689,26 @@
     "translation": "Invalid client id."
   },
   {
+    "id": "model.authorize.is_valid.code_challenge.app_error",
+    "translation": "Code challenge is required when using PKCE."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.format.app_error",
+    "translation": "Code challenge must be base64url-encoded (using characters A-Z, a-z, 0-9, -, _)."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.length.app_error",
+    "translation": "Code challenge must be between 43 and 128 characters long."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.app_error",
+    "translation": "Code challenge method is required when using PKCE."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.unsupported.app_error",
+    "translation": "Only 'S256' code challenge method is supported."
+  },
+  {
     "id": "model.authorize.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time."
   },
@@ -9587,6 +9635,10 @@
   {
     "id": "model.dcr.is_valid.redirect_uris.app_error",
     "translation": "At least one redirect URI is required."
+  },
+  {
+    "id": "model.dcr.is_valid.token_endpoint_auth_method.app_error",
+    "translation": "Unsupported token endpoint authentication method. Only 'client_secret_post' and 'none' are supported."
   },
   {
     "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
