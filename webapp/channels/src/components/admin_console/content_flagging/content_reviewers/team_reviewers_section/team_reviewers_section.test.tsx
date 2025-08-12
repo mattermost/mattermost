@@ -19,10 +19,10 @@ jest.mock('mattermost-redux/actions/teams', () => ({
 }));
 
 jest.mock('../../user_multiselector/user_multiselector', () => ({
-    UserMultiSelector: ({id, initialValue, onChange}: {id: string; initialValue: string[]; onChange: (ids: string[]) => void}) => (
+    UserSelector: ({id, multiSelectInitialValue, multiSelectOnChange}: {id: string; multiSelectInitialValue: string[]; multiSelectOnChange: (ids: string[]) => void}) => (
         <div data-testid={`user-multi-selector-${id}`}>
-            <span>{`Selected: {${initialValue.join(', ')}`}</span>
-            <button onClick={() => onChange(['user1', 'user2'])}>
+            <span>{`Selected: ${multiSelectInitialValue.join(', ')}`}</span>
+            <button onClick={() => multiSelectOnChange(['user1', 'user2'])}>
                 {'Change Reviewers'}
             </button>
         </div>
