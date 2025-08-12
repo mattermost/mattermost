@@ -141,12 +141,6 @@ func (c *Context) SessionRequired(r *http.Request) {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserRequired", http.StatusUnauthorized)
 		return
 	}
-
-	// Terms of Service validation
-	if appErr := c.TermsOfServiceRequired(r); appErr != nil {
-		c.Err = appErr
-		return
-	}
 }
 
 func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
