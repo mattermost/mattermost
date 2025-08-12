@@ -6340,23 +6340,23 @@
   },
   {
     "id": "app.pap.access_control.channel_group_constrained",
-    "translation": ""
+    "translation": "Channel is group constrained and cannot have access control policies applied."
   },
   {
     "id": "app.pap.access_control.channel_not_private",
-    "translation": ""
+    "translation": "Access control policies can only be applied to private channels."
   },
   {
     "id": "app.pap.access_control.channel_shared",
-    "translation": ""
+    "translation": "Channel is shared and cannot have access control policies applied."
   },
   {
     "id": "app.pap.access_control.insufficient_channel_permissions",
-    "translation": ""
+    "translation": "You do not have permission to manage access control for this channel."
   },
   {
     "id": "app.pap.access_control.insufficient_permissions",
-    "translation": ""
+    "translation": "You do not have permission to manage this access control policy."
   },
   {
     "id": "app.pap.assign_access_control_policy_to_channels.app_error",
