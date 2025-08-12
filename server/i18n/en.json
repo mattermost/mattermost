@@ -9573,6 +9573,14 @@
     "translation": "Client name must be 64 characters or less."
   },
   {
+    "id": "model.dcr.is_valid.client_uri_format.app_error",
+    "translation": "Invalid client URI format."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_length.app_error",
+    "translation": "Client URI must be less than 256 characters."
+  },
+  {
     "id": "model.dcr.is_valid.redirect_uri_format.app_error",
     "translation": "Invalid redirect URI format."
   },
