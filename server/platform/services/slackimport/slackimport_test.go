@@ -555,15 +555,8 @@ func TestSlackImportEnhancedSecurityAdminCanVerifyEmails(t *testing.T) {
 	config := &model.Config{}
 	config.SetDefaults()
 
-	// Create a system admin user as the importing user
-	adminUser := &model.User{
-		Id:       "admin-user-id",
-		Username: "admin",
-		Email:    "admin@example.com",
-		Roles:    model.SystemAdminRoleId,
-	}
-
-	importer := NewWithImportingUser(store, actions, config, adminUser)
+	// Pass true to indicate this is an admin import
+	importer := NewWithAdminFlag(store, actions, config, true)
 
 	team := &model.Team{
 		Id:   "test-team-id",
@@ -622,15 +615,8 @@ func TestSlackImportEnhancedSecurityNonAdminCannotVerifyEmails(t *testing.T) {
 	config := &model.Config{}
 	config.SetDefaults()
 
-	// Create a regular user as the importing user
-	regularUser := &model.User{
-		Id:       "regular-user-id",
-		Username: "regularuser",
-		Email:    "regular@example.com",
-		Roles:    model.SystemUserRoleId, // Not a system admin
-	}
-
-	importer := NewWithImportingUser(store, actions, config, regularUser)
+	// Pass false to indicate this is NOT an admin import
+	importer := NewWithAdminFlag(store, actions, config, false)
 
 	team := &model.Team{
 		Id:   "test-team-id",
@@ -689,8 +675,8 @@ func TestSlackImportEnhancedSecurityNoImportingUser(t *testing.T) {
 	config := &model.Config{}
 	config.SetDefaults()
 
-	// No importing user provided (nil)
-	importer := NewWithImportingUser(store, actions, config, nil)
+	// Pass false to indicate no admin privileges (default secure behavior)
+	importer := NewWithAdminFlag(store, actions, config, false)
 
 	team := &model.Team{
 		Id:   "test-team-id",

@@ -103,7 +103,7 @@ type SlackImporter struct {
 	store         store.Store
 	actions       Actions
 	config        *model.Config
-	importingUser *model.User
+	isAdminImport bool
 }
 
 // New creates a new SlackImporter service instance. It receive a store, a set of actions and the current config.
@@ -116,14 +116,14 @@ func New(store store.Store, actions Actions, config *model.Config) *SlackImporte
 	}
 }
 
-// NewWithImportingUser creates a new SlackImporter service instance with information about the user performing the import.
+// NewWithAdminFlag creates a new SlackImporter service instance with information about whether this is an admin import.
 // This allows for enhanced security controls based on the importing user's role.
-func NewWithImportingUser(store store.Store, actions Actions, config *model.Config, importingUser *model.User) *SlackImporter {
+func NewWithAdminFlag(store store.Store, actions Actions, config *model.Config, isAdminImport bool) *SlackImporter {
 	return &SlackImporter{
 		store:         store,
 		actions:       actions,
 		config:        config,
-		importingUser: importingUser,
+		isAdminImport: isAdminImport,
 	}
 }
 
@@ -731,7 +731,7 @@ func (si *SlackImporter) oldImportUser(rctx request.CTX, team *model.Team, user 
 	}
 
 	// Only system admins can automatically verify emails during import
-	if si.importingUser != nil && si.importingUser.IsSystemAdmin() {
+	if si.isAdminImport {
 		if _, err := si.store.User().VerifyEmail(ruser.Id, ruser.Email); err != nil {
 			rctx.Logger().Warn("Failed to set email verified for admin import.", mlog.Err(err))
 		}

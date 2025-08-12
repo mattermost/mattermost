@@ -49,15 +49,15 @@ func (a *App) SlackImport(c request.CTX, fileData multipart.File, fileSize int64
 		},
 	}
 
-	// Get the importing user from the context for enhanced security controls
-	var importingUser *model.User
+	// Check if the importing user is a system admin for enhanced security controls
+	isAdminImport := false
 	if c.Session() != nil && c.Session().UserId != "" {
 		if user, err := a.GetUser(c.Session().UserId); err == nil {
-			importingUser = user
+			isAdminImport = user.IsSystemAdmin()
 		}
 	}
 
-	importer := slackimport.NewWithImportingUser(a.Srv().Store(), actions, a.Config(), importingUser)
+	importer := slackimport.NewWithAdminFlag(a.Srv().Store(), actions, a.Config(), isAdminImport)
 	return importer.SlackImport(c, fileData, fileSize, teamID)
 }
 
