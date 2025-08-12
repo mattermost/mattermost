@@ -233,6 +233,13 @@ func (hooks *hooksTimerLayer) ConfigurationWillBeSaved(newCfg *model.Config) (*m
 	return _returnsA, _returnsB
 }
 
+func (hooks *hooksTimerLayer) EmailNotificationWillBeSent(emailNotification *model.EmailNotification) (*model.EmailNotificationContent, string) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.EmailNotificationWillBeSent(emailNotification)
+	hooks.recordTime(startTime, "EmailNotificationWillBeSent", true)
+	return _returnsA, _returnsB
+}
+
 func (hooks *hooksTimerLayer) NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := hooks.hooksImpl.NotificationWillBePushed(pushNotification, userID)
