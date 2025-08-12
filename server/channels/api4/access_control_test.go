@@ -735,7 +735,7 @@ func TestUnassignAccessPolicy(t *testing.T) {
 
 func TestGetChannelsForAccessControlPolicy(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
-	th := Setup(t)
+	th := Setup(t).InitBasic()
 	t.Cleanup(func() {
 		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
@@ -798,7 +798,7 @@ func TestGetChannelsForAccessControlPolicy(t *testing.T) {
 
 func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
-	th := Setup(t)
+	th := Setup(t).InitBasic()
 	t.Cleanup(func() {
 		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
