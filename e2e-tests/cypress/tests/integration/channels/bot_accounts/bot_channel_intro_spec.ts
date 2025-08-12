@@ -23,7 +23,7 @@ describe('Bot channel intro and avatar', () => {
             team = out.team;
         });
 
-        cy.makeClient().then(async (client) => {
+        cy.makeClient().then(async ({client}) => {
             // # Create bot
             bot = await client.createBot(createBotPatch());
             await client.addToTeam(team.id, bot.user_id);

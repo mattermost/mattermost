@@ -39,6 +39,9 @@ import './ui_commands'; // soon to deprecate
 import {DEFAULT_TEAM} from './constants';
 
 import {getDefaultConfig} from './api/system';
+import {E2EClient} from './client-impl';
+import {getAdminAccount} from './env';
+import {createTeamPatch} from './api/team';
 
 Cypress.dayjs = dayjs;
 
@@ -112,44 +115,54 @@ before(() => {
     // # Clear localforage state
     localforage.clear();
 
-    // # Try to login using existing sysadmin account
-    cy.apiAdminLogin({failOnStatusCode: false}).then((response) => {
-        if (response.user) {
-            sysadminSetup(response.user);
-        } else {
-            // # Create and login a newly created user as sysadmin
-            cy.apiCreateAdmin().then(({sysadmin}) => {
-                cy.apiAdminLogin().then(() => sysadminSetup(sysadmin));
-            });
+    cy.makeClient().then(async ({user, client}) => {
+        if (!user) {
+            const firstClient = new E2EClient();
+            firstClient.setUrl(Cypress.config('baseUrl'));
+            const defaultAdmin = getAdminAccount();
+            await firstClient.createUser(defaultAdmin, '', '');
+
+            return cy.makeClient();
         }
 
-        switch (Cypress.env('serverEdition')) {
-        case 'Cloud':
-            cy.apiRequireLicenseForFeature('Cloud');
-            break;
-        case 'E20':
-            cy.apiRequireLicense();
-            break;
-        default:
-            break;
-        }
+        return cy.wrap({user, client});
+    }).then(async ({client: adminClient, user: adminUser}) => {
+        // Update server config
+        const config = await adminClient.updateConfig(getDefaultConfig());
+        const configOldFormat = await adminClient.getClientConfigOld();
 
-        if (Cypress.env('serverClusterEnabled')) {
-            cy.log('Checking cluster information...');
+        // Create default team if it does not exist
+        await createDefaultTeam(adminClient);
 
-            // * Ensure cluster is set up properly when enabled
-            cy.shouldHaveClusterEnabled();
-            cy.apiGetClusterStatus().then(({clusterInfo}) => {
-                const sameCount = clusterInfo?.length === Cypress.env('serverClusterHostCount');
-                expect(sameCount, sameCount ? '' : `Should match number of hosts in a cluster as expected. Got "${clusterInfo?.length}" but expected "${Cypress.env('serverClusterHostCount')}"`).to.equal(true);
+        // Set default preferences
+        await savePreferences(adminClient, adminUser?.id ?? '');
 
-                clusterInfo.forEach((info) => cy.log(`hostname: ${info.hostname}, version: ${info.version}, config_hash: ${info.config_hash}`));
-            });
-        }
+        // Get all plugins
+        const plugins = await adminClient.getPlugins();
 
-        // Log license status and server details before test
-        printLicenseStatus();
-        printServerDetails();
+        // Get license information
+        const license = await adminClient.getClientLicenseOld();
+
+        cy.wrap({adminUser, config, configOldFormat, license, plugins});
+    }).then(({config, configOldFormat, license, adminUser, plugins}) => {
+        cy.log('---- Test Environment ----');
+
+        // Print license information
+        printLicenseInfo(license);
+
+        // Print server information
+        printServerInfo(config, configOldFormat);
+
+        // Log plugin details
+        printPluginDetails(plugins);
+
+        // Print admin user information
+        printAdminInfo(adminUser);
+
+        // Print Cypress test configuration
+        printCypressTestConfig();
+
+        cy.log('--------------------------\n');
     });
 });
 
@@ -158,112 +171,135 @@ beforeEach(() => {
     cy.then(() => null);
 });
 
-function printLicenseStatus() {
-    cy.apiGetClientLicense().then(({license}) => {
-        cy.log(`Server License:
+async function createDefaultTeam(adminClient) {
+    try {
+        const myTeams = await adminClient.getMyTeams();
+        const myDefaultTeam = myTeams && myTeams.length > 0 && myTeams.find((team) => team.name === DEFAULT_TEAM.name);
+        if (!myDefaultTeam) {
+            await adminClient.createTeam(createTeamPatch(DEFAULT_TEAM.name, DEFAULT_TEAM.display_name, 'O', false));
+        } else if (myDefaultTeam && Cypress.env('resetBeforeTest')) {
+            await Promise.all(
+                myTeams.filter((team) => team.name !== myDefaultTeam.name).map((team) => adminClient.deleteTeam(team.id)),
+            );
+
+            const myChannels = await adminClient.getMyChannels(myDefaultTeam.id);
+            await Promise.all(
+                myChannels.filter((channel) => {
+                    return (
+                        channel.team_id === myDefaultTeam.id &&
+                        channel.name !== 'town-square' &&
+                        channel.name !== 'off-topic'
+                    );
+                }).map((channel) => adminClient.deleteChannel(channel.id)),
+            );
+        }
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        console.log('Error creating default team', error);
+        throw error;
+    }
+}
+
+async function savePreferences(adminClient, userId) {
+    try {
+        if (!userId) {
+            throw new Error('userId is not defined');
+        }
+
+        const preferences = [
+            {user_id: userId, category: 'tutorial_step', name: userId, value: '999'},
+            {user_id: userId, category: 'crt_thread_pane_step', name: userId, value: '999'},
+        ];
+
+        await adminClient.savePreferences(userId, preferences);
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        console.log('Error saving preferences', error);
+    }
+}
+
+function printPluginDetails(plugins) {
+    let logs = '';
+
+    if (plugins.active.length) {
+        // eslint-disable-next-line no-console
+        logs += 'Active plugins:';
+    }
+
+    plugins.active.forEach((plugin) => {
+        // eslint-disable-next-line no-console
+        logs += `\n  - ${plugin.id}@${plugin.version} | min_server@${plugin.min_server_version}`;
+    });
+
+    if (plugins.inactive.length) {
+        // eslint-disable-next-line no-console
+        logs += '\nInactive plugins:';
+    }
+
+    plugins.inactive.forEach((plugin) => {
+        // eslint-disable-next-line no-console
+        logs += `\n  - ${plugin.id}@${plugin.version} | min_server@${plugin.min_server_version}`;
+    });
+
+    // eslint-disable-next-line no-console
+    cy.log(logs);
+}
+
+function printCypressTestConfig() {
+    // eslint-disable-next-line no-console
+    cy.log(`Cypress Test Config:
+  - Browser     = ${Cypress.browser.name} v${Cypress.browser.version}
+  - Viewport    = ${Cypress.config('viewportWidth')}x${Cypress.config('viewportHeight')}
+  - BaseUrl     = ${Cypress.config('baseUrl')}`);
+}
+
+function printLicenseInfo(license) {
+    // eslint-disable-next-line no-console
+    cy.log(`Server License:
   - IsLicensed      = ${license.IsLicensed}
   - IsTrial         = ${license.IsTrial}
   - SkuName         = ${license.SkuName}
   - SkuShortName    = ${license.SkuShortName}
   - Cloud           = ${license.Cloud}
   - Users           = ${license.Users}`);
-    });
 }
 
-function printServerDetails() {
-    cy.apiGetConfig(true).then(({config}) => {
-        cy.log(`Build Info:
-  - BuildNumber             = ${config.BuildNumber}
-  - BuildDate               = ${config.BuildDate}
-  - Version                 = ${config.Version}
-  - BuildHash               = ${config.BuildHash}
-  - BuildHashEnterprise     = ${config.BuildHashEnterprise}
-  - BuildEnterpriseReady    = ${config.BuildEnterpriseReady}
-  - TelemetryId             = ${config.TelemetryId}
-  - ServiceEnvironment      = ${config.ServiceEnvironment}`);
-    });
-    cy.apiGetConfig().then(({config}) => {
-        cy.log(`Notable Server Config:
-  - ServiceSettings.EnableSecurityFixAlert  = ${config.ServiceSettings.EnableSecurityFixAlert}
+function printServerInfo(config, configOldFormat) {
+    // eslint-disable-next-line no-console
+    cy.log(`Build Info:
+  - BuildNumber                 = ${configOldFormat.BuildNumber}
+  - BuildDate                   = ${configOldFormat.BuildDate}
+  - Version                     = ${configOldFormat.Version}
+  - BuildHash                   = ${configOldFormat.BuildHash}
+  - BuildHashEnterprise         = ${configOldFormat.BuildHashEnterprise}
+  - BuildEnterpriseReady        = ${configOldFormat.BuildEnterpriseReady}
+  - TelemetryId                 = ${configOldFormat.TelemetryId}
+  - ServiceEnvironment          = ${configOldFormat.ServiceEnvironment}`);
+
+    // eslint-disable-next-line no-console
+    cy.log(`Notable Server Config:
+  - ServiceSettings.EnableSecurityFixAlert  = ${config.ServiceSettings?.EnableSecurityFixAlert}
   - LogSettings.EnableDiagnostics           = ${config.LogSettings?.EnableDiagnostics}`);
-    });
+
+    // eslint-disable-next-line no-console
+    cy.log('Feature Flags:');
+    Object.entries(config.FeatureFlags).forEach(([key, value]) => cy.log(`  - ${key} = ${value}`));
+
+    cy.log(`Plugin Settings:
+  - Enable                       = ${config.PluginSettings?.Enable}
+  - EnableUploads                = ${config.PluginSettings?.EnableUploads}
+  - AutomaticPrepackagedPlugins  = ${config.PluginSettings?.AutomaticPrepackagedPlugins}`);
 }
 
-function sysadminSetup(user) {
-    if (Cypress.env('firstTest')) {
-        // Sends dummy call to update the config to server
-        // Without this, first call to `cy.apiUpdateConfig()` consistently getting time out error in CI against remote server.
-        cy.externalRequest({user, method: 'put', path: 'config', data: getDefaultConfig(), failOnStatusCode: false});
-    }
-
-    if (!user.email_verified) {
-        cy.apiVerifyUserEmailById(user.id);
-    }
-
-    // # Reset config to default
-    cy.apiUpdateConfig();
-
-    // # Reset admin preference, online status and locale
-    resetUserPreference(user.id);
-    cy.apiUpdateUserStatus('online');
-    cy.apiPatchMe({
-        locale: 'en',
-        timezone: {automaticTimezone: '', manualTimezone: 'UTC', useAutomaticTimezone: 'false'},
-    });
-
-    // # Reset roles
-    cy.apiGetClientLicense().then(({isLicensed}) => {
-        if (isLicensed) {
-            cy.apiResetRoles();
-        }
-    });
-
-    // # Disable plugins not included in prepackaged
-    cy.apiDisableNonPrepackagedPlugins();
-
-    // # Deactivate test bots if any
-    cy.apiDeactivateTestBots();
-
-    // # Disable welcome tours if any
-    cy.apiDisableTutorials(user.id);
-
-    // # Check if default team is present; create if not found.
-    cy.apiGetTeamsForUser().then(({teams}) => {
-        const defaultTeam = teams && teams.length > 0 && teams.find((team) => team.name === DEFAULT_TEAM.name);
-
-        if (!defaultTeam) {
-            cy.apiCreateTeam(DEFAULT_TEAM.name, DEFAULT_TEAM.display_name, 'O', false);
-        } else if (defaultTeam && Cypress.env('resetBeforeTest')) {
-            teams.forEach((team) => {
-                if (team.name !== DEFAULT_TEAM.name) {
-                    cy.apiDeleteTeam(team.id);
-                }
-            });
-
-            cy.apiGetChannelsForUser('me', defaultTeam.id).then(({channels}) => {
-                channels.forEach((channel) => {
-                    if (
-                        (channel.team_id === defaultTeam.id || channel.team_name === defaultTeam.name) &&
-                        (channel.name !== 'town-square' && channel.name !== 'off-topic')
-                    ) {
-                        cy.apiDeleteChannel(channel.id);
-                    }
-                });
-            });
-        }
-    });
-}
-
-function resetUserPreference(userId) {
-    cy.apiSaveTeammateNameDisplayPreference('username');
-    cy.apiSaveLinkPreviewsPreference('true');
-    cy.apiSaveCollapsePreviewsPreference('false');
-    cy.apiSaveClockDisplayModeTo24HourPreference(false);
-    cy.apiSaveTutorialStep(userId, '999');
-    cy.apiSaveOnboardingTaskListPreference(userId, 'onboarding_task_list_open', 'false');
-    cy.apiSaveOnboardingTaskListPreference(userId, 'onboarding_task_list_show', 'false');
-    cy.apiSaveCloudTrialBannerPreference(userId, 'trial', 'max_days_banner');
-    cy.apiSaveSkipStepsPreference(userId, 'true');
-    cy.apiSaveStartTrialModal(userId, 'true');
-    cy.apiSaveUnreadScrollPositionPreference(userId, 'start_from_left_off');
+function printAdminInfo(adminUser) {
+    // eslint-disable-next-line no-console
+    cy.log(`Admin Info:
+  - ID          = ${adminUser.id}
+  - Username    = ${adminUser.username}
+  - FirstName   = ${adminUser.first_name}
+  - LastName    = ${adminUser.last_name}
+  - Email       = ${adminUser.email}
+  - Locale      = ${adminUser.locale}
+  - Timezone    = ${JSON.stringify(adminUser.timezone)}
+  - Roles       = ${JSON.stringify(adminUser.roles)}`);
 }

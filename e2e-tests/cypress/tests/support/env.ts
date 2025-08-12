@@ -14,6 +14,8 @@ export function getAdminAccount() {
         username: Cypress.env('adminUsername'),
         password: Cypress.env('adminPassword'),
         email: Cypress.env('adminEmail'),
+        first_name: 'Kenneth',
+        last_name: 'Moreno',
     } as UserProfile;
 }
 

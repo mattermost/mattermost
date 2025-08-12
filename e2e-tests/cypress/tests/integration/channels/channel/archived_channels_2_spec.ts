@@ -40,7 +40,7 @@ describe('Leave an archived channel', () => {
     });
 
     it('MM-T1687 App does not crash when another user archives a channel', () => {
-        cy.makeClient({user: getAdminAccount()}).then(async (client) => {
+        cy.makeClient({user: getAdminAccount()}).then(async ({client}) => {
             // # Have another user create a private channel
             const channelName = `channel${getRandomId()}`;
             const channelTest = {

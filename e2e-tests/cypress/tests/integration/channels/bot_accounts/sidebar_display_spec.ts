@@ -33,7 +33,7 @@ describe('Bot accounts', () => {
             testUser = out.user;
         });
 
-        cy.makeClient().then(async (client) => {
+        cy.makeClient().then(async ({client}) => {
             // # Create bots
             bots = await Promise.all([
                 client.createBot(createBotPatch()),

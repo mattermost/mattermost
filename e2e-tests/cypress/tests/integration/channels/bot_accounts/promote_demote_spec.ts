@@ -27,7 +27,7 @@ describe('Managing bots in Teams and Channels', () => {
         });
     });
     it('MM-T1819 Promote a BOT to team admin', () => {
-        cy.makeClient().then(async (client) => {
+        cy.makeClient().then(async ({client}) => {
             // # Go to channel
             const channel = await client.getChannelByName(team.id, 'off-topic');
             cy.visit(`/${team.name}/channels/${channel.name}`);

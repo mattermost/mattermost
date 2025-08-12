@@ -18,13 +18,14 @@ async function makeClient({user = getAdminAccount(), useCache = true} = {}) {
     const baseUrl = Cypress.config('baseUrl');
     client.setUrl(baseUrl);
 
-    await client.login(user.username, user.password);
+    const userProfile = await client.login(user.username, user.password);
+    const userProfileWithPassword = {...userProfile, password: user.password};
 
     if (useCache) {
-        clients[cacheKey] = client;
+        clients[cacheKey] = {client, user: userProfileWithPassword};
     }
 
-    return client;
+    return {client, user: userProfileWithPassword};
 }
 
 Cypress.Commands.add('makeClient', makeClient);

@@ -61,7 +61,7 @@ describe('Channel Bookmarks', () => {
         it('bookmarks bar hidden when empty', () => {
         // # Go to channel menu
             cy.uiGetChannelInfoButton();
-            cy.makeClient().then(async (client) => {
+            cy.makeClient().then(async ({client}) => {
                 const bookmarks = await client.getChannelBookmarks(publicChannel.id);
                 cy.wrap(bookmarks.length).should('eq', 0);
             });
@@ -368,7 +368,7 @@ describe('Channel Bookmarks', () => {
     });
 
     function makeBookmarks(channel: Channel, n?: number) {
-        cy.makeClient().then(async (client) => {
+        cy.makeClient().then(async ({client}) => {
             const nToMake = n ?? BOOKMARK_LIMIT - (await client.getChannelBookmarks(channel.id))?.length;
 
             await Promise.allSettled(Array(nToMake).fill(0).map(() => {

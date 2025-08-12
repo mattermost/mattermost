@@ -30,7 +30,7 @@ describe('Managing bots in Teams and Channels', () => {
     });
 
     it('MM-T1815 Add a BOT to a team that has email restricted', () => {
-        cy.makeClient().then(async (client) => {
+        cy.makeClient().then(async ({client}) => {
             // # Go to channel
             const channel = await client.getChannelByName(team.id, 'town-square');
             cy.visit(`/${team.name}/channels/${channel.name}`);
@@ -45,7 +45,7 @@ describe('Managing bots in Teams and Channels', () => {
     });
 
     it('MM-T1816 Add a BOT to a channel', () => {
-        cy.makeClient().then(async (client) => {
+        cy.makeClient().then(async ({client}) => {
             // # Go to channel
             const channel = await client.createChannel(createChannelPatch(team.id, 'a-chan', 'A Channel') as Channel);
             cy.visit(`/${team.name}/channels/${channel.name}`);
@@ -63,7 +63,7 @@ describe('Managing bots in Teams and Channels', () => {
     });
 
     it('MM-T1817 Add a BOT to a channel that is not on the Team', () => {
-        cy.makeClient().then(async (client) => {
+        cy.makeClient().then(async ({client}) => {
             // # Go to channel
             const channel = await client.createChannel(createChannelPatch(team.id, 'a-chan', 'A Channel') as Channel);
             cy.visit(`/${team.name}/channels/${channel.name}`);
@@ -78,7 +78,7 @@ describe('Managing bots in Teams and Channels', () => {
     });
 
     it('MM-T1818 No ephemeral post about Adding a bot to a channel When Bot is mentioned', () => {
-        cy.makeClient().then(async (client) => {
+        cy.makeClient().then(async ({client}) => {
             // # Go to channel
             const channel = await client.createChannel(createChannelPatch(team.id, 'a-chan', 'A Channel') as Channel);
             cy.visit(`/${team.name}/channels/${channel.name}`);
