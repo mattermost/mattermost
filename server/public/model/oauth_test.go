@@ -79,7 +79,7 @@ func TestOAuthApp_PublicClient_IsValid(t *testing.T) {
 		Name:                    "Test Public Client",
 		CallbackUrls:            []string{"https://example.com/callback"},
 		Homepage:                "https://example.com",
-		TokenEndpointAuthMethod: NewPointer(ClientAuthMethodNone),
+		TokenEndpointAuthMethod: ClientAuthMethodNone,
 	}
 
 	// Public client without client secret should be valid
@@ -101,7 +101,7 @@ func TestOAuthApp_ConfidentialClient_IsValid(t *testing.T) {
 		Name:                    "Test Confidential Client",
 		CallbackUrls:            []string{"https://example.com/callback"},
 		Homepage:                "https://example.com",
-		TokenEndpointAuthMethod: NewPointer(ClientAuthMethodClientSecretPost),
+		TokenEndpointAuthMethod: ClientAuthMethodClientSecretPost,
 	}
 
 	// Confidential client without client secret should be invalid
@@ -118,7 +118,7 @@ func TestOAuthApp_PublicClient_PreSave(t *testing.T) {
 		Name:                    "Test Public Client",
 		CallbackUrls:            []string{"https://example.com/callback"},
 		Homepage:                "https://example.com",
-		TokenEndpointAuthMethod: NewPointer(ClientAuthMethodNone),
+		TokenEndpointAuthMethod: ClientAuthMethodNone,
 	}
 
 	app.PreSave()
@@ -136,7 +136,7 @@ func TestOAuthApp_ConfidentialClient_PreSave(t *testing.T) {
 		Name:                    "Test Confidential Client",
 		CallbackUrls:            []string{"https://example.com/callback"},
 		Homepage:                "https://example.com",
-		TokenEndpointAuthMethod: NewPointer(ClientAuthMethodClientSecretPost),
+		TokenEndpointAuthMethod: ClientAuthMethodClientSecretPost,
 	}
 
 	app.PreSave()
@@ -146,36 +146,4 @@ func TestOAuthApp_ConfidentialClient_PreSave(t *testing.T) {
 	require.NotEmpty(t, app.Id)
 	require.NotZero(t, app.CreateAt)
 	require.NotZero(t, app.UpdateAt)
-}
-
-func TestOAuthApp_PublicClient_GrantTypes(t *testing.T) {
-	// Test that public clients only get authorization_code grant type
-	app := OAuthApp{
-		Name:                    "Test Public Client",
-		CallbackUrls:            []string{"https://example.com/callback"},
-		Homepage:                "https://example.com",
-		TokenEndpointAuthMethod: NewPointer(ClientAuthMethodNone),
-	}
-
-	app.PreSave()
-
-	// Public client should only have authorization_code grant type
-	require.Equal(t, []string{GrantTypeAuthorizationCode}, app.GrantTypes)
-	require.NotContains(t, app.GrantTypes, GrantTypeRefreshToken)
-}
-
-func TestOAuthApp_ConfidentialClient_GrantTypes(t *testing.T) {
-	// Test that confidential clients get both authorization_code and refresh_token grant types
-	app := OAuthApp{
-		Name:                    "Test Confidential Client",
-		CallbackUrls:            []string{"https://example.com/callback"},
-		Homepage:                "https://example.com",
-		TokenEndpointAuthMethod: NewPointer(ClientAuthMethodClientSecretPost),
-	}
-
-	app.PreSave()
-
-	// Confidential client should have both grant types
-	require.Contains(t, app.GrantTypes, GrantTypeAuthorizationCode)
-	require.Contains(t, app.GrantTypes, GrantTypeRefreshToken)
 }

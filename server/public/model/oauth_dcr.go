@@ -9,8 +9,9 @@ import (
 )
 
 type ClientRegistrationRequest struct {
-	RedirectURIs []string `json:"redirect_uris"`
-	ClientName   *string  `json:"client_name,omitempty"`
+	RedirectURIs            []string `json:"redirect_uris"`
+	ClientName              *string  `json:"client_name,omitempty"`
+	TokenEndpointAuthMethod *string  `json:"token_endpoint_auth_method,omitempty"`
 }
 
 type ClientRegistrationResponse struct {
@@ -46,6 +47,14 @@ func (r *ClientRegistrationRequest) IsValid() *AppError {
 
 	if r.ClientName != nil && len(*r.ClientName) > 64 {
 		return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.client_name.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if r.TokenEndpointAuthMethod != nil {
+		switch *r.TokenEndpointAuthMethod {
+		case ClientAuthMethodClientSecretPost, ClientAuthMethodNone:
+		default:
+			return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.token_endpoint_auth_method.app_error", nil, "method="+*r.TokenEndpointAuthMethod, http.StatusBadRequest)
+		}
 	}
 
 	return nil

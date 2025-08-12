@@ -14,8 +14,6 @@ func TestClientRegistrationRequest_PublicClient_IsValid(t *testing.T) {
 	req := &ClientRegistrationRequest{
 		RedirectURIs:            []string{"https://example.com/callback"},
 		TokenEndpointAuthMethod: NewPointer(ClientAuthMethodNone),
-		GrantTypes:              []string{GrantTypeAuthorizationCode},
-		ResponseTypes:           []string{ResponseTypeCode},
 		ClientName:              NewPointer("Test Public Client"),
 	}
 
@@ -28,8 +26,6 @@ func TestClientRegistrationRequest_PublicClient_NoRefreshToken(t *testing.T) {
 	req := &ClientRegistrationRequest{
 		RedirectURIs:            []string{"https://example.com/callback"},
 		TokenEndpointAuthMethod: NewPointer(ClientAuthMethodNone),
-		GrantTypes:              []string{GrantTypeAuthorizationCode, GrantTypeRefreshToken}, // Invalid for public clients
-		ResponseTypes:           []string{ResponseTypeCode},
 		ClientName:              NewPointer("Test Public Client"),
 	}
 
@@ -44,8 +40,6 @@ func TestClientRegistrationRequest_PublicClient_AuthMethodValidation(t *testing.
 	req := &ClientRegistrationRequest{
 		RedirectURIs:            []string{"https://example.com/callback"},
 		TokenEndpointAuthMethod: NewPointer(ClientAuthMethodNone),
-		GrantTypes:              []string{GrantTypeAuthorizationCode},
-		ResponseTypes:           []string{ResponseTypeCode},
 		ClientName:              NewPointer("Test Public Client"),
 	}
 
@@ -61,8 +55,6 @@ func TestClientRegistrationRequest_PublicClient_RedirectURIValidation(t *testing
 	// Test redirect URI validation for public clients
 	baseReq := &ClientRegistrationRequest{
 		TokenEndpointAuthMethod: NewPointer(ClientAuthMethodNone),
-		GrantTypes:              []string{GrantTypeAuthorizationCode},
-		ResponseTypes:           []string{ResponseTypeCode},
 		ClientName:              NewPointer("Test Public Client"),
 	}
 
@@ -88,8 +80,6 @@ func TestNewOAuthAppFromClientRegistration_PublicClient(t *testing.T) {
 	req := &ClientRegistrationRequest{
 		RedirectURIs:            []string{"https://example.com/callback"},
 		TokenEndpointAuthMethod: NewPointer(ClientAuthMethodNone),
-		GrantTypes:              []string{GrantTypeAuthorizationCode},
-		ResponseTypes:           []string{ResponseTypeCode},
 		ClientName:              NewPointer("Test Public Client"),
 	}
 
@@ -99,9 +89,7 @@ func TestNewOAuthAppFromClientRegistration_PublicClient(t *testing.T) {
 	// Verify app properties
 	require.Equal(t, creatorId, app.CreatorId)
 	require.Equal(t, req.RedirectURIs, app.CallbackUrls)
-	require.Equal(t, *req.TokenEndpointAuthMethod, *app.TokenEndpointAuthMethod)
-	require.Equal(t, req.GrantTypes, app.GrantTypes)
-	require.Equal(t, req.ResponseTypes, app.ResponseTypes)
+	require.Equal(t, *req.TokenEndpointAuthMethod, app.TokenEndpointAuthMethod)
 	require.Equal(t, *req.ClientName, app.Name)
 	require.True(t, app.IsDynamicallyRegistered)
 
@@ -118,9 +106,7 @@ func TestClientRegistrationResponse_PublicClient_NoSecret(t *testing.T) {
 	app := &OAuthApp{
 		Id:                      NewId(),
 		CallbackUrls:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: NewPointer(ClientAuthMethodNone),
-		GrantTypes:              []string{GrantTypeAuthorizationCode},
-		ResponseTypes:           []string{ResponseTypeCode},
+		TokenEndpointAuthMethod: ClientAuthMethodNone,
 		Name:                    "Test Public Client",
 	}
 
@@ -130,33 +116,8 @@ func TestClientRegistrationResponse_PublicClient_NoSecret(t *testing.T) {
 	require.Equal(t, app.Id, response.ClientID)
 	require.Equal(t, app.CallbackUrls, response.RedirectURIs)
 	require.Equal(t, ClientAuthMethodNone, response.TokenEndpointAuthMethod)
-	require.Equal(t, app.GrantTypes, response.GrantTypes)
-	require.Equal(t, app.ResponseTypes, response.ResponseTypes)
 	require.Equal(t, app.Name, *response.ClientName)
 
 	// Most importantly - no client secret for public clients
 	require.Nil(t, response.ClientSecret)
-}
-
-func TestClientRegistrationRequest_GrantTypeCompatibility(t *testing.T) {
-	// Test grant type and response type compatibility validation
-	req := &ClientRegistrationRequest{
-		RedirectURIs:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: NewPointer(ClientAuthMethodNone),
-		ClientName:              NewPointer("Test Public Client"),
-	}
-
-	// Valid combinations should pass
-	req.GrantTypes = []string{GrantTypeAuthorizationCode}
-	req.ResponseTypes = []string{ResponseTypeCode}
-	require.Nil(t, req.IsValid())
-
-	// Invalid response type should fail
-	req.ResponseTypes = []string{"invalid_response_type"}
-	require.NotNil(t, req.IsValid())
-
-	// Invalid grant type should fail
-	req.ResponseTypes = []string{ResponseTypeCode}
-	req.GrantTypes = []string{"invalid_grant_type"}
-	require.NotNil(t, req.IsValid())
 }

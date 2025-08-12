@@ -905,7 +905,7 @@ func TestAuthorizeOAuthPage_PublicClient_PKCERequired(t *testing.T) {
 		Homepage:                "https://example.com",
 		Description:             "test public client",
 		CallbackUrls:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+		TokenEndpointAuthMethod: model.ClientAuthMethodNone,
 	}
 
 	publicApp, appErr := th.App.CreateOAuthApp(publicApp)
@@ -943,7 +943,7 @@ func TestAuthorizeOAuthPage_PublicClient_WithPKCE_Success(t *testing.T) {
 		Homepage:                "https://example.com",
 		Description:             "test public client",
 		CallbackUrls:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+		TokenEndpointAuthMethod: model.ClientAuthMethodNone,
 	}
 
 	publicApp, appErr := th.App.CreateOAuthApp(publicApp)
@@ -993,7 +993,7 @@ func TestAuthorizeOAuthPage_ConfidentialClient_PKCEOptional(t *testing.T) {
 		Homepage:                "https://example.com",
 		Description:             "test confidential client",
 		CallbackUrls:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodClientSecretPost),
+		TokenEndpointAuthMethod: model.ClientAuthMethodClientSecretPost,
 	}
 
 	confidentialApp, appErr := th.App.CreateOAuthApp(confidentialApp)
@@ -1039,7 +1039,7 @@ func TestAuthorizeOAuthApp_PublicClient_PKCEParameters(t *testing.T) {
 		Homepage:                "https://example.com",
 		Description:             "test public client",
 		CallbackUrls:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+		TokenEndpointAuthMethod: model.ClientAuthMethodNone,
 	}
 
 	publicApp, appErr := th.App.CreateOAuthApp(publicApp)
@@ -1105,7 +1105,7 @@ func TestGetAccessToken_PublicClient_NoClientSecret(t *testing.T) {
 		Homepage:                "https://example.com",
 		Description:             "test public client",
 		CallbackUrls:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+		TokenEndpointAuthMethod: model.ClientAuthMethodNone,
 	}
 
 	publicApp, appErr := th.App.CreateOAuthApp(publicApp)

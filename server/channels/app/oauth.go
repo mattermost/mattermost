@@ -220,8 +220,7 @@ func (a *App) AllowOAuthAppAccessToUser(c request.CTX, userID string, authReques
 	}
 
 	// Validate PKCE requirements for public clients
-	isPublicClient := oauthApp.TokenEndpointAuthMethod != nil && *oauthApp.TokenEndpointAuthMethod == model.ClientAuthMethodNone
-	if isPublicClient && authRequest.CodeChallenge == "" {
+	if oauthApp.IsPublicClient() && authRequest.CodeChallenge == "" {
 		return "", model.NewAppError("AllowOAuthAppAccessToUser", "api.oauth.allow_oauth.pkce_required_public.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -297,8 +296,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 	}
 
 	// Validate client authentication based on client type
-	isPublicClient := oauthApp.TokenEndpointAuthMethod != nil && *oauthApp.TokenEndpointAuthMethod == model.ClientAuthMethodNone
-	if isPublicClient {
+	if oauthApp.IsPublicClient() {
 		// Public client - client_secret should not be provided, PKCE is required
 		if secret != "" {
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.public_client_secret.app_error", nil, "", http.StatusBadRequest)
@@ -335,7 +333,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 		}
 
 		// PKCE verification with different rules for public vs confidential clients
-		if isPublicClient {
+		if oauthApp.IsPublicClient() {
 			// Public clients: PKCE is mandatory
 			if authData.CodeChallenge == "" {
 				return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.pkce_required_public.app_error", nil, "", http.StatusBadRequest)
@@ -390,7 +388,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 				// Return the same token and no need to create a new session
 				// Don't include refresh token for public clients
 				refreshToken := accessData.RefreshToken
-				if isPublicClient {
+				if oauthApp.IsPublicClient() {
 					refreshToken = ""
 				}
 				accessRsp = &model.AccessResponse{
@@ -410,7 +408,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 
 			// Generate refresh token only for confidential clients
 			refreshToken := ""
-			if !isPublicClient {
+			if !oauthApp.IsPublicClient() {
 				refreshToken = model.NewId()
 			}
 			accessData = &model.AccessData{ClientId: clientId, UserId: user.Id, Token: session.Token, RefreshToken: refreshToken, RedirectUri: redirectURI, ExpiresAt: session.ExpiresAt, Scope: authData.Scope}
@@ -421,7 +419,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 
 			// Don't include refresh token in response for public clients
 			refreshTokenResponse := accessData.RefreshToken
-			if isPublicClient {
+			if oauthApp.IsPublicClient() {
 				refreshTokenResponse = ""
 			}
 			accessRsp = &model.AccessResponse{
@@ -438,7 +436,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 	} else {
 		// When grantType is refresh_token
 		// Public clients are not allowed to use refresh tokens
-		if isPublicClient {
+		if oauthApp.IsPublicClient() {
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.public_client_refresh_token.app_error", nil, "", http.StatusBadRequest)
 		}
 
@@ -503,8 +501,7 @@ func (a *App) newSessionUpdateToken(c request.CTX, app *model.OAuthApp, accessDa
 
 	accessData.Token = session.Token
 	// Generate refresh token only for confidential clients
-	isPublicClient := app.TokenEndpointAuthMethod != nil && *app.TokenEndpointAuthMethod == model.ClientAuthMethodNone
-	if !isPublicClient {
+	if !app.IsPublicClient() {
 		accessData.RefreshToken = model.NewId()
 	} else {
 		accessData.RefreshToken = ""
