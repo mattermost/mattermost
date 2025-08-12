@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -33,6 +33,7 @@ interface Props {
     editing: boolean;
     actions: {
         openDirectMessage: (user: UserProfile) => void;
+        fetchRemoteClusterInfo: (remoteId: string, forceRefresh?: boolean) => void;
     };
 }
 
@@ -42,6 +43,13 @@ const Member = ({channel, member, index, totalUsers, editing, actions}: Props) =
     const remoteDisplayName = useSelector((state: GlobalState) => (
         member.user.remote_id ? getRemoteDisplayName(state, member.user.remote_id) : null
     ));
+
+    // Fetch remote info when component mounts for remote users
+    useEffect(() => {
+        if (member.user.remote_id && !remoteDisplayName) {
+            actions.fetchRemoteClusterInfo(member.user.remote_id);
+        }
+    }, [member.user.remote_id, remoteDisplayName, actions]);
 
     const userProfileSrc = Client4.getProfilePictureUrl(member.user.id, member.user.last_picture_update);
 

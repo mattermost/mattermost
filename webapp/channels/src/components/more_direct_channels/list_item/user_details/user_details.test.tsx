@@ -14,6 +14,9 @@ describe('components/more_direct_channels/list_item/user_details/UserDetails', (
     const baseProps = {
         currentUserId: 'current_user_id',
         status: 'online',
+        actions: {
+            fetchRemoteClusterInfo: jest.fn(),
+        },
     };
 
     const mockUser: UserProfile = {

@@ -36,6 +36,7 @@ describe('components/channel_members_rhs/Member', () => {
         editing: false,
         actions: {
             openDirectMessage: jest.fn(),
+            fetchRemoteClusterInfo: jest.fn(),
         },
     };
 

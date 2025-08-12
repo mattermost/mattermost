@@ -10,6 +10,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {loadMyChannelMemberAndRole} from 'mattermost-redux/actions/channels';
+import {fetchRemoteClusterInfo} from 'mattermost-redux/actions/shared_channels';
 import {Permissions} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
@@ -169,6 +170,7 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
             loadMyChannelMemberAndRole,
             setEditChannelMembers,
             searchProfilesAndChannelMembers,
+            fetchRemoteClusterInfo,
         }, dispatch),
     };
 }

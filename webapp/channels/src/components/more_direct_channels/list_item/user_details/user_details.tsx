@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -25,14 +25,25 @@ type Props = {
     currentUserId: string;
     option: UserProfile;
     status: string;
+    actions: {
+        fetchRemoteClusterInfo: (remoteId: string, forceRefresh?: boolean) => void;
+    };
 };
 
 export default function UserDetails(props: Props): JSX.Element {
-    const {currentUserId, option, status} = props;
+    const {currentUserId, option, status, actions} = props;
 
     const remoteDisplayName = useSelector((state: GlobalState) => (
         option.remote_id ? getRemoteDisplayName(state, option.remote_id) : null
     ));
+
+    // Fetch remote info when component mounts for remote users
+    useEffect(() => {
+        if (option.remote_id && !remoteDisplayName) {
+            actions.fetchRemoteClusterInfo(option.remote_id);
+        }
+    }, [option.remote_id, remoteDisplayName, actions]);
+
     const {
         id,
         delete_at: deleteAt,
