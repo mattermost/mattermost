@@ -7,7 +7,6 @@
         Get latest terms of service from the server
 
         __Minimum server version__: 5.4
-
         ##### Permissions
         Must be authenticated.
       operationId: GetTermsOfService
