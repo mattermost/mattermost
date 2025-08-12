@@ -14,7 +14,7 @@ import PostMessagePreview from './post_message_preview';
 import type {Props} from './post_message_preview';
 
 jest.mock('components/properties_card_view/propertyValueRenderer/post_preview_property_renderer/post_preview_property_renderer', () => {
-    return jest.fn(() => <div data-testid="post-preview-property-renderer-mock">PostPreviewPropertyRenderer Mock</div>);
+    return jest.fn(() => <div data-testid='post-preview-property-renderer-mock'>{'PostPreviewPropertyRenderer Mock'}</div>);
 });
 
 describe('PostMessagePreview', () => {

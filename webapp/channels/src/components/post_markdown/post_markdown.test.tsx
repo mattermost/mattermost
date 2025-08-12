@@ -13,6 +13,10 @@ import {TestHelper} from 'utils/test_helper';
 
 import PostMarkdown from './post_markdown';
 
+jest.mock('components/properties_card_view/propertyValueRenderer/post_preview_property_renderer/post_preview_property_renderer', () => {
+    return jest.fn(() => <div data-testid='post-preview-property-renderer-mock'>{'PostPreviewPropertyRenderer Mock'}</div>);
+});
+
 describe('components/PostMarkdown', () => {
     const baseProps: ComponentProps<typeof PostMarkdown> = {
         imageProps: {} as Record<string, unknown>,
