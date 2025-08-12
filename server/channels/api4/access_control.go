@@ -45,40 +45,45 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "requested", &policy)
 
-	// Check if user has system admin permission
-	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
-
-	if !hasManageSystemPermission {
-		// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
-		if !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
+	switch policy.Type {
+	case model.AccessControlPolicyTypeParent:
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
-		// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
+	case model.AccessControlPolicyTypeChannel:
+		// Check if user has system admin permission first
+		hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 
-		// For non-system admins, only channel-type policies are allowed
-		if policy.Type != model.AccessControlPolicyTypeChannel {
-			c.SetPermissionError(model.PermissionManageSystem)
-			return
-		}
+		if !hasManageSystemPermission {
+			// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
+			if !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
+				c.SetPermissionError(model.PermissionManageSystem)
+				return
+			}
+			// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
 
-		// Quick permission check: does user have channel admin permission for this specific channel?
-		if policy.ID == "" {
-			c.SetInvalidParam("policy.id")
-			return
-		}
+			// For non-system admins, check channel-specific permission
+			if policy.ID == "" {
+				c.SetInvalidParam("policy.id")
+				return
+			}
 
-		hasChannelPermission := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, policy.ID, model.PermissionManageChannelAccessRules)
-		if !hasChannelPermission {
-			c.SetPermissionError(model.PermissionManageChannelAccessRules)
-			return
-		}
+			hasChannelPermission := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, policy.ID, model.PermissionManageChannelAccessRules)
+			if !hasChannelPermission {
+				c.SetPermissionError(model.PermissionManageChannelAccessRules)
+				return
+			}
 
-		// Now do the full validation (channel exists, is private, etc.)
-		if appErr := c.App.ValidateChannelAccessControlPolicyCreation(c.AppContext, c.AppContext.Session().UserId, &policy); appErr != nil {
-			c.Err = appErr
-			return
+			// Now do the full validation (channel exists, is private, etc.)
+			if appErr := c.App.ValidateChannelAccessControlPolicyCreation(c.AppContext, c.AppContext.Session().UserId, &policy); appErr != nil {
+				c.Err = appErr
+				return
+			}
 		}
+	default:
+		c.SetInvalidParam("type")
+		return
 	}
 
 	np, appErr := c.App.CreateOrUpdateAccessControlPolicy(c.AppContext, &policy)
@@ -151,6 +156,9 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	policyID := c.Params.PolicyId
 
 	auditRec := c.MakeAuditRecord(model.AuditEventDeleteAccessControlPolicy, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "id", policyID)
+
 	// Check if user has system admin permission OR channel-specific permission
 	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasManageSystemPermission {
@@ -167,9 +175,6 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 			return
 		}
 	}
-
-	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "id", policyID)
 
 	appErr := c.App.DeleteAccessControlPolicy(c.AppContext, policyID)
 	if appErr != nil {
