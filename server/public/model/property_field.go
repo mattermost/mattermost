@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"unicode/utf8"
 )
 
 type PropertyFieldType string
@@ -19,6 +20,10 @@ const (
 	PropertyFieldTypeDate        PropertyFieldType = "date"
 	PropertyFieldTypeUser        PropertyFieldType = "user"
 	PropertyFieldTypeMultiuser   PropertyFieldType = "multiuser"
+
+	PropertyFieldNameMaxRunes       = 255
+	PropertyFieldTargetIDMaxRunes   = 255
+	PropertyFieldTargetTypeMaxRunes = 255
 )
 
 type PropertyField struct {
@@ -73,6 +78,18 @@ func (pf *PropertyField) IsValid() error {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "name", "Reason": "value cannot be empty"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
+	if utf8.RuneCountInString(pf.Name) > PropertyFieldNameMaxRunes {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "name", "Reason": "value exceeds maximum length"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	if utf8.RuneCountInString(pf.TargetType) > PropertyFieldTargetTypeMaxRunes {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "value exceeds maximum length"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	if utf8.RuneCountInString(pf.TargetID) > PropertyFieldTargetIDMaxRunes {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "value exceeds maximum length"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
 	if pf.Type != PropertyFieldTypeText &&
 		pf.Type != PropertyFieldTypeSelect &&
 		pf.Type != PropertyFieldTypeMultiselect &&
@@ -114,6 +131,18 @@ func (pfp *PropertyFieldPatch) Auditable() map[string]any {
 func (pfp *PropertyFieldPatch) IsValid() error {
 	if pfp.Name != nil && *pfp.Name == "" {
 		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "name", "Reason": "value cannot be empty"}, "", http.StatusBadRequest)
+	}
+
+	if pfp.Name != nil && utf8.RuneCountInString(*pfp.Name) > PropertyFieldNameMaxRunes {
+		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "name", "Reason": "value exceeds maximum length"}, "", http.StatusBadRequest)
+	}
+
+	if pfp.TargetType != nil && utf8.RuneCountInString(*pfp.TargetType) > PropertyFieldTargetTypeMaxRunes {
+		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "value exceeds maximum length"}, "", http.StatusBadRequest)
+	}
+
+	if pfp.TargetID != nil && utf8.RuneCountInString(*pfp.TargetID) > PropertyFieldTargetIDMaxRunes {
+		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "value exceeds maximum length"}, "", http.StatusBadRequest)
 	}
 
 	if pfp.Type != nil &&
