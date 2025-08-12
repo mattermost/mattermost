@@ -30,7 +30,7 @@ type OAuthApp struct {
 	CallbackUrls    StringArray `json:"callback_urls"`
 	Homepage        string      `json:"homepage"`
 	IsTrusted       bool        `json:"is_trusted"`
-	MattermostAppID string `json:"mattermost_app_id"`
+	MattermostAppID string      `json:"mattermost_app_id"`
 
 	IsDynamicallyRegistered bool `json:"is_dynamically_registered,omitempty"`
 }
@@ -163,6 +163,10 @@ func NewOAuthAppFromClientRegistration(req *ClientRegistrationRequest, creatorId
 		app.Name = "Dynamically Registered Client"
 	}
 
+	if req.ClientURI != nil {
+		app.Homepage = *req.ClientURI
+	}
+
 	return app
 }
 
@@ -182,6 +186,10 @@ func (a *OAuthApp) ToClientRegistrationResponse(siteURL string) *ClientRegistrat
 
 	if a.Name != "" {
 		resp.ClientName = &a.Name
+	}
+
+	if a.Homepage != "" {
+		resp.ClientURI = &a.Homepage
 	}
 
 	return resp

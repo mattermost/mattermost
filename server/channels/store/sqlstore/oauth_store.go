@@ -116,7 +116,7 @@ func (as SqlOAuthStore) GetApp(id string) (*model.OAuthApp, error) {
 	if app.Id == "" {
 		return nil, store.NewErrNotFound("OAuthApp", id)
 	}
-	
+
 	return &app, nil
 }
 

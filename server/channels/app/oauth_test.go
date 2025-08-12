@@ -705,7 +705,26 @@ func TestRegisterOAuthClient(t *testing.T) {
 		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
 	})
 
-	t.Run("Valid DCR request", func(t *testing.T) {
+	t.Run("Valid DCR request with client_uri", func(t *testing.T) {
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback/" + model.NewId()},
+			ClientName:   model.NewPointer("Test Client"),
+			ClientURI:    model.NewPointer("https://example.com"),
+		}
+
+		app, appErr := th.App.RegisterOAuthClient(th.Context, request, th.BasicUser.Id)
+
+		require.Nil(t, appErr)
+		require.NotNil(t, app)
+		assert.Equal(t, request.RedirectURIs, []string(app.CallbackUrls))
+		assert.True(t, app.IsDynamicallyRegistered)
+		assert.Equal(t, th.BasicUser.Id, app.CreatorId)
+		assert.NotEmpty(t, app.Id)
+		assert.NotEmpty(t, app.ClientSecret)
+		assert.Equal(t, "https://example.com", app.Homepage) // client_uri is mapped to homepage
+	})
+
+	t.Run("Valid DCR request without client_uri", func(t *testing.T) {
 		request := &model.ClientRegistrationRequest{
 			RedirectURIs: []string{"https://example.com/callback/" + model.NewId()},
 			ClientName:   model.NewPointer("Test Client"),
@@ -720,7 +739,20 @@ func TestRegisterOAuthClient(t *testing.T) {
 		assert.Equal(t, th.BasicUser.Id, app.CreatorId)
 		assert.NotEmpty(t, app.Id)
 		assert.NotEmpty(t, app.ClientSecret)
-		assert.Equal(t, "https://example.com", app.Homepage) // Should use client_uri
+		assert.Equal(t, "", app.Homepage) // Homepage is empty when client_uri is not provided
+	})
+
+	t.Run("Invalid client_uri", func(t *testing.T) {
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback/" + model.NewId()},
+			ClientName:   model.NewPointer("Test Client"),
+			ClientURI:    model.NewPointer("invalid-url"),
+		}
+
+		_, appErr := th.App.RegisterOAuthClient(th.Context, request, th.BasicUser.Id)
+
+		require.NotNil(t, appErr)
+		assert.Equal(t, "model.dcr.is_valid.client_uri_format.app_error", appErr.Id)
 	})
 }
 
