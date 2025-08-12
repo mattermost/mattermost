@@ -9589,6 +9589,10 @@
     "translation": "At least one redirect URI is required."
   },
   {
+    "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
+    "translation": "Unsupported token_endpoint_auth_method supplied."
+  },
+  {
     "id": "model.draft.is_valid.channel_id.app_error",
     "translation": "Invalid channel id."
   },
