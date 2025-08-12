@@ -2412,7 +2412,6 @@
         Records the action in audit table.
 
         Updates user's last accepted terms of service ID if they accepted it.
-        
         __Minimum server version__: 5.4
 
         ##### Permissions

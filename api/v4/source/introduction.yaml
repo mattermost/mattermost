@@ -453,7 +453,7 @@ tags:
   - name: shared channels
     description: Endpoints for getting information about shared channels.
   - name: terms of service
-    description: Endpoints for getting and updating custom terms of service.      
+    description: Endpoints for getting and updating custom terms of service.
   - name: imports
     description: Endpoints related to import files.
   - name: exports
