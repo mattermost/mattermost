@@ -22,6 +22,7 @@ import {
 } from 'mattermost-redux/selectors/entities/channels';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getRemoteDisplayName} from 'mattermost-redux/selectors/entities/shared_channels';
 import {getCurrentRelativeTeamUrl, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {
     getActiveProfilesInCurrentChannelWithoutSorting,
@@ -49,6 +50,7 @@ const buildProfileList = (
     userStatuses: RelationOneToOne<UserProfile, string>,
     teammateNameDisplaySetting: string,
     membersInCurrentChannel: Record<string, ChannelMembership>,
+    state: GlobalState,
 ) => {
     const channelMembers: ChannelMember[] = [];
     profilesInCurrentChannel.forEach((profile) => {
@@ -56,11 +58,14 @@ const buildProfileList = (
             return;
         }
 
+        const remoteDisplayName = profile.remote_id ? getRemoteDisplayName(state, profile.remote_id) || undefined : undefined;
+
         channelMembers.push({
             user: profile,
             membership: membersInCurrentChannel[profile.id],
             status: userStatuses[profile.id],
             displayName: displayUsername(profile, teammateNameDisplaySetting),
+            remoteDisplayName,
         });
     });
 
@@ -84,6 +89,7 @@ const getProfiles = createSelector(
     getUserStatuses,
     getTeammateNameDisplaySetting,
     getMembersInCurrentChannel,
+    (state: GlobalState) => state,
     buildProfileList,
 );
 
@@ -93,6 +99,7 @@ const searchProfiles = createSelector(
     getUserStatuses,
     getTeammateNameDisplaySetting,
     getMembersInCurrentChannel,
+    (state: GlobalState) => state,
     buildProfileList,
 );
 

@@ -17,6 +17,7 @@ export interface ChannelMember {
     membership?: ChannelMembership;
     status?: string;
     displayName: string;
+    remoteDisplayName?: string;
 }
 
 export enum ListItemType {
