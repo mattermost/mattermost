@@ -14,6 +14,8 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    env:
+      IMAGE_TAG: ${{ github.event.inputs.tag }}
 
     steps:
       - name: Checkout code
@@ -37,7 +39,7 @@ jobs:
       - name: Build & push development image
         run: |
           docker buildx build \
-            --tag mattermostdevelopment/mattermost-build-server:${{ github.event.inputs.tag }} \
+            --tag mattermostdevelopment/mattermost-build-server:"${IMAGE_TAG}" \
             --push \
             -f server/build/Dockerfile.buildenv .
 
@@ -51,6 +53,6 @@ jobs:
       - name: Build & push production image
         run: |
           docker buildx build \
-            --tag mattermost/mattermost-build-server:${{ github.event.inputs.tag }} \
+            --tag mattermost/mattermost-build-server:"${IMAGE_TAG}" \
             --push \
             -f server/build/Dockerfile.buildenv .
