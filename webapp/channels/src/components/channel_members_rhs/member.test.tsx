@@ -175,12 +175,15 @@ describe('components/channel_members_rhs/Member', () => {
     test('should show remote organization name in tooltip for remote user', async () => {
         jest.useFakeTimers();
 
-        const remoteMember = {
-            ...baseMember,
+        const remoteMember: ChannelMember = {
             user: {
                 ...mockUser,
                 remote_id: 'remote_id_123',
             },
+            membership: baseMember.membership,
+            status: baseMember.status,
+            displayName: baseMember.displayName,
+            remoteDisplayName: 'Remote Organization',
         };
 
         renderWithContext(
