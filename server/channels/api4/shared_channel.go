@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -302,47 +303,131 @@ func canUserDirectMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if the user can see the other user at all
-	canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, c.Params.UserId, c.Params.OtherUserId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-	if !canSee {
-		result := map[string]bool{"can_dm": false}
-		if err := json.NewEncoder(w).Encode(result); err != nil {
-			c.Logger.Warn("Error encoding JSON response", mlog.Err(err))
+	// Debug instrumentation: post debug message to Town Square
+	postDebugMessageToTownSquare := func(message string) {
+		// Get first available team for the current user
+		teams, err := c.App.GetTeamsForUser(c.Params.UserId)
+		if err != nil || len(teams) == 0 {
+			return
 		}
-		return
+
+		// Try to get Town Square channel from the first team
+		townSquare, err := c.App.GetChannelByName(c.AppContext, model.DefaultChannelName, teams[0].Id, false)
+		if err != nil {
+			return
+		}
+
+		// Create debug post
+		debugPost := &model.Post{
+			UserId:    c.Params.UserId,
+			ChannelId: townSquare.Id,
+			Message:   "[canUserDirectMessage Debug MAIN] " + message,
+			Type:      model.PostTypeSystemGeneric,
+		}
+
+		if _, err := c.App.CreatePost(c.AppContext, debugPost, townSquare, model.CreatePostFlags{TriggerWebhooks: false, SetOnline: true}); err != nil {
+			c.Logger.Warn("Failed to create debug post", mlog.Err(err))
+		}
 	}
+
+	postDebugMessageToTownSquare("Starting canUserDirectMessage check - userId: " + c.Params.UserId + ", otherUserId: " + c.Params.OtherUserId)
 
 	canDM := true
 
-	// Get shared channel sync service for remote user checks
+	// Check admin permissions that might affect behavior
+	hasViewMembers := c.App.HasPermissionTo(c.Params.UserId, model.PermissionViewMembers)
+	postDebugMessageToTownSquare("User has PermissionViewMembers: " + strconv.FormatBool(hasViewMembers))
+
+	// Check view restrictions for the current user (this affects UserCanSeeOtherUser behavior)
+	restrictions, restrictionsErr := c.App.GetViewUsersRestrictions(c.AppContext, c.Params.UserId)
+	if restrictionsErr != nil {
+		postDebugMessageToTownSquare("GetViewUsersRestrictions failed with error: " + restrictionsErr.Error())
+	} else if restrictions == nil {
+		postDebugMessageToTownSquare("GetViewUsersRestrictions returned nil - user has no view restrictions")
+	} else {
+		postDebugMessageToTownSquare("GetViewUsersRestrictions returned restrictions - Teams: " + strconv.Itoa(len(restrictions.Teams)) + ", Channels: " + strconv.Itoa(len(restrictions.Channels)))
+	}
+
+	// Check remote connection validation FIRST before user visibility checks
+	// This ensures that admin users cannot bypass shared channel connection restrictions
 	scs := c.App.Srv().GetSharedChannelSyncService()
+	postDebugMessageToTownSquare("Getting SharedChannelSyncService - result is nil: " + strconv.FormatBool(scs == nil))
+
 	if scs != nil {
+		postDebugMessageToTownSquare("SharedChannelSyncService is available - proceeding with remote user checks")
 		otherUser, otherErr := c.App.GetUser(c.Params.OtherUserId)
+		postDebugMessageToTownSquare("c.App.GetUser(" + c.Params.OtherUserId + ") - error is nil: " + strconv.FormatBool(otherErr == nil))
+
 		if otherErr != nil {
+			postDebugMessageToTownSquare("Failed to get other user: " + otherErr.Error())
+			postDebugMessageToTownSquare("Setting canDM = false due to user fetch error")
 			canDM = false
 		} else {
-			originalRemoteId := otherUser.GetOriginalRemoteID()
+			postDebugMessageToTownSquare("Successfully retrieved other user - Username: " + otherUser.Username + ", Email: " + otherUser.Email)
+			postDebugMessageToTownSquare("Other user details - IsRemote: " + strconv.FormatBool(otherUser.IsRemote()) + ", RemoteId: " + otherUser.GetRemoteID())
 
-			// Check if the other user is from a remote cluster
+			// For remote users, validate direct connection to original cluster
 			if otherUser.IsRemote() {
+				postDebugMessageToTownSquare("Other user IS remote - entering remote connection validation logic")
+				originalRemoteId := otherUser.GetOriginalRemoteID()
+				postDebugMessageToTownSquare("Remote user details - OriginalRemoteId: '" + originalRemoteId + "', CurrentRemoteId: '" + otherUser.GetRemoteID() + "'")
+
 				// If original remote ID is unknown, fall back to current RemoteId as best guess
 				if originalRemoteId == model.UserOriginalRemoteIdUnknown {
+					postDebugMessageToTownSquare("OriginalRemoteId is unknown ('" + model.UserOriginalRemoteIdUnknown + "'), using CurrentRemoteId as fallback")
 					originalRemoteId = otherUser.GetRemoteID()
+					postDebugMessageToTownSquare("Using fallback RemoteId: '" + originalRemoteId + "'")
 				}
 
 				// For DMs, we require a direct connection to the ORIGINAL remote cluster
+				postDebugMessageToTownSquare("Calling IsRemoteClusterDirectlyConnected('" + originalRemoteId + "')...")
 				isDirectlyConnected := scs.IsRemoteClusterDirectlyConnected(originalRemoteId)
+				postDebugMessageToTownSquare("IsRemoteClusterDirectlyConnected('" + originalRemoteId + "') returned: " + strconv.FormatBool(isDirectlyConnected))
 
 				if !isDirectlyConnected {
+					postDebugMessageToTownSquare("Remote cluster is NOT directly connected - setting canDM = false")
+					postDebugMessageToTownSquare("Admin bypass check: hasViewMembers=" + strconv.FormatBool(hasViewMembers) + ", restrictions==nil=" + strconv.FormatBool(restrictions == nil))
 					canDM = false
+				} else {
+					postDebugMessageToTownSquare("Remote cluster IS directly connected - keeping canDM = true")
 				}
+			} else {
+				postDebugMessageToTownSquare("Other user is NOT remote (local user) - skipping remote connection validation")
 			}
 		}
+	} else {
+		postDebugMessageToTownSquare("SharedChannelSyncService is NOT available - skipping all remote user checks")
+		postDebugMessageToTownSquare("WARNING: Without SharedChannelSyncService, remote connection validation is bypassed entirely")
 	}
+
+	// Only check general user visibility if the remote connection check passed
+	postDebugMessageToTownSquare("Current canDM state before user visibility check: " + strconv.FormatBool(canDM))
+
+	if canDM {
+		postDebugMessageToTownSquare("canDM=true, proceeding with user visibility check")
+		postDebugMessageToTownSquare("Calling UserCanSeeOtherUser(" + c.Params.UserId + ", " + c.Params.OtherUserId + ")...")
+		canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, c.Params.UserId, c.Params.OtherUserId)
+		postDebugMessageToTownSquare("UserCanSeeOtherUser returned - canSee: " + strconv.FormatBool(canSee) + ", error is nil: " + strconv.FormatBool(err == nil))
+
+		if err != nil {
+			postDebugMessageToTownSquare("UserCanSeeOtherUser failed with error: " + err.Error())
+			c.Err = err
+			return
+		}
+		if !canSee {
+			postDebugMessageToTownSquare("UserCanSeeOtherUser returned false - setting canDM = false")
+			postDebugMessageToTownSquare("This means user cannot see the other user due to visibility restrictions")
+			canDM = false
+		} else {
+			postDebugMessageToTownSquare("UserCanSeeOtherUser returned true - keeping canDM = true")
+			postDebugMessageToTownSquare("User can see the other user (possibly admin bypass or same team/channels)")
+		}
+	} else {
+		postDebugMessageToTownSquare("canDM=false from remote connection check - skipping user visibility check entirely")
+	}
+
+	postDebugMessageToTownSquare("FINAL DECISION: canDM = " + strconv.FormatBool(canDM))
+	postDebugMessageToTownSquare("User context: hasViewMembers=" + strconv.FormatBool(hasViewMembers) + ", hasRestrictions=" + strconv.FormatBool(restrictions != nil))
 
 	result := map[string]bool{"can_dm": canDM}
 	if err := json.NewEncoder(w).Encode(result); err != nil {
