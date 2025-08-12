@@ -48,7 +48,6 @@ func GetDefaultMetadata(siteURL string) *AuthorizationServerMetadata {
 		},
 		TokenEndpointAuthMethodsSupported: []string{
 			ClientAuthMethodClientSecretPost,
-			ClientAuthMethodNone,
 		},
 		ScopesSupported: []string{
 			ScopeUser,
