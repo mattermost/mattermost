@@ -54,7 +54,10 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
 
     return (
         <div className='PropertyCardView'>
-            <div className='PropertyCardView_title'>
+            <div
+                className='PropertyCardView_title'
+                data-testid='property-card-title'
+            >
                 {title}
             </div>
 
@@ -65,6 +68,7 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
                             <div
                                 key={field.id}
                                 className='row'
+                                data-testid='property-card-row'
                             >
                                 <div className='field'>
                                     {field.name}

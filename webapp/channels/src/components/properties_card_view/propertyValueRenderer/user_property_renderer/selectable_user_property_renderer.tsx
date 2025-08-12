@@ -23,7 +23,10 @@ export function SelectableUserPropertyRenderer({field}: Props) {
     );
 
     return (
-        <div className='SelectableUserPropertyRenderer'>
+        <div
+            className='SelectableUserPropertyRenderer'
+            data-testid='selectable-user-property'
+        >
             <UserSelector
                 isMulti={false}
                 id={`selectable-user-property-renderer-${field.id}`}

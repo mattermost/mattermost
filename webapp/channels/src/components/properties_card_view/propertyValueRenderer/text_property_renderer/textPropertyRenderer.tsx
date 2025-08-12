@@ -11,7 +11,10 @@ type Props = {
 
 export default function TextPropertyRenderer({value}: Props) {
     return (
-        <span className='TextProperty'>
+        <span
+            className='TextProperty'
+            data-testid='text-property'
+        >
             {value.value}
         </span>
     );

@@ -16,7 +16,10 @@ type Props = {
 
 export default function TimestampPropertyRenderer({value}: Props) {
     return (
-        <div className='TimestampPropertyRenderer'>
+        <div
+            className='TimestampPropertyRenderer'
+            data-testid='timestamp-property'
+        >
             <Timestamp
                 value={value.value as number}
                 useSemanticOutput={false}

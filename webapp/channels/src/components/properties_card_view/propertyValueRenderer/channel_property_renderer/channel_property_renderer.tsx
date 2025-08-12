@@ -24,7 +24,10 @@ export default function ChannelPropertyRenderer({value}: Props) {
     }
 
     return (
-        <div className='ChannelPropertyRenderer'>
+        <div
+            className='ChannelPropertyRenderer'
+            data-testid='channel-property'
+        >
             <SidebarBaseChannelIcon
                 channelType={channel.type}
             />

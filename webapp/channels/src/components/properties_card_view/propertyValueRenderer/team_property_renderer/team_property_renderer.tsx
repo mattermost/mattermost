@@ -29,7 +29,10 @@ export default function TeamPropertyRenderer({value}: Props) {
     }
 
     return (
-        <div className='TeamPropertyRenderer'>
+        <div
+            className='TeamPropertyRenderer'
+            data-testid='team-property'
+        >
             <TeamIcon
                 size='xxs'
                 content={team.display_name}

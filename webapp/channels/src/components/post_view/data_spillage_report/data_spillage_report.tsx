@@ -99,6 +99,7 @@ function getDummyPropertyFields(): PropertyField[] {
             group_id: 'content_flagging_group_id',
             name: DataSpillagePropertyNames.ReportingTime,
             type: 'text',
+            attrs: {subType: 'timestamp'},
             target_type: 'post',
             create_at: 0,
             update_at: 0,
@@ -257,7 +258,7 @@ function getDummyPropertyValues(postId: string, channelId: string, teamId: strin
             target_id: 'reported_post_id',
             target_type: 'post',
             group_id: 'content_flagging_group_id',
-            value: new Date().toISOString(),
+            value: new Date(2025, 0, 1, 0, 1, 0, 0).getTime(),
             create_at: 0,
             update_at: 0,
             delete_at: 0,
@@ -373,7 +374,7 @@ export default function DataSpillageReport({post, isRHS}: Props) {
     const reportedPost = usePost(reportedPostId);
     const channel = useChannel(reportedPost?.channel_id || '');
 
-    const reportingUserFieldId = propertyFields.find((field) => field.id === DataSpillagePropertyNames.FlaggedBy);
+    const reportingUserFieldId = propertyFields.find((field) => field.name === DataSpillagePropertyNames.FlaggedBy);
     const reportingUserIdValue = propertyValues.find((value) => value.field_id === reportingUserFieldId?.id);
     const reportingUser = useSelector((state: GlobalState) => getUser(state, reportingUserIdValue ? reportingUserIdValue.value as string : ''));
 

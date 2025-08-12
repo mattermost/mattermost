@@ -21,6 +21,7 @@ export default function SelectPropertyRenderer({field, value}: Props) {
     return (
         <div
             className='SelectProperty'
+            data-testid='select-property'
             style={{
                 backgroundColor,
                 color,

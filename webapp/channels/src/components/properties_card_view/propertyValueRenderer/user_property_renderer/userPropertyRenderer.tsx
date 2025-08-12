@@ -48,7 +48,10 @@ export default function UserPropertyRenderer({field, value}: Props) {
     }
 
     return (
-        <div className='UserPropertyRenderer'>
+        <div
+            className='UserPropertyRenderer'
+            data-testid='user-property'
+        >
             <PreviewPostAvatar
                 user={user}
             />

@@ -47,7 +47,10 @@ export default function PostPreviewPropertyRenderer({value}: Props) {
     });
 
     return (
-        <div className='PostPreviewPropertyRenderer'>
+        <div
+            className='PostPreviewPropertyRenderer'
+            data-testid='post-preview-property'
+        >
             <PostMessagePreview
                 metadata={previewMetaData}
                 handleFileDropdownOpened={noop}

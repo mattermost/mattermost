@@ -7,9 +7,13 @@ import './data_spillage_actions.scss';
 
 export default function DataSpillageAction() {
     return (
-        <div className='DataSpillageAction'>
+        <div
+            className='DataSpillageAction'
+            data-testid='data-spillage-action'
+        >
             <button
                 className='btn btn-danger btn-sm'
+                data-testid='data-spillage-action-remove-message'
             >
                 <FormattedMessage
                     id='data_spillage_report.remove_message.button_text'
@@ -19,6 +23,7 @@ export default function DataSpillageAction() {
 
             <button
                 className='btn btn-tertiary btn-sm'
+                data-testid='data-spillage-action-keep-message'
             >
                 <FormattedMessage
                     id='data_spillage_report.keep_message.button_text'
