@@ -115,6 +115,8 @@ func (a *OAuthApp) IsValid() *AppError {
 	return nil
 }
 
+// PreSave will set the Id and ClientSecret if missing.  It will also fill
+// in the CreateAt, UpdateAt times. It should be run before saving the app to the db.
 func (a *OAuthApp) PreSave() {
 	if a.Id == "" {
 		a.Id = NewId()
@@ -134,14 +136,17 @@ func (a *OAuthApp) PreSave() {
 	a.UpdateAt = a.CreateAt
 }
 
+// PreUpdate should be run before updating the app in the db.
 func (a *OAuthApp) PreUpdate() {
 	a.UpdateAt = GetMillis()
 }
 
+// Generate a valid strong etag so the browser can cache the results
 func (a *OAuthApp) Etag() string {
 	return Etag(a.Id, a.UpdateAt)
 }
 
+// Remove any private data from the app object
 func (a *OAuthApp) Sanitize() {
 	a.ClientSecret = ""
 }
@@ -175,9 +180,12 @@ func NewOAuthAppFromClientRegistration(req *ClientRegistrationRequest, creatorId
 		app.TokenEndpointAuthMethod = ClientAuthMethodClientSecretPost
 	}
 
-	// Generate client secret only if TokenEndpointAuthMethod is not "none"
 	if app.TokenEndpointAuthMethod != ClientAuthMethodNone {
 		app.ClientSecret = NewId()
+	}
+
+	if req.ClientURI != nil {
+		app.Homepage = *req.ClientURI
 	}
 
 	return app
@@ -198,6 +206,10 @@ func (a *OAuthApp) ToClientRegistrationResponse(siteURL string) *ClientRegistrat
 
 	if a.Name != "" {
 		resp.ClientName = &a.Name
+	}
+
+	if a.Homepage != "" {
+		resp.ClientURI = &a.Homepage
 	}
 
 	return resp

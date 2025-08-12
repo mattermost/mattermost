@@ -12,6 +12,7 @@ type ClientRegistrationRequest struct {
 	RedirectURIs            []string `json:"redirect_uris"`
 	ClientName              *string  `json:"client_name,omitempty"`
 	TokenEndpointAuthMethod *string  `json:"token_endpoint_auth_method,omitempty"`
+	ClientURI               *string  `json:"client_uri,omitempty"`
 }
 
 type ClientRegistrationResponse struct {
@@ -22,6 +23,7 @@ type ClientRegistrationResponse struct {
 	GrantTypes              []string `json:"grant_types"`
 	ResponseTypes           []string `json:"response_types"`
 	ClientName              *string  `json:"client_name,omitempty"`
+	ClientURI               *string  `json:"client_uri,omitempty"`
 }
 
 const (
@@ -54,6 +56,15 @@ func (r *ClientRegistrationRequest) IsValid() *AppError {
 		case ClientAuthMethodClientSecretPost, ClientAuthMethodNone:
 		default:
 			return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.token_endpoint_auth_method.app_error", nil, "method="+*r.TokenEndpointAuthMethod, http.StatusBadRequest)
+		}
+	}
+
+	if r.ClientURI != nil {
+		if !IsValidHTTPURL(*r.ClientURI) {
+			return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.client_uri_format.app_error", nil, "uri="+*r.ClientURI, http.StatusBadRequest)
+		}
+		if len(*r.ClientURI) > 256 {
+			return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.client_uri_length.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 

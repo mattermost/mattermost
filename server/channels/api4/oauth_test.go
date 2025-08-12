@@ -7,6 +7,7 @@ import (
 	"context"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -678,6 +679,9 @@ func TestRegisterOAuthClient(t *testing.T) {
 	})
 
 	t.Run("Works without authentication", func(t *testing.T) {
+		// Sleep to avoid rate limiting issues
+		time.Sleep(time.Second)
+
 		// Log out to demonstrate DCR works without session
 		_, err := th.Client.Logout(context.Background())
 		require.NoError(t, err)
@@ -696,6 +700,29 @@ func TestRegisterOAuthClient(t *testing.T) {
 		assert.NotEmpty(t, response.ClientID)
 		assert.NotNil(t, response.ClientSecret)
 		assert.NotEmpty(t, *response.ClientSecret)
+	})
+
+	t.Run("Works with client_uri", func(t *testing.T) {
+		// Sleep to avoid rate limiting issues
+		time.Sleep(time.Second)
+
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback"},
+			ClientName:   model.NewPointer("Test Client with URI"),
+			ClientURI:    model.NewPointer("https://example.com"),
+		}
+
+		response, resp, err := th.Client.RegisterOAuthClient(context.Background(), request)
+
+		require.NoError(t, err)
+		require.NotNil(t, response)
+		CheckCreatedStatus(t, resp)
+		assert.Equal(t, request.RedirectURIs, response.RedirectURIs)
+		assert.NotEmpty(t, response.ClientID)
+		assert.NotNil(t, response.ClientSecret)
+		assert.NotEmpty(t, *response.ClientSecret)
+		assert.Equal(t, request.ClientName, response.ClientName)
+		assert.Equal(t, request.ClientURI, response.ClientURI)
 	})
 }
 
@@ -733,6 +760,9 @@ func TestRegisterOAuthClient_DisabledFeatures(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
+	// Sleep to avoid rate limiting issues
+	time.Sleep(time.Second)
+
 	// Test with DCR disabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewPointer(true)
@@ -742,6 +772,9 @@ func TestRegisterOAuthClient_DisabledFeatures(t *testing.T) {
 	_, resp, err = adminClient.RegisterOAuthClient(context.Background(), request)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
+
+	// Sleep to avoid rate limiting issues
+	time.Sleep(time.Second)
 
 	// Test with nil config values (should be disabled by default)
 	th.App.UpdateConfig(func(cfg *model.Config) {

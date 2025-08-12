@@ -316,6 +316,46 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
+  /api/v4/oauth/apps/register:
+    post:
+      tags:
+        - OAuth
+      summary: Register OAuth client using Dynamic Client Registration
+      description: >
+        Register an OAuth 2.0 client application using Dynamic Client Registration (DCR) 
+        as defined in RFC 7591. This endpoint allows clients to register without requiring 
+        administrative approval.
+
+        ##### Permissions
+
+        No authentication required. This endpoint implements the OAuth 2.0 Dynamic Client 
+        Registration Protocol and can be called by unauthenticated clients.
+
+        ##### Notes
+
+        - This endpoint follows RFC 7591 (OAuth 2.0 Dynamic Client Registration Protocol)
+        - The `client_uri` field, when provided, will be mapped to the OAuth app's homepage
+        - All registered clients are marked as dynamically registered
+        - Dynamic client registration must be enabled in system settings
+      operationId: RegisterOAuthClient
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientRegistrationRequest"
+        description: OAuth client registration request
+        required: true
+      responses:
+        "201":
+          description: Client registration successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientRegistrationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/users/{user_id}/oauth/apps/authorized":
     get:
       tags:
