@@ -752,7 +752,7 @@ func TestRegisterOAuthClient(t *testing.T) {
 		_, appErr := th.App.RegisterOAuthClient(th.Context, request, th.BasicUser.Id)
 
 		require.NotNil(t, appErr)
-		assert.Equal(t, "model.dcr.is_valid.client_uri_format.app_error", appErr.Id)
+		assert.Equal(t, "model.oauth.is_valid.homepage.app_error", appErr.Id)
 	})
 }
 
