@@ -62,7 +62,7 @@
     "prop-types": "15.8.1",
     "react": "17.0.2",
     "react-beautiful-dnd": "13.1.1",
-    "react-bootstrap": "github:mattermost/react-bootstrap#2bd1a67",
+    "react-bootstrap": "github:mattermost/react-bootstrap#2bd1a671d1d94e1d34722d7443a3b3bdb12ed93d",
     "react-color": "2.19.3",
     "react-contextmenu": "2.14.0",
     "react-custom-scrollbars": "4.2.1",
