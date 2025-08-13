@@ -26,9 +26,11 @@ const (
 	LicenseShortSkuEnterpriseAdvanced = "advanced"
 	LicenseShortSkuMattermostEntry    = "entry"
 
-	// TODO: What tier should Entry fall into?
-	ProfessionalTier       = 10
-	EnterpriseTier         = 20
+	ProfessionalTier = 10
+	EnterpriseTier   = 20
+
+	// TODO: For now, treat Entry as Ent for feature unlocks. License feature list should cover disallowed functionality. Adjust if necessary.
+	EntryTier              = 25
 	EnterpriseAdvancedTier = 30
 )
 
@@ -36,6 +38,7 @@ var LicenseToLicenseTier = map[string]int{
 	LicenseShortSkuProfessional:       ProfessionalTier,
 	LicenseShortSkuEnterprise:         EnterpriseTier,
 	LicenseShortSkuEnterpriseAdvanced: EnterpriseAdvancedTier,
+	LicenseShortSkuMattermostEntry:    EntryTier,
 }
 
 const (
@@ -110,6 +113,7 @@ func NewMattermostEntryLicense(serverID string) *License {
 			Company: "Mattermost",
 		},
 		Features: &Features{
+			// TODO: Adjust these values as needed
 			Users:                     NewPointer(1000),
 			Cloud:                     NewPointer(false),
 			EnterprisePlugins:         NewPointer(true),

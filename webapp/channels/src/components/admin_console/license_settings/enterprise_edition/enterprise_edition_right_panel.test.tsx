@@ -115,7 +115,28 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         );
 
         expect(wrapper.find('.upgrade-title').text()).toEqual('Need to increase your headcount?');
-        expect(wrapper.find('.upgrade-subtitle').text()).toEqual('We’re here to work with you and your needs. Contact us today to get more seats on your plan.');
+        expect(wrapper.find('.upgrade-subtitle').text()).toEqual("We're here to work with you and your needs. Contact us today to get more seats on your plan.");
+    });
+
+    test('should render for Entry license', () => {
+        const store = mockStore(initialState);
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <EnterpriseEditionRightPanel
+                    license={{...props.license, SkuShortName: LicenseSkus.Entry}}
+                    isTrialLicense={props.isTrialLicense}
+                />
+            </Provider>,
+        );
+
+        expect(wrapper.find('.upgrade-title').text()).toEqual('Purchase one of our plans to remove limits');
+
+        const subtitleList = wrapper.find('.upgrade-subtitle').find('.item');
+        expect(subtitleList.at(0).text()).toEqual('Unlimited message history');
+        expect(subtitleList.at(1).text()).toEqual('Unlimited playbook runs');
+        expect(subtitleList.at(2).text()).toEqual('Unlimited board cards');
+        expect(subtitleList.at(3).text()).toEqual('Unlimited AI agent queries');
+        expect(subtitleList.at(4).text()).toEqual('Unlimited call duration');
     });
 
     test('should render for Trial license', () => {
