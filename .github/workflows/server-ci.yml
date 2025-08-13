@@ -1,9 +1,18 @@
-# Base CI template which is called from server-ci-pr.yml
-# and server-ci-master.yml
-
-name: Server CI Template
+name: Server CI
 on:
-  workflow_call:
+  push:
+    branches:
+      - master
+      - release-*
+  pull_request:
+    paths:
+      - "server/**"
+      - "e2e-tests/**"
+      - ".github/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   check-mocks:
