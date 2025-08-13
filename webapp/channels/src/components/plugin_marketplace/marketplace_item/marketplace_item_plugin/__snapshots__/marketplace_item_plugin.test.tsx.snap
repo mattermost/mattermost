@@ -845,8 +845,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with upd
 `;
 
 exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should add extra warning for major version change 1`] = `
-<ConfirmModal
-  confirmButtonClass="btn btn-primary"
+<Memo(ConfirmModal)
   confirmButtonText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Update"
@@ -894,7 +893,6 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should add ext
       </p>,
     ]
   }
-  modalClass=""
   onCancel={[Function]}
   onConfirm={[Function]}
   show={true}
@@ -908,8 +906,7 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should add ext
 `;
 
 exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should add extra warning for major version change, even without release notes 1`] = `
-<ConfirmModal
-  confirmButtonClass="btn btn-primary"
+<Memo(ConfirmModal)
   confirmButtonText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Update"
@@ -951,7 +948,6 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should add ext
       </p>,
     ]
   }
-  modalClass=""
   onCancel={[Function]}
   onConfirm={[Function]}
   show={true}
@@ -967,8 +963,7 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should add ext
 exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should avoid exception on invalid semver 1`] = `null`;
 
 exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should render without release notes url 1`] = `
-<ConfirmModal
-  confirmButtonClass="btn btn-primary"
+<Memo(ConfirmModal)
   confirmButtonText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Update"
@@ -1002,7 +997,6 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should render 
       </p>,
     ]
   }
-  modalClass=""
   onCancel={[Function]}
   onConfirm={[Function]}
   show={true}

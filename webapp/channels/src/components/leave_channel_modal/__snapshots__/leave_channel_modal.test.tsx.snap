@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/LeaveChannelModal should match snapshot, init 1`] = `
-<ConfirmModal
+<Memo(ConfirmModal)
   confirmButtonClass="btn btn-danger"
   confirmButtonText={
     <Memo(MemoizedFormattedMessage)
@@ -22,7 +22,6 @@ exports[`components/LeaveChannelModal should match snapshot, init 1`] = `
       }
     />
   }
-  modalClass=""
   onCancel={[Function]}
   onConfirm={[Function]}
   onExited={[MockFunction]}

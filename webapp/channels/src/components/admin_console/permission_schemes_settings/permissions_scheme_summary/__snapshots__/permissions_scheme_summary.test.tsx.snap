@@ -9,8 +9,7 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
   <div
     onClick={[Function]}
   >
-    <ConfirmModal
-      confirmButtonClass="btn btn-primary"
+    <Memo(ConfirmModal)
       confirmButtonText={
         <Memo(LoadingWrapper)
           loading={false}
@@ -42,7 +41,6 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
           </p>
         </div>
       }
-      modalClass=""
       onCancel={[Function]}
       onConfirm={[Function]}
       show={false}
@@ -132,8 +130,7 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
   <div
     onClick={[Function]}
   >
-    <ConfirmModal
-      confirmButtonClass="btn btn-primary"
+    <Memo(ConfirmModal)
       confirmButtonText={
         <Memo(LoadingWrapper)
           loading={false}
@@ -165,7 +162,6 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
           </p>
         </div>
       }
-      modalClass=""
       onCancel={[Function]}
       onConfirm={[Function]}
       show={false}
@@ -303,8 +299,7 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
   <div
     onClick={[Function]}
   >
-    <ConfirmModal
-      confirmButtonClass="btn btn-primary"
+    <Memo(ConfirmModal)
       confirmButtonText={
         <Memo(LoadingWrapper)
           loading={false}
@@ -336,7 +331,6 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
           </p>
         </div>
       }
-      modalClass=""
       onCancel={[Function]}
       onConfirm={[Function]}
       show={false}

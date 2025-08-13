@@ -4,8 +4,7 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
 <tr
   className="group-teams-and-channels-row"
 >
-  <ConfirmModal
-    confirmButtonClass="btn btn-primary"
+  <Memo(ConfirmModal)
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Yes, Remove"
@@ -24,7 +23,6 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
         }
       />
     }
-    modalClass=""
     onCancel={[Function]}
     onConfirm={[Function]}
     show={false}
@@ -89,8 +87,7 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
 <tr
   className="group-teams-and-channels-row"
 >
-  <ConfirmModal
-    confirmButtonClass="btn btn-primary"
+  <Memo(ConfirmModal)
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Yes, Remove"
@@ -109,7 +106,6 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
         }
       />
     }
-    modalClass=""
     onCancel={[Function]}
     onConfirm={[Function]}
     show={false}
@@ -167,8 +163,7 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
 <tr
   className="group-teams-and-channels-row"
 >
-  <ConfirmModal
-    confirmButtonClass="btn btn-primary"
+  <Memo(ConfirmModal)
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Yes, Remove"
@@ -187,7 +182,6 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
         }
       />
     }
-    modalClass=""
     onCancel={[Function]}
     onConfirm={[Function]}
     show={false}
@@ -252,8 +246,7 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
 <tr
   className="group-teams-and-channels-row"
 >
-  <ConfirmModal
-    confirmButtonClass="btn btn-primary"
+  <Memo(ConfirmModal)
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Yes, Remove"
@@ -272,7 +265,6 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
         }
       />
     }
-    modalClass=""
     onCancel={[Function]}
     onConfirm={[Function]}
     show={false}
@@ -330,8 +322,7 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
 <tr
   className="group-teams-and-channels-row has-children"
 >
-  <ConfirmModal
-    confirmButtonClass="btn btn-primary"
+  <Memo(ConfirmModal)
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Yes, Remove"
@@ -350,7 +341,6 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
         }
       />
     }
-    modalClass=""
     onCancel={[Function]}
     onConfirm={[Function]}
     show={false}
@@ -413,8 +403,7 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
 <tr
   className="group-teams-and-channels-row has-children collapsed"
 >
-  <ConfirmModal
-    confirmButtonClass="btn btn-primary"
+  <Memo(ConfirmModal)
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Yes, Remove"
@@ -433,7 +422,6 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
         }
       />
     }
-    modalClass=""
     onCancel={[Function]}
     onConfirm={[Function]}
     show={false}
