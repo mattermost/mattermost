@@ -28,6 +28,7 @@ const (
 	remainingSchemaMigrationsKey                   = "RemainingSchemaMigrations"
 	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
 	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
+	contentFlaggingMigrationVersion                = "v1"
 
 	contentFlaggingPropertyNameFlaggedPostId    = "flagged_post_id"
 	contentFlaggingPropertyNameStatus           = "status"
@@ -598,15 +599,18 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 
 func (s *Server) doSetupContentFlaggingProperties() error {
 	// This migration is designed in a way to allow adding more properties in the future.
-	// WHen a new property needs to be added, add it to the expectedPropertiesMap map and
-	// update the contentFlaggingSetupDoneKey to a new value by adding a suffix of v2, or v3, etc.
+	// When a new property needs to be added, add it to the expectedPropertiesMap map and
+	// update the contentFlaggingMigrationVersion to a new value..
 
 	// If the migration is already marked as completed, don't do it again.
 	var nfErr *store.ErrNotFound
-	if _, err := s.Store().System().GetByName(contentFlaggingSetupDoneKey); err == nil {
-		return nil
-	} else if !errors.As(err, &nfErr) {
+	data, err := s.Store().System().GetByName(contentFlaggingSetupDoneKey)
+	if err != nil && !errors.As(err, &nfErr) {
 		return fmt.Errorf("could not query migration: %w", err)
+	}
+
+	if data != nil && data.Value == contentFlaggingMigrationVersion {
+		return nil
 	}
 
 	// RegisterPropertyGroup is idempotent, so no need to check if group is already registered
@@ -615,6 +619,8 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 		return fmt.Errorf("failed to register Content Flagging group: %w", err)
 	}
 
+	// Using page size of 100 and not iterating through all pages because the
+	// number of fields are static and defined here and not expected to be more than 100 for now.
 	existingProperties, appErr := s.propertyService.SearchPropertyFields(group.ID, "", model.PropertyFieldSearchOpts{PerPage: 100})
 	if appErr != nil {
 		return fmt.Errorf("failed to search for existing content flagging properties: %w", appErr)
@@ -701,7 +707,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 		return fmt.Errorf("failed to update content flagging property fields: %w", err)
 	}
 
-	if err := s.Store().System().Save(&model.System{Name: contentFlaggingSetupDoneKey, Value: "true"}); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&model.System{Name: contentFlaggingSetupDoneKey, Value: contentFlaggingMigrationVersion}); err != nil {
 		return fmt.Errorf("failed to save content flagging setup done flag in system store %w", err)
 	}
 
