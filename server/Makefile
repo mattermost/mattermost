@@ -107,7 +107,7 @@ ifeq ($(HOME),/)
 endif
 
 OUTPUT_CONFIG ?= config/config.json
-FIPS_IMAGE ?= cgr.dev/mattermost.com/go-msft-fips:1.24-dev
+FIPS_IMAGE ?= mattermost/mattermost-build-server-fips:1.24.5
 
 # Go Flags
 GOFLAGS ?= $(GOFLAGS:)
@@ -459,10 +459,6 @@ modules-tidy: ## Tidy Go modules
 	mv enterprise/external_imports.go.orig enterprise/external_imports.go
 
 test-server-pre: check-prereqs-enterprise start-docker gotestsum golang-versions ## Runs tests.
-ifeq ($(FIPS_TEST_ENABLED),true)
-	@echo Running FIPS tests
-	apk add curl ca-certificates mailcap unrtf wv poppler-utils tzdata
-endif
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
