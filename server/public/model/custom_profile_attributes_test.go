@@ -1133,5 +1133,3 @@ func TestCPAField_IsAdminManaged(t *testing.T) {
 		})
 	}
 }
-
-
