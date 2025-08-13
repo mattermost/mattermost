@@ -12,6 +12,7 @@
 
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
+
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 describe('Verify Accessibility Support in different input fields', () => {

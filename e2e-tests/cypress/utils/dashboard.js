@@ -10,7 +10,6 @@
  */
 
 const fs = require('fs');
-
 const readFile = require('util').promisify(fs.readFile);
 
 const axios = require('axios');
