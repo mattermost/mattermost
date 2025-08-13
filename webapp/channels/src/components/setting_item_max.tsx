@@ -258,6 +258,7 @@ const SettingItemMax = ({
                         {submit}
                         <button
                             id={'cancelSetting'}
+                            data-testid={'cancelButton'}
                             className='btn btn-tertiary'
                             onClick={handleUpdateSection}
                         >
