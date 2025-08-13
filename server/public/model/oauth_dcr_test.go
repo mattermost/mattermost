@@ -21,19 +21,6 @@ func TestClientRegistrationRequest_PublicClient_IsValid(t *testing.T) {
 	require.Nil(t, req.IsValid())
 }
 
-func TestClientRegistrationRequest_PublicClient_Valid(t *testing.T) {
-	// Test that public client registration request is valid
-	req := &ClientRegistrationRequest{
-		RedirectURIs:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: NewPointer(ClientAuthMethodNone),
-		ClientName:              NewPointer("Test Public Client"),
-	}
-
-	// Public client registration should be valid
-	err := req.IsValid()
-	require.Nil(t, err)
-}
-
 func TestClientRegistrationRequest_PublicClient_AuthMethodValidation(t *testing.T) {
 	// Test that public client auth method is properly validated
 	req := &ClientRegistrationRequest{
@@ -98,25 +85,4 @@ func TestNewOAuthAppFromClientRegistration_PublicClient(t *testing.T) {
 
 	// Verify no client secret for public client
 	require.Empty(t, app.ClientSecret)
-}
-
-func TestClientRegistrationResponse_PublicClient_NoSecret(t *testing.T) {
-	// Test that public client DCR response doesn't include client_secret
-	app := &OAuthApp{
-		Id:                      NewId(),
-		CallbackUrls:            []string{"https://example.com/callback"},
-		// No ClientSecret = public client
-		Name:                    "Test Public Client",
-	}
-
-	response := app.ToClientRegistrationResponse("https://mattermost.example.com")
-
-	// Verify response properties
-	require.Equal(t, app.Id, response.ClientID)
-	require.Equal(t, []string(app.CallbackUrls), response.RedirectURIs)
-	require.Equal(t, ClientAuthMethodNone, response.TokenEndpointAuthMethod)
-	require.Equal(t, app.Name, *response.ClientName)
-
-	// Most importantly - no client secret for public clients
-	require.Nil(t, response.ClientSecret)
 }

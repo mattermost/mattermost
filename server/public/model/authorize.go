@@ -142,29 +142,29 @@ func (ad *AuthData) IsExpired() bool {
 }
 
 // validatePKCEParameters validates PKCE parameters (shared validation logic)
-func validatePKCEParameters(codeChallenge, codeChallengeMethod, clientId, context string) *AppError {
+func validatePKCEParameters(codeChallenge, codeChallengeMethod, clientId, caller string) *AppError {
 	if codeChallenge == "" {
-		return NewAppError(context, "model.authorize.is_valid.code_challenge.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
+		return NewAppError(caller, "model.authorize.is_valid.code_challenge.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
 	}
 
 	if codeChallengeMethod == "" {
-		return NewAppError(context, "model.authorize.is_valid.code_challenge_method.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
+		return NewAppError(caller, "model.authorize.is_valid.code_challenge_method.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
 	}
 
 	// Only support S256 method for security
 	if codeChallengeMethod != PKCECodeChallengeMethodS256 {
-		return NewAppError(context, "model.authorize.is_valid.code_challenge_method.unsupported.app_error", nil, "client_id="+clientId+", method="+codeChallengeMethod, http.StatusBadRequest)
+		return NewAppError(caller, "model.authorize.is_valid.code_challenge_method.unsupported.app_error", nil, "client_id="+clientId+", method="+codeChallengeMethod, http.StatusBadRequest)
 	}
 
 	// Validate code challenge format (base64url encoded)
 	if len(codeChallenge) < PKCECodeChallengeMinLength || len(codeChallenge) > PKCECodeChallengeMaxLength {
-		return NewAppError(context, "model.authorize.is_valid.code_challenge.length.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
+		return NewAppError(caller, "model.authorize.is_valid.code_challenge.length.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
 	}
 
 	// Validate base64url format (no padding, URL-safe characters)
 	matched, _ := regexp.MatchString("^[A-Za-z0-9_-]+$", codeChallenge)
 	if !matched {
-		return NewAppError(context, "model.authorize.is_valid.code_challenge.format.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
+		return NewAppError(caller, "model.authorize.is_valid.code_challenge.format.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
 	}
 
 	return nil
@@ -182,9 +182,14 @@ func (ar *AuthorizeRequest) validatePKCE() *AppError {
 
 // VerifyPKCE verifies a PKCE code_verifier against the stored code_challenge
 func (ad *AuthData) VerifyPKCE(codeVerifier string) bool {
-	if ad.CodeChallenge == "" || ad.CodeChallengeMethod == "" {
-		// No PKCE challenge stored, so verification passes (for backward compatibility)
+	// Both empty = no PKCE was used (backward compatibility)
+	if ad.CodeChallenge == "" && ad.CodeChallengeMethod == "" {
 		return true
+	}
+	
+	// Only one empty = invalid data state
+	if ad.CodeChallenge == "" || ad.CodeChallengeMethod == "" {
+		return false
 	}
 
 	// Validate code verifier length

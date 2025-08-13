@@ -52,14 +52,6 @@ func (r *ClientRegistrationRequest) IsValid() *AppError {
 		return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.client_name.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if r.TokenEndpointAuthMethod != nil {
-		switch *r.TokenEndpointAuthMethod {
-		case ClientAuthMethodClientSecretPost, ClientAuthMethodNone:
-		default:
-			return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.token_endpoint_auth_method.app_error", nil, "method="+*r.TokenEndpointAuthMethod, http.StatusBadRequest)
-		}
-	}
-
 	if r.ClientURI != nil {
 		if !IsValidHTTPURL(*r.ClientURI) {
 			return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.client_uri_format.app_error", nil, "uri="+*r.ClientURI, http.StatusBadRequest)

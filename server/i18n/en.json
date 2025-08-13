@@ -9637,10 +9637,6 @@
     "translation": "At least one redirect URI is required."
   },
   {
-    "id": "model.dcr.is_valid.token_endpoint_auth_method.app_error",
-    "translation": "Unsupported token endpoint authentication method. Only 'client_secret_post' and 'none' are supported."
-  },
-  {
     "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
     "translation": "Unsupported token_endpoint_auth_method supplied."
   },

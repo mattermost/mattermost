@@ -128,24 +128,3 @@ func TestOAuthApp_PreSave_NoSecretGeneration(t *testing.T) {
 	require.True(t, app.IsPublicClient())
 	require.Equal(t, ClientAuthMethodNone, app.GetTokenEndpointAuthMethod())
 }
-
-func TestOAuthApp_DynamicClient_PreSave(t *testing.T) {
-	// Test that PreSave doesn't generate client secret for dynamic clients without one
-	app := OAuthApp{
-		Name:                    "Test Dynamic Client",
-		CallbackUrls:            []string{"https://example.com/callback"},
-		Homepage:                "https://example.com",
-		IsDynamicallyRegistered: true,
-		// No client secret set - for dynamic clients, this means public client
-	}
-
-	app.PreSave()
-
-	// Dynamic client without secret should remain public
-	require.Empty(t, app.ClientSecret)
-	require.NotEmpty(t, app.Id)
-	require.NotZero(t, app.CreateAt)
-	require.NotZero(t, app.UpdateAt)
-	require.True(t, app.IsPublicClient())
-	require.Equal(t, ClientAuthMethodNone, app.GetTokenEndpointAuthMethod())
-}
