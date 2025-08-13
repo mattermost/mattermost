@@ -432,7 +432,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                             className="status "
                                           >
                                             <svg
-                                              aria-label="Offline Icon"
+                                              aria-label="Offline"
                                               className="offline--icon"
                                               height="100%"
                                               role="img"
@@ -611,7 +611,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                             className="status "
                                           >
                                             <svg
-                                              aria-label="Offline Icon"
+                                              aria-label="Offline"
                                               className="offline--icon"
                                               height="100%"
                                               role="img"
@@ -790,7 +790,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                             className="status "
                                           >
                                             <svg
-                                              aria-label="Offline Icon"
+                                              aria-label="Offline"
                                               className="offline--icon"
                                               height="100%"
                                               role="img"
@@ -969,7 +969,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                             className="status "
                                           >
                                             <svg
-                                              aria-label="Offline Icon"
+                                              aria-label="Offline"
                                               className="offline--icon"
                                               height="100%"
                                               role="img"
@@ -1148,7 +1148,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                             className="status "
                                           >
                                             <svg
-                                              aria-label="Offline Icon"
+                                              aria-label="Offline"
                                               className="offline--icon"
                                               height="100%"
                                               role="img"

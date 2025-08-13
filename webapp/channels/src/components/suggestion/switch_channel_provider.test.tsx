@@ -1,15 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
+
+import type {Channel} from '@mattermost/types/channels';
 import {CollapsedThreads} from '@mattermost/types/config';
+import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {Preferences} from 'mattermost-redux/constants';
+import {General, Preferences} from 'mattermost-redux/constants';
 
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
+import {StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
-import SwitchChannelProvider from './switch_channel_provider';
+import SwitchChannelProvider, {ConnectedSwitchChannelSuggestion} from './switch_channel_provider';
 
 const latestPost = TestHelper.getPostMock({
     id: 'latest_post_id',
@@ -988,5 +994,457 @@ describe('components/SwitchChannelProvider', () => {
         expect(resultsCallback).toBeCalledWith(expect.objectContaining({
             terms: expectedOrder,
         }));
+    });
+
+    describe('Smart Email Search Functionality', () => {
+        let switchProvider: SwitchChannelProvider;
+        let store: any;
+        let modifiedState: any;
+
+        beforeEach(() => {
+            const userWithEmail = TestHelper.getUserMock({
+                id: 'user_with_email',
+                username: 'testuser',
+                email: 'prefix-search@domain1.org',
+                first_name: 'Test',
+                last_name: 'User',
+            });
+
+            const userWithCommonDomain = TestHelper.getUserMock({
+                id: 'user_with_common_domain',
+                username: 'anotheruser',
+                email: 'different@domain2.org',
+                first_name: 'Another',
+                last_name: 'User',
+            });
+
+            modifiedState = {
+                ...defaultState,
+                entities: {
+                    ...defaultState.entities,
+                    users: {
+                        ...defaultState.entities.users,
+                        profiles: {
+                            ...defaultState.entities.users.profiles,
+                            [userWithEmail.id]: userWithEmail,
+                            [userWithCommonDomain.id]: userWithCommonDomain,
+                        },
+                        profilesInChannel: {
+                            ...defaultState.entities.users.profilesInChannel,
+                            dm_channel_1: new Set([userWithEmail.id]),
+                            dm_channel_2: new Set([userWithCommonDomain.id]),
+                        },
+                    },
+                    channels: {
+                        ...defaultState.entities.channels,
+                        channels: {
+                            ...defaultState.entities.channels.channels,
+                            dm_channel_1: TestHelper.getChannelMock({
+                                id: 'dm_channel_1',
+                                type: 'D',
+                                name: `current_user_id__${userWithEmail.id}`,
+                                display_name: userWithEmail.username,
+                            }),
+                            dm_channel_2: TestHelper.getChannelMock({
+                                id: 'dm_channel_2',
+                                type: 'D',
+                                name: `current_user_id__${userWithCommonDomain.id}`,
+                                display_name: userWithCommonDomain.username,
+                            }),
+                        },
+                        myMembers: {
+                            ...defaultState.entities.channels.myMembers,
+                            dm_channel_1: {
+                                channel_id: 'dm_channel_1',
+                                user_id: 'current_user_id',
+                            },
+                            dm_channel_2: {
+                                channel_id: 'dm_channel_2',
+                                user_id: 'current_user_id',
+                            },
+                        },
+                        profilesInChannel: {
+                            dm_channel_1: new Set([userWithEmail.id]),
+                            dm_channel_2: new Set([userWithCommonDomain.id]),
+                        },
+                    },
+                },
+            };
+
+            switchProvider = new SwitchChannelProvider();
+            store = mockStore(modifiedState);
+            switchProvider.store = store;
+        });
+
+        it('should match by email prefix when searching without @', () => {
+            const channels = [
+                modifiedState.entities.channels.channels.dm_channel_1,
+                modifiedState.entities.channels.channels.dm_channel_2,
+            ];
+            const users = [
+                modifiedState.entities.users.profiles.user_with_email,
+                modifiedState.entities.users.profiles.user_with_common_domain,
+            ];
+
+            // These should work - searching by email prefix (before @)
+            switchProvider.startNewRequest('');
+            let results = switchProvider.formatGroup('prefix-search', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+
+            results = switchProvider.formatGroup('different', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_2')).toBe(true);
+        });
+
+        it('should match by full email when searching WITH @ symbol', () => {
+            const channels = [
+                modifiedState.entities.channels.channels.dm_channel_1,
+                modifiedState.entities.channels.channels.dm_channel_2,
+            ];
+            const users = [
+                modifiedState.entities.users.profiles.user_with_email,
+                modifiedState.entities.users.profiles.user_with_common_domain,
+            ];
+
+            // These should work - searching by full email when @ is present
+            switchProvider.startNewRequest('');
+            let results = switchProvider.formatGroup('prefix-search@domain1.org', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+
+            results = switchProvider.formatGroup('different@domain2.org', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_2')).toBe(true);
+
+            results = switchProvider.formatGroup('prefix-search@', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+        });
+
+        it('should match by partial email with @ symbol', () => {
+            const channels = [
+                modifiedState.entities.channels.channels.dm_channel_1,
+                modifiedState.entities.channels.channels.dm_channel_2,
+            ];
+            const users = [
+                modifiedState.entities.users.profiles.user_with_email,
+                modifiedState.entities.users.profiles.user_with_common_domain,
+            ];
+
+            // Partial email searches with @ should work
+            switchProvider.startNewRequest('');
+            let results = switchProvider.formatGroup('prefix-search@', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+
+            results = switchProvider.formatGroup('different@', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_2')).toBe(true);
+        });
+
+        it('should handle @ at the beginning correctly', () => {
+            const channels = [
+                modifiedState.entities.channels.channels.dm_channel_1,
+                modifiedState.entities.channels.channels.dm_channel_2,
+            ];
+            const users = [
+                modifiedState.entities.users.profiles.user_with_email,
+                modifiedState.entities.users.profiles.user_with_common_domain,
+            ];
+
+            // @ at the beginning should be stripped and then apply smart logic
+            switchProvider.startNewRequest('');
+            let results = switchProvider.formatGroup('@prefix-search', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+
+            results = switchProvider.formatGroup('@different', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_2')).toBe(true);
+        });
+
+        it('should match domain when @ is present in search term', () => {
+            const channels = [
+                modifiedState.entities.channels.channels.dm_channel_1,
+                modifiedState.entities.channels.channels.dm_channel_2,
+            ];
+            const users = [
+                modifiedState.entities.users.profiles.user_with_email,
+                modifiedState.entities.users.profiles.user_with_common_domain,
+            ];
+
+            // When @ is present, domain matching should work
+            switchProvider.startNewRequest('');
+            let results = switchProvider.formatGroup('@domain1', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+
+            results = switchProvider.formatGroup('@domain2', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_2')).toBe(true);
+
+            results = switchProvider.formatGroup('domain1@', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+        });
+    });
+});
+
+describe('SwitchChannelSuggestion', () => {
+    const baseProps = {
+        id: 'test-suggestion',
+        matchedPretext: '',
+        isSelection: false,
+        onClick: jest.fn(),
+        onMouseMove: jest.fn(),
+    };
+
+    const currentUserId = 'currentUser';
+
+    const team1 = TestHelper.getTeamMock({id: 'team1', display_name: 'Team One'});
+    const team2 = TestHelper.getTeamMock({id: 'team2', display_name: 'Team Two'});
+
+    function getBaseState(teams: Team[], channels: Channel[]): any {
+        return {
+            entities: {
+                channels: {
+                    channels: channels.reduce((channelsMap, channel) => ({...channelsMap, [channel.id]: channel}), {}),
+                    myMembers: channels.reduce((membersMap, channel) => ({
+                        ...membersMap,
+                        [channel.id]: TestHelper.getChannelMembershipMock({channel_id: channel.id, user_id: currentUserId}),
+                    }), {}),
+                },
+                teams: {
+                    teams: teams.reduce((teamsMap, team) => ({...teamsMap, [team.id]: team}), {}),
+                    myMembers: teams.reduce((membersMap, team) => ({
+                        ...membersMap,
+                        [team.id]: TestHelper.getTeamMembershipMock({team_id: team.id, user_id: currentUserId}),
+                    }), {}),
+                },
+            },
+        };
+    }
+
+    test('should show the team name for channels if the user is on multiple teams', () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One'});
+
+        const {replaceStoreState} = renderWithContext(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel1.name}
+                item={{
+                    channel: channel1,
+                    name: channel1.name,
+                    deactivated: false,
+                }}
+            />,
+            getBaseState([team1], [channel1]),
+        );
+
+        const suggestion = document.getElementById(baseProps.id);
+
+        // When the user is on only a single team, the channel's URL name is displayed
+        expect(screen.getByText(`~${channel1.name}`)).toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel1.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`~${channel1.name} Public channel`);
+
+        replaceStoreState(getBaseState([team1, team2], [channel1]));
+
+        // When the user is on multiple teams, we show the team's display name instead
+        expect(screen.getByText(team1.display_name)).toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel1.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`${team1.display_name} Public channel`);
+    });
+
+    test('should show the type of channel', () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One', type: General.OPEN_CHANNEL});
+        const channel2 = TestHelper.getChannelMock({id: 'channel2', team_id: 'team1', name: 'channel_two', display_name: 'Channel Two', type: General.PRIVATE_CHANNEL});
+
+        const {rerender} = renderWithContext(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel1.name}
+                item={{
+                    channel: channel1,
+                    name: channel1.name,
+                    deactivated: false,
+                }}
+            />,
+            getBaseState([team1], [channel1, channel2]),
+        );
+
+        const suggestion = document.getElementById(baseProps.id);
+
+        expect(screen.getByLabelText('Public channel')).toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel1.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`~${channel1.name} Public channel`);
+
+        rerender(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel2.name}
+                item={{
+                    channel: channel2,
+                    name: channel2.name,
+                    deactivated: false,
+                }}
+            />,
+        );
+
+        expect(screen.getByLabelText('Private channel')).toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel2.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`~${channel2.name} Private channel`);
+    });
+
+    test('should show if the channel has a draft instead of the channel type', () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One'});
+        const channel2 = TestHelper.getChannelMock({id: 'channel2', team_id: 'team1', name: 'channel_two', display_name: 'Channel Two'});
+
+        const testState = getBaseState([team1], [channel1, channel2]);
+        testState.storage = {
+            storage: {
+                [`${StoragePrefixes.DRAFT}${channel2.id}`]: {
+                    value: TestHelper.getPostDraftMock({message: 'post draft'}),
+                },
+            },
+        };
+
+        const {rerender} = renderWithContext(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel1.name}
+                item={{
+                    channel: channel1,
+                    name: channel1.name,
+                    deactivated: false,
+                }}
+            />,
+            testState,
+        );
+
+        const suggestion = document.getElementById(baseProps.id);
+
+        expect(screen.queryByLabelText('Has draft')).not.toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel1.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`~${channel1.name} Public channel`);
+
+        rerender(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel2.name}
+                item={{
+                    channel: channel2,
+                    name: channel2.name,
+                    deactivated: false,
+                }}
+            />,
+        );
+
+        expect(screen.queryByLabelText('Has draft')).toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel2.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`~${channel2.name} Has draft`);
+    });
+
+    test('should show if the channel is archived instead of the channel type', () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One'});
+        const channel2 = TestHelper.getChannelMock({id: 'channel2', team_id: 'team1', name: 'channel_two', display_name: 'Channel Two', delete_at: 1});
+
+        const {rerender} = renderWithContext(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel1.name}
+                item={{
+                    channel: channel1,
+                    name: channel1.name,
+                    deactivated: false,
+                }}
+            />,
+            getBaseState([team1], [channel1, channel2]),
+        );
+
+        const suggestion = document.getElementById(baseProps.id);
+
+        expect(screen.queryByLabelText('Archved channel')).not.toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel1.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`~${channel1.name} Public channel`);
+
+        rerender(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel2.name}
+                item={{
+                    channel: channel2,
+                    name: channel2.name,
+                    deactivated: false,
+                }}
+            />,
+        );
+
+        expect(screen.queryByLabelText('Archived channel')).toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel2.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`~${channel2.name} Archived channel`);
+    });
+
+    test('should show if the channel has unread mentions', () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One'});
+        const channel2 = TestHelper.getChannelMock({id: 'channel2', team_id: 'team1', name: 'channel_two', display_name: 'Channel Two'});
+        const channel3 = TestHelper.getChannelMock({id: 'channel3', team_id: 'team1', name: 'channel_three', display_name: 'Channel Three'});
+
+        const testState = getBaseState([team1], [channel1, channel2, channel3]);
+        testState.entities.channels.myMembers[channel1.id].mention_count = 0;
+        testState.entities.channels.myMembers[channel2.id].mention_count = 1;
+        testState.entities.channels.myMembers[channel3.id].mention_count = 5;
+
+        const {rerender} = renderWithContext(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel1.name}
+                item={{
+                    channel: channel1,
+                    name: channel1.name,
+                    deactivated: false,
+                }}
+            />,
+            testState,
+        );
+
+        const suggestion = document.getElementById(baseProps.id);
+
+        expect(screen.queryByLabelText(/unread/, {exact: false})).not.toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel1.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`~${channel1.name} Public channel`);
+
+        rerender(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel2.name}
+                item={{
+                    channel: channel2,
+                    name: channel2.name,
+                    deactivated: false,
+                }}
+            />,
+        );
+
+        expect(screen.queryByLabelText('1 unread notification')).toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel2.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`1 unread notification ~${channel2.name} Public channel`);
+
+        rerender(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel3.name}
+                item={{
+                    channel: channel3,
+                    name: channel3.name,
+                    deactivated: false,
+                }}
+            />,
+        );
+
+        expect(screen.queryByLabelText('5 unread notifications')).toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel3.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`5 unread notifications ~${channel3.name} Public channel`);
     });
 });
