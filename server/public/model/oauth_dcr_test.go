@@ -74,7 +74,7 @@ func TestNewOAuthAppFromClientRegistration_PublicClient(t *testing.T) {
 
 	// Verify app properties
 	require.Equal(t, creatorId, app.CreatorId)
-	require.Equal(t, req.RedirectURIs, app.CallbackUrls)
+	require.Equal(t, req.RedirectURIs, []string(app.CallbackUrls))
 	require.Equal(t, *req.TokenEndpointAuthMethod, app.GetTokenEndpointAuthMethod())
 	require.Equal(t, *req.ClientName, app.Name)
 	require.True(t, app.IsDynamicallyRegistered)
