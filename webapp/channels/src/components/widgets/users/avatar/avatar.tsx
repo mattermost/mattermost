@@ -43,6 +43,14 @@ type Props = {
     username?: string;
     size?: TAvatarSizeToken;
     text?: string;
+
+    /**
+     * Override the default alt text for the image.
+     *
+     * If this Avatar is accompanied in the DOM by the user's name, this should be set to the empty string to prevent
+     * screen readers from repeating the user's name multiple times.
+     */
+    alt?: string;
 };
 
 type Attrs = HTMLAttributes<HTMLElement>;
@@ -55,6 +63,7 @@ const Avatar = forwardRef<HTMLElement, Props & Attrs>(({
     username,
     size = 'md',
     text,
+    alt,
     ...attrs
 }, ref) => {
     const {formatMessage} = useIntl();
@@ -85,7 +94,7 @@ const Avatar = forwardRef<HTMLElement, Props & Attrs>(({
             {...attrs}
             ref={ref as RefObject<HTMLImageElement>}
             className={classes}
-            alt={formatMessage({id: 'avatar.alt', defaultMessage: '{username} profile image'}, {
+            alt={alt ?? formatMessage({id: 'avatar.alt', defaultMessage: '{username} profile image'}, {
                 username: username || 'user',
             })}
             src={url}
