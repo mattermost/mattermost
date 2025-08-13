@@ -554,9 +554,9 @@ export function isAllowedToUpgradeToEnterprise() {
     return async () => {
         try {
             await Client4.isAllowedToUpgradeToEnterprise();
-            return {};
+            return {data: true};
         } catch (error) {
-            return error;
+            return {error};
         }
     };
 }

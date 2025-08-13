@@ -53,7 +53,7 @@ type Props = {
         getPrevTrialLicense: () => void;
         upgradeToE0: () => Promise<StatusOK>;
         upgradeToE0Status: () => Promise<{percentage: number; error: string | JSX.Element | null}>;
-        isAllowedToUpgradeToEnterprise: () => Promise<ServerError>;
+        isAllowedToUpgradeToEnterprise: () => Promise<ActionResult>;
         restartServer: () => Promise<StatusOK>;
         ping: () => Promise<{status: string}>;
         requestTrialLicense: (users: number, termsAccepted: boolean, receiveEmailsAccepted: boolean, featureName: string) => Promise<ActionResult>;
@@ -120,7 +120,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
         if (this.props.enterpriseReady) {
             this.props.actions.getPrevTrialLicense();
         } else {
-            this.props.actions.isAllowedToUpgradeToEnterprise().then((error) => {
+            this.props.actions.isAllowedToUpgradeToEnterprise().then(({error}) => {
                 this.setState({upgradeDisabled: Boolean(error.message), upgradeError: error.message});
                 if (!error.message) {
                     this.reloadPercentage();
