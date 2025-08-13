@@ -20,7 +20,7 @@ type Props = {
     getContent?: (code: string) => void;
 };
 
-export function supports(fileInfo: FileInfo | LinkInfo) {
+export function hasSupportedLanguage(fileInfo: FileInfo | LinkInfo) {
     return Boolean(SyntaxHighlighting.getLanguageFromFileExtension(fileInfo.extension));
 }
 
