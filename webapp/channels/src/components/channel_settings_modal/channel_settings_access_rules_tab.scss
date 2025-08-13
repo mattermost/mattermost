@@ -1,0 +1,44 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ChannelSettingsModal {
+    &__accessRulesTab {
+        display: flex;
+        flex-direction: column;
+        padding-bottom: 60px;
+    }
+
+    &__accessRulesHeader {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 24px;
+        gap: 8px;
+    }
+
+    &__accessRulesTitle {
+        margin: 0;
+        color: var(--center-channel-color);
+        font-family: Metropolis, sans-serif;
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 28px;
+    }
+
+    &__accessRulesSubtitle {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+    }
+
+    &__accessRulesDescription {
+        margin: 24px 0 0 0;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+    }
+}
