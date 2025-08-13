@@ -14,6 +14,11 @@ on:
 env:
   CHAINCTL_IDENTITY: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f
 
+# Permissions required for chainguard-dev/setup-chainctl
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
