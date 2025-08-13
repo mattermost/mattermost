@@ -85,7 +85,7 @@ func TestAuthData_VerifyPKCE_S256_ValidVerifier(t *testing.T) {
 	// Test valid PKCE S256 verification
 	codeVerifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
 	expectedChallenge := "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
-	
+
 	authData := &AuthData{
 		CodeChallenge:       expectedChallenge,
 		CodeChallengeMethod: PKCECodeChallengeMethodS256,
