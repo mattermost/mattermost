@@ -1608,6 +1608,7 @@
   "admin.license.no-file-selected": "No file selected",
   "admin.license.purchaseEnterprisePlanSubtitle": "Continue your access to Enterprise Advanced features by purchasing a license.",
   "admin.license.purchaseEnterprisePlanTitle": "Purchase Enterprise Advanced",
+  "admin.license.purchasePlanToRemoveLimitsTitle": "Purchase one of our plans to remove limits",
   "admin.license.remove": "Remove",
   "admin.license.removing": "Removing License...",
   "admin.license.renewalCard.description.contact_sales": "Renew your {licenseSku} license by contacting sales to avoid any disruption.",
