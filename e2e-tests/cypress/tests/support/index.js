@@ -145,7 +145,7 @@ before(() => {
 
         cy.wrap({adminUser, config, configOldFormat, license, plugins});
     }).then(({config, configOldFormat, license, adminUser, plugins}) => {
-        cy.log('---- Test Environment ----');
+        cy.log('---');
 
         // Print license information
         printLicenseInfo(license);
@@ -162,7 +162,7 @@ before(() => {
         // Print Cypress test configuration
         printCypressTestConfig();
 
-        cy.log('--------------------------\n');
+        cy.log('---\n');
     });
 });
 
@@ -246,11 +246,13 @@ function printPluginDetails(plugins) {
 }
 
 function printCypressTestConfig() {
-    // eslint-disable-next-line no-console
-    cy.log(`Cypress Test Config:
+    if (Cypress.env('ci')) {
+        // eslint-disable-next-line no-console
+        cy.log(`Cypress Test Config:
   - Browser     = ${Cypress.browser.name} v${Cypress.browser.version}
   - Viewport    = ${Cypress.config('viewportWidth')}x${Cypress.config('viewportHeight')}
   - BaseUrl     = ${Cypress.config('baseUrl')}`);
+    }
 }
 
 function printLicenseInfo(license) {
@@ -276,24 +278,27 @@ function printServerInfo(config, configOldFormat) {
   - TelemetryId                 = ${configOldFormat.TelemetryId}
   - ServiceEnvironment          = ${configOldFormat.ServiceEnvironment}`);
 
-    // eslint-disable-next-line no-console
-    cy.log(`Notable Server Config:
+    if (Cypress.env('ci')) {
+        // eslint-disable-next-line no-console
+        cy.log(`Notable Server Config:
   - ServiceSettings.EnableSecurityFixAlert  = ${config.ServiceSettings?.EnableSecurityFixAlert}
   - LogSettings.EnableDiagnostics           = ${config.LogSettings?.EnableDiagnostics}`);
 
-    // eslint-disable-next-line no-console
-    cy.log('Feature Flags:');
-    Object.entries(config.FeatureFlags).forEach(([key, value]) => cy.log(`  - ${key} = ${value}`));
+        // eslint-disable-next-line no-console
+        cy.log('Feature Flags:');
+        Object.entries(config.FeatureFlags).forEach(([key, value]) => cy.log(`  - ${key} = ${value}`));
 
-    cy.log(`Plugin Settings:
+        cy.log(`Plugin Settings:
   - Enable                       = ${config.PluginSettings?.Enable}
   - EnableUploads                = ${config.PluginSettings?.EnableUploads}
   - AutomaticPrepackagedPlugins  = ${config.PluginSettings?.AutomaticPrepackagedPlugins}`);
+    }
 }
 
 function printAdminInfo(adminUser) {
-    // eslint-disable-next-line no-console
-    cy.log(`Admin Info:
+    if (Cypress.env('ci')) {
+        // eslint-disable-next-line no-console
+        cy.log(`Admin Info:
   - ID          = ${adminUser.id}
   - Username    = ${adminUser.username}
   - FirstName   = ${adminUser.first_name}
@@ -302,4 +307,5 @@ function printAdminInfo(adminUser) {
   - Locale      = ${adminUser.locale}
   - Timezone    = ${JSON.stringify(adminUser.timezone)}
   - Roles       = ${JSON.stringify(adminUser.roles)}`);
+    }
 }
