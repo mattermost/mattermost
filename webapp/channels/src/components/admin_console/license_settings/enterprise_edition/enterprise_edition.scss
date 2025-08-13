@@ -29,9 +29,6 @@
             }
         }
 
-        :last-child {
-            color: rgba(63, 69, 80, 0.64);
-        }
     }
 
     button {
@@ -72,12 +69,15 @@
     }
 
     .subtitle {
-        margin-top: 15px;
-        font-size: 12px;
+        margin-top: 20px;
+        font-size: 14px;
     }
 
     .license-notices {
         font-size: 12px;
+        p {
+            margin-bottom: 0px;
+        }
     }
 
     .licenseInformation {
@@ -167,6 +167,47 @@
             &:focus,
             &:focus-visible {
                 outline: none !important;
+            }
+        }
+    }
+
+    // Entry SKU specific styles
+    .have-license-section {
+        margin: 24px 0;
+
+        .have-license-title {
+            margin: 0 0 4px 0;
+            color: #3f4350;
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 24px;
+        }
+
+        .have-license-description {
+            margin: 0 0 10px 0;
+            color: rgba(63, 67, 80, 0.72);
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 20px;
+        }
+
+        .upload-license-button-container {
+            .upload-license-btn {
+                display: inline-flex;
+                align-items: center;
+                padding: 8px 16px;
+                font-size: 14px;
+                font-weight: 600;
+                gap: 8px;
+
+                i {
+                    font-size: 16px;
+                }
+
+                &:disabled {
+                    cursor: not-allowed;
+                    opacity: 0.5;
+                }
             }
         }
     }

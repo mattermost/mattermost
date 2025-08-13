@@ -24,7 +24,9 @@ const (
 	LicenseShortSkuProfessional       = "professional"
 	LicenseShortSkuEnterprise         = "enterprise"
 	LicenseShortSkuEnterpriseAdvanced = "advanced"
+	LicenseShortSkuMattermostEntry    = "entry"
 
+	// TODO: What tier should Entry fall into?
 	ProfessionalTier       = 10
 	EnterpriseTier         = 20
 	EnterpriseAdvancedTier = 30
@@ -56,6 +58,15 @@ type LicenseRecord struct {
 	Bytes    string `json:"-"`
 }
 
+type LicenseLimits struct {
+	PostHistory         int64 `json:"post_history"`
+	BoardCards          int64 `json:"board_cards"`
+	PlaybookRuns        int64 `json:"playbook_runs"`
+	CallDurationSeconds int64 `json:"call_duration"`
+	AgentsPrompts       int64 `json:"agents_prompts"`
+	PushNotifications   int64 `json:"push_notifications"`
+}
+
 type License struct {
 	Id                  string    `json:"id"`
 	IssuedAt            int64     `json:"issued_at"`
@@ -71,8 +82,79 @@ type License struct {
 	// ExtraUsers provides a grace mechanism that allows a configurable number of users
 	// beyond the base license limit before restricting user creation. When nil, defaults to 0.
 	// For example: 100 licensed users + 5 ExtraUsers = 105 total allowed users.
-	ExtraUsers *int    `json:"extra_users"`
-	SignupJWT  *string `json:"signup_jwt"`
+	ExtraUsers *int           `json:"extra_users"`
+	SignupJWT  *string        `json:"signup_jwt"`
+	Limits     *LicenseLimits `json:"limits"`
+}
+
+func NewMattermostEntryLimits() *LicenseLimits {
+	return &LicenseLimits{
+		PostHistory:         10000,
+		BoardCards:          100,
+		PlaybookRuns:        1,
+		CallDurationSeconds: int64(40 * time.Minute.Seconds()),
+		AgentsPrompts:       1000,
+		PushNotifications:   10000,
+	}
+}
+
+func NewMattermostEntryLicense(serverID string) *License {
+	return &License{
+		Id:        serverID,
+		ExpiresAt: GetMillis() + 100*DayInMilliseconds,
+		StartsAt:  GetMillis(),
+		Customer: &Customer{
+			Id:      serverID,
+			Email:   "mattermost-entry@mattermost.com",
+			Name:    "Mattermost Entry",
+			Company: "Mattermost",
+		},
+		Features: &Features{
+			Users:                     NewPointer(1000),
+			Cloud:                     NewPointer(false),
+			EnterprisePlugins:         NewPointer(true),
+			OutgoingOAuthConnections:  NewPointer(true),
+			RemoteClusterService:      NewPointer(true),
+			SharedChannels:            NewPointer(true),
+			FutureFeatures:            NewPointer(true),
+			CustomPermissionsSchemes:  NewPointer(true),
+			CustomTermsOfService:      NewPointer(true),
+			GuestAccounts:             NewPointer(true),
+			GuestAccountsPermissions:  NewPointer(true),
+			IDLoadedPushNotifications: NewPointer(true),
+			LockTeammateNameDisplay:   NewPointer(true),
+			AdvancedLogging:           NewPointer(true),
+			Announcement:              NewPointer(true),
+			DataRetention:             NewPointer(true),
+			EmailNotificationContents: NewPointer(true),
+			Elasticsearch:             NewPointer(true),
+			GoogleOAuth:               NewPointer(true),
+			LDAP:                      NewPointer(true),
+			LDAPGroups:                NewPointer(true),
+			MFA:                       NewPointer(true),
+			Metrics:                   NewPointer(true),
+			MHPNS:                     NewPointer(true),
+			SAML:                      NewPointer(true),
+			ThemeManagement:           NewPointer(true),
+			MessageExport:             NewPointer(true),
+			Compliance:                NewPointer(false),
+			Cluster:                   NewPointer(false),
+			Office365OAuth:            NewPointer(true),
+			OpenId:                    NewPointer(true),
+		},
+		SkuName:             "Mattermost Entry",
+		SkuShortName:        "entry",
+		IsTrial:             false,
+		IsGovSku:            false,
+		IsSeatCountEnforced: false,
+		ExtraUsers:          NewPointer(0),
+		SignupJWT:           nil,
+		Limits:              NewMattermostEntryLimits(),
+	}
+}
+
+func (l *License) IsMattermostEntry() bool {
+	return l != nil && l.SkuShortName == LicenseShortSkuMattermostEntry
 }
 
 type Customer struct {

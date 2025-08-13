@@ -1364,7 +1364,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	if license.IsCloud() {
+	if license.IsCloud() || license.IsMattermostEntry() {
 		return
 	}
 
