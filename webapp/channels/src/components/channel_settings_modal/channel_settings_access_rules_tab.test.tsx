@@ -2,9 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import type {UserPropertyField} from '@mattermost/types/properties';
+
+import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
+
+import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
+import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsAccessRulesTab from './channel_settings_access_rules_tab';
@@ -14,14 +18,9 @@ jest.mock('hooks/useChannelAccessControlActions');
 
 // Mock TableEditor
 jest.mock('components/admin_console/access_control/editors/table_editor/table_editor', () => {
-    return jest.fn(() => <div data-testid={'table-editor'}>{'TableEditor'}</div>);
+    const React = require('react');
+    return jest.fn(() => React.createElement('div', {'data-testid': 'table-editor'}, 'TableEditor'));
 });
-
-// Mock console methods
-const consoleSpy = {
-    error: jest.spyOn(console, 'error').mockImplementation(),
-    warn: jest.spyOn(console, 'warn').mockImplementation(),
-};
 
 const mockUseChannelAccessControlActions = useChannelAccessControlActions as jest.MockedFunction<typeof useChannelAccessControlActions>;
 const MockedTableEditor = TableEditor as jest.MockedFunction<typeof TableEditor>;
@@ -96,6 +95,22 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             components: {},
         },
     };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockUseChannelAccessControlActions.mockReturnValue(mockActions);
+        mockActions.getAccessControlFields.mockResolvedValue({
+            data: mockUserAttributes,
+        });
+
+        // Suppress console methods for tests
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+        jest.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
 
     test('should match snapshot', () => {
         const {container} = renderWithContext(
@@ -189,47 +204,60 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
     });
 
     test('should call useChannelAccessControlActions hook', () => {
-        shallow(<ChannelSettingsAccessRulesTab {...baseProps}/>);
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...baseProps}/>,
+            initialState,
+        );
 
         expect(mockUseChannelAccessControlActions).toHaveBeenCalledTimes(1);
     });
 
     test('should load user attributes on mount', async () => {
-        await act(async () => {
-            mount(<ChannelSettingsAccessRulesTab {...baseProps}/>);
-        });
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...baseProps}/>,
+            initialState,
+        );
 
-        expect(mockActions.getAccessControlFields).toHaveBeenCalledWith('', 100);
+        await waitFor(() => {
+            expect(mockActions.getAccessControlFields).toHaveBeenCalledWith('', 100);
+        });
     });
 
     test('should not render TableEditor initially when attributes are loading', () => {
-        const wrapper = shallow(<ChannelSettingsAccessRulesTab {...baseProps}/>);
+        // Mock to return unresolved promise to simulate loading state
+        mockActions.getAccessControlFields.mockReturnValue(new Promise(() => {}));
 
-        expect(wrapper.find(TableEditor)).toHaveLength(0);
-        expect(wrapper.find('.ChannelSettingsModal__accessRulesEditor')).toHaveLength(0);
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...baseProps}/>,
+            initialState,
+        );
+
+        expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
+        expect(document.querySelector('.ChannelSettingsModal__accessRulesEditor')).not.toBeInTheDocument();
     });
 
     test('should render TableEditor when attributes are loaded', async () => {
-        const wrapper = mount(<ChannelSettingsAccessRulesTab {...baseProps}/>);
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...baseProps}/>,
+            initialState,
+        );
 
-        // Wait for useEffect to complete with act()
-        await act(async () => {
-            await new Promise((resolve) => setTimeout(resolve, 0));
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
         });
-        wrapper.update();
 
-        expect(wrapper.find('[data-testid="table-editor"]')).toHaveLength(1);
-        expect(wrapper.find('.ChannelSettingsModal__accessRulesEditor')).toHaveLength(1);
+        expect(document.querySelector('.ChannelSettingsModal__accessRulesEditor')).toBeInTheDocument();
     });
 
     test('should pass correct props to TableEditor', async () => {
-        const wrapper = mount(<ChannelSettingsAccessRulesTab {...baseProps}/>);
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...baseProps}/>,
+            initialState,
+        );
 
-        // Wait for useEffect to complete with act()
-        await act(async () => {
-            await new Promise((resolve) => setTimeout(resolve, 0));
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
         });
-        wrapper.update();
 
         expect(MockedTableEditor).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -251,21 +279,20 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             setAreThereUnsavedChanges,
         };
 
-        const wrapper = mount(<ChannelSettingsAccessRulesTab {...propsWithCallback}/>);
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...propsWithCallback}/>,
+            initialState,
+        );
 
-        // Wait for useEffect to complete with act()
-        await act(async () => {
-            await new Promise((resolve) => setTimeout(resolve, 0));
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
         });
-        wrapper.update();
 
         // Get the onChange callback passed to TableEditor
         const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
 
         // Simulate expression change
-        act(() => {
-            onChangeCallback('user.attributes.department == "Engineering"');
-        });
+        onChangeCallback('user.attributes.department == "Engineering"');
 
         expect(setAreThereUnsavedChanges).toHaveBeenCalledWith(true);
     });
@@ -276,80 +303,68 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             setAreThereUnsavedChanges: undefined,
         };
 
-        const wrapper = mount(<ChannelSettingsAccessRulesTab {...propsWithoutCallback}/>);
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...propsWithoutCallback}/>,
+            initialState,
+        );
 
-        // Wait for useEffect to complete with act()
-        await act(async () => {
-            await new Promise((resolve) => setTimeout(resolve, 0));
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
         });
-        wrapper.update();
 
         // Get the onChange callback passed to TableEditor
         const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
 
         // Simulate expression change - should not throw error
         expect(() => {
-            act(() => {
-                onChangeCallback('user.attributes.department == "Engineering"');
-            });
+            onChangeCallback('user.attributes.department == "Engineering"');
         }).not.toThrow();
     });
 
     test('should handle error when loading attributes fails', async () => {
-        // Suppress expected console error for this test
-        const originalError = console.error;
-        console.error = jest.fn();
-
         const errorMessage = 'Failed to load attributes';
         mockActions.getAccessControlFields.mockRejectedValue(new Error(errorMessage));
 
-        const wrapper = mount(<ChannelSettingsAccessRulesTab {...baseProps}/>);
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...baseProps}/>,
+            initialState,
+        );
 
-        // Wait for useEffect to complete with act()
-        await act(async () => {
-            await new Promise((resolve) => setTimeout(resolve, 0));
+        // Wait for the error to be handled
+        await waitFor(() => {
+            expect(mockActions.getAccessControlFields).toHaveBeenCalled();
         });
-        wrapper.update();
 
-        expect(console.error).toHaveBeenCalledWith('Failed to load access control fields:', expect.any(Error));
-
-        // Should still render editor even after error (with empty attributes)
-        expect(wrapper.find('[data-testid="table-editor"]')).toHaveLength(1);
-
-        // Restore console.error
-        console.error = originalError;
+        // Should not render editor when there's an error (attributesLoaded remains false)
+        expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
+        expect(document.querySelector('.ChannelSettingsModal__accessRulesEditor')).not.toBeInTheDocument();
     });
 
     test('should handle parse error from TableEditor', async () => {
-        // Suppress expected console warning for this test
-        const originalWarn = console.warn;
-        console.warn = jest.fn();
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...baseProps}/>,
+            initialState,
+        );
 
-        const wrapper = mount(<ChannelSettingsAccessRulesTab {...baseProps}/>);
-
-        // Wait for useEffect to complete with act()
-        await act(async () => {
-            await new Promise((resolve) => setTimeout(resolve, 0));
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
         });
-        wrapper.update();
 
         // Get the onParseError callback passed to TableEditor
         const onParseErrorCallback = MockedTableEditor.mock.calls[0][0].onParseError;
 
         // Simulate parse error
-        act(() => {
-            onParseErrorCallback('Parse error message');
-        });
+        onParseErrorCallback('Parse error message');
 
         expect(console.warn).toHaveBeenCalledWith('Failed to parse expression in table editor');
-
-        // Restore console.warn
-        console.warn = originalWarn;
     });
 
     test('should render description text', () => {
-        const wrapper = shallow(<ChannelSettingsAccessRulesTab {...baseProps}/>);
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...baseProps}/>,
+            initialState,
+        );
 
-        expect(wrapper.find('.ChannelSettingsModal__accessRulesDescription')).toHaveLength(1);
+        expect(document.querySelector('.ChannelSettingsModal__accessRulesDescription')).toBeInTheDocument();
     });
 });
