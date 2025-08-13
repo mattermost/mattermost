@@ -124,6 +124,14 @@ export const getDefaultConfig = () => {
             LdapServer: cypressEnv.ldapServer,
             LdapPort: cypressEnv.ldapPort,
         },
+        PasswordSettings: {
+            MinimumLength: 5,
+            Lowercase: false,
+            Number: false,
+            Uppercase: false,
+            Symbol: false,
+            EnableForgotLink: true,
+        },
         ServiceSettings: {
             AllowedUntrustedInternalConnections: cypressEnv.allowedUntrustedInternalConnections,
             SiteURL: Cypress.config('baseUrl'),
