@@ -19,18 +19,18 @@ const (
 )
 
 type OAuthApp struct {
-	Id                      string      `json:"id"`
-	CreatorId               string      `json:"creator_id"`
-	CreateAt                int64       `json:"create_at"`
-	UpdateAt                int64       `json:"update_at"`
-	ClientSecret            string      `json:"client_secret"`
-	Name                    string      `json:"name"`
-	Description             string      `json:"description"`
-	IconURL                 string      `json:"icon_url"`
-	CallbackUrls            StringArray `json:"callback_urls"`
-	Homepage                string      `json:"homepage"`
-	IsTrusted               bool        `json:"is_trusted"`
-	MattermostAppID         string      `json:"mattermost_app_id"`
+	Id              string      `json:"id"`
+	CreatorId       string      `json:"creator_id"`
+	CreateAt        int64       `json:"create_at"`
+	UpdateAt        int64       `json:"update_at"`
+	ClientSecret    string      `json:"client_secret"`
+	Name            string      `json:"name"`
+	Description     string      `json:"description"`
+	IconURL         string      `json:"icon_url"`
+	CallbackUrls    StringArray `json:"callback_urls"`
+	Homepage        string      `json:"homepage"`
+	IsTrusted       bool        `json:"is_trusted"`
+	MattermostAppID string      `json:"mattermost_app_id"`
 
 	IsDynamicallyRegistered bool `json:"is_dynamically_registered,omitempty"`
 }

@@ -21,7 +21,6 @@ type SqlOAuthStore struct {
 	oAuthAuthDataQuery   sq.SelectBuilder
 }
 
-
 func newSqlOAuthStore(sqlStore *SqlStore) store.OAuthStore {
 	s := SqlOAuthStore{
 		SqlStore: sqlStore,

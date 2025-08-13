@@ -11,28 +11,28 @@ import (
 )
 
 const (
-	AuthCodeExpireTime           = 60 * 10 // 10 minutes
-	AuthCodeResponseType         = "code"
-	ImplicitResponseType         = "token"
-	DefaultScope                 = "user"
-	PKCECodeChallengeMethodS256  = "S256"
-	PKCECodeChallengeMinLength   = 43
-	PKCECodeChallengeMaxLength   = 128
-	PKCECodeVerifierMinLength    = 43
-	PKCECodeVerifierMaxLength    = 128
+	AuthCodeExpireTime          = 60 * 10 // 10 minutes
+	AuthCodeResponseType        = "code"
+	ImplicitResponseType        = "token"
+	DefaultScope                = "user"
+	PKCECodeChallengeMethodS256 = "S256"
+	PKCECodeChallengeMinLength  = 43
+	PKCECodeChallengeMaxLength  = 128
+	PKCECodeVerifierMinLength   = 43
+	PKCECodeVerifierMaxLength   = 128
 )
 
 type AuthData struct {
-	ClientId              string `json:"client_id"`
-	UserId                string `json:"user_id"`
-	Code                  string `json:"code"`
-	ExpiresIn             int32  `json:"expires_in"`
-	CreateAt              int64  `json:"create_at"`
-	RedirectUri           string `json:"redirect_uri"`
-	State                 string `json:"state"`
-	Scope                 string `json:"scope"`
-	CodeChallenge         string `json:"code_challenge,omitempty"`
-	CodeChallengeMethod   string `json:"code_challenge_method,omitempty"`
+	ClientId            string `json:"client_id"`
+	UserId              string `json:"user_id"`
+	Code                string `json:"code"`
+	ExpiresIn           int32  `json:"expires_in"`
+	CreateAt            int64  `json:"create_at"`
+	RedirectUri         string `json:"redirect_uri"`
+	State               string `json:"state"`
+	Scope               string `json:"scope"`
+	CodeChallenge       string `json:"code_challenge,omitempty"`
+	CodeChallengeMethod string `json:"code_challenge_method,omitempty"`
 }
 
 type AuthorizeRequest struct {
@@ -186,7 +186,7 @@ func (ad *AuthData) VerifyPKCE(codeVerifier string) bool {
 	if ad.CodeChallenge == "" && ad.CodeChallengeMethod == "" {
 		return true
 	}
-	
+
 	// Only one empty = invalid data state
 	if ad.CodeChallenge == "" || ad.CodeChallengeMethod == "" {
 		return false

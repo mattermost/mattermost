@@ -39,7 +39,9 @@ func (a *App) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppEr
 		return nil, model.NewAppError("CreateOAuthApp", "api.oauth.register_oauth_app.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	app.ClientSecret = model.NewId()
+	if app.ClientSecret == "" {
+		app.ClientSecret = model.NewId()
+	}
 
 	oauthApp, err := a.Srv().Store().OAuth().SaveApp(app)
 	if err != nil {
@@ -280,8 +282,12 @@ func (a *App) GetOAuthAccessTokenForImplicitFlow(c request.CTX, userID string, a
 
 	accessData := &model.AccessData{ClientId: authRequest.ClientId, UserId: user.Id, Token: session.Token, RefreshToken: "", RedirectUri: authRequest.RedirectURI, ExpiresAt: session.ExpiresAt, Scope: authRequest.Scope}
 
-	if _, err := a.Srv().Store().OAuth().SaveAccessData(accessData); err != nil {
-		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	// For implicit flow, we only save access data for confidential clients
+	// Public clients receive the token directly in the redirect URL fragment
+	if !oauthApp.IsPublicClient() {
+		if _, err := a.Srv().Store().OAuth().SaveAccessData(accessData); err != nil {
+			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	return session, nil
@@ -299,11 +305,16 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 
 	// Validate client authentication based on client type
 	if oauthApp.IsPublicClient() {
-		// Public client - client_secret should not be provided, PKCE is required
+		// Public client - client_secret should not be provided
 		if secret != "" {
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.public_client_secret.app_error", nil, "", http.StatusBadRequest)
 		}
-		if codeVerifier == "" {
+		// Public clients cannot use refresh tokens
+		if grantType == model.RefreshTokenGrantType {
+			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.public_client_refresh_token.app_error", nil, "", http.StatusBadRequest)
+		}
+		// PKCE is required for authorization code grant
+		if grantType == model.AccessTokenGrantType && codeVerifier == "" {
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.pkce_required.app_error", nil, "", http.StatusBadRequest)
 		}
 	} else {
@@ -389,7 +400,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 			} else {
 				// Return the same token and no need to create a new session
 				// Don't include refresh token for public clients
-				refreshToken := accessData.RefreshToken
+				refreshToken = accessData.RefreshToken
 				if oauthApp.IsPublicClient() {
 					refreshToken = ""
 				}
@@ -409,7 +420,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 			}
 
 			// Generate refresh token only for confidential clients
-			refreshToken := ""
+			refreshToken = ""
 			if !oauthApp.IsPublicClient() {
 				refreshToken = model.NewId()
 			}

@@ -67,6 +67,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 		Description:  "test",
 		CallbackUrls: []string{"https://nowhere.com"},
 		CreatorId:    th.SystemAdminUser.Id,
+		ClientSecret: model.NewId(), // Explicitly set secret to make it confidential
 	}
 
 	rapp, appErr := th.App.CreateOAuthApp(oapp)
@@ -148,6 +149,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 		Description:  "test",
 		CallbackUrls: []string{"https://nowhere.com?simply=lovely"},
 		CreatorId:    th.SystemAdminUser.Id,
+		ClientSecret: model.NewId(), // Explicitly set secret to make it confidential
 	}
 
 	rapp, appErr = th.App.CreateOAuthApp(oappWithQueryParamInCallback)
@@ -192,6 +194,7 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 		Description:  "test",
 		CallbackUrls: []string{"https://nowhere.com"},
 		CreatorId:    th.SystemAdminUser.Id,
+		ClientSecret: model.NewId(), // Explicitly set secret to make it confidential
 	}
 
 	rapp, appErr := th.App.CreateOAuthApp(oapp)
@@ -251,6 +254,7 @@ func TestOAuthAccessToken(t *testing.T) {
 		Description:  "test",
 		CallbackUrls: []string{"https://nowhere.com"},
 		CreatorId:    th.SystemAdminUser.Id,
+		ClientSecret: model.NewId(), // Explicitly set secret to make it confidential
 	}
 	oauthApp, appErr := th.App.CreateOAuthApp(oauthApp)
 	require.Nil(t, appErr)
@@ -521,9 +525,10 @@ func TestOAuthComplete(t *testing.T) {
 	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
 	oauthApp := &model.OAuthApp{
-		Name:        "TestApp5" + model.NewId(),
-		Homepage:    "https://nowhere.com",
-		Description: "test",
+		Name:         "TestApp5" + model.NewId(),
+		Homepage:     "https://nowhere.com",
+		Description:  "test",
+		ClientSecret: model.NewId(), // Explicitly set secret to make it confidential
 		CallbackUrls: []string{
 			apiClient.URL + "/signup/" + model.ServiceGitlab + "/complete",
 			apiClient.URL + "/login/" + model.ServiceGitlab + "/complete",
@@ -898,18 +903,21 @@ func TestAuthorizeOAuthPage_PublicClient_PKCERequired(t *testing.T) {
 		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
 	})
 
-	// Create public client
-	publicApp := &model.OAuthApp{
-		Name:         "Public Client Test",
-		CreatorId:    th.BasicUser.Id,
-		Homepage:     "https://example.com",
-		Description:  "test public client",
-		CallbackUrls: []string{"https://example.com/callback"},
-		ClientSecret: "",
+	// Create public client via DCR
+	dcrRequest := &model.ClientRegistrationRequest{
+		ClientName:              model.NewPointer("Public Client Test"),
+		RedirectURIs:            []string{"https://example.com/callback"},
+		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+		ClientURI:               model.NewPointer("https://example.com"),
 	}
 
-	publicApp, appErr := th.App.CreateOAuthApp(publicApp)
+	publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
 	require.Nil(t, appErr)
+
+	// Debug the app and URL for comparison
+	t.Logf("PKCERequired - Public app ID: %s", publicApp.Id)
+	t.Logf("PKCERequired - Public app secret: %s", publicApp.ClientSecret)
+	t.Logf("PKCERequired - Callback URLs: %v", publicApp.CallbackUrls)
 
 	// Test authorization page without PKCE (should fail for public clients)
 	c := &Context{
@@ -918,14 +926,26 @@ func TestAuthorizeOAuthPage_PublicClient_PKCERequired(t *testing.T) {
 		Logger:     th.TestLogger,
 	}
 
+	// Simulate logged in user
+	session := &model.Session{
+		UserId: th.BasicUser.Id,
+		Token:  model.NewId(),
+	}
+	c.AppContext = c.AppContext.WithSession(session)
+
 	responseWriter := httptest.NewRecorder()
-	request := httptest.NewRequest(http.MethodGet,
-		"/oauth/authorize?response_type=code&client_id="+publicApp.Id+"&redirect_uri="+url.QueryEscape(publicApp.CallbackUrls[0])+"&state=test_state", nil)
+	requestURL := "/oauth/authorize?response_type=code&client_id=" + publicApp.Id + "&redirect_uri=" + url.QueryEscape(publicApp.CallbackUrls[0]) + "&state=test_state"
+	t.Logf("PKCERequired - Request URL: %s", requestURL)
+	request := httptest.NewRequest(http.MethodGet, requestURL, nil)
 
 	authorizeOAuthPage(c, responseWriter, request)
 
+	// Debug output to see what's happening
+	t.Logf("PKCERequired Response code: %d", responseWriter.Code)
+	t.Logf("PKCERequired Response body: %s", responseWriter.Body.String())
+
 	// Should render error page for public client without PKCE
-	assert.Contains(t, responseWriter.Body.String(), "PKCE is required for public clients")
+	assert.Contains(t, responseWriter.Body.String(), "PKCE+is+required+for+public+clients")
 }
 
 func TestAuthorizeOAuthPage_PublicClient_WithPKCE_Success(t *testing.T) {
@@ -936,18 +956,23 @@ func TestAuthorizeOAuthPage_PublicClient_WithPKCE_Success(t *testing.T) {
 		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
 	})
 
-	// Create public client
-	publicApp := &model.OAuthApp{
-		Name:         "Public Client Test",
-		CreatorId:    th.BasicUser.Id,
-		Homepage:     "https://example.com",
-		Description:  "test public client",
-		CallbackUrls: []string{"https://example.com/callback"},
-		ClientSecret: "",
+	// Create public client via DCR
+	dcrRequest := &model.ClientRegistrationRequest{
+		ClientName:              model.NewPointer("Public Client Test"),
+		RedirectURIs:            []string{"https://example.com/callback"},
+		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+		ClientURI:               model.NewPointer("https://example.com"),
 	}
 
-	publicApp, appErr := th.App.CreateOAuthApp(publicApp)
+	publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
 	require.Nil(t, appErr)
+
+	// Make the app trusted so we get a redirect instead of trying to serve HTML
+	publicApp.IsTrusted = true
+	existingApp, getErr := th.App.GetOAuthApp(publicApp.Id)
+	require.Nil(t, getErr)
+	_, updateErr := th.App.UpdateOAuthApp(existingApp, publicApp)
+	require.Nil(t, updateErr)
 
 	// Test authorization page with PKCE (should work for public clients)
 	c := &Context{
@@ -973,9 +998,12 @@ func TestAuthorizeOAuthPage_PublicClient_WithPKCE_Success(t *testing.T) {
 
 	authorizeOAuthPage(c, responseWriter, request)
 
-	// Should render authorization page successfully (not an error)
-	assert.NotContains(t, responseWriter.Body.String(), "PKCE is required")
-	assert.Equal(t, http.StatusOK, responseWriter.Code)
+	// Should redirect to callback URL with authorization code (trusted app)
+	assert.Equal(t, http.StatusFound, responseWriter.Code)
+	location := responseWriter.Header().Get("Location")
+	assert.Contains(t, location, "https://example.com/callback")
+	assert.Contains(t, location, "code=")
+	assert.Contains(t, location, "state=test_state")
 }
 
 func TestAuthorizeOAuthPage_ConfidentialClient_PKCEOptional(t *testing.T) {
@@ -999,6 +1027,13 @@ func TestAuthorizeOAuthPage_ConfidentialClient_PKCEOptional(t *testing.T) {
 	confidentialApp, appErr := th.App.CreateOAuthApp(confidentialApp)
 	require.Nil(t, appErr)
 
+	// Make the app trusted so we get a redirect instead of trying to serve HTML
+	confidentialApp.IsTrusted = true
+	existingApp, getErr := th.App.GetOAuthApp(confidentialApp.Id)
+	require.Nil(t, getErr)
+	_, updateErr := th.App.UpdateOAuthApp(existingApp, confidentialApp)
+	require.Nil(t, updateErr)
+
 	// Test authorization page without PKCE (should work for confidential clients)
 	c := &Context{
 		App:        th.App,
@@ -1019,9 +1054,12 @@ func TestAuthorizeOAuthPage_ConfidentialClient_PKCEOptional(t *testing.T) {
 
 	authorizeOAuthPage(c, responseWriter, request)
 
-	// Should render authorization page successfully
-	assert.Equal(t, http.StatusOK, responseWriter.Code)
-	assert.NotContains(t, responseWriter.Body.String(), "PKCE is required")
+	// Should redirect to callback URL with authorization code (trusted app)
+	assert.Equal(t, http.StatusFound, responseWriter.Code)
+	location := responseWriter.Header().Get("Location")
+	assert.Contains(t, location, "https://example.com/callback")
+	assert.Contains(t, location, "code=")
+	assert.Contains(t, location, "state=test_state")
 }
 
 func TestAuthorizeOAuthApp_PublicClient_PKCEParameters(t *testing.T) {
@@ -1032,17 +1070,15 @@ func TestAuthorizeOAuthApp_PublicClient_PKCEParameters(t *testing.T) {
 		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
 	})
 
-	// Create public client
-	publicApp := &model.OAuthApp{
-		Name:         "Public Client Test",
-		CreatorId:    th.BasicUser.Id,
-		Homepage:     "https://example.com",
-		Description:  "test public client",
-		CallbackUrls: []string{"https://example.com/callback"},
-		ClientSecret: "",
+	// Create public client via DCR
+	dcrRequest := &model.ClientRegistrationRequest{
+		ClientName:              model.NewPointer("Public Client Test"),
+		RedirectURIs:            []string{"https://example.com/callback"},
+		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+		ClientURI:               model.NewPointer("https://example.com"),
 	}
 
-	publicApp, appErr := th.App.CreateOAuthApp(publicApp)
+	publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
 	require.Nil(t, appErr)
 
 	// Test POST authorization request with PKCE
@@ -1098,17 +1134,15 @@ func TestGetAccessToken_PublicClient_NoClientSecret(t *testing.T) {
 		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
 	})
 
-	// Create public client
-	publicApp := &model.OAuthApp{
-		Name:         "Public Client Test",
-		CreatorId:    th.BasicUser.Id,
-		Homepage:     "https://example.com",
-		Description:  "test public client",
-		CallbackUrls: []string{"https://example.com/callback"},
-		ClientSecret: "",
+	// Create public client via DCR
+	dcrRequest := &model.ClientRegistrationRequest{
+		ClientName:              model.NewPointer("Public Client Test"),
+		RedirectURIs:            []string{"https://example.com/callback"},
+		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+		ClientURI:               model.NewPointer("https://example.com"),
 	}
 
-	publicApp, appErr := th.App.CreateOAuthApp(publicApp)
+	publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
 	require.Nil(t, appErr)
 
 	// Get authorization code first
