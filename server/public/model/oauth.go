@@ -161,6 +161,44 @@ func (a *OAuthApp) IsPublicClient() bool {
 	return a.GetTokenEndpointAuthMethod() == ClientAuthMethodNone
 }
 
+// ValidateForGrantType validates the OAuth app for a specific grant type and provided credentials
+func (a *OAuthApp) ValidateForGrantType(grantType, clientSecret, codeVerifier string) *AppError {
+	if a.IsPublicClient() {
+		return a.validatePublicClientGrant(grantType, clientSecret, codeVerifier)
+	}
+	return a.validateConfidentialClientGrant(grantType, clientSecret)
+}
+
+// validatePublicClientGrant validates that public client requests follow OAuth 2.1 security requirements
+func (a *OAuthApp) validatePublicClientGrant(grantType, clientSecret, codeVerifier string) *AppError {
+	// Public clients must not provide a client secret
+	if clientSecret != "" {
+		return NewAppError("OAuthApp.validatePublicClientGrant", "model.oauth.validate_grant.public_client_secret.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
+	}
+
+	// Public clients cannot use refresh token grant type
+	if grantType == RefreshTokenGrantType {
+		return NewAppError("OAuthApp.validatePublicClientGrant", "model.oauth.validate_grant.public_client_refresh_token.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
+	}
+
+	// Public clients must use PKCE for authorization code grant
+	if grantType == AccessTokenGrantType && codeVerifier == "" {
+		return NewAppError("OAuthApp.validatePublicClientGrant", "model.oauth.validate_grant.pkce_required.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+// validateConfidentialClientGrant validates confidential client authentication
+func (a *OAuthApp) validateConfidentialClientGrant(grantType, clientSecret string) *AppError {
+	// Confidential clients must provide correct client secret
+	if a.ClientSecret != clientSecret {
+		return NewAppError("OAuthApp.validateConfidentialClientGrant", "model.oauth.validate_grant.credentials.app_error", nil, "app_id="+a.Id, http.StatusUnauthorized)
+	}
+
+	return nil
+}
+
 func NewOAuthAppFromClientRegistration(req *ClientRegistrationRequest, creatorId string) *OAuthApp {
 	app := &OAuthApp{
 		CreatorId:               creatorId,

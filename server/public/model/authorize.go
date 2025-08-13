@@ -214,3 +214,37 @@ func (ad *AuthData) VerifyPKCE(codeVerifier string) bool {
 
 	return calculatedChallenge == ad.CodeChallenge
 }
+
+// ValidatePKCEForClientType validates PKCE parameters based on OAuth client type and security requirements
+func (ad *AuthData) ValidatePKCEForClientType(isPublicClient bool, codeVerifier string) *AppError {
+	if isPublicClient {
+		// RFC 7636: Public clients MUST use PKCE
+		if ad.CodeChallenge == "" {
+			return NewAppError("AuthData.ValidatePKCEForClientType", "model.authorize.validate_pkce.public_client_required.app_error", nil, "client_id="+ad.ClientId, http.StatusBadRequest)
+		}
+		if codeVerifier == "" {
+			return NewAppError("AuthData.ValidatePKCEForClientType", "model.authorize.validate_pkce.verifier_required.app_error", nil, "client_id="+ad.ClientId, http.StatusBadRequest)
+		}
+		// Verify the code verifier matches the stored code challenge
+		if !ad.VerifyPKCE(codeVerifier) {
+			return NewAppError("AuthData.ValidatePKCEForClientType", "model.authorize.validate_pkce.verification_failed.app_error", nil, "client_id="+ad.ClientId, http.StatusBadRequest)
+		}
+	} else {
+		// Confidential clients: PKCE is optional but enforced if initiated
+		if ad.CodeChallenge != "" {
+			// Client started flow with PKCE - code_verifier is required
+			if codeVerifier == "" {
+				return NewAppError("AuthData.ValidatePKCEForClientType", "model.authorize.validate_pkce.verifier_required.app_error", nil, "client_id="+ad.ClientId, http.StatusBadRequest)
+			}
+			// Verify the code verifier matches the stored code challenge
+			if !ad.VerifyPKCE(codeVerifier) {
+				return NewAppError("AuthData.ValidatePKCEForClientType", "model.authorize.validate_pkce.verification_failed.app_error", nil, "client_id="+ad.ClientId, http.StatusBadRequest)
+			}
+		} else if codeVerifier != "" {
+			// Client provided code_verifier but didn't use PKCE in authorization - reject
+			return NewAppError("AuthData.ValidatePKCEForClientType", "model.authorize.validate_pkce.not_used_in_auth.app_error", nil, "client_id="+ad.ClientId, http.StatusBadRequest)
+		}
+	}
+
+	return nil
+}

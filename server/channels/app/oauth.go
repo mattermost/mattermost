@@ -315,64 +315,11 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 }
 
 func (a *App) validateOAuthClient(oauthApp *model.OAuthApp, grantType, secret, codeVerifier string) *model.AppError {
-	if oauthApp.IsPublicClient() {
-		return a.validatePublicClient(grantType, secret, codeVerifier)
-	}
-	return a.validateConfidentialClient(secret, oauthApp.ClientSecret)
-}
-
-func (a *App) validatePublicClient(grantType, secret, codeVerifier string) *model.AppError {
-	if secret != "" {
-		return model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.public_client_secret.app_error", nil, "", http.StatusBadRequest)
-	}
-	if grantType == model.RefreshTokenGrantType {
-		return model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.public_client_refresh_token.app_error", nil, "", http.StatusBadRequest)
-	}
-	if grantType == model.AccessTokenGrantType && codeVerifier == "" {
-		return model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.pkce_required.app_error", nil, "", http.StatusBadRequest)
-	}
-	return nil
-}
-
-func (a *App) validateConfidentialClient(providedSecret, expectedSecret string) *model.AppError {
-	if providedSecret != expectedSecret {
-		return model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.credentials.app_error", nil, "", http.StatusForbidden)
-	}
-	return nil
+	return oauthApp.ValidateForGrantType(grantType, secret, codeVerifier)
 }
 
 func (a *App) validatePKCE(oauthApp *model.OAuthApp, authData *model.AuthData, codeVerifier string) *model.AppError {
-	if oauthApp.IsPublicClient() {
-		return a.validatePKCEForPublicClient(authData, codeVerifier)
-	}
-	return a.validatePKCEForConfidentialClient(authData, codeVerifier)
-}
-
-func (a *App) validatePKCEForPublicClient(authData *model.AuthData, codeVerifier string) *model.AppError {
-	if authData.CodeChallenge == "" {
-		return model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.pkce_required_public.app_error", nil, "", http.StatusBadRequest)
-	}
-	if codeVerifier == "" {
-		return model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.pkce_verifier_required.app_error", nil, "", http.StatusBadRequest)
-	}
-	if !authData.VerifyPKCE(codeVerifier) {
-		return model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.pkce_verification_failed.app_error", nil, "", http.StatusBadRequest)
-	}
-	return nil
-}
-
-func (a *App) validatePKCEForConfidentialClient(authData *model.AuthData, codeVerifier string) *model.AppError {
-	if authData.CodeChallenge != "" {
-		if codeVerifier == "" {
-			return model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.pkce_verifier_required.app_error", nil, "", http.StatusBadRequest)
-		}
-		if !authData.VerifyPKCE(codeVerifier) {
-			return model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.pkce_verification_failed.app_error", nil, "", http.StatusBadRequest)
-		}
-	} else if codeVerifier != "" {
-		return model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.pkce_not_used_in_auth.app_error", nil, "", http.StatusBadRequest)
-	}
-	return nil
+	return authData.ValidatePKCEForClientType(oauthApp.IsPublicClient(), codeVerifier)
 }
 
 func (a *App) handleAuthorizationCodeGrant(c request.CTX, oauthApp *model.OAuthApp, redirectURI, code, codeVerifier, clientId string) (*model.AccessResponse, *model.AppError) {
@@ -415,8 +362,9 @@ func (a *App) handleAuthorizationCodeGrant(c request.CTX, oauthApp *model.OAuthA
 }
 
 func (a *App) handleRefreshTokenGrant(c request.CTX, oauthApp *model.OAuthApp, refreshToken string) (*model.AccessResponse, *model.AppError) {
-	if oauthApp.IsPublicClient() {
-		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.public_client_refresh_token.app_error", nil, "", http.StatusBadRequest)
+	// Validate that this client can use refresh token grant type
+	if err := oauthApp.ValidateForGrantType(model.RefreshTokenGrantType, oauthApp.ClientSecret, ""); err != nil {
+		return nil, err
 	}
 
 	accessData, nErr := a.Srv().Store().OAuth().GetAccessDataByRefreshToken(refreshToken)
