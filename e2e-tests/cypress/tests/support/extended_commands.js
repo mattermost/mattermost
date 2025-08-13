@@ -16,6 +16,11 @@ Cypress.Commands.overwrite('visit', (originalFn, url, options, duration = TIMEOU
 });
 
 Cypress.Commands.overwrite('request', (originalFn, options) => {
+    // Skip CSRF token injection for login requests
+    if (options.url.includes('/api/v4/users/login')) {
+        return originalFn(options);
+    }
+
     // If it has an Authorization header, skip CSRF token injection
     if (options?.headers?.Authorization) {
         return originalFn(options);

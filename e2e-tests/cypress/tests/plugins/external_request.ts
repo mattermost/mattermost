@@ -23,6 +23,7 @@ export default async function externalRequest(arg: ExternalRequestArg): Promise<
 
     // First we need to login with our external user to get cookies/tokens
     let cookieString = '';
+    let csrfToken = '';
     try {
         const response = await axios({
             url: loginUrl,
@@ -36,6 +37,10 @@ export default async function externalRequest(arg: ExternalRequestArg): Promise<
         (setCookie as any).forEach((cookie: string) => {
             const nameAndValue = cookie.split(';')[0];
             cookieString += nameAndValue + ';';
+
+            if (nameAndValue.includes('MMCSRF')) {
+                csrfToken = nameAndValue.split('=')[1];
+            }
         });
     } catch (error) {
         return getErrorResponse(error);
@@ -47,8 +52,8 @@ export default async function externalRequest(arg: ExternalRequestArg): Promise<
             url: `${baseUrl}/api/v4/${path}`,
             headers: {
                 'Content-Type': 'text/plain',
+                'X-CSRF-Token': csrfToken,
                 Cookie: cookieString,
-                'X-Requested-With': 'XMLHttpRequest',
             },
             timeout: timeouts.TEN_SEC,
             data,

@@ -117,7 +117,7 @@ describe('Verify Accessibility Support in Channel Sidebar Navigation', () => {
         });
 
         // * Verify if focus changes to different channels in Favorite Channels section
-        cy.focused().tab().tab().parent().next().find('.SidebarChannel').each((el, i) => {
+        cy.focused().parent().next().find('.SidebarChannel').each((el, i) => {
             if (i === 0) {
                 cy.focused().findByText('FAVORITES');
                 cy.focused().tab().tab();
