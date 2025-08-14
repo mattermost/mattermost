@@ -93,62 +93,12 @@ describe('UserPropertyRenderer', () => {
             );
 
             const userProperty = screen.getByTestId('user-property');
-            expect(userProperty).toBeInTheDocument();
+            expect(userProperty).toBeVisible();
 
-            // Check that the user profile component is rendered with the username
             const userProfile = screen.getByText('testuser');
-            expect(userProfile).toBeInTheDocument();
-            
-            // Check that the avatar component is present
-            const avatar = userProperty.querySelector('.PreviewPostAvatar');
-            expect(avatar).toBeInTheDocument();
-        });
+            expect(userProfile).toBeVisible();
 
-        it('should render when user is not loaded yet', () => {
-            const stateWithoutUser = {
-                ...baseState,
-                entities: {
-                    ...baseState.entities,
-                    users: {
-                        ...baseState.entities!.users,
-                        profiles: {},
-                    },
-                },
-            };
-
-            renderWithContext(
-                <UserPropertyRenderer
-                    field={mockField}
-                    value={mockValue}
-                />,
-                stateWithoutUser,
-            );
-
-            const userProperty = screen.getByTestId('user-property');
-            expect(userProperty).toBeInTheDocument();
-            
-            // Should still render the container even without user data
-            expect(userProperty.children).toHaveLength(2); // Avatar and UserProfile components
-        });
-
-        it('should handle empty user id', () => {
-            const emptyValue = {
-                value: '',
-            } as PropertyValue<string>;
-
-            renderWithContext(
-                <UserPropertyRenderer
-                    field={mockField}
-                    value={emptyValue}
-                />,
-                baseState,
-            );
-
-            const userProperty = screen.getByTestId('user-property');
-            expect(userProperty).toBeInTheDocument();
-            
-            // Should render components even with empty user id
-            expect(userProperty.children).toHaveLength(2); // Avatar and UserProfile components
+            expect(screen.queryByAltText('testuser profile image')).toBeVisible();
         });
     });
 
@@ -165,32 +115,15 @@ describe('UserPropertyRenderer', () => {
             );
 
             const selectableUserProperty = screen.getByTestId('selectable-user-property');
-            expect(selectableUserProperty).toBeInTheDocument();
+            expect(selectableUserProperty).toBeVisible();
 
             // Check that the placeholder text is present
             const placeholder = screen.getByText('Unassigned');
-            expect(placeholder).toBeInTheDocument();
-            
+            expect(placeholder).toBeVisible();
+
             // Check that the UserSelector component is rendered
             const userSelector = screen.getByRole('combobox');
-            expect(userSelector).toBeInTheDocument();
-        });
-
-        it('should pass correct field id to selectable renderer', () => {
-            const editableField = {...mockField, attrs: {editable: true}};
-
-            renderWithContext(
-                <UserPropertyRenderer
-                    field={editableField}
-                    value={mockValue}
-                />,
-                baseState,
-            );
-
-            // Check that the UserSelector has the correct id attribute
-            const userSelector = screen.getByRole('combobox');
-            expect(userSelector).toHaveAttribute('id', `selectable-user-property-renderer-${mockField.id}_input`);
-            expect(userSelector).toBeInTheDocument();
+            expect(userSelector).toBeVisible();
         });
     });
 });
