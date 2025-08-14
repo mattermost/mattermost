@@ -41,7 +41,7 @@ describe('TeamPropertyRenderer', () => {
         );
 
         expect(screen.getByTestId('team-property')).toBeVisible();
-        expect(screen.getByText('Test Team')).toBeInTheDocument();
+        expect(screen.getByText('Test Team')).toBeVisible();
 
         // Check that TeamIcon is rendered (it should have the team's display name as content)
         const teamIcon = screen.getByText('Test Team').previousElementSibling;
