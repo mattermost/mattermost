@@ -309,9 +309,9 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 
 	if grantType == model.AccessTokenGrantType {
 		return a.handleAuthorizationCodeGrant(c, oauthApp, redirectURI, code, codeVerifier, clientId)
-	} else {
-		return a.handleRefreshTokenGrant(c, oauthApp, refreshToken)
 	}
+
+	return a.handleRefreshTokenGrant(c, oauthApp, refreshToken)
 }
 
 func (a *App) validateOAuthClient(oauthApp *model.OAuthApp, grantType, secret, codeVerifier string) *model.AppError {
