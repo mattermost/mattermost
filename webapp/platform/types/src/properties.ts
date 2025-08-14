@@ -69,7 +69,7 @@ export type UserPropertyField = PropertyField & {
 
 export type SelectPropertyField = PropertyField & {
     attrs?: {
-        editable: boolean;
+        editable?: boolean;
         options?: PropertyFieldOption[];
     };
 }
