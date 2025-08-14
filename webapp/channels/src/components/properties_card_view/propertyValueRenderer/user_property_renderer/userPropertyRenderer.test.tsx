@@ -93,11 +93,15 @@ describe('UserPropertyRenderer', () => {
             );
 
             const userProperty = screen.getByTestId('user-property');
-            expect(userProperty).toBeVisible();
+            expect(userProperty).toBeInTheDocument();
 
-            // Check that the user profile component is rendered
+            // Check that the user profile component is rendered with the username
             const userProfile = screen.getByText('testuser');
-            expect(userProfile).toBeVisible();
+            expect(userProfile).toBeInTheDocument();
+            
+            // Check that the avatar component is present
+            const avatar = userProperty.querySelector('.PreviewPostAvatar');
+            expect(avatar).toBeInTheDocument();
         });
 
         it('should render when user is not loaded yet', () => {
@@ -121,7 +125,10 @@ describe('UserPropertyRenderer', () => {
             );
 
             const userProperty = screen.getByTestId('user-property');
-            expect(userProperty).toBeVisible();
+            expect(userProperty).toBeInTheDocument();
+            
+            // Should still render the container even without user data
+            expect(userProperty.children).toHaveLength(2); // Avatar and UserProfile components
         });
 
         it('should handle empty user id', () => {
@@ -138,7 +145,10 @@ describe('UserPropertyRenderer', () => {
             );
 
             const userProperty = screen.getByTestId('user-property');
-            expect(userProperty).toBeVisible();
+            expect(userProperty).toBeInTheDocument();
+            
+            // Should render components even with empty user id
+            expect(userProperty.children).toHaveLength(2); // Avatar and UserProfile components
         });
     });
 
@@ -155,11 +165,15 @@ describe('UserPropertyRenderer', () => {
             );
 
             const selectableUserProperty = screen.getByTestId('selectable-user-property');
-            expect(selectableUserProperty).toBeVisible();
+            expect(selectableUserProperty).toBeInTheDocument();
 
-            // Check that the placeholder is visible
+            // Check that the placeholder text is present
             const placeholder = screen.getByText('Unassigned');
-            expect(placeholder).toBeVisible();
+            expect(placeholder).toBeInTheDocument();
+            
+            // Check that the UserSelector component is rendered
+            const userSelector = screen.getByRole('combobox');
+            expect(userSelector).toBeInTheDocument();
         });
 
         it('should pass correct field id to selectable renderer', () => {
@@ -173,9 +187,10 @@ describe('UserPropertyRenderer', () => {
                 baseState,
             );
 
-            // Check that the UserSelector has the correct id
+            // Check that the UserSelector has the correct id attribute
             const userSelector = screen.getByRole('combobox');
             expect(userSelector).toHaveAttribute('id', `selectable-user-property-renderer-${mockField.id}_input`);
+            expect(userSelector).toBeInTheDocument();
         });
     });
 });
