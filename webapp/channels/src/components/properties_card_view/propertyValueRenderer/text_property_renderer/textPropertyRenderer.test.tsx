@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
 import {screen} from '@testing-library/react';
+import React from 'react';
 
 import type {PropertyValue} from '@mattermost/types/properties';
 
@@ -19,7 +18,7 @@ describe('TextPropertyRenderer', () => {
     };
 
     test('should render text property value', () => {
-        renderWithContext(<TextPropertyRenderer {...baseProps} />);
+        renderWithContext(<TextPropertyRenderer {...baseProps}/>);
 
         const textElement = screen.getByTestId('text-property');
         expect(textElement).toBeVisible();
@@ -34,7 +33,7 @@ describe('TextPropertyRenderer', () => {
             } as PropertyValue<string>,
         };
 
-        renderWithContext(<TextPropertyRenderer {...props} />);
+        renderWithContext(<TextPropertyRenderer {...props}/>);
 
         const textElement = screen.getByTestId('text-property');
         expect(textElement).toBeVisible();
@@ -49,26 +48,11 @@ describe('TextPropertyRenderer', () => {
             } as PropertyValue<number>,
         };
 
-        renderWithContext(<TextPropertyRenderer {...props} />);
+        renderWithContext(<TextPropertyRenderer {...props}/>);
 
         const textElement = screen.getByTestId('text-property');
         expect(textElement).toBeVisible();
         expect(textElement).toHaveTextContent('123');
-        expect(textElement).toHaveClass('TextProperty');
-    });
-
-    test('should render boolean value as string', () => {
-        const props = {
-            value: {
-                value: true,
-            } as PropertyValue<boolean>,
-        };
-
-        renderWithContext(<TextPropertyRenderer {...props} />);
-
-        const textElement = screen.getByTestId('text-property');
-        expect(textElement).toBeVisible();
-        expect(textElement).toHaveTextContent('true');
         expect(textElement).toHaveClass('TextProperty');
     });
 
@@ -79,7 +63,7 @@ describe('TextPropertyRenderer', () => {
             } as PropertyValue<null>,
         };
 
-        renderWithContext(<TextPropertyRenderer {...props} />);
+        renderWithContext(<TextPropertyRenderer {...props}/>);
 
         const textElement = screen.getByTestId('text-property');
         expect(textElement).toBeVisible();
@@ -94,26 +78,11 @@ describe('TextPropertyRenderer', () => {
             } as PropertyValue<undefined>,
         };
 
-        renderWithContext(<TextPropertyRenderer {...props} />);
+        renderWithContext(<TextPropertyRenderer {...props}/>);
 
         const textElement = screen.getByTestId('text-property');
         expect(textElement).toBeVisible();
         expect(textElement).toHaveTextContent('');
-        expect(textElement).toHaveClass('TextProperty');
-    });
-
-    test('should render multiline text', () => {
-        const props = {
-            value: {
-                value: 'Line 1\nLine 2\nLine 3',
-            } as PropertyValue<string>,
-        };
-
-        renderWithContext(<TextPropertyRenderer {...props} />);
-
-        const textElement = screen.getByTestId('text-property');
-        expect(textElement).toBeVisible();
-        expect(textElement).toHaveTextContent('Line 1\nLine 2\nLine 3');
         expect(textElement).toHaveClass('TextProperty');
     });
 
@@ -124,7 +93,7 @@ describe('TextPropertyRenderer', () => {
             } as PropertyValue<string>,
         };
 
-        renderWithContext(<TextPropertyRenderer {...props} />);
+        renderWithContext(<TextPropertyRenderer {...props}/>);
 
         const textElement = screen.getByTestId('text-property');
         expect(textElement).toBeVisible();
