@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {screen} from '@testing-library/react';
+import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
+import type {PropertyValue} from '@mattermost/types/properties';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
@@ -26,7 +27,7 @@ describe('ChannelPropertyRenderer', () => {
 
     const mockValue = {
         value: 'channel-id-123',
-    };
+    } as PropertyValue<string>;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -36,7 +37,7 @@ describe('ChannelPropertyRenderer', () => {
         mockUseChannel.mockReturnValue(mockChannel);
 
         renderWithContext(
-            <ChannelPropertyRenderer value={mockValue} />,
+            <ChannelPropertyRenderer value={mockValue}/>,
         );
 
         expect(screen.getByTestId('channel-property')).toBeInTheDocument();
@@ -45,10 +46,10 @@ describe('ChannelPropertyRenderer', () => {
     });
 
     it('should render deleted channel message when channel does not exist', () => {
-        mockUseChannel.mockReturnValue(null);
+        mockUseChannel.mockReturnValue(undefined);
 
         renderWithContext(
-            <ChannelPropertyRenderer value={mockValue} />,
+            <ChannelPropertyRenderer value={mockValue}/>,
         );
 
         expect(screen.getByTestId('channel-property')).toBeInTheDocument();
@@ -60,7 +61,7 @@ describe('ChannelPropertyRenderer', () => {
         mockUseChannel.mockReturnValue(undefined);
 
         renderWithContext(
-            <ChannelPropertyRenderer value={mockValue} />,
+            <ChannelPropertyRenderer value={mockValue}/>,
         );
 
         expect(screen.getByTestId('channel-property')).toBeInTheDocument();
@@ -76,7 +77,7 @@ describe('ChannelPropertyRenderer', () => {
         mockUseChannel.mockReturnValue(privateChannel);
 
         renderWithContext(
-            <ChannelPropertyRenderer value={mockValue} />,
+            <ChannelPropertyRenderer value={mockValue}/>,
         );
 
         expect(screen.getByText('Private Channel')).toBeInTheDocument();
@@ -91,7 +92,7 @@ describe('ChannelPropertyRenderer', () => {
         mockUseChannel.mockReturnValue(dmChannel);
 
         renderWithContext(
-            <ChannelPropertyRenderer value={mockValue} />,
+            <ChannelPropertyRenderer value={mockValue}/>,
         );
 
         expect(screen.getByText('Direct Message')).toBeInTheDocument();
