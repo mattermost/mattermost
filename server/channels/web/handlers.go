@@ -279,7 +279,12 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		h.checkCSRFToken(c, w, r, token, tokenLocation, session)
+		csrfChecked, csrfPassed := h.checkCSRFToken(c, r, tokenLocation, session)
+		if csrfChecked && !csrfPassed {
+			c.AppContext = c.AppContext.WithSession(&model.Session{})
+			c.RemoveSessionCookie(w, r)
+			c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
+		}
 	} else if token != "" && c.App.Channels().License().IsCloud() && tokenLocation == app.TokenLocationCloudHeader {
 		// Check to see if this provided token matches our CWS Token
 		session, err := c.App.GetCloudSession(token)
@@ -469,7 +474,7 @@ func GetOriginClient(r *http.Request) OriginClient {
 
 // checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether
 // a CSRF check occurred and whether it succeeded.
-func (h *Handler) checkCSRFToken(c *Context, w http.ResponseWriter, r *http.Request, token string, tokenLocation app.TokenLocation, session *model.Session) (checked bool, passed bool) {
+func (h *Handler) checkCSRFToken(c *Context, r *http.Request, tokenLocation app.TokenLocation, session *model.Session) (checked bool, passed bool) {
 	csrfCheckNeeded := session != nil && c.Err == nil && tokenLocation == app.TokenLocationCookie && !h.TrustRequester && r.Method != "GET"
 	csrfCheckPassed := false
 
@@ -495,12 +500,6 @@ func (h *Handler) checkCSRFToken(c *Context, w http.ResponseWriter, r *http.Requ
 				c.Logger.Debug(csrfErrorMessage, fields...)
 				csrfCheckPassed = true
 			}
-		}
-
-		if !csrfCheckPassed {
-			c.AppContext = c.AppContext.WithSession(&model.Session{})
-			c.RemoveSessionCookie(w, r)
-			c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
 		}
 	}
 

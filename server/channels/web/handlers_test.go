@@ -667,8 +667,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			},
 		}
 
-		w := httptest.NewRecorder()
-		checked, passed := h.checkCSRFToken(c, w, r, token, tokenLocation, session)
+		checked, passed := h.checkCSRFToken(c, r, tokenLocation, session)
 
 		assert.True(t, checked)
 		assert.True(t, passed)
@@ -699,12 +698,11 @@ func TestCheckCSRFToken(t *testing.T) {
 			},
 		}
 
-		w := httptest.NewRecorder()
-		checked, passed := h.checkCSRFToken(c, w, r, token, tokenLocation, session)
+		checked, passed := h.checkCSRFToken(c, r, tokenLocation, session)
 
 		assert.True(t, checked)
 		assert.False(t, passed)
-		assert.NotNil(t, c.Err)
+		assert.Nil(t, c.Err)
 	})
 
 	t.Run("should not allow a POST request without either header", func(t *testing.T) {
@@ -729,12 +727,11 @@ func TestCheckCSRFToken(t *testing.T) {
 			},
 		}
 
-		w := httptest.NewRecorder()
-		checked, passed := h.checkCSRFToken(c, w, r, token, tokenLocation, session)
+		checked, passed := h.checkCSRFToken(c, r, tokenLocation, session)
 
 		assert.True(t, checked)
 		assert.False(t, passed)
-		assert.NotNil(t, c.Err)
+		assert.Nil(t, c.Err)
 	})
 
 	t.Run("should not check GET requests", func(t *testing.T) {
@@ -759,8 +756,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			},
 		}
 
-		w := httptest.NewRecorder()
-		checked, passed := h.checkCSRFToken(c, w, r, token, tokenLocation, session)
+		checked, passed := h.checkCSRFToken(c, r, tokenLocation, session)
 
 		assert.False(t, checked)
 		assert.False(t, passed)
@@ -789,8 +785,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			},
 		}
 
-		w := httptest.NewRecorder()
-		checked, passed := h.checkCSRFToken(c, w, r, token, tokenLocation, session)
+		checked, passed := h.checkCSRFToken(c, r, tokenLocation, session)
 
 		assert.False(t, checked)
 		assert.False(t, passed)
@@ -815,8 +810,7 @@ func TestCheckCSRFToken(t *testing.T) {
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
 		r.Header.Set(model.HeaderCsrfToken, token)
 
-		w := httptest.NewRecorder()
-		checked, passed := h.checkCSRFToken(c, w, r, token, tokenLocation, nil)
+		checked, passed := h.checkCSRFToken(c, r, tokenLocation, nil)
 
 		assert.False(t, checked)
 		assert.False(t, passed)
@@ -846,8 +840,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			},
 		}
 
-		w := httptest.NewRecorder()
-		checked, passed := h.checkCSRFToken(c, w, r, token, tokenLocation, session)
+		checked, passed := h.checkCSRFToken(c, r, tokenLocation, session)
 
 		assert.True(t, checked)
 		assert.True(t, passed)
