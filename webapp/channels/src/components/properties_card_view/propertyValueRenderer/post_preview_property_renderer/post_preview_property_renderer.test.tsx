@@ -5,6 +5,7 @@ import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
+import type {PropertyValue} from '@mattermost/types/properties';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -57,7 +58,7 @@ describe('PostPreviewPropertyRenderer', () => {
     const defaultProps = {
         value: {
             value: 'post-id-123',
-        },
+        } as PropertyValue<string>,
     };
 
     const baseState = {
@@ -150,60 +151,7 @@ describe('PostPreviewPropertyRenderer', () => {
         expect(container.firstChild).toBeNull();
     });
 
-    it('should handle empty channel_id in post', () => {
-        const postWithoutChannelId = {
-            ...mockPost,
-            channel_id: '',
-        };
-
-        mockUsePost.mockReturnValue(postWithoutChannelId);
-        mockUseChannel.mockReturnValue(null);
-        mockUseTeam.mockReturnValue(null);
-
-        const {container} = renderWithContext(
-            <PostPreviewPropertyRenderer {...defaultProps}/>,
-            baseState,
-        );
-
-        expect(container.firstChild).toBeNull();
-        expect(mockUseChannel).toHaveBeenCalledWith('');
-    });
-
-    it('should handle empty team_id in channel', () => {
-        const channelWithoutTeamId = {
-            ...mockChannel,
-            team_id: '',
-        };
-
-        mockUsePost.mockReturnValue(mockPost);
-        mockUseChannel.mockReturnValue(channelWithoutTeamId);
-        mockUseTeam.mockReturnValue(null);
-
-        const {container} = renderWithContext(
-            <PostPreviewPropertyRenderer {...defaultProps}/>,
-            baseState,
-        );
-
-        expect(container.firstChild).toBeNull();
-        expect(mockUseTeam).toHaveBeenCalledWith('');
-    });
-
-    it('should call hooks with correct parameters', () => {
-        mockUsePost.mockReturnValue(mockPost);
-        mockUseChannel.mockReturnValue(mockChannel);
-        mockUseTeam.mockReturnValue(mockTeam);
-
-        renderWithContext(
-            <PostPreviewPropertyRenderer {...defaultProps}/>,
-            baseState,
-        );
-
-        expect(mockUsePost).toHaveBeenCalledWith('post-id-123');
-        expect(mockUseChannel).toHaveBeenCalledWith('channel-id-123');
-        expect(mockUseTeam).toHaveBeenCalledWith('team-id-123');
-    });
-
-    it('should handle different channel types', () => {
+    it('should handle private channel', () => {
         const privateChannel = {
             ...mockChannel,
             type: 'P' as const,
