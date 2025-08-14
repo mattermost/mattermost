@@ -263,5 +263,9 @@ describe('PostPreviewPropertyRenderer', () => {
         expect(getByTestId('post-preview-property')).toBeVisible();
         expect(getByText('Post with file attachment')).toBeVisible();
         expect(getByText('Originally posted in ~Test Channel')).toBeVisible();
+        
+        // Assert that file attachments are visible
+        expect(getByText('document.pdf')).toBeVisible();
+        expect(getByText('image.jpg')).toBeVisible();
     });
 });
