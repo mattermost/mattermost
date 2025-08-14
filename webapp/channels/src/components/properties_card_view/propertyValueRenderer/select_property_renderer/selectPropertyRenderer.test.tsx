@@ -15,22 +15,19 @@ describe('SelectPropertyRenderer', () => {
         name: 'Test Field',
         type: 'select',
         attrs: {
+            editable: true,
             options: [
-                {name: 'option1', color: 'light_blue'},
-                {name: 'option2', color: 'dark_blue'},
-                {name: 'option3', color: 'dark_red'},
-                {name: 'option4', color: 'light_gray'},
+                {id: 'option1', name: 'option1', color: 'light_blue'},
+                {id: 'option2', name: 'option2', color: 'dark_blue'},
+                {id: 'option3', name: 'option3', color: 'dark_red'},
+                {id: 'option4', name: 'option4', color: 'light_gray'},
             ],
         },
     };
 
-    const baseValue: PropertyValue<string> = {
-        value: 'option1',
-    };
-
     it('should render select property with light_blue color', () => {
         const field = baseField;
-        const value = {value: 'option1'};
+        const value = {value: 'option1'} as PropertyValue<string>;
 
         renderWithContext(
             <SelectPropertyRenderer
@@ -50,7 +47,7 @@ describe('SelectPropertyRenderer', () => {
 
     it('should render select property with dark_blue color', () => {
         const field = baseField;
-        const value = {value: 'option2'};
+        const value = {value: 'option2'} as PropertyValue<string>;
 
         renderWithContext(
             <SelectPropertyRenderer
@@ -69,7 +66,7 @@ describe('SelectPropertyRenderer', () => {
 
     it('should render select property with dark_red color', () => {
         const field = baseField;
-        const value = {value: 'option3'};
+        const value = {value: 'option3'} as PropertyValue<string>;
 
         renderWithContext(
             <SelectPropertyRenderer
@@ -88,7 +85,7 @@ describe('SelectPropertyRenderer', () => {
 
     it('should render select property with default light_gray color', () => {
         const field = baseField;
-        const value = {value: 'option4'};
+        const value = {value: 'option4'} as PropertyValue<string>;
 
         renderWithContext(
             <SelectPropertyRenderer
@@ -109,12 +106,13 @@ describe('SelectPropertyRenderer', () => {
         const field: SelectPropertyField = {
             ...baseField,
             attrs: {
+                editable: false,
                 options: [
-                    {name: 'option1', color: 'unknown_color'},
+                    {id: 'option1', name: 'option1', color: 'unknown_color'},
                 ],
             },
         };
-        const value = {value: 'option1'};
+        const value = {value: 'option1'} as PropertyValue<string>;
 
         renderWithContext(
             <SelectPropertyRenderer
@@ -132,7 +130,7 @@ describe('SelectPropertyRenderer', () => {
 
     it('should use default color when option is not found in field options', () => {
         const field = baseField;
-        const value = {value: 'nonexistent_option'};
+        const value = {value: 'nonexistent_option'} as PropertyValue<string>;
 
         renderWithContext(
             <SelectPropertyRenderer
@@ -153,10 +151,11 @@ describe('SelectPropertyRenderer', () => {
         const field: SelectPropertyField = {
             ...baseField,
             attrs: {
+                editable: false,
                 options: [],
             },
         };
-        const value = {value: 'some_value'};
+        const value = {value: 'some_value'} as PropertyValue<string>;
 
         renderWithContext(
             <SelectPropertyRenderer
@@ -174,12 +173,12 @@ describe('SelectPropertyRenderer', () => {
     });
 
     it('should use default color when field attrs is undefined', () => {
-        const field: PropertyField = {
+        const field = {
             id: 'test-field',
             name: 'Test Field',
             type: 'select',
-        };
-        const value = {value: 'some_value'};
+        } as PropertyField;
+        const value = {value: 'some_value'} as PropertyValue<string>;
 
         renderWithContext(
             <SelectPropertyRenderer
