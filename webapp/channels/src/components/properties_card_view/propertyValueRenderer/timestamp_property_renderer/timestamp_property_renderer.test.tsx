@@ -12,14 +12,6 @@ describe('TimestampPropertyRenderer', () => {
         value: 1642694400000, // January 20, 2022 12:00:00 PM UTC
     };
 
-    it('should render timestamp property with correct test id', () => {
-        renderWithContext(
-            <TimestampPropertyRenderer value={mockValue} />,
-        );
-
-        expect(screen.getByTestId('timestamp-property')).toBeVisible();
-    });
-
     it('should render timestamp component with the provided value', () => {
         renderWithContext(
             <TimestampPropertyRenderer value={mockValue} />,
@@ -27,11 +19,11 @@ describe('TimestampPropertyRenderer', () => {
 
         const timestampElement = screen.getByTestId('timestamp-property');
         expect(timestampElement).toBeVisible();
-        
+
         // The Timestamp component should be rendered inside
         const timestampContent = timestampElement.querySelector('time');
         expect(timestampContent).toBeVisible();
-        
+
         // Check that the timestamp displays the expected date format
         expect(timestampElement).toHaveTextContent('Thursday, 20 January 2022');
         expect(timestampElement).toHaveTextContent('12:00:00');
@@ -48,7 +40,7 @@ describe('TimestampPropertyRenderer', () => {
 
         const timestampElement = screen.getByTestId('timestamp-property');
         expect(timestampElement).toBeVisible();
-        
+
         // Check that epoch time (0) renders correctly
         expect(timestampElement).toHaveTextContent('Thursday, 1 January 1970');
         expect(timestampElement).toHaveTextContent('00:00:00');
@@ -65,7 +57,7 @@ describe('TimestampPropertyRenderer', () => {
 
         const timestampElement = screen.getByTestId('timestamp-property');
         expect(timestampElement).toBeVisible();
-        
+
         // Check that negative timestamp (one day before epoch) renders correctly
         expect(timestampElement).toHaveTextContent('Wednesday, 31 December 1969');
         expect(timestampElement).toHaveTextContent('00:00:00');
@@ -82,7 +74,7 @@ describe('TimestampPropertyRenderer', () => {
 
         const timestampElement = screen.getByTestId('timestamp-property');
         expect(timestampElement).toBeVisible();
-        
+
         // Check that future timestamp renders correctly
         expect(timestampElement).toHaveTextContent('Wednesday, 18 May 2033');
         expect(timestampElement).toHaveTextContent('03:33:20');
