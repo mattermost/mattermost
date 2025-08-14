@@ -337,7 +337,7 @@ describe('PropertyValueRenderer', () => {
             );
 
             expect(screen.getByTestId('mock-text-property')).toBeInTheDocument();
-            expect(screen.getByText('')).toBeInTheDocument();
+            expect(screen.getByTestId('mock-text-property')).toHaveTextContent('');
         });
 
         it('should handle null value', () => {
