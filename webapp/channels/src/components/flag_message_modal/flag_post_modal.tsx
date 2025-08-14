@@ -75,7 +75,6 @@ export default function FlagPostModal({postId, onExited}: Props) {
 
     const previewMetadata: PostPreviewMetadata = useMemo(() => {
         return {
-            post,
             post_id: post.id,
             team_name: currentTeam?.name || '',
             channel_display_name: channel?.display_name || '',
