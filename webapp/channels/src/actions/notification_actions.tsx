@@ -331,7 +331,9 @@ function shouldSkipNotification(
                     if (attachment.fields) {
                         for (const field of attachment.fields) {
                             appendText(field.title);
-                            appendText(field.value);
+                            if (typeof field.value === 'string') {
+                                appendText(field.value);
+                            }
                         }
                     }
                 }
