@@ -10,7 +10,7 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import SelectPropertyRenderer from './selectPropertyRenderer';
 
 describe('SelectPropertyRenderer', () => {
-    const baseField: SelectPropertyField = {
+    const baseField = {
         id: 'test-field',
         name: 'Test Field',
         type: 'select',
@@ -23,7 +23,7 @@ describe('SelectPropertyRenderer', () => {
                 {id: 'option4', name: 'option4', color: 'light_gray'},
             ],
         },
-    };
+    } as SelectPropertyField;
 
     it('should render select property with light_blue color', () => {
         const field = baseField;
