@@ -281,3 +281,5 @@ channels/db/migrations/postgres/000141_add_remoteid_channelid_to_post_acknowledg
 channels/db/migrations/postgres/000141_add_remoteid_channelid_to_post_acknowledgements.up.sql
 channels/db/migrations/postgres/000142_add_dcr_fields_to_oauth_apps.down.sql
 channels/db/migrations/postgres/000142_add_dcr_fields_to_oauth_apps.up.sql
+channels/db/migrations/postgres/000143_add_pkce_to_oauthauthdata.down.sql
+channels/db/migrations/postgres/000143_add_pkce_to_oauthauthdata.up.sql
