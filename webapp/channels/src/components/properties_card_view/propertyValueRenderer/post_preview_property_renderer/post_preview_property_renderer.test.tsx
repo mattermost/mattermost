@@ -195,4 +195,73 @@ describe('PostPreviewPropertyRenderer', () => {
         expect(getByText('Test post message')).toBeVisible();
         expect(getByText('Originally posted in ~')).toBeVisible();
     });
+
+    it('should handle post with file attachments', () => {
+        const postWithAttachments = {
+            ...mockPost,
+            message: 'Post with file attachment',
+            file_ids: ['file-id-1', 'file-id-2'],
+            metadata: {
+                files: [
+                    {
+                        id: 'file-id-1',
+                        name: 'document.pdf',
+                        extension: 'pdf',
+                        size: 1024000,
+                        mime_type: 'application/pdf',
+                    },
+                    {
+                        id: 'file-id-2',
+                        name: 'image.jpg',
+                        extension: 'jpg',
+                        size: 512000,
+                        mime_type: 'image/jpeg',
+                    },
+                ],
+            },
+        };
+
+        const stateWithFiles = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                posts: {
+                    posts: {
+                        [postWithAttachments.id]: postWithAttachments,
+                    },
+                },
+                files: {
+                    files: {
+                        'file-id-1': {
+                            id: 'file-id-1',
+                            name: 'document.pdf',
+                            extension: 'pdf',
+                            size: 1024000,
+                            mime_type: 'application/pdf',
+                        },
+                        'file-id-2': {
+                            id: 'file-id-2',
+                            name: 'image.jpg',
+                            extension: 'jpg',
+                            size: 512000,
+                            mime_type: 'image/jpeg',
+                        },
+                    },
+                },
+            },
+        };
+
+        mockUsePost.mockReturnValue(postWithAttachments);
+        mockUseChannel.mockReturnValue(mockChannel);
+        mockUseTeam.mockReturnValue(mockTeam);
+
+        const {getByTestId, getByText} = renderWithContext(
+            <PostPreviewPropertyRenderer {...defaultProps}/>,
+            stateWithFiles,
+        );
+
+        expect(getByTestId('post-preview-property')).toBeVisible();
+        expect(getByText('Post with file attachment')).toBeVisible();
+        expect(getByText('Originally posted in ~Test Channel')).toBeVisible();
+    });
 });
