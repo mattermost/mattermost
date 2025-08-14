@@ -120,7 +120,8 @@ before(() => {
             const firstClient = new E2EClient();
             firstClient.setUrl(Cypress.config('baseUrl'));
             const defaultAdmin = getAdminAccount();
-            await firstClient.createUser(defaultAdmin, '', '');
+            const createdUser = await firstClient.createUser(defaultAdmin, '', '');
+            expect(createdUser).to.have.property('id');
 
             return cy.makeClient();
         }
@@ -147,6 +148,9 @@ before(() => {
     }).then(({config, configOldFormat, license, adminUser, plugins}) => {
         cy.log('---');
 
+        cy.log(`config: ${JSON.stringify(config)}`);
+        cy.log(`configOldFormat: ${JSON.stringify(configOldFormat)}`);
+
         // Print license information
         printLicenseInfo(license);
 
@@ -172,50 +176,39 @@ beforeEach(() => {
 });
 
 async function createDefaultTeam(adminClient) {
-    try {
-        const myTeams = await adminClient.getMyTeams();
-        const myDefaultTeam = myTeams && myTeams.length > 0 && myTeams.find((team) => team.name === DEFAULT_TEAM.name);
-        if (!myDefaultTeam) {
-            await adminClient.createTeam(createTeamPatch(DEFAULT_TEAM.name, DEFAULT_TEAM.display_name, 'O', false));
-        } else if (myDefaultTeam && Cypress.env('resetBeforeTest')) {
-            await Promise.all(
-                myTeams.filter((team) => team.name !== myDefaultTeam.name).map((team) => adminClient.deleteTeam(team.id)),
-            );
+    const myTeams = await adminClient.getMyTeams();
+    const myDefaultTeam = myTeams && myTeams.length > 0 && myTeams.find((team) => team.name === DEFAULT_TEAM.name);
+    if (!myDefaultTeam) {
+        await adminClient.createTeam(createTeamPatch(DEFAULT_TEAM.name, DEFAULT_TEAM.display_name, 'O', false));
+    } else if (myDefaultTeam && Cypress.env('resetBeforeTest')) {
+        await Promise.all(
+            myTeams.filter((team) => team.name !== myDefaultTeam.name).map((team) => adminClient.deleteTeam(team.id)),
+        );
 
-            const myChannels = await adminClient.getMyChannels(myDefaultTeam.id);
-            await Promise.all(
-                myChannels.filter((channel) => {
-                    return (
-                        channel.team_id === myDefaultTeam.id &&
-                        channel.name !== 'town-square' &&
-                        channel.name !== 'off-topic'
-                    );
-                }).map((channel) => adminClient.deleteChannel(channel.id)),
-            );
-        }
-    } catch (error) {
-        // eslint-disable-next-line no-console
-        console.log('Error creating default team', error);
-        throw error;
+        const myChannels = await adminClient.getMyChannels(myDefaultTeam.id);
+        await Promise.all(
+            myChannels.filter((channel) => {
+                return (
+                    channel.team_id === myDefaultTeam.id &&
+                    channel.name !== 'town-square' &&
+                    channel.name !== 'off-topic'
+                );
+            }).map((channel) => adminClient.deleteChannel(channel.id)),
+        );
     }
 }
 
 async function savePreferences(adminClient, userId) {
-    try {
-        if (!userId) {
-            throw new Error('userId is not defined');
-        }
-
-        const preferences = [
-            {user_id: userId, category: 'tutorial_step', name: userId, value: '999'},
-            {user_id: userId, category: 'crt_thread_pane_step', name: userId, value: '999'},
-        ];
-
-        await adminClient.savePreferences(userId, preferences);
-    } catch (error) {
-        // eslint-disable-next-line no-console
-        console.log('Error saving preferences', error);
+    if (!userId) {
+        throw new Error('userId is not defined');
     }
+
+    const preferences = [
+        {user_id: userId, category: 'tutorial_step', name: userId, value: '999'},
+        {user_id: userId, category: 'crt_thread_pane_step', name: userId, value: '999'},
+    ];
+
+    await adminClient.savePreferences(userId, preferences);
 }
 
 function printPluginDetails(plugins) {
