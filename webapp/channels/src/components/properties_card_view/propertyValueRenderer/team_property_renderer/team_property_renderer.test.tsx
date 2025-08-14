@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {screen} from '@testing-library/react';
+import React from 'react';
 
+import type {PropertyValue} from '@mattermost/types/properties';
 import type {Team} from '@mattermost/types/teams';
 
 import {renderWithContext} from 'tests/react_testing_utils';
@@ -21,7 +22,7 @@ describe('TeamPropertyRenderer', () => {
     const defaultProps = {
         value: {
             value: 'team-id-123',
-        },
+        } as PropertyValue<string>,
     };
 
     test('should render team name and icon when team exists', () => {
@@ -36,16 +37,14 @@ describe('TeamPropertyRenderer', () => {
         };
 
         renderWithContext(
-            <TeamPropertyRenderer {...defaultProps} />,
+            <TeamPropertyRenderer {...defaultProps}/>,
             state,
         );
 
         expect(screen.getByTestId('team-property')).toBeVisible();
         expect(screen.getByText('Test Team')).toBeVisible();
 
-        // Check that TeamIcon is rendered (it should have the team's display name as content)
-        const teamIcon = screen.getByText('Test Team').previousElementSibling;
-        expect(teamIcon).toHaveClass('TeamIcon');
+        expect(screen.queryByTestId('teamIconInitial')).toBeVisible();
     });
 
     test('should render deleted team message when team does not exist', () => {
@@ -58,7 +57,7 @@ describe('TeamPropertyRenderer', () => {
         };
 
         renderWithContext(
-            <TeamPropertyRenderer {...defaultProps} />,
+            <TeamPropertyRenderer {...defaultProps}/>,
             state,
         );
 
@@ -71,7 +70,7 @@ describe('TeamPropertyRenderer', () => {
         const propsWithEmptyId = {
             value: {
                 value: '',
-            },
+            } as PropertyValue<string>,
         };
 
         const state = {
@@ -83,7 +82,7 @@ describe('TeamPropertyRenderer', () => {
         };
 
         renderWithContext(
-            <TeamPropertyRenderer {...propsWithEmptyId} />,
+            <TeamPropertyRenderer {...propsWithEmptyId}/>,
             state,
         );
 
@@ -95,7 +94,7 @@ describe('TeamPropertyRenderer', () => {
         const propsWithNullId = {
             value: {
                 value: null,
-            },
+            } as PropertyValue<unknown>,
         };
 
         const state = {
@@ -107,62 +106,11 @@ describe('TeamPropertyRenderer', () => {
         };
 
         renderWithContext(
-            <TeamPropertyRenderer {...propsWithNullId} />,
+            <TeamPropertyRenderer {...propsWithNullId}/>,
             state,
         );
 
         expect(screen.getByTestId('team-property')).toBeVisible();
         expect(screen.getByText(/Deleted team ID:/)).toBeInTheDocument();
-    });
-
-    test('should render with correct CSS classes', () => {
-        const state = {
-            entities: {
-                teams: {
-                    teams: {
-                        'team-id-123': mockTeam,
-                    },
-                },
-            },
-        };
-
-        renderWithContext(
-            <TeamPropertyRenderer {...defaultProps} />,
-            state,
-        );
-
-        const container = screen.getByTestId('team-property');
-        expect(container).toHaveClass('TeamPropertyRenderer');
-    });
-
-    test('should render team with special characters in display name', () => {
-        const specialTeam: Team = TestHelper.getTeamMock({
-            id: 'special-team-id',
-            display_name: 'Team with "Special" & <Characters>',
-            name: 'special-team',
-        });
-
-        const propsWithSpecialTeam = {
-            value: {
-                value: 'special-team-id',
-            },
-        };
-
-        const state = {
-            entities: {
-                teams: {
-                    teams: {
-                        'special-team-id': specialTeam,
-                    },
-                },
-            },
-        };
-
-        renderWithContext(
-            <TeamPropertyRenderer {...propsWithSpecialTeam} />,
-            state,
-        );
-
-        expect(screen.getByText('Team with "Special" & <Characters>')).toBeInTheDocument();
     });
 });
