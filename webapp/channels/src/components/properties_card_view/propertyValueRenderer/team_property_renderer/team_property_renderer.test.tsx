@@ -40,7 +40,7 @@ describe('TeamPropertyRenderer', () => {
             state,
         );
 
-        expect(screen.getByTestId('team-property')).toBeInTheDocument();
+        expect(screen.getByTestId('team-property')).toBeVisible();
         expect(screen.getByText('Test Team')).toBeInTheDocument();
 
         // Check that TeamIcon is rendered (it should have the team's display name as content)
@@ -62,7 +62,7 @@ describe('TeamPropertyRenderer', () => {
             state,
         );
 
-        expect(screen.getByTestId('team-property')).toBeInTheDocument();
+        expect(screen.getByTestId('team-property')).toBeVisible();
         expect(screen.getByText(/Deleted team ID: team-id-123/)).toBeInTheDocument();
         expect(screen.queryByText('Test Team')).not.toBeInTheDocument();
     });
@@ -87,7 +87,7 @@ describe('TeamPropertyRenderer', () => {
             state,
         );
 
-        expect(screen.getByTestId('team-property')).toBeInTheDocument();
+        expect(screen.getByTestId('team-property')).toBeVisible();
         expect(screen.getByText(/Deleted team ID:/)).toBeInTheDocument();
     });
 
@@ -111,7 +111,7 @@ describe('TeamPropertyRenderer', () => {
             state,
         );
 
-        expect(screen.getByTestId('team-property')).toBeInTheDocument();
+        expect(screen.getByTestId('team-property')).toBeVisible();
         expect(screen.getByText(/Deleted team ID:/)).toBeInTheDocument();
     });
 
