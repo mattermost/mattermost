@@ -27,7 +27,7 @@ export default function DataSpillageAction() {
             >
                 <FormattedMessage
                     id='data_spillage_report.keep_message.button_text'
-                    defaultMessage='Kepp message'
+                    defaultMessage='Keep message'
                 />
             </button>
         </div>

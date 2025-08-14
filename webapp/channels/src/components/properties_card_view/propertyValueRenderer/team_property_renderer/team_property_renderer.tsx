@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {PropertyValue} from '@mattermost/types/properties';
 
@@ -23,24 +23,33 @@ export default function TeamPropertyRenderer({value}: Props) {
     const teamId = value.value as string;
     const team = useTeam(teamId);
 
-    if (!team) {
-        // TODO display a placeholder here in case of deleted team
-        return null;
-    }
-
     return (
         <div
             className='TeamPropertyRenderer'
             data-testid='team-property'
         >
-            <TeamIcon
-                size='xxs'
-                content={team.display_name}
-                intl={intl}
-                url={imageURLForTeam(team)}
-            />
+            {
+                team &&
+                <>
+                    <TeamIcon
+                        size='xxs'
+                        content={team.display_name}
+                        intl={intl}
+                        url={imageURLForTeam(team)}
+                    />
 
-            {team.display_name}
+                    {team.display_name}
+                </>
+            }
+
+            {
+                !team &&
+                <FormattedMessage
+                    id='post_card.channel_property.deleted_team'
+                    defaultMessage='Deleted team ID: {teamId}'
+                    values={{teamId}}
+                />
+            }
         </div>
     );
 }

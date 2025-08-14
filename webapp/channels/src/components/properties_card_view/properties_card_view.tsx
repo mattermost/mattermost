@@ -53,7 +53,10 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
     }
 
     return (
-        <div className='PropertyCardView'>
+        <div
+            className='PropertyCardView'
+            data-testid='property-card-view'
+        >
             <div
                 className='PropertyCardView_title'
                 data-testid='property-card-title'

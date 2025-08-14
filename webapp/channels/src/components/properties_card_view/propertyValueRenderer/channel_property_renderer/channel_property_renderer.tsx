@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 import type {PropertyValue} from '@mattermost/types/properties';
 
@@ -18,20 +19,31 @@ export default function ChannelPropertyRenderer({value}: Props) {
     const channelId = value.value as string;
     const channel = useChannel(channelId);
 
-    if (!channel) {
-        // TODO display a placeholder here in case of deleted channel
-        return null;
-    }
-
     return (
         <div
             className='ChannelPropertyRenderer'
             data-testid='channel-property'
         >
-            <SidebarBaseChannelIcon
-                channelType={channel.type}
-            />
-            {channel.display_name}
+            {
+                channel &&
+                (
+                    <>
+                        <SidebarBaseChannelIcon
+                            channelType={channel.type}
+                        />
+                        {channel.display_name}
+                    </>
+                )
+            }
+
+            {
+                !channel &&
+                <FormattedMessage
+                    id='post_card.channel_property.deleted_channel'
+                    defaultMessage='Deleted channel ID: {channelId}'
+                    values={{channelId}}
+                />
+            }
         </div>
     );
 }

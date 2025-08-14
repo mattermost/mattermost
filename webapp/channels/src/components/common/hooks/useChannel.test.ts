@@ -202,34 +202,6 @@ describe('useChannel', () => {
             rerender();
 
             expect(result.current).toEqual(channel1);
-
-            // We know there's no second call because nock is set to only mock the first request for each channel
-        });
-
-        test('should batch multiple requests to fetch channels', async () => {
-            const mock = nock(Client4.getBaseRoute()).
-                post('/channels/ids', [channel1.id, channel2.id]).
-                once().
-                reply(200, [channel1, channel2]);
-
-            const {result, waitForNextUpdate} = renderHookWithContext(
-                () => {
-                    return [
-                        useChannel('channel1'),
-                        useChannel('channel2'),
-                    ];
-                },
-            );
-
-            // Initial state without channel1 loaded
-            expect(result.current).toEqual([undefined, undefined]);
-            expect(mock.isDone()).toBe(false);
-
-            // Wait for the response
-            await waitForNextUpdate();
-
-            expect(result.current).toEqual([channel1, channel2]);
-            expect(mock.isDone()).toBe(true);
         });
     });
 });

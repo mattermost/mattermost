@@ -3972,6 +3972,8 @@
   "data_spillage_report_post.title": "{user} flagged a message for review",
   "data_spillage_report.keep_message.button_text": "Keep message",
   "data_spillage_report.remove_message.button_text": "Remove message",
+  "post_card.channel_property.deleted_channel": "Deleted channel ID: {channelId}",
+  "post_card.channel_property.deleted_team": "Deleted team ID: {teamId}",
   "date_separator.today": "Today",
   "date_separator.tomorrow": "Tomorrow",
   "date_separator.yesterday": "Yesterday",

@@ -407,6 +407,7 @@ export default function DataSpillageReport({post, isRHS}: Props) {
     return (
         <div
             className={`DataSpillageReport mode_${mode}`}
+            data-testid='data-spillage-report'
             onClick={(e) => e.stopPropagation()}
         >
             <PropertiesCardView

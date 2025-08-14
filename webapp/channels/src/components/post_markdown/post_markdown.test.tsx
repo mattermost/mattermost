@@ -12,6 +12,7 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import PostMarkdown from './post_markdown';
+import { PostTypes } from "utils/constants";
 
 jest.mock('components/properties_card_view/propertyValueRenderer/post_preview_property_renderer/post_preview_property_renderer', () => {
     return jest.fn(() => <div data-testid='post-preview-property-renderer-mock'>{'PostPreviewPropertyRenderer Mock'}</div>);
@@ -286,5 +287,23 @@ describe('components/PostMarkdown', () => {
         renderWithContext(<PostMarkdown {...props}/>, state);
         expect(screen.queryByText('world', {exact: true})).not.toBeInTheDocument();
         expect(screen.queryByText('world!', {exact: true})).toBeInTheDocument();
+    });
+
+    test('should render data spillage card', () => {
+        const dataSpillageReportPost = TestHelper.getPostMock({
+            type: PostTypes.CUSTOM_DATA_SPILLAGE_REPORT as PostType,
+            props: {
+                reported_post_id: 'reported_post_id',
+            },
+        });
+
+        const props = {
+            ...baseProps,
+            message: 'See ~test',
+            post: dataSpillageReportPost,
+        };
+        renderWithContext(<PostMarkdown {...props}/>, state);
+
+        expect(screen.queryByTestId('data-spillage-report')).toBeInTheDocument();
     });
 });
