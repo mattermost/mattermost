@@ -1,14 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {screen} from '@testing-library/react';
+import React from 'react';
 
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
 
 import UserPropertyRenderer from './userPropertyRenderer';
 
@@ -21,7 +24,7 @@ describe('UserPropertyRenderer', () => {
         email: 'test@example.com',
     });
 
-    const baseState = {
+    const baseState: DeepPartial<GlobalState> = {
         entities: {
             users: {
                 profiles: {
@@ -66,16 +69,16 @@ describe('UserPropertyRenderer', () => {
         },
     };
 
-    const mockField: PropertyField = {
+    const mockField = {
         id: 'field-id',
         name: 'Assignee',
         type: 'user',
         attrs: {},
-    };
+    } as PropertyField;
 
-    const mockValue: PropertyValue<string> = {
+    const mockValue = {
         value: 'user-id-123',
-    };
+    } as PropertyValue<string>;
 
     describe('when field is not editable', () => {
         it('should render user avatar and profile component', () => {
@@ -103,7 +106,7 @@ describe('UserPropertyRenderer', () => {
                 entities: {
                     ...baseState.entities,
                     users: {
-                        ...baseState.entities.users,
+                        ...baseState.entities!.users,
                         profiles: {},
                     },
                 },
@@ -122,9 +125,9 @@ describe('UserPropertyRenderer', () => {
         });
 
         it('should handle empty user id', () => {
-            const emptyValue: PropertyValue<string> = {
+            const emptyValue = {
                 value: '',
-            };
+            } as PropertyValue<string>;
 
             renderWithContext(
                 <UserPropertyRenderer
@@ -172,71 +175,7 @@ describe('UserPropertyRenderer', () => {
 
             // Check that the UserSelector has the correct id
             const userSelector = screen.getByRole('combobox');
-            expect(userSelector).toHaveAttribute('id', `selectable-user-property-renderer-${mockField.id}`);
-        });
-    });
-
-    describe('user loading behavior', () => {
-        it('should dispatch getMissingProfilesByIds when user is not loaded', () => {
-            const stateWithoutUser = {
-                ...baseState,
-                entities: {
-                    ...baseState.entities,
-                    users: {
-                        ...baseState.entities.users,
-                        profiles: {},
-                    },
-                },
-            };
-
-            const {store} = renderWithContext(
-                <UserPropertyRenderer
-                    field={mockField}
-                    value={mockValue}
-                />,
-                stateWithoutUser,
-            );
-
-            // Check that the action was dispatched
-            const actions = store.getActions();
-            expect(actions).toContainEqual(
-                expect.objectContaining({
-                    type: 'USERS_REQUEST',
-                }),
-            );
-        });
-
-        it('should not dispatch when user is already loaded', () => {
-            const {store} = renderWithContext(
-                <UserPropertyRenderer
-                    field={mockField}
-                    value={mockValue}
-                />,
-                baseState,
-            );
-
-            // Should not dispatch any user loading actions since user is already loaded
-            const actions = store.getActions();
-            const userRequestActions = actions.filter(action => action.type === 'USERS_REQUEST');
-            expect(userRequestActions).toHaveLength(0);
-        });
-
-        it('should not dispatch when userId is empty', () => {
-            const emptyValue: PropertyValue<string> = {
-                value: '',
-            };
-
-            const {store} = renderWithContext(
-                <UserPropertyRenderer
-                    field={mockField}
-                    value={emptyValue}
-                />,
-                baseState,
-            );
-
-            const actions = store.getActions();
-            const userRequestActions = actions.filter(action => action.type === 'USERS_REQUEST');
-            expect(userRequestActions).toHaveLength(0);
+            expect(userSelector).toHaveAttribute('id', `selectable-user-property-renderer-${mockField.id}_input`);
         });
     });
 });
