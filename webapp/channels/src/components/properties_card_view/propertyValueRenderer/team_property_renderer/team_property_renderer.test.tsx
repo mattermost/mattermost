@@ -94,7 +94,7 @@ describe('TeamPropertyRenderer', () => {
         const propsWithNullId = {
             value: {
                 value: null,
-            } as PropertyValue<unknown>,
+            } as PropertyValue<null>,
         };
 
         const state = {

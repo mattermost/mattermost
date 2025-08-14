@@ -349,7 +349,7 @@ describe('PropertyValueRenderer', () => {
             };
             const value: PropertyValue<null> = {
                 value: null,
-            };
+            } as PropertyValue<null>;
 
             renderWithContext(
                 <PropertyValueRenderer field={field} value={value}/>,
