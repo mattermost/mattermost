@@ -48,6 +48,12 @@ func sanitizeUserForSync(user *model.User) *model.User {
 	return user
 }
 
+func sanitizeUserForSyncSafe(user *model.User) *model.User {
+	// Create a copy to avoid modifying the original user object
+	userCopy := *user
+	return sanitizeUserForSync(&userCopy)
+}
+
 const MungUsernameSeparator = "-"
 
 // mungUsername creates a new username by combining username and remote cluster name, plus

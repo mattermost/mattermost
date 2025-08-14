@@ -10890,5 +10890,9 @@
   {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
     "translation": "Der Name der Datei darf kein Verzeichnis sein."
+  },
+  {
+    "id": "api.command_share.service_inactive",
+    "translation": "Der Dienst \"Gemeinsame Kanäle\" ist aktiviert, aber nicht aktiv."
   }
 ]

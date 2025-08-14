@@ -9161,7 +9161,7 @@
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Неможливо активувати користувача. Сервер перевищує ліміт безпечних користувачів. Зверніться до свого адміністратора з повідомленням: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Не вдалося активувати користувача. Кількість користувачів на сервері перевищує безпечний ліміт. ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "app.user.update_thread_read_for_user.app_error",

@@ -2,7 +2,9 @@
 
 exports[`components/suggestion/search_channel_suggestion should match snapshot 1`] = `
 <SuggestionContainer
-  currentUserId="userid1"
+  aria-describedby="test-suggestion-botTag"
+  aria-labelledby="test-suggestion-name"
+  id="test-suggestion"
   isSelection={false}
   item={
     Object {
@@ -26,7 +28,6 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot 1
   matchedPretext=""
   onClick={[MockFunction]}
   onMouseMove={[MockFunction]}
-  teammateIsBot={false}
   term=""
 >
   <span
@@ -41,6 +42,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot 1
   >
     <span
       className="suggestion-list__main"
+      id="test-suggestion-name"
     >
       name
     </span>
@@ -51,7 +53,9 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot 1
 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, channel type DM_CHANNEL 1`] = `
 <SuggestionContainer
-  currentUserId="userid1"
+  aria-describedby="test-suggestion-botTag"
+  aria-labelledby="test-suggestion-name"
+  id="test-suggestion"
   isSelection={true}
   item={
     Object {
@@ -75,10 +79,10 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
   matchedPretext=""
   onClick={[MockFunction]}
   onMouseMove={[MockFunction]}
-  teammateIsBot={false}
   term=""
 >
   <Memo(Avatar)
+    alt=""
     size="sm"
     url="/api/v4/users/DN/image?_=0"
   />
@@ -87,6 +91,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
   >
     <span
       className="suggestion-list__main"
+      id="test-suggestion-name"
     >
       @name
     </span>
@@ -96,7 +101,9 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, channel type GM_CHANNEL 1`] = `
 <SuggestionContainer
-  currentUserId="userid1"
+  aria-describedby="test-suggestion-botTag"
+  aria-labelledby="test-suggestion-name"
+  id="test-suggestion"
   isSelection={true}
   item={
     Object {
@@ -120,7 +127,6 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
   matchedPretext=""
   onClick={[MockFunction]}
   onMouseMove={[MockFunction]}
-  teammateIsBot={false}
   term=""
 >
   <span
@@ -137,6 +143,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
   >
     <span
       className="suggestion-list__main"
+      id="test-suggestion-name"
     >
       @name
     </span>
@@ -146,7 +153,9 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, channel type OPEN_CHANNEL 1`] = `
 <SuggestionContainer
-  currentUserId="userid1"
+  aria-describedby="test-suggestion-botTag"
+  aria-labelledby="test-suggestion-name"
+  id="test-suggestion"
   isSelection={true}
   item={
     Object {
@@ -170,7 +179,6 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
   matchedPretext=""
   onClick={[MockFunction]}
   onMouseMove={[MockFunction]}
-  teammateIsBot={false}
   term=""
 >
   <span
@@ -185,6 +193,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
   >
     <span
       className="suggestion-list__main"
+      id="test-suggestion-name"
     >
       name
     </span>
@@ -195,7 +204,9 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, channel type PRIVATE_CHANNEL 1`] = `
 <SuggestionContainer
-  currentUserId="userid1"
+  aria-describedby="test-suggestion-botTag"
+  aria-labelledby="test-suggestion-name"
+  id="test-suggestion"
   isSelection={true}
   item={
     Object {
@@ -219,7 +230,6 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
   matchedPretext=""
   onClick={[MockFunction]}
   onMouseMove={[MockFunction]}
-  teammateIsBot={false}
   term=""
 >
   <span
@@ -234,6 +244,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
   >
     <span
       className="suggestion-list__main"
+      id="test-suggestion-name"
     >
       name
     </span>
@@ -244,7 +255,9 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, isSelection is false 1`] = `
 <SuggestionContainer
-  currentUserId="userid1"
+  aria-describedby="test-suggestion-botTag"
+  aria-labelledby="test-suggestion-name"
+  id="test-suggestion"
   isSelection={false}
   item={
     Object {
@@ -268,7 +281,6 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
   matchedPretext=""
   onClick={[MockFunction]}
   onMouseMove={[MockFunction]}
-  teammateIsBot={false}
   term=""
 >
   <span
@@ -283,6 +295,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
   >
     <span
       className="suggestion-list__main"
+      id="test-suggestion-name"
     >
       name
     </span>
@@ -293,7 +306,9 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, isSelection is true 1`] = `
 <SuggestionContainer
-  currentUserId="userid1"
+  aria-describedby="test-suggestion-botTag"
+  aria-labelledby="test-suggestion-name"
+  id="test-suggestion"
   isSelection={true}
   item={
     Object {
@@ -317,7 +332,6 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
   matchedPretext=""
   onClick={[MockFunction]}
   onMouseMove={[MockFunction]}
-  teammateIsBot={false}
   term=""
 >
   <span
@@ -332,6 +346,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
   >
     <span
       className="suggestion-list__main"
+      id="test-suggestion-name"
     >
       name
     </span>

@@ -329,6 +329,29 @@ func (scs *Service) postUnshareNotification(channelID string, creatorID string, 
 	}
 }
 
+// IsRemoteClusterDirectlyConnected checks if a remote cluster has a direct connection to the current server
+func (scs *Service) IsRemoteClusterDirectlyConnected(remoteId string) bool {
+	if remoteId == "" {
+		return true // Local server is always "directly connected"
+	}
+
+	// Check if the remote cluster exists and confirmed
+	rc, err := scs.server.GetStore().RemoteCluster().Get(remoteId, false)
+	if err != nil {
+		return false
+	}
+
+	isConfirmed := rc.IsConfirmed()
+	hasCreator := rc.CreatorId != ""
+
+	// For a direct connection, the remote cluster must be confirmed AND have a creator
+	// (someone on this server initiated or accepted the connection)
+	// Remote clusters known only through synthetic users won't have a creator
+	directConnection := isConfirmed && hasCreator
+
+	return directConnection
+}
+
 // OnReceiveSyncMessageForTesting is a wrapper to expose onReceiveSyncMessage for testing purposes
 // isGlobalUserSyncEnabled checks if the global user sync feature is enabled
 func (scs *Service) isGlobalUserSyncEnabled() bool {
@@ -379,4 +402,9 @@ func (scs *Service) OnReceiveSyncMessageForTesting(msg model.RemoteClusterMsg, r
 // HandleChannelNotSharedErrorForTesting is a wrapper to expose handleChannelNotSharedError for testing purposes
 func (scs *Service) HandleChannelNotSharedErrorForTesting(msg *model.SyncMsg, rc *model.RemoteCluster) {
 	scs.handleChannelNotSharedError(msg, rc)
+}
+
+// TransformMentionsOnReceiveForTesting allows testing the full mention transformation flow
+func (scs *Service) TransformMentionsOnReceiveForTesting(ctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionTransforms map[string]string) {
+	scs.transformMentionsOnReceive(ctx, post, targetChannel, rc, mentionTransforms)
 }

@@ -446,11 +446,11 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     useEffect(() => {
         if (onCustomizeHeader) {
             onCustomizeHeader({
-                onBackButtonClick: showMfa ? handleHeaderBackButtonOnClick : undefined,
+                onBackButtonClick: (showMfa || desktopLoginLink) ? handleHeaderBackButtonOnClick : undefined,
                 alternateLink: isMobileView ? getAlternateLink() : undefined,
             });
         }
-    }, [onCustomizeHeader, search, showMfa, isMobileView, getAlternateLink]);
+    }, [onCustomizeHeader, search, showMfa, desktopLoginLink, isMobileView, getAlternateLink]);
 
     useEffect(() => {
         // We don't want to redirect outside of this route if we're doing Desktop App auth

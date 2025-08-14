@@ -34,6 +34,13 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
     >
       0 Results
     </span>
+    <span
+      aria-live="polite"
+      className="sr-only"
+      role="status"
+    >
+      0 Results
+    </span>
     <div
       id="modalPreferenceContainer"
     >

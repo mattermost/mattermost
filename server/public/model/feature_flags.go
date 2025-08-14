@@ -68,6 +68,8 @@ type FeatureFlags struct {
 	CustomProfileAttributes bool
 
 	AttributeBasedAccessControl bool
+
+	ContentFlagging bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -96,6 +98,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ExperimentalAuditSettingsSystemConsoleUI = true
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
+	f.ContentFlagging = false
 }
 
 // ToMap returns the feature flags as a map[string]string

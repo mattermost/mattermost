@@ -10846,5 +10846,53 @@
   {
     "id": "app.user.update_active.license_user_limit.exceeded",
     "translation": "Det går inte att aktivera användaren. Servern överskrider maxantal licensierade användare. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "Konfigurationsvärdet för Granskningsloggarnas maxålder får inte vara negativt."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "Konfigurationsvärdet för maxantalet backupfiler av audit-loggar får inte vara negativt."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "Konfigurationsvärdet för max-antal filköer för audit-loggar måste vara större än noll."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "Konfigurationsvärdet för maximal filstorlek på audit-loggar måste vara större än noll."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "När loggning av revisionsfiler är aktiverad måste ett filnamn anges."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "Filnamnet får inte vara en filkatalog."
+  },
+  {
+    "id": "api.command_share.service_inactive",
+    "translation": "Tjänsten för Delade kanaler är aktiverad med inte igång."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Tjänsten för åtkomstkontroll är inte tillgänglig. Det går inte att filtrera användare för ABAC-aktiverad kanal."
+  },
+  {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "Testanslutning till LDAP misslyckades. Server: {{.Server}}:{{.Port}}, Anslutningssäkerhet: {{.ConnectionType}}, Filnamn Privat Nyckel: {{.PrivateKeyFilename}}, Filnamn Publikt Certifikat: {{.PublicCertFilename}}, Användarnamn: {{.BindUsername}}. Felmeddelande: {{.Error}}"
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Ogiltig testtyp: {{.TestType}}"
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Import av externt kluster tillåt inte"
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Det går inte att bjuda in gästanvändare till den här kanalen eftersom den har åtkomstbegränsningar baserade på användarattribut."
   }
 ]

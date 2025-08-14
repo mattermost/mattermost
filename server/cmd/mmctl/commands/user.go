@@ -738,24 +738,30 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	users, err := getUsersFromArgs(c, args)
 	if err != nil {
-		printer.PrintError(err.Error())
+		return err
 	}
+
+	var errs *multierror.Error
 	for i, user := range users {
 		if user == nil {
 			printer.PrintError("Unable to find user '" + args[i] + "'")
 			continue
 		}
 		if res, err := c.PermanentDeleteUser(context.TODO(), user.Id); err != nil {
-			printer.PrintError("Unable to delete user '" + user.Username + "' error: " + err.Error())
+			errs = multierror.Append(errs,
+				fmt.Errorf("unable to delete user %s error: %w", user.Username, err))
 		} else {
 			// res.StatusCode is checked for 202 to identify issues with file deletion.
 			if res.StatusCode == http.StatusAccepted {
-				printer.PrintError("There were issues with deleting profile image of the user. Please delete it manually. Id: " + user.Id)
+				errs = multierror.Append(errs,
+					fmt.Errorf("unable to delete the profile image of the user, please delete it manually, id:%s", user.Username))
+				continue
 			}
 			printer.PrintT("Deleted user '{{.Username}}'", user)
 		}
 	}
-	return nil
+
+	return errs.ErrorOrNil()
 }
 
 func deleteAllUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {

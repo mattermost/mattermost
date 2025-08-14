@@ -28,8 +28,6 @@ import * as Utils from 'utils/utils';
 
 import type {TextboxElement} from './index';
 
-const ALL = ['all'];
-
 export type Props = {
     id: string;
     channelId: string;
@@ -324,7 +322,6 @@ export default class Textbox extends React.PureComponent<Props> {
                     listPosition={this.props.suggestionListPosition}
                     providers={this.suggestionProviders}
                     value={this.props.value}
-                    renderDividers={ALL}
                     disabled={this.props.disabled}
                     contextId={this.props.channelId}
                     openWhenEmpty={this.props.openWhenEmpty}

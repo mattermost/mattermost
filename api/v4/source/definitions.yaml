@@ -4233,6 +4233,18 @@ components:
         value_type:
           type: string
           description: The value type.
+    ChannelBanner:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          description: enabled indicates whether the channel banner is enabled or not
+        text:
+          type: string
+          description: text is the actual text that renders in the channel banner. Markdown is supported.
+        background_color:
+          type: string
+          description: background_color is the HEX color code for the banner's backgroubd
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'
