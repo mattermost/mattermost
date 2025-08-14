@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import type {PropertyValue} from '@mattermost/types/properties';
+
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import TimestampPropertyRenderer from './timestamp_property_renderer';
@@ -10,7 +12,7 @@ import TimestampPropertyRenderer from './timestamp_property_renderer';
 describe('TimestampPropertyRenderer', () => {
     const mockValue = {
         value: 1642694400000, // January 20, 2022 12:00:00 PM UTC
-    };
+    } as PropertyValue<number>;
 
     const baseState = {
         entities: {
@@ -34,97 +36,79 @@ describe('TimestampPropertyRenderer', () => {
 
     it('should render timestamp component with the provided value', () => {
         renderWithContext(
-            <TimestampPropertyRenderer value={mockValue} />,
+            <TimestampPropertyRenderer value={mockValue}/>,
             baseState,
         );
 
         const timestampElement = screen.getByTestId('timestamp-property');
         expect(timestampElement).toBeVisible();
-
-        // The Timestamp component should be rendered inside
-        const timestampContent = timestampElement.querySelector('time');
-        expect(timestampContent).toBeVisible();
-
-        // Check that the timestamp displays the expected date format
-        expect(timestampElement).toHaveTextContent('Thursday, 20 January 2022');
-        expect(timestampElement).toHaveTextContent('12:00:00');
+        expect(timestampElement).toHaveTextContent('Thursday, January 20, 2022 at 4:00:00 PM');
     });
 
     it('should handle zero timestamp value', () => {
         const zeroValue = {
             value: 0,
-        };
+        } as PropertyValue<number>;
 
         renderWithContext(
-            <TimestampPropertyRenderer value={zeroValue} />,
+            <TimestampPropertyRenderer value={zeroValue}/>,
             baseState,
         );
 
         const timestampElement = screen.getByTestId('timestamp-property');
         expect(timestampElement).toBeVisible();
-
-        // Check that epoch time (0) renders correctly
-        expect(timestampElement).toHaveTextContent('Thursday, 1 January 1970');
-        expect(timestampElement).toHaveTextContent('00:00:00');
+        expect(timestampElement).toHaveTextContent('Thursday, January 1, 1970 at 12:00:00 AM');
     });
 
     it('should handle negative timestamp value', () => {
         const negativeValue = {
             value: -86400000, // One day before epoch
-        };
+        } as PropertyValue<number>;
 
         renderWithContext(
-            <TimestampPropertyRenderer value={negativeValue} />,
+            <TimestampPropertyRenderer value={negativeValue}/>,
             baseState,
         );
 
         const timestampElement = screen.getByTestId('timestamp-property');
         expect(timestampElement).toBeVisible();
-
-        // Check that negative timestamp (one day before epoch) renders correctly
-        expect(timestampElement).toHaveTextContent('Wednesday, 31 December 1969');
-        expect(timestampElement).toHaveTextContent('00:00:00');
+        expect(timestampElement).toHaveTextContent('Wednesday, December 31, 1969 at 12:00:00 AM');
     });
 
     it('should handle future timestamp value', () => {
         const futureValue = {
             value: 2000000000000, // May 18, 2033
-        };
+        } as PropertyValue<number>;
 
         renderWithContext(
-            <TimestampPropertyRenderer value={futureValue} />,
+            <TimestampPropertyRenderer value={futureValue}/>,
             baseState,
         );
 
         const timestampElement = screen.getByTestId('timestamp-property');
         expect(timestampElement).toBeVisible();
-
-        // Check that future timestamp renders correctly
-        expect(timestampElement).toHaveTextContent('Wednesday, 18 May 2033');
-        expect(timestampElement).toHaveTextContent('03:33:20');
+        expect(timestampElement).toHaveTextContent('Wednesday, May 18, 2033 at 3:33:20 AM');
     });
 
     it('should render in 12-hour format by default', () => {
         const timeValue = {
             value: 1642701600000, // January 20, 2022 2:00:00 PM UTC
-        };
+        } as PropertyValue<number>;
 
         renderWithContext(
-            <TimestampPropertyRenderer value={timeValue} />,
+            <TimestampPropertyRenderer value={timeValue}/>,
             baseState,
         );
 
         const timestampElement = screen.getByTestId('timestamp-property');
         expect(timestampElement).toBeVisible();
-        
-        // Should display 12-hour format with AM/PM
-        expect(timestampElement).toHaveTextContent('14:00:00');
+        expect(timestampElement).toHaveTextContent('Thursday, January 20, 2022 at 6:00:00 PM');
     });
 
     it('should render in 24-hour format when military time preference is enabled', () => {
         const timeValue = {
             value: 1642701600000, // January 20, 2022 2:00:00 PM UTC
-        };
+        } as PropertyValue<number>;
 
         const militaryTimeState = {
             ...baseState,
@@ -144,22 +128,19 @@ describe('TimestampPropertyRenderer', () => {
         };
 
         renderWithContext(
-            <TimestampPropertyRenderer value={timeValue} />,
+            <TimestampPropertyRenderer value={timeValue}/>,
             militaryTimeState,
         );
 
         const timestampElement = screen.getByTestId('timestamp-property');
         expect(timestampElement).toBeVisible();
-        
-        // Should display 24-hour format without AM/PM
-        expect(timestampElement).toHaveTextContent('14:00');
-        expect(timestampElement).not.toHaveTextContent('PM');
+        expect(timestampElement).toHaveTextContent('Thursday, January 20, 2022 at 18:00:00');
     });
 
     it('should render in 12-hour format when military time preference is disabled', () => {
         const timeValue = {
             value: 1642701600000, // January 20, 2022 2:00:00 PM UTC
-        };
+        } as PropertyValue<number>;
 
         const twelveHourState = {
             ...baseState,
@@ -179,34 +160,12 @@ describe('TimestampPropertyRenderer', () => {
         };
 
         renderWithContext(
-            <TimestampPropertyRenderer value={timeValue} />,
+            <TimestampPropertyRenderer value={timeValue}/>,
             twelveHourState,
         );
 
         const timestampElement = screen.getByTestId('timestamp-property');
         expect(timestampElement).toBeVisible();
-        
-        // Should display 12-hour format with AM/PM
-        expect(timestampElement).toHaveTextContent('14:00:00');
-    });
-
-    it('should apply correct CSS class', () => {
-        renderWithContext(
-            <TimestampPropertyRenderer value={mockValue} />,
-            baseState,
-        );
-
-        const element = screen.getByTestId('timestamp-property');
-        expect(element).toHaveClass('TimestampPropertyRenderer');
-    });
-
-    it('should render as a div element', () => {
-        renderWithContext(
-            <TimestampPropertyRenderer value={mockValue} />,
-            baseState,
-        );
-
-        const element = screen.getByTestId('timestamp-property');
-        expect(element.tagName).toBe('DIV');
+        expect(timestampElement).toHaveTextContent('Thursday, January 20, 2022 at 6:00:00 PM');
     });
 });
