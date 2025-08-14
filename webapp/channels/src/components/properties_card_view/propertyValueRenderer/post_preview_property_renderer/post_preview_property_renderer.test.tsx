@@ -67,8 +67,9 @@ describe('PostPreviewPropertyRenderer', () => {
             <PostPreviewPropertyRenderer {...defaultProps} />,
         );
 
-        expect(getByTestId('post-preview-property')).toBeInTheDocument();
-        expect(getByTestId('post-message-preview')).toBeInTheDocument();
+        expect(getByTestId('post-preview-property')).toBeVisible();
+        expect(getByTestId('post-message-preview')).toBeVisible();
+        expect(getByTestId('post-message-preview')).toHaveTextContent('Post Message Preview');
     });
 
     it('should return null when post is not found', () => {
@@ -171,8 +172,9 @@ describe('PostPreviewPropertyRenderer', () => {
             <PostPreviewPropertyRenderer {...defaultProps} />,
         );
 
-        expect(getByTestId('post-preview-property')).toBeInTheDocument();
-        expect(getByTestId('post-message-preview')).toBeInTheDocument();
+        expect(getByTestId('post-preview-property')).toBeVisible();
+        expect(getByTestId('post-message-preview')).toBeVisible();
+        expect(getByTestId('post-message-preview')).toHaveTextContent('Post Message Preview');
     });
 
     it('should handle missing display names gracefully', () => {
@@ -194,7 +196,8 @@ describe('PostPreviewPropertyRenderer', () => {
             <PostPreviewPropertyRenderer {...defaultProps} />,
         );
 
-        expect(getByTestId('post-preview-property')).toBeInTheDocument();
-        expect(getByTestId('post-message-preview')).toBeInTheDocument();
+        expect(getByTestId('post-preview-property')).toBeVisible();
+        expect(getByTestId('post-message-preview')).toBeVisible();
+        expect(getByTestId('post-message-preview')).toHaveTextContent('Post Message Preview');
     });
 });
