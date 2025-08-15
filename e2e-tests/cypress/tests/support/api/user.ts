@@ -26,7 +26,7 @@ import {buildQueryString} from './helpers';
  *   cy.apiLogin({username: 'sysadmin', password: 'secret'});
  */
 function apiLogin(user: Partial<Pick<UserProfile, 'username' | 'email' | 'password'>>, requestOptions: Record<string, any> = {}): ChainableT<{user: UserProfile} | {error: any}> {
-    cy.clearCookies();
+    cy.clearAllCookies();
     return cy.request<UserProfile | any>({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/users/login',

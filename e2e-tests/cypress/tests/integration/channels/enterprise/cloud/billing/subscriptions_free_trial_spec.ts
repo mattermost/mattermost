@@ -109,7 +109,7 @@ describe('System Console - Subscriptions section', () => {
         cy.contains('span', 'trial', {timeout: 10000}).should('be.visible');
 
         // * Check for User count
-        cy.request('/api/v4/analytics/old?name=standard&team_id=').then((response) => {
+        cy.request({url: '/api/v4/analytics/old?name=standard&team_id='}).then((response) => {
             cy.get('.PlanDetails__userCount > span').invoke('text').then((text) => {
                 const userCount = response.body.find((obj) => obj.name === 'unique_user_count');
                 expect(text).to.contain(userCount.value);
@@ -122,7 +122,7 @@ describe('System Console - Subscriptions section', () => {
             cy.wrap({href: getHref}).invoke('href').should('contains', '/cloud-billing.html');
             cy.wrap(link).should('have.attr', 'target', '_blank');
             cy.wrap(link).should('have.attr', 'rel', 'noopener noreferrer');
-            cy.request(link.prop('href')).its('status').should('eq', 200);
+            cy.request({url: link.prop('href')}).its('status').should('eq', 200);
         });
     });
 

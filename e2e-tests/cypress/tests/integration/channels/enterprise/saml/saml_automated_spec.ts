@@ -110,7 +110,7 @@ context('LDAP SAML - Automated Tests (SAML TESTS)', () => {
             };
             cy.apiUpdateConfig(test1Settings).then(() => {
                 const baseUrl = Cypress.config('baseUrl');
-                cy.request(`${baseUrl}/api/v4/saml/metadata`).then((resp) => {
+                cy.request({url: `${baseUrl}/api/v4/saml/metadata`}).then((resp) => {
                     expect(resp.status).to.eq(200);
                     expect(resp.headers['content-type']).to.eq('application/xml');
                     expect(resp.body).to.contain('<?xml version');

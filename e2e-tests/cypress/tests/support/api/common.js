@@ -21,8 +21,8 @@ Cypress.Commands.add('apiUploadFile', (name, filePath, options = {}) => {
         });
 });
 
-Cypress.Commands.add('apiDownloadFileAndVerifyContentType', (fileURL, contentType = 'application/zip') => {
-    cy.request(fileURL).then((response) => {
+Cypress.Commands.add('apiDownloadFileAndVerifyContentType', (url, contentType = 'application/zip') => {
+    cy.request({url}).then((response) => {
         // * Verify the download
         expect(response.status).to.equal(200);
 

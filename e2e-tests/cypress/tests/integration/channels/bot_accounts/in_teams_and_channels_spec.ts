@@ -10,13 +10,13 @@
 // Stage: @prod
 // Group: @channels @bot_accounts
 
-import {Team} from '@mattermost/types/teams';
 import {createBotPatch} from '../../../support/api/bots';
 import {createChannelPatch} from '../../../support/api/channel';
 import {Channel} from '@mattermost/types/channels';
 
 describe('Managing bots in Teams and Channels', () => {
-    let team: Team;
+    let team: Cypress.Team;
+    let user: Cypress.UserProfile;
 
     before(() => {
         cy.apiUpdateConfig({
@@ -24,14 +24,17 @@ describe('Managing bots in Teams and Channels', () => {
                 RestrictCreationToDomains: 'sample.mattermost.com',
             },
         });
-        cy.apiInitSetup({loginAfter: true}).then((out) => {
+        cy.apiInitSetup().then((out) => {
             team = out.team;
+            user = out.user;
         });
     });
 
     it('MM-T1815 Add a BOT to a team that has email restricted', () => {
+        cy.clearAllCookies();
         cy.makeClient().then(async ({client}) => {
-            // # Go to channel
+            // # Log in and go to channel
+            cy.apiLogin(user);
             const channel = await client.getChannelByName(team.id, 'town-square');
             cy.visit(`/${team.name}/channels/${channel.name}`);
 
@@ -45,8 +48,10 @@ describe('Managing bots in Teams and Channels', () => {
     });
 
     it('MM-T1816 Add a BOT to a channel', () => {
+        cy.clearAllCookies();
         cy.makeClient().then(async ({client}) => {
-            // # Go to channel
+            // # Log in and go to channel
+            cy.apiLogin(user);
             const channel = await client.createChannel(createChannelPatch(team.id, 'a-chan', 'A Channel') as Channel);
             cy.visit(`/${team.name}/channels/${channel.name}`);
 
@@ -63,8 +68,10 @@ describe('Managing bots in Teams and Channels', () => {
     });
 
     it('MM-T1817 Add a BOT to a channel that is not on the Team', () => {
+        cy.clearAllCookies();
         cy.makeClient().then(async ({client}) => {
-            // # Go to channel
+            // # Log in and go to channel
+            cy.apiLogin(user);
             const channel = await client.createChannel(createChannelPatch(team.id, 'a-chan', 'A Channel') as Channel);
             cy.visit(`/${team.name}/channels/${channel.name}`);
 
@@ -78,8 +85,10 @@ describe('Managing bots in Teams and Channels', () => {
     });
 
     it('MM-T1818 No ephemeral post about Adding a bot to a channel When Bot is mentioned', () => {
+        cy.clearAllCookies();
         cy.makeClient().then(async ({client}) => {
-            // # Go to channel
+            // # Log in and go to channel
+            cy.apiLogin(user);
             const channel = await client.createChannel(createChannelPatch(team.id, 'a-chan', 'A Channel') as Channel);
             cy.visit(`/${team.name}/channels/${channel.name}`);
 

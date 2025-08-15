@@ -68,7 +68,7 @@ describe('Image Link Preview', () => {
 
         cy.uiGetPostBody().find('.markdown__link').then((el) => {
             const href = el.prop('href');
-            cy.request(href).then((res) => {
+            cy.request({url: href}).then((res) => {
                 expect(res.status).equal(200);
             });
 

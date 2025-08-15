@@ -34,29 +34,29 @@ describe('Settings > Sidebar > General > Edit', () => {
                     cy.apiAddUserToChannel(testChannel.id, otherUser.id);
                 });
             });
-
-            cy.visit(offTopicUrl);
         });
     });
 
-    beforeEach(() => {
-        // # Go to Profile
-        cy.uiOpenProfileModal('Profile Settings');
-    });
-
     it('MM-T2050 Username cannot be blank', () => {
+        // # Log in and go to Profile Settings
+        cy.apiLogin(testUser);
+        cy.visit(offTopicUrl);
+        cy.uiOpenProfileModal('Profile Settings');
+
         // # Clear the username textfield contents
         cy.get('#usernameEdit').click();
         cy.get('#username').click().clear().blur();
 
         // * Check if element is present and contains expected text values
         cy.get('#error_username').should('be.visible').should('contain', 'Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \'.\', \'-\', and \'_\'.');
-
-        // # Click "x" button to close Profile modal
-        cy.uiClose();
     });
 
     it('MM-T2051 Username min 3 characters', () => {
+        // # Log in and go to Profile Settings
+        cy.apiLogin(testUser);
+        cy.visit(offTopicUrl);
+        cy.uiOpenProfileModal('Profile Settings');
+
         // # Edit the username field
         cy.get('#usernameEdit').click();
 
@@ -65,12 +65,14 @@ describe('Settings > Sidebar > General > Edit', () => {
 
         // * Check if element is present and contains expected text values
         cy.get('#error_username').should('be.visible').should('contain', 'Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \'.\', \'-\', and \'_\'.');
-
-        // # Click "x" button to close Profile modal
-        cy.uiClose();
     });
 
     it('MM-T2052 Username already taken', () => {
+        // # Log in and go to Profile Settings
+        cy.apiLogin(testUser);
+        cy.visit(offTopicUrl);
+        cy.uiOpenProfileModal('Profile Settings');
+
         // # Edit the username field
         cy.get('#usernameEdit').click();
 
@@ -80,24 +82,17 @@ describe('Settings > Sidebar > General > Edit', () => {
 
         // * Check if element is present and contains expected text values
         cy.get('#serverError').should('be.visible').should('contain', 'An account with that username already exists.');
-
-        // # Click "x" button to close Profile modal
-        cy.uiClose();
     });
 
     it('MM-T2053 Username w/ dot, dash, underscore still searches', () => {
-        let tempUser;
+        cy.apiAdminLogin();
 
         // # Create a temporary user
-        cy.apiCreateUser({prefix: 'temp'}).then(({user: user1}) => {
-            tempUser = user1;
+        cy.apiCreateUser({prefix: 'temp'}).then(({user: testUser2}) => {
+            cy.apiAddUserToTeam(testTeam.id, testUser2.id);
 
-            cy.apiAddUserToTeam(testTeam.id, tempUser.id).then(() => {
-                cy.apiAddUserToChannel(testChannel.id, tempUser.id);
-            });
-
-            // # Login the temporary user
-            cy.apiLogin(tempUser);
+            // # Log in and go to Profile Settings
+            cy.apiLogin(testUser2);
             cy.visit(offTopicUrl);
             cy.uiOpenProfileModal('Profile Settings');
 
@@ -107,7 +102,7 @@ describe('Settings > Sidebar > General > Edit', () => {
 
             // # Step 2
             // # Add the username to textfield contents
-            const newTempUserName = 'a-' + tempUser.username;
+            const newTempUserName = 'a-' + testUser2.username;
             cy.get('#username').clear().type(newTempUserName);
             cy.uiSaveAndClose();
 
@@ -138,6 +133,11 @@ describe('Settings > Sidebar > General > Edit', () => {
     });
 
     it('MM-T2054 Username cannot start with dot, dash, or underscore', () => {
+        // # Log in and go to Profile Settings
+        cy.apiLogin(testUser);
+        cy.visit(offTopicUrl);
+        cy.uiOpenProfileModal('Profile Settings');
+
         // # Edit the username field
         cy.get('#usernameEdit').click();
 
@@ -154,12 +154,14 @@ describe('Settings > Sidebar > General > Edit', () => {
             // * Check if element is present and contains expected text values
             cy.get('#error_username').should('be.visible').should('contain', 'Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \'.\', \'-\', and \'_\'.');
         }
-
-        // # Click "x" button to close Profile modal
-        cy.uiClose();
     });
 
     it('MM-T2055 Usernames that are reserved', () => {
+        // # Log in and go to Profile Settings
+        cy.apiLogin(testUser);
+        cy.visit(offTopicUrl);
+        cy.uiOpenProfileModal('Profile Settings');
+
         // # Edit the username field
         cy.get('#usernameEdit').click();
 
@@ -177,9 +179,6 @@ describe('Settings > Sidebar > General > Edit', () => {
             // * Check if element is present and contains expected text values
             cy.get('#error_username').should('be.visible').should('contain', 'This username is reserved, please choose a new one.');
         }
-
-        // # Click "x" button to close Profile modal
-        cy.uiClose();
     });
 
     it('MM-T2056 Username changes when viewed by other user', () => {

@@ -346,7 +346,7 @@ describe('Channel Bookmarks', () => {
         const verifyCannotCreate = () => {
             // * Verify cannot access create UI - channel menu
             cy.uiOpenChannelMenu();
-            cy.findByRole('menuitem', {name: 'Bookmarks Bar submenu icon'}).should('not.exist');
+            cy.findByText('Bookmarks Bar').should('not.exist');
 
             // * Verify cannot access create UI - bookmarks bar
             cy.get('#channelBookmarksPlusMenuButton').should('not.exist');
@@ -363,7 +363,7 @@ describe('Channel Bookmarks', () => {
 
             // * Verify create bookmark submenu in channel menu is not shown
             cy.uiOpenChannelMenu();
-            cy.findByRole('menuitem', {name: 'Bookmarks Bar submenu icon'}).should('not.exist');
+            cy.findByText('Bookmarks Bar').should('not.exist');
         });
     });
 
@@ -386,8 +386,8 @@ function promptAddLink(fromChannelMenu = false) {
     if (fromChannelMenu) {
         cy.uiOpenChannelMenu();
 
-        cy.findByRole('menuitem', {name: 'Bookmarks Bar submenu icon'}).trigger('mouseover');
-        cy.findByRole('menuitem', {name: 'Add a link not selected'}).click();
+        cy.findByText('Bookmarks Bar').trigger('mouseover');
+        cy.findByText('Add a link').click();
     } else {
         cy.get('#channelBookmarksPlusMenuButton').click();
         cy.get('#channelBookmarksAddLink').click();
@@ -398,8 +398,8 @@ function promptAddFile(fromChannelMenu = false) {
     if (fromChannelMenu) {
         cy.uiOpenChannelMenu();
 
-        cy.findByRole('menuitem', {name: 'Bookmarks Bar submenu icon'}).trigger('mouseover');
-        cy.findByRole('menuitem', {name: 'Attach a file not selected'}).click();
+        cy.findByText('Bookmarks Bar').trigger('mouseover');
+        cy.findByText('Attach a file').click();
     } else {
         cy.get('#channelBookmarksPlusMenuButton').click();
         cy.get('#channelBookmarksAttachFile').click();

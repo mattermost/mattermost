@@ -10,11 +10,10 @@
 // Stage: @prod
 // Group: @channels @bot_accounts
 
-import {Team} from '@mattermost/types/teams';
 import {createBotPatch} from '../../../support/api/bots';
 
 describe('Managing bots in Teams and Channels', () => {
-    let team: Team;
+    let team: Cypress.Team;
 
     before(() => {
         cy.apiUpdateConfig({
@@ -22,19 +21,20 @@ describe('Managing bots in Teams and Channels', () => {
                 RestrictCreationToDomains: 'sample.mattermost.com',
             },
         });
-        cy.apiInitSetup({loginAfter: true}).then((out) => {
+        cy.apiInitSetup().then((out) => {
             team = out.team;
         });
     });
     it('MM-T1819 Promote a BOT to team admin', () => {
         cy.makeClient().then(async ({client}) => {
-            // # Go to channel
-            const channel = await client.getChannelByName(team.id, 'off-topic');
-            cy.visit(`/${team.name}/channels/${channel.name}`);
-
             // # Add bot to team
             const bot = await client.createBot(createBotPatch());
             await client.addToTeam(team.id, bot.user_id);
+
+            // # Login and go to channel
+            cy.apiAdminLogin();
+            const channel = await client.getChannelByName(team.id, 'off-topic');
+            cy.visit(`/${team.name}/channels/${channel.name}`);
 
             // # Open team menu and click 'Manage Members'
             cy.uiOpenTeamMenu('Manage members');

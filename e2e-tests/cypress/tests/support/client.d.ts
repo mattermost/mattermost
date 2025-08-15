@@ -3,6 +3,9 @@
 
 /// <reference types="cypress" />
 
+import {UserProfile} from '@mattermost/types/users';
+import {E2EClient} from './client-impl';
+
 // ***************************************************************
 // Each command should be properly documented using JSDoc.
 // See https://jsdoc.app/index.html for reference.
@@ -17,6 +20,6 @@
 
 declare namespace Cypress {
     interface Chainable {
-        makeClient(options?: {user: Pick<UserProfile, 'username' | 'password'>}): Chainable<Client>;
+        makeClient(options?: {user: Pick<UserProfile, 'username' | 'password'>}): Chainable<{client: E2EClient; user: UserProfile}>;
     }
 }
