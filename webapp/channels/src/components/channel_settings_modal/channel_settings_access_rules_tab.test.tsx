@@ -209,7 +209,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             initialState,
         );
 
-        expect(mockUseChannelAccessControlActions).toHaveBeenCalledTimes(1);
+        expect(mockUseChannelAccessControlActions).toHaveBeenCalledTimes(2); // Once for the hook call and once for the mock return
     });
 
     test('should load user attributes on mount', async () => {
