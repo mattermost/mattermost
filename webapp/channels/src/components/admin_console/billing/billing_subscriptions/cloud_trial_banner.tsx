@@ -90,7 +90,6 @@ const CloudTrialBanner = ({trialEndDate}: Props): JSX.Element | null => {
                 <UpgradeLink
                     buttonText={formatMessage({id: 'admin.subscription.cloudTrialCard.upgrade', defaultMessage: 'Upgrade'})}
                     styleButton={true}
-                    telemetryInfo='billing_subscriptions_cloud_trial_banner'
                 />
             )}
             actionButtonRight={(

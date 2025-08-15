@@ -99,7 +99,7 @@ export default function CenterMessageLock(props: Props) {
     let cta: React.ReactNode = (
         <button
             className='btn btn-primary'
-            onClick={(e) => notifyAdmin(e, 'center_channel_posts_over_limit_banner')}
+            onClick={(e) => notifyAdmin(e)}
             disabled={notifyRequestStatus === NotifyStatus.AlreadyComplete}
         >
             {notifyAdminBtnText}

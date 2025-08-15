@@ -4,10 +4,6 @@
 import React from 'react';
 import {useHistory} from 'react-router-dom';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
-import {TELEMETRY_CATEGORIES} from 'utils/constants';
-
 import './dashboard.scss';
 
 type CtaButtonsProps = {
@@ -31,10 +27,7 @@ const CtaButtons = ({
 
     const getClickHandler = (id: string, link?: string) => () => {
         if (telemetryAction) {
-            trackEvent(
-                TELEMETRY_CATEGORIES.WORKSPACE_OPTIMIZATION_DASHBOARD,
-                `workspace_dashboard_${telemetryAction}_${id}`,
-            );
+            // Telemetry tracking removed
         }
 
         if (id === 'cta' && typeof actionButtonCallback === 'function') {

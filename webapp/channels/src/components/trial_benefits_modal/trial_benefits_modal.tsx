@@ -11,7 +11,6 @@ import {GenericModal} from '@mattermost/components';
 
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {isModalOpen} from 'selectors/views/modals';
 
 import BlockableLink from 'components/admin_console/blockable_link';
@@ -23,7 +22,7 @@ import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_
 import PersonWithChecklistSvg from 'components/common/svg_images_components/person_with_checklist';
 import SuccessSvg from 'components/common/svg_images_components/success_svg';
 
-import {ConsolePages, DocLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {ConsolePages, DocLinks, ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -59,10 +58,7 @@ const TrialBenefitsModal = ({
 
     useEffect(() => {
         if (!trialJustStarted) {
-            trackEvent(
-                TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL,
-                'benefits_modal_post_enterprise_view',
-            );
+            // Telemetry tracking removed
         }
     }, []);
 
@@ -211,10 +207,7 @@ const TrialBenefitsModal = ({
         const slideId = steps[slideIndex - 1]?.id;
 
         if (slideId) {
-            trackEvent(
-                TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL,
-                'benefits_modal_slide_shown_' + slideId,
-            );
+            // Telemetry tracking removed
         }
     }, [steps]);
 

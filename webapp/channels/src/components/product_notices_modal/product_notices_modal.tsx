@@ -7,8 +7,6 @@ import {FormattedMessage} from 'react-intl';
 import {GenericModal} from '@mattermost/components';
 import type {ProductNotices, ProductNotice} from '@mattermost/types/product_notices';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import ExternalLink from 'components/external_link';
 import Markdown from 'components/markdown';
 import AdminEyeIcon from 'components/widgets/icons/admin_eye_icon';
@@ -187,8 +185,7 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
     }
 
     private trackClickEvent = () => {
-        const presentNoticeInfo = this.state.noticesData[this.state.presentNoticeIndex];
-        trackEvent('ui', `notice_click_${presentNoticeInfo.id}`);
+        // Telemetry tracking removed
     };
 
     private renderActionButton(presentNoticeInfo: ProductNotice) {

@@ -2086,11 +2086,6 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	redirectURL := *c.App.Config().ServiceSettings.SiteURL
 	if campaign != "" {
 		if url, ok := campaignToURL[campaign]; ok {
-			properties := map[string]any{
-				"category":    "acquisition",
-				"redirect_to": strings.TrimSuffix(url, "/"),
-			}
-			c.App.Srv().GetTelemetryService().SendTelemetry("product_start_redirect", properties)
 			redirectURL += url
 		}
 	}

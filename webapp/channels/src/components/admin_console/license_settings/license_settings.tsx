@@ -12,8 +12,6 @@ import type {GetFilteredUsersStatsOpts, UsersStats} from '@mattermost/types/user
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
@@ -148,11 +146,6 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
             if (this.interval) {
                 clearInterval(this.interval);
                 this.interval = null;
-                if (error) {
-                    trackEvent('api', 'upgrade_to_e0_failed', {error});
-                } else {
-                    trackEvent('api', 'upgrade_to_e0_success');
-                }
             }
         } else if (percentage > 0 && !this.interval) {
             this.interval = setInterval(this.reloadPercentage, 2000);
@@ -215,7 +208,6 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
             this.setState({upgradingPercentage: 1});
             await this.reloadPercentage();
         } catch (error: any) {
-            trackEvent('api', 'upgrade_to_e0_failed', {error: error.message as string});
             this.setState({upgradeError: error.message, upgradingPercentage: 0});
         }
     };

@@ -7,8 +7,6 @@ import type {WrappedComponentProps} from 'react-intl';
 
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
@@ -55,7 +53,6 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
     };
 
     askTheCommunityClick = () => {
-        trackEvent('ui', 'help_ask_the_community');
     };
 
     renderDropdownItems = (): React.ReactNode => {

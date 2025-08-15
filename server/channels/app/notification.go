@@ -19,7 +19,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
 func (a *App) canSendPushNotifications() bool {
@@ -863,33 +862,6 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		mlog.String("post_id", post.Id),
 	)
 
-	for id, reason := range mentions.Mentions {
-		user, ok := profileMap[id]
-		if !ok {
-			continue
-		}
-		if user.IsGuest() {
-			if reason == KeywordMention {
-				a.Srv().telemetryService.SendTelemetryForFeature(
-					telemetry.TrackGuestFeature,
-					"post_mentioned_guest",
-					map[string]any{telemetry.TrackPropertyUser: user.Id, telemetry.TrackPropertyPostAuthor: sender.Id},
-				)
-			} else if reason == DMMention {
-				a.Srv().telemetryService.SendTelemetryForFeature(
-					telemetry.TrackGuestFeature,
-					"direct_message_to_guest",
-					map[string]any{telemetry.TrackPropertyUser: user.Id, telemetry.TrackPropertyPostAuthor: sender.Id},
-				)
-			}
-		}
-		if user.IsRemote() {
-			a.Srv().telemetryService.SendTelemetryForFeature(telemetry.TrackSharedChannelsFeature, "mentioned_remote_user", map[string]any{telemetry.TrackPropertyUser: user.Id, telemetry.TrackPropertyPostAuthor: sender.Id})
-		}
-	}
-	for groupId := range mentions.GroupMentions {
-		a.Srv().telemetryService.SendTelemetryForFeature(telemetry.TrackGroupsFeature, "post_mentioned_custom_group", map[string]any{telemetry.TrackPropertyUser: sender.Id, telemetry.TrackPropertyGroup: groupId, "group_size": groups[groupId].MemberCount})
-	}
 	return mentionedUsersList, nil
 }
 
@@ -1588,13 +1560,6 @@ func (a *App) insertGroupMentions(senderID string, group *model.Group, channel *
 	potentialGroupMembersMentioned := []string{}
 	for _, user := range outOfChannelGroupMembers {
 		potentialGroupMembersMentioned = append(potentialGroupMembersMentioned, user.Username)
-	}
-	if len(potentialGroupMembersMentioned) != 0 {
-		a.Srv().telemetryService.SendTelemetryForFeature(
-			telemetry.TrackGroupsFeature,
-			"invite_group_to_channel__post",
-			map[string]any{telemetry.TrackPropertyUser: senderID, telemetry.TrackPropertyGroup: group.Id},
-		)
 	}
 	if mentions.OtherPotentialMentions == nil {
 		mentions.OtherPotentialMentions = potentialGroupMembersMentioned

@@ -7,13 +7,9 @@ import {Draggable} from 'react-beautiful-dnd';
 import {defineMessages, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {mark, trackEvent} from 'actions/telemetry_actions.jsx';
-
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 import WithTooltip from 'components/with_tooltip';
 import {ShortcutKeys} from 'components/with_tooltip/tooltip_shortcut';
-
-import {Mark} from 'utils/performance_telemetry';
 
 const messages = defineMessages({
     nameUndefined: {
@@ -61,12 +57,10 @@ export default function TeamButton({
     const {formatMessage} = useIntl();
 
     const handleSwitch = useCallback((e: React.MouseEvent) => {
-        mark(Mark.TeamLinkClicked);
         e.preventDefault();
         switchTeam(url);
 
         setTimeout(() => {
-            trackEvent('ui', 'ui_team_sidebar_switch_team');
         }, 0);
     }, [switchTeam, url]);
 

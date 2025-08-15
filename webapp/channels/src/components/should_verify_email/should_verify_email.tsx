@@ -9,13 +9,9 @@ import {useLocation, useHistory} from 'react-router-dom';
 
 import {sendVerificationEmail} from 'mattermost-redux/actions/users';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import ManWithMailboxSVG from 'components/common/svg_images_components/man_with_mailbox_svg';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 import SaveButton from 'components/save_button';
-
-import {getRoleFromTrackFlow} from 'utils/utils';
 
 import './should_verify_email.scss';
 
@@ -38,7 +34,6 @@ const ShouldVerifyEmail = () => {
     const [isWaiting, setIsWaiting] = useState(false);
 
     useEffect(() => {
-        trackEvent('signup', 'should_verify_email', getRoleFromTrackFlow());
     }, []);
 
     const handleReturnButtonOnClick = useCallback(() => {

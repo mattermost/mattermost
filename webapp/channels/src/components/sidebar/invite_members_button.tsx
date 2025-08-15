@@ -8,10 +8,7 @@ import {useSelector} from 'react-redux';
 import {Permissions} from 'mattermost-redux/constants';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import InvitationModal from 'components/invitation_modal';
-import {getAnalyticsCategory} from 'components/onboarding_tasks';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 import ToggleModalButton from 'components/toggle_modal_button';
 
@@ -27,7 +24,6 @@ const InviteMembersButton = (props: Props): JSX.Element | null => {
     const currentTeamId = useSelector(getCurrentTeamId);
 
     const handleButtonClick = () => {
-        trackEvent(getAnalyticsCategory(props.isAdmin), 'click_sidebar_invite_members_button');
     };
 
     if (!currentTeamId) {

@@ -62,11 +62,7 @@ const OverageUsersBannerNotice = () => {
     const hasPermission = isAdmin && isOverageState && !isCloud;
     const {
         cta,
-        trackEventFn,
-    } = useExpandOverageUsersCheck({
-        isWarningState: isBetween5PercerntAnd10PercentPurchasedSeats,
-        banner: 'invite modal',
-    });
+    } = useExpandOverageUsersCheck();
 
     if (!hasPermission || adminHasDismissed({overagePreferences, preferenceName})) {
         return null;
@@ -91,7 +87,7 @@ const OverageUsersBannerNotice = () => {
                 values={{
                     a: () => {
                         const handleClick = () => {
-                            trackEventFn('Contact Sales');
+                            // Telemetry tracking removed
                         };
 
                         return (

@@ -19,8 +19,6 @@ import {getCurrentTeam, getMyTeams} from 'mattermost-redux/selectors/entities/te
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {pageVisited, trackEvent} from 'actions/telemetry_actions';
-
 import LogoSvg from 'components/common/svg_images_components/logo_dark_blue_svg';
 
 import Constants from 'utils/constants';
@@ -37,12 +35,7 @@ import {
     WizardSteps,
     Animations,
     emptyForm,
-    mapStepToNextName,
-    mapStepToSkipName,
-    mapStepToPageView,
-    mapStepToSubmitFail,
     PLUGIN_NAME_TO_ID_MAP,
-    mapStepToPrevious,
 } from './steps';
 import type {
     WizardStep,
@@ -76,30 +69,28 @@ type Props = RouterProps & {
     actions: Actions;
 }
 
-function makeOnPageView(step: WizardStep) {
+function makeOnPageView() {
     return function onPageViewInner() {
-        pageVisited('first_admin_setup', mapStepToPageView(step));
     };
 }
 
-function makeSubmitFail(step: WizardStep) {
+function makeSubmitFail() {
     return function onPageViewInner() {
-        trackEvent('first_admin_setup', mapStepToSubmitFail(step));
     };
 }
 
 const trackSubmitFail = {
-    [WizardSteps.Organization]: makeSubmitFail(WizardSteps.Organization),
-    [WizardSteps.Plugins]: makeSubmitFail(WizardSteps.Plugins),
-    [WizardSteps.InviteMembers]: makeSubmitFail(WizardSteps.InviteMembers),
-    [WizardSteps.LaunchingWorkspace]: makeSubmitFail(WizardSteps.LaunchingWorkspace),
+    [WizardSteps.Organization]: makeSubmitFail(),
+    [WizardSteps.Plugins]: makeSubmitFail(),
+    [WizardSteps.InviteMembers]: makeSubmitFail(),
+    [WizardSteps.LaunchingWorkspace]: makeSubmitFail(),
 };
 
 const onPageViews = {
-    [WizardSteps.Organization]: makeOnPageView(WizardSteps.Organization),
-    [WizardSteps.Plugins]: makeOnPageView(WizardSteps.Plugins),
-    [WizardSteps.InviteMembers]: makeOnPageView(WizardSteps.InviteMembers),
-    [WizardSteps.LaunchingWorkspace]: makeOnPageView(WizardSteps.LaunchingWorkspace),
+    [WizardSteps.Organization]: makeOnPageView(),
+    [WizardSteps.Plugins]: makeOnPageView(),
+    [WizardSteps.InviteMembers]: makeOnPageView(),
+    [WizardSteps.LaunchingWorkspace]: makeOnPageView(),
 };
 
 const PreparingWorkspace = ({
@@ -192,17 +183,14 @@ const PreparingWorkspace = ({
         }
         return true;
     };
-    const makeNext = useCallback((currentStep: WizardStep, skip?: boolean) => {
-        return function innerMakeNext(trackingProps?: Record<string, any>) {
+    const makeNext = useCallback((currentStep: WizardStep) => {
+        return function innerMakeNext() {
             const stepIndex = stepOrder.indexOf(currentStep);
             if (stepIndex === -1 || stepIndex >= stepOrder.length) {
                 return;
             }
             setStepHistory([currentStep, stepOrder[stepIndex + 1]]);
             setSubmitError(null);
-
-            const progressName = (skip ? mapStepToSkipName : mapStepToNextName)(currentStep);
-            trackEvent('first_admin_setup', progressName, trackingProps);
         };
     }, [stepOrder]);
 
@@ -274,7 +262,6 @@ const PreparingWorkspace = ({
         const goToChannels = () => {
             dispatch({type: GeneralTypes.SHOW_LAUNCHING_WORKSPACE, open: true});
             history.push(`/${team.name}/channels/${Constants.DEFAULT_CHANNEL}`);
-            trackEvent('first_admin_setup', 'admin_setup_complete');
         };
 
         const sendFormEnd = Date.now();
@@ -330,7 +317,6 @@ const PreparingWorkspace = ({
         if (stepIndex <= 0) {
             return;
         }
-        trackEvent('first_admin_setup', mapStepToPrevious(currentStep));
         setStepHistory([currentStep, stepOrder[stepIndex - 1]]);
     }, [currentStep]);
 
@@ -440,13 +426,11 @@ const PreparingWorkspace = ({
                     onPageView={onPageViews[WizardSteps.Plugins]}
                     previous={previous}
                     next={() => {
-                        const pluginChoices = {...form.plugins};
-                        delete pluginChoices.skipped;
-                        makeNext(WizardSteps.Plugins)(pluginChoices);
+                        makeNext(WizardSteps.Plugins)();
                         skipPlugins(false);
                     }}
                     skip={() => {
-                        makeNext(WizardSteps.Plugins, true)();
+                        makeNext(WizardSteps.Plugins)();
                         skipPlugins(true);
                     }}
                     options={form.plugins}
@@ -463,23 +447,19 @@ const PreparingWorkspace = ({
                     transitionDirection={getTransitionDirection(WizardSteps.Plugins)}
                     className='child-page'
                     handleVisitMarketPlaceClick={() => {
-                        trackEvent('first_admin_setup', 'click_visit_marketplace_link');
                     }}
                 />
                 <InviteMembers
                     onPageView={onPageViews[WizardSteps.InviteMembers]}
                     next={() => {
                         skipTeamMembers(false);
-                        const inviteMembersTracking = {
-                            inviteCount: form.teamMembers.invites.length,
-                        };
                         setSubmissionState(SubmissionStates.UserRequested);
-                        makeNext(WizardSteps.InviteMembers)(inviteMembersTracking);
+                        makeNext(WizardSteps.InviteMembers)();
                     }}
                     skip={() => {
                         skipTeamMembers(true);
                         setSubmissionState(SubmissionStates.UserRequested);
-                        makeNext(WizardSteps.InviteMembers, true)();
+                        makeNext(WizardSteps.InviteMembers)();
                     }}
                     previous={previous}
                     show={shouldShowPage(WizardSteps.InviteMembers)}

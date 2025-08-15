@@ -6,7 +6,7 @@ import React from 'react';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type {updateNewMessagesAtInChannel} from 'actions/global_actions';
-import {clearMarks, countRequestsBetween, mark, shouldTrackPerformance, trackEvent} from 'actions/telemetry_actions.jsx';
+import {clearMarks, mark, shouldTrackPerformance} from 'actions/telemetry_actions.jsx';
 import type {LoadPostsParameters, LoadPostsReturnValue, CanLoadMorePosts} from 'actions/views/channel';
 
 import LoadingScreen from 'components/loading_screen';
@@ -25,7 +25,7 @@ function markAndMeasureChannelSwitchEnd(fresh = false) {
     mark(Mark.PostListLoaded);
 
     // Send new performance metrics to server
-    const channelSwitch = measureAndReport({
+    measureAndReport({
         name: Measure.ChannelSwitch,
         startMark: Mark.ChannelLinkClicked,
         endMark: Mark.PostListLoaded,
@@ -34,7 +34,7 @@ function markAndMeasureChannelSwitchEnd(fresh = false) {
         },
         canFail: true,
     });
-    const teamSwitch = measureAndReport({
+    measureAndReport({
         name: Measure.TeamSwitch,
         startMark: Mark.TeamLinkClicked,
         endMark: Mark.PostListLoaded,
@@ -46,25 +46,7 @@ function markAndMeasureChannelSwitchEnd(fresh = false) {
 
     // Send old performance metrics to Rudder
     if (shouldTrackPerformance()) {
-        if (channelSwitch) {
-            const requestCount1 = countRequestsBetween(Mark.ChannelLinkClicked, Mark.PostListLoaded);
-
-            trackEvent('performance', Measure.ChannelSwitch, {
-                duration: Math.round(channelSwitch.duration),
-                fresh,
-                requestCount: requestCount1,
-            });
-        }
-
-        if (teamSwitch) {
-            const requestCount2 = countRequestsBetween(Mark.TeamLinkClicked, Mark.PostListLoaded);
-
-            trackEvent('performance', Measure.TeamSwitch, {
-                duration: Math.round(teamSwitch.duration),
-                fresh,
-                requestCount: requestCount2,
-            });
-        }
+        // TODO: Add Rudder tracking logic if needed
     }
 
     // Clear all the metrics so that we can differentiate between a channel and team switch next time this is called
