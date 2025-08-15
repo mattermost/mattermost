@@ -6,8 +6,6 @@ import {FormattedMessage} from 'react-intl';
 
 import type {Product} from '@mattermost/types/cloud';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import ExternalLink from 'components/external_link';
 
 import {BillingSchemes, CloudProducts, CloudLinks, RecurringIntervals} from 'utils/constants';
@@ -48,7 +46,6 @@ const PlanPricing = ({
                 <ExternalLink
                     location='plan_pricing'
                     href={CloudLinks.BILLING_DOCS}
-                    onClick={() => trackEvent('cloud_admin', 'click_how_billing_works', {screen: 'payment'})}
                 >
                     <FormattedMessage
                         id='admin.billing.subscription.planDetails.howBillingWorks'

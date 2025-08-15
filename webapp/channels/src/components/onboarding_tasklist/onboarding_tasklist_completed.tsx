@@ -188,7 +188,6 @@ const Completed = (props: Props): JSX.Element => {
                                 />
                             </span>
                             <StartTrialBtn
-                                telemetryId='start_trial_from_onboarding_completed_task'
                                 onClick={dismissAction}
                             />
                             <button

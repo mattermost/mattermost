@@ -20,7 +20,6 @@ describe('/components/create_team/components/display_name', () => {
             wizard: 'display_name',
         },
         actions: {
-            trackEvent: jest.fn(),
         },
     };
 

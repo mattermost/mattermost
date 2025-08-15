@@ -7,14 +7,12 @@ import React, {lazy} from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import {ServiceEnvironment} from '@mattermost/types/config';
-
 import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
 import {Preferences} from 'mattermost-redux/constants';
 
-import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent} from 'actions/telemetry_actions.jsx';
+import {temporarilySetPageLoadContext} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
 
 import {makeAsyncComponent, makeAsyncPluggableComponent} from 'components/async_load';
@@ -35,7 +33,6 @@ import {PageLoadContext, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
-import {rudderAnalytics, RudderTelemetryHandler} from 'utils/rudder';
 import {getSiteURL} from 'utils/url';
 import {isAndroidWeb, isChromebook, isDesktopApp, isIosWeb} from 'utils/user_agent';
 import {applyTheme, isTextDroppableEvent} from 'utils/utils';
@@ -107,73 +104,6 @@ export default class Root extends React.PureComponent<Props, State> {
             shouldMountAppRoutes: false,
         };
     }
-
-    setRudderConfig = () => {
-        const telemetryId = this.props.telemetryId;
-
-        const rudderUrl = 'https://pdat.matterlytics.com';
-        let rudderKey = '';
-        switch (this.props.serviceEnvironment) {
-        case ServiceEnvironment.PRODUCTION:
-            rudderKey = '1aoejPqhgONMI720CsBSRWzzRQ9';
-            break;
-        case ServiceEnvironment.TEST:
-            rudderKey = '1aoeoCDeh7OCHcbW2kseWlwUFyq';
-            break;
-        case ServiceEnvironment.DEV:
-            break;
-        }
-
-        if (rudderKey !== '' && this.props.telemetryEnabled) {
-            const rudderCfg: {setCookieDomain?: string} = {};
-            if (this.props.siteURL !== '') {
-                try {
-                    rudderCfg.setCookieDomain = new URL(this.props.siteURL || '').hostname;
-                } catch (_) {
-                    // eslint-disable-next-line no-console
-                    console.error('Failed to set cookie domain for RudderStack');
-                }
-            }
-
-            rudderAnalytics.load(rudderKey, rudderUrl || '', rudderCfg);
-
-            rudderAnalytics.identify(telemetryId, {}, {
-                context: {
-                    ip: '0.0.0.0',
-                },
-                page: {
-                    path: '',
-                    referrer: '',
-                    search: '',
-                    title: '',
-                    url: '',
-                },
-                anonymousId: '00000000000000000000000000',
-            });
-
-            rudderAnalytics.page('ApplicationLoaded', {
-                path: '',
-                referrer: '',
-                search: ('' as any),
-                title: '',
-                url: '',
-            } as any,
-            {
-                context: {
-                    ip: '0.0.0.0',
-                },
-                anonymousId: '00000000000000000000000000',
-            });
-
-            const utmParams = this.captureUTMParams();
-            rudderAnalytics.ready(() => {
-                Client4.setTelemetryHandler(new RudderTelemetryHandler());
-                if (utmParams) {
-                    trackEvent('utm_params', 'utm_params', utmParams);
-                }
-            });
-        }
-    };
 
     onConfigLoaded = () => {
         Promise.all([
@@ -282,10 +212,6 @@ export default class Root extends React.PureComponent<Props, State> {
             this.setRootMeta();
         }
 
-        if (!prevProps.isConfigLoaded && this.props.isConfigLoaded) {
-            this.setRudderConfig();
-        }
-
         if (prevState.shouldMountAppRoutes === false && this.state.shouldMountAppRoutes === true) {
             if (!doesRouteBelongToTeamControllerRoutes(this.props.location.pathname)) {
                 DesktopApp.reactAppInitialized();
@@ -354,8 +280,6 @@ export default class Root extends React.PureComponent<Props, State> {
         temporarilySetPageLoadContext(PageLoadContext.PAGE_LOAD);
 
         this.initiateMeRequests();
-
-        measurePageLoadTelemetry();
 
         // Force logout of all tabs if one tab is logged out
         window.addEventListener('storage', this.handleLogoutLoginSignal);

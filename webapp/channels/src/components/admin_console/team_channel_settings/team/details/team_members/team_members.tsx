@@ -10,8 +10,6 @@ import type {UserProfile, GetFilteredUsersStatsOpts} from '@mattermost/types/use
 import GeneralConstants from 'mattermost-redux/constants/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import AddUsersToTeamModal from 'components/add_users_to_team_modal';
 import type {FilterOptions} from 'components/admin_console/filter/filter';
 import UserGrid from 'components/admin_console/user_grid/user_grid';
@@ -160,9 +158,6 @@ export default class TeamMembers extends React.PureComponent<Props, State> {
                 filters = {...filters, team_roles: teamRoles};
             }
 
-            [...systemRoles, ...teamRoles].forEach((role) => {
-                trackEvent('admin_team_config_page', `${role}_filter_applied_to_members_block`, {team_id: this.props.teamId});
-            });
             this.props.actions.setUserGridFilters(filters);
             this.props.actions.getFilteredUsersStats({in_team: this.props.teamId, include_bots: true, ...filters});
         } else {

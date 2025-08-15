@@ -12,13 +12,11 @@ import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/pr
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 import LoadingScreen from 'components/loading_screen';
 
 import {AnnouncementBarTypes, AnnouncementBarMessages, Constants} from 'utils/constants';
-import {getRoleFromTrackFlow} from 'utils/utils';
 
 import './do_verify_email.scss';
 
@@ -44,7 +42,6 @@ const DoVerifyEmail = () => {
     const [serverError, setServerError] = useState('');
 
     useEffect(() => {
-        trackEvent('signup', 'do_verify_email', getRoleFromTrackFlow());
         verifyEmail();
     }, []);
 
@@ -92,8 +89,6 @@ const DoVerifyEmail = () => {
             message: AnnouncementBarMessages.EMAIL_VERIFIED,
             type: AnnouncementBarTypes.SUCCESS,
         } as any, {errorBarMode: LogErrorBarMode.Always}));
-
-        trackEvent('settings', 'verify_email');
 
         const {error: getMeError} = await dispatch(getMe());
 

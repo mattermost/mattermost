@@ -2,17 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {DateTime} from 'luxon';
-import React, {memo, useCallback, useEffect} from 'react';
+import React, {memo, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useSelector} from 'react-redux';
-
-import {
-    TrackPropertyUser, TrackPropertyUserAgent,
-    TrackScheduledPostsFeature,
-} from 'mattermost-redux/constants/telemetry';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-
-import {trackFeatureEvent} from 'actions/telemetry_actions';
 
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 import * as Menu from 'components/menu';
@@ -49,22 +40,6 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
         isSelfDM,
         isBot,
     } = useTimePostBoxIndicator(channelId);
-
-    const currentUserId = useSelector(getCurrentUserId);
-
-    useEffect(() => {
-        // tracking opening of scheduled posts option menu.
-        // Since MUI menu has no `onOpen` event, we are tracking it here.
-        // useEffect ensures that it is tracked only once.
-        trackFeatureEvent(
-            TrackScheduledPostsFeature,
-            'scheduled_posts_menu_opened',
-            {
-                [TrackPropertyUser]: currentUserId,
-                [TrackPropertyUserAgent]: 'webapp',
-            },
-        );
-    }, [currentUserId]);
 
     const now = DateTime.now().setZone(userCurrentTimezone);
     const tomorrow9amTime = DateTime.now().

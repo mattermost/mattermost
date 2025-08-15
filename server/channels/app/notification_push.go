@@ -513,7 +513,7 @@ func (a *App) rawSendToPushProxy(msg *model.PushNotification) (model.PushRespons
 }
 
 func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Session) error {
-	msg.ServerId = a.TelemetryId()
+	msg.ServerId = a.ServerId()
 
 	a.NotificationsLog().Trace("Notification will be sent",
 		mlog.String("type", model.NotificationTypePush),
@@ -739,7 +739,7 @@ func (a *App) SendTestPushNotification(deviceID string) string {
 	msg := &model.PushNotification{
 		Version:  "2",
 		Type:     model.PushTypeTest,
-		ServerId: a.TelemetryId(),
+		ServerId: a.ServerId(),
 		Badge:    -1,
 	}
 	msg.SetDeviceIdAndPlatform(deviceID)
