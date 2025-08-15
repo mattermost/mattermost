@@ -123,7 +123,6 @@ export type ClientConfig = {
     ExperimentalEnablePostMetadata: string;
     ExperimentalGroupUnreadChannels: string;
     ExperimentalPrimaryTeam: string;
-    ExperimentalViewArchivedChannels: string;
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
     FeatureFlagCallsEnabled: string;
@@ -436,7 +435,6 @@ export type TeamSettings = {
     MaxNotificationsPerChannel: number;
     EnableConfirmNotificationsToChannel: boolean;
     TeammateNameDisplay: string;
-    ExperimentalViewArchivedChannels: boolean;
     ExperimentalEnableAutomaticReplies: boolean;
     LockTeammateNameDisplay: boolean;
     ExperimentalPrimaryTeam: string;

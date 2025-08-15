@@ -298,38 +298,42 @@ describe('Channel Settings Modal', () => {
         cy.get('.SaveChangesPanel').should('contain', 'There are errors in the form above');
     });
 
-    it('MM-T9: Can archive a channel and redirect to previous visited channel', () => {
+    it('MM-T9: Can archive a channel and stay in archived channel view', () => {
         // # Create a new channel for this test
-        cy.apiCreateChannel(testTeam.id, 'first-channel', 'First Channel').then(({channel: channel1}) => {
-            cy.apiCreateChannel(testTeam.id, 'second-channel', 'Second Channel').then(({channel}) => {
-            // # visit town square
-                cy.visit(`/${testTeam.name}/channels/${channel1.name}`);
+        cy.apiCreateChannel(testTeam.id, 'archived-channel-test', 'Archived Channel Test').then(({channel}) => {
+            // # Visit the channel to be archived
+            cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
-                // # visit just created channel
-                cy.visit(`/${testTeam.name}/channels/${channel.name}`);
+            // # Open channel settings modal
+            cy.get('#channelHeaderDropdownButton').click();
+            cy.findByText('Channel Settings').click();
 
-                // # Open channel settings modal
-                cy.get('#channelHeaderDropdownButton').click();
-                cy.findByText('Channel Settings').click();
+            // # Click on Archive tab
+            cy.get('#archiveButton').click();
 
-                // # Click on Archive tab
-                cy.get('#archiveButton').click();
+            // # Click Archive button
+            cy.get('#channelSettingsArchiveChannelButton').click();
 
-                // # Click Archive button
-                cy.get('#channelSettingsArchiveChannelButton').click();
+            // * Verify confirmation modal appears
+            cy.get('#archiveChannelConfirmModal').should('be.visible');
 
-                // * Verify confirmation modal appears
-                cy.get('#archiveChannelConfirmModal').should('be.visible');
+            // # Confirm archive
+            cy.findByRole('button', {name: 'Confirm'}).click();
 
-                // # Confirm archive
-                cy.findByRole('button', {name: 'Confirm'}).click();
+            // * Verify we stay in the archived channel (no redirect)
+            cy.url().should('include', channel.name);
 
-                // * Verify redirect to Town Square
-                cy.url().should('include', channel1.name);
+            // * Verify archived channel message is displayed
+            cy.contains('You are viewing an archived channel').should('be.visible');
 
-                // * Verify channel is no longer in sidebar
-                cy.get('.SidebarChannel').contains('Archive Test').should('not.exist');
-            });
+            // * Verify channel is still visible in sidebar while viewing it
+            cy.get('.SidebarChannel').contains('Archived Channel Test').should('exist');
+
+            // # Navigate to a different channel
+            cy.visit(`/${testTeam.name}/channels/town-square`);
+
+            // * Verify archived channel disappears from sidebar after navigating away
+            cy.get('.SidebarChannel').contains('Archived Channel Test').should('not.exist');
         });
     });
 
