@@ -87,7 +87,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -124,7 +124,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -160,7 +160,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -196,7 +196,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -232,7 +232,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -398,7 +398,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -435,7 +435,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -471,7 +471,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -507,7 +507,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -543,7 +543,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -768,7 +768,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -805,7 +805,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -841,7 +841,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -877,7 +877,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -916,7 +916,7 @@ Object {
             class="section-min isDisabled"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title isDisabled"
@@ -1081,7 +1081,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1118,7 +1118,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1154,7 +1154,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1190,7 +1190,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1229,7 +1229,7 @@ Object {
           class="section-min isDisabled"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title isDisabled"
@@ -1453,7 +1453,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -1490,7 +1490,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -1526,7 +1526,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -1562,7 +1562,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -1728,7 +1728,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1765,7 +1765,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1801,7 +1801,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1837,7 +1837,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
