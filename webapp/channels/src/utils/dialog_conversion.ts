@@ -6,8 +6,8 @@ import type {DialogElement} from '@mattermost/types/integrations';
 
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
 
-import {escapeHtml} from 'utils/text_formatting';
 import {stringToMoment} from 'utils/date_utils';
+import {escapeHtml} from 'utils/text_formatting';
 
 // Dialog element types (from legacy Interactive Dialog spec)
 export const DialogElementTypes = {
@@ -264,7 +264,7 @@ export function getDefaultValue(element: DialogElement): AppFormValue {
         // Validate the default value is a valid date/datetime string
         const stringValue = String(defaultValue);
         const testMoment = stringToMoment(stringValue);
-        
+
         // If invalid, return null instead of passing invalid data
         return testMoment?.isValid() ? stringValue : null;
     }
@@ -357,6 +357,22 @@ export function convertElement(element: DialogElement, options: ConversionOption
     // Add options for select and radio fields
     if (element.type === DialogElementTypes.SELECT || element.type === DialogElementTypes.RADIO) {
         appField.options = getOptions(element);
+    }
+
+    // Add date/datetime specific properties (new features that should pass through)
+    if (element.type === DialogElementTypes.DATE || element.type === DialogElementTypes.DATETIME) {
+        if (element.min_date !== undefined) {
+            appField.min_date = String(element.min_date);
+        }
+        if (element.max_date !== undefined) {
+            appField.max_date = String(element.max_date);
+        }
+        if (element.time_interval !== undefined && element.type === DialogElementTypes.DATETIME) {
+            appField.time_interval = Number(element.time_interval);
+        }
+        if (element.default_time !== undefined && element.type === DialogElementTypes.DATETIME) {
+            appField.default_time = String(element.default_time);
+        }
     }
 
     return {field: appField, errors};

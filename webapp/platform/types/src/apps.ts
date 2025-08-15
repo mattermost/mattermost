@@ -471,6 +471,37 @@ export type AppField = {
     default_time?: string;
 };
 
+/**
+ * Validates if a string is a valid date format (ISO date, datetime, or relative reference)
+ */
+function isValidDateString(dateStr: string): boolean {
+    // Check for relative date patterns
+    const relativePatterns = [
+        /^today$/,
+        /^tomorrow$/,
+        /^yesterday$/,
+        /^[+-]\d{1,4}[dwMH]$/, // Dynamic patterns like +5d, -2w, +1M, +3H
+    ];
+
+    for (const pattern of relativePatterns) {
+        if (pattern.test(dateStr)) {
+            return true;
+        }
+    }
+
+    // Check for ISO date formats
+    const isoDatePattern = /^\d{4}-\d{2}-\d{2}$/; // YYYY-MM-DD
+    const isoDateTimePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?Z?$/; // YYYY-MM-DDTHH:mm(:ss)?Z?
+
+    if (isoDatePattern.test(dateStr) || isoDateTimePattern.test(dateStr)) {
+        // Basic format check passed, validate it's a real date
+        const date = new Date(dateStr);
+        return !isNaN(date.getTime());
+    }
+
+    return false;
+}
+
 function isAppField(v: unknown): v is AppField {
     if (typeof v !== 'object' || v === null) {
         return false;
@@ -542,12 +573,26 @@ function isAppField(v: unknown): v is AppField {
         return false;
     }
 
-    if (field.min_date !== undefined && typeof field.min_date !== 'string') {
-        return false;
+    if (field.min_date !== undefined) {
+        if (typeof field.min_date !== 'string') {
+            return false;
+        }
+
+        // Validate that min_date is a valid date format (ISO or relative)
+        if (!isValidDateString(field.min_date)) {
+            return false;
+        }
     }
 
-    if (field.max_date !== undefined && typeof field.max_date !== 'string') {
-        return false;
+    if (field.max_date !== undefined) {
+        if (typeof field.max_date !== 'string') {
+            return false;
+        }
+
+        // Validate that max_date is a valid date format (ISO or relative)
+        if (!isValidDateString(field.max_date)) {
+            return false;
+        }
     }
 
     if (field.time_interval !== undefined && typeof field.time_interval !== 'number') {

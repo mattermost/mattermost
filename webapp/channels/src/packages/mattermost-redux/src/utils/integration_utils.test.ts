@@ -79,4 +79,70 @@ describe('integration utils', () => {
             expect(!checkIfErrorsMatchElements({name17: 'some error'} as any, [TestHelper.getDialogElementMock({name: 'name1'}), TestHelper.getDialogElementMock({name: 'name2'})])).toBeTruthy();
         });
     });
+
+    describe('date and datetime validation', () => {
+        it('should return null for valid date formats', () => {
+            const dateElement = TestHelper.getDialogElementMock({type: 'date'});
+            
+            // Valid ISO date
+            expect(checkDialogElementForError(dateElement, '2025-01-15')).toBeNull();
+            
+            // Valid relative dates  
+            expect(checkDialogElementForError(dateElement, 'today')).toBeNull();
+            expect(checkDialogElementForError(dateElement, 'tomorrow')).toBeNull();
+            expect(checkDialogElementForError(dateElement, '+5d')).toBeNull();
+        });
+
+        it('should return null for valid datetime formats', () => {
+            const datetimeElement = TestHelper.getDialogElementMock({type: 'datetime'});
+            
+            // Valid ISO datetime formats
+            expect(checkDialogElementForError(datetimeElement, '2025-01-15T14:30Z')).toBeNull();
+            expect(checkDialogElementForError(datetimeElement, '2025-01-15T14:30:00Z')).toBeNull();
+            expect(checkDialogElementForError(datetimeElement, '2025-01-15T14:30')).toBeNull();
+            
+            // Valid relative patterns
+            expect(checkDialogElementForError(datetimeElement, '+3H')).toBeNull();
+        });
+
+        it('should return error for invalid date formats', () => {
+            const dateElement = TestHelper.getDialogElementMock({type: 'date'});
+            
+            // Invalid formats
+            expect(checkDialogElementForError(dateElement, 'not-a-date')).toBeTruthy();
+            expect(checkDialogElementForError(dateElement, '2025-13-01')).toBeTruthy(); // Invalid month
+            expect(checkDialogElementForError(dateElement, '2025-01-32')).toBeTruthy(); // Invalid day
+            
+            // Datetime in date field should be invalid
+            expect(checkDialogElementForError(dateElement, '2025-01-15T14:30Z')).toBeTruthy();
+        });
+
+        it('should return error for invalid datetime formats', () => {
+            const datetimeElement = TestHelper.getDialogElementMock({type: 'datetime'});
+            
+            // Invalid formats
+            expect(checkDialogElementForError(datetimeElement, 'invalid-datetime')).toBeTruthy();
+            expect(checkDialogElementForError(datetimeElement, '2025-01-15')).toBeTruthy(); // Date only in datetime field
+        });
+
+        it('should return null for empty values', () => {
+            const dateElement = TestHelper.getDialogElementMock({type: 'date', optional: true});
+            const datetimeElement = TestHelper.getDialogElementMock({type: 'datetime', optional: true});
+            
+            expect(checkDialogElementForError(dateElement, '')).toBeNull();
+            expect(checkDialogElementForError(datetimeElement, '')).toBeNull();
+            expect(checkDialogElementForError(dateElement, null)).toBeNull();
+        });
+
+        it('should return required error for empty required fields', () => {
+            const dateElement = TestHelper.getDialogElementMock({type: 'date', optional: false});
+            const datetimeElement = TestHelper.getDialogElementMock({type: 'datetime', optional: false});
+            
+            const dateError = checkDialogElementForError(dateElement, '');
+            const datetimeError = checkDialogElementForError(datetimeElement, null);
+            
+            expect(dateError?.id).toBe('interactive_dialog.error.required');
+            expect(datetimeError?.id).toBe('interactive_dialog.error.required');
+        });
+    });
 });

@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import moment from 'moment-timezone';
 import React from 'react';
 import {Modal, Fade} from 'react-bootstrap';
 import {defineMessage, FormattedMessage, injectIntl} from 'react-intl';
@@ -21,6 +22,7 @@ import SuggestionList from 'components/suggestion/suggestion_list';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {filterEmptyOptions} from 'utils/apps';
+import {momentToString, stringToMoment, resolveRelativeDate} from 'utils/date_utils';
 
 import type {DoAppCallResult} from 'types/apps';
 
@@ -57,48 +59,64 @@ export type State = {
 
 const validateAppField = (field: AppField): string[] => {
     const errors: string[] = [];
-    
+
     // Validate time_interval for datetime fields
     if (field.type === AppFieldTypes.DATETIME && field.time_interval !== undefined) {
         if (typeof field.time_interval !== 'number' || field.time_interval <= 0 || field.time_interval > 1440) {
             errors.push(`Field "${field.name}": time_interval must be a positive number between 1 and 1440 minutes`);
+        } else if (1440 % field.time_interval !== 0) {
+            errors.push(`Field "${field.name}": time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got ${field.time_interval}`);
         }
     }
-    
+
     // Validate min_date and max_date for date/datetime fields
     if (field.type === AppFieldTypes.DATE || field.type === AppFieldTypes.DATETIME) {
         if (field.min_date) {
-            const {stringToMoment, resolveRelativeDate} = require('utils/date_utils');
             const resolved = resolveRelativeDate(field.min_date);
             const moment = stringToMoment(resolved);
             if (!moment) {
                 errors.push(`Field "${field.name}": min_date "${field.min_date}" is not a valid date format`);
             }
         }
-        
+
         if (field.max_date) {
-            const {stringToMoment, resolveRelativeDate} = require('utils/date_utils');
             const resolved = resolveRelativeDate(field.max_date);
             const moment = stringToMoment(resolved);
             if (!moment) {
                 errors.push(`Field "${field.name}": max_date "${field.max_date}" is not a valid date format`);
             }
         }
-        
+
         // Validate that min_date < max_date if both are present
         if (field.min_date && field.max_date) {
-            const {stringToMoment, resolveRelativeDate} = require('utils/date_utils');
             const minResolved = resolveRelativeDate(field.min_date);
             const maxResolved = resolveRelativeDate(field.max_date);
             const minMoment = stringToMoment(minResolved);
             const maxMoment = stringToMoment(maxResolved);
-            
+
             if (minMoment && maxMoment && minMoment.isAfter(maxMoment)) {
                 errors.push(`Field "${field.name}": min_date cannot be after max_date`);
             }
         }
     }
-    
+
+    // Validate default_time compatibility with time_interval for datetime fields
+    if (field.type === AppFieldTypes.DATETIME && field.default_time) {
+        // Validate default_time format
+        if ((/(^([01]\d|2[0-3]):([0-5]\d)$)/).test(field.default_time)) {
+            // Validate compatibility with time_interval
+            const timeInterval = field.time_interval || 60; // Default to 60 minutes
+            const [hours, minutes] = field.default_time.split(':').map(Number);
+            const totalMinutes = (hours * 60) + minutes;
+
+            if (totalMinutes % timeInterval !== 0) {
+                errors.push(`Field "${field.name}": default_time "${field.default_time}" does not align with time_interval ${timeInterval} minutes - time must be a multiple of the interval`);
+            }
+        } else {
+            errors.push(`Field "${field.name}": default_time "${field.default_time}" must be in HH:MM format (24-hour)`);
+        }
+    }
+
     return errors;
 };
 
@@ -111,26 +129,28 @@ const initFormValues = (form: AppForm): AppFormValues => {
             const fieldErrors = validateAppField(f);
             allErrors.push(...fieldErrors);
         });
-        
+
         if (allErrors.length > 0) {
+            // These validations are not enforced, logging only.
+            // eslint-disable-next-line no-console
             console.warn('AppForm field validation errors:', allErrors);
         }
-        
+
         form.fields.forEach((f) => {
             let defaultValue: AppFormValue = null;
             if (f.type === AppFieldTypes.BOOL) {
                 defaultValue = false;
             } else if (f.type === AppFieldTypes.DATETIME && f.is_required && !f.value) {
                 // Set default to current time for required datetime fields
-                const {momentToString, getRoundedTime} = require('utils/date_utils');
-                const moment = require('moment-timezone');
-                
+
                 const currentTime = moment();
+
                 // Validate time_interval before using it
-                const timePickerInterval = (typeof f.time_interval === 'number' && f.time_interval > 0 && f.time_interval <= 1440) 
-                    ? f.time_interval 
-                    : 60;
-                const defaultMoment = getRoundedTime(currentTime, timePickerInterval);
+                const timePickerInterval = (typeof f.time_interval === 'number' && f.time_interval > 0 && f.time_interval <= 1440) ? f.time_interval : 60;
+
+                // Round the current time to the nearest time interval
+                const roundedMinutes = Math.round(currentTime.minutes() / timePickerInterval) * timePickerInterval;
+                const defaultMoment = currentTime.clone().minutes(roundedMinutes).seconds(0).milliseconds(0);
                 defaultValue = momentToString(defaultMoment, true);
             }
 
@@ -429,15 +449,28 @@ export class AppsForm extends React.PureComponent<Props, State> {
         this.setState({values});
     };
 
+    hasDateTimeFields = (): boolean => {
+        const {fields} = this.props.form;
+        return fields ? fields.some((field) =>
+            field.type === AppFieldTypes.DATE || field.type === AppFieldTypes.DATETIME,
+        ) : false;
+    };
+
     renderModal() {
         const {fields, header} = this.props.form;
         const loading = Boolean(this.state.loading);
         const bodyClass = loading ? 'apps-form-modal-body-loading' : 'apps-form-modal-body-loaded';
         const bodyClassNames = 'apps-form-modal-body-common ' + bodyClass;
+
+        // Apply same pattern as DND modal for date/datetime fields
+        const hasDateTimeFields = this.hasDateTimeFields();
+        const dialogClassName = hasDateTimeFields ? 'a11y__modal about-modal modal-overflow' : 'a11y__modal about-modal';
+
         return (
             <Modal
                 id='appsModal'
-                dialogClassName='a11y__modal about-modal'
+                dialogClassName={dialogClassName}
+                enforceFocus={!hasDateTimeFields}
                 show={this.state.show}
                 onHide={this.onHide}
                 onExited={this.props.onExited}

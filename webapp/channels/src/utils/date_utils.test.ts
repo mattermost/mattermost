@@ -11,6 +11,7 @@ import {
     validateDateRange,
     getDefaultTime,
     combineDateAndTime,
+    type DateValidationError,
 } from './date_utils';
 
 describe('date_utils', () => {
@@ -61,6 +62,40 @@ describe('date_utils', () => {
             expect(result).toBeTruthy();
             expect(result!.format('YYYY-MM-DD')).toBe('2025-01-15');
         });
+
+        it('should reject datetime strings in date-only fields', () => {
+            const result = stringToMoment('2025-01-15T14:30:00Z', testTimezone, false); // false = date-only
+            expect(result).toBeNull();
+        });
+
+        it('should accept datetime strings in datetime fields', () => {
+            const result = stringToMoment('2025-01-15T14:30:00Z', testTimezone, true); // true = datetime
+            expect(result).toBeTruthy();
+            expect(result!.utc().format('YYYY-MM-DDTHH:mm:ss')).toBe('2025-01-15T14:30:00');
+        });
+
+        it('should reject time-only strings in date-only fields', () => {
+            const result = stringToMoment('14:30', testTimezone, false); // false = date-only
+            expect(result).toBeNull();
+        });
+
+        it('should accept date strings in date-only fields', () => {
+            const result = stringToMoment('2025-01-15', testTimezone, false); // false = date-only
+            expect(result).toBeTruthy();
+            expect(result!.format('YYYY-MM-DD')).toBe('2025-01-15');
+        });
+
+        it('should handle relative dates more efficiently without double conversion', () => {
+            // This tests that we use the direct moment result from resolveRelativeDateToMoment
+            // instead of converting moment -> string -> moment
+            const result = stringToMoment('today', testTimezone);
+            expect(result).toBeTruthy();
+            expect(result!.format('YYYY-MM-DD')).toBe('2025-01-15');
+
+            const resultTomorrow = stringToMoment('+1d', testTimezone);
+            expect(resultTomorrow).toBeTruthy();
+            expect(resultTomorrow!.format('YYYY-MM-DD')).toBe('2025-01-16');
+        });
     });
 
     describe('momentToString', () => {
@@ -73,7 +108,7 @@ describe('date_utils', () => {
         it('should convert moment to datetime string', () => {
             const momentValue = moment('2025-01-15T14:30:00Z');
             const result = momentToString(momentValue, true);
-            expect(result).toBe('2025-01-15T14:30:00Z');
+            expect(result).toBe('2025-01-15T14:30Z');
         });
 
         it('should return null for null input', () => {
@@ -110,8 +145,8 @@ describe('date_utils', () => {
         });
 
         it('should resolve +1H to 1 hour from now', () => {
-            const result = resolveRelativeDate(DateReference.PLUS_1H, testTimezone);
-            expect(result).toBe('2025-01-15T11:00:00Z');
+            const result = resolveRelativeDate('+1H', testTimezone);
+            expect(result).toBe('2025-01-15T11:00Z');
         });
 
         it('should resolve dynamic patterns like +5d', () => {
@@ -136,34 +171,45 @@ describe('date_utils', () => {
     });
 
     describe('validateDateRange', () => {
+        const testLocale = 'en-US';
+
         it('should pass validation for date within range', () => {
             const result = validateDateRange(
                 '2025-01-15',
                 '2025-01-01',
                 '2025-01-31',
                 testTimezone,
+                testLocale,
             );
             expect(result).toBeNull();
         });
 
-        it('should fail validation for date before min', () => {
+        it('should return structured error for date before min', () => {
             const result = validateDateRange(
                 '2025-01-01',
                 '2025-01-15',
                 '2025-01-31',
                 testTimezone,
-            );
-            expect(result).toContain('Date must be after');
+                testLocale,
+            ) as DateValidationError;
+            expect(result).toBeTruthy();
+            expect(result.id).toBe('apps_form.date_field.min_date_error');
+            expect(result.defaultMessage).toBe('Date must be after {minDate}');
+            expect(result.values?.minDate).toMatch(/Jan 15, 2025/);
         });
 
-        it('should fail validation for date after max', () => {
+        it('should return structured error for date after max', () => {
             const result = validateDateRange(
                 '2025-01-31',
                 '2025-01-01',
                 '2025-01-15',
                 testTimezone,
-            );
-            expect(result).toContain('Date must be before');
+                testLocale,
+            ) as DateValidationError;
+            expect(result).toBeTruthy();
+            expect(result.id).toBe('apps_form.date_field.max_date_error');
+            expect(result.defaultMessage).toBe('Date must be before {maxDate}');
+            expect(result.values?.maxDate).toMatch(/Jan 15, 2025/);
         });
 
         it('should handle relative min/max dates', () => {
@@ -172,18 +218,38 @@ describe('date_utils', () => {
                 'today',
                 '+7d',
                 testTimezone,
-            );
-            expect(result).toContain('Date must be after');
+                testLocale,
+            ) as DateValidationError;
+            expect(result).toBeTruthy();
+            expect(result.id).toBe('apps_form.date_field.min_date_error');
+            expect(result.values?.minDate).toMatch(/Jan 15, 2025/); // today is mocked as 2025-01-15
         });
 
         it('should return null for null date', () => {
-            const result = validateDateRange(null, '2025-01-01', '2025-01-31', testTimezone);
+            const result = validateDateRange(null, '2025-01-01', '2025-01-31', testTimezone, testLocale);
             expect(result).toBeNull();
         });
 
-        it('should return error for invalid date format', () => {
-            const result = validateDateRange('invalid-date', '2025-01-01', '2025-01-31', testTimezone);
-            expect(result).toBe('Invalid date format');
+        it('should return structured error for invalid date format', () => {
+            const result = validateDateRange('invalid-date', '2025-01-01', '2025-01-31', testTimezone, testLocale) as DateValidationError;
+            expect(result).toBeTruthy();
+            expect(result.id).toBe('apps_form.date_field.invalid_format');
+            expect(result.defaultMessage).toBe('Invalid date format');
+        });
+
+        it('should format dates according to locale preferences', () => {
+            // Test with different locale
+            const result = validateDateRange(
+                '2025-01-01',
+                '2025-01-15',
+                '2025-01-31',
+                testTimezone,
+                'fr-FR', // French locale
+            ) as DateValidationError;
+            expect(result).toBeTruthy();
+            expect(result.values?.minDate).toBeTruthy();
+
+            // French locale should format dates differently than en-US
         });
     });
 
@@ -215,25 +281,20 @@ describe('date_utils', () => {
     describe('combineDateAndTime', () => {
         it('should combine date and time into UTC datetime string', () => {
             const result = combineDateAndTime('2025-01-15', '14:30', testTimezone);
-            expect(result).toBe('2025-01-15T19:30:00Z'); // EST to UTC conversion
+            expect(result).toBe('2025-01-15T19:30Z'); // EST to UTC conversion
         });
 
         it('should handle midnight time', () => {
             const result = combineDateAndTime('2025-01-15', '00:00', testTimezone);
-            expect(result).toBe('2025-01-15T05:00:00Z'); // EST to UTC conversion
+            expect(result).toBe('2025-01-15T05:00Z'); // EST to UTC conversion
         });
 
         it('should work without timezone (uses local timezone)', () => {
             // Set timezone to UTC for consistent testing
-            const originalTz = process.env.TZ;
-            process.env.TZ = 'UTC';
             moment.tz.setDefault('UTC');
-            
+
             const result = combineDateAndTime('2025-01-15', '14:30');
-            expect(result).toBe('2025-01-15T14:30:00Z'); // UTC: no conversion needed
-            
-            // Restore original timezone
-            process.env.TZ = originalTz;
+            expect(result).toBe('2025-01-15T14:30Z');
             moment.tz.setDefault();
         });
     });

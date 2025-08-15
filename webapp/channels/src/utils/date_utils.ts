@@ -10,35 +10,37 @@ export enum DateReference {
     TODAY = 'today',
     TOMORROW = 'tomorrow',
     YESTERDAY = 'yesterday',
-
-    // Relative time (for datetime fields)
-    PLUS_1H = '+1h',
-    PLUS_4H = '+4h',
-
-    // Relative days/weeks/months  
-    PLUS_1D = '+1d',
-    PLUS_1W = '+1w',
-    PLUS_1M = '+1M',
 }
 
 /**
  * Convert a string value (ISO format or relative) to a Moment object
  */
-export function stringToMoment(value: string | null, timezone?: string): Moment | null {
+export function stringToMoment(value: string | null, timezone?: string, isDateTime?: boolean): Moment | null {
     if (!value) {
         return null;
     }
 
-    // Handle relative dates
-    const resolved = resolveRelativeDate(value, timezone);
+    // Handle relative dates/times - returns moment object directly to avoid double conversion
+    const relativeMoment = resolveRelativeDateToMoment(value, timezone);
+    if (relativeMoment) {
+        return relativeMoment;
+    }
+
+    // Validate field type constraints
+    if (isDateTime === false) {
+        // For date-only fields, reject datetime strings (those with 'T' and time component)
+        if (value.includes('T') || value.includes(':')) {
+            return null; // Invalid: datetime string in date-only field
+        }
+    }
 
     // Parse as ISO string with timezone validation
     let momentValue: moment.Moment;
 
     if (timezone && moment.tz.zone(timezone)) {
-        momentValue = moment.tz(resolved, timezone);
+        momentValue = moment.tz(value, timezone);
     } else {
-        momentValue = moment(resolved);
+        momentValue = moment(value);
     }
 
     return momentValue.isValid() ? momentValue : null;
@@ -53,8 +55,8 @@ export function momentToString(momentValue: Moment | null, isDateTime: boolean):
     }
 
     if (isDateTime) {
-        // Store datetime in UTC format: "2025-01-14T14:30:00Z"
-        return momentValue.utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
+        // Store datetime in UTC format without seconds: "2025-01-14T14:30Z"
+        return momentValue.utc().format('YYYY-MM-DDTHH:mm[Z]');
     }
 
     // Store date only: "2025-01-14"
@@ -62,37 +64,20 @@ export function momentToString(momentValue: Moment | null, isDateTime: boolean):
 }
 
 /**
- * Resolve relative date references to ISO strings
+ * Resolve relative date references to Moment objects (internal helper)
  */
-export function resolveRelativeDate(dateStr: string, timezone?: string): string {
+function resolveRelativeDateToMoment(dateStr: string, timezone?: string): Moment | null {
     const now = timezone && moment.tz.zone(timezone) ? moment.tz(timezone) : moment();
 
     switch (dateStr) {
     case DateReference.TODAY:
-        return now.format('YYYY-MM-DD');
+        return now.startOf('day');
 
     case DateReference.TOMORROW:
-        return now.add(1, 'day').format('YYYY-MM-DD');
+        return now.add(1, 'day').startOf('day');
 
     case DateReference.YESTERDAY:
-        return now.subtract(1, 'day').format('YYYY-MM-DD');
-
-        // Relative time additions (for datetime fields)
-    case DateReference.PLUS_1H:
-        return now.add(1, 'hour').utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
-
-    case DateReference.PLUS_4H:
-        return now.add(4, 'hours').utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
-
-        // Relative day/week/month additions
-    case DateReference.PLUS_1D:
-        return now.add(1, 'day').format('YYYY-MM-DD');
-
-    case DateReference.PLUS_1W:
-        return now.add(1, 'week').format('YYYY-MM-DD');
-
-    case DateReference.PLUS_1M:
-        return now.add(1, 'month').format('YYYY-MM-DD');
+        return now.subtract(1, 'day').startOf('day');
 
     default: {
         // Handle dynamic patterns like "+5d", "+2w", "+1M" (limit to 4 digits for security)
@@ -103,40 +88,57 @@ export function resolveRelativeDate(dateStr: string, timezone?: string): string 
 
             // Additional bounds checking for security
             if (Math.abs(value) > 9999) {
-                return dateStr; // Return unchanged if value is too large
+                return null; // Return null if value is too large
             }
 
             let momentUnit: moment.unitOfTime.DurationConstructor;
-            let format: string;
 
             switch (unit) {
             case 'H':
                 momentUnit = 'hour';
-                format = 'YYYY-MM-DDTHH:mm:ss[Z]';
-                return now.add(value, momentUnit).utc().format(format);
+                return now.add(value, momentUnit);
             case 'd':
                 momentUnit = 'day';
-                format = 'YYYY-MM-DD';
-                break;
+                return now.add(value, momentUnit).startOf('day');
             case 'w':
                 momentUnit = 'week';
-                format = 'YYYY-MM-DD';
-                break;
+                return now.add(value, momentUnit).startOf('day');
             case 'M':
                 momentUnit = 'month';
-                format = 'YYYY-MM-DD';
-                break;
+                return now.add(value, momentUnit).startOf('day');
             default:
-                return dateStr; // Return as-is if pattern not recognized
+                return null; // Return null if pattern not recognized
             }
-
-            return now.add(value, momentUnit).format(format);
         }
 
-        // Return as-is if not a recognized relative reference
-        return dateStr;
+        // Return null if not a recognized relative reference
+        return null;
     }
     }
+}
+
+/**
+ * Resolve relative date references to ISO strings
+ */
+export function resolveRelativeDate(dateStr: string, timezone?: string): string {
+    // Try to resolve as relative date/time
+    const relativeMoment = resolveRelativeDateToMoment(dateStr, timezone);
+    if (relativeMoment) {
+        // Determine output format based on the type of relative reference
+        const dynamicMatch = dateStr.match(/^([+-]\d{1,4})([dwMH])$/);
+        const isTimePattern = dateStr.includes('H') || (dynamicMatch && dynamicMatch[2] === 'H');
+
+        if (isTimePattern) {
+            // Hour patterns return UTC datetime format without seconds
+            return relativeMoment.utc().format('YYYY-MM-DDTHH:mm[Z]');
+        }
+
+        // Day/week/month patterns return date format
+        return relativeMoment.format('YYYY-MM-DD');
+    }
+
+    // Return as-is if not a recognized relative reference
+    return dateStr;
 }
 
 /**
@@ -150,35 +152,68 @@ export function useMemoizedRelativeDate(dateStr: string, timezone?: string): str
     }, [dateStr, timezone, currentMinute]); // Re-compute every minute
 }
 
+export interface DateValidationError {
+    id: string;
+    defaultMessage: string;
+    values?: Record<string, string>;
+}
+
 /**
  * Validate if a date string is within min/max constraints
+ * Returns structured validation error for internationalization
  */
 export function validateDateRange(
     dateStr: string | null,
     minDate?: string,
     maxDate?: string,
     timezone?: string,
-): string | null {
+    locale?: string,
+): DateValidationError | null {
     if (!dateStr) {
         return null;
     }
 
     const date = stringToMoment(dateStr, timezone);
     if (!date) {
-        return 'Invalid date format';
+        return {
+            id: 'apps_form.date_field.invalid_format',
+            defaultMessage: 'Invalid date format',
+        };
     }
 
     if (minDate) {
         const min = stringToMoment(resolveRelativeDate(minDate, timezone), timezone);
         if (min && date.isBefore(min, 'day')) {
-            return `Date must be after ${min.format('MMM D, YYYY')}`;
+            // Format date for user preferences using Intl.DateTimeFormat
+            const formattedDate = new Intl.DateTimeFormat(locale, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+            }).format(new Date(min.year(), min.month(), min.date()));
+
+            return {
+                id: 'apps_form.date_field.min_date_error',
+                defaultMessage: 'Date must be after {minDate}',
+                values: {minDate: formattedDate},
+            };
         }
     }
 
     if (maxDate) {
         const max = stringToMoment(resolveRelativeDate(maxDate, timezone), timezone);
         if (max && date.isAfter(max, 'day')) {
-            return `Date must be before ${max.format('MMM D, YYYY')}`;
+            // Format date for user preferences using Intl.DateTimeFormat
+            const formattedDate = new Intl.DateTimeFormat(locale, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+            }).format(new Date(max.year(), max.month(), max.date()));
+
+            return {
+                id: 'apps_form.date_field.max_date_error',
+                defaultMessage: 'Date must be before {maxDate}',
+                values: {maxDate: formattedDate},
+            };
         }
     }
 
@@ -211,5 +246,5 @@ export function combineDateAndTime(
     const dateTime = `${dateStr}T${timeStr}:00`;
     const momentValue = timezone ? moment.tz(dateTime, timezone) : moment(dateTime);
 
-    return momentValue.utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
+    return momentValue.utc().format('YYYY-MM-DDTHH:mm[Z]');
 }

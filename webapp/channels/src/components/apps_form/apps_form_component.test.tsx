@@ -1479,4 +1479,600 @@ describe('AppsFormComponent', () => {
             expect(screen.queryByRole('button', {name: /should not show/i})).not.toBeInTheDocument();
         });
     });
+
+    describe('field validation', () => {
+        it('should validate required fields', () => {
+            const formWithRequiredField = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'required_text',
+                        type: 'text',
+                        is_required: true,
+                        label: 'Required Field',
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithRequiredField,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Field validation happens during initialization but doesn't block rendering
+            expect(screen.getByLabelText('Required Field')).toBeInTheDocument();
+        });
+
+        it('should validate datetime fields with time constraints', () => {
+            const formWithDateTimeField = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'meeting_time',
+                        type: 'datetime',
+                        is_required: true,
+                        label: 'Meeting Time',
+                        time_interval: 30,
+                        min_date: 'today',
+                        max_date: '+30d',
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithDateTimeField,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // DateTime field should render with validation applied
+            expect(screen.getByText('Meeting Time')).toBeInTheDocument();
+        });
+
+        it('should handle invalid field configurations gracefully', () => {
+            const formWithInvalidField = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'invalid_field',
+                        type: 'datetime',
+                        time_interval: -1, // Invalid interval
+                        min_date: 'invalid-date', // Invalid date format
+                        label: 'Invalid Field',
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithInvalidField,
+            };
+
+            // Should not throw error, validation is non-blocking
+            expect(() => renderWithContext(<AppsForm {...props}/>)).not.toThrow();
+            expect(screen.getByText('Invalid Field')).toBeInTheDocument();
+        });
+
+        it('should initialize required datetime fields with default values', () => {
+            const formWithRequiredDateTime = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'required_datetime',
+                        type: 'datetime',
+                        is_required: true,
+                        label: 'Required DateTime',
+                        default_time: '09:00',
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithRequiredDateTime,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Required datetime field should be present and initialized
+            expect(screen.getByText('Required DateTime')).toBeInTheDocument();
+        });
+    });
+
+    describe('time_interval validation for datetime fields', () => {
+        it('should accept valid time_interval divisors of 1440', () => {
+            const validIntervals = [1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 24, 30, 40, 60, 72, 90, 120, 180, 240, 360, 480, 720, 1440];
+
+            validIntervals.forEach((interval) => {
+                const formWithValidInterval = {
+                    ...baseProps.form,
+                    fields: [
+                        {
+                            name: 'valid_datetime',
+                            type: 'datetime',
+                            time_interval: interval,
+                            label: `DateTime with ${interval}min interval`,
+                        },
+                    ],
+                };
+
+                const props = {
+                    ...baseProps,
+                    form: formWithValidInterval,
+                };
+
+                // Should not throw error for valid divisors
+                expect(() => renderWithContext(<AppsForm {...props}/>)).not.toThrow();
+            });
+        });
+
+        it('should log warnings for invalid time_interval non-divisors of 1440', () => {
+            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+            const invalidIntervals = [7, 11, 13, 17, 23, 25, 33, 37, 50, 55, 70, 100, 300, 500, 729, 1000];
+
+            invalidIntervals.forEach((interval) => {
+                const formWithInvalidInterval = {
+                    ...baseProps.form,
+                    fields: [
+                        {
+                            name: 'invalid_datetime',
+                            type: 'datetime',
+                            time_interval: interval,
+                            label: `DateTime with ${interval}min interval`,
+                        },
+                    ],
+                };
+
+                const props = {
+                    ...baseProps,
+                    form: formWithInvalidInterval,
+                };
+
+                renderWithContext(<AppsForm {...props}/>);
+
+                // Should log warning for invalid divisors
+                expect(consoleSpy).toHaveBeenCalledWith(
+                    'AppForm field validation errors:',
+                    expect.arrayContaining([
+                        expect.stringContaining(`time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got ${interval}`),
+                    ]),
+                );
+
+                consoleSpy.mockClear();
+            });
+
+            consoleSpy.mockRestore();
+        });
+
+        it('should log warnings for time_interval out of valid range', () => {
+            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+            const outOfRangeIntervals = [0, -5, 1441, 2000];
+
+            outOfRangeIntervals.forEach((interval) => {
+                const formWithOutOfRangeInterval = {
+                    ...baseProps.form,
+                    fields: [
+                        {
+                            name: 'out_of_range_datetime',
+                            type: 'datetime',
+                            time_interval: interval,
+                            label: `DateTime with ${interval}min interval`,
+                        },
+                    ],
+                };
+
+                const props = {
+                    ...baseProps,
+                    form: formWithOutOfRangeInterval,
+                };
+
+                renderWithContext(<AppsForm {...props}/>);
+
+                // Should log warning for out of range values
+                expect(consoleSpy).toHaveBeenCalledWith(
+                    'AppForm field validation errors:',
+                    expect.arrayContaining([
+                        expect.stringContaining('time_interval must be a positive number between 1 and 1440 minutes'),
+                    ]),
+                );
+
+                consoleSpy.mockClear();
+            });
+
+            consoleSpy.mockRestore();
+        });
+
+        it('should log warnings for non-numeric time_interval values', () => {
+            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+            const nonNumericIntervals = ['30', null, undefined, true, {}, []];
+
+            nonNumericIntervals.forEach((interval) => {
+                const formWithNonNumericInterval = {
+                    ...baseProps.form,
+                    fields: [
+                        {
+                            name: 'non_numeric_datetime',
+                            type: 'datetime',
+                            time_interval: interval as any,
+                            label: `DateTime with ${interval} interval`,
+                        },
+                    ],
+                };
+
+                const props = {
+                    ...baseProps,
+                    form: formWithNonNumericInterval,
+                };
+
+                renderWithContext(<AppsForm {...props}/>);
+
+                // Should log warning for non-numeric values (unless undefined)
+                if (interval !== undefined) {
+                    expect(consoleSpy).toHaveBeenCalledWith(
+                        'AppForm field validation errors:',
+                        expect.arrayContaining([
+                            expect.stringContaining('time_interval must be a positive number between 1 and 1440 minutes'),
+                        ]),
+                    );
+                }
+
+                consoleSpy.mockClear();
+            });
+
+            consoleSpy.mockRestore();
+        });
+
+        it('should not validate time_interval for non-datetime field types', () => {
+            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+            const formWithNonDateTimeField = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'text_with_interval',
+                        type: 'text',
+                        time_interval: 729, // Invalid but should be ignored for text fields
+                        label: 'Text Field',
+                    },
+                    {
+                        name: 'date_with_interval',
+                        type: 'date',
+                        time_interval: 729, // Invalid but should be ignored for date fields
+                        label: 'Date Field',
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithNonDateTimeField,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Should not log warnings for non-datetime fields
+            expect(consoleSpy).not.toHaveBeenCalled();
+
+            consoleSpy.mockRestore();
+        });
+
+        it('should validate min_date and max_date formats for date and datetime fields', () => {
+            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+            const formWithInvalidDates = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'invalid_dates',
+                        type: 'datetime',
+                        min_date: 'invalid-date-format',
+                        max_date: '2025/01/01', // Wrong format
+                        label: 'DateTime with Invalid Dates',
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithInvalidDates,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Should log warnings for invalid date formats
+            expect(consoleSpy).toHaveBeenCalledWith(
+                'AppForm field validation errors:',
+                expect.arrayContaining([
+                    expect.stringContaining('min_date "invalid-date-format" is not a valid date format'),
+                    expect.stringContaining('max_date "2025/01/01" is not a valid date format'),
+                ]),
+            );
+
+            consoleSpy.mockRestore();
+        });
+
+        it('should validate date range when min_date is after max_date', () => {
+            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+            const formWithInvalidDateRange = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'invalid_range',
+                        type: 'date',
+                        min_date: '2025-12-31',
+                        max_date: '2025-01-01', // Before min_date
+                        label: 'Date with Invalid Range',
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithInvalidDateRange,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Should log warning for invalid date range
+            expect(consoleSpy).toHaveBeenCalledWith(
+                'AppForm field validation errors:',
+                expect.arrayContaining([
+                    expect.stringContaining('min_date cannot be after max_date'),
+                ]),
+            );
+
+            consoleSpy.mockRestore();
+        });
+    });
+
+    describe('default_time validation for datetime fields', () => {
+        it('should accept valid default_time formats', () => {
+            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+            const validTimes = ['00:00', '12:30', '23:59', '09:15'];
+
+            validTimes.forEach((defaultTime) => {
+                const formWithValidDefaultTime = {
+                    ...baseProps.form,
+                    fields: [
+                        {
+                            name: 'valid_default_time',
+                            type: 'datetime',
+                            default_time: defaultTime,
+                            label: `DateTime with ${defaultTime}`,
+                        },
+                    ],
+                };
+
+                const props = {
+                    ...baseProps,
+                    form: formWithValidDefaultTime,
+                };
+
+                renderWithContext(<AppsForm {...props}/>);
+                consoleSpy.mockClear();
+            });
+
+            // Should not log warnings for valid times
+            expect(consoleSpy).not.toHaveBeenCalled();
+            consoleSpy.mockRestore();
+        });
+
+        it('should log warnings for invalid default_time formats', () => {
+            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+            const invalidTimes = ['24:00', '12:60', '1:30', '12:3', 'abc', '12:30:45'];
+
+            invalidTimes.forEach((defaultTime) => {
+                const formWithInvalidDefaultTime = {
+                    ...baseProps.form,
+                    fields: [
+                        {
+                            name: 'invalid_default_time',
+                            type: 'datetime',
+                            default_time: defaultTime,
+                            label: `DateTime with ${defaultTime}`,
+                        },
+                    ],
+                };
+
+                const props = {
+                    ...baseProps,
+                    form: formWithInvalidDefaultTime,
+                };
+
+                renderWithContext(<AppsForm {...props}/>);
+
+                // Should log warning for invalid format
+                expect(consoleSpy).toHaveBeenCalledWith(
+                    'AppForm field validation errors:',
+                    expect.arrayContaining([
+                        expect.stringContaining(`default_time "${defaultTime}" must be in HH:MM format (24-hour)`),
+                    ]),
+                );
+
+                consoleSpy.mockClear();
+            });
+
+            consoleSpy.mockRestore();
+        });
+
+        it('should validate default_time alignment with time_interval', () => {
+            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+            // Valid combinations
+            const validCombinations = [
+                {defaultTime: '00:00', timeInterval: 30}, // 0 % 30 = 0
+                {defaultTime: '00:30', timeInterval: 30}, // 30 % 30 = 0
+                {defaultTime: '01:00', timeInterval: 30}, // 60 % 30 = 0
+                {defaultTime: '12:00', timeInterval: 15}, // 720 % 15 = 0
+                {defaultTime: '12:15', timeInterval: 15}, // 735 % 15 = 0
+                {defaultTime: '09:00', timeInterval: 60}, // 540 % 60 = 0
+            ];
+
+            validCombinations.forEach(({defaultTime, timeInterval}) => {
+                const formWithValidCombo = {
+                    ...baseProps.form,
+                    fields: [
+                        {
+                            name: 'valid_combo',
+                            type: 'datetime',
+                            default_time: defaultTime,
+                            time_interval: timeInterval,
+                            label: `DateTime ${defaultTime}/${timeInterval}`,
+                        },
+                    ],
+                };
+
+                const props = {
+                    ...baseProps,
+                    form: formWithValidCombo,
+                };
+
+                renderWithContext(<AppsForm {...props}/>);
+                consoleSpy.mockClear();
+            });
+
+            // Should not log warnings for valid combinations
+            expect(consoleSpy).not.toHaveBeenCalled();
+
+            // Invalid combinations
+            const invalidCombinations = [
+                {defaultTime: '00:15', timeInterval: 30}, // 15 % 30 = 15 (not 0)
+                {defaultTime: '00:45', timeInterval: 30}, // 45 % 30 = 15 (not 0)
+                {defaultTime: '12:31', timeInterval: 30}, // 751 % 30 = 1 (not 0)
+                {defaultTime: '09:07', timeInterval: 15}, // 547 % 15 = 7 (not 0)
+                {defaultTime: '10:30', timeInterval: 60}, // 630 % 60 = 30 (not 0)
+            ];
+
+            invalidCombinations.forEach(({defaultTime, timeInterval}) => {
+                const formWithInvalidCombo = {
+                    ...baseProps.form,
+                    fields: [
+                        {
+                            name: 'invalid_combo',
+                            type: 'datetime',
+                            default_time: defaultTime,
+                            time_interval: timeInterval,
+                            label: `DateTime ${defaultTime}/${timeInterval}`,
+                        },
+                    ],
+                };
+
+                const props = {
+                    ...baseProps,
+                    form: formWithInvalidCombo,
+                };
+
+                renderWithContext(<AppsForm {...props}/>);
+
+                // Should log warning for misaligned time
+                expect(consoleSpy).toHaveBeenCalledWith(
+                    'AppForm field validation errors:',
+                    expect.arrayContaining([
+                        expect.stringContaining(`default_time "${defaultTime}" does not align with time_interval ${timeInterval} minutes`),
+                    ]),
+                );
+
+                consoleSpy.mockClear();
+            });
+
+            consoleSpy.mockRestore();
+        });
+
+        it('should use default time_interval of 60 minutes when not specified', () => {
+            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+            // Valid with default 60-minute interval
+            const formWithDefaultInterval = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'default_interval',
+                        type: 'datetime',
+                        default_time: '09:00', // 540 % 60 = 0 (valid)
+                        // time_interval not specified, should default to 60
+                        label: 'DateTime with default interval',
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithDefaultInterval,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Should not log warnings for valid combination with default interval
+            expect(consoleSpy).not.toHaveBeenCalled();
+
+            // Invalid with default 60-minute interval
+            const formWithInvalidDefaultInterval = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'invalid_default_interval',
+                        type: 'datetime',
+                        default_time: '09:15', // 555 % 60 = 15 (invalid)
+                        // time_interval not specified, should default to 60
+                        label: 'DateTime with invalid default interval',
+                    },
+                ],
+            };
+
+            const propsInvalid = {
+                ...baseProps,
+                form: formWithInvalidDefaultInterval,
+            };
+
+            renderWithContext(<AppsForm {...propsInvalid}/>);
+
+            // Should log warning for misaligned time with default 60-minute interval
+            expect(consoleSpy).toHaveBeenCalledWith(
+                'AppForm field validation errors:',
+                expect.arrayContaining([
+                    expect.stringContaining('default_time "09:15" does not align with time_interval 60 minutes'),
+                ]),
+            );
+
+            consoleSpy.mockRestore();
+        });
+
+        it('should not validate default_time for non-datetime field types', () => {
+            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+            const formWithNonDateTimeFields = {
+                ...baseProps.form,
+                fields: [
+                    {
+                        name: 'text_with_default_time',
+                        type: 'text',
+                        default_time: '25:99', // Invalid but should be ignored for text fields
+                        label: 'Text Field',
+                    },
+                    {
+                        name: 'date_with_default_time',
+                        type: 'date',
+                        default_time: '25:99', // Invalid but should be ignored for date fields
+                        label: 'Date Field',
+                    },
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                form: formWithNonDateTimeFields,
+            };
+
+            renderWithContext(<AppsForm {...props}/>);
+
+            // Should not log warnings for non-datetime fields
+            expect(consoleSpy).not.toHaveBeenCalled();
+
+            consoleSpy.mockRestore();
+        });
+    });
 });

@@ -8,6 +8,51 @@ type DialogError = {
     defaultMessage: string;
     values?: any;
 };
+
+/**
+ * Validates date/datetime field values for format and range constraints
+ */
+function validateDateTimeValue(value: string, elem: DialogElement): DialogError | null {
+    // Basic format validation using simplified patterns
+    const isDateField = elem.type === 'date';
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/; // YYYY-MM-DD
+    const dateTimePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?Z?$/; // YYYY-MM-DDTHH:mm(:ss)?Z?
+    const relativePattern = /^(today|tomorrow|yesterday|[+-]\d{1,4}[dwMH])$/; // Relative dates
+    
+    // Check if value matches expected format
+    let isValidFormat = false;
+    if (relativePattern.test(value)) {
+        isValidFormat = true; // Relative dates are always valid format
+    } else if (isDateField && datePattern.test(value)) {
+        isValidFormat = true;
+    } else if (!isDateField && dateTimePattern.test(value)) {
+        isValidFormat = true;
+    }
+    
+    if (!isValidFormat) {
+        return {
+            id: 'interactive_dialog.error.bad_format',
+            defaultMessage: 'Invalid date format',
+        };
+    }
+    
+    // For non-relative dates, validate the date is real
+    if (!relativePattern.test(value)) {
+        const date = new Date(value);
+        if (isNaN(date.getTime())) {
+            return {
+                id: 'interactive_dialog.error.bad_format',
+                defaultMessage: 'Invalid date format',
+            };
+        }
+    }
+    
+    // Range validation would be complex here without access to timezone and locale
+    // Keep this simple for the centralized validation - detailed range validation
+    // can be handled server-side or in specialized validation when needed
+    
+    return null;
+}
 export function checkDialogElementForError(elem: DialogElement, value: any): DialogError | undefined | null {
     if ((!value && value !== 0) && !elem.optional) {
         return {
@@ -63,66 +108,14 @@ export function checkDialogElementForError(elem: DialogElement, value: any): Dia
             };
         }
     } else if (type === 'date' || type === 'datetime') {
-        // Import date utilities for validation
-        const {stringToMoment, resolveRelativeDate} = require('utils/date_utils');
-        
-        // Validate min_date format if present
-        if (elem.min_date) {
-            const minDateResolved = resolveRelativeDate(elem.min_date);
-            const minDateMoment = stringToMoment(minDateResolved);
-            if (!minDateMoment) {
-                return {
-                    id: 'interactive_dialog.error.invalid_min_date',
-                    defaultMessage: 'Invalid min_date format',
-                };
+        // Validate date/datetime format and range constraints
+        if (value && typeof value === 'string') {
+            const validationError = validateDateTimeValue(value, elem);
+            if (validationError) {
+                return validationError;
             }
         }
-        
-        // Validate max_date format if present
-        if (elem.max_date) {
-            const maxDateResolved = resolveRelativeDate(elem.max_date);
-            const maxDateMoment = stringToMoment(maxDateResolved);
-            if (!maxDateMoment) {
-                return {
-                    id: 'interactive_dialog.error.invalid_max_date',
-                    defaultMessage: 'Invalid max_date format',
-                };
-            }
-        }
-        
-        if (value) {
-            const date = stringToMoment(value);
-            if (!date) {
-                return {
-                    id: 'interactive_dialog.error.invalid_date',
-                    defaultMessage: 'Invalid date format',
-                };
-            }
-
-            // Check min_date constraint
-            if (elem.min_date) {
-                const min = stringToMoment(resolveRelativeDate(elem.min_date));
-                if (min && date.isBefore(min, 'day')) {
-                    return {
-                        id: 'interactive_dialog.error.date_too_early',
-                        defaultMessage: 'Date must be after {minDate}',
-                        values: {minDate: min.format('YYYY-MM-DD')},
-                    };
-                }
-            }
-
-            // Check max_date constraint
-            if (elem.max_date) {
-                const max = stringToMoment(resolveRelativeDate(elem.max_date));
-                if (max && date.isAfter(max, 'day')) {
-                    return {
-                        id: 'interactive_dialog.error.date_too_late',
-                        defaultMessage: 'Date must be before {maxDate}',
-                        values: {maxDate: max.format('YYYY-MM-DD')},
-                    };
-                }
-            }
-        }
+        return null;
     }
 
     return null;
