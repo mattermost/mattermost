@@ -78,6 +78,7 @@ const EnterpriseEditionRightPanel = ({
     const isEnterpriseAdvanced = license?.SkuShortName === LicenseSkus.EnterpriseAdvanced;
     const isEnterprise = license?.SkuShortName === LicenseSkus.Enterprise;
     const isProfessional = license?.SkuShortName === LicenseSkus.Professional;
+    const isEntry = license?.SkuShortName === LicenseSkus.Entry;
 
     const contactSalesBtn = (
         <div className='purchase-card'>
@@ -93,6 +94,14 @@ const EnterpriseEditionRightPanel = ({
                 <FormattedMessage
                     id='admin.license.purchaseEnterprisePlanTitle'
                     defaultMessage='Purchase Enterprise Advanced'
+                />
+            );
+        }
+        if (isEntry) {
+            return (
+                <FormattedMessage
+                    id='admin.license.purchasePlanToRemoveLimitsTitle'
+                    defaultMessage='Purchase one of our plans to remove limits'
                 />
             );
         }
@@ -132,6 +141,8 @@ const EnterpriseEditionRightPanel = ({
         if (isEnterpriseAdvanced) {
             return null; //No image
         }
+
+        // Show the setup system image for Entry SKU and other SKUs
         return (
             <SetupSystemSvg
                 width={197}
@@ -139,6 +150,29 @@ const EnterpriseEditionRightPanel = ({
             />
         );
     };
+
+    const entryLimitsFeatures = [
+        intl.formatMessage({
+            id: 'admin.license.entryFeature.unlimitedMessageHistory',
+            defaultMessage: 'Unlimited message history',
+        }),
+        intl.formatMessage({
+            id: 'admin.license.entryFeature.unlimitedPlaybookRuns',
+            defaultMessage: 'Unlimited playbook runs',
+        }),
+        intl.formatMessage({
+            id: 'admin.license.entryFeature.unlimitedBoardCards',
+            defaultMessage: 'Unlimited board cards',
+        }),
+        intl.formatMessage({
+            id: 'admin.license.entryFeature.unlimitedAIAgentQueries',
+            defaultMessage: 'Unlimited AI agent queries',
+        }),
+        intl.formatMessage({
+            id: 'admin.license.entryFeature.unlimitedCallDuration',
+            defaultMessage: 'Unlimited call duration',
+        }),
+    ];
 
     const subtitle = () => {
         if (isTrialLicense) {
@@ -149,11 +183,28 @@ const EnterpriseEditionRightPanel = ({
                 />
             );
         }
+        if (isEntry) {
+            return (
+                <div className='advantages-list'>
+                    {entryLimitsFeatures.map((item, i) => {
+                        return (
+                            <div
+                                className='item'
+                                key={i.toString()}
+                            >
+                                <i className='fa fa-lock'/>
+                                {item}
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        }
         if (isEnterpriseAdvanced) {
             return (
                 <FormattedMessage
                     id='admin.license.enterprisePlanSubtitle'
-                    defaultMessage='We’re here to work with you and your needs. Contact us today to get more seats on your plan.'
+                    defaultMessage="We're here to work with you and your needs. Contact us today to get more seats on your plan."
                 />
             );
         }

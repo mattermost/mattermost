@@ -17,7 +17,7 @@ import {trackEvent} from 'actions/telemetry_actions';
 import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import {AboutLinks, CloudLinks, ModalIdentifiers} from 'utils/constants';
+import {AboutLinks, CloudLinks, LicenseSkus, ModalIdentifiers} from 'utils/constants';
 import {isLicenseExpired, isLicenseExpiring, isTrialLicense, licenseSKUWithFirstLetterCapitalized, isEnterpriseLicense} from 'utils/license_utils';
 
 import type {ModalData} from 'types/actions';
@@ -362,7 +362,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
                                 totalUsers={this.props.totalUsers}
                                 location='license_settings'
                             />
-                            {!this.state.clickNormalUpgradeBtn && license.IsLicensed !== 'true' &&
+                            {!this.state.clickNormalUpgradeBtn && (license.IsLicensed !== 'true' || license.SkuShortName === LicenseSkus.Entry) &&
                                 this.props.prevTrialLicense?.IsLicensed !== 'true' &&
                                 <TrialBanner
                                     isDisabled={isDisabled}

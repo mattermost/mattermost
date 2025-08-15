@@ -73,6 +73,8 @@ type FeatureFlags struct {
 
 	// Enable AppsForm for Interactive Dialogs instead of legacy dialog implementation
 	InteractiveDialogAppsForm bool
+
+	EnableMattermostEntry bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -103,6 +105,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AttributeBasedAccessControl = true
 	f.ContentFlagging = false
 	f.InteractiveDialogAppsForm = true
+	f.EnableMattermostEntry = false
 }
 
 // ToMap returns the feature flags as a map[string]string
