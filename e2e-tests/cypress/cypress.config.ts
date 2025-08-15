@@ -11,7 +11,7 @@ export default defineConfig({
     numTestsKeptInMemory: 0,
     retries: {
 
-        // 2 retrues for cypress:run
+        // 2 retries for cypress:run
         runMode: 2,
 
         // No retries for cypress:open
