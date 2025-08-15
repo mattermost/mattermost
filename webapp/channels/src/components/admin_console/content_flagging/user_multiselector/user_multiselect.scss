@@ -13,4 +13,10 @@
         display: flex;
         gap: 8px;
     }
+
+    &.singleSelect {
+        .UserMultiSelector__value-container {
+            display: flex;
+        }
+    }
 }
