@@ -30,7 +30,10 @@ const AppsFormDateTimeField: React.FC<Props> = ({
 
     const momentValue = useMemo(() => {
         if (value) {
-            return stringToMoment(value, timezone, true); // true = datetime field
+            const parsed = stringToMoment(value, timezone, true); // true = datetime field
+            if (parsed) {
+                return parsed;
+            }
         }
         
         // DISPLAY FALLBACK ONLY: Current time shown in UI when no value exists

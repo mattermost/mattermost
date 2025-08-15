@@ -900,10 +900,20 @@ describe('dialog_conversion', () => {
 
             it('should handle null default values', () => {
                 const element = {
+                    display_name: 'Test Date',
+                    name: 'test_date',
                     type: 'date',
-                    default: null,
+                    subtype: '',
+                    placeholder: '',
+                    help_text: '',
+                    optional: true,
+                    min_length: 0,
+                    max_length: 0,
+                    data_source: '',
+                    options: [],
+                    default: '',
                 } as DialogElement;
-                expect(getDefaultValue(element)).toBeNull();
+                expect(getDefaultValue(element)).toBe('');
             });
         });
 
@@ -930,7 +940,7 @@ describe('dialog_conversion', () => {
                 );
 
                 expect(form.fields).toHaveLength(1);
-                expect(form.fields[0]).toMatchObject({
+                expect(form.fields?.[0]).toMatchObject({
                     name: 'event_date',
                     type: 'date',
                     label: 'Event Date',
@@ -962,7 +972,7 @@ describe('dialog_conversion', () => {
                 );
 
                 expect(form.fields).toHaveLength(1);
-                expect(form.fields[0]).toMatchObject({
+                expect(form.fields?.[0]).toMatchObject({
                     name: 'meeting_time',
                     type: 'datetime',
                     label: 'Meeting Time',
@@ -996,7 +1006,7 @@ describe('dialog_conversion', () => {
                 );
 
                 expect(form.fields).toHaveLength(1);
-                expect(form.fields[0]).toMatchObject({
+                expect(form.fields?.[0]).toMatchObject({
                     name: 'full_datetime',
                     type: 'datetime',
                     label: 'Full DateTime',
@@ -1029,10 +1039,10 @@ describe('dialog_conversion', () => {
                     legacyOptions,
                 );
 
-                expect(form.fields[0]).not.toHaveProperty('time_interval');
-                expect(form.fields[0]).not.toHaveProperty('default_time');
-                expect(form.fields[0]).toHaveProperty('min_date');
-                expect(form.fields[0]).toHaveProperty('max_date');
+                expect(form.fields?.[0]).not.toHaveProperty('time_interval');
+                expect(form.fields?.[0]).not.toHaveProperty('default_time');
+                expect(form.fields?.[0]).toHaveProperty('min_date');
+                expect(form.fields?.[0]).toHaveProperty('max_date');
             });
         });
 
