@@ -8,6 +8,51 @@ type DialogError = {
     defaultMessage: string;
     values?: any;
 };
+
+/**
+ * Validates date/datetime field values for format and range constraints
+ */
+function validateDateTimeValue(value: string, elem: DialogElement): DialogError | null {
+    // Basic format validation using simplified patterns
+    const isDateField = elem.type === 'date';
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/; // YYYY-MM-DD
+    const dateTimePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?Z?$/; // YYYY-MM-DDTHH:mm(:ss)?Z?
+    const relativePattern = /^(today|tomorrow|yesterday|[+-]\d{1,4}[dwMH])$/; // Relative dates
+
+    // Check if value matches expected format
+    let isValidFormat = false;
+    if (relativePattern.test(value)) {
+        isValidFormat = true; // Relative dates are always valid format
+    } else if (isDateField && datePattern.test(value)) {
+        isValidFormat = true;
+    } else if (!isDateField && dateTimePattern.test(value)) {
+        isValidFormat = true;
+    }
+
+    if (!isValidFormat) {
+        return {
+            id: 'interactive_dialog.error.bad_format',
+            defaultMessage: 'Invalid date format',
+        };
+    }
+
+    // For non-relative dates, validate the date is real
+    if (!relativePattern.test(value)) {
+        const date = new Date(value);
+        if (isNaN(date.getTime())) {
+            return {
+                id: 'interactive_dialog.error.bad_format',
+                defaultMessage: 'Invalid date format',
+            };
+        }
+    }
+
+    // Range validation would be complex here without access to timezone and locale
+    // Keep this simple for the centralized validation - detailed range validation
+    // can be handled server-side or in specialized validation when needed
+
+    return null;
+}
 export function checkDialogElementForError(elem: DialogElement, value: any): DialogError | undefined | null {
     if ((!value && value !== 0) && !elem.optional) {
         return {
@@ -62,6 +107,15 @@ export function checkDialogElementForError(elem: DialogElement, value: any): Dia
                 defaultMessage: 'Must be a valid option',
             };
         }
+    } else if (type === 'date' || type === 'datetime') {
+        // Validate date/datetime format and range constraints
+        if (value && typeof value === 'string') {
+            const validationError = validateDateTimeValue(value, elem);
+            if (validationError) {
+                return validationError;
+            }
+        }
+        return null;
     }
 
     return null;

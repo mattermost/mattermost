@@ -61,6 +61,7 @@ type Props = {
     setIsInteracting?: (interacting: boolean) => void;
     relativeDate?: boolean;
     timePickerInterval?: number;
+    allowPastDates?: boolean;
 }
 
 const DateTimeInputContainer: React.FC<Props> = ({
@@ -70,6 +71,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
     setIsInteracting,
     relativeDate,
     timePickerInterval,
+    allowPastDates = false,
 }: Props) => {
     const locale = useSelector(getCurrentLocale);
     const [timeOptions, setTimeOptions] = useState<Date[]>([]);
@@ -123,9 +125,13 @@ const DateTimeInputContainer: React.FC<Props> = ({
     const setTimeAndOptions = () => {
         const currentTime = getCurrentMomentForTimezone(timezone);
         let startTime = moment(time).startOf('day');
-        if (currentTime.isSame(time, 'date')) {
+
+        // For form fields (allowPastDates=true), always start from beginning of day
+        // For scheduling (allowPastDates=false), restrict to current time if today
+        if (!allowPastDates && currentTime.isSame(time, 'date')) {
             startTime = getRoundedTime(currentTime, timePickerInterval);
         }
+
         setTimeOptions(getTimeInIntervals(startTime, timePickerInterval));
     };
 
@@ -134,7 +140,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
     const handleDayChange = (day: Date, modifiers: DayModifiers) => {
         if (modifiers.today) {
             const baseTime = getCurrentMomentForTimezone(timezone);
-            if (isBeforeTime(baseTime, time)) {
+            if (!allowPastDates && isBeforeTime(baseTime, time)) {
                 baseTime.hour(time.hours());
                 baseTime.minute(time.minutes());
             }
@@ -168,7 +174,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
         selected: time.toDate(),
         defaultMonth: time.toDate(),
         onDayClick: handleDayChange,
-        disabled: [{
+        disabled: allowPastDates ? undefined : [{
             before: currentTime,
         }],
         showOutsideDays: true,

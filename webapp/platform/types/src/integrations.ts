@@ -187,6 +187,10 @@ export type DialogElement = {
         text: string;
         value: any;
     }>;
+    min_date?: string;
+    max_date?: string;
+    time_interval?: number;
+    default_time?: string;
 };
 
 export type SubmitDialogResponse = {
