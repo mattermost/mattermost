@@ -50,14 +50,17 @@ func (s SqlSharedChannelStore) Save(sc *model.SharedChannel) (sh *model.SharedCh
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	query, args, err := s.getQueryBuilder().Insert("SharedChannels").
+	query := s.getQueryBuilder().Insert("SharedChannels").
 		Columns("ChannelId", "TeamId", "Home", "ReadOnly", "ShareName", "ShareDisplayName", "SharePurpose", "ShareHeader", "CreatorId", "CreateAt", "UpdateAt", "RemoteId").
-		Values(sc.ChannelId, sc.TeamId, sc.Home, sc.ReadOnly, sc.ShareName, sc.ShareDisplayName, sc.SharePurpose, sc.ShareHeader, sc.CreatorId, sc.CreateAt, sc.UpdateAt, sc.RemoteId).
-		ToSql()
+		Values(sc.ChannelId, sc.TeamId, sc.Home, sc.ReadOnly, sc.ShareName, sc.ShareDisplayName, sc.SharePurpose, sc.ShareHeader, sc.CreatorId, sc.CreateAt, sc.UpdateAt, sc.RemoteId)
+
+	query = query.SuffixExpr(sq.Expr("ON CONFLICT (ChannelId) DO UPDATE SET TeamId = EXCLUDED.TeamId, Home = EXCLUDED.Home, ReadOnly = EXCLUDED.ReadOnly, ShareName = EXCLUDED.ShareName, ShareDisplayName = EXCLUDED.ShareDisplayName, SharePurpose = EXCLUDED.SharePurpose, ShareHeader = EXCLUDED.ShareHeader, CreatorId = EXCLUDED.CreatorId, UpdateAt = EXCLUDED.UpdateAt, RemoteId = EXCLUDED.RemoteId"))
+
+	queryStr, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "savesharedchannel_tosql")
 	}
-	if _, err := transaction.Exec(query, args...); err != nil {
+	if _, err := transaction.Exec(queryStr, args...); err != nil {
 		return nil, errors.Wrapf(err, "save_shared_channel: ChannelId=%s", sc.ChannelId)
 	}
 
