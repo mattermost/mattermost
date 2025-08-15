@@ -3,13 +3,18 @@
 
 import React, {useState, useEffect} from 'react';
 import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
+import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
+
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
+
+import type {GlobalState} from 'types/store';
 
 import './channel_settings_access_rules_tab.scss';
 
@@ -27,6 +32,9 @@ function ChannelSettingsAccessRulesTab({
     showTabSwitchError,
 }: ChannelSettingsAccessRulesTabProps) {
     const {formatMessage} = useIntl();
+
+    // Get access control settings from Redux state
+    const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
 
     // State for the access control expression and user attributes
     const [expression, setExpression] = useState('');
@@ -89,6 +97,7 @@ function ChannelSettingsAccessRulesTab({
                         userAttributes={userAttributes}
                         onParseError={handleParseError}
                         actions={actions}
+                        enableUserManagedAttributes={accessControlSettings?.EnableUserManagedAttributes || false}
                     />
                 </div>
             )}
