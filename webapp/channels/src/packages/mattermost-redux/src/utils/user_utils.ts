@@ -149,7 +149,7 @@ export function getSuggestionsSplitByMultiple(term: string, splitStrs: string[])
     return [...suggestions];
 }
 
-export function nameSuggestionsForUser(user: UserProfile): string[] {
+export function nameSuggestionsForUser(user: UserProfile, includeFullEmail = false): string[] {
     const profileSuggestions: string[] = [];
     const usernameSuggestions = getSuggestionsSplitByMultiple((user.username || '').toLowerCase(), General.AUTOCOMPLETE_SPLIT_CHARACTERS);
     profileSuggestions.push(...usernameSuggestions);
@@ -160,8 +160,15 @@ export function nameSuggestionsForUser(user: UserProfile): string[] {
     profileSuggestions.push((user.nickname || '').toLowerCase());
     const positionSuggestions = getSuggestionsSplitBy((user.position || '').toLowerCase(), ' ');
     profileSuggestions.push(...positionSuggestions);
-    const email = (user.email || '').toLowerCase().split('@')[0];
-    profileSuggestions.push(email);
+    const email = (user.email || '').toLowerCase();
+    const emailPrefix = email.split('@')[0];
+    profileSuggestions.push(emailPrefix);
+
+    // Only include full email if explicitly requested (when search contains @)
+    if (includeFullEmail && email.includes('@')) {
+        profileSuggestions.push(email);
+    }
+
     return profileSuggestions;
 }
 
@@ -172,12 +179,15 @@ export function filterProfilesStartingWithTerm(users: UserProfile[], term: strin
         trimmedTerm = trimmedTerm.substr(1);
     }
 
+    // Include full email in suggestions if the search term contains @
+    const includeFullEmail = lowercasedTerm.includes('@');
+
     return users.filter((user: UserProfile) => {
         if (!user) {
             return false;
         }
 
-        const profileSuggestions = nameSuggestionsForUser(user);
+        const profileSuggestions = nameSuggestionsForUser(user, includeFullEmail);
         return profileSuggestions.filter((suggestion) => suggestion !== '').some((suggestion) => suggestion.startsWith(trimmedTerm));
     });
 }
@@ -189,12 +199,15 @@ export function filterProfilesMatchingWithTerm(users: UserProfile[], term: strin
         trimmedTerm = trimmedTerm.substr(1);
     }
 
+    // Include full email in suggestions if the search term contains @
+    const includeFullEmail = lowercasedTerm.includes('@');
+
     return users.filter((user: UserProfile) => {
         if (!user) {
             return false;
         }
 
-        const profileSuggestions = nameSuggestionsForUser(user);
+        const profileSuggestions = nameSuggestionsForUser(user, includeFullEmail);
         return profileSuggestions.filter((suggestion) => suggestion !== '').some((suggestion) => suggestion.includes(trimmedTerm));
     });
 }
