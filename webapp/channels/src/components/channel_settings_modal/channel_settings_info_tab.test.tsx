@@ -204,10 +204,11 @@ describe('ChannelSettingsInfoTab', () => {
         });
 
         // Verify patchChannel was called with the updated values (without type change).
+        // Note: URL should remain unchanged when editing existing channels
         expect(patchChannel).toHaveBeenCalledWith('channel1', {
             ...mockChannel,
             display_name: 'Updated Channel Name',
-            name: 'updated-channel-name',
+            name: 'test-channel', // URL should remain unchanged when editing existing channels
             purpose: 'Updated purpose',
             header: 'Updated header',
         });
@@ -249,7 +250,7 @@ describe('ChannelSettingsInfoTab', () => {
         expect(patchChannel).toHaveBeenCalledWith('channel1', {
             ...mockChannel,
             display_name: 'Channel Name With Whitespace', // Whitespace should be trimmed
-            name: 'channel-name-with-whitespace', // URL is generated from display name and should be trimmed
+            name: 'test-channel', // URL should remain unchanged when editing existing channels
             purpose: 'Purpose with whitespace', // Whitespace should be trimmed
             header: 'Header with whitespace', // Whitespace should be trimmed
         });

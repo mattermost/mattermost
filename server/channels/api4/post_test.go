@@ -2350,22 +2350,9 @@ func TestGetPostsForChannel(t *testing.T) {
 		_, err = th.SystemAdminClient.DeleteChannel(context.Background(), channel.Id)
 		require.NoError(t, err)
 
-		experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalViewArchivedChannels = true })
-		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.TeamSettings.ExperimentalViewArchivedChannels = experimentalViewArchivedChannels
-		})
-
-		// the endpoint should work fine when viewing archived channels is enabled
 		_, _, err = c.GetPostsForChannel(context.Background(), channel.Id, 0, 10, "", false, false)
 		require.NoError(t, err)
-
-		// the endpoint should return forbidden if viewing archived channels is disabled
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalViewArchivedChannels = false })
-		_, resp, err = c.GetPostsForChannel(context.Background(), channel.Id, 0, 10, "", false, false)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-	}, "Should forbid to retrieve posts if the channel is archived and users are not allowed to view archived messages")
+	}, "Should allow retrieving posts if the channel is archived")
 
 	_, err = client.DeletePost(context.Background(), post10.Id)
 	require.NoError(t, err)
@@ -3838,15 +3825,6 @@ func TestSearchPosts(t *testing.T) {
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
-		})
-	}()
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
-	})
 
 	th.LoginBasic()
 	client := th.Client
@@ -3953,13 +3931,10 @@ func TestSearchPosts(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, posts.Order, 2, "wrong search")
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
-	})
-
+	// Archived channels are always included now, so this should return the same result
 	posts, _, err = client.SearchPostsWithParams(context.Background(), th.BasicTeam.Id, &searchParams)
 	require.NoError(t, err)
-	require.Len(t, posts.Order, 1, "wrong search")
+	require.Len(t, posts.Order, 2, "wrong search")
 
 	posts, _, _ = client.SearchPosts(context.Background(), th.BasicTeam.Id, "*", false)
 	require.Empty(t, posts.Order, "searching for just * shouldn't return any results")
