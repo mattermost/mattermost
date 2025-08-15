@@ -24,6 +24,30 @@ exports[`components/channel_settings_modal/ChannelSettingsAccessRulesTab should 
     >
       Select attributes and values that users must match in addition to access this channel. All selected attributes are required.
     </p>
+    <div
+      class="ChannelSettingsModal__autoSyncSection"
+    >
+      <label
+        class="ChannelSettingsModal__autoSyncLabel"
+      >
+        <input
+          class="ChannelSettingsModal__autoSyncCheckbox"
+          id="autoSyncMembersCheckbox"
+          name="autoSyncMembers"
+          type="checkbox"
+        />
+        <span
+          class="ChannelSettingsModal__autoSyncText"
+        >
+          Auto-add members based on access rules
+        </span>
+      </label>
+      <p
+        class="ChannelSettingsModal__autoSyncDescription"
+      >
+        Users who match the configured attribute values will be automatically added as members
+      </p>
+    </div>
   </div>
 </div>
 `;

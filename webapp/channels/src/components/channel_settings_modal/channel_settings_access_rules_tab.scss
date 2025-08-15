@@ -45,4 +45,44 @@
         font-weight: 400;
         line-height: 20px;
     }
+
+    &__autoSyncSection {
+        margin: 32px 0 24px 0;
+    }
+
+    &__autoSyncLabel {
+        display: flex;
+        align-items: flex-start;
+        cursor: pointer;
+        user-select: none;
+        margin-bottom: 8px;
+    }
+
+    &__autoSyncCheckbox {
+        margin-right: 12px;
+        margin-top: 2px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        flex-shrink: 0;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.65);
+    }
+
+    &__autoSyncText {
+        color: var(--center-channel-color);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+        margin-left: 12px;
+    }
+
+    &__autoSyncDescription {
+        margin: 0 0 0 30px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+    }
 }
