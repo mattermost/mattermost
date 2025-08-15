@@ -4763,10 +4763,6 @@
     "translation": "No channels were found."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Unable to get the channels batch for indexing."
-  },
-  {
     "id": "app.channel.get_channels_by_ids.app_error",
     "translation": "Unable to get channels by ids."
   },
@@ -6655,10 +6651,6 @@
     "translation": "Unable to get direct posts."
   },
   {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "Unable to get the files batch for indexing."
-  },
-  {
     "id": "app.post.get_flagged_posts.app_error",
     "translation": "Unable to get the flagged posts."
   },
@@ -6677,10 +6669,6 @@
   {
     "id": "app.post.get_posts_around.get.app_error",
     "translation": "Unable to get the posts for the channel."
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Unable to get the posts batch for indexing."
   },
   {
     "id": "app.post.get_posts_created_at.app_error",
@@ -7797,174 +7785,6 @@
     "translation": "URL is too long"
   },
   {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve is already started."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Error creating the bleve channel index."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Error creating the bleve file index."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Error creating the bleve post index."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Error creating the bleve user index."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Failed to delete the channel."
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Failed to delete channel posts"
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Failed to delete the file."
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Failed to delete the files."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Failed to delete the post."
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Failed to delete the post files."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Failed to delete the user."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Failed to delete the user files."
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Failed to delete user posts"
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Failed to index the channel."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "Failed to index the file."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Failed to index the post."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Failed to index the user."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Failed to index channel batch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Failed to index file batch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Failed to index post batch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Failed to index user batch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Failed to run Bleve index job: engine is inactive."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "The oldest entity (user, channel or post) could not be retrieved from the database."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Bleve indexing worker failed to parse the end time."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Bleve indexing worker failed to parse the start time."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Trying to index a new batch when all the entities are completed."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Failed to purge channel indexes."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Failed to purge file indexes."
-  },
-  {
-    "id": "bleveengine.purge_list.not_implemented",
-    "translation": "Purge list feature is not available for Bleve."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Failed to purge post indexes."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Failed to purge user indexes."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Channel search failed to complete."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "File search failed to complete."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Post search failed to complete."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "User search failed to complete."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "User search failed to complete."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "User search failed to complete."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Failed to close channel index."
-  },
-  {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Failed to close file index."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Failed to close post index."
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Failed to close user index."
-  },
-  {
     "id": "brand.save_brand_image.check_image_limits.app_error",
     "translation": "Image limits check failed. Resolution is too high."
   },
@@ -8773,6 +8593,10 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "The parent is already imported."
+  },
+  {
     "id": "model.access_policy.inherit.version.app_error",
     "translation": "Could not inherit access control policy."
   },
@@ -9177,22 +9001,6 @@
     "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
   },
   {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Bleve Bulk Indexing Batch Size must be at least {{.BatchSize}}."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Bleve EnableIndexing setting must be set to true when Bleve EnableAutocomplete is set to true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Bleve EnableIndexing setting must be set to true when Bleve EnableSearching is set to true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Bleve IndexingDir setting must be set when Bleve EnableIndexing is set to true"
-  },
-  {
     "id": "model.config.is_valid.cache_type.app_error",
     "translation": "Cache type must be either lru or redis."
   },
@@ -9562,7 +9370,7 @@
   },
   {
     "id": "model.config.is_valid.notification_settings.invalid_target",
-    "translation": "Invalid flaggig event target specified."
+    "translation": "Invalid flagging event target specified."
   },
   {
     "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
@@ -10687,10 +10495,6 @@
   {
     "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
     "translation": "Missing plugin reattach config"
-  },
-  {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Error purging Bleve indexes: engine is disabled"
   },
   {
     "id": "sharedchannel.cannot_deliver_post",

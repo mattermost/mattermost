@@ -442,10 +442,6 @@ func (c *Client4) elasticsearchRoute() string {
 	return "/elasticsearch"
 }
 
-func (c *Client4) bleveRoute() string {
-	return "/bleve"
-}
-
 func (c *Client4) commandsRoute() string {
 	return "/commands"
 }
@@ -6492,18 +6488,6 @@ func (c *Client4) TestElasticsearch(ctx context.Context) (*Response, error) {
 // PurgeElasticsearchIndexes immediately deletes all Elasticsearch indexes.
 func (c *Client4) PurgeElasticsearchIndexes(ctx context.Context) (*Response, error) {
 	r, err := c.DoAPIPost(ctx, c.elasticsearchRoute()+"/purge_indexes", "")
-	if err != nil {
-		return BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return BuildResponse(r), nil
-}
-
-// Bleve Section
-
-// PurgeBleveIndexes immediately deletes all Bleve indexes.
-func (c *Client4) PurgeBleveIndexes(ctx context.Context) (*Response, error) {
-	r, err := c.DoAPIPost(ctx, c.bleveRoute()+"/purge_indexes", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
