@@ -433,20 +433,9 @@
         ##### Permissions
         No permission required.
       operationId: GetClientConfig
-      parameters:
-        - name: format
-          in: query
-          required: true
-          description: Must be `old`, other formats not implemented yet
-          schema:
-            type: string
       responses:
         "200":
           description: Configuration retrieval successful
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
   /api/v4/config/environment:
     get:
       tags:
