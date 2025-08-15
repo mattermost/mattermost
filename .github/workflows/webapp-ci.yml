@@ -1,12 +1,17 @@
-# Base CI template which is called from webapp-ci-pr.yml
-# and webapp-ci-master.yml
-
-name: Web App CI Template
+name: Web App CI
 on:
-  workflow_call:
-    secrets:
-      CODECOV_TOKEN:
-        required: true
+  push:
+    branches:
+      - master
+      - release-*
+  pull_request:
+    paths:
+      - "webapp/**"
+      - "e2e-tests/**"
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.ref) || '' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   check-lint:
