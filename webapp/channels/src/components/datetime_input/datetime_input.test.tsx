@@ -210,15 +210,15 @@ describe('components/datetime_input/DateTimeInput', () => {
         test('should allow past dates and all times when allowPastDates is true', () => {
             // Test the core time generation logic directly
             const selectedDate = moment('2025-06-08T15:00:00.000Z'); // 3 PM
-            
+
             // When allowPastDates=true, time intervals should start from beginning of day
             const timeOptions = getTimeInIntervals(selectedDate.clone().startOf('day'), 30);
-            
+
             // Should include times from start of day (midnight)
             const firstTime = moment(timeOptions[0]);
             expect(firstTime.hours()).toBe(0); // Should start at midnight
             expect(firstTime.minutes()).toBe(0);
-            
+
             // Should include the full day's worth of options
             expect(timeOptions.length).toBe(48); // 24 hours * 2 (30-min intervals)
         });
@@ -227,15 +227,15 @@ describe('components/datetime_input/DateTimeInput', () => {
             // Test the core time generation logic for restricted past times
             const currentTime = moment('2025-06-08T15:30:00.000Z'); // 3:30 PM
             const roundedTime = getRoundedTime(currentTime, 30); // Should round to 3:30 PM
-            
+
             // When allowPastDates=false and selecting today, time options should start from current time
             const timeOptions = getTimeInIntervals(roundedTime, 30);
-            
+
             // Should NOT include times before current time (no midnight options)
             const firstTime = moment(timeOptions[0]);
             expect(firstTime.hours()).toBeGreaterThanOrEqual(15); // Should start at/after 3 PM
             expect(firstTime.minutes()).toBeGreaterThanOrEqual(30); // Should be 3:30 or later
-            
+
             // Should have fewer options (only from 3:30 PM to end of day)
             expect(timeOptions.length).toBeLessThan(48); // Less than full day
             expect(timeOptions.length).toBeGreaterThan(0); // But should have some options

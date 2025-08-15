@@ -118,6 +118,7 @@ describe('AppsFormDateField', () => {
             max_date: '2025-01-20',
         };
         renderComponent({field: fieldWithRange, value: '2025-01-01'});
+
         // Component should still render, validation is now handled centrally on form submission
         expect(screen.getByRole('button')).toBeInTheDocument();
     });
@@ -154,6 +155,7 @@ describe('AppsFormDateField', () => {
 
     it('should display formatted date value', () => {
         renderComponent({value: '2025-01-15'});
+
         // The component should render a date picker with the formatted date
         expect(screen.getByRole('button')).toBeInTheDocument();
     });

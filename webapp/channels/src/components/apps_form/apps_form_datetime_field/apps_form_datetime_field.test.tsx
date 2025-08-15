@@ -143,6 +143,7 @@ describe('AppsFormDateTimeField', () => {
             max_date: '2025-01-20',
         };
         renderComponent({field: fieldWithRange, value: '2025-01-01T14:30:00Z'});
+
         // Component should still render, validation is now handled centrally on form submission
         expect(screen.getByTestId('datetime-input')).toBeInTheDocument();
     });

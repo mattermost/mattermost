@@ -3,7 +3,6 @@
 
 import moment from 'moment-timezone';
 import React, {useCallback, useMemo} from 'react';
-import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import type {AppField} from '@mattermost/types/apps';
@@ -25,7 +24,6 @@ const AppsFormDateTimeField: React.FC<Props> = ({
     value,
     onChange,
 }) => {
-    const intl = useIntl();
     const timezone = useSelector(getCurrentTimezone);
 
     const momentValue = useMemo(() => {
@@ -35,7 +33,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
                 return parsed;
             }
         }
-        
+
         // DISPLAY FALLBACK ONLY: Current time shown in UI when no value exists
         // This does not set the form value - actual defaults should be set in initFormValues
         // User must interact to save this time to the form
