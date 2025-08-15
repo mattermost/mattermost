@@ -169,10 +169,10 @@ export function getOAuthAppInfo(clientId) {
  * @param {*}
  * @returns {ActionResult<{redirect: string}>}
  */
-export function allowOAuth2({responseType, clientId, redirectUri, state, scope, codeChallenge, codeChallengeMethod}) {
+export function allowOAuth2({responseType, clientId, redirectUri, state, scope, resource, codeChallenge, codeChallengeMethod}) {
     return bindClientFunc({
         clientFunc: Client4.authorizeOAuthApp,
-        params: [responseType, clientId, redirectUri, state, scope, codeChallenge, codeChallengeMethod],
+        params: [responseType, clientId, redirectUri, state, scope, resource, codeChallenge, codeChallengeMethod],
     });
 }
 

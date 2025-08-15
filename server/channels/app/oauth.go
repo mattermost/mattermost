@@ -178,6 +178,7 @@ func (a *App) GetOAuthCodeRedirect(userID string, authRequest *model.AuthorizeRe
 		Scope:               authRequest.Scope,
 		CodeChallenge:       authRequest.CodeChallenge,
 		CodeChallengeMethod: authRequest.CodeChallengeMethod,
+		Resource:            authRequest.Resource,
 	}
 	authData.Code = model.NewId() + model.NewId()
 
@@ -293,7 +294,7 @@ func (a *App) GetOAuthAccessTokenForImplicitFlow(c request.CTX, userID string, a
 	return session, nil
 }
 
-func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType, redirectURI, code, secret, refreshToken, codeVerifier string) (*model.AccessResponse, *model.AppError) {
+func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType, redirectURI, code, secret, refreshToken, codeVerifier, resource string) (*model.AccessResponse, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -308,10 +309,10 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 	}
 
 	if grantType == model.AccessTokenGrantType {
-		return a.handleAuthorizationCodeGrant(c, oauthApp, redirectURI, code, codeVerifier, clientId)
+		return a.handleAuthorizationCodeGrant(c, oauthApp, redirectURI, code, codeVerifier, clientId, resource)
 	}
 
-	return a.handleRefreshTokenGrant(c, oauthApp, refreshToken)
+	return a.handleRefreshTokenGrant(c, oauthApp, refreshToken, resource)
 }
 
 func (a *App) validateOAuthClient(oauthApp *model.OAuthApp, grantType, secret, codeVerifier string) *model.AppError {
@@ -322,7 +323,7 @@ func (a *App) validatePKCE(oauthApp *model.OAuthApp, authData *model.AuthData, c
 	return authData.ValidatePKCEForClientType(oauthApp.IsPublicClient(), codeVerifier)
 }
 
-func (a *App) handleAuthorizationCodeGrant(c request.CTX, oauthApp *model.OAuthApp, redirectURI, code, codeVerifier, clientId string) (*model.AccessResponse, *model.AppError) {
+func (a *App) handleAuthorizationCodeGrant(c request.CTX, oauthApp *model.OAuthApp, redirectURI, code, codeVerifier, clientId, resource string) (*model.AccessResponse, *model.AppError) {
 	authData, nErr := a.Srv().Store().OAuth().GetAuthData(code)
 	if nErr != nil {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
@@ -358,10 +359,29 @@ func (a *App) handleAuthorizationCodeGrant(c request.CTX, oauthApp *model.OAuthA
 		}
 	}()
 
-	return a.generateAccessTokenResponse(c, oauthApp, user, clientId, redirectURI, authData.Scope)
+	var audience string
+	if resource != "" {
+		// Validate the resource parameter per RFC 8707
+		if err := model.ValidateResourceParameter(resource, clientId, "handleAuthorizationCodeGrant"); err != nil {
+			return nil, err
+		}
+
+		// Validate resource parameter consistency between authorization and token requests
+		if authData.Resource != "" {
+			if resource != authData.Resource {
+				return nil, model.NewAppError("handleAuthorizationCodeGrant", "api.oauth.get_access_token.resource_mismatch.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
+			}
+		}
+
+		audience = resource
+	} else if authData.Resource != "" {
+		audience = authData.Resource // Use resource from authorization request
+	}
+
+	return a.generateAccessTokenResponse(c, oauthApp, user, clientId, redirectURI, authData.Scope, audience)
 }
 
-func (a *App) handleRefreshTokenGrant(c request.CTX, oauthApp *model.OAuthApp, refreshToken string) (*model.AccessResponse, *model.AppError) {
+func (a *App) handleRefreshTokenGrant(c request.CTX, oauthApp *model.OAuthApp, refreshToken, resource string) (*model.AccessResponse, *model.AppError) {
 	// Validate that this client can use refresh token grant type
 	if err := oauthApp.ValidateForGrantType(model.RefreshTokenGrantType, oauthApp.ClientSecret, ""); err != nil {
 		return nil, err
@@ -377,25 +397,42 @@ func (a *App) handleRefreshTokenGrant(c request.CTX, oauthApp *model.OAuthApp, r
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 	}
 
-	return a.newSessionUpdateToken(c, oauthApp, accessData, user)
+	audience := accessData.Audience // Default to existing audience
+	if resource != "" {
+		// Validate the resource parameter per RFC 8707
+		if err := model.ValidateResourceParameter(resource, oauthApp.Id, "handleRefreshTokenGrant"); err != nil {
+			return nil, err
+		}
+
+		// For refresh tokens, resource parameter must match the original audience
+		if accessData.Audience != "" {
+			if resource != accessData.Audience {
+				return nil, model.NewAppError("handleRefreshTokenGrant", "api.oauth.get_access_token.resource_mismatch.app_error", nil, "client_id="+oauthApp.Id, http.StatusBadRequest)
+			}
+		}
+
+		audience = resource
+	}
+
+	return a.newSessionUpdateToken(c, oauthApp, accessData, user, audience)
 }
 
-func (a *App) generateAccessTokenResponse(c request.CTX, oauthApp *model.OAuthApp, user *model.User, clientId, redirectURI, scope string) (*model.AccessResponse, *model.AppError) {
+func (a *App) generateAccessTokenResponse(c request.CTX, oauthApp *model.OAuthApp, user *model.User, clientId, redirectURI, scope, audience string) (*model.AccessResponse, *model.AppError) {
 	accessData, nErr := a.Srv().Store().OAuth().GetPreviousAccessData(user.Id, clientId)
 	if nErr != nil {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 	}
 
 	if accessData != nil {
-		return a.handleExistingAccessData(c, oauthApp, accessData, user)
+		return a.handleExistingAccessData(c, oauthApp, accessData, user, audience)
 	}
 
-	return a.createNewAccessData(c, oauthApp, user, clientId, redirectURI, scope)
+	return a.createNewAccessData(c, oauthApp, user, clientId, redirectURI, scope, audience)
 }
 
-func (a *App) handleExistingAccessData(c request.CTX, oauthApp *model.OAuthApp, accessData *model.AccessData, user *model.User) (*model.AccessResponse, *model.AppError) {
+func (a *App) handleExistingAccessData(c request.CTX, oauthApp *model.OAuthApp, accessData *model.AccessData, user *model.User, audience string) (*model.AccessResponse, *model.AppError) {
 	if accessData.IsExpired() {
-		return a.newSessionUpdateToken(c, oauthApp, accessData, user)
+		return a.newSessionUpdateToken(c, oauthApp, accessData, user, audience)
 	}
 
 	refreshToken := accessData.RefreshToken
@@ -403,15 +440,18 @@ func (a *App) handleExistingAccessData(c request.CTX, oauthApp *model.OAuthApp, 
 		refreshToken = ""
 	}
 
+	audienceStr := accessData.Audience
+
 	return &model.AccessResponse{
 		AccessToken:      accessData.Token,
 		TokenType:        model.AccessTokenType,
 		RefreshToken:     refreshToken,
 		ExpiresInSeconds: int32((accessData.ExpiresAt - model.GetMillis()) / 1000),
+		Audience:         audienceStr,
 	}, nil
 }
 
-func (a *App) createNewAccessData(c request.CTX, oauthApp *model.OAuthApp, user *model.User, clientId, redirectURI, scope string) (*model.AccessResponse, *model.AppError) {
+func (a *App) createNewAccessData(c request.CTX, oauthApp *model.OAuthApp, user *model.User, clientId, redirectURI, scope string, audience string) (*model.AccessResponse, *model.AppError) {
 	session, err := a.newSession(c, oauthApp, user)
 	if err != nil {
 		return nil, err
@@ -430,6 +470,7 @@ func (a *App) createNewAccessData(c request.CTX, oauthApp *model.OAuthApp, user 
 		RedirectUri:  redirectURI,
 		ExpiresAt:    session.ExpiresAt,
 		Scope:        scope,
+		Audience:     audience,
 	}
 
 	if _, nErr := a.Srv().Store().OAuth().SaveAccessData(accessData); nErr != nil {
@@ -441,11 +482,14 @@ func (a *App) createNewAccessData(c request.CTX, oauthApp *model.OAuthApp, user 
 		refreshTokenResponse = ""
 	}
 
+	audienceStr := audience
+
 	return &model.AccessResponse{
 		AccessToken:      session.Token,
 		TokenType:        model.AccessTokenType,
 		RefreshToken:     refreshTokenResponse,
 		ExpiresInSeconds: int32(*a.Config().ServiceSettings.SessionLengthSSOInHours * 60 * 60),
+		Audience:         audienceStr,
 	}, nil
 }
 
@@ -477,7 +521,7 @@ func (a *App) newSession(c request.CTX, app *model.OAuthApp, user *model.User) (
 	return session, nil
 }
 
-func (a *App) newSessionUpdateToken(c request.CTX, app *model.OAuthApp, accessData *model.AccessData, user *model.User) (*model.AccessResponse, *model.AppError) {
+func (a *App) newSessionUpdateToken(c request.CTX, app *model.OAuthApp, accessData *model.AccessData, user *model.User, audience string) (*model.AccessResponse, *model.AppError) {
 	// Remove the previous session
 	if err := a.Srv().Store().Session().Remove(accessData.Token); err != nil {
 		c.Logger().Warn("error removing access data token from session", mlog.Err(err))
@@ -496,15 +540,22 @@ func (a *App) newSessionUpdateToken(c request.CTX, app *model.OAuthApp, accessDa
 		accessData.RefreshToken = ""
 	}
 	accessData.ExpiresAt = session.ExpiresAt
+	// Update audience if provided (for refresh token with resource parameter)
+	if audience != "" {
+		accessData.Audience = audience
+	}
 
 	if _, err := a.Srv().Store().OAuth().UpdateAccessData(accessData); err != nil {
 		return nil, model.NewAppError("newSessionUpdateToken", "web.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	audienceStr := accessData.Audience
+
 	accessRsp := &model.AccessResponse{
 		AccessToken:      session.Token,
 		RefreshToken:     accessData.RefreshToken,
 		TokenType:        model.AccessTokenType,
 		ExpiresInSeconds: int32(*a.Config().ServiceSettings.SessionLengthSSOInHours * 60 * 60),
+		Audience:         audienceStr,
 	}
 
 	return accessRsp, nil

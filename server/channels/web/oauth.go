@@ -132,6 +132,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		State:               r.URL.Query().Get("state"),
 		CodeChallenge:       r.URL.Query().Get("code_challenge"),
 		CodeChallengeMethod: r.URL.Query().Get("code_challenge_method"),
+		Resource:            r.URL.Query().Get("resource"),
 	}
 
 	loginHint := r.URL.Query().Get("login_hint")
@@ -266,6 +267,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	// For confidential clients: client_secret required, code_verifier optional but enforced if used
 
 	redirectURI := r.FormValue("redirect_uri")
+	resource := r.FormValue("resource")
 
 	auditRec := c.MakeAuditRecord(model.AuditEventGetAccessToken, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
@@ -273,7 +275,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("client_id", clientId)
 	c.LogAudit("attempt")
 
-	accessRsp, err := c.App.GetOAuthAccessTokenForCodeFlow(c.AppContext, clientId, grantType, redirectURI, code, secret, refreshToken, codeVerifier)
+	accessRsp, err := c.App.GetOAuthAccessTokenForCodeFlow(c.AppContext, clientId, grantType, redirectURI, code, secret, refreshToken, codeVerifier, resource)
 	if err != nil {
 		c.Err = err
 		return
