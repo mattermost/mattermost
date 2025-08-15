@@ -56,8 +56,8 @@ exports[`components/delete_channel_modal should match snapshot for delete_channe
     >
       <p>
         <MemoizedFormattedMessage
-          defaultMessage="This will archive the channel from the team and remove it from the user interface. Archived channels can be unarchived if needed again."
-          id="deleteChannelModal.cannotViewArchivedChannelsWarning"
+          defaultMessage="This will archive the channel from the team. Channel contents will still be accessible by channel members."
+          id="deleteChannelModal.canViewArchivedChannelsWarning"
         />
       </p>
       <p>
