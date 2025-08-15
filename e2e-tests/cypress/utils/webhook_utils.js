@@ -262,9 +262,176 @@ function getBooleanDialog(triggerId, webhookBaseUrl) {
     };
 }
 
+// Basic date field test - MM-T2530A
+function getBasicDateDialog(triggerId, webhookBaseUrl) {
+    return {
+        trigger_id: triggerId,
+        url: `${webhookBaseUrl}/datetime_dialog_submit`,
+        dialog: {
+            callback_id: 'basic_date_callback',
+            title: 'DateTime Fields Test',
+            icon_url: 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
+            elements: [
+                {
+                    display_name: 'Event Date',
+                    name: 'event_date',
+                    type: 'date',
+                    default: '',
+                    placeholder: 'Select a date',
+                    help_text: 'Select the date for your event',
+                    optional: false,
+                },
+            ],
+            submit_label: 'Submit',
+            notify_on_cancel: true,
+            state: 'datetime_state',
+        },
+    };
+}
+
+// Basic datetime field test - MM-T2530B
+function getBasicDateTimeDialog(triggerId, webhookBaseUrl) {
+    return {
+        trigger_id: triggerId,
+        url: `${webhookBaseUrl}/datetime_dialog_submit`,
+        dialog: {
+            callback_id: 'basic_datetime_callback',
+            title: 'DateTime Fields Test',
+            icon_url: 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
+            elements: [
+                {
+                    display_name: 'Event Date',
+                    name: 'event_date',
+                    type: 'date',
+                    default: '',
+                    placeholder: 'Select a date',
+                    help_text: 'Select the date for your event',
+                    optional: false,
+                },
+                {
+                    display_name: 'Meeting Time',
+                    name: 'meeting_time',
+                    type: 'datetime',
+                    default: '',
+                    placeholder: 'Select date and time',
+                    help_text: 'Select the date and time for your meeting',
+                    optional: false,
+                    time_interval: 60,
+                },
+            ],
+            submit_label: 'Submit',
+            notify_on_cancel: true,
+            state: 'datetime_state',
+        },
+    };
+}
+
+// Date field with min_date constraint - MM-T2530C
+function getMinDateConstraintDialog(triggerId, webhookBaseUrl) {
+    return {
+        trigger_id: triggerId,
+        url: `${webhookBaseUrl}/datetime_dialog_submit`,
+        dialog: {
+            callback_id: 'mindate_callback',
+            title: 'DateTime Fields Test',
+            icon_url: 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
+            elements: [
+                {
+                    display_name: 'Future Date Only',
+                    name: 'future_date',
+                    type: 'date',
+                    default: '',
+                    placeholder: 'Select a future date',
+                    help_text: 'Must be today or later',
+                    optional: true,
+                    min_date: 'today',
+                },
+            ],
+            submit_label: 'Submit',
+            notify_on_cancel: true,
+            state: 'datetime_state',
+        },
+    };
+}
+
+// DateTime field with custom time interval - MM-T2530D
+function getCustomIntervalDialog(triggerId, webhookBaseUrl) {
+    return {
+        trigger_id: triggerId,
+        url: `${webhookBaseUrl}/datetime_dialog_submit`,
+        dialog: {
+            callback_id: 'interval_callback',
+            title: 'DateTime Fields Test',
+            icon_url: 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
+            elements: [
+                {
+                    display_name: 'Custom Interval Time',
+                    name: 'interval_time',
+                    type: 'datetime',
+                    default: '',
+                    placeholder: 'Select time (30min intervals)',
+                    help_text: 'Time picker with 30-minute intervals',
+                    optional: true,
+                    time_interval: 30,
+                },
+            ],
+            submit_label: 'Submit',
+            notify_on_cancel: true,
+            state: 'datetime_state',
+        },
+    };
+}
+
+// Relative date values test - MM-T2530F
+function getRelativeDateDialog(triggerId, webhookBaseUrl) {
+    return {
+        trigger_id: triggerId,
+        url: `${webhookBaseUrl}/datetime_dialog_submit`,
+        dialog: {
+            callback_id: 'relative_callback',
+            title: 'DateTime Fields Test',
+            icon_url: 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
+            elements: [
+                {
+                    display_name: 'Relative Date Example',
+                    name: 'relative_date',
+                    type: 'date',
+                    default: 'today',
+                    placeholder: 'Today by default',
+                    help_text: 'Defaults to today using relative date',
+                    optional: true,
+                },
+                {
+                    display_name: 'Relative DateTime Example',
+                    name: 'relative_datetime',
+                    type: 'datetime',
+                    default: '+1d',
+                    placeholder: 'Tomorrow by default',
+                    help_text: 'Defaults to tomorrow using relative date',
+                    optional: true,
+                },
+            ],
+            submit_label: 'Submit',
+            notify_on_cancel: true,
+            state: 'datetime_state',
+        },
+    };
+}
+
+// Legacy function for backward compatibility - returns basic datetime dialog
+function getDateTimeDialog(triggerId, webhookBaseUrl) {
+    return getBasicDateTimeDialog(triggerId, webhookBaseUrl);
+}
+
 module.exports = {
     getFullDialog,
     getSimpleDialog,
     getUserAndChannelDialog,
     getBooleanDialog,
+    getDateTimeDialog,
+    getBasicDateDialog,
+    getBasicDateTimeDialog,
+    getMinDateConstraintDialog,
+    getCustomIntervalDialog,
+    getRelativeDateDialog,
 };
