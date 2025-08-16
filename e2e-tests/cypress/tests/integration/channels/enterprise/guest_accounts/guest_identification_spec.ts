@@ -14,6 +14,7 @@
  */
 
 import authenticator from 'authenticator';
+import {UserProfile} from '@mattermost/types/users';
 
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 import {
@@ -22,7 +23,6 @@ import {
     reUrl,
     verifyEmailBody,
 } from '../../../../utils';
-import {UserProfile} from '@mattermost/types/users';
 
 describe('Guest Accounts', () => {
     let sysadmin: Cypress.UserProfile;

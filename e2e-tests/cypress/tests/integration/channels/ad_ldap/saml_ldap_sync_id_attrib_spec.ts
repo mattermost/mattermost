@@ -15,6 +15,7 @@
 // Group: @channels @enterprise @ldap @saml @keycloak
 
 import {LdapUser} from 'tests/support/ldap_server_commands';
+
 import {getAdminAccount} from '../../../support/env';
 import {getRandomId} from '../../../utils';
 import {getKeycloakServerSettings} from '../../../utils/config';
