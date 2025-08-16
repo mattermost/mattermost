@@ -86,9 +86,17 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "keys": Array [
               "group_constrained",
               "exclude_group_constrained",
+              "access_control_policy_enforced",
             ],
             "name": "Management",
             "values": Object {
+              "access_control_policy_enforced": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute Based"
+                  id="admin.channel_list.attributed_based"
+                />,
+                "value": false,
+              },
               "exclude_group_constrained": Object {
                 "name": <Memo(MemoizedFormattedMessage)
                   defaultMessage="Manual Invites"
@@ -161,10 +169,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -287,9 +299,17 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "keys": Array [
               "group_constrained",
               "exclude_group_constrained",
+              "access_control_policy_enforced",
             ],
             "name": "Management",
             "values": Object {
+              "access_control_policy_enforced": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute Based"
+                  id="admin.channel_list.attributed_based"
+                />,
+                "value": false,
+              },
               "exclude_group_constrained": Object {
                 "name": <Memo(MemoizedFormattedMessage)
                   defaultMessage="Manual Invites"
@@ -362,10 +382,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -407,10 +431,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -452,10 +480,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -497,10 +529,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -542,10 +578,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -587,10 +627,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -632,10 +676,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -677,10 +725,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -722,10 +774,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -767,10 +823,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"
@@ -893,9 +953,17 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "keys": Array [
               "group_constrained",
               "exclude_group_constrained",
+              "access_control_policy_enforced",
             ],
             "name": "Management",
             "values": Object {
+              "access_control_policy_enforced": Object {
+                "name": <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute Based"
+                  id="admin.channel_list.attributed_based"
+                />,
+                "value": false,
+              },
               "exclude_group_constrained": Object {
                 "name": <Memo(MemoizedFormattedMessage)
                   defaultMessage="Manual Invites"
@@ -968,10 +1036,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Manual Invites"
-                id="admin.channel_settings.channel_row.managementMethod.manual"
-              />
+              <span
+                className="group-indicator channel-indicator channel-indicator--larger"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Manual Invites"
+                  id="admin.channel_settings.channel_row.managementMethod.manual"
+                />
+              </span>
             </span>,
             "name": <span
               className="group-name overflow--ellipsis row-content"

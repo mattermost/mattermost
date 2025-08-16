@@ -51,7 +51,7 @@ jobs:
           level: ${{ inputs.semver_bump }}
 
       - name: release/create-annotated-tag
-        uses: mattermost/actions/delivery/create-tag@93502485eec8db2fd67b54c71a02462e06d0fa46
+        uses: mattermost/actions/delivery/create-tag@d5174b860704729f4c14ef8489ae075742bfa08a
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

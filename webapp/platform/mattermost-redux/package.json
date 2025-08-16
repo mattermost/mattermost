@@ -1,6 +1,6 @@
 {
   "name": "mattermost-redux",
-  "version": "10.6.0",
+  "version": "10.11.0",
   "description": "Common code (API client, Redux stores, logic, utility functions) for building a Mattermost client",
   "keywords": [
     "mattermost"
@@ -12,10 +12,18 @@
     "lib"
   ],
   "exports": {
-    "./*": [
-      "./lib/*/index.js",
-      "./lib/*.js"
-    ]
+    "./action_types": "./lib/action_types/index.js",
+    "./actions": "./lib/actions/index.js",
+    "./client": "./lib/client/index.js",
+    "./constants": "./lib/constants/index.js",
+    "./reducers": "./lib/reducers/index.js",
+    "./reducers/entities": "./lib/reducers/entities/index.js",
+    "./reducers/entities/threads": "./lib/reducers/entities/threads/index.js",
+    "./reducers/errors": "./lib/reducers/errors/index.js",
+    "./reducers/requests": "./lib/reducers/requests/index.js",
+    "./selectors/create_selector": "./lib/selectors/create_selector/index.js",
+    "./store": "./lib/store/index.js",
+    "./*": "./lib/*.js"
   },
   "typesVersions": {
     ">=3.1": {
@@ -31,8 +39,8 @@
     "directory": "webapp/platform/mattermost-redux"
   },
   "dependencies": {
-    "@mattermost/client": "10.6.0",
-    "@mattermost/types": "10.6.0",
+    "@mattermost/client": "10.11.0",
+    "@mattermost/types": "10.11.0",
     "@redux-devtools/extension": "^3.2.3",
     "lodash": "^4.17.21",
     "moment-timezone": "^0.5.38",

@@ -15,6 +15,7 @@ import (
 )
 
 func TestGetJob(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -36,15 +37,11 @@ func TestGetJob(t *testing.T) {
 }
 
 func TestSessionHasPermissionToCreateJob(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
 	jobs := []model.Job{
-		{
-			Id:       model.NewId(),
-			Type:     model.JobTypeBlevePostIndexing,
-			CreateAt: 1000,
-		},
 		{
 			Id:       model.NewId(),
 			Type:     model.JobTypeDataRetention,
@@ -63,14 +60,10 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 	}{
 		{
 			Job:                jobs[0],
-			PermissionRequired: model.PermissionCreatePostBleveIndexesJob,
-		},
-		{
-			Job:                jobs[1],
 			PermissionRequired: model.PermissionCreateDataRetentionJob,
 		},
 		{
-			Job:                jobs[2],
+			Job:                jobs[1],
 			PermissionRequired: model.PermissionCreateComplianceExportJob,
 		},
 	}
@@ -102,24 +95,10 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 	ctx := sqlstore.WithMaster(context.Background())
 	role, _ := th.App.GetRoleByName(ctx, model.SystemReadOnlyAdminRoleId)
 
-	role.Permissions = append(role.Permissions, model.PermissionCreatePostBleveIndexesJob.Id)
-
-	_, err := th.App.UpdateRole(role)
-	require.Nil(t, err)
-
-	// Now system read only admin should have ability to create a Belve Post Index job but not the others
-	for _, testCase := range testCases {
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(session, &testCase.Job)
-		expectedHasPermission := testCase.Job.Type == model.JobTypeBlevePostIndexing
-		assert.Equal(t, expectedHasPermission, hasPermission)
-		require.NotNil(t, permissionRequired)
-		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
-	}
-
 	role.Permissions = append(role.Permissions, model.PermissionCreateDataRetentionJob.Id)
 	role.Permissions = append(role.Permissions, model.PermissionCreateComplianceExportJob.Id)
 
-	_, err = th.App.UpdateRole(role)
+	_, err := th.App.UpdateRole(role)
 	require.Nil(t, err)
 
 	// Now system read only admin should have ability to create all jobs
@@ -132,6 +111,7 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 }
 
 func TestSessionHasPermissionToReadJob(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -217,6 +197,7 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 }
 
 func TestGetJobByType(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -249,19 +230,20 @@ func TestGetJobByType(t *testing.T) {
 		}()
 	}
 
-	received, err := th.App.GetJobsByType(th.Context, jobType, 0, 2)
+	received, err := th.App.GetJobsByTypePage(th.Context, jobType, 0, 2)
 	require.Nil(t, err)
 	require.Len(t, received, 2, "received wrong number of statuses")
 	require.Equal(t, statuses[2], received[0], "should've received newest job first")
 	require.Equal(t, statuses[0], received[1], "should've received second newest job second")
 
-	received, err = th.App.GetJobsByType(th.Context, jobType, 2, 2)
+	received, err = th.App.GetJobsByTypePage(th.Context, jobType, 1, 2)
 	require.Nil(t, err)
 	require.Len(t, received, 1, "received wrong number of statuses")
 	require.Equal(t, statuses[1], received[0], "should've received oldest job last")
 }
 
 func TestGetJobsByTypes(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -297,19 +279,19 @@ func TestGetJobsByTypes(t *testing.T) {
 	}
 
 	jobTypes := []string{jobType, jobType1, jobType2}
-	received, err := th.App.GetJobsByTypes(th.Context, jobTypes, 0, 2)
+	received, err := th.App.GetJobsByTypesPage(th.Context, jobTypes, 0, 2)
 	require.Nil(t, err)
 	require.Len(t, received, 2, "received wrong number of jobs")
 	require.Equal(t, statuses[2], received[0], "should've received newest job first")
 	require.Equal(t, statuses[0], received[1], "should've received second newest job second")
 
-	received, err = th.App.GetJobsByTypes(th.Context, jobTypes, 2, 2)
+	received, err = th.App.GetJobsByTypesPage(th.Context, jobTypes, 1, 2)
 	require.Nil(t, err)
 	require.Len(t, received, 1, "received wrong number of jobs")
 	require.Equal(t, statuses[1], received[0], "should've received oldest job last")
 
 	jobTypes = []string{jobType1, jobType2}
-	received, err = th.App.GetJobsByTypes(th.Context, jobTypes, 0, 3)
+	received, err = th.App.GetJobsByTypesPage(th.Context, jobTypes, 0, 3)
 	require.Nil(t, err)
 	require.Len(t, received, 2, "received wrong number of jobs")
 	require.Equal(t, statuses[2], received[0], "received wrong job type")

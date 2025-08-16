@@ -20,8 +20,6 @@ import {
     updateSearchTermsForShortcut,
     showSearchResults,
     showChannelFiles,
-    showMentions,
-    showFlaggedPosts,
     closeRightHandSide,
     updateRhsState,
     setRhsExpanded,
@@ -48,7 +46,6 @@ function mapStateToProps(state: GlobalState) {
     return {
         currentChannel,
         isRhsExpanded: getIsRhsExpanded(state),
-        isRhsOpen,
         isSearchingTerm: getIsSearchingTerm(state),
         searchTerms: getSearchTerms(state),
         searchTeam: getSearchTeam(state),
@@ -70,8 +67,8 @@ function mapStateToProps(state: GlobalState) {
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
-    const autocompleteChannels = (term: string, teamId: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void): void => {
-        autocompleteChannelsForSearch(term, success, error);
+    const autocompleteChannels = (term: string, teamId: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => {
+        return autocompleteChannelsForSearch(term, success, error);
     };
 
     return {
@@ -82,8 +79,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
             updateSearchType,
             showSearchResults,
             showChannelFiles,
-            showMentions,
-            showFlaggedPosts,
             setRhsExpanded,
             closeRightHandSide,
             autocompleteChannelsForSearch: autocompleteChannels,

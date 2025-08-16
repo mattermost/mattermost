@@ -59,6 +59,7 @@ import LocalStorageStore from 'stores/local_storage_store';
 import {getHistory} from 'utils/browser_history';
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Constants, ActionTypes, EventTypes, PostRequestTypes} from 'utils/constants';
+import {stopTryNotificationRing} from 'utils/notification_sounds';
 
 import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 
@@ -524,17 +525,31 @@ export function updateToastStatus(status: boolean) {
 
 export function deleteChannel(channelId: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
+        // Get state before deletion
+        const state = getState();
+        const channel = getChannel(state, channelId);
+
+        // Validate channel ID
+        if (!channel || channel.id.length !== Constants.CHANNEL_ID_LENGTH) {
+            return {data: false};
+        }
+
+        // Call the delete channel action
         const res = await dispatch(deleteChannelRedux(channelId));
         if (res.error) {
             return {data: false};
         }
-        const state = getState();
 
-        const selectedPost = getSelectedPost(state);
-        const selectedPostId = getSelectedPostId(state);
+        // Handle RHS state
+        const updatedState = getState();
+        const selectedPost = getSelectedPost(updatedState);
+        const selectedPostId = getSelectedPostId(updatedState);
         if (selectedPostId && !selectedPost.exists) {
             dispatch(closeRightHandSide());
         }
+
+        // Stop notification sounds
+        stopTryNotificationRing();
 
         return {data: true};
     };

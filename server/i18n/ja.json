@@ -208,10 +208,6 @@
     "translation": "ダイレクトメッセージチャンネルから脱退することはできません。"
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "あなたが最後のメンバーです。脱退する代わりに非公開チャンネルを削除しましょう。"
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v がチャンネルから脱退しました。"
   },
@@ -1327,15 +1323,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "チャンネルに{{.Users}}以上のユーザーがいるため@allは無効化されています。"
+    "translation": "{{.Users}}以上のユーザーがいるチャンネルでは@allは無効化されます。詳細についてはシステム管理者に問い合わせてください。"
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "チャンネルに{{.Users}}以上のユーザーがいるため@channelは無効化されています。"
+    "translation": "{{.Users}}以上のユーザーがいるチャンネルでは@channelは無効化されます。詳細についてはシステム管理者に問い合わせてください。"
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "チャンネルに{{.Users}}以上のユーザーがいるため@hereは無効化されています。"
+    "translation": "{{.Users}}以上のユーザーがいるチャンネルでは@hereが無効化されます。詳細についてはシステム管理者に問い合わせてください。"
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -4595,15 +4591,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 119+"
+    "translation": "Version 128+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 132+"
+    "translation": "Version 134+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -4656,10 +4652,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "最新のChromeブラウザを取得してください"
-  },
-  {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Bleve インデックスの破棄中にエラーが発生しました: エンジンが無効化されています"
   },
   {
     "id": "plugin_api.bot_cant_create_bot",
@@ -4770,18 +4762,6 @@
     "translation": "{{.Autocomplete}}が有効の場合、{{.EnableIndexing}}も有効でなくてはなりません"
   },
   {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Bleve インデックスを有効化する場合は Bleve IndexingDir を設定しなければなりません"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Bleve 検索有効化設定が有効に設定されている場合、Bleveインデックス有効化設定は有効でなければなりません"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Bleve 自動補完が有効に設定されている場合、Bleve インデックス有効化設定は有効でなければなりません"
-  },
-  {
     "id": "model.command.is_valid.autocomplete_data.app_error",
     "translation": "無効な AutocompleteData です"
   },
@@ -4880,122 +4860,6 @@
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "チャンネルの{{.Backend}}テンプレートを作成できませんでした"
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "ユーザーインデックスを閉じることができませんでした。"
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "投稿インデックスを閉じることができませんでした。"
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "チャンネルインデックスを閉じることができませんでした。"
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "ユーザー検索を完了できませんでした。"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "ユーザー検索を完了できませんでした。"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "ユーザー検索を完了できませんでした。"
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "投稿検索を完了できませんでした。"
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "チャンネル検索を完了できませんでした。"
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "ユーザーインデックスを破棄できませんでした。"
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "投稿インデックスを破棄できませんでした。"
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "チャンネルインデックスを破棄できませんでした。"
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "すべてのエンティティが完了した際に、新しいバッチへのインデックス付与が行われます。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Bleveインデックス付与ワーカーが開始時刻を解析できませんでした。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Bleveインデックス付与ワーカーが終了時刻を解析できませんでした。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "最も古いエンティティ(ユーザー、チャンネル、投稿)をデータベースから取得できませんでした。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Bleveによるインデックス付与ジョブを実行できませんでした: エンジンが無効化されています。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "ユーザーバッチにインデックスを付与できませんでした。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "投稿バッチにインデックスを付与できませんでした。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "チャンネルバッチにインデックスを付与できませんでした。"
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "ユーザーにインデックスを付与できませんでした。"
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "投稿にインデックスを付与できませんでした。"
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "チャンネルにインデックスを付与できませんでした。"
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "ユーザーを削除できませんでした。"
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "投稿を削除できませんでした。"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "チャンネルを削除できませんでした。"
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Bleveによるユーザーインデックスの作成中にエラーが発生しました。"
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Bleveによる投稿インデックスの作成中にエラーが発生しました。"
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Bleveによるチャンネルインデックスの作成中にエラーが発生しました。"
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleveは既に起動しています。"
   },
   {
     "id": "app.user_terms_of_service.save.app_error",
@@ -5124,10 +4988,6 @@
   {
     "id": "app.plugin.get_public_key.get_file.app_error",
     "translation": "ストアから公開鍵を取得する際にエラーが発生しました。"
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "ファイルストアで管理されているプラグインを設定できませんでした。"
   },
   {
     "id": "app.plugin.delete_public_key.delete.app_error",
@@ -5666,16 +5526,8 @@
     "translation": "クラスターのレスポンスがタイムアウトしました"
   },
   {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "チャンネル投稿を削除できませんでした"
-  },
-  {
     "id": "ent.cluster.json_encode.error",
     "translation": "JSONリクエストを変換する際にエラーが発生しました"
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "ユーザー投稿を削除できませんでした"
   },
   {
     "id": "app.scheme.delete.app_error",
@@ -6854,10 +6706,6 @@
     "translation": "チャンネルのメンバーを取得できませんでした。"
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "インデックス付与のためのチャンネルのバッチ処理を取得できませんでした。"
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "与えられたスキームにおけるチャンネルを取得できませんでした。"
   },
@@ -6892,10 +6740,6 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "チャンネルへの投稿を取得できませんでした。"
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "インデックス付与のための投稿のバッチ処理を取得できませんでした。"
   },
   {
     "id": "app.post.get_posts.app_error",
@@ -7270,42 +7114,6 @@
     "translation": "ファイルに対する{{.Backend}}テンプレートを作成できませんでした"
   },
   {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "ファイルインデックスを閉じることができませんでした。"
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "ファイル検索を完了できませんでした。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "ファイルバッチにインデックスを付与できませんでした。"
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "ファイルにインデックスを付与できませんでした。"
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "ユーザーのファイルを削除できませんでした。"
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "投稿のファイルを削除できませんでした。"
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "ファイルを削除できませんでした。"
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "ファイルを削除できませんでした。"
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Bleveファイルインデックスを作成する際にエラーが発生しました。"
-  },
-  {
     "id": "api.user.get_authorization_code.endpoint.app_error",
     "translation": "Discovery Documentからエンドポイントを取り出す際にエラーが発生しました。"
   },
@@ -7370,10 +7178,6 @@
     "translation": "getThreadsForUser に対する Before と After のパラメータが矛盾しています"
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "バックエンドからファイルを読み出す際にエラーが発生しました"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "Zipファイル作成時にエラーが発生しました。"
   },
@@ -7388,14 +7192,6 @@
   {
     "id": "model.config.is_valid.export.directory.app_error",
     "translation": "ディレクトリに対する値を入力してください。"
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "ファイルインデックスを破棄できませんでした。"
-  },
-  {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "インデックス付与中にファイルを一括取得できませんでした。"
   },
   {
     "id": "app.export.export_attachment.zip_create_header.error",
@@ -7775,7 +7571,7 @@
   },
   {
     "id": "api.command_share.share_read_only.help",
-    "translation": "チャンネルは読取専用モードで共有されます"
+    "translation": "チャンネルは読み取り専用モードで共有されます"
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -8191,7 +7987,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "新しいトライアルライセンスを適用できませんでした。あなたは、以前このMattermostインスタンスにトライアルライセンスを適用したことがあります。トライアル期間の延長をご希望の場合は[営業までご連絡ください](https://mattermost.com/contact-us/)。"
+    "translation": "すでにワークスペースにトライアルライセンスが適用されているため、新しいトライアルライセンスを適用できませんでした。トライアル期間の延長をご希望の場合は[営業までご連絡ください](https://mattermost.com/contact-us/)。"
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -8444,10 +8240,6 @@
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
     "translation": "検索の Bulk Indexing Batch Sizeは{{.BatchSize}}以上である必要があります。"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Bleve Bulk Indexing Batch Sizeは{{.BatchSize}}以上である必要があります。"
   },
   {
     "id": "app.channel.get_file_count.app_error",
@@ -9671,11 +9463,7 @@
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "ユーザーを有効化できません。安全なユーザー数を超えています。ERROR_SAFETY_LIMITS_EXCEEDEDについて管理者に連絡してください。"
-  },
-  {
-    "id": "bleveengine.purge_list.not_implemented",
-    "translation": "リスト破棄機能はBleveでは利用できません。"
+    "translation": "ユーザーを有効化できません。安全なユーザー数を超えています: ERROR_SAFETY_LIMITS_EXCEEDED。"
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
@@ -10394,10 +10182,6 @@
     "translation": "チャンネルブックマークのソート順を更新できませんでした。"
   },
   {
-    "id": "api.custom_profile_attributes.field_not_found",
-    "translation": "存在しないフィールドにパッチを当てようとしています"
-  },
-  {
     "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
     "translation": "アーカイブされたチャンネルのブックマークを取得できませんでした"
   },
@@ -10448,5 +10232,497 @@
   {
     "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
     "translation": "チャンネルバナー情報テキストが長すぎます。最大長は{{.maxLength}}文字です。"
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "無効なカスタムプロフィール属性フィールドのパッチ"
+  },
+  {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "ログイン試行回数のリセットに失敗しました。"
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "ユーザー取得に失敗しました。"
+  },
+  {
+    "id": "license_error.feature_unavailable",
+    "translation": "この機能は現在のライセンスでは利用できません"
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "パスワードの試行回数が多すぎるため、アカウントがロックされました。システム管理者に連絡してください。"
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "ユーザ認証サービスはLDAP または電子メールでなければなりません。"
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "このリソースを更新する権限がありません。"
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "ユーザーの下書きを削除できません。"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "プロパティフィールドをカスタムプロフィール属性フィールドに変換できません"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "無効なプロパティ値属性 : {{.AttributeName}} ({{.Reason}})。"
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "LDAPライセンスが必要です。"
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "無効なポリシーIDです。"
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "ポリシーのインポートが無効です。"
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "ポリシーの名前が無効です。"
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "ポリシーのリビジョンが無効です。"
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "ルールは無効です。"
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "ポリシーはルールをインポートするか定義しなければなりません。"
+  },
+  {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "ユーザーのカスタムプロフィール属性の値を削除できません"
+  },
+  {
+    "id": "app.custom_profile_attributes.validate_value.app_error",
+    "translation": "プロパティ値を検証できませんでした"
+  },
+  {
+    "id": "ent.ldap.cpa_field_mapping.list_error",
+    "translation": "CPAフィールドを取得できませんでした"
+  },
+  {
+    "id": "ent.saml.cpa_field_mapping.list_error",
+    "translation": "CPAフィールドを取得できませんでした"
+  },
+  {
+    "id": "ent.saml.update_cpa.empty_attribute_statement",
+    "translation": "SAMLアサーション属性文が不正です"
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "証明書を追加できませんでした。"
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "リクエスト内の'certificate'のファイルが多すぎます。"
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "証明書を削除できませんでした。"
+  },
+  {
+    "id": "app.import.profile_image.open.app_error",
+    "translation": "プロフィール画像ファイルを開けませんでした: {{.FileName}}"
+  },
+  {
+    "id": "app.import.profile_image.read_data.app_error",
+    "translation": "プロフィール画像データを読み込めませんでした。"
+  },
+  {
+    "id": "app.submit_interactive_dialog.decode_json_error",
+    "translation": "インタラクティブダイアログ送信情報のJSONレスポンスをデコードする際にエラーが発生しました。"
+  },
+  {
+    "id": "app.submit_interactive_dialog.read_body_error",
+    "translation": "インタラクティブダイアログ送信情報のレスポンスボディを読み取る際にエラーが発生しました。"
+  },
+  {
+    "id": "ent.ldap.update_cpa.empty_attribute",
+    "translation": "空のLDAP属性値です"
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_id",
+    "translation": "不正なAD/LDAP Idです"
+  },
+  {
+    "id": "ent.ldap_groups.invalid_ldap_id",
+    "translation": "不正なAD/LDAP Idです"
+  },
+  {
+    "id": "web.incoming_webhook.parse_form.app_error",
+    "translation": "ウェブフック {{.hook_id}} のフォームを解析できませんでした。"
+  },
+  {
+    "id": "web.incoming_webhook.parse_multipart.app_error",
+    "translation": "ウェブフック {{.hook_id}} のマルチパートフォームを解析できませんでした。"
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "このアクセスコントロールポリシーではバージョンは無効です。"
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "不正なポリシー種別です。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
+    "translation": "GlobalSearchPrefixが設定されている場合、IndexPrefixを空にできません。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
+    "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} は IndexPrefix {{.IndexPrefix}} の接頭辞となるはずです。"
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "LDAP設定の最大ログイン試行回数が不正です。正の数でなくてはなりません。"
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "月間アクティブユーザーを計算できませんでした。"
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "SAML ユーザと一致するユーザが AD/LDAP サーバに登録されていません。"
+  },
+  {
+    "id": "license_error.feature_unavailable.specific",
+    "translation": "{{.Feature}} 機能は現在のライセンスでは利用できません"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
+    "translation": "不正な問題報告リンクです。http://もしくはhttps://で始まる有効なURLでなければなりません。"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
+    "translation": "問題報告リンクは必須です。"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
+    "translation": "不正な問題報告用メールアドレスです。有効な電子メールアドレスでなければなりません。"
+  },
+  {
+    "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
+    "translation": "問題報告用メールアドレスは必須です。"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "同期されたカスタムプロフィール属性のフィールドの値を更新できません"
+  },
+  {
+    "id": "app.import.validate_attachment_import_data.invalid_path.error",
+    "translation": "添付インポートデータを検証できませんでした。不正なパス: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.attachment.error",
+    "translation": "ダイレクト投稿の添付データを検証できませんでした。"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.attachment.error",
+    "translation": "返信添付データを検証できませんでした。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.attachment.error",
+    "translation": "投稿添付データを検証できませんでした。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.invalid_image_path.error",
+    "translation": "ユーザープロフィール画像パスが不正です: \"{{.Path}}\""
+  },
+  {
+    "id": "ent.access_control.job_data_conversion.app_error",
+    "translation": "以前のジョブからデータを抽出できませんでした。"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "不正なチャンネルメンバーの更新: チャンネルメンバーは常にユーザースキームが必要です。"
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "不正なチームメンバーの更新: チームメンバーには常にユーザースキームが必要です。"
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
+    "translation": "インポート絵文字画像フィールドのパスが不正です: \"{{.Path}}\""
+  },
+  {
+    "id": "app.pap.init.app_error",
+    "translation": "アクセス制御サービスを初期化できませんでした。"
+  },
+  {
+    "id": "app.pap.is_ready.app_error",
+    "translation": "アクセス制御サービスの準備ができていません。"
+  },
+  {
+    "id": "app.pap.update_access_control_policy_active.app_error",
+    "translation": "アクセス制御ポリシーの有効化状況を変更できませんでした。"
+  },
+  {
+    "id": "app.pdp.access_evaluation.app_error",
+    "translation": "アクセス制御ポリシーを評価できませんでした。"
+  },
+  {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "{{.Setting}}の先頭または末尾に空白が検出されました。\"{{.Value}}\"が見つかりました。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "監査ログ設定の最大ファイルキューは0より大きい値でなくてはなりません。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "監査ログ設定の最大ファイルサイズは0より大きな値でなくてはなりません。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "監査ファイルロギングが有効な場合、ファイル名を指定しなければなりません。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "ファイル名はディレクトリであってはなりません。"
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "ファイルをアップロードできませんでした。アップロードチャンネルがリモートと共有されていません。"
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "アクセスコントロールサービスは利用できません。ABACが有効化されたチャンネルのユーザーはフィルタリングできません。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.thread_follower.error",
+    "translation": "投稿スレッドフォロワーのデータを検証できませんでした。"
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.empty.error",
+    "translation": "インポートフォロワーデータが空です。"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.thread_follower.error",
+    "translation": "ダイレクト投稿のスレッドフォロワーのデータを検証できませんでした。"
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.user_missing.error",
+    "translation": "必須のフォロワープロパティーがありません: user。"
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.reasons_not_set.app_error",
+    "translation": "フラグする理由を空にすることはできません。"
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_target",
+    "translation": "不正なフラグイベントターゲットが指定されました。"
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
+    "translation": "新しいフラグ付き投稿の通知は、レビュワーに対して無効に設定することはできません。"
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_event",
+    "translation": "不正なフラグイベントが指定されました。"
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "チャンネル取得のlimitが不正です。"
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "フィールド取得のlimitが不正です。"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "ユーザーはチャンネルに参加するために必要な属性を持っていません。"
+  },
+  {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "ポリシーが強制されたチャンネルは更新できません。"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "OnSamlLoginフックでエラーが発生しました。システム管理者に問い合わせてください。"
+  },
+  {
+    "id": "app.channel.get.app_error",
+    "translation": "チャネルを取得できませんでした。"
+  },
+  {
+    "id": "app.group.user_not_found",
+    "translation": "グループ更新エラー。ユーザー名 \"{{.Username}}\" のユーザーが見つかりません。"
+  },
+  {
+    "id": "app.pap.check_expression.app_error",
+    "translation": "式をチェックできませんでした。"
+  },
+  {
+    "id": "app.pap.create_access_control_policy.app_error",
+    "translation": "アクセス制御ポリシーを作成できませんでした。"
+  },
+  {
+    "id": "app.pap.get_access_control_auto_complete.app_error",
+    "translation": "アクセス制御の自動補完を取得できませんでした。"
+  },
+  {
+    "id": "app.pap.get_all_access_control_policies.app_error",
+    "translation": "アクセス制御ポリシーを取得できませんでした。"
+  },
+  {
+    "id": "app.pap.delete_access_control_policy.app_error",
+    "translation": "アクセス制御ポリシーを削除できませんでした。"
+  },
+  {
+    "id": "app.pap.delete_policy.app_error",
+    "translation": "アクセス制御ポリシーを削除できませんでした。"
+  },
+  {
+    "id": "app.pap.expression_to_visual_ast.app_error",
+    "translation": "式から視覚的なASTを生成することができませんでした。"
+  },
+  {
+    "id": "app.pap.save_policy.app_error",
+    "translation": "アクセス制御ポリシーを保存できませんでした。"
+  },
+  {
+    "id": "app.pap.missing_attribute.app_error",
+    "translation": "式に属性が足りません。"
+  },
+  {
+    "id": "app.pap.query_expression.app_error",
+    "translation": "式を問い合わせることができませんでした。"
+  },
+  {
+    "id": "app.pap.normalize_policy.app_error",
+    "translation": "ポリシーの式を正規化できませんでした。"
+  },
+  {
+    "id": "app.pap.search_access_control_policies.app_error",
+    "translation": "アクセス制御ポリシーを検索できませんでした。"
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
+    "translation": "チャンネルからアクセス制御ポリシーの割り当てを解除することができませんでした。"
+  },
+  {
+    "id": "model.access_policy.inherit.version.app_error",
+    "translation": "アクセス制御ポリシーを継承できませんでした。"
+  },
+  {
+    "id": "ent.access_control.sync_job.app_error",
+    "translation": "アクセス制御同期ジョブを実行できませんでした。"
+  },
+  {
+    "id": "app.cloud.preview_modal_bucket_url_not_configured",
+    "translation": "Bucket URLのプレビューは設定されていません"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "プレビューモーダルのデータを取得できませんでした"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_parse_error",
+    "translation": "プレビューモーダルのデータを解析できませんでした"
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
+    "translation": "チームの設定が\"有効\"の場合、チームレビュワーまたは追加のレビュワーを設定しなくてはなりません。"
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
+    "translation": "\"すべてのチームで同じレビュワー\"が有効な場合、共通のレビュワーまたは追加のレビュワーが追加されていなくてはなりません。"
+  },
+  {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "ユーザーを作成できません。サーバーが最大ライセンスユーザーを超えています。システム管理者に次のエラーについて連絡してください: ERROR_LICENSED_USERS_LIMIT_EXCEEDED。"
+  },
+  {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "確認オブジェクトを一括保存できませんでした"
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "存在しない投稿の確認は削除できません"
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "存在しない投稿の確認を保存できません"
+  },
+  {
+    "id": "app.pap.get_channel_access_control_attributes.app_error",
+    "translation": "チャンネルの属性を取得できませんでした。"
+  },
+  {
+    "id": "app.pap.get_channel_members_to_remove.app_error",
+    "translation": "チャンネルメンバーを削除できませんでした。"
+  },
+  {
+    "id": "app.pap.get_policy.app_error",
+    "translation": "アクセス制御ポリシーを取得できませんでした。"
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_channels.app_error",
+    "translation": "チャンネルにアクセス制御ポリシーを割り当てられませんでした。"
+  },
+  {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "ユーザーを有効化できません。サーバーが最大ライセンスユーザー数を超えています。ERROR_LICENSED_USERS_LIMIT_EXCEEDED。"
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "不正なchannel idです。"
+  },
+  {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "グループ同期可能なメンバーシップを作成できませんでした。"
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "不正なグループ同期可能なメンバーシップを削除できませんでした。"
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "不正なテストタイプ: {{.TestType}}"
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "リモートクラスターのインポートは許可されていません"
+  },
+  {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "LDAP接続テストに失敗しました。Server: {{.Server}}:{{.Port}}、接続セキュリティ: {{.ConnectionType}}、秘密鍵ファイル名: {{.PrivateKeyFilename}}、公開証明書ファイル名: {{.PublicCertFilename}}、バインドユーザー名: {{.BindUsername}}。エラー: {{.Error}}"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
+    "translation": "チャンネルバナーの色は有効な16新数カラーでなくてはなりません(例, #FF0000 または #F00)"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "監査ログ設定の最長ファイル保持日数は負の値であってはなりません。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "監査ログ設定の最大ファイルバックアップ数は負の値であってはなりません。"
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "ユーザー属性に基づくアクセス制限が設定されているため、このチャンネルにゲストユーザーは招待できません。"
+  },
+  {
+    "id": "app.pap.get_policy_attributes.app_error",
+    "translation": "ポリシーの属性を取得できませんでした。"
+  },
+  {
+    "id": "api.command_share.service_inactive",
+    "translation": "チャンネル共有サービスが有効ですが、アクティブではありません。"
   }
 ]

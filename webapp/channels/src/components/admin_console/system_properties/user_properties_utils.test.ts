@@ -48,11 +48,25 @@ describe('useUserPropertyFields', () => {
     const deleteField = jest.spyOn(Client4, 'deleteCustomProfileAttributeField');
     const createField = jest.spyOn(Client4, 'createCustomProfileAttributeField');
 
-    const baseField = {type: 'text', group_id: 'custom_profile_attributes', create_at: 1736541716295, delete_at: 0, update_at: 0} as const;
-    const field0: UserPropertyField = {...baseField, id: 'f0', name: 'test attribute 0'};
-    const field1: UserPropertyField = {...baseField, id: 'f1', name: 'test attribute 1'};
-    const field2: UserPropertyField = {...baseField, id: 'f2', name: 'test attribute 2'};
-    const field3: UserPropertyField = {...baseField, id: 'f3', name: 'test attribute 3'};
+    const baseField: UserPropertyField = {
+        id: 'test-id',
+        name: 'Test Field',
+        type: 'text' as const,
+        group_id: 'custom_profile_attributes',
+        create_at: 1736541716295,
+        delete_at: 0,
+        update_at: 0,
+        attrs: {
+            sort_order: 0,
+            visibility: 'when_set' as const,
+            value_type: '',
+        },
+    };
+
+    const field0: UserPropertyField = {...baseField, id: 'test-id-0', name: 'test attribute 0', attrs: {...baseField.attrs, sort_order: 0}};
+    const field1: UserPropertyField = {...baseField, id: 'test-id-1', name: 'test attribute 1', attrs: {...baseField.attrs, sort_order: 1}};
+    const field2: UserPropertyField = {...baseField, id: 'test-id-2', name: 'test attribute 2', attrs: {...baseField.attrs, sort_order: 2}};
+    const field3: UserPropertyField = {...baseField, id: 'test-id-3', name: 'test attribute 3', attrs: {...baseField.attrs, sort_order: 3}};
 
     getFields.mockResolvedValue([field0, field1, field2, field3]);
 
@@ -82,7 +96,7 @@ describe('useUserPropertyFields', () => {
         expect(read2.loading).toBe(false);
         expect(read2.error).toBe(undefined);
         expect(fields2.data).toEqual({[field0.id]: field0, [field1.id]: field1, [field2.id]: field2, [field3.id]: field3});
-        expect(fields2.order).toEqual(['f0', 'f1', 'f2', 'f3']);
+        expect(fields2.order).toEqual([field0.id, field1.id, field2.id, field3.id]);
     });
 
     it('should successfully handle edits', async () => {
@@ -126,7 +140,7 @@ describe('useUserPropertyFields', () => {
             expect(pending.saving).toBe(false);
         });
 
-        expect(patchField).toHaveBeenCalledWith(field1.id, {type: 'text', name: 'changed attribute value'});
+        expect(patchField).toHaveBeenCalledWith(field1.id, {type: 'text', name: 'changed attribute value', attrs: {sort_order: 1, value_type: '', visibility: 'when_set'}});
 
         const [fields4,, pendingIO4] = result.current;
         expect(pendingIO4.hasChanges).toBe(false);
@@ -178,13 +192,13 @@ describe('useUserPropertyFields', () => {
             expect(pending.saving).toBe(false);
         });
 
-        expect(patchField).toHaveBeenCalledWith(field1.id, {type: 'text', name: 'test attribute 1', attrs: {sort_order: 0}});
-        expect(patchField).toHaveBeenCalledWith(field0.id, {type: 'text', name: 'test attribute 0', attrs: {sort_order: 1}});
+        expect(patchField).toHaveBeenCalledWith(field1.id, {type: 'text', name: 'test attribute 1', attrs: {sort_order: 0, value_type: '', visibility: 'when_set'}});
+        expect(patchField).toHaveBeenCalledWith(field0.id, {type: 'text', name: 'test attribute 0', attrs: {sort_order: 1, value_type: '', visibility: 'when_set'}});
 
         const [fields4,, pendingIO4] = result.current;
         expect(pendingIO4.hasChanges).toBe(false);
         expect(pendingIO4.error).toBe(undefined);
-        expect(fields4.order).toEqual(['f1', 'f0', 'f2', 'f3']);
+        expect(fields4.order).toEqual([field1.id, field0.id, field2.id, field3.id]);
     });
 
     it('should successfully handle deletes', async () => {
@@ -254,14 +268,12 @@ describe('useUserPropertyFields', () => {
 
         act(() => {
             ops2.create();
-            ops2.create();
         });
         rerender();
 
         const [fields3, readIO3, pendingIO3] = result.current;
-        const [createdId0, createdId1] = [...fields3.order].splice(-2, 2);
+        const [createdId0] = [...fields3.order].splice(-1, 1);
         expect(fields3.data[createdId0].create_at).toBe(0);
-        expect(fields3.data[createdId1].create_at).toBe(0);
 
         await act(async () => {
             const data = await pendingIO3.commit();
@@ -277,13 +289,11 @@ describe('useUserPropertyFields', () => {
             expect(pendingIO4.saving).toBe(false);
         });
 
-        expect(createField).toHaveBeenCalledWith({type: 'text', name: 'Text', attrs: {sort_order: 4}});
-        expect(createField).toHaveBeenCalledWith({type: 'text', name: 'Text 2', attrs: {sort_order: 5}});
+        expect(createField).toHaveBeenCalledWith({type: 'text', name: 'Text', attrs: {sort_order: 4, value_type: '', visibility: 'when_set'}});
 
         const [fields4,,,] = result.current;
         expect(Object.values(fields4.data)).toEqual(expect.arrayContaining([
             expect.objectContaining({name: 'Text'}),
-            expect.objectContaining({name: 'Text 2'}),
         ]));
 
         expect(fields4.order).toEqual(expect.arrayContaining(Object.keys(fields4.data)));

@@ -47,6 +47,7 @@ var testData []model.ReportableObject = []model.ReportableObject{
 }
 
 func TestSaveReportChunk(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -69,6 +70,7 @@ func TestSaveReportChunk(t *testing.T) {
 }
 
 func TestCompileReportChunks(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -89,8 +91,7 @@ func TestCompileReportChunks(t *testing.T) {
 		require.Nil(t, readErr)
 		require.NotNil(t, bytes)
 
-		expected :=
-			`Name,NumPosts,StartDate
+		expected := `Name,NumPosts,StartDate
 some-name,400,2024-01-01
 some-other-name,500,2023-01-01
 some-other-other-name,600,2022-01-01
@@ -110,6 +111,7 @@ some-other-other-name,600,2022-01-01
 }
 
 func TestCheckForExistingJobs(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

@@ -33,8 +33,8 @@ type Bot struct {
 	DeleteAt       int64  `json:"delete_at"`
 }
 
-func (b *Bot) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (b *Bot) Auditable() map[string]any {
+	return map[string]any{
 		"user_id":          b.UserId,
 		"username":         b.Username,
 		"display_name":     b.DisplayName,
@@ -54,8 +54,8 @@ type BotPatch struct {
 	Description *string `json:"description"`
 }
 
-func (b *BotPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (b *BotPatch) Auditable() map[string]any {
+	return map[string]any{
 		"username":     b.Username,
 		"display_name": b.DisplayName,
 		"description":  b.Description,

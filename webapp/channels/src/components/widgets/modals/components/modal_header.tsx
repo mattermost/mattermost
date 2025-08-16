@@ -15,25 +15,25 @@ type Props = {
 function ModalHeader({id, title, subtitle, handleClose}: Props) {
     const intl = useIntl();
     return (
-        <header className='mm-modal-header'>
-            <h1
+        <div className='mm-modal-header'>
+            <h2
                 id={`mm-modal-header-${id}`}
                 className='mm-modal-header__title'
             >
-                {title}
-            </h1>
-            <div className='mm-modal-header__vertical-divider'/>
-            <p className='mm-modal-header__subtitle'>{subtitle}</p>
-            {handleClose && <div className='mm-modal-header__ctr'>
-                <button
-                    className='btn btn-icon'
-                    onClick={handleClose}
-                    aria-label={intl.formatMessage({id: 'modal.header_close', defaultMessage: 'Close'})}
-                >
-                    <i className='icon icon-close'/>
-                </button>
-            </div>}
-        </header>
+                <span>{title}</span>
+                <span className='mm-modal-header__vertical-divider'/>
+                <span className='mm-modal-header__subtitle'>{subtitle}</span>
+                {handleClose && <div className='mm-modal-header__ctr'>
+                    <button
+                        className='btn btn-icon'
+                        onClick={handleClose}
+                        aria-label={intl.formatMessage({id: 'modal.header_close', defaultMessage: 'Close'})}
+                    >
+                        <i className='icon icon-close'/>
+                    </button>
+                </div>}
+            </h2>
+        </div>
     );
 }
 export default ModalHeader;

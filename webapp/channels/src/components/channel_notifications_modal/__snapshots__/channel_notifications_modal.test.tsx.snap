@@ -35,11 +35,43 @@ Object {
           >
             <div
               class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
-              tabindex="0"
             >
               <div
                 class="modal-header"
               >
+                <div
+                  class="GenericModal__header__text_container"
+                >
+                  <div
+                    class="GenericModal__header"
+                  >
+                    <h1
+                      class="modal-title"
+                      id="genericModalLabel"
+                    >
+                      <div
+                        class="mm-modal-header"
+                      >
+                        <h2
+                          class="mm-modal-header__title"
+                          id="mm-modal-header-channelNotificationModalLabel"
+                        >
+                          <span>
+                            Notification Preferences
+                          </span>
+                          <span
+                            class="mm-modal-header__vertical-divider"
+                          />
+                          <span
+                            class="mm-modal-header__subtitle"
+                          >
+                            channel_display_name
+                          </span>
+                        </h2>
+                      </div>
+                    </h1>
+                  </div>
+                </div>
                 <button
                   aria-label="Close"
                   class="close"
@@ -56,37 +88,6 @@ Object {
                     Close
                   </span>
                 </button>
-                <div
-                  class="GenericModal__header__text_container"
-                >
-                  <div
-                    class="GenericModal__header"
-                  >
-                    <h1
-                      class="modal-title"
-                      id="genericModalLabel"
-                    >
-                      <header
-                        class="mm-modal-header"
-                      >
-                        <h1
-                          class="mm-modal-header__title"
-                          id="mm-modal-header-channelNotificationModalLabel"
-                        >
-                          Notification Preferences
-                        </h1>
-                        <div
-                          class="mm-modal-header__vertical-divider"
-                        />
-                        <p
-                          class="mm-modal-header__subtitle"
-                        >
-                          channel_display_name
-                        </p>
-                      </header>
-                    </h1>
-                  </div>
-                </div>
               </div>
               <div
                 class="modal-body"
@@ -517,11 +518,43 @@ Object {
           >
             <div
               class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
-              tabindex="0"
             >
               <div
                 class="modal-header"
               >
+                <div
+                  class="GenericModal__header__text_container"
+                >
+                  <div
+                    class="GenericModal__header"
+                  >
+                    <h1
+                      class="modal-title"
+                      id="genericModalLabel"
+                    >
+                      <div
+                        class="mm-modal-header"
+                      >
+                        <h2
+                          class="mm-modal-header__title"
+                          id="mm-modal-header-channelNotificationModalLabel"
+                        >
+                          <span>
+                            Notification Preferences
+                          </span>
+                          <span
+                            class="mm-modal-header__vertical-divider"
+                          />
+                          <span
+                            class="mm-modal-header__subtitle"
+                          >
+                            channel_display_name
+                          </span>
+                        </h2>
+                      </div>
+                    </h1>
+                  </div>
+                </div>
                 <button
                   aria-label="Close"
                   class="close"
@@ -538,37 +571,6 @@ Object {
                     Close
                   </span>
                 </button>
-                <div
-                  class="GenericModal__header__text_container"
-                >
-                  <div
-                    class="GenericModal__header"
-                  >
-                    <h1
-                      class="modal-title"
-                      id="genericModalLabel"
-                    >
-                      <header
-                        class="mm-modal-header"
-                      >
-                        <h1
-                          class="mm-modal-header__title"
-                          id="mm-modal-header-channelNotificationModalLabel"
-                        >
-                          Notification Preferences
-                        </h1>
-                        <div
-                          class="mm-modal-header__vertical-divider"
-                        />
-                        <p
-                          class="mm-modal-header__subtitle"
-                        >
-                          channel_display_name
-                        </p>
-                      </header>
-                    </h1>
-                  </div>
-                </div>
               </div>
               <div
                 class="modal-body"
@@ -1159,11 +1161,43 @@ Object {
           >
             <div
               class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
-              tabindex="0"
             >
               <div
                 class="modal-header"
               >
+                <div
+                  class="GenericModal__header__text_container"
+                >
+                  <div
+                    class="GenericModal__header"
+                  >
+                    <h1
+                      class="modal-title"
+                      id="genericModalLabel"
+                    >
+                      <div
+                        class="mm-modal-header"
+                      >
+                        <h2
+                          class="mm-modal-header__title"
+                          id="mm-modal-header-channelNotificationModalLabel"
+                        >
+                          <span>
+                            Notification Preferences
+                          </span>
+                          <span
+                            class="mm-modal-header__vertical-divider"
+                          />
+                          <span
+                            class="mm-modal-header__subtitle"
+                          >
+                            channel_display_name
+                          </span>
+                        </h2>
+                      </div>
+                    </h1>
+                  </div>
+                </div>
                 <button
                   aria-label="Close"
                   class="close"
@@ -1180,37 +1214,6 @@ Object {
                     Close
                   </span>
                 </button>
-                <div
-                  class="GenericModal__header__text_container"
-                >
-                  <div
-                    class="GenericModal__header"
-                  >
-                    <h1
-                      class="modal-title"
-                      id="genericModalLabel"
-                    >
-                      <header
-                        class="mm-modal-header"
-                      >
-                        <h1
-                          class="mm-modal-header__title"
-                          id="mm-modal-header-channelNotificationModalLabel"
-                        >
-                          Notification Preferences
-                        </h1>
-                        <div
-                          class="mm-modal-header__vertical-divider"
-                        />
-                        <p
-                          class="mm-modal-header__subtitle"
-                        >
-                          channel_display_name
-                        </p>
-                      </header>
-                    </h1>
-                  </div>
-                </div>
               </div>
               <div
                 class="modal-body"
@@ -1314,6 +1317,7 @@ Object {
                     <div
                       class="AlertBanner info AlertBanner--app"
                       data-testid="channelNotificationsMutedBanner"
+                      id="channelNotificationsMutedBanner"
                     >
                       <div
                         class="AlertBanner__icon"
@@ -1519,11 +1523,43 @@ Object {
           >
             <div
               class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
-              tabindex="0"
             >
               <div
                 class="modal-header"
               >
+                <div
+                  class="GenericModal__header__text_container"
+                >
+                  <div
+                    class="GenericModal__header"
+                  >
+                    <h1
+                      class="modal-title"
+                      id="genericModalLabel"
+                    >
+                      <div
+                        class="mm-modal-header"
+                      >
+                        <h2
+                          class="mm-modal-header__title"
+                          id="mm-modal-header-channelNotificationModalLabel"
+                        >
+                          <span>
+                            Notification Preferences
+                          </span>
+                          <span
+                            class="mm-modal-header__vertical-divider"
+                          />
+                          <span
+                            class="mm-modal-header__subtitle"
+                          >
+                            channel_display_name
+                          </span>
+                        </h2>
+                      </div>
+                    </h1>
+                  </div>
+                </div>
                 <button
                   aria-label="Close"
                   class="close"
@@ -1540,37 +1576,6 @@ Object {
                     Close
                   </span>
                 </button>
-                <div
-                  class="GenericModal__header__text_container"
-                >
-                  <div
-                    class="GenericModal__header"
-                  >
-                    <h1
-                      class="modal-title"
-                      id="genericModalLabel"
-                    >
-                      <header
-                        class="mm-modal-header"
-                      >
-                        <h1
-                          class="mm-modal-header__title"
-                          id="mm-modal-header-channelNotificationModalLabel"
-                        >
-                          Notification Preferences
-                        </h1>
-                        <div
-                          class="mm-modal-header__vertical-divider"
-                        />
-                        <p
-                          class="mm-modal-header__subtitle"
-                        >
-                          channel_display_name
-                        </p>
-                      </header>
-                    </h1>
-                  </div>
-                </div>
               </div>
               <div
                 class="modal-body"
@@ -2099,11 +2104,43 @@ Object {
           >
             <div
               class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
-              tabindex="0"
             >
               <div
                 class="modal-header"
               >
+                <div
+                  class="GenericModal__header__text_container"
+                >
+                  <div
+                    class="GenericModal__header"
+                  >
+                    <h1
+                      class="modal-title"
+                      id="genericModalLabel"
+                    >
+                      <div
+                        class="mm-modal-header"
+                      >
+                        <h2
+                          class="mm-modal-header__title"
+                          id="mm-modal-header-channelNotificationModalLabel"
+                        >
+                          <span>
+                            Notification Preferences
+                          </span>
+                          <span
+                            class="mm-modal-header__vertical-divider"
+                          />
+                          <span
+                            class="mm-modal-header__subtitle"
+                          >
+                            channel_display_name
+                          </span>
+                        </h2>
+                      </div>
+                    </h1>
+                  </div>
+                </div>
                 <button
                   aria-label="Close"
                   class="close"
@@ -2120,37 +2157,6 @@ Object {
                     Close
                   </span>
                 </button>
-                <div
-                  class="GenericModal__header__text_container"
-                >
-                  <div
-                    class="GenericModal__header"
-                  >
-                    <h1
-                      class="modal-title"
-                      id="genericModalLabel"
-                    >
-                      <header
-                        class="mm-modal-header"
-                      >
-                        <h1
-                          class="mm-modal-header__title"
-                          id="mm-modal-header-channelNotificationModalLabel"
-                        >
-                          Notification Preferences
-                        </h1>
-                        <div
-                          class="mm-modal-header__vertical-divider"
-                        />
-                        <p
-                          class="mm-modal-header__subtitle"
-                        >
-                          channel_display_name
-                        </p>
-                      </header>
-                    </h1>
-                  </div>
-                </div>
               </div>
               <div
                 class="modal-body"
@@ -2679,11 +2685,43 @@ Object {
           >
             <div
               class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
-              tabindex="0"
             >
               <div
                 class="modal-header"
               >
+                <div
+                  class="GenericModal__header__text_container"
+                >
+                  <div
+                    class="GenericModal__header"
+                  >
+                    <h1
+                      class="modal-title"
+                      id="genericModalLabel"
+                    >
+                      <div
+                        class="mm-modal-header"
+                      >
+                        <h2
+                          class="mm-modal-header__title"
+                          id="mm-modal-header-channelNotificationModalLabel"
+                        >
+                          <span>
+                            Notification Preferences
+                          </span>
+                          <span
+                            class="mm-modal-header__vertical-divider"
+                          />
+                          <span
+                            class="mm-modal-header__subtitle"
+                          >
+                            channel_display_name
+                          </span>
+                        </h2>
+                      </div>
+                    </h1>
+                  </div>
+                </div>
                 <button
                   aria-label="Close"
                   class="close"
@@ -2700,37 +2738,6 @@ Object {
                     Close
                   </span>
                 </button>
-                <div
-                  class="GenericModal__header__text_container"
-                >
-                  <div
-                    class="GenericModal__header"
-                  >
-                    <h1
-                      class="modal-title"
-                      id="genericModalLabel"
-                    >
-                      <header
-                        class="mm-modal-header"
-                      >
-                        <h1
-                          class="mm-modal-header__title"
-                          id="mm-modal-header-channelNotificationModalLabel"
-                        >
-                          Notification Preferences
-                        </h1>
-                        <div
-                          class="mm-modal-header__vertical-divider"
-                        />
-                        <p
-                          class="mm-modal-header__subtitle"
-                        >
-                          channel_display_name
-                        </p>
-                      </header>
-                    </h1>
-                  </div>
-                </div>
               </div>
               <div
                 class="modal-body"

@@ -13,10 +13,29 @@ import (
 
 type sqlClusterDiscoveryStore struct {
 	*SqlStore
+
+	clusterDiscoveryQuery sq.SelectBuilder
 }
 
 func newSqlClusterDiscoveryStore(sqlStore *SqlStore) store.ClusterDiscoveryStore {
-	return &sqlClusterDiscoveryStore{sqlStore}
+	s := &sqlClusterDiscoveryStore{
+		SqlStore: sqlStore,
+	}
+
+	s.clusterDiscoveryQuery = s.getQueryBuilder().
+		Select(
+			"Id",
+			"Type",
+			"ClusterName",
+			"Hostname",
+			"GossipPort",
+			"Port",
+			"CreateAt",
+			"LastPingAt",
+		).
+		From("ClusterDiscovery")
+
+	return s
 }
 
 func (s sqlClusterDiscoveryStore) Save(ClusterDiscovery *model.ClusterDiscovery) error {
@@ -84,9 +103,7 @@ func (s sqlClusterDiscoveryStore) Exists(ClusterDiscovery *model.ClusterDiscover
 }
 
 func (s sqlClusterDiscoveryStore) GetAll(ClusterDiscoveryType, clusterName string) ([]*model.ClusterDiscovery, error) {
-	query := s.getQueryBuilder().
-		Select("*").
-		From("ClusterDiscovery").
+	query := s.clusterDiscoveryQuery.
 		Where(sq.Eq{"Type": ClusterDiscoveryType}).
 		Where(sq.Eq{"ClusterName": clusterName}).
 		Where(sq.Gt{"LastPingAt": model.GetMillis() - model.CDSOfflineAfterMillis})

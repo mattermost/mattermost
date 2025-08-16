@@ -1,0 +1,14 @@
+dn: cn=schema,cn=config
+changetype: modify
+add: olcAttributeTypes
+olcAttributeTypes: ( 1.2.840.113556.1.4.2 NAME 'objectGUID'
+  DESC 'AD object GUID'
+  EQUALITY octetStringMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
+  SINGLE-VALUE )
+-
+add: olcObjectClasses
+olcObjectClasses: ( 1.2.840.113556.1.5.256 NAME 'activeDSObject'
+  DESC 'Active Directory Schema Object'
+  SUP top AUXILIARY
+  MAY ( objectGUID ) )

@@ -34,6 +34,7 @@ import {
     getChannelMemberCountsByGroup,
     fetchAllMyChannelMembers,
     fetchAllMyTeamsChannels,
+    fetchChannelsAndMembers,
 } from 'mattermost-redux/actions/channels';
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
@@ -88,7 +89,6 @@ import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selec
 import {
     getTeamIdByChannelId,
     getMyTeams,
-    getCurrentRelativeTeamUrl,
     getCurrentTeamId,
     getCurrentTeamUrl,
     getTeam,
@@ -119,7 +119,7 @@ import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
-import InteractiveDialog from 'components/interactive_dialog';
+import DialogRouter from 'components/dialog_router';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 
 import WebSocketClient from 'client/web_websocket_client';
@@ -847,9 +847,11 @@ async function handlePostDeleteEvent(msg) {
             }
         } else {
             const res = await dispatch(getPostThread(post.root_id));
-            const {order, posts} = res.data;
-            const rootPost = posts[order[0]];
-            dispatch(receivedPost(rootPost));
+            if (res.data) {
+                const {order, posts} = res.data;
+                const rootPost = posts[order[0]];
+                dispatch(receivedPost(rootPost));
+            }
         }
     }
 
@@ -880,6 +882,7 @@ async function handleTeamAddedEvent(msg) {
     await dispatch(TeamActions.getMyTeamMembers());
     const state = getState();
     await dispatch(TeamActions.getMyTeamUnreads(isCollapsedThreadsEnabled(state)));
+    await dispatch(fetchChannelsAndMembers(msg.data.team_id));
     const license = getLicense(state);
     if (license.Cloud === 'true') {
         dispatch(getTeamsUsage());
@@ -1259,25 +1262,11 @@ function handleChannelCreatedEvent(msg) {
 }
 
 function handleChannelDeletedEvent(msg) {
-    const state = getState();
-    const config = getConfig(state);
-    const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
-    if (getCurrentChannelId(state) === msg.data.channel_id && !viewArchivedChannels) {
-        const teamUrl = getCurrentRelativeTeamUrl(state);
-        const currentTeamId = getCurrentTeamId(state);
-        const redirectChannel = getRedirectChannelNameForTeam(state, currentTeamId);
-        getHistory().push(teamUrl + '/channels/' + redirectChannel);
-    }
-
-    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_DELETED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, deleteAt: msg.data.delete_at, viewArchivedChannels}});
+    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_DELETED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, deleteAt: msg.data.delete_at, viewArchivedChannels: true}});
 }
 
 function handleChannelUnarchivedEvent(msg) {
-    const state = getState();
-    const config = getConfig(state);
-    const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
-
-    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_UNARCHIVED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, viewArchivedChannels}});
+    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_UNARCHIVED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, viewArchivedChannels: true}});
 }
 
 function handlePreferenceChangedEvent(msg) {
@@ -1436,7 +1425,7 @@ function handleOpenDialogEvent(msg) {
         return;
     }
 
-    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: InteractiveDialog}));
+    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: DialogRouter}));
 }
 
 function handleGroupUpdatedEvent(msg) {
@@ -1948,9 +1937,23 @@ export function handleCustomAttributesCreated(msg) {
 }
 
 export function handleCustomAttributesUpdated(msg) {
-    return {
-        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
-        data: msg.data.field,
+    return (dispatch) => {
+        const {field, delete_values: deleteValues} = msg.data;
+
+        // Check if server indicates values should be deleted
+        if (deleteValues) {
+            // Clear values for the field when type changes
+            dispatch({
+                type: UserTypes.CLEAR_CPA_VALUES,
+                data: {fieldId: field.id},
+            });
+        }
+
+        // Update the field
+        dispatch({
+            type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
+            data: field,
+        });
     };
 }
 

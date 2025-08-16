@@ -5,6 +5,7 @@ import max from 'lodash/max';
 
 import type {
     Channel,
+    ChannelBanner,
     ChannelMemberCountsByGroup,
     ChannelMembership,
     ChannelMessageCount,
@@ -641,8 +642,12 @@ export const getUnreadStatus: (state: GlobalState) => BasicUnreadStatus = create
                 return counts;
             }
 
+            if (isChannelMuted(membership)) {
+                return counts;
+            }
+
             const mentions = collapsedThreads ? membership.mention_count_root : membership.mention_count;
-            if (mentions && !isChannelMuted(membership)) {
+            if (mentions) {
                 counts.mentions += mentions;
             }
 
@@ -1445,3 +1450,8 @@ export const isDeactivatedDirectChannel = (state: GlobalState, channelId: string
     const teammate = getDirectTeammate(state, channelId);
     return Boolean(teammate && teammate.delete_at);
 };
+
+export function getChannelBanner(state: GlobalState, channelId: string): ChannelBanner | undefined {
+    const channel = getChannel(state, channelId);
+    return channel ? channel.banner_info : undefined;
+}

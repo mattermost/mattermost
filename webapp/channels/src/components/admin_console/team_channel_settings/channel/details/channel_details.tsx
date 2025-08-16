@@ -5,6 +5,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import type {Channel, ChannelModeration as ChannelPermissions, ChannelModerationPatch} from '@mattermost/types/channels';
 import {SyncableType} from '@mattermost/types/groups';
 import type {SyncablePatch, Group} from '@mattermost/types/groups';
@@ -25,6 +26,7 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
 
+import {ChannelAccessControl} from './channel_access_control_policy';
 import {ChannelGroups} from './channel_groups';
 import ChannelMembers from './channel_members';
 import ChannelModeration from './channel_moderation';
@@ -50,6 +52,7 @@ export interface ChannelDetailsProps {
     guestAccountsEnabled: boolean;
     channelModerationEnabled: boolean;
     channelGroupsEnabled: boolean;
+    abacSupported: boolean;
     isDisabled?: boolean;
     actions: ChannelDetailsActions;
 }
@@ -81,6 +84,11 @@ interface ChannelDetailsState {
     teamScheme?: Scheme;
     isLocalArchived: boolean;
     showArchiveConfirmModal: boolean;
+    policyToggled: boolean;
+    accessControlPolicy?: AccessControlPolicy;
+    accessControlPolicies: AccessControlPolicy[];
+    accessControlPoliciesToRemove: string[];
+    abacSupported: boolean;
 }
 
 export type ChannelDetailsActions = {
@@ -102,6 +110,11 @@ export type ChannelDetailsActions = {
     updateChannelMemberSchemeRoles: (channelId: string, userId: string, isSchemeUser: boolean, isSchemeAdmin: boolean) => Promise<ActionResult>;
     deleteChannel: (channelId: string) => Promise<ActionResult>;
     unarchiveChannel: (channelId: string) => Promise<ActionResult>;
+    getAccessControlPolicy: (channelId: string) => Promise<ActionResult>;
+    searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
+    assignChannelToAccessControlPolicy: (policyId: string, channelId: string) => Promise<ActionResult>;
+    unassignChannelsFromAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
+    deleteAccessControlPolicy: (policyId: string) => Promise<ActionResult>;
 };
 
 export default class ChannelDetails extends React.PureComponent<ChannelDetailsProps, ChannelDetailsState> {
@@ -129,6 +142,11 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             teamScheme: props.teamScheme,
             isLocalArchived: props.channel?.delete_at !== 0,
             showArchiveConfirmModal: false,
+            policyToggled: false,
+            accessControlPolicy: undefined,
+            accessControlPolicies: [],
+            accessControlPoliciesToRemove: [],
+            abacSupported: props.abacSupported,
         };
     }
 
@@ -141,6 +159,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                 isPublic: channel?.type === Constants.OPEN_CHANNEL,
                 isDefault: channel?.name === Constants.DEFAULT_CHANNEL,
                 isLocalArchived: channel?.delete_at !== 0,
+                policyToggled: channel?.policy_enforced || false,
             });
         }
 
@@ -165,6 +184,11 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                 actions.getChannelModerations(channelID).then(() => this.restrictChannelMentions());
             }
             actions.getChannel(channelID);
+
+            if (channel?.policy_enforced) {
+                this.fetchAccessControlPolicies(channelID);
+                this.setState({policyToggled: true});
+            }
         }
 
         if (channel?.team_id) {
@@ -204,7 +228,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         this.setState({channelPermissions});
     }
 
-    private setToggles = (isSynced: boolean, isPublic: boolean) => {
+    private setToggles = (isSynced: boolean, isPublic: boolean, policyEnforced: boolean) => {
         const {channel} = this.props;
         const isOriginallyPublic = channel?.type === Constants.OPEN_CHANNEL;
         this.setState(
@@ -213,6 +237,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                 isSynced,
                 isPublic,
                 isPrivacyChanging: isPublic !== isOriginallyPublic,
+                policyToggled: policyEnforced,
             },
             () => this.processGroupsChange(this.state.groups),
         );
@@ -387,7 +412,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         }
 
         this.setState({showConvertConfirmModal: false, showRemoveConfirmModal: false, showConvertAndRemoveConfirmModal: false, showArchiveConfirmModal: false, saving: true});
-        const {groups, isSynced, isPublic, isPrivacyChanging, channelPermissions, usersToAdd, usersToRemove, rolesToUpdate} = this.state;
+        const {groups, isSynced, isPublic, isPrivacyChanging, channelPermissions, usersToAdd, usersToRemove, rolesToUpdate, policyToggled, accessControlPolicies, accessControlPoliciesToRemove} = this.state;
         let serverError: JSX.Element | undefined;
         let saveNeeded = false;
 
@@ -424,27 +449,9 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             return;
         }
 
-        const promises = [];
+        let privacyChangePromise;
         if (isPrivacyChanging) {
-            const convert = actions.updateChannelPrivacy(channel.id, isPublic ? Constants.OPEN_CHANNEL : Constants.PRIVATE_CHANNEL);
-            promises.push(
-                convert.then((res: ActionResult) => {
-                    if ('error' in res) {
-                        return res;
-                    }
-                    return actions.patchChannel(channel.id, {
-                        ...channel,
-                        group_constrained: isSynced,
-                    });
-                }),
-            );
-        } else {
-            promises.push(
-                actions.patchChannel(channel.id, {
-                    ...channel,
-                    group_constrained: isSynced,
-                }),
-            );
+            privacyChangePromise = actions.updateChannelPrivacy(channel.id, isPublic ? Constants.OPEN_CHANNEL : Constants.PRIVATE_CHANNEL);
         }
 
         const patchChannelSyncable = groups.
@@ -453,56 +460,79 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             }).
             map((g) => actions.patchGroupSyncable(g.id, channelID, SyncableType.Channel, {scheme_admin: g.scheme_admin}));
 
-        const unlink = origGroups.
-            filter((g) => {
-                return !groups.some((group) => group.id === g.id);
-            }).
-            map((g) => actions.unlinkGroupSyncable(g.id, channelID, SyncableType.Channel));
-
         const link = groups.
             filter((g) => {
                 return !origGroups.some((group) => group.id === g.id);
             }).
             map((g) => actions.linkGroupSyncable(g.id, channelID, SyncableType.Channel, {auto_add: true, scheme_admin: g.scheme_admin}));
 
-        const groupActions = [...promises, ...patchChannelSyncable, ...unlink, ...link];
-        if (groupActions.length > 0) {
-            const result = await Promise.all(groupActions);
-            const resultWithError = result.find((r) => 'error' in r);
+        // First execute link operations
+        const promisesToExecute = [...patchChannelSyncable, ...link];
+        if (privacyChangePromise) {
+            promisesToExecute.push(privacyChangePromise);
+        }
+        const linkResult = await Promise.all(promisesToExecute);
+        let resultWithError = linkResult.find((r) => 'error' in r);
+        if (resultWithError && 'error' in resultWithError) {
+            serverError = <FormError error={resultWithError.error.message}/>;
+        }
+
+        // Then patch the channel
+        const patchResult = await actions.patchChannel(channel.id, {
+            ...channel,
+            group_constrained: isSynced,
+        });
+
+        if ('error' in patchResult) {
+            serverError = <FormError error={patchResult.error.message}/>;
+        }
+
+        const unlink = origGroups.
+            filter((g) => {
+                return !groups.some((group) => group.id === g.id);
+            }).
+            map((g) => actions.unlinkGroupSyncable(g.id, channelID, SyncableType.Channel));
+
+        // Finally execute unlink operations
+        if (unlink.length > 0) {
+            const unlinkResult = await Promise.all(unlink);
+            resultWithError = unlinkResult.find((r) => 'error' in r);
             if (resultWithError && 'error' in resultWithError) {
                 serverError = <FormError error={resultWithError.error.message}/>;
-            } else {
-                if (unlink.length > 0) {
-                    trackEvent('admin_channel_config_page', 'groups_removed_from_channel', {count: unlink.length, channel_id: channelID});
-                }
-                if (link.length > 0) {
-                    trackEvent('admin_channel_config_page', 'groups_added_to_channel', {count: link.length, channel_id: channelID});
-                }
-
-                const actionsToAwait: any[] = [];
-                if (this.props.channelModerationEnabled) {
-                    actionsToAwait.push(actions.getGroups(channelID));
-                }
-                if (isPrivacyChanging) {
-                    // If the privacy is changing update the manage_members value for the channel moderation widget
-                    if (this.props.channelModerationEnabled) {
-                        actionsToAwait.push(
-                            actions.getChannelModerations(channelID).then(() => {
-                                const manageMembersIndex = channelPermissions.findIndex((element) => element.name === Permissions.CHANNEL_MODERATED_PERMISSIONS.MANAGE_MEMBERS);
-                                if (channelPermissions) {
-                                    const updatedManageMembers = this.props.channelPermissions.find((element) => element.name === Permissions.CHANNEL_MODERATED_PERMISSIONS.MANAGE_MEMBERS);
-                                    channelPermissions[manageMembersIndex] = updatedManageMembers || channelPermissions[manageMembersIndex];
-                                }
-                                this.setState({channelPermissions});
-                            }),
-                        );
-                    }
-                }
-                if (actionsToAwait.length > 0) {
-                    await Promise.all(actionsToAwait);
-                }
-                await Promise.resolve();
             }
+        }
+
+        if (!(resultWithError && 'error' in resultWithError) && !('error' in patchResult)) {
+            if (unlink.length > 0) {
+                trackEvent('admin_channel_config_page', 'groups_removed_from_channel', {count: unlink.length, channel_id: channelID});
+            }
+            if (link.length > 0) {
+                trackEvent('admin_channel_config_page', 'groups_added_to_channel', {count: link.length, channel_id: channelID});
+            }
+
+            const actionsToAwait: any[] = [];
+            if (this.props.channelModerationEnabled) {
+                actionsToAwait.push(actions.getGroups(channelID));
+            }
+            if (isPrivacyChanging) {
+                // If the privacy is changing update the manage_members value for the channel moderation widget
+                if (this.props.channelModerationEnabled) {
+                    actionsToAwait.push(
+                        actions.getChannelModerations(channelID).then(() => {
+                            const manageMembersIndex = channelPermissions.findIndex((element) => element.name === Permissions.CHANNEL_MODERATED_PERMISSIONS.MANAGE_MEMBERS);
+                            if (channelPermissions) {
+                                const updatedManageMembers = this.props.channelPermissions.find((element) => element.name === Permissions.CHANNEL_MODERATED_PERMISSIONS.MANAGE_MEMBERS);
+                                channelPermissions[manageMembersIndex] = updatedManageMembers || channelPermissions[manageMembersIndex];
+                            }
+                            this.setState({channelPermissions});
+                        }),
+                    );
+                }
+            }
+            if (actionsToAwait.length > 0) {
+                await Promise.all(actionsToAwait);
+            }
+            await Promise.resolve();
         }
         if (this.props.channelModerationEnabled) {
             const patchChannelPermissionsArray: ChannelModerationPatch[] = channelPermissions.map((p) => {
@@ -520,6 +550,89 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                 serverError = <FormError error={patchChannelModerationsResult.error.message}/>;
             }
             this.restrictChannelMentions();
+        }
+
+        if (policyToggled) {
+            if (isPublic) {
+                serverError = (
+                    <FormError
+                        error={
+                            <FormattedMessage
+                                id='admin.channel_details.policy_public_error'
+                                defaultMessage='You cannot assign a policy to a public channel.'
+                            />}
+                    />
+                );
+                saveNeeded = true;
+                this.setState({serverError, saving: false, saveNeeded});
+                actions.setNavigationBlocked(saveNeeded);
+                return;
+            }
+
+            if (isSynced) {
+                serverError = (
+                    <FormError
+                        error={
+                            <FormattedMessage
+                                id='admin.channel_details.policy_synced_error'
+                                defaultMessage='You cannot assign a policy to a synced channel.'
+                            />}
+                    />
+                );
+                saveNeeded = true;
+                this.setState({serverError, saving: false, saveNeeded});
+                actions.setNavigationBlocked(saveNeeded);
+                return;
+            }
+
+            if (accessControlPolicies.length === 0) {
+                serverError = (
+                    <FormError
+                        error={
+                            <FormattedMessage
+                                id='admin.channel_details.policy_required_error'
+                                defaultMessage='You must select an access policy when attribute-based channel access is enabled.'
+                            />}
+                    />
+                );
+                saveNeeded = true;
+                this.setState({serverError, saving: false, saveNeeded});
+                actions.setNavigationBlocked(saveNeeded);
+                return;
+            }
+
+            if (accessControlPolicies.length > 0) {
+                try {
+                    await Promise.all(
+                        accessControlPolicies.map((policy) =>
+                            actions.assignChannelToAccessControlPolicy(policy.id, channelID),
+                        ),
+                    );
+                } catch (error) {
+                    serverError = <FormError error={error.message}/>;
+                    saveNeeded = true;
+                }
+            }
+
+            if (accessControlPoliciesToRemove.length > 0) {
+                try {
+                    await Promise.all(
+                        accessControlPoliciesToRemove.map((policyId) =>
+                            actions.unassignChannelsFromAccessControlPolicy(policyId, [channelID]),
+                        ),
+                    );
+                } catch (error) {
+                    serverError = <FormError error={error.message}/>;
+                    saveNeeded = true;
+                }
+            }
+        } else {
+            await actions.deleteAccessControlPolicy(channelID).catch((error) => {
+                if (error.message && !error.message.includes('not found')) {
+                    serverError = <FormError error={error.message}/>;
+                    saveNeeded = true;
+                }
+            });
         }
 
         let privacyChanging = isPrivacyChanging;
@@ -686,6 +799,81 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         this.setState(newState);
     };
 
+    private onPolicySelected = (policy: AccessControlPolicy) => {
+        this.setState({
+            accessControlPolicies: [policy],
+            saveNeeded: true,
+        });
+        this.props.actions.setNavigationBlocked(true);
+    };
+
+    private onPolicyRemoveAll = () => {
+        const {accessControlPolicies, accessControlPoliciesToRemove} = this.state;
+        for (const policy of accessControlPolicies) {
+            this.setState({
+                accessControlPoliciesToRemove: [...accessControlPoliciesToRemove, policy.id] as string[],
+                saveNeeded: true,
+            });
+        }
+        this.setState({
+            accessControlPolicies: [],
+        });
+        this.props.actions.setNavigationBlocked(true);
+    };
+
+    private onPolicyRemove = (policyId: string) => {
+        const {accessControlPoliciesToRemove, accessControlPolicies} = this.state;
+        this.setState({
+            accessControlPoliciesToRemove: [...accessControlPoliciesToRemove, policyId],
+            accessControlPolicies: accessControlPolicies.filter((policy) => policy.id !== policyId),
+            saveNeeded: true,
+        });
+        this.props.actions.setNavigationBlocked(true);
+    };
+
+    private fetchAccessControlPolicies = (channelId: string) => {
+        if (!channelId) {
+            return;
+        }
+
+        // Always try to fetch policies, even if policy_enforced is false
+        // This ensures we have policies when toggling the flag
+        this.props.actions.getAccessControlPolicy(channelId).then((result) => {
+            if (result.data) {
+                const currentAccessControlPolicy = result.data;
+                const policies: AccessControlPolicy[] = [];
+                const promises: Array<Promise<any>> = [];
+
+                this.setState({
+                    accessControlPolicy: currentAccessControlPolicy,
+                });
+
+                if (currentAccessControlPolicy.imports && currentAccessControlPolicy.imports.length > 0) {
+                    for (const policyId of currentAccessControlPolicy.imports) {
+                        const promise = this.props.actions.getAccessControlPolicy(policyId).then((policyResult) => {
+                            if (policyResult.data) {
+                                policies.push(policyResult.data as AccessControlPolicy);
+                            }
+                        });
+
+                        promises.push(promise);
+                    }
+
+                    Promise.all(promises).then(() => {
+                        this.setState({
+                            accessControlPolicies: policies,
+                        });
+                    });
+                } else {
+                    // If there are no imports, still update state with empty array
+                    this.setState({
+                        accessControlPolicies: [],
+                    });
+                }
+            }
+        });
+    };
+
     public render = () => {
         const {
             totalGroups,
@@ -706,6 +894,8 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             usersToAdd,
             isLocalArchived,
             showArchiveConfirmModal,
+            policyToggled,
+            accessControlPolicies,
         } = this.state;
         const {channel, team} = this.props;
 
@@ -761,9 +951,24 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                     onToggle={this.setToggles}
                     isDisabled={this.props.isDisabled}
                     groupsSupported={this.props.channelGroupsEnabled}
+                    abacSupported={this.props.abacSupported}
+                    policyEnforced={policyToggled}
+                    policyEnforcedToggleAvailable={accessControlPolicies.length === 0}
                 />
 
-                {this.props.channelGroupsEnabled &&
+                {this.props.abacSupported && policyToggled && (
+                    <ChannelAccessControl
+                        parentPolicies={this.state.accessControlPolicies}
+                        actions={{
+                            onPolicySelected: this.onPolicySelected,
+                            onPolicyRemoveAll: this.onPolicyRemoveAll,
+                            onPolicyRemove: this.onPolicyRemove,
+                            searchPolicies: this.props.actions.searchPolicies,
+                        }}
+                    />
+                )}
+
+                {this.props.channelGroupsEnabled && !policyToggled &&
                     <ChannelGroups
                         synced={isSynced}
                         channel={channel}

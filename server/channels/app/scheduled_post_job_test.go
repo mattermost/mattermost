@@ -14,6 +14,7 @@ import (
 )
 
 func TestProcessScheduledPosts(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("base case - happy path", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -266,6 +267,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 }
 
 func TestHandleFailedScheduledPosts(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -335,7 +337,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 		th.App.handleFailedScheduledPosts(rctx, failedScheduledPosts)
 
 		// Validate that the WebSocket events for both users are sent and received correctly
-		for i := 0; i < len(failedScheduledPosts); i++ {
+		for i := range failedScheduledPosts {
 			var received *model.WebSocketEvent
 			select {
 			case received = <-messagesUser1:
@@ -354,7 +356,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 		// Helper function to check notifications for a specific user
 		checkUserNotification := func(user *model.User) {
 			// Wait time for notifications to be sent (adding 5 secs because it is run in a separate goroutine)
-			var timeout = 5 * time.Second
+			timeout := 5 * time.Second
 			begin := time.Now()
 			channel, appErr := th.App.GetOrCreateDirectChannel(rctx, user.Id, systemBot.UserId)
 			assert.True(t, appErr == nil)

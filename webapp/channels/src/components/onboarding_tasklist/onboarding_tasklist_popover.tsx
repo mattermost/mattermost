@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Placement} from 'popper.js';
-import React from 'react';
-import type {RefObject, CSSProperties} from 'react';
-import {usePopper} from 'react-popper';
+import {FloatingPortal} from '@floating-ui/react';
+import type {Placement} from '@floating-ui/react-dom';
+import {useFloating, offset as floatingOffset, autoUpdate} from '@floating-ui/react-dom';
+import React, {useLayoutEffect} from 'react';
 import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
+
+import {RootHtmlPortalId} from 'utils/constants';
 
 const Overlay = styled.div`
     background-color: rgba(0, 0, 0, 0.5);
@@ -49,12 +51,12 @@ const Overlay = styled.div`
 `;
 
 interface TaskListPopoverProps {
-    trigger: RefObject<HTMLButtonElement>;
+    trigger: HTMLButtonElement | null;
     isVisible: boolean;
     placement?: Placement;
-    offset?: [number | null | undefined, number | null | undefined];
-    children?: React.ReactNode;
-    onClick?: () => void;
+    offset?: [number, number];
+    children: React.ReactNode;
+    onClick: () => void;
 }
 
 export const TaskListPopover = ({
@@ -65,32 +67,29 @@ export const TaskListPopover = ({
     children,
     onClick,
 }: TaskListPopoverProps): JSX.Element | null => {
-    const [popperElement, setPopperElement] =
-        React.useState<HTMLDivElement | null>(null);
-
-    const {
-        styles: {popper},
-        attributes,
-    } = usePopper(trigger.current, popperElement, {
+    const {x, y, strategy, refs: {setReference, setFloating}} = useFloating({
         placement,
-        modifiers: [
-            {
-                name: 'offset',
-                options: {
-                    offset,
-                },
-            },
-        ],
+        middleware: [floatingOffset({
+            mainAxis: offset[1],
+            crossAxis: offset[0],
+        })],
+        whileElementsMounted: autoUpdate,
     });
+
+    useLayoutEffect(() => {
+        setReference(trigger);
+    }, [setReference, trigger]);
+
     const style = {
         container: {
-            ...popper,
+            position: strategy,
+            top: y ?? 0,
+            left: x ?? 0,
             zIndex: isVisible ? 100 : -1,
-            position: 'fixed',
-        } as CSSProperties,
+        },
     };
     return (
-        <>
+        <FloatingPortal id={RootHtmlPortalId}>
             <CSSTransition
                 timeout={150}
                 classNames='fade'
@@ -103,13 +102,12 @@ export const TaskListPopover = ({
                 />
             </CSSTransition>
             <div
-                ref={setPopperElement}
+                ref={setFloating}
                 style={style.container}
-                {...attributes.popper}
             >
                 {children}
             </div>
-        </>
+        </FloatingPortal>
     );
 };
 

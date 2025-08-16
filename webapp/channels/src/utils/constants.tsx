@@ -49,6 +49,7 @@ export const SettingsTypes = {
     TYPE_FILE_UPLOAD: 'fileupload' as const,
     TYPE_CUSTOM: 'custom' as const,
     TYPE_ROLES: 'roles' as const,
+    TYPE_EXPANDABLE_SETTING: 'expandable_setting' as const,
 };
 
 export const InviteTypes = {
@@ -91,6 +92,8 @@ export const Preferences = {
     CLICK_TO_REPLY: 'click_to_reply',
     CLICK_TO_REPLY_DEFAULT: 'true',
     COLLAPSED_REPLY_THREADS_FALLBACK_DEFAULT: 'off',
+    RENDER_EMOTICONS_AS_EMOJI: 'render_emoticons_as_emoji',
+    RENDER_EMOTICONS_AS_EMOJI_DEFAULT: 'true',
     LINK_PREVIEW_DISPLAY: 'link_previews',
     LINK_PREVIEW_DISPLAY_DEFAULT: 'true',
     COLLAPSE_DISPLAY: 'collapse_previews',
@@ -265,6 +268,8 @@ export const ActionTypes = keyMirror({
     SET_SHOW_PREVIEW_ON_CREATE_COMMENT: null,
     SET_SHOW_PREVIEW_ON_CREATE_POST: null,
     SET_SHOW_PREVIEW_ON_EDIT_CHANNEL_HEADER_MODAL: null,
+    SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_HEADER_MODAL: null,
+    SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_PURPOSE_MODAL: null,
 
     TOGGLE_RHS_MENU: null,
     OPEN_RHS_MENU: null,
@@ -324,6 +329,9 @@ export const ActionTypes = keyMirror({
 
     SET_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES: null,
     CLEAR_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES: null,
+
+    SET_READOUT: 'SET_READOUT',
+    CLEAR_READOUT: 'CLEAR_READOUT',
 });
 
 export const PostRequestTypes = keyMirror({
@@ -340,7 +348,9 @@ export const ModalIdentifiers = {
     CHANNEL_NOTIFICATIONS: 'channel_notifications',
     CHANNEL_INVITE: 'channel_invite',
     CHANNEL_MEMBERS: 'channel_members',
+    CHANNEL_SETTINGS: 'channel_settings',
     TEAM_MEMBERS: 'team_members',
+    TEST_RESULTS: 'test_results',
     ADD_USER_TO_CHANNEL: 'add_user_to_channel',
     ADD_USER_TO_ROLE: 'add_user_to_role',
     ADD_USER_TO_TEAM: 'add_user_to_team',
@@ -469,6 +479,8 @@ export const ModalIdentifiers = {
     SHARED_CHANNEL_REMOTE_UNINVITE: 'shared_channel_remote_uninvite',
     CONFIRM_RESET_FAILED_ATTEMPTS_MODAL: 'confirm_reset_failed_attempts_modal',
     USER_PROPERTY_FIELD_DELETE: 'user_property_field_delete',
+    ATTRIBUTE_MODAL_LDAP: 'attribute_modal_ldap',
+    ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
 };
 
 export const UserStatuses = {
@@ -539,6 +551,20 @@ export enum LicenseSkus {
     Starter = 'starter',
     Professional = 'professional',
     Enterprise = 'enterprise',
+    EnterpriseAdvanced = 'advanced',
+}
+
+export function getLicenseTier(licenseSku: string): number {
+    switch (licenseSku) {
+    case LicenseSkus.Professional:
+        return 10;
+    case LicenseSkus.Enterprise:
+        return 20;
+    case LicenseSkus.EnterpriseAdvanced:
+        return 30;
+    default:
+        return 0;
+    }
 }
 
 export const CloudProductToSku = {
@@ -733,6 +759,7 @@ export const Threads = {
     CHANGED_SELECTED_THREAD: 'changed_selected_thread',
     CHANGED_LAST_VIEWED_AT: 'changed_last_viewed_at',
     MANUALLY_UNREAD_THREAD: 'manually_unread_thread',
+    CHANGED_LAST_UPDATE_AT: 'changed_last_update_at',
 };
 
 export const CloudBanners = {
@@ -906,6 +933,7 @@ export const ErrorPageTypes = {
     PERMALINK_NOT_FOUND: 'permalink_not_found',
     TEAM_NOT_FOUND: 'team_not_found',
     CHANNEL_NOT_FOUND: 'channel_not_found',
+    POST_NOT_FOUND: 'post_not_found',
     CLOUD_ARCHIVED: 'cloud_archived',
 };
 
@@ -915,6 +943,7 @@ export const JobTypes = {
     BLEVE_POST_INDEXING: 'bleve_post_indexing',
     LDAP_SYNC: 'ldap_sync',
     MESSAGE_EXPORT: 'message_export',
+    ACCESS_CONTROL_SYNC: 'access_control_sync',
 } as const;
 
 export const JobStatuses = {
@@ -1289,6 +1318,9 @@ export const PermissionsScope = {
     [Permissions.EDIT_BOOKMARK_PRIVATE_CHANNEL]: 'channel_scope',
     [Permissions.DELETE_BOOKMARK_PRIVATE_CHANNEL]: 'channel_scope',
     [Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL]: 'channel_scope',
+    [Permissions.MANAGE_PUBLIC_CHANNEL_BANNER]: 'channel_scope',
+    [Permissions.MANAGE_PRIVATE_CHANNEL_BANNER]: 'channel_scope',
+    [Permissions.MANAGE_CHANNEL_ACCESS_RULES]: 'channel_scope',
 };
 
 export const DefaultRolePermissions = {
@@ -1368,6 +1400,9 @@ export const DefaultRolePermissions = {
         Permissions.EDIT_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.DELETE_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
+        Permissions.MANAGE_PUBLIC_CHANNEL_BANNER,
+        Permissions.MANAGE_PRIVATE_CHANNEL_BANNER,
+        Permissions.MANAGE_CHANNEL_ACCESS_RULES,
     ],
     team_admin: [
         Permissions.EDIT_OTHERS_POSTS,
@@ -1403,6 +1438,9 @@ export const DefaultRolePermissions = {
         Permissions.EDIT_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.DELETE_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
+        Permissions.MANAGE_PUBLIC_CHANNEL_BANNER,
+        Permissions.MANAGE_PRIVATE_CHANNEL_BANNER,
+        Permissions.MANAGE_CHANNEL_ACCESS_RULES,
     ],
     guests: [
         Permissions.EDIT_POST,
@@ -1532,7 +1570,7 @@ export const Constants = {
     HERE_MENTION_REGEX: /(?:\B|\b_+)@(here)(?!(\.|-|_)*[^\W_])/gi,
     NOTIFY_ALL_MEMBERS: 5,
     ALL_MEMBERS_MENTIONS_REGEX: /(?:\B|\b_+)@(channel|all)(?!(\.|-|_)*[^\W_])/gi,
-    MENTIONS_REGEX: /(?:\B|\b_+)@([a-z0-9.\-_]+)/gi,
+    MENTIONS_REGEX: /(?:\B|\b_+)@([a-z0-9.\-_]+(?::[a-z0-9.\-_]+)?)/gi,
     DEFAULT_CHARACTER_LIMIT: 4000,
     IMAGE_TYPE_GIF: 'gif',
     TEXT_TYPES: ['txt', 'rtf', 'vtt'],
@@ -2070,17 +2108,11 @@ export const Constants = {
     ALLOW_EDIT_POST_NEVER: 'never',
     ALLOW_EDIT_POST_TIME_LIMIT: 'time_limit',
     UNSET_POST_EDIT_TIME_LIMIT: -1,
-    MENTION_CHANNELS: 'mention.channels',
     MENTION_MORE_CHANNELS: 'mention.morechannels',
-    MENTION_UNREAD_CHANNELS: 'mention.unread.channels',
     MENTION_UNREAD: 'mention.unread',
-    MENTION_MEMBERS: 'mention.members',
-    MENTION_MORE_MEMBERS: 'mention.moremembers',
-    MENTION_NONMEMBERS: 'mention.nonmembers',
     MENTION_PUBLIC_CHANNELS: 'mention.public.channels',
     MENTION_PRIVATE_CHANNELS: 'mention.private.channels',
     MENTION_RECENT_CHANNELS: 'mention.recent.channels',
-    MENTION_SPECIAL: 'mention.special',
     MENTION_GROUPS: 'search.group',
     STATUS_INTERVAL: 60000,
     AUTOCOMPLETE_TIMEOUT: 100,
@@ -2224,9 +2256,12 @@ export const DataSearchTypes = {
     MESSAGES_SEARCH_TYPE: 'messages',
 } as const;
 
+// Currently, the overage user limits are set to 0, which means that the overage active users warning
+// is immediatly shown when over 100% usage.
+// Originally it was set to Min 5% and Max 10% (5% would be a blue warning and 10% would be a red warning).
 export const OverActiveUserLimits = {
-    MIN: 0.05,
-    MAX: 0.1,
+    MIN: 0,
+    MAX: 0,
 } as const;
 
 export const PageLoadContext = {
@@ -2234,6 +2269,7 @@ export const PageLoadContext = {
     RECONNECT: 'reconnect',
 } as const;
 
+export const DRAFT_URL_SUFFIX = 'drafts';
 export const SCHEDULED_POST_URL_SUFFIX = 'scheduled_posts';
 
 export const scheduledPosts = {

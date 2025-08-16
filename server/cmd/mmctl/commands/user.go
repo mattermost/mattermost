@@ -90,20 +90,22 @@ var SendPasswordResetEmailCmd = &cobra.Command{
 }
 
 var UpdateUserEmailCmd = &cobra.Command{
-	Use:     "email [user] [new email]",
-	Short:   "Change email of the user",
-	Long:    "Change the email address associated with a user.",
-	Example: "  user email testuser user@example.com",
-	RunE:    withClient(updateUserEmailCmdF),
+	Use:        "email [user] [new email]",
+	Short:      "Change email of the user",
+	Long:       "Change the email address associated with a user.",
+	Example:    "  user email testuser user@example.com",
+	Deprecated: "Please use 'mmctl user edit email' instead.",
+	RunE:       withClient(updateUserEmailCmdF),
 }
 
 var UpdateUsernameCmd = &cobra.Command{
-	Use:     "username [user] [new username]",
-	Short:   "Change username of the user",
-	Long:    "Change username of the user.",
-	Example: "  user username testuser newusername",
-	Args:    cobra.ExactArgs(2),
-	RunE:    withClient(updateUsernameCmdF),
+	Use:        "username [user] [new username]",
+	Short:      "Change username of the user",
+	Long:       "Change username of the user.",
+	Example:    "  user username testuser newusername",
+	Deprecated: "Please use 'mmctl user edit username' instead.",
+	Args:       cobra.ExactArgs(2),
+	RunE:       withClient(updateUsernameCmdF),
 }
 
 var ChangePasswordUserCmd = &cobra.Command{
@@ -136,6 +138,42 @@ var ResetUserMfaCmd = &cobra.Command{
 If MFA enforcement is enabled, the user will be forced to re-enable MFA as soon as they log in.`,
 	Example: "  user resetmfa user@example.com",
 	RunE:    withClient(resetUserMfaCmdF),
+}
+
+var UserEditCmd = &cobra.Command{
+	Use:   "edit",
+	Short: "Edit user properties",
+	Long:  "Edit user properties like username, email, or authdata.",
+}
+
+var UserEditUsernameCmd = &cobra.Command{
+	Use:               "username [user] [new username]",
+	Short:             "Edit user's username",
+	Long:              "Edit a user's username.",
+	Example:           "user edit username user@example.com newusername",
+	Args:              cobra.ExactArgs(2),
+	ValidArgsFunction: validateArgsWithClient(userEditCompletionF),
+	RunE:              withClient(userEditUsernameCmdF),
+}
+
+var UserEditEmailCmd = &cobra.Command{
+	Use:               "email [user] [new email]",
+	Short:             "Edit user's email",
+	Long:              "Edit a user's email address.",
+	Example:           "user edit email user@example.com newemail@example.com",
+	Args:              cobra.ExactArgs(2),
+	ValidArgsFunction: validateArgsWithClient(userEditCompletionF),
+	RunE:              withClient(userEditEmailCmdF),
+}
+
+var UserEditAuthdataCmd = &cobra.Command{
+	Use:               "authdata [user] [new authdata]",
+	Short:             "Edit user's authdata",
+	Long:              "Edit a user's authentication data. Use empty string to clear authdata.",
+	Example:           `user edit authdata user@example.com newid123`,
+	Args:              cobra.ExactArgs(2),
+	ValidArgsFunction: validateArgsWithClient(userEditCompletionF),
+	RunE:              withClient(userEditAuthdataCmdF),
 }
 
 var DeleteUsersCmd = &cobra.Command{
@@ -335,12 +373,8 @@ func init() {
 	UserCreateCmd.Flags().String("lastname", "", "Optional. The last name for the new user account")
 	UserCreateCmd.Flags().String("locale", "", "Optional. The locale (ex: en, fr) for the new user account")
 	UserCreateCmd.Flags().Bool("system-admin", false, "Optional. If supplied, the new user will be a system administrator. Defaults to false")
-	UserCreateCmd.Flags().Bool("system_admin", false, "")
-	_ = UserCreateCmd.Flags().MarkDeprecated("system_admin", "please use system-admin instead")
 	UserCreateCmd.Flags().Bool("guest", false, "Optional. If supplied, the new user will be a guest. Defaults to false")
 	UserCreateCmd.Flags().Bool("email-verified", false, "Optional. If supplied, the new user will have the email verified. Defaults to false")
-	UserCreateCmd.Flags().Bool("email_verified", false, "")
-	_ = UserCreateCmd.Flags().MarkDeprecated("email_verified", "please use email-verified instead")
 	UserCreateCmd.Flags().Bool("disable-welcome-email", false, "Optional. If supplied, the new user will not receive a welcome email. Defaults to false")
 
 	DeleteUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed")
@@ -362,8 +396,6 @@ func init() {
 	UserConvertCmd.Flags().String("lastname", "", "The last name for the converted user account. Required when the \"bot\" flag is set")
 	UserConvertCmd.Flags().String("locale", "", "The locale (ex: en, fr) for converted new user account. Required when the \"bot\" flag is set")
 	UserConvertCmd.Flags().Bool("system-admin", false, "If supplied, the converted user will be a system administrator. Defaults to false. Required when the \"bot\" flag is set")
-	UserConvertCmd.Flags().Bool("system_admin", false, "")
-	_ = UserConvertCmd.Flags().MarkDeprecated("system_admin", "please use system-admin instead")
 
 	ChangePasswordUserCmd.Flags().StringP("current", "c", "", "The current password of the user. Use only if changing your own password")
 	ChangePasswordUserCmd.Flags().StringP("password", "p", "", "The new password for the user")
@@ -413,6 +445,7 @@ Global Flags:
 		UpdateUsernameCmd,
 		ChangePasswordUserCmd,
 		ResetUserMfaCmd,
+		UserEditCmd,
 		DeleteUsersCmd,
 		DeleteAllUsersCmd,
 		SearchUserCmd,
@@ -429,6 +462,11 @@ Global Flags:
 		PreferenceGetCmd,
 		PreferenceUpdateCmd,
 		PreferenceDeleteCmd,
+	)
+	UserEditCmd.AddCommand(
+		UserEditUsernameCmd,
+		UserEditEmailCmd,
+		UserEditAuthdataCmd,
 	)
 
 	RootCmd.AddCommand(UserCmd)
@@ -507,14 +545,8 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	lastname, _ := cmd.Flags().GetString("lastname")
 	locale, _ := cmd.Flags().GetString("locale")
 	systemAdmin, _ := cmd.Flags().GetBool("system-admin")
-	if !systemAdmin {
-		systemAdmin, _ = cmd.Flags().GetBool("system_admin")
-	}
 	guest, _ := cmd.Flags().GetBool("guest")
 	emailVerified, _ := cmd.Flags().GetBool("email-verified")
-	if !emailVerified {
-		emailVerified, _ = cmd.Flags().GetBool("email_verified")
-	}
 	disableWelcomeEmail, _ := cmd.Flags().GetBool("disable-welcome-email")
 
 	user := &model.User{
@@ -738,24 +770,30 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	users, err := getUsersFromArgs(c, args)
 	if err != nil {
-		printer.PrintError(err.Error())
+		return err
 	}
+
+	var errs *multierror.Error
 	for i, user := range users {
 		if user == nil {
 			printer.PrintError("Unable to find user '" + args[i] + "'")
 			continue
 		}
 		if res, err := c.PermanentDeleteUser(context.TODO(), user.Id); err != nil {
-			printer.PrintError("Unable to delete user '" + user.Username + "' error: " + err.Error())
+			errs = multierror.Append(errs,
+				fmt.Errorf("unable to delete user %s error: %w", user.Username, err))
 		} else {
 			// res.StatusCode is checked for 202 to identify issues with file deletion.
 			if res.StatusCode == http.StatusAccepted {
-				printer.PrintError("There were issues with deleting profile image of the user. Please delete it manually. Id: " + user.Id)
+				errs = multierror.Append(errs,
+					fmt.Errorf("unable to delete the profile image of the user, please delete it manually, id:%s", user.Username))
+				continue
 			}
 			printer.PrintT("Deleted user '{{.Username}}'", user)
 		}
 	}
-	return nil
+
+	return errs.ErrorOrNil()
 }
 
 func deleteAllUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -775,6 +813,13 @@ func deleteAllUsersCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 	return nil
 }
 
+// userOut is the output format for users.
+type userOut struct {
+	*model.User
+	Deactivated bool
+	AuthData    string
+}
+
 func searchUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
@@ -789,19 +834,29 @@ func searchUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	for i, user := range users {
+		uout := userOut{
+			User:        user,
+			Deactivated: !(user.DeleteAt == 0),
+		}
+		if user.AuthData != nil {
+			uout.AuthData = *user.AuthData
+		}
+
 		tpl := `id: {{.Id}}
+deactivated: {{.Deactivated}}
 username: {{.Username}}
 nickname: {{.Nickname}}
 position: {{.Position}}
 first_name: {{.FirstName}}
 last_name: {{.LastName}}
 email: {{.Email}}
-auth_service: {{.AuthService}}`
+auth_service: {{.AuthService}}
+auth_data: {{.AuthData}}`
 		if i > 0 {
 			tpl = "------------------------------\n" + tpl
 		}
 
-		printer.PrintT(tpl, user)
+		printer.PrintT(tpl, uout)
 	}
 
 	return nil
@@ -986,9 +1041,6 @@ func convertBotToUser(c client.Client, cmd *cobra.Command, userArgs []string) er
 	}
 
 	systemAdmin, _ := cmd.Flags().GetBool("system-admin")
-	if !systemAdmin {
-		systemAdmin, _ = cmd.Flags().GetBool("system_admin")
-	}
 
 	user, _, err = c.ConvertBotToUser(context.TODO(), user.Id, up, systemAdmin)
 	if err != nil {
@@ -1111,6 +1163,91 @@ func demoteUserToGuestCmdF(c client.Client, _ *cobra.Command, userArgs []string)
 	}
 
 	return errs.ErrorOrNil()
+}
+
+func userEditCompletionF(ctx context.Context, c client.Client, cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	if len(args) >= 1 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+	return fetchAndComplete(
+		func(ctx context.Context, c client.Client, page, perPage int) ([]*model.User, *model.Response, error) {
+			return c.GetUsers(ctx, page, perPage, "")
+		},
+		func(u *model.User) []string { return []string{u.Id, u.Username, u.Email} },
+	)(ctx, c, cmd, args, toComplete)
+}
+
+func userEditCmdF(c client.Client, _ *cobra.Command, args []string, fieldName string) error {
+	printer.SetSingle(true)
+
+	userArg := args[0]
+	newValue := args[1]
+
+	user, err := getUserFromArg(c, userArg)
+	if err != nil {
+		return err
+	}
+
+	// Update the appropriate field based on fieldName
+	switch fieldName {
+	case "username":
+		if !model.IsValidUsername(newValue) {
+			return fmt.Errorf("invalid username: '%s'", newValue)
+		}
+		user.Username = newValue
+
+		ruser, _, err := c.UpdateUser(context.TODO(), user)
+		if err != nil {
+			return fmt.Errorf("failed to update user %s: %w", fieldName, err)
+		}
+		printer.PrintT("User {{.Username}} username updated successfully", ruser)
+
+	case "email":
+		if !model.IsValidEmail(newValue) {
+			return fmt.Errorf("invalid email: '%s'", newValue)
+		}
+		user.Email = newValue
+
+		ruser, _, err := c.UpdateUser(context.TODO(), user)
+		if err != nil {
+			return fmt.Errorf("failed to update user %s: %w", fieldName, err)
+		}
+		printer.PrintT("User {{.Username}} email updated successfully", ruser)
+
+	case "authdata":
+		if newValue == "" {
+			return fmt.Errorf("cannot clear authdata as the user is using %s to log in", user.AuthService)
+		}
+		if len(newValue) > model.UserAuthDataMaxLength {
+			return fmt.Errorf("authdata too long. Maximum length is %d characters", model.UserAuthDataMaxLength)
+		}
+
+		_, _, err := c.UpdateUserAuth(context.TODO(), user.Id, &model.UserAuth{
+			AuthData:    &newValue,
+			AuthService: user.AuthService,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to update user %s: %w", fieldName, err)
+		}
+
+		printer.PrintT("User {{.Username}} authdata updated successfully", user)
+	default:
+		return fmt.Errorf("unsupported field: %s", fieldName)
+	}
+
+	return nil
+}
+
+func userEditUsernameCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	return userEditCmdF(c, cmd, args, "username")
+}
+
+func userEditEmailCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	return userEditCmdF(c, cmd, args, "email")
+}
+
+func userEditAuthdataCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	return userEditCmdF(c, cmd, args, "authdata")
 }
 
 type ByPreference model.Preferences

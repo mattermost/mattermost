@@ -17,7 +17,6 @@ import * as Emoticons from './emoticons';
 import * as Markdown from './markdown';
 
 const punctuationRegex = /[^\p{L}\d]/u;
-const AT_MENTION_PATTERN = /(?:\B|\b_+)@([a-z0-9.\-_]+)/gi;
 const UNICODE_EMOJI_REGEX = emojiRegex();
 const htmlEmojiPattern = /^<p>\s*(?:<img class="emoticon"[^>]*>|<span data-emoticon[^>]*>[^<]*<\/span>\s*|<span class="emoticon emoticon--unicode">[^<]*<\/span>\s*)+<\/p>$/;
 
@@ -176,13 +175,6 @@ export interface TextFormattingOptionsBase {
     proxyImages: boolean;
 
     /**
-     * An array of url schemes that will be allowed for autolinking.
-     *
-     * Defaults to autolinking with any url scheme.
-     */
-    autolinkedUrlSchemes: string[];
-
-    /**
      * An array of paths on the server that are managed by another server. Any path provided will be treated as an
      * external link that will not by handled by react-router.
      *
@@ -230,6 +222,11 @@ export interface TextFormattingOptionsBase {
      * Defaults to `false`.
      */
     unsafeLinks: boolean;
+
+    /**
+     * Whether or not to render text emoticons (:D) as emojis
+     */
+    renderEmoticonsAsEmoji: boolean;
 }
 
 export type TextFormattingOptions = Partial<TextFormattingOptionsBase>;
@@ -258,6 +255,7 @@ const DEFAULT_OPTIONS: TextFormattingOptions = {
     editedAt: 0,
     postId: '',
     unsafeLinks: false,
+    renderEmoticonsAsEmoji: true,
 };
 
 /**
@@ -401,7 +399,7 @@ export function doFormatText(text: string, options: TextFormattingOptions, emoji
         output = autolinkHashtags(output, tokens, options.minimumHashtagLength);
 
         if (!('emoticons' in options) || options.emoticons) {
-            output = Emoticons.handleEmoticons(output, tokens);
+            output = Emoticons.handleEmoticons(output, tokens, options.renderEmoticonsAsEmoji);
         }
 
         if (options.searchPatterns) {
@@ -545,17 +543,17 @@ export function autolinkAtMentions(text: string, tokens: Tokens): string {
     );
 
     // handle all other mentions (supports trailing punctuation)
-    let match = output.match(AT_MENTION_PATTERN);
+    let match = output.match(Constants.MENTIONS_REGEX);
     while (match && match.length > 0) {
-        output = output.replace(AT_MENTION_PATTERN, replaceAtMentionWithToken);
-        match = output.match(AT_MENTION_PATTERN);
+        output = output.replace(Constants.MENTIONS_REGEX, replaceAtMentionWithToken);
+        match = output.match(Constants.MENTIONS_REGEX);
     }
 
     return output;
 }
 
 export function allAtMentions(text: string): string[] {
-    return text.match(Constants.SPECIAL_MENTIONS_REGEX && AT_MENTION_PATTERN) || [];
+    return text.match(Constants.SPECIAL_MENTIONS_REGEX && Constants.MENTIONS_REGEX) || [];
 }
 
 export function autolinkChannelMentions(

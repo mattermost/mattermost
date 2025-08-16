@@ -96,7 +96,7 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                     className="status "
                   >
                     <svg
-                      aria-label="Offline Icon"
+                      aria-label="Offline"
                       className="offline--icon"
                       height="100%"
                       role="img"
@@ -173,16 +173,6 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                         }
                       >
                         <Markdown
-                          autolinkedUrlSchemes={
-                            Array [
-                              "http",
-                              "https",
-                              "ftp",
-                              "mailto",
-                              "tel",
-                              "mattermost",
-                            ]
-                          }
                           channelNamesMap={Object {}}
                           dispatch={[Function]}
                           emojiMap={
@@ -328,7 +318,7 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                     className="status "
                   >
                     <svg
-                      aria-label="Offline Icon"
+                      aria-label="Offline"
                       className="offline--icon"
                       height="100%"
                       role="img"
@@ -405,16 +395,6 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                         }
                       >
                         <Markdown
-                          autolinkedUrlSchemes={
-                            Array [
-                              "http",
-                              "https",
-                              "ftp",
-                              "mailto",
-                              "tel",
-                              "mattermost",
-                            ]
-                          }
                           channelNamesMap={Object {}}
                           dispatch={[Function]}
                           emojiMap={
@@ -566,7 +546,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                     className="status "
                   >
                     <svg
-                      aria-label="Offline Icon"
+                      aria-label="Offline"
                       className="offline--icon"
                       height="100%"
                       role="img"
@@ -643,6 +623,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                             size="xs"
                           >
                             <Memo(Tag)
+                              data-testid="post-priority-label"
                               icon="alert-circle-outline"
                               size="xs"
                               text="Important"
@@ -652,10 +633,12 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                               <TagWrapper
                                 as="div"
                                 className="Tag Tag--info Tag--xs"
+                                data-testid="post-priority-label"
                                 uppercase={true}
                               >
                                 <div
-                                  className="TagWrapper-keYggn gnIgwl Tag Tag--info Tag--xs"
+                                  className="TagWrapper-kezsCu cA-dXXM Tag Tag--info Tag--xs"
+                                  data-testid="post-priority-label"
                                 >
                                   <AlertCircleOutlineIcon
                                     size={10}
@@ -675,7 +658,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                                   </AlertCircleOutlineIcon>
                                   <TagText>
                                     <span
-                                      className="TagText-bWgUzx kzWPbz"
+                                      className="TagText-bWoQAI beIloY"
                                     >
                                       Important
                                     </span>
@@ -700,16 +683,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                         }
                       >
                         <Markdown
-                          autolinkedUrlSchemes={
-                            Array [
-                              "http",
-                              "https",
-                              "ftp",
-                              "mailto",
-                              "tel",
-                              "mattermost",
-                            ]
-                          }
                           channelNamesMap={Object {}}
                           dispatch={[Function]}
                           emojiMap={
@@ -861,7 +834,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                     className="status "
                   >
                     <svg
-                      aria-label="Offline Icon"
+                      aria-label="Offline"
                       className="offline--icon"
                       height="100%"
                       role="img"
@@ -975,16 +948,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                         }
                       >
                         <Markdown
-                          autolinkedUrlSchemes={
-                            Array [
-                              "http",
-                              "https",
-                              "ftp",
-                              "mailto",
-                              "tel",
-                              "mattermost",
-                            ]
-                          }
                           channelNamesMap={Object {}}
                           dispatch={[Function]}
                           emojiMap={

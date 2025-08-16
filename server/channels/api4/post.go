@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
 	"strconv"
 	"time"
 
@@ -15,7 +16,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
@@ -81,9 +81,9 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	post.SanitizeInput()
 	post.UserId = c.AppContext.Session().UserId
 
-	auditRec := c.MakeAuditRecord("createPost", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreatePost, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	audit.AddEventParameterAuditable(auditRec, "post", &post)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "post", &post)
 
 	if post.CreateAt != 0 && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		post.CreateAt = 0
@@ -220,18 +220,6 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
-	}
-
-	if !*c.App.Config().TeamSettings.ExperimentalViewArchivedChannels {
-		channel, appErr := c.App.GetChannel(c.AppContext, channelId)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-		if channel.DeleteAt != 0 {
-			c.Err = model.NewAppError("Api4.getPostsForChannel", "api.user.view_archived_channels.get_posts_for_channel.app_error", nil, "", http.StatusForbidden)
-			return
-		}
 	}
 
 	var list *model.PostList
@@ -583,10 +571,10 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 
 	permanent := c.Params.Permanent
 
-	auditRec := c.MakeAuditRecord("deletePost", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeletePost, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	audit.AddEventParameter(auditRec, "post_id", c.Params.PostId)
-	audit.AddEventParameter(auditRec, "permanent", permanent)
+	model.AddEventParameterToAuditRec(auditRec, "post_id", c.Params.PostId)
+	model.AddEventParameterToAuditRec(auditRec, "permanent", permanent)
 
 	includeDeleted := permanent
 
@@ -671,6 +659,27 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var fromUpdateAt int64
+	if fromUpdateAtStr := r.URL.Query().Get("fromUpdateAt"); fromUpdateAtStr != "" {
+		var err error
+		fromUpdateAt, err = strconv.ParseInt(fromUpdateAtStr, 10, 64)
+		if err != nil {
+			c.SetInvalidParamWithErr("fromUpdateAt", err)
+			return
+		}
+	}
+
+	if fromUpdateAt != 0 && fromCreateAt != 0 {
+		c.SetInvalidParamWithDetails("fromUpdateAt", "both fromUpdateAt and fromCreateAt cannot be set")
+		return
+	}
+
+	updatesOnly := r.URL.Query().Get("updatesOnly") == "true"
+	if updatesOnly && fromUpdateAt == 0 {
+		c.SetInvalidParamWithDetails("fromUpdateAt", "fromUpdateAt must be set if updatesOnly is set")
+		return
+	}
+
 	direction := ""
 	if dir := r.URL.Query().Get("direction"); dir != "" {
 		if dir != "up" && dir != "down" {
@@ -679,14 +688,22 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		direction = dir
 	}
+
+	if updatesOnly && direction == "up" {
+		c.SetInvalidParamWithDetails("updatesOnly", "updatesOnly flag cannot be used with up direction")
+		return
+	}
+
 	opts := model.GetPostsOptions{
 		SkipFetchThreads:         r.URL.Query().Get("skipFetchThreads") == "true",
 		CollapsedThreads:         r.URL.Query().Get("collapsedThreads") == "true",
 		CollapsedThreadsExtended: r.URL.Query().Get("collapsedThreadsExtended") == "true",
+		UpdatesOnly:              updatesOnly,
 		PerPage:                  perPage,
 		Direction:                direction,
 		FromPost:                 fromPost,
 		FromCreateAt:             fromCreateAt,
+		FromUpdateAt:             fromUpdateAt,
 	}
 	list, err := c.App.GetPostThread(c.Params.PostId, opts, c.AppContext.Session().UserId)
 	if err != nil {
@@ -790,9 +807,9 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 		includeDeletedChannels = *params.IncludeDeletedChannels
 	}
 
-	auditRec := c.MakeAuditRecord("searchPosts", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventSearchPosts, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelAPI)
-	audit.AddEventParameterAuditable(auditRec, "search_params", params)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "search_params", params)
 
 	startTime := time.Now()
 
@@ -818,7 +835,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 	}
 
 	results = model.MakePostSearchResults(clientPostList, results.Matches)
-	audit.AddEventParameterAuditable(auditRec, "search_results", results)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "search_results", results)
 	auditRec.Success()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -839,8 +856,8 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updatePost", audit.Fail)
-	audit.AddEventParameterAuditable(auditRec, "post", &post)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdatePost, model.AuditStatusFail)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "post", &post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	// The post being updated in the payload must be the same one as indicated in the URL.
@@ -914,9 +931,9 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchPost", audit.Fail)
-	audit.AddEventParameter(auditRec, "id", c.Params.PostId)
-	audit.AddEventParameterAuditable(auditRec, "patch", &post)
+	auditRec := c.MakeAuditRecord(model.AuditEventPatchPost, model.AuditStatusFail)
+	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.PostId)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "patch", &post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	if post.Props != nil {
@@ -945,7 +962,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func postPatchChecks(c *Context, auditRec *audit.Record, message *string) {
+func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) {
 	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)
@@ -1037,8 +1054,8 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("saveIsPinnedPost", audit.Fail)
-	audit.AddEventParameter(auditRec, "post_id", c.Params.PostId)
+	auditRec := c.MakeAuditRecord(model.AuditEventSaveIsPinnedPost, model.AuditStatusFail)
+	model.AddEventParameterToAuditRec(auditRec, "post_id", c.Params.PostId)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	post, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
@@ -1083,11 +1100,11 @@ func unpinPost(c *Context, w http.ResponseWriter, _ *http.Request) {
 
 func acknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	// license check
-	permissionErr := minimumProfessionalLicense(c)
-	if permissionErr != nil {
-		c.Err = permissionErr
+	if !model.MinimumProfessionalLicense(c.App.Srv().License()) {
+		c.Err = model.NewAppError("", model.NoTranslation, nil, "feature is not available for the current license", http.StatusNotImplemented)
 		return
 	}
+
 	c.RequirePostId().RequireUserId()
 	if c.Err != nil {
 		return
@@ -1122,11 +1139,11 @@ func acknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func unacknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	// license check
-	permissionErr := minimumProfessionalLicense(c)
-	if permissionErr != nil {
-		c.Err = permissionErr
+	if !model.MinimumProfessionalLicense(c.App.Srv().License()) {
+		c.Err = model.NewAppError("", "license_error.feature_unavailable", nil, "feature is not available for the current license", http.StatusNotImplemented)
 		return
 	}
+
 	c.RequirePostId().RequireUserId()
 	if c.Err != nil {
 		return
@@ -1174,10 +1191,10 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("moveThread", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventMoveThread, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	audit.AddEventParameter(auditRec, "original_post_id", c.Params.PostId)
-	audit.AddEventParameter(auditRec, "to_channel_id", moveThreadParams.ChannelId)
+	model.AddEventParameterToAuditRec(auditRec, "original_post_id", c.Params.PostId)
+	model.AddEventParameterToAuditRec(auditRec, "to_channel_id", moveThreadParams.ChannelId)
 
 	user, err := c.App.GetUser(c.AppContext.Session().UserId)
 	if err != nil {
@@ -1205,12 +1222,10 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userHasEmailDomain := len(c.App.Config().WranglerSettings.AllowedEmailDomain) == 0
-	for _, domain := range c.App.Config().WranglerSettings.AllowedEmailDomain {
-		if user.EmailDomain() == domain {
-			userHasEmailDomain = true
-			break
-		}
+	userHasEmailDomain := true
+	// Only check the user's email domain if a list of allowed domains is configured
+	if len(c.App.Config().WranglerSettings.AllowedEmailDomain) > 0 {
+		userHasEmailDomain = slices.Contains(c.App.Config().WranglerSettings.AllowedEmailDomain, user.EmailDomain())
 	}
 
 	if !userHasEmailDomain && !user.IsSystemAdmin() {
@@ -1315,9 +1330,9 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("restorePostVersion", audit.Fail)
-	audit.AddEventParameter(auditRec, "id", c.Params.PostId)
-	audit.AddEventParameter(auditRec, "restore_version_id", restoreVersionId)
+	auditRec := c.MakeAuditRecord(model.AuditEventRestorePostVersion, model.AuditStatusFail)
+	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.PostId)
+	model.AddEventParameterToAuditRec(auditRec, "restore_version_id", restoreVersionId)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	toRestorePost, err := c.App.GetSinglePost(c.AppContext, restoreVersionId, true)

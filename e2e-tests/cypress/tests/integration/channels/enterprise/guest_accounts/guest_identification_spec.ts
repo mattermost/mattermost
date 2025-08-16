@@ -101,7 +101,7 @@ describe('Guest Accounts', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Open team menu, click Invite People, then invite guest
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
         cy.findByTestId('inviteGuestLink').click();
 
         // # Type guest user e-mail address.

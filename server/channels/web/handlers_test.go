@@ -27,7 +27,6 @@ func handlerForHTTPErrors(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func TestHandlerServeHTTPErrors(t *testing.T) {
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	web := New(th.Server)
 	handler := web.NewHandler(handlerForHTTPErrors)
@@ -67,7 +66,6 @@ func handlerForServeDefaultSecurityHeaders(c *Context, w http.ResponseWriter, r 
 
 func TestHandlerServeDefaultSecurityHeaders(t *testing.T) {
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	web := New(th.Server)
 	handler := web.NewHandler(handlerForServeDefaultSecurityHeaders)
@@ -105,7 +103,6 @@ func handlerForHTTPSecureTransport(c *Context, w http.ResponseWriter, r *http.Re
 
 func TestHandlerServeHTTPSecureTransport(t *testing.T) {
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
@@ -163,8 +160,7 @@ func handlerForCSRFToken(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func TestHandlerServeCSRFToken(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	session := &model.Session{
 		UserId:   th.BasicUser.Id,
@@ -175,9 +171,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	session.GenerateCSRF()
 	th.App.SetSessionExpireInHours(session, 24)
 	session, err := th.App.CreateSession(th.Context, session)
-	if err != nil {
-		t.Errorf("Expected nil, got %s", err)
-	}
+	require.Nil(t, err)
 
 	web := New(th.Server)
 
@@ -233,7 +227,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	// Fallback Behavior Used - Success expected
 	// ToDo (DSchalla) 2019/01/04: Remove once legacy CSRF Handling is removed
 	th.App.UpdateConfig(func(config *model.Config) {
-		*config.ServiceSettings.ExperimentalStrictCSRFEnforcement = false
+		*config.ServiceSettings.StrictCSRFEnforcement = false
 	})
 	request = httptest.NewRequest("POST", "/api/v4/test", nil)
 	request.AddCookie(cookie)
@@ -250,7 +244,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	// Fallback Behavior Used with Strict Enforcement - Failure Expected
 	// ToDo (DSchalla) 2019/01/04: Remove once legacy CSRF Handling is removed
 	th.App.UpdateConfig(func(config *model.Config) {
-		*config.ServiceSettings.ExperimentalStrictCSRFEnforcement = true
+		*config.ServiceSettings.StrictCSRFEnforcement = true
 	})
 	response = httptest.NewRecorder()
 	handler.ServeHTTP(response, request)
@@ -304,7 +298,6 @@ func handlerForCSPHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 func TestHandlerServeCSPHeader(t *testing.T) {
 	t.Run("non-static", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		web := New(th.Server)
 
@@ -326,7 +319,6 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 
 	t.Run("static, without subpath", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		web := New(th.Server)
 
@@ -348,7 +340,6 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 
 	t.Run("static, with subpath and frame ancestors", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockUserStore := mocks.UserStore{}
@@ -407,7 +398,6 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 
 	t.Run("dev mode", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		oldBuildNumber := model.BuildNumber
 		model.BuildNumber = "dev"
@@ -437,7 +427,6 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 func TestGenerateDevCSP(t *testing.T) {
 	t.Run("dev mode", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		oldBuildNumber := model.BuildNumber
 		model.BuildNumber = "dev"
@@ -457,7 +446,6 @@ func TestGenerateDevCSP(t *testing.T) {
 
 	t.Run("allowed dev flags", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		oldBuildNumber := model.BuildNumber
 		model.BuildNumber = "0"
@@ -482,7 +470,6 @@ func TestGenerateDevCSP(t *testing.T) {
 
 	t.Run("partial dev flags", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		oldBuildNumber := model.BuildNumber
 		model.BuildNumber = "0"
@@ -507,7 +494,6 @@ func TestGenerateDevCSP(t *testing.T) {
 
 	t.Run("unknown dev flags", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		oldBuildNumber := model.BuildNumber
 		model.BuildNumber = "0"
@@ -532,7 +518,6 @@ func TestGenerateDevCSP(t *testing.T) {
 
 	t.Run("empty dev flags", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.DeveloperFlags = ""
@@ -567,7 +552,6 @@ func TestHandlerServeInvalidToken(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Description, func(t *testing.T) {
 			th := Setup(t)
-			defer th.TearDown()
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ServiceSettings.SiteURL = tc.SiteURL
@@ -604,7 +588,6 @@ func TestHandlerServeInvalidToken(t *testing.T) {
 func TestCheckCSRFToken(t *testing.T) {
 	t.Run("should allow a POST request with a valid CSRF token header", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		h := &Handler{
 			RequireSession: true,
@@ -633,60 +616,8 @@ func TestCheckCSRFToken(t *testing.T) {
 		assert.Nil(t, c.Err)
 	})
 
-	t.Run("should allow a POST request with an X-Requested-With header", func(t *testing.T) {
+	t.Run("should not allow a POST request with an X-Requested-With header", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		h := &Handler{
-			RequireSession: true,
-			TrustRequester: false,
-		}
-
-		token := "token"
-		tokenLocation := app.TokenLocationCookie
-
-		c := &Context{
-			App:        th.App,
-			Logger:     th.App.Log(),
-			AppContext: th.Context,
-		}
-		r, _ := http.NewRequest(http.MethodPost, "", nil)
-		r.Header.Set(model.HeaderRequestedWith, model.HeaderRequestedWithXML)
-		session := &model.Session{
-			Props: map[string]string{
-				"csrf": token,
-			},
-		}
-
-		checked, passed := h.checkCSRFToken(c, r, token, tokenLocation, session)
-
-		assert.True(t, checked)
-		assert.True(t, passed)
-		assert.Nil(t, c.Err)
-	})
-
-	t.Run("should not allow a POST request with an X-Requested-With header with strict CSRF enforcement enabled", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		mockStore := th.App.Srv().Store().(*mocks.Store)
-		mockUserStore := mocks.UserStore{}
-		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
-		mockPostStore := mocks.PostStore{}
-		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
-		mockSystemStore := mocks.SystemStore{}
-		mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
-		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
-		mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
-
-		mockStore.On("User").Return(&mockUserStore)
-		mockStore.On("Post").Return(&mockPostStore)
-		mockStore.On("System").Return(&mockSystemStore)
-		mockStore.On("GetDBSchemaVersion").Return(1, nil)
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement = true
-		})
 
 		h := &Handler{
 			RequireSession: true,
@@ -718,7 +649,6 @@ func TestCheckCSRFToken(t *testing.T) {
 
 	t.Run("should not allow a POST request without either header", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		h := &Handler{
 			RequireSession: true,
@@ -748,7 +678,6 @@ func TestCheckCSRFToken(t *testing.T) {
 
 	t.Run("should not check GET requests", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		h := &Handler{
 			RequireSession: true,
@@ -778,7 +707,6 @@ func TestCheckCSRFToken(t *testing.T) {
 
 	t.Run("should not check a request passing the auth token in a header", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		h := &Handler{
 			RequireSession: true,
@@ -808,7 +736,6 @@ func TestCheckCSRFToken(t *testing.T) {
 
 	t.Run("should not check a request passing a nil session", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		h := &Handler{
 			RequireSession: false,
@@ -834,7 +761,6 @@ func TestCheckCSRFToken(t *testing.T) {
 
 	t.Run("should check requests for handlers that don't require a session but have one", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		h := &Handler{
 			RequireSession: false,
@@ -939,7 +865,6 @@ func noOpHandler(_ *Context, _ http.ResponseWriter, _ *http.Request) {
 func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 	t.Run("Should not cause 414 error if url is smaller than configured limit", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		web := New(th.Server)
 		handler := web.NewHandler(noOpHandler)
@@ -953,7 +878,6 @@ func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 
 	t.Run("Should cause 414 error if url is longer than configured limit", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockUserStore := mocks.UserStore{}
@@ -985,7 +909,6 @@ func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 
 	t.Run("414 error should include query params in computing URL length", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockUserStore := mocks.UserStore{}
@@ -1034,7 +957,6 @@ func TestHandlerServeHTTPRequestPayloadLimit(t *testing.T) {
 
 	t.Run("should allow payload smaller than set limit", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		web := New(th.Server)
 		handler := web.NewHandler(jsonReaderHandler)
@@ -1049,7 +971,6 @@ func TestHandlerServeHTTPRequestPayloadLimit(t *testing.T) {
 
 	t.Run("Should error out when request body is larger than set limit", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockUserStore := mocks.UserStore{}

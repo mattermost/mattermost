@@ -15,7 +15,7 @@ exports[`components/mfa/components/Confirm should match snapshot 1`] = `
     </strong>
     <p>
       <MemoizedFormattedMessage
-        defaultMessage="Your account is now secure. Next time you sign in, you will be asked to enter a code from the Google Authenticator app on your phone."
+        defaultMessage="Your account is now secure. Next time you sign in, you will be asked to enter a code from your authenticator app on your phone."
         id="mfa.confirm.secure"
       />
     </p>

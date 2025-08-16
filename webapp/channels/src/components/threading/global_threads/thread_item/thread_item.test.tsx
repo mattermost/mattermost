@@ -27,6 +27,65 @@ jest.mock('mattermost-redux/actions/threads');
 
 jest.mock('actions/views/threads');
 
+jest.mock('utils/constants', () => ({
+    ...jest.requireActual('utils/constants'),
+    RelativeRanges: {
+        TODAY_TITLE_CASE: 'Today',
+        TOMORROW_TITLE_CASE: 'Tomorrow',
+        YESTERDAY_TITLE_CASE: 'Yesterday',
+        LAST_WEEK_TITLE_CASE: 'Last Week',
+        LAST_MONTH_TITLE_CASE: 'Last Month',
+        LAST_YEAR_TITLE_CASE: 'Last Year',
+    },
+    Integrations: {
+        EXECUTE_CURRENT_COMMAND_ITEM_ID: 'execute_current_command',
+        OPEN_COMMAND_IN_MODAL_ITEM_ID: 'open_command_in_modal',
+    },
+}));
+
+jest.mock('components/markdown', () => {
+    return function MockMarkdown({message}: {message: string}) {
+        if (message.includes('[link]')) {
+            return <a href='https://example.com'>{'link'}</a>;
+        }
+        return <span>{message}</span>;
+    };
+});
+
+jest.mock('components/post_markdown', () => ({
+    makeGetMentionKeysForPost: () => () => [],
+}));
+
+jest.mock('components/timestamp', () => {
+    return function MockTimestamp() {
+        return <span>{'timestamp'}</span>;
+    };
+});
+
+jest.mock('components/widgets/users/avatars', () => {
+    return function MockAvatars() {
+        return <div className='avatars'>{'avatars'}</div>;
+    };
+});
+
+jest.mock('./attachments', () => {
+    return function MockAttachment() {
+        return <div className='attachment'>{'attachment'}</div>;
+    };
+});
+
+jest.mock('components/tours/crt_tour/crt_list_tutorial_tip', () => {
+    return function MockCRTListTutorialTip() {
+        return <div className='tutorial-tip'>{'tutorial'}</div>;
+    };
+});
+
+jest.mock('../thread_menu', () => {
+    return function MockThreadMenu({children}: {children: React.ReactNode}) {
+        return <div className='thread-menu'>{children}</div>;
+    };
+});
+
 const mockRouting = {
     currentUserId: '7n4ach3i53bbmj84dfmu5b7c1c',
     currentTeamId: 'tid',
@@ -207,10 +266,30 @@ describe('components/threading/global_threads/thread_item', () => {
 
     test('should allow marking as unread on alt + click', () => {
         const wrapper = shallow(<ThreadItem {...props}/>);
-        wrapper.simulate('click', {altKey: true});
+        wrapper.find('div.ThreadItem').simulate('click', {altKey: true});
         expect(updateThreadRead).not.toHaveBeenCalled();
         expect(markLastPostInThreadAsUnread).toHaveBeenCalledWith('user_id', 'tid', '1y8hpek81byspd4enyk9mp1ncw');
         expect(manuallyMarkThreadAsUnread).toHaveBeenCalledWith('1y8hpek81byspd4enyk9mp1ncw', 1611786714912);
         expect(mockDispatch).toHaveBeenCalledTimes(2);
+    });
+
+    test('should set article tabIndex to -1 when thread is selected', () => {
+        const wrapper = shallow(
+            <ThreadItem
+                {...props}
+                isSelected={true}
+            />,
+        );
+        expect(wrapper.find('div.ThreadItem').prop('tabIndex')).toBe(-1);
+    });
+
+    test('should set article tabIndex to 0 when thread is not selected', () => {
+        const wrapper = shallow(
+            <ThreadItem
+                {...props}
+                isSelected={false}
+            />,
+        );
+        expect(wrapper.find('div.ThreadItem').prop('tabIndex')).toBe(0);
     });
 });
