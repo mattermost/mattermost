@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {AppField, AppSelectOption} from '@mattermost/types/apps';
+import type {AppField, AppFormValue, AppSelectOption} from '@mattermost/types/apps';
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 
@@ -21,6 +21,9 @@ import type {InputTypes} from 'components/widgets/settings/text_setting';
 
 import AppsFormSelectField from './apps_form_select_field';
 
+import AppsFormDateField from '../apps_form_date_field';
+import AppsFormDateTimeField from '../apps_form_datetime_field';
+
 const TEXT_DEFAULT_MAX_LENGTH = 150;
 const TEXTAREA_DEFAULT_MAX_LENGTH = 3000;
 
@@ -30,7 +33,7 @@ export interface Props {
     errorText?: React.ReactNode;
     teammateNameDisplay?: string;
 
-    value: AppSelectOption | string | boolean | number | null;
+    value: AppFormValue;
     onChange: (name: string, value: any) => void;
     autoFocus?: boolean;
     listComponent?: React.ComponentProps<typeof AutocompleteSelector>['listComponent'];
@@ -188,6 +191,28 @@ export default class AppsFormField extends React.PureComponent<Props> {
             return (
                 <Markdown
                     message={field.description}
+                />
+            );
+        }
+        case AppFieldTypes.DATE: {
+            return (
+                <AppsFormDateField
+                    field={field}
+                    value={value as string | null}
+                    onChange={onChange}
+                    hasError={Boolean(errorText)}
+                    errorText={errorText}
+                />
+            );
+        }
+        case AppFieldTypes.DATETIME: {
+            return (
+                <AppsFormDateTimeField
+                    field={field}
+                    value={value as string | null}
+                    onChange={onChange}
+                    hasError={Boolean(errorText)}
+                    errorText={errorText}
                 />
             );
         }

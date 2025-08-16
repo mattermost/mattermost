@@ -7,6 +7,7 @@
 
 import am from './am.json';
 import ar from './ar.json';
+import ar_SA from './ar_SA.json';
 import be from './be.json';
 import bg from './bg.json';
 import bn from './bn.json';
@@ -72,8 +73,8 @@ type TranslationsMap = {
     [id: string]: string,
 };
 
-export const langIDs = ["am","ar","be","bg","bn","br","ca","cs","da","de","el","en-AU","es","et","eu","fa","fi","fil","fr","fy","gl","gu","he","hi","hr","hu","id","is","it","ja","ka","kk-Latn","kk","km","ko","la","lo","lt","lv","mk","ml","mn","nb-NO","ne","nl","pl","pr","pt-BR","pt","ro","ru","si","sl","sq","sr","sv","th","tr","uk","vi","zh-CN","zh-TW"];
+export const langIDs = ["am","ar","ar_SA","be","bg","bn","br","ca","cs","da","de","el","en-AU","es","et","eu","fa","fi","fil","fr","fy","gl","gu","he","hi","hr","hu","id","is","it","ja","ka","kk-Latn","kk","km","ko","la","lo","lt","lv","mk","ml","mn","nb-NO","ne","nl","pl","pr","pt-BR","pt","ro","ru","si","sl","sq","sr","sv","th","tr","uk","vi","zh-CN","zh-TW"];
 
-export const langLabels = {"am":"አማርኛ","ar":"العربية","be":"Беларуская","bg":"Български","bn":"বাংলা","br":"Brezhoneg","ca":"Català","cs":"Čeština","da":"Dansk","de":"Deutsch","el":"Ελληνικά","en-AU":"English (Australia)","es":"Español","et":"eesti keel","eu":"Euskara","fa":"فارسی","fi":"Suomi","fil":"Filipino","fr":"Français","fy":"Frysk","gl":"Galego","gu":"ગુજરાતી","he":"עברית‏","hi":"हिन्दी","hr":"Hrvatski","hu":"Magyar","id":"Bahasa Indonesia","is":"Íslenska","it":"Italiano","ja":"日本語","ka":"ქართული","kk-Latn":"Қазақша","kk":"Қазақша","km":"ភាសាខ្មែរ","ko":"한국어","la":"Latin","lo":"ພາສາລາວ","lt":"Lietuvių","lv":"Latviešu","mk":"Македонски","ml":"മലയാളം","mn":"Монгол","nb-NO":"Norsk (bokmål)","ne":"नेपाली","nl":"Nederlands","pl":"Polski","pr":"pr","pt-BR":"Português (Brasil)","pt":"Português","ro":"Română","ru":"Русский","si":"සිංහල","sl":"Slovenščina","sq":"Shqip","sr":"Српски","sv":"Svenska","th":"ภาษาไทย","tr":"Türkçe","uk":"Українська","vi":"Tiếng Việt","zh-CN":"中文（中国大陆）","zh-TW":"中文（台灣）"};
+export const langLabels = {"am":"አማርኛ","ar":"العربية","ar_SA":"ar_SA","be":"Беларуская","bg":"Български","bn":"বাংলা","br":"Brezhoneg","ca":"Català","cs":"Čeština","da":"Dansk","de":"Deutsch","el":"Ελληνικά","en-AU":"English (Australia)","es":"Español","et":"eesti keel","eu":"Euskara","fa":"فارسی","fi":"Suomi","fil":"Filipino","fr":"Français","fy":"Frysk","gl":"Galego","gu":"ગુજરાતી","he":"עברית‏","hi":"हिन्दी","hr":"Hrvatski","hu":"Magyar","id":"Bahasa Indonesia","is":"Íslenska","it":"Italiano","ja":"日本語","ka":"ქართული","kk-Latn":"Қазақша","kk":"Қазақша","km":"ភាសាខ្មែរ","ko":"한국어","la":"Latin","lo":"ພາສາລາວ","lt":"Lietuvių","lv":"Latviešu","mk":"Македонски","ml":"മലയാളം","mn":"Монгол","nb-NO":"Norsk (bokmål)","ne":"नेपाली","nl":"Nederlands","pl":"Polski","pr":"pr","pt-BR":"Português (Brasil)","pt":"Português","ro":"Română","ru":"Русский","si":"සිංහල","sl":"Slovenščina","sq":"Shqip","sr":"Српски","sv":"Svenska","th":"ภาษาไทย","tr":"Türkçe","uk":"Українська","vi":"Tiếng Việt","zh-CN":"中文（中国大陆）","zh-TW":"中文（台灣）"};
 
-export const langFiles: {[langID: string]: TranslationsMap} = {am,ar,be,bg,bn,br,ca,cs,da,de,el,'en-AU':enAU,es,et,eu,fa,fi,fil,fr,fy,gl,gu,he,hi,hr,hu,id,is,it,ja,ka,'kk-Latn':kkLatn,kk,km,ko,la,lo,lt,lv,mk,ml,mn,'nb-NO':nbNO,ne,nl,pl,pr,'pt-BR':ptBR,pt,ro,ru,si,sl,sq,sr,sv,th,tr,uk,vi,'zh-CN':zhCN,'zh-TW':zhTW};
+export const langFiles: {[langID: string]: TranslationsMap} = {am,ar,ar_SA,be,bg,bn,br,ca,cs,da,de,el,'en-AU':enAU,es,et,eu,fa,fi,fil,fr,fy,gl,gu,he,hi,hr,hu,id,is,it,ja,ka,'kk-Latn':kkLatn,kk,km,ko,la,lo,lt,lv,mk,ml,mn,'nb-NO':nbNO,ne,nl,pl,pr,'pt-BR':ptBR,pt,ro,ru,si,sl,sq,sr,sv,th,tr,uk,vi,'zh-CN':zhCN,'zh-TW':zhTW};

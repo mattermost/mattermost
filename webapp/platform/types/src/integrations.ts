@@ -156,6 +156,7 @@ type Dialog = {
     submit_label?: string;
     notify_on_cancel?: boolean;
     state?: string;
+    source_url?: string; // Optional URL for form refresh functionality (Apps Form feature flag only)
 };
 
 export type DialogSubmission = {
@@ -166,9 +167,10 @@ export type DialogSubmission = {
     channel_id: string;
     team_id: string;
     submission: {
-        [x: string]: string;
+        [x: string]: string | string[];
     };
     cancelled: boolean;
+    type?: string; // Optional type field for field refresh functionality
 };
 
 export type DialogElement = {
@@ -183,13 +185,18 @@ export type DialogElement = {
     min_length: number;
     max_length: number;
     data_source: string;
+    data_source_url?: string;
+    multiselect?: boolean;
     options: Array<{
         text: string;
         value: any;
     }>;
+    refresh?: boolean; // Optional field refresh functionality (Apps Form feature flag only)
 };
 
 export type SubmitDialogResponse = {
     error?: string;
     errors?: Record<string, string>;
+    type?: string; // Form refresh functionality - can be "form" for multi-step
+    form?: Dialog; // New form for multi-step workflows
 };

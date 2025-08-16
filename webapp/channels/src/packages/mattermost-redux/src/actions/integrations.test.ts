@@ -24,6 +24,10 @@ describe('Actions.Integrations', () => {
         store = configureStore();
     });
 
+    afterEach(() => {
+        nock.cleanAll();
+    });
+
     afterAll(() => {
         TestHelper.tearDown();
     });
@@ -815,5 +819,206 @@ describe('Actions.Integrations', () => {
 
         const {data} = await store.dispatch(Actions.submitInteractiveDialog(submit));
         expect(data).toEqual(OK_RESPONSE);
+    });
+
+    describe('lookupInteractiveDialog', () => {
+        it('lookupInteractiveDialog with successful response', async () => {
+            const expectedResponse = {
+                items: [
+                    {text: 'Option 1', value: 'value1'},
+                    {text: 'Option 2', value: 'value2'},
+                    {text: 'Option 3', value: 'value3'},
+                ],
+            };
+
+            const lookup: DialogSubmission = {
+                callback_id: 'callback_id',
+                channel_id: 'channel_id',
+                state: 'state',
+                submission: {
+                    query: 'test query',
+                    selected_field: 'dynamic_field',
+                },
+                cancelled: false,
+                team_id: 'team_id',
+                user_id: TestHelper.generateId(),
+                url: 'https://example.com/lookup',
+            };
+
+            nock(Client4.getBaseRoute()).
+                post('/actions/dialogs/lookup', lookup).
+                reply(200, expectedResponse);
+
+            const {data} = await store.dispatch(Actions.lookupInteractiveDialog(lookup));
+            expect(data).toEqual(expectedResponse);
+            expect(data.items).toHaveLength(3);
+            expect(data.items[0].text).toEqual('Option 1');
+            expect(data.items[0].value).toEqual('value1');
+        });
+
+        it('lookupInteractiveDialog with empty response', async () => {
+            const emptyResponse = {items: []};
+
+            const lookup: DialogSubmission = {
+                callback_id: 'callback_id',
+                channel_id: 'channel_id',
+                state: 'state',
+                submission: {
+                    query: 'empty query',
+                },
+                cancelled: false,
+                team_id: 'team_id',
+                user_id: TestHelper.generateId(),
+                url: 'https://example.com/lookup',
+            };
+
+            nock(Client4.getBaseRoute()).
+                post('/actions/dialogs/lookup', lookup).
+                reply(200, emptyResponse);
+
+            const {data} = await store.dispatch(Actions.lookupInteractiveDialog(lookup));
+            expect(data).toEqual(emptyResponse);
+            expect(data.items).toHaveLength(0);
+        });
+
+        it('lookupInteractiveDialog with server error', async () => {
+            const errorResponse = {
+                id: 'api.dialog.lookup.app_error',
+                message: 'Dialog lookup failed',
+                detailed_error: 'Invalid lookup parameters',
+                request_id: TestHelper.generateId(),
+                status_code: 400,
+            };
+
+            const lookup: DialogSubmission = {
+                callback_id: 'invalid_callback',
+                channel_id: 'channel_id',
+                state: 'state',
+                submission: {
+                    query: 'invalid query',
+                },
+                cancelled: false,
+                team_id: 'team_id',
+                user_id: TestHelper.generateId(),
+                url: 'https://example.com/lookup',
+            };
+
+            nock(Client4.getBaseRoute()).
+                post('/actions/dialogs/lookup', lookup).
+                reply(400, errorResponse);
+
+            const {error} = await store.dispatch(Actions.lookupInteractiveDialog(lookup));
+            expect(error.status_code).toBe(400);
+            expect(error.message).toBe('Dialog lookup failed');
+        });
+
+        it('lookupInteractiveDialog uses current state information', async () => {
+            store = configureStore({
+                entities: {
+                    users: {
+                        currentUserId: 'currentUserID',
+                    },
+                    teams: {
+                        currentTeamId: 'currentTeamID',
+                    },
+                    channels: {
+                        currentChannelId: 'dialog_channel_id',
+                    },
+                },
+            });
+
+            const expectedResponse = {
+                items: [
+                    {text: 'Option 1', value: 'value1'},
+                ],
+            };
+
+            const lookup: DialogSubmission = {
+                callback_id: 'callback_id',
+                channel_id: '',
+                state: 'state',
+                submission: {
+                    query: 'test query',
+                },
+                cancelled: false,
+                team_id: '',
+                user_id: TestHelper.generateId(),
+                url: 'https://example.com/lookup',
+            };
+
+            const expectedRequest = {
+                ...lookup,
+                channel_id: 'dialog_channel_id',
+                team_id: 'currentTeamID',
+                user_id: 'currentUserID',
+            };
+
+            nock(Client4.getBaseRoute()).
+                post('/actions/dialogs/lookup', expectedRequest).
+                reply(200, expectedResponse);
+
+            const {data} = await store.dispatch(Actions.lookupInteractiveDialog(lookup));
+            expect(data).toEqual(expectedResponse);
+        });
+
+        it('lookupInteractiveDialog with network error', async () => {
+            const lookup: DialogSubmission = {
+                callback_id: 'callback_id',
+                channel_id: 'channel_id',
+                state: 'state',
+                submission: {
+                    query: 'network error query',
+                },
+                cancelled: false,
+                team_id: 'team_id',
+                user_id: TestHelper.generateId(),
+                url: 'https://example.com/lookup',
+            };
+
+            nock(Client4.getBaseRoute()).
+                post('/actions/dialogs/lookup', lookup).
+                replyWithError('Network error');
+
+            const {error} = await store.dispatch(Actions.lookupInteractiveDialog(lookup));
+            expect(error.message).toContain('Network error');
+        });
+
+        it('lookupInteractiveDialog with complex submission data', async () => {
+            const expectedResponse = {
+                items: [
+                    {text: 'Complex Option 1', value: 'complex_value1'},
+                    {text: 'Complex Option 2', value: 'complex_value2'},
+                ],
+            };
+
+            const lookup: DialogSubmission = {
+                callback_id: 'complex_callback',
+                channel_id: 'channel_id',
+                state: 'complex_state',
+                submission: {
+                    query: 'complex query',
+                    selected_field: 'dynamic_select_field',
+                    additional_data: JSON.stringify({
+                        nested_field: 'nested_value',
+                        array_field: ['item1', 'item2'],
+                    }),
+                    boolean_field: 'true',
+                    number_field: '42',
+                },
+                cancelled: false,
+                team_id: 'team_id',
+                user_id: TestHelper.generateId(),
+                url: 'https://example.com/complex_lookup',
+            };
+
+            nock(Client4.getBaseRoute()).
+                post('/actions/dialogs/lookup', lookup).
+                reply(200, expectedResponse);
+
+            const {data} = await store.dispatch(Actions.lookupInteractiveDialog(lookup));
+            expect(data).toEqual(expectedResponse);
+            expect(data.items).toHaveLength(2);
+            expect(data.items[0].text).toEqual('Complex Option 1');
+        });
     });
 });
