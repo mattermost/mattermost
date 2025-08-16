@@ -316,6 +316,7 @@ type Dialog struct {
 	SubmitLabel      string          `json:"submit_label"`
 	NotifyOnCancel   bool            `json:"notify_on_cancel"`
 	State            string          `json:"state"`
+	SourceURL        string          `json:"source_url,omitempty"`
 }
 
 type DialogElement struct {
@@ -331,6 +332,7 @@ type DialogElement struct {
 	MaxLength   int                  `json:"max_length"`
 	DataSource  string               `json:"data_source"`
 	Options     []*PostActionOptions `json:"options"`
+	Refresh     bool                 `json:"refresh,omitempty"`
 }
 
 type OpenDialogRequest struct {
@@ -354,6 +356,8 @@ type SubmitDialogRequest struct {
 type SubmitDialogResponse struct {
 	Error  string            `json:"error,omitempty"`
 	Errors map[string]string `json:"errors,omitempty"`
+	Type   string            `json:"type,omitempty"`
+	Form   *Dialog           `json:"form,omitempty"`
 }
 
 func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppError) {
