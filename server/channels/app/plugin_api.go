@@ -222,7 +222,7 @@ func (api *PluginAPI) GetTeamMembers(teamID string, page, perPage int) ([]*model
 }
 
 func (api *PluginAPI) GetTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError) {
-	return api.app.GetTeamMember(api.ctx, teamID, userID)
+	return nil, model.NewAppError("GetTeamMember", "app.group.license_error", nil, "", http.StatusForbidden)
 }
 
 func (api *PluginAPI) GetTeamMembersForUser(userID string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
