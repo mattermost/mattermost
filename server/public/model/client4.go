@@ -482,6 +482,10 @@ func (c *Client4) oAuthAppRoute(appId string) string {
 	return fmt.Sprintf("/oauth/apps/%v", appId)
 }
 
+func (c *Client4) oAuthRegisterRoute() string {
+	return "/oauth/apps/register"
+}
+
 func (c *Client4) outgoingOAuthConnectionsRoute() string {
 	return "/oauth/outgoing_connections"
 }
@@ -6324,6 +6328,25 @@ func (c *Client4) RegenerateOAuthAppSecret(ctx context.Context, appId string) (*
 	return &oapp, BuildResponse(r), nil
 }
 
+// RegisterOAuthClient registers a new OAuth 2.0 client using Dynamic Client Registration (DCR).
+func (c *Client4) RegisterOAuthClient(ctx context.Context, request *ClientRegistrationRequest) (*ClientRegistrationResponse, *Response, error) {
+	buf, err := json.Marshal(request)
+	if err != nil {
+		return nil, nil, NewAppError("RegisterOAuthClient", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPostBytes(ctx, c.oAuthRegisterRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var response ClientRegistrationResponse
+	if err := json.NewDecoder(r.Body).Decode(&response); err != nil {
+		return nil, nil, NewAppError("RegisterOAuthClient", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &response, BuildResponse(r), nil
+}
+
 // GetAuthorizedOAuthAppsForUser gets a page of OAuth 2.0 client applications the user has authorized to use access their account.
 func (c *Client4) GetAuthorizedOAuthAppsForUser(ctx context.Context, userId string, page, perPage int) ([]*OAuthApp, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
@@ -6345,7 +6368,7 @@ func (c *Client4) AuthorizeOAuthApp(ctx context.Context, authRequest *AuthorizeR
 	if err != nil {
 		return "", BuildResponse(nil), NewAppError("AuthorizeOAuthApp", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/authorize", buf, "")
+	r, err := c.DoAPIRequestBytes(ctx, http.MethodPost, c.URL+OAuthAuthorizeEndpoint, buf, "")
 	if err != nil {
 		return "", BuildResponse(r), err
 	}
@@ -6356,7 +6379,7 @@ func (c *Client4) AuthorizeOAuthApp(ctx context.Context, authRequest *AuthorizeR
 // DeauthorizeOAuthApp will deauthorize an OAuth 2.0 client application from accessing a user's account.
 func (c *Client4) DeauthorizeOAuthApp(ctx context.Context, appId string) (*Response, error) {
 	requestData := map[string]string{"client_id": appId}
-	r, err := c.DoAPIRequest(ctx, http.MethodPost, c.URL+"/oauth/deauthorize", MapToJSON(requestData), "")
+	r, err := c.DoAPIRequest(ctx, http.MethodPost, c.URL+OAuthDeauthorizeEndpoint, MapToJSON(requestData), "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -6366,7 +6389,7 @@ func (c *Client4) DeauthorizeOAuthApp(ctx context.Context, appId string) (*Respo
 
 // GetOAuthAccessToken is a test helper function for the OAuth access token endpoint.
 func (c *Client4) GetOAuthAccessToken(ctx context.Context, data url.Values) (*AccessResponse, *Response, error) {
-	url := c.URL + "/oauth/access_token"
+	url := c.URL + OAuthAccessTokenEndpoint
 	rq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, nil, err
