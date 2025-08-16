@@ -43,7 +43,7 @@ export default function AboutBuildModalCloud(props: Props) {
     const subTitle = (
         <FormattedMessage
             id='about.enterpriseEditionSst'
-            defaultMessage='High trust messaging for the enterprise'
+            defaultMessage='Sovereign collaboration and workflow'
         />
     );
 
