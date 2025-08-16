@@ -3046,9 +3046,9 @@ func (s SqlChannelStore) GetMembersForUserWithCursorPagination(userId string, pe
 	return dbMembers.ToModel(), nil
 }
 
-func (s SqlChannelStore) GetTeamMembersForChannel(channelID string) ([]string, error) {
+func (s SqlChannelStore) GetTeamMembersForChannel(rctx request.CTX, channelID string) ([]string, error) {
 	teamMemberIDs := []string{}
-	if err := s.GetReplica().Select(&teamMemberIDs, `SELECT tm.UserId
+	if err := s.DBXFromContext(rctx.Context()).Select(&teamMemberIDs, `SELECT tm.UserId
 		FROM Channels c, Teams t, TeamMembers tm
 		WHERE
 			c.TeamId=t.Id
