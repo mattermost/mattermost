@@ -54,10 +54,12 @@ func (pf *PropertyField) PreSave() {
 		pf.ID = NewId()
 	}
 
+	// adjust timestamps if the field is new
 	if pf.CreateAt == 0 {
 		pf.CreateAt = GetMillis()
+		pf.UpdateAt = pf.CreateAt
+		pf.DeleteAt = 0
 	}
-	pf.UpdateAt = pf.CreateAt
 }
 
 func (pf *PropertyField) IsValid() error {
