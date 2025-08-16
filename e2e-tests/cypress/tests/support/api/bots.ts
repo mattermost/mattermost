@@ -24,7 +24,6 @@ import {ChainableT} from 'tests/types';
  */
 function apiCreateBot({prefix, bot}: Partial<{prefix: string; bot: BotPatch}> = {}): ChainableT<{bot: Bot & {fullDisplayName: string}}> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/bots',
         method: 'POST',
         body: bot || createBotPatch(prefix),
@@ -55,7 +54,6 @@ Cypress.Commands.add('apiCreateBot', apiCreateBot);
  */
 function apiGetBots(page = 0, perPage = 200, includeDeleted = false): ChainableT<{bots: Bot[]}> {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/bots?page=${page}&per_page=${perPage}&include_deleted=${includeDeleted}`,
         method: 'GET',
     }).then((response) => {
@@ -77,7 +75,6 @@ Cypress.Commands.add('apiGetBots', apiGetBots);
  */
 function apiDisableBot(userId) {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/bots/${userId}/disable`,
         method: 'POST',
     }).then((response) => {

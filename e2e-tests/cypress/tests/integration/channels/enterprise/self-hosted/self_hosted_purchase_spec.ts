@@ -155,7 +155,6 @@ describe('Self hosted Purchase', () => {
                 // in case there is lingering state from a prior local run or some other
                 // failed test, we clear it out
                 cy.request({
-                    headers: {'X-Requested-With': 'XMLHttpRequest'},
                     url: '/api/v4/hosted_customer/bootstrap',
                     method: 'POST',
                     qs: {

@@ -57,7 +57,7 @@ describe('Notifications', () => {
     });
 
     it('MM-T566 New message bar - Displays in permalink view', () => {
-        cy.makeClient().then(async (client) => {
+        cy.makeClient().then(async ({client}) => {
             const townChannel = await client.getChannelByName(testTeam.id, 'town-square');
             const townChannelId = townChannel.id;
 

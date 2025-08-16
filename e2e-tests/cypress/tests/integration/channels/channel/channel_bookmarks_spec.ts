@@ -61,7 +61,7 @@ describe('Channel Bookmarks', () => {
         it('bookmarks bar hidden when empty', () => {
         // # Go to channel menu
             cy.uiGetChannelInfoButton();
-            cy.makeClient().then(async (client) => {
+            cy.makeClient().then(async ({client}) => {
                 const bookmarks = await client.getChannelBookmarks(publicChannel.id);
                 cy.wrap(bookmarks.length).should('eq', 0);
             });
@@ -346,7 +346,7 @@ describe('Channel Bookmarks', () => {
         const verifyCannotCreate = () => {
             // * Verify cannot access create UI - channel menu
             cy.uiOpenChannelMenu();
-            cy.findByRole('menuitem', {name: 'Bookmarks Bar submenu icon'}).should('not.exist');
+            cy.findByText('Bookmarks Bar').should('not.exist');
 
             // * Verify cannot access create UI - bookmarks bar
             cy.get('#channelBookmarksPlusMenuButton').should('not.exist');
@@ -363,12 +363,12 @@ describe('Channel Bookmarks', () => {
 
             // * Verify create bookmark submenu in channel menu is not shown
             cy.uiOpenChannelMenu();
-            cy.findByRole('menuitem', {name: 'Bookmarks Bar submenu icon'}).should('not.exist');
+            cy.findByText('Bookmarks Bar').should('not.exist');
         });
     });
 
     function makeBookmarks(channel: Channel, n?: number) {
-        cy.makeClient().then(async (client) => {
+        cy.makeClient().then(async ({client}) => {
             const nToMake = n ?? BOOKMARK_LIMIT - (await client.getChannelBookmarks(channel.id))?.length;
 
             await Promise.allSettled(Array(nToMake).fill(0).map(() => {
@@ -386,8 +386,8 @@ function promptAddLink(fromChannelMenu = false) {
     if (fromChannelMenu) {
         cy.uiOpenChannelMenu();
 
-        cy.findByRole('menuitem', {name: 'Bookmarks Bar submenu icon'}).trigger('mouseover');
-        cy.findByRole('menuitem', {name: 'Add a link not selected'}).click();
+        cy.findByText('Bookmarks Bar').trigger('mouseover');
+        cy.findByText('Add a link').click();
     } else {
         cy.get('#channelBookmarksPlusMenuButton').click();
         cy.get('#channelBookmarksAddLink').click();
@@ -398,8 +398,8 @@ function promptAddFile(fromChannelMenu = false) {
     if (fromChannelMenu) {
         cy.uiOpenChannelMenu();
 
-        cy.findByRole('menuitem', {name: 'Bookmarks Bar submenu icon'}).trigger('mouseover');
-        cy.findByRole('menuitem', {name: 'Attach a file not selected'}).click();
+        cy.findByText('Bookmarks Bar').trigger('mouseover');
+        cy.findByText('Attach a file').click();
     } else {
         cy.get('#channelBookmarksPlusMenuButton').click();
         cy.get('#channelBookmarksAttachFile').click();

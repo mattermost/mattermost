@@ -136,7 +136,7 @@ describe('Bot accounts ownership and API', () => {
 
             // # Try to create a new bot
             cy.request({
-                headers: {'X-Requested-With': 'XMLHttpRequest', Authorization: `Bearer ${token}`},
+                headers: {Authorization: `Bearer ${token}`},
                 url: '/api/v4/bots',
                 method: 'POST',
                 failOnStatusCode: false,

@@ -14,17 +14,21 @@ async function makeClient({user = getAdminAccount(), useCache = true} = {}) {
     }
 
     const client = new E2EClient();
-
     const baseUrl = Cypress.config('baseUrl');
     client.setUrl(baseUrl);
 
-    await client.login(user.username, user.password);
+    try {
+        const userProfile = await client.login(user.username, user.password);
+        const userProfileWithPassword = {...userProfile, password: user.password};
 
-    if (useCache) {
-        clients[cacheKey] = client;
+        if (useCache) {
+            clients[cacheKey] = {client, user: userProfileWithPassword};
+        }
+
+        return {client, user: userProfileWithPassword};
+    } catch (error) {
+        return {client, user: null};
     }
-
-    return client;
 }
 
 Cypress.Commands.add('makeClient', makeClient);

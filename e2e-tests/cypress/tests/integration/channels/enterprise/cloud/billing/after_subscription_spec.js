@@ -122,7 +122,7 @@ describe('System Console - after subscription scenarios', () => {
                 cy.wrap({href: getHref}).invoke('href').should('contains', '/cloud-billing.html');
                 cy.wrap(link).should('have.attr', 'target', '_new');
                 cy.wrap(link).should('have.attr', 'rel', 'noopener noreferrer');
-                cy.request(link.prop('href')).its('status').should('eq', 200);
+                cy.request({url: link.prop('href')}).its('status').should('eq', 200);
             });
         });
 

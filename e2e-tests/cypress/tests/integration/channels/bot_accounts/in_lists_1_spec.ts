@@ -30,7 +30,7 @@ describe('Bots in lists', () => {
             channel = out.channel;
         });
 
-        cy.makeClient().then(async (client) => {
+        cy.makeClient().then(async ({client}) => {
             // # Create bots
             bots = await Promise.all([
                 client.createBot(createBotPatch()),

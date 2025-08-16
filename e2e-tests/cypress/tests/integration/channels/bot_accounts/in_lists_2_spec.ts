@@ -36,7 +36,7 @@ describe('Bots in lists', () => {
             testUser = out.user;
         });
 
-        cy.makeClient().then(async (client) => {
+        cy.makeClient().then(async ({client}) => {
             // # Create bots
             const bots = await Promise.all([
                 client.createBot(createBotPatch()),
@@ -65,7 +65,7 @@ describe('Bots in lists', () => {
     });
 
     it('MM-T1835 Channel Members list for BOTs', () => {
-        cy.makeClient({user: testUser}).then((client) => {
+        cy.makeClient({user: testUser}).then(({client}) => {
             // # Login as regular user and visit a channel
             cy.apiLogin(testUser);
             cy.visit(`/${team.name}/channels/${channel.name}`);

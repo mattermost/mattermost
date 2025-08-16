@@ -20,7 +20,6 @@ export function createTeamPatch(name = 'team', displayName = 'Team', type = 'O',
 
 Cypress.Commands.add('apiCreateTeam', (name, displayName, type, unique, options) => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/teams',
         method: 'POST',
         body: {
@@ -35,7 +34,6 @@ Cypress.Commands.add('apiCreateTeam', (name, displayName, type, unique, options)
 
 Cypress.Commands.add('apiDeleteTeam', (teamId, permanent = false) => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/teams/' + teamId + (permanent ? '?permanent=true' : ''),
         method: 'DELETE',
     }).then((response) => {
@@ -46,7 +44,6 @@ Cypress.Commands.add('apiDeleteTeam', (teamId, permanent = false) => {
 
 Cypress.Commands.add('apiDeleteUserFromTeam', (teamId, userId) => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/teams/' + teamId + '/members/' + userId,
         method: 'DELETE',
     }).then((response) => {
@@ -57,7 +54,6 @@ Cypress.Commands.add('apiDeleteUserFromTeam', (teamId, userId) => {
 
 Cypress.Commands.add('apiPatchTeam', (teamId, teamData) => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/teams/${teamId}/patch`,
         method: 'PUT',
         body: teamData,
@@ -69,7 +65,6 @@ Cypress.Commands.add('apiPatchTeam', (teamId, teamData) => {
 
 Cypress.Commands.add('apiGetTeamByName', (name) => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/teams/name/' + name,
         method: 'GET',
     }).then((response) => {
@@ -80,7 +75,6 @@ Cypress.Commands.add('apiGetTeamByName', (name) => {
 
 Cypress.Commands.add('apiGetAllTeams', ({page = 0, perPage = 60} = {}) => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `api/v4/teams?page=${page}&per_page=${perPage}`,
         method: 'GET',
     }).then((response) => {
@@ -91,7 +85,6 @@ Cypress.Commands.add('apiGetAllTeams', ({page = 0, perPage = 60} = {}) => {
 
 Cypress.Commands.add('apiGetTeamsForUser', (userId = 'me') => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `api/v4/users/${userId}/teams`,
         method: 'GET',
     }).then((response) => {
@@ -104,7 +97,6 @@ Cypress.Commands.add('apiAddUserToTeam', (teamId, userId) => {
     return cy.request({
         method: 'POST',
         url: `/api/v4/teams/${teamId}/members`,
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         body: {team_id: teamId, user_id: userId},
         qs: {team_id: teamId},
     }).then((response) => {
@@ -117,7 +109,6 @@ Cypress.Commands.add('apiAddUsersToTeam', (teamId, teamMembers) => {
     return cy.request({
         method: 'POST',
         url: `/api/v4/teams/${teamId}/members/batch`,
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         body: teamMembers,
     }).then((response) => {
         expect(response.status).to.equal(201);
@@ -128,7 +119,6 @@ Cypress.Commands.add('apiAddUsersToTeam', (teamId, teamMembers) => {
 Cypress.Commands.add('apiGetTeamMembers', (teamId) => {
     return cy.request({
         method: 'GET',
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/teams/${teamId}/members`,
     }).then((response) => {
         expect(response.status).to.equal(200);
@@ -138,7 +128,6 @@ Cypress.Commands.add('apiGetTeamMembers', (teamId) => {
 
 Cypress.Commands.add('apiUpdateTeamMemberSchemeRole', (teamId, userId, schemeRoles = {}) => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/teams/${teamId}/members/${userId}/schemeRoles`,
         method: 'PUT',
         body: schemeRoles,
@@ -150,7 +139,6 @@ Cypress.Commands.add('apiUpdateTeamMemberSchemeRole', (teamId, userId, schemeRol
 
 Cypress.Commands.add('apiSetTeamScheme', (teamId, schemeId) => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/teams/${teamId}/scheme`,
         method: 'PUT',
         body: {

@@ -27,7 +27,10 @@ function hasLicenseForFeature(license, key) {
 }
 
 Cypress.Commands.add('apiGetClientLicense', () => {
-    return cy.request('/api/v4/license/client?format=old').then((response) => {
+    return cy.request({
+        url: '/api/v4/license/client?format=old',
+        method: 'GET',
+    }).then((response) => {
         expect(response.status).to.equal(200);
 
         const license = response.body;
@@ -77,7 +80,6 @@ Cypress.Commands.add('apiUploadLicense', (filePath) => {
 
 Cypress.Commands.add('apiInstallTrialLicense', () => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/trial-license',
         method: 'POST',
         body: {
@@ -100,7 +102,6 @@ Cypress.Commands.add('apiInstallTrialLicense', () => {
 
 Cypress.Commands.add('apiDeleteLicense', () => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/license',
         method: 'DELETE',
     }).then((response) => {
@@ -122,6 +123,14 @@ export const getDefaultConfig = () => {
         LdapSettings: {
             LdapServer: cypressEnv.ldapServer,
             LdapPort: cypressEnv.ldapPort,
+        },
+        PasswordSettings: {
+            MinimumLength: 5,
+            Lowercase: false,
+            Number: false,
+            Uppercase: false,
+            Symbol: false,
+            EnableForgotLink: true,
         },
         ServiceSettings: {
             AllowedUntrustedInternalConnections: cypressEnv.allowedUntrustedInternalConnections,
@@ -175,7 +184,6 @@ Cypress.Commands.add('apiUpdateConfig', (newConfig = {}) => {
         // # Set the modified config
         return cy.request({
             url: '/api/v4/config',
-            headers: {'X-Requested-With': 'XMLHttpRequest'},
             method: 'PUT',
             body: config,
         }).then((updateResponse) => {
@@ -189,7 +197,6 @@ Cypress.Commands.add('apiReloadConfig', () => {
     // # Reload the config
     return cy.request({
         url: '/api/v4/config/reload',
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         method: 'POST',
     }).then((reloadResponse) => {
         expect(reloadResponse.status).to.equal(200);
@@ -199,7 +206,10 @@ Cypress.Commands.add('apiReloadConfig', () => {
 
 Cypress.Commands.add('apiGetConfig', (old = false) => {
     // # Get current settings
-    return cy.request(`/api/v4/config${old ? '/client?format=old' : ''}`).then((response) => {
+    return cy.request({
+        url: `/api/v4/config${old ? '/client?format=old' : ''}`,
+        method: 'GET',
+    }).then((response) => {
         expect(response.status).to.equal(200);
         return cy.wrap({config: response.body});
     });
@@ -232,7 +242,6 @@ Cypress.Commands.add('apiGetAnalytics', () => {
 Cypress.Commands.add('apiInvalidateCache', () => {
     return cy.request({
         url: '/api/v4/caches/invalidate',
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         method: 'POST',
     }).then((response) => {
         expect(response.status).to.equal(200);

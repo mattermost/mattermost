@@ -42,7 +42,7 @@ describe('Messaging', () => {
 
                 // # Assign the value of the a tag href to the 'href' variable and assert the link is valid
                 const href = $a.prop('href');
-                cy.request(href).its('body').should('include', '</html>');
+                cy.request({url: href}).its('body').should('include', '</html>');
             });
         });
     });

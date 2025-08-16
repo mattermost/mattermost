@@ -15,14 +15,12 @@ import * as TIMEOUTS from '../../../../fixtures/timeouts';
 // # Function to get all the teams associated to group and unlink them
 const getTeamsAssociatedToGroupAndUnlink = (groupId) => {
     cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/groups/${groupId}/teams`,
         method: 'GET',
     }).then((response) => {
         expect(response.status).to.equal(200);
         response.body.forEach((element) => {
             cy.request({
-                headers: {'X-Requested-With': 'XMLHttpRequest'},
                 url: `/api/v4/groups/${element.group_id}/teams/${element.team_id}/link`,
                 method: 'DELETE',
             });
@@ -33,14 +31,12 @@ const getTeamsAssociatedToGroupAndUnlink = (groupId) => {
 // # Function to get all the channels associated to group and unlink them
 const getChannelsAssociatedToGroupAndUnlink = (groupId) => {
     cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/groups/${groupId}/channels`,
         method: 'GET',
     }).then((response) => {
         expect(response.status).to.equal(200);
         response.body.forEach((element) => {
             cy.request({
-                headers: {'X-Requested-With': 'XMLHttpRequest'},
                 url: `/api/v4/groups/${element.group_id}/channels/${element.channel_id}/link`,
                 method: 'DELETE',
             });

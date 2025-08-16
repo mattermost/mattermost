@@ -9,7 +9,6 @@ export const checkMetrics = (expectedStatusCode) => {
 
         cy.log({name: 'Metrics License', message: `Checking metrics at ${baseURL.toString()}`});
         cy.request({
-            headers: {'X-Requested-With': 'XMLHttpRequest'},
             url: baseURL.toString(),
             method: 'GET',
             failOnStatusCode: false,

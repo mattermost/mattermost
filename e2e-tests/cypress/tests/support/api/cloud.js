@@ -3,7 +3,6 @@
 
 Cypress.Commands.add('apiGetCloudProducts', () => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/cloud/products',
         method: 'GET',
     }).then((response) => {
@@ -14,7 +13,6 @@ Cypress.Commands.add('apiGetCloudProducts', () => {
 
 Cypress.Commands.add('apiGetCloudSubscription', () => {
     return cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/cloud/subscription',
         method: 'GET',
     }).then((response) => {

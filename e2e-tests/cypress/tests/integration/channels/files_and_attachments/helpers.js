@@ -3,9 +3,9 @@
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
-export function downloadAttachmentAndVerifyItsProperties(fileURL, filename, httpContext) {
+export function downloadAttachmentAndVerifyItsProperties(url, filename, httpContext) {
     // * Verify it has not empty download link
-    cy.request(fileURL).then((response) => {
+    cy.request({url}).then((response) => {
         // * Verify that link can be downloaded
         expect(response.status).to.equal(200);
 

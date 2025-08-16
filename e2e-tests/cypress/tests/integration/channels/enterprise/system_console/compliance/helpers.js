@@ -97,7 +97,6 @@ export function editGlobalPolicyMessageRetention(input, result) {
 
     // * Checking if Global Policy is already created
     cy.request({
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/data_retention/policy',
         method: 'GET',
     }).then((response) => {

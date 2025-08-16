@@ -13,9 +13,14 @@ module.exports = async ({sender, postId, reaction, baseUrl}) => {
 
     const setCookie = loginResponse.headers['set-cookie'];
     let cookieString = '';
+    let csrfToken = '';
     setCookie.forEach((cookie) => {
         const nameAndValue = cookie.split(';')[0];
         cookieString += nameAndValue + ';';
+
+        if (nameAndValue.includes('MMCSRF')) {
+            csrfToken = nameAndValue.split('=')[1];
+        }
     });
 
     let response;
@@ -24,7 +29,7 @@ module.exports = async ({sender, postId, reaction, baseUrl}) => {
             url: `${baseUrl}/api/v4/reactions`,
             headers: {
                 'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-Token': csrfToken,
                 Cookie: cookieString,
             },
             method: 'post',

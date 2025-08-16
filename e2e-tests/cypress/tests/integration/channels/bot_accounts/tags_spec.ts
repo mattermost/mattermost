@@ -34,7 +34,7 @@ describe('Bot tags', () => {
             meId = id;
         });
 
-        cy.makeClient().then(async (client) => {
+        cy.makeClient().then(async ({client}) => {
             // # Setup state
             me = await client.getUser(meId);
             const bot = await client.createBot(createBotPatch());
