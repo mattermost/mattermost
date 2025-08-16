@@ -100,9 +100,10 @@ type Actions struct {
 
 // SlackImporter is a service that allows to import slack dumps into mattermost
 type SlackImporter struct {
-	store   store.Store
-	actions Actions
-	config  *model.Config
+	store         store.Store
+	actions       Actions
+	config        *model.Config
+	isAdminImport bool
 }
 
 // New creates a new SlackImporter service instance. It receive a store, a set of actions and the current config.
@@ -112,6 +113,17 @@ func New(store store.Store, actions Actions, config *model.Config) *SlackImporte
 		store:   store,
 		actions: actions,
 		config:  config,
+	}
+}
+
+// NewWithAdminFlag creates a new SlackImporter service instance with information about whether this is an admin import.
+// This allows for enhanced security controls based on the importing user's role.
+func NewWithAdminFlag(store store.Store, actions Actions, config *model.Config, isAdminImport bool) *SlackImporter {
+	return &SlackImporter{
+		store:         store,
+		actions:       actions,
+		config:        config,
+		isAdminImport: isAdminImport,
 	}
 }
 
@@ -718,8 +730,15 @@ func (si *SlackImporter) oldImportUser(rctx request.CTX, team *model.Team, user 
 		return nil
 	}
 
-	if _, err := si.store.User().VerifyEmail(ruser.Id, ruser.Email); err != nil {
-		rctx.Logger().Warn("Failed to set email verified.", mlog.Err(err))
+	// Only system admins can automatically verify emails during import
+	if si.isAdminImport {
+		if _, err := si.store.User().VerifyEmail(ruser.Id, ruser.Email); err != nil {
+			rctx.Logger().Warn("Failed to set email verified for admin import.", mlog.Err(err))
+		}
+	} else {
+		// Non-admin users: emails remain unverified
+		rctx.Logger().Debug("Email verification skipped for non-admin import.",
+			mlog.String("user_email", ruser.Email))
 	}
 
 	if _, err := si.actions.JoinUserToTeam(team, user, ""); err != nil {
