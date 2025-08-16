@@ -9,6 +9,7 @@ import type {Dispatch} from 'redux';
 import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
+import {getFilePublicLink} from 'mattermost-redux/actions/files';
 import {
     makeGetFilesForEditHistory,
     makeGetFilesForPost,
@@ -18,6 +19,10 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {openModal} from 'actions/views/modals';
 import {getCurrentLocale} from 'selectors/i18n';
 import {isEmbedVisible} from 'selectors/posts';
+
+import FilePreviewModal from 'components/file_preview_modal';
+
+import {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -39,6 +44,7 @@ function makeMapStateToProps() {
 
     return function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         const postId = ownProps.post ? ownProps.post.id : '';
+        const config = getConfig(state);
 
         var fileInfos: FileInfo[];
 
@@ -58,7 +64,8 @@ function makeMapStateToProps() {
         }
 
         return {
-            enableSVGs: getConfig(state).EnableSVGs === 'true',
+            enableSVGs: config.EnableSVGs === 'true',
+            enablePublicLink: config.EnablePublicLink === 'true',
             fileInfos,
             fileCount,
             isEmbedVisible: isEmbedVisible(state, ownProps.post.id),
@@ -71,7 +78,18 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             openModal,
+            getFilePublicLink,
         }, dispatch),
+        handleImageClick: (index: number, fileInfos: FileInfo[]) => {
+            dispatch(openModal({
+                modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
+                dialogType: FilePreviewModal,
+                dialogProps: {
+                    fileInfos,
+                    startIndex: index,
+                },
+            }));
+        },
     };
 }
 
