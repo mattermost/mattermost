@@ -168,6 +168,48 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             expect(valueText).toContain('Option 2');
             expect(valueText).toContain('option2');
         });
+
+        test('should convert multiselect element with default options', async () => {
+            const multiselectElement: DialogElement = {
+                name: 'test-multiselect',
+                type: 'select',
+                display_name: 'Test Multiselect',
+                help_text: 'Help text',
+                placeholder: 'Choose options',
+                default: 'option1,option3',
+                optional: false,
+                max_length: 0,
+                min_length: 0,
+                subtype: '',
+                data_source: '',
+                multiselect: true,
+                options: [
+                    {text: 'Option 1', value: 'option1'},
+                    {text: 'Option 2', value: 'option2'},
+                    {text: 'Option 3', value: 'option3'},
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                elements: [multiselectElement],
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('field-type-test-multiselect')).toHaveTextContent(AppFieldTypes.STATIC_SELECT);
+            });
+
+            // Check that the default value was converted to array of AppSelectOption format
+            const valueText = getByTestId('field-value-test-multiselect').textContent;
+            expect(valueText).toContain('Option 1');
+            expect(valueText).toContain('option1');
+            expect(valueText).toContain('Option 3');
+            expect(valueText).toContain('option3');
+        });
     });
 
     describe('XSS Prevention and Sanitization', () => {
@@ -1070,6 +1112,70 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             );
         });
 
+        test('should convert multiselect form values back to dialog submission format', async () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'multiselect-field',
+                    type: 'select',
+                    display_name: 'Multiselect Field',
+                    default: 'option1,option2',
+                    optional: false,
+                    multiselect: true,
+                    options: [
+                        {text: 'Option 1', value: 'option1'},
+                        {text: 'Option 2', value: 'option2'},
+                        {text: 'Option 3', value: 'option3'},
+                    ],
+                    max_length: 0,
+                    min_length: 0,
+                    help_text: '',
+                    placeholder: '',
+                    subtype: '',
+                    data_source: '',
+                },
+            ];
+
+            const mockSubmit = jest.fn().mockResolvedValue({data: {}});
+
+            const props = {
+                ...baseProps,
+                elements,
+                actions: {
+                    submitInteractiveDialog: mockSubmit,
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the submit adapter function
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const submitAdapter = mockCall.actions.doAppSubmit;
+
+            // Test multiselect form value conversion
+            await submitAdapter({
+                values: {
+                    'multiselect-field': [
+                        {label: 'Option 1', value: 'option1'},
+                        {label: 'Option 3', value: 'option3'},
+                    ],
+                },
+            });
+
+            expect(mockSubmit).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    submission: {
+                        'multiselect-field': ['option1', 'option3'],
+                    },
+                }),
+            );
+        });
+
         test('should validate form submission with various validation scenarios', async () => {
             const elements: DialogElement[] = [
                 {
@@ -1460,6 +1566,62 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             });
         });
 
+        test('should handle multiselect data_source selectors correctly', async () => {
+            const multiselectUserElement: DialogElement = {
+                name: 'multiselect_user_selector',
+                type: 'select',
+                display_name: 'Multiselect User Selector',
+                data_source: 'users',
+                multiselect: true,
+                subtype: '',
+                default: '',
+                placeholder: '',
+                help_text: '',
+                optional: false,
+                min_length: 0,
+                max_length: 0,
+                options: [],
+            };
+
+            const multiselectChannelElement: DialogElement = {
+                name: 'multiselect_channel_selector',
+                type: 'select',
+                display_name: 'Multiselect Channel Selector',
+                data_source: 'channels',
+                multiselect: true,
+                subtype: '',
+                default: '',
+                placeholder: '',
+                help_text: '',
+                optional: false,
+                min_length: 0,
+                max_length: 0,
+                options: [],
+            };
+
+            const props = {
+                ...baseProps,
+                elements: [multiselectUserElement, multiselectChannelElement],
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('field-type-multiselect_user_selector')).toHaveTextContent('user');
+                expect(getByTestId('field-type-multiselect_channel_selector')).toHaveTextContent('channel');
+            });
+
+            // Check that the rendered form field includes the multiselect property
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const userField = mockCall.form.fields.find((f: any) => f.name === 'multiselect_user_selector');
+            const channelField = mockCall.form.fields.find((f: any) => f.name === 'multiselect_channel_selector');
+
+            expect(userField?.multiselect).toBe(true);
+            expect(channelField?.multiselect).toBe(true);
+        });
+
         test('should handle textarea subtype correctly', async () => {
             const textareaElement: DialogElement = {
                 name: 'description',
@@ -1636,6 +1798,48 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 'Failed to convert dialog to app form',
                 expect.any(String),
             );
+        });
+
+        test('should handle multiselect with invalid default values gracefully', async () => {
+            const multiselectElement: DialogElement = {
+                name: 'multiselect_with_invalid_defaults',
+                type: 'select',
+                display_name: 'Multiselect with Invalid Defaults',
+                multiselect: true,
+                default: 'option1,invalid_option,option3',
+                options: [
+                    {text: 'Option 1', value: 'option1'},
+                    {text: 'Option 2', value: 'option2'},
+                    {text: 'Option 3', value: 'option3'},
+                ],
+                subtype: '',
+                placeholder: '',
+                help_text: '',
+                optional: false,
+                min_length: 0,
+                max_length: 0,
+                data_source: '',
+            };
+
+            const props = {
+                ...baseProps,
+                elements: [multiselectElement],
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+                expect(getByTestId('field-multiselect_with_invalid_defaults')).toBeInTheDocument();
+            });
+
+            // Should render successfully, filtering out invalid options
+            const valueText = getByTestId('field-value-multiselect_with_invalid_defaults').textContent;
+            expect(valueText).toContain('Option 1');
+            expect(valueText).toContain('Option 3');
+            expect(valueText).not.toContain('invalid_option');
         });
     });
 });
