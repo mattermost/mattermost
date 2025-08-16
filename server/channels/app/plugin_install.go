@@ -221,6 +221,7 @@ func (ch *Channels) installPlugin(bundle, signature io.ReadSeeker, installationS
 		logger.Warn("Failed to notify plugin status changed", mlog.Err(err))
 	}
 
+	// this func checks to see if the installed plugin already has custom settings, if not then it is given default settings
 	ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
 		if _, ok := cfg.PluginSettings.Plugins[manifest.Id]; !ok {
 			cfg.PluginSettings.Plugins[manifest.Id] = make(map[string]any)
