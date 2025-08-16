@@ -577,7 +577,7 @@ func TestValidateCSRFForPluginRequest(t *testing.T) {
 
 	t.Run("XMLHttpRequest with strict enforcement disabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement = false
+			*cfg.ServiceSettings.StrictCSRFEnforcement = false
 		})
 
 		session := &model.Session{Id: "sessionid", UserId: "userid", Token: "token"}
@@ -591,7 +591,7 @@ func TestValidateCSRFForPluginRequest(t *testing.T) {
 
 	t.Run("XMLHttpRequest with strict enforcement enabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement = true
+			*cfg.ServiceSettings.StrictCSRFEnforcement = true
 		})
 
 		session := &model.Session{Id: "sessionid", UserId: "userid", Token: "token"}
