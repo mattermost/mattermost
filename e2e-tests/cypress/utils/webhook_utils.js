@@ -262,9 +262,54 @@ function getBooleanDialog(triggerId, webhookBaseUrl) {
     };
 }
 
+function getDynamicSelectDialog(triggerId, webhookBaseUrl) {
+    return {
+        trigger_id: triggerId,
+        url: `${webhookBaseUrl}/dialog_submit`,
+        dialog: {
+            callback_id: 'somecallbackid',
+            title: 'Title for Dialog Test with dynamic select element',
+            icon_url:
+                'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
+            submit_label: 'Submit Dynamic Select Test',
+            notify_on_cancel: true,
+            state: 'somestate',
+            elements: [
+                {
+                    display_name: 'Dynamic Role Selector',
+                    name: 'dynamic_role_selector',
+                    type: 'select',
+                    data_source: 'dynamic',
+                    data_source_url: `${webhookBaseUrl}/dynamic_select_source`,
+                    default: '',
+                    placeholder: 'Search for a role...',
+                    help_text: 'Start typing to search for available roles. Options are loaded dynamically.',
+                    optional: false,
+                    min_length: 0,
+                    max_length: 0,
+                },
+                {
+                    display_name: 'Optional Dynamic Selector',
+                    name: 'optional_dynamic_selector',
+                    type: 'select',
+                    data_source: 'dynamic',
+                    data_source_url: `${webhookBaseUrl}/dynamic_select_source`,
+                    default: 'backend_eng',
+                    placeholder: 'Search for another role...',
+                    help_text: 'This field is optional and has a default value.',
+                    optional: true,
+                    min_length: 0,
+                    max_length: 0,
+                },
+            ],
+        },
+    };
+}
+
 module.exports = {
     getFullDialog,
     getSimpleDialog,
     getUserAndChannelDialog,
     getBooleanDialog,
+    getDynamicSelectDialog,
 };
