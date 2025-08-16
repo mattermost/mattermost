@@ -1,13 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 IFS=$'\n\t'
-
+rm -rf vet-api-output.txt
 # Our API vet checks haven't been running for a long time, and there are lots of undocumented APIs.
 # To stem the introduction of new, undocumented APIs while we find time to document the old ones,
 # filter out all the "known issues" to support the automated CI check.
 
-API_YAML=$ROOT../api/v4/html/static/mattermost-openapi-v4.yaml
-OUTPUT=$($GO vet -vettool=$GOBIN/mattermost-govet -openApiSync -openApiSync.spec=$API_YAML ./... 2>&1 || true)
+go vet -vettool=${GOBIN}/mattermost-govet -openApiSync -openApiSync.spec=${MATTERMOST_DIR}/api/v4/html/static/mattermost-openapi-v4.yaml ./... 2>&1 | tee vet-api-output.txt || true
+OUTPUT=$(cat vet-api-output.txt)
 
 echo "All output, some ignored"
 echo "========================"

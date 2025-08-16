@@ -6,7 +6,6 @@ package model
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/md5"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base32"
@@ -181,7 +180,7 @@ type RemoteClusterWithInvite struct {
 }
 
 func newIDFromBytes(b []byte) string {
-	hash := md5.New()
+	hash := sha256.New()
 	_, _ = hash.Write(b)
 	buf := hash.Sum(nil)
 
