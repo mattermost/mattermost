@@ -20,6 +20,7 @@ Options
 
 ::
 
+  -f, --follow       Fetch and watch logs.
   -h, --help         help for logs
   -l, --logrus       Use logrus for formatting.
   -n, --number int   Number of log lines to retrieve. (default 200)
