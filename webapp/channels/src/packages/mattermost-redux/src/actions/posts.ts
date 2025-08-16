@@ -35,6 +35,7 @@ import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult, DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
 import {logError, LogErrorBarMode} from './errors';
@@ -164,7 +165,6 @@ export function getPost(postId: string): ActionFuncAsync<Post> {
         }
 
         dispatch(receivedPost(post, crtEnabled));
-        dispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
 
         return {data: post};
     };
@@ -1032,6 +1032,25 @@ export function getPostsByIds(ids: string[]): ActionFuncAsync {
         });
 
         return {data: {posts}};
+    };
+}
+
+export function getPostsByIdsBatched(postIds: string[]): ActionFuncAsync<true> {
+    const maxBatchSize = 100;
+    const wait = 100;
+
+    return async (dispatch, getState, {loaders}: any) => {
+        if (!loaders.postsByIdsLoader) {
+            loaders.postsByIdsLoader = new DelayedDataLoader<Post['id']>({
+                fetchBatch: (postIds) => dispatch(getPostsByIds(postIds)),
+                maxBatchSize,
+                wait,
+            });
+        }
+
+        loaders.postsByIdsLoader.queue(postIds);
+
+        return {data: true};
     };
 }
 

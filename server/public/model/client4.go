@@ -774,7 +774,7 @@ func (c *Client4) DoAPIRequestReader(ctx context.Context, method, url string, da
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
 	}
 
-	if c.HTTPHeader != nil && len(c.HTTPHeader) > 0 {
+	if len(c.HTTPHeader) > 0 {
 		for k, v := range c.HTTPHeader {
 			rq.Header.Set(k, v)
 		}
@@ -1681,6 +1681,16 @@ func (c *Client4) UpdateUserActive(ctx context.Context, userId string, active bo
 	}
 	defer closeBody(r)
 
+	return BuildResponse(r), nil
+}
+
+// ResetFailedAttempts resets the number of failed attempts for a user.
+func (c *Client4) ResetFailedAttempts(ctx context.Context, userId string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.userRoute(userId)+"/reset_failed_attempts", "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
 	return BuildResponse(r), nil
 }
 
@@ -5852,7 +5862,7 @@ func (c *Client4) GetGroupsAssociatedToChannelsByTeam(ctx context.Context, teamI
 // GetGroups retrieves Mattermost Groups
 func (c *Client4) GetGroups(ctx context.Context, opts GroupSearchOpts) ([]*Group, *Response, error) {
 	path := fmt.Sprintf(
-		"%s?include_member_count=%v&not_associated_to_team=%v&not_associated_to_channel=%v&filter_allow_reference=%v&q=%v&filter_parent_team_permitted=%v&group_source=%v&include_channel_member_count=%v&include_timezones=%v&include_archived=%v&filter_archived=%v",
+		"%s?include_member_count=%v&not_associated_to_team=%v&not_associated_to_channel=%v&filter_allow_reference=%v&q=%v&filter_parent_team_permitted=%v&group_source=%v&include_channel_member_count=%v&include_timezones=%v&include_archived=%v&filter_archived=%v&only_syncable_sources=%v",
 		c.groupsRoute(),
 		opts.IncludeMemberCount,
 		opts.NotAssociatedToTeam,
@@ -5865,6 +5875,7 @@ func (c *Client4) GetGroups(ctx context.Context, opts GroupSearchOpts) ([]*Group
 		opts.IncludeTimezones,
 		opts.IncludeArchived,
 		opts.FilterArchived,
+		opts.OnlySyncableSources,
 	)
 	if opts.Since > 0 {
 		path = fmt.Sprintf("%s&since=%v", path, opts.Since)
@@ -7929,8 +7940,8 @@ func (c *Client4) RestoreGroup(ctx context.Context, groupID string, etag string)
 	}
 	defer closeBody(r)
 	var p Group
-	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
-		return nil, nil, NewAppError("DeleteGroup", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
+		return nil, nil, NewAppError("DeleteGroup", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &p, BuildResponse(r), nil
 }
@@ -9230,8 +9241,8 @@ func (c *Client4) AcknowledgePost(ctx context.Context, postId, userId string) (*
 	}
 	defer closeBody(r)
 	var ack *PostAcknowledgement
-	if jsonErr := json.NewDecoder(r.Body).Decode(&ack); jsonErr != nil {
-		return nil, nil, NewAppError("AcknowledgePost", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	if err := json.NewDecoder(r.Body).Decode(&ack); err != nil {
+		return nil, nil, NewAppError("AcknowledgePost", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return ack, BuildResponse(r), nil
 }

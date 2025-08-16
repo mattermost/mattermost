@@ -1874,7 +1874,7 @@ func (a *App) GetTeamIdFromQuery(rctx request.CTX, query url.Values) (string, *m
 	if tokenID != "" {
 		token, err := a.Srv().Store().Token().GetByToken(tokenID)
 		if err != nil {
-			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
+			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
 		if token.Type != TokenTypeTeamInvitation && token.Type != TokenTypeGuestInvitation {
@@ -1944,16 +1944,16 @@ func (a *App) GetTeamIcon(team *model.Team) ([]byte, *model.AppError) {
 	return data, nil
 }
 
-func (a *App) SetTeamIcon(teamID string, imageData *multipart.FileHeader) *model.AppError {
+func (a *App) SetTeamIcon(rctx request.CTX, teamID string, imageData *multipart.FileHeader) *model.AppError {
 	file, err := imageData.Open()
 	if err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.open.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	defer file.Close()
-	return a.SetTeamIconFromMultiPartFile(teamID, file)
+	return a.SetTeamIconFromMultiPartFile(rctx, teamID, file)
 }
 
-func (a *App) SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *model.AppError {
+func (a *App) SetTeamIconFromMultiPartFile(rctx request.CTX, teamID string, file multipart.File) *model.AppError {
 	team, getTeamErr := a.GetTeam(teamID)
 
 	if getTeamErr != nil {
@@ -1969,17 +1969,21 @@ func (a *App) SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *
 			nil, "", http.StatusBadRequest).Wrap(limitErr)
 	}
 
-	return a.SetTeamIconFromFile(team, file)
+	return a.SetTeamIconFromFile(rctx, team, file)
 }
 
-func (a *App) SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError {
+func (a *App) SetTeamIconFromFile(rctx request.CTX, team *model.Team, file io.ReadSeeker) *model.AppError {
 	// Decode image into Image object
-	img, _, err := image.Decode(file)
+	img, format, err := image.Decode(file)
 	if err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	orientation, _ := imaging.GetImageOrientation(file)
+	orientation, err := imaging.GetImageOrientation(file, format)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get image orientation", mlog.Err(err))
+	}
+
 	img = imaging.MakeImageUpright(img, orientation)
 
 	// Scale team icon

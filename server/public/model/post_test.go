@@ -140,7 +140,7 @@ func TestPostSanitizeProps(t *testing.T) {
 		Props: StringInterface{
 			PropsAddChannelMember:      "no good",
 			PostPropsForceNotification: "no good",
-			"attachments":              "good",
+			PostPropsAttachments:       "good",
 		},
 	}
 
@@ -149,7 +149,7 @@ func TestPostSanitizeProps(t *testing.T) {
 	require.Nil(t, post3.GetProp(PropsAddChannelMember))
 	require.Nil(t, post3.GetProp(PostPropsForceNotification))
 
-	require.NotNil(t, post3.GetProp("attachments"))
+	require.NotNil(t, post3.GetProp(PostPropsAttachments))
 }
 
 func TestPost_ContainsIntegrationsReservedProps(t *testing.T) {
@@ -162,11 +162,11 @@ func TestPost_ContainsIntegrationsReservedProps(t *testing.T) {
 	post2 := &Post{
 		Message: "test",
 		Props: StringInterface{
-			"from_webhook":         "true",
-			"webhook_display_name": "overridden_display_name",
-			"override_username":    "overridden_username",
-			"override_icon_url":    "a-custom-url",
-			"override_icon_emoji":  ":custom_emoji_name:",
+			PostPropsFromWebhook:        "true",
+			PostPropsWebhookDisplayName: "overridden_display_name",
+			PostPropsOverrideUsername:   "overridden_username",
+			PostPropsOverrideIconURL:    "a-custom-url",
+			PostPropsOverrideIconEmoji:  ":custom_emoji_name:",
 		},
 	}
 	keys2 := post2.ContainsIntegrationsReservedProps()
@@ -176,7 +176,7 @@ func TestPost_ContainsIntegrationsReservedProps(t *testing.T) {
 func TestPostPatch_ContainsIntegrationsReservedProps(t *testing.T) {
 	postPatch1 := &PostPatch{
 		Props: &StringInterface{
-			"from_webhook": "true",
+			PostPropsFromWebhook: "true",
 		},
 	}
 	keys1 := postPatch1.ContainsIntegrationsReservedProps()
@@ -405,8 +405,8 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			post1.AddProp("attachments", tc.Attachments1)
-			post2.AddProp("attachments", tc.Attachments2)
+			post1.AddProp(PostPropsAttachments, tc.Attachments1)
+			post2.AddProp(PostPropsAttachments, tc.Attachments2)
 			assert.Equal(t, tc.Expected, post1.AttachmentsEqual(post2))
 		})
 	}
@@ -895,7 +895,7 @@ func TestPostPatchDisableMentionHighlights(t *testing.T) {
 func TestPostAttachments(t *testing.T) {
 	p := &Post{
 		Props: map[string]any{
-			"attachments": []byte(`[{
+			PostPropsAttachments: []byte(`[{
 				"actions" : {null}
 			}]
 			`),
@@ -903,7 +903,7 @@ func TestPostAttachments(t *testing.T) {
 	}
 
 	t.Run("empty actions", func(t *testing.T) {
-		p.Props["attachments"] = []any{
+		p.Props[PostPropsAttachments] = []any{
 			map[string]any{"actions": []any{}},
 		}
 		attachments := p.Attachments()
@@ -911,7 +911,7 @@ func TestPostAttachments(t *testing.T) {
 	})
 
 	t.Run("a couple of actions", func(t *testing.T) {
-		p.Props["attachments"] = []any{
+		p.Props[PostPropsAttachments] = []any{
 			map[string]any{"actions": []any{
 				map[string]any{"id": "test1"}, map[string]any{"id": "test2"}},
 			},
@@ -924,7 +924,7 @@ func TestPostAttachments(t *testing.T) {
 	})
 
 	t.Run("should ignore null actions", func(t *testing.T) {
-		p.Props["attachments"] = []any{
+		p.Props[PostPropsAttachments] = []any{
 			map[string]any{"actions": []any{
 				map[string]any{"id": "test1"}, nil, map[string]any{"id": "test2"}, nil, nil},
 			},
@@ -937,7 +937,7 @@ func TestPostAttachments(t *testing.T) {
 	})
 
 	t.Run("nil fields", func(t *testing.T) {
-		p.Props["attachments"] = []any{
+		p.Props[PostPropsAttachments] = []any{
 			map[string]any{"fields": []any{
 				map[string]any{"value": ":emoji1:"},
 				nil,
@@ -994,4 +994,279 @@ func TestPostPriority(t *testing.T) {
 
 	p.Metadata.Priority.Priority = NewPointer(PostPriorityUrgent)
 	require.True(t, p.IsUrgent())
+}
+
+func TestPost_PropsIsValid(t *testing.T) {
+	tests := map[string]struct {
+		props   StringInterface
+		wantErr string
+	}{
+		"valid empty props": {
+			props:   nil,
+			wantErr: "",
+		},
+		"valid props": {
+			props: StringInterface{
+				"key": "value",
+			},
+			wantErr: "",
+		},
+		"valid added_user_id": {
+			props: StringInterface{
+				PostPropsAddedUserId: NewId(),
+			},
+			wantErr: "",
+		},
+		"valid delete_by": {
+			props: StringInterface{
+				PostPropsDeleteBy: NewId(),
+			},
+			wantErr: "",
+		},
+		"valid override_icon_url": {
+			props: StringInterface{
+				PostPropsOverrideIconURL: "https://example.com/icon.png",
+			},
+			wantErr: "",
+		},
+		"valid override_icon_emoji": {
+			props: StringInterface{
+				PostPropsOverrideIconEmoji: ":smile:",
+			},
+			wantErr: "",
+		},
+		"valid override_username": {
+			props: StringInterface{
+				PostPropsOverrideUsername: "testuser",
+			},
+			wantErr: "",
+		},
+		"valid from_webhook": {
+			props: StringInterface{
+				PostPropsFromWebhook: "true",
+			},
+			wantErr: "",
+		},
+		"valid from_bot": {
+			props: StringInterface{
+				PostPropsFromBot: "true",
+			},
+			wantErr: "",
+		},
+		"valid from_oauth_app": {
+			props: StringInterface{
+				PostPropsFromOAuthApp: "true",
+			},
+			wantErr: "",
+		},
+		"valid from_plugin": {
+			props: StringInterface{
+				PostPropsFromPlugin: "true",
+			},
+			wantErr: "",
+		},
+		"valid unsafe_links": {
+			props: StringInterface{
+				PostPropsUnsafeLinks: "true",
+			},
+			wantErr: "",
+		},
+		"valid webhook_display_name": {
+			props: StringInterface{
+				PostPropsWebhookDisplayName: "My Webhook",
+			},
+			wantErr: "",
+		},
+		"valid mention_highlight_disabled": {
+			props: StringInterface{
+				PostPropsMentionHighlightDisabled: true,
+			},
+			wantErr: "",
+		},
+		"valid disable_group_highlight": {
+			props: StringInterface{
+				PostPropsGroupHighlightDisabled: true,
+			},
+			wantErr: "",
+		},
+		"valid previewed_post": {
+			props: StringInterface{
+				PostPropsPreviewedPost: NewId(),
+			},
+			wantErr: "",
+		},
+		"valid force_notification": {
+			props: StringInterface{
+				PostPropsForceNotification: true,
+			},
+			wantErr: "",
+		},
+		"valid multiple props": {
+			props: StringInterface{
+				PostPropsFromWebhook:              "true",
+				PostPropsOverrideUsername:         "webhook-user",
+				PostPropsOverrideIconURL:          "https://example.com/icon.png",
+				PostPropsWebhookDisplayName:       "My Webhook",
+				PostPropsMentionHighlightDisabled: true,
+			},
+			wantErr: "",
+		},
+		"invalid added_user_id type": {
+			props: StringInterface{
+				PostPropsAddedUserId: 123,
+			},
+			wantErr: "added_user_id prop must be a string",
+		},
+		"invalid added_user_id value": {
+			props: StringInterface{
+				PostPropsAddedUserId: "invalid-id",
+			},
+			wantErr: "added_user_id prop must be a valid user ID",
+		},
+		"invalid delete_by type": {
+			props: StringInterface{
+				PostPropsDeleteBy: 123,
+			},
+			wantErr: "delete_by prop must be a string",
+		},
+		"invalid delete_by value": {
+			props: StringInterface{
+				PostPropsDeleteBy: "invalid-id",
+			},
+			wantErr: "delete_by prop must be a valid user ID",
+		},
+		"invalid override_icon_url type": {
+			props: StringInterface{
+				PostPropsOverrideIconURL: 123,
+			},
+			wantErr: "override_icon_url prop must be a string",
+		},
+		"invalid override_icon_url value": {
+			props: StringInterface{
+				PostPropsOverrideIconURL: "not-a-url",
+			},
+			wantErr: "override_icon_url prop must be a valid URL",
+		},
+		"invalid override_icon_emoji type": {
+			props: StringInterface{
+				PostPropsOverrideIconEmoji: 123,
+			},
+			wantErr: "override_icon_emoji prop must be a string",
+		},
+		"invalid override_username type": {
+			props: StringInterface{
+				PostPropsOverrideUsername: 123,
+			},
+			wantErr: "override_username prop must be a string",
+		},
+		"invalid from_webhook type": {
+			props: StringInterface{
+				PostPropsFromWebhook: 123,
+			},
+			wantErr: "from_webhook prop must be a string",
+		},
+		"invalid from_webhook value": {
+			props: StringInterface{
+				PostPropsFromWebhook: "false",
+			},
+			wantErr: "from_webhook prop must be \"true\"",
+		},
+		"invalid from_bot type": {
+			props: StringInterface{
+				PostPropsFromBot: 123,
+			},
+			wantErr: "from_bot prop must be a string",
+		},
+		"invalid from_bot value": {
+			props: StringInterface{
+				PostPropsFromBot: "false",
+			},
+			wantErr: "from_bot prop must be \"true\"",
+		},
+		"invalid from_oauth_app type": {
+			props: StringInterface{
+				PostPropsFromOAuthApp: 123,
+			},
+			wantErr: "from_oauth_app prop must be a string",
+		},
+		"invalid from_oauth_app value": {
+			props: StringInterface{
+				PostPropsFromOAuthApp: "false",
+			},
+			wantErr: "from_oauth_app prop must be \"true\"",
+		},
+		"invalid from_plugin type": {
+			props: StringInterface{
+				PostPropsFromPlugin: 123,
+			},
+			wantErr: "from_plugin prop must be a string",
+		},
+		"invalid from_plugin value": {
+			props: StringInterface{
+				PostPropsFromPlugin: "false",
+			},
+			wantErr: "from_plugin prop must be \"true\"",
+		},
+		"invalid unsafe_links type": {
+			props: StringInterface{
+				PostPropsUnsafeLinks: 123,
+			},
+			wantErr: "unsafe_links prop must be a string",
+		},
+		"invalid unsafe_links value": {
+			props: StringInterface{
+				PostPropsUnsafeLinks: "false",
+			},
+			wantErr: "unsafe_links prop must be \"true\"",
+		},
+		"invalid webhook_display_name type": {
+			props: StringInterface{
+				PostPropsWebhookDisplayName: 123,
+			},
+			wantErr: "webhook_display_name prop must be a string",
+		},
+		"invalid mention_highlight_disabled type": {
+			props: StringInterface{
+				PostPropsMentionHighlightDisabled: "true",
+			},
+			wantErr: "mention_highlight_disabled prop must be a boolean",
+		},
+		"invalid disable_group_highlight type": {
+			props: StringInterface{
+				PostPropsGroupHighlightDisabled: "true",
+			},
+			wantErr: "disable_group_highlight prop must be a boolean",
+		},
+		"invalid previewed_post type": {
+			props: StringInterface{
+				PostPropsPreviewedPost: 123,
+			},
+			wantErr: "previewed_post prop must be a string",
+		},
+		"invalid previewed_post value": {
+			props: StringInterface{
+				PostPropsPreviewedPost: "invalid-id",
+			},
+			wantErr: "previewed_post prop must be a valid post ID",
+		},
+		"invalid force_notification type": {
+			props: StringInterface{
+				PostPropsForceNotification: "true",
+			},
+			wantErr: "force_notification prop must be a boolean",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			p := &Post{}
+			p.SetProps(tc.props)
+			err := p.propsIsValid()
+			if tc.wantErr == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorContains(t, err, tc.wantErr)
+			}
+		})
+	}
 }

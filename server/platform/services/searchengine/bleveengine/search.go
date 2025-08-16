@@ -106,18 +106,18 @@ func (b *BleveEngine) SearchPosts(channels model.ChannelList, searchParams []*mo
 				filters = append(filters, onDateQ)
 			} else {
 				if params.AfterDate != "" || params.BeforeDate != "" {
-					var min, max *float64
+					var rangeMin, rangeMax *float64
 					if params.AfterDate != "" {
 						minf := float64(params.GetAfterDateMillis())
-						min = &minf
+						rangeMin = &minf
 					}
 
 					if params.BeforeDate != "" {
 						maxf := float64(params.GetBeforeDateMillis())
-						max = &maxf
+						rangeMax = &maxf
 					}
 
-					dateQ := bleve.NewNumericRangeQuery(min, max)
+					dateQ := bleve.NewNumericRangeQuery(rangeMin, rangeMax)
 					dateQ.SetField("CreateAt")
 					filters = append(filters, dateQ)
 				}
@@ -666,18 +666,18 @@ func (b *BleveEngine) SearchFiles(channels model.ChannelList, searchParams []*mo
 				filters = append(filters, onDateQ)
 			} else {
 				if params.AfterDate != "" || params.BeforeDate != "" {
-					var min, max *float64
+					var rangeMin, rangeMax *float64
 					if params.AfterDate != "" {
 						minf := float64(params.GetAfterDateMillis())
-						min = &minf
+						rangeMin = &minf
 					}
 
 					if params.BeforeDate != "" {
 						maxf := float64(params.GetBeforeDateMillis())
-						max = &maxf
+						rangeMax = &maxf
 					}
 
-					dateQ := bleve.NewNumericRangeQuery(min, max)
+					dateQ := bleve.NewNumericRangeQuery(rangeMin, rangeMax)
 					dateQ.SetField("CreateAt")
 					filters = append(filters, dateQ)
 				}

@@ -22,11 +22,11 @@ const (
 
 // Setting defines the behavior of each element a the panel
 type Setting interface {
-	Set(userID string, value interface{}) error
-	Get(userID string) (interface{}, error)
+	Set(userID string, value any) error
+	Get(userID string) (any, error)
 	GetID() string
 	GetDependency() string
-	IsDisabled(foreignValue interface{}) bool
+	IsDisabled(foreignValue any) bool
 	GetTitle() string
 	GetDescription() string
 	GetSlackAttachments(userID, settingHandler string, disabled bool) (*model.SlackAttachment, error)

@@ -71,7 +71,10 @@ const PasswordInput = React.forwardRef((
                     onClick={toggleShowPassword}
                     disabled={disabled}
                 >
-                    <i className={showPassword && !disabled ? 'icon-eye-off-outline' : 'icon-eye-outline'}/>
+                    <i
+                        className={showPassword && !disabled ? 'icon-eye-off-outline' : 'icon-eye-outline'}
+                        aria-hidden='true'
+                    />
                 </button>
             }
             value={value}

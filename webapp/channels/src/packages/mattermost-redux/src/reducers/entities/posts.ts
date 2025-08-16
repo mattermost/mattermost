@@ -22,7 +22,6 @@ import type {
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes} from 'mattermost-redux/action_types';
 import {Posts} from 'mattermost-redux/constants';
-import {PostTypes as PostConstant} from 'mattermost-redux/constants/posts';
 import {comparePosts, isPermalink, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
 
 export function removeUnneededMetadata(post: Post) {
@@ -472,7 +471,7 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
     case PostTypes.RECEIVED_NEW_POST: {
         const post = action.data as Post;
 
-        if (action.features?.crtEnabled && post.root_id && post.type !== PostConstant.EPHEMERAL) {
+        if (action.features?.crtEnabled && post.root_id) {
             return state;
         }
 

@@ -53,7 +53,7 @@
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "У запиті відсутній файл у розділі \"сертифікат\"."
+    "translation": "У запиті не знайдено жодного файлу під назвою 'certificate'."
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
@@ -1509,7 +1509,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nКанали додані:\n"
+    "translation": "\nДодані канали:\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
@@ -3997,7 +3997,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Недійсний ідентифікатор."
+    "translation": "Невірний ідентифікатор: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -4601,19 +4601,19 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.4+"
+    "translation": "Версія 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 119+"
+    "translation": "Версія 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версія 130+"
+    "translation": "Версія 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версія 130+"
+    "translation": "Версія 132+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10358,5 +10358,193 @@
   {
     "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
     "translation": "Не вдалося видалити закладку каналу."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Не вдалося створити закладку каналу."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Не вдалося оновити закладку каналу."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Не вдалося оновити порядок сортування закладок каналів."
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Сеанс не знайдено."
+  },
+  {
+    "id": "api.custom_profile_attributes.field_not_found",
+    "translation": "спроба змінити поле, яке не існує"
+  },
+  {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "Неможливо отримати закладки для заархівованого каналу"
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Не вдалося підрахувати кількість полів для групи атрибутів користувацького профілю"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Не вдалося додати поля користувацьких атрибутів профілю"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "Невірний ідентифікатор користувача на стороні клієнта: {{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "Кількість елементів у ClientSideUserIds {{.CurrentLength}} перевищує максимальне значення {{.MaxLength}}."
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Не вдалося видалити запитувані файли з бази даних"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Не вдалося виконати пошук полів атрибутів користувацького профілю"
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "Наданий ідентифікатор історії допису не відповідає жодному елементу історії для вказаного допису."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "Ви не маєте відповідних дозволів."
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "Не вдалося отримати використання сховища для всіх файлів."
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Не вдається отримати інформацію про файли за ідентифікаторами для історії редагувань."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Не вдалося відновити вкладені файли."
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Не вдалося отримати стару версію допису."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "Наданий ідентифікатор історії повідомлень не відповідає елементу історії повідомлень."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Не вдалося обчислити дані експорту каналу."
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Не вдалося перетворити значення з поля даних завдання."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "Колір банера каналу не може бути порожнім, якщо банер каналу увімкнено"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "Банер каналу можна налаштувати лише на публічних та приватних каналах"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "Інформаційний текст банера каналу не може бути порожнім, якщо банер каналу увімкнено"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "Текст інформації про банер каналу занадто довгий. Максимально допустима довжина - {{.maxLength}} символів."
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Банер каналу можна налаштувати лише на публічних та приватних каналах."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "Ви не маєте дозволу на оновлення цього ресурсу."
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "Неможливо видалити чернетки для користувача."
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "Потрібна ліцензія LDAP."
+  },
+  {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "Не вдалося скинути спроби входу."
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "Не вдалося отримати користувача."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "Недійсна максимальна кількість спроб входу для налаштувань ldap. Число має бути додатним."
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Ваш обліковий запис заблоковано через забагато невдалих спроб введення пароля. Будь ласка, зверніться до свого системного адміністратора."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "Служба автентифікації користувача має бути LDAP або електронною поштою."
+  },
+  {
+    "id": "license_error.feature_unavailable",
+    "translation": "Функція недоступна для поточної ліцензії"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "Некоректні атрибути значень властивостей : {{.AttributeName}} ({{.Reason}})."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Не вдалося перетворити поле властивості на поле атрибута кастомного профілю"
+  },
+  {
+    "id": "api.custom_profile_attributes.field_conversion_error",
+    "translation": "Не вдалося перетворити поле властивості на поле атрибута кастомного профілю"
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Недійсний ідентифікатор політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Недійсний імпорт для політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Недійсна назва політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Недійсна версія політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Правила недійсні."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Політика має імпортувати або визначати правила."
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Недійсний тип політики."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Версія недійсна для цієї політики контролю доступу."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "недійсний патч поля атрибута спеціального профілю"
   }
 ]

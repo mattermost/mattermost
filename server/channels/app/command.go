@@ -618,28 +618,28 @@ func (a *App) HandleCommandResponsePost(c request.CTX, command *model.Command, a
 
 	if *a.Config().ServiceSettings.EnablePostUsernameOverride {
 		if command.Username != "" {
-			post.AddProp("override_username", command.Username)
+			post.AddProp(model.PostPropsOverrideUsername, command.Username)
 			isBotPost = true
 		} else if response.Username != "" {
-			post.AddProp("override_username", response.Username)
+			post.AddProp(model.PostPropsOverrideUsername, response.Username)
 			isBotPost = true
 		}
 	}
 
 	if *a.Config().ServiceSettings.EnablePostIconOverride {
 		if command.IconURL != "" {
-			post.AddProp("override_icon_url", command.IconURL)
+			post.AddProp(model.PostPropsOverrideIconURL, command.IconURL)
 			isBotPost = true
 		} else if response.IconURL != "" {
-			post.AddProp("override_icon_url", response.IconURL)
+			post.AddProp(model.PostPropsOverrideIconURL, response.IconURL)
 			isBotPost = true
 		} else {
-			post.AddProp("override_icon_url", "")
+			post.AddProp(model.PostPropsOverrideIconURL, "")
 		}
 	}
 
 	if isBotPost {
-		post.AddProp("from_webhook", "true")
+		post.AddProp(model.PostPropsFromWebhook, "true")
 	}
 
 	// Process Slack text replacements if the response does not contain "skip_slack_parsing": true.

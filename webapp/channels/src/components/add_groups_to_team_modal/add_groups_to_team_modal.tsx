@@ -7,7 +7,7 @@ import {Modal} from 'react-bootstrap';
 import type {IntlShape} from 'react-intl';
 import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
 
-import type {Group, SyncablePatch} from '@mattermost/types/groups';
+import type {Group, SyncablePatch, GroupSource} from '@mattermost/types/groups';
 import {SyncableType} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -41,7 +41,7 @@ type Props = {
 }
 
 export type Actions = {
-    getGroupsNotAssociatedToTeam: (teamID: string, q?: string, page?: number, perPage?: number) => Promise<ActionResult>;
+    getGroupsNotAssociatedToTeam: (teamID: string, q?: string, page?: number, perPage?: number, source?: GroupSource | string, onlySyncableSources?: boolean) => Promise<ActionResult>;
     setModalSearchTerm: (term: string) => void;
     linkGroupSyncable: (groupID: string, syncableID: string, syncableType: SyncableType, patch: SyncablePatch) => Promise<ActionResult>;
     getAllGroupsAssociatedToTeam: (teamID: string, filterAllowReference: boolean, includeMemberCount: boolean) => Promise<ActionResult>;
@@ -79,7 +79,7 @@ export class AddGroupsToTeamModal extends React.PureComponent<Props, State> {
 
     public componentDidMount() {
         Promise.all([
-            this.props.actions.getGroupsNotAssociatedToTeam(this.props.currentTeamId, '', 0, GROUPS_PER_PAGE + 1),
+            this.props.actions.getGroupsNotAssociatedToTeam(this.props.currentTeamId, '', 0, GROUPS_PER_PAGE + 1, '', true),
             this.props.actions.getAllGroupsAssociatedToTeam(this.props.currentTeamId, false, true),
         ]).then(() => {
             this.setGroupsLoadingState(false);
@@ -98,7 +98,7 @@ export class AddGroupsToTeamModal extends React.PureComponent<Props, State> {
             this.searchTimeoutId = window.setTimeout(
                 async () => {
                     this.setGroupsLoadingState(true);
-                    await this.props.actions.getGroupsNotAssociatedToTeam(this.props.currentTeamId, searchTerm);
+                    await this.props.actions.getGroupsNotAssociatedToTeam(this.props.currentTeamId, searchTerm, 0, GROUPS_PER_PAGE + 1, '', true);
                     this.setGroupsLoadingState(false);
                 },
                 Constants.SEARCH_TIMEOUT_MILLISECONDS,
@@ -176,7 +176,7 @@ export class AddGroupsToTeamModal extends React.PureComponent<Props, State> {
     public handlePageChange = (page: number, prevPage: number): void => {
         if (page > prevPage) {
             this.setGroupsLoadingState(true);
-            this.props.actions.getGroupsNotAssociatedToTeam(this.props.currentTeamId, this.props.searchTerm, page, GROUPS_PER_PAGE + 1).then(() => {
+            this.props.actions.getGroupsNotAssociatedToTeam(this.props.currentTeamId, this.props.searchTerm, page, GROUPS_PER_PAGE + 1, '', true).then(() => {
                 this.setGroupsLoadingState(false);
             });
         }

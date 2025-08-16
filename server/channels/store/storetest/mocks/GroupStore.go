@@ -692,9 +692,9 @@ func (_m *GroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSour
 	return r0, r1
 }
 
-// GetByUser provides a mock function with given fields: userID
-func (_m *GroupStore) GetByUser(userID string) ([]*model.Group, error) {
-	ret := _m.Called(userID)
+// GetByUser provides a mock function with given fields: userID, opts
+func (_m *GroupStore) GetByUser(userID string, opts model.GroupSearchOpts) ([]*model.Group, error) {
+	ret := _m.Called(userID, opts)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetByUser")
@@ -702,19 +702,19 @@ func (_m *GroupStore) GetByUser(userID string) ([]*model.Group, error) {
 
 	var r0 []*model.Group
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) ([]*model.Group, error)); ok {
-		return rf(userID)
+	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) ([]*model.Group, error)); ok {
+		return rf(userID, opts)
 	}
-	if rf, ok := ret.Get(0).(func(string) []*model.Group); ok {
-		r0 = rf(userID)
+	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) []*model.Group); ok {
+		r0 = rf(userID, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Group)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userID)
+	if rf, ok := ret.Get(1).(func(string, model.GroupSearchOpts) error); ok {
+		r1 = rf(userID, opts)
 	} else {
 		r1 = ret.Error(1)
 	}

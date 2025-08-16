@@ -143,13 +143,12 @@ func (worker *ElasticsearchAggregatorWorker) DoJob(job *model.Job) {
 	logger.Debug("Worker: Received a new candidate job.")
 	defer worker.jobServer.HandleJobPanic(logger, job)
 
-	claimed, appErr := worker.jobServer.ClaimJob(job)
+	var appErr *model.AppError
+	job, appErr = worker.jobServer.ClaimJob(job)
 	if appErr != nil {
 		logger.Warn("Worker: Error occurred while trying to claim job", mlog.Err(appErr))
 		return
-	}
-
-	if !claimed {
+	} else if job == nil {
 		return
 	}
 

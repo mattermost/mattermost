@@ -2,14 +2,14 @@
 
 exports[`EmojiPickerCategory should match snapshot 1`] = `
 <DocumentFragment>
-  <a
+  <button
     aria-label="category name"
-    class="emoji-picker__category"
-    href="#"
+    aria-pressed="false"
+    class="style--none emoji-picker__category"
   >
     <i
       class="categoryClass"
     />
-  </a>
+  </button>
 </DocumentFragment>
 `;

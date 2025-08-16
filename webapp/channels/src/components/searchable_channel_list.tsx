@@ -248,6 +248,12 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             this.setState({page: 0});
         }
     };
+    filterChange = (filterType: FilterType) => {
+        this.props.changeFilter(filterType);
+        if (this.props.filter !== filterType) {
+            this.setState({page: 0});
+        }
+    };
     handleChange = (e?: React.FormEvent<HTMLInputElement>) => {
         if (e?.currentTarget) {
             this.setState({channelSearchValue: e?.currentTarget.value}, () => this.doSearch());
@@ -435,7 +441,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             <Menu.Item
                 key='channelsMoreDropdownAll'
                 id='channelsMoreDropdownAll'
-                onClick={() => this.props.changeFilter(Filter.All)}
+                onClick={() => this.filterChange(Filter.All)}
                 leadingElement={<GlobeCheckedIcon size={16}/>}
                 labels={
                     <FormattedMessage
@@ -449,7 +455,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             <Menu.Item
                 key='channelsMoreDropdownPublic'
                 id='channelsMoreDropdownPublic'
-                onClick={() => this.props.changeFilter(Filter.Public)}
+                onClick={() => this.filterChange(Filter.Public)}
                 leadingElement={<GlobeIcon size={16}/>}
                 labels={
                     <FormattedMessage
@@ -463,7 +469,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             <Menu.Item
                 key='channelsMoreDropdownPrivate'
                 id='channelsMoreDropdownPrivate'
-                onClick={() => this.props.changeFilter(Filter.Private)}
+                onClick={() => this.filterChange(Filter.Private)}
                 leadingElement={<LockOutlineIcon size={16}/>}
                 labels={
                     <FormattedMessage
@@ -482,7 +488,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 <Menu.Item
                     key='channelsMoreDropdownArchived'
                     id='channelsMoreDropdownArchived'
-                    onClick={() => this.props.changeFilter(Filter.Archived)}
+                    onClick={() => this.filterChange(Filter.Archived)}
                     leadingElement={<ArchiveOutlineIcon size={16}/>}
                     labels={
                         <FormattedMessage

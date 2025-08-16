@@ -122,6 +122,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                     dialogType: UserSettingsModal,
                     dialogProps: {
                         isContentProductSettings: true,
+                        focusOriginElement: 'sidebar.tsx',
                     },
                 });
             }
@@ -158,6 +159,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
         this.props.actions.openModal({
             modalId: ModalIdentifiers.INVITATION,
             dialogType: InvitationModal,
+            dialogProps: {focusOriginElement: 'browseOrAddChannelMenuButton'},
         });
         trackEvent('ui', 'ui_channels_dropdown_invite_people');
     };
@@ -204,6 +206,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                 <MoreDirectChannels
                     onModalDismissed={this.hideMoreDirectChannelsModal}
                     isExistingChannel={false}
+                    focusOriginElement='newDirectMessageButton'
                 />
             );
         }

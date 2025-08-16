@@ -1193,8 +1193,12 @@
         margin: 0 auto;
         table-layout: fixed;
 
-        > div {
+        .post__img,
+        .post__header-body {
             display: table-cell;
+        }
+
+        > div {
             vertical-align: top;
         }
     }

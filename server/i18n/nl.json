@@ -3992,7 +3992,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Ongeldig Id."
+    "translation": "Ongeldig Id. :{{.Id}}"
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -4628,11 +4628,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 130+"
+    "translation": "Versie 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 130+"
+    "translation": "Versie 132+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10430,5 +10430,129 @@
   {
     "id": "api.custom_profile_attributes.field_not_found",
     "translation": "proberen een veld te patchen dat niet bestaat"
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Sessie niet gevonden."
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Kan het aantal velden voor de aangepaste profielattribuutgroep niet tellen"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Kan aangepaste profielattribuutvelden niet uploaden"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "Ongeldige gebruikers-id aan clientzijde: {{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "Aantal elementen in ClientSideUserIds {{.CurrentLength}} is hoger dan de maximale limiet van {{.MaxLength}}."
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Kanaalbanners kunnen alleen geconfigureerd worden op Publieke en Private kanalen."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "De informatietekst van de kanaalbanner is te lang. De maximaal toegestane lengte is {{.maxLength}} tekens."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "Kanaalbanners kunnen alleen geconfigureerd worden op Publieke en Private kanalen"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "De informatietekst van de kanaalbanner kan niet leeg zijn als de kanaalbanner is ingeschakeld"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "De kleur van de kanaalbanner kan niet leeg zijn als de kanaalbanner is ingeschakeld"
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "De auth-service voor gebruikers moet LDAP of e-mail zijn."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "Je hebt geen toestemming om deze resource bij te werken."
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "Kan concepten voor gebruiker niet verwijderen."
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "LDAP-licentie vereist."
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "Fout bij het ophalen van gebruiker."
+  },
+  {
+    "id": "license_error.feature_unavailable",
+    "translation": "Functie is niet beschikbaar voor de huidige licentie"
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Je account is vergrendeld vanwege te veel mislukte wachtwoordpogingen. Neem contact op met je systeembeheerder."
+  },
+  {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "Inlogpogingen zijn niet gereset."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "Ongeldige maximale aanmeldpogingen voor ldap-instellingen. Moet een positief getal zijn."
+  },
+  {
+    "id": "api.custom_profile_attributes.field_conversion_error",
+    "translation": "Kan het eigenschapveld niet converteren naar een aangepast profielattribuutveld"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Kan het eigenschapveld niet converteren naar een aangepast profielattribuutveld"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "Ongeldige eigenschap waarde attributen : {{.AttributeName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "Ongeldige patch voor aangepaste profieleigenschappen"
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Beleid moet of regels importeren of definiëren."
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Ongeldig beleidstype."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Versie is niet geldig voor dit toegangscontrolebeleid."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Regel(s) is/zijn niet geldig."
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Ongeldig policyy id."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Ongeldige invoer voor het beleid."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Ongeldige naam voor het beleid."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Ongeldige beleidsherziening."
   }
 ]

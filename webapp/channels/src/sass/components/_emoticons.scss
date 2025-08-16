@@ -485,6 +485,13 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
     overflow-x: hidden;
     overflow-y: auto;
 
+    &:has(.no-results__wrapper) {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+
     &.gif-picker__items {
         display: flex;
         height: 380px;

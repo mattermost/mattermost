@@ -68,7 +68,6 @@ export function SystemUsersFilterRole(props: Props) {
     return (
         <DropdownInput<OptionType>
             name='filterRole'
-            showLegend={true}
             isSearchable={false}
             legend={formatMessage({id: 'admin.system_users.filters.role.title', defaultMessage: 'Role'})}
             options={options}

@@ -12,5 +12,13 @@
         justify-content: center;
         margin: auto;
         transform: translate(-50%, -50%) !important;
+
+    }
+    &__header {
+        padding-left: 0 !important;
+    }
+
+    &__footer {
+        padding-right: 0 !important;
     }
 }

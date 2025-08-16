@@ -149,8 +149,8 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
         cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
         // # Open Add Members Dialog
-        cy.get('#channelHeaderDropdownIcon').click();
-        cy.findByText('Add Members').click();
+        cy.uiOpenChannelMenu('Members');
+        cy.uiGetButton('Add').click();
 
         // * Verify the accessibility support in Add people Dialog
         cy.findAllByRole('dialog').eq(0).within(() => {
@@ -206,7 +206,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
         cy.get('#invitePeople').should('be.visible').click();
 
         // * Verify accessibility support in Invite People Dialog
-        cy.get('.InvitationModal').should('have.attr', 'aria-modal', 'true').and('have.attr', 'aria-labelledby', 'invitation_modal_title').and('have.attr', 'role', 'dialog');
+        cy.findByTestId('invitationModal').should('have.attr', 'aria-modal', 'true').and('have.attr', 'aria-labelledby', 'invitation_modal_title').and('have.attr', 'role', 'dialog');
         cy.get('#invitation_modal_title').should('be.visible').and('contain.text', 'Invite people to');
 
         // # Press tab

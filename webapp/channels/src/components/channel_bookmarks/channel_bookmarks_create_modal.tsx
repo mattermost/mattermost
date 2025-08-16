@@ -27,7 +27,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
-import {isValidUrl, parseLink, removeScheme} from 'utils/url';
+import {removeScheme, validHttpUrl} from 'utils/url';
 import {generateId} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -692,21 +692,4 @@ export const useBookmarkLinkValidation = (link: string, onValidated: (validatedL
     }, [link, start, cancel]);
 
     return [error, {loading: Boolean(loading), suppressed}] as const;
-};
-
-export const validHttpUrl = (input: string) => {
-    const val = parseLink(input);
-
-    if (!val || !isValidUrl(val)) {
-        return null;
-    }
-
-    let url;
-    try {
-        url = new URL(val);
-    } catch {
-        return null;
-    }
-
-    return url;
 };

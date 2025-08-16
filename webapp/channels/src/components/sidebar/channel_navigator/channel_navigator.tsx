@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -17,7 +18,7 @@ import type {ModalData} from 'types/actions';
 
 import ChannelFilter from '../channel_filter';
 
-export type Props = {
+export type Props = WrappedComponentProps & {
     showUnreadsCategory: boolean;
     isQuickSwitcherOpen: boolean;
     actions: {
@@ -26,7 +27,7 @@ export type Props = {
     };
 };
 
-export default class ChannelNavigator extends React.PureComponent<Props> {
+class ChannelNavigator extends React.PureComponent<Props> {
     componentDidMount() {
         document.addEventListener('keydown', this.handleShortcut);
         document.addEventListener('keydown', this.handleQuickSwitchKeyPress);
@@ -45,6 +46,7 @@ export default class ChannelNavigator extends React.PureComponent<Props> {
         this.props.actions.openModal({
             modalId: ModalIdentifiers.QUICK_SWITCH,
             dialogType: QuickSwitchModal,
+            dialogProps: {focusOriginElement: 'SidebarChannelNavigatorButton'},
         });
     };
 
@@ -81,6 +83,7 @@ export default class ChannelNavigator extends React.PureComponent<Props> {
             openModal({
                 modalId: ModalIdentifiers.QUICK_SWITCH,
                 dialogType: QuickSwitchModal,
+                dialogProps: {focusOriginElement: 'SidebarChannelNavigatorButton'},
             });
         }
     };
@@ -92,9 +95,10 @@ export default class ChannelNavigator extends React.PureComponent<Props> {
                 <button
                     className={'SidebarChannelNavigator_jumpToButton'}
                     onClick={this.openQuickSwitcher}
-                    aria-label={Utils.localizeMessage({id: 'sidebar_left.channel_navigator.channelSwitcherLabel', defaultMessage: 'Channel Switcher'})}
+                    aria-label={this.props.intl.formatMessage({id: 'sidebar_left.channel_navigator.channelSwitcherLabel', defaultMessage: 'Channel Switcher'})}
                     aria-haspopup='dialog'
                     data-testid='SidebarChannelNavigatorButton'
+                    id='SidebarChannelNavigatorButton'
                 >
                     <i className='icon icon-magnify'/>
                     <FormattedMessage
@@ -109,3 +113,5 @@ export default class ChannelNavigator extends React.PureComponent<Props> {
         );
     }
 }
+
+export default injectIntl(ChannelNavigator);

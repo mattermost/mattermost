@@ -37,7 +37,7 @@ describe('Leave and Archive channel actions display as destructive', () => {
         cy.findByText('View Info').should('be.visible');
 
         // * Move to... menu option should be visible
-        cy.findByText('Move to...').should('be.visible').children().trigger('mouseover');
+        cy.findByText('Move to...').should('be.visible').trigger('mouseover');
 
         // * Favorites Sub-menu option should be visible
         cy.findByText('Favorites').should('be.visible');
@@ -45,17 +45,20 @@ describe('Leave and Archive channel actions display as destructive', () => {
         // * New Category Sub-menu option should be visible
         cy.findByText('New Category').should('be.visible');
 
+        // * Move to... close menu option
+        cy.findByText('Move to...').should('be.visible').trigger('mouseout');
+
         // * Notification Preferences menu option should be visible
         cy.get('#channelNotificationPreferences').should('be.visible');
 
         // * Mute Channel menu option should be visible
         cy.get('#channelToggleMuteChannel').should('be.visible');
 
-        // * Add Members menu option should be visible
-        cy.get('#channelAddMembers').should('be.visible');
-
         // * Manage Members menu option should be visible
-        cy.get('#channelManageMembers').should('be.visible');
+        cy.get('#channelMembers').should('be.visible');
+
+        // * Channel Settings menu option should be visible
+        cy.findByText('Channel Settings').should('be.visible').trigger('mouseover');
 
         // * Edit Channel Header menu option should be visible
         cy.get('#channelEditHeader').should('be.visible');
@@ -66,11 +69,14 @@ describe('Leave and Archive channel actions display as destructive', () => {
         // * Rename Channel menu option should be visible
         cy.get('#channelRename').should('be.visible');
 
-        // * Archive Channel menu option should be visible and have a background-color (destructive)
-        cy.get('#channelArchiveChannel').should('be.visible').children().focus().should('have.css', 'background-color', 'rgb(210, 75, 78)');
+        // * Channel Settings close menu option
+        cy.findByText('Channel Settings').should('be.visible').trigger('mouseout');
 
-        // * Leave Channel menu option should be visible and hav a background-color (destructive)
-        cy.get('#channelLeaveChannel').should('be.visible').children().focus().should('have.css', 'background-color', 'rgb(210, 75, 78)');
+        // * Archive Channel menu option should be visible and have a background-color (destructive)
+        cy.get('#channelArchiveChannel').should('be.visible').focus().should('have.css', 'background-color', 'rgb(210, 75, 78)');
+
+        // // * Leave Channel menu option should be visible and hav a background-color (destructive)
+        cy.get('#channelLeaveChannel').should('be.visible').focus().should('have.css', 'background-color', 'rgb(210, 75, 78)');
     });
 
     it('MM-T4943_2 Leave channel actions display as destructive in the Edit Channel Menu ', () => {

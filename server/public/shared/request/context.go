@@ -151,7 +151,7 @@ func (c *Context) With(f func(ctx CTX) CTX) CTX {
 
 // CTX should be abbreviated as `rctx`.
 type CTX interface {
-	T(string, ...interface{}) string
+	T(string, ...any) string
 	GetT() i18n.TranslateFunc
 	Session() *model.Session
 	RequestId() string

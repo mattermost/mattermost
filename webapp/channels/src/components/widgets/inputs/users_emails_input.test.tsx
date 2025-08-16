@@ -36,9 +36,8 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
         );
         expect(wrapper).toMatchInlineSnapshot(`
             <Fragment>
-              <Async
+              <ForwardRef
                 aria-label="test"
-                cacheOptions={false}
                 className="UsersEmailsInput empty"
                 classNamePrefix="users-emails-input"
                 components={
@@ -51,7 +50,6 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
                 }
                 defaultMenuIsOpen={false}
                 defaultOptions={false}
-                filterOption={null}
                 formatOptionLabel={[Function]}
                 getOptionValue={[Function]}
                 inputValue=""

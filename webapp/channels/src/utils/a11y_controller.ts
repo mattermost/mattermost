@@ -395,14 +395,13 @@ export default class A11yController {
     restoreOriginFocus() {
         if (this.originElement && this.isElementValid(this.originElement)) {
             // Dispatch a focus event to manually focus this element
-            document.dispatchEvent(
-                new CustomEvent(A11yCustomEventTypes.FOCUS, {
-                    detail: {
-                        target: this.originElement,
-                        keyboardOnly: false,
-                    },
-                }),
-            );
+            const customEvent = new CustomEvent(A11yCustomEventTypes.FOCUS, {
+                detail: {
+                    target: this.originElement,
+                    keyboardOnly: false,
+                },
+            });
+            this.handleA11yFocus(customEvent);
             setTimeout(() => {
                 this.originElement = null;
             }, 0);
@@ -410,7 +409,7 @@ export default class A11yController {
     }
 
     /**
-     * Resets the a11y navigation controller, active region/section/element, clears focus and resets user interraction states
+     * Resets the a11y navigation controller, active region/section/element, clears focus and resets user interaction states
      */
     cancelNavigation() {
         this.clearActiveRegion();

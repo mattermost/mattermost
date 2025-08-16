@@ -2,12 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {StylesConfig} from 'react-select';
 import ReactSelect from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import type {AppField, AppSelectOption} from '@mattermost/types/apps';
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -22,7 +24,7 @@ export type Props = {
     field: AppField;
     label: React.ReactNode;
     helpText: React.ReactNode;
-    value: AppSelectOption | null;
+    value: AppSelectOption | UserProfile | Channel | null;
     onChange: (value: AppSelectOption) => void;
     performLookup: (name: string, userInput: string) => Promise<AppSelectOption[]>;
     teammateNameDisplay?: string;
@@ -38,14 +40,14 @@ export type State = {
 }
 
 const reactStyles = {
-    menuPortal: (provided: React.CSSProperties) => ({
+    menuPortal: (provided) => ({
         ...provided,
         zIndex: 9999,
     }),
-};
+} satisfies StylesConfig<AppSelectOption | UserProfile | Channel >;
 
 const commonComponents = {
-    MultiValueLabel: (props: {data: {label: string}}) => (
+    MultiValueLabel: (props: { data: { label: string } }) => (
         <div className='react-select__padded-component'>
             {props.data.label}
         </div>
@@ -57,7 +59,7 @@ const commonProps = {
     openMenuOnFocus: false,
     classNamePrefix: 'react-select-auto react-select',
     menuPortalTarget: document.body,
-    styles: reactStyles,
+    styles: reactStyles satisfies StylesConfig<AppSelectOption | UserProfile | Channel>,
 };
 
 export default class AppsFormSelectField extends React.PureComponent<Props, State> {
@@ -88,7 +90,7 @@ export default class AppsFormSelectField extends React.PureComponent<Props, Stat
         return this.props.performLookup(this.props.field.name, userInput);
     };
 
-    loadDynamicUserOptions = async (userInput: string): Promise<AppSelectOption[]> => {
+    loadDynamicUserOptions = async (userInput: string): Promise<UserProfile[]> => {
         const usersSearchResults: UserAutocomplete = await this.props.actions.autocompleteUsers(userInput.toLowerCase());
 
         return usersSearchResults.users.filter((user) => !user.is_bot).map((user) => {
@@ -98,7 +100,7 @@ export default class AppsFormSelectField extends React.PureComponent<Props, Stat
         });
     };
 
-    loadDynamicChannelOptions = async (userInput: string): Promise<AppSelectOption[]> => {
+    loadDynamicChannelOptions = async (userInput: string): Promise<Channel[]> => {
         let channelsSearchResults: Channel[] = [];
 
         await this.props.actions.autocompleteChannels(userInput.toLowerCase(), (data) => {
@@ -111,11 +113,11 @@ export default class AppsFormSelectField extends React.PureComponent<Props, Stat
     renderDynamicSelect() {
         const {field} = this.props;
         const placeholder = field.hint || '';
-        const value = this.props.value;
+        const value = this.props.value as AppSelectOption;
 
         return (
             <div className={'react-select'}>
-                <AsyncSelect
+                <AsyncSelect<AppSelectOption, boolean>
                     id={`MultiInput_${field.name}`}
                     loadOptions={this.loadDynamicOptions}
                     defaultOptions={true}
@@ -134,11 +136,11 @@ export default class AppsFormSelectField extends React.PureComponent<Props, Stat
     renderUserSelect() {
         const {hint, name, multiselect, readonly} = this.props.field;
         const placeholder = hint || '';
-        const value = this.props.value;
+        const value = this.props.value as UserProfile;
 
         return (
             <div className={'react-select'}>
-                <AsyncSelect
+                <AsyncSelect<UserProfile, boolean>
                     id={`MultiInput_${name}`}
                     loadOptions={this.loadDynamicUserOptions}
                     defaultOptions={true}
@@ -157,11 +159,11 @@ export default class AppsFormSelectField extends React.PureComponent<Props, Stat
     renderChannelSelect() {
         const {hint, name, multiselect, readonly} = this.props.field;
         const placeholder = hint || '';
-        const value = this.props.value;
+        const value = this.props.value as Channel;
 
         return (
             <div className={'react-select'}>
-                <AsyncSelect
+                <AsyncSelect<Channel, boolean>
                     id={`MultiInput_${name}`}
                     loadOptions={this.loadDynamicChannelOptions}
                     defaultOptions={true}

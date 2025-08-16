@@ -180,13 +180,13 @@ func (ss *SqlStore) migrate(direction migrationDirection, dryRun bool) error {
 	}
 }
 
-func (m *Migrator) GeneratePlan(recover bool) (*models.Plan, error) {
+func (m *Migrator) GeneratePlan(shouldRecover bool) (*models.Plan, error) {
 	diff, err := m.engine.Diff(models.Up)
 	if err != nil {
 		return nil, err
 	}
 
-	plan, err := m.engine.GeneratePlan(diff, recover)
+	plan, err := m.engine.GeneratePlan(diff, shouldRecover)
 	if err != nil {
 		return nil, err
 	}

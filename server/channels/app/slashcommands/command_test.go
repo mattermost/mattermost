@@ -165,15 +165,15 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Equal(t, resp.Type, post.Type)
 	assert.Equal(t, resp.Props, post.GetProps())
 	assert.Equal(t, resp.Text, post.Message)
-	assert.Nil(t, post.GetProp("override_icon_url"))
-	assert.Nil(t, post.GetProp("override_username"))
-	assert.Nil(t, post.GetProp("from_webhook"))
+	assert.Nil(t, post.GetProp(model.PostPropsOverrideIconURL))
+	assert.Nil(t, post.GetProp(model.PostPropsOverrideUsername))
+	assert.Nil(t, post.GetProp(model.PostPropsFromWebhook))
 
 	// Command is not built in, so it is a bot command.
 	builtIn = false
 	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
-	assert.Equal(t, "true", post.GetProp("from_webhook"))
+	assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
 
 	builtIn = true
 
@@ -195,23 +195,23 @@ func TestHandleCommandResponsePost(t *testing.T) {
 
 	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
-	assert.Nil(t, post.GetProp("override_username"))
+	assert.Nil(t, post.GetProp(model.PostPropsOverrideUsername))
 
 	*th.App.Config().ServiceSettings.EnablePostUsernameOverride = true
 
 	// Override username config is turned on. Override username through command property.
 	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
-	assert.Equal(t, command.Username, post.GetProp("override_username"))
-	assert.Equal(t, "true", post.GetProp("from_webhook"))
+	assert.Equal(t, command.Username, post.GetProp(model.PostPropsOverrideUsername))
+	assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
 
 	command.Username = ""
 
 	// Override username through response property.
 	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
-	assert.Equal(t, resp.Username, post.GetProp("override_username"))
-	assert.Equal(t, "true", post.GetProp("from_webhook"))
+	assert.Equal(t, resp.Username, post.GetProp(model.PostPropsOverrideUsername))
+	assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
 
 	*th.App.Config().ServiceSettings.EnablePostUsernameOverride = false
 
@@ -222,23 +222,23 @@ func TestHandleCommandResponsePost(t *testing.T) {
 
 	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
-	assert.Nil(t, post.GetProp("override_icon_url"))
+	assert.Nil(t, post.GetProp(model.PostPropsOverrideIconURL))
 
 	*th.App.Config().ServiceSettings.EnablePostIconOverride = true
 
 	// Override icon url config is turned on. Override icon url through command property.
 	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
-	assert.Equal(t, command.IconURL, post.GetProp("override_icon_url"))
-	assert.Equal(t, "true", post.GetProp("from_webhook"))
+	assert.Equal(t, command.IconURL, post.GetProp(model.PostPropsOverrideIconURL))
+	assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
 
 	command.IconURL = ""
 
 	// Override icon url through response property.
 	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
-	assert.Equal(t, resp.IconURL, post.GetProp("override_icon_url"))
-	assert.Equal(t, "true", post.GetProp("from_webhook"))
+	assert.Equal(t, resp.IconURL, post.GetProp(model.PostPropsOverrideIconURL))
+	assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
 
 	// Test Slack text conversion.
 	resp.Text = "<!channel>"
@@ -246,7 +246,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
 	assert.Equal(t, "@channel", post.Message)
-	assert.Equal(t, "true", post.GetProp("from_webhook"))
+	assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
 
 	// Test Slack attachments text conversion.
 	resp.Attachments = []*model.SlackAttachment{
@@ -261,7 +261,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	if assert.Len(t, post.Attachments(), 1) {
 		assert.Equal(t, "@here", post.Attachments()[0].Text)
 	}
-	assert.Equal(t, "true", post.GetProp("from_webhook"))
+	assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
 
 	channel = th.createPrivateChannel(th.BasicTeam)
 	resp.ChannelId = channel.Id

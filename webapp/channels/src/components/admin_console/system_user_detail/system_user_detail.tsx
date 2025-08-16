@@ -302,6 +302,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             dialogProps: {
                 user: this.state.user,
                 onConfirm: this.openUserSettingsModal,
+                focusOriginElement: 'manageUserSettingsBtn',
             },
         });
     };
@@ -318,6 +319,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 adminMode: true,
                 isContentProductSettings: true,
                 userID: this.state.user.id,
+                focusOriginElement: 'manageUserSettingsBtn',
             },
         });
     };
@@ -448,6 +450,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                         <button
                                             className='manageUserSettingsBtn btn btn-tertiary'
                                             onClick={this.openConfirmEditUserSettingsModal}
+                                            id='manageUserSettingsBtn'
                                         >
                                             <FormattedMessage
                                                 id='admin.user_item.manageSettings'

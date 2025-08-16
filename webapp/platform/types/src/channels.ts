@@ -32,6 +32,20 @@ export type ChannelNotifyProps = {
     channel_auto_follow_threads: 'off' | 'on';
 };
 
+export type ChannelBanner = {
+    enabled?: boolean;
+    text?: string;
+    background_color?: string;
+}
+
+export function channelBannerEnabled(banner: ChannelBanner | undefined): boolean {
+    if (!banner) {
+        return false;
+    }
+
+    return Boolean(banner.enabled) && Boolean(banner.text) && Boolean(banner.background_color);
+}
+
 export type Channel = {
     id: string;
     create_at: number;
@@ -53,6 +67,7 @@ export type Channel = {
     shared?: boolean;
     props?: Record<string, any>;
     policy_id?: string | null;
+    banner_info?: ChannelBanner;
 };
 
 export type ServerChannel = Channel & {

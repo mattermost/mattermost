@@ -22,6 +22,7 @@
     "@tippyjs/react": "4.2.6",
     "@types/color-hash": "1.0.2",
     "@types/turndown": "5.0.5",
+    "axios": "1.7.9",
     "bootstrap": "3.4.1",
     "buffer": "6.0.3",
     "chart.js": "3.8.2",
@@ -51,7 +52,7 @@
     "lodash": "4.17.21",
     "luxon": "3.3.0",
     "mark.js": "8.11.1",
-    "marked": "github:mattermost/marked#2ef7f28cc7718e3f551c4ce9ea75fdd7580c2008",
+    "marked": "github:mattermost/marked#3b13ba8ddf725327ddf0298361d6d304a021f2d1",
     "memoize-one": "6.0.0",
     "moment-timezone": "0.5.38",
     "p-queue": "7.3.0",
@@ -74,7 +75,7 @@
     "react-popper": "2.3.0",
     "react-redux": "7.2.4",
     "react-router-dom": "5.3.4",
-    "react-select": "3.0.3",
+    "react-select": "5.9.0",
     "react-transition-group": "4.4.5",
     "react-virtualized-auto-sizer": "1.0.7",
     "react-window": "1.8.8",
@@ -129,7 +130,6 @@
     "@types/react-overlays": "1.1.3",
     "@types/react-redux": "7.1.31",
     "@types/react-router-dom": "5.3.3",
-    "@types/react-select": "3.0.19",
     "@types/react-transition-group": "4.4.5",
     "@types/react-virtualized-auto-sizer": "1.0.1",
     "@types/react-window": "1.8.5",
@@ -177,6 +177,9 @@
     "yargs": "17.7.2"
   },
   "overrides": {
+    "@mattermost/compass-components": {
+      "axios": "1.7.9"
+    },
     "@mattermost/desktop-api": {
       "typescript": "$typescript"
     }

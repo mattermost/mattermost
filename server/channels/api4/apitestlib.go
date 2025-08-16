@@ -113,6 +113,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		*memoryConfig.CacheSettings.RedisAddress = redisHost + ":6379"
 		*memoryConfig.CacheSettings.DisableClientCache = true
 		*memoryConfig.CacheSettings.RedisDB = 0
+		*memoryConfig.CacheSettings.RedisCachePrefix = model.NewId()
 		options = append(options, app.ForceEnableRedis())
 	}
 	if updateConfig != nil {
@@ -617,6 +618,17 @@ func (th *TestHelper) CreateBotWithClient(client *model.Client4) *model.Bot {
 
 func (th *TestHelper) CreateUser() *model.User {
 	return th.CreateUserWithClient(th.Client)
+}
+
+func (th *TestHelper) CreateGuestUser(tb testing.TB) *model.User {
+	tb.Helper()
+
+	guestUser := th.CreateUserWithClient(th.Client)
+
+	_, appErr := th.App.UpdateUserRoles(th.Context, guestUser.Id, model.SystemGuestRoleId, false)
+	require.Nil(tb, appErr)
+
+	return guestUser
 }
 
 func (th *TestHelper) CreateTeam() *model.Team {

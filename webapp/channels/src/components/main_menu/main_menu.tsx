@@ -94,7 +94,7 @@ export class MainMenu extends React.PureComponent<Props> {
     handleKeyDown = (e: KeyboardEvent): void => {
         if (cmdOrCtrlPressed(e) && e.shiftKey && isKeyPressed(e, Constants.KeyCodes.A)) {
             e.preventDefault();
-            this.props.actions.openModal({modalId: ModalIdentifiers.USER_SETTINGS, dialogType: UserSettingsModal, dialogProps: {isContentProductSettings: true}});
+            this.props.actions.openModal({modalId: ModalIdentifiers.USER_SETTINGS, dialogType: UserSettingsModal, dialogProps: {isContentProductSettings: true, focusOriginElement: 'userAccountMenuButton'}});
         }
     };
 
@@ -174,6 +174,7 @@ export class MainMenu extends React.PureComponent<Props> {
                     })}
                     icon={this.props.mobile && <i className='fa fa-user-plus'/>}
                     onClick={() => trackEvent('ui', 'click_sidebar_team_dropdown_invite_people')}
+                    dialogProps={{focusOriginElement: 'sidebarDropdownMenuButton'}}
                 />
             );
         }
@@ -220,7 +221,7 @@ export class MainMenu extends React.PureComponent<Props> {
                         id='profileSettings'
                         modalId={ModalIdentifiers.USER_SETTINGS}
                         dialogType={UserSettingsModal}
-                        dialogProps={{isContentProductSettings: false}}
+                        dialogProps={{isContentProductSettings: false, focusOriginElement: 'userAccountMenuButton2'}}
                         text={formatMessage({id: 'navbar_dropdown.profileSettings', defaultMessage: 'Profile'})}
                         icon={<i className='fa fa-user'/>}
                     />
@@ -228,7 +229,7 @@ export class MainMenu extends React.PureComponent<Props> {
                         id='accountSettings'
                         modalId={ModalIdentifiers.USER_SETTINGS}
                         dialogType={UserSettingsModal}
-                        dialogProps={{isContentProductSettings: true}}
+                        dialogProps={{isContentProductSettings: true, focusOriginElement: 'userAccountMenuButton3'}}
                         text={formatMessage({id: 'navbar_dropdown.accountSettings', defaultMessage: 'Settings'})}
                         icon={<i className='fa fa-cog'/>}
                     />

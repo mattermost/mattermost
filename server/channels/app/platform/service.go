@@ -111,6 +111,8 @@ type PlatformService struct {
 	// This is a test mode setting used to enable Redis
 	// without a license.
 	forceEnableRedis bool
+
+	pdpService einterfaces.PolicyDecisionPointInterface
 }
 
 type HookRunner interface {
@@ -168,10 +170,11 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	} else if *cacheConfig.CacheType == model.CacheTypeRedis {
 		ps.cacheProvider, err = cache.NewRedisProvider(
 			&cache.RedisOptions{
-				RedisAddr:     *cacheConfig.RedisAddress,
-				RedisPassword: *cacheConfig.RedisPassword,
-				RedisDB:       *cacheConfig.RedisDB,
-				DisableCache:  *cacheConfig.DisableClientCache,
+				RedisAddr:        *cacheConfig.RedisAddress,
+				RedisPassword:    *cacheConfig.RedisPassword,
+				RedisDB:          *cacheConfig.RedisDB,
+				RedisCachePrefix: *cacheConfig.RedisCachePrefix,
+				DisableCache:     *cacheConfig.DisableClientCache,
 			},
 		)
 	}
@@ -360,9 +363,12 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 
 	ps.Busy = NewBusy(ps.clusterIFace)
 
-	// Enable developer settings if this is a "dev" build
+	// Enable developer settings and mmctl local mode if this is a "dev" build
 	if model.BuildNumber == "dev" {
-		ps.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
+		ps.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableDeveloper = true
+			*cfg.ServiceSettings.EnableLocalMode = true
+		})
 	}
 
 	ps.AddLicenseListener(func(oldLicense, newLicense *model.License) {
@@ -469,6 +475,10 @@ func (ps *PlatformService) initEnterprise() {
 
 	if licenseInterface != nil {
 		ps.licenseManager = licenseInterface(ps)
+	}
+
+	if pdpInterface != nil {
+		ps.pdpService = pdpInterface(ps)
 	}
 }
 

@@ -140,7 +140,7 @@ func testPostAcknowledgementsStoreGetForPosts(t *testing.T, rctx request.CTX, ss
 			PersistentNotifications: model.NewPointer(false),
 		},
 	}
-	_, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p1, &p2})
+	_, errIdx, err := ss.Post().SaveMultiple(rctx, []*model.Post{&p1, &p2})
 	require.NoError(t, err)
 	require.Equal(t, -1, errIdx)
 

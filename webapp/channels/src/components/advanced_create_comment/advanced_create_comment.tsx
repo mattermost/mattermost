@@ -39,7 +39,7 @@ const AdvancedCreateComment = ({
         <AdvancedTextEditor
             location={Locations.RHS_COMMENT}
             channelId={channelId}
-            postId={rootId}
+            rootId={rootId}
             isThreadView={isThreadView}
             placeholder={placeholder}
             afterSubmit={afterSubmit}

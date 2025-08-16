@@ -588,7 +588,7 @@ func TestPostChannelMentions(t *testing.T) {
 			"display_name": "Mention Test",
 			"team_name":    th.BasicTeam.Name,
 		},
-	}, post.GetProp("channel_mentions"))
+	}, post.GetProp(model.PostPropsChannelMentions))
 
 	post.Message = fmt.Sprintf("goodbye, ~%v!", channelToMention2.Name)
 	result, err := th.App.UpdatePost(th.Context, post, nil)
@@ -598,12 +598,12 @@ func TestPostChannelMentions(t *testing.T) {
 			"display_name": "Mention Test2",
 			"team_name":    th.BasicTeam.Name,
 		},
-	}, result.GetProp("channel_mentions"))
+	}, result.GetProp(model.PostPropsChannelMentions))
 
 	result.Message = "no more mentions!"
 	result, err = th.App.UpdatePost(th.Context, result, nil)
 	require.Nil(t, err)
-	assert.Nil(t, result.GetProp("channel_mentions"))
+	assert.Nil(t, result.GetProp(model.PostPropsChannelMentions))
 }
 
 func TestImageProxy(t *testing.T) {
@@ -1282,7 +1282,7 @@ func TestCreatePostAsUser(t *testing.T) {
 			Message:   "test",
 			UserId:    th.BasicUser.Id,
 		}
-		post.AddProp("from_webhook", "true")
+		post.AddProp(model.PostPropsFromWebhook, "true")
 
 		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
@@ -2502,7 +2502,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			ChannelId: channel.Id,
 			Message:   fmt.Sprintf("@%s", user2.Username),
 			Props: map[string]any{
-				"from_webhook": "true",
+				model.PostPropsFromWebhook: "true",
 			},
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)

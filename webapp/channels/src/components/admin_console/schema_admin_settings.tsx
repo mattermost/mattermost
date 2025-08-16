@@ -665,7 +665,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         });
 
         if (setting.multiple) {
-            const noResultText = typeof setting.no_result === 'object' ? (
+            const noOptionsMessage = typeof setting.no_result === 'object' ? (
                 <FormattedMessage {...setting.no_result}/>
             ) : setting.no_result;
             return (
@@ -679,7 +679,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                     disabled={this.isDisabled(setting)}
                     setByEnv={this.isSetByEnv(setting.key)}
                     onChange={this.handleChange}
-                    noResultText={noResultText}
+                    noOptionsMessage={noOptionsMessage}
                 />
             );
         }
@@ -721,7 +721,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                     disabled={this.isDisabled(setting)}
                     setByEnv={this.isSetByEnv(setting.key)}
                     onChange={(changedId, value) => this.handleChange(changedId, value.join(','))}
-                    noResultText={descriptorOrStringToString(setting.no_result, this.props.intl)}
+                    noOptionsMessage={descriptorOrStringToString(setting.no_result, this.props.intl)}
                 />
             );
         }
@@ -1328,7 +1328,10 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         }
 
         return (
-            <div className={'wrapper--fixed ' + this.state.customComponentWrapperClass}>
+            <div
+                className={'wrapper--fixed ' + this.state.customComponentWrapperClass}
+                data-testid={`sysconsole_section_${this.props.schema.id}`}
+            >
                 {this.renderTitle()}
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>

@@ -4,6 +4,7 @@
 import {CloudTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
+import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup} from 'mattermost-redux/actions/groups';
 import {
     getPostThreads,
@@ -11,7 +12,8 @@ import {
 } from 'mattermost-redux/actions/posts';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import {getUser} from 'mattermost-redux/actions/users';
-import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
+import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
+import {getStatusForUserId, getUser as stateUser} from 'mattermost-redux/selectors/entities/users';
 
 import {handleNewPost} from 'actions/post_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
@@ -41,6 +43,10 @@ import {
     handleCloudSubscriptionChanged,
     handleGroupAddedMemberEvent,
     handleStatusChangedEvent,
+    handleCustomAttributeValuesUpdated,
+    handleCustomAttributesCreated,
+    handleCustomAttributesUpdated,
+    handleCustomAttributesDeleted,
 } from './websocket_actions';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
@@ -57,6 +63,11 @@ jest.mock('mattermost-redux/actions/channel_categories', () => ({
 jest.mock('mattermost-redux/actions/status_profile_polling', () => ({
     ...jest.requireActual('mattermost-redux/actions/status_profile_polling'),
     batchFetchStatusesProfilesGroupsFromPosts: jest.fn(() => ({type: ''})),
+}));
+
+jest.mock('mattermost-redux/actions/general', () => ({
+    ...jest.requireActual('mattermost-redux/actions/general'),
+    getCustomProfileAttributeFields: jest.fn(() => ({type: 'CUSTOM_PROFILE_ATTRIBUTE_FIELDS_RECEIVED'})),
 }));
 
 jest.mock('mattermost-redux/actions/groups', () => ({
@@ -259,8 +270,34 @@ describe('handleGroupAddedMemberEvent', () => {
 
         testStore.dispatch(handleGroupAddedMemberEvent(msg));
         expect(store.dispatch).toHaveBeenCalledWith({
-            type: 'ADD_MY_GROUP',
-            id: 'group-1',
+            meta: {batch: true},
+            payload: [
+                {
+                    type: 'ADD_MY_GROUP',
+                    id: 'group-1',
+                },
+                {
+                    data: {
+                        create_at: 1691178673417,
+                        delete_at: 0,
+                        group_id: 'group-1',
+                        user_id: 'currentUserId',
+                    },
+                    id: 'group-1',
+                    type: 'RECEIVED_MEMBER_TO_ADD_TO_GROUP',
+                },
+                {
+                    data: [{
+                        create_at: 1691178673417,
+                        delete_at: 0,
+                        group_id: 'group-1',
+                        user_id: 'currentUserId',
+                    }],
+                    id: 'group-1',
+                    type: 'RECEIVED_PROFILES_FOR_GROUP',
+                },
+            ],
+            type: 'BATCHING_REDUCER.BATCH',
         });
     });
 
@@ -663,6 +700,11 @@ describe('reconnect', () => {
     test('should call fetchAllMyTeamsChannels when socket reconnects', () => {
         reconnect();
         expect(fetchAllMyTeamsChannels).toHaveBeenCalled();
+    });
+
+    test('should reload custom profile attribute fields on reconnect', () => {
+        reconnect();
+        expect(getCustomProfileAttributeFields).toHaveBeenCalled();
     });
 });
 
@@ -1280,5 +1322,143 @@ describe('handleStatusChangedEvent', () => {
         }));
 
         expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.OFFLINE);
+    });
+});
+
+describe('handleCustomAttributeValuesUpdated', () => {
+    const currentUserId = 'user1';
+
+    function makeInitialState() {
+        return {
+            entities: {
+                users: {
+                    profiles: {
+                        user1: {id: currentUserId},
+                    },
+                },
+            },
+        };
+    }
+
+    test('should add the CustomAttributeValues to the user', () => {
+        const testStore = realConfigureStore(makeInitialState());
+
+        expect(stateUser(testStore.getState(), currentUserId)).toEqual({id: currentUserId});
+
+        testStore.dispatch(handleCustomAttributeValuesUpdated({
+            event: SocketEvents.CPA_VALUES_UPDATED,
+            data: {
+                user_id: currentUserId,
+                values: {field1: 'value1', field2: 'value2'},
+            },
+        }));
+
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes).toBeTruthy();
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes.field1).toEqual('value1');
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes.field2).toEqual('value2');
+
+        // update one field, add new field
+        testStore.dispatch(handleCustomAttributeValuesUpdated({
+            event: SocketEvents.CPA_VALUES_UPDATED,
+            data: {
+                user_id: currentUserId,
+                values: {field1: 'valueChanged', field3: 'new field'},
+            },
+        }));
+
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes).toBeTruthy();
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes.field1).toEqual('valueChanged');
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes.field2).toEqual('value2');
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes.field3).toEqual('new field');
+    });
+
+    test('should ignore the CustomAttributeValues if no user', () => {
+        const testStore = realConfigureStore(makeInitialState());
+
+        expect(stateUser(testStore.getState(), currentUserId)).toEqual({id: currentUserId});
+
+        testStore.dispatch(handleCustomAttributeValuesUpdated({
+            event: SocketEvents.CPA_VALUES_UPDATED,
+            data: {
+                user_id: 'nonExistantUser',
+                values: {field1: 'value1', field2: 'value2'},
+            },
+        }));
+
+        expect(stateUser(testStore.getState(), 'nonExistintUser')).toBeFalsy();
+        expect(stateUser(testStore.getState(), currentUserId)).toBeTruthy();
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes).toBeFalsy();
+    });
+});
+
+describe('handleCustomAttributeCRUD', () => {
+    const field1 = {id: 'field1', groupid: 'group1', name: 'FIELD ONE', type: 'text'};
+    const field2 = {id: 'field2', groupid: 'group1', name: 'FIELD TWO', type: 'text'};
+
+    function makeInitialState() {
+        return {
+            entities: {
+                general: {
+                },
+            },
+        };
+    }
+
+    test('should add the CustomAttributeField to the state', () => {
+        const testStore = realConfigureStore(makeInitialState());
+
+        testStore.dispatch(handleCustomAttributesCreated({
+            event: SocketEvents.CPA_FIELD_CREATED,
+            data: {
+                field: field1,
+            },
+        }));
+
+        let cpaFields = getCustomProfileAttributes(testStore.getState());
+        expect(cpaFields).toBeTruthy();
+        expect(cpaFields.length).toEqual(1);
+        expect(cpaFields.filter(({id}) => id === field1.id)[0].type).toEqual(field1.type);
+        expect(cpaFields.filter(({id}) => id === field1.id)[0].name).toEqual(field1.name);
+
+        // create second field
+        testStore.dispatch(handleCustomAttributesCreated({
+            event: SocketEvents.CPA_FIELD_CREATED,
+            data: {
+                field: field2,
+            },
+        }));
+
+        cpaFields = getCustomProfileAttributes(testStore.getState());
+        expect(cpaFields).toBeTruthy();
+        expect(cpaFields.length).toEqual(2);
+        expect(cpaFields.filter(({id}) => id === field2.id)[0].type).toEqual(field2.type);
+        expect(cpaFields.filter(({id}) => id === field2.id)[0].name).toEqual(field2.name);
+
+        // update field
+        testStore.dispatch(handleCustomAttributesUpdated({
+            event: SocketEvents.CPA_FIELD_UPDATED,
+            data: {
+                field: {...field1, name: 'Updated Name'},
+            },
+        }));
+
+        cpaFields = getCustomProfileAttributes(testStore.getState());
+        expect(cpaFields).toBeTruthy();
+        expect(cpaFields.length).toEqual(2);
+        expect(cpaFields.filter(({id}) => id === field1.id)[0].name).toEqual('Updated Name');
+        expect(cpaFields.filter(({id}) => id === field2.id)[0].name).toEqual(field2.name);
+
+        // delete field
+        testStore.dispatch(handleCustomAttributesDeleted({
+            event: SocketEvents.CPA_FIELD_DELETED,
+            data: {
+                field_id: field1.id,
+            },
+        }));
+
+        cpaFields = getCustomProfileAttributes(testStore.getState());
+        expect(cpaFields).toBeTruthy();
+        expect(cpaFields.length).toEqual(1);
+        expect(cpaFields.filter(({id}) => id === field2.id)[0]).toBeTruthy();
     });
 });

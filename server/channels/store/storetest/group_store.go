@@ -545,11 +545,12 @@ func testGroupStoreGetByUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	g2 := &model.Group{
-		Name:        model.NewPointer(model.NewId()),
-		DisplayName: model.NewId(),
-		Description: model.NewId(),
-		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewPointer(model.NewId()),
+		Name:           model.NewPointer(model.NewId()),
+		DisplayName:    model.NewId(),
+		Description:    model.NewId(),
+		Source:         model.GroupSourceLdap,
+		RemoteId:       model.NewPointer(model.NewId()),
+		AllowReference: true,
 	}
 	g2, err = ss.Group().Create(g2)
 	require.NoError(t, err)
@@ -576,7 +577,7 @@ func testGroupStoreGetByUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.Group().UpsertMember(g2.Id, u2.Id)
 	require.NoError(t, err)
 
-	groups, err := ss.Group().GetByUser(u1.Id)
+	groups, err := ss.Group().GetByUser(u1.Id, model.GroupSearchOpts{})
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(groups))
 	found1 := false
@@ -592,14 +593,19 @@ func testGroupStoreGetByUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.True(t, found1)
 	assert.True(t, found2)
 
-	groups, err = ss.Group().GetByUser(u2.Id)
+	groups, err = ss.Group().GetByUser(u2.Id, model.GroupSearchOpts{})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(groups))
 	assert.Equal(t, g2.Id, groups[0].Id)
 
-	groups, err = ss.Group().GetByUser(model.NewId())
+	groups, err = ss.Group().GetByUser(model.NewId(), model.GroupSearchOpts{})
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(groups))
+
+	groups, err = ss.Group().GetByUser(u1.Id, model.GroupSearchOpts{FilterAllowReference: true})
+	require.NoError(t, err)
+	assert.Equal(t, 1, len(groups))
+	assert.Equal(t, g2.Id, groups[0].Id)
 }
 
 func testGroupStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -3960,6 +3966,36 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 			PerPage: 100,
 			Resultf: func(groups []*model.Group) bool {
 				return len(groups) == 2
+			},
+			Restrictions: nil,
+		},
+		{
+			Name:    "Include syncable sources only",
+			Opts:    model.GroupSearchOpts{OnlySyncableSources: true},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				for _, g := range groups {
+					if g.Source != model.GroupSourceLdap && !strings.HasPrefix(string(g.Source), "plugin_") {
+						return false
+					}
+				}
+				return true
+			},
+			Restrictions: nil,
+		},
+		{
+			Name:    "Include syncable sources with specific source",
+			Opts:    model.GroupSearchOpts{OnlySyncableSources: true, Source: model.GroupSourceLdap},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				for _, g := range groups {
+					if g.Source != model.GroupSourceLdap {
+						return false
+					}
+				}
+				return true
 			},
 			Restrictions: nil,
 		},

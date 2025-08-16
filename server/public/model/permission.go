@@ -252,6 +252,9 @@ var PermissionSysconsoleWriteEnvironmentPerformanceMonitoring *Permission
 var PermissionSysconsoleReadEnvironmentDeveloper *Permission
 var PermissionSysconsoleWriteEnvironmentDeveloper *Permission
 
+var PermissionSysconsoleReadEnvironmentMobileSecurity *Permission
+var PermissionSysconsoleWriteEnvironmentMobileSecurity *Permission
+
 var PermissionSysconsoleReadSite *Permission
 var PermissionSysconsoleWriteSite *Permission
 
@@ -382,7 +385,7 @@ var PermissionRunView *Permission
 var PermissionSysconsoleReadProductsBoards *Permission
 var PermissionSysconsoleWriteProductsBoards *Permission
 
-// General permission that encompasses all system admin functions
+// PermissionManageSystem is a general permission that encompasses all system admin functions
 // in the future this could be broken up to allow access to some
 // admin functions but not others
 var PermissionManageSystem *Permission
@@ -1622,6 +1625,18 @@ func initializePermissions() {
 		"",
 		PermissionScopeSystem,
 	}
+	PermissionSysconsoleReadEnvironmentMobileSecurity = &Permission{
+		"sysconsole_read_environment_mobile_security",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PermissionSysconsoleWriteEnvironmentMobileSecurity = &Permission{
+		"sysconsole_write_environment_mobile_security",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
 	// DEPRECATED
 	PermissionSysconsoleReadSite = &Permission{
 		"sysconsole_read_site",
@@ -2262,6 +2277,7 @@ func initializePermissions() {
 		PermissionSysconsoleReadEnvironmentSessionLengths,
 		PermissionSysconsoleReadEnvironmentPerformanceMonitoring,
 		PermissionSysconsoleReadEnvironmentDeveloper,
+		PermissionSysconsoleReadEnvironmentMobileSecurity,
 		PermissionSysconsoleReadSiteCustomization,
 		PermissionSysconsoleReadSiteLocalization,
 		PermissionSysconsoleReadSiteUsersAndTeams,
@@ -2321,6 +2337,7 @@ func initializePermissions() {
 		PermissionSysconsoleWriteEnvironmentSessionLengths,
 		PermissionSysconsoleWriteEnvironmentPerformanceMonitoring,
 		PermissionSysconsoleWriteEnvironmentDeveloper,
+		PermissionSysconsoleWriteEnvironmentMobileSecurity,
 		PermissionSysconsoleWriteSiteCustomization,
 		PermissionSysconsoleWriteSiteLocalization,
 		PermissionSysconsoleWriteSiteUsersAndTeams,

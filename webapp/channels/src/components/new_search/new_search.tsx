@@ -8,7 +8,7 @@ import styled from 'styled-components';
 
 import {TrackCrossTeamSearchFeature, TrackCrossTeamSearchAllTeamsEvent, TrackCrossTeamSearchCurrentTeamEvent, TrackCrossTeamSearchDifferentTeamEvent} from 'mattermost-redux/constants/telemetry';
 import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
-import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getIsCrossTeamSearchEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {trackFeatureEvent} from 'actions/telemetry_actions';
@@ -19,13 +19,11 @@ import {getSearchTeam, getSearchTerms, getSearchType} from 'selectors/rhs';
 import Popover from 'components/widgets/popover';
 
 import a11yController from 'utils/a11y_controller_instance';
-import type {A11yFocusEventDetail} from 'utils/constants';
-import Constants, {A11yCustomEventTypes} from 'utils/constants';
+import {focusElement} from 'utils/a11y_utils';
+import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
 import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
-
-import type {GlobalState} from 'types/store';
 
 import SearchBox from './search_box';
 
@@ -115,7 +113,7 @@ const NewSearch = (): JSX.Element => {
     const searchTeam = useSelector(getSearchTeam);
     const pluginSearch = useSelector(getSearchButtons);
     const currentTeamId = useSelector(getCurrentTeamId);
-    const crossTeamSearchEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'ExperimentalCrossTeamSearch')) === 'true';
+    const crossTeamSearchEnabled = useSelector(getIsCrossTeamSearchEnabled);
 
     const dispatch = useDispatch();
     const [focused, setFocused] = useState<boolean>(false);
@@ -185,18 +183,9 @@ const NewSearch = (): JSX.Element => {
     const closeSearchBox = useCallback(() => {
         setFocused(false);
         setCurrentChannel('');
-        if (searchButtonRef.current) {
-            document.dispatchEvent(
-                new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
-                    detail: {
-                        target: searchButtonRef.current,
-                        keyboardOnly: false,
-                    },
-                }),
-            );
-            a11yController.resetOriginElement();
-        }
-    }, []);
+
+        focusElement(searchButtonRef, true, true);
+    }, [searchButtonRef, setFocused, setCurrentChannel]);
 
     const openSearchBox = useCallback(() => {
         setFocused(true);

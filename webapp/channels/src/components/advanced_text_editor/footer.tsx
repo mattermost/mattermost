@@ -17,7 +17,7 @@ interface Props {
     errorClass: string | null;
     serverError: ServerError & {submittedMessage?: string} | null;
     channelId: Channel['id'];
-    postId: Post['id'];
+    rootId: Post['id'];
     noArgumentHandleSubmit: () => void;
     isInEditMode: boolean;
 }
@@ -27,7 +27,7 @@ export default function Footer({
     errorClass,
     serverError,
     channelId,
-    postId,
+    rootId,
     noArgumentHandleSubmit,
     isInEditMode,
 }: Props) {
@@ -52,7 +52,7 @@ export default function Footer({
             {!isInEditMode && (
                 <MsgTyping
                     channelId={channelId}
-                    postId={postId}
+                    rootId={rootId}
                 />
             )}
         </div>

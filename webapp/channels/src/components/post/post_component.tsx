@@ -402,12 +402,11 @@ function PostComponent(props: Props) {
     const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
 
     let comment;
-    if (props.isFirstReply && props.parentPost && props.parentPostUser && post.type !== Constants.PostTypes.EPHEMERAL) {
+    if (props.isFirstReply && post.type !== Constants.PostTypes.EPHEMERAL) {
         comment = (
             <CommentedOn
-                post={props.parentPost}
-                parentPostUser={props.parentPostUser}
                 onCommentClick={handleCommentClick}
+                rootId={post.root_id}
             />
         );
     }

@@ -84,7 +84,9 @@ const Pluggable = makeAsyncPluggableComponent();
 
 const noop = () => {};
 
-export type Props = PropsFromRedux & RouteComponentProps;
+export type Props = PropsFromRedux & RouteComponentProps & {
+    customProfileAttributesEnabled?: boolean;
+}
 
 interface State {
     shouldMountAppRoutes?: boolean;
@@ -185,7 +187,6 @@ export default class Root extends React.PureComponent<Props, State> {
 
         this.props.actions.migrateRecentEmojis();
         this.props.actions.loadRecentlyUsedCustomEmojis();
-
         this.showLandingPageIfNecessary();
 
         this.applyTheme();
@@ -285,6 +286,9 @@ export default class Root extends React.PureComponent<Props, State> {
 
         if (!prevProps.isConfigLoaded && this.props.isConfigLoaded) {
             this.setRudderConfig();
+            if (this.props.customProfileAttributesEnabled) {
+                this.props.actions.getCustomProfileAttributeFields();
+            }
         }
 
         if (prevState.shouldMountAppRoutes === false && this.state.shouldMountAppRoutes === true) {

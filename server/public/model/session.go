@@ -68,8 +68,8 @@ type Session struct {
 	Local          bool          `json:"local" db:"-"`
 }
 
-func (s *Session) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (s *Session) Auditable() map[string]any {
+	return map[string]any{
 		"id":               s.Id,
 		"create_at":        s.CreateAt,
 		"expires_at":       s.ExpiresAt,
@@ -83,7 +83,7 @@ func (s *Session) Auditable() map[string]interface{} {
 	}
 }
 
-// Returns true if the session is unrestricted, which should grant it
+// IsUnrestricted returns true if the session is unrestricted, which should grant it
 // with all permissions. This is used for local mode sessions
 func (s *Session) IsUnrestricted() bool {
 	return s.Local

@@ -181,6 +181,20 @@ func (s *SqlDraftStore) Delete(userID, channelID, rootID string) error {
 	return nil
 }
 
+func (s *SqlDraftStore) PermanentDeleteByUser(userID string) error {
+	query := s.getQueryBuilder().
+		Delete("Drafts").
+		Where(sq.Eq{
+			"UserId": userID,
+		})
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "PermanentDeleteByUser: failed to delete drafts for user: %s", userID)
+	}
+
+	return nil
+}
+
 // DeleteDraftsAssociatedWithPost deletes all drafts associated with a post.
 func (s *SqlDraftStore) DeleteDraftsAssociatedWithPost(channelID, rootID string) error {
 	query := s.getQueryBuilder().

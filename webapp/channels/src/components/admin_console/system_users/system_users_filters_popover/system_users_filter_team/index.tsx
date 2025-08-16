@@ -2,12 +2,12 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import type {CSSProperties, ReactElement} from 'react';
+import type {ReactElement} from 'react';
 import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import {components} from 'react-select';
-import type {IndicatorContainerProps, ControlProps, OptionProps, OptionsType, ValueType, StylesConfig} from 'react-select';
+import type {IndicatorsContainerProps, ControlProps, OptionProps, Options, OnChangeValue, StylesConfig} from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import type {Team, TeamSearchOpts} from '@mattermost/types/teams';
@@ -45,9 +45,9 @@ export function SystemUsersFilterTeam(props: Props) {
 
     const [error, setError] = useState('');
 
-    const [list, setList] = useState<OptionsType<OptionType>>();
+    const [list, setList] = useState<Options<OptionType>>();
     const [pageNumber, setPageNumber] = useState(0);
-    const [value, setValue] = useState<ValueType<OptionType>>(getDefaultSelectedTeam(props.initialValue, props.initialLabel));
+    const [value, setValue] = useState<OnChangeValue<OptionType, false>>(getDefaultSelectedTeam(props.initialValue, props.initialLabel));
 
     async function loadListInPageNumber(page: number) {
         try {
@@ -84,7 +84,7 @@ export function SystemUsersFilterTeam(props: Props) {
         }
     }
 
-    async function searchInList(term: string, callBack: (options: OptionsType<{label: string; value: string}>) => void) {
+    async function searchInList(term: string) {
         try {
             const response = await dispatch(searchTeams(term, {page: 0, per_page: TEAMS_PER_PAGE} as TeamSearchOpts));
             if (response && response.data && response.data.teams && response.data.teams.length > 0) {
@@ -93,14 +93,14 @@ export function SystemUsersFilterTeam(props: Props) {
                     label: team.display_name,
                 }));
 
-                callBack(teams);
+                return teams;
             }
 
-            callBack([]);
+            return [];
         } catch (error) {
             setError(formatMessage({id: 'admin.system_users.filters.team.errorSearching', defaultMessage: 'Error while searching teams'}));
             console.error(error); // eslint-disable-line no-console
-            callBack([]);
+            return [];
         }
     }
 
@@ -108,7 +108,7 @@ export function SystemUsersFilterTeam(props: Props) {
         loadListInPageNumber(pageNumber);
     }
 
-    function handleOnChange(value: ValueType<OptionType>) {
+    function handleOnChange(value: OnChangeValue<OptionType, false>) {
         setValue(value);
         props.onChange((value as OptionType).value as string, (value as OptionType).label as string);
     }
@@ -164,33 +164,33 @@ export function SystemUsersFilterTeam(props: Props) {
     );
 }
 
-const styles: Partial<StylesConfig> = {
-    input: (provided: CSSProperties) => ({
+const styles = {
+    input: (provided) => ({
         ...provided,
         color: 'var(--center-channel-color)',
     }),
-    control: (provided: CSSProperties) => ({
+    control: (provided) => ({
         ...provided,
         border: 'none',
         boxShadow: 'none',
         padding: '0 2px',
         cursor: 'pointer',
     }),
-    indicatorSeparator: (provided: CSSProperties) => ({
+    indicatorSeparator: (provided) => ({
         ...provided,
         display: 'none',
     }),
-    menu: (provided: CSSProperties) => ({
+    menu: (provided) => ({
         ...provided,
         zIndex: 100,
     }),
-    menuPortal: (provided: CSSProperties) => ({
+    menuPortal: (provided) => ({
         ...provided,
         zIndex: 100,
     }),
-};
+} satisfies Partial<StylesConfig<OptionType, false>>;
 
-const IndicatorsContainer = (props: IndicatorContainerProps<OptionType>) => {
+const IndicatorsContainer = (props: IndicatorsContainerProps<OptionType, false>) => {
     return (
         <div className='asyncTeamSelectInput__indicatorsContainer'>
             <components.IndicatorsContainer {...props}>
@@ -200,7 +200,7 @@ const IndicatorsContainer = (props: IndicatorContainerProps<OptionType>) => {
     );
 };
 
-const Control = (props: ControlProps<OptionType>) => {
+const Control = (props: ControlProps<OptionType, false>) => {
     return (
         <div className='asyncTeamSelectInput__controlContainer'>
             <components.Control {...props}/>
@@ -208,7 +208,7 @@ const Control = (props: ControlProps<OptionType>) => {
     );
 };
 
-const Option = (props: OptionProps<OptionType>) => {
+const Option = (props: OptionProps<OptionType, false>) => {
     return (
         <div
             className={classNames('asyncTeamSelectInput__option', {

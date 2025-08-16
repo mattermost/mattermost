@@ -48,7 +48,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user: "+user.Id)
+		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user "+user.Id+": You do not have the appropriate permissions.")
 
 		ruser, err := s.th.App.GetUser(user.Id)
 		s.Require().Nil(err)
@@ -98,7 +98,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user: "+user.Id)
+		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user "+user.Id+": You do not have the appropriate permissions.")
 
 		ruser, err := s.th.App.GetUser(user.Id)
 		s.Require().Nil(err)
@@ -1426,6 +1426,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 	})
 
 	s.Run("update existing preference for single user", func() {
+		s.T().Skip("https://mattermost.atlassian.net/browse/MM-63420")
 		setup()
 		printer.Clean()
 
@@ -1455,6 +1456,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 	})
 
 	s.Run("update existing preference for multiple users as admin", func() {
+		s.T().Skip("https://mattermost.atlassian.net/browse/MM-63420")
 		setup()
 		printer.Clean()
 

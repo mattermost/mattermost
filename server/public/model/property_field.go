@@ -4,9 +4,10 @@
 package model
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
-	"strings"
 )
 
 type PropertyFieldType string
@@ -33,8 +34,8 @@ type PropertyField struct {
 	DeleteAt   int64             `json:"delete_at"`
 }
 
-func (pf *PropertyField) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (pf *PropertyField) Auditable() map[string]any {
+	return map[string]any{
 		"id":          pf.ID,
 		"group_id":    pf.GroupID,
 		"name":        pf.Name,
@@ -92,10 +93,6 @@ func (pf *PropertyField) IsValid() error {
 	return nil
 }
 
-func (pf *PropertyField) SanitizeInput() {
-	pf.Name = strings.TrimSpace(pf.Name)
-}
-
 type PropertyFieldPatch struct {
 	Name       *string            `json:"name"`
 	Type       *PropertyFieldType `json:"type"`
@@ -104,8 +101,8 @@ type PropertyFieldPatch struct {
 	TargetType *string            `json:"target_type"`
 }
 
-func (pfp *PropertyFieldPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (pfp *PropertyFieldPatch) Auditable() map[string]any {
+	return map[string]any{
 		"name":        pfp.Name,
 		"type":        pfp.Type,
 		"attrs":       pfp.Attrs,
@@ -114,10 +111,22 @@ func (pfp *PropertyFieldPatch) Auditable() map[string]interface{} {
 	}
 }
 
-func (pfp *PropertyFieldPatch) SanitizeInput() {
-	if pfp.Name != nil {
-		pfp.Name = NewPointer(strings.TrimSpace(*pfp.Name))
+func (pfp *PropertyFieldPatch) IsValid() error {
+	if pfp.Name != nil && *pfp.Name == "" {
+		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "name", "Reason": "value cannot be empty"}, "", http.StatusBadRequest)
 	}
+
+	if pfp.Type != nil &&
+		*pfp.Type != PropertyFieldTypeText &&
+		*pfp.Type != PropertyFieldTypeSelect &&
+		*pfp.Type != PropertyFieldTypeMultiselect &&
+		*pfp.Type != PropertyFieldTypeDate &&
+		*pfp.Type != PropertyFieldTypeUser &&
+		*pfp.Type != PropertyFieldTypeMultiuser {
+		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "", http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 func (pf *PropertyField) Patch(patch *PropertyFieldPatch) {
@@ -177,4 +186,56 @@ type PropertyFieldSearchOpts struct {
 
 func (pf *PropertyField) GetAttr(key string) any {
 	return pf.Attrs[key]
+}
+
+const PropertyFieldAttributeOptions = "options"
+
+type PropertyOption interface {
+	GetID() string
+	GetName() string
+	SetID(id string)
+	IsValid() error
+}
+
+type PropertyOptions[T PropertyOption] []T
+
+func NewPropertyOptionsFromFieldAttrs[T PropertyOption](optionsArr any) (PropertyOptions[T], error) {
+	options := PropertyOptions[T]{}
+	b, err := json.Marshal(optionsArr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal options: %w", err)
+	}
+
+	err = json.Unmarshal(b, &options)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal options: %w", err)
+	}
+
+	for i := range options {
+		if options[i].GetID() == "" {
+			options[i].SetID(NewId())
+		}
+	}
+
+	return options, nil
+}
+
+func (p PropertyOptions[T]) IsValid() error {
+	if len(p) == 0 {
+		return errors.New("options list cannot be empty")
+	}
+
+	seenNames := make(map[string]struct{})
+	for i, option := range p {
+		if err := option.IsValid(); err != nil {
+			return fmt.Errorf("invalid option at index %d: %w", i, err)
+		}
+
+		if _, exists := seenNames[option.GetName()]; exists {
+			return fmt.Errorf("duplicate option name found at index %d: %s", i, option.GetName())
+		}
+		seenNames[option.GetName()] = struct{}{}
+	}
+
+	return nil
 }

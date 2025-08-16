@@ -46,6 +46,7 @@ const InviteMembersButton = (props: Props): JSX.Element | null => {
                 modalId={ModalIdentifiers.INVITATION}
                 dialogType={InvitationModal}
                 onClick={handleButtonClick}
+                dialogProps={{focusOriginElement: 'inviteMembersButton'}}
             >
                 <div
                     className='SidebarChannelNavigator__inviteMembersLhsButton'

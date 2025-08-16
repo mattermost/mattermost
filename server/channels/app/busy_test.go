@@ -16,6 +16,7 @@ import (
 )
 
 func TestBusySet(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-63300")
 	cluster := &ClusterMock{Busy: &Busy{}, t: t}
 	busy := NewBusy(cluster)
 

@@ -1,30 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type * as CSS from 'csstype';
-import type {CSSProperties} from 'react';
-import type {ControlProps} from 'react-select';
+import type {StylesConfig} from 'react-select';
 
 import type {ChannelOption} from './forward_post_channel_select';
-
-type Pseudos = CSS.Pseudos | '::-webkit-scrollbar' | '::-webkit-scrollbar-track' | '::-webkit-scrollbar-thumb';
-
-type CSSPropertiesWithPseudos = CSSProperties & { [P in Pseudos]?: CSS.Properties };
 
 const menuMargin = 4;
 const selectHeight = 40;
 
-const getBaseStyles = (bodyHeight: number) => {
+const getBaseStyles = (bodyHeight: number): StylesConfig<ChannelOption, boolean> => {
     const minMenuHeight = bodyHeight - selectHeight - menuMargin;
 
     return ({
-        input: (provided: CSSProperties): CSSPropertiesWithPseudos => ({
+        input: (provided) => ({
             ...provided,
             padding: 0,
             margin: 0,
             color: 'var(--center-channel-color)',
         }),
-        placeholder: (provided: CSSProperties): CSSPropertiesWithPseudos => ({
+        placeholder: (provided) => ({
             ...provided,
             margin: 0,
             color: 'rgba(var(--center-channel-color-rgb), 0.75)',
@@ -32,9 +26,7 @@ const getBaseStyles = (bodyHeight: number) => {
             lineHeight: '20px',
         }),
 
-        // disabling this rule here since otherwise tsc will complain about it in the props
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        control: (provided: CSSProperties, state: ControlProps<{}>): CSSPropertiesWithPseudos => {
+        control: (provided, state) => {
             const focusShadow = 'inset 0 0 0 2px var(--button-bg)';
 
             return ({
@@ -53,31 +45,31 @@ const getBaseStyles = (bodyHeight: number) => {
                 },
             });
         },
-        indicatorSeparator: (): CSSPropertiesWithPseudos => ({
+        indicatorSeparator: () => ({
             display: 'none',
         }),
-        indicatorsContainer: (provided: CSSProperties): CSSPropertiesWithPseudos => ({
+        indicatorsContainer: (provided) => ({
             ...provided,
             padding: '2px',
         }),
-        dropdownIndicator: (provided: CSSProperties, state: ControlProps<ChannelOption>): CSSPropertiesWithPseudos => ({
+        dropdownIndicator: (provided, state) => ({
             ...provided,
             transform: state.isFocused ? 'rotate(180deg)' : 'rotate(0)',
             transition: 'transform 250ms ease-in-out',
         }),
-        valueContainer: (provided: CSSProperties): CSSPropertiesWithPseudos => ({
+        valueContainer: (provided) => ({
             ...provided,
             overflow: 'visible',
             padding: '0 16px 0 0',
             margin: 0,
         }),
-        menu: (provided: CSSProperties): CSSPropertiesWithPseudos => ({
+        menu: (provided) => ({
             ...provided,
             padding: 0,
             margin: `${menuMargin}px 0 0 0`,
             zIndex: 10,
         }),
-        menuList: (provided: CSSProperties): CSSPropertiesWithPseudos => ({
+        menuList: (provided) => ({
             ...provided,
             padding: 0,
             backgroundColor: 'var(--center-channel-bg)',
@@ -110,7 +102,7 @@ const getBaseStyles = (bodyHeight: number) => {
                 borderRadius: '9999px',
             },
         }),
-        groupHeading: (provided: CSSProperties): CSSPropertiesWithPseudos => ({
+        groupHeading: (provided) => ({
             ...provided,
             cursor: 'default',
             position: 'relative',
@@ -126,19 +118,19 @@ const getBaseStyles = (bodyHeight: number) => {
             fontWeight: 600,
             textTransform: 'uppercase',
         }),
-        singleValue: (provided: CSSProperties): CSSPropertiesWithPseudos => ({
+        singleValue: (provided) => ({
             ...provided,
             maxWidth: 'calc(100% - 10px)',
             width: '100%',
             overflow: 'visible',
         }),
-        option: (provided: CSSProperties, state: ControlProps<ChannelOption>): CSSPropertiesWithPseudos => ({
+        option: (provided, state) => ({
             ...provided,
             cursor: 'pointer',
             padding: '8px 20px',
             backgroundColor: state.isFocused ? 'rgba(var(--center-channel-color-rgb), 0.08)' : 'transparent',
         }),
-        menuPortalTarget: (provided: CSSProperties): CSSPropertiesWithPseudos => ({
+        menuPortal: (provided) => ({
             ...provided,
             zIndex: 10,
         }),

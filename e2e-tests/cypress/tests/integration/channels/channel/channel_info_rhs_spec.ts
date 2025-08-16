@@ -239,7 +239,7 @@ describe('Channel Info RHS', () => {
                 cy.uiGetRHS().findByText('Notification Preferences').should('be.visible').click();
 
                 // * Ensures the modal is there
-                cy.get('.channel-notifications-settings-modal').should('be.visible');
+                cy.get('.ChannelNotificationModal').should('be.visible');
             });
             it('should be able to view files and come back', () => {
                 // # Go to test channel
@@ -401,7 +401,7 @@ describe('Channel Info RHS', () => {
                 cy.uiGetRHS().findByText('Notification Preferences').should('be.visible').click();
 
                 // * Ensures the modal is there
-                cy.get('.channel-notifications-settings-modal').should('be.visible');
+                cy.get('.ChannelNotificationModal').should('be.visible');
             });
         });
     });

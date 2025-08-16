@@ -3997,7 +3997,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Nieprawidłowy identyfikator."
+    "translation": "Nieprawidłowy identyfikator: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -4609,11 +4609,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 130+"
+    "translation": "Wersja 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 130+"
+    "translation": "Wersja 132+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10422,5 +10422,129 @@
   {
     "id": "api.command.execute_command.deleted.error",
     "translation": "Nie można uruchomić polecenia w usuniętym kanale."
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Nie znaleziono sesji."
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Nie można policzyć liczby pól dla grupy atrybutów profilu niestandardowego"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Nie można wstawić pól atrybutów profilu niestandardowego"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "Nieprawidłowy identyfikator użytkownika po stronie klienta: {{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "Liczba elementów w ClientSideUserIds {{.CurrentLength}} jest wyższa niż maksymalny limit {{.MaxLength}}."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
+    "translation": "Kolor banera kanału nie może być pusty, gdy baner kanału jest włączony"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.channel_type.app_error",
+    "translation": "Baner kanału można skonfigurować tylko na kanałach publicznych i prywatnych"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.empty.app_error",
+    "translation": "Tekst informacji o banerze kanału nie może być pusty, gdy baner kanału jest włączony"
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
+    "translation": "Tekst informacji o banerze kanału jest za długi. Maksymalna dozwolona długość to {{.maxLength}} znaków."
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Baner kanału można skonfigurować tylko na kanałach publicznych i prywatnych."
+  },
+  {
+    "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
+    "translation": "Twoje konto zostało zablokowane z powodu zbyt wielu nieudanych prób wprowadzenia hasła. Skontaktuj się z administratorem systemu."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
+    "translation": "Usługą autoryzacji użytkownika musi być LDAP lub Email."
+  },
+  {
+    "id": "api.user.reset_password_failed_attempts.permissions.app_error",
+    "translation": "Nie masz uprawnień do aktualizacji tego zasobu."
+  },
+  {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "Nie można usunąć wersji roboczych dla użytkownika."
+  },
+  {
+    "id": "app.group.license_error",
+    "translation": "Wymagana licencja LDAP."
+  },
+  {
+    "id": "app.user.reset_password_failed_attempts.app_error",
+    "translation": "Nie udało się zresetować prób logowania."
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "Nie udało się uzyskać użytkownika."
+  },
+  {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "Nieprawidłowa maksymalna liczba prób logowania dla ustawień ldap. Musi być liczbą dodatnią."
+  },
+  {
+    "id": "license_error.feature_unavailable",
+    "translation": "Funkcja nie jest dostępna dla bieżącej licencji"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_conversion.app_error",
+    "translation": "Nie można przekonwertować pola właściwości na niestandardowe pole atrybutu profilu"
+  },
+  {
+    "id": "api.custom_profile_attributes.field_conversion_error",
+    "translation": "Nie można przekonwertować pola właściwości na niestandardowe pole atrybutu profilu"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
+    "translation": "Nieprawidłowe atrybuty wartości właściwości: {{.AttributeName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.custom_profile_attributes.invalid_field_patch",
+    "translation": "Nieprawidłowa poprawka pola atrybutu profilu niestandardowego"
+  },
+  {
+    "id": "model.access_policy.is_valid.type.app_error",
+    "translation": "Nieprawidłowy typ polityki."
+  },
+  {
+    "id": "model.access_policy.is_valid.version.app_error",
+    "translation": "Wersja nie jest ważna dla tej polityki kontroli dostępu."
+  },
+  {
+    "id": "model.access_policy.is_valid.id.app_error",
+    "translation": "Nieprawidłowy identyfikator polityki."
+  },
+  {
+    "id": "model.access_policy.is_valid.imports.app_error",
+    "translation": "Nieprawidłowy import dla polityki."
+  },
+  {
+    "id": "model.access_policy.is_valid.name.app_error",
+    "translation": "Nieprawidłowa nazwa polityki."
+  },
+  {
+    "id": "model.access_policy.is_valid.revision.app_error",
+    "translation": "Nieprawidłowa zmiana zasad."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules.app_error",
+    "translation": "Reguła(y) jest(są) nieważna(e)."
+  },
+  {
+    "id": "model.access_policy.is_valid.rules_imports.app_error",
+    "translation": "Polityka musi importować lub definiować reguły."
   }
 ]

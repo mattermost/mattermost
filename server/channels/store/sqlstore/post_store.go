@@ -28,6 +28,7 @@ import (
 
 // Regex to get quoted strings
 var quotedStringsRegex = regexp.MustCompile(`("[^"]*")`)
+var wildCardRegex = regexp.MustCompile(`\*($| )`)
 
 type SqlPostStore struct {
 	*SqlStore
@@ -146,7 +147,7 @@ func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 	}
 }
 
-func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, error) {
+func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*model.Post, int, error) {
 	channelNewPosts := make(map[string]int)
 	channelNewRootPosts := make(map[string]int)
 	maxDateNewPosts := make(map[string]int64)
@@ -159,9 +160,11 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 		}
 		post.PreSave()
 		maxPostSize := s.GetMaxPostSize()
+
 		if err := post.IsValid(maxPostSize); err != nil {
 			return nil, idx, err
 		}
+		post.ValidateProps(rctx.Logger())
 
 		if currentChannelCount, ok := channelNewPosts[post.ChannelId]; !ok {
 			if post.IsJoinLeaveMessage() {
@@ -292,7 +295,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 }
 
 func (s *SqlPostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, error) {
-	posts, _, err := s.SaveMultiple([]*model.Post{post})
+	posts, _, err := s.SaveMultiple(rctx, []*model.Post{post})
 	if err != nil {
 		return nil, err
 	}
@@ -355,6 +358,7 @@ func (s *SqlPostStore) Update(rctx request.CTX, newPost *model.Post, oldPost *mo
 	if err := newPost.IsValid(maxPostSize); err != nil {
 		return nil, err
 	}
+	newPost.ValidateProps(rctx.Logger())
 
 	if _, err := s.GetMaster().NamedExec(`UPDATE Posts
 		SET CreateAt=:CreateAt,
@@ -408,14 +412,16 @@ func (s *SqlPostStore) Update(rctx request.CTX, newPost *model.Post, oldPost *mo
 	return newPost, nil
 }
 
-func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) (_ []*model.Post, _ int, err error) {
+func (s *SqlPostStore) OverwriteMultiple(rctx request.CTX, posts []*model.Post) (_ []*model.Post, _ int, err error) {
 	updateAt := model.GetMillis()
 	maxPostSize := s.GetMaxPostSize()
 	for idx, post := range posts {
 		post.UpdateAt = updateAt
+
 		if appErr := post.IsValid(maxPostSize); appErr != nil {
 			return nil, idx, appErr
 		}
+		post.ValidateProps(rctx.Logger())
 	}
 
 	tx, err := s.GetMaster().Beginx()
@@ -463,7 +469,7 @@ func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) (_ []*model.Post, 
 }
 
 func (s *SqlPostStore) Overwrite(rctx request.CTX, post *model.Post) (*model.Post, error) {
-	posts, _, err := s.OverwriteMultiple([]*model.Post{post})
+	posts, _, err := s.OverwriteMultiple(rctx, []*model.Post{post})
 	if err != nil {
 		return nil, err
 	}
@@ -2088,12 +2094,10 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		// we've already confirmed that we have a channel or user to search for
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
 		// Parse text for wildcards
-		var wildcard *regexp.Regexp
-		if wildcard, err = regexp.Compile(`\*($| )`); err == nil {
-			terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
-			excludedTerms = wildcard.ReplaceAllLiteralString(excludedTerms, ":* ")
-		}
+		terms = wildCardRegex.ReplaceAllLiteralString(terms, ":* ")
+		excludedTerms = wildCardRegex.ReplaceAllLiteralString(excludedTerms, ":* ")
 
+		simpleSearch := false
 		// Replace spaces with to_tsquery symbols
 		replaceSpaces := func(input string, excludedInput bool) string {
 			if input == "" {
@@ -2105,6 +2109,11 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 			// Replace spaces within quoted strings with '<->'
 			input = quotedStringsRegex.ReplaceAllStringFunc(input, func(match string) string {
+				// If the whole search term is a quoted string,
+				// we don't want to do stemming.
+				if input == match {
+					simpleSearch = true
+				}
 				return strings.Replace(match, " ", "<->", -1)
 			})
 
@@ -2124,7 +2133,12 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			tsQueryClause += " &!(" + excludedClause + ")"
 		}
 
-		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", s.pgDefaultTextSearchConfig, searchType)
+		textSearchCfg := s.pgDefaultTextSearchConfig
+		if simpleSearch {
+			textSearchCfg = "simple"
+		}
+
+		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", textSearchCfg, searchType)
 		baseQuery = baseQuery.Where(searchClause, tsQueryClause)
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		if searchType == "Message" {
@@ -3324,7 +3338,7 @@ func (s *SqlPostStore) GetPostReminders(now int64) (_ []*model.PostReminder, err
 
 	err = transaction.Select(&reminders, `SELECT PostId, UserId
 		FROM PostReminders
-		WHERE TargetTime < ?`, now)
+		WHERE TargetTime <= ?`, now)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, errors.Wrap(err, "failed to get post reminders")
 	}
@@ -3337,7 +3351,7 @@ func (s *SqlPostStore) GetPostReminders(now int64) (_ []*model.PostReminder, err
 	// Postgres supports RETURNING * in a DELETE statement, but MySQL doesn't.
 	// So we are stuck with 2 queries. Not taking separate paths for Postgres
 	// and MySQL for simplicity.
-	_, err = transaction.Exec(`DELETE from PostReminders WHERE TargetTime < ?`, now)
+	_, err = transaction.Exec(`DELETE from PostReminders WHERE TargetTime <= ?`, now)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to delete post reminders")
 	}

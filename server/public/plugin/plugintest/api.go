@@ -272,6 +272,38 @@ func (_m *API) CreateCommand(cmd *model.Command) (*model.Command, error) {
 	return r0, r1
 }
 
+// CreateGroup provides a mock function with given fields: group
+func (_m *API) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
+	ret := _m.Called(group)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateGroup")
+	}
+
+	var r0 *model.Group
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.Group) (*model.Group, *model.AppError)); ok {
+		return rf(group)
+	}
+	if rf, ok := ret.Get(0).(func(*model.Group) *model.Group); ok {
+		r0 = rf(group)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Group)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.Group) *model.AppError); ok {
+		r1 = rf(group)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // CreateOAuthApp provides a mock function with given fields: app
 func (_m *API) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
 	ret := _m.Called(app)
@@ -651,6 +683,102 @@ func (_m *API) DeleteCommand(commandID string) error {
 // DeleteEphemeralPost provides a mock function with given fields: userID, postId
 func (_m *API) DeleteEphemeralPost(userID string, postId string) {
 	_m.Called(userID, postId)
+}
+
+// DeleteGroup provides a mock function with given fields: groupID
+func (_m *API) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
+	ret := _m.Called(groupID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteGroup")
+	}
+
+	var r0 *model.Group
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) (*model.Group, *model.AppError)); ok {
+		return rf(groupID)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.Group); ok {
+		r0 = rf(groupID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Group)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(groupID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeleteGroupMember provides a mock function with given fields: groupID, userID
+func (_m *API) DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+	ret := _m.Called(groupID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteGroupMember")
+	}
+
+	var r0 *model.GroupMember
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string) (*model.GroupMember, *model.AppError)); ok {
+		return rf(groupID, userID)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) *model.GroupMember); ok {
+		r0 = rf(groupID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.GroupMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(groupID, userID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeleteGroupSyncable provides a mock function with given fields: groupID, syncableID, syncableType
+func (_m *API) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
+	ret := _m.Called(groupID, syncableID, syncableType)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteGroupSyncable")
+	}
+
+	var r0 *model.GroupSyncable
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string, model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)); ok {
+		return rf(groupID, syncableID, syncableType)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, model.GroupSyncableType) *model.GroupSyncable); ok {
+		r0 = rf(groupID, syncableID, syncableType)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.GroupSyncable)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, model.GroupSyncableType) *model.AppError); ok {
+		r1 = rf(groupID, syncableID, syncableType)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // DeleteOAuthApp provides a mock function with given fields: appID
@@ -1758,6 +1886,38 @@ func (_m *API) GetGroupByName(name string) (*model.Group, *model.AppError) {
 	return r0, r1
 }
 
+// GetGroupByRemoteID provides a mock function with given fields: remoteID, groupSource
+func (_m *API) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
+	ret := _m.Called(remoteID, groupSource)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetGroupByRemoteID")
+	}
+
+	var r0 *model.Group
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, model.GroupSource) (*model.Group, *model.AppError)); ok {
+		return rf(remoteID, groupSource)
+	}
+	if rf, ok := ret.Get(0).(func(string, model.GroupSource) *model.Group); ok {
+		r0 = rf(remoteID, groupSource)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Group)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, model.GroupSource) *model.AppError); ok {
+		r1 = rf(remoteID, groupSource)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetGroupChannel provides a mock function with given fields: userIds
 func (_m *API) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
 	ret := _m.Called(userIds)
@@ -1813,6 +1973,102 @@ func (_m *API) GetGroupMemberUsers(groupID string, page int, perPage int) ([]*mo
 
 	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
 		r1 = rf(groupID, page, perPage)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetGroupSyncable provides a mock function with given fields: groupID, syncableID, syncableType
+func (_m *API) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
+	ret := _m.Called(groupID, syncableID, syncableType)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetGroupSyncable")
+	}
+
+	var r0 *model.GroupSyncable
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string, model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)); ok {
+		return rf(groupID, syncableID, syncableType)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, model.GroupSyncableType) *model.GroupSyncable); ok {
+		r0 = rf(groupID, syncableID, syncableType)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.GroupSyncable)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, model.GroupSyncableType) *model.AppError); ok {
+		r1 = rf(groupID, syncableID, syncableType)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetGroupSyncables provides a mock function with given fields: groupID, syncableType
+func (_m *API) GetGroupSyncables(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError) {
+	ret := _m.Called(groupID, syncableType)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetGroupSyncables")
+	}
+
+	var r0 []*model.GroupSyncable
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError)); ok {
+		return rf(groupID, syncableType)
+	}
+	if rf, ok := ret.Get(0).(func(string, model.GroupSyncableType) []*model.GroupSyncable); ok {
+		r0 = rf(groupID, syncableType)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.GroupSyncable)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, model.GroupSyncableType) *model.AppError); ok {
+		r1 = rf(groupID, syncableType)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetGroups provides a mock function with given fields: page, perPage, opts, viewRestrictions
+func (_m *API) GetGroups(page int, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, *model.AppError) {
+	ret := _m.Called(page, perPage, opts, viewRestrictions)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetGroups")
+	}
+
+	var r0 []*model.Group
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(int, int, model.GroupSearchOpts, *model.ViewUsersRestrictions) ([]*model.Group, *model.AppError)); ok {
+		return rf(page, perPage, opts, viewRestrictions)
+	}
+	if rf, ok := ret.Get(0).(func(int, int, model.GroupSearchOpts, *model.ViewUsersRestrictions) []*model.Group); ok {
+		r0 = rf(page, perPage, opts, viewRestrictions)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Group)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(int, int, model.GroupSearchOpts, *model.ViewUsersRestrictions) *model.AppError); ok {
+		r1 = rf(page, perPage, opts, viewRestrictions)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -4087,6 +4343,38 @@ func (_m *API) RequestTrialLicense(requesterID string, users int, termsAccepted 
 	return r0
 }
 
+// RestoreGroup provides a mock function with given fields: groupID
+func (_m *API) RestoreGroup(groupID string) (*model.Group, *model.AppError) {
+	ret := _m.Called(groupID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RestoreGroup")
+	}
+
+	var r0 *model.Group
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) (*model.Group, *model.AppError)); ok {
+		return rf(groupID)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.Group); ok {
+		r0 = rf(groupID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Group)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(groupID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // RevokeSession provides a mock function with given fields: sessionID
 func (_m *API) RevokeSession(sessionID string) *model.AppError {
 	ret := _m.Called(sessionID)
@@ -4837,6 +5125,70 @@ func (_m *API) UpdateEphemeralPost(userID string, post *model.Post) *model.Post 
 	return r0
 }
 
+// UpdateGroup provides a mock function with given fields: group
+func (_m *API) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
+	ret := _m.Called(group)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateGroup")
+	}
+
+	var r0 *model.Group
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.Group) (*model.Group, *model.AppError)); ok {
+		return rf(group)
+	}
+	if rf, ok := ret.Get(0).(func(*model.Group) *model.Group); ok {
+		r0 = rf(group)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Group)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.Group) *model.AppError); ok {
+		r1 = rf(group)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// UpdateGroupSyncable provides a mock function with given fields: groupSyncable
+func (_m *API) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+	ret := _m.Called(groupSyncable)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateGroupSyncable")
+	}
+
+	var r0 *model.GroupSyncable
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.GroupSyncable) (*model.GroupSyncable, *model.AppError)); ok {
+		return rf(groupSyncable)
+	}
+	if rf, ok := ret.Get(0).(func(*model.GroupSyncable) *model.GroupSyncable); ok {
+		r0 = rf(groupSyncable)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.GroupSyncable)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.GroupSyncable) *model.AppError); ok {
+		r1 = rf(groupSyncable)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // UpdateOAuthApp provides a mock function with given fields: app
 func (_m *API) UpdateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
 	ret := _m.Called(app)
@@ -5254,6 +5606,102 @@ func (_m *API) UploadFile(data []byte, channelId string, filename string) (*mode
 
 	if rf, ok := ret.Get(1).(func([]byte, string, string) *model.AppError); ok {
 		r1 = rf(data, channelId, filename)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// UpsertGroupMember provides a mock function with given fields: groupID, userID
+func (_m *API) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+	ret := _m.Called(groupID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertGroupMember")
+	}
+
+	var r0 *model.GroupMember
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string) (*model.GroupMember, *model.AppError)); ok {
+		return rf(groupID, userID)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) *model.GroupMember); ok {
+		r0 = rf(groupID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.GroupMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(groupID, userID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// UpsertGroupMembers provides a mock function with given fields: groupID, userIDs
+func (_m *API) UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError) {
+	ret := _m.Called(groupID, userIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertGroupMembers")
+	}
+
+	var r0 []*model.GroupMember
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []string) ([]*model.GroupMember, *model.AppError)); ok {
+		return rf(groupID, userIDs)
+	}
+	if rf, ok := ret.Get(0).(func(string, []string) []*model.GroupMember); ok {
+		r0 = rf(groupID, userIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.GroupMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+		r1 = rf(groupID, userIDs)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// UpsertGroupSyncable provides a mock function with given fields: groupSyncable
+func (_m *API) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+	ret := _m.Called(groupSyncable)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertGroupSyncable")
+	}
+
+	var r0 *model.GroupSyncable
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.GroupSyncable) (*model.GroupSyncable, *model.AppError)); ok {
+		return rf(groupSyncable)
+	}
+	if rf, ok := ret.Get(0).(func(*model.GroupSyncable) *model.GroupSyncable); ok {
+		r0 = rf(groupSyncable)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.GroupSyncable)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.GroupSyncable) *model.AppError); ok {
+		r1 = rf(groupSyncable)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

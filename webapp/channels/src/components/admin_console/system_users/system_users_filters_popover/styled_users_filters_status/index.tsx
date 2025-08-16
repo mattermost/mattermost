@@ -61,7 +61,6 @@ export function SystemUsersFiltersStatus(props: Props) {
     return (
         <DropdownInput<OptionType>
             name='filterStatus'
-            showLegend={true}
             isSearchable={false}
             legend={formatMessage({id: 'admin.system_users.filters.status.title', defaultMessage: 'Status'})}
             options={options}
