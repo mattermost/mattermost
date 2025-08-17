@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback, memo} from 'react';
 import {defineMessage} from 'react-intl';
 
 import Filter from 'components/admin_console/filter/filter';
@@ -23,74 +23,65 @@ type Props = {
     };
 }
 
-type State = {
-    term: string;
-}
+const DataGridSearch = ({
+    term: termFromProps = '',
+    extraComponent,
+    filterProps,
+    onSearch,
+}: Props) => {
+    // This state wasn't used in the class component.
+    // const [termFromState, setTermFromState] = useState('');
 
-class DataGridSearch extends React.PureComponent<Props, State> {
-    static defaultProps = {
-        term: '',
-    };
-
-    public constructor(props: Props) {
-        super(props);
-
-        this.state = {
-            term: '',
-        };
-    }
-
-    handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const term = e.target.value;
-        this.setState({term});
-        this.props.onSearch(term);
+
+        // setTermFromState(term);
+        onSearch(term);
+    }, [onSearch]);
+
+    const resetSearch = useCallback(() => {
+        onSearch('');
+    }, [onSearch]);
+
+    // This method was declared in the class component but never used.
+    // eslint-disable-next-line
+    const onFilter = (filters: FilterOptions) => {
+        filterProps?.onFilter(filters);
     };
 
-    resetSearch = () => {
-        this.props.onSearch('');
-    };
-
-    onFilter = (filters: FilterOptions) => {
-        this.props.filterProps?.onFilter(filters);
-    };
-
-    render() {
-        const {filterProps} = this.props;
-
-        let filter;
-        if (filterProps) {
-            filter = <Filter {...filterProps}/>;
-        }
-
-        return (
-            <div className='DataGrid_search'>
-                <div className='DataGrid_searchBar'>
-                    <span
-                        className='DataGrid_searchIcon'
-                        aria-hidden='true'
-                    >
-                        <FaSearchIcon/>
-                    </span>
-
-                    <LocalizedPlaceholderInput
-                        type='text'
-                        placeholder={defineMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
-                        onChange={this.handleSearch}
-                        value={this.props.term}
-                        data-testid='searchInput'
-                    />
-                    <i
-                        className={'DataGrid_clearButton fa fa-times-circle ' + (this.props.term.length ? '' : 'hidden')}
-                        onClick={this.resetSearch}
-                        data-testid='clear-search'
-                    />
-                </div>
-
-                {filter}
-                {this.props.extraComponent}
-            </div>
-        );
+    let filter;
+    if (filterProps) {
+        filter = <Filter {...filterProps}/>;
     }
-}
 
-export default DataGridSearch;
+    return (
+        <div className='DataGrid_search'>
+            <div className='DataGrid_searchBar'>
+                <span
+                    className='DataGrid_searchIcon'
+                    aria-hidden='true'
+                >
+                    <FaSearchIcon/>
+                </span>
+
+                <LocalizedPlaceholderInput
+                    type='text'
+                    placeholder={defineMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
+                    onChange={handleSearch}
+                    value={termFromProps}
+                    data-testid='searchInput'
+                />
+                <i
+                    className={'DataGrid_clearButton fa fa-times-circle ' + (termFromProps.length ? '' : 'hidden')}
+                    onClick={resetSearch}
+                    data-testid='clear-search'
+                />
+            </div>
+
+            {filter}
+            {extraComponent}
+        </div>
+    );
+};
+
+export default memo(DataGridSearch);
