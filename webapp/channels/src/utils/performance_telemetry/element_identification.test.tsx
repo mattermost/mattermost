@@ -3,7 +3,7 @@
 
 import {createMemoryHistory} from 'history';
 import React from 'react';
-import type {AutoSizerProps} from 'react-virtualized-auto-sizer';
+import type {Props as AutoSizerProps} from 'react-virtualized-auto-sizer';
 
 import {Permissions} from 'mattermost-redux/constants';
 
@@ -14,7 +14,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import {identifyElementRegion} from './element_identification';
 
-jest.mock('react-virtualized-auto-sizer', () => (props: AutoSizerProps) => props.children({height: 100, width: 100}));
+jest.mock('react-virtualized-auto-sizer', () => (props: AutoSizerProps) => props.children({height: 100, width: 100, scaledHeight: 100, scaledWidth: 100}));
 
 describe('identifyElementRegion', () => {
     test('should be able to identify various elements in the app', async () => {
@@ -148,6 +148,6 @@ describe('identifyElementRegion', () => {
             expect(identifyElementRegion(screen.getByText(post.message))).toEqual('post');
         });
 
-        expect(identifyElementRegion(screen.getByText('Write to ' + channel.display_name))).toEqual('post_textbox');
+        expect(identifyElementRegion(screen.getByPlaceholderText('Write to ' + channel.display_name))).toEqual('post_textbox');
     });
 });

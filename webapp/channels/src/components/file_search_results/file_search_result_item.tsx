@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
@@ -58,7 +58,13 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
     };
 
     private renderPluginItems = () => {
-        const {fileInfo} = this.props;
+        const {fileInfo, channel, enableSharedChannelsPlugins} = this.props;
+        const isSharedChannel = channel?.shared || false;
+
+        if (isSharedChannel && !enableSharedChannelsPlugins) {
+            return null;
+        }
+
         const pluginItems = this.props.pluginMenuItems?.filter((item) => item?.match(fileInfo)).map((item) => {
             return (
                 <Menu.ItemAction
@@ -146,9 +152,7 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                     </div>
                     {this.props.fileInfo.post_id && (
                         <WithTooltip
-                            id='file-name__tooltip'
-                            title={localizeMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'})}
-                            placement={'top'}
+                            title={defineMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'})}
                         >
                             <MenuWrapper
                                 onToggle={this.keepOpen}
@@ -156,7 +160,7 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                             >
                                 <a
                                     href='#'
-                                    className='action-icon dots-icon'
+                                    className='action-icon dots-icon btn btn-icon btn-sm'
                                 >
                                     <i className='icon icon-dots-vertical'/>
                                 </a>
@@ -180,12 +184,10 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                         </WithTooltip>
                     )}
                     <WithTooltip
-                        id='file-name__tooltip'
-                        title={localizeMessage({id: 'file_search_result_item.download', defaultMessage: 'Download'})}
-                        placement={'top'}
+                        title={defineMessage({id: 'file_search_result_item.download', defaultMessage: 'Download'})}
                     >
                         <a
-                            className='action-icon download-icon'
+                            className='action-icon download-icon btn btn-icon btn-sm'
                             href={getFileDownloadUrl(fileInfo.id)}
                             onClick={this.stopPropagation}
                         >

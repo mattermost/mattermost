@@ -26,7 +26,6 @@ import PriorityLabel from 'components/post_priority/post_priority_label';
 import PostProfilePicture from 'components/post_profile_picture';
 import PostAcknowledgements from 'components/post_view/acknowledgements';
 import CommentedOn from 'components/post_view/commented_on/commented_on';
-import DateSeparator from 'components/post_view/date_separator';
 import FailedPostOptions from 'components/post_view/failed_post_options';
 import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
 import PostBodyAdditionalContent from 'components/post_view/post_body_additional_content';
@@ -45,10 +44,11 @@ import Constants, {A11yCustomEventTypes, AppEvents, Locations} from 'utils/const
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import * as PostUtils from 'utils/post_utils';
-import {getDateForUnixTicks, makeIsEligibleForClick} from 'utils/utils';
+import {makeIsEligibleForClick} from 'utils/utils';
 
-import type {PostPluginComponent, PluginComponent} from 'types/store/plugins';
+import type {PostActionComponent, PostPluginComponent} from 'types/store/plugins';
 
+import {withPostErrorBoundary} from './post_error_boundary';
 import PostOptions from './post_options';
 import PostUserProfile from './user_profile';
 
@@ -68,6 +68,7 @@ export type Props = {
     isReadOnly?: boolean;
     pluginPostTypes?: {[postType: string]: PostPluginComponent};
     channelIsArchived?: boolean;
+    channelIsShared?: boolean;
     isConsecutivePost?: boolean;
     isLastPost?: boolean;
     recentEmojis: Emoji[];
@@ -116,10 +117,10 @@ export type Props = {
     isPostPriorityEnabled: boolean;
     isCardOpen?: boolean;
     canDelete?: boolean;
-    pluginActions: PluginComponent[];
+    pluginActions: PostActionComponent[];
 };
 
-const PostComponent = (props: Props): JSX.Element => {
+function PostComponent(props: Props) {
     const {post, shouldHighlight, togglePostMenu} = props;
 
     const isSearchResultItem = (props.matches && props.matches.length > 0) || props.isMentionSearch || (props.term && props.term.length > 0);
@@ -401,12 +402,12 @@ const PostComponent = (props: Props): JSX.Element => {
     const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
 
     let comment;
-    if (props.isFirstReply && props.parentPost && props.parentPostUser && post.type !== Constants.PostTypes.EPHEMERAL) {
+    if (props.isFirstReply && post.type !== Constants.PostTypes.EPHEMERAL) {
         comment = (
             <CommentedOn
-                post={props.parentPost}
-                parentPostUser={props.parentPostUser}
                 onCommentClick={handleCommentClick}
+                rootId={post.root_id}
+                enablePostUsernameOverride={props.enablePostUsernameOverride}
             />
         );
     }
@@ -479,7 +480,6 @@ const PostComponent = (props: Props): JSX.Element => {
             replyClick={handleThreadClick}
         />
     ) : null;
-    const currentPostDay = getDateForUnixTicks(post.create_at);
     const channelDisplayName = getChannelName();
     const showReactions = props.location !== Locations.SEARCH || props.isPinnedPosts || props.isFlaggedPosts;
 
@@ -505,7 +505,7 @@ const PostComponent = (props: Props): JSX.Element => {
     };
 
     let priority;
-    if (post.metadata?.priority && props.isPostPriorityEnabled) {
+    if (post.metadata?.priority && props.isPostPriorityEnabled && post.state !== Posts.POST_DELETED) {
         priority = <span className='d-flex mr-2 ml-1'><PriorityLabel priority={post.metadata.priority.priority}/></span>;
     }
 
@@ -516,14 +516,14 @@ const PostComponent = (props: Props): JSX.Element => {
         postAriaLabelDivTestId = 'rhsPostView';
     }
 
+    const showFileAttachments = post.file_ids && post.file_ids.length > 0 && !props.isPostBeingEdited;
+
     return (
         <>
-            {(isSearchResultItem || (props.location !== Locations.CENTER && (props.isPinnedPosts || props.isFlaggedPosts))) && <DateSeparator date={currentPostDay}/>}
             <PostAriaLabelDiv
                 ref={postRef}
                 id={getTestId()}
                 data-testid={postAriaLabelDivTestId}
-                tabIndex={0}
                 post={post}
                 className={getClassName()}
                 onClick={handlePostClick}
@@ -564,7 +564,6 @@ const PostComponent = (props: Props): JSX.Element => {
                     channelId={post.channel_id}
                 />
                 <div
-                    role='application'
                     className={`post__content ${props.center ? 'center' : ''}`}
                     data-testid='postContent'
                 >
@@ -594,14 +593,12 @@ const PostComponent = (props: Props): JSX.Element => {
                                 {priority}
                                 {post.props && post.props.card &&
                                     <WithTooltip
-                                        id='post_info.info.view_additional_info'
                                         title={
                                             <FormattedMessage
                                                 id='post_info.info.view_additional_info'
                                                 defaultMessage='View additional info'
                                             />
                                         }
-                                        placement='top'
                                     >
                                         <button
                                             className={'card-icon__container icon--show style--none ' + (props.isCardOpen ? 'active' : '')}
@@ -645,12 +642,13 @@ const PostComponent = (props: Props): JSX.Element => {
                                 slot2={<EditPost/>}
                                 onTransitionEnd={() => document.dispatchEvent(new Event(AppEvents.FOCUS_EDIT_TEXTBOX))}
                             />
-                            {post.file_ids && post.file_ids.length > 0 &&
-                            <FileAttachmentListContainer
-                                post={post}
-                                compactDisplay={props.compactDisplay}
-                                handleFileDropdownOpened={handleFileDropdownOpened}
-                            />
+                            {
+                                showFileAttachments &&
+                                <FileAttachmentListContainer
+                                    post={post}
+                                    compactDisplay={props.compactDisplay}
+                                    handleFileDropdownOpened={handleFileDropdownOpened}
+                                />
                             }
                             <div className='post__body-reactions-acks'>
                                 {props.isPostAcknowledgementsEnabled && post.metadata?.priority?.requested_ack && (
@@ -669,6 +667,6 @@ const PostComponent = (props: Props): JSX.Element => {
             </PostAriaLabelDiv>
         </>
     );
-};
+}
 
-export default PostComponent;
+export default withPostErrorBoundary(PostComponent);

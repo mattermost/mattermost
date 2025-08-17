@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent, act} from '@testing-library/react';
+import {screen, fireEvent, act, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -189,10 +189,7 @@ describe('ChannelHeaderTitleFavorite Component', () => {
         expect(icon).toHaveClass('icon-star');
     });
 
-    it('should dispatch A11yFocusEvent after toggling favorite', () => {
-        // Use fake timers to handle requestAnimationFrame
-        jest.useFakeTimers();
-
+    it('should dispatch A11yFocusEvent after toggling favorite', async () => {
         isCurrentChannelFavoriteMock.mockReturnValue(false);
         getCurrentChannelMock.mockReturnValue(activeChannel);
 
@@ -207,28 +204,36 @@ describe('ChannelHeaderTitleFavorite Component', () => {
         renderComponent();
 
         const button = screen.getByRole('button', {name: ADD_TO_FAVORITES_REGEX});
-        fireEvent.click(button);
+
+        // Ensure the ref is set by triggering a focus event
+        fireEvent.focus(button);
+
+        act(() => {
+            fireEvent.click(button);
+        });
 
         expect(dispatchMock).toHaveBeenCalledWith({
             type: 'FAVORITE_CHANNEL',
             data: activeChannel.id,
         });
 
-        // Execute the requestAnimationFrame callback
-        act(() => {
-            jest.runAllTimers();
+        await waitFor(() => {
+            expect(dispatchEventSpy).toHaveBeenCalled();
+        }, {
+            timeout: 1000, // Increase timeout
         });
 
-        expect(dispatchEventSpy).toHaveBeenCalled();
-
         // Verify the details of the dispatched event
-        const event = dispatchEventSpy.mock.calls.find((call) => call[0].type === A11yCustomEventTypes.FOCUS)?.[0] as CustomEvent<A11yFocusEventDetail>;
-        expect(event).toBeDefined();
+        const focusEvents = dispatchEventSpy.mock.calls.
+            filter((call) => call[0].type === A11yCustomEventTypes.FOCUS).
+            map((call) => call[0] as CustomEvent<A11yFocusEventDetail>);
+
+        expect(focusEvents.length).toBeGreaterThan(0);
+        const event = focusEvents[focusEvents.length - 1];
         expect(event.detail.target).toBe(button);
         expect(event.detail.keyboardOnly).toBe(false);
 
+        // Cleanup
         dispatchEventSpy.mockRestore();
-
-        jest.useRealTimers();
     });
 });

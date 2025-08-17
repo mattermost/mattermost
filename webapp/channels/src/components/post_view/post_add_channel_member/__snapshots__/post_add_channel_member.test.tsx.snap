@@ -6,7 +6,9 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, empty 
 
 exports[`components/post_view/PostAddChannelMember should match snapshot, more than 3 users 1`] = `
 <Fragment>
-  <p>
+  <p
+    key="invitable"
+  >
     <span>
       <Connect(Component)
         channelId="channel_id"
@@ -67,7 +69,9 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, more t
 
 exports[`components/post_view/PostAddChannelMember should match snapshot, more than 3 users 2`] = `
 <Fragment>
-  <p>
+  <p
+    key="invitable"
+  >
     <span>
       <Connect(Component)
         channelId="channel_id"
@@ -129,7 +133,9 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, more t
 
 exports[`components/post_view/PostAddChannelMember should match snapshot, private channel 1`] = `
 <Fragment>
-  <p>
+  <p
+    key="invitable"
+  >
     <Connect(Component)
       channelId="channel_id"
       mentionName="username_1"
@@ -158,7 +164,9 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, privat
 
 exports[`components/post_view/PostAddChannelMember should match snapshot, public channel 1`] = `
 <Fragment>
-  <p>
+  <p
+    key="invitable"
+  >
     <Connect(Component)
       channelId="channel_id"
       mentionName="username_1"
@@ -185,9 +193,45 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, public
 </Fragment>
 `;
 
+exports[`components/post_view/PostAddChannelMember should match snapshot, with ABAC policy enforced 1`] = `
+<p>
+  <span>
+    <Connect(Component)
+      channelId="channel_id"
+      key="username_1"
+      mentionName="username_1"
+    />
+    <span
+      key="1"
+    >
+      , 
+    </span>
+    <Connect(Component)
+      channelId="channel_id"
+      key="username_2"
+      mentionName="username_2"
+    />
+    <MemoizedFormattedMessage
+      defaultMessage=" and "
+      id="post_body.check_for_out_of_channel_mentions.link.and"
+      key="2"
+    />
+    <Connect(Component)
+      channelId="channel_id"
+      key="username_3"
+      mentionName="username_3"
+    />
+  </span>
+   
+  did not get notified by this mention because they are not in the channel.
+</p>
+`;
+
 exports[`components/post_view/PostAddChannelMember should match snapshot, with no-groups usernames 1`] = `
 <Fragment>
-  <p>
+  <p
+    key="invitable"
+  >
     <Connect(Component)
       channelId="channel_id"
       mentionName="username_1"
@@ -211,7 +255,9 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, with n
       id="post_body.check_for_out_of_channel_mentions.message_last"
     />
   </p>
-  <p>
+  <p
+    key="out-of-groups"
+  >
     <Connect(Component)
       channelId="channel_id"
       mentionName="user_id_2"

@@ -18,10 +18,33 @@ import (
 
 type SqlComplianceStore struct {
 	*SqlStore
+
+	tableSelectQuery sq.SelectBuilder
 }
 
 func newSqlComplianceStore(sqlStore *SqlStore) store.ComplianceStore {
-	return &SqlComplianceStore{sqlStore}
+	s := SqlComplianceStore{
+		SqlStore: sqlStore,
+	}
+
+	s.tableSelectQuery = s.
+		getQueryBuilder().
+		Select(
+			"Id",
+			"CreateAt",
+			"UserId",
+			"Status",
+			"Count",
+			s.toReserveCase("desc"),
+			"Type",
+			"StartAt",
+			"EndAt",
+			"Keywords",
+			"Emails",
+		).
+		From("Compliances")
+
+	return &s
 }
 
 func (s SqlComplianceStore) Save(compliance *model.Compliance) (*model.Compliance, error) {
@@ -83,17 +106,24 @@ func (s SqlComplianceStore) Update(compliance *model.Compliance) (*model.Complia
 }
 
 func (s SqlComplianceStore) GetAll(offset, limit int) (model.Compliances, error) {
-	query := "SELECT * FROM Compliances ORDER BY CreateAt DESC LIMIT ? OFFSET ?"
-	compliances := model.Compliances{}
-	if err := s.GetReplica().Select(&compliances, query, limit, offset); err != nil {
+	query := s.tableSelectQuery.
+		OrderBy("CreateAt DESC").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
+
+	var compliances model.Compliances
+	if err := s.GetReplica().SelectBuilder(&compliances, query); err != nil {
 		return nil, errors.Wrap(err, "failed to find all Compliances")
 	}
+
 	return compliances, nil
 }
 
 func (s SqlComplianceStore) Get(id string) (*model.Compliance, error) {
+	query := s.tableSelectQuery.Where(sq.Eq{"Id": id})
+
 	var compliance model.Compliance
-	if err := s.GetReplica().Get(&compliance, `SELECT * FROM Compliances WHERE Id = ?`, id); err != nil {
+	if err := s.GetReplica().GetBuilder(&compliance, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Compliances", id)
 		}
@@ -286,24 +316,25 @@ func (s SqlComplianceStore) MessageExport(c request.CTX, cursor model.MessageExp
 		return nil, cursor, errors.Wrap(caseErr, "unable to construct case statement")
 	}
 
-	query, args, err := s.getQueryBuilder().Select(`Posts.Id AS PostId,
-			Posts.CreateAt AS PostCreateAt,
-			Posts.UpdateAt AS PostUpdateAt,
-			Posts.DeleteAt AS PostDeleteAt,
-			Posts.Message AS PostMessage,
-			Posts.Type AS PostType,
-			Posts.Props AS PostProps,
-			Posts.OriginalId AS PostOriginalId,
-			Posts.RootId AS PostRootId,
-			Posts.FileIds AS PostFileIds,
-			Teams.Id AS TeamId,
-			Teams.Name AS TeamName,
+	builder := s.getQueryBuilder().Select(`Posts.Id AS PostId,
+			Posts.CreateAt    AS PostCreateAt,
+			Posts.UpdateAt    AS PostUpdateAt,
+			Posts.DeleteAt    AS PostDeleteAt,
+            Posts.EditAt      AS PostEditAt,
+			Posts.Message     AS PostMessage,
+			Posts.Type        AS PostType,
+			Posts.Props       AS PostProps,
+			Posts.OriginalId  AS PostOriginalId,
+			Posts.RootId      AS PostRootId,
+			Posts.FileIds     AS PostFileIds,
+			Teams.Id          AS TeamId,
+			Teams.Name        AS TeamName,
 			Teams.DisplayName AS TeamDisplayName,
-			Channels.Id AS ChannelId,
-			Channels.Name AS ChannelName,
-			Channels.Type AS ChannelType,
-			Users.Id AS UserId,
-			Users.Email AS UserEmail,
+			Channels.Id       AS ChannelId,
+			Channels.Name     AS ChannelName,
+			Channels.Type     AS ChannelType,
+			Users.Id          AS UserId,
+			Users.Email       AS UserEmail,
 			Users.Username,
 			Bots.UserId IS NOT NULL AS IsBot`).
 		Column(caseStmt+" AS ChannelDisplayName", caseArgs...).
@@ -323,14 +354,14 @@ func (s SqlComplianceStore) MessageExport(c request.CTX, cursor model.MessageExp
 			sq.NotLike{"Posts.Type": "system_%"},
 		}).
 		OrderBy("PostUpdateAt, PostId").
-		Limit(uint64(limit)).
-		ToSql()
-	if err != nil {
-		return nil, cursor, errors.Wrap(err, "unable to construct query to export messages")
+		Limit(uint64(limit))
+
+	if cursor.UntilUpdateAt > 0 {
+		builder = builder.Where(sq.LtOrEq{"Posts.UpdateAt": cursor.UntilUpdateAt})
 	}
 
 	cposts := []*model.MessageExport{}
-	if err := s.GetReplica().SelectCtx(c.Context(), &cposts, query, args...); err != nil {
+	if err := s.GetReplica().SelectBuilderCtx(c.Context(), &cposts, builder); err != nil {
 		return nil, cursor, errors.Wrap(err, "unable to export messages")
 	}
 	if len(cposts) > 0 {

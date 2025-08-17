@@ -21,7 +21,7 @@ const Span = styled.span`
 const Button = styled.button<{notified: boolean}>`
     border: none;
     background: none;
-    color: ${(props: any) => (props.notified ? 'var(--denim-status-online)' : 'var(--denim-button-bg)')};
+    color: ${(props: any) => (props.notified ? 'var(--online-indicator)' : 'var(--button-bg)')};
     text-decoration: none;
     display: inline;
 `;

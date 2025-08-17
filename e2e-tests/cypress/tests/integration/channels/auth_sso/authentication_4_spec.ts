@@ -58,7 +58,7 @@ describe('Authentication', () => {
         cy.visit('/login');
 
         // # Remove autofocus from login input
-        cy.get('.login-body-card-content').should('be.visible').focus();
+        cy.get('.login-body-card-title').click();
 
         // # Clear email/username field and type username
         cy.apiGetClientLicense().then(({isLicensed}) => {
@@ -267,7 +267,7 @@ describe('Authentication', () => {
         cy.postMessage('hello');
 
         // # Open team menu and click on "Invite People"
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Click invite members if needed
         cy.findByText('Copy invite link').click();

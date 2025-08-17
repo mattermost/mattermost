@@ -42,6 +42,7 @@ export default class A11yController {
     lKeyIsPressed = false;
     escKeyIsPressed = false;
     windowIsFocused = true;
+    originElement?: HTMLElement | null = null;
 
     // used to reset navigation whenever navigation within a region occurs (section or element)
     resetNavigation = false;
@@ -69,6 +70,27 @@ export default class A11yController {
         document.removeEventListener(EventTypes.FOCUS, this.handleFocus, listenerOptions);
         document.removeEventListener(A11yCustomEventTypes.FOCUS, this.handleA11yFocus, listenerOptions);
         window.removeEventListener(EventTypes.BLUR, this.handleWindowBlur, listenerOptions);
+    }
+
+    /**
+     * Stores a reference to the provided DOM element as the "origin element".
+     * The origin element is the element that triggered or last caused a certain
+     * navigation or focus event. This allows restoring focus back to this element
+     * once certain UI components (like RHS,  panels, or menus) are closed.
+     *
+     * @param {HTMLElement} element - The DOM element to store as the origin element.
+     */
+    storeOriginElement(element: HTMLElement) {
+        this.originElement = element;
+    }
+
+    /**
+     * Resets the stored origin element reference back to null.
+     * This is typically called after focus has been restored to the origin element,
+     * indicating that the controller no longer needs to keep track of it.
+     */
+    resetOriginElement() {
+        this.originElement = null;
     }
 
     // convenience getter/setters
@@ -370,8 +392,24 @@ export default class A11yController {
         this.resetNavigation = true;
     }
 
+    restoreOriginFocus() {
+        if (this.originElement && this.isElementValid(this.originElement)) {
+            // Dispatch a focus event to manually focus this element
+            const customEvent = new CustomEvent(A11yCustomEventTypes.FOCUS, {
+                detail: {
+                    target: this.originElement,
+                    keyboardOnly: false,
+                },
+            });
+            this.handleA11yFocus(customEvent);
+            setTimeout(() => {
+                this.originElement = null;
+            }, 0);
+        }
+    }
+
     /**
-     * Resets the a11y navigation controller, active region/section/element, clears focus and resets user interraction states
+     * Resets the a11y navigation controller, active region/section/element, clears focus and resets user interaction states
      */
     cancelNavigation() {
         this.clearActiveRegion();

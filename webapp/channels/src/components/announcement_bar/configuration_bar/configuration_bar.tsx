@@ -98,7 +98,10 @@ const ConfigurationAnnouncementBar = (props: Props) => {
                     message={
                         <div className='announcement-bar__configuration'>
                             {message}
-                            <RenewalLink telemetryInfo={renewLinkTelemetry}/>
+                            <RenewalLink
+                                className='btn btn-tertiary btn-xs btn-inverted annnouncementBar__renewLicense'
+                                telemetryInfo={renewLinkTelemetry}
+                            />
                         </div>
                     }
                     tooltipMsg={message}
@@ -112,6 +115,7 @@ const ConfigurationAnnouncementBar = (props: Props) => {
         if (isTrialLicense(props.license) && typeof daysUntilLicenseExpires !== 'undefined' && daysUntilLicenseExpires <= 14 && !props.dismissedExpiringTrialLicense) {
             const purchaseLicense = (
                 <PurchaseLink
+                    className='btn btn-tertiary btn-xs btn-inverted annnouncementBar__purchaseNow'
                     buttonTextElement={
                         <FormattedMessage
                             id='announcement_bar.error.purchase_a_license_now'
@@ -200,7 +204,10 @@ const ConfigurationAnnouncementBar = (props: Props) => {
                     message={
                         <div className='announcement-bar__configuration'>
                             {message}
-                            <RenewalLink telemetryInfo={renewLinkTelemetry}/>
+                            <RenewalLink
+                                className='btn btn-tertiary btn-xs btn-inverted annnouncementBar__renewLicense'
+                                telemetryInfo={renewLinkTelemetry}
+                            />
                         </div>
                     }
                     tooltipMsg={message}

@@ -39,12 +39,12 @@ jest.mock('actions/telemetry_actions', () => ({
 const seatsPurchased = 40;
 const email = 'test@mattermost.com';
 
-const seatsMinimumFor5PercentageState = (Math.ceil(seatsPurchased * OverActiveUserLimits.MIN)) + seatsPurchased;
+const seatsMinimumFor5PercentageState = (Math.ceil(seatsPurchased * OverActiveUserLimits.MIN)) + seatsPurchased + 1;
 
-const seatsMinimumFor10PercentageState = (Math.ceil(seatsPurchased * OverActiveUserLimits.MAX)) + seatsPurchased;
+const seatsMinimumFor10PercentageState = (Math.ceil(seatsPurchased * OverActiveUserLimits.MAX)) + seatsPurchased + 1;
 
-const text5PercentageState = `(Only visible to admins) Your workspace user count has exceeded your paid license seat count by ${seatsMinimumFor5PercentageState - seatsPurchased} seats. Purchase additional seats to remain compliant.`;
-const text10PercentageState = `(Only visible to admins) Your workspace user count has exceeded your paid license seat count by ${seatsMinimumFor10PercentageState - seatsPurchased} seats. Purchase additional seats to remain compliant.`;
+const text5PercentageState = `(Only visible to admins) The user count exceeds the number of licensed seats by ${seatsMinimumFor5PercentageState - seatsPurchased} seat. Purchase more seats to stay compliant.`;
+const text10PercentageState = `(Only visible to admins) The user count exceeds the number of licensed seats by ${seatsMinimumFor10PercentageState - seatsPurchased} seat. Purchase more seats to stay compliant.`;
 
 const contactSalesTextLink = 'Contact Sales';
 
@@ -127,7 +127,7 @@ describe('components/overage_users_banner', () => {
     it('should not render the banner because we are not on overage state', () => {
         renderWithContext(<OverageUsersBanner/>);
 
-        expect(screen.queryByText('(Only visible to admins) Your workspace user count has exceeded your paid license seat count by', {exact: false})).not.toBeInTheDocument();
+        expect(screen.queryByText('(Only visible to admins) The user count exceeds the number of licensed seats by', {exact: false})).not.toBeInTheDocument();
     });
 
     it('should not render the banner because we are not admins', () => {
@@ -146,7 +146,7 @@ describe('components/overage_users_banner', () => {
 
         renderWithContext(<OverageUsersBanner/>, store);
 
-        expect(screen.queryByText('Your workspace user count has exceeded your paid license seat count by', {exact: false})).not.toBeInTheDocument();
+        expect(screen.queryByText('Your workspace user count has exceeded your licensed seat count by', {exact: false})).not.toBeInTheDocument();
     });
 
     it('should not render the banner because it\'s cloud licenese', () => {
@@ -159,7 +159,7 @@ describe('components/overage_users_banner', () => {
 
         renderWithContext(<OverageUsersBanner/>, store);
 
-        expect(screen.queryByText('Your workspace user count has exceeded your paid license seat count by', {exact: false})).not.toBeInTheDocument();
+        expect(screen.queryByText('Your workspace user count has exceeded your licensed seat count by', {exact: false})).not.toBeInTheDocument();
     });
 
     it('should not render the 5% banner because we have dissmised it', () => {
@@ -170,7 +170,7 @@ describe('components/overage_users_banner', () => {
                 {
                     category: Preferences.OVERAGE_USERS_BANNER,
                     value: 'Overage users banner watched',
-                    name: `warn_overage_seats_${licenseId.substring(0, 8)}`,
+                    name: `error_overage_seats_${licenseId.substring(0, 8)}`,
                 },
             ],
         );
@@ -230,7 +230,7 @@ describe('components/overage_users_banner', () => {
         const salesLinkWithEncodedParams = 'https://mattermost.com/contact-sales/?qk=&qp=&qw=&qx=dGVzdEBtYXR0ZXJtb3N0LmNvbQ==&utm_source=mattermost&utm_medium=in-product';
         expect(windowSpy).toBeCalledWith(salesLinkWithEncodedParams, '_blank');
         expect(trackEvent).toBeCalledTimes(1);
-        expect(trackEvent).toBeCalledWith('insights', 'click_true_up_warning', {
+        expect(trackEvent).toBeCalledWith('insights', 'click_true_up_error', {
             cta: 'Contact Sales',
             banner: 'global banner',
         });
@@ -248,7 +248,7 @@ describe('components/overage_users_banner', () => {
                 {
                     category: Preferences.OVERAGE_USERS_BANNER,
                     value: 'Overage users banner watched',
-                    name: `warn_overage_seats_${10}`,
+                    name: `error_overage_seats_${10}`,
                 },
             ],
         );
@@ -283,7 +283,7 @@ describe('components/overage_users_banner', () => {
         expect(savePreferences).toBeCalledTimes(1);
         expect(savePreferences).toBeCalledWith(store.entities.users.profiles.current_user.id, [{
             category: Preferences.OVERAGE_USERS_BANNER,
-            name: `warn_overage_seats_${licenseId.substring(0, 8)}`,
+            name: `error_overage_seats_${licenseId.substring(0, 8)}`,
             user_id: store.entities.users.profiles.current_user.id,
             value: 'Overage users banner watched',
         }]);
@@ -319,7 +319,7 @@ describe('components/overage_users_banner', () => {
         store.entities.admin = {
             ...store.entities.admin,
             analytics: {
-                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState + 1,
             },
         };
 

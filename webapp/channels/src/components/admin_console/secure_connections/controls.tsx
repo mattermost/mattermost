@@ -31,7 +31,7 @@ const FormFieldLabel = styled.label`
     }
 `;
 
-export const SectionHeader = styled.header.attrs({className: 'header'})<{$borderless?: boolean}>`
+export const SectionHeader = styled.div.attrs({className: 'header'})<{$borderless?: boolean}>`
     &&& {
         padding: 24px 32px;
         ${({$borderless}) => !$borderless && css`
@@ -230,8 +230,6 @@ export const ConnectionStatusLabel = ({rc}: {rc: RemoteCluster}) => {
 
     return (
         <WithTooltip
-            id='connection-status-tooltip'
-            placement='top'
             title={(
                 <>
                     <FormattedMessage

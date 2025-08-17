@@ -13,7 +13,7 @@ import {makeGetGlobalItem, makeGetGlobalItemWithDefault} from 'selectors/storage
 
 import type {SidebarSize} from 'components/resizable_sidebar/constants';
 
-import {PostTypes, StoragePrefixes} from 'utils/constants';
+import {PostTypes, RHSStates, StoragePrefixes} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -106,6 +106,17 @@ export const getSelectedPost = createSelector(
             user_id: currentUserId,
             reply_count: 0,
         };
+    },
+);
+
+export const getCurrentSearchForSearchTeam: (state: GlobalState) => Record<string, any> = createSelector(
+    'getCurrentSearchForSearchTeam',
+    (state: GlobalState) => state.entities.search.current,
+    getSearchTeam,
+    (state: GlobalState) => getRhsState(state) === RHSStates.MENTION,
+    (current, teamId, isMentionSearch) => {
+        const team = isMentionSearch ? 'ALL_TEAMS' : teamId || 'ALL_TEAMS';
+        return current[team];
     },
 );
 

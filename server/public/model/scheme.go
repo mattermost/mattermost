@@ -6,6 +6,8 @@ package model
 import (
 	"fmt"
 	"regexp"
+
+	"github.com/mattermost/mattermost/server/public/utils/timeutils"
 )
 
 const (
@@ -39,8 +41,8 @@ type Scheme struct {
 	DefaultRunMemberRole      string `json:"default_run_member_role"`
 }
 
-func (scheme *Scheme) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (scheme *Scheme) Auditable() map[string]any {
+	return map[string]any{
 		"id":                           scheme.Id,
 		"name":                         scheme.Name,
 		"display_name":                 scheme.DisplayName,
@@ -62,14 +64,125 @@ func (scheme *Scheme) Auditable() map[string]interface{} {
 	}
 }
 
+func (scheme *Scheme) Sanitize() {
+	scheme.Name = FakeSetting
+	scheme.DisplayName = FakeSetting
+	scheme.Description = FakeSetting
+}
+
+func (scheme *Scheme) MarshalYAML() (any, error) {
+	return struct {
+		Id                        string `yaml:"id"`
+		Name                      string `yaml:"name"`
+		DisplayName               string `yaml:"display_name"`
+		Description               string `yaml:"description"`
+		CreateAt                  string `yaml:"create_at"`
+		UpdateAt                  string `yaml:"update_at"`
+		DeleteAt                  string `yaml:"delete_at"`
+		Scope                     string `yaml:"scope"`
+		DefaultTeamAdminRole      string `yaml:"default_team_admin_role"`
+		DefaultTeamUserRole       string `yaml:"default_team_user_role"`
+		DefaultChannelAdminRole   string `yaml:"default_channel_admin_role"`
+		DefaultChannelUserRole    string `yaml:"default_channel_user_role"`
+		DefaultTeamGuestRole      string `yaml:"default_team_guest_role"`
+		DefaultChannelGuestRole   string `yaml:"default_channel_guest_role"`
+		DefaultPlaybookAdminRole  string `yaml:"default_playbook_admin_role"`
+		DefaultPlaybookMemberRole string `yaml:"default_playbook_member_role"`
+		DefaultRunAdminRole       string `yaml:"default_run_admin_role"`
+		DefaultRunMemberRole      string `yaml:"default_run_member_role"`
+	}{
+		Id:                        scheme.Id,
+		Name:                      scheme.Name,
+		DisplayName:               scheme.DisplayName,
+		Description:               scheme.Description,
+		CreateAt:                  timeutils.FormatMillis(scheme.CreateAt),
+		UpdateAt:                  timeutils.FormatMillis(scheme.UpdateAt),
+		DeleteAt:                  timeutils.FormatMillis(scheme.DeleteAt),
+		Scope:                     scheme.Scope,
+		DefaultTeamAdminRole:      scheme.DefaultTeamAdminRole,
+		DefaultTeamUserRole:       scheme.DefaultTeamUserRole,
+		DefaultChannelAdminRole:   scheme.DefaultChannelAdminRole,
+		DefaultChannelUserRole:    scheme.DefaultChannelUserRole,
+		DefaultTeamGuestRole:      scheme.DefaultTeamGuestRole,
+		DefaultChannelGuestRole:   scheme.DefaultChannelGuestRole,
+		DefaultPlaybookAdminRole:  scheme.DefaultPlaybookAdminRole,
+		DefaultPlaybookMemberRole: scheme.DefaultPlaybookMemberRole,
+		DefaultRunAdminRole:       scheme.DefaultRunAdminRole,
+		DefaultRunMemberRole:      scheme.DefaultRunMemberRole,
+	}, nil
+}
+
+func (scheme *Scheme) UnmarshalYAML(unmarshal func(any) error) error {
+	out := struct {
+		Id                        string `yaml:"id"`
+		Name                      string `yaml:"name"`
+		DisplayName               string `yaml:"display_name"`
+		Description               string `yaml:"description"`
+		CreateAt                  string `yaml:"create_at"`
+		UpdateAt                  string `yaml:"update_at"`
+		DeleteAt                  string `yaml:"delete_at"`
+		Scope                     string `yaml:"scope"`
+		DefaultTeamAdminRole      string `yaml:"default_team_admin_role"`
+		DefaultTeamUserRole       string `yaml:"default_team_user_role"`
+		DefaultChannelAdminRole   string `yaml:"default_channel_admin_role"`
+		DefaultChannelUserRole    string `yaml:"default_channel_user_role"`
+		DefaultTeamGuestRole      string `yaml:"default_team_guest_role"`
+		DefaultChannelGuestRole   string `yaml:"default_channel_guest_role"`
+		DefaultPlaybookAdminRole  string `yaml:"default_playbook_admin_role"`
+		DefaultPlaybookMemberRole string `yaml:"default_playbook_member_role"`
+		DefaultRunAdminRole       string `yaml:"default_run_admin_role"`
+		DefaultRunMemberRole      string `yaml:"default_run_member_role"`
+	}{}
+
+	err := unmarshal(&out)
+	if err != nil {
+		return err
+	}
+
+	createAt, err := timeutils.ParseFormatedMillis(out.CreateAt)
+	if err != nil {
+		return err
+	}
+	updateAt, err := timeutils.ParseFormatedMillis(out.UpdateAt)
+	if err != nil {
+		return err
+	}
+	deleteAt, err := timeutils.ParseFormatedMillis(out.DeleteAt)
+	if err != nil {
+		return err
+	}
+
+	*scheme = Scheme{
+		Id:                        out.Id,
+		Name:                      out.Name,
+		DisplayName:               out.DisplayName,
+		Description:               out.Description,
+		CreateAt:                  createAt,
+		UpdateAt:                  updateAt,
+		DeleteAt:                  deleteAt,
+		Scope:                     out.Scope,
+		DefaultTeamAdminRole:      out.DefaultTeamAdminRole,
+		DefaultTeamUserRole:       out.DefaultTeamUserRole,
+		DefaultChannelAdminRole:   out.DefaultChannelAdminRole,
+		DefaultChannelUserRole:    out.DefaultChannelUserRole,
+		DefaultTeamGuestRole:      out.DefaultTeamGuestRole,
+		DefaultChannelGuestRole:   out.DefaultChannelGuestRole,
+		DefaultPlaybookAdminRole:  out.DefaultPlaybookAdminRole,
+		DefaultPlaybookMemberRole: out.DefaultPlaybookMemberRole,
+		DefaultRunAdminRole:       out.DefaultRunAdminRole,
+		DefaultRunMemberRole:      out.DefaultRunMemberRole,
+	}
+	return nil
+}
+
 type SchemePatch struct {
 	Name        *string `json:"name"`
 	DisplayName *string `json:"display_name"`
 	Description *string `json:"description"`
 }
 
-func (scheme *SchemePatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (scheme *SchemePatch) Auditable() map[string]any {
+	return map[string]any{
 		"name":         scheme.Name,
 		"display_name": scheme.DisplayName,
 		"description":  scheme.Description,
@@ -80,8 +193,8 @@ type SchemeIDPatch struct {
 	SchemeID *string `json:"scheme_id"`
 }
 
-func (p *SchemeIDPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (p *SchemeIDPatch) Auditable() map[string]any {
+	return map[string]any{
 		"scheme_id": p.SchemeID,
 	}
 }
@@ -130,8 +243,8 @@ type SchemeRoles struct {
 	SchemeGuest bool `json:"scheme_guest"`
 }
 
-func (s *SchemeRoles) Auditable() map[string]interface{} {
-	return map[string]interface{}{}
+func (s *SchemeRoles) Auditable() map[string]any {
+	return map[string]any{}
 }
 
 func (scheme *Scheme) IsValid() bool {

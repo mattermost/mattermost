@@ -40,6 +40,7 @@ type FileBackend interface {
 	ListDirectory(path string) ([]string, error)
 	ListDirectoryRecursively(path string) ([]string, error)
 	RemoveDirectory(path string) error
+	ZipReader(path string, deflate bool) (io.ReadCloser, error)
 }
 
 type FileBackendWithLinkGenerator interface {

@@ -6,7 +6,9 @@ Object {
   "baseElement": <body>
     <div>
       <div
-        id="notificationSettings"
+        aria-labelledby="notificationsButton"
+        id="notificationsSettings"
+        role="tabpanel"
       >
         <div
           class="modal-header"
@@ -54,7 +56,7 @@ Object {
             >
               <a
                 class="btn btn-link"
-                href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid="
+                href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid=&edition=team&server_version="
                 location="user_settings_notifications"
                 rel="noopener noreferrer"
                 target="_blank"
@@ -101,6 +103,7 @@ Object {
                 id="desktopAndMobileEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -136,6 +139,7 @@ Object {
                 id="desktopNotificationSoundEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -171,6 +175,7 @@ Object {
                 id="emailEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -206,6 +211,7 @@ Object {
                 id="keywordsAndMentionsEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -241,6 +247,7 @@ Object {
                 id="keywordsAndHighlightEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -310,7 +317,9 @@ Object {
   </body>,
   "container": <div>
     <div
-      id="notificationSettings"
+      aria-labelledby="notificationsButton"
+      id="notificationsSettings"
+      role="tabpanel"
     >
       <div
         class="modal-header"
@@ -358,7 +367,7 @@ Object {
           >
             <a
               class="btn btn-link"
-              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid="
+              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid=&edition=team&server_version="
               location="user_settings_notifications"
               rel="noopener noreferrer"
               target="_blank"
@@ -405,6 +414,7 @@ Object {
               id="desktopAndMobileEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -440,6 +450,7 @@ Object {
               id="desktopNotificationSoundEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -475,6 +486,7 @@ Object {
               id="emailEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -510,6 +522,7 @@ Object {
               id="keywordsAndMentionsEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -545,6 +558,7 @@ Object {
               id="keywordsAndHighlightEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -673,7 +687,9 @@ Object {
   "baseElement": <body>
     <div>
       <div
-        id="notificationSettings"
+        aria-labelledby="notificationsButton"
+        id="notificationsSettings"
+        role="tabpanel"
       >
         <div
           class="modal-header"
@@ -721,7 +737,7 @@ Object {
             >
               <a
                 class="btn btn-link"
-                href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid="
+                href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid=&edition=team&server_version="
                 location="user_settings_notifications"
                 rel="noopener noreferrer"
                 target="_blank"
@@ -768,6 +784,7 @@ Object {
                 id="desktopAndMobileEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -803,6 +820,7 @@ Object {
                 id="desktopNotificationSoundEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -838,6 +856,7 @@ Object {
                 id="emailEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -873,6 +892,7 @@ Object {
                 id="keywordsAndMentionsEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -980,7 +1000,9 @@ Object {
   </body>,
   "container": <div>
     <div
-      id="notificationSettings"
+      aria-labelledby="notificationsButton"
+      id="notificationsSettings"
+      role="tabpanel"
     >
       <div
         class="modal-header"
@@ -1028,7 +1050,7 @@ Object {
           >
             <a
               class="btn btn-link"
-              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid="
+              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid=&edition=team&server_version="
               location="user_settings_notifications"
               rel="noopener noreferrer"
               target="_blank"
@@ -1075,6 +1097,7 @@ Object {
               id="desktopAndMobileEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1110,6 +1133,7 @@ Object {
               id="desktopNotificationSoundEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1145,6 +1169,7 @@ Object {
               id="emailEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1180,6 +1205,7 @@ Object {
               id="keywordsAndMentionsEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1346,7 +1372,9 @@ Object {
   "baseElement": <body>
     <div>
       <div
-        id="notificationSettings"
+        aria-labelledby="notificationsButton"
+        id="notificationsSettings"
+        role="tabpanel"
       >
         <div
           class="modal-header"
@@ -1394,7 +1422,7 @@ Object {
             >
               <a
                 class="btn btn-link"
-                href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid="
+                href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid=&edition=team&server_version="
                 location="user_settings_notifications"
                 rel="noopener noreferrer"
                 target="_blank"
@@ -1441,6 +1469,7 @@ Object {
                 id="desktopAndMobileEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -1476,6 +1505,7 @@ Object {
                 id="desktopNotificationSoundEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -1511,6 +1541,7 @@ Object {
                 id="emailEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -1546,6 +1577,7 @@ Object {
                 id="keywordsAndMentionsEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -1615,7 +1647,9 @@ Object {
   </body>,
   "container": <div>
     <div
-      id="notificationSettings"
+      aria-labelledby="notificationsButton"
+      id="notificationsSettings"
+      role="tabpanel"
     >
       <div
         class="modal-header"
@@ -1663,7 +1697,7 @@ Object {
           >
             <a
               class="btn btn-link"
-              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid="
+              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid=&edition=team&server_version="
               location="user_settings_notifications"
               rel="noopener noreferrer"
               target="_blank"
@@ -1710,6 +1744,7 @@ Object {
               id="desktopAndMobileEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1745,6 +1780,7 @@ Object {
               id="desktopNotificationSoundEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1780,6 +1816,7 @@ Object {
               id="emailEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1815,6 +1852,7 @@ Object {
               id="keywordsAndMentionsEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />

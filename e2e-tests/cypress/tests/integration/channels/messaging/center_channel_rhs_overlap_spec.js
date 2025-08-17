@@ -720,7 +720,7 @@ describe('Messaging', () => {
         cy.getLastPostId().then((postId) => {
             // # Search for the posted message
             cy.uiGetSearchContainer().click();
-            cy.uiGetSearchBox().should('be.visible').first().type(messageX).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+            cy.uiGetSearchBox().should('be.visible').type(messageX).type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
             // # Click on post dot menu so we can edit
             cy.clickPostDotMenu(postId, 'SEARCH');
@@ -732,7 +732,7 @@ describe('Messaging', () => {
             cy.get('#edit_textbox').should('be.visible');
 
             // * Update the post message and type ENTER
-            cy.get('#edit_textbox', {timeout: TIMEOUTS.FIVE_SEC}).invoke('val', '').type(message2).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+            cy.get('#edit_textbox', {timeout: TIMEOUTS.FIVE_SEC}).invoke('val', '').type(message2).wait(TIMEOUTS.HALF_SEC).type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
             // * Post appears in RHS search results, displays Pinned badge
             cy.get(`#searchResult_${postId}`).findByText('Edited').should('exist');

@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	// import sql drivers
-	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -53,6 +52,10 @@ func (s *StoreService) GetReplicaDB() (*sql.DB, error) {
 
 	if s.replicaDB != nil {
 		return s.replicaDB, nil
+	}
+
+	if err := s.initializeMaster(); err != nil {
+		return nil, err
 	}
 
 	return s.masterDB, nil

@@ -7,8 +7,11 @@ import {FormattedMessage} from 'react-intl';
 import type {Post} from '@mattermost/types/posts';
 
 import {Posts} from 'mattermost-redux/constants';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
+
+import store from 'stores/redux_store';
 
 import PostMarkdown from 'components/post_markdown';
 import ShowMore from 'components/post_view/show_more';
@@ -17,6 +20,8 @@ import type {AttachmentTextOverflowType} from 'components/post_view/show_more/sh
 import Pluggable from 'plugins/pluggable';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
+
+import type {PostPluginComponent} from 'types/store/plugins';
 
 type Props = {
     post: Post; /* The post to render the message for */
@@ -27,11 +32,14 @@ type Props = {
     isRHSOpen?: boolean; /* Whether or not the RHS is visible */
     isRHSExpanded?: boolean; /* Whether or not the RHS is expanded */
     theme: Theme; /* Logged in user's theme */
-    pluginPostTypes?: any; /* Post type components from plugins */
+    pluginPostTypes?: {
+        [postType: string]: PostPluginComponent;
+    }; /* Post type components from plugins */
     currentRelativeTeamUrl: string;
     overflowType?: AttachmentTextOverflowType;
     maxHeight?: number; /* The max height used by the show more component */
     showPostEditedIndicator?: boolean; /* Whether or not to render the post edited indicator */
+    sharedChannelsPluginsEnabled?: boolean;
 }
 
 type State = {
@@ -138,6 +146,10 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
 
         const id = isRHS ? `rhsPostMessageText_${post.id}` : `postMessageText_${post.id}`;
 
+        // Check if channel is shared
+        const channel = getChannel(store.getState(), post.channel_id);
+        const isSharedChannel = channel?.shared || false;
+
         return (
             <ShowMore
                 checkOverflow={this.state.checkOverflow}
@@ -146,7 +158,6 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                 maxHeight={maxHeight}
             >
                 <div
-                    tabIndex={0}
                     id={id}
                     className='post-message__text'
                     dir='auto'
@@ -161,11 +172,13 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                         showPostEditedIndicator={this.props.showPostEditedIndicator}
                     />
                 </div>
-                <Pluggable
-                    pluggableName='PostMessageAttachment'
-                    postId={post.id}
-                    onHeightChange={this.handleHeightReceived}
-                />
+                {(!isSharedChannel || this.props.sharedChannelsPluginsEnabled) && (
+                    <Pluggable
+                        pluggableName='PostMessageAttachment'
+                        postId={post.id}
+                        onHeightChange={this.handleHeightReceived}
+                    />
+                )}
             </ShowMore>
         );
     }

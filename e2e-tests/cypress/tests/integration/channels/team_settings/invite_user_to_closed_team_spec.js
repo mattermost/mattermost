@@ -34,7 +34,7 @@ describe('Team Settings', () => {
         const inviteFailedMessage = `The following email addresses do not belong to an accepted domain: ${invalidEmail}. Please contact your System Administrator for details.`;
 
         // # Open team menu and click 'Team Settings'
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
@@ -55,7 +55,7 @@ describe('Team Settings', () => {
         });
 
         // # Open team menu and click 'Invite People'
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Invite user with valid email domain that is not in the team
         inviteNewMemberToTeam(newUser.email);
@@ -82,7 +82,7 @@ describe('Team Settings', () => {
     function inviteNewMemberToTeam(email) {
         cy.wait(TIMEOUTS.HALF_SEC);
 
-        cy.findByRole('textbox', {name: 'Add or Invite People'}).
+        cy.findByRole('combobox', {name: 'Add or Invite People'}).
             typeWithForce(email).
             wait(TIMEOUTS.HALF_SEC).
             typeWithForce('{enter}');

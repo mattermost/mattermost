@@ -731,7 +731,7 @@ describe('Actions.Integrations', () => {
         expect(oauthApps[created.id].client_secret !== created.client_secret).toBeTruthy();
     });
 
-    it('submitInteractiveDialog', async () => {
+    it('submitInteractiveDialogError', async () => {
         nock(Client4.getBaseRoute()).
             post('/actions/dialogs/submit').
             reply(200, {errors: {name: 'some error'}});
@@ -751,5 +751,69 @@ describe('Actions.Integrations', () => {
 
         expect(data.errors).toBeTruthy();
         expect(data.errors.name).toEqual('some error');
+    });
+
+    it('submitInteractiveDialog uses submission data', async () => {
+        const submit: DialogSubmission = {
+            callback_id: 'callback_id',
+            channel_id: 'submission_channel_id',
+            state: 'state',
+            submission: {
+                field1: 'value1',
+            },
+            cancelled: false,
+            team_id: 'submission_team_id',
+            user_id: TestHelper.generateId(),
+        };
+
+        nock(Client4.getBaseRoute()).
+            post('/actions/dialogs/submit', submit).
+            reply(200, OK_RESPONSE);
+
+        const {data} = await store.dispatch(Actions.submitInteractiveDialog(submit));
+        expect(data).toEqual(OK_RESPONSE);
+    });
+
+    it('submitInteractiveDialog uses state information', async () => {
+        store = configureStore({
+            entities: {
+                users: {
+                    currentUserId: 'currentUserID',
+                },
+                teams: {
+                    currentTeamId: 'currentTeamID',
+                },
+                channels: {
+                    currentChannelId: 'dialog_channel_id',
+                },
+            },
+        });
+
+        const submit: DialogSubmission = {
+            callback_id: 'callback_id',
+            channel_id: '',
+            state: 'state',
+            submission: {
+                field1: 'value1',
+                field2: 'value2',
+            },
+            cancelled: false,
+            team_id: '',
+            user_id: TestHelper.generateId(),
+        };
+
+        const expectedRequest = {
+            ...submit,
+            channel_id: 'dialog_channel_id',
+            team_id: 'currentTeamID',
+            user_id: 'currentUserID',
+        };
+
+        nock(Client4.getBaseRoute()).
+            post('/actions/dialogs/submit', expectedRequest).
+            reply(200, OK_RESPONSE);
+
+        const {data} = await store.dispatch(Actions.submitInteractiveDialog(submit));
+        expect(data).toEqual(OK_RESPONSE);
     });
 });

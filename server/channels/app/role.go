@@ -90,6 +90,20 @@ func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
 	return roles, nil
 }
 
+func (a *App) DeleteRole(id string) (*model.Role, *model.AppError) {
+	role, err := a.Srv().Store().Role().Delete(id)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("DeleteRole", "app.role.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("DeleteRole", "app.role.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+	return role, nil
+}
+
 // mergeChannelHigherScopedPermissions updates the permissions based on the role type, whether the permission is
 // moderated, and the value of the permission on the higher-scoped scheme.
 func (s *Server) mergeChannelHigherScopedPermissions(roles []*model.Role) *model.AppError {
@@ -276,13 +290,7 @@ func removeRoles(rolesToRemove []string, roles string) string {
 	newRoles := make([]string, 0)
 
 	for _, role := range roleList {
-		shouldRemove := false
-		for _, roleToRemove := range rolesToRemove {
-			if role == roleToRemove {
-				shouldRemove = true
-				break
-			}
-		}
+		shouldRemove := slices.Contains(rolesToRemove, role)
 		if !shouldRemove {
 			newRoles = append(newRoles, role)
 		}

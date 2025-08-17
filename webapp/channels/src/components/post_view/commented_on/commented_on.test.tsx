@@ -1,173 +1,378 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import CommentedOn from 'components/post_view/commented_on/commented_on';
-import CommentedOnFilesMessage from 'components/post_view/commented_on_files_message';
 
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/post_view/CommentedOn', () => {
-    const baseProps = {
-        displayName: 'user_displayName',
-        enablePostUsernameOverride: false,
-        onCommentClick: jest.fn(),
-        post: TestHelper.getPostMock({
-            id: 'post_id',
-            message: 'text message',
-            props: {
-                from_webhook: 'true',
-                override_username: 'override_username',
-            },
-            update_at: 10,
-            edit_at: 20,
-            delete_at: 30,
-            channel_id: 'channel_id',
-            root_id: 'root_id',
-            original_id: 'original_id',
-            hashtags: 'hashtags',
-            pending_post_id: 'pending_post_id',
-            reply_count: 1,
-        }),
-    };
-
-    test('should match snapshot', () => {
-        const wrapper = shallow(<CommentedOn {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
-
-        wrapper.setProps({enablePostUsernameOverride: true});
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find(CommentedOnFilesMessage).exists()).toBe(false);
-
-        const newPost = {
-            id: 'post_id',
-            message: '',
-            file_ids: ['file_id_1', 'file_id_2'],
-        };
-        wrapper.setProps({post: newPost, enablePostUsernameOverride: false});
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find(CommentedOnFilesMessage).exists()).toBe(true);
+    const user1 = TestHelper.getUserMock({
+        id: 'user1',
+    });
+    const post1 = TestHelper.getPostMock({
+        id: 'post1',
+        user_id: user1.id,
+        message: 'text message',
     });
 
-    test('should match snapshots for post with props.pretext as message', () => {
-        const newPost = {
-            id: 'post_id',
-            message: '',
-            props: {
-                from_webhook: 'true',
-                override_username: 'override_username',
-                attachments: [{
-                    pretext: 'This is a pretext',
-                }],
+    test("should render the root post's message and author", () => {
+        renderWithContext(
+            <CommentedOn rootId={post1.id}/>,
+            {
+                entities: {
+                    posts: {
+                        posts: {
+                            post1,
+                        },
+                    },
+                    users: {
+                        profiles: {
+                            user1,
+                        },
+                    },
+                },
             },
-        };
-        const newProps = {
-            ...baseProps,
-            post: {
-                ...baseProps.post,
-                ...newPost,
-            },
-            enablePostUsernameOverride: true,
-        };
+        );
 
-        const wrapper = shallow(<CommentedOn {...newProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText(textInChildren("Commented on some-user's message: text message"))).toBeInTheDocument();
     });
 
-    test('should match snapshots for post with props.title as message', () => {
-        const newPost = {
-            id: 'post_id',
-            message: '',
-            props: {
-                from_webhook: 'true',
-                override_username: 'override_username',
-                attachments: [{
-                    pretext: '',
-                    title: 'This is a title',
-                }],
+    test("should render a placeholder name when the post's author isn't loaded", () => {
+        renderWithContext(
+            <CommentedOn rootId={post1.id}/>,
+            {
+                entities: {
+                    posts: {
+                        posts: {
+                            post1,
+                        },
+                    },
+                },
             },
-        };
-        const newProps = {
-            ...baseProps,
-            post: {
-                ...baseProps.post,
-                ...newPost,
-            },
-            enablePostUsernameOverride: true,
-        };
+        );
 
-        const wrapper = shallow(<CommentedOn {...newProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText(textInChildren("Commented on Someone's message: text message"))).toBeInTheDocument();
     });
 
-    test('should match snapshots for post with props.text as message', () => {
-        const newPost = {
-            id: 'post_id',
-            message: '',
-            props: {
-                from_webhook: 'true',
-                override_username: 'override_username',
-                attachments: [{
-                    pretext: '',
-                    title: '',
-                    text: 'This is a text',
-                }],
-            },
-        };
+    test("should render a placeholder when the post isn't loaded", () => {
+        renderWithContext(
+            <CommentedOn rootId={post1.id}/>,
+        );
 
-        const newProps = {
-            ...baseProps,
-            post: {
-                ...baseProps.post,
-                ...newPost,
-            },
-            enablePostUsernameOverride: true,
-        };
-
-        const wrapper = shallow(<CommentedOn {...newProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText(textInChildren("Commented on Someone's message: Loading…"))).toBeInTheDocument();
     });
 
-    test('should match snapshots for post with props.fallback as message', () => {
-        const newPost = {
-            id: 'post_id',
-            message: '',
-            props: {
-                from_webhook: 'true',
-                override_username: 'override_username',
-                attachments: [{
-                    pretext: '',
-                    title: '',
-                    text: '',
-                    fallback: 'This is fallback message',
-                }],
-            },
-        };
+    test("should render the root post's file attachments when it has no message", () => {
+        const file1 = TestHelper.getFileInfoMock({id: 'file1', create_at: 1000, name: 'image.png'});
+        const file2 = TestHelper.getFileInfoMock({id: 'file2', create_at: 1001, name: 'contract.doc'});
 
-        const newProps = {
-            ...baseProps,
-            post: {
-                ...baseProps.post,
-                ...newPost,
+        renderWithContext(
+            <CommentedOn rootId={post1.id}/>,
+            {
+                entities: {
+                    files: {
+                        fileIdsByPostId: {
+                            post1: [file1.id, file2.id],
+                        },
+                        files: {
+                            file1,
+                            file2,
+                        },
+                    },
+                    posts: {
+                        posts: {
+                            [post1.id]: {
+                                ...post1,
+                                message: '',
+                                file_ids: [file1.id, file2.id],
+                            },
+                        },
+                    },
+                    users: {
+                        profiles: {
+                            user1,
+                        },
+                    },
+                },
             },
-            enablePostUsernameOverride: true,
-        };
+        );
 
-        const wrapper = shallow(<CommentedOn {...newProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText(textInChildren("Commented on some-user's message: image.png plus 1 other file"))).toBeInTheDocument();
+    });
+
+    test("should render the root post's props.pretext as message", () => {
+        renderWithContext(
+            <CommentedOn rootId={post1.id}/>,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            EnablePostUsernameOverride: 'true',
+                        },
+                    },
+                    posts: {
+                        posts: {
+                            [post1.id]: {
+                                ...post1,
+                                message: '',
+                                props: {
+                                    from_webhook: 'true',
+                                    override_username: 'override_username',
+                                    attachments: [{
+                                        pretext: 'This is a pretext',
+                                    }],
+                                },
+                            },
+                        },
+                    },
+                    users: {
+                        profiles: {
+                            user1,
+                        },
+                    },
+                },
+            },
+        );
+
+        // This incorrectly uses the post author's name due to MM-63564
+        expect(screen.getByText(textInChildren("Commented on some-user's message: This is a pretext"))).toBeInTheDocument();
+    });
+
+    test("should render the root post's props.title as message", () => {
+        renderWithContext(
+            <CommentedOn rootId={post1.id}/>,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            EnablePostUsernameOverride: 'true',
+                        },
+                    },
+                    posts: {
+                        posts: {
+                            [post1.id]: {
+                                ...post1,
+                                message: '',
+                                props: {
+                                    from_webhook: 'true',
+                                    override_username: 'override_username',
+                                    attachments: [{
+                                        title: 'This is a title',
+                                    }],
+                                },
+                            },
+                        },
+                    },
+                    users: {
+                        profiles: {
+                            user1,
+                        },
+                    },
+                },
+            },
+        );
+
+        // This incorrectly uses the post author's name due to MM-63564
+        expect(screen.getByText(textInChildren("Commented on some-user's message: This is a title"))).toBeInTheDocument();
+    });
+
+    test("should render the root post's props.text as message", () => {
+        renderWithContext(
+            <CommentedOn rootId={post1.id}/>,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            EnablePostUsernameOverride: 'true',
+                        },
+                    },
+                    posts: {
+                        posts: {
+                            [post1.id]: {
+                                ...post1,
+                                message: '',
+                                props: {
+                                    from_webhook: 'true',
+                                    override_username: 'override_username',
+                                    attachments: [{
+                                        text: 'This is a text',
+                                    }],
+                                },
+                            },
+                        },
+                    },
+                    users: {
+                        profiles: {
+                            user1,
+                        },
+                    },
+                },
+            },
+        );
+
+        // This incorrectly uses the post author's name due to MM-63564
+        expect(screen.getByText(textInChildren("Commented on some-user's message: This is a text"))).toBeInTheDocument();
+    });
+
+    test("should render the root post's props.fallback as message", () => {
+        renderWithContext(
+            <CommentedOn rootId={post1.id}/>,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            EnablePostUsernameOverride: 'true',
+                        },
+                    },
+                    posts: {
+                        posts: {
+                            [post1.id]: {
+                                ...post1,
+                                message: '',
+                                props: {
+                                    from_webhook: 'true',
+                                    override_username: 'override_username',
+                                    attachments: [{
+                                        fallback: 'This is fallback message',
+                                    }],
+                                },
+                            },
+                        },
+                    },
+                    users: {
+                        profiles: {
+                            user1,
+                        },
+                    },
+                },
+            },
+        );
+
+        // This incorrectly uses the post author's name due to MM-63564
+        expect(screen.getByText(textInChildren("Commented on some-user's message: This is fallback message"))).toBeInTheDocument();
     });
 
     test('should call onCommentClick on click of text message', () => {
-        const wrapper = shallow(<CommentedOn {...baseProps}/>);
+        const onCommentClick = jest.fn();
+        renderWithContext(
+            <CommentedOn
+                onCommentClick={onCommentClick}
+                rootId={post1.id}
+            />,
+            {
+                entities: {
+                    posts: {
+                        posts: {
+                            post1,
+                        },
+                    },
+                    users: {
+                        profiles: {
+                            user1,
+                        },
+                    },
+                },
+            },
+        );
 
-        wrapper.find('a').first().simulate('click');
-        expect(baseProps.onCommentClick).toHaveBeenCalledTimes(1);
+        screen.getByText('text message').click();
+
+        expect(onCommentClick).toHaveBeenCalledTimes(1);
     });
 
-    test('Should trigger search with override_username', () => {
-        const wrapper = shallow(<CommentedOn {...baseProps}/>);
-        wrapper.setProps({enablePostUsernameOverride: true});
+    test("should render the root post's overwritten username", () => {
+        const webhookPost = TestHelper.getPostMock({
+            id: 'webhook_post_id',
+            user_id: user1.id,
+            message: 'text message',
+            props: {
+                from_webhook: 'true',
+                override_username: 'overridden_username',
+            },
+        });
+
+        const post1 = TestHelper.getPostMock({
+            id: 'post1',
+            user_id: user1.id,
+            message: 'text message',
+            root_id: webhookPost.id,
+        });
+
+        renderWithContext(
+            <CommentedOn
+                rootId={webhookPost.id}
+                enablePostUsernameOverride={true}
+            />,
+            {
+                entities: {
+                    posts: {
+                        posts: {
+                            post1,
+                            webhook_post_id: webhookPost,
+                        },
+                    },
+                    users: {
+                        profiles: {
+                            user1,
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(screen.getByText(textInChildren("Commented on overridden_username's message: text message"))).toBeInTheDocument();
+    });
+
+    test("should not render the root post's overwritten username if post is not from webhook", () => {
+        const webhookPost = TestHelper.getPostMock({
+            id: 'webhook_post_id',
+            user_id: user1.id,
+            message: 'text message',
+            props: {
+                override_username: 'overridden_username',
+            },
+        });
+
+        const post1 = TestHelper.getPostMock({
+            id: 'post1',
+            user_id: user1.id,
+            message: 'text message',
+            root_id: webhookPost.id,
+        });
+
+        renderWithContext(
+            <CommentedOn
+                rootId={webhookPost.id}
+                enablePostUsernameOverride={true}
+            />,
+            {
+                entities: {
+                    posts: {
+                        posts: {
+                            post1,
+                            webhook_post_id: webhookPost,
+                        },
+                    },
+                    users: {
+                        profiles: {
+                            user1,
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(screen.getByText(textInChildren("Commented on some-user's message: text message"))).toBeInTheDocument();
     });
 });
+
+function textInChildren(matchedText: string) {
+    return (content: string, element: Element | null) => {
+        const hasText = element?.textContent === matchedText;
+        const childHasText = element && Array.from(element?.children).some((child) => child?.textContent === matchedText);
+        return hasText && !childHasText;
+    };
+}

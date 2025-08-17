@@ -37,7 +37,11 @@ const PluginTab = ({
     );
 
     return (
-        <div>
+        <div
+            id={`${settings.id}Settings`}
+            aria-labelledby={`${settings.id}Button`}
+            role='tabpanel'
+        >
             <SettingMobileHeader
                 closeModal={closeModal}
                 collapseModal={collapseModal}

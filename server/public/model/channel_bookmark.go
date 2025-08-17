@@ -5,6 +5,7 @@ package model
 
 import (
 	"net/http"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -37,8 +38,8 @@ type ChannelBookmark struct {
 	ParentId    string              `json:"parent_id,omitempty"`
 }
 
-func (o *ChannelBookmark) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *ChannelBookmark) Auditable() map[string]any {
+	return map[string]any{
 		"id":          o.Id,
 		"create_at":   o.CreateAt,
 		"update_at":   o.UpdateAt,
@@ -142,6 +143,7 @@ func (o *ChannelBookmark) PreSave() {
 	}
 
 	o.DisplayName = SanitizeUnicode(o.DisplayName)
+	o.Emoji = strings.Trim(o.Emoji, ":")
 	if o.CreateAt == 0 {
 		o.CreateAt = GetMillis()
 	}
@@ -151,6 +153,7 @@ func (o *ChannelBookmark) PreSave() {
 func (o *ChannelBookmark) PreUpdate() {
 	o.UpdateAt = GetMillis()
 	o.DisplayName = SanitizeUnicode(o.DisplayName)
+	o.Emoji = strings.Trim(o.Emoji, ":")
 }
 
 func (o *ChannelBookmark) ToBookmarkWithFileInfo(f *FileInfo) *ChannelBookmarkWithFileInfo {
@@ -167,7 +170,7 @@ func (o *ChannelBookmark) ToBookmarkWithFileInfo(f *FileInfo) *ChannelBookmarkWi
 			SortOrder:   o.SortOrder,
 			LinkUrl:     o.LinkUrl,
 			ImageUrl:    o.ImageUrl,
-			Emoji:       o.Emoji,
+			Emoji:       strings.Trim(o.Emoji, ":"),
 			Type:        o.Type,
 			OriginalId:  o.OriginalId,
 			ParentId:    o.ParentId,
@@ -190,8 +193,8 @@ type ChannelBookmarkPatch struct {
 	Emoji       *string `json:"emoji,omitempty"`
 }
 
-func (o *ChannelBookmarkPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *ChannelBookmarkPatch) Auditable() map[string]any {
+	return map[string]any{
 		"file_id": o.FileId,
 	}
 }
@@ -223,7 +226,7 @@ type ChannelBookmarkWithFileInfo struct {
 	FileInfo *FileInfo `json:"file,omitempty"`
 }
 
-func (o *ChannelBookmarkWithFileInfo) Auditable() map[string]interface{} {
+func (o *ChannelBookmarkWithFileInfo) Auditable() map[string]any {
 	a := o.ChannelBookmark.Auditable()
 	if o.FileInfo != nil {
 		a["file"] = o.FileInfo.Auditable()

@@ -105,9 +105,9 @@ describe('Verify Accessibility Support in Dropdown Menus', () => {
             {id: 'invitePeople', label: 'Invite People dialog'},
             {id: 'teamSettings', label: 'Team Settings dialog'},
             {id: 'manageMembers', label: 'Manage Members dialog'},
-            {id: 'joinTeam', text: 'Join Another Team'},
+            {id: 'joinTeam', text: 'Join another team'},
             {id: 'leaveTeam', label: 'Leave Team dialog'},
-            {id: 'createTeam', text: 'Create a Team'},
+            {id: 'createTeam', text: 'Create a team'},
         ];
 
         menuItems.forEach((item) => {

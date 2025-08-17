@@ -7,35 +7,42 @@ import {useSelector} from 'react-redux';
 import {getCloudCustomer, isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
+import {useExternalLink} from 'components/common/hooks/use_external_link';
+
 import {LicenseLinks} from 'utils/constants';
 import {buildMMURL, goToMattermostContactSalesForm} from 'utils/contact_support_sales';
 
-const utmSource = 'mattermost';
+import type {GlobalState} from 'types/store';
 
 export default function useOpenSalesLink(): [() => void, string] {
     const isCloud = useSelector(isCurrentLicenseCloud);
     const customer = useSelector(getCloudCustomer);
     const currentUser = useSelector(getCurrentUser);
+    const isCloudPreview = useSelector((state: GlobalState) => {
+        return state.entities?.cloud?.subscription?.is_cloud_preview === true;
+    });
+
     let customerEmail = '';
     let firstName = '';
     let lastName = '';
     let companyName = '';
-    let utmMedium = 'in-product';
 
-    if (isCloud && customer) {
+    if (isCloud && customer && !isCloudPreview) {
         customerEmail = customer.email || '';
         firstName = customer.contact_first_name || '';
         lastName = customer.contact_last_name || '';
         companyName = customer.name || '';
-        utmMedium = 'in-product-cloud';
-    } else {
+    } else if (!isCloudPreview) {
         customerEmail = currentUser?.email || '';
     }
 
-    const contactSalesLink = buildMMURL(LicenseLinks.CONTACT_SALES, firstName, lastName, companyName, customerEmail, utmSource, utmMedium);
-    const goToSalesLinkFunc = useCallback(() => {
-        goToMattermostContactSalesForm(firstName, lastName, companyName, customerEmail, utmSource, utmMedium);
-    }, [firstName, lastName, companyName, customerEmail, utmMedium]);
+    const [, queryParams] = useExternalLink(LicenseLinks.CONTACT_SALES, 'contact_sales');
 
-    return [goToSalesLinkFunc, contactSalesLink];
+    const contactSalesLinkWithForm = buildMMURL(LicenseLinks.CONTACT_SALES, firstName, lastName, companyName, customerEmail, queryParams.utm_source, queryParams.utm_medium);
+
+    const goToSalesLinkFunc = useCallback(() => {
+        goToMattermostContactSalesForm(firstName, lastName, companyName, customerEmail, queryParams.utm_source, queryParams.utm_medium);
+    }, [firstName, lastName, companyName, customerEmail, queryParams.utm_source, queryParams.utm_medium]);
+
+    return [goToSalesLinkFunc, contactSalesLinkWithForm];
 }

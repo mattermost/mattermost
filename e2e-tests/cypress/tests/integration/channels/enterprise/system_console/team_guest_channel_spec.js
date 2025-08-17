@@ -89,7 +89,7 @@ describe('Team Scheme Guest Permissions Test', () => {
         // * Ensure all checkboxes have the correct unchecked state
         verifyAllGuestPermissions(false);
 
-        cy.get('.cancel-button').click();
+        cy.findByTestId('permission-scheme-cancel-button').should('be.visible').click();
 
         //Clean up - Delete scheme
         cy.findByText(`TestScheme-${randomId}`).siblings('.actions').children('.delete-button').click().wait(TIMEOUTS.HALF_SEC);

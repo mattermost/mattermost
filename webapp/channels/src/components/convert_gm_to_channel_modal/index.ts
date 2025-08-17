@@ -5,6 +5,8 @@ import {connect} from 'react-redux';
 import type {Dispatch} from 'redux';
 import {bindActionCreators} from 'redux';
 
+import type {Channel} from '@mattermost/types/channels';
+
 import {convertGroupMessageToPrivateChannel} from 'mattermost-redux/actions/channels';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {
@@ -16,15 +18,17 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {moveChannelsInSidebar} from 'actions/views/channel_sidebar';
 import {closeModal} from 'actions/views/modals';
 
-import type {Props} from 'components/convert_gm_to_channel_modal/convert_gm_to_channel_modal';
-import ConvertGmToChannelModal from 'components/convert_gm_to_channel_modal/convert_gm_to_channel_modal';
-
 import type {GlobalState} from 'types/store';
 
+import ConvertGmToChannelModal from './convert_gm_to_channel_modal';
+
+type OwnProps = {
+    channel: Channel;
+}
 function makeMapStateToProps() {
     const getProfilesInChannel = makeGetProfilesInChannel();
 
-    return (state: GlobalState, ownProps: Props) => {
+    return (state: GlobalState, ownProps: OwnProps) => {
         const allProfilesInChannel = getProfilesInChannel(state, ownProps.channel.id);
         const currentUserId = getCurrentUserId(state);
         const teammateNameDisplaySetting = getTeammateNameDisplaySetting(state);

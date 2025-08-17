@@ -4,6 +4,7 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 
+import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import NotificationPermissionNeverGrantedBar from 'components/announcement_bar/notification_permission_bar/notification_permission_never_granted_bar';
@@ -19,10 +20,16 @@ import {
 
 export default function NotificationPermissionBar() {
     const isLoggedIn = Boolean(useSelector(getCurrentUserId));
+    const subscription = useSelector(getCloudSubscription);
 
     useDesktopAppNotificationPermission();
 
     if (!isLoggedIn) {
+        return null;
+    }
+
+    // Don't show the notification bar if it's a cloud preview environment
+    if (subscription?.is_cloud_preview) {
         return null;
     }
 

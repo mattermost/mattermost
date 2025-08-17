@@ -763,8 +763,6 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
           </div>
           <WithTooltip
             disabled={false}
-            id="removeIcon"
-            placement="right"
             title={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Remove This Icon"
@@ -922,8 +920,6 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
           </div>
           <WithTooltip
             disabled={false}
-            id="removeIcon"
-            placement="right"
             title={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Remove Profile Picture"

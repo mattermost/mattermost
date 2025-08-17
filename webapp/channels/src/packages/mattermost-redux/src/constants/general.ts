@@ -76,4 +76,6 @@ export default {
     DEFAULT_GROUP: 'board',
     CUSTOM_GROUP_USER_ROLE: 'custom_group_user',
     MAX_GET_ROLES_BY_NAMES: 100,
+    SKUEnterprise: 'enterprise',
+    SKUEnterpriseAdvanced: 'advanced',
 };

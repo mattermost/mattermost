@@ -6,6 +6,7 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
   id="app-content"
 >
   <FileUploadOverlay
+    id="centerChannelFileDropOverlay"
     overlayType="center"
   />
   <ChannelHeader
@@ -28,7 +29,9 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
     }
     missingChannelRole={false}
     teamUrl="/team"
-    viewArchivedChannels={false}
+  />
+  <ChannelBanner
+    channelId="channelId"
   />
   <DeferredRenderWrapper
     channelId="channelId"
@@ -70,6 +73,7 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
   id="app-content"
 >
   <FileUploadOverlay
+    id="centerChannelFileDropOverlay"
     overlayType="center"
   />
   <ChannelHeader
@@ -92,7 +96,9 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
     }
     missingChannelRole={false}
     teamUrl="/team"
-    viewArchivedChannels={false}
+  />
+  <ChannelBanner
+    channelId="channelId"
   />
   <DeferredRenderWrapper
     channelId="channelId"
@@ -133,6 +139,7 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
   id="app-content"
 >
   <FileUploadOverlay
+    id="centerChannelFileDropOverlay"
     overlayType="center"
   />
   <ChannelHeader
@@ -155,13 +162,15 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
     }
     missingChannelRole={false}
     teamUrl="/team"
-    viewArchivedChannels={false}
+  />
+  <ChannelBanner
+    channelId="channelId"
   />
   <DeferredRenderWrapper
     channelId="channelId"
   />
   <div
-    className="post-create__container"
+    className="post-create__container AdvancedTextEditor__ctr"
     data-testid="post-create"
     id="post-create"
   >

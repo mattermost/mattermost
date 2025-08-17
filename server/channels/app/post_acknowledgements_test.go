@@ -12,12 +12,14 @@ import (
 )
 
 func TestPostAcknowledgementsApp(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("SaveAcknowledgementForPost", func(t *testing.T) { testSaveAcknowledgementForPost(t) })
 	t.Run("DeleteAcknowledgementForPost", func(t *testing.T) { testDeleteAcknowledgementForPost(t) })
 	t.Run("GetAcknowledgementsForPostList", func(t *testing.T) { testGetAcknowledgementsForPostList(t) })
 }
 
 func testSaveAcknowledgementForPost(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -60,6 +62,7 @@ func testSaveAcknowledgementForPost(t *testing.T) {
 }
 
 func testDeleteAcknowledgementForPost(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	post, err1 := th.App.CreatePostAsUser(th.Context, &model.Post{
@@ -106,7 +109,13 @@ func testDeleteAcknowledgementForPost(t *testing.T) {
 	})
 
 	t.Run("delete acknowledgment for post after 5 min after acknowledged should not delete", func(t *testing.T) {
-		_, nErr := th.App.Srv().Store().PostAcknowledgement().Save(post.Id, th.BasicUser.Id, model.GetMillis()-int64(6*60*1000))
+		acknowledgement := &model.PostAcknowledgement{
+			PostId:         post.Id,
+			UserId:         th.BasicUser.Id,
+			AcknowledgedAt: model.GetMillis() - int64(6*60*1000),
+			ChannelId:      post.ChannelId,
+		}
+		_, nErr := th.App.Srv().Store().PostAcknowledgement().SaveWithModel(acknowledgement)
 		require.NoError(t, nErr)
 
 		acknowledgments, err := th.App.GetAcknowledgementsForPost(post.Id)
@@ -126,6 +135,7 @@ func testDeleteAcknowledgementForPost(t *testing.T) {
 }
 
 func testGetAcknowledgementsForPostList(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	p1, err := th.App.CreatePostAsUser(th.Context, &model.Post{
@@ -176,13 +186,13 @@ func testGetAcknowledgementsForPostList(t *testing.T) {
 		acknowledgementsMap, err := th.App.GetAcknowledgementsForPostList(postList)
 		require.Nil(t, err)
 
-		expected := map[string][]*model.PostAcknowledgement{
-			p1.Id: acks1,
-			p2.Id: acks2,
-		}
-		require.Equal(t, expected, acknowledgementsMap)
+		// Verify p1 acknowledgements (order-agnostic)
 		require.Len(t, acknowledgementsMap[p1.Id], 2)
+		require.ElementsMatch(t, acks1, acknowledgementsMap[p1.Id])
+
+		// Verify p2 acknowledgements (order-agnostic)
 		require.Len(t, acknowledgementsMap[p2.Id], 1)
+		require.ElementsMatch(t, acks2, acknowledgementsMap[p2.Id])
 		require.Nil(t, acknowledgementsMap[p3.Id])
 	})
 }

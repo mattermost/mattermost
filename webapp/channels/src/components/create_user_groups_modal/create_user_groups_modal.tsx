@@ -41,6 +41,7 @@ type State = {
     nameInputErrorText: React.ReactNode;
     showUnknownError: boolean;
     saving: boolean;
+    saved: boolean;
 }
 
 export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
@@ -58,6 +59,7 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
             nameInputErrorText: '',
             showUnknownError: false,
             saving: false,
+            saved: false,
         };
     }
 
@@ -92,15 +94,22 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
         this.setState({usersToAdd});
     };
 
-    goBack = () => {
+    onExited = () => {
         if (typeof this.props.backButtonCallback === 'function') {
             this.props.backButtonCallback();
-            this.props.onExited();
         }
+        this.props.onExited();
     };
 
     createGroup = async (users?: UserProfile[]) => {
-        this.setState({showUnknownError: false, mentionInputErrorText: '', nameInputErrorText: '', saving: true});
+        this.setState({
+            showUnknownError: false,
+            mentionInputErrorText: '',
+            nameInputErrorText: '',
+            saving: true,
+            saved: false,
+        });
+
         let mention = this.state.mention;
         const displayName = this.state.name;
 
@@ -200,9 +209,8 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                 this.setState({showUnknownError: true});
             }
             this.setState({saving: false});
-        } else if (typeof this.props.backButtonCallback === 'function') {
-            this.goBack();
         } else {
+            this.setState({saved: true});
             this.doHide();
         }
     };
@@ -213,11 +221,23 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                 dialogClassName='a11y__modal user-groups-modal-create'
                 show={this.state.show}
                 onHide={this.doHide}
-                onExited={this.props.onExited}
+                onExited={this.onExited}
                 role='none'
                 aria-labelledby='createUserGroupsModalLabel'
                 id='createUserGroupsModal'
             >
+                <div
+                    role='alert'
+                    aria-live='polite'
+                    className='sr-only'
+                >
+                    {this.state.saved &&
+                        <FormattedMessage
+                            id='user_groups_modal.groupCreatedSuccess'
+                            defaultMessage='Group created successfully'
+                        />
+                    }
+                </div>
                 <Modal.Header closeButton={true}>
                     {
                         typeof this.props.backButtonCallback === 'function' ? (
@@ -226,9 +246,7 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                                     type='button'
                                     className='modal-header-back-button btn btn-icon'
                                     aria-label={this.props.intl.formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
-                                    onClick={() => {
-                                        this.goBack();
-                                    }}
+                                    onClick={this.doHide}
                                 >
                                     <i className='icon icon-arrow-left'/>
                                 </button>
@@ -267,6 +285,7 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                                 data-testid='nameInput'
                                 maxLength={64}
                                 autoFocus={true}
+                                required={true}
                                 customMessage={{type: ItemStatus.ERROR, value: this.state.nameInputErrorText}}
                             />
                         </div>
@@ -278,31 +297,32 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                                 value={this.state.mention}
                                 maxLength={64}
                                 data-testid='mentionInput'
+                                required={true}
                                 customMessage={{type: ItemStatus.ERROR, value: this.state.mentionInputErrorText}}
                             />
                         </div>
-                        <h2>
-                            <FormattedMessage
-                                id='user_groups_modal.addPeople'
-                                defaultMessage='Add People'
-                            />
-                        </h2>
-                        <div className='group-add-user'>
-                            <AddUserToGroupMultiSelect
-                                multilSelectKey={'addUsersToGroupKey'}
-                                onSubmitCallback={this.createGroup}
-                                focusOnLoad={false}
-                                savingEnabled={this.isSaveEnabled()}
-                                addUserCallback={this.addUserCallback}
-                                deleteUserCallback={this.deleteUserCallback}
-                                backButtonText={defineMessage({id: 'multiselect.cancelButton', defaultMessage: 'Cancel'})}
-                                backButtonClick={
-                                    typeof this.props.backButtonCallback === 'function' ? this.goBack : this.doHide
-                                }
-                                backButtonClass={'multiselect-back'}
-                                saving={this.state.saving}
-                            />
-                        </div>
+                        <fieldset className='group-add-people-fieldset'>
+                            <legend>
+                                <FormattedMessage
+                                    id='user_groups_modal.addPeople'
+                                    defaultMessage='Add People'
+                                />
+                            </legend>
+                            <div className='group-add-user'>
+                                <AddUserToGroupMultiSelect
+                                    multilSelectKey={'addUsersToGroupKey'}
+                                    onSubmitCallback={this.createGroup}
+                                    focusOnLoad={false}
+                                    savingEnabled={this.isSaveEnabled()}
+                                    addUserCallback={this.addUserCallback}
+                                    deleteUserCallback={this.deleteUserCallback}
+                                    backButtonText={defineMessage({id: 'multiselect.cancelButton', defaultMessage: 'Cancel'})}
+                                    backButtonClick={this.doHide}
+                                    backButtonClass={'multiselect-back'}
+                                    saving={this.state.saving}
+                                />
+                            </div>
+                        </fieldset>
                         {
                             this.state.showUnknownError &&
                             <div className='Input___error group-error'>

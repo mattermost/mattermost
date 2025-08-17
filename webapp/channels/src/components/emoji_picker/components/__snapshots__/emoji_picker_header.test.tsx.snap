@@ -2,7 +2,7 @@
 
 exports[`components/emoji_picker/components/EmojiPickerHeader handleEmojiPickerClose, should have called props.handleEmojiPickerClose 1`] = `
 <div
-  className="emoji-picker__header modal-header"
+  className="emoji-picker__header"
 >
   <button
     className="close emoji-picker__header-close-button"
@@ -36,7 +36,7 @@ exports[`components/emoji_picker/components/EmojiPickerHeader handleEmojiPickerC
 
 exports[`components/emoji_picker/components/EmojiPickerHeader should match snapshot,  1`] = `
 <div
-  className="emoji-picker__header modal-header"
+  className="emoji-picker__header"
 >
   <button
     className="close emoji-picker__header-close-button"

@@ -19,3 +19,8 @@ func NewTestID() string {
 
 	return string(newID)
 }
+
+// Returns the column name for PostgreSQL.
+func quoteColumnName(driver string, columnName string) string {
+	return columnName
+}

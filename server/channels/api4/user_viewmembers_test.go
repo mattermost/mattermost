@@ -13,6 +13,7 @@ import (
 )
 
 func TestAPIRestrictedViewMembers(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -120,7 +121,8 @@ func TestAPIRestrictedViewMembers(t *testing.T) {
 				"api.context.permissions.app_error",
 			},
 		}
-		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+		defaultPerms := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultPerms)
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
@@ -201,7 +203,8 @@ func TestAPIRestrictedViewMembers(t *testing.T) {
 				"api.context.permissions.app_error",
 			},
 		}
-		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+		defaultPerms := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultPerms)
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
@@ -282,7 +285,8 @@ func TestAPIRestrictedViewMembers(t *testing.T) {
 				"api.context.permissions.app_error",
 			},
 		}
-		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+		defaultPerms := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultPerms)
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
@@ -363,7 +367,8 @@ func TestAPIRestrictedViewMembers(t *testing.T) {
 				"api.context.permissions.app_error",
 			},
 		}
-		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+		defaultPerms := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultPerms)
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
@@ -444,7 +449,8 @@ func TestAPIRestrictedViewMembers(t *testing.T) {
 				"api.context.permissions.app_error",
 			},
 		}
-		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+		defaultPerms := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultPerms)
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {

@@ -3,6 +3,10 @@
 
 package model
 
+import (
+	"maps"
+)
+
 type PostMetadata struct {
 	// Embeds holds information required to render content embedded in the post. This includes the OpenGraph metadata
 	// for links in the post.
@@ -73,9 +77,7 @@ func (p *PostMetadata) Copy() *PostMetadata {
 	copy(filesCopy, p.Files)
 
 	imagesCopy := map[string]*PostImage{}
-	for k, v := range p.Images {
-		imagesCopy[k] = v
-	}
+	maps.Copy(imagesCopy, p.Images)
 
 	reactionsCopy := make([]*Reaction, len(p.Reactions))
 	copy(reactionsCopy, p.Reactions)

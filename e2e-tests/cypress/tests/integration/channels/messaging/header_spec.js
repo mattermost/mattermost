@@ -30,16 +30,16 @@ describe('Header', () => {
 
     it('MM-T88 An ellipsis indicates the channel header is too long - public or private channel Quote icon displays at beginning of channel header', () => {
         // * Verify with short channel header
-        updateAndVerifyChannelHeader('>', 'newheader');
+        updateAndVerifyChannelHeader(false, '>', 'newheader');
 
         // * Verify with long channel header
-        updateAndVerifyChannelHeader('>', 'newheader'.repeat(20));
+        updateAndVerifyChannelHeader(false, '>', 'newheader'.repeat(20));
     });
 
     it('MM-T881_1 - Header: Markdown quote', () => {
         // # Update channel header text
         const header = 'This is a quote in the header';
-        updateAndVerifyChannelHeader('>', header);
+        updateAndVerifyChannelHeader(false, '>', header);
     });
 
     it('MM-T89 An ellipsis indicates the channel header is too long - DM', () => {
@@ -56,31 +56,38 @@ describe('Header', () => {
         // # Update DM channel header
         const header = `quote ${'newheader'.repeat(15)}`;
 
-        updateAndVerifyChannelHeader('>', header);
+        updateAndVerifyChannelHeader(true, '>', header);
 
-        // # Click the header to see the whole text
-        cy.get('#channelHeaderDescription').click();
+        // # Hover on channel header
+        cy.get('#channelHeaderDescription .header-description__text').trigger('mouseenter');
 
         // * Check that no ellipsis is present
-        cy.get('#header-popover > div.popover-content').
-            should('have.html', `<span><blockquote>\n<p>${header}</p>\n</blockquote></span>`);
+        cy.get('.channel-header-text-popover').should(($el) => {
+            expect($el.get(0).innerText).to.eq(header);
+        });
 
         cy.apiSaveMessageDisplayPreference('clean');
     });
 });
 
-function updateAndVerifyChannelHeader(prefix, header) {
+function updateAndVerifyChannelHeader(isDM, prefix, header) {
     // # Update channel header
-    cy.updateChannelHeader(prefix + header);
+    if (isDM) {
+        cy.updateDMGMChannelHeader(prefix + header);
+    } else {
+        cy.updateChannelHeader(prefix + header);
+    }
 
     // * Should render blockquote if it starts with ">"
     if (prefix === '>') {
-        cy.get('#channelHeaderDescription > span > blockquote').should('be.visible');
+        cy.get('.header-description__text').within(() => {
+            cy.get('blockquote').should('be.visible');
+        });
     }
 
     // * Check if channel header description has ellipsis
-    cy.get('#channelHeaderDescription > .header-description__text').find('p').
-        should('have.text', header).
+    cy.get('.header-description__text').
+        should('include.text', header).
         and('have.css', 'overflow', 'hidden').
         and('have.css', 'text-overflow', 'ellipsis');
 }

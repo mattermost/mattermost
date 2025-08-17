@@ -20,6 +20,12 @@ func RegisterElasticsearchInterface(f func(*PlatformService) searchengine.Search
 	elasticsearchInterface = f
 }
 
+var ldapDiagnosticInterface func(*PlatformService) einterfaces.LdapDiagnosticInterface
+
+func RegisterLdapDiagnosticInterface(f func(*PlatformService) einterfaces.LdapDiagnosticInterface) {
+	ldapDiagnosticInterface = f
+}
+
 var licenseInterface func(*PlatformService) einterfaces.LicenseInterface
 
 func RegisterLicenseInterface(f func(*PlatformService) einterfaces.LicenseInterface) {
@@ -30,4 +36,10 @@ var metricsInterfaceFn func(*PlatformService, string, string) einterfaces.Metric
 
 func RegisterMetricsInterface(f func(*PlatformService, string, string) einterfaces.MetricsInterface) {
 	metricsInterfaceFn = f
+}
+
+var accessControlServiceInterface func(*PlatformService) einterfaces.AccessControlServiceInterface
+
+func RegisterAccessControlServiceInterface(f func(*PlatformService) einterfaces.AccessControlServiceInterface) {
+	accessControlServiceInterface = f
 }

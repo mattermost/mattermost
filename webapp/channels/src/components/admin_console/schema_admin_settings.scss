@@ -2,6 +2,7 @@
     border-radius: 4px;
     margin-top: 20px;
     background: white;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
 
     .admin-console__wrapper {
         padding: 0;
@@ -28,4 +29,9 @@
 
 .config-section:nth-child(1) {
     margin-top: 0;
+}
+
+.admin-header-beta-badge {
+    margin-right: auto;
+    margin-inline-start: 8px;
 }

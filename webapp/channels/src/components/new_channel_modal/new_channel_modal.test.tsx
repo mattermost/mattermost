@@ -14,6 +14,7 @@ import {
     screen,
     userEvent,
     waitFor,
+    fireEvent,
 } from 'tests/react_testing_utils';
 import {suitePluginIds} from 'utils/constants';
 import {cleanUpUrlable} from 'utils/url';
@@ -145,9 +146,9 @@ describe('components/new_channel_modal', () => {
         expect(privateChannelHeading).toBeInTheDocument();
         expect(privateChannelHeading.nextSibling).toHaveTextContent('Only invited members');
 
-        const purposeTextArea = screen.getByPlaceholderText('Enter a purpose for this channel (optional)');
+        const purposeTextArea = screen.getByLabelText('Channel Purpose');
         expect(purposeTextArea).toBeInTheDocument();
-        expect(purposeTextArea).toHaveClass('new-channel-modal-purpose-textarea');
+        expect(purposeTextArea).toHaveClass('Input form-control medium');
 
         const purposeDesc = screen.getByText('This will be displayed when browsing for channels.');
         expect(purposeDesc).toBeInTheDocument();
@@ -229,7 +230,7 @@ describe('components/new_channel_modal', () => {
         expect(screen.getByText(url, {exact: false})).toBeInTheDocument();
     });
 
-    test('should handle type changes', () => {
+    test('should handle type changes', async () => {
         renderWithContext(
             <NewChannelModal/>,
             initialState,
@@ -239,7 +240,9 @@ describe('components/new_channel_modal', () => {
         const privateChannel = screen.getByText('Private Channel');
         expect(privateChannel).toBeInTheDocument();
 
-        userEvent.click(privateChannel);
+        await act(async () => {
+            userEvent.click(privateChannel);
+        });
 
         // Type should have been updated to private
         expect(privateChannel.parentElement?.nextSibling?.firstChild).toHaveAttribute('aria-label', 'Check Circle Icon');
@@ -248,13 +251,15 @@ describe('components/new_channel_modal', () => {
         const publicChannel = screen.getByText('Public Channel');
         expect(publicChannel).toBeInTheDocument();
 
-        userEvent.click(publicChannel);
+        await act(async () => {
+            userEvent.click(publicChannel);
+        });
 
         // Type should have been updated to public
         expect(publicChannel.parentElement?.nextSibling?.firstChild).toHaveAttribute('aria-label', 'Check Circle Icon');
     });
 
-    test('should handle purpose changes', () => {
+    test('should handle purpose changes', async () => {
         const value = 'Purpose';
 
         renderWithContext(
@@ -263,11 +268,14 @@ describe('components/new_channel_modal', () => {
         );
 
         // Change purpose
-        const ChannelPurposeTextArea = screen.getByPlaceholderText('Enter a purpose for this channel (optional)');
+        const ChannelPurposeTextArea = screen.getByLabelText('Channel Purpose');
         expect(ChannelPurposeTextArea).toBeInTheDocument();
 
-        userEvent.click(ChannelPurposeTextArea);
-        userEvent.type(ChannelPurposeTextArea, value);
+        await act(async () => {
+            fireEvent.focus(ChannelPurposeTextArea);
+            fireEvent.change(ChannelPurposeTextArea, {target: {value}});
+            fireEvent.blur(ChannelPurposeTextArea);
+        });
 
         // Purpose should have been updated
         expect(ChannelPurposeTextArea).toHaveValue(value);

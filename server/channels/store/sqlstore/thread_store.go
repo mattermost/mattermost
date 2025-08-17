@@ -987,7 +987,7 @@ func (s *SqlThreadStore) maintainMembershipTx(trx *sqlxTxWrapper, userID, postID
 // PermanentDeleteBatchForRetentionPolicies deletes a batch of records which are affected by
 // the global or a granular retention policy.
 // See `genericPermanentDeleteBatchForRetentionPolicies` for details.
-func (s *SqlThreadStore) PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+func (s *SqlThreadStore) PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 	builder := s.getQueryBuilder().
 		Select("Threads.PostId").
 		From("Threads")
@@ -997,9 +997,9 @@ func (s *SqlThreadStore) PermanentDeleteBatchForRetentionPolicies(now, globalPol
 		TimeColumn:          "LastReplyAt",
 		PrimaryKeys:         []string{"PostId"},
 		ChannelIDTable:      "Threads",
-		NowMillis:           now,
-		GlobalPolicyEndTime: globalPolicyEndTime,
-		Limit:               limit,
+		NowMillis:           retentionPolicyBatchConfigs.Now,
+		GlobalPolicyEndTime: retentionPolicyBatchConfigs.GlobalPolicyEndTime,
+		Limit:               retentionPolicyBatchConfigs.Limit,
 		StoreDeletedIds:     false,
 	}, s.SqlStore, cursor)
 }
@@ -1007,7 +1007,7 @@ func (s *SqlThreadStore) PermanentDeleteBatchForRetentionPolicies(now, globalPol
 // PermanentDeleteBatchThreadMembershipsForRetentionPolicies deletes a batch of records
 // which are affected by the global or a granular retention policy.
 // See `genericPermanentDeleteBatchForRetentionPolicies` for details.
-func (s *SqlThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+func (s *SqlThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 	builder := s.getQueryBuilder().
 		Select("ThreadMemberships.PostId").
 		From("ThreadMemberships").
@@ -1018,9 +1018,9 @@ func (s *SqlThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolici
 		TimeColumn:          "LastUpdated",
 		PrimaryKeys:         []string{"PostId"},
 		ChannelIDTable:      "Threads",
-		NowMillis:           now,
-		GlobalPolicyEndTime: globalPolicyEndTime,
-		Limit:               limit,
+		NowMillis:           retentionPolicyBatchConfigs.Now,
+		GlobalPolicyEndTime: retentionPolicyBatchConfigs.GlobalPolicyEndTime,
+		Limit:               retentionPolicyBatchConfigs.Limit,
 		StoreDeletedIds:     false,
 	}, s.SqlStore, cursor)
 }
@@ -1031,7 +1031,7 @@ func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error
 	// not if the root post has been deleted
 	const threadMembershipsQuery = `
 		DELETE FROM ThreadMemberships WHERE PostId IN (
-			SELECT * FROM (
+			SELECT A.PostID FROM (
 				SELECT ThreadMemberships.PostId FROM ThreadMemberships
 				LEFT JOIN Threads ON ThreadMemberships.PostId = Threads.PostId
 				WHERE Threads.PostId IS NULL
@@ -1043,10 +1043,12 @@ func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error
 	if err != nil {
 		return
 	}
+
 	deleted, err = result.RowsAffected()
 	if err != nil {
 		return
 	}
+
 	return
 }
 
@@ -1133,6 +1135,28 @@ func (s *SqlThreadStore) updateThreadParticipantsForUserTx(trx *sqlxTxWrapper, p
 			AND NOT JSON_CONTAINS(Participants, ?)`, userID, postID, strconv.Quote(userID)); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+// UpdateTeamIdForChannelThreads updates the team id for all threads in a channel.
+// Specifically used when a channel is moved to a different team.
+// If a user is not member of the new team, the threads will be deleted by the
+// channel move process.
+func (s *SqlThreadStore) UpdateTeamIdForChannelThreads(channelId, teamId string) error {
+	query := s.getQueryBuilder().
+		Update("Threads").
+		Set("ThreadTeamId", teamId).
+		Where(
+			sq.And{
+				sq.Eq{"ChannelId": channelId},
+				sq.Expr("EXISTS(SELECT 1 FROM Teams WHERE Id = ?)", teamId),
+			})
+
+	_, err := s.GetMaster().ExecBuilder(query)
+	if err != nil {
+		return errors.Wrapf(err, "failed to update threads team id for channel id=%s", channelId)
 	}
 
 	return nil

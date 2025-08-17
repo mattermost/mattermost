@@ -27,9 +27,12 @@ type Props = {
     isPopperOpen: boolean;
     locale: string;
     handlePopperOpenState: (isOpen: boolean) => void;
+    label?: string;
+    icon?: React.ReactNode;
+    value?: string;
 }
 
-const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenState, locale}: Props) => {
+const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenState, locale, label, icon, value}: Props) => {
     const [loadedLocales, setLoadedLocales] = useState<Record<string, Locale>>({});
     const {x, y, strategy, context, refs: {setReference, setFloating}} = useFloating({
         open: isPopperOpen,
@@ -66,13 +69,34 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
         );
     }, []);
 
+    const handleWrapperClick = useCallback((e: React.MouseEvent) => {
+        // Prevent click from bubbling up to parent elements
+        e.stopPropagation();
+
+        // Open the popper when clicking anywhere in the wrapper
+        handlePopperOpenState(true);
+    }, [handlePopperOpenState]);
+
     return (
-        <div>
+        <div className='date-picker__wrapper'>
             <div
                 ref={setReference}
                 {...getReferenceProps()}
+                onClick={handleWrapperClick}
+                className={isPopperOpen ? 'date-time-input date-time-input--open' : 'date-time-input'}
+                role='button'
+                tabIndex={0}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handlePopperOpenState(true);
+                    }
+                }}
             >
-                {children}
+                {label && <span className='date-time-input__label'>{label}</span>}
+                {icon && <span className='date-time-input__icon'>{icon}</span>}
+                {value && <span className='date-time-input__value'>{value}</span>}
+                {!value && children}
             </div>
             {isPopperOpen && (
                 <FloatingFocusManager
@@ -101,7 +125,6 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
                             }}
                         />
                     </div>
-
                 </FloatingFocusManager>
             )}
         </div>

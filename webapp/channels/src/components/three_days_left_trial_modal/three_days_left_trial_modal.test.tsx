@@ -135,7 +135,7 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
             </Provider>,
         );
 
-        wrapper.find(GenericModal).props().onExited();
+        wrapper.find(GenericModal).props().onExited?.();
 
         expect(mockOnExited).toHaveBeenCalled();
     });

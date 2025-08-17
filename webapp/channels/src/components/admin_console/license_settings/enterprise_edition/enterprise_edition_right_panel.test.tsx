@@ -52,7 +52,6 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         Name: 'LicenseName',
         Company: 'Mattermost Inc.',
         Users: '1000000',
-        IsGovSku: 'false',
     };
 
     const props = {
@@ -60,36 +59,18 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         license,
     } as EnterpriseEditionProps;
 
-    test('should render for no Gov no Trial no Enterprise', () => {
-        const store = mockStore(initialState);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <EnterpriseEditionRightPanel {...props}/>
-            </Provider>,
-        );
-
-        expect(wrapper.find('.upgrade-title').text()).toEqual('Upgrade to the Enterprise Plan');
-
-        const subtitleList = wrapper.find('.upgrade-subtitle').find('.item');
-        expect(subtitleList.at(0).text()).toEqual('AD/LDAP Group sync');
-        expect(subtitleList.at(1).text()).toEqual('High Availability');
-        expect(subtitleList.at(2).text()).toEqual('Advanced compliance');
-        expect(subtitleList.at(3).text()).toEqual('Advanced roles and permissions');
-        expect(subtitleList.at(4).text()).toEqual('And more...');
-    });
-
-    test('should render for Gov no Trial no Enterprise', () => {
+    test('should render for Professional license', () => {
         const store = mockStore(initialState);
         const wrapper = mountWithIntl(
             <Provider store={store}>
                 <EnterpriseEditionRightPanel
-                    license={{...props.license, IsGovSku: 'true'}}
+                    license={{...props.license, SkuShortName: LicenseSkus.Professional}}
                     isTrialLicense={props.isTrialLicense}
                 />
             </Provider>,
         );
 
-        expect(wrapper.find('.upgrade-title').text()).toEqual('Upgrade to the Enterprise Gov Plan');
+        expect(wrapper.find('.upgrade-title').text()).toEqual('Upgrade to Enterprise');
 
         const subtitleList = wrapper.find('.upgrade-subtitle').find('.item');
         expect(subtitleList.at(0).text()).toEqual('AD/LDAP Group sync');
@@ -99,7 +80,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         expect(subtitleList.at(4).text()).toEqual('And more...');
     });
 
-    test('should render for Enterprise no Trial', () => {
+    test('should render for Enterprise license', () => {
         const store = mockStore(initialState);
         const wrapper = mountWithIntl(
             <Provider store={store}>
@@ -110,16 +91,24 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             </Provider>,
         );
 
-        expect(wrapper.find('.upgrade-title').text()).toEqual('Need to increase your headcount?');
-        expect(wrapper.find('.upgrade-subtitle').text()).toEqual('We’re here to work with you and your needs. Contact us today to get more seats on your plan.');
+        expect(wrapper.find('.upgrade-title').text()).toEqual('Upgrade to Enterprise Advanced');
+
+        const subtitleList = wrapper.find('.upgrade-subtitle').find('.item');
+        expect(subtitleList.at(0).text()).toEqual('Attribute-based access control');
+        expect(subtitleList.at(1).text()).toEqual('Channel warning banners');
+        expect(subtitleList.at(2).text()).toEqual('AD/LDAP group sync');
+        expect(subtitleList.at(3).text()).toEqual('Advanced workflows with Playbooks');
+        expect(subtitleList.at(4).text()).toEqual('High availability');
+        expect(subtitleList.at(5).text()).toEqual('Advanced compliance');
+        expect(subtitleList.at(6).text()).toEqual('And more...');
     });
 
-    test('should render for E20 no Trial', () => {
+    test('should render for Enterprise Advanced license', () => {
         const store = mockStore(initialState);
         const wrapper = mountWithIntl(
             <Provider store={store}>
                 <EnterpriseEditionRightPanel
-                    license={{...props.license, SkuShortName: LicenseSkus.E20}}
+                    license={{...props.license, SkuShortName: LicenseSkus.EnterpriseAdvanced}}
                     isTrialLicense={props.isTrialLicense}
                 />
             </Provider>,
@@ -129,7 +118,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         expect(wrapper.find('.upgrade-subtitle').text()).toEqual('We’re here to work with you and your needs. Contact us today to get more seats on your plan.');
     });
 
-    test('should render for Trial no Gov', () => {
+    test('should render for Trial license', () => {
         const store = mockStore(initialState);
         const wrapper = mountWithIntl(
             <Provider store={store}>
@@ -140,22 +129,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             </Provider>,
         );
 
-        expect(wrapper.find('.upgrade-title').text()).toEqual('Purchase the Enterprise Plan');
-        expect(wrapper.find('.upgrade-subtitle').text()).toEqual('Continue your access to Enterprise features by purchasing a license today.');
-    });
-
-    test('should render for Trial Gov', () => {
-        const store = mockStore(initialState);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <EnterpriseEditionRightPanel
-                    license={{...props.license, IsGovSku: 'true'}}
-                    isTrialLicense={true}
-                />
-            </Provider>,
-        );
-
-        expect(wrapper.find('.upgrade-title').text()).toEqual('Purchase the Enterprise Gov Plan');
-        expect(wrapper.find('.upgrade-subtitle').text()).toEqual('Continue your access to Enterprise features by purchasing a license today.');
+        expect(wrapper.find('.upgrade-title').text()).toEqual('Purchase Enterprise Advanced');
+        expect(wrapper.find('.upgrade-subtitle').text()).toEqual('Continue your access to Enterprise Advanced features by purchasing a license.');
     });
 });

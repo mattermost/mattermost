@@ -6,8 +6,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {submitInteractiveDialog} from 'mattermost-redux/actions/integrations';
-
+import {submitInteractiveDialog} from 'actions/integration_actions';
 import {getEmojiMap} from 'selectors/emojis';
 
 import type {GlobalState} from 'types/store';
@@ -33,7 +32,6 @@ function mapStateToProps(state: GlobalState) {
         emojiMap: getEmojiMap(state),
     };
 }
-
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
@@ -41,7 +39,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
         }, dispatch),
     };
 }
-
 const connector = connect(mapStateToProps, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;

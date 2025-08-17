@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitChannelBookmarks() {
@@ -41,6 +40,11 @@ func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if channel.DeleteAt != 0 {
+		c.Err = model.NewAppError("createChannelBookmark", "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	var channelBookmark *model.ChannelBookmark
 	err := json.NewDecoder(r.Body).Decode(&channelBookmark)
 	if err != nil || channelBookmark == nil {
@@ -49,9 +53,9 @@ func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	channelBookmark.ChannelId = c.Params.ChannelId
 
-	auditRec := c.MakeAuditRecord("createChannelBookmark", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateChannelBookmark, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "channelBookmark", channelBookmark)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "channelBookmark", channelBookmark)
 
 	switch channel.Type {
 	case model.ChannelTypeOpen:
@@ -131,9 +135,9 @@ func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	patchedBookmark := originalChannelBookmark.Clone()
-	auditRec := c.MakeAuditRecord("updateChannelBookmark", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannelBookmark, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "channelBookmark", patch)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "channelBookmark", patch)
 
 	// The channel bookmark should belong to the same channel specified in the URL
 	if patchedBookmark.ChannelId != c.Params.ChannelId {
@@ -146,6 +150,11 @@ func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	if channel.DeleteAt != 0 {
+		c.Err = model.NewAppError("updateChannelBookmark", "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -226,13 +235,18 @@ func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateChannelBookmarkSortOrder", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannelBookmarkSortOrder, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "id", c.Params.ChannelBookmarkId)
+	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.ChannelBookmarkId)
 
 	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	if channel.DeleteAt != 0 {
+		c.Err = model.NewAppError("updateChannelBookmarkSortOrder", "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -306,13 +320,18 @@ func deleteChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteChannelBookmark", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteChannelBookmark, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "id", c.Params.ChannelBookmarkId)
+	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.ChannelBookmarkId)
 
 	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	if channel.DeleteAt != 0 {
+		c.Err = model.NewAppError("deleteChannelBookmark", "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -396,6 +415,7 @@ func listChannelBookmarksForChannel(c *Context, w http.ResponseWriter, r *http.R
 		c.Err = appErr
 		return
 	}
+
 	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return

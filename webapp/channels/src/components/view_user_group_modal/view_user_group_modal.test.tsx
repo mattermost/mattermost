@@ -75,7 +75,7 @@ describe('component/view_user_group_modal', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, search user1', () => {
+    test('should match snapshot, search user1', async () => {
         const wrapper = shallow(
             <ViewUserGroupModal
                 {...baseProps}
@@ -83,21 +83,14 @@ describe('component/view_user_group_modal', () => {
             />,
         );
 
-        const instance = wrapper.instance() as ViewUserGroupModal;
-
-        const e = {
-            target: {
-                value: '',
-            },
-        };
-        instance.handleSearch(e as React.ChangeEvent<HTMLInputElement>);
+        // Simulate search input change
+        const searchInput = wrapper.find('ForwardRef[data-testid="searchInput"]');
+        searchInput.simulate('change', {target: {value: ''}});
         expect(baseProps.actions.setModalSearchTerm).toHaveBeenCalledTimes(1);
         expect(baseProps.actions.setModalSearchTerm).toBeCalledWith('');
 
-        e.target.value = 'user1';
-        instance.handleSearch(e as React.ChangeEvent<HTMLInputElement>);
-        expect(wrapper.state('loading')).toEqual(true);
+        searchInput.simulate('change', {target: {value: 'user1'}});
         expect(baseProps.actions.setModalSearchTerm).toHaveBeenCalledTimes(2);
-        expect(baseProps.actions.setModalSearchTerm).toBeCalledWith(e.target.value);
+        expect(baseProps.actions.setModalSearchTerm).toBeCalledWith('user1');
     });
 });

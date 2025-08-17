@@ -120,7 +120,6 @@ describe('components/BrowseChannels', () => {
         teamId: 'team_1',
         teamName: 'team_name',
         channelsRequestStarted: false,
-        canShowArchivedChannels: true,
         shouldHideJoinedChannels: false,
         myChannelMemberships: {
             'channel-id-3': TestHelper.getChannelMembershipMock({

@@ -1,0 +1,17 @@
+.dynamic_virtualized_list {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    max-height: 100%;
+    overflow-anchor: none;
+    overflow-y: auto;
+    will-change: transform;
+
+    .innerList[role='list'] {
+        padding: 14px 0px 7px;
+    }
+
+    .listItem[role='listitem'] {
+        position: relative;
+    }
+}

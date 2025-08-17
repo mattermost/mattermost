@@ -115,12 +115,25 @@ export const renderHookWithContext = <TProps, TResult>(
     };
     replaceGlobalStore(() => renderState.store);
 
-    return renderHook(callback, {
+    const results = renderHook(callback, {
         wrapper: ({children}) => {
             // Every time this is called, these values should be updated from `renderState`
             return <Providers {...renderState}>{children}</Providers>;
         },
     });
+
+    return {
+        ...results,
+
+        /**
+         * Rerenders the component after replacing the entire store state with the provided one.
+         */
+        replaceStoreState: (newInitialState: DeepPartial<GlobalState>) => {
+            renderState.store = configureOrMockStore(newInitialState, renderState.options.useMockedStore, partialOptions?.pluginReducers);
+
+            results.rerender();
+        },
+    };
 };
 
 function configureOrMockStore<T>(initialState: DeepPartial<T>, useMockedStore: boolean, extraReducersKeys?: string[]) {
@@ -145,7 +158,7 @@ function replaceGlobalStore(getStore: () => any) {
     jest.spyOn(globalStore, 'dispatch').mockImplementation((...args) => getStore().dispatch(...args));
     jest.spyOn(globalStore, 'getState').mockImplementation(() => getStore().getState());
     jest.spyOn(globalStore, 'replaceReducer').mockImplementation((...args) => getStore().replaceReducer(...args));
-    jest.spyOn(globalStore, '@@observable').mockImplementation((...args) => getStore()['@@observable'](...args));
+    jest.spyOn(globalStore, '@@observable' as any).mockImplementation((...args: any[]) => getStore()['@@observable'](...args));
 
     // This may stop working if getStore starts to return new results
     jest.spyOn(globalStore, 'subscribe').mockImplementation((...args) => getStore().subscribe(...args));

@@ -66,8 +66,8 @@ func (c *SearchChannelStore) indexChannel(rctx request.CTX, channel *model.Chann
 	}
 }
 
-func (c *SearchChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannels int64) (*model.Channel, error) {
-	newChannel, err := c.ChannelStore.Save(rctx, channel, maxChannels)
+func (c *SearchChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannels int64, channelOptions ...model.ChannelOption) (*model.Channel, error) {
+	newChannel, err := c.ChannelStore.Save(rctx, channel, maxChannels, channelOptions...)
 	if err == nil {
 		c.indexChannel(rctx, newChannel)
 	}
@@ -229,7 +229,7 @@ func (c *SearchChannelStore) AutocompleteInTeam(rctx request.CTX, teamID, userID
 }
 
 func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.SearchEngineInterface, teamId, userID, term string, includeDeleted, isGuest bool) (model.ChannelList, error) {
-	channelIds, err := engine.SearchChannels(teamId, userID, term, isGuest)
+	channelIds, err := engine.SearchChannels(teamId, userID, term, isGuest, includeDeleted)
 	if err != nil {
 		return nil, err
 	}
@@ -247,7 +247,7 @@ func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.Sear
 }
 
 func (c *SearchChannelStore) searchAutocompleteChannelsAllTeams(engine searchengine.SearchEngineInterface, userID, term string, includeDeleted, isGuest bool) (model.ChannelListWithTeamData, error) {
-	channelIds, err := engine.SearchChannels("", userID, term, isGuest)
+	channelIds, err := engine.SearchChannels("", userID, term, isGuest, includeDeleted)
 	if err != nil {
 		return nil, err
 	}

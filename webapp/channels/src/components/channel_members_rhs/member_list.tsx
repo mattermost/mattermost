@@ -12,20 +12,20 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import Member from './member';
 
-interface ChannelMember {
+export interface ChannelMember {
     user: UserProfile;
     membership?: ChannelMembership;
     status?: string;
     displayName: string;
 }
 
-enum ListItemType {
+export enum ListItemType {
     Member = 'member',
     FirstSeparator = 'first-separator',
     Separator = 'separator',
 }
 
-interface ListItem {
+export interface ListItem {
     type: ListItemType;
     data: ChannelMember | JSX.Element;
 }
@@ -103,7 +103,7 @@ const MemberList = ({
                         <Member
                             channel={channel}
                             index={index}
-                            totalUsers={members.length}
+                            totalUsers={members.filter((l) => l.type === ListItemType.Member).length}
                             member={member}
                             editing={editing}
                             actions={{openDirectMessage}}

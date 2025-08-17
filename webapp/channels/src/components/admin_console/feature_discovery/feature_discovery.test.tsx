@@ -13,7 +13,7 @@ import {
 } from 'tests/react_testing_utils';
 import {AboutLinks, LicenseSkus} from 'utils/constants';
 
-import SamlSVG from './features/images/saml_svg';
+import GroupsSVG from './features/images/groups_svg';
 
 describe('components/feature_discovery', () => {
     describe('FeatureDiscovery', () => {
@@ -35,7 +35,7 @@ describe('components/feature_discovery', () => {
                         defaultMessage: 'Bar',
                     }}
                     learnMoreURL='https://test.mattermost.com/secondary/'
-                    featureDiscoveryImage={<SamlSVG/>}
+                    featureDiscoveryImage={<GroupsSVG/>}
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     stats={{TOTAL_USERS: 20}}
                     prevTrialLicense={{IsLicensed: 'false'}}
@@ -65,10 +65,10 @@ describe('components/feature_discovery', () => {
             const featureLink = screen.getByTestId('featureDiscovery_secondaryCallToAction');
 
             expect(featureLink).toBeInTheDocument();
-            expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=');
+            expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
             expect(featureLink).toHaveTextContent('Learn more');
-            expect(screen.getByText('Mattermost Software and Services License Agreement')).toHaveAttribute('href', 'https://mattermost.com/pl/software-and-services-license-agreement?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=');
-            expect(screen.getByText('Privacy Policy')).toHaveAttribute('href', AboutLinks.PRIVACY_POLICY + '?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=');
+            expect(screen.getByText('Mattermost Software and Services License Agreement')).toHaveAttribute('href', 'https://mattermost.com/pl/software-and-services-license-agreement?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
+            expect(screen.getByText('Privacy Policy')).toHaveAttribute('href', AboutLinks.PRIVACY_POLICY + '?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
 
             expect(getPrevTrialLicense).toHaveBeenCalled();
             expect(getCloudSubscription).not.toHaveBeenCalled();
@@ -94,7 +94,7 @@ describe('components/feature_discovery', () => {
                             defaultMessage: 'Bar',
                         }}
                         learnMoreURL='https://test.mattermost.com/secondary/'
-                        featureDiscoveryImage={<SamlSVG/>}
+                        featureDiscoveryImage={<GroupsSVG/>}
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         stats={{TOTAL_USERS: 20}}
                         prevTrialLicense={{IsLicensed: 'false'}}
@@ -121,12 +121,12 @@ describe('components/feature_discovery', () => {
             //this option is visible only when it is cloud environment
             expect(screen.getByRole('button', {name: 'Contact sales'})).toBeInTheDocument();
 
-            expect(screen.getByTestId('featureDiscovery_secondaryCallToAction')).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=');
+            expect(screen.getByTestId('featureDiscovery_secondaryCallToAction')).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
 
             const featureLink = screen.getByTestId('featureDiscovery_secondaryCallToAction');
 
             expect(featureLink).toBeInTheDocument();
-            expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=');
+            expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
             expect(featureLink).toHaveTextContent('Learn more');
 
             expect(getPrevTrialLicense).toHaveBeenCalled();
@@ -154,7 +154,7 @@ describe('components/feature_discovery', () => {
                         defaultMessage: 'Bar',
                     }}
                     learnMoreURL='https://test.mattermost.com/secondary/'
-                    featureDiscoveryImage={<SamlSVG/>}
+                    featureDiscoveryImage={<GroupsSVG/>}
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     stats={{TOTAL_USERS: 20}}
                     prevTrialLicense={{IsLicensed: 'false'}}

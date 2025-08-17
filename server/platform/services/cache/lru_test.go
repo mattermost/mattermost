@@ -22,7 +22,7 @@ func TestLRU(t *testing.T) {
 		InvalidateClusterEvent: "",
 	})
 
-	for i := 0; i < 256; i++ {
+	for i := range 256 {
 		err := l.SetWithDefaultExpiry(fmt.Sprintf("%d", i), i)
 		require.NoError(t, err)
 	}
@@ -43,7 +43,7 @@ func TestLRU(t *testing.T) {
 		return nil
 	})
 
-	for i := 0; i < 128; i++ {
+	for i := range 128 {
 		var v int
 		err := l.Get(fmt.Sprintf("%d", i), &v)
 		require.Equal(t, ErrKeyNotFound, err, "should be evicted %v: %v", i, err)
@@ -310,7 +310,7 @@ func BenchmarkLRU(b *testing.B) {
 	value1 := "simplestring"
 
 	b.Run("simple=new", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			l2 := NewLRU(&CacheOptions{
 				Size:                   1,
 				DefaultExpiry:          0,
@@ -360,7 +360,7 @@ func BenchmarkLRU(b *testing.B) {
 	}
 
 	b.Run("complex=new", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			l2 := NewLRU(&CacheOptions{
 				Size:                   1,
 				DefaultExpiry:          0,
@@ -443,7 +443,7 @@ func BenchmarkLRU(b *testing.B) {
 	}
 
 	b.Run("User=new", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			l2 := NewLRU(&CacheOptions{
 				Size:                   1,
 				DefaultExpiry:          0,
@@ -476,7 +476,7 @@ func BenchmarkLRU(b *testing.B) {
 	}
 
 	b.Run("UserMap=new", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			l2 := NewLRU(&CacheOptions{
 				Size:                   1,
 				DefaultExpiry:          0,
@@ -555,7 +555,7 @@ func BenchmarkLRU(b *testing.B) {
 	}
 
 	b.Run("Post=new", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			l2 := NewLRU(&CacheOptions{
 				Size:                   1,
 				DefaultExpiry:          0,
@@ -579,7 +579,7 @@ func BenchmarkLRU(b *testing.B) {
 	}
 
 	b.Run("Status=new", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			l2 := NewLRU(&CacheOptions{
 				Size:                   1,
 				DefaultExpiry:          0,
@@ -615,7 +615,7 @@ func BenchmarkLRU(b *testing.B) {
 	}
 
 	b.Run("Session=new", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			l2 := NewLRU(&CacheOptions{
 				Size:                   1,
 				DefaultExpiry:          0,

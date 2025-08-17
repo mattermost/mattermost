@@ -35,7 +35,8 @@ const ShowStartTrialModal = () => {
 
     const isBenefitsModalOpened = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.TRIAL_BENEFITS_MODAL));
 
-    const installationDate = useSelector((state: GlobalState) => getConfig(state).InstallationDate);
+    const config = useSelector((state: GlobalState) => getConfig(state));
+    const installationDate = config.InstallationDate;
     const currentUser = useSelector((state: GlobalState) => getCurrentUser(state));
     const hadAdminDismissedModal = useSelector((state: GlobalState) => getBool(state, Preferences.START_TRIAL_MODAL, Constants.TRIAL_MODAL_AUTO_SHOWN));
 

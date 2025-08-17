@@ -39,6 +39,7 @@ type State = {
     showBannerWarning: boolean;
     packetContents: SupportPacketContent[];
     loading: boolean;
+    error?: string;
 };
 
 export default class CommercialSupportModal extends React.PureComponent<Props, State> {
@@ -92,8 +93,8 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
 
     extractFilename = (input: string | null): string => {
         // construct the expected filename in case of an error in the header
-        const formattedDate = (moment(new Date())).format('YYYY-MM-DD-HH-mm');
-        const presumedFileName = `mattermost_support_packet_${formattedDate}.zip`;
+        const formattedDate = (moment(new Date())).format('YYYY-MM-DDTHH-mm');
+        const presumedFileName = `mm_support_packet_${formattedDate}.zip`;
 
         if (input === null) {
             return presumedFileName;
@@ -106,11 +107,18 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
     };
 
     downloadSupportPacket = async () => {
-        this.setState({loading: true});
+        this.setState({loading: true, error: undefined});
         const res = await fetch(this.genereateDownloadURLWithParams(), {
             method: 'GET',
             headers: {'Content-Type': 'application/zip'},
         });
+        if (!res.ok) {
+            const data = await res.json();
+            const error = data.message + ': ' + data.detailed_error;
+            this.setState({loading: false, error});
+            return;
+        }
+
         const blob = await res.blob();
         this.setState({loading: false});
 
@@ -214,6 +222,11 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                             </div>
                         ))}
                         <div className='CommercialSupportModal__download'>
+                            {this.state.error && (
+                                <div className='CommercialSupportModal__error'>
+                                    <span className='error-text'>{this.state.error}</span>
+                                </div>
+                            )}
                             <a
                                 className='btn btn-primary DownloadSupportPacket'
                                 onClick={this.downloadSupportPacket}

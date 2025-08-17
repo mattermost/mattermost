@@ -12,13 +12,13 @@ server-ci-pr
 |
 ---server-ci-template
 	|
-	---server-test-template (common code for postgres and mysql tests)
+	---server-test-template
 
 server-ci-master
 |
 ---server-ci-template
 	|
-	---server-test-template (common code for postgres and mysql tests)
+	---server-test-template
 
 webapp-ci-pr
 |

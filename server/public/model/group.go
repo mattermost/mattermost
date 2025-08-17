@@ -6,11 +6,15 @@ package model
 import (
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 const (
 	GroupSourceLdap   GroupSource = "ldap"
 	GroupSourceCustom GroupSource = "custom"
+
+	// plugin groups must prefix their source with this
+	GroupSourcePluginPrefix GroupSource = "plugin_"
 
 	GroupNameMaxLength        = 64
 	GroupSourceMaxLength      = 64
@@ -20,15 +24,6 @@ const (
 )
 
 type GroupSource string
-
-var allGroupSources = []GroupSource{
-	GroupSourceLdap,
-	GroupSourceCustom,
-}
-
-var groupSourcesRequiringRemoteID = []GroupSource{
-	GroupSourceLdap,
-}
 
 type Group struct {
 	Id                          string      `json:"id"`
@@ -48,8 +43,8 @@ type Group struct {
 	MemberIDs                   []string    `db:"-" json:"member_ids"`
 }
 
-func (group *Group) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (group *Group) Auditable() map[string]any {
+	return map[string]any{
 		"id":              group.Id,
 		"source":          group.Source,
 		"remote_id":       group.GetRemoteId(),
@@ -63,7 +58,7 @@ func (group *Group) Auditable() map[string]interface{} {
 }
 
 func (group *Group) LogClone() any {
-	return map[string]interface{}{
+	return map[string]any{
 		"id":              group.Id,
 		"name":            group.GetName(),
 		"display_name":    group.DisplayName,
@@ -83,8 +78,8 @@ type GroupWithUserIds struct {
 	UserIds []string `json:"user_ids"`
 }
 
-func (group *GroupWithUserIds) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (group *GroupWithUserIds) Auditable() map[string]any {
+	return map[string]any{
 		"id":              group.Id,
 		"source":          group.Source,
 		"remote_id":       group.GetRemoteId(),
@@ -157,6 +152,9 @@ type GroupSearchOpts struct {
 
 	// Only return archived groups
 	FilterArchived bool
+
+	// OnlySyncableSources filters the groups to only those that are syncable
+	OnlySyncableSources bool
 }
 
 type GetGroupOpts struct {
@@ -178,8 +176,8 @@ type GroupModifyMembers struct {
 	UserIds []string `json:"user_ids"`
 }
 
-func (group *GroupModifyMembers) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (group *GroupModifyMembers) Auditable() map[string]any {
+	return map[string]any{
 		"user_ids": group.UserIds,
 	}
 }
@@ -214,12 +212,12 @@ func (group *Group) IsValidForCreate() *AppError {
 	}
 
 	isValidSource := false
-	for _, groupSource := range allGroupSources {
-		if group.Source == groupSource {
-			isValidSource = true
-			break
-		}
+	if group.Source == GroupSourceLdap ||
+		group.Source == GroupSourceCustom ||
+		strings.HasPrefix(string(group.Source), string(GroupSourcePluginPrefix)) {
+		isValidSource = true
 	}
+
 	if !isValidSource {
 		return NewAppError("Group.IsValidForCreate", "model.group.source.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -232,12 +230,19 @@ func (group *Group) IsValidForCreate() *AppError {
 }
 
 func (group *Group) requiresRemoteId() bool {
-	for _, groupSource := range groupSourcesRequiringRemoteID {
-		if groupSource == group.Source {
-			return true
-		}
-	}
-	return false
+	return group.Source == GroupSourceLdap || strings.HasPrefix(string(group.Source), string(GroupSourcePluginPrefix))
+}
+
+func GetSyncableGroupSources() []GroupSource {
+	return []GroupSource{GroupSourceLdap}
+}
+
+func GetSyncableGroupSourcePrefixes() []GroupSource {
+	return []GroupSource{GroupSourcePluginPrefix}
+}
+
+func (group *Group) IsSyncable() bool {
+	return group.Source == GroupSourceLdap || strings.HasPrefix(string(group.Source), string(GroupSourcePluginPrefix))
 }
 
 func (group *Group) IsValidForUpdate() *AppError {

@@ -18,7 +18,7 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/disintegration/imaging"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
 	_ "golang.org/x/image/webp"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -241,7 +241,7 @@ func (a *App) GetMultipleEmojiByName(c request.CTX, names []string) ([]*model.Em
 
 	emoji, err := a.Srv().Store().Emoji().GetMultipleByName(c, names)
 	if err != nil {
-		return nil, model.NewAppError("GetMultipleEmojiByName", "app.emoji.get_by_name.app_error", nil, fmt.Sprintf("names=%v, %v", names, err.Error()), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetMultipleEmojiByName", "app.emoji.get_by_name.app_error", nil, fmt.Sprintf("names=%v", names), http.StatusInternalServerError).Wrap(err)
 	}
 
 	return emoji, nil
@@ -279,7 +279,7 @@ func (a *App) SearchEmoji(c request.CTX, name string, prefixOnly bool, limit int
 
 	list, err := a.Srv().Store().Emoji().Search(name, prefixOnly, limit)
 	if err != nil {
-		return nil, model.NewAppError("SearchEmoji", "app.emoji.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SearchEmoji", "app.emoji.get_by_name.app_error", nil, "name="+name, http.StatusInternalServerError).Wrap(err)
 	}
 
 	return list, nil
@@ -337,7 +337,7 @@ func resizeEmoji(img image.Image, width int, height int) image.Image {
 	if emojiHeight <= MaxEmojiHeight && emojiWidth <= MaxEmojiWidth {
 		return img
 	}
-	return imaging.Fit(img, MaxEmojiWidth, MaxEmojiHeight, imaging.Lanczos)
+	return imaging.Fit(img, MaxEmojiWidth, MaxEmojiHeight)
 }
 
 func imageToPaletted(img image.Image) *image.Paletted {

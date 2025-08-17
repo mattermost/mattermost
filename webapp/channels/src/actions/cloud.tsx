@@ -124,6 +124,20 @@ export function getTeamsUsage(): ThunkActionFunc<Promise<boolean | ServerError>>
     };
 }
 
+export function getCloudPreviewModalData(): ThunkActionFunc<Promise<boolean | ServerError>> {
+    return async () => {
+        try {
+            const result = await Client4.getCloudPreviewModalData();
+            if (result) {
+                return {data: result};
+            }
+        } catch (error) {
+            return error;
+        }
+        return true;
+    };
+}
+
 export function retryFailedCloudFetches(): ActionFunc<boolean> {
     return (dispatch, getState) => {
         const errors = getCloudErrors(getState());

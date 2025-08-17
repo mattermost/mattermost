@@ -69,6 +69,10 @@ export type CommandArgs = {
     root_id?: string;
 }
 
+export type DialogArgs = {
+    channel_id: string;
+}
+
 export type CommandResponse = {
     response_type: string;
     text: string;
@@ -134,9 +138,12 @@ export type IntegrationsState = {
     appsBotIDs: string[];
     systemCommands: IDMappedObjects<Command>;
     commands: IDMappedObjects<Command>;
+    dialogArguments?: DialogArgs;
+    dialogTriggerId: string;
     dialog?: {
         url: string;
         dialog: Dialog;
+        trigger_id: string;
     };
 };
 

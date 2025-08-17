@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
@@ -87,6 +88,9 @@ func (a *App) SearchEngine() *searchengine.Broker {
 func (a *App) Ldap() einterfaces.LdapInterface {
 	return a.ch.Ldap
 }
+func (a *App) LdapDiagnostic() einterfaces.LdapDiagnosticInterface {
+	return a.ch.srv.platform.LdapDiagnostic()
+}
 func (a *App) MessageExport() einterfaces.MessageExportInterface {
 	return a.ch.MessageExport
 }
@@ -149,6 +153,10 @@ func (a *App) SetChannels(ch *Channels) {
 
 func (a *App) SetServer(srv *Server) {
 	a.ch.srv = srv
+}
+
+func (a *App) PropertyService() *properties.PropertyService {
+	return a.Srv().propertyService
 }
 
 func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {

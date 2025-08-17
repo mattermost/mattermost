@@ -55,7 +55,7 @@ const BillingSubscriptions = () => {
 
     const product = useSelector(getSubscriptionProduct);
 
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
 
     let isFreeTrial = false;
     let daysLeftOnTrial = 0;
@@ -75,7 +75,7 @@ const BillingSubscriptions = () => {
 
         pageVisited('cloud_admin', 'pageview_billing_subscription');
 
-        if (actionQueryParam === 'show_pricing_modal') {
+        if (actionQueryParam === 'show_pricing_modal' && !isAirGapped) {
             openPricingModal({trackingLocation: 'billing_subscriptions_external_direct_link'});
         }
     }, []);

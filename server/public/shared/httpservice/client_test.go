@@ -60,13 +60,13 @@ func TestHTTPClient(t *testing.T) {
 	t.Run("checks", func(t *testing.T) {
 		allowHost := func(_ string) bool { return true }
 		rejectHost := func(_ string) bool { return false }
-		allowIP := func(_ net.IP) bool { return true }
-		rejectIP := func(_ net.IP) bool { return false }
+		allowIP := func(_ net.IP) error { return nil }
+		rejectIP := func(_ net.IP) error { return fmt.Errorf("IP not allowed") }
 
 		testCases := []struct {
 			description     string
 			allowHost       func(string) bool
-			allowIP         func(net.IP) bool
+			allowIP         func(net.IP) error
 			expectedAllowed bool
 		}{
 			{"allow with no checks", nil, nil, true},
@@ -88,7 +88,7 @@ func TestHTTPClient(t *testing.T) {
 					require.NoError(t, err)
 				} else {
 					require.IsType(t, &url.Error{}, err)
-					require.Equal(t, ErrAddressForbidden, err.(*url.Error).Err)
+					require.Contains(t, err.(*url.Error).Err.Error(), "address forbidden")
 				}
 			})
 		}
@@ -110,6 +110,17 @@ func TestHTTPClientWithProxy(t *testing.T) {
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.Equal(t, "proxy", string(body))
+
+	t.Run("invalid IPv6 address in proxied URL", func(t *testing.T) {
+		c := NewHTTPClient(NewTransport(true, nil, nil))
+
+		t.Setenv("HTTP_PROXY", "http://proxy.example.org")
+		t.Setenv("HTTPS_PROXY", "https://proxy.example.org")
+		t.Setenv("NO_PROXY", ".example.com")
+
+		_, err := c.Get("http://[fe80::8e87:5021:6f6c:605e%25eth0]")
+		require.EqualError(t, err, `Get "http://[fe80::8e87:5021:6f6c:605e%25eth0]": invalid IPv6 address in URL: "fe80::8e87:5021:6f6c:605e%eth0"`)
+	})
 }
 
 func createProxyServer() *httptest.Server {
@@ -145,7 +156,12 @@ func TestDialContextFilter(t *testing.T) {
 		filter := dialContextFilter(func(ctx context.Context, network, addr string) (net.Conn, error) {
 			didDial = true
 			return nil, nil
-		}, func(host string) bool { return host == "10.0.0.1" }, func(ip net.IP) bool { return !IsReservedIP(ip) })
+		}, func(host string) bool { return host == "10.0.0.1" }, func(ip net.IP) error {
+			if IsReservedIP(ip) {
+				return fmt.Errorf("IP %s is reserved", ip)
+			}
+			return nil
+		})
 		_, err := filter(context.Background(), "", tc.Addr)
 
 		if tc.IsValid {
@@ -153,7 +169,7 @@ func TestDialContextFilter(t *testing.T) {
 			require.True(t, didDial)
 		} else {
 			require.Error(t, err)
-			require.Equal(t, err, ErrAddressForbidden)
+			require.Contains(t, err.Error(), "address forbidden")
 			require.False(t, didDial)
 		}
 	}
@@ -215,8 +231,9 @@ func TestIsOwnIP(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, _ := IsOwnIP(tt.ip)
-			assert.Equalf(t, tt.want, got, "IsOwnIP() = %v, want %v for IP %s", got, tt.want, tt.ip.String())
+			got, err := IsOwnIP(tt.ip)
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -260,4 +277,96 @@ func TestSplitHostnames(t *testing.T) {
 	config = "127.0.0.1 localhost, 192.168.1.0"
 	hostnames = strings.FieldsFunc(config, splitFields)
 	require.Equal(t, []string{"127.0.0.1", "localhost", "192.168.1.0"}, hostnames)
+}
+
+func TestGetProxyFn(t *testing.T) {
+	t.Setenv("HTTP_PROXY", "http://proxy.example.org")
+	t.Setenv("HTTPS_PROXY", "https://proxy.example.org")
+	t.Setenv("NO_PROXY", ".example.com")
+
+	for _, tc := range []struct {
+		name   string
+		input  string
+		output string
+		err    string
+	}{
+		{
+			name: "empty",
+		},
+		{
+			name:  "no proxy",
+			input: "http://test.example.com",
+		},
+		{
+			name:  "localhost",
+			input: "http://localhost",
+		},
+		{
+			name:   "hostname",
+			input:  "http://example.org",
+			output: "http://proxy.example.org",
+		},
+		{
+			name:   "hostname with port",
+			input:  "http://example.org:4545",
+			output: "http://proxy.example.org",
+		},
+		{
+			name:   "https",
+			input:  "https://example.org",
+			output: "https://proxy.example.org",
+		},
+		{
+			name:   "ipv4",
+			input:  "http://10.0.0.45",
+			output: "http://proxy.example.org",
+		},
+		{
+			name:   "ipv4 with port",
+			input:  "http://10.0.0.45:4545",
+			output: "http://proxy.example.org",
+		},
+		{
+			name:   "ipv6",
+			input:  "http://[fe80::8e87:5021:6f6c:605e]",
+			output: "http://proxy.example.org",
+		},
+		{
+			name:   "ipv6 with port",
+			input:  "http://[fe80::8e87:5021:6f6c:605e]:4545",
+			output: "http://proxy.example.org",
+		},
+		{
+			name:   "ipv6 with zone",
+			input:  "http://[fe80::8e87:5021:6f6c:605e%25eth0]",
+			output: "http://proxy.example.org",
+			err:    `invalid IPv6 address in URL: "fe80::8e87:5021:6f6c:605e%eth0"`,
+		},
+		{
+			name:   "ipv6 with zone and port",
+			input:  "http://[fe80::8e87:5021:6f6c:605e%25eth0]:4545",
+			output: "http://proxy.example.org",
+			err:    `invalid IPv6 address in URL: "fe80::8e87:5021:6f6c:605e%eth0"`,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			inURL, err := url.Parse(tc.input)
+			require.NoError(t, err)
+			outURL, err := getProxyFn()(&http.Request{
+				URL: inURL,
+			})
+			if tc.err != "" { // error case
+				require.EqualError(t, err, tc.err)
+				return
+			}
+
+			require.NoError(t, err)
+			if tc.output == "" { // not proxied case
+				require.Nil(t, outURL)
+			} else { // proxied case
+				require.NotNil(t, outURL)
+				require.Equal(t, tc.output, outURL.String())
+			}
+		})
+	}
 }

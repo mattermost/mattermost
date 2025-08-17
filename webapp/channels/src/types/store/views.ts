@@ -130,6 +130,10 @@ export type ViewsState = {
 
     lhs: LhsViewState;
 
+    readout: {
+        message: string | null;
+    };
+
     search: {
         modalSearch: string;
         popoverSearch: string;
@@ -194,14 +198,6 @@ export type ViewsState = {
         lastSelectedChannel: string;
     };
 
-    statusDropdown: {
-        isOpen: boolean;
-    };
-
-    addChannelDropdown: {
-        isOpen: boolean;
-    };
-
     addChannelCtaDropdown: {
         isOpen: boolean;
     };
@@ -215,6 +211,7 @@ export type ViewsState = {
     threads: {
         selectedThreadIdInTeam: RelationOneToOne<Team, UserThread['id'] | null>;
         lastViewedAt: {[id: string]: number};
+        lastUpdateAt: {[id: string]: number};
         manuallyUnread: {[id: string]: boolean};
         toastStatus: boolean;
     };
@@ -224,5 +221,7 @@ export type ViewsState = {
         shouldShowPreviewOnCreatePost: boolean;
         shouldShowPreviewOnEditChannelHeaderModal: boolean;
         shouldShowPreviewOnEditPostModal: boolean;
+        shouldShowPreviewOnChannelSettingsHeaderModal: boolean;
+        shouldShowPreviewOnChannelSettingsPurposeModal: boolean;
     };
 };

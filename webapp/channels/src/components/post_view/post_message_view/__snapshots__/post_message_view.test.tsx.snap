@@ -10,7 +10,6 @@ exports[`components/post_view/PostAttachment should match snapshot 1`] = `
     dir="auto"
     id="postMessageText_post_id"
     onClick={[Function]}
-    tabIndex={0}
   >
     <Connect(PostMarkdown)
       imageProps={
@@ -29,7 +28,7 @@ exports[`components/post_view/PostAttachment should match snapshot 1`] = `
       }
     />
   </div>
-  <Connect(Pluggable)
+  <Pluggable
     onHeightChange={[Function]}
     pluggableName="PostMessageAttachment"
     postId="post_id"
@@ -47,7 +46,6 @@ exports[`components/post_view/PostAttachment should match snapshot, on Show Less
     dir="auto"
     id="postMessageText_post_id"
     onClick={[Function]}
-    tabIndex={0}
   >
     <Connect(PostMarkdown)
       imageProps={
@@ -66,7 +64,7 @@ exports[`components/post_view/PostAttachment should match snapshot, on Show Less
       }
     />
   </div>
-  <Connect(Pluggable)
+  <Pluggable
     onHeightChange={[Function]}
     pluggableName="PostMessageAttachment"
     postId="post_id"
@@ -84,7 +82,6 @@ exports[`components/post_view/PostAttachment should match snapshot, on Show More
     dir="auto"
     id="postMessageText_post_id"
     onClick={[Function]}
-    tabIndex={0}
   >
     <Connect(PostMarkdown)
       imageProps={
@@ -103,7 +100,7 @@ exports[`components/post_view/PostAttachment should match snapshot, on Show More
       }
     />
   </div>
-  <Connect(Pluggable)
+  <Pluggable
     onHeightChange={[Function]}
     pluggableName="PostMessageAttachment"
     postId="post_id"
@@ -139,7 +136,6 @@ exports[`components/post_view/PostAttachment should match snapshot, on edited po
     dir="auto"
     id="postMessageText_post_id"
     onClick={[Function]}
-    tabIndex={0}
   >
     <Connect(PostMarkdown)
       imageProps={
@@ -159,7 +155,7 @@ exports[`components/post_view/PostAttachment should match snapshot, on edited po
       }
     />
   </div>
-  <Connect(Pluggable)
+  <Pluggable
     onHeightChange={[Function]}
     pluggableName="PostMessageAttachment"
     postId="post_id"
@@ -177,7 +173,6 @@ exports[`components/post_view/PostAttachment should match snapshot, on ephemeral
     dir="auto"
     id="postMessageText_post_id"
     onClick={[Function]}
-    tabIndex={0}
   >
     <Connect(PostMarkdown)
       imageProps={
@@ -197,7 +192,7 @@ exports[`components/post_view/PostAttachment should match snapshot, on ephemeral
       }
     />
   </div>
-  <Connect(Pluggable)
+  <Pluggable
     onHeightChange={[Function]}
     pluggableName="PostMessageAttachment"
     postId="post_id"

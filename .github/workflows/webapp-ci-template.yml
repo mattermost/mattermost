@@ -4,6 +4,9 @@
 name: Web App CI Template
 on:
   workflow_call:
+    secrets:
+      CODECOV_TOKEN:
+        required: true
 
 jobs:
   check-lint:
@@ -75,6 +78,14 @@ jobs:
           NODE_OPTIONS: --max_old_space_size=5120
         run: |
           npm run test-ci
+      - name: Upload coverage to Codecov
+        # Skip coverage upload for cherry-pick PRs into release branches.
+        if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          disable_search: true
+          files: ./webapp/channels/coverage/lcov.info
 
   build:
     runs-on: ubuntu-22.04

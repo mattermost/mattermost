@@ -37,8 +37,8 @@ const messages = defineMessages({
 export const noBillingHistory = (
     <div className='BillingSummary__noBillingHistory'>
         <EmptyBillingHistorySvg
-            height={167}
-            width={234}
+            height={116}
+            width={152}
         />
         <div className='BillingSummary__noBillingHistory-title'>
             <FormattedMessage
@@ -55,7 +55,7 @@ export const noBillingHistory = (
         <ExternalLink
             location='billing_summary'
             href={CloudLinks.BILLING_DOCS}
-            className='BillingSummary__noBillingHistory-link'
+            className='btn btn-primary BillingSummary__noBillingHistory-link'
             onClick={() => trackEvent('cloud_admin', 'click_how_billing_works', {screen: 'subscriptions'})}
         >
             <FormattedMessage
@@ -273,10 +273,8 @@ export const InvoiceInfo = ({invoice, product, fullCharges, partialCharges, hasM
                             defaultMessage='Partial charges'
                         />
                         <WithTooltip
-                            id='BillingSubscriptions__seatOverageTooltip'
                             title={messages.partialChargesTooltipTitle}
                             hint={messages.partialChargesTooltipText}
-                            placement='bottom'
                         >
                             <i className='icon-information-outline'/>
                         </WithTooltip>

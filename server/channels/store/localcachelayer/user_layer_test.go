@@ -89,7 +89,7 @@ func TestUserStoreCache(t *testing.T) {
 
 		originalProps := make([]model.StringMap, len(storedUsers))
 
-		for i := 0; i < len(storedUsers); i++ {
+		for i := range storedUsers {
 			originalProps[i] = storedUsers[i].NotifyProps
 			storedUsers[i].NotifyProps = map[string]string{}
 			storedUsers[i].NotifyProps["key"] = "somevalue"
@@ -98,13 +98,13 @@ func TestUserStoreCache(t *testing.T) {
 		cachedUsers, err := cachedStore.User().GetProfileByIds(context.Background(), fakeUserIds, &store.UserGetByIdsOpts{}, true)
 		require.NoError(t, err)
 
-		for i := 0; i < len(storedUsers); i++ {
+		for i := range storedUsers {
 			assert.Equal(t, storedUsers[i].Id, cachedUsers[i].Id)
 		}
 
 		cachedUsers, err = cachedStore.User().GetProfileByIds(context.Background(), fakeUserIds, &store.UserGetByIdsOpts{}, true)
 		require.NoError(t, err)
-		for i := 0; i < len(storedUsers); i++ {
+		for i := range storedUsers {
 			storedUsers[i].Props = model.StringMap{}
 			storedUsers[i].Timezone = model.StringMap{}
 			assert.Equal(t, storedUsers[i], cachedUsers[i])
@@ -115,7 +115,7 @@ func TestUserStoreCache(t *testing.T) {
 			assert.NotEqual(t, storedUsers[i], cachedUsers[i])
 		}
 
-		for i := 0; i < len(storedUsers); i++ {
+		for i := range storedUsers {
 			storedUsers[i].NotifyProps = originalProps[i]
 		}
 	})

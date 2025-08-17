@@ -62,7 +62,7 @@ func TestWebSocketRace(t *testing.T) {
 
 	cli.Listen()
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		time.Sleep(500 * time.Millisecond)
 		cli.UserTyping("channel", "parentId")
 	}

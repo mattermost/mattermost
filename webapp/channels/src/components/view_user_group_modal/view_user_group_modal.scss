@@ -98,16 +98,16 @@
                     }
 
                     button.remove-group-member {
-                        display: none;
                         margin-right: 0;
                         margin-left: auto;
+                        opacity: 0;
                     }
 
-                    &:hover {
+                    &:hover, &:focus-within {
                         background: rgba(var(--center-channel-color-rgb), 0.08);
 
                         button.remove-group-member {
-                            display: block;
+                            opacity: 1;
                         }
                     }
                 }

@@ -1063,11 +1063,8 @@ describe('Actions.Channels', () => {
         const mockQuery = {
             page: 0,
             per_page: 50,
-            not_associated_to_group: '',
-            exclude_default_channels: false,
             include_total_count: true,
             include_deleted: false,
-            exclude_policy_constrained: false,
         };
         nock(Client4.getBaseRoute()).
             get('/channels').
@@ -2099,14 +2096,13 @@ describe('Actions.Channels', () => {
         });
 
         nock(Client4.getBaseRoute()).get(
-            '/users/some-user-id/channel_members?page=0&per_page=200').
-            reply(200, [...Array(200).keys()].map((index) => ({channel_id: `channel-${index}`, user_id: 'some-user-id'})));
-        nock(Client4.getBaseRoute()).get(
-            '/users/some-user-id/channel_members?page=1&per_page=200').
-            reply(200, [...Array(200).keys()].map((index) => ({channel_id: `channel-${index + 200}`, user_id: 'some-user-id'})));
-        nock(Client4.getBaseRoute()).get(
-            '/users/some-user-id/channel_members?page=2&per_page=200').
-            reply(200, [...Array(100).keys()].map((index) => ({channel_id: `channel-${index + 400}`, user_id: 'some-user-id'})));
+            '/users/some-user-id/channel_members?page=-1&per_page=60').
+            reply(200, [...Array(500).keys()].map((index) => (
+                {
+                    channel_id: `channel-${index}`,
+                    user_id: 'some-user-id',
+                    roles: 'channel_user',
+                })));
 
         await store.dispatch(Actions.fetchAllMyChannelMembers());
         expect(Object.keys(store.getState().entities.channels.myMembers).length).toBe(500);

@@ -63,17 +63,16 @@ function UserAvatar({
     return (
         <ProfilePopover<HTMLButtonElement>
             triggerComponentAs='button'
-            triggerComponentClass='style--none rounded-button'
+            triggerComponentClass='style--none btn-round'
             userId={userId}
             src={profilePictureURL}
         >
             <WithTooltip
-                id={`tooltip-name-${userId}`}
                 title={name}
-                placement='top'
             >
                 <Avatar
                     url={imageURLForUser(userId, user?.last_picture_update)}
+                    username={user?.username}
                     tabIndex={-1}
                     {...props}
                 />
@@ -144,8 +143,6 @@ function Avatars({
             ))}
             {Boolean(nonDisplayCount) && (
                 <WithTooltip
-                    id={'names-overflow'}
-                    placement='top'
                     title={overflowUsersTooltip}
                 >
                     <Avatar

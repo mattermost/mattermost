@@ -37,8 +37,6 @@
 
 .no-results__variant-wrapper {
     display: flex;
-    width: 120px;
-    height: 120px;
     align-items: center;
     justify-content: center;
     border-radius: 100%;
@@ -62,9 +60,7 @@
     display: flex;
 
     svg {
-        width: 140px;
-        height: 140px;
-        fill: var(--button-bg);
+        fill: none;
     }
 
     &.icon {

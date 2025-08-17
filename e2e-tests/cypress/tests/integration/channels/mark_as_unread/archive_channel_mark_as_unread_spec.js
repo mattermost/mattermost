@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @mark_as_unread
 
-import {notShowCursor, markAsUnreadShouldBeAbsent} from './helpers';
+import {markAsUnreadShouldBeAbsent} from './helpers';
 
 describe('Channels', () => {
     let testUser;
@@ -19,13 +19,6 @@ describe('Channels', () => {
     let post1;
 
     before(() => {
-        // # Enable Experimental View Archived Channels
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
-
         cy.apiInitSetup().then(({team, user}) => {
             testUser = user;
             testTeam = team;
@@ -61,7 +54,7 @@ describe('Channels', () => {
         cy.get('#channelHeaderTitle').should('contain', testChannel.display_name).click();
 
         // * Verify that the menu is opened
-        cy.get('.Menu__content').should('be.visible').within(() => {
+        cy.get('#channelHeaderDropdownMenu').should('be.visible').within(() => {
             // # Archive the channel
             cy.findByText('Archive Channel').should('be.visible').click();
         });
@@ -74,12 +67,6 @@ describe('Channels', () => {
 
         // * Verify the "Mark as Unread" option is absent in post menu
         markAsUnreadShouldBeAbsent(post1.id);
-
-        // * Hover on the post with holding alt should show cursor
-        cy.get(`#post_${post1.id}`).trigger('mouseover').type('{alt}', {release: false}).should(notShowCursor);
-
-        // # Mouse click on the post holding alt
-        cy.get(`#post_${post1.id}`).type('{alt}', {release: false}).click();
 
         // * Verify the post is not marked as unread
         cy.get('.NotificationSeparator').should('not.exist');

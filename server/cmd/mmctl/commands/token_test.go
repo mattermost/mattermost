@@ -26,12 +26,6 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), userArg, "").
-			Return(nil, &model.Response{}, errors.New("no user found with the given email")).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), userArg, "").
 			Return(nil, &model.Response{}, errors.New("no user found with the given username")).
 			Times(1)
@@ -60,12 +54,6 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 		userArg := "some-text"
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), userArg, "").
-			Return(nil, &model.Response{}, errors.New("no user found with the given email")).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), userArg, "").
 			Return(nil, &model.Response{}, errors.New("no user found with the given username")).
 			Times(1)
@@ -86,12 +74,6 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 
 		userArg := "user1"
 		mockUser := model.User{Id: "userId1", Email: "user1@example.com", Username: "user1"}
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), userArg, "").
-			Return(nil, &model.Response{}, errors.New("no user found with the given email")).
-			Times(1)
 
 		s.client.
 			EXPECT().
@@ -125,12 +107,6 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 		mockUser := model.User{Id: "userId1", Email: "user1@example.com", Username: "user1"}
 		mockToken1 := model.UserAccessToken{IsActive: true, Id: "token-1-id", Description: "token-1-desc"}
 		mockToken2 := model.UserAccessToken{IsActive: false, Id: "token-2-id", Description: "token-2-desc"}
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Id, "").
-			Return(nil, &model.Response{}, errors.New("no user found with the given email")).
-			Times(1)
 
 		s.client.
 			EXPECT().
@@ -203,12 +179,6 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 		command.Flags().Bool("all", false, "")
 		command.Flags().Bool("active", false, "")
 		command.Flags().Bool("inactive", false, "")
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), userArg, "").
-			Return(nil, &model.Response{}, errors.New("no user found with the given email")).
-			Times(1)
 
 		s.client.
 			EXPECT().

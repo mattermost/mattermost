@@ -42,7 +42,7 @@ function FileLimitStickyBanner() {
 
     const usage = useGetUsage();
     const [cloudLimits] = useGetLimits();
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
 
     const user = useSelector(getCurrentUser);
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
@@ -104,7 +104,13 @@ function FileLimitStickyBanner() {
         />
     );
 
-    const adminMessage =
+    const adminMessage = isAirGapped ?
+        (
+            <FormattedMessage
+                id={'create_post.file_limit_sticky_banner.admin_message_airgapped'}
+                defaultMessage={'New uploads will automatically archive older files. To view them again, you can delete older files.'}
+            />
+        ) :
         (
             <FormattedMessage
                 id={'create_post.file_limit_sticky_banner.admin_message'}
@@ -126,7 +132,13 @@ function FileLimitStickyBanner() {
             />
         );
 
-    const nonAdminMessage =
+    const nonAdminMessage = isAirGapped ?
+        (
+            <FormattedMessage
+                id={'create_post.file_limit_sticky_banner.non_admin_message_airgapped'}
+                defaultMessage={'New uploads will automatically archive older files. To view them again, contact your admin.'}
+            />
+        ) :
         (
             <FormattedMessage
                 id={'create_post.file_limit_sticky_banner.non_admin_message'}

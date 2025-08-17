@@ -17,26 +17,6 @@ import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 const timestamp = Date.now();
 
-function verifyChannel(channel: Channel, verifyExistence = true) {
-    // # Wait for Channel to be created
-    cy.wait(TIMEOUTS.HALF_SEC);
-
-    // # Hover on the channel name
-    cy.get(`#sidebarItem_${channel.name}`).should('be.visible').trigger('mouseover');
-
-    // * Verify that the tooltip is displayed
-    if (verifyExistence) {
-        cy.get('div.tooltip-inner').
-            should('be.visible').
-            and('contain', channel.display_name);
-    } else {
-        cy.get('div.tooltip-inner').should('not.exist');
-    }
-
-    // # Move cursor away from channel
-    cy.get(`#sidebarItem_${channel.name}`).should('be.visible').trigger('mouseout');
-}
-
 describe('channel name tooltips', () => {
     let loggedUser: UserProfile;
     let longUser: UserProfile;
@@ -122,12 +102,30 @@ describe('channel name tooltips', () => {
         cy.uiGetButton('Go').click();
 
         // # Hover on the channel name
-        cy.get(`#sidebarItem_${Cypress._.sortBy([loggedUser.id, longUser.id]).join('__')}`).scrollIntoView().should('be.visible').trigger('mouseover');
+        cy.get(`#sidebarItem_${Cypress._.sortBy([loggedUser.id, longUser.id]).join('__')}`).scrollIntoView().should('be.visible').trigger('mouseenter');
 
         // * Verify that the tooltip is displayed
-        cy.get('div.tooltip-inner').should('be.visible');
+        cy.findByRole('tooltip').should('be.visible');
 
         // # Move cursor away from channel
-        cy.get(`#sidebarItem_${Cypress._.sortBy([loggedUser.id, longUser.id]).join('__')}`).scrollIntoView().should('be.visible').trigger('mouseout');
+        cy.get(`#sidebarItem_${Cypress._.sortBy([loggedUser.id, longUser.id]).join('__')}`).scrollIntoView().should('be.visible').trigger('mouseleave');
     });
 });
+
+function verifyChannel(channel: Channel, verifyExistence = true) {
+    // # Wait for Channel to be created
+    cy.wait(TIMEOUTS.HALF_SEC);
+
+    // # Hover on the channel name
+    cy.get(`#sidebarItem_${channel.name}`).should('be.visible').trigger('mouseenter');
+
+    // * Verify that the tooltip is displayed
+    if (verifyExistence) {
+        cy.findByRole('tooltip').should('be.visible').and('have.text', channel.display_name);
+    } else {
+        cy.findByRole('tooltip').should('not.exist');
+    }
+
+    // # Move cursor away from channel
+    cy.get(`#sidebarItem_${channel.name}`).should('be.visible').trigger('mouseleave');
+}

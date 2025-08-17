@@ -16,7 +16,7 @@ import * as Menu from 'components/menu';
 import PostReminderCustomTimePicker from 'components/post_reminder_custom_time_picker_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
-import {toUTCUnix} from 'utils/datetime';
+import {toUTCUnixInSeconds} from 'utils/datetime';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 
 type Props = {
@@ -67,7 +67,7 @@ function PostReminderSubmenu(props: Props) {
                 endTime = currentDate.add(1, 'day').set({hour: 9, minute: 0});
             }
 
-            dispatch(addPostReminder(props.userId, props.post.id, toUTCUnix(endTime.toDate())));
+            dispatch(addPostReminder(props.userId, props.post.id, toUTCUnixInSeconds(endTime.toDate())));
         }
     }
 
@@ -159,13 +159,16 @@ function PostReminderSubmenu(props: Props) {
             leadingElement={<ClockOutlineIcon size={18}/>}
             trailingElements={<span className={'dot-menu__item-trailing-icon'}><ChevronRightIcon size={16}/></span>}
             menuId={`remind_post_${props.post.id}-menu`}
+            subMenuHeader={
+                <h5 className={'dot-menu__post-reminder-menu-header'}>
+                    {formatMessage(
+                        {
+                            id: 'post_info.post_reminder.sub_menu.header',
+                            defaultMessage: 'Set a reminder for:',
+                        },
+                    )}
+                </h5>}
         >
-            <h5 className={'dot-menu__post-reminder-menu-header'}>
-                {formatMessage(
-                    {id: 'post_info.post_reminder.sub_menu.header',
-                        defaultMessage: 'Set a reminder for:'},
-                )}
-            </h5>
             {postReminderSubMenuItems}
         </Menu.SubMenu>
     );

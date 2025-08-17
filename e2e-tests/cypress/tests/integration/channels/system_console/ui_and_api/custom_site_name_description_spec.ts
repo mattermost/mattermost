@@ -22,7 +22,7 @@ describe('Customization', () => {
         cy.visit('/login');
 
         // * Verify that the head tag contains default title and without og:description
-        cy.get('head').find('title').should('have.text', defaultTitle);
+        cy.get('head').find('title').should('have.text', `${defaultDescription} - ${defaultTitle}`);
         cy.get('head').get('meta[property="og:description"]').should('not.exist');
 
         // * Verify that the header contains default logo/image
@@ -40,7 +40,7 @@ describe('Customization', () => {
         cy.visit('');
 
         // * Verify that the head tag contains custom title and description
-        cy.get('head').find('title').should('have.text', customTitle);
+        cy.get('head').find('title').should('have.text', `${defaultDescription} - ${customTitle}`);
         cy.get('head').get('meta[property="og:description"]').should('have.attr', 'content', customDescription);
 
         // * Verify that the header contains custom title

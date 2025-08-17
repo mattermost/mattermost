@@ -93,6 +93,11 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             updateChannelMemberSchemeRoles: jest.fn(),
             deleteChannel: jest.fn(),
             unarchiveChannel: jest.fn(),
+            getAccessControlPolicy: jest.fn(),
+            deleteAccessControlPolicy: jest.fn(),
+            assignChannelToAccessControlPolicy: jest.fn(),
+            unassignChannelsFromAccessControlPolicy: jest.fn(),
+            searchPolicies: jest.fn(),
         };
 
         const additionalProps = {
@@ -100,6 +105,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             guestAccountsEnabled: true,
             channelModerationEnabled: true,
             channelGroupsEnabled: true,
+            abacSupported: true,
             isDisabled: false,
         };
 
@@ -217,6 +223,11 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             updateChannelMemberSchemeRoles: jest.fn(),
             deleteChannel: jest.fn(),
             unarchiveChannel: jest.fn(),
+            getAccessControlPolicy: jest.fn(),
+            deleteAccessControlPolicy: jest.fn(),
+            assignChannelToAccessControlPolicy: jest.fn(),
+            unassignChannelsFromAccessControlPolicy: jest.fn(),
+            searchPolicies: jest.fn(),
         };
 
         const additionalProps = {
@@ -225,6 +236,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             channelModerationEnabled: true,
             channelGroupsEnabled: false,
             isDisabled: false,
+            abacSupported: false,
         };
 
         if (!testChannel.id) {
@@ -342,6 +354,11 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             updateChannelMemberSchemeRoles: jest.fn(),
             deleteChannel: jest.fn(),
             unarchiveChannel: jest.fn(),
+            getAccessControlPolicy: jest.fn(),
+            deleteAccessControlPolicy: jest.fn(),
+            assignChannelToAccessControlPolicy: jest.fn(),
+            unassignChannelsFromAccessControlPolicy: jest.fn(),
+            searchPolicies: jest.fn(),
         };
 
         const additionalProps = {
@@ -350,6 +367,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             channelModerationEnabled: true,
             channelGroupsEnabled: false,
             isDisabled: false,
+            abacSupported: true,
         };
 
         if (!testChannel.id) {

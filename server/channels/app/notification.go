@@ -209,7 +209,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		for _, profile := range profileMap {
 			if (profile.NotifyProps[model.PushNotifyProp] == model.UserNotifyAll ||
 				channelMemberNotifyPropsMap[profile.Id][model.PushNotifyProp] == model.ChannelNotifyAll) &&
-				(post.UserId != profile.Id || post.GetProp("from_webhook") == "true") &&
+				(post.UserId != profile.Id || post.GetProp(model.PostPropsFromWebhook) == "true") &&
 				!post.IsSystemMessage() &&
 				!(a.IsCRTEnabledForUser(c, profile.Id) && post.RootId != "") {
 				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
@@ -228,8 +228,10 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		var rootMentions *MentionResults
 		if parentPostList != nil {
 			rootPost := parentPostList.Posts[parentPostList.Order[0]]
-			if rootPost.GetProp("from_webhook") != "true" {
-				threadParticipants[rootPost.UserId] = true
+			if rootPost.GetProp(model.PostPropsFromWebhook) != "true" {
+				if _, ok := profileMap[rootPost.UserId]; ok {
+					threadParticipants[rootPost.UserId] = true
+				}
 			}
 			if channel.Type != model.ChannelTypeDirect {
 				rootMentions = getExplicitMentions(rootPost, keywords)
@@ -356,7 +358,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				continue
 			}
 
-			if post.GetProp("from_webhook") != "true" && uid == post.UserId {
+			if post.GetProp(model.PostPropsFromWebhook) != "true" && uid == post.UserId {
 				continue
 			}
 
@@ -415,19 +417,21 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				if err != nil {
 					c.Logger().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
 				}
-				if err := a.sendNotificationEmail(c, notification, profileMap[id], team, senderProfileImage); err != nil {
-					a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeEmail, model.NotificationReasonEmailSendError, model.NotificationNoPlatform)
-					a.NotificationsLog().Error("Error sending email notification",
-						mlog.String("type", model.NotificationTypeEmail),
-						mlog.String("post_id", post.Id),
-						mlog.String("status", model.NotificationStatusError),
-						mlog.String("reason", model.NotificationReasonEmailSendError),
-						mlog.String("sender_id", sender.Id),
-						mlog.String("receiver_id", id),
-						mlog.Err(err),
-					)
-					c.Logger().Warn("Unable to send notification email.", mlog.Err(err))
-				}
+				a.Srv().Go(func() {
+					if _, err := a.sendNotificationEmail(c, notification, profileMap[id], team, senderProfileImage); err != nil {
+						a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeEmail, model.NotificationReasonEmailSendError, model.NotificationNoPlatform)
+						a.NotificationsLog().Error("Error sending email notification",
+							mlog.String("type", model.NotificationTypeEmail),
+							mlog.String("post_id", post.Id),
+							mlog.String("status", model.NotificationStatusError),
+							mlog.String("reason", model.NotificationReasonEmailSendError),
+							mlog.String("sender_id", sender.Id),
+							mlog.String("receiver_id", id),
+							mlog.Err(err),
+						)
+						c.Logger().Warn("Unable to send notification email.", mlog.Err(err))
+					}
+				})
 			} else {
 				a.NotificationsLog().Debug("Email disallowed by user",
 					mlog.String("type", model.NotificationTypeEmail),
@@ -1036,7 +1040,7 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 	var keywords MentionKeywords
 
 	if channel.Type == model.ChannelTypeDirect {
-		isWebhook := post.GetProp("from_webhook") == "true"
+		isWebhook := post.GetProp(model.PostPropsFromWebhook) == "true"
 
 		// A bot can post in a DM where it doesn't belong to.
 		// Therefore, we cannot "guess" who is the other user,
@@ -1117,7 +1121,7 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 		}
 
 		// Prevent the user from mentioning themselves
-		if post.GetProp("from_webhook") != "true" {
+		if post.GetProp(model.PostPropsFromWebhook) != "true" {
 			mentions.removeMention(post.UserId)
 		}
 	}
@@ -1258,6 +1262,7 @@ func (a *App) filterOutOfChannelMentions(c request.CTX, sender *model.User, post
 	// Differentiate between mentionedUsersInTheTeam who can and can't be added to the channel
 	var outOfChannelUsers model.UserSlice
 	var outOfGroupsUsers model.UserSlice
+
 	if channel.IsGroupConstrained() {
 		nonMemberIDs, err := a.FilterNonGroupChannelMembers(teamUsers.IDs(), channel)
 		if err != nil {
@@ -1287,6 +1292,8 @@ func makeOutOfChannelMentionPost(sender *model.User, post *model.Post, outOfChan
 
 	ephemeralPostId := model.NewId()
 	var message string
+
+	// Generate message for users who can be invited
 	if len(outOfChannelUsers) == 1 {
 		message = T("api.post.check_for_out_of_channel_mentions.message.one", map[string]any{
 			"Username": ocUsernames[0],
@@ -1463,7 +1470,7 @@ func (a *App) allowChannelMentions(c request.CTX, post *model.Post, numProfiles 
 
 // allowGroupMentions returns whether or not the group mentions are allowed for the given post.
 func (a *App) allowGroupMentions(c request.CTX, post *model.Post) bool {
-	if license := a.Srv().License(); license == nil || (license.SkuShortName != model.LicenseShortSkuProfessional && license.SkuShortName != model.LicenseShortSkuEnterprise) {
+	if !model.MinimumProfessionalLicense(a.Srv().License()) {
 		return false
 	}
 
@@ -1637,7 +1644,7 @@ func (n *PostNotification) GetSenderName(userNameFormat string, overridesAllowed
 	}
 
 	if overridesAllowed && n.Channel.Type != model.ChannelTypeDirect {
-		if value := n.Post.GetProps()["override_username"]; value != nil && n.Post.GetProp("from_webhook") == "true" {
+		if value := n.Post.GetProp(model.PostPropsOverrideUsername); value != nil && n.Post.GetProp(model.PostPropsFromWebhook) == "true" {
 			if s, ok := value.(string); ok {
 				return s
 			}

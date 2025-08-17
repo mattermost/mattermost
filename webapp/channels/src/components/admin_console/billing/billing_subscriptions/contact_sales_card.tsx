@@ -66,7 +66,7 @@ const ContactSalesCard = (props: Props) => {
         description = (
             <FormattedMessage
                 id='admin.billing.subscription.privateCloudCard.cloudEnterprise.description'
-                defaultMessage='At Mattermost, we work with you and your organization to meet your needs throughout the product. If you’re considering a wider rollout, talk to us.'
+                defaultMessage="At Mattermost, we work with you and your organization to meet your needs throughout the product. If you're considering a wider rollout, talk to us."
             />
         );
     } else {
@@ -110,7 +110,7 @@ const ContactSalesCard = (props: Props) => {
             description = (
                 <FormattedMessage
                     id='admin.billing.subscription.privateCloudCard.cloudEnterprise.description'
-                    defaultMessage='At Mattermost, we work with you and your organization to meet your needs throughout the product. If you’re considering a wider rollout, talk to us.'
+                    defaultMessage="At Mattermost, we work with you and your organization to meet your needs throughout the product. If you're considering a wider rollout, talk to us."
                 />
             );
             break;
@@ -145,7 +145,7 @@ const ContactSalesCard = (props: Props) => {
                     <ExternalLink
                         location='contact_sales_card'
                         href={contactSalesLink}
-                        className='PrivateCloudCard__actionButton'
+                        className='btn btn-tertiary PrivateCloudCard__actionButton'
                         onClick={() => trackEvent('cloud_admin', 'click_contact_sales')}
                     >
                         <FormattedMessage
@@ -165,7 +165,7 @@ const ContactSalesCard = (props: Props) => {
                                 openSalesLink();
                             }
                         }}
-                        className='PrivateCloudCard__actionButton'
+                        className='btn btn-tertiary PrivateCloudCard__actionButton'
                     >
                         {subscriptionPlan === CloudProducts.STARTER ? (
                             <FormattedMessage

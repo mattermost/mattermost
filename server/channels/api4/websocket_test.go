@@ -21,6 +21,7 @@ import (
 )
 
 func TestWebSocketTrailingSlash(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -30,14 +31,11 @@ func TestWebSocketTrailingSlash(t *testing.T) {
 }
 
 func TestWebSocketEvent(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-	defer WebSocketClient.Close()
-
-	WebSocketClient.Listen()
+	WebSocketClient := th.CreateConnectedWebSocketClient(t)
 
 	resp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk, "should have responded OK to authentication challenge")
@@ -99,6 +97,7 @@ func TestWebSocketEvent(t *testing.T) {
 }
 
 func TestCreateDirectChannelWithSocket(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -108,7 +107,7 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 	users := make([]*model.User, 0)
 	users = append(users, user2)
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		users = append(users, th.CreateUser())
 	}
 
@@ -154,6 +153,7 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 }
 
 func TestWebsocketOriginSecurity(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -204,6 +204,7 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 }
 
 func TestWebSocketReconnectRace(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -224,7 +225,7 @@ func TestWebSocketReconnectRace(t *testing.T) {
 
 	WebSocketClient.Close()
 
-	for i := 0; i < n; i++ {
+	for range n {
 		go func() {
 			defer wg.Done()
 			ws, err := th.CreateReliableWebSocketClient(connID, seq+1)
@@ -238,27 +239,24 @@ func TestWebSocketReconnectRace(t *testing.T) {
 }
 
 func TestWebSocketSendBinary(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	client := th.CreateClient()
 	th.LoginBasicWithClient(client)
-	WebSocketClient, err := th.CreateWebSocketClientWithClient(client)
-	require.NoError(t, err)
-	defer WebSocketClient.Close()
-	WebSocketClient.Listen()
+	WebSocketClient := th.CreateConnectedWebSocketClientWithClient(t, client)
 	resp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk)
 
 	client2 := th.CreateClient()
 	th.LoginBasic2WithClient(client2)
-	WebSocketClient2, err := th.CreateWebSocketClientWithClient(client2)
-	require.NoError(t, err)
-	defer WebSocketClient2.Close()
+	_ = th.CreateConnectedWebSocketClientWithClient(t, client2)
 
-	time.Sleep(1000 * time.Millisecond)
+	// Wait for statuses to be updated
+	time.Sleep(time.Second)
 
-	err = WebSocketClient.SendBinaryMessage("get_statuses", nil)
+	err := WebSocketClient.SendBinaryMessage("get_statuses", nil)
 	require.NoError(t, err)
 	resp = <-WebSocketClient.ResponseChannel
 	require.Nil(t, resp.Error, resp.Error)
@@ -281,14 +279,12 @@ func TestWebSocketSendBinary(t *testing.T) {
 }
 
 func TestWebSocketStatuses(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	client := th.Client
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-	defer WebSocketClient.Close()
-	WebSocketClient.Listen()
+	WebSocketClient := th.CreateConnectedWebSocketClient(t)
 
 	resp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk, "should have responded OK to authentication challenge")
@@ -315,10 +311,10 @@ func TestWebSocketStatuses(t *testing.T) {
 
 	th.LoginBasic2()
 
-	WebSocketClient2, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
+	WebSocketClient2 := th.CreateConnectedWebSocketClient(t)
 
-	time.Sleep(1000 * time.Millisecond)
+	// Wait for statuses to be updated
+	time.Sleep(time.Second)
 
 	WebSocketClient.GetStatuses()
 	resp = <-WebSocketClient.ResponseChannel
@@ -423,13 +419,11 @@ func TestWebSocketStatuses(t *testing.T) {
 }
 
 func TestWebSocketPresence(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	wsClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-	defer wsClient.Close()
-	wsClient.Listen()
+	wsClient := th.CreateConnectedWebSocketClient(t)
 
 	resp := <-wsClient.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk, "should have responded OK to authentication challenge")
@@ -456,6 +450,7 @@ func TestWebSocketPresence(t *testing.T) {
 }
 
 func TestWebSocketUpgrade(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -469,4 +464,75 @@ func TestWebSocketUpgrade(t *testing.T) {
 	require.Equal(t, resp.StatusCode, http.StatusBadRequest)
 	require.NoError(t, th.TestLogger.Flush())
 	testlib.AssertLog(t, buffer, mlog.LvlDebug.Name, "URL Blocked because of CORS. Url: ")
+}
+
+func TestValidateDisconnectErrCode(t *testing.T) {
+	testCases := []struct {
+		name    string
+		errCode string
+		valid   bool
+	}{
+		{
+			name:    "empty string",
+			errCode: "",
+			valid:   false,
+		},
+		{
+			name:    "non-numeric string",
+			errCode: "not-a-number",
+			valid:   false,
+		},
+		{
+			name:    "valid standard close code - 1000",
+			errCode: "1000",
+			valid:   true,
+		},
+		{
+			name:    "valid standard close code - 1001",
+			errCode: "1001",
+			valid:   true,
+		},
+		{
+			name:    "valid standard close code - 1015",
+			errCode: "1015",
+			valid:   true,
+		},
+		{
+			name:    "valid standard close code - 1016",
+			errCode: "1016",
+			valid:   true,
+		},
+		{
+			name:    "out of range (too low)",
+			errCode: "999",
+			valid:   false,
+		},
+		{
+			name:    "out of range (too high)",
+			errCode: "1017",
+			valid:   false,
+		},
+		{
+			name:    "valid custom code - client ping timeout",
+			errCode: "4000",
+			valid:   true,
+		},
+		{
+			name:    "valid custom code - client sequence mismatch",
+			errCode: "4001",
+			valid:   true,
+		},
+		{
+			name:    "invalid custom code",
+			errCode: "5000",
+			valid:   false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := validateDisconnectErrCode(tc.errCode)
+			require.Equal(t, tc.valid, result)
+		})
+	}
 }

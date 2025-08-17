@@ -36,7 +36,7 @@ describe('Settings > Sidebar > Channel Switcher', () => {
         cy.get('#quickSwitchHint').should('be.visible').should('contain', 'Type to find a channel. Use UP/DOWN to browse, ENTER to select, ESC to dismiss.');
 
         // # Type CTRL/CMD+shift+L
-        cy.findByRole('textbox', {name: 'quick switch input'}).cmdOrCtrlShortcut('{shift}L');
+        cy.findByRole('combobox', {name: 'quick switch input'}).cmdOrCtrlShortcut('{shift}L');
 
         // * Suggestion list should not be visible
         cy.get('#suggestionList').should('not.exist');
@@ -56,7 +56,7 @@ describe('Settings > Sidebar > Channel Switcher', () => {
         cy.get('#quickSwitchHint').should('be.visible').should('contain', 'Type to find a channel. Use UP/DOWN to browse, ENTER to select, ESC to dismiss.');
 
         // # Type CTRL/CMD+shift+m
-        cy.findByRole('textbox', {name: 'quick switch input'}).cmdOrCtrlShortcut('{shift}M');
+        cy.findByRole('combobox', {name: 'quick switch input'}).cmdOrCtrlShortcut('{shift}M');
 
         // * Suggestion list should not be visible
         cy.get('#suggestionList').should('not.exist');

@@ -3,7 +3,10 @@
 
 import React from 'react';
 
+import {PostPriority} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
+
+import {Posts} from 'mattermost-redux/constants';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
@@ -322,6 +325,229 @@ describe('PostComponent', () => {
                 expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).not.toHaveBeenCalled();
                 expect(getHistory().push).toHaveBeenCalled();
             });
+        });
+    });
+
+    describe('file list', () => {
+        test('should show file list in post', () => {
+            const fileInfo1 = TestHelper.getFileInfoMock({id: 'fileId1', name: 'file1.jpg'});
+            const fileInfo2 = TestHelper.getFileInfoMock({id: 'fileId2', name: 'file2.jpg'});
+            const fileInfo3 = TestHelper.getFileInfoMock({id: 'fileId3', name: 'file3.jpg'});
+
+            const post = TestHelper.getPostMock({file_ids: [fileInfo1.id, fileInfo2.id, fileInfo3.id]});
+
+            const state: DeepPartial<GlobalState> = {
+                entities: {
+                    posts: {
+                        posts: {
+                            [post.id]: post,
+                        },
+                    },
+                    files: {
+                        files: {
+                            [fileInfo1.id]: fileInfo1,
+                            [fileInfo2.id]: fileInfo2,
+                            [fileInfo3.id]: fileInfo3,
+                        },
+                        fileIdsByPostId: {
+                            [baseProps.post.id]: ['fileId1', 'fileId2', 'fileId3'],
+                        },
+                    },
+                },
+            };
+
+            const props = {
+                ...baseProps,
+                post,
+            };
+
+            const {container} = renderWithContext(<PostComponent {...props}/>, state);
+            expect(screen.getByTestId('fileAttachmentList')).toBeInTheDocument();
+            expect(container.querySelectorAll('.post-image__column')).toHaveLength(3);
+            expect(container.querySelectorAll('.post-image__column')[0]).toHaveTextContent(fileInfo1.name);
+            expect(container.querySelectorAll('.post-image__column')[1]).toHaveTextContent(fileInfo2.name);
+            expect(container.querySelectorAll('.post-image__column')[2]).toHaveTextContent(fileInfo3.name);
+        });
+
+        test('should show file list in edit container when editing', () => {
+            const fileInfo1 = TestHelper.getFileInfoMock({id: 'fileId1', name: 'file1.jpg'});
+            const fileInfo2 = TestHelper.getFileInfoMock({id: 'fileId2', name: 'file2.jpg'});
+            const fileInfo3 = TestHelper.getFileInfoMock({id: 'fileId3', name: 'file3.jpg'});
+
+            const team = TestHelper.getTeamMock({id: 'team_id'});
+            const channel = TestHelper.getChannelMock({team_id: team.id});
+
+            const post = TestHelper.getPostMock({
+                file_ids: [fileInfo1.id, fileInfo2.id, fileInfo3.id],
+                channel_id: channel.id,
+                metadata: {
+                    files: [fileInfo1, fileInfo2, fileInfo3],
+                },
+            });
+
+            const state: DeepPartial<GlobalState> = {
+                entities: {
+                    posts: {
+                        posts: {
+                            [post.id]: post,
+                        },
+                    },
+                    files: {
+                        files: {
+                            [fileInfo1.id]: fileInfo1,
+                            [fileInfo2.id]: fileInfo2,
+                            [fileInfo3.id]: fileInfo3,
+                        },
+                        fileIdsByPostId: {
+                            [post.id]: [fileInfo1.id, fileInfo2.id, fileInfo3.id],
+                        },
+                    },
+                    channels: {
+                        channels: {
+                            [channel.id]: channel,
+                        },
+                        roles: {
+                            [channel.id]: new Set(['channel_member']),
+                        },
+                    },
+                    teams: {
+                        teams: {
+                            [team.id]: team,
+                        },
+                    },
+                    roles: {
+                        roles: {
+                            channel_member: {permissions: ['create_post']},
+                        },
+                    },
+                },
+                views: {
+                    posts: {
+                        editingPost: {
+                            postId: post.id,
+                            show: true,
+                        },
+                    },
+                },
+                storage: {
+                    storage: {
+                        edit_draft_id: {
+                            value: {
+                                ...post,
+                            },
+                        },
+                    },
+                },
+            };
+
+            const props = {
+                ...baseProps,
+                post,
+                isPostBeingEdited: true,
+            };
+
+            const {container} = renderWithContext(<PostComponent {...props}/>, state);
+
+            // advanced text editor should be visible
+            expect(container.querySelector('.AdvancedTextEditor__body')).toBeInTheDocument();
+
+            // file attachment list should be visible inside advanced text editor
+            expect(container.querySelector('.AdvancedTextEditor__body .file-preview__container')).toBeInTheDocument();
+            expect(container.querySelectorAll('.post-image__column')).toHaveLength(3);
+            expect(container.querySelectorAll('.post-image__column')[0]).toHaveTextContent(fileInfo1.name);
+            expect(container.querySelectorAll('.post-image__column')[1]).toHaveTextContent(fileInfo2.name);
+            expect(container.querySelectorAll('.post-image__column')[2]).toHaveTextContent(fileInfo3.name);
+
+            // additionally, files should not be visible outside the advanced text editor
+            expect(screen.queryByTestId('fileAttachmentList')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('priority labels', () => {
+        test('should show priority label for non-deleted post with priority metadata', () => {
+            const post = TestHelper.getPostMock({
+                metadata: {
+                    priority: {
+                        priority: PostPriority.URGENT,
+                    },
+                },
+            });
+            const props = {
+                ...baseProps,
+                post,
+                isPostPriorityEnabled: true,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.getByTestId('post-priority-label')).toBeInTheDocument();
+        });
+
+        test('should show priority label for non-deleted post with important priority metadata', () => {
+            const post = TestHelper.getPostMock({
+                metadata: {
+                    priority: {
+                        priority: PostPriority.IMPORTANT,
+                    },
+                },
+            });
+            const props = {
+                ...baseProps,
+                post,
+                isPostPriorityEnabled: true,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.getByTestId('post-priority-label')).toBeInTheDocument();
+        });
+
+        test('should not show priority label for deleted post with priority metadata', () => {
+            const post = TestHelper.getPostMock({
+                state: Posts.POST_DELETED as 'DELETED',
+                metadata: {
+                    priority: {
+                        priority: PostPriority.URGENT,
+                    },
+                },
+            });
+            const props = {
+                ...baseProps,
+                post,
+                isPostPriorityEnabled: true,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.queryByTestId('post-priority-label')).not.toBeInTheDocument();
+        });
+
+        test('should not show priority label for deleted post with important priority metadata', () => {
+            const post = TestHelper.getPostMock({
+                state: Posts.POST_DELETED as 'DELETED',
+                metadata: {
+                    priority: {
+                        priority: PostPriority.IMPORTANT,
+                    },
+                },
+            });
+            const props = {
+                ...baseProps,
+                post,
+                isPostPriorityEnabled: true,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.queryByTestId('post-priority-label')).not.toBeInTheDocument();
+        });
+
+        test('should not show priority label for post without priority metadata', () => {
+            const post = TestHelper.getPostMock();
+            const props = {
+                ...baseProps,
+                post,
+                isPostPriorityEnabled: true,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.queryByTestId('post-priority-label')).not.toBeInTheDocument();
         });
     });
 });

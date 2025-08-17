@@ -255,7 +255,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
       saving={false}
     />
     <Connect(Component)
-      className="cancel-button"
+      className="btn btn-tertiary"
       to="/admin_console/compliance/data_retention_settings"
     >
       <MemoizedFormattedMessage
@@ -519,7 +519,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
       saving={false}
     />
     <Connect(Component)
-      className="cancel-button"
+      className="btn btn-tertiary"
       to="/admin_console/compliance/data_retention_settings"
     >
       <MemoizedFormattedMessage

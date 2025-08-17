@@ -107,8 +107,8 @@ func rolesMemberCmdF(c client.Client, _ *cobra.Command, args []string) error {
 		shouldRemoveSysadmin := false
 		var newRoles []string
 
-		roles := strings.Fields(user.Roles)
-		for _, role := range roles {
+		roles := strings.FieldsSeq(user.Roles)
+		for role := range roles {
 			switch role {
 			case model.SystemAdminRoleId:
 				shouldRemoveSysadmin = true

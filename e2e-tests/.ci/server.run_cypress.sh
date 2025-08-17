@@ -42,7 +42,7 @@ else
 fi
 
 # Collect run results
-cat > ../cypress/results/summary.json <<EOF
+cat >../cypress/results/summary.json <<EOF
 {
   "passed": $(find ../cypress/results/mochawesome-report/json/tests/ -name '*.json' | xargs -l jq -r '.stats.passes' | jq -s add),
   "failed": $(find ../cypress/results/mochawesome-report/json/tests/ -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add),
@@ -51,4 +51,4 @@ cat > ../cypress/results/summary.json <<EOF
 EOF
 
 # Collect server logs
-${MME2E_DC_SERVER} logs --no-log-prefix -- server > "../cypress/logs/${LOGFILE_SUFFIX}_mattermost.log" 2>&1
+${MME2E_DC_SERVER} logs --no-log-prefix -- server >"../cypress/logs/${LOGFILE_SUFFIX}_mattermost.log" 2>&1

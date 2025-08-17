@@ -17,6 +17,7 @@ import (
 )
 
 func TestPluginPublicKeys(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -64,6 +65,7 @@ func TestPluginPublicKeys(t *testing.T) {
 }
 
 func TestVerifySignature(t *testing.T) {
+	mainHelper.Parallel(t)
 	path, _ := fileutils.FindDir("tests")
 	pluginFilename := "testplugin.tar.gz"
 	signatureFilename := "testplugin.tar.gz.sig"

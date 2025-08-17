@@ -82,8 +82,8 @@ describe('Guest Account - Verify Guest Access UI', () => {
 
         // * Verify the confirmation message displayed
         cy.get('#confirmModal').should('be.visible').within(() => {
-            cy.get('#confirmModalLabel').should('be.visible').and('have.text', 'Save and Disable Guest Access?');
-            cy.get('.modal-body').should('be.visible').and('have.text', 'Disabling guest access will revoke all current Guest Account sessions. Guests will no longer be able to login and new guests cannot be invited into Mattermost. Guest users will be marked as inactive in user lists. Enabling this feature will not reinstate previous guest accounts. Are you sure you wish to remove these users?');
+            cy.get('#genericModalLabel').should('be.visible').and('have.text', 'Save and Disable Guest Access?');
+            cy.get('.ConfirmModal__body').should('be.visible').and('have.text', 'Disabling guest access will revoke all current Guest Account sessions. Guests will no longer be able to login and new guests cannot be invited into Mattermost. Guest users will be marked as inactive in user lists. Enabling this feature will not reinstate previous guest accounts. Are you sure you wish to remove these users?');
             cy.get('#confirmModalButton').should('have.text', 'Save and Disable Guest Access');
         });
 
@@ -103,7 +103,7 @@ describe('Guest Account - Verify Guest Access UI', () => {
         });
 
         // # Open team menu and click 'Invite People'
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // * Verify that an option to Invite via Guest should not be available
         cy.findByTestId('inviteGuestLink').should('not.exist');

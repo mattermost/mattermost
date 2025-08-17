@@ -1,5 +1,5 @@
-#announcement-bar__tooltip {
-    width: 50%;
-    max-width: 100%;
+.announcementBarTooltip {
+    min-width: 50vw;
+    max-width: 90vw;
     pointer-events: auto;
 }

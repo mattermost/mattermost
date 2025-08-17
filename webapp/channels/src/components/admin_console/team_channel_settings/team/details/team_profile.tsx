@@ -5,22 +5,19 @@ import classNames from 'classnames';
 import noop from 'lodash/noop';
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
 
 import type {Team} from '@mattermost/types/teams';
 
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import {openModal} from 'actions/views/modals';
-
 import useGetUsage from 'components/common/hooks/useGetUsage';
 import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
-import PricingModal from 'components/pricing_modal';
+import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 import WithTooltip from 'components/with_tooltip';
 
-import {ModalIdentifiers} from 'utils/constants';
 import {imageURLForTeam} from 'utils/utils';
 
 import './team_profile.scss';
@@ -36,10 +33,10 @@ type Props = {
 export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, saveNeeded}: Props) {
     const teamIconUrl = imageURLForTeam(team);
     const usageDeltas = useGetUsageDeltas();
-    const dispatch = useDispatch();
     const usage = useGetUsage();
     const license = useSelector(getLicense);
     const intl = useIntl();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
 
     const [overrideRestoreDisabled, setOverrideRestoreDisabled] = useState(false);
     const [restoreDisabled, setRestoreDisabled] = useState(usageDeltas.teams.teamsLoaded && usageDeltas.teams.active >= 0 && isArchived);
@@ -65,10 +62,8 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
         if (restoreDisabled) {
             return (
                 <WithTooltip
-                    id='sharedTooltip'
-                    title={defineMessage({id: 'workspace_limits.teams_limit_reached.upgrade_to_unarchive', defaultMessage: 'Upgrade to Unarchive'})}
-                    hint={defineMessage({id: 'workspace_limits.teams_limit_reached.tool_tip', defaultMessage: 'You\'ve reached the team limit for your current plan. Consider upgrading to unarchive this team or archive your other teams'})}
-                    placement='bottom'
+                    title={intl.formatMessage({id: 'workspace_limits.teams_limit_reached.upgrade_to_unarchive', defaultMessage: 'Upgrade to Unarchive'})}
+                    hint={intl.formatMessage({id: 'workspace_limits.teams_limit_reached.tool_tip', defaultMessage: 'You\'ve reached the team limit for your current plan. Consider upgrading to unarchive this team or archive your other teams'})}
                 >
                     <div
                         className={'disabled-overlay-wrapper'}
@@ -172,13 +167,10 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                     </div>
                     <div className='AdminChannelDetails_archiveContainer'>
                         {button()}
-                        {restoreDisabled &&
+                        {restoreDisabled && !isAirGapped &&
                             <button
                                 onClick={() => {
-                                    dispatch(openModal({
-                                        modalId: ModalIdentifiers.PRICING_MODAL,
-                                        dialogType: PricingModal,
-                                    }));
+                                    openPricingModal({trackingLocation: 'team_profile_view_upgrade_options'});
                                 }}
                                 type='button'
                                 className={

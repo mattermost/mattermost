@@ -4,7 +4,6 @@
 package app
 
 import (
-	"os"
 	"testing"
 	"time"
 
@@ -16,11 +15,7 @@ import (
 )
 
 func TestGetDraft(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
-	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "true")
-	defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
-
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -52,11 +47,6 @@ func TestGetDraft(t *testing.T) {
 	})
 
 	t.Run("get draft feature flag", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "false")
-		defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
-		os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")
-		defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
-
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
@@ -66,6 +56,7 @@ func TestGetDraft(t *testing.T) {
 }
 
 func TestUpsertDraft(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -115,11 +106,6 @@ func TestUpsertDraft(t *testing.T) {
 	})
 
 	t.Run("upsert draft feature flag", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "false")
-		defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
-		os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")
-		defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
-
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
@@ -129,6 +115,7 @@ func TestUpsertDraft(t *testing.T) {
 }
 
 func TestCreateDraft(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -187,6 +174,7 @@ func TestCreateDraft(t *testing.T) {
 }
 
 func TestUpdateDraft(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -232,6 +220,7 @@ func TestUpdateDraft(t *testing.T) {
 }
 
 func TestGetDraftsForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -346,11 +335,6 @@ func TestGetDraftsForUser(t *testing.T) {
 	})
 
 	t.Run("get drafts feature flag", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "false")
-		defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
-		os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")
-		defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
-
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
@@ -360,6 +344,7 @@ func TestGetDraftsForUser(t *testing.T) {
 }
 
 func TestDeleteDraft(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -388,11 +373,6 @@ func TestDeleteDraft(t *testing.T) {
 	})
 
 	t.Run("delete drafts feature flag", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "false")
-		defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
-		os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")
-		defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
-
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 

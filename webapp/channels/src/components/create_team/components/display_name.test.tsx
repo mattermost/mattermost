@@ -4,12 +4,10 @@
 import {shallow} from 'enzyme';
 import type {ReactWrapper} from 'enzyme';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
 
 import DisplayName from 'components/create_team/components/display_name';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import Constants from 'utils/constants';
 import {cleanUpUrlable} from 'utils/url';
 
 jest.mock('images/logo.png', () => 'logo.png');
@@ -72,101 +70,5 @@ describe('/components/create_team/components/display_name', () => {
 
         expect(wrapper.prop('updateParent')).toHaveBeenCalledWith(defaultProps.state);
         expect(wrapper.prop('updateParent').mock.calls[0][0]).toEqual(newState);
-    });
-
-    test('should display isRequired error', () => {
-        const wrapper = mountWithIntl(<DisplayName {...defaultProps}/>);
-        (wrapper.find('.form-control') as unknown as ReactWrapper<any, any, HTMLInputElement>).instance().value = '';
-        wrapper.find('.form-control').simulate('change');
-
-        wrapper.find('button').simulate('click', {
-            preventDefault: () => jest.fn(),
-        });
-
-        expect(wrapper.state('nameError')).toEqual(
-            <FormattedMessage
-                id='create_team.display_name.required'
-                defaultMessage='This field is required'
-            />,
-        );
-    });
-
-    test('should display isRequired error for null team in props', () => {
-        const nullTeamProps = {
-            updateParent: jest.fn(),
-            state: {
-                wizard: 'display_name',
-            },
-            actions: {
-                trackEvent: jest.fn(),
-            },
-        };
-
-        const wrapper = mountWithIntl(<DisplayName {...nullTeamProps}/>);
-
-        (wrapper.find('.form-control') as unknown as ReactWrapper<any, any, HTMLInputElement>).instance().value = '';
-        wrapper.find('.form-control').simulate('change');
-
-        wrapper.find('button').simulate('click', {
-            preventDefault: () => jest.fn(),
-        });
-
-        expect(wrapper.state('nameError')).toEqual(
-            <FormattedMessage
-                id='create_team.display_name.required'
-                defaultMessage='This field is required'
-            />,
-        );
-    });
-
-    test('should display isRequired error for empty team in props', () => {
-        const nullTeamProps = {
-            updateParent: jest.fn(),
-            state: {
-                team: {},
-                wizard: 'display_name',
-            },
-            actions: {
-                trackEvent: jest.fn(),
-            },
-        };
-
-        const wrapper = mountWithIntl(<DisplayName {...nullTeamProps}/>);
-
-        (wrapper.find('.form-control') as unknown as ReactWrapper<any, any, HTMLInputElement>).instance().value = '';
-        wrapper.find('.form-control').simulate('change');
-
-        wrapper.find('button').simulate('click', {
-            preventDefault: () => jest.fn(),
-        });
-
-        expect(wrapper.state('nameError')).toEqual(
-            <FormattedMessage
-                id='create_team.display_name.required'
-                defaultMessage='This field is required'
-            />,
-        );
-    });
-
-    test('should display charLength error', () => {
-        const wrapper = mountWithIntl(<DisplayName {...defaultProps}/>);
-        const input = (wrapper.find('.form-control') as unknown as ReactWrapper<any, any, HTMLInputElement>).instance();
-        input.value = 'a'.repeat(Constants.MAX_TEAMNAME_LENGTH + 1);
-        wrapper.find('.form-control').simulate('change');
-
-        wrapper.find('button').simulate('click', {
-            preventDefault: () => jest.fn(),
-        });
-
-        expect(wrapper.state('nameError')).toEqual(
-            <FormattedMessage
-                id='create_team.display_name.charLength'
-                defaultMessage='Name must be {min} or more characters up to a maximum of {max}. You can add a longer team description later.'
-                values={{
-                    min: Constants.MIN_TEAMNAME_LENGTH,
-                    max: Constants.MAX_TEAMNAME_LENGTH,
-                }}
-            />,
-        );
     });
 });

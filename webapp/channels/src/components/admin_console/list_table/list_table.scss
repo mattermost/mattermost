@@ -123,7 +123,9 @@ table.adminConsoleListTable {
             font-weight: 400;
             line-height: 20px;
 
-            &:hover {
+
+
+            &.clickable:hover {
                 background-color: $sysCenterChannelColorWith8Alpha;
                 cursor: pointer;
 
@@ -206,6 +208,20 @@ table.adminConsoleListTable {
 
     tfoot {
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    .dragHandle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: inline-flex;
+        width: 24px;
+        height: calc(100% - 1px);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+
+        svg {
+            align-self: center;
+        }
     }
 }
 

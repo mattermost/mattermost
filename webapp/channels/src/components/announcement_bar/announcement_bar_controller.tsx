@@ -5,9 +5,9 @@ import React from 'react';
 
 import type {ClientLicense, ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
 
-import {ToPaidPlanBannerDismissable} from 'components/admin_console/billing/billing_subscriptions/to_paid_plan_nudge_banner';
 import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
 
+import CloudPreviewAnnouncementBar from './cloud_preview_announcement_bar';
 import CloudTrialAnnouncementBar from './cloud_trial_announcement_bar';
 import CloudTrialEndAnnouncementBar from './cloud_trial_ended_announcement_bar';
 import ConfigurationAnnouncementBar from './configuration_bar';
@@ -67,9 +67,9 @@ class AnnouncementBarController extends React.PureComponent<Props> {
         let paymentAnnouncementBar = null;
         let cloudTrialAnnouncementBar = null;
         let cloudTrialEndAnnouncementBar = null;
+        let cloudPreviewAnnouncementBar = null;
         const notifyAdminDowngradeDelinquencyBar = null;
         const toYearlyNudgeBannerDismissable = null;
-        let toPaidPlanNudgeBannerDismissable = null;
         if (this.props.license?.Cloud === 'true') {
             paymentAnnouncementBar = (
                 <PaymentAnnouncementBar/>
@@ -80,8 +80,9 @@ class AnnouncementBarController extends React.PureComponent<Props> {
             cloudTrialEndAnnouncementBar = (
                 <CloudTrialEndAnnouncementBar/>
             );
-
-            toPaidPlanNudgeBannerDismissable = (<ToPaidPlanBannerDismissable/>);
+            cloudPreviewAnnouncementBar = (
+                <CloudPreviewAnnouncementBar/>
+            );
         }
 
         let autoStartTrialModal = null;
@@ -113,9 +114,9 @@ class AnnouncementBarController extends React.PureComponent<Props> {
                 {paymentAnnouncementBar}
                 {cloudTrialAnnouncementBar}
                 {cloudTrialEndAnnouncementBar}
+                {cloudPreviewAnnouncementBar}
                 {notifyAdminDowngradeDelinquencyBar}
                 {toYearlyNudgeBannerDismissable}
-                {toPaidPlanNudgeBannerDismissable}
                 {this.props.license?.Cloud !== 'true' && <OverageUsersBanner/>}
                 {autoStartTrialModal}
                 <ShowThreeDaysLeftTrialModal/>

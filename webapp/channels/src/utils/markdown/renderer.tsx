@@ -133,7 +133,7 @@ export default class Renderer extends marked.Renderer {
         return `<h${level} class="markdown__heading">${text}</h${level}>`;
     }
 
-    public link(href: string, title: string, text: string, isUrl = false) {
+    public link(href: string, title: string, text: string) {
         let outHref = href;
 
         if (this.formattingOptions.unsafeLinks && mightTriggerExternalRequest(href, this.formattingOptions.siteURL)) {
@@ -147,15 +147,6 @@ export default class Renderer extends marked.Renderer {
             const scheme = getScheme(href);
             if (!scheme) {
                 outHref = `http://${outHref}`;
-            } else if (isUrl && this.formattingOptions.autolinkedUrlSchemes) {
-                const isValidUrl =
-          this.formattingOptions.autolinkedUrlSchemes.indexOf(
-              scheme.toLowerCase(),
-          ) !== -1;
-
-                if (!isValidUrl) {
-                    return text;
-                }
             }
         }
 

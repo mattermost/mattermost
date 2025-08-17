@@ -41,8 +41,8 @@ type Command struct {
 	AutocompleteIconData string `db:"-" json:"autocomplete_icon_data,omitempty"`
 }
 
-func (o *Command) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *Command) Auditable() map[string]any {
+	return map[string]any{
 		"id":                 o.Id,
 		"create_at":          o.CreateAt,
 		"update_at":          o.UpdateAt,

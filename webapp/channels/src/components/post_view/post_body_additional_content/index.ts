@@ -11,7 +11,6 @@ import {toggleEmbedVisibility} from 'actions/post_actions';
 import {isEmbedVisible} from 'selectors/posts';
 
 import type {GlobalState} from 'types/store';
-import type {PostWillRenderEmbedPluginComponent} from 'types/store/plugins';
 
 import PostBodyAdditionalContent from './post_body_additional_content';
 import type {
@@ -21,7 +20,7 @@ import type {
 function mapStateToProps(state: GlobalState, ownProps: Omit<Props, 'appsEnabled' | 'actions'>) {
     return {
         isEmbedVisible: isEmbedVisible(state, ownProps.post.id),
-        pluginPostWillRenderEmbedComponents: state.plugins.components.PostWillRenderEmbedComponent as unknown as PostWillRenderEmbedPluginComponent[],
+        pluginPostWillRenderEmbedComponents: state.plugins.components.PostWillRenderEmbedComponent,
         appsEnabled: appsEnabled(state),
     };
 }

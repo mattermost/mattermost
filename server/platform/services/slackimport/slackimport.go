@@ -88,12 +88,12 @@ type Actions struct {
 	AddUserToChannel       func(request.CTX, *model.User, *model.Channel, bool) (*model.ChannelMember, *model.AppError)
 	JoinUserToTeam         func(*model.Team, *model.User, string) (*model.TeamMember, *model.AppError)
 	CreateDirectChannel    func(request.CTX, string, string, ...model.ChannelOption) (*model.Channel, *model.AppError)
-	CreateGroupChannel     func(request.CTX, []string) (*model.Channel, *model.AppError)
+	CreateGroupChannel     func(request.CTX, []string, string, ...model.ChannelOption) (*model.Channel, *model.AppError)
 	CreateChannel          func(*model.Channel, bool) (*model.Channel, *model.AppError)
 	DoUploadFile           func(time.Time, string, string, string, string, []byte) (*model.FileInfo, *model.AppError)
 	GenerateThumbnailImage func(request.CTX, image.Image, string, string)
 	GeneratePreviewImage   func(request.CTX, image.Image, string, string)
-	InvalidateAllCaches    func()
+	InvalidateAllCaches    func() *model.AppError
 	MaxPostSize            func() int
 	PrepareImage           func(fileData []byte) (image.Image, string, func(), error)
 }
@@ -210,7 +210,9 @@ func (si *SlackImporter) SlackImport(rctx request.CTX, fileData multipart.File, 
 		si.deactivateSlackBotUser(rctx, botUser)
 	}
 
-	si.actions.InvalidateAllCaches()
+	if err := si.actions.InvalidateAllCaches(); err != nil {
+		return err, log
+	}
 
 	log.WriteString(i18n.T("api.slackimport.slack_import.notes"))
 	log.WriteString("=======\r\n\r\n")
@@ -392,9 +394,9 @@ func (si *SlackImporter) slackAddPosts(rctx request.CTX, teamId string, channel 
 			}
 
 			props := make(model.StringInterface)
-			props["override_username"] = sPost.BotUsername
+			props[model.PostPropsOverrideUsername] = sPost.BotUsername
 			if len(sPost.Attachments) > 0 {
-				props["attachments"] = sPost.Attachments
+				props[model.PostPropsAttachments] = sPost.Attachments
 			}
 
 			post := &model.Post{
@@ -762,7 +764,7 @@ func (si *SlackImporter) oldImportChannel(rctx request.CTX, channel *model.Chann
 		if creator == nil {
 			return nil
 		}
-		sc, err := si.actions.CreateGroupChannel(rctx, members)
+		sc, err := si.actions.CreateGroupChannel(rctx, members, "")
 		if err != nil {
 			return nil
 		}
@@ -817,19 +819,19 @@ func (si *SlackImporter) oldImportIncomingWebhookPost(rctx request.CTX, post *mo
 	linkWithTextRegex := regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 	post.Message = linkWithTextRegex.ReplaceAllString(post.Message, "[${2}](${1})")
 
-	post.AddProp("from_webhook", "true")
+	post.AddProp(model.PostPropsFromWebhook, "true")
 
-	if _, ok := props["override_username"]; !ok {
-		post.AddProp("override_username", model.DefaultWebhookUsername)
+	if _, ok := props[model.PostPropsOverrideUsername]; !ok {
+		post.AddProp(model.PostPropsOverrideUsername, model.DefaultWebhookUsername)
 	}
 
 	if len(props) > 0 {
 		for key, val := range props {
-			if key == "attachments" {
+			if key == model.PostPropsAttachments {
 				if attachments, success := val.([]*model.SlackAttachment); success {
 					model.ParseSlackAttachment(post, attachments)
 				}
-			} else if key != "from_webhook" {
+			} else if key != model.PostPropsFromWebhook {
 				post.AddProp(key, val)
 			}
 		}

@@ -38,10 +38,10 @@ type registeredPlugin struct {
 
 // PrepackagedPlugin is a plugin prepackaged with the server and found on startup.
 type PrepackagedPlugin struct {
-	Path      string
-	IconData  string
-	Manifest  *model.Manifest
-	Signature []byte
+	Path          string
+	IconData      string
+	Manifest      *model.Manifest
+	SignaturePath string
 }
 
 // Environment represents the execution environment of active plugins.
@@ -483,7 +483,7 @@ func (env *Environment) Shutdown() {
 	env.TogglePluginHealthCheckJob(false)
 
 	var wg sync.WaitGroup
-	env.registeredPlugins.Range(func(key, value any) bool {
+	env.registeredPlugins.Range(func(_, value any) bool {
 		rp := value.(registeredPlugin)
 
 		if rp.supervisor == nil || !env.IsActive(rp.BundleInfo.Manifest.Id) {

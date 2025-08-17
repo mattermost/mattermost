@@ -81,6 +81,7 @@ const AlertBanner = ({
 
     return (
         <div
+            id={id}
             data-testid={id}
             className={classNames(
                 'AlertBanner',
@@ -122,9 +123,8 @@ const AlertBanner = ({
             </div>
             {onDismiss && closeBtnTooltip && (
                 <WithTooltip
-                    id={`alertBannerTooltip_${id}`}
                     title={closeBtnTooltip}
-                    placement='left'
+                    isVertical={false}
                 >
                     {dismissButton}
                 </WithTooltip>

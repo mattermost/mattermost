@@ -4,14 +4,14 @@
 package message_export
 
 import (
-	"archive/zip"
-	"bytes"
 	"context"
-	"net/http"
+	"errors"
+	"fmt"
 	"os"
 	"path"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	tmock "github.com/stretchr/testify/mock"
@@ -24,10 +24,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	st "github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
-	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 )
 
 func TestInitJobDataNoJobData(t *testing.T) {
@@ -36,14 +36,17 @@ func TestInitJobDataNoJobData(t *testing.T) {
 	defer mockStore.AssertExpectations(t)
 
 	job := &model.Job{
-		Id:       model.NewId(),
+		Id:       st.NewTestID(),
 		CreateAt: model.GetMillis(),
 		Status:   model.JobStatusPending,
 		Type:     model.JobTypeMessageExport,
 	}
 
 	// mock job store doesn't return a previously successful job, forcing fallback to config
-	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(nil, model.NewAppError("", "", nil, "", http.StatusBadRequest))
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, DefaultPreviousJobPageSize).Return(nil, errors.New("test"))
 
 	worker := &MessageExportWorker{
 		jobServer: &jobs.JobServer{
@@ -52,11 +55,13 @@ func TestInitJobDataNoJobData(t *testing.T) {
 				Cfg: &model.Config{
 					// mock config
 					MessageExportSettings: model.MessageExportSettings{
-						EnableExport:        model.NewPointer(true),
-						ExportFormat:        model.NewPointer(model.ComplianceExportTypeActiance),
-						DailyRunTime:        model.NewPointer("01:00"),
-						ExportFromTimestamp: model.NewPointer(int64(0)),
-						BatchSize:           model.NewPointer(10000),
+						EnableExport:            model.NewPointer(true),
+						ExportFormat:            model.NewPointer(model.ComplianceExportTypeActiance),
+						DailyRunTime:            model.NewPointer("01:00"),
+						ExportFromTimestamp:     model.NewPointer(int64(0)),
+						BatchSize:               model.NewPointer(10000),
+						ChannelBatchSize:        model.NewPointer(100),
+						ChannelHistoryBatchSize: model.NewPointer(100),
 					},
 				},
 			},
@@ -64,12 +69,14 @@ func TestInitJobDataNoJobData(t *testing.T) {
 		logger: logger,
 	}
 
-	// actually execute the code under test
-	worker.initJobData(logger, job)
+	now := time.Now()
+	worker.initJobData(request.EmptyContext(logger), logger, job, now)
 
-	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[JobDataExportType])
-	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[JOB_DATA_BatchSize])
-	assert.Equal(t, strconv.FormatInt(*worker.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10), job.Data[JobDataBatchStartTimestamp])
+	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[shared.JobDataExportType])
+	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[shared.JobDataBatchSize])
+	assert.Equal(t, strconv.FormatInt(*worker.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10), job.Data[shared.JobDataBatchStartTime])
+	expectedDir := path.Join(model.ComplianceExportPath, fmt.Sprintf("%s-%d-%d", now.Format(model.ComplianceExportDirectoryFormat), 0, now.UnixMilli()))
+	assert.Equal(t, expectedDir, job.Data[shared.JobDataExportDir])
 }
 
 func TestInitJobDataPreviousJobNoJobData(t *testing.T) {
@@ -78,7 +85,7 @@ func TestInitJobDataPreviousJobNoJobData(t *testing.T) {
 	defer mockStore.AssertExpectations(t)
 
 	previousJob := &model.Job{
-		Id:             model.NewId(),
+		Id:             st.NewTestID(),
 		CreateAt:       model.GetMillis(),
 		Status:         model.JobStatusSuccess,
 		Type:           model.JobTypeMessageExport,
@@ -87,14 +94,17 @@ func TestInitJobDataPreviousJobNoJobData(t *testing.T) {
 	}
 
 	job := &model.Job{
-		Id:       model.NewId(),
+		Id:       st.NewTestID(),
 		CreateAt: model.GetMillis(),
 		Status:   model.JobStatusPending,
 		Type:     model.JobTypeMessageExport,
 	}
 
 	// mock job store returns a previously successful job, but it doesn't have job data either, so we still fall back to config
-	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(previousJob, nil)
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, DefaultPreviousJobPageSize).Return([]*model.Job{previousJob}, nil)
 
 	worker := &MessageExportWorker{
 		jobServer: &jobs.JobServer{
@@ -103,11 +113,13 @@ func TestInitJobDataPreviousJobNoJobData(t *testing.T) {
 				Cfg: &model.Config{
 					// mock config
 					MessageExportSettings: model.MessageExportSettings{
-						EnableExport:        model.NewPointer(true),
-						ExportFormat:        model.NewPointer(model.ComplianceExportTypeActiance),
-						DailyRunTime:        model.NewPointer("01:00"),
-						ExportFromTimestamp: model.NewPointer(int64(0)),
-						BatchSize:           model.NewPointer(10000),
+						EnableExport:            model.NewPointer(true),
+						ExportFormat:            model.NewPointer(model.ComplianceExportTypeActiance),
+						DailyRunTime:            model.NewPointer("01:00"),
+						ExportFromTimestamp:     model.NewPointer(int64(0)),
+						BatchSize:               model.NewPointer(10000),
+						ChannelBatchSize:        model.NewPointer(100),
+						ChannelHistoryBatchSize: model.NewPointer(100),
 					},
 				},
 			},
@@ -115,12 +127,14 @@ func TestInitJobDataPreviousJobNoJobData(t *testing.T) {
 		logger: logger,
 	}
 
-	// actually execute the code under test
-	worker.initJobData(logger, job)
+	now := time.Now()
+	worker.initJobData(request.EmptyContext(logger), logger, job, now)
 
-	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[JobDataExportType])
-	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[JOB_DATA_BatchSize])
-	assert.Equal(t, strconv.FormatInt(*worker.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10), job.Data[JobDataBatchStartTimestamp])
+	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[shared.JobDataExportType])
+	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[shared.JobDataBatchSize])
+	assert.Equal(t, strconv.FormatInt(*worker.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10), job.Data[shared.JobDataBatchStartTime])
+	expectedDir := path.Join(model.ComplianceExportPath, fmt.Sprintf("%s-%d-%d", now.Format(model.ComplianceExportDirectoryFormat), 0, now.UnixMilli()))
+	assert.Equal(t, expectedDir, job.Data[shared.JobDataExportDir])
 }
 
 func TestInitJobDataPreviousJobWithJobData(t *testing.T) {
@@ -129,24 +143,28 @@ func TestInitJobDataPreviousJobWithJobData(t *testing.T) {
 	defer mockStore.AssertExpectations(t)
 
 	previousJob := &model.Job{
-		Id:             model.NewId(),
+		Id:             st.NewTestID(),
 		CreateAt:       model.GetMillis(),
 		Status:         model.JobStatusSuccess,
 		Type:           model.JobTypeMessageExport,
 		StartAt:        model.GetMillis() - 1000,
 		LastActivityAt: model.GetMillis() - 1000,
-		Data:           map[string]string{JobDataBatchStartTimestamp: "123"},
+		Data:           map[string]string{shared.JobDataBatchStartTime: "123"},
 	}
 
 	job := &model.Job{
-		Id:       model.NewId(),
+		Id:       st.NewTestID(),
 		CreateAt: model.GetMillis(),
 		Status:   model.JobStatusPending,
 		Type:     model.JobTypeMessageExport,
+		Data:     map[string]string{shared.JobDataExportDir: "this-is-the-export-dir"},
 	}
 
 	// mock job store returns a previously successful job that has the config that we're looking for, so we use it
-	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(previousJob, nil)
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, DefaultPreviousJobPageSize).Return([]*model.Job{previousJob}, nil)
 
 	worker := &MessageExportWorker{
 		jobServer: &jobs.JobServer{
@@ -155,11 +173,13 @@ func TestInitJobDataPreviousJobWithJobData(t *testing.T) {
 				Cfg: &model.Config{
 					// mock config
 					MessageExportSettings: model.MessageExportSettings{
-						EnableExport:        model.NewPointer(true),
-						ExportFormat:        model.NewPointer(model.ComplianceExportTypeActiance),
-						DailyRunTime:        model.NewPointer("01:00"),
-						ExportFromTimestamp: model.NewPointer(int64(0)),
-						BatchSize:           model.NewPointer(10000),
+						EnableExport:            model.NewPointer(true),
+						ExportFormat:            model.NewPointer(model.ComplianceExportTypeActiance),
+						DailyRunTime:            model.NewPointer("01:00"),
+						ExportFromTimestamp:     model.NewPointer(int64(0)),
+						BatchSize:               model.NewPointer(10000),
+						ChannelBatchSize:        model.NewPointer(100),
+						ChannelHistoryBatchSize: model.NewPointer(100),
 					},
 				},
 			},
@@ -167,12 +187,77 @@ func TestInitJobDataPreviousJobWithJobData(t *testing.T) {
 		logger: logger,
 	}
 
-	// actually execute the code under test
-	worker.initJobData(logger, job)
+	now := time.Now()
+	worker.initJobData(request.EmptyContext(logger), logger, job, now)
 
-	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[JobDataExportType])
-	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[JOB_DATA_BatchSize])
-	assert.Equal(t, previousJob.Data[JobDataBatchStartTimestamp], job.Data[JobDataBatchStartTimestamp])
+	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[shared.JobDataExportType])
+	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[shared.JobDataBatchSize])
+	assert.Equal(t, previousJob.Data[shared.JobDataBatchStartTime], job.Data[shared.JobDataBatchStartTime])
+	expectedDir := "this-is-the-export-dir"
+	assert.Equal(t, expectedDir, job.Data[shared.JobDataExportDir])
+}
+
+func TestInitJobDataPreviousJobWithJobDataPre105(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	mockStore := &storetest.Store{}
+	defer mockStore.AssertExpectations(t)
+
+	previousJob := &model.Job{
+		Id:             st.NewTestID(),
+		CreateAt:       model.GetMillis(),
+		Status:         model.JobStatusSuccess,
+		Type:           model.JobTypeMessageExport,
+		StartAt:        model.GetMillis() - 1000,
+		LastActivityAt: model.GetMillis() - 1000,
+		Data:           map[string]string{"batch_start_timestamp": "123"},
+	}
+
+	job := &model.Job{
+		Id:       st.NewTestID(),
+		CreateAt: model.GetMillis(),
+		Status:   model.JobStatusPending,
+		Type:     model.JobTypeMessageExport,
+		Data:     map[string]string{shared.JobDataExportDir: "this-is-the-export-dir"},
+	}
+
+	// mock job store returns a previously successful job that has the config that we're looking for, so we use it
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, DefaultPreviousJobPageSize).Return([]*model.Job{previousJob}, nil)
+
+	worker := &MessageExportWorker{
+		jobServer: &jobs.JobServer{
+			Store: mockStore,
+			ConfigService: &testutils.StaticConfigService{
+				Cfg: &model.Config{
+					// mock config
+					MessageExportSettings: model.MessageExportSettings{
+						EnableExport:            model.NewPointer(true),
+						ExportFormat:            model.NewPointer(model.ComplianceExportTypeActiance),
+						DailyRunTime:            model.NewPointer("01:00"),
+						ExportFromTimestamp:     model.NewPointer(int64(0)),
+						BatchSize:               model.NewPointer(10000),
+						ChannelBatchSize:        model.NewPointer(100),
+						ChannelHistoryBatchSize: model.NewPointer(100),
+					},
+				},
+			},
+		},
+		logger: logger,
+	}
+
+	now := time.Now()
+	worker.initJobData(request.EmptyContext(logger), logger, job, now)
+
+	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[shared.JobDataExportType])
+	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[shared.JobDataBatchSize])
+
+	// Assert the new job picks up the <10.5 job start time:
+	assert.Equal(t, previousJob.Data[shared.JobDataBatchStartTime], job.Data[shared.JobDataBatchStartTime])
+
+	expectedDir := "this-is-the-export-dir"
+	assert.Equal(t, expectedDir, job.Data[shared.JobDataExportDir])
 }
 
 func TestDoJobNoPostsToExport(t *testing.T) {
@@ -185,30 +270,41 @@ func TestDoJobNoPostsToExport(t *testing.T) {
 	defer mockMetrics.AssertExpectations(t)
 
 	job := &model.Job{
-		Id:       model.NewId(),
+		Id:       st.NewTestID(),
 		CreateAt: model.GetMillis(),
 		Status:   model.JobStatusPending,
 		Type:     model.JobTypeMessageExport,
 	}
+	retJob := *job
+	retJob.Status = model.JobStatusInProgress
 
 	// claim job succeeds
-	mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(true, nil)
+	mockStore.JobStore.
+		On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).
+		Return(&retJob, nil)
 	mockMetrics.On("IncrementJobActive", model.JobTypeMessageExport)
 
 	// no previous job, data will be loaded from config
-	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(nil, model.NewAppError("", "", nil, "", http.StatusBadRequest))
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, DefaultPreviousJobPageSize).Return(nil, errors.New("test"))
+
+	// no channels with activity
+	mockStore.ChannelMemberHistoryStore.On("GetChannelsWithActivityDuring", mock.Anything, mock.Anything).
+		Return(make([]string, 0), nil)
 
 	// no posts found to export
-	mockStore.ComplianceStore.On("MessageExport", mock.Anything, mock.AnythingOfType("model.MessageExportCursor"), 10000).Return(
+	mockStore.ComplianceStore.On("MessageExport", mock.Anything, mock.AnythingOfType("model.MessageExportCursor"), 10001).Return(
 		make([]*model.MessageExport, 0), model.MessageExportCursor{}, nil,
 	)
 
 	mockStore.PostStore.On("AnalyticsPostCount", mock.Anything).Return(
-		int64(estimatedPostCount), nil,
+		int64(shared.EstimatedPostCount), nil,
 	)
 
 	// job completed successfully
-	mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
+	mockStore.JobStore.On("UpdateOptimistically", mock.AnythingOfType("*model.Job"), model.JobStatusInProgress).Return(true, nil)
 	mockStore.JobStore.On("UpdateStatus", job.Id, model.JobStatusSuccess).Return(job, nil)
 	mockMetrics.On("DecrementJobActive", model.JobTypeMessageExport)
 
@@ -229,11 +325,13 @@ func TestDoJobNoPostsToExport(t *testing.T) {
 						Directory:  model.NewPointer(tempDir),
 					},
 					MessageExportSettings: model.MessageExportSettings{
-						EnableExport:        model.NewPointer(true),
-						ExportFormat:        model.NewPointer(model.ComplianceExportTypeActiance),
-						DailyRunTime:        model.NewPointer("01:00"),
-						ExportFromTimestamp: model.NewPointer(int64(0)),
-						BatchSize:           model.NewPointer(10000),
+						EnableExport:            model.NewPointer(true),
+						ExportFormat:            model.NewPointer(model.ComplianceExportTypeActiance),
+						DailyRunTime:            model.NewPointer("01:00"),
+						ExportFromTimestamp:     model.NewPointer(int64(0)),
+						BatchSize:               model.NewPointer(10000),
+						ChannelBatchSize:        model.NewPointer(100),
+						ChannelHistoryBatchSize: model.NewPointer(100),
 					},
 				},
 			},
@@ -258,30 +356,72 @@ func TestDoJobWithDedicatedExportBackend(t *testing.T) {
 	defer mockMetrics.AssertExpectations(t)
 
 	job := &model.Job{
-		Id:       model.NewId(),
+		Id:       st.NewTestID(),
 		CreateAt: model.GetMillis(),
 		Status:   model.JobStatusPending,
 		Type:     model.JobTypeMessageExport,
 	}
+	retJob := *job
+	retJob.Status = model.JobStatusInProgress
 
 	// claim job succeeds
-	mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(true, nil)
+	mockStore.JobStore.
+		On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).
+		Return(&retJob, nil)
 	mockMetrics.On("IncrementJobActive", model.JobTypeMessageExport)
 
 	// no previous job, data will be loaded from config
-	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(nil, model.NewAppError("", "", nil, "", http.StatusBadRequest))
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, DefaultPreviousJobPageSize).Return(nil, errors.New("test"))
 
-	// no posts found to export
-	mockStore.ComplianceStore.On("MessageExport", mock.Anything, mock.AnythingOfType("model.MessageExportCursor"), 10000).Return(
+	channelId := st.NewTestID()
+	channelName := st.NewTestID()
+	channelDisplayName := st.NewTestID()
+	channelType := model.ChannelTypeOpen
+	messages := []*model.MessageExport{
+		{
+			TeamId:       model.NewPointer(st.NewTestID()),
+			ChannelId:    model.NewPointer(channelId),
+			ChannelName:  model.NewPointer(channelName),
+			UserId:       model.NewPointer(st.NewTestID()),
+			UserEmail:    model.NewPointer(st.NewTestID()),
+			Username:     model.NewPointer(st.NewTestID()),
+			PostId:       model.NewPointer(st.NewTestID()),
+			PostCreateAt: model.NewPointer[int64](123),
+			PostUpdateAt: model.NewPointer[int64](123),
+			PostDeleteAt: model.NewPointer[int64](123),
+			PostMessage:  model.NewPointer(st.NewTestID()),
+		},
+	}
+
+	// need to export at least one post to make an export directory and file
+
+	mockStore.ChannelMemberHistoryStore.On("GetChannelsWithActivityDuring", mock.Anything, mock.Anything).
+		Return([]string{*messages[0].ChannelId}, nil)
+	mockStore.ChannelStore.On("GetMany", []string{channelId}, true).
+		Return(model.ChannelList{{
+			Id:          channelId,
+			DisplayName: channelDisplayName,
+			Name:        channelName,
+			Type:        channelType,
+		}}, nil)
+
+	mockStore.ComplianceStore.On("MessageExport", mock.Anything, mock.AnythingOfType("model.MessageExportCursor"), 10001).Return(
+		messages, model.MessageExportCursor{}, nil,
+	).Once()
+	mockStore.ComplianceStore.On("MessageExport", mock.Anything, mock.AnythingOfType("model.MessageExportCursor"), 10001).Return(
 		make([]*model.MessageExport, 0), model.MessageExportCursor{}, nil,
-	)
+	).Once()
+	mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
 
 	mockStore.PostStore.On("AnalyticsPostCount", mock.Anything).Return(
-		int64(estimatedPostCount), nil,
+		int64(1), nil,
 	)
 
 	// job completed successfully
-	mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
+	mockStore.JobStore.On("UpdateOptimistically", mock.AnythingOfType("*model.Job"), model.JobStatusInProgress).Return(true, nil)
 	mockStore.JobStore.On("UpdateStatus", job.Id, model.JobStatusSuccess).Return(job, nil)
 	mockMetrics.On("DecrementJobActive", model.JobTypeMessageExport)
 
@@ -309,11 +449,13 @@ func TestDoJobWithDedicatedExportBackend(t *testing.T) {
 						ExportDirectory:      model.NewPointer(tempDedicatedDir),
 					},
 					MessageExportSettings: model.MessageExportSettings{
-						EnableExport:        model.NewPointer(true),
-						ExportFormat:        model.NewPointer(model.ComplianceExportTypeActiance),
-						DailyRunTime:        model.NewPointer("01:00"),
-						ExportFromTimestamp: model.NewPointer(int64(0)),
-						BatchSize:           model.NewPointer(10000),
+						EnableExport:            model.NewPointer(true),
+						ExportFormat:            model.NewPointer(model.ComplianceExportTypeActiance),
+						DailyRunTime:            model.NewPointer("01:00"),
+						ExportFromTimestamp:     model.NewPointer(int64(0)),
+						BatchSize:               model.NewPointer(10000),
+						ChannelBatchSize:        model.NewPointer(100),
+						ChannelHistoryBatchSize: model.NewPointer(100),
 					},
 				},
 			},
@@ -347,7 +489,7 @@ func TestDoJobCancel(t *testing.T) {
 	t.Cleanup(func() { mockMetrics.AssertExpectations(t) })
 
 	job := &model.Job{
-		Id:       model.NewId(),
+		Id:       st.NewTestID(),
 		CreateAt: model.GetMillis(),
 		Status:   model.JobStatusPending,
 		Type:     model.JobTypeMessageExport,
@@ -368,11 +510,13 @@ func TestDoJobCancel(t *testing.T) {
 							Directory:  model.NewPointer(tempDir),
 						},
 						MessageExportSettings: model.MessageExportSettings{
-							EnableExport:        model.NewPointer(true),
-							ExportFormat:        model.NewPointer(model.ComplianceExportTypeActiance),
-							DailyRunTime:        model.NewPointer("01:00"),
-							ExportFromTimestamp: model.NewPointer(int64(0)),
-							BatchSize:           model.NewPointer(10000),
+							EnableExport:            model.NewPointer(true),
+							ExportFormat:            model.NewPointer(model.ComplianceExportTypeActiance),
+							DailyRunTime:            model.NewPointer("01:00"),
+							ExportFromTimestamp:     model.NewPointer(int64(0)),
+							BatchSize:               model.NewPointer(10000),
+							ChannelBatchSize:        model.NewPointer(100),
+							ChannelHistoryBatchSize: model.NewPointer(100),
 						},
 					},
 				},
@@ -385,16 +529,39 @@ func TestDoJobCancel(t *testing.T) {
 	worker, ok := impl.MakeWorker().(*MessageExportWorker)
 	require.True(t, ok)
 
+	retJob := *job
+	retJob.Status = model.JobStatusInProgress
+
 	// Claim job succeeds
-	mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(true, nil)
+	mockStore.JobStore.
+		On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).
+		Return(&retJob, nil)
 	mockMetrics.On("IncrementJobActive", model.JobTypeMessageExport)
 
 	// No previous job, data will be loaded from config
-	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(nil, model.NewAppError("", "", nil, "", http.StatusBadRequest))
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, DefaultPreviousJobPageSize).Return(nil, errors.New("test"))
+
+	// Job updates the system console UI, once for getting channels, once for getting activity
+	mockStore.JobStore.On("UpdateOptimistically", mock.AnythingOfType("*model.Job"), model.JobStatusInProgress).Return(true, nil).Times(2)
+
+	// a few calls pass
+	mockStore.ChannelMemberHistoryStore.On("GetChannelsWithActivityDuring", mock.Anything, mock.Anything).
+		Return([]string{"channel-id"}, nil)
+	mockStore.ChannelStore.On("GetMany", []string{"channel-id"}, true).
+		Return(model.ChannelList{{
+			Id:          "channel-id",
+			DisplayName: "channel-display-name",
+			Name:        "channel-name",
+			Type:        model.ChannelTypeDirect,
+		}}, nil)
+	mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", mock.Anything, mock.Anything, []string{"channel-id"}).Return([]*model.ChannelMemberHistoryResult{}, nil)
 
 	cancelled := make(chan struct{})
 	// Cancel the worker and return an error
-	mockStore.ComplianceStore.On("MessageExport", mock.Anything, mock.AnythingOfType("model.MessageExportCursor"), 10000).Run(func(args tmock.Arguments) {
+	mockStore.ComplianceStore.On("MessageExport", mock.Anything, mock.AnythingOfType("model.MessageExportCursor"), 10001).Run(func(args tmock.Arguments) {
 		worker.cancel()
 
 		rctx, ok := args.Get(0).(request.CTX)
@@ -408,7 +575,7 @@ func TestDoJobCancel(t *testing.T) {
 	)
 
 	mockStore.PostStore.On("AnalyticsPostCount", mock.Anything).Return(
-		int64(estimatedPostCount), nil,
+		int64(shared.EstimatedPostCount), nil,
 	)
 
 	// Job marked as pending
@@ -426,74 +593,158 @@ func TestDoJobCancel(t *testing.T) {
 	worker.Stop()
 }
 
-func TestCreateZipFile(t *testing.T) {
-	rctx := request.TestContext(t)
+func TestGetPreviousJobNoJobs(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	mockStore := &storetest.Store{}
+	defer mockStore.AssertExpectations(t)
 
-	tempDir, ioErr := os.MkdirTemp("", "")
-	require.NoError(t, ioErr)
-	defer os.RemoveAll(tempDir)
+	// Mock the job store to return empty jobs list
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, DefaultPreviousJobPageSize).Return([]*model.Job{}, nil).Once()
 
-	config := filestore.FileBackendSettings{
-		DriverName: model.ImageDriverLocal,
-		Directory:  tempDir,
+	worker := &MessageExportWorker{
+		jobServer: &jobs.JobServer{
+			Store: mockStore,
+		},
+		logger: logger,
 	}
 
-	fileBackend, err := filestore.NewFileBackend(config)
-	assert.NoError(t, err)
-	_ = fileBackend
+	rctx := request.EmptyContext(logger)
+	job, err := worker.getPreviousNonCliJob(rctx)
 
-	b := []byte("test")
-	path1 := path.Join(exportPath, "19700101")
-	path2 := path.Join(exportPath, "19800101/subdir")
+	require.NoError(t, err)
+	assert.Nil(t, job, "Expected nil job when no jobs are returned")
+}
 
-	// We test with a mock to test the Hitachi HCP case
-	// where ListDirectory returns the dir itself as the first entry.
-	// Note: If the mocks fail, that means the logic in createZipFile has
-	// gone wrong and needs to be verified.
-	mock := &fmocks.FileBackend{}
-	defer mock.AssertExpectations(t)
+func TestGetPreviousJobOneRegularJob(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	mockStore := &storetest.Store{}
+	defer mockStore.AssertExpectations(t)
 
-	mock.On("WriteFile", tmock.Anything, tmock.AnythingOfType("string")).Return(int64(4), nil)
-	mock.On("FileSize", tmock.Anything).Return(int64(4), nil)
-	mock.On("FileSize", tmock.Anything).Return(int64(4), nil)
-	mock.On("Reader", path.Join(path1, "testid")).Return(mockReadSeekCloser{bytes.NewReader([]byte("test"))}, nil)
-	mock.On("Reader", path.Join(path2, "testid")).Return(mockReadSeekCloser{bytes.NewReader([]byte("test"))}, nil)
-	mock.On("ListDirectoryRecursively", path1).Return([]string{path1, path.Join(path1, "testid")}, nil)
-	mock.On("ListDirectoryRecursively", path2).Return([]string{path2, path.Join(path2, "testid")}, nil)
+	regularJob := &model.Job{
+		Id:     st.NewTestID(),
+		Status: model.JobStatusSuccess,
+		Type:   model.JobTypeMessageExport,
+		Data:   map[string]string{},
+	}
 
-	for i, backend := range []filestore.FileBackend{fileBackend, mock} {
-		written, err := backend.WriteFile(bytes.NewReader(b), path1+"/"+model.NewId())
-		assert.NoError(t, err)
-		assert.Equal(t, int64(len(b)), written)
+	// Mock the job store to return one regular job
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, DefaultPreviousJobPageSize).Return([]*model.Job{regularJob}, nil).Once()
 
-		written, err = backend.WriteFile(bytes.NewReader(b), path2+"/"+model.NewId())
-		assert.NoError(t, err)
-		assert.Equal(t, int64(len(b)), written)
+	worker := &MessageExportWorker{
+		jobServer: &jobs.JobServer{
+			Store: mockStore,
+		},
+		logger: logger,
+	}
 
-		written, err = backend.WriteFile(bytes.NewReader(b), path2+"/"+model.NewId())
-		assert.NoError(t, err)
-		assert.Equal(t, int64(len(b)), written)
+	rctx := request.EmptyContext(logger)
+	job, err := worker.getPreviousNonCliJob(rctx)
 
-		err = createZipFile(rctx, backend, "testjob", []string{path1, path2})
-		assert.NoError(t, err)
+	require.NoError(t, err)
+	assert.Equal(t, regularJob.Id, job.Id, "Expected to get the regular job")
+}
 
-		// Skip checking the zip file in mock case.
-		if i == 1 {
-			continue
+func TestGetPreviousJobOneMmctlJob(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	mockStore := &storetest.Store{}
+	defer mockStore.AssertExpectations(t)
+
+	mmctlJob := &model.Job{
+		Id:     st.NewTestID(),
+		Status: model.JobStatusSuccess,
+		Type:   model.JobTypeMessageExport,
+		Data:   map[string]string{shared.JobDataInitiatedBy: "mmctl"},
+	}
+
+	// Mock the job store to return only mmctl jobs (4 jobs, not a full page)
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, DefaultPreviousJobPageSize).Return([]*model.Job{mmctlJob, mmctlJob, mmctlJob, mmctlJob}, nil).Once()
+
+	worker := &MessageExportWorker{
+		jobServer: &jobs.JobServer{
+			Store: mockStore,
+		},
+		logger: logger,
+	}
+
+	rctx := request.EmptyContext(logger)
+	job, err := worker.getPreviousNonCliJob(rctx)
+
+	require.NoError(t, err)
+	assert.Nil(t, job, "Expected nil job when only mmctl jobs are found")
+}
+
+func TestGetPreviousJobManyJobs(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	mockStore := &storetest.Store{}
+	defer mockStore.AssertExpectations(t)
+
+	// Create DefaultPageSize mmctl jobs for first page
+	firstPageJobs := make([]*model.Job, DefaultPreviousJobPageSize)
+	for i := range DefaultPreviousJobPageSize {
+		firstPageJobs[i] = &model.Job{
+			Id:     st.NewTestID(),
+			Status: model.JobStatusSuccess,
+			Type:   model.JobTypeMessageExport,
+			Data:   map[string]string{shared.JobDataInitiatedBy: "mmctl"},
 		}
-		r, err := zip.OpenReader(path.Join(tempDir, exportPath) + "/testjob.zip")
-		assert.NoError(t, err)
-		err = r.Close()
-		require.NoError(t, err)
-
-		assert.Equal(t, 3, len(r.File))
 	}
-}
 
-type mockReadSeekCloser struct {
-	*bytes.Reader
-}
+	// Create DefaultPageSize mmctl jobs for second page
+	secondPageJobs := make([]*model.Job, DefaultPreviousJobPageSize)
+	for i := range DefaultPreviousJobPageSize {
+		secondPageJobs[i] = &model.Job{
+			Id:     st.NewTestID(),
+			Status: model.JobStatusSuccess,
+			Type:   model.JobTypeMessageExport,
+			Data:   map[string]string{shared.JobDataInitiatedBy: "mmctl"},
+		}
+	}
 
-func (r mockReadSeekCloser) Close() error {
-	return nil
+	// Create 1 regular job for the third page (last job)
+	regularJob := &model.Job{
+		Id:     st.NewTestID(),
+		Status: model.JobStatusSuccess,
+		Type:   model.JobTypeMessageExport,
+		Data:   map[string]string{},
+	}
+	thirdPageJobs := []*model.Job{regularJob}
+
+	// Mock the job store to return the jobs in pages
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		0, DefaultPreviousJobPageSize).Return(firstPageJobs, nil).Once()
+
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		1*DefaultPreviousJobPageSize, DefaultPreviousJobPageSize).Return(secondPageJobs, nil).Once()
+
+	mockStore.JobStore.On("GetAllByTypesAndStatusesPage", mock.Anything,
+		[]string{model.JobTypeMessageExport},
+		[]string{model.JobStatusWarning, model.JobStatusSuccess},
+		2*DefaultPreviousJobPageSize, DefaultPreviousJobPageSize).Return(thirdPageJobs, nil).Once()
+
+	worker := &MessageExportWorker{
+		jobServer: &jobs.JobServer{
+			Store: mockStore,
+		},
+		logger: logger,
+	}
+
+	rctx := request.EmptyContext(logger)
+	job, err := worker.getPreviousNonCliJob(rctx)
+
+	require.NoError(t, err)
+	assert.NotNil(t, job)
+	assert.Equal(t, regularJob.Id, job.Id, "Expected to find the regular job at the end")
 }

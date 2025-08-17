@@ -183,7 +183,7 @@ func (api *API) APISessionRequiredDisableWhenBusy(h handlerFunc, opts ...APIHand
 		HandlerName:     web.GetHandlerName(h),
 		RequireSession:  true,
 		TrustRequester:  false,
-		RequireMfa:      false,
+		RequireMfa:      true,
 		IsStatic:        false,
 		IsLocal:         false,
 		DisableWhenBusy: true,
@@ -236,10 +236,6 @@ func requireLicense(c *Context) *model.AppError {
 		return err
 	}
 	return nil
-}
-
-func minimumProfessionalLicense(c *Context) *model.AppError {
-	return model.MinimumProfessionalProvidedLicense(c.App.Srv().License())
 }
 
 func setHandlerOpts(handler *web.Handler, opts ...APIHandlerOption) {

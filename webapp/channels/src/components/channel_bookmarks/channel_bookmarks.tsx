@@ -11,7 +11,7 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import BookmarkItem from './bookmark_item';
 import BookmarksMenu from './channel_bookmarks_menu';
-import {useChannelBookmarkPermission, useChannelBookmarks, MAX_BOOKMARKS_PER_CHANNEL, useCanUploadFiles} from './utils';
+import {useChannelBookmarks, MAX_BOOKMARKS_PER_CHANNEL, useCanUploadFiles, useChannelBookmarkPermission} from './utils';
 
 import './channel_bookmarks.scss';
 
@@ -23,12 +23,12 @@ function ChannelBookmarks({
     channelId,
 }: Props) {
     const {order, bookmarks, reorder} = useChannelBookmarks(channelId);
+    const canReorder = useChannelBookmarkPermission(channelId, 'order');
     const canUploadFiles = useCanUploadFiles();
-    const canAdd = useChannelBookmarkPermission(channelId, 'add');
     const hasBookmarks = Boolean(order?.length);
     const limitReached = order.length >= MAX_BOOKMARKS_PER_CHANNEL;
 
-    if (!hasBookmarks && !canAdd) {
+    if (!hasBookmarks) {
         return null;
     }
 
@@ -53,7 +53,7 @@ function ChannelBookmarks({
                             data-testid='channel-bookmarks-container'
                             {...drop.droppableProps}
                         >
-                            {order.map(makeItemRenderer(bookmarks, snap.isDraggingOver))}
+                            {order.map(makeItemRenderer(bookmarks, snap.isDraggingOver, !canReorder))}
                             {drop.placeholder}
                             <BookmarksMenu
                                 channelId={channelId}
@@ -69,12 +69,13 @@ function ChannelBookmarks({
     );
 }
 
-const makeItemRenderer = (bookmarks: IDMappedObjects<ChannelBookmark>, disableInteractions: boolean) => (id: string, index: number) => {
+const makeItemRenderer = (bookmarks: IDMappedObjects<ChannelBookmark>, disableInteractions: boolean, disableDrag: boolean) => (id: string, index: number) => {
     return (
         <Draggable
             key={id}
             draggableId={id}
             index={index}
+            isDragDisabled={disableDrag}
         >
             {(drag, snap) => {
                 return (

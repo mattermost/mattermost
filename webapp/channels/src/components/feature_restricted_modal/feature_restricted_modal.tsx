@@ -66,7 +66,7 @@ const FeatureRestrictedModal = ({
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.FEATURE_RESTRICTED_MODAL));
     const license = useSelector(getLicense);
     const isCloud = license?.Cloud === 'true';
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
 
     const [notifyAdminBtnText, notifyAdmin, notifyRequestStatus] = useNotifyAdmin({
         ctaText: formatMessage({
@@ -88,10 +88,10 @@ const FeatureRestrictedModal = ({
     };
 
     const handleViewPlansClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        if (isSystemAdmin) {
+        if (isSystemAdmin && !isAirGapped) {
             openPricingModal({trackingLocation: 'feature_restricted_modal'});
             dismissAction();
-        } else {
+        } else if (!isSystemAdmin) {
             notifyAdmin(e, 'feature_restricted_modal');
         }
     };
@@ -124,6 +124,9 @@ const FeatureRestrictedModal = ({
         secondaryBtnMsg = customSecondaryButton.msg;
         secondaryBtnAction = customSecondaryButton.action;
     }
+
+    // Hide view plans button for admins if air-gapped
+    const showSecondaryButton = !isAirGapped || !isSystemAdmin || customSecondaryButton;
 
     const trialBtn = (
         <StartTrialBtn
@@ -177,14 +180,16 @@ const FeatureRestrictedModal = ({
                     </p>
                 )}
                 <div className={classNames('FeatureRestrictedModal__buttons', {single: !showStartTrial})}>
-                    <button
-                        id='button-plans'
-                        className='button-plans'
-                        onClick={secondaryBtnAction}
-                        disabled={notifyRequestStatus === NotifyStatus.AlreadyComplete}
-                    >
-                        {secondaryBtnMsg}
-                    </button>
+                    {showSecondaryButton && (
+                        <button
+                            id='button-plans'
+                            className='button-plans'
+                            onClick={secondaryBtnAction}
+                            disabled={notifyRequestStatus === NotifyStatus.AlreadyComplete}
+                        >
+                            {secondaryBtnMsg}
+                        </button>
+                    )}
                     {showStartTrial && (
                         trialBtn
                     )}

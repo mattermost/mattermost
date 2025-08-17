@@ -126,3 +126,100 @@ input::-webkit-file-upload-button {
         }
     }
 }
+
+.date-time-input {
+    position: relative;
+    display: flex;
+    min-height: 40px;
+    align-items: center;
+    padding: 8px 12px;
+    border: 1px solid var(--center-channel-color-24);
+    border-radius: 4px;
+    background-color: var(--center-channel-bg);
+    cursor: pointer;
+    transition: border-color 0.15s ease-in-out;
+
+    &:hover {
+        border-color: var(--center-channel-color-40);
+    }
+
+    &:focus,
+    &--open {
+        border-color: var(--button-bg);
+        box-shadow: 0 0 0 1px var(--button-bg);
+        outline: none;
+    }
+
+    &__label {
+        position: absolute;
+        top: -8px;
+        left: 12px;
+        padding: 0 4px;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color-75);
+        font-size: 10px;
+    }
+
+    &__icon {
+        flex-shrink: 0;
+        margin-right: 8px;
+        color: var(--center-channel-color-64);
+        
+        i {
+            font-size: 16px;
+        }
+    }
+
+    &__value {
+        overflow: hidden;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+// Date Time layout
+.dateTime {
+    display: flex;
+    margin: 0 0 8px 0;
+    gap: 24px;
+
+    &__date {
+        flex: 1;
+    }
+
+    &__time {
+        flex: 1;
+        
+        // Ensure Menu.Container and its button take full width
+        .date-time-input {
+            width: 100%;
+        }
+    }
+}
+
+// Modal-specific dateTime layout
+.modal {
+    .dateTime {
+        width: 100%;
+        
+        &__date,
+        &__time {
+            width: 100%;
+        }
+        
+        // Ensure all nested elements take full width
+        .date-time-input,
+        .date-picker__wrapper,
+        > div {
+            width: 100%;
+        }
+    }
+}
+
+// Scrollable time menu
+.time-menu-scrollable {
+    max-height: 300px;
+    overflow-y: auto;
+}
