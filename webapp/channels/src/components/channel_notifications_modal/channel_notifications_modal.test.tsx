@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent, waitFor} from '@testing-library/react';
+import {screen, waitFor} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import type {ChannelMembership} from '@mattermost/types/channels';
@@ -59,7 +60,7 @@ describe('ChannelNotificationsModal', () => {
 
         const muteChannel = screen.getByTestId('muteChannel');
 
-        fireEvent.click(muteChannel);
+        await userEvent.click(muteChannel);
         expect(muteChannel).toBeChecked();
         
         const alertBanner = screen.getByText('This channel is muted');
@@ -69,7 +70,7 @@ describe('ChannelNotificationsModal', () => {
         expect(screen.queryByText('Mobile Notifications')).not.toBeInTheDocument();
         expect(screen.getByText('Follow all threads in this channel')).toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole('button', {name: /Save/i}));
+        await userEvent.click(screen.getByRole('button', {name: /Save/i}));
 
         await waitFor(() =>
             expect(baseProps.actions.updateChannelNotifyProps).toHaveBeenCalledWith(
@@ -96,13 +97,13 @@ describe('ChannelNotificationsModal', () => {
         );
         
         const ignoreChannel = screen.getByTestId('ignoreMentions');
-        fireEvent.click(ignoreChannel);
+        await userEvent.click(ignoreChannel);
         expect(ignoreChannel).toBeChecked();
 
         // Verify the checkbox label is present
         expect(screen.getByText('Ignore mentions for @channel, @here and @all')).toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole('button', {name: /Save/i}));
+        await userEvent.click(screen.getByRole('button', {name: /Save/i}));
         await waitFor(() =>
             expect(baseProps.actions.updateChannelNotifyProps).toHaveBeenCalledWith(
                 'current_user_id',
@@ -139,14 +140,14 @@ describe('ChannelNotificationsModal', () => {
         expect(nothingRadio).toBeInTheDocument();
 
         // Test clicking through the options
-        fireEvent.click(allRadio);
+        await userEvent.click(allRadio);
         expect(allRadio).toBeChecked();
 
-        fireEvent.click(mentionsRadio);
+        await userEvent.click(mentionsRadio);
         expect(mentionsRadio).toBeChecked();
         expect(allRadio).not.toBeChecked();
 
-        fireEvent.click(nothingRadio);
+        await userEvent.click(nothingRadio);
         expect(nothingRadio).toBeChecked();
         expect(mentionsRadio).not.toBeChecked();
 
@@ -155,7 +156,7 @@ describe('ChannelNotificationsModal', () => {
         expect(screen.getByText(/Mentions, direct messages, and keywords only/)).toBeInTheDocument();
         expect(screen.getByText(/Nothing/)).toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole('button', {name: /Save/i}));
+        await userEvent.click(screen.getByRole('button', {name: /Save/i}));
         await waitFor(() =>
             expect(baseProps.actions.updateChannelNotifyProps).toHaveBeenCalledWith(
                 'current_user_id',
@@ -179,10 +180,10 @@ describe('ChannelNotificationsModal', () => {
         renderWithContext(<ChannelNotificationsModal {...baseProps}/>);
 
         // Since the default value is checked, we will uncheck the checkbox
-        fireEvent.click(screen.getByTestId('desktopNotificationSoundsCheckbox'));
+        await userEvent.click(screen.getByTestId('desktopNotificationSoundsCheckbox'));
         expect(screen.getByTestId('desktopNotificationSoundsCheckbox')).not.toBeChecked();
 
-        fireEvent.click(screen.getByRole('button', {name: /Save/i}));
+        await userEvent.click(screen.getByRole('button', {name: /Save/i}));
         await waitFor(() => {
             expect(baseProps.actions.updateChannelNotifyProps).toHaveBeenCalledWith(
                 'current_user_id',
@@ -206,11 +207,11 @@ describe('ChannelNotificationsModal', () => {
         renderWithContext(<ChannelNotificationsModal {...baseProps}/>);
 
         // Since the default value is on, we will uncheck the checkbox
-        fireEvent.click(screen.getByTestId('desktopNotificationSoundsCheckbox'));
+        await userEvent.click(screen.getByTestId('desktopNotificationSoundsCheckbox'));
         expect(screen.getByTestId('desktopNotificationSoundsCheckbox')).not.toBeChecked();
 
         // Reset to default button is clicked
-        fireEvent.click(screen.getByTestId('resetToDefaultButton-desktop'));
+        await userEvent.click(screen.getByTestId('resetToDefaultButton-desktop'));
 
         // Verify that the checkbox is checked to default to user desktop notification sound
         expect(screen.getByTestId('desktopNotificationSoundsCheckbox')).toBeChecked();
@@ -233,7 +234,7 @@ describe('ChannelNotificationsModal', () => {
         // When "same as desktop" is checked, mobile-specific options should not be visible
         expect(screen.queryByTestId('mobile-notify-me-radio-section')).not.toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole('button', {name: /Save/i}));
+        await userEvent.click(screen.getByRole('button', {name: /Save/i}));
         await waitFor(() =>
             expect(baseProps.actions.updateChannelNotifyProps).toHaveBeenCalledWith(
                 'current_user_id',
@@ -269,7 +270,7 @@ describe('ChannelNotificationsModal', () => {
 
         // First uncheck "same as desktop" to show mobile options
         const sameAsDesktop = screen.getByTestId('sameMobileSettingsDesktop');
-        fireEvent.click(sameAsDesktop);
+        await userEvent.click(sameAsDesktop);
         expect(sameAsDesktop).not.toBeChecked();
 
         // Now mobile notification options should be visible
@@ -280,18 +281,18 @@ describe('ChannelNotificationsModal', () => {
         const noneRadio = screen.getByTestId('MobileNotification-none');
 
         // Test clicking through the mobile notification options
-        fireEvent.click(allRadio);
+        await userEvent.click(allRadio);
         expect(allRadio).toBeChecked();
 
-        fireEvent.click(mentionRadio);
+        await userEvent.click(mentionRadio);
         expect(mentionRadio).toBeChecked();
         expect(allRadio).not.toBeChecked();
 
-        fireEvent.click(noneRadio);
+        await userEvent.click(noneRadio);
         expect(noneRadio).toBeChecked();
         expect(mentionRadio).not.toBeChecked();
 
-        fireEvent.click(screen.getByRole('button', {name: /Save/i}));
+        await userEvent.click(screen.getByRole('button', {name: /Save/i}));
         await waitFor(() =>
             expect(baseProps.actions.updateChannelNotifyProps).toHaveBeenCalledWith(
                 'current_user_id',
@@ -328,7 +329,7 @@ describe('ChannelNotificationsModal', () => {
         expect(screen.getByText('Mobile Notifications')).toBeInTheDocument();
         expect(screen.getByText('Mute or ignore')).toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole('button', {name: /Save/i}));
+        await userEvent.click(screen.getByRole('button', {name: /Save/i}));
 
         await waitFor(() =>
             expect(baseProps.actions.updateChannelNotifyProps).toHaveBeenCalledWith(
