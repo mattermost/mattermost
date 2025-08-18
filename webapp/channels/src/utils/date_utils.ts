@@ -14,6 +14,7 @@ export enum DateReference {
 
 /**
  * Convert a string value (ISO format or relative) to a Moment object
+ * For date-only fields, datetime formats are accepted and the date portion is extracted
  */
 export function stringToMoment(value: string | null, timezone?: string, isDateTime?: boolean): Moment | null {
     if (!value) {
@@ -26,11 +27,15 @@ export function stringToMoment(value: string | null, timezone?: string, isDateTi
         return relativeMoment;
     }
 
-    // Validate field type constraints
+    // Handle field type constraints
+    let processedValue = value;
     if (isDateTime === false) {
-        // For date-only fields, reject datetime strings (those with 'T' and time component)
-        if (value.includes('T') || value.includes(':')) {
-            return null; // Invalid: datetime string in date-only field
+        // For date-only fields, if a datetime string is provided, extract just the date portion
+        if (value.includes('T')) {
+            const datePortion = value.split('T')[0];
+
+            // Update processedValue to just the date portion for further processing
+            processedValue = datePortion;
         }
     }
 
@@ -38,9 +43,9 @@ export function stringToMoment(value: string | null, timezone?: string, isDateTi
     let momentValue: moment.Moment;
 
     if (timezone && moment.tz.zone(timezone)) {
-        momentValue = moment.tz(value, timezone);
+        momentValue = moment.tz(processedValue, timezone);
     } else {
-        momentValue = moment(value);
+        momentValue = moment(processedValue);
     }
 
     return momentValue.isValid() ? momentValue : null;

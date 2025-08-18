@@ -63,9 +63,28 @@ describe('date_utils', () => {
             expect(result!.format('YYYY-MM-DD')).toBe('2025-01-15');
         });
 
-        it('should reject datetime strings in date-only fields', () => {
+        it('should accept datetime strings in date-only fields and extract date portion', () => {
             const result = stringToMoment('2025-01-15T14:30:00Z', testTimezone, false); // false = date-only
-            expect(result).toBeNull();
+            expect(result).toBeTruthy();
+
+            // Time should be based on the date portion only, not the original time
+            expect(result!.format('YYYY-MM-DD')).toBe('2025-01-15');
+        });
+
+        it('should accept various datetime formats in date-only fields', () => {
+            const formats = [
+                '2025-01-15T14:30:00Z',
+                '2025-01-15T14:30:00',
+                '2025-01-15T14:30',
+                '2025-01-15T14:30:00.123Z',
+                '2025-01-15T14:30:00-05:00',
+            ];
+
+            formats.forEach((format) => {
+                const result = stringToMoment(format, testTimezone, false); // false = date-only
+                expect(result).toBeTruthy();
+                expect(result!.format('YYYY-MM-DD')).toBe('2025-01-15');
+            });
         });
 
         it('should accept datetime strings in datetime fields', () => {
