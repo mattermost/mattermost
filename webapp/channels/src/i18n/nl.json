@@ -4556,7 +4556,7 @@
   "invitation_modal.members.users_emails_input.no_user_found_matching": "Niemand gevonden overeenstemmend met **{text}**. Voer hun e-mail in om hen om uit te nodigen.",
   "invitation_modal.members.users_emails_input.no_user_found_matching-email-disabled": "Er is niemand gevonden oveeenstemmend met **{text}**",
   "invitation_modal.members.users_emails_input.valid_email": "Nodig **{email}** uit als teamlid",
-  "invite.guests.added-to-channel": "Er werd een uitnogingse-mail verzonden.",
+  "invite.guests.added-to-channel": "Er werd een uitnodigingse-mail verzonden.",
   "invite.guests.already-all-channels-member": "Deze persoon is al lid van alle kanalen.",
   "invite.guests.already-some-channels-member": "Deze persoon is al lid van een aantal van de kanalen.",
   "invite.guests.new-member": "Deze gast is toegevoegd aan het team en {count, plural, one {channel} other {channels}}.",
