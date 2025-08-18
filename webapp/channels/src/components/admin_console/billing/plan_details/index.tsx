@@ -17,7 +17,6 @@ import {
     PlanDetailsTopElements,
     currentPlanText,
 } from './plan_details';
-import PlanPricing from './plan_pricing';
 
 import './plan_details.scss';
 

@@ -14,7 +14,6 @@ import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 
 import AlertBanner from 'components/alert_banner';
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import UpgradeLink from 'components/widgets/links/upgrade_link';
 
 import {CloudBanners, Preferences} from 'utils/constants';
@@ -30,7 +29,6 @@ const CloudTrialBanner = ({trialEndDate}: Props): JSX.Element | null => {
     const endDate = new Date(trialEndDate);
     const DISMISSED_DAYS = 10;
     const {formatMessage} = useIntl();
-    const [openSalesLink] = useOpenSalesLink();
     const dispatch = useDispatch();
     const user = useSelector(getCurrentUser);
     const storedDismissedEndDate = useSelector((state: GlobalState) => getPreference(state, Preferences.CLOUD_TRIAL_BANNER, CloudBanners.UPGRADE_FROM_TRIAL));
