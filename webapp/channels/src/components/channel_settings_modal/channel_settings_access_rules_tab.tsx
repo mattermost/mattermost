@@ -21,6 +21,8 @@ import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
 
 import type {GlobalState} from 'types/store';
 
+import ChannelAccessRulesConfirmModal from './channel_access_rules_confirm_modal';
+
 import './channel_settings_access_rules_tab.scss';
 
 type ChannelSettingsAccessRulesTabProps = {
@@ -57,6 +59,12 @@ function ChannelSettingsAccessRulesTab({
 
     // Validation modal state
     const [showSelfExclusionModal, setShowSelfExclusionModal] = useState(false);
+
+    // Confirmation modal state
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [usersToAdd, setUsersToAdd] = useState<string[]>([]);
+    const [usersToRemove, setUsersToRemove] = useState<string[]>([]);
+    const [isProcessingSave, setIsProcessingSave] = useState(false);
 
     const actions = useChannelAccessControlActions();
 
@@ -206,25 +214,41 @@ function ChannelSettingsAccessRulesTab({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentUser]);
 
-    // Handle save action
-    const handleSave = useCallback(async (): Promise<boolean> => {
-        try {
-            // Validate expression if auto-sync is enabled
-            if (autoSyncMembers && !expression.trim()) {
-                setFormError(formatMessage({
-                    id: 'channel_settings.access_rules.expression_required_for_autosync',
-                    defaultMessage: 'Access rules are required when auto-add members is enabled',
-                }));
-                return false;
-            }
+    // Calculate membership changes
+    const calculateMembershipChanges = useCallback(async (testExpression: string): Promise<{toAdd: string[]; toRemove: string[]}> => {
+        if (!testExpression.trim()) {
+            return {toAdd: [], toRemove: []};
+        }
 
-            // Validate self-exclusion
-            if (expression.trim()) {
-                const isValid = await validateSelfExclusion(expression);
-                if (!isValid) {
-                    return false;
-                }
-            }
+        try {
+            // Get users who match the new expression
+            const matchResult = await actions.searchUsers(testExpression, '', '', 1000);
+            const matchingUserIds = matchResult.data?.users.map((u) => u.id) || [];
+
+            // Get current channel members
+            const membersResult = await actions.getChannelMembers(channel.id);
+            const currentMemberIds = membersResult.data?.map((m: any) => m.user_id) || [];
+
+            // Calculate who will be added (if auto-sync is enabled)
+            const toAdd = autoSyncMembers ?
+                matchingUserIds.filter((id) => !currentMemberIds.includes(id)) :
+                [];
+
+            // Calculate who will be removed (users who don't match the expression)
+            const toRemove = currentMemberIds.filter((id: string) => !matchingUserIds.includes(id));
+
+            return {toAdd, toRemove};
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Failed to calculate membership changes:', error);
+            return {toAdd: [], toRemove: []};
+        }
+    }, [channel.id, autoSyncMembers, actions]);
+
+    // Perform the actual save
+    const performSave = useCallback(async (): Promise<boolean> => {
+        try {
+            setIsProcessingSave(true);
 
             // Build the policy object
             const policy = {
@@ -249,9 +273,13 @@ function ChannelSettingsAccessRulesTab({
             }
 
             // Update original values on successful save
-            // The UI already prevents invalid states, so we can trust what we sent
             setOriginalExpression(expression);
             setOriginalAutoSyncMembers(autoSyncMembers);
+
+            // Close confirmation modal if open
+            setShowConfirmModal(false);
+            setUsersToAdd([]);
+            setUsersToRemove([]);
 
             return true;
         } catch (error) {
@@ -262,17 +290,77 @@ function ChannelSettingsAccessRulesTab({
                 defaultMessage: 'Failed to save access rules',
             }));
             return false;
+        } finally {
+            setIsProcessingSave(false);
         }
-    }, [channel.id, channel.display_name, expression, autoSyncMembers, systemPolicies, actions, formatMessage, validateSelfExclusion]);
+    }, [channel.id, channel.display_name, expression, autoSyncMembers, systemPolicies, actions, formatMessage]);
+
+    // Handle save action
+    const handleSave = useCallback(async (): Promise<'saved' | 'error' | 'confirmation_required'> => {
+        try {
+            // Validate expression if auto-sync is enabled
+            if (autoSyncMembers && !expression.trim()) {
+                setFormError(formatMessage({
+                    id: 'channel_settings.access_rules.expression_required_for_autosync',
+                    defaultMessage: 'Access rules are required when auto-add members is enabled',
+                }));
+                return 'error';
+            }
+
+            // Validate self-exclusion
+            if (expression.trim()) {
+                const isValid = await validateSelfExclusion(expression);
+                if (!isValid) {
+                    return 'error';
+                }
+            }
+
+            // Calculate membership changes
+            const changes = await calculateMembershipChanges(expression);
+
+            // If there are changes, show confirmation modal
+            if (changes.toAdd.length > 0 || changes.toRemove.length > 0) {
+                setUsersToAdd(changes.toAdd);
+                setUsersToRemove(changes.toRemove);
+                setShowConfirmModal(true);
+                return 'confirmation_required';
+            }
+
+            // No changes, save directly
+            const success = await performSave();
+            return success ? 'saved' : 'error';
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Failed to save access rules:', error);
+            setFormError(formatMessage({
+                id: 'channel_settings.access_rules.save_error',
+                defaultMessage: 'Failed to save access rules',
+            }));
+            return 'error';
+        }
+    }, [expression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave]);
+
+    // Handle confirmation modal confirm
+    const handleConfirmSave = useCallback(async () => {
+        const success = await performSave();
+        if (success) {
+            setSaveChangesPanelState('saved');
+        } else {
+            setSaveChangesPanelState('error');
+        }
+    }, [performSave]);
 
     // Handle save changes panel actions
     const handleSaveChanges = useCallback(async () => {
-        const success = await handleSave();
-        if (!success) {
+        const result = await handleSave();
+
+        if (result === 'saved') {
+            setSaveChangesPanelState('saved');
+        } else if (result === 'error') {
             setSaveChangesPanelState('error');
-            return;
         }
-        setSaveChangesPanelState('saved');
+
+        // If result is 'confirmation_required', do nothing to the panel state
     }, [handleSave]);
 
     const handleCancel = useCallback(() => {
@@ -456,6 +544,26 @@ function ChannelSettingsAccessRulesTab({
                 onConfirm={() => setShowSelfExclusionModal(false)}
                 hideCancel={true}
                 confirmButtonClass='btn btn-primary'
+            />
+
+            {/* Confirmation modal for membership changes */}
+            <ChannelAccessRulesConfirmModal
+                show={showConfirmModal}
+                onHide={() => {
+                    setShowConfirmModal(false);
+                    setUsersToAdd([]);
+                    setUsersToRemove([]);
+
+                    // Clear any error state when canceling the modal
+                    if (saveChangesPanelState === 'error') {
+                        setSaveChangesPanelState(undefined);
+                    }
+                }}
+                onConfirm={handleConfirmSave}
+                channelName={channel.display_name}
+                usersToAdd={usersToAdd}
+                usersToRemove={usersToRemove}
+                isProcessing={isProcessingSave}
             />
         </div>
     );

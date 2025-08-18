@@ -5,6 +5,7 @@ import {useMemo} from 'react';
 import {useDispatch} from 'react-redux';
 
 import type {AccessControlVisualAST, AccessControlTestResult, AccessControlPolicy} from '@mattermost/types/access_control';
+import type {ChannelMembership} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {
@@ -14,6 +15,7 @@ import {
     getAccessControlPolicy,
     createAccessControlPolicy,
 } from 'mattermost-redux/actions/access_control';
+import {getChannelMembers} from 'mattermost-redux/actions/channels';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 export interface ChannelAccessControlActions {
@@ -22,6 +24,7 @@ export interface ChannelAccessControlActions {
     searchUsers: (expression: string, term: string, after: string, limit: number) => Promise<ActionResult<AccessControlTestResult>>;
     getChannelPolicy: (channelId: string) => Promise<ActionResult<AccessControlPolicy>>;
     saveChannelPolicy: (policy: AccessControlPolicy) => Promise<ActionResult<AccessControlPolicy>>;
+    getChannelMembers: (channelId: string, page?: number, perPage?: number) => Promise<ActionResult<ChannelMembership[]>>;
 }
 
 /**
@@ -76,6 +79,13 @@ export const useChannelAccessControlActions = (): ChannelAccessControlActions =>
          */
         saveChannelPolicy: (policy: AccessControlPolicy) => {
             return dispatch(createAccessControlPolicy(policy));
+        },
+
+        /**
+         * Get channel members for a specific channel
+         */
+        getChannelMembers: (channelId: string, page = 0, perPage = 200) => {
+            return dispatch(getChannelMembers(channelId, page, perPage));
         },
     }), [dispatch]);
 };
