@@ -72,7 +72,7 @@ const CloudTrialBanner = ({trialEndDate}: Props): JSX.Element | null => {
             title={(
                 <FormattedMessage
                     id='admin.subscription.cloudTrialCard.upgradeTitle'
-                    defaultMessage='Upgrade to one of our paid plans to avoid Free plan data limits'
+                    defaultMessage='Upgrade to one of our paid plans to keep your workspace '
                 />
             )}
             message={(
@@ -94,17 +94,7 @@ const CloudTrialBanner = ({trialEndDate}: Props): JSX.Element | null => {
                 />
             )}
             actionButtonRight={(
-                <button
-                    onClick={openSalesLink}
-                    className='AlertBanner__buttonRight'
-                >
-                    <FormattedMessage
-                        id='admin.billing.subscription.privateCloudCard.contactSalesy'
-                        defaultMessage={
-                            'Contact sales'
-                        }
-                    />
-                </button>
+                null
             )}
         />
     );

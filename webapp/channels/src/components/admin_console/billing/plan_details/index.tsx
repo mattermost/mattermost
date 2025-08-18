@@ -47,9 +47,6 @@ const PlanDetails = ({isFreeTrial, subscriptionPlan}: Props) => {
                 daysLeftOnTrial={daysLeftOnTrial}
                 isYearly={product.recurring_interval === 'year'}
             />
-            <PlanPricing
-                product={product}
-            />
             <div className='PlanDetails__teamAndChannelCount'>
                 <FormattedMessage
                     id='admin.billing.subscription.planDetails.subheader'
