@@ -4,7 +4,7 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
+import IconButton from 'components/common/icon_button';
 
 import type {GlobalState} from 'types/store';
 

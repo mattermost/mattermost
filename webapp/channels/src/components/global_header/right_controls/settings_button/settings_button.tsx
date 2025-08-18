@@ -4,8 +4,7 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
-
+import IconButton from 'components/common/icon_button';
 import UserSettingsModal from 'components/user_settings/modal';
 import WithTooltip from 'components/with_tooltip';
 
