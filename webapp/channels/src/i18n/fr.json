@@ -2468,8 +2468,6 @@
   "admin.user_item.teamAdmin": "Administrateur d'équipe",
   "admin.user_item.teamMember": "Membre d'équipe",
   "admin.user_item.userDeactivateFailed": "La désactivation de l’utilisateur a échoué",
-  "admin.viewArchivedChannelsHelpText": "Si activé, autorise les utilisateurs à afficher, partager et rechercher du contenu provenant de canaux qui ont été archivés. Les utilisateurs ne peuvent accéder qu'au contenu des canaux pour lesquels ils étaient membres avant que ces canaux ne soient archivés.",
-  "admin.viewArchivedChannelsTitle": "Autoriser les utilisateurs à accéder aux canaux archivés :",
   "admin.webserverModeDisabled": "Désactivé",
   "admin.webserverModeDisabledDescription": "Le serveur Mattermost ne sert pas les fichiers statiques.",
   "admin.webserverModeGzip": "gzip",
