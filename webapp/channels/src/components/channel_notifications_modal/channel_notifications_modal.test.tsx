@@ -53,7 +53,7 @@ describe('ChannelNotificationsModal', () => {
     };
 
     test('should not show other settings if channel is mute', async () => {
-        const wrapper = renderWithContext(
+        renderWithContext(
             <ChannelNotificationsModal {...baseProps}/>,
         );
 
@@ -61,13 +61,13 @@ describe('ChannelNotificationsModal', () => {
 
         fireEvent.click(muteChannel);
         expect(muteChannel).toBeChecked();
-        const AlertBanner = screen.queryByText('This channel is muted');
-        expect(AlertBanner).toBeVisible();
+        
+        const alertBanner = screen.getByText('This channel is muted');
+        expect(alertBanner).toBeInTheDocument();
 
-        expect(screen.queryByText('Desktop Notifications')).toBeNull();
-
-        expect(screen.queryByText('Mobile Notifications')).toBeNull();
-        expect(screen.queryByText('Follow all threads in this channel')).not.toBeNull();
+        expect(screen.queryByText('Desktop Notifications')).not.toBeInTheDocument();
+        expect(screen.queryByText('Mobile Notifications')).not.toBeInTheDocument();
+        expect(screen.getByText('Follow all threads in this channel')).toBeInTheDocument();
 
         fireEvent.click(screen.getByRole('button', {name: /Save/i}));
 
@@ -88,16 +88,19 @@ describe('ChannelNotificationsModal', () => {
                 },
             ),
         );
-        expect(wrapper).toMatchSnapshot();
     });
 
     test('should save correctly for \'Ignore mentions for @channel, @here and @all\'', async () => {
-        const wrapper = renderWithContext(
+        renderWithContext(
             <ChannelNotificationsModal {...baseProps}/>,
         );
+        
         const ignoreChannel = screen.getByTestId('ignoreMentions');
         fireEvent.click(ignoreChannel);
         expect(ignoreChannel).toBeChecked();
+
+        // Verify the checkbox label is present
+        expect(screen.getByText('Ignore mentions for @channel, @here and @all')).toBeInTheDocument();
 
         fireEvent.click(screen.getByRole('button', {name: /Save/i}));
         await waitFor(() =>
@@ -117,33 +120,40 @@ describe('ChannelNotificationsModal', () => {
                 },
             ),
         );
-        expect(wrapper).toMatchSnapshot();
     });
 
     test('should check the options in the desktop notifications', async () => {
-        const wrapper = renderWithContext(
+        renderWithContext(
             <ChannelNotificationsModal {...baseProps}/>,
         );
 
-        expect(screen.queryByText('Desktop Notifications')).toBeVisible();
+        expect(screen.getByText('Desktop Notifications')).toBeInTheDocument();
 
-        const AlllabelRadio: HTMLInputElement = screen.getByTestId(
-            'desktopNotification-all',
-        );
-        fireEvent.click(AlllabelRadio);
-        expect(AlllabelRadio.checked).toEqual(true);
+        const allRadio: HTMLInputElement = screen.getByTestId('desktopNotification-all');
+        const mentionsRadio: HTMLInputElement = screen.getByTestId('desktopNotification-mention');
+        const nothingRadio: HTMLInputElement = screen.getByTestId('desktopNotification-none');
 
-        const MentionslabelRadio: HTMLInputElement = screen.getByTestId(
-            'desktopNotification-mention',
-        );
-        fireEvent.click(MentionslabelRadio);
-        expect(MentionslabelRadio.checked).toEqual(true);
+        // Verify all radio options are present
+        expect(allRadio).toBeInTheDocument();
+        expect(mentionsRadio).toBeInTheDocument();
+        expect(nothingRadio).toBeInTheDocument();
 
-        const NothinglabelRadio: HTMLInputElement = screen.getByTestId(
-            'desktopNotification-none',
-        );
-        fireEvent.click(NothinglabelRadio);
-        expect(NothinglabelRadio.checked).toEqual(true);
+        // Test clicking through the options
+        fireEvent.click(allRadio);
+        expect(allRadio).toBeChecked();
+
+        fireEvent.click(mentionsRadio);
+        expect(mentionsRadio).toBeChecked();
+        expect(allRadio).not.toBeChecked();
+
+        fireEvent.click(nothingRadio);
+        expect(nothingRadio).toBeChecked();
+        expect(mentionsRadio).not.toBeChecked();
+
+        // Verify the labels are present
+        expect(screen.getByText(/All new messages/)).toBeInTheDocument();
+        expect(screen.getByText(/Mentions, direct messages, and keywords only/)).toBeInTheDocument();
+        expect(screen.getByText(/Nothing/)).toBeInTheDocument();
 
         fireEvent.click(screen.getByRole('button', {name: /Save/i}));
         await waitFor(() =>
@@ -163,7 +173,6 @@ describe('ChannelNotificationsModal', () => {
                 },
             ),
         );
-        expect(wrapper).toMatchSnapshot();
     });
 
     test('should disable message notification sound if option is unchecked', async () => {
@@ -208,18 +217,21 @@ describe('ChannelNotificationsModal', () => {
     });
 
     test('should save the options exactly same as Desktop for mobile if use same as desktop checkbox is checked', async () => {
-        const wrapper = renderWithContext(
+        renderWithContext(
             <ChannelNotificationsModal {...baseProps}/>,
         );
 
-        expect(screen.queryByText('Desktop Notifications')).toBeVisible();
+        expect(screen.getByText('Desktop Notifications')).toBeInTheDocument();
+        expect(screen.getByText('Mobile Notifications')).toBeInTheDocument();
 
-        const sameAsDesktop: HTMLInputElement = screen.getByTestId(
-            'sameMobileSettingsDesktop',
-        );
-        expect(sameAsDesktop.checked).toEqual(true);
+        const sameAsDesktop: HTMLInputElement = screen.getByTestId('sameMobileSettingsDesktop');
+        expect(sameAsDesktop).toBeChecked();
 
-        expect(screen.queryByText('All new messages')).toBeNull();
+        // Verify the checkbox label is present
+        expect(screen.getByText('Use the same notification settings as desktop')).toBeInTheDocument();
+
+        // When "same as desktop" is checked, mobile-specific options should not be visible
+        expect(screen.queryByTestId('mobile-notify-me-radio-section')).not.toBeInTheDocument();
 
         fireEvent.click(screen.getByRole('button', {name: /Save/i}));
         await waitFor(() =>
@@ -239,7 +251,6 @@ describe('ChannelNotificationsModal', () => {
                 },
             ),
         );
-        expect(wrapper).toMatchSnapshot();
     });
 
     test('should check the options in the mobile notifications', async () => {
@@ -252,18 +263,33 @@ describe('ChannelNotificationsModal', () => {
                 },
             } as unknown as ChannelMembership,
         };
-        const wrapper = renderWithContext(
+        renderWithContext(
             <ChannelNotificationsModal {...props}/>,
         );
 
-        fireEvent.click(screen.getByTestId('MobileNotification-all'));
-        expect(screen.getByTestId('MobileNotification-all')).toBeChecked();
+        // First uncheck "same as desktop" to show mobile options
+        const sameAsDesktop = screen.getByTestId('sameMobileSettingsDesktop');
+        fireEvent.click(sameAsDesktop);
+        expect(sameAsDesktop).not.toBeChecked();
 
-        fireEvent.click(screen.getByTestId('MobileNotification-mention'));
-        expect(screen.getByTestId('MobileNotification-mention')).toBeChecked();
+        // Now mobile notification options should be visible
+        expect(screen.getByTestId('mobile-notify-me-radio-section')).toBeInTheDocument();
 
-        fireEvent.click(screen.getByTestId('MobileNotification-none'));
-        expect(screen.getByTestId('MobileNotification-none')).toBeChecked();
+        const allRadio = screen.getByTestId('MobileNotification-all');
+        const mentionRadio = screen.getByTestId('MobileNotification-mention');
+        const noneRadio = screen.getByTestId('MobileNotification-none');
+
+        // Test clicking through the mobile notification options
+        fireEvent.click(allRadio);
+        expect(allRadio).toBeChecked();
+
+        fireEvent.click(mentionRadio);
+        expect(mentionRadio).toBeChecked();
+        expect(allRadio).not.toBeChecked();
+
+        fireEvent.click(noneRadio);
+        expect(noneRadio).toBeChecked();
+        expect(mentionRadio).not.toBeChecked();
 
         fireEvent.click(screen.getByRole('button', {name: /Save/i}));
         await waitFor(() =>
@@ -283,19 +309,24 @@ describe('ChannelNotificationsModal', () => {
                 },
             ),
         );
-        expect(wrapper).toMatchSnapshot();
     });
 
-    test('should show not auto follow, desktop threads and mobile threads settings if collapsed reply threads is enabled', async () => {
+    test('should not show auto follow threads section if collapsed reply threads is disabled', async () => {
         const props = {
             ...baseProps,
             collapsedReplyThreads: false,
         };
-        const wrapper = renderWithContext(
+        renderWithContext(
             <ChannelNotificationsModal {...props}/>,
         );
 
-        expect(screen.queryByText('Follow all threads in this channel')).toBeNull();
+        // Auto follow threads section should not be visible when collapsed threads is disabled
+        expect(screen.queryByText('Follow all threads in this channel')).not.toBeInTheDocument();
+
+        // But other sections should still be present
+        expect(screen.getByText('Desktop Notifications')).toBeInTheDocument();
+        expect(screen.getByText('Mobile Notifications')).toBeInTheDocument();
+        expect(screen.getByText('Mute or ignore')).toBeInTheDocument();
 
         fireEvent.click(screen.getByRole('button', {name: /Save/i}));
 
@@ -316,7 +347,6 @@ describe('ChannelNotificationsModal', () => {
                 },
             ),
         );
-        expect(wrapper).toMatchSnapshot();
     });
 });
 
