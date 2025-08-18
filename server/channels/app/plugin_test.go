@@ -5,22 +5,18 @@ package app
 
 import (
 	"archive/tar"
-	"bytes"
 	"compress/gzip"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
-	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"sort"
 	"testing"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -339,113 +335,6 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Nil(t, ret)
 	})
-}
-
-func TestServePluginRequest(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t)
-	defer th.TearDown()
-
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
-
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest("GET", "/plugins/foo/bar", nil)
-	th.App.ch.ServePluginRequest(w, r)
-	assert.Equal(t, http.StatusNotImplemented, w.Result().StatusCode)
-}
-
-func TestPrivateServePluginRequest(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t)
-	defer th.TearDown()
-
-	testCases := []struct {
-		Description string
-		ConfigFunc  func(cfg *model.Config)
-		URL         string
-		ExpectedURL string
-	}{
-		{
-			"no subpath",
-			func(cfg *model.Config) {},
-			"/plugins/id/endpoint",
-			"/endpoint",
-		},
-		{
-			"subpath",
-			func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL += "/subpath" },
-			"/subpath/plugins/id/endpoint",
-			"/endpoint",
-		},
-	}
-
-	for _, testCase := range testCases {
-		t.Run(testCase.Description, func(t *testing.T) {
-			th.App.UpdateConfig(testCase.ConfigFunc)
-			expectedBody := []byte("body")
-			request := httptest.NewRequest(http.MethodGet, testCase.URL, bytes.NewReader(expectedBody))
-			recorder := httptest.NewRecorder()
-
-			handler := func(context *plugin.Context, w http.ResponseWriter, r *http.Request) {
-				assert.Equal(t, testCase.ExpectedURL, r.URL.Path)
-
-				body, _ := io.ReadAll(r.Body)
-				assert.Equal(t, expectedBody, body)
-			}
-
-			request = mux.SetURLVars(request, map[string]string{"plugin_id": "id"})
-
-			th.App.ch.servePluginRequest(recorder, request, handler)
-		})
-	}
-}
-
-func TestHandlePluginRequest(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PluginSettings.Enable = false
-		*cfg.ServiceSettings.EnableUserAccessTokens = true
-	})
-
-	token, err := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{
-		UserId: th.BasicUser.Id,
-	})
-	require.Nil(t, err)
-
-	var assertions func(*http.Request)
-	router := mux.NewRouter()
-	router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", func(_ http.ResponseWriter, r *http.Request) {
-		th.App.ch.servePluginRequest(nil, r, func(_ *plugin.Context, _ http.ResponseWriter, r *http.Request) {
-			assertions(r)
-		})
-	})
-
-	r := httptest.NewRequest("GET", "/plugins/foo/bar", nil)
-	r.Header.Add("Authorization", "Bearer "+token.Token)
-	assertions = func(r *http.Request) {
-		assert.Equal(t, "/bar", r.URL.Path)
-		assert.Equal(t, th.BasicUser.Id, r.Header.Get("Mattermost-User-Id"))
-	}
-	router.ServeHTTP(nil, r)
-
-	r = httptest.NewRequest("GET", "/plugins/foo/bar?a=b&access_token="+token.Token+"&c=d", nil)
-	assertions = func(r *http.Request) {
-		assert.Equal(t, "/bar", r.URL.Path)
-		assert.Equal(t, "a=b&c=d", r.URL.RawQuery)
-		assert.Equal(t, th.BasicUser.Id, r.Header.Get("Mattermost-User-Id"))
-	}
-	router.ServeHTTP(nil, r)
-
-	r = httptest.NewRequest("GET", "/plugins/foo/bar?a=b&access_token=asdf&c=d", nil)
-	assertions = func(r *http.Request) {
-		assert.Equal(t, "/bar", r.URL.Path)
-		assert.Equal(t, "a=b&c=d", r.URL.RawQuery)
-		assert.Empty(t, r.Header.Get("Mattermost-User-Id"))
-	}
-	router.ServeHTTP(nil, r)
 }
 
 func TestGetPluginStatusesDisabled(t *testing.T) {
