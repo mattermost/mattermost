@@ -46,7 +46,7 @@ export function stringToMoment(value: string | null, timezone?: string, isDateTi
         // Use strict parsing to reject ambiguous formats
         const formats = isDateTime ? ['YYYY-MM-DDTHH:mm:ss.SSSZ', 'YYYY-MM-DDTHH:mm:ssZ', 'YYYY-MM-DDTHH:mmZ'] : ['YYYY-MM-DD'];
         if (timezone && moment.tz.zone(timezone)) {
-            momentValue = moment.tz(processedValue, formats, timezone, true);
+            momentValue = moment.tz(processedValue, formats, true, timezone);
         } else {
             momentValue = moment(processedValue, formats, true);
         }
