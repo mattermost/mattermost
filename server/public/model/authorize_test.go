@@ -249,29 +249,29 @@ func TestValidateResourceParameter(t *testing.T) {
 		}
 
 		for _, resource := range validResources {
-			require.Nil(t, ValidateResourceParameter(resource, clientId, caller), 
+			require.Nil(t, ValidateResourceParameter(resource, clientId, caller),
 				"Expected valid resource '%s' to pass validation", resource)
 		}
 	})
 
 	t.Run("Invalid resource URIs should fail", func(t *testing.T) {
 		invalidResources := []string{
-			"not-a-uri",                          // Not a URI
-			"relative/path",                      // Relative URI
-			"/absolute/path",                     // Absolute path but not URI
-			"https://example.com/path#fragment",  // Contains fragment
-			"malformed://[invalid",               // Malformed URI
+			"not-a-uri",                         // Not a URI
+			"relative/path",                     // Relative URI
+			"/absolute/path",                    // Absolute path but not URI
+			"https://example.com/path#fragment", // Contains fragment
+			"malformed://[invalid",              // Malformed URI
 		}
 
 		for _, resource := range invalidResources {
-			require.NotNil(t, ValidateResourceParameter(resource, clientId, caller), 
+			require.NotNil(t, ValidateResourceParameter(resource, clientId, caller),
 				"Expected invalid resource '%s' to fail validation", resource)
 		}
 	})
 
 	t.Run("Empty resource should pass", func(t *testing.T) {
 		// Empty resource parameter should be allowed (means no resource specified)
-		require.Nil(t, ValidateResourceParameter("", clientId, caller), 
+		require.Nil(t, ValidateResourceParameter("", clientId, caller),
 			"Expected empty resource to pass validation")
 	})
 
@@ -282,20 +282,20 @@ func TestValidateResourceParameter(t *testing.T) {
 			longPath[i] = 'a'
 		}
 		longResource := "https://example.com/" + string(longPath)
-		
-		require.NotNil(t, ValidateResourceParameter(longResource, clientId, caller), 
+
+		require.NotNil(t, ValidateResourceParameter(longResource, clientId, caller),
 			"Expected resource URI longer than 512 characters to fail validation")
 	})
 
 	t.Run("Fragment in URI should fail", func(t *testing.T) {
 		resourceWithFragment := "https://example.com/api#section1"
-		require.NotNil(t, ValidateResourceParameter(resourceWithFragment, clientId, caller), 
+		require.NotNil(t, ValidateResourceParameter(resourceWithFragment, clientId, caller),
 			"Expected resource URI with fragment to fail validation")
 	})
 
 	t.Run("Query parameters are allowed", func(t *testing.T) {
 		resourceWithQuery := "https://example.com/api?param1=value1&param2=value2"
-		require.Nil(t, ValidateResourceParameter(resourceWithQuery, clientId, caller), 
+		require.Nil(t, ValidateResourceParameter(resourceWithQuery, clientId, caller),
 			"Expected resource URI with query parameters to pass validation")
 	})
 
@@ -306,7 +306,7 @@ func TestValidateResourceParameter(t *testing.T) {
 		}
 
 		for _, resource := range validSchemes {
-			require.Nil(t, ValidateResourceParameter(resource, clientId, caller), 
+			require.Nil(t, ValidateResourceParameter(resource, clientId, caller),
 				"Expected resource with scheme '%s' to pass validation", resource)
 		}
 	})

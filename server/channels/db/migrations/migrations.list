@@ -283,3 +283,5 @@ channels/db/migrations/postgres/000142_add_dcr_fields_to_oauth_apps.down.sql
 channels/db/migrations/postgres/000142_add_dcr_fields_to_oauth_apps.up.sql
 channels/db/migrations/postgres/000143_add_pkce_to_oauthauthdata.down.sql
 channels/db/migrations/postgres/000143_add_pkce_to_oauthauthdata.up.sql
+channels/db/migrations/postgres/000144_add_audience_and_resource_to_oauth.down.sql
+channels/db/migrations/postgres/000144_add_audience_and_resource_to_oauth.up.sql
