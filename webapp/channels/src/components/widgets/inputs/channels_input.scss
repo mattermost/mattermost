@@ -224,11 +224,11 @@
     }
 
     .channels-input__multi-value__remove {
+        display: flex;
+        height: 20px;
+        align-items: center;
         padding: 0px 4px 2px 6px;
         cursor: pointer;
-        height: 20px;
-        display: flex;
-        align-items: center;
 
         span {
             display: flex;
