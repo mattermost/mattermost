@@ -703,8 +703,10 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 		}
 	}
 
-	if _, err := s.propertyService.UpdatePropertyFields(group.ID, propertiesToUpdate); err != nil {
-		return fmt.Errorf("failed to update content flagging property fields: %w", err)
+	if len(propertiesToUpdate) > 0 {
+		if _, err := s.propertyService.UpdatePropertyFields(group.ID, propertiesToUpdate); err != nil {
+			return fmt.Errorf("failed to update content flagging property fields: %w", err)
+		}
 	}
 
 	if err := s.Store().System().SaveOrUpdate(&model.System{Name: contentFlaggingSetupDoneKey, Value: contentFlaggingMigrationVersion}); err != nil {
