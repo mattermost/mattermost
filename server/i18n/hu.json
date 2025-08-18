@@ -8147,14 +8147,6 @@
     "translation": "Nem tudom megnövelni a munkamenet hosszát"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Nem sikerült lekérni egy archivált csatorna felhasználóit"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Nem sikerült lekérni egy archivált csatorna bejegyzéseit"
-  },
-  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "A kapott Bejegyzés Azonosítók száma meghaladja a maximális mennyiséget ({{.MaxLength}})"
   },
