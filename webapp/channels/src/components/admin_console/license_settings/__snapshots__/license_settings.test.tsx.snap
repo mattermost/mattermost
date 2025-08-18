@@ -111,7 +111,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
               setClickNormalUpgradeBtn={[Function]}
               upgradeDisabled={false}
               upgradeError={null}
-              upgradingPercentage={0}
+              upgradingPercentage={100}
             />
           </div>
         </div>
@@ -232,7 +232,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
               setClickNormalUpgradeBtn={[Function]}
               upgradeDisabled={false}
               upgradeError={null}
-              upgradingPercentage={0}
+              upgradingPercentage={42}
             />
           </div>
         </div>
