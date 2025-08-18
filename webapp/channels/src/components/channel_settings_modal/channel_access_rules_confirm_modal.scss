@@ -1,0 +1,208 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ChannelAccessRulesConfirmModal {
+    .modal-body {
+        padding: 0;
+    }
+
+    &__summary {
+        padding: 24px;
+    }
+
+    &__message {
+        margin-bottom: 16px;
+        font-size: 14px;
+        line-height: 20px;
+        color: var(--center-channel-color);
+
+        strong {
+            font-weight: 600;
+        }
+    }
+
+    &__question {
+        margin-bottom: 24px;
+        font-size: 14px;
+        line-height: 20px;
+        color: var(--center-channel-color);
+    }
+
+    &__details {
+        display: flex;
+        flex-direction: column;
+        height: 500px;
+    }
+
+    &__tabs {
+        display: flex;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        padding: 0 24px;
+    }
+
+    &__tab {
+        position: relative;
+        padding: 16px 0;
+        margin-right: 32px;
+        background: none;
+        border: none;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: color 0.15s ease;
+
+        &:hover {
+            color: var(--center-channel-color);
+        }
+
+        &.active {
+            color: var(--button-bg);
+
+            &::after {
+                content: '';
+                position: absolute;
+                bottom: -1px;
+                left: 0;
+                right: 0;
+                height: 2px;
+                background-color: var(--button-bg);
+            }
+        }
+
+        &:focus {
+            outline: none;
+        }
+    }
+
+    &__userList {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px 24px 0;
+
+        .more-modal__list {
+            margin: 0;
+        }
+
+        // Add spacing for the search input that comes from SearchableUserList
+        .user-list__search,
+        .more-modal__search {
+            margin-bottom: 16px;
+        }
+
+        // Style the search input container
+        .search-bar__container {
+            margin-bottom: 16px;
+        }
+
+        .more-modal__row {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+            &:last-child {
+                border-bottom: none;
+            }
+        }
+
+        .more-modal__details {
+            display: flex;
+            align-items: center;
+        }
+
+        .more-modal__name {
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .more-modal__description {
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+        }
+    }
+
+    &__noResults {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 200px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 14px;
+    }
+
+    &__buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 16px 24px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+        .btn {
+            min-width: 80px;
+            height: 32px;
+            padding: 0 16px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 4px;
+
+            &.btn-tertiary {
+                background: var(--center-channel-bg);
+                border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                color: var(--link-color);
+
+                &:hover:not(:disabled) {
+                    background: rgba(var(--center-channel-color-rgb), 0.04);
+                    border-color: rgba(var(--center-channel-color-rgb), 0.24);
+                }
+
+                &:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+            }
+
+            &.btn-primary {
+                background: var(--error-text);
+                border: 1px solid var(--error-text);
+                color: var(--button-color);
+
+                &:hover:not(:disabled) {
+                    background: var(--error-text-hover, #d24b4e);
+                    border-color: var(--error-text-hover, #d24b4e);
+                }
+
+                &:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+
+                .icon-loading {
+                    margin-right: 4px;
+                }
+            }
+        }
+    }
+
+    // Responsive adjustments
+    @media screen and (max-width: 768px) {
+        &__details {
+            height: 400px;
+        }
+
+        &__tabs {
+            padding: 0 16px;
+        }
+
+        &__userList {
+            padding: 0 16px;
+        }
+
+        &__buttons {
+            padding: 12px 16px;
+            flex-wrap: wrap;
+
+            .btn {
+                flex: 1;
+                min-width: 0;
+            }
+        }
+    }
+}
