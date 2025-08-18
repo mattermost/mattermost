@@ -30,7 +30,7 @@
 
         .modal-body {
             display: flex;
-            overflow: visible;
+            overflow-y: auto;
             width: auto;
             min-height: 150px;
             flex-direction: column;
