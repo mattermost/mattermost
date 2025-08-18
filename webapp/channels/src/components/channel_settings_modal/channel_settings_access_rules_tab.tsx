@@ -46,6 +46,7 @@ function ChannelSettingsAccessRulesTab({
     // Auto-sync members toggle state
     const [autoSyncMembers, setAutoSyncMembers] = useState(false);
     const [originalAutoSyncMembers, setOriginalAutoSyncMembers] = useState(false);
+    const [parentPolicyAutoSync, setParentPolicyAutoSync] = useState<boolean | null>(null);
 
     // SaveChangesPanel state
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
@@ -55,6 +56,17 @@ function ChannelSettingsAccessRulesTab({
 
     // Fetch system policies applied to this channel
     const {policies: systemPolicies, loading: policiesLoading} = useChannelSystemPolicies(channel);
+
+    // Check if any parent policy has auto-sync enabled
+    useEffect(() => {
+        if (systemPolicies && systemPolicies.length > 0) {
+            // Check if any parent policy has auto-sync enabled
+            const hasParentAutoSyncEnabled = systemPolicies.some((policy) => policy.active === true);
+            setParentPolicyAutoSync(hasParentAutoSyncEnabled);
+        } else {
+            setParentPolicyAutoSync(null);
+        }
+    }, [systemPolicies]);
 
     // Load user attributes on component mount
     useEffect(() => {
@@ -81,7 +93,12 @@ function ChannelSettingsAccessRulesTab({
                 if (result.data) {
                     // Extract expression from the policy rules
                     const existingExpression = result.data.rules?.[0]?.expression || '';
-                    const existingAutoSync = result.data.active || false;
+                    let existingAutoSync = result.data.active || false;
+
+                    // If parent policy has auto-sync enabled, force it to be enabled
+                    if (parentPolicyAutoSync === true) {
+                        existingAutoSync = true;
+                    }
 
                     setExpression(existingExpression);
                     setOriginalExpression(existingExpression);
@@ -92,13 +109,16 @@ function ChannelSettingsAccessRulesTab({
                 // If no policy exists (404), that's fine - use defaults
                 setExpression('');
                 setOriginalExpression('');
-                setAutoSyncMembers(false);
-                setOriginalAutoSyncMembers(false);
+
+                // If parent policy has auto-sync enabled, force it to be enabled
+                const defaultAutoSync = parentPolicyAutoSync === true;
+                setAutoSyncMembers(defaultAutoSync);
+                setOriginalAutoSyncMembers(defaultAutoSync);
             }
         };
 
         loadChannelPolicy();
-    }, [channel.id, actions]);
+    }, [channel.id, actions, parentPolicyAutoSync]);
 
     // Update parent component when changes occur
     useEffect(() => {
@@ -126,26 +146,31 @@ function ChannelSettingsAccessRulesTab({
     }, [formatMessage]);
 
     const handleAutoSyncToggle = useCallback(() => {
-        setAutoSyncMembers((prev) => {
-            const newValue = !prev;
+        // Don't allow toggling if no expression
+        if (!expression.trim()) {
+            return;
+        }
 
-            // Log the toggle state
-            // eslint-disable-next-line no-console
-            console.log('Auto-sync members toggled:', newValue);
-            return newValue;
-        });
-    }, []);
+        // If parent policy has auto-sync enabled, don't allow disabling
+        if (parentPolicyAutoSync === true && autoSyncMembers) {
+            // Trying to disable when any parent has it enabled - not allowed
+            return;
+        }
+
+        setAutoSyncMembers((prev) => !prev);
+    }, [parentPolicyAutoSync, expression, autoSyncMembers]);
 
     // Handle save action
     const handleSave = useCallback(async (): Promise<boolean> => {
         try {
-            // Log the save action for testing purposes
-            // eslint-disable-next-line no-console
-            console.log('Saving channel access rules:', {
-                channelId: channel.id,
-                expression,
-                autoSyncMembers,
-            });
+            // Validate expression if auto-sync is enabled
+            if (autoSyncMembers && !expression.trim()) {
+                setFormError(formatMessage({
+                    id: 'channel_settings.access_rules.expression_required_for_autosync',
+                    defaultMessage: 'Access rules are required when auto-add members is enabled',
+                }));
+                return false;
+            }
 
             // Build the policy object
             const policy = {
@@ -156,14 +181,11 @@ function ChannelSettingsAccessRulesTab({
                 active: autoSyncMembers,
                 revision: 1,
                 created_at: Date.now(),
-                rules: expression ? [{
+                rules: expression.trim() ? [{
                     actions: ['*'],
-                    expression,
+                    expression: expression.trim(),
                 }] : [],
                 imports: systemPolicies.map((p) => p.id), // Include existing parent policies
-                props: {
-                    auto_sync: [autoSyncMembers], // Props expects arrays
-                },
             };
 
             // Save the policy
@@ -173,13 +195,9 @@ function ChannelSettingsAccessRulesTab({
             }
 
             // Update original values on successful save
+            // The UI already prevents invalid states, so we can trust what we sent
             setOriginalExpression(expression);
             setOriginalAutoSyncMembers(autoSyncMembers);
-
-            // Show success alert for testing purposes
-            window.alert( // eslint-disable-line no-alert
-                `Access rules saved!\nExpression: ${expression}\nAuto-sync: ${autoSyncMembers ? 'Enabled' : 'Disabled'}`,
-            );
 
             return true;
         } catch (error) {
@@ -279,16 +297,34 @@ function ChannelSettingsAccessRulesTab({
 
             {/* Auto-sync members toggle */}
             <div className='ChannelSettingsModal__autoSyncSection'>
-                <label className='ChannelSettingsModal__autoSyncLabel'>
+                <label
+                    className='ChannelSettingsModal__autoSyncLabel'
+                    title={(() => {
+                        if (parentPolicyAutoSync === true) {
+                            return formatMessage({
+                                id: 'channel_settings.access_rules.auto_sync_forced_by_parent',
+                                defaultMessage: 'Auto-add is enabled by system policy and cannot be disabled',
+                            });
+                        }
+                        if (!expression.trim()) {
+                            return formatMessage({
+                                id: 'channel_settings.access_rules.auto_sync_requires_expression',
+                                defaultMessage: 'Define access rules to enable auto-add members',
+                            });
+                        }
+                        return undefined;
+                    })()}
+                >
                     <input
                         type='checkbox'
                         className='ChannelSettingsModal__autoSyncCheckbox'
                         checked={autoSyncMembers}
                         onChange={handleAutoSyncToggle}
+                        disabled={(parentPolicyAutoSync === true && autoSyncMembers) || !expression.trim()}
                         id='autoSyncMembersCheckbox'
                         name='autoSyncMembers'
                     />
-                    <span className='ChannelSettingsModal__autoSyncText'>
+                    <span className={`ChannelSettingsModal__autoSyncText ${((parentPolicyAutoSync === true && autoSyncMembers) || !expression.trim()) ? 'disabled' : ''}`}>
                         {formatMessage({
                             id: 'channel_settings.access_rules.auto_sync',
                             defaultMessage: 'Auto-add members based on access rules',
@@ -296,10 +332,30 @@ function ChannelSettingsAccessRulesTab({
                     </span>
                 </label>
                 <p className='ChannelSettingsModal__autoSyncDescription'>
-                    {formatMessage({
-                        id: 'channel_settings.access_rules.auto_sync_description',
-                        defaultMessage: 'Users who match the configured attribute values will be automatically added as members',
-                    })}
+                    {(() => {
+                        if (parentPolicyAutoSync === true) {
+                            return formatMessage({
+                                id: 'channel_settings.access_rules.auto_sync_forced_description',
+                                defaultMessage: 'Auto-add is enabled by system policy. Users who match the configured attribute values will be automatically added as members and those who no longer match will be removed.',
+                            });
+                        }
+                        if (!expression.trim()) {
+                            return formatMessage({
+                                id: 'channel_settings.access_rules.auto_sync_no_rules_description',
+                                defaultMessage: 'Define access rules above to enable automatic member synchronization.',
+                            });
+                        }
+                        if (autoSyncMembers) {
+                            return formatMessage({
+                                id: 'channel_settings.access_rules.auto_sync_enabled_description',
+                                defaultMessage: 'Users who match the configured attribute values will be automatically added as members and those who no longer match will be removed.',
+                            });
+                        }
+                        return formatMessage({
+                            id: 'channel_settings.access_rules.auto_sync_disabled_description',
+                            defaultMessage: 'Access rules will prevent unauthorized users from joining, but will not automatically add qualifying members.',
+                        });
+                    })()}
                 </p>
             </div>
 
