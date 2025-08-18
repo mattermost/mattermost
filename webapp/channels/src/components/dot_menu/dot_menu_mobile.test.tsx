@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {screen} from '@testing-library/react';
+import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
+
+import DotMenu from 'components/dot_menu/dot_menu';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
-
-import DotMenu from 'components/dot_menu/dot_menu';
 
 jest.mock('utils/utils', () => {
     return {
