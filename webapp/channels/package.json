@@ -11,7 +11,6 @@
     "@giphy/react-components": "8.1.0",
     "@guyplusplus/turndown-plugin-gfm": "1.0.7",
     "@mattermost/client": "10.11.0",
-    "@mattermost/compass-components": "^0.2.12",
     "@mattermost/desktop-api": "5.10.0-2",
     "@mattermost/dynamic-virtualized-list": "github:mattermost/dynamic-virtualized-list#08dde0c34a12d0384740db27d55e398d139d7a51",
     "@mattermost/types": "10.11.0",
@@ -173,9 +172,6 @@
     "yargs": "17.7.2"
   },
   "overrides": {
-    "@mattermost/compass-components": {
-      "axios": "1.7.9"
-    },
     "@mattermost/desktop-api": {
       "typescript": "$typescript"
     }
