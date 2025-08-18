@@ -1,2 +1,2 @@
-ALTER TABLE oauthauthdata ADD COLUMN codechallenge varchar(128);
-ALTER TABLE oauthauthdata ADD COLUMN codechallengemethod varchar(10);
+ALTER TABLE oauthauthdata ADD COLUMN IF NOT EXISTS codechallenge varchar(128) DEFAULT '';
+ALTER TABLE oauthauthdata ADD COLUMN IF NOT EXISTS codechallengemethod varchar(10) DEFAULT '';
