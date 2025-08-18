@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {screen, waitFor} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
 
 import type {PostType} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
@@ -149,7 +149,7 @@ describe('components/dot_menu/DotMenu', () => {
         canMove: true,
     };
 
-    test('should match snapshot, on Center', async () => {
+    test('should show edit menu, on Center', async () => {
         const props = {
             ...baseProps,
             canEdit: true,
@@ -162,14 +162,14 @@ describe('components/dot_menu/DotMenu', () => {
         const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
         expect(button).toBeInTheDocument();
         expect(button).toHaveAttribute('aria-label', 'more');
-        
+
         await userEvent.click(button);
-        
+
         // Check that edit menu item is present when canEdit is true
         expect(screen.getByTestId(`edit_post_${baseProps.post.id}`)).toBeInTheDocument();
     });
 
-    test('should match snapshot, canDelete', async () => {
+    test('should show delete menu, canDelete', async () => {
         const props = {
             ...baseProps,
             canEdit: true,
@@ -182,12 +182,12 @@ describe('components/dot_menu/DotMenu', () => {
 
         const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
         await userEvent.click(button);
-        
+
         // Check that delete menu item is present when canDelete is true
         expect(screen.getByTestId(`delete_post_${baseProps.post.id}`)).toBeInTheDocument();
     });
 
-    test('should match snapshot, can move', async () => {
+    test('should show move thread menu, can move', async () => {
         const props = {
             ...baseProps,
             canMove: true,
@@ -199,12 +199,12 @@ describe('components/dot_menu/DotMenu', () => {
 
         const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
         await userEvent.click(button);
-        
+
         // Check that move thread menu item is present when canMove is true
         expect(screen.getByText('Move Thread')).toBeInTheDocument();
     });
 
-    test('should match snapshot, cannot move', async () => {
+    test('should not show move thread menu when canMove is false, cannot move', async () => {
         const props = {
             ...baseProps,
             canMove: false,
@@ -216,7 +216,7 @@ describe('components/dot_menu/DotMenu', () => {
 
         const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
         await userEvent.click(button);
-        
+
         // Check that move thread menu item is not present when canMove is false
         expect(screen.queryByText('Move Thread')).not.toBeInTheDocument();
     });
