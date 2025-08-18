@@ -95,13 +95,10 @@ func (s *SqlDraftStore) Upsert(draft *model.Draft) (*model.Draft, error) {
 		return nil, err
 	}
 
-	builder := s.getQueryBuilder().Insert("Drafts").Columns(draftSliceColumns()...).Values(draftToSlice(draft)...)
-
-	if s.DriverName() == model.DatabaseDriverMysql {
-		builder = builder.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE  UpdateAt = ?, Message = ?, Props = ?, FileIds = ?, Priority = ?, DeleteAt = ?", draft.UpdateAt, draft.Message, draft.Props, draft.FileIds, draft.Priority, 0))
-	} else {
-		builder = builder.SuffixExpr(sq.Expr("ON CONFLICT (UserId, ChannelId, RootId) DO UPDATE SET UpdateAt = ?, Message = ?, Props = ?, FileIds = ?, Priority = ?, DeleteAt = ?", draft.UpdateAt, draft.Message, draft.Props, draft.FileIds, draft.Priority, 0))
-	}
+	builder := s.getQueryBuilder().Insert("Drafts").
+		Columns(draftSliceColumns()...).
+		Values(draftToSlice(draft)...).
+		SuffixExpr(sq.Expr("ON CONFLICT (UserId, ChannelId, RootId) DO UPDATE SET UpdateAt = ?, Message = ?, Props = ?, FileIds = ?, Priority = ?, DeleteAt = ?", draft.UpdateAt, draft.Message, draft.Props, draft.FileIds, draft.Priority, 0))
 
 	query, args, err := builder.ToSql()
 
@@ -243,22 +240,6 @@ func (s *SqlDraftStore) determineMaxDraftSize() int {
 		`); err != nil {
 			mlog.Warn("Unable to determine the maximum supported draft size", mlog.Err(err))
 		}
-	} else if s.DriverName() == model.DatabaseDriverMysql {
-		// The Draft.Message column in MySQL has historically been TEXT, with a maximum
-		// limit of 65535.
-		if err := s.GetReplica().Get(&maxDraftSizeBytes, `
-			SELECT
-				COALESCE(CHARACTER_MAXIMUM_LENGTH, 0)
-			FROM
-				INFORMATION_SCHEMA.COLUMNS
-			WHERE
-				table_schema = DATABASE()
-			AND	table_name = 'Drafts'
-			AND	column_name = 'Message'
-			LIMIT 0, 1
-		`); err != nil {
-			mlog.Warn("Unable to determine the maximum supported draft size", mlog.Err(err))
-		}
 	} else {
 		mlog.Warn("No implementation found to determine the maximum supported draft size")
 	}
@@ -328,27 +309,6 @@ func (s *SqlDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, use
 			Where("d.ChannelId = dd.ChannelId").
 			Where("d.RootId = dd.RootId").
 			Where("d.Message = ''")
-	} else if s.DriverName() == model.DatabaseDriverMysql {
-		builder = s.getQueryBuilder().
-			Delete("Drafts d").
-			What("d.*").
-			JoinClause(s.getQueryBuilder().Select().
-				Prefix("INNER JOIN (").
-				Columns("UserId, ChannelId, RootId").
-				From("Drafts").
-				Where(sq.And{
-					sq.Or{
-						sq.Gt{"CreateAt": createAt},
-						sq.And{
-							sq.Eq{"CreateAt": createAt},
-							sq.Gt{"UserId": userId},
-						},
-					},
-				}).
-				OrderBy("CreateAt", "UserId").
-				Limit(100).
-				Suffix(") dj ON (d.UserId = dj.UserId AND d.ChannelId = dj.ChannelId AND d.RootId = dj.RootId)"),
-			).Where(sq.Eq{"Message": ""})
 	}
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
@@ -382,28 +342,6 @@ func (s *SqlDraftStore) DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, us
 			Where("d.UserId = dd.UserId").
 			Where("d.ChannelId = dd.ChannelId").
 			Where("d.RootId = dd.RootId").
-			Suffix("AND (d.RootId IN (SELECT Id FROM Posts WHERE DeleteAt <> 0) OR NOT EXISTS (SELECT 1 FROM Posts WHERE Posts.Id = d.RootId))")
-	} else if s.DriverName() == model.DatabaseDriverMysql {
-		builder = s.getQueryBuilder().
-			Delete("Drafts d").
-			What("d.*").
-			JoinClause(s.getQueryBuilder().Select().
-				Prefix("INNER JOIN (").
-				Columns("UserId, ChannelId, RootId").
-				From("Drafts").
-				Where(sq.And{
-					sq.Or{
-						sq.Gt{"CreateAt": createAt},
-						sq.And{
-							sq.Eq{"CreateAt": createAt},
-							sq.Gt{"UserId": userId},
-						},
-					},
-				}).
-				OrderBy("CreateAt", "UserId").
-				Limit(100).
-				Suffix(") dj ON (d.UserId = dj.UserId AND d.ChannelId = dj.ChannelId AND d.RootId = dj.RootId)"),
-			).
 			Suffix("AND (d.RootId IN (SELECT Id FROM Posts WHERE DeleteAt <> 0) OR NOT EXISTS (SELECT 1 FROM Posts WHERE Posts.Id = d.RootId))")
 	}
 

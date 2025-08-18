@@ -264,7 +264,7 @@ describe('components/ProfilePopover', () => {
     (Client4.getCallsChannelState as jest.Mock).mockImplementation(async () => ({enabled: true}));
 
     test('should correctly handle remote users based on connection status', async () => {
-        // Test 1: Verify shared user indicator is shown for any remote user
+        // Test 1: Verify shared user is shown for any remote user
         {
             const [props, initialState] = getBasePropsAndState();
             initialState.entities!.users!.profiles!.user1!.remote_id = 'fakeuser';
@@ -274,7 +274,7 @@ describe('components/ProfilePopover', () => {
             };
 
             const {unmount} = renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
-            expect(await screen.findByLabelText('shared user indicator')).toBeInTheDocument();
+            expect(await screen.findByLabelText('shared user')).toBeInTheDocument();
             unmount();
         }
 
@@ -600,6 +600,10 @@ describe('components/ProfilePopover', () => {
         });
 
         initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
+        initialState.entities!.general!.license = {
+            IsLicensed: 'true',
+            SkuShortName: 'enterprise',
+        };
         initialState.entities!.general!.customProfileAttributes = {
             123: {id: '123', name: 'Rank', type: 'text'},
             456: {id: '456', name: 'CO', type: 'text'},
@@ -625,6 +629,10 @@ describe('components/ProfilePopover', () => {
         });
 
         initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
+        initialState.entities!.general!.license = {
+            IsLicensed: 'true',
+            SkuShortName: 'enterprise',
+        };
         initialState.entities!.general!.customProfileAttributes = {
             123: {
                 id: '123',
@@ -655,6 +663,10 @@ describe('components/ProfilePopover', () => {
         });
 
         initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
+        initialState.entities!.general!.license = {
+            IsLicensed: 'true',
+            SkuShortName: 'enterprise',
+        };
         initialState.entities!.general!.customProfileAttributes = {
             123: {
                 id: '123',
@@ -680,6 +692,10 @@ describe('components/ProfilePopover', () => {
         const [props, initialState] = getBasePropsAndState();
 
         initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
+        initialState.entities!.general!.license = {
+            IsLicensed: 'true',
+            SkuShortName: 'enterprise',
+        };
         initialState.entities!.general!.customProfileAttributes = {
             123: {id: '123', name: 'Rank', type: 'text'},
             456: {id: '456', name: 'CO', type: 'text'},
@@ -690,6 +706,60 @@ describe('components/ProfilePopover', () => {
         await act(async () => {
             expect(await screen.queryByText('Rank')).not.toBeInTheDocument();
             expect(await screen.queryByText('CO')).not.toBeInTheDocument();
+        });
+    });
+
+    test('should not display attributes without Enterprise license', async () => {
+        const [props, initialState] = getBasePropsAndState();
+        (Client4.getUserCustomProfileAttributesValues as jest.Mock).mockImplementation(async () => {
+            return {
+                123: 'Private',
+                456: 'Seargent York',
+            };
+        });
+
+        initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
+        initialState.entities!.general!.license = {
+            IsLicensed: 'false',
+            SkuShortName: '',
+        };
+        initialState.entities!.general!.customProfileAttributes = {
+            123: {id: '123', name: 'Rank', type: 'text'},
+            456: {id: '456', name: 'CO', type: 'text'},
+        };
+
+        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await act(async () => {
+            expect(await screen.queryByText('Rank')).not.toBeInTheDocument();
+            expect(await screen.queryByText('CO')).not.toBeInTheDocument();
+            expect(await screen.queryByText('Private')).not.toBeInTheDocument();
+            expect(await screen.queryByText('Seargent York')).not.toBeInTheDocument();
+        });
+    });
+
+    test('should display attributes with Enterprise license and feature flag', async () => {
+        const [props, initialState] = getBasePropsAndState();
+        (Client4.getUserCustomProfileAttributesValues as jest.Mock).mockImplementation(async () => {
+            return {
+                123: 'Private',
+                456: 'Seargent York',
+            };
+        });
+
+        initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
+        initialState.entities!.general!.license = {
+            IsLicensed: 'true',
+            SkuShortName: 'enterprise',
+        };
+        initialState.entities!.general!.customProfileAttributes = {
+            123: {id: '123', name: 'Rank', type: 'text'},
+            456: {id: '456', name: 'CO', type: 'text'},
+        };
+
+        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await act(async () => {
+            expect(await screen.findByText('Private')).toBeInTheDocument();
+            expect(await screen.findByText('Seargent York')).toBeInTheDocument();
         });
     });
 });

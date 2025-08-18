@@ -169,17 +169,6 @@
             "uid": "P8E80F9AEF21F6940"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time({container=\"mattermost-mysql\"}[5m])) or vector(0)",
-          "legendFormat": "MySQL",
-          "queryType": "range",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          },
-          "editorMode": "code",
           "expr": "sum(count_over_time({container=\"mattermost-inbucket\"}[5m])) or vector(0)",
           "legendFormat": "Inbucket",
           "queryType": "range",

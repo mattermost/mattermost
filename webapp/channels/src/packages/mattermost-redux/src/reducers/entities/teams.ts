@@ -494,6 +494,19 @@ function totalCount(state = 0, action: MMReduxAction) {
     }
 }
 
+function contentFlaggingStatus(state = {}, action: MMReduxAction) {
+    switch (action.type) {
+    case TeamTypes.RECEIVED_CONTENT_FLAGGING_STATUS: {
+        return {
+            ...state,
+            [action.data.teamId]: action.data.status,
+        };
+    }
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
 
     // the current selected team
@@ -514,4 +527,6 @@ export default combineReducers({
     groupsAssociatedToTeam,
 
     totalCount,
+
+    contentFlaggingStatus,
 });

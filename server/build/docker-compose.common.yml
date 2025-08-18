@@ -1,45 +1,4 @@
 services:
-  mysql:
-    image: "mysql/mysql-server:8.0.32"
-    restart: always
-    networks:
-      - mm-test
-    environment:
-      MYSQL_ROOT_HOST: "%"
-      MYSQL_ROOT_PASSWORD: mostest
-      MYSQL_PASSWORD: mostest
-      MYSQL_USER: mmuser
-      MYSQL_DATABASE: mattermost_test
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      interval: 5s
-      timeout: 10s
-      retries: 3
-    volumes:
-      - ./docker/mysql.conf.d/source.cnf:/etc/mysql/conf.d/mysql.cnf
-  mysql-read-replica:
-    image: "mysql/mysql-server:8.0.32"
-    restart: always
-    networks:
-      - mm-test
-    ports:
-      - target: 3306
-        published: 3307
-        protocol: tcp
-        mode: host
-    environment:
-      MYSQL_ROOT_HOST: "%"
-      MYSQL_ROOT_PASSWORD: mostest
-      MYSQL_PASSWORD: mostest
-      MYSQL_USER: mmuser
-      MYSQL_DATABASE: mattermost_test
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      interval: 5s
-      timeout: 10s
-      retries: 3
-    volumes:
-      - ./docker/mysql.conf.d/replica.cnf:/etc/mysql/conf.d/mysql.cnf
   postgres:
     image: "postgres:13"
     restart: always

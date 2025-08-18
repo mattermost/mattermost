@@ -417,19 +417,21 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				if err != nil {
 					c.Logger().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
 				}
-				if err := a.sendNotificationEmail(c, notification, profileMap[id], team, senderProfileImage); err != nil {
-					a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeEmail, model.NotificationReasonEmailSendError, model.NotificationNoPlatform)
-					c.Logger().LogM(mlog.MlvlNotificationError, "Error sending email notification",
-						mlog.String("type", model.NotificationTypeEmail),
-						mlog.String("post_id", post.Id),
-						mlog.String("status", model.NotificationStatusError),
-						mlog.String("reason", model.NotificationReasonEmailSendError),
-						mlog.String("sender_id", sender.Id),
-						mlog.String("receiver_id", id),
-						mlog.Err(err),
-					)
-					c.Logger().Warn("Unable to send notification email.", mlog.Err(err))
-				}
+				a.Srv().Go(func() {
+					if _, err := a.sendNotificationEmail(c, notification, profileMap[id], team, senderProfileImage); err != nil {
+						a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeEmail, model.NotificationReasonEmailSendError, model.NotificationNoPlatform)
+						c.Logger().LogM(mlog.MlvlNotificationError, "Error sending email notification",
+							mlog.String("type", model.NotificationTypeEmail),
+							mlog.String("post_id", post.Id),
+							mlog.String("status", model.NotificationStatusError),
+							mlog.String("reason", model.NotificationReasonEmailSendError),
+							mlog.String("sender_id", sender.Id),
+							mlog.String("receiver_id", id),
+							mlog.Err(err),
+						)
+						c.Logger().Warn("Unable to send notification email.", mlog.Err(err))
+					}
+				})
 			} else {
 				c.Logger().LogM(mlog.MlvlNotificationDebug, "Email disallowed by user",
 					mlog.String("type", model.NotificationTypeEmail),
