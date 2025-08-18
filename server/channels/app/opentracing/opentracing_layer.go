@@ -565,6 +565,28 @@ func (a *OpenTracingAppLayer) AddUserToTeamByInviteId(c request.CTX, inviteId st
 	return resultVar0, resultVar1, resultVar2
 }
 
+func (a *OpenTracingAppLayer) AddUserToTeamByInviteIfNeeded(c request.CTX, user *model.User, inviteToken string, inviteId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddUserToTeamByInviteIfNeeded")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.AddUserToTeamByInviteIfNeeded(c, user, inviteToken, inviteId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) AddUserToTeamByTeamId(c request.CTX, teamID string, user *model.User) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddUserToTeamByTeamId")
@@ -810,7 +832,7 @@ func (a *OpenTracingAppLayer) AuthenticateUserForLogin(c request.CTX, id string,
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) AuthorizeOAuthUser(c request.CTX, w http.ResponseWriter, r *http.Request, service string, code string, state string, redirectURI string) (io.ReadCloser, string, map[string]string, *model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) AuthorizeOAuthUser(c request.CTX, w http.ResponseWriter, r *http.Request, service string, code string, state string, redirectURI string) (io.ReadCloser, map[string]string, *model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AuthorizeOAuthUser")
 
@@ -822,14 +844,14 @@ func (a *OpenTracingAppLayer) AuthorizeOAuthUser(c request.CTX, w http.ResponseW
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1, resultVar2, resultVar3, resultVar4 := a.app.AuthorizeOAuthUser(c, w, r, service, code, state, redirectURI)
+	resultVar0, resultVar1, resultVar2, resultVar3 := a.app.AuthorizeOAuthUser(c, w, r, service, code, state, redirectURI)
 
-	if resultVar4 != nil {
-		span.LogFields(spanlog.Error(resultVar4))
+	if resultVar3 != nil {
+		span.LogFields(spanlog.Error(resultVar3))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1, resultVar2, resultVar3, resultVar4
+	return resultVar0, resultVar1, resultVar2, resultVar3
 }
 
 func (a *OpenTracingAppLayer) AutocompleteChannels(c request.CTX, userID string, term string) (model.ChannelListWithTeamData, *model.AppError) {
@@ -1737,7 +1759,7 @@ func (a *OpenTracingAppLayer) CompileReportChunks(format string, prefix string, 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) CompleteOAuth(c request.CTX, service string, body io.ReadCloser, teamID string, props map[string]string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) CompleteOAuth(c request.CTX, service string, body io.ReadCloser, props map[string]string, tokenUser *model.User) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CompleteOAuth")
 
@@ -1749,7 +1771,7 @@ func (a *OpenTracingAppLayer) CompleteOAuth(c request.CTX, service string, body 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CompleteOAuth(c, service, body, teamID, props, tokenUser)
+	resultVar0, resultVar1 := a.app.CompleteOAuth(c, service, body, props, tokenUser)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -2441,7 +2463,7 @@ func (a *OpenTracingAppLayer) CreateOAuthStateToken(extra string) (*model.Token,
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateOAuthUser(c request.CTX, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateOAuthUser(c request.CTX, service string, userData io.Reader, inviteToken string, inviteId string, tokenUser *model.User) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateOAuthUser")
 
@@ -2453,7 +2475,7 @@ func (a *OpenTracingAppLayer) CreateOAuthUser(c request.CTX, service string, use
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateOAuthUser(c, service, userData, teamID, tokenUser)
+	resultVar0, resultVar1 := a.app.CreateOAuthUser(c, service, userData, inviteToken, inviteId, tokenUser)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8150,7 +8172,7 @@ func (a *OpenTracingAppLayer) GetOAuthImplicitRedirect(c request.CTX, userID str
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetOAuthLoginEndpoint(c request.CTX, w http.ResponseWriter, r *http.Request, service string, teamID string, action string, redirectTo string, loginHint string, isMobile bool, desktopToken string) (string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetOAuthLoginEndpoint(c request.CTX, w http.ResponseWriter, r *http.Request, service string, action string, redirectTo string, loginHint string, isMobile bool, desktopToken string, inviteToken string, inviteId string) (string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOAuthLoginEndpoint")
 
@@ -8162,7 +8184,7 @@ func (a *OpenTracingAppLayer) GetOAuthLoginEndpoint(c request.CTX, w http.Respon
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetOAuthLoginEndpoint(c, w, r, service, teamID, action, redirectTo, loginHint, isMobile, desktopToken)
+	resultVar0, resultVar1 := a.app.GetOAuthLoginEndpoint(c, w, r, service, action, redirectTo, loginHint, isMobile, desktopToken, inviteToken, inviteId)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8172,7 +8194,7 @@ func (a *OpenTracingAppLayer) GetOAuthLoginEndpoint(c request.CTX, w http.Respon
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetOAuthSignupEndpoint(c request.CTX, w http.ResponseWriter, r *http.Request, service string, teamID string, desktopToken string) (string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetOAuthSignupEndpoint(c request.CTX, w http.ResponseWriter, r *http.Request, service string, desktopToken string, inviteToken string, inviteId string) (string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOAuthSignupEndpoint")
 
@@ -8184,7 +8206,7 @@ func (a *OpenTracingAppLayer) GetOAuthSignupEndpoint(c request.CTX, w http.Respo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetOAuthSignupEndpoint(c, w, r, service, teamID, desktopToken)
+	resultVar0, resultVar1 := a.app.GetOAuthSignupEndpoint(c, w, r, service, desktopToken, inviteToken, inviteId)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13054,7 +13076,7 @@ func (a *OpenTracingAppLayer) LogAuditRecWithLevel(rctx request.CTX, rec *audit.
 	a.app.LogAuditRecWithLevel(rctx, rec, level, err)
 }
 
-func (a *OpenTracingAppLayer) LoginByOAuth(c request.CTX, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) LoginByOAuth(c request.CTX, service string, userData io.Reader, inviteToken string, inviteId string, tokenUser *model.User) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.LoginByOAuth")
 
@@ -13066,7 +13088,7 @@ func (a *OpenTracingAppLayer) LoginByOAuth(c request.CTX, service string, userDa
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.LoginByOAuth(c, service, userData, teamID, tokenUser)
+	resultVar0, resultVar1 := a.app.LoginByOAuth(c, service, userData, inviteToken, inviteId, tokenUser)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
