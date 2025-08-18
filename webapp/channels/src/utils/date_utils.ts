@@ -16,7 +16,7 @@ export enum DateReference {
  * Convert a string value (ISO format or relative) to a Moment object
  * For date-only fields, datetime formats are accepted and the date portion is extracted
  */
-export function stringToMoment(value: string | null, timezone?: string, isDateTime?: boolean): Moment | null {
+export function stringToMoment(value: string | null, timezone?: string, isDateTime?: boolean, strict?: boolean): Moment | null {
     if (!value) {
         return null;
     }
@@ -42,7 +42,15 @@ export function stringToMoment(value: string | null, timezone?: string, isDateTi
     // Parse as ISO string with timezone validation
     let momentValue: moment.Moment;
 
-    if (timezone && moment.tz.zone(timezone)) {
+    if (strict) {
+        // Use strict parsing to reject ambiguous formats
+        const formats = isDateTime ? ['YYYY-MM-DDTHH:mm:ss.SSSZ', 'YYYY-MM-DDTHH:mm:ssZ', 'YYYY-MM-DDTHH:mmZ'] : ['YYYY-MM-DD'];
+        if (timezone && moment.tz.zone(timezone)) {
+            momentValue = moment.tz(processedValue, formats, timezone, true);
+        } else {
+            momentValue = moment(processedValue, formats, true);
+        }
+    } else if (timezone && moment.tz.zone(timezone)) {
         momentValue = moment.tz(processedValue, timezone);
     } else {
         momentValue = moment(processedValue);

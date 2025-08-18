@@ -73,7 +73,12 @@ const validateAppField = (field: AppField): string[] => {
     if (field.type === AppFieldTypes.DATE || field.type === AppFieldTypes.DATETIME) {
         if (field.min_date) {
             const resolved = resolveRelativeDate(field.min_date);
-            const moment = stringToMoment(resolved);
+
+            // Use strict parsing for non-relative dates to reject ambiguous formats
+            const isOriginalFormat = resolved === field.min_date;
+            const moment = isOriginalFormat ?
+                stringToMoment(resolved, undefined, field.type === AppFieldTypes.DATETIME, true) :
+                stringToMoment(resolved);
             if (!moment) {
                 errors.push(`Field "${field.name}": min_date "${field.min_date}" is not a valid date format`);
             }
@@ -81,7 +86,12 @@ const validateAppField = (field: AppField): string[] => {
 
         if (field.max_date) {
             const resolved = resolveRelativeDate(field.max_date);
-            const moment = stringToMoment(resolved);
+
+            // Use strict parsing for non-relative dates to reject ambiguous formats
+            const isOriginalFormat = resolved === field.max_date;
+            const moment = isOriginalFormat ?
+                stringToMoment(resolved, undefined, field.type === AppFieldTypes.DATETIME, true) :
+                stringToMoment(resolved);
             if (!moment) {
                 errors.push(`Field "${field.name}": max_date "${field.max_date}" is not a valid date format`);
             }

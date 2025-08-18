@@ -256,13 +256,19 @@ export function getDefaultValue(element: DialogElement): AppFormValue {
     case DialogElementTypes.DATE:
     case DialogElementTypes.DATETIME: {
         // Date and datetime values should be passed through as strings (ISO format)
-        const defaultValue = element.default ?? null;
-        if (defaultValue === null) {
+        const defaultValue = element.default;
+        if (defaultValue === null || defaultValue === undefined) {
             return null;
         }
 
         // Validate the default value is a valid date/datetime string
         const stringValue = String(defaultValue);
+
+        // If empty string, return it as-is
+        if (stringValue === '') {
+            return stringValue;
+        }
+
         const testMoment = stringToMoment(stringValue);
 
         // If invalid, return null instead of passing invalid data

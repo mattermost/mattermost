@@ -1041,8 +1041,8 @@ describe('dialog_conversion', () => {
 
                 expect(form.fields?.[0]).not.toHaveProperty('time_interval');
                 expect(form.fields?.[0]).not.toHaveProperty('default_time');
-                expect(form.fields?.[0]).toHaveProperty('min_date');
-                expect(form.fields?.[0]).toHaveProperty('max_date');
+                expect(form.fields?.[0]).not.toHaveProperty('min_date');
+                expect(form.fields?.[0]).not.toHaveProperty('max_date');
             });
         });
 
