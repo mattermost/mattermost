@@ -8150,16 +8150,8 @@
     "translation": "Påminnelse"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Det går inte att hämta användare från en arkiverad kanal"
-  },
-  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Antalet mottagna inläggs-ID:n har överskridit den maximala storleken {{.MaxLength}}"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Det går inte att hämta inlägg från en arkiverad kanal"
   },
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
@@ -10186,10 +10178,6 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
     "translation": "Kunde inte uppdatera sorteringsordningen av bokmärken i kanalen."
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Det går inte att hämta bokmärken för en arkiverad kanal"
   },
   {
     "id": "app.file_info.get_count.app_error",

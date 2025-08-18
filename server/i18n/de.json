@@ -8150,14 +8150,6 @@
     "translation": "Kann Sitzungsdauer nicht verlängern"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Kann keine Benutzer für einen archivierten Kanal holen"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Kann keine Nachrichten für einen archivierten Kanal holen"
-  },
-  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Die Anzahl der erhaltenen Post IDs hat die maximale Größe von {{.MaxLength}} überschritten"
   },
@@ -10190,10 +10182,6 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
     "translation": "Die Sortierreihenfolge des Kanal-Lesezeichens konnte nicht aktualisiert werden."
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Lesezeichen für einen archivierten Kanal können nicht abgerufen werden"
   },
   {
     "id": "app.file_info.get_count.app_error",

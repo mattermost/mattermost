@@ -8632,20 +8632,12 @@
     "translation": "O campo '{{.Field}}' deve ser definido por meio do provedor de login do usuário."
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Não é possível recuperar usuários para um canal arquivado"
-  },
-  {
     "id": "api.user.update_password.password_hash.app_error",
     "translation": "Ocorreu um erro interno ao salvar a senha."
   },
   {
     "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
     "translation": "Você não pode modificar o status do usuário. O usuário é gerenciado pelo LDAP"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Não é possível recuperar publicações de um canal arquivado"
   },
   {
     "id": "app.acknowledgement.get.app_error",
@@ -9846,10 +9838,6 @@
   {
     "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
     "translation": "Não é possível deletar valores de atributos de perfil personalizados para o usuário"
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Não é possível recuperar os favoritos de um canal arquivado"
   },
   {
     "id": "api.context.get_session.app_error",
