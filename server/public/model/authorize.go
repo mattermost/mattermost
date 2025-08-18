@@ -10,6 +10,11 @@ import (
 	"regexp"
 )
 
+var (
+	codeChallengeRegex = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+	codeVerifierRegex  = regexp.MustCompile("^[A-Za-z0-9\\-._~]+$")
+)
+
 const (
 	AuthCodeExpireTime          = 60 * 10 // 10 minutes
 	AuthCodeResponseType        = "code"
@@ -162,8 +167,7 @@ func validatePKCEParameters(codeChallenge, codeChallengeMethod, clientId, caller
 	}
 
 	// Validate base64url format (no padding, URL-safe characters)
-	matched, _ := regexp.MatchString("^[A-Za-z0-9_-]+$", codeChallenge)
-	if !matched {
+	if !codeChallengeRegex.MatchString(codeChallenge) {
 		return NewAppError(caller, "model.authorize.is_valid.code_challenge.format.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
 	}
 
@@ -198,8 +202,7 @@ func (ad *AuthData) VerifyPKCE(codeVerifier string) bool {
 	}
 
 	// Validate code verifier format (unreserved characters from RFC 3986)
-	matched, _ := regexp.MatchString("^[A-Za-z0-9\\-._~]+$", codeVerifier)
-	if !matched {
+	if !codeVerifierRegex.MatchString(codeVerifier) {
 		return false
 	}
 

@@ -895,308 +895,255 @@ func TestFullyQualifiedRedirectURL(t *testing.T) {
 	}
 }
 
-func TestAuthorizeOAuthPage_PublicClient_PKCERequired(t *testing.T) {
-	// Test that public clients require PKCE on authorization page
+func TestAuthorizeOAuthPage(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
 	})
 
-	// Create public client via DCR
-	dcrRequest := &model.ClientRegistrationRequest{
-		ClientName:              model.NewPointer("Public Client Test"),
-		RedirectURIs:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
-		ClientURI:               model.NewPointer("https://example.com"),
+	// Helper function to create context with session
+	createContext := func() *Context {
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.TestLogger,
+		}
+		session := &model.Session{
+			UserId: th.BasicUser.Id,
+			Token:  model.NewId(),
+		}
+		c.AppContext = c.AppContext.WithSession(session)
+		return c
 	}
 
-	publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
-	require.Nil(t, appErr)
+	t.Run("PublicClient_PKCERequired", func(t *testing.T) {
+		dcrRequest := &model.ClientRegistrationRequest{
+			ClientName:              model.NewPointer("Public Client Test"),
+			RedirectURIs:            []string{"https://example.com/callback"},
+			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+			ClientURI:               model.NewPointer("https://example.com"),
+		}
 
-	// Debug the app and URL for comparison
-	t.Logf("PKCERequired - Public app ID: %s", publicApp.Id)
-	t.Logf("PKCERequired - Public app secret: %s", publicApp.ClientSecret)
-	t.Logf("PKCERequired - Callback URLs: %v", publicApp.CallbackUrls)
+		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
+		require.Nil(t, appErr)
 
-	// Test authorization page without PKCE (should fail for public clients)
-	c := &Context{
-		App:        th.App,
-		AppContext: th.Context,
-		Logger:     th.TestLogger,
-	}
+		c := createContext()
+		responseWriter := httptest.NewRecorder()
+		requestURL := "/oauth/authorize?response_type=code&client_id=" + publicApp.Id + "&redirect_uri=" + url.QueryEscape(publicApp.CallbackUrls[0]) + "&state=test_state"
+		request := httptest.NewRequest(http.MethodGet, requestURL, nil)
 
-	// Simulate logged in user
-	session := &model.Session{
-		UserId: th.BasicUser.Id,
-		Token:  model.NewId(),
-	}
-	c.AppContext = c.AppContext.WithSession(session)
+		authorizeOAuthPage(c, responseWriter, request)
 
-	responseWriter := httptest.NewRecorder()
-	requestURL := "/oauth/authorize?response_type=code&client_id=" + publicApp.Id + "&redirect_uri=" + url.QueryEscape(publicApp.CallbackUrls[0]) + "&state=test_state"
-	t.Logf("PKCERequired - Request URL: %s", requestURL)
-	request := httptest.NewRequest(http.MethodGet, requestURL, nil)
+		assert.Contains(t, responseWriter.Body.String(), "PKCE+is+required+for+public+clients")
+	})
 
-	authorizeOAuthPage(c, responseWriter, request)
+	t.Run("PublicClient_WithPKCE_Success", func(t *testing.T) {
+		dcrRequest := &model.ClientRegistrationRequest{
+			ClientName:              model.NewPointer("Public Client Test"),
+			RedirectURIs:            []string{"https://example.com/callback"},
+			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+			ClientURI:               model.NewPointer("https://example.com"),
+		}
 
-	// Debug output to see what's happening
-	t.Logf("PKCERequired Response code: %d", responseWriter.Code)
-	t.Logf("PKCERequired Response body: %s", responseWriter.Body.String())
+		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
+		require.Nil(t, appErr)
 
-	// Should render error page for public client without PKCE
-	assert.Contains(t, responseWriter.Body.String(), "PKCE+is+required+for+public+clients")
+		publicApp.IsTrusted = true
+		existingApp, getErr := th.App.GetOAuthApp(publicApp.Id)
+		require.Nil(t, getErr)
+		_, updateErr := th.App.UpdateOAuthApp(existingApp, publicApp)
+		require.Nil(t, updateErr)
+
+		c := createContext()
+		responseWriter := httptest.NewRecorder()
+		codeChallenge := "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+		codeChallengeMethod := model.PKCECodeChallengeMethodS256
+
+		request := httptest.NewRequest(http.MethodGet,
+			"/oauth/authorize?response_type=code&client_id="+publicApp.Id+"&redirect_uri="+url.QueryEscape(publicApp.CallbackUrls[0])+
+				"&state=test_state&code_challenge="+codeChallenge+"&code_challenge_method="+codeChallengeMethod, nil)
+
+		authorizeOAuthPage(c, responseWriter, request)
+
+		assert.Equal(t, http.StatusFound, responseWriter.Code)
+		location := responseWriter.Header().Get("Location")
+		assert.Contains(t, location, "https://example.com/callback")
+		assert.Contains(t, location, "code=")
+		assert.Contains(t, location, "state=test_state")
+	})
+
+	t.Run("ConfidentialClient_PKCEOptional", func(t *testing.T) {
+		confidentialApp := &model.OAuthApp{
+			Name:         "Confidential Client Test",
+			CreatorId:    th.BasicUser.Id,
+			Homepage:     "https://example.com",
+			Description:  "test confidential client",
+			CallbackUrls: []string{"https://example.com/callback"},
+			ClientSecret: "test-secret",
+		}
+
+		confidentialApp, appErr := th.App.CreateOAuthApp(confidentialApp)
+		require.Nil(t, appErr)
+
+		confidentialApp.IsTrusted = true
+		existingApp, getErr := th.App.GetOAuthApp(confidentialApp.Id)
+		require.Nil(t, getErr)
+		_, updateErr := th.App.UpdateOAuthApp(existingApp, confidentialApp)
+		require.Nil(t, updateErr)
+
+		c := createContext()
+		responseWriter := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodGet,
+			"/oauth/authorize?response_type=code&client_id="+confidentialApp.Id+"&redirect_uri="+url.QueryEscape(confidentialApp.CallbackUrls[0])+"&state=test_state", nil)
+
+		authorizeOAuthPage(c, responseWriter, request)
+
+		assert.Equal(t, http.StatusFound, responseWriter.Code)
+		location := responseWriter.Header().Get("Location")
+		assert.Contains(t, location, "https://example.com/callback")
+		assert.Contains(t, location, "code=")
+		assert.Contains(t, location, "state=test_state")
+	})
 }
 
-func TestAuthorizeOAuthPage_PublicClient_WithPKCE_Success(t *testing.T) {
-	// Test that public clients work with PKCE on authorization page
+func TestAuthorizeOAuthAppHandler(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
 	})
 
-	// Create public client via DCR
-	dcrRequest := &model.ClientRegistrationRequest{
-		ClientName:              model.NewPointer("Public Client Test"),
-		RedirectURIs:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
-		ClientURI:               model.NewPointer("https://example.com"),
+	// Helper function to create context with session
+	createContext := func() *Context {
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.TestLogger,
+		}
+		session := &model.Session{
+			UserId: th.BasicUser.Id,
+			Token:  model.NewId(),
+		}
+		c.AppContext = c.AppContext.WithSession(session)
+		return c
 	}
 
-	publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
-	require.Nil(t, appErr)
+	t.Run("PublicClient_PKCEParameters", func(t *testing.T) {
+		dcrRequest := &model.ClientRegistrationRequest{
+			ClientName:              model.NewPointer("Public Client Test"),
+			RedirectURIs:            []string{"https://example.com/callback"},
+			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+			ClientURI:               model.NewPointer("https://example.com"),
+		}
 
-	// Make the app trusted so we get a redirect instead of trying to serve HTML
-	publicApp.IsTrusted = true
-	existingApp, getErr := th.App.GetOAuthApp(publicApp.Id)
-	require.Nil(t, getErr)
-	_, updateErr := th.App.UpdateOAuthApp(existingApp, publicApp)
-	require.Nil(t, updateErr)
+		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
+		require.Nil(t, appErr)
 
-	// Test authorization page with PKCE (should work for public clients)
-	c := &Context{
-		App:        th.App,
-		AppContext: th.Context,
-		Logger:     th.TestLogger,
-	}
+		c := createContext()
 
-	// Simulate logged in user
-	session := &model.Session{
-		UserId: th.BasicUser.Id,
-		Token:  model.NewId(),
-	}
-	c.AppContext = c.AppContext.WithSession(session)
+		authRequest := &model.AuthorizeRequest{
+			ResponseType:        model.AuthCodeResponseType,
+			ClientId:            publicApp.Id,
+			RedirectURI:         publicApp.CallbackUrls[0],
+			State:               "test_state",
+			Scope:               "user",
+			CodeChallenge:       "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+			CodeChallengeMethod: model.PKCECodeChallengeMethodS256,
+		}
 
-	responseWriter := httptest.NewRecorder()
-	codeChallenge := "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
-	codeChallengeMethod := model.PKCECodeChallengeMethodS256
+		requestBodyBytes, err := json.Marshal(authRequest)
+		require.NoError(t, err)
+		requestBody := strings.NewReader(string(requestBodyBytes))
+		responseWriter := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodPost, "/oauth/authorize", requestBody)
+		request.Header.Set("Content-Type", "application/json")
 
-	request := httptest.NewRequest(http.MethodGet,
-		"/oauth/authorize?response_type=code&client_id="+publicApp.Id+"&redirect_uri="+url.QueryEscape(publicApp.CallbackUrls[0])+
-			"&state=test_state&code_challenge="+codeChallenge+"&code_challenge_method="+codeChallengeMethod, nil)
+		authorizeOAuthApp(c, responseWriter, request)
 
-	authorizeOAuthPage(c, responseWriter, request)
+		assert.Equal(t, http.StatusOK, responseWriter.Code)
 
-	// Should redirect to callback URL with authorization code (trusted app)
-	assert.Equal(t, http.StatusFound, responseWriter.Code)
-	location := responseWriter.Header().Get("Location")
-	assert.Contains(t, location, "https://example.com/callback")
-	assert.Contains(t, location, "code=")
-	assert.Contains(t, location, "state=test_state")
+		var response map[string]string
+		err = json.Unmarshal(responseWriter.Body.Bytes(), &response)
+		require.NoError(t, err)
+
+		redirectURL := response["redirect"]
+		assert.NotEmpty(t, redirectURL)
+		assert.Contains(t, redirectURL, "code=")
+	})
 }
 
-func TestAuthorizeOAuthPage_ConfidentialClient_PKCEOptional(t *testing.T) {
-	// Test that confidential clients don't require PKCE on authorization page
+func TestGetAccessToken(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
 	})
 
-	// Create confidential client
-	confidentialApp := &model.OAuthApp{
-		Name:         "Confidential Client Test",
-		CreatorId:    th.BasicUser.Id,
-		Homepage:     "https://example.com",
-		Description:  "test confidential client",
-		CallbackUrls: []string{"https://example.com/callback"},
-		ClientSecret: "test-secret",
+	// Helper function to create context
+	createContext := func() *Context {
+		return &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.TestLogger,
+		}
 	}
 
-	confidentialApp, appErr := th.App.CreateOAuthApp(confidentialApp)
-	require.Nil(t, appErr)
+	t.Run("PublicClient_NoClientSecret", func(t *testing.T) {
+		dcrRequest := &model.ClientRegistrationRequest{
+			ClientName:              model.NewPointer("Public Client Test"),
+			RedirectURIs:            []string{"https://example.com/callback"},
+			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+			ClientURI:               model.NewPointer("https://example.com"),
+		}
 
-	// Make the app trusted so we get a redirect instead of trying to serve HTML
-	confidentialApp.IsTrusted = true
-	existingApp, getErr := th.App.GetOAuthApp(confidentialApp.Id)
-	require.Nil(t, getErr)
-	_, updateErr := th.App.UpdateOAuthApp(existingApp, confidentialApp)
-	require.Nil(t, updateErr)
+		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
+		require.Nil(t, appErr)
 
-	// Test authorization page without PKCE (should work for confidential clients)
-	c := &Context{
-		App:        th.App,
-		AppContext: th.Context,
-		Logger:     th.TestLogger,
-	}
+		codeVerifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+		codeChallenge := "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
 
-	// Simulate logged in user
-	session := &model.Session{
-		UserId: th.BasicUser.Id,
-		Token:  model.NewId(),
-	}
-	c.AppContext = c.AppContext.WithSession(session)
+		authRequest := &model.AuthorizeRequest{
+			ResponseType:        model.AuthCodeResponseType,
+			ClientId:            publicApp.Id,
+			RedirectURI:         publicApp.CallbackUrls[0],
+			State:               "test_state",
+			Scope:               "user",
+			CodeChallenge:       codeChallenge,
+			CodeChallengeMethod: model.PKCECodeChallengeMethodS256,
+		}
 
-	responseWriter := httptest.NewRecorder()
-	request := httptest.NewRequest(http.MethodGet,
-		"/oauth/authorize?response_type=code&client_id="+confidentialApp.Id+"&redirect_uri="+url.QueryEscape(confidentialApp.CallbackUrls[0])+"&state=test_state", nil)
+		redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
+		require.Nil(t, appErr)
 
-	authorizeOAuthPage(c, responseWriter, request)
+		uri, err := url.Parse(redirectURL)
+		require.NoError(t, err)
+		code := uri.Query().Get("code")
+		require.NotEmpty(t, code)
 
-	// Should redirect to callback URL with authorization code (trusted app)
-	assert.Equal(t, http.StatusFound, responseWriter.Code)
-	location := responseWriter.Header().Get("Location")
-	assert.Contains(t, location, "https://example.com/callback")
-	assert.Contains(t, location, "code=")
-	assert.Contains(t, location, "state=test_state")
-}
+		c := createContext()
 
-func TestAuthorizeOAuthApp_PublicClient_PKCEParameters(t *testing.T) {
-	// Test that public client POST authorization includes PKCE parameters
-	th := Setup(t).InitBasic(t)
+		formData := url.Values{}
+		formData.Set("grant_type", model.AccessTokenGrantType)
+		formData.Set("code", code)
+		formData.Set("redirect_uri", publicApp.CallbackUrls[0])
+		formData.Set("client_id", publicApp.Id)
+		formData.Set("code_verifier", codeVerifier)
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+		responseWriter := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodPost, "/oauth/access_token", strings.NewReader(formData.Encode()))
+		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+		getAccessToken(c, responseWriter, request)
+
+		assert.Equal(t, http.StatusOK, responseWriter.Code)
+
+		var tokenResponse model.AccessResponse
+		err = json.Unmarshal(responseWriter.Body.Bytes(), &tokenResponse)
+		require.NoError(t, err)
+
+		assert.NotEmpty(t, tokenResponse.AccessToken)
+		assert.Equal(t, model.AccessTokenType, tokenResponse.TokenType)
+		assert.Empty(t, tokenResponse.RefreshToken)
 	})
-
-	// Create public client via DCR
-	dcrRequest := &model.ClientRegistrationRequest{
-		ClientName:              model.NewPointer("Public Client Test"),
-		RedirectURIs:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
-		ClientURI:               model.NewPointer("https://example.com"),
-	}
-
-	publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
-	require.Nil(t, appErr)
-
-	// Test POST authorization request with PKCE
-	c := &Context{
-		App:        th.App,
-		AppContext: th.Context,
-		Logger:     th.TestLogger,
-	}
-
-	// Simulate logged in user
-	session := &model.Session{
-		UserId: th.BasicUser.Id,
-		Token:  model.NewId(),
-	}
-	c.AppContext = c.AppContext.WithSession(session)
-
-	authRequest := &model.AuthorizeRequest{
-		ResponseType:        model.AuthCodeResponseType,
-		ClientId:            publicApp.Id,
-		RedirectURI:         publicApp.CallbackUrls[0],
-		State:               "test_state",
-		Scope:               "user",
-		CodeChallenge:       "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
-		CodeChallengeMethod: model.PKCECodeChallengeMethodS256,
-	}
-
-	requestBodyBytes, err := json.Marshal(authRequest)
-	require.NoError(t, err)
-	requestBody := strings.NewReader(string(requestBodyBytes))
-	responseWriter := httptest.NewRecorder()
-	request := httptest.NewRequest(http.MethodPost, "/oauth/authorize", requestBody)
-	request.Header.Set("Content-Type", "application/json")
-
-	authorizeOAuthApp(c, responseWriter, request)
-
-	// Should succeed and return redirect URL
-	assert.Equal(t, http.StatusOK, responseWriter.Code)
-
-	var response map[string]string
-	err = json.Unmarshal(responseWriter.Body.Bytes(), &response)
-	require.NoError(t, err)
-
-	redirectURL := response["redirect"]
-	assert.NotEmpty(t, redirectURL)
-	assert.Contains(t, redirectURL, "code=")
-}
-
-func TestGetAccessToken_PublicClient_NoClientSecret(t *testing.T) {
-	// Test token endpoint for public clients (no client_secret authentication)
-	th := Setup(t).InitBasic(t)
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
-	})
-
-	// Create public client via DCR
-	dcrRequest := &model.ClientRegistrationRequest{
-		ClientName:              model.NewPointer("Public Client Test"),
-		RedirectURIs:            []string{"https://example.com/callback"},
-		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
-		ClientURI:               model.NewPointer("https://example.com"),
-	}
-
-	publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
-	require.Nil(t, appErr)
-
-	// Get authorization code first
-	codeVerifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
-	codeChallenge := "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
-
-	authRequest := &model.AuthorizeRequest{
-		ResponseType:        model.AuthCodeResponseType,
-		ClientId:            publicApp.Id,
-		RedirectURI:         publicApp.CallbackUrls[0],
-		State:               "test_state",
-		Scope:               "user",
-		CodeChallenge:       codeChallenge,
-		CodeChallengeMethod: model.PKCECodeChallengeMethodS256,
-	}
-
-	redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
-	require.Nil(t, appErr)
-
-	// Extract authorization code
-	uri, err := url.Parse(redirectURL)
-	require.NoError(t, err)
-	code := uri.Query().Get("code")
-	require.NotEmpty(t, code)
-
-	// Test token exchange for public client
-	c := &Context{
-		App:        th.App,
-		AppContext: th.Context,
-		Logger:     th.TestLogger,
-	}
-
-	formData := url.Values{}
-	formData.Set("grant_type", model.AccessTokenGrantType)
-	formData.Set("code", code)
-	formData.Set("redirect_uri", publicApp.CallbackUrls[0])
-	formData.Set("client_id", publicApp.Id)
-	formData.Set("code_verifier", codeVerifier)
-	// No client_secret for public clients
-
-	responseWriter := httptest.NewRecorder()
-	request := httptest.NewRequest(http.MethodPost, "/oauth/access_token", strings.NewReader(formData.Encode()))
-	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	getAccessToken(c, responseWriter, request)
-
-	// Should succeed and return access token without refresh token
-	assert.Equal(t, http.StatusOK, responseWriter.Code)
-
-	var tokenResponse model.AccessResponse
-	err = json.Unmarshal(responseWriter.Body.Bytes(), &tokenResponse)
-	require.NoError(t, err)
-
-	assert.NotEmpty(t, tokenResponse.AccessToken)
-	assert.Equal(t, model.AccessTokenType, tokenResponse.TokenType)
-	assert.Empty(t, tokenResponse.RefreshToken) // Public clients don't get refresh tokens
 }
