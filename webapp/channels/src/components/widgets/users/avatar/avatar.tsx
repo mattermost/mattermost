@@ -12,30 +12,30 @@ import BotDefaultIcon from 'images/bot_default_icon.png';
 
 import './avatar.scss';
 
-export type TAvatarSizeToken = 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xl-custom-GM' | 'xl-custom-DM' | 'xxl';
+export type TAvatarSizeToken = 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xl-custom-GM' | 'xl-custom-DM' | 'xxl' | 'inherit';
 
 export const getAvatarWidth = (size: TAvatarSizeToken) => {
     switch (size) {
     case 'xxs':
-        return 16;
+        return '16px';
     case 'xs':
-        return 20;
+        return '20px';
     case 'sm':
-        return 24;
+        return '24px';
     case 'md':
-        return 32;
+        return '32px';
     case 'lg':
-        return 36;
+        return '36px';
     case 'xl':
-        return 50;
+        return '50px';
     case 'xl-custom-GM':
-        return 72;
+        return '72px';
     case 'xl-custom-DM':
-        return 96;
+        return '96px';
     case 'xxl':
-        return 128;
+        return '128px';
     }
-    return 0;
+    return 'inherit';
 };
 
 type Props = {
