@@ -627,11 +627,31 @@ func validateDateFormat(dateStr string) error {
 	}
 
 	// Check for ISO date format (YYYY-MM-DD)
-	if _, err := time.Parse("2006-01-02", dateStr); err != nil {
-		return fmt.Errorf("invalid date format: %q, expected ISO format (YYYY-MM-DD) or relative format", dateStr)
+	if _, err := time.Parse("2006-01-02", dateStr); err == nil {
+		return nil
 	}
 
-	return nil
+	// Also accept datetime formats and extract date portion
+	datetimeFormats := []string{
+		"2006-01-02T15:04:05Z",          // RFC3339 UTC
+		"2006-01-02T15:04:05.000Z",      // RFC3339 with milliseconds UTC
+		"2006-01-02T15:04:05-07:00",     // RFC3339 with timezone
+		"2006-01-02T15:04:05.000-07:00", // RFC3339 with milliseconds and timezone
+		"2006-01-02T15:04:05",           // ISO datetime without timezone
+		"2006-01-02T15:04",              // ISO datetime without seconds
+	}
+
+	for _, format := range datetimeFormats {
+		if parsedTime, err := time.Parse(format, dateStr); err == nil {
+			// Validate that the date portion is valid
+			dateOnly := parsedTime.Format("2006-01-02")
+			if _, err := time.Parse("2006-01-02", dateOnly); err == nil {
+				return nil // Valid datetime format, date portion is valid
+			}
+		}
+	}
+
+	return fmt.Errorf("invalid date format: %q, expected ISO format (YYYY-MM-DD), datetime format, or relative format", dateStr)
 }
 
 // validateDateTimeFormat validates that a datetime string is in ISO format with timezone
