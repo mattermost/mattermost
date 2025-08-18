@@ -4,7 +4,7 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import IconButton from 'components/common/icon_button';
+import IconButton from 'components/global_header/header_icon_button';
 
 import type {GlobalState} from 'types/store';
 

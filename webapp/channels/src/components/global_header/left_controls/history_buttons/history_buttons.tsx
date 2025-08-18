@@ -8,7 +8,7 @@ import styled from 'styled-components';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import IconButton from 'components/common/icon_button';
+import IconButton from 'components/global_header/header_icon_button';
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
@@ -77,9 +77,6 @@ const HistoryButtons = (): JSX.Element => {
                 <IconButton
                     icon={'arrow-left'}
                     onClick={goBack}
-                    size={'sm'}
-                    compact={true}
-                    inverted={true}
                     disabled={!canGoBack}
                     aria-label={intl.formatMessage({id: 'sidebar_left.channel_navigator.goBackLabel', defaultMessage: 'Back'})}
                 />
@@ -90,9 +87,6 @@ const HistoryButtons = (): JSX.Element => {
                 <IconButton
                     icon={'arrow-right'}
                     onClick={goForward}
-                    size={'sm'}
-                    compact={true}
-                    inverted={true}
                     disabled={!canGoForward}
                     aria-label={intl.formatMessage({id: 'sidebar_left.channel_navigator.goForwardLabel', defaultMessage: 'Forward'})}
                 />

@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import IconButton from 'components/common/icon_button';
+import IconButton from 'components/global_header/header_icon_button';
 import UserSettingsModal from 'components/user_settings/modal';
 import WithTooltip from 'components/with_tooltip';
 
@@ -31,13 +31,10 @@ const SettingsButton = (props: Props): JSX.Element | null => {
             }
         >
             <IconButton
-                size={'sm'}
                 icon={'settings-outline'}
                 onClick={(): void => {
                     props.actions.openModal({modalId: ModalIdentifiers.USER_SETTINGS, dialogType: UserSettingsModal, dialogProps: {isContentProductSettings: true, focusOriginElement: 'settings_button'}});
                 }}
-                inverted={true}
-                compact={true}
                 aria-haspopup='dialog'
                 aria-label={formatMessage({id: 'global_header.productSettings', defaultMessage: 'Settings'})}
             />
