@@ -2626,6 +2626,13 @@ export default class Client4 {
         );
     };
 
+    isAllowedToUpgradeToEnterprise = async () => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/upgrade_to_enterprise/allowed`,
+            {method: 'get'},
+        );
+    };
+
     restartServer = async () => {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/restart`,
