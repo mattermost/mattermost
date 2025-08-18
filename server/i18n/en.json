@@ -2509,6 +2509,10 @@
     "translation": "invalid_grant: Invalid refresh token."
   },
   {
+    "id": "api.oauth.get_access_token.resource_mismatch.app_error",
+    "translation": "Resource parameter mismatch between authorization and token requests."
+  },
+  {
     "id": "api.oauth.invalid_state_token.app_error",
     "translation": "Invalid state token."
   },
@@ -8691,6 +8695,22 @@
   {
     "id": "model.authorize.is_valid.redirect_uri.app_error",
     "translation": "Invalid redirect uri."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.has_fragment.app_error",
+    "translation": "Resource parameter cannot contain a fragment component."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.invalid_uri.app_error",
+    "translation": "Resource parameter must be a valid URI."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.length.app_error",
+    "translation": "Resource parameter cannot exceed 512 characters."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.not_absolute.app_error",
+    "translation": "Resource parameter must be an absolute URI."
   },
   {
     "id": "model.authorize.is_valid.response_type.app_error",
