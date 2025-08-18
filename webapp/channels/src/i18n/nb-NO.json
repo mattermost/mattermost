@@ -2477,7 +2477,6 @@
   "admin.user_item.userMFARemoveFailed": "Kunne ikke fjerne brukerens MFA",
   "admin.user_item.userNotFound": "Kan ikke laste inn bruker",
   "admin.user_item.userUpdateFailed": "Kunne ikke oppdatere brukeren",
-  "admin.viewArchivedChannelsTitle": "Tillat brukere å se arkiverte kanaler:",
   "admin.webserverModeDisabled": "Deaktivert",
   "admin.webserverModeHelpText": "gzip-komprimering gjelder for statiske innholdsfiler. Det anbefales å aktivere gzip for å forbedre ytelsen, med mindre miljøet ditt har spesifikke begrensninger, for eksempel en webproxy som distribuerer gzip-filer på en dårlig måte.",
   "admin.webserverModeTitle": "Webserver-modus:",

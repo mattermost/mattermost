@@ -2340,8 +2340,6 @@
   "admin.user_item.sysAdmin": "Sistemos administratorius",
   "admin.user_item.teamAdmin": "Komandos administratorius",
   "admin.user_item.teamMember": "Komandos narys",
-  "admin.viewArchivedChannelsHelpText": "Kai nustatyta, naudotojai gali peržiūrėti, bendrinti ir ieškoti archyvuotų kanalų turinio. Naudotojai gali peržiūrėti turinį tik tuose kanaluose, kurių nariais jie buvo prieš suarchyvuojant kanalą.",
-  "admin.viewArchivedChannelsTitle": "Leisti naudotojams peržiūrėti archyvuotus kanalus:",
   "admin.webserverModeDisabled": "Žemyn",
   "admin.webserverModeDisabledDescription": "Mattermost serveris neaptarnaus statinių failų.",
   "admin.webserverModeGzip": "gzip",
