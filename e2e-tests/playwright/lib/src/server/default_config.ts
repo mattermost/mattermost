@@ -223,7 +223,6 @@ const defaultServerConfig: AdminConfig = {
         MaxNotificationsPerChannel: 1000,
         EnableConfirmNotificationsToChannel: true,
         TeammateNameDisplay: 'username',
-        ExperimentalViewArchivedChannels: true,
         ExperimentalEnableAutomaticReplies: false,
         LockTeammateNameDisplay: false,
         ExperimentalPrimaryTeam: '',
@@ -645,13 +644,6 @@ const defaultServerConfig: AdminConfig = {
         ClientKey: '',
         Trace: '',
         IgnoredPurgeIndexes: '',
-    },
-    BleveSettings: {
-        IndexDir: '',
-        EnableIndexing: false,
-        EnableSearching: false,
-        EnableAutocomplete: false,
-        BatchSize: 10000,
     },
     DataRetentionSettings: {
         EnableMessageDeletion: false,
