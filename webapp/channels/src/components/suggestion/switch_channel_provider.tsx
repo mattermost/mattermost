@@ -3,8 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {defineMessages, injectIntl} from 'react-intl';
-import type {WrappedComponentProps} from 'react-intl';
+import {defineMessage, useIntl} from 'react-intl';
 import {connect, useSelector} from 'react-redux';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
@@ -53,6 +52,7 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 import {getPostDraft} from 'selectors/rhs';
 import globalStore from 'stores/redux_store';
 
+import usePrefixedIds, {joinIds} from 'components/common/hooks/usePrefixedIds';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
@@ -69,6 +69,7 @@ import Provider from './provider';
 import type {ResultsCallback} from './provider';
 import {SuggestionContainer} from './suggestion';
 import type {SuggestionProps} from './suggestion';
+import type {ProviderResults} from './suggestion_results';
 
 const searchProfilesMatchingWithTerm = makeSearchProfilesMatchingWithTerm();
 
@@ -103,7 +104,7 @@ function isFakeDirectChannel(item?: ChannelItem): item is FakeDirectChannel {
     return Boolean(item && 'userId' in item);
 }
 
-interface WrappedChannel {
+export interface WrappedChannel {
     channel: ChannelItem;
     name: string;
     deactivated: boolean;
@@ -113,7 +114,8 @@ interface WrappedChannel {
     unread_mentions?: number;
 }
 
-type Props = SuggestionProps<WrappedChannel> & WrappedComponentProps & {
+type Props = SuggestionProps<WrappedChannel> & {
+    id: string;
     channelMember: ChannelMembership;
     collapsedThreads: boolean;
     dmChannelTeammate?: UserProfile;
@@ -121,20 +123,38 @@ type Props = SuggestionProps<WrappedChannel> & WrappedComponentProps & {
     isPartOfOnlyOneTeam: boolean;
     status?: string;
     team?: Team;
-    id: string;
 }
 
-const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>((props, ref) => {
-    const {item, status, collapsedThreads, team, isPartOfOnlyOneTeam} = props;
+export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
+    id,
+    item,
+    channelMember: member,
+    collapsedThreads,
+    dmChannelTeammate: teammate,
+    hasDraft,
+    isPartOfOnlyOneTeam,
+    status,
+    team,
+    ...otherProps
+}, ref) => {
+    const {formatMessage} = useIntl();
+
     const channel = item.channel;
     const channelIsArchived = channel.delete_at && channel.delete_at !== 0;
 
     const currentUserId = useSelector(getCurrentUserId);
 
-    const member = props.channelMember;
-    const teammate = props.dmChannelTeammate;
-    let badge = null;
+    const ids = usePrefixedIds(id, {
+        name: null,
+        channelType: null,
+        description: null,
+        sharedIcon: null,
+        tag: null,
+        teamName: null,
+        unreadBadge: null,
+    });
 
+    let badge = null;
     if ((member && member.notify_props) || item.unread_mentions) {
         let unreadMentions;
         if (item.unread_mentions) {
@@ -144,7 +164,16 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>((props, r
         }
         if (unreadMentions > 0 && !channelIsArchived) {
             badge = (
-                <div className={classNames('suggestion-list_unread-mentions', (isPartOfOnlyOneTeam ? 'position-end' : ''))}>
+                <div
+                    id={ids.unreadBadge}
+                    className={classNames('suggestion-list_unread-mentions', (isPartOfOnlyOneTeam ? 'position-end' : ''))}
+                    aria-label={formatMessage({
+                        id: 'channel_switch_modal.unreadMentions',
+                        defaultMessage: '{count, number} {count, plural, one {unread notification} other {unread notifications}}',
+                    }, {
+                        count: unreadMentions,
+                    })}
+                >
                     <span className='badge'>
                         {unreadMentions}
                     </span>
@@ -158,25 +187,53 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>((props, r
     let icon;
     if (channelIsArchived) {
         icon = (
-            <span className='suggestion-list__icon suggestion-list__icon--large'>
+            <span
+                id={ids.channelType}
+                className='suggestion-list__icon suggestion-list__icon--large'
+                aria-label={formatMessage({
+                    id: 'suggestion.archived_channel',
+                    defaultMessage: 'Archived channel',
+                })}
+            >
                 <i className='icon icon-archive-outline'/>
             </span>
         );
-    } else if (props.hasDraft) {
+    } else if (hasDraft) {
         icon = (
-            <span className='suggestion-list__icon suggestion-list__icon--large'>
+            <span
+                id={ids.channelType}
+                className='suggestion-list__icon suggestion-list__icon--large'
+                aria-label={formatMessage({
+                    id: 'channel_switch_modal.has_draft',
+                    defaultMessage: 'Has draft',
+                })}
+            >
                 <i className='icon icon-pencil-outline'/>
             </span>
         );
     } else if (channel.type === Constants.OPEN_CHANNEL) {
         icon = (
-            <span className='suggestion-list__icon suggestion-list__icon--large'>
+            <span
+                id={ids.channelType}
+                className='suggestion-list__icon suggestion-list__icon--large'
+                aria-label={formatMessage({
+                    id: 'suggestion.public_channel',
+                    defaultMessage: 'Public channel',
+                })}
+            >
                 <i className='icon icon-globe'/>
             </span>
         );
     } else if (channel.type === Constants.PRIVATE_CHANNEL) {
         icon = (
-            <span className='suggestion-list__icon suggestion-list__icon--large'>
+            <span
+                id={ids.channelType}
+                className='suggestion-list__icon suggestion-list__icon--large'
+                aria-label={formatMessage({
+                    id: 'suggestion.private_channel',
+                    defaultMessage: 'Private channel',
+                })}
+            >
                 <i className='icon icon-lock-outline'/>
             </span>
         );
@@ -188,7 +245,14 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>((props, r
         );
     } else if (channel.type === Constants.GM_CHANNEL) {
         icon = (
-            <span className='suggestion-list__icon suggestion-list__icon--large'>
+            <span
+                id={ids.channelType}
+                aria-label={formatMessage({
+                    id: 'suggestion.group_channel',
+                    defaultMessage: 'Group channel',
+                })}
+                className='suggestion-list__icon suggestion-list__icon--large'
+            >
                 <div className='status status--group'>{'G'}</div>
             </span>
         );
@@ -223,7 +287,7 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>((props, r
 
         let deactivated = '';
         if (teammate.delete_at) {
-            deactivated = (' - ' + props.intl.formatMessage({id: 'channel_switch_modal.deactivated', defaultMessage: 'Deactivated'}));
+            deactivated = (' - ' + formatMessage({id: 'channel_switch_modal.deactivated', defaultMessage: 'Deactivated'}));
         }
 
         if (channel.display_name && !(teammate && teammate.is_bot)) {
@@ -231,7 +295,7 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>((props, r
         } else {
             name = teammate.username;
             if (teammate.id === currentUserId) {
-                name += (' ' + props.intl.formatMessage({id: 'suggestion.user.isCurrent', defaultMessage: '(you)'}));
+                name += (' ' + formatMessage({id: 'suggestion.user.isCurrent', defaultMessage: '(you)'}));
             }
             description = deactivated;
         }
@@ -244,37 +308,60 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>((props, r
     let sharedIcon = null;
     if (isRealChannel(channel) && channel.shared) {
         sharedIcon = (
-            <SharedChannelIndicator
-                className='shared-channel-icon'
-            />
+            <span id={ids.sharedIcon}>
+                <SharedChannelIndicator
+                    className='shared-channel-icon'
+                />
+            </span>
         );
     }
 
     let teamName = null;
     if (isRealChannel(channel) && channel.team_id && team) {
-        teamName = (<span className='ml-2 suggestion-list__team-name'>{team.display_name}</span>);
+        teamName = (
+            <span
+                id={ids.teamName}
+                className='ml-2 suggestion-list__team-name'
+            >
+                {team.display_name}
+            </span>
+        );
     }
     const showSlug = (isPartOfOnlyOneTeam || channel.type === Constants.DM_CHANNEL) && channel.type !== Constants.THREADS;
+
+    Reflect.deleteProperty(otherProps, 'dispatch');
 
     return (
         <SuggestionContainer
             ref={ref}
+            id={id}
             data-testid={channel.name}
-            aria-labelledby={`${name.toLowerCase().replaceAll(' ', '-')}-item-name`}
-            {...props}
+            item={item}
+            {...otherProps}
+            aria-labelledby={ids.name}
+            aria-describedby={joinIds(ids.unreadBadge, ids.description, ids.teamName, ids.channelType, ids.sharedIcon, ids.tag)}
         >
             {icon}
             <div className='suggestion-list__ellipsis suggestion-list__flex'>
                 <span className='suggestion-list__main'>
                     <span
+                        id={ids.name}
                         className={classNames({'suggestion-list__unread': item.unread && !channelIsArchived})}
-                        id={`${name.toLowerCase().replaceAll(' ', '-')}-item-name`}
-                    >{name}</span>
-                    {showSlug && description && <span className='ml-2 suggestion-list__desc'>{description}</span>}
+                    >
+                        {name}
+                    </span>
+                    {showSlug && description && (
+                        <span
+                            id={ids.description}
+                            className='ml-2 suggestion-list__desc'
+                        >
+                            {description}
+                        </span>
+                    )}
                 </span>
                 {customStatus}
                 {sharedIcon}
-                {tag}
+                {tag && <span id={ids.tag}>{tag}</span>}
                 {badge}
                 {!isPartOfOnlyOneTeam && teamName}
             </div>
@@ -322,7 +409,7 @@ function mapStateToPropsForSwitchChannelSuggestion(state: GlobalState, ownProps:
     };
 }
 
-const ConnectedSwitchChannelSuggestion = connect(mapStateToPropsForSwitchChannelSuggestion, null, null, {forwardRef: true})(injectIntl(SwitchChannelSuggestion, {forwardRef: true}));
+export const ConnectedSwitchChannelSuggestion = connect(mapStateToPropsForSwitchChannelSuggestion, null, null, {forwardRef: true})(SwitchChannelSuggestion);
 
 let prefix = '';
 
@@ -470,9 +557,9 @@ export default class SwitchChannelProvider extends Provider {
             let channels = getChannelsInAllTeams(this.store.getState()).concat(getDirectAndGroupChannels(this.store.getState())).filter((c) => c.delete_at === 0);
             channels = this.removeChannelsFromArchivedTeams(channels);
             const users = searchProfilesMatchingWithTerm(this.store.getState(), channelPrefix, false);
-            const formattedData = this.formatList(channelPrefix, [ThreadsChannel, ...channels], users, true, true);
+            const formattedData = this.formatGroup(channelPrefix, [ThreadsChannel, ...channels], users, true);
             if (formattedData) {
-                resultsCallback(formattedData);
+                resultsCallback(this.initialFilteredList(channelPrefix, formattedData));
             }
 
             // Fetch data from the server and dispatch
@@ -482,6 +569,33 @@ export default class SwitchChannelProvider extends Provider {
         }
 
         return true;
+    }
+
+    private initialFilteredList(channelPrefix: string, {items, terms}: {items: WrappedChannel[]; terms: string[]}): ProviderResults<WrappedChannel> {
+        let groups;
+
+        if (items) {
+            groups = [{
+                key: 'channels',
+                label: defineMessage({id: 'suggestion.channels', defaultMessage: 'Channels'}),
+                items,
+                terms,
+                component: ConnectedSwitchChannelSuggestion,
+            }];
+        } else {
+            groups = [{
+                key: 'moreChannels',
+                label: defineMessage({id: 'suggestion.mention.morechannels', defaultMessage: 'Other Channels'}),
+                items: [{type: '', loading: true}],
+                terms: [''],
+                component: ConnectedSwitchChannelSuggestion,
+            }];
+        }
+
+        return {
+            matchedPretext: channelPrefix,
+            groups,
+        };
     }
 
     async fetchUsersAndChannels(channelPrefix: string, resultsCallback: ResultsCallback<WrappedChannel>) {
@@ -524,12 +638,12 @@ export default class SwitchChannelProvider extends Provider {
         let localChannelData = getChannelsInAllTeams(state).concat(getDirectAndGroupChannels(state)).filter((c) => c.delete_at === 0) || [];
         localChannelData = this.removeChannelsFromArchivedTeams(localChannelData);
         const localUserData = searchProfilesMatchingWithTerm(state, channelPrefix, false);
-        const localFormattedData = this.formatList(channelPrefix, [ThreadsChannel, ...localChannelData], localUserData);
+        const localFormattedData = this.formatGroup(channelPrefix, [ThreadsChannel, ...localChannelData], localUserData);
         let remoteChannelData = channelsFromServer.concat(getGroupChannels(state)) || [];
         remoteChannelData = this.removeChannelsFromArchivedTeams(remoteChannelData);
 
         const remoteUserData = usersFromServer.users || [];
-        const remoteFormattedData = this.formatList(channelPrefix, remoteChannelData, remoteUserData, false);
+        const remoteFormattedData = this.formatGroup(channelPrefix, remoteChannelData, remoteUserData, false);
 
         this.store.dispatch({
             type: UserTypes.RECEIVED_PROFILES_LIST,
@@ -539,9 +653,10 @@ export default class SwitchChannelProvider extends Provider {
         const combinedItems = [...localFormattedData.items, ...remoteFormattedData.items.filter((item: any) => !localFormattedData.terms.includes((item.channel as FakeDirectChannel).userId || item.channel.id))];
 
         resultsCallback({
-            ...localFormattedData,
+            matchedPretext: channelPrefix,
             items: combinedItems,
             terms: combinedTerms,
+            component: ConnectedSwitchChannelSuggestion,
         });
     }
 
@@ -584,7 +699,7 @@ export default class SwitchChannelProvider extends Provider {
         };
     }
 
-    formatList(channelPrefix: string, allChannels: ChannelItem[], users: UserProfile[], skipNotMember = true, localData = false) {
+    formatGroup(channelPrefix: string, allChannels: ChannelItem[], users: UserProfile[], skipNotMember = true) {
         const channels = [];
 
         const members = getMyChannelMemberships(this.store.getState());
@@ -706,18 +821,9 @@ export default class SwitchChannelProvider extends Provider {
                 return wrappedChannel.channel.id;
             });
 
-        if (localData && !channels.length) {
-            channels.push({
-                type: Constants.MENTION_MORE_CHANNELS,
-                loading: true,
-            });
-        }
-
         return {
-            matchedPretext: channelPrefix,
-            terms: channelNames,
             items: channels,
-            component: ConnectedSwitchChannelSuggestion,
+            terms: channelNames,
         };
     }
 
@@ -757,13 +863,24 @@ export default class SwitchChannelProvider extends Provider {
         if (threadsItem) {
             sortedUnreadChannels = [threadsItem, ...sortedUnreadChannels].slice(0, 5);
         }
-        const sortedChannels = [...sortedUnreadChannels, ...sortedRecentChannels];
-        const channelNames = sortedChannels.map((wrappedChannel) => wrappedChannel.channel.id);
         resultsCallback({
             matchedPretext: '',
-            terms: channelNames,
-            items: sortedChannels,
-            component: ConnectedSwitchChannelSuggestion,
+            groups: [
+                {
+                    key: 'unread',
+                    label: defineMessage({id: 'suggestion.mention.unread', defaultMessage: 'Unread'}),
+                    terms: sortedUnreadChannels.map((wrappedChannel) => wrappedChannel.channel.id),
+                    items: sortedUnreadChannels,
+                    component: ConnectedSwitchChannelSuggestion,
+                },
+                {
+                    key: 'recent',
+                    label: defineMessage({id: 'suggestion.mention.recent.channels', defaultMessage: 'Recent'}),
+                    terms: sortedRecentChannels.map((wrappedChannel) => wrappedChannel.channel.id),
+                    items: sortedRecentChannels,
+                    component: ConnectedSwitchChannelSuggestion,
+                },
+            ],
         });
     }
 
@@ -877,28 +994,13 @@ export default class SwitchChannelProvider extends Provider {
 
         resultsCallback({
             matchedPretext: '',
-            terms: channelNames,
-            items: sortedChannels,
-            component: ConnectedSwitchChannelSuggestion,
+            groups: [{
+                key: 'channels',
+                label: defineMessage({id: 'suggestion.channels', defaultMessage: 'Channels'}),
+                items: sortedChannels,
+                terms: channelNames,
+                component: ConnectedSwitchChannelSuggestion,
+            }],
         });
     }
 }
-
-defineMessages({
-    moreChannels: {
-        id: 'suggestion.mention.morechannels',
-        defaultMessage: 'Other Channels',
-    },
-    privateChannelsDivider: {
-        id: 'suggestion.mention.private.channels',
-        defaultMessage: 'Private Channels',
-    },
-    recentChannels: {
-        id: 'suggestion.mention.recent.channels',
-        defaultMessage: 'Recent',
-    },
-    unreadChannels: {
-        id: 'suggestion.mention.unread',
-        defaultMessage: 'Unread',
-    },
-});
