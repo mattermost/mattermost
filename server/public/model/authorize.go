@@ -13,7 +13,7 @@ import (
 
 var (
 	codeChallengeRegex = regexp.MustCompile("^[A-Za-z0-9_-]+$")
-	codeVerifierRegex  = regexp.MustCompile("^[A-Za-z0-9\\-._~]+$")
+	codeVerifierRegex  = regexp.MustCompile(`^[A-Za-z0-9\-._~]+$`)
 )
 
 const (

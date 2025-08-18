@@ -945,7 +945,6 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	t.Run("PublicClient_WithPKCE_Success", func(t *testing.T) {
-
 		dcrRequest := &model.ClientRegistrationRequest{
 			ClientName:              model.NewPointer("Public Client Test"),
 			RedirectURIs:            []string{"https://example.com/callback"},
@@ -999,7 +998,6 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 	})
 
 	t.Run("PublicClient_WithoutPKCE_ShouldFail", func(t *testing.T) {
-
 		dcrRequest := &model.ClientRegistrationRequest{
 			ClientName:              model.NewPointer("Public Client Test"),
 			RedirectURIs:            []string{"https://example.com/callback"},
@@ -1024,7 +1022,6 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 	})
 
 	t.Run("ConfidentialClient_WithPKCE_Success", func(t *testing.T) {
-
 		confidentialApp := &model.OAuthApp{
 			Name:         "Confidential Client Test",
 			CreatorId:    th.BasicUser2.Id,
@@ -1080,7 +1077,6 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 	})
 
 	t.Run("ConfidentialClient_WithoutPKCE_Success", func(t *testing.T) {
-
 		confidentialApp := &model.OAuthApp{
 			Name:         "Confidential Client Test",
 			CreatorId:    th.BasicUser2.Id,
@@ -1129,7 +1125,6 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 	})
 
 	t.Run("ConfidentialClient_PKCEEnforcement", func(t *testing.T) {
-
 		confidentialApp := &model.OAuthApp{
 			Name:         "Confidential Client Test",
 			CreatorId:    th.BasicUser2.Id,
@@ -1180,7 +1175,6 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 	})
 
 	t.Run("PublicClient_NoRefreshToken", func(t *testing.T) {
-
 		dcrRequest := &model.ClientRegistrationRequest{
 			ClientName:              model.NewPointer("Public Client Test"),
 			RedirectURIs:            []string{"https://example.com/callback"},
