@@ -278,7 +278,6 @@ func ValidateResourceParameter(resource, clientId, caller string) *AppError {
 		return NewAppError(caller, "model.authorize.is_valid.resource.length.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
 	}
 
-	// Resource must be an absolute URI
 	parsedURL, err := url.Parse(resource)
 	if err != nil {
 		return NewAppError(caller, "model.authorize.is_valid.resource.invalid_uri.app_error", nil, "client_id="+clientId, http.StatusBadRequest)

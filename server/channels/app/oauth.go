@@ -367,10 +367,8 @@ func (a *App) handleAuthorizationCodeGrant(c request.CTX, oauthApp *model.OAuthA
 		}
 
 		// Validate resource parameter consistency between authorization and token requests
-		if authData.Resource != "" {
-			if resource != authData.Resource {
-				return nil, model.NewAppError("handleAuthorizationCodeGrant", "api.oauth.get_access_token.resource_mismatch.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
-			}
+		if authData.Resource != "" && resource != authData.Resource {
+			return nil, model.NewAppError("handleAuthorizationCodeGrant", "api.oauth.get_access_token.resource_mismatch.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
 		}
 
 		audience = resource
@@ -405,10 +403,8 @@ func (a *App) handleRefreshTokenGrant(c request.CTX, oauthApp *model.OAuthApp, r
 		}
 
 		// For refresh tokens, resource parameter must match the original audience
-		if accessData.Audience != "" {
-			if resource != accessData.Audience {
-				return nil, model.NewAppError("handleRefreshTokenGrant", "api.oauth.get_access_token.resource_mismatch.app_error", nil, "client_id="+oauthApp.Id, http.StatusBadRequest)
-			}
+		if accessData.Audience != "" && resource != accessData.Audience {
+			return nil, model.NewAppError("handleRefreshTokenGrant", "api.oauth.get_access_token.resource_mismatch.app_error", nil, "client_id="+oauthApp.Id, http.StatusBadRequest)
 		}
 
 		audience = resource
