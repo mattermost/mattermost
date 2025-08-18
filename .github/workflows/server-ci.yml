@@ -23,7 +23,7 @@ jobs:
         working-directory: server
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Calculate Golang Version
         id: go
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
@@ -48,7 +48,7 @@ jobs:
         working-directory: server
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Calculate Golang Version
         id: go
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
@@ -73,7 +73,7 @@ jobs:
         working-directory: server
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Calculate Golang Version
         id: go
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
@@ -96,7 +96,7 @@ jobs:
         working-directory: server
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Calculate Golang Version
         id: go
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
@@ -121,7 +121,7 @@ jobs:
         working-directory: server
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Calculate Golang Version
         id: go
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
@@ -148,7 +148,7 @@ jobs:
         working-directory: server
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Calculate Golang Version
         id: go
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
@@ -171,7 +171,7 @@ jobs:
         working-directory: server
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Extract migrations files
         run: make migrations-extract
       - name: Check migration files
@@ -184,7 +184,7 @@ jobs:
         working-directory: server
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Generate email templates
         run: |
           sudo npm install -g mjml@4.9.0
@@ -199,7 +199,7 @@ jobs:
         working-directory: server
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Calculate Golang Version
         id: go
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
@@ -224,7 +224,7 @@ jobs:
         working-directory: server
     steps:
       - name: Checkout mattermost-server
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Calculate Golang Version
         id: go
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
@@ -296,7 +296,7 @@ jobs:
     needs: check-mattermost-vet
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Calculate Golang Version
         id: go
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
