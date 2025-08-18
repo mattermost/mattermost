@@ -254,12 +254,7 @@ func testAttributesStoreSearchUsers(t *testing.T, rctx request.CTX, ss store.Sto
 	})
 
 	t.Run("Search users with a valid value query", func(t *testing.T) {
-		var query string
-		if s.DriverName() == model.DatabaseDriverMysql {
-			query = "Attributes ->> '$." + testPropertyB + "' = ?"
-		} else {
-			query = "Attributes ->> '" + testPropertyB + "' = $1::text"
-		}
+		query := "Attributes ->> '" + testPropertyB + "' = $1::text"
 		subjects, count, err := ss.Attributes().SearchUsers(rctx, model.SubjectSearchOptions{
 			Query: query,
 			Args:  []any{testPropertyValueB1},
@@ -271,12 +266,7 @@ func testAttributesStoreSearchUsers(t *testing.T, rctx request.CTX, ss store.Sto
 	})
 
 	t.Run("Search users with a valid value query and limit", func(t *testing.T) {
-		var query string
-		if s.DriverName() == model.DatabaseDriverMysql {
-			query = "Attributes ->> '$." + testPropertyA + "' = ?"
-		} else {
-			query = "Attributes ->> '" + testPropertyA + "' = $1::text"
-		}
+		query := "Attributes ->> '" + testPropertyA + "' = $1::text"
 		subjects, count, err := ss.Attributes().SearchUsers(rctx, model.SubjectSearchOptions{
 			Query: query,
 			Args:  []any{testPropertyValueA1},
@@ -293,12 +283,7 @@ func testAttributesStoreSearchUsers(t *testing.T, rctx request.CTX, ss store.Sto
 	})
 
 	t.Run("Search users with pagination", func(t *testing.T) {
-		var query string
-		if s.DriverName() == model.DatabaseDriverMysql {
-			query = "Attributes ->> '$." + testPropertyA + "' = ?"
-		} else {
-			query = "Attributes ->> '" + testPropertyA + "' = $1::text"
-		}
+		query := "Attributes ->> '" + testPropertyA + "' = $1::text"
 
 		cursor := strings.Repeat("0", 26)
 		for range 5 {
@@ -370,13 +355,7 @@ func testAttributesStoreGetChannelMembersToRemove(t *testing.T, rctx request.CTX
 	})
 
 	t.Run("Get channel members to remove single attribute", func(t *testing.T) {
-		var query string
-		switch s.DriverName() {
-		case model.DatabaseDriverMysql:
-			query = "Attributes ->> '$." + testPropertyA + "' = ?" // Attributes ->> '$.Clearance' >= ?
-		case model.DatabaseDriverPostgres:
-			query = "Attributes ->> '" + testPropertyA + "' = $1::text" // Attributes ->> '$.Clearance' >= $1::text
-		}
+		query := "Attributes ->> '" + testPropertyA + "' = $1::text" // Attributes ->> '$.Clearance' >= $1::text
 		members, err := ss.Attributes().GetChannelMembersToRemove(rctx, ch.Id, model.SubjectSearchOptions{
 			Query: query,
 			Args:  []any{testPropertyValueA1},
@@ -386,13 +365,7 @@ func testAttributesStoreGetChannelMembersToRemove(t *testing.T, rctx request.CTX
 	})
 
 	t.Run("Get channel members to remove multiple attribute", func(t *testing.T) {
-		var query string
-		switch s.DriverName() {
-		case model.DatabaseDriverMysql:
-			query = "Attributes ->> '$." + testPropertyA + "' = ? AND Attributes ->> '$." + testPropertyB + "' = ?"
-		case model.DatabaseDriverPostgres:
-			query = "Attributes ->> '" + testPropertyA + "' = $1::text AND Attributes ->> '" + testPropertyB + "' = $2::text"
-		}
+		query := "Attributes ->> '" + testPropertyA + "' = $1::text AND Attributes ->> '" + testPropertyB + "' = $2::text"
 		members, err := ss.Attributes().GetChannelMembersToRemove(rctx, ch.Id, model.SubjectSearchOptions{
 			Query: query,
 			Args:  []any{testPropertyValueA1, testPropertyValueB1},
@@ -410,13 +383,7 @@ func testAttributesStoreGetChannelMembersToRemove(t *testing.T, rctx request.CTX
 	})
 
 	t.Run("Get channel members for select type attribute", func(t *testing.T) {
-		var query string
-		switch s.DriverName() {
-		case model.DatabaseDriverMysql:
-			t.Skip("select type attributes are not supported in MySQL")
-		case model.DatabaseDriverPostgres:
-			query = "Attributes ->> '" + testPropertyC + "' = $1::text"
-		}
+		query := "Attributes ->> '" + testPropertyC + "' = $1::text"
 		members, err := ss.Attributes().GetChannelMembersToRemove(rctx, ch.Id, model.SubjectSearchOptions{
 			Query: query,
 			Args:  []any{testPropertyValueC1},

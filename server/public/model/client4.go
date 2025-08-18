@@ -294,6 +294,10 @@ func (c *Client4) postsRoute() string {
 	return "/posts"
 }
 
+func (c *Client4) contentFlaggingRoute() string {
+	return "/content_flagging"
+}
+
 func (c *Client4) postsEphemeralRoute() string {
 	return "/posts/ephemeral"
 }
@@ -436,10 +440,6 @@ func (c *Client4) dataRetentionPolicyRoute(policyID string) string {
 
 func (c *Client4) elasticsearchRoute() string {
 	return "/elasticsearch"
-}
-
-func (c *Client4) bleveRoute() string {
-	return "/bleve"
 }
 
 func (c *Client4) commandsRoute() string {
@@ -719,6 +719,32 @@ func (c *Client4) DeleteScheduledPost(ctx context.Context, scheduledPostId strin
 		return nil, nil, NewAppError("DeleteScheduledPost", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &deletedScheduledPost, BuildResponse(r), nil
+}
+
+func (c *Client4) GetFlaggingConfiguration(ctx context.Context) (*ContentFlaggingReportingConfig, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/flag/config", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var config ContentFlaggingReportingConfig
+	if err := json.NewDecoder(r.Body).Decode(&config); err != nil {
+		return nil, nil, NewAppError("GetFlaggingConfiguration", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &config, BuildResponse(r), nil
+}
+
+func (c *Client4) GetTeamPostFlaggingFeatureStatus(ctx context.Context, teamId string) (map[string]bool, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/team/"+teamId+"/status", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var status map[string]bool
+	if err := json.NewDecoder(r.Body).Decode(&status); err != nil {
+		return nil, nil, NewAppError("GetFlaggingConfiguration", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return status, BuildResponse(r), nil
 }
 
 func (c *Client4) bookmarksRoute(channelId string) string {
@@ -6463,18 +6489,6 @@ func (c *Client4) TestElasticsearch(ctx context.Context) (*Response, error) {
 // PurgeElasticsearchIndexes immediately deletes all Elasticsearch indexes.
 func (c *Client4) PurgeElasticsearchIndexes(ctx context.Context) (*Response, error) {
 	r, err := c.DoAPIPost(ctx, c.elasticsearchRoute()+"/purge_indexes", "")
-	if err != nil {
-		return BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return BuildResponse(r), nil
-}
-
-// Bleve Section
-
-// PurgeBleveIndexes immediately deletes all Bleve indexes.
-func (c *Client4) PurgeBleveIndexes(ctx context.Context) (*Response, error) {
-	r, err := c.DoAPIPost(ctx, c.bleveRoute()+"/purge_indexes", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}

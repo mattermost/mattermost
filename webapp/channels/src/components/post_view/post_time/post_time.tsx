@@ -7,17 +7,14 @@ import {Link} from 'react-router-dom';
 
 import * as GlobalActions from 'actions/global_actions';
 
-import Timestamp, {RelativeRanges} from 'components/timestamp';
+import Timestamp from 'components/timestamp';
 import WithTooltip from 'components/with_tooltip';
 
 import {Locations} from 'utils/constants';
 import {isMobile} from 'utils/user_agent';
 
-const POST_TOOLTIP_RANGES = [
-    RelativeRanges.TODAY_TITLE_CASE,
-    RelativeRanges.YESTERDAY_TITLE_CASE,
-];
 const getTimeFormat: ComponentProps<typeof Timestamp>['useTime'] = (_, {hour, minute, second}) => ({hour, minute, second});
+const getDateFormat: ComponentProps<typeof Timestamp>['useDate'] = {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'};
 
 type Props = {
 
@@ -97,8 +94,8 @@ export default class PostTime extends React.PureComponent<Props> {
                 title={
                     <Timestamp
                         value={eventTime}
-                        ranges={POST_TOOLTIP_RANGES}
                         useSemanticOutput={false}
+                        useDate={getDateFormat}
                         useTime={getTimeFormat}
                     />
                 }

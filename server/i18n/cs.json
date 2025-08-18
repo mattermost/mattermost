@@ -892,62 +892,6 @@
     "translation": "Nepodařilo se dekódovat obrázek."
   },
   {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Vyhledávání uživatele se nezdařilo."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Vyhledávání uživatele se nezdařilo."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Vyhledávání uživatele se nezdařilo."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Vyhledávání se nezdařilo."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Vyhledávání se nezdařilo."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Zkouším vytvořit index pro novou dávku, když jsou všechny entity dokončené."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Indexovacímu procesu Elasticsearch se nepodařilo rozluštit čas začátku."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Indexovacímu procesu Elasticsearch se nepodařilo rozluštit čas konce."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Nepodařilo se zaindexovat uživatele."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Nepodařilo se zaindexovat příspěvek."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Nepodařilo se zaindexovat kanál."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Nepodařilo se smazat uživatele."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Chyba při mazání příspěvku."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Nepodařilo se smazat kanál."
-  },
-  {
     "id": "app.user_access_token.invalid_or_missing",
     "translation": "Neplatný nebo chybějící token."
   },
@@ -1154,10 +1098,6 @@
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
     "translation": "Nepodařilo se získat stavy zásuvných modulů z clusteru."
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Nelze nastavit zásuvný modul jako spravovaný úložištěm souborů."
   },
   {
     "id": "app.plugin.filesystem.app_error",
@@ -2006,14 +1946,6 @@
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Při aktivovaném clusteringu nelze aktivovat dávkování e-mailu."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Elasticsearch IndexingEnabled musí být nastaven na \"true\" když je Elastic Search SearchEnabled nastaven na \"true\""
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Nastavení indexace pro Bleve musí být povoleno pokud hodnota Bleve EnableAutocomplete je také povolena"
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
@@ -3289,7 +3221,7 @@
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here byl deaktivován, protože kanál má více než {{.Users}} uživatelů."
+    "translation": "Oznámení @here jsou zakázána v kanálech s více než {{.Users}} uživateli. Pro více informací kontaktujte svého systémového administrátora."
   },
   {
     "id": "api.post.disabled_channel",
@@ -5289,11 +5221,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Verze 134+"
+    "translation": "Verze 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Verze 134+"
+    "translation": "Verze 138+"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
@@ -5456,55 +5388,11 @@
     "translation": "Service Provider Identifier je vyžadován"
   },
   {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Selhalo uzavření indexu uživatelů."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Selhalo uzavření indexu příspěvků."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Selhalo uzavření indexu kanálů."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Selhalo promazání indexu uživatelů."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Selhalo promazání indexu příspěvků."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Selhalo promazání indexu kanálů."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Selhala indexace dávky uživatelů."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Selhala indexace dávky příspěvků."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Selhala indexace dávky kanálů."
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Selhalo smazání příspěvků uživatele"
-  },
-  {
     "id": "ent.elasticsearch.delete_user_posts.error",
     "translation": "Selhalo smazání příspěvků uživatele"
   },
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
-    "translation": "Selhalo smazání příspěvků v kanálu"
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
     "translation": "Selhalo smazání příspěvků v kanálu"
   },
   {
@@ -5838,10 +5726,6 @@
   {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot účet neexistuje."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve již běží."
   },
   {
     "id": "app.import.get_users_by_username.some_users_not_found.error",
@@ -6512,10 +6396,6 @@
     "translation": "Nepodařilo se získat kanály pro daná id."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Nepodařilo se získat dávku kanálů pro indexaci."
-  },
-  {
     "id": "app.channel.get_channel_counts.get.app_error",
     "translation": "Nepodařilo se získat počet kanálů."
   },
@@ -6632,10 +6512,6 @@
     "translation": "Nelze načíst příspěvky kanálu."
   },
   {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Nelze načíst dávku příspěvků k indexaci."
-  },
-  {
     "id": "app.post.get_posts_around.get.app_error",
     "translation": "Nelze načíst příspěvky kanálu."
   },
@@ -6690,10 +6566,6 @@
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
     "translation": "Chyba při získávání endpointu z Discovery Document."
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Chyba při čtení souboru z backendu"
   },
   {
     "id": "api.unable_to_create_zip_file",
@@ -8448,10 +8320,6 @@
     "translation": "Nelze uložit data pro notifikace."
   },
   {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "Nelze získat dávku souborů pro indexování."
-  },
-  {
     "id": "app.post.update.app_error",
     "translation": "Nepodařilo se aktualizovat příspěvek."
   },
@@ -9196,10 +9064,6 @@
     "translation": "Nepodařilo se získat počet vláken pro uživatele."
   },
   {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Nepodařilo se zavřít index souboru."
-  },
-  {
     "id": "model.channel_bookmark.is_valid.owner_id.app_error",
     "translation": "Neplatné ID vlastníka."
   },
@@ -9226,10 +9090,6 @@
   {
     "id": "app.valid_password_generic.app_error",
     "translation": "Heslo je neplatné"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Nepodařilo se indexovat dávku souborů."
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
@@ -9290,10 +9150,6 @@
   {
     "id": "app.user_terms_of_service.get_by_user.app_error",
     "translation": "Nelze načíst podmínky služby."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "Nepodařilo se indexovat soubor."
   },
   {
     "id": "common.parse_error_int64",
@@ -9360,10 +9216,6 @@
     "translation": "Nelze aktualizovat webhook."
   },
   {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Nepodařilo se odstranit soubory."
-  },
-  {
     "id": "ent.cluster.timeout.error",
     "translation": "Vypršel časový limit při čekání na odpověď clusteru"
   },
@@ -9394,10 +9246,6 @@
   {
     "id": "app.user.get_thread_membership_for_user.app_error",
     "translation": "Nelze získat členství uživatele ve vláknech"
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Nepodařilo se odstranit soubory příspěvku."
   },
   {
     "id": "app.webhooks.save_outgoing.app_error",
@@ -9442,14 +9290,6 @@
   {
     "id": "app.webhooks.save_outgoing.override.app_error",
     "translation": "Nemůžete přepsat existující OdchozíWebhook."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Chyba při vytváření Bleve indexu uživatele."
-  },
-  {
-    "id": "bleveengine.purge_list.not_implemented",
-    "translation": "Funkce vyčištění seznamu není pro Bleve dostupná."
   },
   {
     "id": "ent.cluster.json_encode.error",
@@ -9498,18 +9338,6 @@
   {
     "id": "app.webhooks.update_incoming.app_error",
     "translation": "Nelze aktualizovat PříchozíWebhook."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Nepodařilo se smazat soubory uživatele."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Nepodařilo se odstranit soubor."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Nepodařilo se spustit úlohu indexace Bleve: engine je neaktivní."
   },
   {
     "id": "brand.save_brand_image.check_image_limits.app_error",
@@ -9612,10 +9440,6 @@
     "translation": "Neplatné role členů kanálu, které mají více než {{.Limit}} znaků."
   },
   {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Nastavení Bleve IndexingDir musí být definováno, když je nastaveno Bleve EnableIndexing na hodnotu true"
-  },
-  {
     "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
     "translation": "Dny uchovávání souborů a hodiny uchovávání souborů nemohou být oba nastaveny na 0."
   },
@@ -9672,32 +9496,12 @@
     "translation": "Nepodařilo se nahrát data. První část musí mít alespoň {{.Size}} bajtů."
   },
   {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Velikost dávky pro hromadné indexování Bleve musí být alespoň {{.BatchSize}}."
-  },
-  {
     "id": "app.upload.upload_data.gen_info.app_error",
     "translation": "Nepodařilo se generovat informace o souboru z nahraných dat."
   },
   {
     "id": "app.user.get_threads_for_user.not_found",
     "translation": "Vlákno uživatele neexistuje nebo není sledováno"
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Chyba při vytváření Bleve indexu kanálu."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Chyba při vytváření Bleve indexu příspěvku."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Chyba při vytváření Bleve indexu souboru."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "Hledání souboru nebylo úspěšně dokončeno."
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
@@ -9828,16 +9632,8 @@
     "translation": "Neplatné ID uživatele."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "Nejstarší entitu (uživatel, kanál nebo příspěvek) se nepodařilo načíst z databáze."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Nepodařilo se vyčistit indexy souborů."
-  },
-  {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Nelze aktivovat uživatele. Server překračuje bezpečný limit uživatelů. Kontaktujte svého administrátora s kódem: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Nelze aktivovat uživatele. Server překročil bezpečný limit uživatelů. ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -9930,10 +9726,6 @@
   {
     "id": "web.error.unsupported_browser.download_the_app",
     "translation": "Stáhnout aplikaci"
-  },
-  {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Chyba při čištění indexů Bleve: engine je deaktivován"
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",
@@ -10512,10 +10304,6 @@
     "translation": "Nepodařilo se ověřit hodnotu vlastnosti"
   },
   {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "Chyba(y) opravy hodnoty CPA"
-  },
-  {
     "id": "ent.ldap.update_cpa.empty_attribute",
     "translation": "Prázdná hodnota atributu LDAP"
   },
@@ -10526,10 +10314,6 @@
   {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "Příkaz atributu výrazu SAML je neplatný"
-  },
-  {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "Chyby při aktualizaci hodnot CPA"
   },
   {
     "id": "web.incoming_webhook.parse_form.app_error",
@@ -10666,5 +10450,9 @@
   {
     "id": "api.channel.update_channel.not_allowed.app_error",
     "translation": "Kanály s vynucenými zásadami nelze aktualizovat."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Neplatná aktualizace člena kanálu: Člen kanálu vždy musí mít uživatelský plán."
   }
 ]

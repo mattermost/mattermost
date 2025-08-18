@@ -749,10 +749,8 @@
 
         .post__img {
             width: 16px;
-            padding-top: 1px;
 
-            img,
-            button {
+            .profile-icon {
                 display: none;
             }
         }
@@ -807,11 +805,9 @@
         }
 
         .status-wrapper {
-            height: 14px;
-
             .status {
                 position: relative;
-                top: auto;
+                top: 1px;
                 right: auto;
                 bottom: auto;
                 left: -2px;
@@ -862,7 +858,7 @@
         }
 
         .post__body {
-            padding: 2px 0;
+            padding: 2px 0 0 0;
             background: transparent !important;
             line-height: 1.5;
 
@@ -1384,7 +1380,7 @@
 
     .post__body {
         width: 100%;
-        padding: 0.2em 0;
+        padding: 0 0 0.2em;
         word-wrap: break-word;
 
         &-reactions-acks {
@@ -2250,6 +2246,19 @@
                 &-text {
                     color: var(--button-bg);
                 }
+            }
+        }
+    }
+
+    &.post--comment {
+        .post__body {
+            border-color: rgba(var(--button-bg-rgb), 0.24);
+        }
+
+        &.other--root {
+            .post-comment {
+                border-color: rgba(var(--center-channel-color-rgb), 0.1);
+                background-color: rgba(var(--center-channel-color-rgb), 0.05);
             }
         }
     }
