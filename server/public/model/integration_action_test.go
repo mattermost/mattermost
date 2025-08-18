@@ -809,7 +809,7 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 	t.Run("should accept DialogElement with valid time_interval divisors", func(t *testing.T) {
 		validIntervals := []int{1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 24, 30, 40, 60, 72, 90, 120, 180, 240, 360, 480, 720, 1440}
-		
+
 		for _, interval := range validIntervals {
 			element := DialogElement{
 				DisplayName:  "Test DateTime",
@@ -825,7 +825,7 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 	t.Run("should reject DialogElement with invalid time_interval non-divisors", func(t *testing.T) {
 		invalidIntervals := []int{7, 11, 13, 17, 23, 25, 33, 37, 50, 55, 70, 100, 300, 500, 729, 1000}
-		
+
 		for _, interval := range invalidIntervals {
 			element := DialogElement{
 				DisplayName:  "Test DateTime",
@@ -875,14 +875,14 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 			defaultTime  string
 			timeInterval int
 		}{
-			{"00:00", 30},   // 0 minutes % 30 = 0
-			{"00:30", 30},   // 30 minutes % 30 = 0
-			{"01:00", 30},   // 60 minutes % 30 = 0
-			{"12:00", 15},   // 720 minutes % 15 = 0
-			{"12:15", 15},   // 735 minutes % 15 = 0
-			{"09:00", 60},   // 540 minutes % 60 = 0
-			{"10:00", 120},  // 600 minutes % 120 = 0
-			{"08:00", 240},  // 480 minutes % 240 = 0
+			{"00:00", 30},  // 0 minutes % 30 = 0
+			{"00:30", 30},  // 30 minutes % 30 = 0
+			{"01:00", 30},  // 60 minutes % 30 = 0
+			{"12:00", 15},  // 720 minutes % 15 = 0
+			{"12:15", 15},  // 735 minutes % 15 = 0
+			{"09:00", 60},  // 540 minutes % 60 = 0
+			{"10:00", 120}, // 600 minutes % 120 = 0
+			{"08:00", 240}, // 480 minutes % 240 = 0
 		}
 
 		for _, combo := range validCombinations {
@@ -903,12 +903,12 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 			defaultTime  string
 			timeInterval int
 		}{
-			{"00:15", 30},   // 15 minutes % 30 = 15 (not 0)
-			{"00:45", 30},   // 45 minutes % 30 = 15 (not 0)
-			{"12:31", 30},   // 751 minutes % 30 = 1 (not 0)
-			{"09:07", 15},   // 547 minutes % 15 = 7 (not 0)
-			{"10:30", 60},   // 630 minutes % 60 = 30 (not 0)
-			{"08:30", 120},  // 510 minutes % 120 = 30 (not 0)
+			{"00:15", 30},  // 15 minutes % 30 = 15 (not 0)
+			{"00:45", 30},  // 45 minutes % 30 = 15 (not 0)
+			{"12:31", 30},  // 751 minutes % 30 = 1 (not 0)
+			{"09:07", 15},  // 547 minutes % 15 = 7 (not 0)
+			{"10:30", 60},  // 630 minutes % 60 = 30 (not 0)
+			{"08:30", 120}, // 510 minutes % 120 = 30 (not 0)
 		}
 
 		for _, combo := range invalidCombinations {
