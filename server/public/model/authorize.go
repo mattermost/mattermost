@@ -268,6 +268,11 @@ func (ad *AuthData) ValidatePKCEForClientType(isPublicClient bool, codeVerifier 
 
 // ValidateResourceParameter validates a resource parameter per RFC 8707
 func ValidateResourceParameter(resource, clientId, caller string) *AppError {
+	// Empty resource parameter is allowed (no resource specified)
+	if resource == "" {
+		return nil
+	}
+
 	// Resource must not exceed 512 characters to fit in database column
 	if len(resource) > 512 {
 		return NewAppError(caller, "model.authorize.is_valid.resource.length.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
