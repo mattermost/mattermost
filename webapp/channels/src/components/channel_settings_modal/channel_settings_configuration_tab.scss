@@ -1,0 +1,98 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+@import "utils/_animations";
+
+.ChannelSettingsModal__configurationTab {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .channel_banner_header {
+        display: flex;
+
+        .channel_banner_header__text {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            gap: 8px;
+
+            span {
+                &.heading {
+                    color: rgb(var(--center-channel-color-rgb));
+                    font-size: 16px;
+                }
+
+                &.subheading {
+                    color: rgba(var(--center-channel-color-rgb), 0.64);
+                    font-size: 12px;
+                }
+            }
+        }
+    }
+
+    .channel_banner_section_body {
+        @include fade-in;
+
+        display: flex;
+        width: 100%;
+        height: 550px;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .AdvancedTextbox {
+        width: 390px;
+
+        #PreviewInputTextButton {
+            position: absolute;
+            z-index: 10;
+            top: 5px;
+            right: 5px;
+        }
+
+        #channel_banner_banner_text_textbox {
+            min-height: 40px;
+            max-height: 200px;
+        }
+
+        .textbox-preview-area {
+            height: max-content !important;
+            max-height: 200px;
+            overflow-y: auto;
+
+            .markdown__heading {
+                overflow: hidden;
+                margin: 2px;
+                font-size: 18px;
+                text-overflow: ellipsis;
+            }
+        }
+    }
+
+    .setting_section {
+        display: flex;
+        flex-direction: row;
+        gap: 12px;
+
+        .color-input.input-group {
+            width: 160px;
+        }
+
+        span.setting_title {
+            flex: 1;
+            padding-top: 12px;
+            color: rgb(var(--center-channel-color-rgb));
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .setting_body {
+            flex: 4;
+        }
+
+        .AdvancedTextbox {
+            margin-top: 0 !important;
+        }
+    }
+}

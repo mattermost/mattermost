@@ -42,7 +42,7 @@ describe('Team Settings', () => {
         stubClipboard().as('clipboard');
 
         // # Open team menu and click 'Team Settings'
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
@@ -63,7 +63,7 @@ describe('Team Settings', () => {
         cy.uiClose();
 
         // # Open team menu and click 'Invite People'
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Get the invite URL
         cy.findByTestId('InviteView__copyInviteLink').should('be.visible').click();
@@ -94,7 +94,7 @@ describe('Team Settings', () => {
 
     it('MM-T2341 Cannot add a user to a team if the user\'s email is not from the correct domain', () => {
         // # Open team menu and click 'Team Settings'
-        cy.uiOpenTeamMenu('Team Settings');
+        cy.uiOpenTeamMenu('Team settings');
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
@@ -136,7 +136,7 @@ describe('Team Settings', () => {
                     cy.visit(`/${otherTeam.name}/channels/town-square`);
 
                     // # Open team menu and click 'Join Another Team'
-                    cy.uiOpenTeamMenu('Join Another Team');
+                    cy.uiOpenTeamMenu('Join another team');
 
                     // # Try to join the existing team
                     cy.get('.signup-team-dir').find(`#${testTeam.display_name.replace(' ', '_')}`).scrollIntoView().click();

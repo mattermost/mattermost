@@ -34,6 +34,7 @@ type linkMetadataCache struct {
 	OpenGraph *opengraph.OpenGraph
 	PostImage *model.PostImage
 	Permalink *model.Permalink
+	URL       string
 }
 
 const MaxMetadataImageSize = MaxOpenGraphResponseSize
@@ -650,7 +651,6 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 	var err error
 	if looksLikeAPermalink(requestURL, a.GetSiteURL()) && *a.Config().ServiceSettings.EnablePermalinkPreviews {
 		permalink, err = a.getLinkMetadataForPermalink(c, requestURL)
-
 		if err != nil {
 			return nil, nil, nil, err
 		}
@@ -784,7 +784,7 @@ func (a *App) getLinkMetadataForURL(c request.CTX, requestURL string) (*opengrap
 
 	if err == nil {
 		// Parse the data
-		og, image, err = a.parseLinkMetadata(requestURL, body, contentType)
+		og, image, err = a.parseLinkMetadata(c, requestURL, body, contentType)
 	}
 	og = model.TruncateOpenGraph(og) // remove unwanted length of texts
 
@@ -810,6 +810,11 @@ func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.Op
 	var cached linkMetadataCache
 	err := platform.LinkCache().Get(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), &cached)
 	if err != nil {
+		return nil, nil, nil, false
+	}
+
+	// Verify that the cached entry matches the requested URL
+	if cached.URL != requestURL {
 		return nil, nil, nil, false
 	}
 
@@ -861,6 +866,7 @@ func cacheLinkMetadata(rctx request.CTX, requestURL string, timestamp int64, og 
 		OpenGraph: og,
 		PostImage: image,
 		Permalink: permalink,
+		URL:       requestURL,
 	}
 
 	if err := platform.LinkCache().SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, platform.LinkCacheDuration); err != nil {
@@ -878,7 +884,7 @@ func peekContentType(p *bufio.Reader) string {
 	return http.DetectContentType(byt)
 }
 
-func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
+func (a *App) parseLinkMetadata(rctx request.CTX, requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
 	if contentType == "" {
 		bufRd := bufio.NewReader(body)
 		// If the content-type is missing we try to detect it from the actual data.
@@ -893,7 +899,7 @@ func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType s
 
 		return nil, image, nil
 	} else if strings.HasPrefix(contentType, "image") {
-		image, err := parseImages(io.LimitReader(body, MaxMetadataImageSize))
+		image, err := parseImages(rctx, requestURL, io.LimitReader(body, MaxMetadataImageSize))
 		return nil, image, err
 	} else if strings.HasPrefix(contentType, "text/html") {
 		og := a.parseOpenGraphMetadata(requestURL, body, contentType)
@@ -909,7 +915,7 @@ func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType s
 	return nil, nil, nil
 }
 
-func parseImages(body io.Reader) (*model.PostImage, error) {
+func parseImages(rctx request.CTX, requestURL string, body io.Reader) (*model.PostImage, error) {
 	// Store any data that is read for the config for any further processing
 	buf := &bytes.Buffer{}
 	t := io.TeeReader(body, buf)
@@ -927,12 +933,14 @@ func parseImages(body io.Reader) (*model.PostImage, error) {
 	}
 
 	if format == "jpeg" {
-		if imageOrientation, err := imaging.GetImageOrientation(io.MultiReader(buf, body)); err == nil &&
+		if imageOrientation, err := imaging.GetImageOrientation(io.MultiReader(buf, body), format); err == nil &&
 			(imageOrientation == imaging.RotatedCWMirrored ||
 				imageOrientation == imaging.RotatedCCW ||
 				imageOrientation == imaging.RotatedCCWMirrored ||
 				imageOrientation == imaging.RotatedCW) {
 			image.Width, image.Height = image.Height, image.Width
+		} else if err != nil {
+			rctx.Logger().Warn("Failed to get image orientation", mlog.Err(err), mlog.String("request_url", requestURL))
 		}
 	}
 

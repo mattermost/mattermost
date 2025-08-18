@@ -16,10 +16,28 @@ import (
 
 type SqlLinkMetadataStore struct {
 	*SqlStore
+
+	linkMetadataColumns []string
+	linkMetadataQuery   sq.SelectBuilder
 }
 
 func newSqlLinkMetadataStore(sqlStore *SqlStore) store.LinkMetadataStore {
-	return &SqlLinkMetadataStore{sqlStore}
+	s := &SqlLinkMetadataStore{
+		SqlStore: sqlStore,
+		linkMetadataColumns: []string{
+			"Hash",
+			"URL",
+			"Timestamp",
+			"Type",
+			"Data",
+		},
+	}
+
+	s.linkMetadataQuery = s.getQueryBuilder().
+		Select(s.linkMetadataColumns...).
+		From("LinkMetadata")
+
+	return s
 }
 
 func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMetadata, error) {
@@ -38,14 +56,10 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 
 	query := s.getQueryBuilder().
 		Insert("LinkMetadata").
-		Columns("Hash", "URL", "Timestamp", "Type", "Data").
+		Columns(s.linkMetadataColumns...).
 		Values(metadata.Hash, metadata.URL, metadata.Timestamp, metadata.Type, metadataBytes)
 
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE URL = ?, Timestamp = ?, Type = ?, Data = ?", metadata.URL, metadata.Timestamp, metadata.Type, metadataBytes))
-	} else {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (hash) DO UPDATE SET URL = ?, Timestamp = ?, Type = ?, Data = ?", metadata.URL, metadata.Timestamp, metadata.Type, metadataBytes))
-	}
+	query = query.SuffixExpr(sq.Expr("ON CONFLICT (hash) DO UPDATE SET URL = ?, Timestamp = ?, Type = ?, Data = ?", metadata.URL, metadata.Timestamp, metadata.Type, metadataBytes))
 
 	q, args, err := query.ToSql()
 	if err != nil {
@@ -62,9 +76,7 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 
 func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, error) {
 	var metadata model.LinkMetadata
-	query, args, err := s.getQueryBuilder().
-		Select("*").
-		From("LinkMetadata").
+	query, args, err := s.linkMetadataQuery.
 		Where(sq.Eq{"URL": url, "Timestamp": timestamp}).
 		ToSql()
 	if err != nil {

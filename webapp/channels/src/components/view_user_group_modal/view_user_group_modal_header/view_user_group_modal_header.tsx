@@ -160,7 +160,7 @@ const ViewUserGroupModalHeader = ({
     }, [backButtonCallback, onExited]);
 
     return (
-        <Modal.Header closeButton={true}>
+        <Modal.Header>
             <div className='d-flex align-items-center'>
                 <button
                     type='button'
@@ -179,6 +179,20 @@ const ViewUserGroupModalHeader = ({
                 {restoreGroupButton()}
                 {subMenuButton()}
             </div>
+            <button
+                type='button'
+                className='close'
+                onClick={onExited}
+                aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
+            >
+                <span aria-hidden='true'>{'×'}</span>
+                <span className='sr-only'>
+                    <FormattedMessage
+                        id='generic.close'
+                        defaultMessage='Close'
+                    />
+                </span>
+            </button>
         </Modal.Header>
     );
 };

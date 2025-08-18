@@ -38,8 +38,8 @@ type ChannelBookmark struct {
 	ParentId    string              `json:"parent_id,omitempty"`
 }
 
-func (o *ChannelBookmark) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *ChannelBookmark) Auditable() map[string]any {
+	return map[string]any{
 		"id":          o.Id,
 		"create_at":   o.CreateAt,
 		"update_at":   o.UpdateAt,
@@ -193,8 +193,8 @@ type ChannelBookmarkPatch struct {
 	Emoji       *string `json:"emoji,omitempty"`
 }
 
-func (o *ChannelBookmarkPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *ChannelBookmarkPatch) Auditable() map[string]any {
+	return map[string]any{
 		"file_id": o.FileId,
 	}
 }
@@ -226,7 +226,7 @@ type ChannelBookmarkWithFileInfo struct {
 	FileInfo *FileInfo `json:"file,omitempty"`
 }
 
-func (o *ChannelBookmarkWithFileInfo) Auditable() map[string]interface{} {
+func (o *ChannelBookmarkWithFileInfo) Auditable() map[string]any {
 	a := o.ChannelBookmark.Auditable()
 	if o.FileInfo != nil {
 		a["file"] = o.FileInfo.Auditable()

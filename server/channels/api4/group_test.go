@@ -18,6 +18,7 @@ import (
 )
 
 func TestGetGroup(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -67,7 +68,9 @@ func TestGetGroup(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
 }
+
 func TestCreateGroup(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -178,6 +181,7 @@ func TestCreateGroup(t *testing.T) {
 }
 
 func TestDeleteGroup(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -223,6 +227,7 @@ func TestDeleteGroup(t *testing.T) {
 }
 
 func TestUndeleteGroup(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -255,6 +260,7 @@ func TestUndeleteGroup(t *testing.T) {
 }
 
 func TestPatchGroup(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -358,6 +364,7 @@ func TestPatchGroup(t *testing.T) {
 }
 
 func TestLinkGroupTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -471,6 +478,7 @@ func TestLinkGroupTeam(t *testing.T) {
 }
 
 func TestLinkGroupChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -596,6 +604,7 @@ func TestLinkGroupChannel(t *testing.T) {
 }
 
 func TestUnlinkGroupTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -715,6 +724,7 @@ func TestUnlinkGroupTeam(t *testing.T) {
 }
 
 func TestUnlinkGroupChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -831,9 +841,172 @@ func TestUnlinkGroupChannel(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, response)
 	})
+
+	t.Run("Unlinking a group in a group constrained channel causes group members to be removed", func(t *testing.T) {
+		// Create a test group
+		group := th.CreateGroup()
+
+		// Create a channel and set it as group-constrained
+		channel := th.CreatePrivateChannel()
+
+		// Create a group user
+		groupUser := th.CreateUser()
+		th.LinkUserToTeam(groupUser, th.BasicTeam)
+
+		// Create a group member
+		_, appErr := th.App.UpsertGroupMember(group.Id, groupUser.Id)
+		require.Nil(t, appErr)
+
+		// Associate the group with the channel
+		autoAdd := true
+		schemeAdmin := true
+		_, r, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), group.Id, channel.Id, model.GroupSyncableTypeChannel, &model.GroupSyncablePatch{AutoAdd: &autoAdd, SchemeAdmin: &schemeAdmin})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, r)
+
+		// Wait for the user to be added to the channel by polling until you see them
+		// or until we hit the timeout
+		timeout := time.After(5 * time.Second)
+		ticker := time.NewTicker(100 * time.Millisecond)
+		defer ticker.Stop()
+
+		var cm *model.ChannelMember
+		userFound := false
+		for !userFound {
+			select {
+			case <-timeout:
+				require.Fail(t, "Timed out waiting for user to be added to the channel")
+				return
+			case <-ticker.C:
+				// Check if the user is now a member
+				cm, _, err = th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, groupUser.Id, "")
+				if err == nil && cm.UserId == groupUser.Id {
+					// User has been added, we can continue the test
+					userFound = true
+				}
+			}
+		}
+
+		patch := &model.ChannelPatch{}
+		patch.GroupConstrained = model.NewPointer(true)
+		_, r, err = th.SystemAdminClient.PatchChannel(context.Background(), channel.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, r)
+
+		// Unlink the group
+		r, err = th.SystemAdminClient.UnlinkGroupSyncable(context.Background(), group.Id, channel.Id, model.GroupSyncableTypeChannel)
+		require.NoError(t, err)
+		CheckOKStatus(t, r)
+
+		// Wait for the user to be removed from the channel by polling until they're gone
+		// or until we hit the timeout
+		timeout = time.After(3 * time.Second)
+		ticker = time.NewTicker(100 * time.Millisecond)
+		defer ticker.Stop()
+
+		userRemoved := false
+		for !userRemoved {
+			select {
+			case <-timeout:
+				require.Fail(t, "Timed out waiting for user to be removed from channel")
+				return
+			case <-ticker.C:
+				// Check if the user is still a member
+				_, r, err = th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, groupUser.Id, "")
+				if err != nil && r.StatusCode == http.StatusNotFound {
+					// User has been removed, we can continue the test
+					userRemoved = true
+				}
+			}
+		}
+
+		// Verify the user is no longer a member of the channel
+		_, r, err = th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, groupUser.Id, "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, r)
+	})
+
+	t.Run("Unlinking a group in a non group constrained channel does not remove group members from the channel", func(t *testing.T) {
+		// Create a test group
+		group := th.CreateGroup()
+
+		// Create a channel and set it as group-constrained
+		channel := th.CreatePrivateChannel()
+
+		// Create a group user
+		groupUser := th.CreateUser()
+		th.LinkUserToTeam(groupUser, th.BasicTeam)
+
+		// Create a group member
+		_, appErr := th.App.UpsertGroupMember(group.Id, groupUser.Id)
+		require.Nil(t, appErr)
+
+		// Associate the group with the channel
+		autoAdd := true
+		schemeAdmin := true
+		_, r, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), group.Id, channel.Id, model.GroupSyncableTypeChannel, &model.GroupSyncablePatch{AutoAdd: &autoAdd, SchemeAdmin: &schemeAdmin})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, r)
+
+		// Wait for the user to be added to the channel by polling until you see them
+		// or until we hit the timeout
+		timeout := time.After(5 * time.Second)
+		ticker := time.NewTicker(100 * time.Millisecond)
+		defer ticker.Stop()
+
+		var cm *model.ChannelMember
+		userFound := false
+		for !userFound {
+			select {
+			case <-timeout:
+				require.Fail(t, "Timed out waiting for user to be added to the channel")
+				return
+			case <-ticker.C:
+				// Check if the user is now a member
+				cm, _, err = th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, groupUser.Id, "")
+				if err == nil && cm.UserId == groupUser.Id {
+					// User has been added, we can continue the test
+					userFound = true
+				}
+			}
+		}
+
+		// Unlink the group
+		r, err = th.SystemAdminClient.UnlinkGroupSyncable(context.Background(), group.Id, channel.Id, model.GroupSyncableTypeChannel)
+		require.NoError(t, err)
+		CheckOKStatus(t, r)
+
+		// Wait for a reasonable amount of time to ensure the user is not removed because the channel is not group constrained
+		timeout = time.After(2 * time.Second)
+		ticker = time.NewTicker(100 * time.Millisecond)
+		defer ticker.Stop()
+
+		userStillPresent := true
+		for userStillPresent {
+			select {
+			case <-timeout:
+				// If we reach the timeout, the user is still present, which is what we want
+				// Verify the user is still a member of the channel
+				cm, r, err = th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, groupUser.Id, "")
+				require.NoError(t, err)
+				CheckOKStatus(t, r)
+				require.Equal(t, groupUser.Id, cm.UserId)
+				return
+			case <-ticker.C:
+				// Check if the user is still a member
+				_, r, err = th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, groupUser.Id, "")
+				if err != nil && r.StatusCode == http.StatusNotFound {
+					// User has been removed, which is not what we want
+					require.Fail(t, "User was incorrectly removed from the channel")
+					userStillPresent = false
+				}
+			}
+		}
+	})
 }
 
 func TestGetGroupTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -897,6 +1070,7 @@ func TestGetGroupTeam(t *testing.T) {
 }
 
 func TestGetGroupChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -960,6 +1134,7 @@ func TestGetGroupChannel(t *testing.T) {
 }
 
 func TestGetGroupTeams(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -979,7 +1154,7 @@ func TestGetGroupTeams(t *testing.T) {
 		AutoAdd: model.NewPointer(true),
 	}
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		team := th.CreateTeam()
 		_, response, _ := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, team.Id, model.GroupSyncableTypeTeam, patch)
 		assert.Equal(t, http.StatusCreated, response.StatusCode)
@@ -1014,6 +1189,7 @@ func TestGetGroupTeams(t *testing.T) {
 }
 
 func TestGetGroupChannels(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1033,7 +1209,7 @@ func TestGetGroupChannels(t *testing.T) {
 		AutoAdd: model.NewPointer(true),
 	}
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		channel := th.CreatePublicChannel()
 		_, response, _ := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, channel.Id, model.GroupSyncableTypeChannel, patch)
 		assert.Equal(t, http.StatusCreated, response.StatusCode)
@@ -1067,6 +1243,7 @@ func TestGetGroupChannels(t *testing.T) {
 }
 
 func TestPatchGroupTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1140,6 +1317,7 @@ func TestPatchGroupTeam(t *testing.T) {
 }
 
 func TestPatchGroupChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1224,16 +1402,42 @@ func TestPatchGroupChannel(t *testing.T) {
 }
 
 func TestGetGroupsByChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
-		DisplayName: "dn_" + id,
-		Name:        model.NewPointer("name" + id),
-		Source:      model.GroupSourceLdap,
-		Description: "description_" + id,
-		RemoteId:    model.NewPointer(model.NewId()),
+		DisplayName:    "dn_" + id,
+		Name:           model.NewPointer("name" + id),
+		Source:         model.GroupSourceLdap,
+		Description:    "description_" + id,
+		RemoteId:       model.NewPointer(model.NewId()),
+		AllowReference: true,
+	})
+	assert.Nil(t, appErr)
+
+	// Create a group with AllowReference=false
+	id2 := model.NewId()
+	groupNoRef, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName:    "dn_" + id2,
+		Name:           model.NewPointer("name" + id2),
+		Source:         model.GroupSourceLdap,
+		Description:    "description_" + id2,
+		RemoteId:       model.NewPointer(model.NewId()),
+		AllowReference: false,
+	})
+	assert.Nil(t, appErr)
+
+	// Create a group with AllowReference=true
+	id3 := model.NewId()
+	groupWithRef, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName:    "dn_" + id3,
+		Name:           model.NewPointer("name" + id3),
+		Source:         model.GroupSourceLdap,
+		Description:    "description_" + id3,
+		RemoteId:       model.NewPointer(model.NewId()),
+		AllowReference: true,
 	})
 	assert.Nil(t, appErr)
 
@@ -1242,6 +1446,22 @@ func TestGetGroupsByChannel(t *testing.T) {
 		SyncableId: th.BasicChannel.Id,
 		Type:       model.GroupSyncableTypeChannel,
 		GroupId:    group.Id,
+	})
+	assert.Nil(t, appErr)
+
+	_, appErr = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		AutoAdd:    true,
+		SyncableId: th.BasicChannel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+		GroupId:    groupNoRef.Id,
+	})
+	assert.Nil(t, appErr)
+
+	_, appErr = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		AutoAdd:    true,
+		SyncableId: th.BasicChannel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+		GroupId:    groupWithRef.Id,
 	})
 	assert.Nil(t, appErr)
 
@@ -1284,9 +1504,21 @@ func TestGetGroupsByChannel(t *testing.T) {
 		var groups []*model.GroupWithSchemeAdmin
 		groups, _, _, err = client.GetGroupsByChannel(context.Background(), th.BasicChannel.Id, opts)
 		assert.NoError(t, err)
-		assert.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewPointer(false)}}, groups)
-		require.NotNil(t, groups[0].SchemeAdmin)
-		require.False(t, *groups[0].SchemeAdmin)
+		assert.Len(t, groups, 3)
+
+		// Admin should see all groups
+		foundNoRef := false
+		foundWithRef := false
+		for _, g := range groups {
+			if g.Group.Id == groupNoRef.Id {
+				foundNoRef = true
+			}
+			if g.Group.Id == groupWithRef.Id {
+				foundWithRef = true
+			}
+		}
+		assert.True(t, foundNoRef, "Admin should see groups with AllowReference=false")
+		assert.True(t, foundWithRef, "Admin should see groups with AllowReference=true")
 	})
 
 	// set syncable to true
@@ -1297,10 +1529,15 @@ func TestGetGroupsByChannel(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		groups, _, _, err := client.GetGroupsByChannel(context.Background(), th.BasicChannel.Id, opts)
 		assert.NoError(t, err)
-		// ensure that SchemeAdmin field is updated
-		assert.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewPointer(true)}}, groups)
-		require.NotNil(t, groups[0].SchemeAdmin)
-		require.True(t, *groups[0].SchemeAdmin)
+		assert.Len(t, groups, 3)
+
+		// Verify SchemeAdmin field is updated for the first group
+		for _, g := range groups {
+			if g.Group.Id == group.Id {
+				require.NotNil(t, g.SchemeAdmin)
+				require.True(t, *g.SchemeAdmin)
+			}
+		}
 
 		groups, _, _, err = client.GetGroupsByChannel(context.Background(), model.NewId(), opts)
 		CheckErrorID(t, err, "app.channel.get.existing.app_error")
@@ -1309,6 +1546,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 }
 
 func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1322,11 +1560,51 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 	})
 	assert.Nil(t, appErr)
 
+	// Create a group with AllowReference=false
+	id2 := model.NewId()
+	groupNoRef, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName:    "dn_" + id2,
+		Name:           model.NewPointer("name" + id2),
+		Source:         model.GroupSourceLdap,
+		Description:    "description_" + id2,
+		RemoteId:       model.NewPointer(model.NewId()),
+		AllowReference: false,
+	})
+	assert.Nil(t, appErr)
+
+	// Create a group with AllowReference=true
+	id3 := model.NewId()
+	groupWithRef, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName:    "dn_" + id3,
+		Name:           model.NewPointer("name" + id3),
+		Source:         model.GroupSourceLdap,
+		Description:    "description_" + id3,
+		RemoteId:       model.NewPointer(model.NewId()),
+		AllowReference: true,
+	})
+	assert.Nil(t, appErr)
+
 	groupSyncable, appErr := th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: th.BasicChannel.Id,
 		Type:       model.GroupSyncableTypeChannel,
 		GroupId:    group.Id,
+	})
+	assert.Nil(t, appErr)
+
+	_, appErr = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		AutoAdd:    true,
+		SyncableId: th.BasicChannel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+		GroupId:    groupNoRef.Id,
+	})
+	assert.Nil(t, appErr)
+
+	_, appErr = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		AutoAdd:    true,
+		SyncableId: th.BasicChannel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+		GroupId:    groupWithRef.Id,
 	})
 	assert.Nil(t, appErr)
 
@@ -1354,39 +1632,53 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 	groups, _, err := th.SystemAdminClient.GetGroupsAssociatedToChannelsByTeam(context.Background(), th.BasicTeam.Id, opts)
 	assert.NoError(t, err)
 
-	assert.Equal(t, map[string][]*model.GroupWithSchemeAdmin{
-		th.BasicChannel.Id: {
-			{Group: *group, SchemeAdmin: model.NewPointer(false)},
-		},
-	}, groups)
+	// Admin should see all groups
+	assert.Len(t, groups[th.BasicChannel.Id], 3)
 
-	require.NotNil(t, groups[th.BasicChannel.Id][0].SchemeAdmin)
-	require.False(t, *groups[th.BasicChannel.Id][0].SchemeAdmin)
+	foundNoRef := false
+	foundWithRef := false
+	for _, g := range groups[th.BasicChannel.Id] {
+		if g.Group.Id == groupNoRef.Id {
+			foundNoRef = true
+		}
+		if g.Group.Id == groupWithRef.Id {
+			foundWithRef = true
+		}
+	}
+	assert.True(t, foundNoRef, "Admin should see groups with AllowReference=false")
+	assert.True(t, foundWithRef, "Admin should see groups with AllowReference=true")
 
 	// set syncable to true
 	groupSyncable.SchemeAdmin = true
 	_, appErr = th.App.UpdateGroupSyncable(groupSyncable)
 	require.Nil(t, appErr)
 
-	// ensure that SchemeAdmin field is updated
-	groups, _, err = th.SystemAdminClient.GetGroupsAssociatedToChannelsByTeam(context.Background(), th.BasicTeam.Id, opts)
-	assert.NoError(t, err)
+	// Test with regular user and FilterAllowReference
+	t.Run("regular user with FilterAllowReference", func(t *testing.T) {
+		optsWithFilter := opts
+		optsWithFilter.FilterAllowReference = true
 
-	assert.Equal(t, map[string][]*model.GroupWithSchemeAdmin{
-		th.BasicChannel.Id: {
-			{Group: *group, SchemeAdmin: model.NewPointer(true)},
-		},
-	}, groups)
+		groups, _, err = th.Client.GetGroupsAssociatedToChannelsByTeam(context.Background(), th.BasicTeam.Id, optsWithFilter)
+		assert.NoError(t, err)
 
-	require.NotNil(t, groups[th.BasicChannel.Id][0].SchemeAdmin)
-	require.True(t, *groups[th.BasicChannel.Id][0].SchemeAdmin)
+		// Regular user should only see groups with AllowReference=true
+		for _, groupList := range groups {
+			for _, g := range groupList {
+				if g.Group.Id == groupWithRef.Id {
+					assert.True(t, g.Group.AllowReference)
+				}
+				assert.NotEqual(t, g.Group.Id, groupNoRef.Id, "Non-admin user should not see groups with AllowReference=false")
+			}
+		}
+	})
 
 	groups, _, err = th.SystemAdminClient.GetGroupsAssociatedToChannelsByTeam(context.Background(), model.NewId(), opts)
 	assert.NoError(t, err)
 	assert.Empty(t, groups)
 
 	t.Run("should get the groups ok when belonging to the team", func(t *testing.T) {
-		groups, resp, err := th.Client.GetGroupsAssociatedToChannelsByTeam(context.Background(), th.BasicTeam.Id, opts)
+		var resp *model.Response
+		groups, resp, err = th.Client.GetGroupsAssociatedToChannelsByTeam(context.Background(), th.BasicTeam.Id, opts)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotEmpty(t, groups)
@@ -1398,7 +1690,8 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 			_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
 			require.Nil(t, appErr)
 		}()
-		groups, resp, err := th.Client.GetGroupsAssociatedToChannelsByTeam(context.Background(), th.BasicTeam.Id, opts)
+		var resp *model.Response
+		groups, resp, err = th.Client.GetGroupsAssociatedToChannelsByTeam(context.Background(), th.BasicTeam.Id, opts)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		require.Empty(t, groups)
@@ -1406,16 +1699,40 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 }
 
 func TestGetGroupsByTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
 	group, err := th.App.CreateGroup(&model.Group{
-		DisplayName: "dn_" + id,
-		Name:        model.NewPointer("name" + id),
-		Source:      model.GroupSourceLdap,
-		Description: "description_" + id,
-		RemoteId:    model.NewPointer(model.NewId()),
+		DisplayName:    "dn1_" + id,
+		Name:           model.NewPointer("name" + id),
+		Source:         model.GroupSourceLdap,
+		Description:    "description_" + id,
+		RemoteId:       model.NewPointer(model.NewId()),
+		AllowReference: true,
+	})
+	assert.Nil(t, err)
+
+	id2 := model.NewId()
+	groupNoRef, err := th.App.CreateGroup(&model.Group{
+		DisplayName:    "dn2_" + id2,
+		Name:           model.NewPointer("name" + id2),
+		Source:         model.GroupSourceLdap,
+		Description:    "description_" + id2,
+		RemoteId:       model.NewPointer(model.NewId()),
+		AllowReference: false,
+	})
+	assert.Nil(t, err)
+
+	id3 := model.NewId()
+	groupWithRef, err := th.App.CreateGroup(&model.Group{
+		DisplayName:    "dn3_" + id3,
+		Name:           model.NewPointer("name" + id3),
+		Source:         model.GroupSourceLdap,
+		Description:    "description_" + id3,
+		RemoteId:       model.NewPointer(model.NewId()),
+		AllowReference: true,
 	})
 	assert.Nil(t, err)
 
@@ -1424,6 +1741,22 @@ func TestGetGroupsByTeam(t *testing.T) {
 		SyncableId: th.BasicTeam.Id,
 		Type:       model.GroupSyncableTypeTeam,
 		GroupId:    group.Id,
+	})
+	assert.Nil(t, err)
+
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		AutoAdd:    true,
+		SyncableId: th.BasicTeam.Id,
+		Type:       model.GroupSyncableTypeTeam,
+		GroupId:    groupNoRef.Id,
+	})
+	assert.Nil(t, err)
+
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		AutoAdd:    true,
+		SyncableId: th.BasicTeam.Id,
+		Type:       model.GroupSyncableTypeTeam,
+		GroupId:    groupWithRef.Id,
 	})
 	assert.Nil(t, err)
 
@@ -1460,7 +1793,21 @@ func TestGetGroupsByTeam(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		groups, _, _, err := client.GetGroupsByTeam(context.Background(), th.BasicTeam.Id, opts)
 		assert.NoError(t, err)
-		assert.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewPointer(false)}}, groups)
+		existingGroups := []*model.GroupWithSchemeAdmin{
+			{
+				Group:       *group,
+				SchemeAdmin: model.NewPointer(false),
+			},
+			{
+				Group:       *groupNoRef,
+				SchemeAdmin: model.NewPointer(false),
+			},
+			{
+				Group:       *groupWithRef,
+				SchemeAdmin: model.NewPointer(false),
+			},
+		}
+		assert.ElementsMatch(t, existingGroups, groups)
 		require.NotNil(t, groups[0].SchemeAdmin)
 		require.False(t, *groups[0].SchemeAdmin)
 	})
@@ -1473,10 +1820,22 @@ func TestGetGroupsByTeam(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		groups, _, _, err := client.GetGroupsByTeam(context.Background(), th.BasicTeam.Id, opts)
 		assert.NoError(t, err)
-		// ensure that SchemeAdmin field is updated
-		assert.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewPointer(true)}}, groups)
-		require.NotNil(t, groups[0].SchemeAdmin)
-		require.True(t, *groups[0].SchemeAdmin)
+		existingGroups := []*model.GroupWithSchemeAdmin{
+			{
+				Group:       *group,
+				SchemeAdmin: model.NewPointer(true),
+			},
+			{
+				Group:       *groupNoRef,
+				SchemeAdmin: model.NewPointer(false),
+			},
+			{
+				Group:       *groupWithRef,
+				SchemeAdmin: model.NewPointer(false),
+			},
+		}
+
+		assert.ElementsMatch(t, existingGroups, groups)
 
 		groups, _, _, err = client.GetGroupsByTeam(context.Background(), model.NewId(), opts)
 		assert.NoError(t, err)
@@ -1487,19 +1846,34 @@ func TestGetGroupsByTeam(t *testing.T) {
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			groups, _, _, err := client.GetGroupsByTeam(context.Background(), th.BasicTeam.Id, opts)
 			require.NoError(t, err)
-			require.Len(t, groups, 1)
-			require.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewPointer(true)}}, groups)
-			require.NotNil(t, groups[0].SchemeAdmin)
-			require.True(t, *groups[0].SchemeAdmin)
+			require.Len(t, groups, 3)
+			// Admin should see all groups
+			foundNoRef := false
+			foundWithRef := false
+			for _, g := range groups {
+				if g.Group.Id == groupNoRef.Id {
+					foundNoRef = true
+				}
+				if g.Group.Id == groupWithRef.Id {
+					foundWithRef = true
+				}
+			}
+			assert.True(t, foundNoRef, "Admin should see groups with AllowReference=false")
+			assert.True(t, foundWithRef, "Admin should see groups with AllowReference=true")
 		}, "groups can be fetched by system admins even if they're not part of a team")
 
 		t.Run("user can fetch groups if it's part of the team", func(t *testing.T) {
-			groups, _, _, err := th.Client.GetGroupsByTeam(context.Background(), th.BasicTeam.Id, opts)
+			optsWithFilter := opts
+
+			groups, _, _, err := th.Client.GetGroupsByTeam(context.Background(), th.BasicTeam.Id, optsWithFilter)
 			require.NoError(t, err)
-			require.Len(t, groups, 1)
-			require.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewPointer(true)}}, groups)
-			require.NotNil(t, groups[0].SchemeAdmin)
-			require.True(t, *groups[0].SchemeAdmin)
+
+			for _, g := range groups {
+				if g.Group.Id == groupWithRef.Id {
+					assert.True(t, g.Group.AllowReference)
+				}
+				assert.NotEqual(t, g.Group.Id, groupNoRef.Id, "Non-admin user should not see groups with AllowReference=false")
+			}
 		})
 
 		t.Run("user can't fetch groups if it's not part of the team", func(t *testing.T) {
@@ -1518,6 +1892,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 }
 
 func TestGetGroups(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1536,11 +1911,36 @@ func TestGetGroups(t *testing.T) {
 
 	id2 := model.NewId()
 	group2, appErr := th.App.CreateGroup(&model.Group{
-		DisplayName: "dn-foo_" + id2,
-		Name:        model.NewPointer("name" + id2),
-		Source:      model.GroupSourceCustom,
-		Description: "description_" + id2,
-		RemoteId:    model.NewPointer(model.NewId()),
+		DisplayName:    "dn-foo_" + id2,
+		Name:           model.NewPointer("name" + id2),
+		Source:         model.GroupSourceCustom,
+		Description:    "description_" + id2,
+		RemoteId:       model.NewPointer(model.NewId()),
+		AllowReference: true,
+	})
+	assert.Nil(t, appErr)
+
+	// Create a group with AllowReference=false
+	id3 := model.NewId()
+	groupNoRef, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName:    "dn-foo_" + id3,
+		Name:           model.NewPointer("name" + id3),
+		Source:         model.GroupSourceLdap,
+		Description:    "description_" + id3,
+		RemoteId:       model.NewPointer(model.NewId()),
+		AllowReference: false,
+	})
+	assert.Nil(t, appErr)
+
+	// Create a group with AllowReference=true
+	id4 := model.NewId()
+	groupWithRef, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName:    "dn-foo_" + id4,
+		Name:           model.NewPointer("name" + id4),
+		Source:         model.GroupSourceLdap,
+		Description:    "description_" + id4,
+		RemoteId:       model.NewPointer(model.NewId()),
+		AllowReference: true,
 	})
 	assert.Nil(t, appErr)
 
@@ -1565,17 +1965,49 @@ func TestGetGroups(t *testing.T) {
 		groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		assert.ElementsMatch(t, []*model.Group{group, group2, th.Group}, groups)
+		assert.ElementsMatch(t, []*model.Group{group, th.Group, groupNoRef, groupWithRef, group2}, groups)
 		assert.Nil(t, groups[0].MemberCount)
 	})
 
-	t.Run("basic search for LDAP groups", func(t *testing.T) {
+	t.Run("test FilterAllowReference for non-admin user", func(t *testing.T) {
 		opts := baseOpts
-		groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
+		opts.FilterAllowReference = true
+
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		assert.ElementsMatch(t, []*model.Group{group, th.Group}, groups)
-		assert.Nil(t, groups[0].MemberCount)
+
+		groups, _, err := th.Client.GetGroups(context.Background(), opts)
+		require.NoError(t, err)
+
+		for _, g := range groups {
+			if g.Id == groupWithRef.Id {
+				assert.True(t, g.AllowReference)
+			}
+			assert.NotEqual(t, g.Id, groupNoRef.Id, "Non-admin user should not see groups with AllowReference=false")
+		}
+
+		_, _, err = th.SystemAdminClient.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+		require.NoError(t, err)
+	})
+
+	t.Run("test FilterAllowReference for admin user", func(t *testing.T) {
+		opts := baseOpts
+
+		groups, _, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
+		require.NoError(t, err)
+
+		foundNoRef := false
+		foundWithRef := false
+		for _, g := range groups {
+			if g.Id == groupNoRef.Id {
+				foundNoRef = true
+			}
+			if g.Id == groupWithRef.Id {
+				foundWithRef = true
+			}
+		}
+		assert.True(t, foundNoRef, "Admin should see groups with AllowReference=false")
+		assert.True(t, foundWithRef, "Admin should see groups with AllowReference=true")
 	})
 
 	t.Run("include member count", func(t *testing.T) {
@@ -1593,7 +2025,48 @@ func TestGetGroups(t *testing.T) {
 		groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		assert.Len(t, groups, 1)
+		assert.Len(t, groups, 3)
+	})
+
+	t.Run("test FilterAllowReference for non-admin user", func(t *testing.T) {
+		opts := baseOpts
+		opts.FilterAllowReference = true
+
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
+
+		groups, _, err := th.Client.GetGroups(context.Background(), opts)
+		require.NoError(t, err)
+
+		for _, g := range groups {
+			if g.Id == groupWithRef.Id {
+				assert.True(t, g.AllowReference)
+			}
+			assert.NotEqual(t, g.Id, groupNoRef.Id, "Non-admin user should not see groups with AllowReference=false")
+		}
+
+		_, _, err = th.SystemAdminClient.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+		require.NoError(t, err)
+	})
+
+	t.Run("test FilterAllowReference for admin user", func(t *testing.T) {
+		opts := baseOpts
+
+		groups, _, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
+		require.NoError(t, err)
+
+		foundNoRef := false
+		foundWithRef := false
+		for _, g := range groups {
+			if g.Id == groupNoRef.Id {
+				foundNoRef = true
+			}
+			if g.Id == groupWithRef.Id {
+				foundWithRef = true
+			}
+		}
+		assert.True(t, foundNoRef, "Admin should see groups with AllowReference=false")
+		assert.True(t, foundWithRef, "Admin should see groups with AllowReference=true")
 	})
 
 	t.Run("not associated to channel", func(t *testing.T) {
@@ -1611,7 +2084,7 @@ func TestGetGroups(t *testing.T) {
 		groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		assert.ElementsMatch(t, []*model.Group{group, th.Group}, groups)
+		assert.ElementsMatch(t, []*model.Group{group, th.Group, groupNoRef, groupWithRef}, groups)
 	})
 
 	t.Run("not associated to team", func(t *testing.T) {
@@ -1626,10 +2099,10 @@ func TestGetGroups(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		groups, resp, err := th.Client.GetGroups(context.Background(), opts)
+		groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		assert.ElementsMatch(t, []*model.Group{group, th.Group}, groups)
+		assert.ElementsMatch(t, []*model.Group{group, th.Group, groupNoRef, groupWithRef}, groups)
 	})
 
 	t.Run("since parameter", func(t *testing.T) {
@@ -1639,7 +2112,7 @@ func TestGetGroups(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		assert.Len(t, groups, 1)
-		assert.Equal(t, groups[0].Id, group.Id)
+		assert.Equal(t, groups[0].Id, groupWithRef.Id)
 
 		opts.Since = model.GetMillis()
 		groups, resp, err = th.Client.GetGroups(context.Background(), opts)
@@ -1655,14 +2128,14 @@ func TestGetGroups(t *testing.T) {
 
 		// Test include_archived parameter
 		opts.IncludeArchived = true
-		groups, resp, err := th.Client.GetGroups(context.Background(), opts)
+		groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		assert.Len(t, groups, 2)
+		assert.Len(t, groups, 4)
 
 		// Test returning only archived groups
 		opts.FilterArchived = true
-		groups, resp, err = th.Client.GetGroups(context.Background(), opts)
+		groups, _, err = th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		assert.Len(t, groups, 1)
@@ -1767,7 +2240,7 @@ func TestGetGroups(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		// Should return all groups regardless of source when not specified
-		assert.Len(t, groups, 3) // group, and group2
+		assert.Len(t, groups, 5)
 
 		// Test with custom groups disabled and only_syncable_sources=true
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1777,7 +2250,7 @@ func TestGetGroups(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		// Should still only return LDAP groups
-		assert.Len(t, groups, 2)
+		assert.Len(t, groups, 4)
 		for _, g := range groups {
 			assert.True(t, g.Source == model.GroupSourceLdap || strings.HasPrefix(string(g.Source), string(model.GroupSourcePluginPrefix)))
 		}
@@ -1794,7 +2267,7 @@ func TestGetGroups(t *testing.T) {
 		CheckOKStatus(t, resp)
 
 		// Should only return groups from syncable sources (LDAP and plugin_ groups)
-		assert.Len(t, groups, 2)
+		assert.Len(t, groups, 4)
 		for _, g := range groups {
 			assert.True(t, g.Source == model.GroupSourceLdap || strings.HasPrefix(string(g.Source), string(model.GroupSourcePluginPrefix)))
 		}
@@ -1802,16 +2275,18 @@ func TestGetGroups(t *testing.T) {
 }
 
 func TestGetGroupsByUserId(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
 	group1, appErr := th.App.CreateGroup(&model.Group{
-		DisplayName: "dn-foo_" + id,
-		Name:        model.NewPointer("name" + id),
-		Source:      model.GroupSourceLdap,
-		Description: "description_" + id,
-		RemoteId:    model.NewPointer(model.NewId()),
+		DisplayName:    "dn-foo_" + id,
+		Name:           model.NewPointer("name" + id),
+		Source:         model.GroupSourceLdap,
+		Description:    "description_" + id,
+		RemoteId:       model.NewPointer(model.NewId()),
+		AllowReference: true,
 	})
 	assert.Nil(t, appErr)
 
@@ -1823,11 +2298,12 @@ func TestGetGroupsByUserId(t *testing.T) {
 
 	id = model.NewId()
 	group2, appErr := th.App.CreateGroup(&model.Group{
-		DisplayName: "dn-foo_" + id,
-		Name:        model.NewPointer("name" + id),
-		Source:      model.GroupSourceLdap,
-		Description: "description_" + id,
-		RemoteId:    model.NewPointer(model.NewId()),
+		DisplayName:    "dn-foo_" + id,
+		Name:           model.NewPointer("name" + id),
+		Source:         model.GroupSourceLdap,
+		Description:    "description_" + id,
+		RemoteId:       model.NewPointer(model.NewId()),
+		AllowReference: true,
 	})
 	assert.Nil(t, appErr)
 
@@ -1871,16 +2347,18 @@ func TestGetGroupsByUserId(t *testing.T) {
 }
 
 func TestGetGroupMembers(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
-		DisplayName: "dn-foo_" + id,
-		Name:        model.NewPointer("name" + id),
-		Source:      model.GroupSourceLdap,
-		Description: "description_" + id,
-		RemoteId:    model.NewPointer(model.NewId()),
+		DisplayName:    "dn-foo_" + id,
+		Name:           model.NewPointer("name" + id),
+		Source:         model.GroupSourceLdap,
+		Description:    "description_" + id,
+		RemoteId:       model.NewPointer(model.NewId()),
+		AllowReference: false,
 	})
 	assert.Nil(t, appErr)
 
@@ -1902,7 +2380,7 @@ func TestGetGroupMembers(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
-	t.Run("Non admins are not allowed to get members for LDAP groups", func(t *testing.T) {
+	t.Run("Non admins are not allowed to get members for LDAP groups when allow reference is false", func(t *testing.T) {
 		members, response, err := th.Client.GetGroupMembers(context.Background(), group.Id)
 		assert.Error(t, err)
 		CheckForbiddenStatus(t, response)
@@ -1937,6 +2415,7 @@ func TestGetGroupMembers(t *testing.T) {
 }
 
 func TestGetGroupStats(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1986,13 +2465,14 @@ func TestGetGroupStats(t *testing.T) {
 }
 
 func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 	var groups []*model.Group
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		id := model.NewId()
 		group, err := th.App.CreateGroup(&model.Group{
 			DisplayName: fmt.Sprintf("dn-foo_%d", i),
@@ -2069,89 +2549,195 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 }
 
 func TestAddMembersToGroup(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
-	// 1. Test with custom source
-	id := model.NewId()
-	group, err := th.App.CreateGroup(&model.Group{
-		DisplayName: "dn_" + id,
-		Name:        model.NewPointer("name" + id),
-		Source:      model.GroupSourceCustom,
-		Description: "description_" + id,
-	})
-	assert.Nil(t, err)
-
-	user1, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
-	assert.Nil(t, appErr)
-
-	user2, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user2", Password: "test-password-2", Username: "test-user-2", Roles: model.SystemUserRoleId})
-	assert.Nil(t, appErr)
-
-	members := &model.GroupModifyMembers{
-		UserIds: []string{user1.Id, user2.Id},
-	}
-
+	// Set license for all tests
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
-	//Empty group members returns bad request
-	_, resp, nullErr := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, nil)
-	require.Error(t, nullErr)
-	CheckBadRequestStatus(t, resp)
+	// setup creates a fresh group and users for each test
+	setup := func(t *testing.T) (*model.Group, []*model.User) {
+		// Create custom group
+		id := model.NewId()
+		group, err := th.App.CreateGroup(&model.Group{
+			DisplayName: "dn_" + id,
+			Name:        model.NewPointer("name" + id),
+			Source:      model.GroupSourceCustom,
+			Description: "description_" + id,
+		})
+		require.Nil(t, err)
 
-	groupMembers, response, upsertErr := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, members)
-	require.NoError(t, upsertErr)
-	CheckOKStatus(t, response)
+		// Create test users with random usernames to prevent collisions
+		users := make([]*model.User, 3)
+		for i := range 3 {
+			randomId := model.NewId()
+			user, appErr := th.App.CreateUser(th.Context, &model.User{
+				Email:    th.GenerateTestEmail(),
+				Nickname: fmt.Sprintf("test user%d-%s", i+1, randomId),
+				Password: fmt.Sprintf("test-password-%d", i+1),
+				Username: fmt.Sprintf("test-user-%d-%s", i+1, randomId),
+				Roles:    model.SystemUserRoleId,
+			})
+			require.Nil(t, appErr)
+			users[i] = user
+		}
 
-	assert.Len(t, groupMembers, 2)
-
-	count, countErr := th.App.GetGroupMemberCount(group.Id, nil)
-	assert.Nil(t, countErr)
-
-	assert.Equal(t, count, int64(2))
-
-	// 2. Test invalid group ID
-	_, response, upsertErr = th.Client.UpsertGroupMembers(context.Background(), "abc123", members)
-	require.Error(t, upsertErr)
-	CheckBadRequestStatus(t, response)
-
-	// 3. Test invalid user ID
-	invalidMembers := &model.GroupModifyMembers{
-		UserIds: []string{"abc123"},
+		return group, users
 	}
 
-	_, response, upsertErr = th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, invalidMembers)
-	require.Error(t, upsertErr)
-	CheckInternalErrorStatus(t, response)
+	t.Run("empty group members returns bad request", func(t *testing.T) {
+		group, _ := setup(t)
 
-	// 4. Test with ldap source
-	ldapId := model.NewId()
-	ldapGroup, err := th.App.CreateGroup(&model.Group{
-		DisplayName: "dn_" + ldapId,
-		Name:        model.NewPointer("name" + ldapId),
-		Source:      model.GroupSourceLdap,
-		Description: "description_" + ldapId,
-		RemoteId:    model.NewPointer(model.NewId()),
+		_, resp, err := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, nil)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
-	assert.Nil(t, err)
 
-	_, response, upsertErr = th.SystemAdminClient.UpsertGroupMembers(context.Background(), ldapGroup.Id, members)
+	t.Run("successfully add members to custom group", func(t *testing.T) {
+		group, users := setup(t)
 
-	require.Error(t, upsertErr)
-	CheckBadRequestStatus(t, response)
+		members := &model.GroupModifyMembers{
+			UserIds: []string{users[0].Id, users[1].Id},
+		}
+
+		groupMembers, response, err := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, members)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		require.Len(t, groupMembers, 2)
+
+		count, countErr := th.App.GetGroupMemberCount(group.Id, nil)
+		require.Nil(t, countErr)
+		require.Equal(t, int64(2), count)
+	})
+
+	t.Run("adding existing members", func(t *testing.T) {
+		group, users := setup(t)
+
+		// First, add two users to the group
+		initialMembers := &model.GroupModifyMembers{
+			UserIds: []string{users[0].Id, users[1].Id},
+		}
+
+		returnedMembers, response, err := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, initialMembers)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Len(t, returnedMembers, 2)
+
+		// Try to add a user that's already in the group
+		existingMembers := &model.GroupModifyMembers{
+			UserIds: []string{users[0].Id},
+		}
+
+		groupMembers, response, err := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, existingMembers)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		// Should return empty array since no new members were added
+		require.Len(t, groupMembers, 1)
+
+		// Verify the group still has the original member count
+		count, countErr := th.App.GetGroupMemberCount(group.Id, nil)
+		require.Nil(t, countErr)
+		require.Equal(t, int64(2), count)
+
+		// Try with multiple users - one already in group, one not
+		mixedMembers := &model.GroupModifyMembers{
+			UserIds: []string{users[0].Id, users[2].Id},
+		}
+
+		groupMembers, response, err = th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, mixedMembers)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		// Should only return the new member
+		require.Len(t, groupMembers, 2)
+
+		// Verify the group now has 3 members
+		count, countErr = th.App.GetGroupMemberCount(group.Id, nil)
+		require.Nil(t, countErr)
+		require.Equal(t, int64(3), count)
+	})
+
+	t.Run("invalid group ID", func(t *testing.T) {
+		_, users := setup(t)
+
+		members := &model.GroupModifyMembers{
+			UserIds: []string{users[0].Id, users[1].Id},
+		}
+
+		_, response, err := th.Client.UpsertGroupMembers(context.Background(), "abc123", members)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
+	})
+
+	t.Run("invalid user ID format", func(t *testing.T) {
+		group, _ := setup(t)
+
+		invalidMembers := &model.GroupModifyMembers{
+			UserIds: []string{"abc123"},
+		}
+
+		_, response, err := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, invalidMembers)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
+	})
+
+	t.Run("non-existent user ID", func(t *testing.T) {
+		group, _ := setup(t)
+
+		nonExistentID := model.NewId()
+		nonExistentMembers := &model.GroupModifyMembers{
+			UserIds: []string{nonExistentID},
+		}
+
+		_, response, err := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, nonExistentMembers)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
+		require.Contains(t, err.Error(), fmt.Sprintf(`User with username "%s" could not be found.`, nonExistentID))
+	})
+
+	t.Run("ldap group rejects adding members", func(t *testing.T) {
+		_, users := setup(t)
+
+		// Create LDAP group
+		ldapId := model.NewId()
+		ldapGroup, err := th.App.CreateGroup(&model.Group{
+			DisplayName: "dn_" + ldapId,
+			Name:        model.NewPointer("name" + ldapId),
+			Source:      model.GroupSourceLdap,
+			Description: "description_" + ldapId,
+			RemoteId:    model.NewPointer(model.NewId()),
+		})
+		require.Nil(t, err)
+
+		members := &model.GroupModifyMembers{
+			UserIds: []string{users[0].Id, users[1].Id},
+		}
+
+		_, response, upsertErr := th.SystemAdminClient.UpsertGroupMembers(context.Background(), ldapGroup.Id, members)
+		require.Error(t, upsertErr)
+		CheckBadRequestStatus(t, response)
+	})
 }
 
 func TestDeleteMembersFromGroup(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
-	// 1. Test with custom source
+	// Create test users
 	user1, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
-	assert.Nil(t, appErr)
+	require.Nil(t, appErr)
 
 	user2, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user2", Password: "test-password-2", Username: "test-user-2", Roles: model.SystemUserRoleId})
-	assert.Nil(t, appErr)
+	require.Nil(t, appErr)
 
+	user3, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user3", Password: "test-password-3", Username: "test-user-3", Roles: model.SystemUserRoleId})
+	require.Nil(t, appErr)
+
+	// Create custom group with two members
 	id := model.NewId()
 	g := &model.Group{
 		DisplayName: "dn_" + id,
@@ -2163,46 +2749,9 @@ func TestDeleteMembersFromGroup(t *testing.T) {
 		Group:   *g,
 		UserIds: []string{user1.Id, user2.Id},
 	})
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
-	members := &model.GroupModifyMembers{
-		UserIds: []string{user1.Id},
-	}
-
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
-
-	_, resp, nullErr := th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, nil)
-	require.Error(t, nullErr)
-	CheckBadRequestStatus(t, resp)
-
-	groupMembers, response, deleteErr := th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, members)
-	require.NoError(t, deleteErr)
-	CheckOKStatus(t, response)
-
-	assert.Len(t, groupMembers, 1)
-	assert.Equal(t, groupMembers[0].UserId, user1.Id)
-
-	users, usersErr := th.App.GetGroupMemberUsers(group.Id)
-	assert.Nil(t, usersErr)
-
-	assert.Len(t, users, 1)
-	assert.Equal(t, users[0].Id, user2.Id)
-
-	// 2. Test invalid group ID
-	_, response, deleteErr = th.Client.DeleteGroupMembers(context.Background(), "abc123", members)
-	require.Error(t, deleteErr)
-	CheckBadRequestStatus(t, response)
-
-	// 3. Test invalid user ID
-	invalidMembers := &model.GroupModifyMembers{
-		UserIds: []string{"abc123"},
-	}
-
-	_, response, deleteErr = th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, invalidMembers)
-	require.Error(t, deleteErr)
-	CheckInternalErrorStatus(t, response)
-
-	// 4. Test with ldap source
+	// Create LDAP group with the same members
 	ldapId := model.NewId()
 	g1 := &model.Group{
 		DisplayName: "dn_" + ldapId,
@@ -2215,10 +2764,86 @@ func TestDeleteMembersFromGroup(t *testing.T) {
 		Group:   *g1,
 		UserIds: []string{user1.Id, user2.Id},
 	})
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
-	_, response, deleteErr = th.SystemAdminClient.DeleteGroupMembers(context.Background(), ldapGroup.Id, members)
+	// Set license
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
-	require.Error(t, deleteErr)
-	CheckBadRequestStatus(t, response)
+	t.Run("Fail with nil member list", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, nil)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Success with valid member removal", func(t *testing.T) {
+		members := &model.GroupModifyMembers{
+			UserIds: []string{user1.Id},
+		}
+
+		groupMembers, response, err := th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, members)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		require.Len(t, groupMembers, 1)
+		require.Equal(t, groupMembers[0].UserId, user1.Id)
+
+		// Verify only one user remains in the group
+		users, usersErr := th.App.GetGroupMemberUsers(group.Id)
+		require.Nil(t, usersErr)
+		require.Len(t, users, 1)
+		require.Equal(t, users[0].Id, user2.Id)
+	})
+
+	t.Run("Fail with invalid group ID", func(t *testing.T) {
+		members := &model.GroupModifyMembers{
+			UserIds: []string{user1.Id},
+		}
+
+		_, response, err := th.Client.DeleteGroupMembers(context.Background(), "abc123", members)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
+	})
+
+	t.Run("Fail with invalid user ID format", func(t *testing.T) {
+		invalidMembers := &model.GroupModifyMembers{
+			UserIds: []string{"abc123"},
+		}
+
+		_, response, err := th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, invalidMembers)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
+	})
+
+	t.Run("Fail with non-existent user ID", func(t *testing.T) {
+		nonExistentID := model.NewId()
+		nonExistentMembers := &model.GroupModifyMembers{
+			UserIds: []string{nonExistentID},
+		}
+
+		_, response, err := th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, nonExistentMembers)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
+		require.Contains(t, err.Error(), fmt.Sprintf(`User with username "%s" could not be found.`, nonExistentID))
+	})
+
+	t.Run("Fail with user not in group", func(t *testing.T) {
+		validNonMemberMembers := &model.GroupModifyMembers{
+			UserIds: []string{user3.Id},
+		}
+
+		_, response, err := th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, validNonMemberMembers)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
+		require.Contains(t, err.Error(), fmt.Sprintf(`User with username "%s" could not be found.`, user3.Id))
+	})
+
+	t.Run("Fail with LDAP source group", func(t *testing.T) {
+		members := &model.GroupModifyMembers{
+			UserIds: []string{user1.Id},
+		}
+
+		_, response, err := th.SystemAdminClient.DeleteGroupMembers(context.Background(), ldapGroup.Id, members)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
+	})
 }

@@ -197,6 +197,21 @@ func (api *PluginAPI) GetTeamsForUser(userID string) ([]*model.Team, *model.AppE
 	return api.app.GetTeamsForUser(userID)
 }
 
+func (api *PluginAPI) LogAuditRec(rec *model.AuditRecord) {
+	api.LogAuditRecWithLevel(rec, mlog.LvlAuditCLI)
+}
+
+func (api *PluginAPI) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level) {
+	if rec == nil {
+		return
+	}
+
+	// Ensure the plugin_id is always logged with the correct ID
+	model.AddEventParameterToAuditRec(rec, "plugin_id", api.id)
+
+	api.app.Srv().Audit.LogRecord(level, *rec)
+}
+
 func (api *PluginAPI) CreateTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError) {
 	return api.app.AddTeamMember(api.ctx, teamID, userID)
 }
@@ -367,7 +382,7 @@ func (api *PluginAPI) UpdateUserStatus(userID, status string) (*model.Status, *m
 	case model.StatusOnline:
 		api.app.SetStatusOnline(userID, true)
 	case model.StatusOffline:
-		api.app.SetStatusOffline(userID, true)
+		api.app.SetStatusOffline(userID, true, false)
 	case model.StatusAway:
 		api.app.SetStatusAwayIfNeeded(userID, true)
 	case model.StatusDnd:
@@ -661,96 +676,96 @@ func (api *PluginAPI) GetGroupsBySource(groupSource model.GroupSource) ([]*model
 }
 
 func (api *PluginAPI) GetGroupsForUser(userID string) ([]*model.Group, *model.AppError) {
-	return api.app.GetGroupsByUserId(userID)
+	return api.app.GetGroupsByUserId(userID, model.GroupSearchOpts{})
 }
 
 func (api *PluginAPI) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
 	if err := api.checkLDAPLicense(); err != nil {
-		return nil, model.NewAppError("UpsertGroupMember", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+		return nil, model.NewAppError("UpsertGroupMember", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
 	}
 	return api.app.UpsertGroupMember(groupID, userID)
 }
 
 func (api *PluginAPI) UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError) {
 	if err := api.checkLDAPLicense(); err != nil {
-		return nil, model.NewAppError("UpsertGroupMembers", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+		return nil, model.NewAppError("UpsertGroupMembers", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
 	}
 	return api.app.UpsertGroupMembers(groupID, userIDs)
 }
 
 func (api *PluginAPI) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
 	if err := api.checkLDAPLicense(); err != nil {
-		return nil, model.NewAppError("GetGroupByRemoteID", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+		return nil, model.NewAppError("GetGroupByRemoteID", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
 	}
 	return api.app.GetGroupByRemoteID(remoteID, groupSource)
 }
 
 func (api *PluginAPI) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
 	if err := api.checkLDAPLicense(); err != nil {
-		return nil, model.NewAppError("CreateGroup", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+		return nil, model.NewAppError("CreateGroup", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
 	}
 	return api.app.CreateGroup(group)
 }
 
 func (api *PluginAPI) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 	if err := api.checkLDAPLicense(); err != nil {
-		return nil, model.NewAppError("UpdateGroup", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+		return nil, model.NewAppError("UpdateGroup", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
 	}
 	return api.app.UpdateGroup(group)
 }
 
 func (api *PluginAPI) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 	if err := api.checkLDAPLicense(); err != nil {
-		return nil, model.NewAppError("DeleteGroup", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+		return nil, model.NewAppError("DeleteGroup", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
 	}
 	return api.app.DeleteGroup(groupID)
 }
 
 func (api *PluginAPI) RestoreGroup(groupID string) (*model.Group, *model.AppError) {
 	if err := api.checkLDAPLicense(); err != nil {
-		return nil, model.NewAppError("RestoreGroup", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+		return nil, model.NewAppError("RestoreGroup", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
 	}
 	return api.app.RestoreGroup(groupID)
 }
 
 func (api *PluginAPI) DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
 	if err := api.checkLDAPLicense(); err != nil {
-		return nil, model.NewAppError("DeleteGroupMember", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+		return nil, model.NewAppError("DeleteGroupMember", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
 	}
 	return api.app.DeleteGroupMember(groupID, userID)
 }
 
 func (api *PluginAPI) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
 	if err := api.checkLDAPLicense(); err != nil {
-		return nil, model.NewAppError("GetGroupSyncable", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+		return nil, model.NewAppError("GetGroupSyncable", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
 	}
 	return api.app.GetGroupSyncable(groupID, syncableID, syncableType)
 }
 
 func (api *PluginAPI) GetGroupSyncables(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError) {
 	if err := api.checkLDAPLicense(); err != nil {
-		return nil, model.NewAppError("GetGroupSyncables", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+		return nil, model.NewAppError("GetGroupSyncables", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
 	}
 	return api.app.GetGroupSyncables(groupID, syncableType)
 }
 
 func (api *PluginAPI) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
 	if err := api.checkLDAPLicense(); err != nil {
-		return nil, model.NewAppError("UpsertGroupSyncable", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+		return nil, model.NewAppError("UpsertGroupSyncable", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
 	}
 	return api.app.UpsertGroupSyncable(groupSyncable)
 }
 
 func (api *PluginAPI) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
 	if err := api.checkLDAPLicense(); err != nil {
-		return nil, model.NewAppError("UpdateGroupSyncable", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+		return nil, model.NewAppError("UpdateGroupSyncable", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
 	}
 	return api.app.UpdateGroupSyncable(groupSyncable)
 }
 
 func (api *PluginAPI) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
 	if err := api.checkLDAPLicense(); err != nil {
-		return nil, model.NewAppError("DeleteGroupSyncable", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+		return nil, model.NewAppError("DeleteGroupSyncable", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
 	}
 	return api.app.DeleteGroupSyncable(groupID, syncableID, syncableType)
 }
@@ -948,7 +963,7 @@ func (api *PluginAPI) SetTeamIcon(teamID string, data []byte) *model.AppError {
 		return err
 	}
 
-	return api.app.SetTeamIconFromFile(team, bytes.NewReader(data))
+	return api.app.SetTeamIconFromFile(api.ctx, team, bytes.NewReader(data))
 }
 
 func (api *PluginAPI) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
@@ -1030,7 +1045,7 @@ func (api *PluginAPI) InstallPlugin(file io.Reader, replace bool) (*model.Manife
 
 	fileBuffer, err := io.ReadAll(file)
 	if err != nil {
-		return nil, model.NewAppError("InstallPlugin", "api.plugin.upload.file.app_error", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("InstallPlugin", "api.plugin.upload.file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	return api.app.InstallPlugin(bytes.NewReader(fileBuffer), replace)
@@ -1103,12 +1118,15 @@ func (api *PluginAPI) UpdateUserRoles(userID string, newRoles string) (*model.Us
 func (api *PluginAPI) LogDebug(msg string, keyValuePairs ...any) {
 	api.logger.Debugw(msg, keyValuePairs...)
 }
+
 func (api *PluginAPI) LogInfo(msg string, keyValuePairs ...any) {
 	api.logger.Infow(msg, keyValuePairs...)
 }
+
 func (api *PluginAPI) LogError(msg string, keyValuePairs ...any) {
 	api.logger.Errorw(msg, keyValuePairs...)
 }
+
 func (api *PluginAPI) LogWarn(msg string, keyValuePairs ...any) {
 	api.logger.Warnw(msg, keyValuePairs...)
 }
@@ -1320,7 +1338,8 @@ func (api *PluginAPI) DeleteOAuthApp(appID string) *model.AppError {
 // PublishPluginClusterEvent broadcasts a plugin event to all other running instances of
 // the calling plugin.
 func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
-	opts model.PluginClusterEventSendOptions) error {
+	opts model.PluginClusterEventSendOptions,
+) error {
 	if api.app.Cluster() == nil {
 		return nil
 	}
@@ -1350,6 +1369,9 @@ func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 
 // RequestTrialLicense requests a trial license and installs it in the server
 func (api *PluginAPI) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
+	// Normally, plugins are unrestricted in their abilities, but to maintain backwards compatbilibity with plugins
+	// that were unaware of the nuances of ExperimentalSettings.RestrictSystemAdmin, we restrict the trial license
+	// unconditionally.
 	if *api.app.Config().ExperimentalSettings.RestrictSystemAdmin {
 		return model.NewAppError("RequestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 	}
@@ -1449,7 +1471,117 @@ func (api *PluginAPI) GetPluginID() string {
 
 func (api *PluginAPI) GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, *model.AppError) {
 	if err := api.checkLDAPLicense(); err != nil {
-		return nil, model.NewAppError("GetGroups", "app.group.license_error", nil, err.Error(), http.StatusForbidden)
+		return nil, model.NewAppError("GetGroups", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
 	}
 	return api.app.GetGroups(page, perPage, opts, viewRestrictions)
+}
+
+func (api *PluginAPI) CreateDefaultSyncableMemberships(params model.CreateDefaultMembershipParams) *model.AppError {
+	if err := api.checkLDAPLicense(); err != nil {
+		return model.NewAppError("CreateDefaultSyncableMemberships", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
+	}
+
+	err := api.app.CreateDefaultMemberships(api.ctx, params)
+	if err != nil {
+		return model.NewAppError("CreateDefaultSyncableMemberships", "app.group.create_syncable_memberships.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
+func (api *PluginAPI) DeleteGroupConstrainedMemberships() *model.AppError {
+	if err := api.checkLDAPLicense(); err != nil {
+		return model.NewAppError("DeleteGroupConstrainedMemberships", "app.group.license_error", nil, "", http.StatusForbidden).Wrap(err)
+	}
+
+	err := api.app.DeleteGroupConstrainedMemberships(api.ctx)
+	if err != nil {
+		return model.NewAppError("DeleteGroupConstrainedMemberships", "app.group.delete_invalid_syncable_memberships.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
+func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
+	return api.app.PropertyService().CreatePropertyField(field)
+}
+
+func (api *PluginAPI) GetPropertyField(groupID, fieldID string) (*model.PropertyField, error) {
+	return api.app.PropertyService().GetPropertyField(groupID, fieldID)
+}
+
+func (api *PluginAPI) GetPropertyFields(groupID string, ids []string) ([]*model.PropertyField, error) {
+	return api.app.PropertyService().GetPropertyFields(groupID, ids)
+}
+
+func (api *PluginAPI) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error) {
+	return api.app.PropertyService().UpdatePropertyField(groupID, field)
+}
+
+func (api *PluginAPI) DeletePropertyField(groupID, fieldID string) error {
+	return api.app.PropertyService().DeletePropertyField(groupID, fieldID)
+}
+
+func (api *PluginAPI) SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+	return api.app.PropertyService().SearchPropertyFields(groupID, targetID, opts)
+}
+
+func (api *PluginAPI) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
+	return api.app.PropertyService().CreatePropertyValue(value)
+}
+
+func (api *PluginAPI) GetPropertyValue(groupID, valueID string) (*model.PropertyValue, error) {
+	return api.app.PropertyService().GetPropertyValue(groupID, valueID)
+}
+
+func (api *PluginAPI) GetPropertyValues(groupID string, ids []string) ([]*model.PropertyValue, error) {
+	return api.app.PropertyService().GetPropertyValues(groupID, ids)
+}
+
+func (api *PluginAPI) UpdatePropertyValue(groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
+	return api.app.PropertyService().UpdatePropertyValue(groupID, value)
+}
+
+func (api *PluginAPI) UpsertPropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
+	return api.app.PropertyService().UpsertPropertyValue(value)
+}
+
+func (api *PluginAPI) DeletePropertyValue(groupID, valueID string) error {
+	return api.app.PropertyService().DeletePropertyValue(groupID, valueID)
+}
+
+func (api *PluginAPI) SearchPropertyValues(groupID, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+	return api.app.PropertyService().SearchPropertyValues(groupID, targetID, opts)
+}
+
+func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {
+	return api.app.PropertyService().RegisterPropertyGroup(name)
+}
+
+func (api *PluginAPI) GetPropertyGroup(name string) (*model.PropertyGroup, error) {
+	return api.app.PropertyService().GetPropertyGroup(name)
+}
+
+func (api *PluginAPI) GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
+	return api.app.PropertyService().GetPropertyFieldByName(groupID, targetID, name)
+}
+
+func (api *PluginAPI) UpdatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
+	return api.app.PropertyService().UpdatePropertyFields(groupID, fields)
+}
+
+func (api *PluginAPI) UpdatePropertyValues(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	return api.app.PropertyService().UpdatePropertyValues(groupID, values)
+}
+
+func (api *PluginAPI) UpsertPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	return api.app.PropertyService().UpsertPropertyValues(values)
+}
+
+func (api *PluginAPI) DeletePropertyValuesForTarget(groupID, targetType, targetID string) error {
+	return api.app.PropertyService().DeletePropertyValuesForTarget(groupID, targetType, targetID)
+}
+
+func (api *PluginAPI) DeletePropertyValuesForField(groupID, fieldID string) error {
+	return api.app.PropertyService().DeletePropertyValuesForField(groupID, fieldID)
 }

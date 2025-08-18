@@ -16,10 +16,10 @@ type Poster interface {
 	DMWithAttachments(mattermostUserID string, attachments ...*model.SlackAttachment) (string, error)
 
 	// Ephemeral sends an ephemeral message to a user
-	Ephemeral(mattermostUserID, channelID, format string, args ...interface{})
+	Ephemeral(mattermostUserID, channelID, format string, args ...any)
 
 	// UpdatePostByID updates the post with postID with the formatted message
-	UpdatePostByID(postID, format string, args ...interface{}) error
+	UpdatePostByID(postID, format string, args ...any) error
 
 	// DeletePost deletes a single post
 	DeletePost(postID string) error
@@ -34,5 +34,5 @@ type Poster interface {
 // DMer defines an entity that can send Direct Messages
 type DMer interface {
 	// DM posts a simple Direct Message to the specified user
-	DM(mattermostUserID, format string, args ...interface{}) (string, error)
+	DM(mattermostUserID, format string, args ...any) (string, error)
 }

@@ -12,7 +12,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-// fixMention replaces any mentions in a post for the user with the user's real username.
+// fixMention transforms @username:remotename mentions to @username format
+// Used when syncing posts to a user's home cluster
 func fixMention(post *model.Post, mentionMap model.UserMentionMap, user *model.User) {
 	if post == nil || len(mentionMap) == 0 {
 		return
@@ -23,8 +24,8 @@ func fixMention(post *model.Post, mentionMap model.UserMentionMap, user *model.U
 		return
 	}
 
-	// there may be more than one mention for each user so we have to walk the whole map.
 	for mention, id := range mentionMap {
+		// Only process mentions with colons that match this user's ID
 		if id == user.Id && strings.Contains(mention, ":") {
 			post.Message = strings.ReplaceAll(post.Message, "@"+mention, "@"+realUsername)
 		}
@@ -45,6 +46,12 @@ func sanitizeUserForSync(user *model.User) *model.User {
 	user.MfaSecret = ""
 
 	return user
+}
+
+func sanitizeUserForSyncSafe(user *model.User) *model.User {
+	// Create a copy to avoid modifying the original user object
+	userCopy := *user
+	return sanitizeUserForSync(&userCopy)
 }
 
 const MungUsernameSeparator = "-"
@@ -75,10 +82,7 @@ func mungUsername(username string, remotename string, suffix string, maxLen int)
 
 	// If the remotename is less than half the maxLen, then the left over space can be given to
 	// the username.
-	extra := half - (len(remotename) + 1)
-	if extra < 0 {
-		extra = 0
-	}
+	extra := max(half-(len(remotename)+1), 0)
 
 	truncUser := (len(username) + len(suffix)) - (half + extra)
 	if truncUser > 0 {

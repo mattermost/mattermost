@@ -50,7 +50,6 @@ func (s SqlPreferenceStore) Save(preferences model.Preferences) (err error) {
 
 	defer finalizeTransactionX(transaction, &err)
 	for _, preference := range preferences {
-		preference := preference
 		if upsertErr := s.saveTx(transaction, &preference); upsertErr != nil {
 			return upsertErr
 		}
@@ -73,15 +72,8 @@ func (s SqlPreferenceStore) save(transaction *sqlxTxWrapper, preference *model.P
 	query := s.getQueryBuilder().
 		Insert("Preferences").
 		Columns("UserId", "Category", "Name", "Value").
-		Values(preference.UserId, preference.Category, preference.Name, preference.Value)
-
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Value = ?", preference.Value))
-	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid, category, name) DO UPDATE SET Value = ?", preference.Value))
-	} else {
-		return store.NewErrNotImplemented("failed to update preference because of missing driver")
-	}
+		Values(preference.UserId, preference.Category, preference.Name, preference.Value).
+		SuffixExpr(sq.Expr("ON CONFLICT (userid, category, name) DO UPDATE SET Value = ?", preference.Value))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -104,15 +96,8 @@ func (s SqlPreferenceStore) saveTx(transaction *sqlxTxWrapper, preference *model
 	query := s.getQueryBuilder().
 		Insert("Preferences").
 		Columns("UserId", "Category", "Name", "Value").
-		Values(preference.UserId, preference.Category, preference.Name, preference.Value)
-
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Value = ?", preference.Value))
-	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid, category, name) DO UPDATE SET Value = ?", preference.Value))
-	} else {
-		return store.NewErrNotImplemented("failed to update preference because of missing driver")
-	}
+		Values(preference.UserId, preference.Category, preference.Name, preference.Value).
+		SuffixExpr(sq.Expr("ON CONFLICT (userid, category, name) DO UPDATE SET Value = ?", preference.Value))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -242,7 +227,7 @@ func (s *SqlPreferenceStore) DeleteOrphanedRows(limit int) (deleted int64, err e
 	// We need the extra level of nesting to deal with MySQL's locking
 	const query = `
 	DELETE FROM Preferences WHERE Name IN (
-		SELECT * FROM (
+		SELECT Name FROM (
 			SELECT Preferences.Name FROM Preferences
 			LEFT JOIN Posts ON Preferences.Name = Posts.Id
 			WHERE Posts.Id IS NULL AND Category = ?
@@ -264,7 +249,7 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 		// it is better to manually check here, or change the function type to uint64
 		return int64(0), errors.Errorf("Received a negative limit")
 	}
-	nameInQ, nameInArgs, err := sq.Select("*").
+	nameInQ, nameInArgs, err := sq.Select("Name").
 		FromSelect(
 			sq.Select("Preferences.Name").
 				From("Preferences").

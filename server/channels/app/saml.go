@@ -32,7 +32,7 @@ func (a *App) GetSamlMetadata(c request.CTX) (string, *model.AppError) {
 
 	result, err := a.Saml().GetMetadata(c)
 	if err != nil {
-		return "", model.NewAppError("GetSamlMetadata", "api.admin.saml.metadata.app_error", nil, "err="+err.Message, err.StatusCode)
+		return "", model.NewAppError("GetSamlMetadata", "api.admin.saml.metadata.app_error", nil, "", err.StatusCode).Wrap(err)
 	}
 	return result, nil
 }

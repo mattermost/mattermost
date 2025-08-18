@@ -128,30 +128,6 @@
     "translation": "Αδυναμία λήψης χρηστών."
   },
   {
-    "id": "bleveengine.index_user.error",
-    "translation": "Απέτυχε η ευρετηρίαση του χρήστη."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Απέτυχε η ευρετηρίαση της δημοσίευσης."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Απέτυχε η ευρετηρίαση του καναλιού."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Αποτυχία διαγραφής του χρήστη."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Αποτυχία διαγραφής της δημοσίευσης."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Απέτυχε η διαγραφή του καναλιού."
-  },
-  {
     "id": "app.submit_interactive_dialog.json_error",
     "translation": "Παρουσιάστηκε σφάλμα στη κωδικοποίηση του JSON του αναδυόμενου παράθυρου."
   },
@@ -1113,10 +1089,6 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v έφυγε από το κανάλι."
-  },
-  {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Είσαι το μόνο μέλος που έμεινε στο κανάλι, δοκίμασε να αλλάξεις 'Ιδιωτικό Κανάλι', αντί να το φύγεις."
   },
   {
     "id": "api.channel.leave.direct.app_error",

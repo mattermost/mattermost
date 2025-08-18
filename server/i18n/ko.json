@@ -208,10 +208,6 @@
     "translation": "개인 메시지 채널은 나갈 수 없습니다."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "비공개 그룹에 당신밖에 남지 않았습니다. 이 그룹을 떠나는 대신 그룹을 삭제하세요."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v 가 채널을 떠났습니다."
   },
@@ -4656,10 +4652,6 @@
     "translation": "최신 Chrome 브라우저를 받습니다"
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Error purging Bleve indexes: engine is disabled"
-  },
-  {
     "id": "plugin_api.bot_cant_create_bot",
     "translation": "봇 사용자는 봇 사용자를 만들 수 없습니다."
   },
@@ -4768,18 +4760,6 @@
     "translation": "Elasticsearch AutocompleteEnabled 설정이 활성화되어 있을 때, Elasticsearch IndexingEnabled 설정도 활성화되어 있어야 합니다."
   },
   {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Bleve의 EnableIndexing 설정을 활성화하려면 Bleve의 IndexingDir 설정에서 색인을 저장할 디렉터리를 지정해야 합니다"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Bleve의 EnableSearching 설정을 활성화하려면 Bleve의 EnableIndexing 설정도 활성화되어야 합니다"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Bleve의 EnableAutocomplete 설정을 활성화하려면 Bleve의 EnableIndexing 설정도 활성화되어야 합니다"
-  },
-  {
     "id": "model.command.is_valid.autocomplete_data.app_error",
     "translation": "Invalid AutocompleteData"
   },
@@ -4878,118 +4858,6 @@
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "채널에 대한 Elasticsearch 템플릿을 만들지 못했습니다."
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Failed to close user index."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Failed to close post index."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Failed to close channel index."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "검색을 완료하지 못했습니다."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "검색을 완료하지 못했습니다."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "검색을 완료하지 못했습니다."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "검색을 완료하지 못했습니다."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "검색을 완료하지 못했습니다."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Failed to purge user indexes."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Failed to purge post indexes."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Failed to purge channel indexes."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Trying to index a new batch when all the entities are completed."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Bleve 색인 프로세스가 시작 시간을 구문 분석하지 못했습니다."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Bleve 색인 프로세스가 종료 시간을 구문 분석하지 못했습니다."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Failed to run Bleve index job: engine is inactive."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Failed to index user batch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Failed to index post batch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Failed to index channel batch."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "사용자 색인을 실패하였습니다"
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "게시글 색인이 실패했습니다."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "채널 색인을 실패하였습니다"
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "사용자를 삭제하지 못하였습니다"
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "게시글을 삭제하지 못했습니다."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "채널을 삭제하지 못하였습니다"
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Error creating the bleve user index."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Error creating the bleve post index."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Error creating the bleve channel index."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve is already started."
   },
   {
     "id": "app.user_terms_of_service.save.app_error",
@@ -5118,10 +4986,6 @@
   {
     "id": "app.plugin.get_public_key.get_file.app_error",
     "translation": "공개키를 가져 오는동안 오류가 발생했습니다."
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "파일 저장소에서 관리하는 플러그인을 설정할 수 없습니다."
   },
   {
     "id": "app.plugin.delete_public_key.delete.app_error",
@@ -5837,14 +5701,6 @@
   },
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
-    "translation": "채널 게시글을 삭제하지 못했습니다"
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "사용자 게시글을 삭제하지 못했습니다"
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
     "translation": "채널 게시글을 삭제하지 못했습니다"
   },
   {
@@ -6592,10 +6448,6 @@
     "translation": "채널 구성원을 가져올 수 없습니다."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "색인할 채널 일괄 처리를 가져올 수 없습니다."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "제공된 스키마에 대한 채널을 얻을 수 없습니다."
   },
@@ -6626,10 +6478,6 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "해당 채널에 대한 게시글을 가져올 수 없습니다."
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "색인을 위한 채널 배치를 가져올 수 없습니다."
   },
   {
     "id": "app.post.get_posts.app_error",
@@ -7136,10 +6984,6 @@
     "translation": "`{{.Arg}}`가 누락 또는 비어있음"
   },
   {
-    "id": "bleveengine.delete_file.error",
-    "translation": "파일을 삭제하지 못했습니다."
-  },
-  {
     "id": "api.command_share.unshare_channel.help",
     "translation": "현재 채널을 공유하지 않습니다"
   },
@@ -7408,10 +7252,6 @@
     "translation": "인증 완료"
   },
   {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "파일을 삭제하지 못했습니다."
-  },
-  {
     "id": "api.custom_status.recent_custom_statuses.delete.app_error",
     "translation": "최근 상태를 삭제하는 데 실패했습니다. 먼저 상태 추가를 시도해 보시고, 더 자세한 사항은 관리자에게 문의하세요."
   },
@@ -7480,40 +7320,8 @@
     "translation": "JSON 요청을 마샬링하는 동안 오류가 발생했습니다"
   },
   {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "파일 색인을 닫지 못했습니다."
-  },
-  {
     "id": "brand.save_brand_image.check_image_limits.app_error",
     "translation": "이미지 한계를 검사하지 못했습니다. 해상도가 너무 높습니다."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "파일 검색을 완료하지 못했습니다."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "데이터베이스에서 가장 오래된 엔티티(사용자, 채널 또는 게시물)를 검색할 수 없습니다."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "파일을 색인하지 못했습니다."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "파일 색인를 정리하지 못했습니다."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "파일 묶음을 색인하지 못했습니다."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "사용자 파일을 삭제하지 못했습니다."
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "게시된 파일을 삭제하지 못했습니다."
   },
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
@@ -7742,10 +7550,6 @@
   {
     "id": "api.upload.create.upload_too_large.app_error",
     "translation": "파일을 업로드할 수 없습니다. 파일이 너무 큽니다."
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "백엔드에서 파일 읽기 오류"
   },
   {
     "id": "api.templates.welcome_body.subTitle2",

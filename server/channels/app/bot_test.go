@@ -15,6 +15,7 @@ import (
 )
 
 func TestCreateBot(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("invalid bot", func(t *testing.T) {
 		t.Run("relative to user", func(t *testing.T) {
 			th := Setup(t).InitBasic()
@@ -116,6 +117,7 @@ func TestCreateBot(t *testing.T) {
 }
 
 func TestEnsureBot(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("ensure bot should pass if already exist bot user", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -190,6 +192,7 @@ func TestEnsureBot(t *testing.T) {
 }
 
 func TestPatchBot(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("invalid patch for user", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -306,6 +309,7 @@ func TestPatchBot(t *testing.T) {
 }
 
 func TestGetBot(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -376,6 +380,7 @@ func TestGetBot(t *testing.T) {
 }
 
 func TestGetBots(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).DeleteBots()
 	defer th.TearDown()
 
@@ -586,6 +591,7 @@ func TestGetBots(t *testing.T) {
 }
 
 func TestUpdateBotActive(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("unknown bot", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -631,6 +637,7 @@ func TestUpdateBotActive(t *testing.T) {
 }
 
 func TestPermanentDeleteBot(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -649,6 +656,7 @@ func TestPermanentDeleteBot(t *testing.T) {
 }
 
 func TestDisableUserBots(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -663,7 +671,7 @@ func TestDisableUserBots(t *testing.T) {
 		}
 	}()
 
-	for i := 0; i < 46; i++ {
+	for i := range 46 {
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    fmt.Sprintf("username%v", i),
 			Description: "a bot",
@@ -710,6 +718,7 @@ func TestDisableUserBots(t *testing.T) {
 }
 
 func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -727,7 +736,8 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 		Nickname: "nn_sysadmin1",
 		Password: "hello1",
 		Username: "un_sysadmin1",
-		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId}
+		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId,
+	}
 	_, err := th.App.CreateUser(th.Context, &sysadmin1)
 	require.Nil(t, err, "failed to create user")
 	_, err = th.App.UpdateUserRoles(th.Context, sysadmin1.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
@@ -738,7 +748,8 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 		Nickname: "nn_sysadmin2",
 		Password: "hello1",
 		Username: "un_sysadmin2",
-		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId}
+		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId,
+	}
 	_, err = th.App.CreateUser(th.Context, &sysadmin2)
 	require.Nil(t, err, "failed to create user")
 	_, err = th.App.UpdateUserRoles(th.Context, sysadmin2.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
@@ -766,7 +777,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 
 	// create bots owned by user (equal to numBotsToPrint)
 	var bot *model.Bot
-	for i := 0; i < numBotsToPrint; i++ {
+	for i := range numBotsToPrint {
 		bot, err = th.App.CreateBot(th.Context, &model.Bot{
 			Username:    fmt.Sprintf("bot%v", i),
 			Description: "a bot",
@@ -846,6 +857,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 }
 
 func TestConvertUserToBot(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("invalid user", func(t *testing.T) {
 		t.Run("invalid user id", func(t *testing.T) {
 			th := Setup(t).InitBasic()
@@ -901,9 +913,58 @@ func TestConvertUserToBot(t *testing.T) {
 		require.NotNil(t, err)
 		require.Equal(t, "api.context.invalid_token.error", err.Id)
 	})
+
+	t.Run("user with oauth credentials", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Create a user first
+		oauthUser := &model.User{
+			Email:         "oauth_user@example.com",
+			Username:      "oauth_user",
+			Password:      "password",
+			EmailVerified: true,
+		}
+
+		oauthUser, err := th.App.CreateUser(th.Context, oauthUser)
+		require.Nil(t, err)
+
+		// Set OAuth credentials
+		authData := "google_auth_data"
+		userAuth := &model.UserAuth{
+			AuthData:    &authData,
+			AuthService: "google",
+		}
+		_, err = th.App.UpdateUserAuth(th.Context, oauthUser.Id, userAuth)
+		require.Nil(t, err)
+
+		// Verify OAuth credentials are set
+		oauthUser, appErr := th.App.GetUser(oauthUser.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, "google", oauthUser.AuthService)
+		require.NotNil(t, oauthUser.AuthData)
+
+		// Convert user to bot
+		bot, err := th.App.ConvertUserToBot(th.Context, oauthUser)
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		// Get updated user and verify OAuth credentials are cleared
+		updatedUser, err := th.App.GetUser(oauthUser.Id)
+		require.Nil(t, err)
+		assert.Empty(t, updatedUser.AuthService)
+		// AuthData may be empty string instead of nil in the database
+		if updatedUser.AuthData != nil {
+			assert.Empty(t, *updatedUser.AuthData)
+		}
+	})
 }
 
 func TestGetSystemBot(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("An error should be returned if there are no sysadmins in the instance", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()

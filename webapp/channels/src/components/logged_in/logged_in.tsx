@@ -34,10 +34,12 @@ export type Props = {
     isCurrentChannelManuallyUnread: boolean;
     children?: React.ReactNode;
     mfaRequired: boolean;
+    customProfileAttributesEnabled: boolean;
     actions: {
         autoUpdateTimezone: (deviceTimezone: string) => void;
         getChannelURLAction: (channelId: string, teamId: string, url: string) => void;
         updateApproximateViewTime: (channelId: string) => void;
+        getCustomProfileAttributeFields: () => void;
     };
     showTermsOfService: boolean;
     location: {
@@ -68,11 +70,13 @@ export default class LoggedIn extends React.PureComponent<Props> {
 
         this.updateTimeZone();
 
+        // Fetch custom profile attributes for authenticated user
+        if (this.props.customProfileAttributesEnabled) {
+            this.props.actions.getCustomProfileAttributeFields();
+        }
+
         // Make sure the websockets close and reset version
         window.addEventListener('beforeunload', this.handleBeforeUnload);
-
-        // listen for the app visibility state
-        window.addEventListener('visibilitychange', this.handleVisibilityChange, false);
 
         // Listen for focused tab/window state
         window.addEventListener('focus', this.onFocusListener);
@@ -117,7 +121,6 @@ export default class LoggedIn extends React.PureComponent<Props> {
         WebSocketActions.close();
 
         window.removeEventListener('keydown', this.handleBackSpace);
-
         window.removeEventListener('focus', this.onFocusListener);
         window.removeEventListener('blur', this.onBlurListener);
 
@@ -144,23 +147,18 @@ export default class LoggedIn extends React.PureComponent<Props> {
         return this.props.children;
     }
 
-    private handleVisibilityChange = (): void => {
-        if (!document.hidden) {
-            this.updateTimeZone();
-        }
-    };
-
     private updateTimeZone(): void {
         this.props.actions.autoUpdateTimezone(getBrowserTimezone());
     }
 
-    private onFocusListener(): void {
+    private onFocusListener = (): void => {
+        this.updateTimeZone();
         GlobalActions.emitBrowserFocus(true);
-    }
+    };
 
-    private onBlurListener(): void {
+    private onBlurListener = (): void => {
         GlobalActions.emitBrowserFocus(false);
-    }
+    };
 
     private updateActiveStatus = (userIsActive: boolean, idleTime: number, manual: boolean) => {
         if (!this.props.currentUser) {

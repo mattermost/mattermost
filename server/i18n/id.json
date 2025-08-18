@@ -888,30 +888,6 @@
     "translation": "Tidak dapat memuat kiriman"
   },
   {
-    "id": "bleveengine.index_user.error",
-    "translation": "Tidak dapat memuat kiriman"
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Tidak dapat memuat kiriman"
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Tidak dapat memperoleh kanal"
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Tidak dapat memuat kiriman"
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Tidak dapat memuat kiriman"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Tidak dapat memperoleh kanal"
-  },
-  {
     "id": "app.submit_interactive_dialog.json_error",
     "translation": "Percakapan interaktif pada encoding JSON mengalami masalah ."
   },
@@ -2640,10 +2616,6 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v telah keluar dari kanal."
-  },
-  {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Anda satu-satunya anggota yang tersisa, coba menghapus Kanal Pribadi daripada keluar."
   },
   {
     "id": "api.channel.leave.direct.app_error",

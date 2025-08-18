@@ -32,7 +32,7 @@ describe('Invite Members', () => {
             cy.visit('/');
 
             // # Open and select invite menu item
-            cy.uiOpenTeamMenu('Invite People');
+            cy.uiOpenTeamMenu('Invite people');
         });
 
         it('allows user to exit when there are no inputs', () => {

@@ -24,3 +24,13 @@
     font-family: Metropolis, sans-serif;
     font-weight: 600 !important;
 }
+
+.CommercialSupportModal__error {
+    margin-top: 12px;
+    
+    .error-text {
+        display: inline-block;
+        color: var(--error-text);
+        word-break: break-word;
+    }
+}

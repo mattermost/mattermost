@@ -13,7 +13,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
@@ -32,11 +31,9 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamId, err := c.App.GetTeamIdFromQuery(c.AppContext, r.URL.Query())
-	if err != nil {
-		c.Err = err
-		return
-	}
+	tokenID := r.URL.Query().Get("t")
+	inviteId := r.URL.Query().Get("id")
+
 	action := r.URL.Query().Get("action")
 	isMobile := action == model.OAuthActionMobile
 	redirectURL := html.EscapeString(r.URL.Query().Get("redirect_to"))
@@ -44,7 +41,11 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	relayState := ""
 
 	if action != "" {
-		relayProps["team_id"] = teamId
+		if tokenID != "" {
+			relayProps["invite_token"] = tokenID
+		} else if inviteId != "" {
+			relayProps["invite_id"] = inviteId
+		}
 		relayProps["action"] = action
 		if action == model.OAuthActionEmailToSSO {
 			relayProps["email_token"] = r.URL.Query().Get("email_token")
@@ -104,7 +105,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps = model.MapFromJSON(strings.NewReader(stateStr))
 	}
 
-	auditRec := c.MakeAuditRecord("completeSaml", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCompleteSaml, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -118,7 +119,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		redirectURL = val
 		hasRedirectURL = val != ""
 	}
-	redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL)
+	redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL, c.App.Config().NativeAppSettings.AppCustomURLSchemes)
 
 	handleError := func(err *model.AppError) {
 		if isMobile && hasRedirectURL {
@@ -150,12 +151,11 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	switch action {
 	case model.OAuthActionSignup:
-		if teamId := relayProps["team_id"]; teamId != "" {
-			if err = c.App.AddUserToTeamByTeamId(c.AppContext, teamId, user); err != nil {
-				c.LogErrorByCode(err)
-				break
-			}
-			c.App.AddDirectChannels(c.AppContext, teamId, user)
+		inviteToken := relayProps["invite_token"]
+		inviteId := relayProps["invite_id"]
+		if err = c.App.AddUserToTeamByInviteIfNeeded(c.AppContext, user, inviteToken, inviteId); err != nil {
+			c.LogErrorByCode(err)
+			break
 		}
 	case model.OAuthActionEmailToSSO:
 		if err = c.App.RevokeAllSessions(c.AppContext, user.Id); err != nil {
@@ -180,10 +180,16 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		AcceptLanguage: c.AppContext.AcceptLanguage(),
 		UserAgent:      c.AppContext.UserAgent(),
 	}
+
+	var hookErr error
 	c.App.Channels().RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
-		err := hooks.OnSAMLLogin(pluginContext, user, assertion)
-		return err == nil
+		hookErr = hooks.OnSAMLLogin(pluginContext, user, assertion)
+		return hookErr == nil
 	}, plugin.OnSAMLLoginID)
+	if hookErr != nil {
+		handleError(model.NewAppError("completeSaml", "api.user.authorize_oauth_user.saml_hook_error.app_error", nil, "", http.StatusInternalServerError).Wrap(hookErr))
+		return
+	}
 
 	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")

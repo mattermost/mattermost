@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -26,10 +25,32 @@ const (
 
 type SqlJobStore struct {
 	*SqlStore
+
+	jobColumns []string
+	jobQuery   sq.SelectBuilder
 }
 
 func newSqlJobStore(sqlStore *SqlStore) store.JobStore {
-	return &SqlJobStore{sqlStore}
+	s := &SqlJobStore{
+		SqlStore: sqlStore,
+		jobColumns: []string{
+			"Id",
+			"Type",
+			"Priority",
+			"CreateAt",
+			"StartAt",
+			"LastActivityAt",
+			"Status",
+			"Progress",
+			"Data",
+		},
+	}
+
+	s.jobQuery = s.getQueryBuilder().
+		Select(s.jobColumns...).
+		From("Jobs")
+
+	return s
 }
 
 func (jss SqlJobStore) Save(job *model.Job) (*model.Job, error) {
@@ -175,63 +196,13 @@ func (jss SqlJobStore) UpdateStatus(id string, status string) (*model.Job, error
 func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (*model.Job, error) {
 	lastActivityAndStartTime := model.GetMillis()
 
-	if jss.DriverName() == model.DatabaseDriverMysql {
-		tx, err := jss.GetMaster().Beginx()
-		if err != nil {
-			return nil, errors.Wrap(err, "begin_transaction")
-		}
-		defer finalizeTransactionX(tx, &err)
-
-		builder := jss.getQueryBuilder().
-			Update("Jobs").
-			Set("LastActivityAt", lastActivityAndStartTime).
-			Set("Status", newStatus).
-			Where(sq.Eq{"Id": id, "Status": currentStatus})
-
-		if newStatus == model.JobStatusInProgress {
-			builder = builder.Set("StartAt", lastActivityAndStartTime)
-		}
-
-		sqlResult, err := tx.ExecBuilder(builder)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to update Job with id=%s", id)
-		}
-		rows, err := sqlResult.RowsAffected()
-		if err != nil {
-			return nil, errors.Wrap(err, "unable to get rows affected")
-		}
-		if rows != 1 {
-			return nil, nil
-		}
-
-		getBuilder := jss.getQueryBuilder().
-			Select("*").
-			From("Jobs").
-			Where(sq.Eq{"Id": id, "Status": newStatus})
-
-		var job model.Job
-		if err = tx.GetBuilder(&job, getBuilder); err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return nil, store.NewErrNotFound("Job", id)
-			}
-			return nil, errors.Wrapf(err, "failed to get Job with id=%s", id)
-		}
-
-		err = tx.Commit()
-		if err != nil {
-			return nil, errors.Wrap(err, "commit_transaction")
-		}
-
-		return &job, nil
-	}
-
-	// For PostgreSQL, use RETURNING to get the updated job in a single query
+	// Use RETURNING to get the updated job in a single query
 	builder := jss.getQueryBuilder().
 		Update("Jobs").
 		Set("LastActivityAt", lastActivityAndStartTime).
 		Set("Status", newStatus).
 		Where(sq.Eq{"Id": id, "Status": currentStatus}).
-		Suffix("RETURNING *")
+		Suffix("RETURNING " + strings.Join(jss.jobColumns, ", "))
 
 	if newStatus == model.JobStatusInProgress {
 		builder = builder.Set("StartAt", lastActivityAndStartTime)
@@ -255,9 +226,7 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 }
 
 func (jss SqlJobStore) Get(c request.CTX, id string) (*model.Job, error) {
-	query, args, err := jss.getQueryBuilder().
-		Select("*").
-		From("Jobs").
+	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Id": id}).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "job_tosql")
@@ -274,13 +243,12 @@ func (jss SqlJobStore) Get(c request.CTX, id string) (*model.Job, error) {
 	return &status, nil
 }
 
-func (jss SqlJobStore) GetAllByTypesPage(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, error) {
-	query, args, err := jss.getQueryBuilder().
-		Select("*").
-		From("Jobs").
+func (jss SqlJobStore) GetAllByTypesPage(c request.CTX, jobTypes []string, page int, perPage int) ([]*model.Job, error) {
+	offset := page * perPage
+	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobTypes}).
 		OrderBy("CreateAt DESC").
-		Limit(uint64(limit)).
+		Limit(uint64(perPage)).
 		Offset(uint64(offset)).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "job_tosql")
@@ -295,9 +263,7 @@ func (jss SqlJobStore) GetAllByTypesPage(c request.CTX, jobTypes []string, offse
 }
 
 func (jss SqlJobStore) GetAllByType(c request.CTX, jobType string) ([]*model.Job, error) {
-	query, args, err := jss.getQueryBuilder().
-		Select("*").
-		From("Jobs").
+	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobType}).
 		OrderBy("CreateAt DESC").ToSql()
 	if err != nil {
@@ -313,9 +279,7 @@ func (jss SqlJobStore) GetAllByType(c request.CTX, jobType string) ([]*model.Job
 }
 
 func (jss SqlJobStore) GetAllByTypeAndStatus(c request.CTX, jobType string, status string) ([]*model.Job, error) {
-	query, args, err := jss.getQueryBuilder().
-		Select("*").
-		From("Jobs").
+	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobType, "Status": status}).
 		OrderBy("CreateAt DESC").ToSql()
 	if err != nil {
@@ -330,13 +294,12 @@ func (jss SqlJobStore) GetAllByTypeAndStatus(c request.CTX, jobType string, stat
 	return jobs, nil
 }
 
-func (jss SqlJobStore) GetAllByTypePage(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, error) {
-	query, args, err := jss.getQueryBuilder().
-		Select("*").
-		From("Jobs").
+func (jss SqlJobStore) GetAllByTypePage(c request.CTX, jobType string, page int, perPage int) ([]*model.Job, error) {
+	offset := page * perPage
+	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobType}).
 		OrderBy("CreateAt DESC").
-		Limit(uint64(limit)).
+		Limit(uint64(perPage)).
 		Offset(uint64(offset)).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "job_tosql")
@@ -352,9 +315,7 @@ func (jss SqlJobStore) GetAllByTypePage(c request.CTX, jobType string, offset in
 
 func (jss SqlJobStore) GetAllByStatus(c request.CTX, status string) ([]*model.Job, error) {
 	statuses := []*model.Job{}
-	query, args, err := jss.getQueryBuilder().
-		Select("*").
-		From("Jobs").
+	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Status": status}).
 		OrderBy("CreateAt ASC").ToSql()
 	if err != nil {
@@ -368,10 +329,8 @@ func (jss SqlJobStore) GetAllByStatus(c request.CTX, status string) ([]*model.Jo
 	return statuses, nil
 }
 
-func (jss SqlJobStore) GetAllByTypeAndStatusPage(c request.CTX, jobType []string, status string, offset int, limit int) ([]*model.Job, error) {
-	query, args, err := jss.getQueryBuilder().
-		Select("*").
-		From("Jobs").
+func (jss SqlJobStore) GetAllByTypesAndStatusesPage(c request.CTX, jobType []string, status []string, offset int, limit int) ([]*model.Job, error) {
+	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobType, "Status": status}).
 		OrderBy("CreateAt DESC").
 		Limit(uint64(limit)).
@@ -382,7 +341,7 @@ func (jss SqlJobStore) GetAllByTypeAndStatusPage(c request.CTX, jobType []string
 
 	jobs := []*model.Job{}
 	if err = jss.GetReplica().Select(&jobs, query, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to find Jobs with type=%s and status=%s", strings.Join(jobType, ","), status)
+		return nil, errors.Wrapf(err, "failed to find Jobs with types=%s and statuses=%s", strings.Join(jobType, ","), strings.Join(status, ","))
 	}
 
 	return jobs, nil
@@ -393,9 +352,7 @@ func (jss SqlJobStore) GetNewestJobByStatusAndType(status string, jobType string
 }
 
 func (jss SqlJobStore) GetNewestJobByStatusesAndType(status []string, jobType string) (*model.Job, error) {
-	query, args, err := jss.getQueryBuilder().
-		Select("*").
-		From("Jobs").
+	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Status": status, "Type": jobType}).
 		OrderBy("CreateAt DESC").
 		Limit(1).ToSql()
@@ -472,21 +429,14 @@ func (jss SqlJobStore) Cleanup(expiryTime int64, batchSize int) error {
 	return nil
 }
 
-const mySQLDeadlockCode = uint16(1213)
-
 // isRepeatableError is a bit of copied code from retrylayer.go.
 // A little copying is fine because we don't want to import another package
 // in the store layer
 func isRepeatableError(err error) bool {
 	var pqErr *pq.Error
-	var mysqlErr *mysql.MySQLError
 	switch {
 	case errors.As(err, &pqErr):
 		if pqErr.Code == "40001" || pqErr.Code == "40P01" {
-			return true
-		}
-	case errors.As(err, &mysqlErr):
-		if mysqlErr.Number == mySQLDeadlockCode {
 			return true
 		}
 	}

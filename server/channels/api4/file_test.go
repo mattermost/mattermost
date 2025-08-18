@@ -59,10 +59,11 @@ func fileBytes(t *testing.T, path string) []byte {
 	return bb
 }
 
-func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []byte, contentType string,
-	contentLength int64) (*model.FileUploadResponse, *model.Response, error) {
+func testDoUploadFileRequest(tb testing.TB, c *model.Client4, url string, blob []byte, contentType string,
+	contentLength int64,
+) (*model.FileUploadResponse, *model.Response, error) {
 	req, err := http.NewRequest("POST", c.APIURL+"/files"+url, bytes.NewReader(blob))
-	require.NoError(t, err)
+	require.NoError(tb, err)
 
 	if contentLength != 0 {
 		req.ContentLength = contentLength
@@ -73,8 +74,8 @@ func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []
 	}
 
 	resp, err := c.HTTPClient.Do(req)
-	require.NoError(t, err)
-	require.NotNil(t, resp)
+	require.NoError(tb, err)
+	require.NotNil(tb, resp)
 	defer closeBody(resp)
 
 	if resp.StatusCode >= 300 {
@@ -89,7 +90,7 @@ func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []
 }
 
 func testUploadFilesPost(
-	t testing.TB,
+	tb testing.TB,
 	c *model.Client4,
 	channelId string,
 	names []string,
@@ -101,9 +102,9 @@ func testUploadFilesPost(
 	// Do not check len(clientIds), leave it entirely to the user to
 	// provide. The server will error out if it does not match the number
 	// of files, but it's not critical here.
-	require.NotEmpty(t, names)
-	require.NotEmpty(t, blobs)
-	require.Equal(t, len(names), len(blobs))
+	require.NotEmpty(tb, names)
+	require.NotEmpty(tb, blobs)
+	require.Equal(tb, len(names), len(blobs))
 
 	fileUploadResponse := &model.FileUploadResponse{}
 	for i, blob := range blobs {
@@ -125,7 +126,7 @@ func testUploadFilesPost(
 			postURL += "&bookmark=true"
 		}
 
-		fur, resp, err := testDoUploadFileRequest(t, c, postURL, blob, ct, cl)
+		fur, resp, err := testDoUploadFileRequest(tb, c, postURL, blob, ct, cl)
 		if err != nil {
 			return nil, resp, err
 		}
@@ -144,7 +145,7 @@ func testUploadFilesPost(
 }
 
 func testUploadFilesMultipart(
-	t testing.TB,
+	tb testing.TB,
 	c *model.Client4,
 	channelId string,
 	names []string,
@@ -159,21 +160,21 @@ func testUploadFilesMultipart(
 	// Do not check len(clientIds), leave it entirely to the user to
 	// provide. The server will error out if it does not match the number
 	// of files, but it's not critical here.
-	require.NotEmpty(t, names)
-	require.NotEmpty(t, blobs)
-	require.Equal(t, len(names), len(blobs))
+	require.NotEmpty(tb, names)
+	require.NotEmpty(tb, blobs)
+	require.Equal(tb, len(names), len(blobs))
 
 	mwBody := &bytes.Buffer{}
 	mw := multipart.NewWriter(mwBody)
 
 	err := mw.WriteField("channel_id", channelId)
-	require.NoError(t, err)
+	require.NoError(tb, err)
 
 	for i, blob := range blobs {
 		ct := http.DetectContentType(blob)
 		if len(clientIds) > i {
 			err = mw.WriteField("client_ids", clientIds[i])
-			require.NoError(t, err)
+			require.NoError(tb, err)
 		}
 
 		h := textproto.MIMEHeader{}
@@ -184,18 +185,18 @@ func testUploadFilesMultipart(
 		// If we error here, writing to mw, the deferred handler
 		var part io.Writer
 		part, err = mw.CreatePart(h)
-		require.NoError(t, err)
+		require.NoError(tb, err)
 
 		_, err = io.Copy(part, bytes.NewReader(blob))
-		require.NoError(t, err)
+		require.NoError(tb, err)
 	}
 
-	require.NoError(t, mw.Close())
+	require.NoError(tb, mw.Close())
 	url := ""
 	if isBookmark {
 		url += "?bookmark=true"
 	}
-	fur, resp, err := testDoUploadFileRequest(t, c, url, mwBody.Bytes(), mw.FormDataContentType(), -1)
+	fur, resp, err := testDoUploadFileRequest(tb, c, url, mwBody.Bytes(), mw.FormDataContentType(), -1)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -204,6 +205,7 @@ func testUploadFilesMultipart(
 }
 
 func TestUploadFiles(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	if *th.App.Config().FileSettings.DriverName == "" {
@@ -239,7 +241,7 @@ func TestUploadFiles(t *testing.T) {
 		expectedImageHasPreview     []bool
 		expectedImageMiniPreview    []bool
 		setupConfig                 func(a *app.App) func(a *app.App)
-		checkResponse               func(t testing.TB, resp *model.Response)
+		checkResponse               func(tb testing.TB, resp *model.Response)
 		uploadAsBookmark            bool
 	}{
 		// Upload a bunch of files, mixed images and non-images
@@ -386,6 +388,19 @@ func TestUploadFiles(t *testing.T) {
 			expectImage:                 true,
 			expectedImageWidths:         []int{2860},
 			expectedImageHeights:        []int{1578},
+			expectedImageHasPreview:     []bool{true},
+			expectedImageMiniPreview:    []bool{true},
+			expectedCreatorId:           th.BasicUser.Id,
+		},
+		// 5MB+ JPEG
+		{
+			title:                       "Happy image thumbnail/preview 5MB+",
+			names:                       []string{"orientation_test_9.jpeg"},
+			expectedImageThumbnailNames: []string{"orientation_test_9_expected_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"orientation_test_9_expected_preview.jpeg"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{4000},
+			expectedImageHeights:        []int{2667},
 			expectedImageHasPreview:     []bool{true},
 			expectedImageMiniPreview:    []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
@@ -767,6 +782,7 @@ func TestUploadFiles(t *testing.T) {
 }
 
 func TestGetFile(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -808,6 +824,7 @@ func TestGetFile(t *testing.T) {
 }
 
 func TestGetFileAsSystemAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -893,6 +910,7 @@ func TestGetFileAsSystemAdmin(t *testing.T) {
 }
 
 func TestGetFileHeaders(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -961,6 +979,7 @@ func TestGetFileHeaders(t *testing.T) {
 }
 
 func TestGetFileThumbnail(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1011,6 +1030,7 @@ func TestGetFileThumbnail(t *testing.T) {
 }
 
 func TestGetFileThumbnailAsSystemAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1098,6 +1118,7 @@ func TestGetFileThumbnailAsSystemAdmin(t *testing.T) {
 }
 
 func TestGetFileLink(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1169,6 +1190,7 @@ func TestGetFileLink(t *testing.T) {
 }
 
 func TestGetFilePreview(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1218,6 +1240,7 @@ func TestGetFilePreview(t *testing.T) {
 }
 
 func TestGetFileInfo(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1275,6 +1298,7 @@ func TestGetFileInfo(t *testing.T) {
 }
 
 func TestGetPublicFile(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1338,17 +1362,9 @@ func TestGetPublicFile(t *testing.T) {
 }
 
 func TestSearchFilesInTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
-		})
-	}()
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
-	})
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
@@ -1453,13 +1469,10 @@ func TestSearchFilesInTeam(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, fileInfos.Order, 3, "wrong search")
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
-	})
-
+	// Archived channels are always included now, so this should return the same result
 	fileInfos, _, err = client.SearchFilesWithParams(context.Background(), th.BasicTeam.Id, &searchParams)
 	require.NoError(t, err)
-	require.Len(t, fileInfos.Order, 2, "wrong search")
+	require.Len(t, fileInfos.Order, 3, "wrong search")
 
 	fileInfos, _, _ = client.SearchFiles(context.Background(), th.BasicTeam.Id, "*", false)
 	require.Empty(t, fileInfos.Order, "searching for just * shouldn't return any results")
@@ -1488,17 +1501,9 @@ func TestSearchFilesInTeam(t *testing.T) {
 }
 
 func TestSearchFilesAcrossTeams(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
-		})
-	}()
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
-	})
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
@@ -1507,7 +1512,7 @@ func TestSearchFilesAcrossTeams(t *testing.T) {
 
 	var teams [2]*model.Team
 	var channels [2]*model.Channel
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		teams[i] = th.CreateTeam()
 		channels[i] = th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, teams[i].Id)
 

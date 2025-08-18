@@ -2,16 +2,5 @@
 
 .annnouncementBar__purchaseNow {
     display: block;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 4px;
     margin-top: 15px;
-    background: var(--sys-button-bg);
-    color: var(--sys-button-color);
-
-    span {
-        font-size: 14px;
-        font-weight: 600;
-        line-height: 14px;
-    }
 }

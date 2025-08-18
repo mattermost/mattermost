@@ -6,4 +6,6 @@ search:
   - "server/go.mod"
   - "webapp/package.json"
   - "webapp/channels/package.json"
+ignoreDependencies:
+  - "@mattermost/dynamic-virtualized-list"
 includeDevDependencies: false

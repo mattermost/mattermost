@@ -144,12 +144,12 @@ func (a *App) tryExecutePluginCommand(c request.CTX, args *model.CommandArgs) (*
 
 	// Checking if plugin is working or not
 	if err := pluginsEnvironment.PerformHealthCheck(matched.PluginId); err != nil {
-		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command_error.error.app_error", map[string]any{"Command": trigger}, "err= Plugin has recently crashed: "+matched.PluginId, http.StatusInternalServerError)
+		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command_error.error.app_error", map[string]any{"Command": trigger}, "err= Plugin has recently crashed: "+matched.PluginId, http.StatusInternalServerError).Wrap(err)
 	}
 
 	pluginHooks, err := pluginsEnvironment.HooksForPlugin(matched.PluginId)
 	if err != nil {
-		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command.error.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command.error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	for username, userID := range a.MentionsToTeamMembers(c, args.Command, args.TeamId) {

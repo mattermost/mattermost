@@ -35,6 +35,7 @@ import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult, DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
 import {logError, LogErrorBarMode} from './errors';
@@ -164,7 +165,6 @@ export function getPost(postId: string): ActionFuncAsync<Post> {
         }
 
         dispatch(receivedPost(post, crtEnabled));
-        dispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
 
         return {data: post};
     };
@@ -614,11 +614,20 @@ async function getPaginatedPostThread(rootId: string, options: FetchPaginatedThr
     if (result.has_next) {
         const [nextPostId] = list.order!.slice(-1);
         const nextPostPointer = list.posts[nextPostId];
-        const newOptions = {
-            ...options,
-            fromCreateAt: nextPostPointer.create_at,
-            fromPost: nextPostId,
-        };
+        let newOptions;
+        if (options.updatesOnly) {
+            newOptions = {
+                ...options,
+                fromUpdateAt: nextPostPointer.update_at,
+                fromPost: nextPostId,
+            };
+        } else {
+            newOptions = {
+                ...options,
+                fromCreateAt: nextPostPointer.create_at,
+                fromPost: nextPostId,
+            };
+        }
 
         return getPaginatedPostThread(rootId, newOptions, list);
     }
@@ -626,15 +635,23 @@ async function getPaginatedPostThread(rootId: string, options: FetchPaginatedThr
     return list;
 }
 
-export function getPostThread(rootId: string, fetchThreads = true): ActionFuncAsync<PostList> {
+export function getPostThread(rootId: string, fetchThreads = true, lastUpdateAt = 0): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
         const state = getState();
         const collapsedThreadsEnabled = isCollapsedThreadsEnabled(state);
         const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
 
         let posts;
+        const options: FetchPaginatedThreadOptions = {
+            fetchThreads,
+            collapsedThreads: collapsedThreadsEnabled,
+        };
+        if (lastUpdateAt !== 0) {
+            options.updatesOnly = true;
+            options.fromUpdateAt = lastUpdateAt;
+        }
         try {
-            posts = await getPaginatedPostThread(rootId, {fetchThreads, collapsedThreads: collapsedThreadsEnabled});
+            posts = await getPaginatedPostThread(rootId, options);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -1035,6 +1052,25 @@ export function getPostsByIds(ids: string[]): ActionFuncAsync {
     };
 }
 
+export function getPostsByIdsBatched(postIds: string[]): ActionFuncAsync<true> {
+    const maxBatchSize = 100;
+    const wait = 100;
+
+    return async (dispatch, getState, {loaders}: any) => {
+        if (!loaders.postsByIdsLoader) {
+            loaders.postsByIdsLoader = new DelayedDataLoader<Post['id']>({
+                fetchBatch: (postIds) => dispatch(getPostsByIds(postIds)),
+                maxBatchSize,
+                wait,
+            });
+        }
+
+        loaders.postsByIdsLoader.queue(postIds);
+
+        return {data: true};
+    };
+}
+
 export function getPostEditHistory(postId: string) {
     return bindClientFunc({
         clientFunc: Client4.getPostEditHistory,
@@ -1062,7 +1098,7 @@ export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts
             groupsByName = getAllGroupsByName(state);
         }
 
-        const pattern = /\B@(([a-z0-9_.-]*[a-z0-9_])[.-]*)/gi;
+        const pattern = /\B@(([a-z0-9.\-_:]*[a-z0-9_])[.\-:]*)/gi;
 
         let match;
         while ((match = pattern.exec(text)) !== null) {
@@ -1207,6 +1243,13 @@ export function doPostActionWithCookie(postId: string, actionId: string, actionC
                 type: IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID,
                 data: data.trigger_id,
             });
+            const state = getState();
+            const post = PostSelectors.getPost(state, postId);
+            dispatch({
+                type: IntegrationTypes.RECEIVED_DIALOG_ARGUMENTS,
+                data: {
+                    channel_id: post.channel_id,
+                }});
         }
 
         return {data};

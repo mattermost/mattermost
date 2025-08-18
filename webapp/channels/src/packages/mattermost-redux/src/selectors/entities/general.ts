@@ -9,6 +9,8 @@ import {General} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
 
+import type {CWSAvailabilityState} from '../../reducers/entities/general';
+
 export function getConfig(state: GlobalState): Partial<ClientConfig> {
     return state.entities.general.config;
 }
@@ -159,3 +161,11 @@ export const getCustomProfileAttributes: (state: GlobalState) => UserPropertyFie
         return Object.values(fields).sort((a, b) => (a.attrs?.sort_order ?? 0) - (b.attrs?.sort_order ?? 0));
     },
 );
+
+export function getIsCrossTeamSearchEnabled(state: GlobalState): boolean {
+    return state.entities.general.config.EnableCrossTeamSearch === 'true';
+}
+
+export function getCWSAvailability(state: GlobalState): CWSAvailabilityState {
+    return state.entities.general.cwsAvailability;
+}

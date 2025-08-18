@@ -29,7 +29,7 @@ type AppIface interface {
 	FileExists(path string) (bool, *model.AppError)
 	FileSize(path string) (int64, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
-	BulkImportWithPath(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (*model.AppError, int)
+	BulkImportWithPath(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (int, *model.AppError)
 	Log() *mlog.Logger
 }
 
@@ -125,7 +125,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 
 		extractContent := job.Data["extract_content"] == "true"
 		// do the actual import.
-		appErr, lineNumber := app.BulkImportWithPath(appContext, jsonFile, importZipReader, false, extractContent, runtime.NumCPU(), model.ExportDataDir)
+		lineNumber, appErr := app.BulkImportWithPath(appContext, jsonFile, importZipReader, false, extractContent, runtime.NumCPU(), model.ExportDataDir)
 		if appErr != nil {
 			job.Data["line_number"] = strconv.Itoa(lineNumber)
 			return appErr

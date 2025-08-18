@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -112,8 +113,8 @@ type User struct {
 	MfaUsedTimestamps      StringArray `json:"mfa_used_timestamps,omitempty"`
 }
 
-func (u *User) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (u *User) Auditable() map[string]any {
+	return map[string]any{
 		"id":                         u.Id,
 		"create_at":                  u.CreateAt,
 		"update_at":                  u.UpdateAt,
@@ -145,7 +146,7 @@ func (u *User) Auditable() map[string]interface{} {
 }
 
 func (u *User) LogClone() any {
-	return map[string]interface{}{
+	return map[string]any{
 		"id":              u.Id,
 		"create_at":       u.CreateAt,
 		"update_at":       u.UpdateAt,
@@ -195,8 +196,8 @@ type UserPatch struct {
 	RemoteId    *string   `json:"remote_id"`
 }
 
-func (u *UserPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (u *UserPatch) Auditable() map[string]any {
+	return map[string]any{
 		"username":     u.Username,
 		"nickname":     u.Nickname,
 		"first_name":   u.FirstName,
@@ -217,8 +218,8 @@ type UserAuth struct {
 	AuthService string  `json:"auth_service,omitempty"`
 }
 
-func (u *UserAuth) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (u *UserAuth) Auditable() map[string]any {
+	return map[string]any{
 		"auth_service": u.AuthService,
 	}
 }
@@ -241,6 +242,19 @@ type UserForIndexing struct {
 type ViewUsersRestrictions struct {
 	Teams    []string
 	Channels []string
+}
+
+//msgp:ignore GetUsersNotInChannelOptions
+type GetUsersNotInChannelOptions struct {
+	TeamID string `json:"team_id"`
+	// Page-based pagination (used for non-ABAC channels)
+	// This will be discarded if the channel has an ABAC policy and CursorID will be used.
+	Page  int `json:"page"`
+	Limit int `json:"limit"`
+	// Cursor-based pagination (used for ABAC channels)
+	// If CursorID is empty for ABAC channels, it will start from the beginning
+	CursorID string `json:"cursor_id"`
+	Etag     string `json:"etag"`
 }
 
 func (r *ViewUsersRestrictions) Hash() string {
@@ -592,7 +606,7 @@ func (u *User) UpdateMentionKeysFromUsername(oldUsername string) {
 func (u *User) GetMentionKeys() []string {
 	var keys []string
 
-	for _, key := range strings.Split(u.NotifyProps[MentionKeysNotifyProp], ",") {
+	for key := range strings.SplitSeq(u.NotifyProps[MentionKeysNotifyProp], ",") {
 		trimmedKey := strings.TrimSpace(key)
 
 		if trimmedKey == "" {
@@ -659,24 +673,28 @@ func (u *User) Etag(showFullName, showEmail bool) string {
 // Remove any private data from the user object
 func (u *User) Sanitize(options map[string]bool) {
 	u.Password = ""
-	u.AuthData = NewPointer("")
 	u.MfaSecret = ""
 	u.MfaUsedTimestamps = nil
 	u.LastLogin = 0
 
-	if len(options) != 0 && !options["email"] {
-		u.Email = ""
-		delete(u.Props, UserPropsKeyRemoteEmail)
-	}
-	if len(options) != 0 && !options["fullname"] {
-		u.FirstName = ""
-		u.LastName = ""
-	}
-	if len(options) != 0 && !options["passwordupdate"] {
-		u.LastPasswordUpdate = 0
-	}
-	if len(options) != 0 && !options["authservice"] {
-		u.AuthService = ""
+	if len(options) != 0 {
+		if !options["email"] {
+			u.Email = ""
+			delete(u.Props, UserPropsKeyRemoteEmail)
+		}
+		if !options["fullname"] {
+			u.FirstName = ""
+			u.LastName = ""
+		}
+		if !options["passwordupdate"] {
+			u.LastPasswordUpdate = 0
+		}
+		if !options["authservice"] {
+			u.AuthService = ""
+		}
+		if !options["authdata"] {
+			u.AuthData = NewPointer("")
+		}
 	}
 }
 
@@ -703,7 +721,6 @@ func (u *User) SanitizeInput(isAdmin bool) {
 
 func (u *User) ClearNonProfileFields(asAdmin bool) {
 	u.Password = ""
-	u.AuthData = NewPointer("")
 	u.MfaSecret = ""
 	u.MfaUsedTimestamps = nil
 	u.EmailVerified = false
@@ -711,6 +728,7 @@ func (u *User) ClearNonProfileFields(asAdmin bool) {
 	u.LastPasswordUpdate = 0
 
 	if !asAdmin {
+		u.AuthData = NewPointer("")
 		u.NotifyProps = StringMap{}
 		u.FailedAttempts = 0
 	}
@@ -869,13 +887,7 @@ func (u *User) IsInRole(inRole string) bool {
 func IsInRole(userRoles string, inRole string) bool {
 	roles := strings.Split(userRoles, " ")
 
-	for _, r := range roles {
-		if r == inRole {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(roles, inRole)
 }
 
 func (u *User) IsSSOUser() bool {
@@ -917,6 +929,22 @@ func (u *User) IsRemote() bool {
 // GetRemoteID returns the remote id for this user or "" if not a remote user.
 func (u *User) GetRemoteID() string {
 	return SafeDereference(u.RemoteId)
+}
+
+func (u *User) GetOriginalRemoteID() string {
+	if u.Props == nil {
+		if u.IsRemote() {
+			return UserOriginalRemoteIdUnknown
+		}
+		return "" // Local user
+	}
+	if originalId, exists := u.Props[UserPropsKeyOriginalRemoteId]; exists && originalId != "" {
+		return originalId
+	}
+	if u.IsRemote() {
+		return UserOriginalRemoteIdUnknown
+	}
+	return "" // Local user
 }
 
 func (u *User) GetAuthData() string {

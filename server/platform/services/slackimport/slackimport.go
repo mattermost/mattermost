@@ -88,12 +88,12 @@ type Actions struct {
 	AddUserToChannel       func(request.CTX, *model.User, *model.Channel, bool) (*model.ChannelMember, *model.AppError)
 	JoinUserToTeam         func(*model.Team, *model.User, string) (*model.TeamMember, *model.AppError)
 	CreateDirectChannel    func(request.CTX, string, string, ...model.ChannelOption) (*model.Channel, *model.AppError)
-	CreateGroupChannel     func(request.CTX, []string) (*model.Channel, *model.AppError)
+	CreateGroupChannel     func(request.CTX, []string, string, ...model.ChannelOption) (*model.Channel, *model.AppError)
 	CreateChannel          func(*model.Channel, bool) (*model.Channel, *model.AppError)
 	DoUploadFile           func(time.Time, string, string, string, string, []byte) (*model.FileInfo, *model.AppError)
 	GenerateThumbnailImage func(request.CTX, image.Image, string, string)
 	GeneratePreviewImage   func(request.CTX, image.Image, string, string)
-	InvalidateAllCaches    func()
+	InvalidateAllCaches    func() *model.AppError
 	MaxPostSize            func() int
 	PrepareImage           func(fileData []byte) (image.Image, string, func(), error)
 }
@@ -210,7 +210,9 @@ func (si *SlackImporter) SlackImport(rctx request.CTX, fileData multipart.File, 
 		si.deactivateSlackBotUser(rctx, botUser)
 	}
 
-	si.actions.InvalidateAllCaches()
+	if err := si.actions.InvalidateAllCaches(); err != nil {
+		return err, log
+	}
 
 	log.WriteString(i18n.T("api.slackimport.slack_import.notes"))
 	log.WriteString("=======\r\n\r\n")
@@ -762,7 +764,7 @@ func (si *SlackImporter) oldImportChannel(rctx request.CTX, channel *model.Chann
 		if creator == nil {
 			return nil
 		}
-		sc, err := si.actions.CreateGroupChannel(rctx, members)
+		sc, err := si.actions.CreateGroupChannel(rctx, members, "")
 		if err != nil {
 			return nil
 		}

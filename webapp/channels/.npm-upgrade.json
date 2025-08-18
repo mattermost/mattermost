@@ -80,10 +80,6 @@
       "versions": "",
       "reason": "MM-34914 - Breaking changes to how modules are loaded."
     },
-    "@hot-loader/react-dom": {
-      "versions": "",
-      "reason": "MM-45255 - React updates are handled separately from other dependencies."
-    },
     "@types/marked": {
       "versions": "",
       "reason": "Ignored since our forked version is wildly different from upstream."

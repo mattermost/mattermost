@@ -91,23 +91,13 @@
         font-size: 16px;
     }
 
-    button {
-        &:hover {
-            background-color: rgba(255, 255, 255, 0.08);
-        }
+    .btn.btn-tertiary.btn-xs.btn-inverted {
+        background-color: rgba(variables.$white, 0.16);
+        color: variables.$white;
 
-        height: 24px;
-        box-sizing: border-box;
-        padding: 4px 8px;
-        border: 1px solid #fff;
-        border-radius: 4px;
-        margin-left: 8px;
-        background-color: inherit !important;
-        font-family: Open Sans;
-        font-size: 12px;
-        font-style: normal;
-        font-weight: 600;
-        line-height: 14px;
+        &:hover {
+            background-color: rgba(variables.$white, 0.24);
+        }
     }
 }
 
