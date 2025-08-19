@@ -57,7 +57,7 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 	})
 
 	t.Run("OAuthDisabled_ShouldFail", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 		oapp := &model.OAuthApp{
 			Name:         "fakeoauthapp" + model.NewRandomString(10),
@@ -69,6 +69,8 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 
 		oapp, err := th.App.CreateOAuthApp(oapp)
 		require.Nil(t, err)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 
 		authRequest := &model.AuthorizeRequest{
 			ResponseType: model.ImplicitResponseType,
