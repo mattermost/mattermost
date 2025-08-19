@@ -54,7 +54,17 @@ function validateDateTimeValue(value: string, elem: DialogElement): DialogError 
     return null;
 }
 export function checkDialogElementForError(elem: DialogElement, value: any): DialogError | undefined | null {
-    if ((!value && value !== 0) && !elem.optional) {
+    // Check if value is empty (handles arrays for multiselect)
+    let isEmpty;
+    if (value === 0) {
+        isEmpty = false;
+    } else if (Array.isArray(value)) {
+        isEmpty = value.length === 0;
+    } else {
+        isEmpty = !value;
+    }
+
+    if (isEmpty && !elem.optional) {
         return {
             id: 'interactive_dialog.error.required',
             defaultMessage: 'This field is required.',

@@ -27,6 +27,7 @@ server.post('/simple_dialog_request', onSimpleDialogRequest);
 server.post('/user_and_channel_dialog_request', onUserAndChannelDialogRequest);
 server.post('/dialog_submit', onDialogSubmit);
 server.post('/boolean_dialog_request', onBooleanDialogRequest);
+server.post('/multiselect_dialog_request', onMultiSelectDialogRequest);
 server.post('/datetime_dialog_request', onDateTimeDialogRequest);
 server.post('/datetime_dialog_submit', onDateTimeDialogSubmit);
 server.post('/slack_compatible_message_response', postSlackCompatibleMessageResponse);
@@ -51,6 +52,7 @@ function ping(req, res) {
             'POST /user_and_channel_dialog_request',
             'POST /dialog_submit',
             'POST /boolean_dialog_request',
+            'POST /multiselect_dialog_request',
             'POST /datetime_dialog_request',
             'POST /datetime_dialog_submit',
             'POST /slack_compatible_message_response',
@@ -213,32 +215,44 @@ function onBooleanDialogRequest(req, res) {
     return res.json({text: 'Simple dialog triggered via slash command!'});
 }
 
+function onMultiSelectDialogRequest(req, res) {
+    const {body} = req;
+    if (body.trigger_id) {
+        // Check URL parameters or body for includeDefaults flag
+        const includeDefaults = req.query.includeDefaults === 'true' || req.query.includeDefaults === true;
+        const dialog = webhookUtils.getMultiSelectDialog(body.trigger_id, webhookBaseUrl, includeDefaults);
+        openDialog(dialog);
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({text: 'Multiselect dialog triggered via slash command!'});
+}
+
 function onDateTimeDialogRequest(req, res) {
     const {body} = req;
     if (body.trigger_id) {
         let dialog;
         const command = body.text ? body.text.trim() : '';
-        
+
         // Use focused dialog functions based on command parameter
         switch (command) {
-            case 'basic':
-                dialog = webhookUtils.getBasicDateDialog(body.trigger_id, webhookBaseUrl);
-                break;
-            case 'mindate':
-                dialog = webhookUtils.getMinDateConstraintDialog(body.trigger_id, webhookBaseUrl);
-                break;
-            case 'interval':
-                dialog = webhookUtils.getCustomIntervalDialog(body.trigger_id, webhookBaseUrl);
-                break;
-            case 'relative':
-                dialog = webhookUtils.getRelativeDateDialog(body.trigger_id, webhookBaseUrl);
-                break;
-            default:
-                // Default to basic datetime dialog for backward compatibility
-                dialog = webhookUtils.getBasicDateTimeDialog(body.trigger_id, webhookBaseUrl);
-                break;
+        case 'basic':
+            dialog = webhookUtils.getBasicDateDialog(body.trigger_id, webhookBaseUrl);
+            break;
+        case 'mindate':
+            dialog = webhookUtils.getMinDateConstraintDialog(body.trigger_id, webhookBaseUrl);
+            break;
+        case 'interval':
+            dialog = webhookUtils.getCustomIntervalDialog(body.trigger_id, webhookBaseUrl);
+            break;
+        case 'relative':
+            dialog = webhookUtils.getRelativeDateDialog(body.trigger_id, webhookBaseUrl);
+            break;
+        default:
+            // Default to basic datetime dialog for backward compatibility
+            dialog = webhookUtils.getBasicDateTimeDialog(body.trigger_id, webhookBaseUrl);
+            break;
         }
-        
         console.log('Opening DateTime dialog', dialog.dialog.title);
         openDialog(dialog);
     }
