@@ -87,7 +87,7 @@ describe('AppsFormComponent', () => {
         expect(screen.getByText('Header')).toBeInTheDocument();
         expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: /cancel/i})).toBeInTheDocument();
-        
+
         // Verify form renders with initial values
         expect(screen.getByDisplayValue('initial text')).toBeInTheDocument();
         expect(screen.getByText('Label1')).toBeInTheDocument();
@@ -371,7 +371,6 @@ describe('AppsFormComponent', () => {
         });
     });
 
-
     describe('Modal vs Embedded Rendering', () => {
         test('should render as modal by default', () => {
             renderWithContext(<AppsForm {...baseProps}/>);
@@ -569,7 +568,6 @@ describe('AppsFormComponent', () => {
                 expect(screen.getByText(/not supported/i)).toBeInTheDocument();
             });
         });
-
 
         test('should handle missing field during onChange', () => {
             renderWithContext(<AppsForm {...baseProps}/>);
@@ -920,7 +918,6 @@ describe('AppsFormComponent', () => {
             });
         });
     });
-
 
     describe('Refresh on Select Functionality', () => {
         test('should handle refresh on select success', async () => {

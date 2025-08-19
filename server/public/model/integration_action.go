@@ -37,6 +37,7 @@ const (
 	DialogElementTextareaMaxLength    = 3000
 	DialogElementSelectMaxLength      = 3000
 	DialogElementBoolMaxLength        = 150
+	DefaultTimeIntervalMinutes        = 60 // Default time interval for DateTime fields
 )
 
 var PostActionRetainPropKeys = []string{PostPropsFromWebhook, PostPropsOverrideUsername, PostPropsOverrideIconURL}
@@ -573,7 +574,7 @@ func (e *DialogElement) IsValid() error {
 		// Validate time_interval for datetime fields
 		timeInterval := e.TimeInterval
 		if timeInterval == 0 {
-			timeInterval = 60 // Use default of 60 minutes
+			timeInterval = DefaultTimeIntervalMinutes
 		}
 		if timeInterval < 1 || timeInterval > 1440 {
 			multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be between 1 and 1440 minutes, got %d", timeInterval))
@@ -750,7 +751,7 @@ func validateDefaultTimeWithInterval(defaultTime string, timeInterval int) error
 	// Use default interval if zero
 	interval := timeInterval
 	if interval == 0 {
-		interval = 60 // Default to 60 minutes
+		interval = DefaultTimeIntervalMinutes
 	}
 
 	// Parse the default time (format already validated by validateTimeFormat)
