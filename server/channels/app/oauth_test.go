@@ -57,7 +57,7 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 	})
 
 	t.Run("OAuthDisabled_ShouldFail", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 		oapp := &model.OAuthApp{
 			Name:         "fakeoauthapp" + model.NewRandomString(10),
@@ -69,6 +69,8 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 
 		oapp, err := th.App.CreateOAuthApp(oapp)
 		require.Nil(t, err)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 
 		authRequest := &model.AuthorizeRequest{
 			ResponseType: model.ImplicitResponseType,
@@ -1305,24 +1307,25 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 	t.Run("RefreshTokenWithResource", func(t *testing.T) {
 		oapp := createConfidentialOAuthApp("TestRefreshResourceApp")
 		resourceParam := "https://api.example.com/resource"
-		code := getAuthorizationCode(oapp, resourceParam)
-
-		// Get initial access token
-		initialResponse, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
-			th.Context,
-			oapp.Id,
-			model.AccessTokenGrantType,
-			oapp.CallbackUrls[0],
-			code,
-			oapp.ClientSecret,
-			"",
-			"",
-			resourceParam,
-		)
-		require.Nil(t, appErr)
-		require.NotEmpty(t, initialResponse.RefreshToken)
 
 		t.Run("Refresh token with matching resource should succeed", func(t *testing.T) {
+			code := getAuthorizationCode(oapp, resourceParam)
+
+			// Get initial access token
+			initialResponse, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+				th.Context,
+				oapp.Id,
+				model.AccessTokenGrantType,
+				oapp.CallbackUrls[0],
+				code,
+				oapp.ClientSecret,
+				"",
+				"",
+				resourceParam,
+			)
+			require.Nil(t, appErr)
+			require.NotEmpty(t, initialResponse.RefreshToken)
+
 			refreshResponse, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
 				th.Context,
 				oapp.Id,
@@ -1341,7 +1344,25 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 		})
 
 		t.Run("Refresh token with mismatched resource should fail", func(t *testing.T) {
-			_, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+			code := getAuthorizationCode(oapp, resourceParam)
+
+			// Get initial access token with original resource
+			initialResponse, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+				th.Context,
+				oapp.Id,
+				model.AccessTokenGrantType,
+				oapp.CallbackUrls[0],
+				code,
+				oapp.ClientSecret,
+				"",
+				"",
+				resourceParam,
+			)
+			require.Nil(t, appErr)
+			require.NotEmpty(t, initialResponse.RefreshToken)
+
+			// Try to refresh with different resource - should fail
+			_, appErr = th.App.GetOAuthAccessTokenForCodeFlow(
 				th.Context,
 				oapp.Id,
 				model.RefreshTokenGrantType,
