@@ -30,7 +30,7 @@ const (
 	EnterpriseTier   = 20
 
 	// TODO: For now, treat Entry as Ent for feature unlocks. License feature list should cover disallowed functionality. Adjust if necessary.
-	EntryTier              = 25
+	EntryTier              = 30
 	EnterpriseAdvancedTier = 30
 )
 
@@ -114,7 +114,7 @@ func NewMattermostEntryLicense(serverID string) *License {
 		},
 		Features: &Features{
 			// TODO: Adjust these values as needed
-			Users:                     NewPointer(1000),
+			Users:                     NewPointer(100000),
 			Cloud:                     NewPointer(false),
 			EnterprisePlugins:         NewPointer(true),
 			OutgoingOAuthConnections:  NewPointer(true),
