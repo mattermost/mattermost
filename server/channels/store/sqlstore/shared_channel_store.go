@@ -10,6 +10,8 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 
 	"github.com/pkg/errors"
@@ -25,6 +27,43 @@ type SqlSharedChannelStore struct {
 	*SqlStore
 }
 
+// postDebugMessage posts a debug message to Town Square for MM-64695 investigation
+func (s SqlSharedChannelStore) postDebugMessage(channelID, message string) {
+	// Try to find Town Square channel
+	var townSquareChannel *model.Channel
+
+	// First try to get by default channel name
+	if defaultChannel, err := s.stores.channel.GetByName("", "town-square", false); err == nil {
+		townSquareChannel = defaultChannel
+	} else {
+		// Fallback: find first team's Town Square
+		if teams, teamErr := s.stores.team.GetAll(); teamErr == nil && len(teams) > 0 {
+			if tsChannel, tsErr := s.stores.channel.GetByName(teams[0].Id, "town-square", false); tsErr == nil {
+				townSquareChannel = tsChannel
+			}
+		}
+	}
+
+	if townSquareChannel == nil {
+		return // Can't find Town Square, skip debug message
+	}
+
+	// Create debug post
+	debugMessage := fmt.Sprintf("[MM-64695:SharedChannel:%s] %s", channelID, message)
+	post := &model.Post{
+		ChannelId: townSquareChannel.Id,
+		Message:   debugMessage,
+		Type:      model.PostTypeSystemGeneric,
+		UserId:    "system", // Use system user
+	}
+
+	// Try to post the debug message
+	if _, err := s.stores.post.Save(request.EmptyContext(s.logger), post); err != nil {
+		// Log warning if debug post fails, but don't fail the operation
+		s.logger.Warn("Failed to post debug message", mlog.Err(err), mlog.String("message", debugMessage))
+	}
+}
+
 func newSqlSharedChannelStore(sqlStore *SqlStore) store.SharedChannelStore {
 	return &SqlSharedChannelStore{
 		SqlStore: sqlStore,
@@ -33,8 +72,11 @@ func newSqlSharedChannelStore(sqlStore *SqlStore) store.SharedChannelStore {
 
 // Save inserts a new shared channel record.
 func (s SqlSharedChannelStore) Save(sc *model.SharedChannel) (sh *model.SharedChannel, err error) {
+	s.postDebugMessage(sc.ChannelId, fmt.Sprintf("SAVE: Starting save operation for channel (Home:%t, RemoteId:%s)", sc.Home, sc.RemoteId))
+
 	sc.PreSave()
 	if err := sc.IsValid(); err != nil {
+		s.postDebugMessage(sc.ChannelId, fmt.Sprintf("SAVE: Validation failed: %s", err.Error()))
 		return nil, err
 	}
 
@@ -61,19 +103,26 @@ func (s SqlSharedChannelStore) Save(sc *model.SharedChannel) (sh *model.SharedCh
 		return nil, errors.Wrapf(err, "savesharedchannel_tosql")
 	}
 	if _, err := transaction.Exec(queryStr, args...); err != nil {
+		s.postDebugMessage(sc.ChannelId, fmt.Sprintf("SAVE: Database insert failed: %s", err.Error()))
 		return nil, errors.Wrapf(err, "save_shared_channel: ChannelId=%s", sc.ChannelId)
 	}
+	s.postDebugMessage(sc.ChannelId, "SAVE: Database insert successful (UPSERT completed)")
 
 	// set `Shared` flag in Channels table if needed
 	if channel.Shared == nil || !*channel.Shared {
+		s.postDebugMessage(sc.ChannelId, "SAVE: Setting channel Shared flag to true")
 		if err := s.stores.channel.SetShared(channel.Id, true); err != nil {
+			s.postDebugMessage(sc.ChannelId, fmt.Sprintf("SAVE: SetShared failed: %s", err.Error()))
 			return nil, err
 		}
+		s.postDebugMessage(sc.ChannelId, "SAVE: Channel Shared flag set successfully")
 	}
 
 	if err := transaction.Commit(); err != nil {
+		s.postDebugMessage(sc.ChannelId, fmt.Sprintf("SAVE: Transaction commit failed: %s", err.Error()))
 		return nil, errors.Wrap(err, "commit_transaction")
 	}
+	s.postDebugMessage(sc.ChannelId, "SAVE: Transaction committed successfully - channel saved")
 	return sc, nil
 }
 
@@ -277,8 +326,11 @@ func (s SqlSharedChannelStore) Update(sc *model.SharedChannel) (*model.SharedCha
 // Returns true if shared channel found and deleted, false if not
 // found.
 func (s SqlSharedChannelStore) Delete(channelId string) (ok bool, err error) {
+	s.postDebugMessage(channelId, "DELETE: Starting deletion transaction")
+
 	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
+		s.postDebugMessage(channelId, fmt.Sprintf("DELETE: Failed to begin transaction: %s", err.Error()))
 		return false, errors.Wrap(err, "DeleteSharedChannel: begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
@@ -293,8 +345,10 @@ func (s SqlSharedChannelStore) Delete(channelId string) (ok bool, err error) {
 
 	result, err := transaction.Exec(squery, args...)
 	if err != nil {
+		s.postDebugMessage(channelId, fmt.Sprintf("DELETE: Failed to delete SharedChannel record: %s", err.Error()))
 		return false, errors.Wrap(err, "failed to delete SharedChannel")
 	}
+	s.postDebugMessage(channelId, "DELETE: SharedChannel record deleted successfully")
 
 	curTime := model.GetMillis()
 
@@ -310,24 +364,35 @@ func (s SqlSharedChannelStore) Delete(channelId string) (ok bool, err error) {
 	}
 
 	if _, err = transaction.Exec(squery, args...); err != nil {
+		s.postDebugMessage(channelId, fmt.Sprintf("DELETE: Failed to mark SharedChannelRemotes as deleted: %s", err.Error()))
 		return false, errors.Wrap(err, "failed to delete SharedChannelRemotes")
 	}
+	s.postDebugMessage(channelId, "DELETE: SharedChannelRemotes marked as deleted successfully")
 
 	count, err := result.RowsAffected()
 	if err != nil {
+		s.postDebugMessage(channelId, fmt.Sprintf("DELETE: Failed to get rows affected: %s", err.Error()))
 		return false, errors.Wrap(err, "failed to determine rows affected")
 	}
+	s.postDebugMessage(channelId, fmt.Sprintf("DELETE: Rows affected: %d", count))
 
 	if count > 0 {
 		// unset the channel's Shared flag
+		s.postDebugMessage(channelId, "DELETE: Unsetting channel Shared flag")
 		if err = s.Channel().SetShared(channelId, false); err != nil {
+			s.postDebugMessage(channelId, fmt.Sprintf("DELETE: CRITICAL ERROR - SetShared(false) failed: %s - TRANSACTION WILL ROLLBACK", err.Error()))
 			return false, errors.Wrap(err, "error unsetting channel share flag")
 		}
+		s.postDebugMessage(channelId, "DELETE: Channel Shared flag unset successfully")
+	} else {
+		s.postDebugMessage(channelId, "DELETE: No SharedChannel record found to delete")
 	}
 
 	if err = transaction.Commit(); err != nil {
+		s.postDebugMessage(channelId, fmt.Sprintf("DELETE: CRITICAL ERROR - Transaction commit failed: %s", err.Error()))
 		return false, errors.Wrap(err, "commit_transaction")
 	}
+	s.postDebugMessage(channelId, fmt.Sprintf("DELETE: Transaction committed successfully - channel unshared (deleted=%t)", count > 0))
 
 	return count > 0, nil
 }
@@ -649,6 +714,7 @@ func (s SqlSharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPos
 // DeleteRemote deletes a single shared channel remote.
 // Returns true if remote found and deleted, false if not found.
 func (s SqlSharedChannelStore) DeleteRemote(id string) (bool, error) {
+	s.postDebugMessage("", fmt.Sprintf("DELETE_REMOTE: Starting deletion of remote with ID: %s", id))
 	curTime := model.GetMillis()
 
 	squery, args, err := s.getQueryBuilder().
@@ -663,13 +729,16 @@ func (s SqlSharedChannelStore) DeleteRemote(id string) (bool, error) {
 
 	result, err := s.GetMaster().Exec(squery, args...)
 	if err != nil {
+		s.postDebugMessage("", fmt.Sprintf("DELETE_REMOTE: Failed to mark remote as deleted: %s", err.Error()))
 		return false, errors.Wrap(err, "failed to delete SharedChannelRemote")
 	}
 
 	count, err := result.RowsAffected()
 	if err != nil {
+		s.postDebugMessage("", fmt.Sprintf("DELETE_REMOTE: Failed to get rows affected: %s", err.Error()))
 		return false, errors.Wrap(err, "failed to determine rows affected")
 	}
+	s.postDebugMessage("", fmt.Sprintf("DELETE_REMOTE: Remote deletion completed (affected rows: %d, deleted: %t)", count, count > 0))
 
 	return count > 0, nil
 }
