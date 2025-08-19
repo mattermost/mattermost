@@ -998,7 +998,6 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 			MinDate:      "2025-01-01",
 			MaxDate:      "2025-12-31",
 			TimeInterval: 30,
-			DefaultTime:  "09:00",
 			Optional:     false,
 		}
 		err := element.IsValid()
@@ -1085,7 +1084,6 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 				DisplayName: "Test DateTime",
 				Name:        "test_datetime",
 				Type:        "datetime",
-				DefaultTime: defaultTime,
 				Optional:    false,
 			}
 			err := element.IsValid()
@@ -1099,7 +1097,6 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 				DisplayName:  "Test DateTime",
 				Name:         "test_datetime",
 				Type:         "datetime",
-				DefaultTime:  defaultTime,
 				TimeInterval: 1, // Use 1-minute interval so any valid time format passes interval check
 				Optional:     false,
 			}
@@ -1137,7 +1134,6 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 				DisplayName:  "Test DateTime",
 				Name:         "test_datetime",
 				Type:         "datetime",
-				DefaultTime:  combo.defaultTime,
 				TimeInterval: combo.timeInterval,
 				Optional:     false,
 			}
@@ -1163,7 +1159,6 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 				DisplayName:  "Test DateTime",
 				Name:         "test_datetime",
 				Type:         "datetime",
-				DefaultTime:  combo.defaultTime,
 				TimeInterval: combo.timeInterval,
 				Optional:     false,
 			}
@@ -1179,8 +1174,7 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 			DisplayName:  "Test DateTime",
 			Name:         "test_datetime",
 			Type:         "datetime",
-			DefaultTime:  "09:00", // 540 minutes % 60 = 0 (valid)
-			TimeInterval: 0,       // Should use default of 60
+			TimeInterval: 0, // Should use default of 60
 			Optional:     false,
 		}
 		err := element.IsValid()
@@ -1191,8 +1185,7 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 			DisplayName:  "Test DateTime",
 			Name:         "test_datetime",
 			Type:         "datetime",
-			DefaultTime:  "09:15", // 555 minutes % 60 = 15 (invalid)
-			TimeInterval: 0,       // Should use default of 60
+			TimeInterval: 0, // Should use default of 60
 			Optional:     false,
 		}
 		err = element.IsValid()
