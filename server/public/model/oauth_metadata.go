@@ -12,6 +12,7 @@ type AuthorizationServerMetadata struct {
 	ScopesSupported                   []string `json:"scopes_supported,omitempty"`
 	GrantTypesSupported               []string `json:"grant_types_supported,omitempty"`
 	TokenEndpointAuthMethodsSupported []string `json:"token_endpoint_auth_methods_supported,omitempty"`
+	CodeChallengeMethodsSupported     []string `json:"code_challenge_methods_supported,omitempty"`
 }
 
 const (
@@ -51,6 +52,9 @@ func GetDefaultMetadata(siteURL string) *AuthorizationServerMetadata {
 		},
 		ScopesSupported: []string{
 			ScopeUser,
+		},
+		CodeChallengeMethodsSupported: []string{
+			PKCECodeChallengeMethodS256, // S256 method supported for optional PKCE
 		},
 	}
 }
