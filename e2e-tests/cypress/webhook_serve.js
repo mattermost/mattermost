@@ -27,6 +27,7 @@ server.post('/simple_dialog_request', onSimpleDialogRequest);
 server.post('/user_and_channel_dialog_request', onUserAndChannelDialogRequest);
 server.post('/dialog_submit', onDialogSubmit);
 server.post('/boolean_dialog_request', onBooleanDialogRequest);
+server.post('/multiselect_dialog_request', onMultiSelectDialogRequest);
 server.post('/dialog/field-refresh', onFieldRefreshDialogRequest);
 server.post('/dialog/multistep', onMultistepDialogRequest);
 server.post('/field_refresh_source', onFieldRefreshSource);
@@ -52,6 +53,7 @@ function ping(req, res) {
             'POST /user_and_channel_dialog_request',
             'POST /dialog_submit',
             'POST /boolean_dialog_request',
+            'POST /multiselect_dialog_request',
             'POST /dialog/field-refresh',
             'POST /dialog/multistep',
             'POST /field_refresh_source',
@@ -213,6 +215,19 @@ function onBooleanDialogRequest(req, res) {
 
     res.setHeader('Content-Type', 'application/json');
     return res.json({text: 'Simple dialog triggered via slash command!'});
+}
+
+function onMultiSelectDialogRequest(req, res) {
+    const {body} = req;
+    if (body.trigger_id) {
+        // Check URL parameters or body for includeDefaults flag
+        const includeDefaults = req.query.includeDefaults === 'true' || req.query.includeDefaults === true;
+        const dialog = webhookUtils.getMultiSelectDialog(body.trigger_id, webhookBaseUrl, includeDefaults);
+        openDialog(dialog);
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({text: 'Multiselect dialog triggered via slash command!'});
 }
 
 function onDialogSubmit(req, res) {

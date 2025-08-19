@@ -18,12 +18,6 @@ describe('Archived channels', () => {
     before(() => {
         cy.apiRequireLicense();
 
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
-
         cy.apiInitSetup({
             channelPrefix: {name: '000-archive', displayName: '000 Archive Test'},
         }).then(({channel}) => {

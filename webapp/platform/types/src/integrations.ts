@@ -167,7 +167,7 @@ export type DialogSubmission = {
     channel_id: string;
     team_id: string;
     submission: {
-        [x: string]: string;
+        [x: string]: string | string[];
     };
     cancelled: boolean;
     type?: string; // Optional type field for field refresh functionality
@@ -185,6 +185,7 @@ export type DialogElement = {
     min_length: number;
     max_length: number;
     data_source: string;
+    multiselect?: boolean;
     options: Array<{
         text: string;
         value: any;
