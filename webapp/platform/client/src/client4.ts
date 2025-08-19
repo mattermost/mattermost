@@ -55,6 +55,7 @@ import type {
     FetchIPResponse,
     LdapSettings,
 } from '@mattermost/types/config';
+import type {ContentFlaggingConfig} from '@mattermost/types/content_flagging';
 import type {
     DataRetentionCustomPolicies,
     CreateDataRetentionCustomPolicy,
@@ -2631,6 +2632,13 @@ export default class Client4 {
         );
     };
 
+    isAllowedToUpgradeToEnterprise = async () => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/upgrade_to_enterprise/allowed`,
+            {method: 'get'},
+        );
+    };
+
     restartServer = async () => {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/restart`,
@@ -4595,6 +4603,13 @@ export default class Client4 {
     getTeamContentFlaggingStatus = (teamId: string) => {
         return this.doFetch<{enabled: boolean}>(
             `${this.getContentFlaggingRoute()}/team/${teamId}/status`,
+            {method: 'get'},
+        );
+    };
+
+    getContentFlaggingConfig = () => {
+        return this.doFetch<ContentFlaggingConfig>(
+            `${this.getContentFlaggingRoute()}/flag/config`,
             {method: 'get'},
         );
     };
