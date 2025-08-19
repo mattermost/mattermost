@@ -12,7 +12,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
-import FlagPostModal from './flag_post_model';
+import FlagPostModal from './flag_post_modal';
 
 describe('components/FlagPostModal', () => {
     const baseState: DeepPartial<GlobalState> = {
@@ -51,7 +51,7 @@ describe('components/FlagPostModal', () => {
             baseState,
         );
 
-        userEvent.click(screen.getByText('Select...'));
+        userEvent.click(screen.getByText('Select a reason for flagging'));
 
         expect(screen.getByText('Reason 1')).toBeVisible();
         expect(screen.getByText('Reason 2')).toBeVisible();
