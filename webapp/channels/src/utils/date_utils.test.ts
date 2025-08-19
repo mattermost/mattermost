@@ -31,13 +31,17 @@ describe('date_utils', () => {
         it('should convert ISO date string to moment', () => {
             const result = stringToMoment('2025-01-15', testTimezone);
             expect(result).toBeTruthy();
-            expect(result!.format('YYYY-MM-DD')).toBe('2025-01-15');
+            expect(result!.date()).toBe(15);
+            expect(result!.month()).toBe(0); // January is 0
+            expect(result!.year()).toBe(2025);
         });
 
         it('should convert ISO datetime string to moment', () => {
             const result = stringToMoment('2025-01-15T14:30:00Z', testTimezone);
             expect(result).toBeTruthy();
-            expect(result!.utc().format('YYYY-MM-DDTHH:mm:ss')).toBe('2025-01-15T14:30:00');
+            expect(result!.utc().hour()).toBe(14);
+            expect(result!.utc().minute()).toBe(30);
+            expect(result!.utc().date()).toBe(15);
         });
 
         it('should return null for invalid date', () => {
@@ -60,18 +64,20 @@ describe('date_utils', () => {
         it('should resolve relative dates', () => {
             const result = stringToMoment('today', testTimezone);
             expect(result).toBeTruthy();
-            expect(result!.format('YYYY-MM-DD')).toBe('2025-01-15');
+            expect(result!.date()).toBe(15);
+            expect(result!.month()).toBe(0); // January is 0
+            expect(result!.year()).toBe(2025);
         });
 
-        it('should accept datetime strings in date-only fields and extract date portion', () => {
-            const result = stringToMoment('2025-01-15T14:30:00Z', testTimezone, false); // false = date-only
+        it('should parse datetime strings preserving time information', () => {
+            const result = stringToMoment('2025-01-15T14:30:00Z', testTimezone);
             expect(result).toBeTruthy();
-
-            // Time should be based on the date portion only, not the original time
-            expect(result!.format('YYYY-MM-DD')).toBe('2025-01-15');
+            expect(result!.utc().hour()).toBe(14);
+            expect(result!.utc().minute()).toBe(30);
+            expect(result!.utc().second()).toBe(0);
         });
 
-        it('should accept various datetime formats in date-only fields', () => {
+        it('should accept various datetime formats', () => {
             const formats = [
                 '2025-01-15T14:30:00Z',
                 '2025-01-15T14:30:00',
@@ -81,27 +87,25 @@ describe('date_utils', () => {
             ];
 
             formats.forEach((format) => {
-                const result = stringToMoment(format, testTimezone, false); // false = date-only
+                const result = stringToMoment(format, testTimezone);
                 expect(result).toBeTruthy();
-                expect(result!.format('YYYY-MM-DD')).toBe('2025-01-15');
+                expect(result!.date()).toBe(15);
+                expect(result!.month()).toBe(0); // January is 0
+                expect(result!.year()).toBe(2025);
             });
         });
 
-        it('should accept datetime strings in datetime fields', () => {
-            const result = stringToMoment('2025-01-15T14:30:00Z', testTimezone, true); // true = datetime
-            expect(result).toBeTruthy();
-            expect(result!.utc().format('YYYY-MM-DDTHH:mm:ss')).toBe('2025-01-15T14:30:00');
-        });
-
-        it('should reject time-only strings in date-only fields', () => {
-            const result = stringToMoment('14:30', testTimezone, false); // false = date-only
+        it('should reject time-only strings', () => {
+            const result = stringToMoment('14:30', testTimezone);
             expect(result).toBeNull();
         });
 
-        it('should accept date strings in date-only fields', () => {
-            const result = stringToMoment('2025-01-15', testTimezone, false); // false = date-only
+        it('should accept date-only strings', () => {
+            const result = stringToMoment('2025-01-15', testTimezone);
             expect(result).toBeTruthy();
-            expect(result!.format('YYYY-MM-DD')).toBe('2025-01-15');
+            expect(result!.date()).toBe(15);
+            expect(result!.month()).toBe(0); // January is 0
+            expect(result!.year()).toBe(2025);
         });
 
         it('should handle relative dates more efficiently without double conversion', () => {
@@ -109,11 +113,15 @@ describe('date_utils', () => {
             // instead of converting moment -> string -> moment
             const result = stringToMoment('today', testTimezone);
             expect(result).toBeTruthy();
-            expect(result!.format('YYYY-MM-DD')).toBe('2025-01-15');
+            expect(result!.date()).toBe(15);
+            expect(result!.month()).toBe(0); // January is 0
+            expect(result!.year()).toBe(2025);
 
             const resultTomorrow = stringToMoment('+1d', testTimezone);
             expect(resultTomorrow).toBeTruthy();
-            expect(resultTomorrow!.format('YYYY-MM-DD')).toBe('2025-01-16');
+            expect(resultTomorrow!.date()).toBe(16);
+            expect(resultTomorrow!.month()).toBe(0); // January is 0
+            expect(resultTomorrow!.year()).toBe(2025);
         });
     });
 
@@ -127,7 +135,7 @@ describe('date_utils', () => {
         it('should convert moment to datetime string', () => {
             const momentValue = moment('2025-01-15T14:30:00Z');
             const result = momentToString(momentValue, true);
-            expect(result).toBe('2025-01-15T14:30Z');
+            expect(result).toBe('2025-01-15T14:30:00Z');
         });
 
         it('should return null for null input', () => {
@@ -136,7 +144,7 @@ describe('date_utils', () => {
         });
 
         it('should return null for invalid moment', () => {
-            const invalidMoment = moment('invalid');
+            const invalidMoment = moment.invalid();
             const result = momentToString(invalidMoment, false);
             expect(result).toBeNull();
         });
@@ -165,7 +173,7 @@ describe('date_utils', () => {
 
         it('should resolve +1H to 1 hour from now', () => {
             const result = resolveRelativeDate('+1H', testTimezone);
-            expect(result).toBe('2025-01-15T11:00Z');
+            expect(result).toBe('2025-01-15T11:00:00Z');
         });
 
         it('should resolve dynamic patterns like +5d', () => {
@@ -300,12 +308,12 @@ describe('date_utils', () => {
     describe('combineDateAndTime', () => {
         it('should combine date and time into UTC datetime string', () => {
             const result = combineDateAndTime('2025-01-15', '14:30', testTimezone);
-            expect(result).toBe('2025-01-15T19:30Z'); // EST to UTC conversion
+            expect(result).toBe('2025-01-15T19:30:00Z'); // EST to UTC conversion
         });
 
         it('should handle midnight time', () => {
             const result = combineDateAndTime('2025-01-15', '00:00', testTimezone);
-            expect(result).toBe('2025-01-15T05:00Z'); // EST to UTC conversion
+            expect(result).toBe('2025-01-15T05:00:00Z'); // EST to UTC conversion
         });
 
         it('should work without timezone (uses local timezone)', () => {
@@ -313,8 +321,45 @@ describe('date_utils', () => {
             moment.tz.setDefault('UTC');
 
             const result = combineDateAndTime('2025-01-15', '14:30');
-            expect(result).toBe('2025-01-15T14:30Z');
+            expect(result).toBe('2025-01-15T14:30:00Z');
             moment.tz.setDefault();
+        });
+    });
+
+    describe('parseISO integration', () => {
+        it('should handle valid ISO dates with parseISO', () => {
+            expect(stringToMoment('2025-01-15')?.isValid()).toBe(true);
+            expect(stringToMoment('2025-01-15T14:30:00Z')?.isValid()).toBe(true);
+            expect(stringToMoment('2025-01-15T14:30:00+02:00')?.isValid()).toBe(true);
+        });
+
+        it('should reject invalid dates that parseISO catches', () => {
+            expect(stringToMoment('2025-02-30')).toBeNull(); // Invalid date
+            expect(stringToMoment('2025-13-01')).toBeNull(); // Invalid month
+            expect(stringToMoment('01/15/2025')).toBeNull(); // Wrong format
+            expect(stringToMoment('invalid-date')).toBeNull(); // Garbage input
+        });
+
+        it('should still handle relative dates normally', () => {
+            // These should work exactly as before
+            expect(stringToMoment('today')?.isValid()).toBe(true);
+            expect(stringToMoment('+7d')?.isValid()).toBe(true);
+            expect(stringToMoment('-2w')?.isValid()).toBe(true);
+        });
+
+        it('should accept any valid ISO format', () => {
+            // parseISO should accept various ISO formats
+            expect(stringToMoment('2025-01-15')?.isValid()).toBe(true); // Date only
+            expect(stringToMoment('2025-01-15T14:30Z')?.isValid()).toBe(true); // No seconds
+            expect(stringToMoment('2025-01-15T14:30:00')?.isValid()).toBe(true); // No timezone
+            expect(stringToMoment('2025-01-15T14:30:00.123Z')?.isValid()).toBe(true); // Milliseconds
+        });
+
+        it('should be stricter than before with invalid formats', () => {
+            // These should now be rejected (may have been accepted before)
+            expect(stringToMoment('2025-02-30')).toBeNull(); // Invalid date
+            expect(stringToMoment('2025-1-1')).toBeNull(); // Single digit month/day
+            expect(stringToMoment('25-01-15')).toBeNull(); // 2-digit year
         });
     });
 });

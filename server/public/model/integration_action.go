@@ -38,7 +38,26 @@ const (
 	DialogElementSelectMaxLength      = 3000
 	DialogElementBoolMaxLength        = 150
 	DefaultTimeIntervalMinutes        = 60 // Default time interval for DateTime fields
+
+	// Go date/time format constants
+	ISODateFormat                       = "2006-01-02"                    // YYYY-MM-DD
+	ISODateTimeFormat                   = "2006-01-02T15:04:05Z"          // RFC3339 UTC
+	ISODateTimeWithMillisFormat         = "2006-01-02T15:04:05.000Z"      // RFC3339 with milliseconds UTC
+	ISODateTimeWithTimezoneFormat       = "2006-01-02T15:04:05-07:00"     // RFC3339 with timezone
+	ISODateTimeWithMillisTimezoneFormat = "2006-01-02T15:04:05.000-07:00" // RFC3339 with milliseconds and timezone
+	ISODateTimeNoTimezoneFormat         = "2006-01-02T15:04:05"           // ISO datetime without timezone
+	ISODateTimeNoSecondsFormat          = "2006-01-02T15:04"              // ISO datetime without seconds
 )
+
+// Common datetime formats used by both date and datetime validation
+var commonDateTimeFormats = []string{
+	ISODateTimeFormat,                   // RFC3339 UTC
+	ISODateTimeWithMillisFormat,         // RFC3339 with milliseconds UTC
+	ISODateTimeWithTimezoneFormat,       // RFC3339 with timezone
+	ISODateTimeWithMillisTimezoneFormat, // RFC3339 with milliseconds and timezone
+	ISODateTimeNoTimezoneFormat,         // ISO datetime without timezone
+	ISODateTimeNoSecondsFormat,          // ISO datetime without seconds
+}
 
 var PostActionRetainPropKeys = []string{PostPropsFromWebhook, PostPropsOverrideUsername, PostPropsOverrideIconURL}
 
@@ -337,7 +356,6 @@ type DialogElement struct {
 	MinDate      string `json:"min_date,omitempty"`
 	MaxDate      string `json:"max_date,omitempty"`
 	TimeInterval int    `json:"time_interval,omitempty"`
-	DefaultTime  string `json:"default_time,omitempty"`
 }
 
 type OpenDialogRequest struct {
@@ -581,11 +599,6 @@ func (e *DialogElement) IsValid() error {
 		} else if 1440%timeInterval != 0 {
 			multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got %d", timeInterval))
 		}
-		// Validate default_time format and compatibility with time_interval
-		multiErr = multierror.Append(multiErr, validateTimeFormat(e.DefaultTime))
-		if e.DefaultTime != "" {
-			multiErr = multierror.Append(multiErr, validateDefaultTimeWithInterval(e.DefaultTime, timeInterval))
-		}
 
 	default:
 		multiErr = multierror.Append(multiErr, errors.Errorf("invalid element type: %q", e.Type))
@@ -632,144 +645,74 @@ func isMultiSelectDefaultInOptions(defaultValue string, options []*PostActionOpt
 	return true
 }
 
-// validateDateFormat validates that a date string is in ISO format (YYYY-MM-DD)
-// or a supported relative format (today, tomorrow, yesterday, +1d, etc.)
-func validateDateFormat(dateStr string) error {
-	if dateStr == "" {
-		return nil // Empty default is allowed
+// validateRelativePattern validates relative date/time patterns like +1d, +2w, +1M, +3H
+func validateRelativePattern(value string) bool {
+	if len(value) < 3 || len(value) > 5 || (value[0] != '+' && value[0] != '-') {
+		return false
 	}
 
-	// Check for relative date formats first
+	// Get the unit character (last character)
+	lastChar := strings.ToLower(string(value[len(value)-1]))
+	if !strings.Contains("dwm", lastChar) {
+		return false
+	}
+
+	// Validate the number part
+	numberPart := value[1 : len(value)-1]
+	_, err := strconv.Atoi(numberPart)
+	return err == nil
+}
+
+// isValidRelativeFormat checks if a string matches relative date patterns
+func isValidRelativeFormat(value string) bool {
 	relativeFormats := []string{"today", "tomorrow", "yesterday"}
 	for _, format := range relativeFormats {
-		if dateStr == format {
-			return nil
+		if value == format {
+			return true
 		}
 	}
+	return validateRelativePattern(value)
+}
 
-	// Check for dynamic relative patterns (+1d, +7d, +1w, +1M, etc.)
-	if len(dateStr) >= 3 && (dateStr[0] == '+' || dateStr[0] == '-') {
-		// Match pattern like "+5d", "+2w", "+1M"
-		if len(dateStr) <= 5 { // Reasonable length limit
-			lastChar := dateStr[len(dateStr)-1]
-			if lastChar == 'd' || lastChar == 'w' || lastChar == 'M' {
-				// Validate the number part
-				numberPart := dateStr[1 : len(dateStr)-1]
-				if _, err := strconv.Atoi(numberPart); err == nil {
-					return nil
-				}
-			}
-		}
-	}
-
-	// Check for ISO date format (YYYY-MM-DD)
-	if _, err := time.Parse("2006-01-02", dateStr); err == nil {
+// validateDateFormat validates date strings: ISO date, datetime (with warning), or relative formats
+func validateDateFormat(dateStr string) error {
+	if dateStr == "" {
 		return nil
 	}
 
-	// Also accept datetime formats and extract date portion
-	datetimeFormats := []string{
-		"2006-01-02T15:04:05Z",          // RFC3339 UTC
-		"2006-01-02T15:04:05.000Z",      // RFC3339 with milliseconds UTC
-		"2006-01-02T15:04:05-07:00",     // RFC3339 with timezone
-		"2006-01-02T15:04:05.000-07:00", // RFC3339 with milliseconds and timezone
-		"2006-01-02T15:04:05",           // ISO datetime without timezone
-		"2006-01-02T15:04",              // ISO datetime without seconds
+	// Accept relative formats and ISO date
+	if isValidRelativeFormat(dateStr) {
+		return nil
+	}
+	if _, err := time.Parse(ISODateFormat, dateStr); err == nil {
+		return nil
 	}
 
-	for _, format := range datetimeFormats {
+	// Accept datetime formats with warning
+	for _, format := range commonDateTimeFormats {
 		if parsedTime, err := time.Parse(format, dateStr); err == nil {
-			// Validate that the date portion is valid
-			dateOnly := parsedTime.Format("2006-01-02")
-			if _, err := time.Parse("2006-01-02", dateOnly); err == nil {
-				return nil // Valid datetime format, date portion is valid
-			}
+			dateOnly := parsedTime.Format(ISODateFormat)
+			return fmt.Errorf("date field received datetime format %q, only date portion %q will be used. Consider using date format instead", dateStr, dateOnly)
 		}
 	}
 
 	return fmt.Errorf("invalid date format: %q, expected ISO format (YYYY-MM-DD), datetime format, or relative format", dateStr)
 }
 
-// validateDateTimeFormat validates that a datetime string is in ISO format with timezone
-// (YYYY-MM-DDTHH:MM:SSZ) or a supported relative format (+1h, +2H, etc.)
+// validateDateTimeFormat validates datetime strings: ISO datetime or relative formats
 func validateDateTimeFormat(dateTimeStr string) error {
-	if dateTimeStr == "" {
-		return nil // Empty default is allowed
+	if dateTimeStr == "" || isValidRelativeFormat(dateTimeStr) {
+		return nil
 	}
 
-	// Check for relative time formats (+1h, +2h, +1H, etc.)
-	if len(dateTimeStr) >= 3 && (dateTimeStr[0] == '+' || dateTimeStr[0] == '-') {
-		if len(dateTimeStr) <= 5 { // Reasonable length limit
-			lastChar := strings.ToLower(dateTimeStr[len(dateTimeStr)-1:])
-			if lastChar == "h" {
-				// Validate the number part
-				numberPart := dateTimeStr[1 : len(dateTimeStr)-1]
-				if _, err := strconv.Atoi(numberPart); err == nil {
-					return nil
-				}
-			}
-		}
-	}
-
-	// Try various ISO datetime formats
-	formats := []string{
-		"2006-01-02T15:04:05Z",          // RFC3339 UTC
-		"2006-01-02T15:04:05.000Z",      // RFC3339 with milliseconds UTC
-		"2006-01-02T15:04:05-07:00",     // RFC3339 with timezone
-		"2006-01-02T15:04:05.000-07:00", // RFC3339 with milliseconds and timezone
-	}
-
-	for _, format := range formats {
+	// Try ISO datetime formats
+	for _, format := range commonDateTimeFormats {
 		if _, err := time.Parse(format, dateTimeStr); err == nil {
 			return nil
 		}
 	}
 
 	return fmt.Errorf("invalid datetime format: %q, expected ISO format (YYYY-MM-DDTHH:MM:SSZ) or relative format", dateTimeStr)
-}
-
-// validateTimeFormat validates that a time string is in HH:MM format (24-hour)
-func validateTimeFormat(timeStr string) error {
-	if timeStr == "" {
-		return nil // Empty default_time is allowed
-	}
-
-	// Check for HH:MM format (24-hour time)
-	if _, err := time.Parse("15:04", timeStr); err != nil {
-		return fmt.Errorf("invalid time format: %q, expected HH:MM format (24-hour)", timeStr)
-	}
-
-	return nil
-}
-
-// validateDefaultTimeWithInterval validates that default_time aligns with time_interval
-func validateDefaultTimeWithInterval(defaultTime string, timeInterval int) error {
-	if defaultTime == "" {
-		return nil // Nothing to validate
-	}
-
-	// Use default interval if zero
-	interval := timeInterval
-	if interval == 0 {
-		interval = DefaultTimeIntervalMinutes
-	}
-
-	// Parse the default time (format already validated by validateTimeFormat)
-	parsedTime, err := time.Parse("15:04", defaultTime)
-	if err != nil {
-		// This shouldn't happen since validateTimeFormat is called first, but handle gracefully
-		return nil
-	}
-
-	// Convert to total minutes from midnight
-	totalMinutes := parsedTime.Hour()*60 + parsedTime.Minute()
-
-	// Check if the time aligns with the interval
-	if totalMinutes%interval != 0 {
-		return fmt.Errorf("default_time %q does not align with time_interval %d minutes - time must be a multiple of the interval", defaultTime, interval)
-	}
-
-	return nil
 }
 
 func checkMaxLength(fieldName string, field string, maxLength int) error {

@@ -31,7 +31,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
 
     const momentValue = useMemo(() => {
         if (value) {
-            const parsed = stringToMoment(value, timezone, true); // true = datetime field
+            const parsed = stringToMoment(value, timezone);
             if (parsed) {
                 return parsed;
             }
@@ -55,7 +55,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
         // If there's a min_date constraint, check if it allows past dates
         if (field.min_date) {
             const resolvedMinDate = resolveRelativeDate(field.min_date);
-            const minMoment = stringToMoment(resolvedMinDate, timezone, false); // min_date should be date-only
+            const minMoment = stringToMoment(resolvedMinDate, timezone);
             const currentMoment = timezone ? moment.tz(timezone) : moment();
 
             // If min_date is today or in the future, don't allow past dates

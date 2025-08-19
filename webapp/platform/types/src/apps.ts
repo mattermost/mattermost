@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {parseISO, isValid} from 'date-fns';
+
 import {isProductScope, type ProductScope} from './products';
 import {isArrayOf, isStringArray} from './utilities';
 
@@ -472,7 +474,6 @@ export type AppField = {
     min_date?: string;
     max_date?: string;
     time_interval?: number;
-    default_time?: string;
 };
 
 /**
@@ -484,7 +485,7 @@ function isValidDateString(dateStr: string): boolean {
         /^today$/,
         /^tomorrow$/,
         /^yesterday$/,
-        /^[+-]\d{1,4}[dwMH]$/, // Dynamic patterns like +5d, -2w, +1M, +3H
+        /^[+-]\d{1,4}[dwm]$/, // Dynamic patterns like +5d, -2w, +1m (days, weeks, months only)
     ];
 
     for (const pattern of relativePatterns) {
@@ -493,17 +494,13 @@ function isValidDateString(dateStr: string): boolean {
         }
     }
 
-    // Check for ISO date formats
-    const isoDatePattern = /^\d{4}-\d{2}-\d{2}$/; // YYYY-MM-DD
-    const isoDateTimePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?Z?$/; // YYYY-MM-DDTHH:mm(:ss)?Z?
-
-    if (isoDatePattern.test(dateStr) || isoDateTimePattern.test(dateStr)) {
-        // Basic format check passed, validate it's a real date
-        const date = new Date(dateStr);
-        return !isNaN(date.getTime());
+    // Use parseISO for all ISO date format validation (accepts any valid ISO format)
+    try {
+        const parsed = parseISO(dateStr);
+        return isValid(parsed);
+    } catch {
+        return false; // parseISO failed - invalid format or date
     }
-
-    return false;
 }
 
 function isAppField(v: unknown): v is AppField {
@@ -600,10 +597,6 @@ function isAppField(v: unknown): v is AppField {
     }
 
     if (field.time_interval !== undefined && typeof field.time_interval !== 'number') {
-        return false;
-    }
-
-    if (field.default_time !== undefined && typeof field.default_time !== 'string') {
         return false;
     }
 

@@ -402,9 +402,6 @@ export function convertElement(element: DialogElement, options: ConversionOption
         if (element.time_interval !== undefined && element.type === DialogElementTypes.DATETIME) {
             appField.time_interval = Number(element.time_interval);
         }
-        if (element.default_time !== undefined && element.type === DialogElementTypes.DATETIME) {
-            appField.default_time = String(element.default_time);
-        }
     }
 
     return {field: appField, errors};

@@ -1226,14 +1226,13 @@ describe('dialog_conversion', () => {
                 });
             });
 
-            it('should convert datetime field with time_interval and default_time', () => {
+            it('should convert datetime field with time_interval', () => {
                 const elements: DialogElement[] = [
                     {
                         name: 'meeting_time',
                         type: 'datetime',
                         display_name: 'Meeting Time',
                         time_interval: 30,
-                        default_time: '09:00',
                         optional: true,
                     } as DialogElement,
                 ];
@@ -1253,7 +1252,6 @@ describe('dialog_conversion', () => {
                     type: 'datetime',
                     label: 'Meeting Time',
                     time_interval: 30,
-                    default_time: '09:00',
                     is_required: false,
                 });
             });
@@ -1267,7 +1265,6 @@ describe('dialog_conversion', () => {
                         min_date: 'today',
                         max_date: '+30d',
                         time_interval: 15,
-                        default_time: '12:00',
                         optional: false,
                     } as DialogElement,
                 ];
@@ -1289,7 +1286,6 @@ describe('dialog_conversion', () => {
                     min_date: 'today',
                     max_date: '+30d',
                     time_interval: 15,
-                    default_time: '12:00',
                     is_required: true,
                 });
             });
@@ -1301,7 +1297,6 @@ describe('dialog_conversion', () => {
                         type: 'date',
                         display_name: 'Simple Date',
                         time_interval: 30, // Should be ignored for date fields
-                        default_time: '09:00', // Should be ignored for date fields
                         optional: false,
                     } as DialogElement,
                 ];
@@ -1316,7 +1311,6 @@ describe('dialog_conversion', () => {
                 );
 
                 expect(form.fields?.[0]).not.toHaveProperty('time_interval');
-                expect(form.fields?.[0]).not.toHaveProperty('default_time');
                 expect(form.fields?.[0]).not.toHaveProperty('min_date');
                 expect(form.fields?.[0]).not.toHaveProperty('max_date');
             });

@@ -30,7 +30,7 @@ const AppsFormDateField: React.FC<Props> = ({
     const [isPopperOpen, setIsPopperOpen] = useState(false);
 
     const momentValue = useMemo(() => {
-        return stringToMoment(value, timezone, false); // false = date-only field
+        return stringToMoment(value, timezone);
     }, [value, timezone]);
 
     const displayValue = useMemo(() => {
@@ -78,7 +78,7 @@ const AppsFormDateField: React.FC<Props> = ({
         // Disable dates before min_date
         if (field.min_date) {
             const resolvedMinDate = resolveRelativeDate(field.min_date);
-            const minMoment = stringToMoment(resolvedMinDate, timezone, false); // false = date-only
+            const minMoment = stringToMoment(resolvedMinDate, timezone);
             if (minMoment) {
                 const minDate = new Date(minMoment.year(), minMoment.month(), minMoment.date());
                 disabled.push({before: minDate});
@@ -88,7 +88,7 @@ const AppsFormDateField: React.FC<Props> = ({
         // Disable dates after max_date
         if (field.max_date) {
             const resolvedMaxDate = resolveRelativeDate(field.max_date);
-            const maxMoment = stringToMoment(resolvedMaxDate, timezone, false); // false = date-only
+            const maxMoment = stringToMoment(resolvedMaxDate, timezone);
             if (maxMoment) {
                 const maxDate = new Date(maxMoment.year(), maxMoment.month(), maxMoment.date());
                 disabled.push({after: maxDate});

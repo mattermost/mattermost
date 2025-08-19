@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {parseISO, isValid} from 'date-fns';
 import moment, {type Moment} from 'moment-timezone';
 import {useMemo} from 'react';
 
@@ -12,14 +13,18 @@ export enum DateReference {
     YESTERDAY = 'yesterday',
 }
 
-// Regex to validate HH:MM time format (24-hour notation)
+// Time validation regex for time-only validation
+// HH:MM format (24-hour notation)
 export const TIME_FORMAT_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+// RFC3339 datetime format with seconds for plugin compatibility
+export const RFC3339_DATETIME_FORMAT = 'YYYY-MM-DDTHH:mm:ss[Z]';
 
 /**
  * Convert a string value (ISO format or relative) to a Moment object
  * For date-only fields, datetime formats are accepted and the date portion is extracted
  */
-export function stringToMoment(value: string | null, timezone?: string, isDateTime?: boolean, strict?: boolean): Moment | null {
+export function stringToMoment(value: string | null, timezone?: string): Moment | null {
     if (!value) {
         return null;
     }
@@ -30,33 +35,24 @@ export function stringToMoment(value: string | null, timezone?: string, isDateTi
         return relativeMoment;
     }
 
-    // Handle field type constraints
-    let processedValue = value;
-    if (isDateTime === false) {
-        // For date-only fields, if a datetime string is provided, extract just the date portion
-        if (value.includes('T')) {
-            const datePortion = value.split('T')[0];
-
-            // Update processedValue to just the date portion for further processing
-            processedValue = datePortion;
-        }
-    }
-
-    // Parse as ISO string with timezone validation
+    // Use parseISO for validation, but keep timezone logic separate
     let momentValue: moment.Moment;
 
-    if (strict) {
-        // Use strict parsing to reject ambiguous formats
-        const formats = isDateTime ? ['YYYY-MM-DDTHH:mm:ss.SSSZ', 'YYYY-MM-DDTHH:mm:ssZ', 'YYYY-MM-DDTHH:mmZ'] : ['YYYY-MM-DD'];
-        if (timezone && moment.tz.zone(timezone)) {
-            momentValue = moment.tz(processedValue, formats, true, timezone);
-        } else {
-            momentValue = moment(processedValue, formats, true);
+    // First validate with parseISO
+    try {
+        const parsedDate = parseISO(value);
+        if (!isValid(parsedDate)) {
+            return null; // parseISO validation failed
         }
-    } else if (timezone && moment.tz.zone(timezone)) {
-        momentValue = moment.tz(processedValue, timezone);
+    } catch (error) {
+        return null; // parseISO parsing failed
+    }
+
+    // parseISO validation passed, now use moment for timezone handling
+    if (timezone && moment.tz.zone(timezone)) {
+        momentValue = moment.tz(value, timezone);
     } else {
-        momentValue = moment(processedValue);
+        momentValue = moment(value);
     }
 
     return momentValue.isValid() ? momentValue : null;
@@ -71,8 +67,8 @@ export function momentToString(momentValue: Moment | null, isDateTime: boolean):
     }
 
     if (isDateTime) {
-        // Store datetime in UTC format without seconds: "2025-01-14T14:30Z"
-        return momentValue.utc().format('YYYY-MM-DDTHH:mm[Z]');
+        // Store datetime in UTC format with seconds: "2025-01-14T14:30:00Z"
+        return momentValue.utc().format(RFC3339_DATETIME_FORMAT);
     }
 
     // Store date only: "2025-01-14"
@@ -96,8 +92,8 @@ function resolveRelativeDateToMoment(dateStr: string, timezone?: string): Moment
         return now.subtract(1, 'day').startOf('day');
 
     default: {
-        // Handle dynamic patterns like "+5d", "+2w", "+1M" (limit to 4 digits for security)
-        const dynamicMatch = dateStr.match(/^([+-]\d{1,4})([dwMH])$/);
+        // Handle dynamic patterns like "+5d", "+2w", "+1m" (limit to 4 digits for security)
+        const dynamicMatch = dateStr.match(/^([+-]\d{1,4})([dwm])$/);
         if (dynamicMatch) {
             const [, amount, unit] = dynamicMatch;
             const value = parseInt(amount, 10);
@@ -110,16 +106,13 @@ function resolveRelativeDateToMoment(dateStr: string, timezone?: string): Moment
             let momentUnit: moment.unitOfTime.DurationConstructor;
 
             switch (unit) {
-            case 'H':
-                momentUnit = 'hour';
-                return now.add(value, momentUnit);
             case 'd':
                 momentUnit = 'day';
                 return now.add(value, momentUnit).startOf('day');
             case 'w':
                 momentUnit = 'week';
                 return now.add(value, momentUnit).startOf('day');
-            case 'M':
+            case 'm':
                 momentUnit = 'month';
                 return now.add(value, momentUnit).startOf('day');
             default:
@@ -140,16 +133,7 @@ export function resolveRelativeDate(dateStr: string, timezone?: string): string 
     // Try to resolve as relative date/time
     const relativeMoment = resolveRelativeDateToMoment(dateStr, timezone);
     if (relativeMoment) {
-        // Determine output format based on the type of relative reference
-        const dynamicMatch = dateStr.match(/^([+-]\d{1,4})([dwMH])$/);
-        const isTimePattern = dateStr.includes('H') || (dynamicMatch && dynamicMatch[2] === 'H');
-
-        if (isTimePattern) {
-            // Hour patterns return UTC datetime format without seconds
-            return relativeMoment.utc().format('YYYY-MM-DDTHH:mm[Z]');
-        }
-
-        // Day/week/month patterns return date format
+        // All relative patterns (d/w/m) return date format since we removed hour support
         return relativeMoment.format('YYYY-MM-DD');
     }
 
@@ -262,5 +246,5 @@ export function combineDateAndTime(
     const dateTime = `${dateStr}T${timeStr}:00`;
     const momentValue = timezone ? moment.tz(dateTime, timezone) : moment(dateTime);
 
-    return momentValue.utc().format('YYYY-MM-DDTHH:mm[Z]');
+    return momentValue.utc().format(RFC3339_DATETIME_FORMAT);
 }

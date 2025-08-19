@@ -22,7 +22,7 @@ import SuggestionList from 'components/suggestion/suggestion_list';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {filterEmptyOptions} from 'utils/apps';
-import {momentToString, stringToMoment, resolveRelativeDate, TIME_FORMAT_REGEX} from 'utils/date_utils';
+import {momentToString, stringToMoment, resolveRelativeDate} from 'utils/date_utils';
 
 import type {DoAppCallResult} from 'types/apps';
 
@@ -60,6 +60,28 @@ export type State = {
     form: AppForm;
 }
 
+// Helper function to validate date format and warn if datetime format is used
+const validateDateFieldValue = (fieldName: string, valueType: string, value: string): { warning: string; datePortion: string } | null => {
+    if (!value) {
+        return null;
+    }
+
+    // First handle relative dates
+    const resolved = resolveRelativeDate(value);
+
+    // Check if the resolved value is a datetime format being used for a date field
+    if (resolved.includes('T') && resolved.match(/^\d{4}-\d{2}-\d{2}T/)) {
+        // Extract date portion to show what will actually be used
+        const datePortion = resolved.split('T')[0];
+        return {
+            warning: `Field "${fieldName}": ${valueType} received datetime format "${resolved}", only date portion "${datePortion}" will be used. Consider using date format instead`,
+            datePortion,
+        };
+    }
+
+    return null;
+};
+
 const validateAppField = (field: AppField): string[] => {
     const errors: string[] = [];
 
@@ -81,26 +103,25 @@ const validateAppField = (field: AppField): string[] => {
     // Validate min_date and max_date for date/datetime fields
     if (field.type === AppFieldTypes.DATE || field.type === AppFieldTypes.DATETIME) {
         if (field.min_date) {
-            const resolved = resolveRelativeDate(field.min_date);
+            const result = validateDateFieldValue(field.name, 'min_date', field.min_date);
+            if (result) {
+                errors.push(result.warning);
+                field.min_date = result.datePortion; // Reset to date portion
+            }
 
-            // Use strict parsing for non-relative dates to reject ambiguous formats
-            const isOriginalFormat = resolved === field.min_date;
-            const moment = isOriginalFormat ?
-                stringToMoment(resolved, undefined, field.type === AppFieldTypes.DATETIME, true) :
-                stringToMoment(resolved);
+            const moment = stringToMoment(field.min_date);
             if (!moment) {
                 errors.push(`Field "${field.name}": min_date "${field.min_date}" is not a valid date format`);
             }
         }
 
         if (field.max_date) {
-            const resolved = resolveRelativeDate(field.max_date);
-
-            // Use strict parsing for non-relative dates to reject ambiguous formats
-            const isOriginalFormat = resolved === field.max_date;
-            const moment = isOriginalFormat ?
-                stringToMoment(resolved, undefined, field.type === AppFieldTypes.DATETIME, true) :
-                stringToMoment(resolved);
+            const result = validateDateFieldValue(field.name, 'max_date', field.max_date);
+            if (result) {
+                errors.push(result.warning);
+                field.max_date = result.datePortion; // Reset to date portion
+            }
+            const moment = stringToMoment(field.max_date);
             if (!moment) {
                 errors.push(`Field "${field.name}": max_date "${field.max_date}" is not a valid date format`);
             }
@@ -108,31 +129,21 @@ const validateAppField = (field: AppField): string[] => {
 
         // Validate that min_date < max_date if both are present
         if (field.min_date && field.max_date) {
-            const minResolved = resolveRelativeDate(field.min_date);
-            const maxResolved = resolveRelativeDate(field.max_date);
-            const minMoment = stringToMoment(minResolved);
-            const maxMoment = stringToMoment(maxResolved);
+            const minMoment = stringToMoment(field.min_date);
+            const maxMoment = stringToMoment(field.max_date);
 
             if (minMoment && maxMoment && minMoment.isAfter(maxMoment)) {
                 errors.push(`Field "${field.name}": min_date cannot be after max_date`);
             }
         }
-    }
 
-    // Validate default_time compatibility with time_interval for datetime fields
-    if (field.type === AppFieldTypes.DATETIME && field.default_time) {
-        // Validate default_time format
-        if (TIME_FORMAT_REGEX.test(field.default_time)) {
-            // Validate compatibility with time_interval
-            const timeInterval = field.time_interval || DEFAULT_TIME_INTERVAL_MINUTES;
-            const [hours, minutes] = field.default_time.split(':').map(Number);
-            const totalMinutes = (hours * 60) + minutes;
-
-            if (totalMinutes % timeInterval !== 0) {
-                errors.push(`Field "${field.name}": default_time "${field.default_time}" does not align with time_interval ${timeInterval} minutes - time must be a multiple of the interval`);
+        // Validate default value format for date fields
+        if (field.type === AppFieldTypes.DATE && field.value && typeof field.value === 'string') {
+            const result = validateDateFieldValue(field.name, 'default value', field.value);
+            if (result) {
+                errors.push(result.warning);
+                field.value = result.datePortion; // Reset to date portion
             }
-        } else {
-            errors.push(`Field "${field.name}": default_time "${field.default_time}" must be in HH:MM format (24-hour)`);
         }
     }
 
