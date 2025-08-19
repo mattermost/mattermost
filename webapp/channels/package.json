@@ -63,7 +63,6 @@
     "react-beautiful-dnd": "13.1.1",
     "react-bootstrap": "github:mattermost/react-bootstrap#7d8660f06188a6433bb0f69b5816a97dc9ebe48c",
     "react-color": "2.19.3",
-    "react-custom-scrollbars": "4.2.1",
     "react-day-picker": "8.3.6",
     "react-dom": "17.0.2",
     "react-intl": "*",
