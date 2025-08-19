@@ -35,19 +35,34 @@ func (scs *Service) postDebugMessage(channelID, message string) {
 		return // Can't find Town Square, skip debug message
 	}
 
+	// Get the shared channel to find a creator ID for posting
+	sc, scErr := scs.server.GetStore().SharedChannel().Get(channelID)
+	if scErr != nil {
+		return // Can't get shared channel info, skip debug message
+	}
+
 	// Create debug post
 	debugMessage := fmt.Sprintf("[MM-64695:SharedChannel:%s] %s", channelID, message)
 	post := &model.Post{
 		ChannelId: townSquareChannel.Id,
 		Message:   debugMessage,
 		Type:      model.PostTypeSystemGeneric,
-		UserId:    "system", // Use system user
+		UserId:    sc.CreatorId, // Use shared channel creator ID
+		CreateAt:  model.GetMillis(),
 	}
 
-	// Try to post the debug message
-	if _, err := scs.server.GetStore().Post().Save(request.EmptyContext(scs.server.Log()), post); err != nil {
-		// Log warning if debug post fails, but don't fail the operation
-		scs.server.Log().Warn("Failed to post debug message", mlog.Err(err), mlog.String("message", debugMessage))
+	// Try to post the debug message using app layer (preferred)
+	if scs.app != nil {
+		ctx := request.EmptyContext(scs.server.Log())
+		_, appErr := scs.app.CreatePost(ctx, post, townSquareChannel, model.CreatePostFlags{})
+		if appErr != nil {
+			scs.server.Log().Warn("Failed to post debug message via app", mlog.Err(appErr), mlog.String("message", debugMessage))
+		}
+	} else {
+		// Fallback to store layer
+		if _, err := scs.server.GetStore().Post().Save(request.EmptyContext(scs.server.Log()), post); err != nil {
+			scs.server.Log().Warn("Failed to post debug message via store", mlog.Err(err), mlog.String("message", debugMessage))
+		}
 	}
 }
 

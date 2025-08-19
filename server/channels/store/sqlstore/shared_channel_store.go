@@ -50,11 +50,17 @@ func (s SqlSharedChannelStore) postDebugMessage(channelID, message string) {
 
 	// Create debug post
 	debugMessage := fmt.Sprintf("[MM-64695:SharedChannel:%s] %s", channelID, message)
+	// Get the shared channel to find a creator ID for posting
+	sc, scErr := s.stores.sharedchannel.Get(channelID)
+	if scErr != nil {
+		return // Can't get shared channel info, skip debug message
+	}
+
 	post := &model.Post{
 		ChannelId: townSquareChannel.Id,
 		Message:   debugMessage,
 		Type:      model.PostTypeSystemGeneric,
-		UserId:    "system", // Use system user
+		UserId:    sc.CreatorId, // Use shared channel creator ID
 	}
 
 	// Try to post the debug message
