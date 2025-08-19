@@ -76,10 +76,6 @@
       "react": "17.0.2",
       "react-dom": "17.0.2"
     },
-    "react-contextmenu": {
-      "react": "17.0.2",
-      "react-dom": "17.0.2"
-    },
     "react-custom-scrollbars": {
       "react": "17.0.2",
       "react-dom": "17.0.2"
