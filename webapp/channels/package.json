@@ -86,6 +86,7 @@
     "semver": "7.6.3",
     "serialize-error": "11.0.3",
     "shallow-equals": "1.0.0",
+    "simplebar-react": "3.3.2",
     "smooth-scroll-into-view-if-needed": "2.0.2",
     "stream-browserify": "3.0.0",
     "styled-components": "5.3.7",
