@@ -129,14 +129,17 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             </Provider>,
         );
 
-        expect(wrapper.find('.upgrade-title').text()).toEqual('Purchase one of our plans to remove limits');
+        expect(wrapper.find('.upgrade-title').text()).toEqual('Get access to full message history, AI-powered coordination, and secure workflow continuity');
+        expect(wrapper.find('.upgrade-subtitle').text()).toEqual('Purchase a plan to unlock full access, or start a trial to remove limits while you evaluate Enterprise Advanced.');
 
-        const subtitleList = wrapper.find('.upgrade-subtitle').find('.item');
-        expect(subtitleList.at(0).text()).toEqual('Unlimited message history');
-        expect(subtitleList.at(1).text()).toEqual('Unlimited playbook runs');
-        expect(subtitleList.at(2).text()).toEqual('Unlimited board cards');
-        expect(subtitleList.at(3).text()).toEqual('Unlimited AI agent queries');
-        expect(subtitleList.at(4).text()).toEqual('Unlimited call duration');
+        // Check for the Contact sales button
+        const contactSalesBtn = wrapper.find('button.btn-primary');
+        expect(contactSalesBtn.text()).toEqual('Contact sales');
+
+        // Check for the trial license link
+        const trialLink = wrapper.find('ExternalLink.btn-secondary');
+        expect(trialLink.text()).toEqual('Get a free 30-day trial license');
+        expect(trialLink.prop('href')).toEqual('https://mattermost.com/trial');
     });
 
     test('should render for Trial license', () => {

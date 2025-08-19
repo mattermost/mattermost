@@ -7,7 +7,9 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import type {ClientLicense} from '@mattermost/types/config';
 
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import SetupSystemSvg from 'components/common/svg_images_components/setup_system';
+import ExternalLink from 'components/external_link';
 
 import {LicenseSkus} from 'utils/constants';
 
@@ -21,6 +23,7 @@ const EnterpriseEditionRightPanel = ({
     license,
 }: EnterpriseEditionProps) => {
     const intl = useIntl();
+    const [openContactSales] = useOpenSalesLink();
     const upgradeAdvantages = [
         intl.formatMessage({
             id: 'admin.license.upgradeAdvantage.adLdapSync',
@@ -100,8 +103,8 @@ const EnterpriseEditionRightPanel = ({
         if (isEntry) {
             return (
                 <FormattedMessage
-                    id='admin.license.purchasePlanToRemoveLimitsTitle'
-                    defaultMessage='Purchase one of our plans to remove limits'
+                    id='admin.license.entryPlanTitle'
+                    defaultMessage='Get access to full message history, AI-powered coordination, and secure workflow continuity'
                 />
             );
         }
@@ -151,28 +154,7 @@ const EnterpriseEditionRightPanel = ({
         );
     };
 
-    const entryLimitsFeatures = [
-        intl.formatMessage({
-            id: 'admin.license.entryFeature.unlimitedMessageHistory',
-            defaultMessage: 'Unlimited message history',
-        }),
-        intl.formatMessage({
-            id: 'admin.license.entryFeature.unlimitedPlaybookRuns',
-            defaultMessage: 'Unlimited playbook runs',
-        }),
-        intl.formatMessage({
-            id: 'admin.license.entryFeature.unlimitedBoardCards',
-            defaultMessage: 'Unlimited board cards',
-        }),
-        intl.formatMessage({
-            id: 'admin.license.entryFeature.unlimitedAIAgentQueries',
-            defaultMessage: 'Unlimited AI agent queries',
-        }),
-        intl.formatMessage({
-            id: 'admin.license.entryFeature.unlimitedCallDuration',
-            defaultMessage: 'Unlimited call duration',
-        }),
-    ];
+
 
     const subtitle = () => {
         if (isTrialLicense) {
@@ -185,19 +167,10 @@ const EnterpriseEditionRightPanel = ({
         }
         if (isEntry) {
             return (
-                <div className='advantages-list'>
-                    {entryLimitsFeatures.map((item, i) => {
-                        return (
-                            <div
-                                className='item'
-                                key={i.toString()}
-                            >
-                                <i className='fa fa-lock'/>
-                                {item}
-                            </div>
-                        );
-                    })}
-                </div>
+                <FormattedMessage
+                    id='admin.license.entryPlanSubtitle'
+                    defaultMessage='Purchase a plan to unlock full access, or start a trial to remove limits while you evaluate Enterprise Advanced.'
+                />
             );
         }
         if (isEnterpriseAdvanced) {
@@ -226,6 +199,44 @@ const EnterpriseEditionRightPanel = ({
             </div>
         );
     };
+
+    // For Entry SKU, render custom buttons
+    if (isEntry) {
+        return (
+            <div className='EnterpriseEditionRightPannel'>
+                <div className='svg-image'>
+                    {svgImage()}
+                </div>
+                <div className='upgrade-title'>
+                    {title()}
+                </div>
+                <div className='upgrade-subtitle'>
+                    {subtitle()}
+                </div>
+                <div className='purchase_buttons'>
+                    <button
+                        className='btn btn-primary'
+                        onClick={openContactSales}
+                    >
+                        <FormattedMessage
+                            id='admin.license.contactSales'
+                            defaultMessage='Contact sales'
+                        />
+                    </button>
+                    <ExternalLink
+                        href='https://mattermost.com/trial'
+                        location='enterprise_edition_right_panel_entry_trial'
+                        className='btn btn-secondary'
+                    >
+                        <FormattedMessage
+                            id='admin.license.getFreeTrial'
+                            defaultMessage='Get a free 30-day trial license'
+                        />
+                    </ExternalLink>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className='EnterpriseEditionRightPannel'>
