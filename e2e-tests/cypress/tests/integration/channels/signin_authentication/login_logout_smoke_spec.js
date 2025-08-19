@@ -28,39 +28,37 @@ describe('SignIn Authentication', () => {
 
     it('MM-T3080 Sign in email/pwd account', () => {
         // # Enter actual user's email in the email field
-        cy.apiGetClientLicense().then(({isLicensed}) => {
-            const loginPlaceholder = isLicensed ? 'Email, Username or AD/LDAP Username' : 'Email or Username';
-            cy.findByPlaceholderText(loginPlaceholder).clear().type(testUser.email);
+        const loginPlaceholder = 'Email or Username';
+        cy.findByPlaceholderText(loginPlaceholder).clear().type(testUser.email);
 
-            // # Enter user's password in the password field
-            cy.findByPlaceholderText('Password').clear().type(testUser.password);
+        // # Enter user's password in the password field
+        cy.findByPlaceholderText('Password').clear().type(testUser.password);
 
-            // # Click Sign In to login
-            cy.get('#saveSetting').should('not.be.disabled').click();
+        // # Click Sign In to login
+        cy.get('#saveSetting').should('not.be.disabled').click();
 
-            // * Check that it login successfully and it redirects into the main channel page
-            cy.url().should('include', '/channels/town-square');
+        // * Check that it login successfully and it redirects into the main channel page
+        cy.url().should('include', '/channels/town-square');
 
-            // # Click logout via user menu
-            cy.uiOpenUserMenu('Log out');
+        // # Click logout via user menu
+        cy.uiOpenUserMenu('Log out');
 
-            // * Check that it logout successfully and it redirects into the login page
-            cy.url().should('include', '/login');
+        // * Check that it logout successfully and it redirects into the login page
+        cy.url().should('include', '/login');
 
-            // # Remove autofocus from login input
-            cy.get('.login-body-card-title').click();
+        // # Remove autofocus from login input
+        cy.get('.login-body-card-title').click();
 
-            // # Enter actual user's username in the email field
-            cy.findByPlaceholderText(loginPlaceholder).clear().type(testUser.username);
+        // # Enter actual user's username in the email field
+        cy.findByPlaceholderText(loginPlaceholder).clear().type(testUser.username);
 
-            // # Enter user's password in the password field
-            cy.findByPlaceholderText('Password').clear().type(testUser.password);
+        // # Enter user's password in the password field
+        cy.findByPlaceholderText('Password').clear().type(testUser.password);
 
-            // # Click Sign In to login
-            cy.get('#saveSetting').should('not.be.disabled').click();
+        // # Click Sign In to login
+        cy.get('#saveSetting').should('not.be.disabled').click();
 
-            // * Check that it login successfully and it redirects into the main channel page
-            cy.url().should('include', '/channels/town-square');
-        });
+        // * Check that it login successfully and it redirects into the main channel page
+        cy.url().should('include', '/channels/town-square');
     });
 });

@@ -130,6 +130,7 @@
         "MaxNotificationsPerChannel": 1000,
         "EnableConfirmNotificationsToChannel": true,
         "TeammateNameDisplay": "username",
+        "ExperimentalViewArchivedChannels": true,
         "ExperimentalEnableAutomaticReplies": false,
         "LockTeammateNameDisplay": false,
         "ExperimentalPrimaryTeam": "",
@@ -368,7 +369,7 @@
         "ButtonColor": "#145DBF"
     },
     "LdapSettings": {
-        "Enable": true,
+        "Enable": false,
         "EnableSync": false,
         "LdapServer": "localhost",
         "LdapPort": 389,

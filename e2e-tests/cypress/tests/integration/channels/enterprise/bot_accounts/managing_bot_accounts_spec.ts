@@ -16,8 +16,6 @@ describe('Managing bot accounts', () => {
     let botName: string;
 
     before(() => {
-        cy.apiRequireLicenseForFeature('LDAP');
-
         // # Create a test bot
         cy.apiCreateBot().then(({bot}) => {
             botName = bot.username;
@@ -32,7 +30,7 @@ describe('Managing bot accounts', () => {
         cy.get('.login-body-card-title').click();
 
         // # Enter bot name in the email field
-        cy.findByPlaceholderText('Email, Username or AD/LDAP Username', {timeout: TIMEOUTS.ONE_MIN}).clear().type(botName);
+        cy.findByPlaceholderText('Email or Username', {timeout: TIMEOUTS.ONE_MIN}).clear().type(botName);
 
         // # Enter random password in the password field
         cy.findByPlaceholderText('Password').clear().type('invalidPassword@#%(^!');

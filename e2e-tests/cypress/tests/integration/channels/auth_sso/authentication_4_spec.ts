@@ -27,6 +27,7 @@ describe('Authentication', () => {
 
     beforeEach(() => {
         cy.apiAdminLogin();
+        cy.apiUpdateConfig();
     });
 
     it('MM-T1764 - Security - Signup: Email verification required (after having created account when verification was not required)', () => {
@@ -61,9 +62,7 @@ describe('Authentication', () => {
         cy.get('.login-body-card-title').click();
 
         // # Clear email/username field and type username
-        cy.apiGetClientLicense().then(({isLicensed}) => {
-            cy.findByPlaceholderText(isLicensed ? 'Email, Username or AD/LDAP Username' : 'Email or Username', {timeout: TIMEOUTS.ONE_MIN}).clear().type(testUser.username);
-        });
+        cy.findByPlaceholderText('Email or Username', {timeout: TIMEOUTS.ONE_MIN}).clear().type(testUser.username);
 
         // # Clear password field and type password
         cy.findByPlaceholderText('Password').clear().type(testUser.password);
@@ -192,9 +191,7 @@ describe('Authentication', () => {
     it('MM-T1753 - Enable account creation - false', () => {
         // # Disable user account creation
         cy.apiUpdateConfig({
-            TeamSettings: {
-                EnableUserCreation: false,
-            },
+            TeamSettings: {EnableUserCreation: false},
         });
 
         cy.apiLogout();
@@ -208,17 +205,8 @@ describe('Authentication', () => {
         // # Go to sign up with email page
         cy.visit('/signup_user_complete');
 
-        cy.get('#input_email', {timeout: TIMEOUTS.ONE_MIN}).type(`test-${getRandomId()}@example.com`);
-
-        cy.get('#input_password-input').type('Test123456!');
-
-        cy.get('#input_name').clear().type(`Test${getRandomId()}`);
-
-        cy.findByText('Create Account').click();
-
-        // * Make sure account was not created successfully and we are on the team joining page
-        cy.get('.AlertBanner__title').scrollIntoView().should('be.visible');
-        cy.findByText('User sign-up with email is disabled.').should('be.visible').and('exist');
+        // * Assert that no sign-in methods are enabled
+        cy.findByText('This server doesn’t have any sign-in methods enabled').should('be.visible');
     });
 
     it('MM-T1754 - Restrict Domains - Account creation link on signin page', () => {

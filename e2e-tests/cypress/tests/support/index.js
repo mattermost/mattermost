@@ -127,6 +127,11 @@ before(() => {
         }
 
         return cy.wrap({user, client});
+    }).then((out) => {
+        // Verify admin user email
+        cy.apiVerifyUserEmailById(out.user.id);
+
+        return cy.wrap(out);
     }).then(async ({client: adminClient, user: adminUser}) => {
         // Update server config
         const config = await adminClient.updateConfig(getDefaultConfig());
@@ -147,9 +152,6 @@ before(() => {
         cy.wrap({adminUser, config, configOldFormat, license, plugins});
     }).then(({config, configOldFormat, license, adminUser, plugins}) => {
         cy.log('---');
-
-        cy.log(`config: ${JSON.stringify(config)}`);
-        cy.log(`configOldFormat: ${JSON.stringify(configOldFormat)}`);
 
         // Print license information
         printLicenseInfo(license);
