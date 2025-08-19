@@ -108,7 +108,7 @@ func (ps *PlatformService) LoadLicense() {
 	if nErr != nil {
 		if ps.Config().FeatureFlags.EnableMattermostEntry {
 			ps.logger.Info("Mattermost Entry is enabled. Unlocking enterprise features.")
-			ps.SetLicense(model.NewMattermostEntryLicense(ps.telemetryId))
+			ps.SetLicense(ps.LicenseManager().NewMattermostEntryLicense(ps.telemetryId))
 		} else {
 			ps.logger.Warn("License key from https://mattermost.com required to unlock enterprise features.", mlog.Err(nErr))
 			ps.SetLicense(nil)

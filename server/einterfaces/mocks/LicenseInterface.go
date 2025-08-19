@@ -72,6 +72,26 @@ func (_m *LicenseInterface) GetPrevTrial() (*model.License, error) {
 	return r0, r1
 }
 
+// NewMattermostEntryLicense provides a mock function with given fields: telemetryId
+func (_m *LicenseInterface) NewMattermostEntryLicense(telemetryId string) *model.License {
+	ret := _m.Called(telemetryId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NewMattermostEntryLicense")
+	}
+
+	var r0 *model.License
+	if rf, ok := ret.Get(0).(func(string) *model.License); ok {
+		r0 = rf(telemetryId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.License)
+		}
+	}
+
+	return r0
+}
+
 // NewLicenseInterface creates a new instance of LicenseInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewLicenseInterface(t interface {
