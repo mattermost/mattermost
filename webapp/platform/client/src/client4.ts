@@ -1171,8 +1171,13 @@ export default class Client4 {
         );
     };
 
-    authorizeOAuthApp = (responseType: string, clientId: string, redirectUri: string, state: string, scope: string, codeChallenge?: string, codeChallengeMethod?: string) => {
+    authorizeOAuthApp = (responseType: string, clientId: string, redirectUri: string, state: string, scope: string, resource?: string, codeChallenge?: string, codeChallengeMethod?: string) => {
         const body: any = {client_id: clientId, response_type: responseType, redirect_uri: redirectUri, state, scope};
+
+        // Include resource parameter if provided
+        if (resource) {
+            body.resource = resource;
+        }
 
         // Include PKCE parameters if provided
         if (codeChallenge) {
