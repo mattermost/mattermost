@@ -6,18 +6,19 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 	"net/http"
 	"strings"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 // TODO: move these to model package
 const (
-	contentFLaggingStatusPending  = "pending"
-	contentFLaggingStatusAssigned = "assigned"
-	contentFLaggingStatusRemoved  = "removed"
-	contentFLaggingStatusRetained = "retained"
+	contentFlaggingStatusPending  = "pending"
+	contentFlaggingStatusAssigned = "assigned"
+	contentFlaggingStatusRemoved  = "removed"
+	contentFlaggingStatusRetained = "retained"
 )
 
 var contentFlaggingGroupId string
@@ -79,44 +80,38 @@ func (a *App) FlagPost(c request.CTX, post *model.Post, reportingUserId string, 
 		return appErr
 	}
 
-	contentReviewPost, appErr := a.createContentReviewPost(c, channel.TeamId)
-	if appErr != nil {
-		return appErr
-	}
-
 	// TODO: use constant for target type and field names
-	// TODO: these need to be on the review post, not the flagged post
 	propertyValues := []*model.PropertyValue{
 		{
-			TargetID:   contentReviewPost.Id,
+			TargetID:   post.Id,
 			TargetType: "post",
 			GroupID:    groupId,
 			FieldID:    mappedFields["status"].ID,
-			Value:      json.RawMessage(`"` + contentFLaggingStatusPending + `"`),
+			Value:      json.RawMessage(`"` + contentFlaggingStatusPending + `"`),
 		},
 		{
-			TargetID:   contentReviewPost.Id,
+			TargetID:   post.Id,
 			TargetType: "post",
 			GroupID:    groupId,
 			FieldID:    mappedFields["reporting_user_id"].ID,
 			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, reportingUserId)),
 		},
 		{
-			TargetID:   contentReviewPost.Id,
+			TargetID:   post.Id,
 			TargetType: "post",
 			GroupID:    groupId,
 			FieldID:    mappedFields["reporting_reason"].ID,
 			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, strings.Trim(flagData.Reason, `"`))),
 		},
 		{
-			TargetID:   contentReviewPost.Id,
+			TargetID:   post.Id,
 			TargetType: "post",
 			GroupID:    groupId,
 			FieldID:    mappedFields["reporting_comment"].ID,
 			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, strings.Trim(flagData.Comment, `"`))),
 		},
 		{
-			TargetID:   contentReviewPost.Id,
+			TargetID:   post.Id,
 			TargetType: "post",
 			GroupID:    groupId,
 			FieldID:    mappedFields["reporting_time"].ID,
@@ -130,6 +125,11 @@ func (a *App) FlagPost(c request.CTX, post *model.Post, reportingUserId string, 
 	}
 
 	// TODO: hide the flagged post here
+
+	contentReviewPost, appErr := a.createContentReviewPost(c, channel.TeamId)
+	if appErr != nil {
+		return appErr
+	}
 
 	return nil
 }
@@ -182,11 +182,11 @@ func (a *App) canFlagPost(groupId, postId string) *model.AppError {
 	var reason string
 
 	switch string(statusValue.Value) {
-	case contentFLaggingStatusPending, contentFLaggingStatusAssigned:
+	case contentFlaggingStatusPending, contentFlaggingStatusAssigned:
 		reason = "app.content_flagging.can_flag_post.in_progress"
-	case contentFLaggingStatusRetained:
+	case contentFlaggingStatusRetained:
 		reason = "app.content_flagging.can_flag_post.retained"
-	case contentFLaggingStatusRemoved:
+	case contentFlaggingStatusRemoved:
 		reason = "app.content_flagging.can_flag_post.removed"
 	default:
 		reason = "app.content_flagging.can_flag_post.unknown"
@@ -209,47 +209,29 @@ func (a *App) getContentFlaggingMappedFields(groupId string) (map[string]*model.
 	return mappedFields, nil
 }
 
-func (a *App) createContentReviewPost(c request.CTX, teamId string) (*model.Post, *model.AppError) {
-	contentFlaggingChannel, appErr := a.ensureTeamContentFlaggingChannel(c, teamId)
-	if appErr != nil {
-		return nil, appErr
-	}
+func (a *App) createContentReviewPost(c request.CTX, teamId string) ([]*model.Post, *model.AppError) {
 
-	bot, appErr := a.GetOrCreateSystemOwnedBot(c, "app.system.content_flagging_bot.bot_displayname")
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	post := &model.Post{
-		ChannelId: contentFlaggingChannel.Id,
-		Message:   "Content Review",
-		UserId:    bot.UserId,
-	}
-
-	return a.CreatePost(c, post, contentFlaggingChannel, model.CreatePostFlags{})
 }
 
-func (a *App) ensureTeamContentFlaggingChannel(c request.CTX, teamId string) (*model.Channel, *model.AppError) {
-	// TODO add lock here
+func (a *App) getReviewersForTeam(teamId string) ([]*model.User, *model.AppError) {
+	var reviewerUserIDs []string
 
-	existingChannel, appErr := a.GetChannelByName(c, "system_flagged_content", teamId, false)
-	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
-		return nil, appErr
+	reviewerSettings := a.Config().ContentFlaggingSettings.ReviewerSettings
+	if *reviewerSettings.CommonReviewers {
+		reviewerUserIDs = append(reviewerUserIDs, *reviewerSettings.CommonReviewerIds...)
 	}
 
-	if existingChannel != nil {
-		return existingChannel, nil
+	if *reviewerSettings.TeamAdminsAsReviewers {
+		options := &model.UserGetOptions{
+			InTeamId:  teamId,
+			Page:      0,
+			PerPage:   100,
+			Active:    true,
+			TeamRoles: []string{model.TeamAdminRoleId},
+		}
+		var teamAdmins []*model.User
+		for {
+			page, appErr := a.GetUsersInTeam(options)
+		}
 	}
-
-	// Since there was no existing channel, we create a new one.
-
-	// TODD add channel banner here
-	// TODO add default category here
-	channel := &model.Channel{
-		TeamId:      teamId,
-		Type:        model.ChannelTypePrivate,
-		DisplayName: "Flagged Content",
-		Name:        "system_flagged_content",
-	}
-	return a.CreateChannel(c, channel, false)
 }
