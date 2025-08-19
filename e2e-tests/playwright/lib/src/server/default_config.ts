@@ -599,8 +599,6 @@ const defaultServerConfig: AdminConfig = {
         ClientSideUserIds: [],
     },
     ExperimentalSettings: {
-        ClientSideCertEnable: false,
-        ClientSideCertCheck: 'secondary',
         LinkMetadataTimeoutMilliseconds: 5000,
         RestrictSystemAdmin: false,
         EnableSharedChannels: false,

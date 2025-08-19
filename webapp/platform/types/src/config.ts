@@ -115,8 +115,6 @@ export type ClientConfig = {
     EnableUserTypingMessages: string;
     EnforceMultifactorAuthentication: string;
     ExperimentalChannelCategorySorting: string;
-    ExperimentalClientSideCertCheck: string;
-    ExperimentalClientSideCertEnable: string;
     ExperimentalEnableAuthenticationTransfer: string;
     ExperimentalEnableAutomaticReplies: string;
     ExperimentalEnableDefaultChannelLeaveJoinMessages: string;
@@ -822,8 +820,6 @@ export type MetricsSettings = {
 };
 
 export type ExperimentalSettings = {
-    ClientSideCertEnable: boolean;
-    ClientSideCertCheck: string;
     LinkMetadataTimeoutMilliseconds: number;
     RestrictSystemAdmin: boolean;
     EnableSharedChannels: boolean;

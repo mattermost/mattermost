@@ -844,8 +844,6 @@ func (ts *TelemetryService) trackConfig() {
 	}
 
 	configs[TrackConfigExperimental] = map[string]any{
-		"client_side_cert_enable":             *cfg.ExperimentalSettings.ClientSideCertEnable,
-		"isdefault_client_side_cert_check":    isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.ClientSideCertCheckPrimaryAuth),
 		"link_metadata_timeout_milliseconds":  *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
 		"restrict_system_admin":               *cfg.ExperimentalSettings.RestrictSystemAdmin,
 		"enable_app_bar":                      !*cfg.ExperimentalSettings.DisableAppBar,

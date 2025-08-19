@@ -5981,47 +5981,6 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             type: 'bool',
-                            key: 'ExperimentalSettings.ClientSideCertEnable',
-                            label: defineMessage({id: 'admin.experimental.clientSideCertEnable.title', defaultMessage: 'Enable Client-Side Certification:'}),
-                            help_text: defineMessage({id: 'admin.experimental.clientSideCertEnable.desc', defaultMessage: 'Enables client-side certification for your Mattermost server. See <link>documentation</link> to learn more.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href={DocLinks.ENABLE_CLIENT_SIDE_CERTIFICATION}
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'dropdown',
-                            key: 'ExperimentalSettings.ClientSideCertCheck',
-                            label: defineMessage({id: 'admin.experimental.clientSideCertCheck.title', defaultMessage: 'Client-Side Certification Login Method:'}),
-                            help_text: defineMessage({id: 'admin.experimental.clientSideCertCheck.desc', defaultMessage: "When **primary**, after the client side certificate is verified, user's email is retrieved from the certificate and is used to log in without a password. When **secondary**, after the client side certificate is verified, user's email is retrieved from the certificate and matched against the one supplied by the user. If they match, the user logs in with regular email/password credentials."}),
-                            help_text_markdown: true,
-                            options: [
-                                {
-                                    value: 'primary',
-                                    display_name: defineMessage({id: 'admin.experimental.clientSideCertCheck.options.primary', defaultMessage: 'primary'}),
-                                },
-                                {
-                                    value: 'secondary',
-                                    display_name: defineMessage({id: 'admin.experimental.clientSideCertCheck.options.secondary', defaultMessage: 'secondary'}),
-                                },
-                            ],
-                            isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                                it.stateIsFalse('ExperimentalSettings.ClientSideCertEnable'),
-                            ),
-                        },
-                        {
-                            type: 'bool',
                             key: 'ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages',
                             label: defineMessage({id: 'admin.experimental.experimentalEnableDefaultChannelLeaveJoinMessages.title', defaultMessage: 'Enable Default Channel Leave/Join System Messages:'}),
                             help_text: defineMessage({id: 'admin.experimental.experimentalEnableDefaultChannelLeaveJoinMessages.desc', defaultMessage: 'This setting determines whether team leave/join system messages are posted in the default town-square channel.'}),
