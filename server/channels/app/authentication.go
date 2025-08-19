@@ -308,7 +308,7 @@ func (a *App) MFARequired(rctx request.CTX) *model.AppError {
 
 	user, err := a.GetUser(session.UserId)
 	if err != nil {
-		return model.NewAppError("MfaRequired", "api.context.get_user.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
+		return model.NewAppError("MfaRequired", "api.context.get_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if user.IsGuest() && !*a.Config().GuestAccountsSettings.EnforceMultifactorAuthentication {

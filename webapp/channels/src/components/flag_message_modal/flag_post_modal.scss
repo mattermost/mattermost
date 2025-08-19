@@ -1,0 +1,55 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.FlagPostModal {
+    &__section_title {
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    &__post_preview {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    &__section {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        .post.forward-post__post-preview--override {
+            padding: 0;
+        }
+    }
+
+    .FlagPostModal__flagging_reason {
+        .FlagPostModal__reason__error-message {
+            display: flex;
+            width: 90%;
+            align-items: center;
+            color: var(--error-text);
+            font-size: 12px;
+        }
+    }
+
+    .FlagPostModal__comment {
+        #PreviewInputTextButton {
+            position: absolute;
+            z-index: 2;
+            top: 8px;
+            right: 8px;
+        }
+
+        textarea#FlagPostModal__comment, .textbox-preview-area {
+            height: 110px !important;
+        }
+    }
+}
