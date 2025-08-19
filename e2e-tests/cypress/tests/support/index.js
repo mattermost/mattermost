@@ -114,7 +114,6 @@ Cypress.on('uncaught:exception', () => {
 before(() => {
     // # Clear localforage state
     localforage.clear();
-    cy.clearAllCookies();
 
     cy.makeClient().then(async ({user, client}) => {
         if (!user) {

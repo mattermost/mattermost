@@ -31,7 +31,6 @@ describe('Managing bots in Teams and Channels', () => {
     });
 
     it('MM-T1815 Add a BOT to a team that has email restricted', () => {
-        cy.clearAllCookies();
         cy.makeClient().then(async ({client}) => {
             // # Log in and go to channel
             cy.apiLogin(user);
@@ -48,7 +47,6 @@ describe('Managing bots in Teams and Channels', () => {
     });
 
     it('MM-T1816 Add a BOT to a channel', () => {
-        cy.clearAllCookies();
         cy.makeClient().then(async ({client}) => {
             // # Log in and go to channel
             cy.apiLogin(user);
@@ -68,7 +66,6 @@ describe('Managing bots in Teams and Channels', () => {
     });
 
     it('MM-T1817 Add a BOT to a channel that is not on the Team', () => {
-        cy.clearAllCookies();
         cy.makeClient().then(async ({client}) => {
             // # Log in and go to channel
             cy.apiLogin(user);
@@ -85,7 +82,6 @@ describe('Managing bots in Teams and Channels', () => {
     });
 
     it('MM-T1818 No ephemeral post about Adding a bot to a channel When Bot is mentioned', () => {
-        cy.clearAllCookies();
         cy.makeClient().then(async ({client}) => {
             // # Log in and go to channel
             cy.apiLogin(user);

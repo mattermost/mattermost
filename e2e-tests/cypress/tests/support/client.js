@@ -31,4 +31,7 @@ async function makeClient({user = getAdminAccount(), useCache = true} = {}) {
     }
 }
 
-Cypress.Commands.add('makeClient', makeClient);
+Cypress.Commands.add('makeClient', () => {
+    cy.clearAllCookies();
+    return cy.then(() => makeClient());
+});
