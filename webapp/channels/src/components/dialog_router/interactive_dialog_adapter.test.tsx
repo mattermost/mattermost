@@ -1152,6 +1152,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 elements,
                 actions: {
                     submitInteractiveDialog: mockSubmit,
+                    lookupInteractiveDialog: jest.fn().mockResolvedValue({data: {items: []}}),
                 },
             };
 
