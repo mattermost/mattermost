@@ -171,9 +171,9 @@ describe('date_utils', () => {
             expect(result).toBe('2025-01-22');
         });
 
-        it('should resolve +1H to 1 hour from now', () => {
+        it('should not resolve +1H (hours not supported)', () => {
             const result = resolveRelativeDate('+1H', testTimezone);
-            expect(result).toBe('2025-01-15T11:00:00Z');
+            expect(result).toBe('+1H');
         });
 
         it('should resolve dynamic patterns like +5d', () => {
@@ -186,8 +186,8 @@ describe('date_utils', () => {
             expect(result).toBe('2025-01-29');
         });
 
-        it('should resolve dynamic patterns like +1M', () => {
-            const result = resolveRelativeDate('+1M', testTimezone);
+        it('should resolve dynamic patterns like +1m', () => {
+            const result = resolveRelativeDate('+1m', testTimezone);
             expect(result).toBe('2025-02-15');
         });
 
