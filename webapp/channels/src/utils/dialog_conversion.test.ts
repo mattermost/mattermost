@@ -673,6 +673,8 @@ describe('dialog_conversion', () => {
                 undefined,
                 undefined,
                 undefined,
+                'http://example.com',
+                '',
                 legacyOptions,
             );
 
