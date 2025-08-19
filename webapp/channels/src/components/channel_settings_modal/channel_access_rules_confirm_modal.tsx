@@ -23,6 +23,7 @@ type ChannelAccessRulesConfirmModalProps = {
     usersToAdd: string[];
     usersToRemove: string[];
     isProcessing?: boolean;
+    autoSyncEnabled?: boolean;
 };
 
 const USERS_PER_PAGE = 50;
@@ -35,6 +36,7 @@ function ChannelAccessRulesConfirmModal({
     usersToAdd,
     usersToRemove,
     isProcessing = false,
+    autoSyncEnabled = false,
 }: ChannelAccessRulesConfirmModalProps) {
     const dispatch = useDispatch();
 
@@ -204,8 +206,8 @@ function ChannelAccessRulesConfirmModal({
                                 </>
                             ) : (
                                 <FormattedMessage
-                                    id='channel_settings.access_rules.confirm_modal.save_and_apply'
-                                    defaultMessage='Save and apply'
+                                    id={autoSyncEnabled ? 'channel_settings.access_rules.confirm_modal.save_and_apply' : 'channel_settings.access_rules.confirm_modal.save'}
+                                    defaultMessage={autoSyncEnabled ? 'Save and apply' : 'Save'}
                                 />
                             )}
                         </button>
@@ -268,8 +270,8 @@ function ChannelAccessRulesConfirmModal({
                                 </>
                             ) : (
                                 <FormattedMessage
-                                    id='channel_settings.access_rules.confirm_modal.save_and_apply'
-                                    defaultMessage='Save and apply'
+                                    id={autoSyncEnabled ? 'channel_settings.access_rules.confirm_modal.save_and_apply' : 'channel_settings.access_rules.confirm_modal.save'}
+                                    defaultMessage={autoSyncEnabled ? 'Save and apply' : 'Save'}
                                 />
                             )}
                         </button>
