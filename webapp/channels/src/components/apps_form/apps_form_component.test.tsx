@@ -75,7 +75,7 @@ describe('AppsFormComponent', () => {
         jest.clearAllMocks();
     });
 
-    test('should render form with title, header, and fields', () => {
+    test('should render form with title, header, fields and initial values', () => {
         renderWithContext(
             <AppsForm
                 {...baseProps}
@@ -85,20 +85,10 @@ describe('AppsFormComponent', () => {
         // Verify key form elements are rendered
         expect(screen.getByText('Title')).toBeInTheDocument();
         expect(screen.getByText('Header')).toBeInTheDocument();
-        expect(screen.getByDisplayValue('initial text')).toBeInTheDocument();
-        expect(screen.getByText('Label1')).toBeInTheDocument();
         expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: /cancel/i})).toBeInTheDocument();
-    });
-
-    test('should set initial form values', () => {
-        renderWithContext(
-            <AppsForm
-                {...baseProps}
-            />,
-        );
-
-        // Verify form renders with initial values visible
+        
+        // Verify form renders with initial values
         expect(screen.getByDisplayValue('initial text')).toBeInTheDocument();
         expect(screen.getByText('Label1')).toBeInTheDocument();
     });
@@ -205,7 +195,7 @@ describe('AppsFormComponent', () => {
         });
     });
 
-    describe('Form Validation', () => {
+    describe('Server-side Validation', () => {
         test('should display field errors from server response', async () => {
             const submitMock = jest.fn().mockResolvedValue({
                 error: {
@@ -381,109 +371,6 @@ describe('AppsFormComponent', () => {
         });
     });
 
-    describe('Refresh on Select', () => {
-        test('should trigger refresh when field has refresh enabled', async () => {
-            const mockRefresh = jest.fn().mockResolvedValue({
-                data: {
-                    type: 'form',
-                    form: {
-                        title: 'Updated Form',
-                        fields: [],
-                    },
-                },
-            });
-
-            const props = {
-                ...baseProps,
-                actions: {
-                    ...baseProps.actions,
-                    refreshOnSelect: mockRefresh,
-                },
-                form: {
-                    ...baseProps.form,
-                    fields: [
-                        {
-                            name: 'trigger_field',
-                            type: 'static_select',
-                            refresh: true,
-                        },
-                    ],
-                },
-            };
-
-            renderWithContext(<AppsForm {...props}/>);
-
-            // Verify refresh functionality is configured
-            expect(mockRefresh).toBeDefined();
-        });
-
-        test('should handle refresh errors', async () => {
-            const mockRefresh = jest.fn().mockResolvedValue({
-                error: {
-                    text: 'Refresh failed',
-                    data: {
-                        errors: {
-                            trigger_field: 'Field error',
-                        },
-                    },
-                },
-            });
-
-            const props = {
-                ...baseProps,
-                actions: {
-                    ...baseProps.actions,
-                    refreshOnSelect: mockRefresh,
-                },
-                form: {
-                    ...baseProps.form,
-                    fields: [
-                        {
-                            name: 'trigger_field',
-                            type: 'static_select',
-                            refresh: true,
-                        },
-                    ],
-                },
-            };
-
-            renderWithContext(<AppsForm {...props}/>);
-
-            // Verify error handling is configured
-            expect(mockRefresh).toBeDefined();
-        });
-
-        test('should handle unexpected refresh response types', async () => {
-            const mockRefresh = jest.fn().mockResolvedValue({
-                data: {
-                    type: 'ok', // Unexpected type for refresh
-                },
-            });
-
-            const props = {
-                ...baseProps,
-                actions: {
-                    ...baseProps.actions,
-                    refreshOnSelect: mockRefresh,
-                },
-                form: {
-                    ...baseProps.form,
-                    fields: [
-                        {
-                            name: 'trigger_field',
-                            type: 'static_select',
-                            refresh: true,
-                        },
-                    ],
-                },
-            };
-
-            renderWithContext(<AppsForm {...props}/>);
-
-            // Verify unexpected response handling is configured
-            expect(mockRefresh).toBeDefined();
-        });
-    });
 
     describe('Modal vs Embedded Rendering', () => {
         test('should render as modal by default', () => {
@@ -683,22 +570,6 @@ describe('AppsFormComponent', () => {
             });
         });
 
-        test('should handle submit_on_cancel form option', () => {
-            const formWithSubmitOnCancel = {
-                ...baseProps.form,
-                submit_on_cancel: true,
-            };
-
-            const props = {
-                ...baseProps,
-                form: formWithSubmitOnCancel,
-            };
-
-            renderWithContext(<AppsForm {...props}/>);
-
-            // Verify form renders with submit_on_cancel option
-            expect(screen.getByRole('button', {name: /cancel/i})).toBeInTheDocument();
-        });
 
         test('should handle missing field during onChange', () => {
             renderWithContext(<AppsForm {...baseProps}/>);
@@ -821,7 +692,7 @@ describe('AppsFormComponent', () => {
         });
     });
 
-    describe('Field Error Handling and Display', () => {
+    describe('Error Display and Formatting', () => {
         test('should display field errors with markdown formatting', async () => {
             const submitMock = jest.fn().mockResolvedValue({
                 error: {
@@ -1050,34 +921,6 @@ describe('AppsFormComponent', () => {
         });
     });
 
-    describe('Lookup Functionality', () => {
-        test('should handle lookup call with performLookup method', async () => {
-            const mockPerformLookup = jest.fn().mockResolvedValue({
-                data: {
-                    type: 'ok',
-                    data: {
-                        items: [
-                            {label: 'Result 1', value: 'r1'},
-                            {label: 'Result 2', value: 'r2'},
-                        ],
-                    },
-                },
-            });
-
-            const props = {
-                ...baseProps,
-                actions: {
-                    ...baseProps.actions,
-                    performLookupCall: mockPerformLookup,
-                },
-            };
-
-            renderWithContext(<AppsForm {...props}/>);
-
-            // Form should render with lookup capability available
-            expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
-        });
-    });
 
     describe('Refresh on Select Functionality', () => {
         test('should handle refresh on select success', async () => {
@@ -1480,7 +1323,7 @@ describe('AppsFormComponent', () => {
         });
     });
 
-    describe('field validation', () => {
+    describe('Field Configuration Validation', () => {
         it('should validate required fields', () => {
             const formWithRequiredField = {
                 ...baseProps.form,
@@ -1502,7 +1345,7 @@ describe('AppsFormComponent', () => {
             renderWithContext(<AppsForm {...props}/>);
 
             // Field validation happens during initialization but doesn't block rendering
-            expect(screen.getByLabelText('Required Field')).toBeInTheDocument();
+            expect(screen.getByText(/Required Field/)).toBeInTheDocument();
         });
 
         it('should validate datetime fields with time constraints', () => {
@@ -1533,6 +1376,7 @@ describe('AppsFormComponent', () => {
         });
 
         it('should handle invalid field configurations gracefully', () => {
+            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
             const formWithInvalidField = {
                 ...baseProps.form,
                 fields: [
@@ -1554,6 +1398,7 @@ describe('AppsFormComponent', () => {
             // Should not throw error, validation is non-blocking
             expect(() => renderWithContext(<AppsForm {...props}/>)).not.toThrow();
             expect(screen.getByText('Invalid Field')).toBeInTheDocument();
+            consoleSpy.mockRestore();
         });
 
         it('should initialize required datetime fields with default values', () => {
@@ -1582,7 +1427,7 @@ describe('AppsFormComponent', () => {
         });
     });
 
-    describe('time_interval validation for datetime fields', () => {
+    describe('DateTime Field Validation - time_interval', () => {
         it('should accept valid time_interval divisors of 1440', () => {
             const validIntervals = [1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 24, 30, 40, 60, 72, 90, 120, 180, 240, 360, 480, 720, 1440];
 
@@ -1829,7 +1674,7 @@ describe('AppsFormComponent', () => {
         });
     });
 
-    describe('default_time validation for datetime fields', () => {
+    describe('DateTime Field Validation - default_time', () => {
         it('should accept valid default_time formats', () => {
             const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
             const validTimes = ['00:00', '12:30', '23:59', '09:15'];

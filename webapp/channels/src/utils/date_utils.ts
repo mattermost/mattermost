@@ -12,6 +12,9 @@ export enum DateReference {
     YESTERDAY = 'yesterday',
 }
 
+// Regex to validate HH:MM time format (24-hour notation)
+export const TIME_FORMAT_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
 /**
  * Convert a string value (ISO format or relative) to a Moment object
  * For date-only fields, datetime formats are accepted and the date portion is extracted
@@ -239,7 +242,7 @@ export function validateDateRange(
 export function getDefaultTime(defaultTime?: string): string {
     if (defaultTime) {
         // Validate format HH:mm
-        if ((/^([01]\d|2[0-3]):([0-5]\d)$/).test(defaultTime)) {
+        if (TIME_FORMAT_REGEX.test(defaultTime)) {
             return defaultTime;
         }
     }

@@ -13,6 +13,9 @@ import DateTimeInput from 'components/datetime_input/datetime_input';
 
 import {stringToMoment, momentToString, resolveRelativeDate} from 'utils/date_utils';
 
+// Default time interval for DateTime fields in minutes
+const DEFAULT_TIME_INTERVAL_MINUTES = 60;
+
 type Props = {
     field: AppField;
     value: string | null;
@@ -45,7 +48,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
         onChange(field.name, newValue);
     }, [field.name, onChange]);
 
-    const timePickerInterval = field.time_interval || 60; // Default to 60 minutes
+    const timePickerInterval = field.time_interval || DEFAULT_TIME_INTERVAL_MINUTES;
 
     // Determine if past dates should be allowed based on min_date constraint
     const allowPastDates = useMemo(() => {

@@ -22,7 +22,7 @@ import SuggestionList from 'components/suggestion/suggestion_list';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {filterEmptyOptions} from 'utils/apps';
-import {momentToString, stringToMoment, resolveRelativeDate} from 'utils/date_utils';
+import {momentToString, stringToMoment, resolveRelativeDate, TIME_FORMAT_REGEX} from 'utils/date_utils';
 
 import type {DoAppCallResult} from 'types/apps';
 
@@ -30,6 +30,9 @@ import AppsFormField from './apps_form_field';
 import AppsFormHeader from './apps_form_header';
 
 import './apps_form_component.scss';
+
+// Default time interval for DateTime fields in minutes
+const DEFAULT_TIME_INTERVAL_MINUTES = 60;
 
 export type AppsFormProps = {
     form: AppForm;
@@ -60,12 +63,18 @@ export type State = {
 const validateAppField = (field: AppField): string[] => {
     const errors: string[] = [];
 
-    // Validate time_interval for datetime fields
+    // Validate and sanitize time_interval for datetime fields
     if (field.type === AppFieldTypes.DATETIME && field.time_interval !== undefined) {
         if (typeof field.time_interval !== 'number' || field.time_interval <= 0 || field.time_interval > 1440) {
             errors.push(`Field "${field.name}": time_interval must be a positive number between 1 and 1440 minutes`);
+
+            // Reset invalid time_interval to default to prevent PropTypes warnings
+            field.time_interval = DEFAULT_TIME_INTERVAL_MINUTES;
         } else if (1440 % field.time_interval !== 0) {
             errors.push(`Field "${field.name}": time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got ${field.time_interval}`);
+
+            // Reset invalid time_interval to default to prevent PropTypes warnings
+            field.time_interval = DEFAULT_TIME_INTERVAL_MINUTES;
         }
     }
 
@@ -113,9 +122,9 @@ const validateAppField = (field: AppField): string[] => {
     // Validate default_time compatibility with time_interval for datetime fields
     if (field.type === AppFieldTypes.DATETIME && field.default_time) {
         // Validate default_time format
-        if ((/(^([01]\d|2[0-3]):([0-5]\d)$)/).test(field.default_time)) {
+        if (TIME_FORMAT_REGEX.test(field.default_time)) {
             // Validate compatibility with time_interval
-            const timeInterval = field.time_interval || 60; // Default to 60 minutes
+            const timeInterval = field.time_interval || DEFAULT_TIME_INTERVAL_MINUTES;
             const [hours, minutes] = field.default_time.split(':').map(Number);
             const totalMinutes = (hours * 60) + minutes;
 
@@ -156,7 +165,7 @@ const initFormValues = (form: AppForm): AppFormValues => {
                 const currentTime = moment();
 
                 // Validate time_interval before using it
-                const timePickerInterval = (typeof f.time_interval === 'number' && f.time_interval > 0 && f.time_interval <= 1440) ? f.time_interval : 60;
+                const timePickerInterval = (typeof f.time_interval === 'number' && f.time_interval > 0 && f.time_interval <= 1440) ? f.time_interval : DEFAULT_TIME_INTERVAL_MINUTES;
 
                 // Round the current time to the nearest time interval
                 const roundedMinutes = Math.round(currentTime.minutes() / timePickerInterval) * timePickerInterval;
