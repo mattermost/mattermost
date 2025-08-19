@@ -11,6 +11,14 @@ on:
         description: "Docker image tag (e.g. v1.2.3 or latest)"
         required: true
 
+env:
+  CHAINCTL_IDENTITY: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f
+
+# Permissions required for chainguard-dev/setup-chainctl
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -61,6 +69,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: chainguard-dev/setup-chainctl@f4ed65b781b048c44d4f033ae854c025c5531c19 # v0.3.2
+        with:
+          identity: ${{ env.CHAINCTL_IDENTITY }}
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #4.2.2
         with:
