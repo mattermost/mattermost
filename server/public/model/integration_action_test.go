@@ -848,3 +848,238 @@ func TestLookupDialogResponse(t *testing.T) {
 		assert.Nil(t, response.Items)
 	})
 }
+
+func TestDialogElementMultiSelectValidation(t *testing.T) {
+	t.Run("should pass with multiselect on select element", func(t *testing.T) {
+		element := &DialogElement{
+			DisplayName: "Multi Select Element",
+			Name:        "multi_select",
+			Type:        "select",
+			MultiSelect: true,
+			Options: []*PostActionOptions{
+				{Text: "Option 1", Value: "opt1"},
+				{Text: "Option 2", Value: "opt2"},
+			},
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should fail with multiselect on non-select element", func(t *testing.T) {
+		element := &DialogElement{
+			DisplayName: "Text Element",
+			Name:        "text_element",
+			Type:        "text",
+			MultiSelect: true,
+		}
+		err := element.IsValid()
+		assert.ErrorContains(t, err, "multiselect can only be used with select elements, got type \"text\"")
+	})
+
+	t.Run("should fail with multiselect on radio element", func(t *testing.T) {
+		element := &DialogElement{
+			DisplayName: "Radio Element",
+			Name:        "radio_element",
+			Type:        "radio",
+			MultiSelect: true,
+			Options: []*PostActionOptions{
+				{Text: "Option 1", Value: "opt1"},
+			},
+		}
+		err := element.IsValid()
+		assert.ErrorContains(t, err, "multiselect can only be used with select elements, got type \"radio\"")
+	})
+
+	t.Run("should fail with multiselect on bool element", func(t *testing.T) {
+		element := &DialogElement{
+			DisplayName: "Bool Element",
+			Name:        "bool_element",
+			Type:        "bool",
+			MultiSelect: true,
+		}
+		err := element.IsValid()
+		assert.ErrorContains(t, err, "multiselect can only be used with select elements, got type \"bool\"")
+	})
+
+	t.Run("should pass with multiselect and valid comma-separated defaults", func(t *testing.T) {
+		element := &DialogElement{
+			DisplayName: "Multi Select Element",
+			Name:        "multi_select",
+			Type:        "select",
+			MultiSelect: true,
+			Default:     "opt1,opt2",
+			Options: []*PostActionOptions{
+				{Text: "Option 1", Value: "opt1"},
+				{Text: "Option 2", Value: "opt2"},
+				{Text: "Option 3", Value: "opt3"},
+			},
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should pass with multiselect and valid spaced comma-separated defaults", func(t *testing.T) {
+		element := &DialogElement{
+			DisplayName: "Multi Select Element",
+			Name:        "multi_select",
+			Type:        "select",
+			MultiSelect: true,
+			Default:     "opt1, opt2, opt3",
+			Options: []*PostActionOptions{
+				{Text: "Option 1", Value: "opt1"},
+				{Text: "Option 2", Value: "opt2"},
+				{Text: "Option 3", Value: "opt3"},
+			},
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should fail with multiselect and invalid default value not in options", func(t *testing.T) {
+		element := &DialogElement{
+			DisplayName: "Multi Select Element",
+			Name:        "multi_select",
+			Type:        "select",
+			MultiSelect: true,
+			Default:     "opt1,invalid_opt",
+			Options: []*PostActionOptions{
+				{Text: "Option 1", Value: "opt1"},
+				{Text: "Option 2", Value: "opt2"},
+			},
+		}
+		err := element.IsValid()
+		assert.ErrorContains(t, err, "multiselect default value \"opt1,invalid_opt\" contains values not in options")
+	})
+
+	t.Run("should pass with multiselect and empty default", func(t *testing.T) {
+		element := &DialogElement{
+			DisplayName: "Multi Select Element",
+			Name:        "multi_select",
+			Type:        "select",
+			MultiSelect: true,
+			Default:     "",
+			Options: []*PostActionOptions{
+				{Text: "Option 1", Value: "opt1"},
+				{Text: "Option 2", Value: "opt2"},
+			},
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should pass with multiselect and data source", func(t *testing.T) {
+		element := &DialogElement{
+			DisplayName: "Multi Select Element",
+			Name:        "multi_select",
+			Type:        "select",
+			MultiSelect: true,
+			DataSource:  "users",
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should fail with single-select and comma-separated default values", func(t *testing.T) {
+		element := &DialogElement{
+			DisplayName: "Single Select Element",
+			Name:        "single_select",
+			Type:        "select",
+			MultiSelect: false,
+			Default:     "opt1,opt2",
+			Options: []*PostActionOptions{
+				{Text: "Option 1", Value: "opt1"},
+				{Text: "Option 2", Value: "opt2"},
+			},
+		}
+		err := element.IsValid()
+		assert.ErrorContains(t, err, "default value \"opt1,opt2\" doesn't exist in options")
+	})
+}
+
+func TestIsMultiSelectDefaultInOptions(t *testing.T) {
+	options := []*PostActionOptions{
+		{Text: "Option 1", Value: "opt1"},
+		{Text: "Option 2", Value: "opt2"},
+		{Text: "Option 3", Value: "opt3"},
+		{Text: "Option 4", Value: "opt4"},
+	}
+
+	t.Run("should return true for empty default", func(t *testing.T) {
+		result := isMultiSelectDefaultInOptions("", options)
+		assert.True(t, result)
+	})
+
+	t.Run("should return true for single valid default", func(t *testing.T) {
+		result := isMultiSelectDefaultInOptions("opt1", options)
+		assert.True(t, result)
+	})
+
+	t.Run("should return true for multiple valid defaults", func(t *testing.T) {
+		result := isMultiSelectDefaultInOptions("opt1,opt2", options)
+		assert.True(t, result)
+	})
+
+	t.Run("should return true for multiple valid defaults with spaces", func(t *testing.T) {
+		result := isMultiSelectDefaultInOptions("opt1, opt2, opt3", options)
+		assert.True(t, result)
+	})
+
+	t.Run("should return true for all valid defaults", func(t *testing.T) {
+		result := isMultiSelectDefaultInOptions("opt1,opt2,opt3,opt4", options)
+		assert.True(t, result)
+	})
+
+	t.Run("should return false for single invalid default", func(t *testing.T) {
+		result := isMultiSelectDefaultInOptions("invalid", options)
+		assert.False(t, result)
+	})
+
+	t.Run("should return false for mixed valid and invalid defaults", func(t *testing.T) {
+		result := isMultiSelectDefaultInOptions("opt1,invalid,opt2", options)
+		assert.False(t, result)
+	})
+
+	t.Run("should return false for all invalid defaults", func(t *testing.T) {
+		result := isMultiSelectDefaultInOptions("invalid1,invalid2", options)
+		assert.False(t, result)
+	})
+
+	t.Run("should handle empty values in comma-separated string", func(t *testing.T) {
+		result := isMultiSelectDefaultInOptions("opt1,,opt2", options)
+		assert.True(t, result)
+	})
+
+	t.Run("should handle only commas", func(t *testing.T) {
+		result := isMultiSelectDefaultInOptions(",,", options)
+		assert.True(t, result)
+	})
+
+	t.Run("should return true for single comma", func(t *testing.T) {
+		result := isMultiSelectDefaultInOptions(",", options)
+		assert.True(t, result)
+	})
+
+	t.Run("should handle nil options", func(t *testing.T) {
+		result := isMultiSelectDefaultInOptions("opt1", nil)
+		assert.False(t, result)
+	})
+
+	t.Run("should handle options with nil entries", func(t *testing.T) {
+		optionsWithNil := []*PostActionOptions{
+			{Text: "Option 1", Value: "opt1"},
+			nil,
+			{Text: "Option 2", Value: "opt2"},
+		}
+		result := isMultiSelectDefaultInOptions("opt1,opt2", optionsWithNil)
+		assert.True(t, result)
+	})
+
+	t.Run("should return false when value matches nil option", func(t *testing.T) {
+		optionsWithNil := []*PostActionOptions{
+			{Text: "Option 1", Value: "opt1"},
+			nil,
+		}
+		result := isMultiSelectDefaultInOptions("opt1,opt2", optionsWithNil)
+		assert.False(t, result)
+	})
+}
