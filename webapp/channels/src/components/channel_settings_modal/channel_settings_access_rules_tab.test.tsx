@@ -60,6 +60,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         getChannelPolicy: jest.fn(),
         saveChannelPolicy: jest.fn(),
         getChannelMembers: jest.fn(),
+        createJob: jest.fn(),
     };
 
     const mockUserAttributes: UserPropertyField[] = [

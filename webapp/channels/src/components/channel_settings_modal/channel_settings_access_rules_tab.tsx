@@ -6,6 +6,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
+import type {JobTypeBase} from '@mattermost/types/jobs';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
@@ -270,6 +271,23 @@ function ChannelSettingsAccessRulesTab({
             const result = await actions.saveChannelPolicy(policy);
             if (result.error) {
                 throw new Error(result.error.message || 'Failed to save policy');
+            }
+
+            // If auto-sync is enabled, create a job to immediately sync channel membership
+            if (autoSyncMembers && expression.trim()) {
+                try {
+                    const job: JobTypeBase & { data: any } = {
+                        type: 'access_control_sync' as const,
+                        data: {
+                            parent_id: channel.id,
+                        },
+                    };
+                    await actions.createJob(job);
+                } catch (jobError) {
+                    // Log job creation error but don't fail the save operation
+                    // eslint-disable-next-line no-console
+                    console.error('Failed to create access control sync job:', jobError);
+                }
             }
 
             // Update original values on successful save
@@ -564,6 +582,7 @@ function ChannelSettingsAccessRulesTab({
                 usersToAdd={usersToAdd}
                 usersToRemove={usersToRemove}
                 isProcessing={isProcessingSave}
+                autoSyncEnabled={autoSyncMembers}
             />
         </div>
     );
