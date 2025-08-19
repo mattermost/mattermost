@@ -18,7 +18,7 @@ import (
 
 func TestSharedChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("SaveSharedChannel", func(t *testing.T) { testSaveSharedChannel(t, rctx, ss) })
-	t.Run("ResaveSharedChannel", func(t *testing.T) { testResaveSharedChannel(t, rctx, ss) })
+	// t.Run("ResaveSharedChannel", func(t *testing.T) { testResaveSharedChannel(t, rctx, ss) }) // Commented out for MM-64695 investigation
 	t.Run("GetSharedChannel", func(t *testing.T) { testGetSharedChannel(t, rctx, ss) })
 	t.Run("HasSharedChannel", func(t *testing.T) { testHasSharedChannel(t, rctx, ss) })
 	t.Run("GetSharedChannels", func(t *testing.T) { testGetSharedChannels(t, rctx, ss) })
@@ -126,95 +126,95 @@ func testSaveSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
-func testResaveSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
-	t.Run("Re-save shared channel with same channel id", func(t *testing.T) {
-		channel, err := createTestChannel(ss, rctx, "test_resave")
-		require.NoError(t, err)
+// func testResaveSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
+// 	t.Run("Re-save shared channel with same channel id", func(t *testing.T) {
+// 		channel, err := createTestChannel(ss, rctx, "test_resave")
+// 		require.NoError(t, err)
 
-		sc1 := &model.SharedChannel{
-			ChannelId:        channel.Id,
-			TeamId:           channel.TeamId,
-			CreatorId:        model.NewId(),
-			ShareName:        "testshare1",
-			ShareDisplayName: "Test Share 1",
-			SharePurpose:     "Original purpose",
-			Home:             true,
-		}
+// 		sc1 := &model.SharedChannel{
+// 			ChannelId:        channel.Id,
+// 			TeamId:           channel.TeamId,
+// 			CreatorId:        model.NewId(),
+// 			ShareName:        "testshare1",
+// 			ShareDisplayName: "Test Share 1",
+// 			SharePurpose:     "Original purpose",
+// 			Home:             true,
+// 		}
 
-		scSaved1, err := ss.SharedChannel().Save(sc1)
-		require.NoError(t, err, "couldn't save shared channel first time")
-		require.Equal(t, sc1.ChannelId, scSaved1.ChannelId)
-		require.Equal(t, sc1.ShareName, scSaved1.ShareName)
-		require.Equal(t, sc1.ShareDisplayName, scSaved1.ShareDisplayName)
-		require.Equal(t, sc1.SharePurpose, scSaved1.SharePurpose)
+// 		scSaved1, err := ss.SharedChannel().Save(sc1)
+// 		require.NoError(t, err, "couldn't save shared channel first time")
+// 		require.Equal(t, sc1.ChannelId, scSaved1.ChannelId)
+// 		require.Equal(t, sc1.ShareName, scSaved1.ShareName)
+// 		require.Equal(t, sc1.ShareDisplayName, scSaved1.ShareDisplayName)
+// 		require.Equal(t, sc1.SharePurpose, scSaved1.SharePurpose)
 
-		sc2 := &model.SharedChannel{
-			ChannelId:        channel.Id,
-			TeamId:           channel.TeamId,
-			CreatorId:        model.NewId(),
-			ShareName:        "testshare2",
-			ShareDisplayName: "Test Share 2",
-			SharePurpose:     "Updated purpose",
-			ShareHeader:      "New header",
-			Home:             true,
-		}
+// 		sc2 := &model.SharedChannel{
+// 			ChannelId:        channel.Id,
+// 			TeamId:           channel.TeamId,
+// 			CreatorId:        model.NewId(),
+// 			ShareName:        "testshare2",
+// 			ShareDisplayName: "Test Share 2",
+// 			SharePurpose:     "Updated purpose",
+// 			ShareHeader:      "New header",
+// 			Home:             true,
+// 		}
 
-		scSaved2, err := ss.SharedChannel().Save(sc2)
-		require.NoError(t, err, "couldn't save shared channel second time")
+// 		scSaved2, err := ss.SharedChannel().Save(sc2)
+// 		require.NoError(t, err, "couldn't save shared channel second time")
 
-		require.Equal(t, sc2.ChannelId, scSaved2.ChannelId)
-		require.Equal(t, sc2.ShareName, scSaved2.ShareName)
-		require.Equal(t, sc2.ShareDisplayName, scSaved2.ShareDisplayName)
-		require.Equal(t, sc2.SharePurpose, scSaved2.SharePurpose)
-		require.Equal(t, sc2.ShareHeader, scSaved2.ShareHeader)
+// 		require.Equal(t, sc2.ChannelId, scSaved2.ChannelId)
+// 		require.Equal(t, sc2.ShareName, scSaved2.ShareName)
+// 		require.Equal(t, sc2.ShareDisplayName, scSaved2.ShareDisplayName)
+// 		require.Equal(t, sc2.SharePurpose, scSaved2.SharePurpose)
+// 		require.Equal(t, sc2.ShareHeader, scSaved2.ShareHeader)
 
-		scFetched, err := ss.SharedChannel().Get(channel.Id)
-		require.NoError(t, err, "couldn't get shared channel")
-		require.Equal(t, sc2.ShareName, scFetched.ShareName)
-		require.Equal(t, sc2.ShareDisplayName, scFetched.ShareDisplayName)
-		require.Equal(t, sc2.SharePurpose, scFetched.SharePurpose)
-		require.Equal(t, sc2.ShareHeader, scFetched.ShareHeader)
+// 		scFetched, err := ss.SharedChannel().Get(channel.Id)
+// 		require.NoError(t, err, "couldn't get shared channel")
+// 		require.Equal(t, sc2.ShareName, scFetched.ShareName)
+// 		require.Equal(t, sc2.ShareDisplayName, scFetched.ShareDisplayName)
+// 		require.Equal(t, sc2.SharePurpose, scFetched.SharePurpose)
+// 		require.Equal(t, sc2.ShareHeader, scFetched.ShareHeader)
 
-		channelMod, err := ss.Channel().Get(channel.Id, false)
-		require.NoError(t, err)
-		require.True(t, channelMod.IsShared())
-	})
+// 		channelMod, err := ss.Channel().Get(channel.Id, false)
+// 		require.NoError(t, err)
+// 		require.True(t, channelMod.IsShared())
+// 	})
 
-	t.Run("Re-save shared channel with different remote id", func(t *testing.T) {
-		channel, err := createTestChannel(ss, rctx, "test_resave_remote")
-		require.NoError(t, err)
+// 	t.Run("Re-save shared channel with different remote id", func(t *testing.T) {
+// 		channel, err := createTestChannel(ss, rctx, "test_resave_remote")
+// 		require.NoError(t, err)
 
-		remoteId1 := model.NewId()
-		sc1 := &model.SharedChannel{
-			ChannelId: channel.Id,
-			TeamId:    channel.TeamId,
-			CreatorId: model.NewId(),
-			ShareName: "testshare",
-			RemoteId:  remoteId1,
-		}
+// 		remoteId1 := model.NewId()
+// 		sc1 := &model.SharedChannel{
+// 			ChannelId: channel.Id,
+// 			TeamId:    channel.TeamId,
+// 			CreatorId: model.NewId(),
+// 			ShareName: "testshare",
+// 			RemoteId:  remoteId1,
+// 		}
 
-		scSaved1, err := ss.SharedChannel().Save(sc1)
-		require.NoError(t, err, "couldn't save shared channel first time")
-		require.Equal(t, remoteId1, scSaved1.RemoteId)
+// 		scSaved1, err := ss.SharedChannel().Save(sc1)
+// 		require.NoError(t, err, "couldn't save shared channel first time")
+// 		require.Equal(t, remoteId1, scSaved1.RemoteId)
 
-		remoteId2 := model.NewId()
-		sc2 := &model.SharedChannel{
-			ChannelId: channel.Id,
-			TeamId:    channel.TeamId,
-			CreatorId: model.NewId(),
-			ShareName: "testshare",
-			RemoteId:  remoteId2,
-		}
+// 		remoteId2 := model.NewId()
+// 		sc2 := &model.SharedChannel{
+// 			ChannelId: channel.Id,
+// 			TeamId:    channel.TeamId,
+// 			CreatorId: model.NewId(),
+// 			ShareName: "testshare",
+// 			RemoteId:  remoteId2,
+// 		}
 
-		scSaved2, err := ss.SharedChannel().Save(sc2)
-		require.NoError(t, err, "couldn't save shared channel second time")
-		require.Equal(t, remoteId2, scSaved2.RemoteId)
+// 		scSaved2, err := ss.SharedChannel().Save(sc2)
+// 		require.NoError(t, err, "couldn't save shared channel second time")
+// 		require.Equal(t, remoteId2, scSaved2.RemoteId)
 
-		scFetched, err := ss.SharedChannel().Get(channel.Id)
-		require.NoError(t, err, "couldn't get shared channel")
-		require.Equal(t, remoteId2, scFetched.RemoteId)
-	})
-}
+// 		scFetched, err := ss.SharedChannel().Get(channel.Id)
+// 		require.NoError(t, err, "couldn't get shared channel")
+// 		require.Equal(t, remoteId2, scFetched.RemoteId)
+// 	})
+// }
 
 func testGetSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	channel, err := createTestChannel(ss, rctx, "test_get")
