@@ -766,31 +766,39 @@ func TestGetAuthorizationServerMetadata_DCRConfig(t *testing.T) {
 		cfg.ServiceSettings.SiteURL = model.NewPointer("https://example.com")
 	})
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(false)
+	t.Run("DCR disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(false)
+		})
+
+		metadata, err := th.App.GetAuthorizationServerMetadata(th.Context)
+		require.Nil(t, err)
+		require.NotNil(t, metadata)
+
+		// Should not include registration endpoint when DCR is disabled
+		assert.Empty(t, metadata.RegistrationEndpoint)
+
+		// Should include basic OAuth endpoints
+		assert.Equal(t, "https://example.com", metadata.Issuer)
+		assert.Equal(t, "https://example.com/oauth/authorize", metadata.AuthorizationEndpoint)
+		assert.Equal(t, "https://example.com/oauth/access_token", metadata.TokenEndpoint)
 	})
 
-	metadata, err := th.App.GetAuthorizationServerMetadata(th.Context)
-	require.Nil(t, err)
-	require.NotNil(t, metadata)
+	t.Run("DCR enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+		})
 
-	// Should not include registration endpoint when DCR is disabled
-	assert.Empty(t, metadata.RegistrationEndpoint)
+		metadata, err := th.App.GetAuthorizationServerMetadata(th.Context)
+		require.Nil(t, err)
+		require.NotNil(t, metadata)
 
-	// Should include basic OAuth endpoints
-	assert.Equal(t, "https://example.com", metadata.Issuer)
-	assert.Equal(t, "https://example.com/oauth/authorize", metadata.AuthorizationEndpoint)
-	assert.Equal(t, "https://example.com/oauth/access_token", metadata.TokenEndpoint)
+		// Should include registration endpoint when DCR is enabled
+		assert.Equal(t, "https://example.com/api/v4/oauth/apps/register", metadata.RegistrationEndpoint)
 
-	// Test with DCR explicitly enabled
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+		// Should include basic OAuth endpoints
+		assert.Equal(t, "https://example.com", metadata.Issuer)
+		assert.Equal(t, "https://example.com/oauth/authorize", metadata.AuthorizationEndpoint)
+		assert.Equal(t, "https://example.com/oauth/access_token", metadata.TokenEndpoint)
 	})
-
-	metadata, err = th.App.GetAuthorizationServerMetadata(th.Context)
-	require.Nil(t, err)
-	require.NotNil(t, metadata)
-
-	// Should include registration endpoint when DCR is enabled
-	assert.Equal(t, "https://example.com/api/v4/oauth/apps/register", metadata.RegistrationEndpoint)
 }

@@ -2539,6 +2539,9 @@ components:
           items:
             type: string
           description: Array of the OAuth 2.0 response type strings that the client can use at the authorization endpoint
+        scope:
+          type: string
+          description: Space-separated list of scope values that the client can use when requesting access tokens
         client_name:
           type: string
           description: Human-readable string name of the client to be presented to the end-user during authorization

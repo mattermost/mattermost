@@ -4,7 +4,6 @@
 package model
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -29,6 +28,7 @@ type ClientRegistrationResponse struct {
 const (
 	DCRErrorInvalidRedirectURI    = "invalid_redirect_uri"
 	DCRErrorInvalidClientMetadata = "invalid_client_metadata"
+	DCRErrorUnsupportedOperation  = "unsupported_operation"
 )
 
 type DCRError struct {
@@ -65,11 +65,6 @@ func (r *ClientRegistrationRequest) IsValid() *AppError {
 	}
 
 	return nil
-}
-
-func (e *DCRError) ToJSON() string {
-	b, _ := json.Marshal(e)
-	return string(b)
 }
 
 func NewDCRError(errorType, description string) *DCRError {

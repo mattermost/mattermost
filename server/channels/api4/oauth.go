@@ -326,30 +326,30 @@ func registerOAuthClient(c *Context, w http.ResponseWriter, r *http.Request) {
 		dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, "Invalid JSON in request body")
 
 		w.WriteHeader(http.StatusBadRequest)
-		if _, err := w.Write([]byte(dcrError.ToJSON())); err != nil {
-			c.Logger.Warn("Error writing DCR error response", mlog.Err(err))
+		if err := json.NewEncoder(w).Encode(dcrError); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 		return
 	}
 
 	// Check if OAuth service provider is enabled
 	if !*c.App.Config().ServiceSettings.EnableOAuthServiceProvider {
-		dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, "OAuth service provider is disabled")
+		dcrError := model.NewDCRError(model.DCRErrorUnsupportedOperation, "OAuth service provider is disabled")
 
 		w.WriteHeader(http.StatusBadRequest)
-		if _, err := w.Write([]byte(dcrError.ToJSON())); err != nil {
-			c.Logger.Warn("Error writing DCR error response", mlog.Err(err))
+		if err := json.NewEncoder(w).Encode(dcrError); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 		return
 	}
 
 	// Check if DCR is enabled
 	if c.App.Config().ServiceSettings.EnableDynamicClientRegistration == nil || !*c.App.Config().ServiceSettings.EnableDynamicClientRegistration {
-		dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, "Dynamic client registration is disabled")
+		dcrError := model.NewDCRError(model.DCRErrorUnsupportedOperation, "Dynamic client registration is disabled")
 
 		w.WriteHeader(http.StatusBadRequest)
-		if _, err := w.Write([]byte(dcrError.ToJSON())); err != nil {
-			c.Logger.Warn("Error writing DCR error response", mlog.Err(err))
+		if err := json.NewEncoder(w).Encode(dcrError); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 		return
 	}
@@ -359,8 +359,8 @@ func registerOAuthClient(c *Context, w http.ResponseWriter, r *http.Request) {
 		dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, err.Message)
 
 		w.WriteHeader(http.StatusBadRequest)
-		if _, err := w.Write([]byte(dcrError.ToJSON())); err != nil {
-			c.Logger.Warn("Error writing DCR error response", mlog.Err(err))
+		if err := json.NewEncoder(w).Encode(dcrError); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 		return
 	}
@@ -373,8 +373,8 @@ func registerOAuthClient(c *Context, w http.ResponseWriter, r *http.Request) {
 		dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, appErr.Message)
 
 		w.WriteHeader(appErr.StatusCode)
-		if _, err := w.Write([]byte(dcrError.ToJSON())); err != nil {
-			c.Logger.Warn("Error writing DCR error response", mlog.Err(err))
+		if err := json.NewEncoder(w).Encode(dcrError); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 		return
 	}

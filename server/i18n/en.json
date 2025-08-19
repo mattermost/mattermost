@@ -2433,6 +2433,10 @@
     "translation": "OAuth service provider is disabled."
   },
   {
+    "id": "api.oauth.authorization_server_metadata.invalid_url.app_error",
+    "translation": "Invalid URL configuration for authorization server metadata."
+  },
+  {
     "id": "api.oauth.authorization_server_metadata.site_url_required.app_error",
     "translation": "Site URL must be configured to provide authorization server metadata."
   },

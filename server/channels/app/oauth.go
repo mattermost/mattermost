@@ -1051,10 +1051,16 @@ func (a *App) GetAuthorizationServerMetadata(c request.CTX) (*model.Authorizatio
 		return nil, model.NewAppError("GetAuthorizationServerMetadata", "api.oauth.authorization_server_metadata.site_url_required.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	metadata := model.GetDefaultMetadata(siteURL)
+	metadata, err := model.GetDefaultMetadata(siteURL)
+	if err != nil {
+		return nil, model.NewAppError("GetAuthorizationServerMetadata", "api.oauth.authorization_server_metadata.invalid_url.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 
 	if a.Config().ServiceSettings.EnableDynamicClientRegistration != nil && *a.Config().ServiceSettings.EnableDynamicClientRegistration {
-		metadata.RegistrationEndpoint = siteURL + model.OAuthAppsRegisterEndpoint
+		metadata.RegistrationEndpoint, err = url.JoinPath(siteURL, model.OAuthAppsRegisterEndpoint)
+		if err != nil {
+			return nil, model.NewAppError("GetAuthorizationServerMetadata", "api.oauth.authorization_server_metadata.invalid_url.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	return metadata, nil
@@ -1063,10 +1069,5 @@ func (a *App) GetAuthorizationServerMetadata(c request.CTX) (*model.Authorizatio
 func (a *App) RegisterOAuthClient(c request.CTX, req *model.ClientRegistrationRequest, userID string) (*model.OAuthApp, *model.AppError) {
 	app := model.NewOAuthAppFromClientRegistration(req, userID)
 
-	rapp, err := a.CreateOAuthApp(app)
-	if err != nil {
-		return nil, err
-	}
-
-	return rapp, nil
+	return a.CreateOAuthApp(app)
 }
