@@ -8,7 +8,7 @@
     }
 
     .upgrade-title {
-        margin: 10px 0;
+        margin-bottom: 12px;
         color: #3f4350;
         font-family: Metropolis, sans-serif;
         font-size: 16px;
@@ -38,6 +38,14 @@
 
     .purchase_buttons {
         margin-top: 20px;
+        .btn-primary {
+            margin-bottom: 8px;
+        }
+
+        .trial-btn {
+            width: 100%;
+            margin-left: 0px;
+        }
     }
 
     .upgrade-error {

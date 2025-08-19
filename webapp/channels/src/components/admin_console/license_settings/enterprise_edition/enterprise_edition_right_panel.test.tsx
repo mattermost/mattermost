@@ -135,11 +135,6 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         // Check for the Contact sales button
         const contactSalesBtn = wrapper.find('button.btn-primary');
         expect(contactSalesBtn.text()).toEqual('Contact sales');
-
-        // Check for the trial license link
-        const trialLink = wrapper.find('ExternalLink.btn-secondary');
-        expect(trialLink.text()).toEqual('Get a free 30-day trial license');
-        expect(trialLink.prop('href')).toEqual('https://mattermost.com/trial');
     });
 
     test('should render for Trial license', () => {

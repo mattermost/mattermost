@@ -154,8 +154,6 @@ const EnterpriseEditionRightPanel = ({
         );
     };
 
-
-
     const subtitle = () => {
         if (isTrialLicense) {
             return (
@@ -203,7 +201,7 @@ const EnterpriseEditionRightPanel = ({
     // For Entry SKU, render custom buttons
     if (isEntry) {
         return (
-            <div className='EnterpriseEditionRightPannel'>
+            <div className='EnterpriseEditionRightPannel entry'>
                 <div className='svg-image'>
                     {svgImage()}
                 </div>
@@ -226,7 +224,7 @@ const EnterpriseEditionRightPanel = ({
                     <ExternalLink
                         href='https://mattermost.com/trial'
                         location='enterprise_edition_right_panel_entry_trial'
-                        className='btn btn-secondary'
+                        className='btn btn-tertiary trial-btn'
                     >
                         <FormattedMessage
                             id='admin.license.getFreeTrial'
