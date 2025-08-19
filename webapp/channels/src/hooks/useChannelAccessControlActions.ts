@@ -6,6 +6,7 @@ import {useDispatch} from 'react-redux';
 
 import type {AccessControlVisualAST, AccessControlTestResult, AccessControlPolicy} from '@mattermost/types/access_control';
 import type {ChannelMembership} from '@mattermost/types/channels';
+import type {JobTypeBase} from '@mattermost/types/jobs';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {
@@ -16,6 +17,7 @@ import {
     createAccessControlPolicy,
 } from 'mattermost-redux/actions/access_control';
 import {getChannelMembers} from 'mattermost-redux/actions/channels';
+import {createJob} from 'mattermost-redux/actions/jobs';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 export interface ChannelAccessControlActions {
@@ -25,6 +27,7 @@ export interface ChannelAccessControlActions {
     getChannelPolicy: (channelId: string) => Promise<ActionResult<AccessControlPolicy>>;
     saveChannelPolicy: (policy: AccessControlPolicy) => Promise<ActionResult<AccessControlPolicy>>;
     getChannelMembers: (channelId: string, page?: number, perPage?: number) => Promise<ActionResult<ChannelMembership[]>>;
+    createJob: (job: JobTypeBase & { data: any }) => Promise<ActionResult>;
 }
 
 /**
@@ -86,6 +89,13 @@ export const useChannelAccessControlActions = (): ChannelAccessControlActions =>
          */
         getChannelMembers: (channelId: string, page = 0, perPage = 200) => {
             return dispatch(getChannelMembers(channelId, page, perPage));
+        },
+
+        /**
+         * Create a job for access control synchronization
+         */
+        createJob: (job: JobTypeBase & { data: any }) => {
+            return dispatch(createJob(job));
         },
     }), [dispatch]);
 };
