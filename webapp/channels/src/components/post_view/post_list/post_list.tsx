@@ -6,7 +6,7 @@ import React from 'react';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type {updateNewMessagesAtInChannel} from 'actions/global_actions';
-import {clearMarks, mark, shouldTrackPerformance} from 'actions/telemetry_actions.jsx';
+import {clearMarks, mark} from 'actions/telemetry_actions.jsx';
 import type {LoadPostsParameters, LoadPostsReturnValue, CanLoadMorePosts} from 'actions/views/channel';
 
 import LoadingScreen from 'components/loading_screen';
@@ -43,11 +43,6 @@ function markAndMeasureChannelSwitchEnd(fresh = false) {
         },
         canFail: true,
     });
-
-    // Send old performance metrics to Rudder
-    if (shouldTrackPerformance()) {
-        // TODO: Add Rudder tracking logic if needed
-    }
 
     // Clear all the metrics so that we can differentiate between a channel and team switch next time this is called
     clearMarks([

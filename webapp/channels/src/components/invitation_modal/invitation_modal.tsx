@@ -80,7 +80,6 @@ export type Props = {
     channelToInvite?: Channel;
     initialValue?: string;
     inviteAsGuest?: boolean;
-    roleForTrackFlow: {started_by_role: string};
     focusOriginElement?: string;
 }
 
