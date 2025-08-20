@@ -66,9 +66,6 @@ func (a *App) Srv() *Server {
 func (a *App) Log() *mlog.Logger {
 	return a.ch.srv.Log()
 }
-func (a *App) NotificationsLog() *mlog.Logger {
-	return a.ch.srv.NotificationsLog()
-}
 
 func (a *App) AccountMigration() einterfaces.AccountMigrationInterface {
 	return a.ch.AccountMigration
