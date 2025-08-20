@@ -93,6 +93,25 @@ func TestCreateCPAField(t *testing.T) {
 			require.Equal(t, createdField, &wsField)
 		})
 	}, "a user with admin permissions should be able to create the field")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		managedField := &model.PropertyField{
+			Name:  model.NewId(),
+			Type:  model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsManaged: "admin",
+				"visibility": "when_set",
+			},
+		}
+
+		createdManagedField, resp, err := client.CreateCPAField(context.Background(), managedField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotZero(t, createdManagedField.ID)
+		require.Equal(t, managedField.Name, createdManagedField.Name)
+		require.Equal(t, "admin", createdManagedField.Attrs[model.CustomProfileAttributesPropertyAttrsManaged])
+		require.Equal(t, "when_set", createdManagedField.Attrs["visibility"])
+	}, "admin should be able to create a managed field")
 }
 
 func TestListCPAFields(t *testing.T) {
@@ -282,6 +301,48 @@ func TestPatchCPAField(t *testing.T) {
 			require.Empty(t, ldap)
 		})
 	}, "a user with admin permissions should be able to patch the field")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		// Create a regular field first
+		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+		})
+		require.NoError(t, err)
+
+		createdField, appErr := th.App.CreateCPAField(field)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdField)
+
+		// Verify field is not isManaged initially
+		require.Empty(t, createdField.Attrs[model.CustomProfileAttributesPropertyAttrsManaged])
+
+		// Patch to make it managed
+		managedPatch := &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsManaged: "admin",
+			},
+		}
+
+		patchedManagedField, resp, err := client.PatchCPAField(context.Background(), createdField.ID, managedPatch)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Equal(t, "admin", patchedManagedField.Attrs[model.CustomProfileAttributesPropertyAttrsManaged])
+
+		// Patch to remove managed attribute
+		unManagedPatch := &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsManaged: "",
+			},
+		}
+
+		patchedUnmanagedField, resp, err := client.PatchCPAField(context.Background(), patchedManagedField.ID, unManagedPatch)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		// Verify managed attribute is removed or empty
+		require.Empty(t, patchedUnmanagedField.Attrs[model.CustomProfileAttributesPropertyAttrsManaged])
+	}, "admin should be able to toggle managed attribute on existing field")
 }
 
 func TestDeleteCPAField(t *testing.T) {
