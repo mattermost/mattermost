@@ -123,7 +123,6 @@ export type ClientConfig = {
     ExperimentalEnablePostMetadata: string;
     ExperimentalGroupUnreadChannels: string;
     ExperimentalPrimaryTeam: string;
-    ExperimentalViewArchivedChannels: string;
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
     FeatureFlagCallsEnabled: string;
@@ -436,7 +435,6 @@ export type TeamSettings = {
     MaxNotificationsPerChannel: number;
     EnableConfirmNotificationsToChannel: boolean;
     TeammateNameDisplay: string;
-    ExperimentalViewArchivedChannels: boolean;
     ExperimentalEnableAutomaticReplies: boolean;
     LockTeammateNameDisplay: boolean;
     ExperimentalPrimaryTeam: string;
@@ -497,18 +495,6 @@ export type ExperimentalAuditSettings = {
     FileMaxQueueSize: number;
     AdvancedLoggingJSON: Record<string, any>;
     Certificate: string;
-};
-
-export type NotificationLogSettings = {
-    EnableConsole: boolean;
-    ConsoleLevel: string;
-    ConsoleJson: boolean;
-    EnableColor: boolean;
-    EnableFile: boolean;
-    FileLevel: string;
-    FileJson: boolean;
-    FileLocation: string;
-    AdvancedLoggingJSON: Record<string, any>;
 };
 
 export type PasswordSettings = {
@@ -1027,7 +1013,6 @@ export type AdminConfig = {
     SqlSettings: SqlSettings;
     LogSettings: LogSettings;
     ExperimentalAuditSettings: ExperimentalAuditSettings;
-    NotificationLogSettings: NotificationLogSettings;
     PasswordSettings: PasswordSettings;
     FileSettings: FileSettings;
     EmailSettings: EmailSettings;

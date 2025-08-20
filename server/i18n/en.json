@@ -1690,10 +1690,6 @@
     "translation": "shrug"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
-  },
-  {
     "id": "api.config.get_config.restricted_merge.app_error",
     "translation": "Failed to merge given config."
   },
@@ -4465,18 +4461,6 @@
   {
     "id": "api.user.verify_email.token_parse.error",
     "translation": "Failed to parse token data from email verification"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Cannot retrieve posts for an archived channel"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Cannot retrieve users for an archived channel"
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Cannot retrieve bookmarks for an archived channel"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -9199,6 +9183,10 @@
   {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
     "translation": "The file name must not be a directory."
+  },
+  {
+    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
+    "translation": "Hiding archived channels is no longer supported. Make these channels private and remove members instead."
   },
   {
     "id": "model.config.is_valid.export.directory.app_error",
