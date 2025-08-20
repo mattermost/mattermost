@@ -11,7 +11,6 @@ type CtaButtonsProps = {
     learnMoreText?: string;
     actionLink?: string;
     actionText?: React.ReactNode;
-    telemetryAction?: string;
     actionButtonCallback?: () => void;
 };
 
@@ -20,16 +19,11 @@ const CtaButtons = ({
     learnMoreText,
     actionLink,
     actionText,
-    telemetryAction,
     actionButtonCallback,
 }: CtaButtonsProps): JSX.Element => {
     const history = useHistory();
 
     const getClickHandler = (id: string, link?: string) => () => {
-        if (telemetryAction) {
-            // Telemetry tracking removed
-        }
-
         if (id === 'cta' && typeof actionButtonCallback === 'function') {
             actionButtonCallback();
         } else if (link?.startsWith('/')) {

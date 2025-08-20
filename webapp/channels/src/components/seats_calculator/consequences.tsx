@@ -18,9 +18,6 @@ type Props = {
 }
 
 export default function Consequences(props: Props) {
-    const telemetryHandler = () => {
-        // Telemetry tracking removed
-    };
     let text = (
         <FormattedMessage
             defaultMessage={
@@ -30,7 +27,6 @@ export default function Consequences(props: Props) {
             values={{
                 a: (chunks: React.ReactNode) => (
                     <ExternalLink
-                        onClick={telemetryHandler}
                         href={
                             props.isCloud ? CloudLinks.BILLING_DOCS : HostedCustomerLinks.BILLING_DOCS
                         }
@@ -73,7 +69,6 @@ export default function Consequences(props: Props) {
                     a: (chunks: React.ReactNode) => (
                         <ExternalLink
                             location='seats_calculator_consequences'
-                            onClick={telemetryHandler}
                             href={props.isCloud ? CloudLinks.BILLING_DOCS : HostedCustomerLinks.BILLING_DOCS}
                         >
                             {chunks}

@@ -199,8 +199,6 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
     }
 
     componentDidUpdate(prevProps: Props) {
-        // Telemetry tracking removed
-
         this.handleRHSFocus(prevProps);
 
         const {actions, isChannelFiles, isPinnedPosts, rhsChannel, channel} = this.props;

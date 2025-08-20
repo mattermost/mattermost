@@ -75,7 +75,6 @@ const OverageUsersBanner = () => {
     const handleContactSalesClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
 
-        // Telemetry tracking removed
         openContactSales();
     };
 

@@ -32,8 +32,6 @@ const TrialBenefitsModalStepMore = (
         if (onClick) {
             onClick();
         }
-
-        // Telemetry tracking removed
     }, [route, onClick]);
 
     return (

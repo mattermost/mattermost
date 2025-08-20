@@ -130,8 +130,6 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
     handleCollapse = () => {
         const {category} = this.props;
 
-        // Telemetry tracking removed
-
         this.props.actions.setCategoryCollapsed(category.id, !category.collapsed);
     };
 

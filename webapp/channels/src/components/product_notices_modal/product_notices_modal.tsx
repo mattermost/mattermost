@@ -184,10 +184,6 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
         return null;
     }
 
-    private trackClickEvent = () => {
-        // Telemetry tracking removed
-    };
-
     private renderActionButton(presentNoticeInfo: ProductNotice) {
         const noOfNotices = this.state.noticesData.length;
 
@@ -198,7 +194,6 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
                     className='GenericModal__button actionButton'
                     location='product_notices_modal'
                     href={presentNoticeInfo.actionParam || ''}
-                    onClick={this.trackClickEvent}
                 >
                     {presentNoticeInfo.actionText}
                 </ExternalLink>
@@ -211,7 +206,6 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
         const presentNoticeInfo = this.state.noticesData[this.state.presentNoticeIndex];
         const noOfNotices = this.state.noticesData.length;
         if (noOfNotices === 1 && presentNoticeInfo.actionText) {
-            this.trackClickEvent();
             window.open(presentNoticeInfo.actionParam, '_blank');
         } else if (this.state.presentNoticeIndex + 1 < noOfNotices) {
             const nextNoticeInfo = this.state.noticesData[this.state.presentNoticeIndex + 1];

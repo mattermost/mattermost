@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import moment from 'moment';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {matchPath, useLocation} from 'react-router-dom';
@@ -55,12 +55,6 @@ const TrialBenefitsModal = ({
     const isCloud = license?.Cloud === 'true';
 
     const openInvitePeopleModal = useOpenInvitePeopleModal();
-
-    useEffect(() => {
-        if (!trialJustStarted) {
-            // Telemetry tracking removed
-        }
-    }, []);
 
     // by default all licence last 30 days plus 8 hours. We use this value as a fallback for the trial license duration information shown in the modal
     const trialLicenseDuration = (1000 * 60 * 60 * 24 * 30) + (1000 * 60 * 60 * 8);
@@ -203,14 +197,6 @@ const TrialBenefitsModal = ({
         handleOnClose();
     };
 
-    const handleOnPrevNextSlideClick = useCallback((slideIndex: number) => {
-        const slideId = steps[slideIndex - 1]?.id;
-
-        if (slideId) {
-            // Telemetry tracking removed
-        }
-    }, [steps]);
-
     const getSlides = useCallback(() => steps.map(({id, ...rest}) => (
         <TrialBenefitsModalStep
             {...rest}
@@ -306,8 +292,6 @@ const TrialBenefitsModal = ({
                 dataSlides={getSlides()}
                 id={'trialBenefitsModalCarousel'}
                 infiniteSlide={false}
-                onNextSlideClick={handleOnPrevNextSlideClick}
-                onPrevSlideClick={handleOnPrevNextSlideClick}
             />
         );
     };

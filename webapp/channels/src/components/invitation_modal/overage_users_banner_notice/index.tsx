@@ -86,16 +86,11 @@ const OverageUsersBannerNotice = () => {
                 defaultMessage='Notify your Customer Success Manager on your next true-up check. <a></a>'
                 values={{
                     a: () => {
-                        const handleClick = () => {
-                            // Telemetry tracking removed
-                        };
-
                         return (
                             <ExternalLink
                                 location='overage_users_banner'
                                 className='overage_users_banner__button'
                                 href={LicenseLinks.CONTACT_SALES}
-                                onClick={handleClick}
                             >
                                 <FormattedMessage {...cta}/>
                             </ExternalLink>
