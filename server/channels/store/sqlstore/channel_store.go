@@ -199,7 +199,8 @@ func channelMemberToSlice(member *model.ChannelMember) []any {
 type channelMemberWithSchemeRolesList []channelMemberWithSchemeRoles
 
 func getChannelRoles(schemeGuest, schemeUser, schemeAdmin bool, defaultTeamGuestRole, defaultTeamUserRole, defaultTeamAdminRole, defaultChannelGuestRole, defaultChannelUserRole, defaultChannelAdminRole string,
-	roles []string) rolesInfo {
+	roles []string,
+) rolesInfo {
 	result := rolesInfo{
 		roles:         []string{},
 		explicitRoles: []string{},
@@ -255,13 +256,7 @@ func getChannelRoles(schemeGuest, schemeUser, schemeAdmin bool, defaultTeamGuest
 		}
 	}
 	for _, impliedRole := range schemeImpliedRoles {
-		alreadyThere := false
-		for _, role := range result.roles {
-			if role == impliedRole {
-				alreadyThere = true
-				break
-			}
-		}
+		alreadyThere := slices.Contains(result.roles, impliedRole)
 		if !alreadyThere {
 			result.roles = append(result.roles, impliedRole)
 		}
@@ -467,13 +462,7 @@ func (db allChannelMember) Process() (string, string) {
 		}
 	}
 	for _, impliedRole := range schemeImpliedRoles {
-		alreadyThere := false
-		for _, role := range roles {
-			if role == impliedRole {
-				alreadyThere = true
-				break
-			}
-		}
+		alreadyThere := slices.Contains(roles, impliedRole)
 		if !alreadyThere {
 			roles = append(roles, impliedRole)
 		}
@@ -576,38 +565,19 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *sqlxTxWrapper, channe
 		"purpose":     publicChannel.Purpose,
 	}
 	var err error
-	if s.DriverName() == model.DatabaseDriverMysql {
-		_, err = transaction.NamedExec(`
-			INSERT INTO
-			    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
-			VALUES
-			    (:id, :deleteat, :teamid, :displayname, :name, :header, :purpose)
-		`, vals)
-		if err != nil && IsUniqueConstraintError(err, []string{"PRIMARY"}) {
-			_, err = transaction.NamedExec(`UPDATE PublicChannels
-				SET deleteAt = :deleteat,
-			    TeamId = :teamid,
-			    DisplayName = :displayname,
-			    Name = :name,
-			    Header = :header,
-			    Purpose = :purpose
-			    WHERE Id=:id`, vals)
-		}
-	} else {
-		_, err = transaction.NamedExec(`
-			INSERT INTO
-			    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
-			VALUES
-			    (:id, :deleteat, :teamid, :displayname, :name, :header, :purpose)
-			ON CONFLICT (id) DO UPDATE
-			SET DeleteAt = :deleteat,
-			    TeamId = :teamid,
-			    DisplayName = :displayname,
-			    Name = :name,
-			    Header = :header,
-			    Purpose = :purpose;
-		`, vals)
-	}
+	_, err = transaction.NamedExec(`
+		INSERT INTO
+		    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
+		VALUES
+		    (:id, :deleteat, :teamid, :displayname, :name, :header, :purpose)
+		ON CONFLICT (id) DO UPDATE
+		SET DeleteAt = :deleteat,
+		    TeamId = :teamid,
+		    DisplayName = :displayname,
+		    Name = :name,
+		    Header = :header,
+		    Purpose = :purpose;
+	`, vals)
 	if err != nil {
 		return errors.Wrap(err, "failed to insert public channel")
 	}
@@ -748,12 +718,8 @@ func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model
 	insert := s.getQueryBuilder().
 		Insert("Channels").
 		Columns(channelSliceColumns(false)...).
-		Values(channelToSlice(channel)...)
-	if s.DriverName() == model.DatabaseDriverMysql {
-		insert = insert.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Id=Id"))
-	} else {
-		insert = insert.SuffixExpr(sq.Expr("ON CONFLICT (TeamId, Name) DO NOTHING"))
-	}
+		Values(channelToSlice(channel)...).
+		SuffixExpr(sq.Expr("ON CONFLICT (TeamId, Name) DO NOTHING"))
 
 	query, params, err := insert.ToSql()
 	if err != nil {
@@ -761,13 +727,11 @@ func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model
 	}
 
 	insertResult, err := transaction.Exec(query, params...)
-
 	if err != nil {
 		return nil, errors.Wrapf(err, "save_channel: id=%s", channel.Id)
 	}
 
 	rowAffected, err := insertResult.RowsAffected()
-
 	if err != nil {
 		return nil, errors.Wrapf(err, "save_channel: id=%s", channel.Id)
 	}
@@ -874,7 +838,6 @@ func (s SqlChannelStore) GetChannelUnread(channelId, userId string) (*model.Chan
                 AND UserId = ?
                 AND DeleteAt = 0`,
 		channelId, userId)
-
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Channel", fmt.Sprintf("channelId=%s,userId=%s", channelId, userId))
@@ -895,8 +858,19 @@ func (s SqlChannelStore) InvalidateChannelByName(teamId, name string) {
 func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, error) {
 	pl := model.NewPostList()
 
+	query := s.getQueryBuilder().
+		Select(postSliceColumns()...).
+		Column("(SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount").
+		From("Posts p").
+		Where(sq.Eq{
+			"IsPinned":  true,
+			"ChannelId": channelId,
+			"DeleteAt":  0,
+		}).
+		OrderBy("CreateAt ASC")
+
 	posts := []*model.Post{}
-	if err := s.GetReplica().Select(&posts, "SELECT *, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount  FROM Posts p WHERE IsPinned = true AND ChannelId = ? AND DeleteAt = 0 ORDER BY CreateAt ASC", channelId); err != nil {
+	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
 	for _, post := range posts {
@@ -1143,13 +1117,11 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, opts *model.C
 func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, error) {
 	query := s.getQueryBuilder().
 		Select(channelSliceColumns(true, "Channels")...).
-		From("Channels, ChannelMembers, Teams").
+		From("Channels").
+		InnerJoin("ChannelMembers ON (Channels.Id = ChannelMembers.ChannelId)").
+		LeftJoin("Teams ON (Channels.TeamId = Teams.Id)").
 		Where(
-			sq.And{
-				sq.Expr("Channels.Id = ChannelMembers.ChannelId"),
-				sq.Expr("Channels.TeamId = Teams.Id"),
-				sq.Eq{"ChannelMembers.UserId": userId},
-			},
+			sq.Eq{"ChannelMembers.UserId": userId},
 		).
 		OrderBy("Channels.Id ASC")
 
@@ -1170,6 +1142,7 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 					sq.GtOrEq{"Channels.DeleteAt": lastDeleteAt},
 				},
 				sq.Or{
+					sq.Eq{"Teams.Id": nil},
 					sq.Eq{"Teams.DeleteAt": 0},
 					sq.GtOrEq{"Teams.DeleteAt": lastDeleteAt},
 				},
@@ -1180,7 +1153,10 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 		// Don't include archived channels or channels from deleted teams
 		query = query.Where(sq.And{
 			sq.Eq{"Channels.DeleteAt": 0},
-			sq.Eq{"Teams.DeleteAt": 0},
+			sq.Or{
+				sq.Eq{"Teams.DeleteAt": 0},
+				sq.Eq{"Teams.Id": nil},
+			},
 		})
 	}
 
@@ -1457,7 +1433,6 @@ func (s SqlChannelStore) GetChannelCounts(teamId string, userId string) (*model.
 				AND	(TeamId = ? OR TeamId = '')
 				AND	DeleteAt = 0
 				ORDER BY DisplayName`, userId, teamId)
-
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get channels count with teamId=%s and userId=%s", teamId, userId)
 	}
@@ -1923,45 +1898,19 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 		return nil, store.NewErrInvalidInput("ChannelMember", "NotifyProps", props)
 	}
 
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		sql, args, err2 := s.getQueryBuilder().
-			Update("channelmembers").
-			Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", jsonNotifyProps)).
-			Set("LastUpdateAt", model.GetMillis()).
-			Where(sq.Eq{
-				"userid":    userID,
-				"channelid": channelID,
-			}).ToSql()
-		if err2 != nil {
-			return nil, errors.Wrapf(err2, "UpdateMemberNotifyProps_Update_Postgres_ToSql channelID=%s and userID=%s", channelID, userID)
-		}
-
-		_, err = tx.Exec(sql, args...)
-	} else if len(props) > 0 {
-		// It's difficult to construct a SQL query for MySQL
-		// to handle a case of empty map. So we just ignore it.
-
-		// unpack the keys and values to pass to MySQL.
-		jsonArgs, jsonSQL := constructMySQLJSONArgs(props)
-		jsonExpr := sq.Expr(fmt.Sprintf("JSON_SET(NotifyProps, %s)", jsonSQL), jsonArgs...)
-
-		// Example: UPDATE ChannelMembers
-		// SET NotifyProps = JSON_SET(NotifyProps, '$.mark_unread', '"yes"' [, ...])
-		// WHERE ...
-		sql, args, err2 := s.getQueryBuilder().
-			Update("ChannelMembers").
-			Set("NotifyProps", jsonExpr).
-			Set("LastUpdateAt", model.GetMillis()).
-			Where(sq.Eq{
-				"UserId":    userID,
-				"ChannelId": channelID,
-			}).ToSql()
-		if err2 != nil {
-			return nil, errors.Wrapf(err2, "UpdateMemberNotifyProps_Update_MySQL_ToSql channelID=%s and userID=%s", channelID, userID)
-		}
-
-		_, err = tx.Exec(sql, args...)
+	sqlStr, args, err2 := s.getQueryBuilder().
+		Update("channelmembers").
+		Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", jsonNotifyProps)).
+		Set("LastUpdateAt", model.GetMillis()).
+		Where(sq.Eq{
+			"userid":    userID,
+			"channelid": channelID,
+		}).ToSql()
+	if err2 != nil {
+		return nil, errors.Wrapf(err2, "UpdateMemberNotifyProps_Update_Postgres_ToSql channelID=%s and userID=%s", channelID, userID)
 	}
+
+	_, err = tx.Exec(sqlStr, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update ChannelMember with channelID=%s and userID=%s", channelID, userID)
 	}
@@ -2015,23 +1964,11 @@ func (s SqlChannelStore) PatchMultipleMembersNotifyProps(members []*model.Channe
 	// Update the channel members
 	builder := s.getQueryBuilder().Update("ChannelMembers")
 
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		jsonNotifyProps := string(model.ToJSON(notifyProps))
-		builder = builder.Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", jsonNotifyProps))
-	} else {
-		// Unpack the keys and values to pass to MySQL
-		jsonArgs, jsonSQL := constructMySQLJSONArgs(notifyProps)
-		jsonExpr := sq.Expr(fmt.Sprintf("JSON_SET(NotifyProps, %s)", jsonSQL), jsonArgs...)
-
-		// Example: UPDATE ChannelMembers
-		// SET NotifyProps = JSON_SET(NotifyProps, '$.mark_unread', '"yes"' [, ...])
-		// WHERE ...
-		builder = builder.Set("NotifyProps", jsonExpr)
-	}
-
-	builder = builder.Set("LastUpdateAt", model.GetMillis())
-
-	builder = builder.Where(whereClause)
+	jsonNotifyProps := string(model.ToJSON(notifyProps))
+	builder = builder.
+		Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", jsonNotifyProps)).
+		Set("LastUpdateAt", model.GetMillis()).
+		Where(whereClause)
 
 	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
@@ -2070,22 +2007,34 @@ func (s SqlChannelStore) PatchMultipleMembersNotifyProps(members []*model.Channe
 	return updated, nil
 }
 
-func (s SqlChannelStore) GetMembers(channelID string, offset, limit int) (model.ChannelMembers, error) {
-	sql, args, err := s.channelMembersForTeamWithSchemeSelectQuery.
+func (s SqlChannelStore) GetMembers(opts model.ChannelMembersGetOptions) (model.ChannelMembers, error) {
+	query := s.channelMembersForTeamWithSchemeSelectQuery.
 		Where(sq.Eq{
-			"ChannelId": channelID,
-		}).
-		Limit(uint64(limit)).
-		Offset(uint64(offset)).
-		ToSql()
+			"ChannelId": opts.ChannelID,
+		})
+
+	if opts.UpdatedAfter > 0 {
+		query = query.Where(sq.Gt{"ChannelMembers.LastUpdateAt": opts.UpdatedAfter})
+		query = query.OrderBy("ChannelMembers.LastUpdateAt")
+	}
+
+	if opts.Limit > 0 {
+		query = query.Limit(uint64(opts.Limit))
+	}
+
+	if opts.Offset > 0 {
+		query = query.Offset(uint64(opts.Offset))
+	}
+
+	sql, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrapf(err, "GetMember_ToSql ChannelID=%s", channelID)
+		return nil, errors.Wrapf(err, "GetMember_ToSql ChannelID=%s", opts.ChannelID)
 	}
 
 	dbMembers := channelMemberWithSchemeRolesList{}
 	err = s.GetReplica().Select(&dbMembers, sql, args...)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get ChannelMembers with channelId=%s", channelID)
+		return nil, errors.Wrapf(err, "failed to get ChannelMembers with channelId=%s", opts.ChannelID)
 	}
 
 	return dbMembers.ToModel(), nil
@@ -2102,7 +2051,6 @@ func (s SqlChannelStore) GetChannelMembersTimezones(channelId string) ([]model.S
 			Users  ON ChannelMembers.UserId = Id
 		WHERE ChannelId = ?
 	`, channelId)
-
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find user timezones for users in channels with channelId=%s", channelId)
 	}
@@ -2176,11 +2124,7 @@ func (s SqlChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Conte
 			}
 		}
 
-		if channel.LastPostAt > channel.LastViewedAt {
-			readTimes[channel.Id] = channel.LastPostAt
-		} else {
-			readTimes[channel.Id] = channel.LastViewedAt
-		}
+		readTimes[channel.Id] = max(channel.LastPostAt, channel.LastViewedAt)
 	}
 
 	return channelsWithUnreads, channelsWithMentions, readTimes, nil
@@ -2225,7 +2169,7 @@ func (s SqlChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID st
 func (s SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 }
 
-func (s SqlChannelStore) GetMemberForPost(postId string, userId string, includeArchivedChannels bool) (*model.ChannelMember, error) {
+func (s SqlChannelStore) GetMemberForPost(postId string, userId string) (*model.ChannelMember, error) {
 	var dbMember channelMemberWithSchemeRoles
 	query := `
 		SELECT
@@ -2266,9 +2210,6 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string, includeA
 		AND
 			Posts.Id = ?`
 
-	if !includeArchivedChannels {
-		query += " AND Channels.DeleteAt = 0"
-	}
 	if err := s.GetReplica().Get(&dbMember, query, userId, postId); err != nil {
 		return nil, errors.Wrapf(err, "failed to get ChannelMember with postId=%s and userId=%s", postId, userId)
 	}
@@ -2439,27 +2380,15 @@ func (s SqlChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID s
 	selectStr := "GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount"
 
 	if includeTimezones {
-		if s.DriverName() == model.DatabaseDriverMysql {
-			selectStr += `,
-				COUNT(DISTINCT
-				(
-					CASE WHEN JSON_EXTRACT(Timezone, '$.useAutomaticTimezone') = 'true' AND LENGTH(JSON_UNQUOTE(JSON_EXTRACT(Timezone, '$.automaticTimezone'))) > 0
-					THEN JSON_EXTRACT(Timezone, '$.automaticTimezone')
-					WHEN JSON_EXTRACT(Timezone, '$.useAutomaticTimezone') = 'false' AND LENGTH(JSON_UNQUOTE(JSON_EXTRACT(Timezone, '$.manualTimezone'))) > 0
-					THEN JSON_EXTRACT(Timezone, '$.manualTimezone')
-					END
-				)) AS ChannelMemberTimezonesCount`
-		} else if s.DriverName() == model.DatabaseDriverPostgres {
-			selectStr += `,
-				COUNT(DISTINCT
-				(
-					CASE WHEN Timezone->>'useAutomaticTimezone' = 'true' AND length(Timezone->>'automaticTimezone') > 0
-					THEN Timezone->>'automaticTimezone'
-					WHEN Timezone->>'useAutomaticTimezone' = 'false' AND length(Timezone->>'manualTimezone') > 0
-					THEN Timezone->>'manualTimezone'
-					END
-				)) AS ChannelMemberTimezonesCount`
-		}
+		selectStr += `,
+			COUNT(DISTINCT
+			(
+				CASE WHEN Timezone->>'useAutomaticTimezone' = 'true' AND length(Timezone->>'automaticTimezone') > 0
+				THEN Timezone->>'automaticTimezone'
+				WHEN Timezone->>'useAutomaticTimezone' = 'false' AND length(Timezone->>'manualTimezone') > 0
+				THEN Timezone->>'manualTimezone'
+				END
+			)) AS ChannelMemberTimezonesCount`
 	}
 
 	query := s.getQueryBuilder().
@@ -2500,7 +2429,6 @@ func (s SqlChannelStore) GetPinnedPostCount(channelId string, allowFromCache boo
 			IsPinned = true
 			AND ChannelId = ?
 			AND DeleteAt = 0`, channelId)
-
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to count pinned Posts with channelId=%s", channelId)
 	}
@@ -2514,16 +2442,12 @@ func (s SqlChannelStore) InvalidateGuestCount(channelId string) {
 
 //nolint:unparam
 func (s SqlChannelStore) GetGuestCount(channelId string, allowFromCache bool) (int64, error) {
-	var indexHint string
-	if s.DriverName() == model.DatabaseDriverMysql {
-		indexHint = `USE INDEX(idx_channelmembers_channel_id_scheme_guest_user_id)`
-	}
 	var count int64
 	err := s.GetReplica().Get(&count, `
 		SELECT
 			count(*)
 		FROM
-			ChannelMembers `+indexHint+`,
+			ChannelMembers,
 			Users
 		WHERE
 			ChannelMembers.UserId = Users.Id
@@ -2669,7 +2593,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 		return times, nil
 	}
 
-	var msgCountQuery, msgCountQueryRoot, lastViewedQuery = sq.Case("ChannelId"), sq.Case("ChannelId"), sq.Case("ChannelId")
+	msgCountQuery, msgCountQueryRoot, lastViewedQuery := sq.Case("ChannelId"), sq.Case("ChannelId"), sq.Case("ChannelId")
 
 	for _, t := range lastPostAtTimes {
 		times[t.Id] = t.LastPostAt
@@ -2890,7 +2814,6 @@ func (s SqlChannelStore) IncrementMentionCount(channelId string, userIDs []strin
 			"ChannelId": channelId,
 		}).
 		ToSql()
-
 	if err != nil {
 		return errors.Wrap(err, "IncrementMentionCount_Tosql")
 	}
@@ -3534,7 +3457,7 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 		// Keep the number of likeTerms same as the number of columns
 		// (c.Name, c.DisplayName, c.Purpose, c.Id?)
 		likeTerms := make([]any, len(strings.Split(likeFields, ",")))
-		for i := 0; i < len(likeTerms); i++ {
+		for i := range likeTerms {
 			likeTerms[i] = likeTerm
 		}
 		likeClause = strings.ReplaceAll(likeClause, ":LikeTerm", "?")
@@ -3673,7 +3596,7 @@ func (s SqlChannelStore) buildLIKEClause(term string, searchColumns string) (lik
 
 	// Prepare the LIKE portion of the query.
 	var searchFields []string
-	for _, field := range strings.Split(searchColumns, ", ") {
+	for field := range strings.SplitSeq(searchColumns, ", ") {
 		if s.DriverName() == model.DatabaseDriverPostgres {
 			searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower(%s) escape '*'", field, ":LikeTerm"))
 		} else {
@@ -3727,27 +3650,16 @@ func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) 
 	}, fulltextTerm)
 
 	// Prepare the FULLTEXT portion of the query.
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		fulltextTerm = strings.ReplaceAll(fulltextTerm, "|", "")
+	fulltextTerm = strings.ReplaceAll(fulltextTerm, "|", "")
 
-		splitTerm := strings.Fields(fulltextTerm)
-		for i, t := range strings.Fields(fulltextTerm) {
-			splitTerm[i] = t + ":*"
-		}
-
-		fulltextTerm = strings.Join(splitTerm, " & ")
-
-		fulltextClause = fmt.Sprintf("((to_tsvector('%[1]s', %[2]s)) @@ to_tsquery('%[1]s', :FulltextTerm))", s.pgDefaultTextSearchConfig, convertMySQLFullTextColumnsToPostgres(searchColumns))
-	} else if s.DriverName() == model.DatabaseDriverMysql {
-		splitTerm := strings.Fields(fulltextTerm)
-		for i, t := range strings.Fields(fulltextTerm) {
-			splitTerm[i] = "+" + t + "*"
-		}
-
-		fulltextTerm = strings.Join(splitTerm, " ")
-
-		fulltextClause = fmt.Sprintf("MATCH(%s) AGAINST (:FulltextTerm IN BOOLEAN MODE)", searchColumns)
+	splitTerm := strings.Fields(fulltextTerm)
+	for i, t := range strings.Fields(fulltextTerm) {
+		splitTerm[i] = t + ":*"
 	}
+
+	fulltextTerm = strings.Join(splitTerm, " & ")
+
+	fulltextClause = fmt.Sprintf("((to_tsvector('%[1]s', %[2]s)) @@ to_tsquery('%[1]s', :FulltextTerm))", s.pgDefaultTextSearchConfig, convertMySQLFullTextColumnsToPostgres(searchColumns))
 
 	return
 }
@@ -3874,7 +3786,7 @@ func (s SqlChannelStore) searchGroupChannelsQuery(userId, term string, isPostgre
 		}).
 		GroupBy("c.Id")
 
-	return s.getQueryBuilder().Select("cc.*").
+	return s.getQueryBuilder().Select(channelSliceColumns(true, "cc")...).
 		FromSelect(cc, "cc").
 		Join("ChannelMembers cm on cc.Id = cm.ChannelId").
 		Join("Users u on u.Id = cm.UserId").
@@ -4169,7 +4081,7 @@ func (s SqlChannelStore) ClearAllCustomRoleAssignments() (err error) {
 
 			var newRoles []string
 
-			for _, role := range strings.Fields(member.Roles) {
+			for role := range strings.FieldsSeq(member.Roles) {
 				for name := range builtInRoles {
 					if name == role {
 						newRoles = append(newRoles, role)
@@ -4324,22 +4236,21 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 }
 
 func (s SqlChannelStore) GetChannelsBatchForIndexing(startTime int64, startChannelID string, limit int) ([]*model.Channel, error) {
-	query :=
-		`SELECT
-			 *
-		 FROM
-			 Channels
-		 WHERE
-			 CreateAt > ?
-		OR
-			(CreateAt = ? AND Id > ?)
-		 ORDER BY
-			 CreateAt ASC, Id ASC
-		 LIMIT
-			 ?`
+	query := s.getQueryBuilder().
+		Select(channelSliceColumns(false)...).
+		From("Channels").
+		Where(sq.Or{
+			sq.Gt{"CreateAt": startTime},
+			sq.And{
+				sq.Eq{"CreateAt": startTime},
+				sq.Gt{"Id": startChannelID},
+			},
+		}).
+		OrderBy("CreateAt ASC", "Id ASC").
+		Limit(uint64(limit))
 
 	channels := []*model.Channel{}
-	err := s.GetSearchReplicaX().Select(&channels, query, startTime, startTime, startChannelID, limit)
+	err := s.GetSearchReplicaX().SelectBuilder(&channels, query)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Channels")
 	}
@@ -4384,7 +4295,7 @@ func (s SqlChannelStore) UpdateMembersRole(channelID string, adminIDs []string) 
 	// A SELECT and a UPDATE query are needed.
 	// Once we only support PostgreSQL, this can be done in a single query using RETURNING.
 	query, args, err := s.getQueryBuilder().
-		Select("*").
+		Select(channelMemberSliceColumns()...).
 		From("ChannelMembers").
 		Where(sq.Eq{"ChannelID": channelID}).
 		Where(sq.Or{sq.Eq{"SchemeGuest": false}, sq.Expr("SchemeGuest IS NULL")}).
@@ -4493,7 +4404,7 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 		return nil, errors.Wrap(err, "get_team_for_channel_nested_tosql")
 	}
 	query, args, err := s.getQueryBuilder().
-		Select("*").
+		Select(teamSliceColumns()...).
 		From("Teams").Where(sq.Expr("Id = ("+nestedQ+")", nestedArgs...)).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "get_team_for_channel_tosql")

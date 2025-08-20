@@ -15,7 +15,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -106,15 +105,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 	if session == nil || session.Id == "" {
 		session, appErr = a.createSessionForUserAccessToken(c, token)
 		if appErr != nil {
-			detailedError := ""
-			statusCode := http.StatusUnauthorized
-			if appErr.Id != "app.user_access_token.invalid_or_missing" {
-				detailedError = appErr.Error()
-				statusCode = appErr.StatusCode
-			} else {
-				c.Logger().Warn("Error while creating session for user access token", mlog.Err(appErr))
-			}
-			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": token, "Error": detailedError}, "", statusCode)
+			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": token}, "", appErr.StatusCode).Wrap(appErr)
 		}
 	}
 
@@ -332,13 +323,13 @@ func (a *App) ExtendSessionExpiryIfNeeded(rctx request.CTX, session *model.Sessi
 
 	// Only extend the expiry if the lessor of 1% or 1 day has elapsed within the
 	// current session duration.
-	threshold := int64(math.Min(float64(sessionLength)*0.01, float64(model.DayInMilliseconds)))
-	// Minimum session length is 1 day as of this writing, therefore a minimum ~14 minutes threshold.
-	// However we'll add a sanity check here in case that changes. Minimum 5 minute threshold,
-	// meaning we won't write a new expiry more than every 5 minutes.
-	if threshold < 5*60*1000 {
-		threshold = 5 * 60 * 1000
-	}
+	threshold := max(
+		int64(math.Min(float64(sessionLength)*0.01, float64(model.DayInMilliseconds))),
+		// Minimum session length is 1 day as of this writing, therefore a minimum ~14 minutes threshold.
+		// However we'll add a sanity check here in case that changes. Minimum 5 minute threshold,
+		// meaning we won't write a new expiry more than every 5 minutes.
+		5*60*1000,
+	)
 
 	now := model.GetMillis()
 	elapsed := now - (session.ExpiresAt - sessionLength)
@@ -346,7 +337,7 @@ func (a *App) ExtendSessionExpiryIfNeeded(rctx request.CTX, session *model.Sessi
 		return false
 	}
 
-	auditRec := a.MakeAuditRecord(rctx, "extendSessionExpiry", audit.Fail)
+	auditRec := a.MakeAuditRecord(rctx, model.AuditEventExtendSessionExpiry, model.AuditStatusFail)
 	defer a.LogAuditRec(rctx, auditRec, nil)
 	auditRec.AddEventPriorState(session)
 

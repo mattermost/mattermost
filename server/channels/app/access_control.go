@@ -5,6 +5,7 @@ package app
 
 import (
 	"net/http"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -159,16 +160,31 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID str
 			return nil, model.NewAppError("AssignAccessControlPolicyToChannels", "app.pap.assign_access_control_policy_to_channels.app_error", nil, "Channel is shared", http.StatusBadRequest)
 		}
 
-		newPolicy, appErr := policy.Inherit(channel.Id, model.AccessControlPolicyTypeChannel)
+		child, err := acs.GetPolicy(rctx, channel.Id)
+		if err != nil && err.StatusCode != http.StatusNotFound {
+			return nil, model.NewAppError("AssignAccessControlPolicyToChannels", "app.pap.assign_access_control_policy_to_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		if child == nil {
+			child = &model.AccessControlPolicy{
+				ID:       channel.Id,
+				Type:     model.AccessControlPolicyTypeChannel,
+				Active:   policy.Active,
+				CreateAt: model.GetMillis(),
+				Props:    map[string]any{},
+			}
+		}
+		child.Version = model.AccessControlPolicyVersionV0_2
+
+		appErr := child.Inherit(policy)
 		if appErr != nil {
 			return nil, appErr
 		}
 
-		newPolicy, appErr = acs.SavePolicy(rctx, newPolicy)
+		child, appErr = acs.SavePolicy(rctx, child)
 		if appErr != nil {
 			return nil, appErr
 		}
-		policies = append(policies, newPolicy)
+		policies = append(policies, child)
 	}
 
 	return policies, nil
@@ -183,6 +199,7 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 	cps, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
 		Type:     model.AccessControlPolicyTypeChannel,
 		ParentID: policyID,
+		Limit:    1000,
 	})
 	if err != nil {
 		return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -199,9 +216,24 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 			continue
 		}
 
-		appErr := acs.DeletePolicy(rctx, channelID)
+		child, appErr := acs.GetPolicy(rctx, channelID)
 		if appErr != nil {
-			return appErr
+			return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		}
+
+		child.Imports = slices.DeleteFunc(child.Imports, func(importID string) bool {
+			return importID == policyID
+		})
+		if len(child.Imports) == 0 && len(child.Rules) == 0 {
+			// If the policy has no imports and no rules, we can delete it
+			if err := acs.DeletePolicy(rctx, child.ID); err != nil {
+				return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+			continue
+		}
+		_, appErr = acs.SavePolicy(rctx, child)
+		if appErr != nil {
+			return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 		}
 	}
 

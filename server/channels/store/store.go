@@ -97,6 +97,7 @@ type Store interface {
 	PropertyValue() PropertyValueStore
 	AccessControlPolicy() AccessControlPolicyStore
 	Attributes() AttributesStore
+	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 }
 
 type RetentionPolicyStore interface {
@@ -232,7 +233,7 @@ type ChannelStore interface {
 	// It replaces existing fields and creates new ones which don't exist.
 	UpdateMemberNotifyProps(channelID, userID string, props map[string]string) (*model.ChannelMember, error)
 	PatchMultipleMembersNotifyProps(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, error)
-	GetMembers(channelID string, offset, limit int) (model.ChannelMembers, error)
+	GetMembers(opts model.ChannelMembersGetOptions) (model.ChannelMembers, error)
 	GetMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error)
 	GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error)
 	GetChannelMembersTimezones(channelID string) ([]model.StringMap, error)
@@ -241,7 +242,7 @@ type ChannelStore interface {
 	InvalidateAllChannelMembersForUser(userID string)
 	GetAllChannelMembersNotifyPropsForChannel(channelID string, allowFromCache bool) (map[string]model.StringMap, error)
 	InvalidateCacheForChannelMembersNotifyProps(channelID string)
-	GetMemberForPost(postID string, userID string, includeArchivedChannels bool) (*model.ChannelMember, error)
+	GetMemberForPost(postID string, userID string) (*model.ChannelMember, error)
 	InvalidateMemberCount(channelID string)
 	GetMemberCountFromCache(channelID string) int64
 	GetFileCount(channelID string) (int64, error)
@@ -288,9 +289,9 @@ type ChannelStore interface {
 	MigrateChannelMembers(fromChannelID string, fromUserID string) (map[string]string, error)
 	ResetAllChannelSchemes() error
 	ClearAllCustomRoleAssignments() error
-	CreateInitialSidebarCategories(c request.CTX, userID string, opts *SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)
+	CreateInitialSidebarCategories(c request.CTX, userID string, teamID string) (*model.OrderedSidebarCategories, error)
 	GetSidebarCategoriesForTeamForUser(userID, teamID string) (*model.OrderedSidebarCategories, error)
-	GetSidebarCategories(userID string, opts *SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)
+	GetSidebarCategories(userID string, teamID string) (*model.OrderedSidebarCategories, error)
 	GetSidebarCategory(categoryID string) (*model.SidebarCategoryWithChannels, error)
 	GetSidebarCategoryOrder(userID, teamID string) ([]string, error)
 	CreateSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error)
@@ -717,6 +718,7 @@ type EmojiStore interface {
 
 type StatusStore interface {
 	SaveOrUpdate(status *model.Status) error
+	SaveOrUpdateMany(statuses map[string]*model.Status) error
 	Get(userID string) (*model.Status, error)
 	GetByIds(userIds []string) ([]*model.Status, error)
 	ResetAll() error
@@ -794,7 +796,7 @@ type JobStore interface {
 	GetAllByTypePage(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, error)
 	GetAllByTypesPage(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, error)
 	GetAllByStatus(c request.CTX, status string) ([]*model.Job, error)
-	GetAllByTypeAndStatusPage(c request.CTX, jobType []string, status string, offset int, limit int) ([]*model.Job, error)
+	GetAllByTypesAndStatusesPage(c request.CTX, jobType []string, status []string, offset int, limit int) ([]*model.Job, error)
 	GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, error)
 	GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error)
 	GetCountByStatusAndType(status string, jobType string) (int64, error)
@@ -1014,6 +1016,7 @@ type SharedChannelStore interface {
 	GetRemoteByIds(channelID string, remoteID string) (*model.SharedChannelRemote, error)
 	GetRemotes(offset, limit int, opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error)
 	UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error
+	UpdateRemoteMembershipCursor(id string, syncTime int64) error
 	DeleteRemote(remoteID string) (bool, error)
 	GetRemotesStatus(channelID string) ([]*model.SharedChannelRemoteStatus, error)
 
@@ -1021,7 +1024,9 @@ type SharedChannelStore interface {
 	GetSingleUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error)
 	GetUsersForUser(userID string) ([]*model.SharedChannelUser, error)
 	GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error)
+	GetUserChanges(userID string, channelID string, afterTime int64) ([]*model.SharedChannelUser, error)
 	UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error
+	UpdateUserLastMembershipSyncAt(userID string, channelID string, remoteID string, syncTime int64) error
 
 	SaveAttachment(remote *model.SharedChannelAttachment) (*model.SharedChannelAttachment, error)
 	UpsertAttachment(remote *model.SharedChannelAttachment) (string, error)
@@ -1032,6 +1037,8 @@ type SharedChannelStore interface {
 type PostPriorityStore interface {
 	GetForPost(postID string) (*model.PostPriority, error)
 	GetForPosts(ids []string) ([]*model.PostPriority, error)
+	Save(priority *model.PostPriority) (*model.PostPriority, error)
+	Delete(postID string) error
 }
 
 type DraftStore interface {
@@ -1050,8 +1057,12 @@ type PostAcknowledgementStore interface {
 	Get(postID, userID string) (*model.PostAcknowledgement, error)
 	GetForPost(postID string) ([]*model.PostAcknowledgement, error)
 	GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error)
-	Save(postID, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error)
+	GetForPostSince(postID string, since int64, excludeRemoteID string, inclDeleted bool) ([]*model.PostAcknowledgement, error)
+	GetSingle(userID, postID, remoteID string) (*model.PostAcknowledgement, error)
+	SaveWithModel(acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, error)
+	BatchSave(acknowledgements []*model.PostAcknowledgement) ([]*model.PostAcknowledgement, error)
 	Delete(acknowledgement *model.PostAcknowledgement) error
+	BatchDelete(acknowledgements []*model.PostAcknowledgement) error
 }
 
 type PostPersistentNotificationStore interface {
@@ -1207,14 +1218,6 @@ type PostReminderMetadata struct {
 	TeamName   string
 	UserLocale string
 	Username   string
-}
-
-// SidebarCategorySearchOpts contains the options for a graphQL query
-// to get the sidebar categories.
-type SidebarCategorySearchOpts struct {
-	TeamID      string
-	ExcludeTeam bool
-	Type        model.SidebarCategoryType
 }
 
 type ThreadMembershipImportData struct {

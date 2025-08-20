@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -127,6 +128,12 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 		updateConfig(memoryConfig)
 	}
 	memoryStore.Set(memoryConfig)
+	for _, signaturePublicKeyFile := range memoryConfig.PluginSettings.SignaturePublicKeyFiles {
+		var signaturePublicKey []byte
+		signaturePublicKey, err = os.ReadFile(signaturePublicKeyFile)
+		require.NoError(tb, err, "failed to read signature public key file %s", signaturePublicKeyFile)
+		memoryStore.SetFile(signaturePublicKeyFile, signaturePublicKey)
+	}
 
 	configStore, err := config.NewStoreFromBacking(memoryStore, nil, false)
 	require.NoError(tb, err)
@@ -165,10 +172,6 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 		TestLogger:        testLogger,
 		LogBuffer:         buffer,
 		Store:             dbStore,
-	}
-
-	if s.Platform().SearchEngine != nil && s.Platform().SearchEngine.BleveEngine != nil && searchEngine != nil {
-		searchEngine.BleveEngine = s.Platform().SearchEngine.BleveEngine
 	}
 
 	if searchEngine != nil {
@@ -581,7 +584,7 @@ func (th *TestHelper) DeleteBots() *TestHelper {
 }
 
 func (th *TestHelper) waitForConnectivity(tb testing.TB) {
-	for i := 0; i < 1000; i++ {
+	for range 1000 {
 		conn, err := net.Dial("tcp", fmt.Sprintf("localhost:%v", th.App.Srv().ListenAddr.Port))
 		if err == nil {
 			conn.Close()
@@ -1433,10 +1436,8 @@ func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 		panic(err1)
 	}
 
-	for _, existingPermission := range role.Permissions {
-		if existingPermission == permission {
-			return
-		}
+	if slices.Contains(role.Permissions, permission) {
+		return
 	}
 
 	role.Permissions = append(role.Permissions, permission)

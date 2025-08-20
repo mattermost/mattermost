@@ -89,7 +89,14 @@ func TestGetChannelsForPolicy(t *testing.T) {
 
 		ch := th.CreatePrivateChannel(rctx, th.BasicTeam)
 
-		childPolicy, appErr := parentPolicy.Inherit(ch.Id, model.AccessControlPolicyTypeChannel)
+		childPolicy := &model.AccessControlPolicy{
+			Type:     model.AccessControlPolicyTypeChannel,
+			ID:       ch.Id,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+		}
+
+		appErr := childPolicy.Inherit(parentPolicy)
 		require.Nil(t, appErr)
 
 		var err error
@@ -235,12 +242,14 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 	})
 
 	t.Run("Error saving policy", func(t *testing.T) {
+		ch := th.CreatePrivateChannel(rctx, th.BasicTeam)
+
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
 		mockAccessControl.On("GetPolicy", rctx, parentID).Return(parentPolicy, nil)
+		mockAccessControl.On("GetPolicy", rctx, ch.Id).Return(parentPolicy, nil)
 		mockAccessControl.On("SavePolicy", rctx, mock.Anything).Return(nil, model.NewAppError("SavePolicy", "error", nil, "save error", http.StatusInternalServerError))
 
-		ch := th.CreatePrivateChannel(rctx, th.BasicTeam)
 		t.Cleanup(func() {
 			appErr := th.App.PermanentDeleteChannel(rctx, ch)
 			require.Nil(t, appErr)
@@ -321,14 +330,29 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 			require.Nil(t, appErr)
 		})
 
-		childP1, appErr := parentPolicy.Inherit(ch1.Id, model.AccessControlPolicyTypeChannel)
+		childP1 := &model.AccessControlPolicy{
+			Type:     model.AccessControlPolicyTypeChannel,
+			ID:       ch1.Id,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+		}
+		childP2 := &model.AccessControlPolicy{
+			Type:     model.AccessControlPolicyTypeChannel,
+			ID:       ch2.Id,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+		}
+
+		appErr := childP1.Inherit(parentPolicy)
 		require.Nil(t, appErr)
-		childP2, appErr := parentPolicy.Inherit(ch2.Id, model.AccessControlPolicyTypeChannel)
+		appErr = childP2.Inherit(parentPolicy)
 		require.Nil(t, appErr)
 
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
 		mockAccessControl.On("GetPolicy", rctx, parentID).Return(parentPolicy, nil)
+		mockAccessControl.On("GetPolicy", rctx, ch1.Id).Return(nil, nil)
+		mockAccessControl.On("GetPolicy", rctx, ch2.Id).Return(nil, nil)
 		mockAccessControl.On("SavePolicy", rctx, mock.MatchedBy(func(p *model.AccessControlPolicy) bool { return p.ID == ch1.Id })).Return(childP1, nil)
 		mockAccessControl.On("SavePolicy", rctx, mock.MatchedBy(func(p *model.AccessControlPolicy) bool { return p.ID == ch2.Id })).Return(childP2, nil)
 
@@ -341,7 +365,7 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 	})
 }
 
-func TestUnAssignPoliciesFromChannels(t *testing.T) {
+func TestUnassignPoliciesFromChannels(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -377,7 +401,14 @@ func TestUnAssignPoliciesFromChannels(t *testing.T) {
 		require.Nil(t, sErr)
 	})
 
-	childPolicy1, appErrInherit1 := parentPolicy.Inherit(ch1.Id, model.AccessControlPolicyTypeChannel)
+	childPolicy1 := &model.AccessControlPolicy{
+		Type:     model.AccessControlPolicyTypeChannel,
+		ID:       ch1.Id,
+		Revision: 1,
+		Version:  model.AccessControlPolicyVersionV0_2,
+	}
+
+	appErrInherit1 := childPolicy1.Inherit(parentPolicy)
 	require.Nil(t, appErrInherit1)
 	childPolicy1, err = th.App.Srv().Store().AccessControlPolicy().Save(rctx, childPolicy1)
 	require.NoError(t, err)
@@ -387,7 +418,14 @@ func TestUnAssignPoliciesFromChannels(t *testing.T) {
 		require.NoError(t, sErr)
 	})
 
-	childPolicy2, appErrInherit2 := parentPolicy.Inherit(ch2.Id, model.AccessControlPolicyTypeChannel)
+	childPolicy2 := &model.AccessControlPolicy{
+		Type:     model.AccessControlPolicyTypeChannel,
+		ID:       ch2.Id,
+		Revision: 1,
+		Version:  model.AccessControlPolicyVersionV0_2,
+	}
+
+	appErrInherit2 := childPolicy2.Inherit(parentPolicy)
 	require.Nil(t, appErrInherit2)
 	childPolicy2, err = th.App.Srv().Store().AccessControlPolicy().Save(rctx, childPolicy2)
 	require.NoError(t, err)
@@ -436,6 +474,8 @@ func TestUnAssignPoliciesFromChannels(t *testing.T) {
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
 
+		mockAccessControl.On("GetPolicy", rctx, ch1.Id).Return(childPolicy1, nil).Once()
+		mockAccessControl.On("GetPolicy", rctx, ch2.Id).Return(childPolicy2, nil).Once()
 		mockAccessControl.On("DeletePolicy", rctx, ch1.Id).Return(nil).Once()
 		mockAccessControl.On("DeletePolicy", rctx, ch2.Id).Return(nil).Once()
 
@@ -449,6 +489,8 @@ func TestUnAssignPoliciesFromChannels(t *testing.T) {
 
 		mockAccessControl.On("DeletePolicy", rctx, ch1.Id).Return(nil).Once()
 		mockAccessControl.On("DeletePolicy", rctx, ch2.Id).Return(nil).Once()
+		mockAccessControl.On("GetPolicy", rctx, ch1.Id).Return(childPolicy1, nil).Once()
+		mockAccessControl.On("GetPolicy", rctx, ch2.Id).Return(childPolicy2, nil).Once()
 
 		appErr := th.App.UnassignPoliciesFromChannels(rctx, parentPolicy.ID, []string{ch1.Id, ch2.Id})
 		require.Nil(t, appErr)

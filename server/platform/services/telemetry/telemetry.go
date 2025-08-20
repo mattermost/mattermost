@@ -48,7 +48,6 @@ const (
 	TrackConfigSQL                 = "config_sql"
 	TrackConfigLog                 = "config_log"
 	TrackConfigAudit               = "config_audit"
-	TrackConfigNotificationLog     = "config_notifications_log"
 	TrackConfigFile                = "config_file"
 	TrackConfigRate                = "config_rate"
 	TrackConfigEmail               = "config_email"
@@ -74,7 +73,6 @@ const (
 	TrackConfigDisplay             = "config_display"
 	TrackConfigGuestAccounts       = "config_guest_accounts"
 	TrackConfigImageProxy          = "config_image_proxy"
-	TrackConfigBleve               = "config_bleve"
 	TrackConfigExport              = "config_export"
 	TrackConfigWrangler            = "config_wrangler"
 	TrackConfigConnectedWorkspaces = "config_connected_workspaces"
@@ -183,7 +181,7 @@ func (ts *TelemetryService) ensureTelemetryID() error {
 	id := model.NewId()
 	var err error
 
-	for i := 0; i < DBAccessAttempts; i++ {
+	for range DBAccessAttempts {
 		ts.log.Info("Ensuring the telemetry ID..")
 		systemID := &model.System{Name: model.SystemTelemetryId, Value: id}
 		systemID, err = ts.dbStore.System().InsertIfExists(systemID)
@@ -294,7 +292,7 @@ func isDefaultArray(setting, defaultValue []string) bool {
 	if len(setting) != len(defaultValue) {
 		return false
 	}
-	for i := 0; i < len(setting); i++ {
+	for i := range setting {
 		if setting[i] != defaultValue[i] {
 			return false
 		}
@@ -545,7 +543,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_api_post_deletion":                                *cfg.ServiceSettings.EnableAPIPostDeletion,
 		"enable_api_channel_deletion":                             *cfg.ServiceSettings.EnableAPIChannelDeletion,
 		"experimental_enable_hardened_mode":                       *cfg.ServiceSettings.ExperimentalEnableHardenedMode,
-		"experimental_strict_csrf_enforcement":                    *cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement,
+		"strict_csrf_enforcement":                                 *cfg.ServiceSettings.StrictCSRFEnforcement,
 		"enable_email_invitations":                                *cfg.ServiceSettings.EnableEmailInvitations,
 		"disable_bots_when_owner_is_deactivated":                  *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated,
 		"enable_bot_account_creation":                             *cfg.ServiceSettings.EnableBotAccountCreation,
@@ -585,7 +583,6 @@ func (ts *TelemetryService) trackConfig() {
 		"max_users_per_team":                      *cfg.TeamSettings.MaxUsersPerTeam,
 		"max_channels_per_team":                   *cfg.TeamSettings.MaxChannelsPerTeam,
 		"teammate_name_display":                   *cfg.TeamSettings.TeammateNameDisplay,
-		"experimental_view_archived_channels":     *cfg.TeamSettings.ExperimentalViewArchivedChannels,
 		"lock_teammate_name_display":              *cfg.TeamSettings.LockTeammateNameDisplay,
 		"isdefault_site_name":                     isDefault(cfg.TeamSettings.SiteName, "Mattermost"),
 		"isdefault_custom_brand_text":             isDefault(*cfg.TeamSettings.CustomBrandText, model.TeamSettingsDefaultCustomBrandText),
@@ -638,17 +635,6 @@ func (ts *TelemetryService) trackConfig() {
 		"file_compress":         *cfg.ExperimentalAuditSettings.FileCompress,
 		"file_max_queue_size":   *cfg.ExperimentalAuditSettings.FileMaxQueueSize,
 		"advanced_logging_json": len(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON) != 0,
-	}
-
-	configs[TrackConfigNotificationLog] = map[string]any{
-		"enable_console":          *cfg.NotificationLogSettings.EnableConsole,
-		"console_level":           *cfg.NotificationLogSettings.ConsoleLevel,
-		"console_json":            *cfg.NotificationLogSettings.ConsoleJson,
-		"enable_file":             *cfg.NotificationLogSettings.EnableFile,
-		"file_level":              *cfg.NotificationLogSettings.FileLevel,
-		"file_json":               *cfg.NotificationLogSettings.FileJson,
-		"isdefault_file_location": isDefault(*cfg.NotificationLogSettings.FileLocation, ""),
-		"advanced_logging_json":   len(cfg.NotificationLogSettings.AdvancedLoggingJSON) != 0,
 	}
 
 	configs[TrackConfigPassword] = map[string]any{
@@ -823,14 +809,13 @@ func (ts *TelemetryService) trackConfig() {
 	}
 
 	configs[TrackConfigCluster] = map[string]any{
-		"enable":                                *cfg.ClusterSettings.Enable,
-		"network_interface":                     isDefault(*cfg.ClusterSettings.NetworkInterface, ""),
-		"bind_address":                          isDefault(*cfg.ClusterSettings.BindAddress, ""),
-		"advertise_address":                     isDefault(*cfg.ClusterSettings.AdvertiseAddress, ""),
-		"use_ip_address":                        *cfg.ClusterSettings.UseIPAddress,
-		"enable_experimental_gossip_encryption": *cfg.ClusterSettings.EnableExperimentalGossipEncryption,
-		"enable_gossip_compression":             *cfg.ClusterSettings.EnableGossipCompression,
-		"read_only_config":                      *cfg.ClusterSettings.ReadOnlyConfig,
+		"enable":                    *cfg.ClusterSettings.Enable,
+		"network_interface":         isDefault(*cfg.ClusterSettings.NetworkInterface, ""),
+		"bind_address":              isDefault(*cfg.ClusterSettings.BindAddress, ""),
+		"advertise_address":         isDefault(*cfg.ClusterSettings.AdvertiseAddress, ""),
+		"use_ip_address":            *cfg.ClusterSettings.UseIPAddress,
+		"enable_gossip_compression": *cfg.ClusterSettings.EnableGossipCompression,
+		"read_only_config":          *cfg.ClusterSettings.ReadOnlyConfig,
 	}
 
 	configs[TrackConfigMetrics] = map[string]any{
@@ -944,13 +929,6 @@ func (ts *TelemetryService) trackConfig() {
 		"image_proxy_type":                     *cfg.ImageProxySettings.ImageProxyType,
 		"isdefault_remote_image_proxy_url":     isDefault(*cfg.ImageProxySettings.RemoteImageProxyURL, ""),
 		"isdefault_remote_image_proxy_options": isDefault(*cfg.ImageProxySettings.RemoteImageProxyOptions, ""),
-	}
-
-	configs[TrackConfigBleve] = map[string]any{
-		"enable_indexing":          *cfg.BleveSettings.EnableIndexing,
-		"enable_searching":         *cfg.BleveSettings.EnableSearching,
-		"enable_autocomplete":      *cfg.BleveSettings.EnableAutocomplete,
-		"bulk_indexing_batch_size": *cfg.BleveSettings.BatchSize,
 	}
 
 	configs[TrackConfigExport] = map[string]any{

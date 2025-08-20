@@ -21,7 +21,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["TeammateNameDisplay"] = *c.TeamSettings.TeammateNameDisplay
 	props["LockTeammateNameDisplay"] = strconv.FormatBool(*c.TeamSettings.LockTeammateNameDisplay)
 	props["ExperimentalPrimaryTeam"] = *c.TeamSettings.ExperimentalPrimaryTeam
-	props["ExperimentalViewArchivedChannels"] = strconv.FormatBool(*c.TeamSettings.ExperimentalViewArchivedChannels)
 	props["EnableJoinLeaveMessageByDefault"] = strconv.FormatBool(*c.TeamSettings.EnableJoinLeaveMessageByDefault)
 
 	props["EnableBotAccountCreation"] = strconv.FormatBool(*c.ServiceSettings.EnableBotAccountCreation)
@@ -239,6 +238,10 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
 		}
+
+		if model.MinimumEnterpriseAdvancedLicense(license) {
+			props["ContentFlaggingEnabled"] = strconv.FormatBool(c.FeatureFlags.ContentFlagging && *c.ContentFlaggingSettings.EnableContentFlagging)
+		}
 	}
 
 	return props
@@ -408,6 +411,11 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 			props["MobileEnableBiometrics"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableBiometrics)
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
+		}
+
+		if model.MinimumEnterpriseAdvancedLicense(license) {
+			props["MobileEnableSecureFilePreview"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableSecureFilePreview)
+			props["MobileAllowPdfLinkNavigation"] = strconv.FormatBool(*c.NativeAppSettings.MobileAllowPdfLinkNavigation)
 		}
 	}
 

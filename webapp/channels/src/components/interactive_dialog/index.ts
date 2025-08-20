@@ -32,7 +32,6 @@ function mapStateToProps(state: GlobalState) {
         emojiMap: getEmojiMap(state),
     };
 }
-
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
@@ -40,7 +39,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
         }, dispatch),
     };
 }
-
 const connector = connect(mapStateToProps, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;

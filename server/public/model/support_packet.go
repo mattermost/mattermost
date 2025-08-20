@@ -98,7 +98,6 @@ type SupportPacketJobList struct {
 	MessageExportJobs          []*Job `yaml:"message_export_jobs"`
 	ElasticPostIndexingJobs    []*Job `yaml:"elastic_post_indexing_jobs"`
 	ElasticPostAggregationJobs []*Job `yaml:"elastic_post_aggregation_jobs"`
-	BlevePostIndexingJobs      []*Job `yaml:"bleve_post_indexin_jobs"`
 	MigrationJobs              []*Job `yaml:"migration_jobs"`
 }
 
@@ -121,6 +120,37 @@ type SupportPacketConfig struct {
 type SupportPacketPluginList struct {
 	Enabled  []Manifest `json:"enabled"`
 	Disabled []Manifest `json:"disabled"`
+}
+
+// SupportPacketDatabaseSchema contains the database schema information.
+// It is included in the Support Packet.
+type SupportPacketDatabaseSchema struct {
+	DatabaseCollation string          `yaml:"database_collation,omitempty"`
+	DatabaseEncoding  string          `yaml:"database_encoding,omitempty"`
+	Tables            []DatabaseTable `yaml:"tables"`
+}
+
+// DatabaseTable represents a table in the database schema.
+type DatabaseTable struct {
+	Name      string            `yaml:"name"`
+	Collation string            `yaml:"collation,omitempty"`
+	Options   map[string]string `yaml:"options,omitempty"`
+	Columns   []DatabaseColumn  `yaml:"columns"`
+	Indexes   []DatabaseIndex   `yaml:"indexes,omitempty"`
+}
+
+// DatabaseColumn represents a column in a database table.
+type DatabaseColumn struct {
+	Name       string `yaml:"name"`
+	DataType   string `yaml:"data_type"`
+	MaxLength  int64  `yaml:"max_length,omitempty"`
+	IsNullable bool   `yaml:"is_nullable"`
+}
+
+// DatabaseIndex represents an index in a database table.
+type DatabaseIndex struct {
+	Name       string `yaml:"name"`
+	Definition string `yaml:"definition"`
 }
 
 type FileData struct {

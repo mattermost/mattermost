@@ -70,8 +70,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/awsmeter"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
-	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine"
-	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine/indexer"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
@@ -85,12 +83,7 @@ const (
 	debugScheduledPostJobInterval = 2 * time.Second
 )
 
-var SentryDSN = "https://9d7c9cccf549479799f880bcf4f26323@o94110.ingest.sentry.io/5212327"
-
-// This is a placeholder to allow the existing release pipelines to run without failing to insert
-// the key that's now hard-coded above. Remove this once we converge on the unified delivery
-// pipeline in GitHub.
-var _ = "placeholder_sentry_dsn"
+var SentryDSN = "https://eaf281226106b5bba68694d1316da21c@o94110.ingest.us.sentry.io/5212327"
 
 type Server struct {
 	// RootRouter is the starting point for all HTTP requests to the server.
@@ -400,31 +393,6 @@ func NewServer(options ...Option) (*Server, error) {
 	s.platform.AddConfigListener(func(_, _ *model.Config) {
 		s.EmailService.InitEmailBatching()
 	})
-
-	isTrial := false
-	if licence := s.License(); licence != nil {
-		isTrial = licence.IsTrial
-	}
-
-	logCurrentVersion := fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
-	mlog.Info(
-		logCurrentVersion,
-		mlog.String("current_version", model.CurrentVersion),
-		mlog.String("build_number", model.BuildNumber),
-		mlog.String("build_date", model.BuildDate),
-		mlog.String("build_hash", model.BuildHash),
-		mlog.String("build_hash_enterprise", model.BuildHashEnterprise),
-		mlog.String("service_environment", model.GetServiceEnvironment()),
-	)
-	if model.BuildEnterpriseReady == "true" {
-		mlog.Info(
-			"Enterprise Build",
-			mlog.Bool("enterprise_build", true),
-			mlog.Bool("is_trial", isTrial),
-		)
-	} else {
-		mlog.Info("Team Edition Build", mlog.Bool("enterprise_build", false))
-	}
 
 	pwd, _ := os.Getwd()
 	mlog.Info("Printing current working", mlog.String("directory", pwd))
@@ -754,9 +722,6 @@ func (s *Server) Shutdown() {
 	// shutdown main and notification loggers which will flush any remaining log records.
 	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer timeoutCancel()
-	if err = s.NotificationsLog().ShutdownWithTimeout(timeoutCtx); err != nil {
-		fmt.Fprintf(os.Stderr, "Error shutting down notification logger: %v", err)
-	}
 	if err = s.Log().ShutdownWithTimeout(timeoutCtx); err != nil {
 		fmt.Fprintf(os.Stderr, "Error shutting down main logger: %v", err)
 	}
@@ -1421,7 +1386,6 @@ func (s *Server) doLicenseExpirationCheck() {
 
 	// send email to admin(s)
 	for _, user := range users {
-		user := user
 		if user.Email == "" {
 			mlog.Error("Invalid system admin email.", mlog.String("user_email", user.Email))
 			continue
@@ -1439,7 +1403,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		})
 	}
 
-	//remove the license
+	// remove the license
 	if appErr := s.RemoveLicense(); appErr != nil {
 		mlog.Error("Error while removing the license.", mlog.Err(appErr))
 	}
@@ -1503,12 +1467,6 @@ func (s *Server) initJobs() {
 		builder := jobsAccessControlSyncJobInterface(s)
 		s.Jobs.RegisterJobType(model.JobTypeAccessControlSync, builder.MakeWorker(), builder.MakeScheduler())
 	}
-
-	s.Jobs.RegisterJobType(
-		model.JobTypeBlevePostIndexing,
-		indexer.MakeWorker(s.Jobs, s.platform.SearchEngine.BleveEngine.(*bleveengine.BleveEngine)),
-		nil,
-	)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeMigrations,
@@ -1870,8 +1828,4 @@ func (s *Server) Platform() *platform.PlatformService {
 
 func (s *Server) Log() *mlog.Logger {
 	return s.platform.Logger()
-}
-
-func (s *Server) NotificationsLog() *mlog.Logger {
-	return s.platform.NotificationsLogger()
 }

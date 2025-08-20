@@ -95,20 +95,11 @@ var ExportJobCancelCmd = &cobra.Command{
 }
 
 func init() {
-	ExportCreateCmd.Flags().Bool("attachments", false, "Set to true to include file attachments in the export file.")
-	_ = ExportCreateCmd.Flags().MarkHidden("attachments")
-	_ = ExportCreateCmd.Flags().MarkDeprecated("attachments", "the tool now includes attachments by default. The flag will be removed in a future version.")
-
 	ExportCreateCmd.Flags().Bool("no-attachments", false, "Exclude file attachments from the export file.")
 	ExportCreateCmd.Flags().Bool("include-archived-channels", false, "Include archived channels in the export file.")
 	ExportCreateCmd.Flags().Bool("include-profile-pictures", false, "Include profile pictures in the export file.")
 	ExportCreateCmd.Flags().Bool("no-roles-and-schemes", false, "Exclude roles and custom permission schemes from the export file.")
 
-	ExportDownloadCmd.Flags().Bool("resume", false, "Set to true to resume an export download.")
-	_ = ExportDownloadCmd.Flags().MarkHidden("resume")
-	// Intentionally the message does not start with a capital letter because
-	// cobra prepends "Flag --resume has been deprecated,"
-	_ = ExportDownloadCmd.Flags().MarkDeprecated("resume", "the tool now resumes a download automatically. The flag will be removed in a future version.")
 	ExportDownloadCmd.Flags().Int("num-retries", 5, "Number of retries to do to resume a download.")
 
 	ExportJobListCmd.Flags().Int("page", 0, "Page number to fetch for the list of export jobs")
@@ -225,15 +216,36 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 
 	retries, _ := command.Flags().GetInt("num-retries")
 
+	downloadFn := func(outFile *os.File) (string, error) {
+		off, err := outFile.Seek(0, io.SeekEnd)
+		if err != nil {
+			return "", fmt.Errorf("failed to seek file: %w", err)
+		}
+
+		_, _, err = c.DownloadExport(context.TODO(), name, outFile, off)
+		return "", err
+	}
+
+	_, err := downloadFile(path, downloadFn, retries, "export")
+	if err != nil {
+		return err
+	}
+
+	printer.Print(fmt.Sprintf("Export file downloaded to %q", path))
+	return nil
+}
+
+// downloadFile handles the common logic for downloading files in export and compliance-export commands
+func downloadFile(path string, downloadFn func(*os.File) (string, error), retries int, fileType string) (string, error) {
 	var outFile *os.File
 	info, err := os.Stat(path)
 	switch {
 	case err != nil && !os.IsNotExist(err):
 		// some error occurred and not because file doesn't exist
-		return fmt.Errorf("failed to stat export file: %w", err)
+		return "", fmt.Errorf("failed to stat %s file: %w", fileType, err)
 	case err == nil && info.Size() > 0:
 		// we exit to avoid overwriting an existing non-empty file
-		return fmt.Errorf("export file already exists")
+		return "", fmt.Errorf("%s file already exists", fileType)
 	case err != nil:
 		// file does not exist, we create it
 		outFile, err = os.Create(path)
@@ -243,30 +255,24 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 	}
 
 	if err != nil {
-		return fmt.Errorf("failed to create/open export file: %w", err)
+		return "", fmt.Errorf("failed to create/open %s file: %w", fileType, err)
 	}
 	defer outFile.Close()
 
-	i := 0
-	for i < retries+1 {
-		off, err := outFile.Seek(0, io.SeekEnd)
+	var suggestedFilename string
+	for i := range retries + 1 { // need to include the first attempt
+		suggestedFilename, err = downloadFn(outFile)
 		if err != nil {
-			return fmt.Errorf("failed to seek export file: %w", err)
-		}
-
-		if _, _, err := c.DownloadExport(context.TODO(), name, outFile, off); err != nil {
-			printer.PrintWarning(fmt.Sprintf("failed to download export file: %v. Retrying...", err))
-			i++
+			if i >= retries {
+				return "", fmt.Errorf("failed to download %s after %d retries: %w", fileType, retries, err)
+			}
+			printer.PrintWarning(fmt.Sprintf("Download attempt %d/%d failed. Retrying...", i+1, retries+1))
 			continue
 		}
 		break
 	}
 
-	if retries != 0 && i == retries+1 {
-		return fmt.Errorf("failed to download export after %d retries", retries)
-	}
-
-	return nil
+	return suggestedFilename, nil
 }
 
 func exportJobListCmdF(c client.Client, command *cobra.Command, args []string) error {

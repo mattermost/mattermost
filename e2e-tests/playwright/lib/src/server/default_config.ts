@@ -82,7 +82,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v10.7 server
+// Based on v10.11 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -170,7 +170,7 @@ const defaultServerConfig: AdminConfig = {
         EnableAPIPostDeletion: false,
         EnableDesktopLandingPage: true,
         ExperimentalEnableHardenedMode: false,
-        ExperimentalStrictCSRFEnforcement: false,
+        StrictCSRFEnforcement: true,
         EnableEmailInvitations: false,
         DisableBotsWhenOwnerIsDeactivated: true,
         EnableBotAccountCreation: false,
@@ -223,7 +223,6 @@ const defaultServerConfig: AdminConfig = {
         MaxNotificationsPerChannel: 1000,
         EnableConfirmNotificationsToChannel: true,
         TeammateNameDisplay: 'username',
-        ExperimentalViewArchivedChannels: true,
         ExperimentalEnableAutomaticReplies: false,
         LockTeammateNameDisplay: false,
         ExperimentalPrimaryTeam: '',
@@ -279,17 +278,6 @@ const defaultServerConfig: AdminConfig = {
         FileMaxQueueSize: 1000,
         AdvancedLoggingJSON: {},
         Certificate: '',
-    },
-    NotificationLogSettings: {
-        EnableConsole: true,
-        ConsoleLevel: 'DEBUG',
-        ConsoleJson: true,
-        EnableColor: false,
-        EnableFile: true,
-        FileLevel: 'INFO',
-        FileJson: true,
-        FileLocation: '',
-        AdvancedLoggingJSON: {},
     },
     PasswordSettings: {
         MinimumLength: 8,
@@ -499,6 +487,7 @@ const defaultServerConfig: AdminConfig = {
         LoginIdAttribute: '',
         PictureAttribute: '',
         SyncIntervalMinutes: 60,
+        ReAddRemovedMembers: false,
         SkipCertificateVerification: false,
         PublicCertificateFile: '',
         PrivateKeyFile: '',
@@ -534,7 +523,7 @@ const defaultServerConfig: AdminConfig = {
         IdpMetadataURL: '',
         ServiceProviderIdentifier: '',
         AssertionConsumerServiceURL: '',
-        SignatureAlgorithm: 'RSAwithSHA1',
+        SignatureAlgorithm: 'RSAwithSHA256',
         CanonicalAlgorithm: 'Canonical1.0',
         ScopingIDPProviderId: '',
         ScopingIDPName: '',
@@ -566,6 +555,8 @@ const defaultServerConfig: AdminConfig = {
         MobileEnableBiometrics: false,
         MobilePreventScreenCapture: false,
         MobileJailbreakProtection: false,
+        MobileEnableSecureFilePreview: false,
+        MobileAllowPdfLinkNavigation: false,
     },
     CacheSettings: {
         CacheType: 'lru',
@@ -584,7 +575,7 @@ const defaultServerConfig: AdminConfig = {
         AdvertiseAddress: '',
         UseIPAddress: true,
         EnableGossipCompression: true,
-        EnableExperimentalGossipEncryption: false,
+        EnableGossipEncryption: true,
         ReadOnlyConfig: true,
         GossipPort: 8074,
     },
@@ -643,13 +634,6 @@ const defaultServerConfig: AdminConfig = {
         Trace: '',
         IgnoredPurgeIndexes: '',
     },
-    BleveSettings: {
-        IndexDir: '',
-        EnableIndexing: false,
-        EnableSearching: false,
-        EnableAutocomplete: false,
-        BatchSize: 10000,
-    },
     DataRetentionSettings: {
         EnableMessageDeletion: false,
         EnableFileDeletion: false,
@@ -663,6 +647,7 @@ const defaultServerConfig: AdminConfig = {
         BatchSize: 3000,
         TimeBetweenBatchesMilliseconds: 100,
         RetentionIdsBatchSize: 100,
+        PreservePinnedPosts: false,
     },
     MessageExportSettings: {
         EnableExport: false,
@@ -741,12 +726,16 @@ const defaultServerConfig: AdminConfig = {
         CWSAPIURL: 'https://portal.internal.prod.cloud.mattermost.com',
         CWSMock: false,
         Disable: false,
+        PreviewModalBucketURL: '',
     },
     FeatureFlags: {
         TestFeature: 'off',
         TestBoolFeature: false,
         EnableRemoteClusterService: false,
         EnableSharedChannelsDMs: false,
+        EnableSharedChannelsPlugins: true,
+        EnableSharedChannelsMemberSync: false,
+        EnableSyncAllUsersForRemoteCluster: false,
         AppsEnabled: false,
         PermalinkPreviews: false,
         NormalizeLdapDNs: false,
@@ -763,8 +752,10 @@ const defaultServerConfig: AdminConfig = {
         ChannelBookmarks: true,
         WebSocketEventScope: true,
         NotificationMonitoring: true,
-        ExperimentalAuditSettingsSystemConsoleUI: false,
-        CustomProfileAttributes: false,
+        ExperimentalAuditSettingsSystemConsoleUI: true,
+        CustomProfileAttributes: true,
+        AttributeBasedAccessControl: true,
+        ContentFlagging: false,
     },
     ImportSettings: {
         Directory: './import',
@@ -787,10 +778,44 @@ const defaultServerConfig: AdminConfig = {
         EnableSharedChannels: false,
         EnableRemoteClusterService: false,
         DisableSharedChannelsStatusSync: false,
+        SyncUsersOnConnectionOpen: false,
+        GlobalUserSyncBatchSize: 25,
         MaxPostsPerSync: 50,
+        MemberSyncBatchSize: 20,
     },
     AccessControlSettings: {
         EnableAttributeBasedAccessControl: false,
         EnableChannelScopeAccessControl: false,
+        EnableUserManagedAttributes: false,
+    },
+    ContentFlaggingSettings: {
+        EnableContentFlagging: false,
+        ReviewerSettings: {
+            CommonReviewers: true,
+            CommonReviewerIds: [],
+            TeamReviewersSetting: {},
+            SystemAdminsAsReviewers: false,
+            TeamAdminsAsReviewers: true,
+        },
+        NotificationSettings: {
+            EventTargetMapping: {
+                assigned: ['reviewers'],
+                dismissed: ['reviewers', 'reporter'],
+                flagged: ['reviewers'],
+                removed: ['reviewers', 'author', 'reporter'],
+            },
+        },
+        AdditionalSettings: {
+            Reasons: [
+                'Inappropriate content',
+                'Sensitive data',
+                'Security concern',
+                'Harassment or abuse',
+                'Spam or phishing',
+            ],
+            ReporterCommentRequired: true,
+            ReviewerCommentRequired: true,
+            HideFlaggedContent: true,
+        },
     },
 };

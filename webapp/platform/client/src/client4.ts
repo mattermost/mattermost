@@ -39,6 +39,7 @@ import type {
     ValidBusinessEmail,
     NewsletterRequestBody,
     Installation,
+    PreviewModalContentData,
 } from '@mattermost/types/cloud';
 import type {Compliance} from '@mattermost/types/compliance';
 import type {
@@ -52,7 +53,9 @@ import type {
     AllowedIPRanges,
     AllowedIPRange,
     FetchIPResponse,
+    LdapSettings,
 } from '@mattermost/types/config';
+import type {ContentFlaggingConfig} from '@mattermost/types/content_flagging';
 import type {
     DataRetentionCustomPolicies,
     CreateDataRetentionCustomPolicy,
@@ -119,7 +122,7 @@ import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {Scheme} from '@mattermost/types/schemes';
 import type {Session} from '@mattermost/types/sessions';
 import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
-import type {SharedChannelRemote} from '@mattermost/types/shared_channels';
+import type {RemoteClusterInfo, SharedChannelRemote} from '@mattermost/types/shared_channels';
 import type {
     GetTeamMembersOpts,
     Team,
@@ -149,6 +152,12 @@ import type {DeepPartial, PartialExcept, RelationOneToOne} from '@mattermost/typ
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';
 import type {TelemetryHandler} from './telemetry';
+
+export enum LdapDiagnosticTestType {
+    FILTERS = 'filters',
+    ATTRIBUTES = 'attributes',
+    GROUP_ATTRIBUTES = 'group_attributes',
+}
 
 const HEADER_AUTH = 'Authorization';
 const HEADER_BEARER = 'BEARER';
@@ -395,6 +404,10 @@ export default class Client4 {
         return `${this.getBaseRoute()}/hooks/outgoing/${hookId}`;
     }
 
+    getSharedChannelsRoute() {
+        return `${this.getBaseRoute()}/sharedchannels`;
+    }
+
     getOAuthRoute() {
         return `${this.url}/oauth`;
     }
@@ -525,6 +538,10 @@ export default class Client4 {
 
     getClientMetricsRoute() {
         return `${this.getBaseRoute()}/client_perf`;
+    }
+
+    getContentFlaggingRoute() {
+        return `${this.getBaseRoute()}/content_flagging`;
     }
 
     getCSRFFromCookie() {
@@ -891,8 +908,16 @@ export default class Client4 {
         );
     };
 
-    getProfilesNotInChannel = (teamId: string, channelId: string, groupConstrained: boolean, page = 0, perPage = PER_PAGE_DEFAULT) => {
-        const queryStringObj: any = {in_team: teamId, not_in_channel: channelId, page, per_page: perPage};
+    getProfilesNotInChannel = (teamId: string, channelId: string, groupConstrained: boolean, page = 0, perPage = PER_PAGE_DEFAULT, cursorId = '') => {
+        const queryStringObj: any = {in_team: teamId, not_in_channel: channelId, per_page: perPage};
+
+        // If cursorId is provided, use cursor-based pagination
+        if (cursorId) {
+            queryStringObj.cursor_id = cursorId;
+        } else {
+            // Otherwise use traditional page-based pagination
+            queryStringObj.page = page;
+        }
         if (groupConstrained) {
             queryStringObj.group_constrained = true;
         }
@@ -941,6 +966,13 @@ export default class Client4 {
     getUserByEmail = (email: string) => {
         return this.doFetch<UserProfile>(
             `${this.getUsersRoute()}/email/${email}`,
+            {method: 'get'},
+        );
+    };
+
+    canUserDirectMessage = (userId: string, otherUserId: string) => {
+        return this.doFetch<{can_dm: boolean}>(
+            `${this.getSharedChannelsRoute()}/users/${userId}/can_dm/${otherUserId}`,
             {method: 'get'},
         );
     };
@@ -2086,6 +2118,20 @@ export default class Client4 {
         );
     };
 
+    getSharedChannelRemoteInfos = (channelId: string) => {
+        return this.doFetch<RemoteClusterInfo[]>(
+            `${this.getBaseRoute()}/sharedchannels/${channelId}/remotes`,
+            {method: 'GET'},
+        );
+    };
+
+    getRemoteClusterInfo = (remoteId: string) => {
+        return this.doFetch<RemoteClusterInfo>(
+            `${this.getBaseRoute()}/sharedchannels/remote_info/${remoteId}`,
+            {method: 'GET'},
+        );
+    };
+
     sharedChannelRemoteInvite = (remoteId: string, channelId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getRemoteClusterRoute(remoteId)}/channels/${channelId}/invite`,
@@ -2582,6 +2628,13 @@ export default class Client4 {
             error: string | null;
         }>(
             `${this.getBaseRoute()}/upgrade_to_enterprise/status`,
+            {method: 'get'},
+        );
+    };
+
+    isAllowedToUpgradeToEnterprise = async () => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/upgrade_to_enterprise/allowed`,
             {method: 'get'},
         );
     };
@@ -3313,6 +3366,32 @@ export default class Client4 {
             `${this.getBaseRoute()}/ldap/test`,
             {method: 'post'},
         );
+    };
+
+    testLdapConnection = (settings: LdapSettings) => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/ldap/test_connection`,
+            {method: 'post', body: JSON.stringify(settings)},
+        );
+    };
+
+    testLdapDiagnostics = (settings: LdapSettings, testType: LdapDiagnosticTestType) => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/ldap/test_diagnostics?test=${testType}`,
+            {method: 'post', body: JSON.stringify(settings)},
+        );
+    };
+
+    testLdapFilters = (settings: LdapSettings) => {
+        return this.testLdapDiagnostics(settings, LdapDiagnosticTestType.FILTERS);
+    };
+
+    testLdapAttributes = (settings: LdapSettings) => {
+        return this.testLdapDiagnostics(settings, LdapDiagnosticTestType.ATTRIBUTES);
+    };
+
+    testLdapGroupAttributes = (settings: LdapSettings) => {
+        return this.testLdapDiagnostics(settings, LdapDiagnosticTestType.GROUP_ATTRIBUTES);
     };
 
     syncLdap = () => {
@@ -4073,6 +4152,13 @@ export default class Client4 {
         );
     };
 
+    getCloudPreviewModalData = () => {
+        return this.doFetch<PreviewModalContentData[]>(
+            `${this.getCloudRoute()}/preview/modal_data`,
+            {method: 'get'},
+        );
+    };
+
     getInvoices = () => {
         return this.doFetch<Invoice[]>(
             `${this.getCloudRoute()}/subscription/invoices`,
@@ -4510,6 +4596,20 @@ export default class Client4 {
     getChannelAccessControlAttributes = (channelId: string) => {
         return this.doFetch<AccessControlAttributes>(
             `${this.getChannelRoute(channelId)}/access_control/attributes`,
+            {method: 'get'},
+        );
+    };
+
+    getTeamContentFlaggingStatus = (teamId: string) => {
+        return this.doFetch<{enabled: boolean}>(
+            `${this.getContentFlaggingRoute()}/team/${teamId}/status`,
+            {method: 'get'},
+        );
+    };
+
+    getContentFlaggingConfig = () => {
+        return this.doFetch<ContentFlaggingConfig>(
+            `${this.getContentFlaggingRoute()}/flag/config`,
             {method: 'get'},
         );
     };

@@ -89,7 +89,7 @@ describe('Verify Accessibility Support in different input fields', () => {
         cy.uiGetSearchBox().type('from:').wait(TIMEOUTS.ONE_SEC);
 
         // # Trigger the user autocomplete again
-        cy.uiGetSearchBox().first().clear().type('from:').wait(TIMEOUTS.ONE_SEC).type('{downarrow}{downarrow}');
+        cy.uiGetSearchBox().clear().type('from:').wait(TIMEOUTS.ONE_SEC).type('{downarrow}{downarrow}');
 
         // * Verify Accessibility Support in search autocomplete
         verifySearchAutocomplete(2);
@@ -103,17 +103,17 @@ describe('Verify Accessibility Support in different input fields', () => {
         verifySearchAutocomplete(3);
 
         // # Type the in: filter and ensure channel list is cached once
-        cy.uiGetSearchBox().first().clear().type('in:').wait(TIMEOUTS.ONE_SEC);
+        cy.uiGetSearchBox().clear().type('in:').wait(TIMEOUTS.ONE_SEC);
 
         // # Trigger the channel autocomplete again
-        cy.uiGetSearchBox().first().clear().type('in:').wait(TIMEOUTS.ONE_SEC).type('{downarrow}{downarrow}');
+        cy.uiGetSearchBox().clear().type('in:').wait(TIMEOUTS.ONE_SEC).type('{downarrow}{downarrow}');
 
         // * Verify Accessibility Support in search autocomplete
-        verifySearchAutocomplete(2, 'channel');
+        verifySearchAutocomplete(2);
 
         // # Press Up arrow and verify if focus changes
         cy.focused().type('{uparrow}{uparrow}');
-        verifySearchAutocomplete(0, 'channel');
+        verifySearchAutocomplete(0);
     });
 
     it('MM-T1455 Verify Accessibility Support in Message Autocomplete', () => {
@@ -281,30 +281,12 @@ describe('Verify Accessibility Support in different input fields', () => {
     });
 });
 
-function getUserMentionAriaLabel(displayName) {
-    return displayName.
-        replace('(you)', '').
-        replace(/[@()]/g, '').
-        toLowerCase().
-        trim();
-}
-
-function verifySearchAutocomplete(index, type = 'user') {
-    cy.get('#searchBox').find('.suggestion-list__item').eq(index).should('be.visible').and('have.class', 'suggestion--selected').within((el) => {
-        if (type === 'user') {
-            cy.get('.suggestion-list__ellipsis').invoke('text').then((text) => {
-                const usernameLength = 12;
-                const displayName = text.substring(1, usernameLength) + ' ' + text.substring(usernameLength, text.length);
-                const userAriaLabel = getUserMentionAriaLabel(displayName);
-                cy.wrap(el).parents('#searchFormContainer').find('.sr-only').should('have.attr', 'aria-live', 'polite').and('have.text', userAriaLabel);
-            });
-        } else if (type === 'channel') {
-            cy.get('.suggestion-list__ellipsis').invoke('text').then((text) => {
-                const channel = text.split('~')[1].toLowerCase().trim();
-                cy.wrap(el).parents('#searchFormContainer').find('.sr-only').should('have.attr', 'aria-live', 'polite').and('have.text', channel);
-            });
-        }
-    });
+function verifySearchAutocomplete(index) {
+    cy.get('#searchBox').find('.suggestion-list__item').eq(index).should('be.visible').
+        and('have.class', 'suggestion--selected').
+        invoke('attr', 'id').then((suggestionId) => {
+            cy.get('#searchBox').find('[role="searchbox"]').should('have.attr', 'aria-activedescendant', suggestionId);
+        });
 }
 
 function verifyMessageAutocomplete(index) {
