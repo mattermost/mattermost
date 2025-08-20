@@ -91,6 +91,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 
 	systemStore.On("InsertIfExists", mock.AnythingOfType("*model.System")).Return(&model.System{}, nil).Once()
 	systemStore.On("Save", mock.AnythingOfType("*model.System")).Return(nil)
+	systemStore.On("Get").Return(model.StringMap{model.SystemServerId: model.NewId()}, nil)
 
 	userStore := mocks.UserStore{}
 	userStore.On("Count", mock.AnythingOfType("model.UserCountOptions")).Return(int64(1), nil)
