@@ -5,7 +5,8 @@ import {screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import type {PostType} from '@mattermost/types/posts';
+import type {ChannelType} from '@mattermost/types/channels';
+import type {Post, PostType} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {renderWithContext} from 'tests/react_testing_utils';
@@ -15,6 +16,8 @@ import {TestHelper} from 'utils/test_helper';
 import type {GlobalState} from 'types/store';
 
 import DotMenu from './dot_menu';
+
+import DotMenuRoot from './index';
 
 jest.mock('./utils');
 
@@ -26,10 +29,41 @@ describe('components/dot_menu/DotMenu', () => {
         channel_id: 'other_gm_channel',
         create_at: Date.now(),
     };
+
+    const post1 = {
+        id: 'post_id_1',
+        user_id: 'current_user_id',
+        message: 'test msg',
+        channel_id: 'channel_id_1',
+        create_at: Date.now(),
+        type: '',
+    } as Post;
+
+    const dmPost = {
+        id: 'dm_post_id_1',
+        user_id: 'current_user_id',
+        message: 'DM message',
+        channel_id: 'dm_channel',
+        create_at: Date.now(),
+        type: '',
+    } as Post;
+
+    const gmPost = {
+        id: 'gm_post_id_1',
+        user_id: 'current_user_id',
+        message: 'GM message',
+        channel_id: 'gm_channel',
+        create_at: Date.now(),
+        type: '',
+    } as Post;
+
     const initialState: DeepPartial<GlobalState> = {
         entities: {
             general: {
-                config: {},
+                config: {
+                    FeatureFlagContentFlagging: 'true',
+                    ContentFlaggingEnabled: 'true',
+                },
             },
             channels: {
                 myMembers: {
@@ -51,6 +85,27 @@ describe('components/dot_menu/DotMenu', () => {
                     direct_other_user: {
                         id: 'direct_other_user',
                         name: 'current_user_id__other_user',
+                    },
+                    channel_id_1: {
+                        id: 'channel_id_1',
+                        name: 'channel_1',
+                        display_name: 'Channel 1',
+                        type: 'O' as ChannelType,
+                        team_id: 'currentTeamId',
+                    },
+                    dm_channel: {
+                        id: 'dm_channel_id_1',
+                        name: 'dm_channel',
+                        display_name: 'DM Channel',
+                        type: 'D' as ChannelType,
+                        team_id: '',
+                    },
+                    gm_channel: {
+                        id: 'gm_channel_id_1',
+                        name: 'gm_channel',
+                        display_name: 'GM Channel',
+                        type: 'G' as ChannelType,
+                        team_id: '',
                     },
                 },
                 messageCounts: {
@@ -88,10 +143,16 @@ describe('components/dot_menu/DotMenu', () => {
                         type: 'O',
                     },
                 },
+                contentFlaggingStatus: {
+                    currentTeamId: true,
+                },
             },
             posts: {
                 posts: {
                     [latestPost.id]: latestPost,
+                    post_id_1: post1,
+                    dm_post_id_1: dmPost,
+                    gm_post_id_1: gmPost,
                 },
                 postsInChannel: {
                     other_gm_channel: [
@@ -328,5 +389,56 @@ describe('components/dot_menu/DotMenu', () => {
             expect(menuItem).toBeVisible();
             expect(menuItem).toHaveTextContent(text);
         });
+    });
+
+    test('should show flag post menu option when allowed', () => {
+        const props = {
+            ...baseProps,
+            post: post1,
+        };
+        renderWithContext(
+            <DotMenuRoot {...props}/>,
+            initialState,
+        );
+
+        const button = screen.getByTestId(`PostDotMenu-Button-${post1.id}`);
+        fireEvent.click(button);
+
+        const flagPostOption = screen.getByTestId(`flag_post_${post1.id}`);
+        expect(flagPostOption).toBeVisible();
+    });
+
+    test('should not show flag post menu option for DM channel even when enabled', () => {
+        const props = {
+            ...baseProps,
+            post: dmPost,
+        };
+        renderWithContext(
+            <DotMenuRoot {...props}/>,
+            initialState,
+        );
+
+        const button = screen.getByTestId(`PostDotMenu-Button-${dmPost.id}`);
+        fireEvent.click(button);
+
+        const flagPostOption = screen.queryByTestId(`flag_post_${dmPost.id}`);
+        expect(flagPostOption).toBeNull();
+    });
+
+    test('should not show flag post menu option for GM channel even when enabled', () => {
+        const props = {
+            ...baseProps,
+            post: gmPost,
+        };
+        renderWithContext(
+            <DotMenuRoot {...props}/>,
+            initialState,
+        );
+
+        const button = screen.getByTestId(`PostDotMenu-Button-${gmPost.id}`);
+        fireEvent.click(button);
+
+        const flagPostOption = screen.queryByTestId(`flag_post_${gmPost.id}`);
+        expect(flagPostOption).toBeNull();
     });
 });
