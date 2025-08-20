@@ -5,11 +5,10 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
-
 import {closeRightHandSide, showFlaggedPosts} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
 
+import IconButton from 'components/global_header/header_icon_button';
 import WithTooltip from 'components/with_tooltip';
 
 import {RHSStates} from 'utils/constants';
@@ -40,12 +39,9 @@ const SavedPostsButton = (): JSX.Element | null => {
             }
         >
             <IconButton
-                size={'sm'}
                 icon={'bookmark-outline'}
                 toggled={rhsState === RHSStates.FLAG}
                 onClick={savedPostsButtonClick}
-                inverted={true}
-                compact={true}
                 aria-expanded={rhsState === RHSStates.FLAG}
                 aria-controls='searchContainer' // Must be changed if the ID of the container changes
                 aria-label={formatMessage({id: 'channel_header.flagged', defaultMessage: 'Saved messages'})}
