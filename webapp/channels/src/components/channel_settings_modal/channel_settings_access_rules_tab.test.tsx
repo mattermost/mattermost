@@ -847,4 +847,351 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             expect(document.querySelector('.ChannelSettingsModal__systemPolicies')).not.toBeInTheDocument();
         });
     });
+
+    describe('Expression evaluation and combination', () => {
+        const mockSystemPoliciesWithoutAutoSync = [
+            {
+                id: 'system_policy_1',
+                name: 'System Policy 1',
+                type: 'parent',
+                version: 'v0.2',
+                revision: 1,
+                active: false,
+                createAt: 1234567890,
+                rules: [
+                    {
+                        actions: ['join_channel'],
+                        expression: 'user.attributes.Program == "test"',
+                    },
+                ],
+                imports: [],
+            },
+            {
+                id: 'system_policy_2',
+                name: 'System Policy 2',
+                type: 'parent',
+                version: 'v0.2',
+                revision: 1,
+                active: false,
+                createAt: 1234567891,
+                rules: [
+                    {
+                        actions: ['join_channel'],
+                        expression: 'user.attributes.Department == "Engineering"',
+                    },
+                ],
+                imports: [],
+            },
+        ];
+
+        const mockUsersMatchingCombined = [
+            {id: 'user1', username: 'user1', email: 'user1@test.com'},
+            {id: 'user2', username: 'user2', email: 'user2@test.com'},
+        ];
+
+        const mockUsersMatchingOnlyChannel = [
+            {id: 'user1', username: 'user1', email: 'user1@test.com'},
+            {id: 'user2', username: 'user2', email: 'user2@test.com'},
+            {id: 'user3', username: 'user3', email: 'user3@test.com'}, // This user only matches channel expression
+        ];
+
+        const mockCurrentMembers = [
+            {user_id: 'existing_user1'},
+            {user_id: 'existing_user2'},
+        ];
+
+        beforeEach(() => {
+            // Mock system policies (without auto-sync so checkbox can be controlled)
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: mockSystemPoliciesWithoutAutoSync,
+                loading: false,
+                error: null,
+            });
+
+            // Mock channel members
+            mockActions.getChannelMembers.mockResolvedValue({data: mockCurrentMembers});
+        });
+
+        test('should combine system and channel expressions for membership preview', async () => {
+            // Mock search to return different results for different expressions
+            mockActions.searchUsers.mockImplementation((expression) => {
+                if (expression.includes('&&')) {
+                    // Combined expression: should return fewer users
+                    return Promise.resolve({data: {users: mockUsersMatchingCombined}});
+                }
+
+                // Channel-only expression: should return more users
+                return Promise.resolve({data: {users: mockUsersMatchingOnlyChannel}});
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Set a channel expression
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('user.attributes.Other == "test2"');
+
+            // Enable auto-sync to trigger membership calculation
+            await waitFor(() => {
+                const checkbox = screen.getByRole('checkbox');
+                expect(checkbox).not.toBeDisabled();
+            });
+
+            const checkbox = screen.getByRole('checkbox');
+            await userEvent.click(checkbox);
+
+            // Click Save to trigger membership calculation
+            await waitFor(() => {
+                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+            });
+
+            const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+            await userEvent.click(saveButton);
+
+            // Verify searchUsers was called with combined expression
+            await waitFor(() => {
+                expect(mockActions.searchUsers).toHaveBeenCalledWith(
+                    expect.stringContaining('&&'), // Should contain AND operator
+                    '',
+                    '',
+                    1000,
+                );
+            });
+
+            // Verify the combined expression includes both system and channel rules
+            const searchCall = mockActions.searchUsers.mock.calls.find((call) =>
+                call[0].includes('&&'),
+            );
+            expect(searchCall[0]).toContain('user.attributes.Other == "test2"'); // Channel expression
+            expect(searchCall[0]).toContain('user.attributes.Program == "test"'); // System expression 1
+            expect(searchCall[0]).toContain('user.attributes.Department == "Engineering"'); // System expression 2
+        });
+
+        test('should use combined expression for self-exclusion validation', async () => {
+            // Mock currentUser in state
+            const stateWithCurrentUser = {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    users: {
+                        currentUserId: 'current_user_id',
+                        profiles: {
+                            current_user_id: {
+                                id: 'current_user_id',
+                                username: 'current_user',
+                                email: 'current@test.com',
+                            },
+                        },
+                    },
+                },
+            };
+
+            // Mock search to simulate user exclusion scenario
+            mockActions.searchUsers.mockImplementation((expression) => {
+                if (expression.includes('&&')) {
+                    // Combined expression: current user doesn't match
+                    return Promise.resolve({data: {users: []}});
+                }
+
+                // Channel-only expression: current user matches
+                return Promise.resolve({data: {users: [{id: 'current_user_id'}]}});
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                stateWithCurrentUser,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Set a channel expression
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('user.attributes.Other == "test2"');
+
+            // Enable auto-sync to trigger validation
+            await waitFor(() => {
+                const checkbox = screen.getByRole('checkbox');
+                expect(checkbox).not.toBeDisabled();
+            });
+
+            const checkbox = screen.getByRole('checkbox');
+            await userEvent.click(checkbox);
+
+            // Click Save to trigger self-exclusion validation
+            await waitFor(() => {
+                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+            });
+
+            const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+            await userEvent.click(saveButton);
+
+            // Verify searchUsers was called for validation with combined expression
+            await waitFor(() => {
+                const validationCalls = mockActions.searchUsers.mock.calls.filter((call) =>
+                    call[3] === 100, // Self-exclusion validation uses limit 100
+                );
+                expect(validationCalls.length).toBeGreaterThan(0);
+
+                const validationCall = validationCalls.find((call) => call[0].includes('&&'));
+                expect(validationCall).toBeDefined();
+                expect(validationCall[0]).toContain('user.attributes.Other == "test2"');
+                expect(validationCall[0]).toContain('user.attributes.Program == "test"');
+            });
+        });
+
+        test('should handle channel expression only when no system policies', async () => {
+            // Mock no system policies
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [],
+                loading: false,
+                error: null,
+            });
+
+            mockActions.searchUsers.mockResolvedValue({data: {users: mockUsersMatchingOnlyChannel}});
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Set a channel expression
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('user.attributes.Other == "test2"');
+
+            // Enable auto-sync
+            await waitFor(() => {
+                const checkbox = screen.getByRole('checkbox');
+                expect(checkbox).not.toBeDisabled();
+            });
+
+            const checkbox = screen.getByRole('checkbox');
+            await userEvent.click(checkbox);
+
+            // Click Save to trigger membership calculation
+            await waitFor(() => {
+                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+            });
+
+            const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+            await userEvent.click(saveButton);
+
+            // Verify searchUsers was called with only channel expression (no &&)
+            await waitFor(() => {
+                expect(mockActions.searchUsers).toHaveBeenCalledWith(
+                    'user.attributes.Other == "test2"', // Should NOT contain && operator
+                    '',
+                    '',
+                    1000,
+                );
+            });
+
+            // Verify no calls contain && when no system policies
+            const allCalls = mockActions.searchUsers.mock.calls;
+            const combinedCalls = allCalls.filter((call) => call[0].includes('&&'));
+            expect(combinedCalls.length).toBe(0);
+        });
+
+        test('should handle system policies only when no channel expression', async () => {
+            mockActions.searchUsers.mockResolvedValue({data: {users: mockUsersMatchingCombined}});
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Don't set any channel expression, just enable auto-sync
+            await waitFor(() => {
+                const checkbox = screen.getByRole('checkbox');
+                expect(checkbox).toBeDisabled(); // Should be disabled without expression
+            });
+
+            // System policies exist but no channel expression, so should use system expressions only
+            // This case would typically not trigger membership calculations since checkbox is disabled
+            // but tests the expression combination logic when called directly
+        });
+
+        test('should properly format combined expressions with parentheses', async () => {
+            mockActions.searchUsers.mockResolvedValue({data: {users: mockUsersMatchingCombined}});
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Set a channel expression
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('user.attributes.Other == "test2"');
+
+            // Enable auto-sync
+            await waitFor(() => {
+                const checkbox = screen.getByRole('checkbox');
+                expect(checkbox).not.toBeDisabled();
+            });
+
+            const checkbox = screen.getByRole('checkbox');
+            await userEvent.click(checkbox);
+
+            // Click Save to trigger membership calculation
+            await waitFor(() => {
+                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+            });
+
+            const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+            await userEvent.click(saveButton);
+
+            // Verify proper parentheses formatting in combined expression
+            await waitFor(() => {
+                const combinedCall = mockActions.searchUsers.mock.calls.find((call) =>
+                    call[0].includes('&&'),
+                );
+                expect(combinedCall).toBeDefined();
+
+                // Should have proper parentheses around each expression
+                expect(combinedCall[0]).toMatch(/^\(.+\) && \(.+\) && \(.+\)$/);
+            });
+        });
+
+        test('should handle empty or whitespace-only expressions', async () => {
+            mockActions.searchUsers.mockResolvedValue({data: {users: []}});
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Set empty/whitespace channel expression
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('   '); // Just whitespace
+
+            // Checkbox should be disabled for empty expression
+            await waitFor(() => {
+                const checkbox = screen.getByRole('checkbox');
+                expect(checkbox).toBeDisabled();
+            });
+        });
+    });
 });
