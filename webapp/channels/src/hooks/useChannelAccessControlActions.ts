@@ -15,6 +15,7 @@ import {
     searchUsersForExpression,
     getAccessControlPolicy,
     createAccessControlPolicy,
+    updateAccessControlPolicyActive,
 } from 'mattermost-redux/actions/access_control';
 import {getChannelMembers} from 'mattermost-redux/actions/channels';
 import {createJob} from 'mattermost-redux/actions/jobs';
@@ -28,6 +29,7 @@ export interface ChannelAccessControlActions {
     saveChannelPolicy: (policy: AccessControlPolicy) => Promise<ActionResult<AccessControlPolicy>>;
     getChannelMembers: (channelId: string, page?: number, perPage?: number) => Promise<ActionResult<ChannelMembership[]>>;
     createJob: (job: JobTypeBase & { data: any }) => Promise<ActionResult>;
+    updateAccessControlPolicyActive: (policyId: string, active: boolean) => Promise<ActionResult>;
 }
 
 /**
@@ -96,6 +98,13 @@ export const useChannelAccessControlActions = (): ChannelAccessControlActions =>
          */
         createJob: (job: JobTypeBase & { data: any }) => {
             return dispatch(createJob(job));
+        },
+
+        /**
+         * Update the active status of an access control policy
+         */
+        updateAccessControlPolicyActive: (policyId: string, active: boolean) => {
+            return dispatch(updateAccessControlPolicyActive(policyId, active));
         },
     }), [dispatch]);
 };
