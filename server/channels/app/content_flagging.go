@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -126,8 +127,7 @@ func (a *App) FlagPost(c request.CTX, post *model.Post, reportingUserId string, 
 
 	// TODO: hide the flagged post here
 
-	contentReviewPost, appErr := a.createContentReviewPost(c, channel.TeamId)
-	if appErr != nil {
+	if appErr := a.createContentReviewPost(c, channel.TeamId, post.Id); appErr != nil {
 		return appErr
 	}
 
@@ -209,29 +209,119 @@ func (a *App) getContentFlaggingMappedFields(groupId string) (map[string]*model.
 	return mappedFields, nil
 }
 
-func (a *App) createContentReviewPost(c request.CTX, teamId string) ([]*model.Post, *model.AppError) {
+func (a *App) createContentReviewPost(c request.CTX, teamId, postId string) *model.AppError {
+	channels, appErr := a.getContentReviewChannels(c, teamId)
+	if appErr != nil {
+		return appErr
+	}
 
+	contentReviewBot, appErr := a.getContentReviewBot(c)
+	if appErr != nil {
+		return appErr
+	}
+
+	post := &model.Post{
+		Message: fmt.Sprintf("A new content review has been created for team %s and post %s. Please check the flagged content.", teamId, postId),
+		UserId:  contentReviewBot.UserId,
+	}
+
+	for _, channel := range channels {
+		post.ChannelId = channel.Id
+		_, appErr := a.CreatePost(c, post, channel, model.CreatePostFlags{})
+		if appErr != nil {
+			c.Logger().Error("Failed to create content review post in one of the channels", mlog.Err(appErr), mlog.String("channel_id", channel.Id), mlog.String("team_id", teamId))
+			continue // Don't stop processing other channels if one fails
+		}
+	}
+
+	return nil
 }
 
-func (a *App) getReviewersForTeam(teamId string) ([]*model.User, *model.AppError) {
+func (a *App) getContentReviewChannels(c request.CTX, teamId string) ([]*model.Channel, *model.AppError) {
+	reviewersUserIDs, appErr := a.getReviewersForTeam(teamId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	bot, appErr := a.getContentReviewBot(c)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	var channels []*model.Channel
+	for _, userId := range reviewersUserIDs {
+		channel, appErr := a.GetOrCreateDirectChannel(c, userId, bot.UserId)
+		if appErr != nil {
+			// Don't stop processing other reviewers if one fails
+			c.Logger().Error("Failed to get or create direct channel for one of the reviewers and content review bot", mlog.Err(appErr), mlog.String("user_id", userId), mlog.String("bot_id", bot.UserId))
+		}
+
+		if channel != nil {
+			channels = append(channels, channel)
+		}
+	}
+
+	return channels, nil
+}
+
+func (a *App) getContentReviewBot(c request.CTX) (*model.Bot, *model.AppError) {
+	return a.GetOrCreateSystemOwnedBot(c, "app.system.content_review_bot.bot_displayname")
+}
+
+func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
 	var reviewerUserIDs []string
 
+	// Common reviewers
 	reviewerSettings := a.Config().ContentFlaggingSettings.ReviewerSettings
+
 	if *reviewerSettings.CommonReviewers {
 		reviewerUserIDs = append(reviewerUserIDs, *reviewerSettings.CommonReviewerIds...)
+	} else {
+		// If common reviewers are not enabled, we still need to check if the team has specific reviewers
+		teamSettings, exist := (*reviewerSettings.TeamReviewersSetting)[teamId]
+		if exist && teamSettings.ReviewerIds != nil {
+			reviewerUserIDs = append(reviewerUserIDs, *teamSettings.ReviewerIds...)
+		}
 	}
 
-	if *reviewerSettings.TeamAdminsAsReviewers {
+	// Additional reviewers
+	if *reviewerSettings.TeamAdminsAsReviewers || *reviewerSettings.SystemAdminsAsReviewers {
 		options := &model.UserGetOptions{
-			InTeamId:  teamId,
-			Page:      0,
-			PerPage:   100,
-			Active:    true,
-			TeamRoles: []string{model.TeamAdminRoleId},
+			InTeamId: teamId,
+			Page:     0,
+			PerPage:  100,
+			Active:   true,
 		}
-		var teamAdmins []*model.User
+
+		if *reviewerSettings.TeamAdminsAsReviewers {
+			options.TeamRoles = []string{model.TeamAdminRoleId}
+		}
+
+		if *reviewerSettings.SystemAdminsAsReviewers {
+			options.Roles = []string{model.SystemAdminRoleId}
+		}
+
+		var additionalReviewers []*model.User
 		for {
 			page, appErr := a.GetUsersInTeam(options)
+			if appErr != nil {
+				return nil, model.NewAppError("getReviewersForTeam", "app.content_flagging.get_users_in_team.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
+			}
+
+			additionalReviewers = append(additionalReviewers, page...)
+			if len(page) < options.PerPage {
+				break
+			}
+			options.Page++
+		}
+
+		for _, user := range additionalReviewers {
+			if user.IsBot || user.IsGuest() {
+				continue
+			}
+			reviewerUserIDs = append(reviewerUserIDs, user.Id)
 		}
 	}
+
+	return reviewerUserIDs, nil
 }

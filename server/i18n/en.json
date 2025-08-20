@@ -7141,6 +7141,10 @@
     "translation": "System"
   },
   {
+    "id": "app.system.content_review_bot.bot_displayname",
+    "translation": "Content Review"
+  },
+  {
     "id": "app.system.content_flagging_bot.bot_displayname",
     "translation": "Content Review"
   },
