@@ -19,8 +19,6 @@ import type {DotMenuClass} from './dot_menu';
 
 import DotMenuRoot from './index';
 
-jest.mock('./utils');
-
 describe('components/dot_menu/DotMenu', () => {
     const latestPost = {
         id: 'latest_post_id',
