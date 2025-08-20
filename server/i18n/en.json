@@ -4519,6 +4519,10 @@
     "translation": "Failed to parse request"
   },
   {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "You do not have permission to manage this access control policy."
+  },
+  {
     "id": "app.acknowledgement.batch_save.app_error",
     "translation": "Failed to save the batch of acknowledgement objects"
   },
@@ -6317,6 +6321,26 @@
   {
     "id": "app.oauth.update_app.updating.app_error",
     "translation": "We encountered an error updating the app."
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "Channel is group constrained and cannot have access control policies applied."
+  },
+  {
+    "id": "app.pap.access_control.channel_not_private",
+    "translation": "Access control policies can only be applied to private channels."
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "Shared channels cannot have access control policy applied."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "You do not have permission to manage access control for this channel."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "You do not have permission to manage this access control policy."
   },
   {
     "id": "app.pap.assign_access_control_policy_to_channels.app_error",
