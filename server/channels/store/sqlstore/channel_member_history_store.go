@@ -229,7 +229,7 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64
 // PermanentDeleteBatchForRetentionPolicies deletes a batch of records which are affected by
 // the global or a granular retention policy.
 // See `genericPermanentDeleteBatchForRetentionPolicies` for details.
-func (s SqlChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+func (s SqlChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 	builder := s.getQueryBuilder().
 		Select("ChannelMemberHistory.ChannelId, ChannelMemberHistory.UserId, ChannelMemberHistory.JoinTime").
 		From("ChannelMemberHistory")
@@ -239,15 +239,16 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(n
 		TimeColumn:          "LeaveTime",
 		PrimaryKeys:         []string{"ChannelId", "UserId", "JoinTime"},
 		ChannelIDTable:      "ChannelMemberHistory",
-		NowMillis:           now,
-		GlobalPolicyEndTime: globalPolicyEndTime,
-		Limit:               limit,
+		NowMillis:           retentionPolicyBatchConfigs.Now,
+		GlobalPolicyEndTime: retentionPolicyBatchConfigs.GlobalPolicyEndTime,
+		Limit:               retentionPolicyBatchConfigs.Limit,
 		StoreDeletedIds:     false,
 	}, s.SqlStore, cursor)
 }
 
 // DeleteOrphanedRows removes entries from ChannelMemberHistory when a corresponding channel no longer exists.
 func (s SqlChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
+	// TODO: https://mattermost.atlassian.net/browse/MM-63368
 	// We need the extra level of nesting to deal with MySQL's locking
 	const query = `
 	DELETE FROM ChannelMemberHistory WHERE (ChannelId, UserId, JoinTime) IN (

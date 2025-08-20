@@ -5,11 +5,11 @@ cd "$(dirname "$0")"
 
 mme2e_log "Configuring starting server parameters that may be changed at runtime"
 for SETTING in \
-    TeamSettings.EnableOpenServer=true \
-    PluginSettings.Enable=true \
-    PluginSettings.EnableUploads=true \
-    PluginSettings.AutomaticPrepackagedPlugins=true
-  do
+  TeamSettings.EnableOpenServer=true \
+  ServiceSettings.StrictCSRFEnforcement=false \
+  PluginSettings.Enable=true \
+  PluginSettings.EnableUploads=true \
+  PluginSettings.AutomaticPrepackagedPlugins=true; do
   mme2e_log "Configuring parameter: $SETTING"
   # shellcheck disable=SC2046
   ${MME2E_DC_SERVER} exec -T -- server mmctl --local config set $(tr '=' ' ' <<<$SETTING)
@@ -34,8 +34,7 @@ if [ "$TEST" = "cypress" ]; then
   for PLUGIN_URL in \
     "https://github.com/mattermost/mattermost-plugin-gitlab/releases/download/v1.3.0/com.github.manland.mattermost-plugin-gitlab-1.3.0.tar.gz" \
     "https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.9.0/com.mattermost.demo-plugin-0.9.0.tar.gz" \
-    "https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.8.0/com.mattermost.demo-plugin-0.8.0.tar.gz"
-  do
+    "https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.8.0/com.mattermost.demo-plugin-0.8.0.tar.gz"; do
     PLUGIN_NAME="${PLUGIN_URL##*/}"
     PLUGIN_PATH="tests/fixtures/$PLUGIN_NAME"
 
@@ -63,7 +62,7 @@ for SERVICE in $ENABLED_DOCKER_SERVICES; do
     fi
     mme2e_log "Configuring the $SERVICE container"
     ${MME2E_DC_SERVER} exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true' <../../server/tests/custom-schema-objectID.ldif
-    ${MME2E_DC_SERVER} exec -T -- openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true' < ../../server/tests/custom-schema-cpa.ldif
+    ${MME2E_DC_SERVER} exec -T -- openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true' <../../server/tests/custom-schema-cpa.ldif
     ${MME2E_DC_SERVER} exec -T -- openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest' <../../server/tests/test-data.ldif
     ;;
   minio)

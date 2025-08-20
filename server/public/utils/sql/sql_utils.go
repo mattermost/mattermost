@@ -6,11 +6,9 @@ package sql
 import (
 	"context"
 	dbsql "database/sql"
-	"net/url"
 	"strings"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/pkg/errors"
@@ -23,31 +21,6 @@ const (
 	replicaLagPrefix = "replica-lag"
 )
 
-// ResetReadTimeout removes the timeout constraint from the MySQL dsn.
-func ResetReadTimeout(dataSource string) (string, error) {
-	config, err := mysql.ParseDSN(dataSource)
-	if err != nil {
-		return "", err
-	}
-	config.ReadTimeout = 0
-	return config.FormatDSN(), nil
-}
-
-// AppendMultipleStatementsFlag attached dsn parameters to MySQL dsn in order to make migrations work.
-func AppendMultipleStatementsFlag(dataSource string) (string, error) {
-	config, err := mysql.ParseDSN(dataSource)
-	if err != nil {
-		return "", err
-	}
-
-	if config.Params == nil {
-		config.Params = map[string]string{}
-	}
-
-	config.Params["multiStatements"] = "true"
-	return config.FormatDSN(), nil
-}
-
 // SetupConnection sets up the connection to the database and pings it to make sure it's alive.
 // It also applies any database configuration settings that are required.
 func SetupConnection(logger mlog.LoggerIFace, connType string, dataSource string, settings *model.SqlSettings, attempts int) (*dbsql.DB, error) {
@@ -57,7 +30,7 @@ func SetupConnection(logger mlog.LoggerIFace, connType string, dataSource string
 	}
 
 	// At this point, we have passed sql.Open, so we deliberately ignore any errors.
-	sanitized, _ := SanitizeDataSource(*settings.DriverName, dataSource)
+	sanitized, _ := model.SanitizeDataSource(*settings.DriverName, dataSource)
 
 	logger = logger.With(
 		mlog.String("database", connType),
@@ -100,38 +73,4 @@ func SetupConnection(logger mlog.LoggerIFace, connType string, dataSource string
 	db.SetConnMaxIdleTime(time.Duration(*settings.ConnMaxIdleTimeMilliseconds) * time.Millisecond)
 
 	return db, nil
-}
-
-func SanitizeDataSource(driverName, dataSource string) (string, error) {
-	switch driverName {
-	case model.DatabaseDriverPostgres:
-		u, err := url.Parse(dataSource)
-		if err != nil {
-			return "", err
-		}
-		u.User = url.UserPassword("****", "****")
-
-		// Remove username and password from query string
-		params := u.Query()
-		params.Del("user")
-		params.Del("password")
-		u.RawQuery = params.Encode()
-
-		// Unescape the URL to make it human-readable
-		out, err := url.QueryUnescape(u.String())
-		if err != nil {
-			return "", err
-		}
-		return out, nil
-	case model.DatabaseDriverMysql:
-		cfg, err := mysql.ParseDSN(dataSource)
-		if err != nil {
-			return "", err
-		}
-		cfg.User = "****"
-		cfg.Passwd = "****"
-		return cfg.FormatDSN(), nil
-	default:
-		return "", errors.New("invalid drivername. Not postgres or mysql.")
-	}
 }

@@ -204,10 +204,6 @@
     "translation": "Бота не съществува."
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Грешка при прочистване на Bleve индекси: двигателят е забранен"
-  },
-  {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "Липсващ адрес в 'До'."
   },
@@ -898,18 +894,6 @@
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Невъзможно е да се активира пакетирането по ел.поща, когато е активирано клъстеризирането."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Настройката Bleve IndexingDir трябва да бъде зададена, когато Bleve EnableIndexing е зададен на true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Настройката Bleve EnableIndexing трябва да бъде зададена на true, когато Bleve EnableSearching е зададено на true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Настройката Bleve EnableIndexing трябва да бъде зададена на true, когато Bleve EnableAutocomplete е зададен на true"
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
@@ -2020,130 +2004,6 @@
     "translation": "Данните от изображението не могат да бъдат декодирани."
   },
   {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Индексът на потребители не бе затворен."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Индексът на публикации не бе затворен."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Индексът на канала не бе затворен."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Потребителското търсене не завърши."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Потребителското търсене не завърши."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Потребителското търсене не завърши."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Търсенето на публикация не бе завършено."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Търсенето на канала не бе завършено."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Неуспешно прочистване на потребителски индекси."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Неуспешно изчистване на индексите за пост."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Неуспешно прочистване на индексите на каналите."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Опит за индексиране на нова партида, когато всички елементи са завършени."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Работника по индексиране на Bleve не успя да анализира началното време."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Работника по индексиране на Bleve не успя да анализира крайния час."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "Най-стария обект (потребител, канал или публикация) не може да бъде извлечен от базата данни."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Неуспешно изпълнение на задачата за Bleve index: модула е неактивен."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Пакетното индексиране на потребители не бе успешно."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Пакетното индексиране на публикации не бе успешно."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Неуспешно пакетно индексиране на канал."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Неуспешно индексиране на потребителя."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Индексирането на публикацията не бе успешно."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Индексирането на канала не бе успешно."
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Изтриването на потребителските публикации не бе успешно"
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Изтриването на потребителя не бе успешно."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Изтриването на публикацията не бе успешно."
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Изтриването на публикациите на канала не бе успешно"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Изтриването на канала не бе успешно."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Грешка при създаването индекса на bleve потребители."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Грешка при създаването индекса на bleve публикации."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Грешка при създаването на индекса на bleve канали."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve вече е стартиран."
-  },
-  {
     "id": "app.webhooks.update_outgoing.app_error",
     "translation": "Не може да се актуализира webhook."
   },
@@ -2504,10 +2364,6 @@
     "translation": "Не можаха да се получат публикациите за канала."
   },
   {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Не можаха да се получат публикациите за пакетно индексиране."
-  },
-  {
     "id": "app.post.get_posts_around.get.app_error",
     "translation": "Не може да се получат публикациите за канала."
   },
@@ -2698,10 +2554,6 @@
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
     "translation": "Не могат да се получат статусите на приставки от клъстера."
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Не може да се зададе приставка, като управлявана от файловото хранилище."
   },
   {
     "id": "app.plugin.filesystem.app_error",
@@ -4380,10 +4232,6 @@
   {
     "id": "app.channel.get_channels_by_ids.app_error",
     "translation": "Невъзможно получаването на канали по ID."
-  },
-  {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Не можа да се получи пакета с канали за индексиране."
   },
   {
     "id": "app.channel.get_channels.not_found.app_error",
@@ -7272,42 +7120,6 @@
     "translation": "Неуспешно създаване на Elasticsearch шаблон за файлове"
   },
   {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Неуспешно затваряне на файловия индекс."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "Търсенето на файлове не успя да приключи."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Неуспешно пакетно индексиране на файлове."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "Неуспешно индексиране на файл."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Неуспешно изтриване файлове на потребители."
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Неуспешно изтриване файлове на публикации."
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Неуспешно изтриване на файлове."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Неуспешно изтриване на файла."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Грешка при създаването на файла с bleve индекса."
-  },
-  {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
     "translation": "Заданието, което се опитвате да изтеглите, в момента не се поддържа"
   },
@@ -7366,10 +7178,6 @@
   {
     "id": "api.getThreadsForUser.bad_params",
     "translation": "Параметрите Преди и След за getThreadsForUser се изключват взаимно"
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Грешка при четене на файл от сървъра"
   },
   {
     "id": "api.unable_to_create_zip_file",
@@ -7458,14 +7266,6 @@
   {
     "id": "api.command_custom_status.app_error",
     "translation": "Грешка при задаване на състоянието."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Неуспешно изчистване на файлови индекси."
-  },
-  {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "Не можа да се получи пакета с файлове за индексиране."
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",

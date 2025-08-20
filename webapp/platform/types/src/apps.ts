@@ -309,6 +309,7 @@ export type AppForm = {
     header?: string;
     footer?: string;
     icon?: string;
+    submit_label?: string;
     submit_buttons?: string;
     cancel_button?: boolean;
     submit_on_cancel?: boolean;
@@ -351,6 +352,10 @@ function isAppForm(v: unknown): v is AppForm {
         return false;
     }
 
+    if (form.submit_label !== undefined && typeof form.submit_label !== 'string') {
+        return false;
+    }
+
     if (form.submit_buttons !== undefined && typeof form.submit_buttons !== 'string') {
         return false;
     }
@@ -382,7 +387,7 @@ function isAppForm(v: unknown): v is AppForm {
     return true;
 }
 
-export type AppFormValue = string | AppSelectOption | boolean | null;
+export type AppFormValue = string | AppSelectOption | AppSelectOption[] | boolean | null;
 
 function isAppFormValue(v: unknown): v is AppFormValue {
     if (typeof v === 'string') {
@@ -395,6 +400,10 @@ function isAppFormValue(v: unknown): v is AppFormValue {
 
     if (v === null) {
         return true;
+    }
+
+    if (Array.isArray(v)) {
+        return v.every(isAppSelectOption);
     }
 
     return isAppSelectOption(v);

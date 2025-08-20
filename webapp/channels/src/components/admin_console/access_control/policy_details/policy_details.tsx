@@ -8,6 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {GenericModal} from '@mattermost/components';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
+import type {AccessControlSettings} from '@mattermost/types/config';
 import type {JobTypeBase} from '@mattermost/types/jobs';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
@@ -53,6 +54,7 @@ interface PolicyActions {
 export interface PolicyDetailsProps {
     policy?: AccessControlPolicy;
     policyId?: string;
+    accessControlSettings: AccessControlSettings;
     actions: PolicyActions;
 }
 
@@ -66,6 +68,7 @@ function PolicyDetails({
     policy,
     policyId,
     actions,
+    accessControlSettings,
 }: PolicyDetailsProps): JSX.Element {
     const [policyName, setPolicyName] = useState(policy?.name || '');
     const [expression, setExpression] = useState(policy?.rules?.[0]?.expression || '');
@@ -98,10 +101,12 @@ function PolicyDetails({
 
         // Expression is simple if it only contains user.attributes.X == "Y" or user.attributes.X in ["Y", "Z"]
         // or user.attributes.X.startsWith/endsWith/contains("Y")
+        // or ["Y", "Z"] in user.attributes.X (for multiselect attributes)
         return expr.split('&&').every((condition) => {
             const trimmed = condition.trim();
             return trimmed.match(/^user\.attributes\.\w+\s*(==|!=)\s*['"][^'"]*['"]$/) ||
                    trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/) ||
+                   trimmed.match(/^((\[.*?\])||['"][^'"]*['"].*?)\s+in\s+user\.attributes\.\w+$/) ||
                    trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
                    trimmed.match(/^user\.attributes\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
                    trimmed.match(/^user\.attributes\.\w+\.contains\(['"][^'"]*['"].*?\)$/);
@@ -167,7 +172,7 @@ function PolicyDetails({
             name: policyName,
             rules: [{expression, actions: ['*']}] as AccessControlPolicyRule[],
             type: 'parent',
-            version: 'v0.1',
+            version: 'v0.2',
         }).then((result) => {
             if (result.error) {
                 setServerError(result.error.message);
@@ -279,38 +284,31 @@ function PolicyDetails({
         }
     };
 
-    const handleChannelChanges = (channels: ChannelWithTeamData[], isAdding: boolean) => {
+    const addToNewChannels = (channels: ChannelWithTeamData[]) => {
         setChannelChanges((prev) => {
             const newChanges = cloneDeep(prev);
-
-            channels.forEach((channel) => {
-                if (isAdding) {
-                    if (newChanges.removed[channel.id]) {
-                        delete newChanges.removed[channel.id];
-                        newChanges.removedCount--;
-                    } else {
-                        newChanges.added[channel.id] = channel;
-                    }
-                } else if (newChanges.added[channel.id]) {
-                    delete newChanges.added[channel.id];
-                } else if (!newChanges.removed[channel.id]) {
-                    newChanges.removedCount++;
-                    newChanges.removed[channel.id] = channel;
+            channels.forEach((channel: ChannelWithTeamData) => {
+                if (newChanges.removed[channel.id]?.id === channel.id) {
+                    delete newChanges.removed[channel.id];
+                    newChanges.removedCount--;
+                } else {
+                    newChanges.added[channel.id] = channel;
                 }
             });
-
             return newChanges;
         });
         setSaveNeeded(true);
         actions.setNavigationBlocked(true);
     };
 
-    const handleUndoRemove = (channel: ChannelWithTeamData) => {
+    const addToRemovedChannels = (channel: ChannelWithTeamData) => {
         setChannelChanges((prev) => {
             const newChanges = cloneDeep(prev);
-            if (newChanges.removed[channel.id]) {
-                delete newChanges.removed[channel.id];
-                newChanges.removedCount--;
+            if (newChanges.added[channel.id]?.id === channel.id) {
+                delete newChanges.added[channel.id];
+            } else if (newChanges.removed[channel.id]?.id !== channel.id) {
+                newChanges.removedCount++;
+                newChanges.removed[channel.id] = channel;
             }
             return newChanges;
         });
@@ -359,6 +357,7 @@ function PolicyDetails({
                             onChange={(_, value) => {
                                 setPolicyName(value);
                                 setSaveNeeded(true);
+                                actions.setNavigationBlocked(true);
                             }}
                             labelClassName='col-sm-4 vertically-centered-label'
                             inputClassName='col-sm-8'
@@ -378,6 +377,7 @@ function PolicyDetails({
                             onChange={(_, value) => {
                                 setAutoSyncMembership(value);
                                 setSaveNeeded(true);
+                                actions.setNavigationBlocked(true);
                             }}
                             setByEnv={false}
                             helpText={
@@ -462,12 +462,20 @@ function PolicyDetails({
                                     onChange={(value) => {
                                         setExpression(value);
                                         setSaveNeeded(true);
+                                        actions.setNavigationBlocked(true);
                                     }}
                                     onValidate={() => {}}
-                                    userAttributes={autocompleteResult.map((attr) => ({
-                                        attribute: attr.name,
-                                        values: [],
-                                    }))}
+                                    userAttributes={autocompleteResult.
+                                        filter((attr) => {
+                                            if (accessControlSettings.EnableUserManagedAttributes) {
+                                                return true;
+                                            }
+                                            return attr.attrs?.ldap || attr.attrs?.saml;
+                                        }).
+                                        map((attr) => ({
+                                            attribute: attr.name,
+                                            values: [],
+                                        }))}
                                 />
                             ) : (
                                 <TableEditor
@@ -475,12 +483,14 @@ function PolicyDetails({
                                     onChange={(value) => {
                                         setExpression(value);
                                         setSaveNeeded(true);
+                                        actions.setNavigationBlocked(true);
                                     }}
                                     onValidate={() => {}}
                                     userAttributes={autocompleteResult}
                                     onParseError={() => {
                                         setEditorMode('cel');
                                     }}
+                                    enableUserManagedAttributes={accessControlSettings.EnableUserManagedAttributes}
                                     actions={{
                                         getVisualAST: actions.getVisualAST,
                                     }}
@@ -518,8 +528,7 @@ function PolicyDetails({
                         </Card.Header>
                         <Card.Body expanded={true}>
                             <ChannelList
-                                onRemoveCallback={(channel) => handleChannelChanges([channel], false)}
-                                onUndoRemoveCallback={handleUndoRemove}
+                                onRemoveCallback={(channel) => addToRemovedChannels(channel)}
                                 channelsToRemove={channelChanges.removed}
                                 channelsToAdd={channelChanges.added}
                                 policyId={policyId}
@@ -575,10 +584,9 @@ function PolicyDetails({
             {addChannelOpen && (
                 <ChannelSelectorModal
                     onModalDismissed={() => setAddChannelOpen(false)}
-                    onChannelsSelected={(channels) => handleChannelChanges(channels, true)}
+                    onChannelsSelected={(channels) => addToNewChannels(channels)}
                     groupID={''}
                     alreadySelected={Object.values(channelChanges.added).map((channel) => channel.id)}
-                    excludeAccessControlPolicyEnforced={true}
                     excludeTypes={['O', 'D', 'G']}
                 />
             )}

@@ -44,7 +44,7 @@ func TestPreparePostListForClient(t *testing.T) {
 	defer th.TearDown()
 
 	postList := model.NewPostList()
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		postList.AddPost(&model.Post{})
 	}
 
@@ -681,7 +681,7 @@ func TestPreparePostForClient(t *testing.T) {
 		directChannel, err := th.App.createDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
 		require.Nil(t, err)
 
-		groupChannel, err := th.App.createGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.CreateUser().Id})
+		groupChannel, err := th.App.createGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.CreateUser().Id}, th.BasicUser.Id)
 		require.Nil(t, err)
 
 		testCases := []struct {
@@ -2590,7 +2590,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Nil(t, img)
 		assert.Error(t, err)
 		assert.IsType(t, &url.Error{}, err)
-		assert.Equal(t, httpservice.ErrAddressForbidden, err.(*url.Error).Err)
+		assert.ErrorContains(t, err, httpservice.ErrAddressForbidden.Error())
 
 		requestURL = th.App.GetSiteURL() + "/api/v4/image?url=" + url.QueryEscape(requestURL)
 
@@ -3025,14 +3025,7 @@ func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
 		assert.Len(t, actual.Metadata.Embeds, 0)
 	})
 
-	t.Run("should not preview for archived channels", func(t *testing.T) {
-		experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
-		defer func() {
-			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
-			})
-		}()
-
+	t.Run("channel previews always work for archived channels", func(t *testing.T) {
 		publicChannel, err := th.App.CreateChannel(th.Context, &model.Channel{
 			Name:      model.NewId(),
 			Type:      model.ChannelTypeOpen,
@@ -3072,19 +3065,8 @@ func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
 
 		previewedPost := model.NewPreviewPost(post, th.BasicTeam, publicChannel)
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
-		})
-
 		actual := th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, publicChannel, th.BasicUser.Id)
 		assert.NotNil(t, actual.Metadata.Embeds[0].Data)
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
-		})
-
-		actual = th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, publicChannel, th.BasicUser.Id)
-		assert.Len(t, actual.Metadata.Embeds, 0)
 	})
 }
 
@@ -3253,33 +3235,114 @@ func TestSanitizePostMetadataForUser(t *testing.T) {
 			},
 		}
 
-		experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
-		defer func() {
-			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
-			})
-		}()
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
-		})
-
 		sanitizedPost, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.NotNil(t, sanitizedPost)
 
 		require.Equal(t, 2, len(sanitizedPost.Metadata.Embeds))
 		require.Equal(t, model.PostEmbedPermalink, sanitizedPost.Metadata.Embeds[0].Type)
+	})
+}
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
-		})
+func TestGetLinkMetadataFromCache(t *testing.T) {
+	mainHelper.Parallel(t)
 
-		sanitizedPost, err = th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
-		require.Nil(t, err)
-		require.NotNil(t, sanitizedPost)
+	testURL := "https://example.com/test"
+	testTimestamp := int64(1640995200000) // 2022-01-01 00:00:00 UTC
 
-		require.Equal(t, 1, len(sanitizedPost.Metadata.Embeds))
-		require.Equal(t, model.PostEmbedLink, sanitizedPost.Metadata.Embeds[0].Type)
+	setup := func(t *testing.T) {
+		err := platform.PurgeLinkCache()
+		require.NoError(t, err)
+	}
+
+	assertCached := func(t *testing.T, url string, expectedOG *opengraph.OpenGraph, expectedImage *model.PostImage, expectedPermalink *model.Permalink) {
+		og, image, permalink, found := getLinkMetadataFromCache(url, testTimestamp)
+		assert.True(t, found)
+		assert.Equal(t, expectedOG, og)
+		assert.Equal(t, expectedImage, image)
+		assert.Equal(t, expectedPermalink, permalink)
+	}
+
+	assertNotCached := func(t *testing.T, url string) {
+		og, image, permalink, found := getLinkMetadataFromCache(url, testTimestamp)
+		assert.False(t, found)
+		assert.Nil(t, og)
+		assert.Nil(t, image)
+		assert.Nil(t, permalink)
+	}
+
+	t.Run("should return false when cache is empty", func(t *testing.T) {
+		setup(t)
+		assertNotCached(t, testURL)
+	})
+
+	t.Run("should return cached data when URL matches", func(t *testing.T) {
+		setup(t)
+		expectedOG := &opengraph.OpenGraph{
+			Title: "Test Title",
+			URL:   testURL,
+		}
+		expectedImage := &model.PostImage{
+			Width:  100,
+			Height: 200,
+		}
+		expectedPermalink := &model.Permalink{
+			PreviewPost: &model.PreviewPost{
+				PostID: "test-post-id",
+			},
+		}
+
+		ctx := request.TestContext(t)
+		cacheLinkMetadata(ctx, testURL, testTimestamp, expectedOG, expectedImage, expectedPermalink)
+
+		assertCached(t, testURL, expectedOG, expectedImage, expectedPermalink)
+	})
+
+	t.Run("should return false when different url not cached", func(t *testing.T) {
+		setup(t)
+
+		cachedURL := "https://example.com/cached"
+		requestedURL := "https://example.com/different"
+
+		expectedOG := &opengraph.OpenGraph{
+			Title: "Cached Title",
+			URL:   cachedURL,
+		}
+		ctx := request.TestContext(t)
+		cacheLinkMetadata(ctx, cachedURL, testTimestamp, expectedOG, nil, nil)
+
+		assertNotCached(t, requestedURL)
+	})
+
+	t.Run("should return false when different url not cached, even if hash collides with a cached url", func(t *testing.T) {
+		setup(t)
+
+		url1 := "http://test.com/w4xg6hpvomau9j5iz371"
+		url2 := "http://collision.comupio5zw28x1m36c"
+
+		hash1 := model.GenerateLinkMetadataHash(url1, testTimestamp)
+		hash2 := model.GenerateLinkMetadataHash(url2, testTimestamp)
+		assert.Equal(t, hash1, hash2, "URLs should have colliding hashes")
+
+		og1 := &opengraph.OpenGraph{
+			Title: "First URL Title",
+			URL:   url1,
+		}
+		ctx := request.TestContext(t)
+		cacheLinkMetadata(ctx, url1, testTimestamp, og1, nil, nil)
+
+		assertCached(t, url1, og1, nil, nil)
+		assertNotCached(t, url2)
+	})
+
+	t.Run("should handle cached nil values correctly", func(t *testing.T) {
+		setup(t)
+
+		nilURL := "https://example.com/nil-test"
+
+		ctx := request.TestContext(t)
+		cacheLinkMetadata(ctx, nilURL, testTimestamp, nil, nil, nil)
+
+		assertCached(t, nilURL, nil, nil, nil)
 	})
 }

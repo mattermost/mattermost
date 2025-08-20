@@ -36,7 +36,6 @@ func (ps *PlatformService) GenerateSupportPacket(rctx request.CTX, options *mode
 
 	if options != nil && options.IncludeLogs {
 		functions["mattermost log"] = ps.GetLogFile
-		functions["notification log"] = ps.GetNotificationLogFile
 	}
 
 	var (
@@ -196,7 +195,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 }
 
 func (ps *PlatformService) getSanitizedConfigFile(rctx request.CTX) (*model.FileData, error) {
-	config := ps.getSanitizedConfig(rctx)
+	config := ps.getSanitizedConfig(rctx, &model.SanitizeOptions{PartiallyRedactDataSources: true})
 	spConfig := model.SupportPacketConfig{
 		Config:       config,
 		FeatureFlags: *config.FeatureFlags,

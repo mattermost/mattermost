@@ -576,6 +576,10 @@
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member."
   },
   {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Invalid channel member update: A channel member always has a user scheme."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
     "translation": "Invalid channel member update: A guest cannot be set for a single channel, a System Admin must promote or demote users to/from guests."
   },
@@ -1622,6 +1626,10 @@
     "translation": "Shared Channels Service is disabled."
   },
   {
+    "id": "api.command_share.service_inactive",
+    "translation": "Shared Channels Service is enabled but not active."
+  },
+  {
     "id": "api.command_share.share_channel.error",
     "translation": "Cannot share this channel: {{.Error}}"
   },
@@ -1728,6 +1736,14 @@
   {
     "id": "api.config.update_config.translations.app_error",
     "translation": "Failed to update server translations."
+  },
+  {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "Content flagging feature is disabled."
+  },
+  {
+    "id": "api.content_flagging.error.license",
+    "translation": "Your license does not support content flagging."
   },
   {
     "id": "api.context.404.app_error",
@@ -2277,6 +2293,10 @@
     "translation": "You do not have permission to manage this job type"
   },
   {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Invalid test type: {{.TestType}}"
+  },
+  {
     "id": "api.ldap_group.not_found",
     "translation": "ldap group not found"
   },
@@ -2315,10 +2335,6 @@
   {
     "id": "api.license.add_license.invalid_count.app_error",
     "translation": "Unable to count total unique users."
-  },
-  {
-    "id": "api.license.add_license.mysql.app_error",
-    "translation": "This license does not support MySQL."
   },
   {
     "id": "api.license.add_license.no_file.app_error",
@@ -2371,10 +2387,6 @@
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
     "translation": "Failed to apply new trial license as your workspace has already applied a trial license. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
-  },
-  {
-    "id": "api.license.request-trial.mysql.app_error",
-    "translation": "Trial licenses are not supported for MySQL databases. Please use PostgreSQL to access trial features."
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -2622,15 +2634,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all has been disabled because the channel has more than {{.Users}} users."
+    "translation": "@all notifications are disabled in channels with more than {{.Users}} users. Contact your system administrator for more information."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel has been disabled because the channel has more than {{.Users}} users."
+    "translation": "@channel notifications are disabled in channels with more than {{.Users}} users. Contact your system administrator for more information."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here has been disabled because the channel has more than {{.Users}} users."
+    "translation": "@here notifications are disabled in channels with more than {{.Users}} users. Contact your system administrator for more information."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -2873,6 +2885,10 @@
   {
     "id": "api.remote_cluster.get.not_found",
     "translation": "Remote Cluster not found"
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Remote cluster import is not allowed"
   },
   {
     "id": "api.remote_cluster.invalid_id.app_error",
@@ -3223,6 +3239,10 @@
     "translation": "The channels of the invite must be part of the team of the invite."
   },
   {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Cannot invite guests users to this channel because it has access restrictions based on user attributes."
+  },
+  {
     "id": "api.team.invite_guests_to_channels.disabled.error",
     "translation": "Guest accounts are disabled"
   },
@@ -3373,6 +3393,10 @@
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
     "translation": "Invalid team member update: A user must be a guest or a user but not both."
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "Invalid team member update: A team member always has a user scheme."
   },
   {
     "id": "api.team.update_team_member_roles.user_and_guest.app_error",
@@ -3831,10 +3855,6 @@
     "translation": "Error creating zip file."
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Error reading file from backend"
-  },
-  {
     "id": "api.unmarshal_error",
     "translation": "Failed to unmarshal."
   },
@@ -3889,6 +3909,10 @@
   {
     "id": "api.upload.get_upload.forbidden.app_error",
     "translation": "Failed to get upload."
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Failed to upload file. Upload channel is not shared with remote."
   },
   {
     "id": "api.upload.upload_data.invalid_content_length",
@@ -4043,6 +4067,10 @@
     "translation": "Unable to create the user, invalid invitation."
   },
   {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Can't create user. Server exceeds maximum licensed users. Contact your administrator with: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
     "id": "api.user.create_user.no_open_server",
     "translation": "This server does not allow open signups.  Please speak with your Administrator to receive an invitation."
   },
@@ -4105,6 +4133,10 @@
   {
     "id": "api.user.get_users.validation.app_error",
     "translation": "Error fetching roles during validation."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Access control service unavailable. Cannot filter users for ABAC-enabled channel."
   },
   {
     "id": "api.user.invalidate_password_recovery_tokens.error",
@@ -4435,18 +4467,6 @@
     "translation": "Failed to parse token data from email verification"
   },
   {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Cannot retrieve posts for an archived channel"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Cannot retrieve users for an archived channel"
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Cannot retrieve bookmarks for an archived channel"
-  },
-  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "URL Blocked because of CORS. Url: {{.BlockedOrigin}}"
   },
@@ -4503,8 +4523,16 @@
     "translation": "Failed to parse request"
   },
   {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "Failed to save the batch of acknowledgement objects"
+  },
+  {
     "id": "app.acknowledgement.delete.app_error",
     "translation": "Unable to delete acknowledgement."
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Cannot delete acknowledgement for missing post"
   },
   {
     "id": "app.acknowledgement.get.app_error",
@@ -4513,6 +4541,10 @@
   {
     "id": "app.acknowledgement.getforpost.get.app_error",
     "translation": "Unable to get acknowledgement for post."
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Cannot save acknowledgement for missing post"
   },
   {
     "id": "app.acknowledgement.save.save.app_error",
@@ -4721,10 +4753,6 @@
   {
     "id": "app.channel.get_channels.not_found.app_error",
     "translation": "No channels were found."
-  },
-  {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Unable to get the channels batch for indexing."
   },
   {
     "id": "app.channel.get_channels_by_ids.app_error",
@@ -4953,6 +4981,18 @@
   {
     "id": "app.channel_member_history.log_leave_event.internal_error",
     "translation": "Failed to record channel member history. Failed to update existing join record"
+  },
+  {
+    "id": "app.cloud.preview_modal_bucket_url_not_configured",
+    "translation": "Preview bucket URL is not configured"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "Failed to fetch preview modal data"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_parse_error",
+    "translation": "Failed to parse preview modal data"
   },
   {
     "id": "app.cloud.trial_plan_bot_message",
@@ -5715,6 +5755,10 @@
     "translation": "Missing required direct post property: message"
   },
   {
+    "id": "app.import.validate_direct_post_import_data.thread_follower.error",
+    "translation": "Failed to validate direct post thread follower data."
+  },
+  {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
     "translation": "Direct post can only be flagged by members of the channel it is in. \"{{.Username}}\" is not a member."
   },
@@ -5769,6 +5813,10 @@
   {
     "id": "app.import.validate_post_import_data.team_missing.error",
     "translation": "Missing required Post property: Team."
+  },
+  {
+    "id": "app.import.validate_post_import_data.thread_follower.error",
+    "translation": "Failed to validate post thread follower data."
   },
   {
     "id": "app.import.validate_post_import_data.user_missing.error",
@@ -5901,6 +5949,14 @@
   {
     "id": "app.import.validate_team_import_data.type_missing.error",
     "translation": "Missing required team property: type."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.empty.error",
+    "translation": "Import follower data empty."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.user_missing.error",
+    "translation": "Missing required follower property: user."
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
@@ -6383,10 +6439,6 @@
     "translation": "Encountered filesystem error."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Unable to set plugin as managed by the file store."
-  },
-  {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
     "translation": "Unable to get plugin statuses from the cluster."
   },
@@ -6591,10 +6643,6 @@
     "translation": "Unable to get direct posts."
   },
   {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "Unable to get the files batch for indexing."
-  },
-  {
     "id": "app.post.get_flagged_posts.app_error",
     "translation": "Unable to get the flagged posts."
   },
@@ -6613,10 +6661,6 @@
   {
     "id": "app.post.get_posts_around.get.app_error",
     "translation": "Unable to get the posts for the channel."
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Unable to get the posts batch for indexing."
   },
   {
     "id": "app.post.get_posts_created_at.app_error",
@@ -7541,8 +7585,12 @@
     "translation": "Cannot demote last System Admin."
   },
   {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "Can't activate user. Server exceeds maximum licensed users. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Can't activate user. Server exceeds safe user limit. Contact your administrator with: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Can't activate user. Server exceeds safe user limit. ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "app.user.update_active_for_multiple_users.updating.app_error",
@@ -7727,174 +7775,6 @@
   {
     "id": "basic_security_check.url.too_long_error",
     "translation": "URL is too long"
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve is already started."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Error creating the bleve channel index."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Error creating the bleve file index."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Error creating the bleve post index."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Error creating the bleve user index."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Failed to delete the channel."
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Failed to delete channel posts"
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Failed to delete the file."
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Failed to delete the files."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Failed to delete the post."
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Failed to delete the post files."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Failed to delete the user."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Failed to delete the user files."
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Failed to delete user posts"
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Failed to index the channel."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "Failed to index the file."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Failed to index the post."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Failed to index the user."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Failed to index channel batch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Failed to index file batch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Failed to index post batch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Failed to index user batch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Failed to run Bleve index job: engine is inactive."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "The oldest entity (user, channel or post) could not be retrieved from the database."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Bleve indexing worker failed to parse the end time."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Bleve indexing worker failed to parse the start time."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Trying to index a new batch when all the entities are completed."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Failed to purge channel indexes."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Failed to purge file indexes."
-  },
-  {
-    "id": "bleveengine.purge_list.not_implemented",
-    "translation": "Purge list feature is not available for Bleve."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Failed to purge post indexes."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Failed to purge user indexes."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Channel search failed to complete."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "File search failed to complete."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Post search failed to complete."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "User search failed to complete."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "User search failed to complete."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "User search failed to complete."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Failed to close channel index."
-  },
-  {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Failed to close file index."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Failed to close post index."
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Failed to close user index."
   },
   {
     "id": "brand.save_brand_image.check_image_limits.app_error",
@@ -8233,6 +8113,10 @@
     "translation": "ldap interface was nil."
   },
   {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "LDAP connection test failed. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Error: {{.Error}}"
+  },
+  {
     "id": "ent.ldap.cpa_field_mapping.list_error",
     "translation": "Failed to retrieve CPA fields"
   },
@@ -8331,10 +8215,6 @@
   {
     "id": "ent.ldap.update_cpa.empty_attribute",
     "translation": "Empty LDAP attribute value"
-  },
-  {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "Error(s) patching CPA value"
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
@@ -8557,10 +8437,6 @@
     "translation": "SAML assertion attribute statement is invalid"
   },
   {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "Error(s) updating CPA values"
-  },
-  {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Unable to complete SAML login with an empty email address."
   },
@@ -8709,6 +8585,10 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "The parent is already imported."
+  },
+  {
     "id": "model.access_policy.inherit.version.app_error",
     "translation": "Could not inherit access control policy."
   },
@@ -8743,6 +8623,10 @@
   {
     "id": "model.access_policy.is_valid.version.app_error",
     "translation": "Version is not valid for this access control policy."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id."
   },
   {
     "id": "model.acknowledgement.is_valid.post_id.app_error",
@@ -9109,22 +8993,6 @@
     "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
   },
   {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Bleve Bulk Indexing Batch Size must be at least {{.BatchSize}}."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Bleve EnableIndexing setting must be set to true when Bleve EnableAutocomplete is set to true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Bleve EnableIndexing setting must be set to true when Bleve EnableSearching is set to true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Bleve IndexingDir setting must be set when Bleve EnableIndexing is set to true"
-  },
-  {
     "id": "model.config.is_valid.cache_type.app_error",
     "translation": "Cache type must be either lru or redis."
   },
@@ -9139,6 +9007,18 @@
   {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
     "translation": "ThreadAutoFollow must be true to enable CollapsedThreads"
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
+    "translation": "Common reviewers or additional reviewers must be set when \"Same reviewers for all teams\" is enabled."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.reasons_not_set.app_error",
+    "translation": "Reasons for flagging cannot be empty."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
+    "translation": "Team reviewers or additional reviewers must be set when setting \"Enabled\" for a team."
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
@@ -9259,6 +9139,34 @@
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
     "translation": "Invalid at rest encrypt key for SQL settings. Must be 32 chars or more."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "Max File Age of audit logs config must not be negative."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "Maximum File Backups of audit logs config must not be negative."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "Maximum File Queue of audit logs config must be greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "Maximum File Size of audit logs config must be greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "When audit file logging is enabled, a file name must be specified."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "The file name must not be a directory."
+  },
+  {
+    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
+    "translation": "Hiding archived channels is no longer supported. Make these channels private and remove members instead."
   },
   {
     "id": "model.config.is_valid.export.directory.app_error",
@@ -9453,6 +9361,18 @@
     "translation": "Invalid domain for move thread settings"
   },
   {
+    "id": "model.config.is_valid.notification_settings.invalid_event",
+    "translation": "Invalid flagging event specified."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_target",
+    "translation": "Invalid flagging event target specified."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
+    "translation": "Notifications for new flagged post cannot be disabled for reviewers."
+  },
+  {
     "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
     "translation": "Invalid Outgoing Integrations Request Timeout for service settings. Must be a positive number."
   },
@@ -9582,7 +9502,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Invalid driver name for SQL settings. Must be 'mysql' or 'postgres'."
+    "translation": "Invalid driver name for SQL settings. Must be 'postgres'."
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
@@ -10366,7 +10286,7 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Invalid user, auth data must be set with auth type."
+    "translation": "Invalid user: Auth data can only be set if the user uses an external auth service, not email/password, for authentication."
   },
   {
     "id": "model.user.is_valid.create_at.app_error",
@@ -10573,10 +10493,6 @@
     "translation": "Missing plugin reattach config"
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Error purging Bleve indexes: engine is disabled"
-  },
-  {
     "id": "sharedchannel.cannot_deliver_post",
     "translation": "One or more posts could not be delivered to remote site {{.Remote}} because it is offline. The post(s) will be delivered when the site is online."
   },
@@ -10718,11 +10634,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 134+"
+    "translation": "Version 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 134+"
+    "translation": "Version 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",

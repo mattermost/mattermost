@@ -364,19 +364,21 @@ const useKeyHandler = (
         toggleAdvanceTextEditor,
         toggleEmojiPicker,
         toggleShowPreview,
+        isInEditMode,
+        location,
     ]);
 
     // Register paste events
     useEffect(() => {
         function onPaste(event: ClipboardEvent) {
-            pasteHandler(event, location, draft.message, isNonFormattedPaste.current, caretPosition);
+            pasteHandler(event, location, draft.message, isNonFormattedPaste.current, caretPosition, isInEditMode);
         }
 
         document.addEventListener('paste', onPaste);
         return () => {
             document.removeEventListener('paste', onPaste);
         };
-    }, [location, draft.message, caretPosition]);
+    }, [location, draft.message, caretPosition, isInEditMode]);
 
     const reactToLastMessage = useCallback((e: KeyboardEvent) => {
         e.preventDefault();

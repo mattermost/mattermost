@@ -34,18 +34,33 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
     >
       0 Results
     </span>
+    <span
+      aria-live="polite"
+      className="sr-only"
+      role="status"
+    >
+      0 Results
+    </span>
     <div
       id="modalPreferenceContainer"
     >
+      <div
+        aria-atomic="true"
+        className="sr-only"
+        role="status"
+      >
+        Channel type filter set to {filterType}
+      </div>
       <Menu
         menu={
           Object {
-            "aria-label": "Browse channels",
+            "aria-label": "Channel type filter",
             "id": "browseChannelsDropdown",
           }
         }
         menuButton={
           Object {
+            "aria-label": "Channel type filter",
             "children": <React.Fragment>
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Channel Type: All"
@@ -113,6 +128,27 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
           }
           leadingElement={
             <LockOutlineIcon
+              size={16}
+            />
+          }
+          onClick={[Function]}
+          trailingElements={null}
+        />
+        <MenuItemSeparator
+          key="channelsMoreDropdownSeparator"
+        />
+        <MenuItem
+          aria-label="Archived channels"
+          id="channelsMoreDropdownArchived"
+          key="channelsMoreDropdownArchived"
+          labels={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Archived channels"
+              id="suggestion.archive"
+            />
+          }
+          leadingElement={
+            <ArchiveOutlineIcon
               size={16}
             />
           }

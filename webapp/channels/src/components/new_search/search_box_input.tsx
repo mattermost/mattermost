@@ -67,7 +67,7 @@ const ClearButton = styled.button`
     }
 `;
 
-type Props = {
+type Props = React.AriaAttributes & {
     searchTerms: string;
     searchType: string;
     setSearchTerms: (searchTerms: string) => void;
@@ -75,7 +75,7 @@ type Props = {
     focus: (newPosition: number) => void;
 }
 
-const SearchInput = forwardRef<HTMLInputElement, Props>(({searchTerms, searchType, setSearchTerms, onKeyDown, focus}, inputRef) => {
+const SearchInput = forwardRef<HTMLInputElement, Props>(({searchTerms, searchType, setSearchTerms, onKeyDown, focus, ...otherProps}, inputRef) => {
     const intl = useIntl();
     let searchPlaceholder = intl.formatMessage({id: 'search_bar.search', defaultMessage: 'Search'});
 
@@ -105,17 +105,19 @@ const SearchInput = forwardRef<HTMLInputElement, Props>(({searchTerms, searchTyp
             <QuickInput
                 ref={inputRef}
                 className={'search-bar form-control'}
+                aria-autocomplete='list'
                 aria-describedby={'searchbar-help-popup'}
                 aria-label={searchPlaceholder}
+                {...otherProps}
                 placeholder={searchPlaceholder}
                 value={searchTerms}
                 onChange={inputChangeCallback}
                 type='search'
-                delayInputUpdate={true}
                 clearable={true}
                 autoFocus={true}
                 onKeyDown={onKeyDown}
                 tabIndex={0}
+                role='searchbox'
             />
             {searchTerms.length > 0 && (
                 <ClearButton

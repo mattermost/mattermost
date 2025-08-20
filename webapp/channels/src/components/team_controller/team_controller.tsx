@@ -3,11 +3,16 @@
 
 import iNoBounce from 'inobounce';
 import React, {lazy, memo, useEffect, useRef, useState} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 import {Route, Switch, useHistory, useParams} from 'react-router-dom';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
 
+import {getTeamContentFlaggingStatus} from 'mattermost-redux/actions/content_flagging';
+import {
+    contentFlaggingFeatureEnabled,
+} from 'mattermost-redux/selectors/entities/content_flagging';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {reconnect} from 'actions/websocket_actions.jsx';
@@ -42,12 +47,15 @@ declare global {
 type Props = PropsFromRedux & OwnProps;
 
 function TeamController(props: Props) {
+    const dispatch = useDispatch();
     const history = useHistory();
     const {team: teamNameParam} = useParams<Props['match']['params']>();
 
     const [initialChannelsLoaded, setInitialChannelsLoaded] = useState(false);
 
     const [team, setTeam] = useState<Team | null>(getTeamFromTeamList(props.teamsList, teamNameParam));
+
+    const contentFlaggingEnabled = useSelector(contentFlaggingFeatureEnabled);
 
     const blurTime = useRef(Date.now());
     const lastTime = useRef(Date.now());
@@ -130,6 +138,13 @@ function TeamController(props: Props) {
             window.removeEventListener('keydown', handleKeydown);
         };
     }, [props.currentTeamId]);
+
+    // Load team content flagging status on team switch
+    useEffect(() => {
+        if (contentFlaggingEnabled && props.currentTeamId) {
+            dispatch(getTeamContentFlaggingStatus(props.currentTeamId));
+        }
+    }, [contentFlaggingEnabled, dispatch, props.currentTeamId]);
 
     // Effect runs on mount, adds active state to window
     useEffect(() => {
