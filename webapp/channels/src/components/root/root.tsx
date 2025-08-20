@@ -79,8 +79,6 @@ const ComponentLibrary = makeAsyncComponent('ComponentLibrary', lazy(() => impor
 
 const Pluggable = makeAsyncPluggableComponent();
 
-const noop = () => {};
-
 export type Props = PropsFromRedux & RouteComponentProps
 
 interface State {
@@ -419,7 +417,6 @@ export default class Root extends React.PureComponent<Props, State> {
                                 fullscreen={true}
                                 zIndex={LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX}
                                 show={true}
-                                onPageView={noop}
                                 transitionDirection={Animations.Reasons.EnterFromBefore}
                             />
                         )}

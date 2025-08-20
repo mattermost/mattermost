@@ -69,30 +69,6 @@ type Props = RouterProps & {
     actions: Actions;
 }
 
-function makeOnPageView() {
-    return function onPageViewInner() {
-    };
-}
-
-function makeSubmitFail() {
-    return function onPageViewInner() {
-    };
-}
-
-const trackSubmitFail = {
-    [WizardSteps.Organization]: makeSubmitFail(),
-    [WizardSteps.Plugins]: makeSubmitFail(),
-    [WizardSteps.InviteMembers]: makeSubmitFail(),
-    [WizardSteps.LaunchingWorkspace]: makeSubmitFail(),
-};
-
-const onPageViews = {
-    [WizardSteps.Organization]: makeOnPageView(),
-    [WizardSteps.Plugins]: makeOnPageView(),
-    [WizardSteps.InviteMembers]: makeOnPageView(),
-    [WizardSteps.LaunchingWorkspace]: makeOnPageView(),
-};
-
 const PreparingWorkspace = ({
     actions,
     history,
@@ -198,7 +174,6 @@ const PreparingWorkspace = ({
         setStepHistory([WizardSteps.LaunchingWorkspace, redirectTo]);
         setSubmissionState(SubmissionStates.SubmitFail);
         setSubmitError(error);
-        trackSubmitFail[redirectTo]();
     }, []);
 
     const createTeam = async (OrganizationName: string): Promise<{error: string | null; newTeam: Team | undefined | null}> => {
@@ -396,7 +371,6 @@ const PreparingWorkspace = ({
             />
             <div className='PreparingWorkspacePageContainer'>
                 <Organization
-                    onPageView={onPageViews[WizardSteps.Organization]}
                     show={shouldShowPage(WizardSteps.Organization)}
                     next={makeNext(WizardSteps.Organization)}
                     transitionDirection={getTransitionDirection(WizardSteps.Organization)}
@@ -423,7 +397,6 @@ const PreparingWorkspace = ({
 
                 <Plugins
                     isSelfHosted={isSelfHosted}
-                    onPageView={onPageViews[WizardSteps.Plugins]}
                     previous={previous}
                     next={() => {
                         makeNext(WizardSteps.Plugins)();
@@ -450,7 +423,6 @@ const PreparingWorkspace = ({
                     }}
                 />
                 <InviteMembers
-                    onPageView={onPageViews[WizardSteps.InviteMembers]}
                     next={() => {
                         skipTeamMembers(false);
                         setSubmissionState(SubmissionStates.UserRequested);
@@ -484,7 +456,6 @@ const PreparingWorkspace = ({
                     isSelfHosted={isSelfHosted}
                 />
                 <LaunchingWorkspace
-                    onPageView={onPageViews[WizardSteps.LaunchingWorkspace]}
                     show={currentStep === WizardSteps.LaunchingWorkspace}
                     transitionDirection={getTransitionDirection(WizardSteps.LaunchingWorkspace)}
                 />

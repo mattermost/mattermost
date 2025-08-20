@@ -46,8 +46,6 @@ const Organization = (props: Props) => {
     const validation = teamNameToUrl(props.organization || '');
     const teamApiError = useRef<typeof TeamApiError | null>(null);
 
-    useEffect(props.onPageView, []);
-
     const teams = useSelector(getActiveTeamsList);
     useEffect(() => {
         if (!teams) {
