@@ -279,17 +279,6 @@ const defaultServerConfig: AdminConfig = {
         AdvancedLoggingJSON: {},
         Certificate: '',
     },
-    NotificationLogSettings: {
-        EnableConsole: true,
-        ConsoleLevel: 'DEBUG',
-        ConsoleJson: true,
-        EnableColor: false,
-        EnableFile: true,
-        FileLevel: 'INFO',
-        FileJson: true,
-        FileLocation: '',
-        AdvancedLoggingJSON: {},
-    },
     PasswordSettings: {
         MinimumLength: 8,
         Lowercase: false,
