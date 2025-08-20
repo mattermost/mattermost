@@ -9,8 +9,6 @@ import {
     momentToString,
     resolveRelativeDate,
     validateDateRange,
-    getDefaultTime,
-    combineDateAndTime,
     type DateValidationError,
 } from './date_utils';
 
@@ -280,51 +278,7 @@ describe('date_utils', () => {
         });
     });
 
-    describe('getDefaultTime', () => {
-        it('should return provided valid time', () => {
-            const result = getDefaultTime('14:30');
-            expect(result).toBe('14:30');
-        });
 
-        it('should return midnight for invalid time format', () => {
-            const result = getDefaultTime('25:00');
-            expect(result).toBe('00:00');
-        });
-
-        it('should return midnight for undefined', () => {
-            const result = getDefaultTime();
-            expect(result).toBe('00:00');
-        });
-
-        it('should validate time format correctly', () => {
-            expect(getDefaultTime('00:00')).toBe('00:00');
-            expect(getDefaultTime('23:59')).toBe('23:59');
-            expect(getDefaultTime('12:30')).toBe('12:30');
-            expect(getDefaultTime('24:00')).toBe('00:00'); // Invalid
-            expect(getDefaultTime('12:60')).toBe('00:00'); // Invalid
-        });
-    });
-
-    describe('combineDateAndTime', () => {
-        it('should combine date and time into UTC datetime string', () => {
-            const result = combineDateAndTime('2025-01-15', '14:30', testTimezone);
-            expect(result).toBe('2025-01-15T19:30:00Z'); // EST to UTC conversion
-        });
-
-        it('should handle midnight time', () => {
-            const result = combineDateAndTime('2025-01-15', '00:00', testTimezone);
-            expect(result).toBe('2025-01-15T05:00:00Z'); // EST to UTC conversion
-        });
-
-        it('should work without timezone (uses local timezone)', () => {
-            // Set timezone to UTC for consistent testing
-            moment.tz.setDefault('UTC');
-
-            const result = combineDateAndTime('2025-01-15', '14:30');
-            expect(result).toBe('2025-01-15T14:30:00Z');
-            moment.tz.setDefault();
-        });
-    });
 
     describe('parseISO integration', () => {
         it('should handle valid ISO dates with parseISO', () => {

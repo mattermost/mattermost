@@ -220,31 +220,3 @@ export function validateDateRange(
     return null;
 }
 
-/**
- * Get default time string for datetime fields
- */
-export function getDefaultTime(defaultTime?: string): string {
-    if (defaultTime) {
-        // Validate format HH:mm
-        if (TIME_FORMAT_REGEX.test(defaultTime)) {
-            return defaultTime;
-        }
-    }
-
-    // Default to midnight
-    return '00:00';
-}
-
-/**
- * Combine date and time strings into a datetime ISO string
- */
-export function combineDateAndTime(
-    dateStr: string,
-    timeStr: string,
-    timezone?: string,
-): string {
-    const dateTime = `${dateStr}T${timeStr}:00`;
-    const momentValue = timezone ? moment.tz(dateTime, timezone) : moment(dateTime);
-
-    return momentValue.utc().format(RFC3339_DATETIME_FORMAT);
-}
