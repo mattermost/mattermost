@@ -19,6 +19,7 @@ import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/m
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
+import {JobTypes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -239,13 +240,13 @@ function ChannelSettingsAccessRulesTab({
         try {
             setIsProcessingSave(true);
 
-            // Build the policy object
+            // Step 1: Build and save the policy object (without active field to avoid conflicts)
             const policy = {
                 id: channel.id,
                 name: channel.display_name,
                 type: 'channel',
                 version: 'v0.2',
-                active: autoSyncMembers,
+                active: false, // Always save as false initially, then update separately
                 revision: 1,
                 created_at: Date.now(),
                 rules: expression.trim() ? [{
@@ -255,19 +256,29 @@ function ChannelSettingsAccessRulesTab({
                 imports: systemPolicies.map((p) => p.id), // Include existing parent policies
             };
 
-            // Save the policy
+            // Save the policy first
             const result = await actions.saveChannelPolicy(policy);
             if (result.error) {
                 throw new Error(result.error.message || 'Failed to save policy');
             }
 
-            // If auto-sync is enabled, create a job to immediately sync channel membership
+            // Step 2: Update the active status separately (like System Console does)
+            try {
+                await actions.updateAccessControlPolicyActive(channel.id, autoSyncMembers);
+            } catch (activeError) {
+                // eslint-disable-next-line no-console
+                console.error('Failed to update policy active status:', activeError);
+
+                // Don't fail the entire save operation for this, but log it
+            }
+
+            // Step 3: If auto-sync is enabled, create a job to immediately sync channel membership
             if (autoSyncMembers && expression.trim()) {
                 try {
                     const job: JobTypeBase & { data: any } = {
-                        type: 'access_control_sync' as const,
+                        type: JobTypes.ACCESS_CONTROL_SYNC,
                         data: {
-                            parent_id: channel.id,
+                            parent_id: channel.id, // Empty parent_id triggers sync of all channel policies
                         },
                     };
                     await actions.createJob(job);
