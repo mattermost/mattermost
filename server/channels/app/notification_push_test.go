@@ -1277,6 +1277,7 @@ func TestClearPushNotificationSync(t *testing.T) {
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: model.NewId()}, nil)
 
 	mockSessionStore := mocks.SessionStore{}
 	mockSessionStore.On("GetSessionsWithActiveDeviceIds", mock.AnythingOfType("string")).Return([]*model.Session{sess1, sess2}, nil)
