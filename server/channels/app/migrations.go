@@ -28,6 +28,7 @@ const (
 	remainingSchemaMigrationsKey                   = "RemainingSchemaMigrations"
 	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
 	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
+	contentFlaggingMigrationVersion                = "v1"
 
 	contentFlaggingPropertyNameFlaggedPostId    = "flagged_post_id"
 	contentFlaggingPropertyNameStatus           = "status"
@@ -597,80 +598,118 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 }
 
 func (s *Server) doSetupContentFlaggingProperties() error {
+	// This migration is designed in a way to allow adding more properties in the future.
+	// When a new property needs to be added, add it to the expectedPropertiesMap map and
+	// update the contentFlaggingMigrationVersion to a new value..
+
 	// If the migration is already marked as completed, don't do it again.
 	var nfErr *store.ErrNotFound
-	if _, err := s.Store().System().GetByName(contentFlaggingSetupDoneKey); err == nil {
-		return nil
-	} else if !errors.As(err, &nfErr) {
+	data, err := s.Store().System().GetByName(contentFlaggingSetupDoneKey)
+	if err != nil && !errors.As(err, &nfErr) {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
+	if data != nil && data.Value == contentFlaggingMigrationVersion {
+		return nil
+	}
+
+	// RegisterPropertyGroup is idempotent, so no need to check if group is already registered
 	group, err := s.propertyService.RegisterPropertyGroup(model.ContentFlaggingGroupName)
 	if err != nil {
 		return fmt.Errorf("failed to register Content Flagging group: %w", err)
 	}
 
-	// register status property
-	properties := []*model.PropertyField{
-		{
+	// Using page size of 100 and not iterating through all pages because the
+	// number of fields are static and defined here and not expected to be more than 100 for now.
+	existingProperties, appErr := s.propertyService.SearchPropertyFields(group.ID, "", model.PropertyFieldSearchOpts{PerPage: 100})
+	if appErr != nil {
+		return fmt.Errorf("failed to search for existing content flagging properties: %w", appErr)
+	}
+
+	existingPropertiesMap := map[string]*model.PropertyField{}
+	for _, property := range existingProperties {
+		existingPropertiesMap[property.Name] = property
+	}
+
+	expectedPropertiesMap := map[string]*model.PropertyField{
+		contentFlaggingPropertyNameFlaggedPostId: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameFlaggedPostId,
 			Type:    model.PropertyFieldTypeText,
 		},
-		{
+		contentFlaggingPropertyNameStatus: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameStatus,
 			Type:    model.PropertyFieldTypeText,
 		},
-		{
+		contentFlaggingPropertyNameReportingUserID: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameReportingUserID,
 			Type:    model.PropertyFieldTypeUser,
 		},
-		{
+		contentFlaggingPropertyNameReportingReason: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameReportingReason,
 			Type:    model.PropertyFieldTypeText,
 		},
-		{
+		contentFlaggingPropertyNameReportingComment: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameReportingComment,
 			Type:    model.PropertyFieldTypeText,
 		},
-		{
+		contentFlaggingPropertyNameReportingTime: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameReportingTime,
 			Type:    model.PropertyFieldTypeText,
 		},
-		{
+		contentFlaggingPropertyNameReviewerUserID: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameReviewerUserID,
 			Type:    model.PropertyFieldTypeUser,
 		},
-		{
+		contentFlaggingPropertyNameActorUserID: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameActorUserID,
 			Type:    model.PropertyFieldTypeUser,
 		},
-		{
+		contentFlaggingPropertyNameActorComment: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameActorComment,
 			Type:    model.PropertyFieldTypeText,
 		},
-		{
+		contentFlaggingPropertyNameActionTime: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameActionTime,
 			Type:    model.PropertyFieldTypeText,
 		},
 	}
 
-	for _, property := range properties {
+	var propertiesToUpdate []*model.PropertyField
+	var propertiesToCreate []*model.PropertyField
+
+	for name, expectedProperty := range expectedPropertiesMap {
+		if _, exists := existingPropertiesMap[name]; exists {
+			property := existingPropertiesMap[name]
+			property.Type = expectedProperty.Type
+			propertiesToUpdate = append(propertiesToUpdate, property)
+		} else {
+			propertiesToCreate = append(propertiesToCreate, expectedProperty)
+		}
+	}
+
+	for _, property := range propertiesToCreate {
 		if _, err := s.propertyService.CreatePropertyField(property); err != nil {
 			return fmt.Errorf("failed to create content flagging property: %q, error: %w", property.Name, err)
 		}
 	}
 
-	if err := s.Store().System().Save(&model.System{Name: contentFlaggingSetupDoneKey, Value: "true"}); err != nil {
+	if len(propertiesToUpdate) > 0 {
+		if _, err := s.propertyService.UpdatePropertyFields(group.ID, propertiesToUpdate); err != nil {
+			return fmt.Errorf("failed to update content flagging property fields: %w", err)
+		}
+	}
+
+	if err := s.Store().System().SaveOrUpdate(&model.System{Name: contentFlaggingSetupDoneKey, Value: contentFlaggingMigrationVersion}); err != nil {
 		return fmt.Errorf("failed to save content flagging setup done flag in system store %w", err)
 	}
 

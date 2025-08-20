@@ -92,6 +92,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 
 	systemStore.On("InsertIfExists", mock.AnythingOfType("*model.System")).Return(&model.System{}, nil).Once()
 	systemStore.On("Save", mock.AnythingOfType("*model.System")).Return(nil)
+	systemStore.On("SaveOrUpdate", mock.AnythingOfType("*model.System")).Return(nil)
 
 	userStore := mocks.UserStore{}
 	userStore.On("Count", mock.AnythingOfType("model.UserCountOptions")).Return(int64(1), nil)
@@ -125,6 +126,12 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	propertyGroupStore := mocks.PropertyGroupStore{}
 	propertyFieldStore := mocks.PropertyFieldStore{}
 	propertyValueStore := mocks.PropertyValueStore{}
+
+	propertyGroupStore.On("Register", model.ContentFlaggingGroupName).Return(&model.PropertyGroup{ID: model.NewId(), Name: model.ContentFlaggingGroupName}, nil)
+
+	propertyFieldStore.On("SearchPropertyFields", mock.Anything).Return([]*model.PropertyField{}, nil)
+	propertyFieldStore.On("CreatePropertyField", mock.Anything).Return(&model.PropertyField{}, nil)
+	propertyFieldStore.On("Create", mock.AnythingOfType("*model.PropertyField")).Return(&model.PropertyField{}, nil)
 
 	mockStore.On("System").Return(&systemStore)
 	mockStore.On("User").Return(&userStore)
