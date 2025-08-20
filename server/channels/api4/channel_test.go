@@ -210,9 +210,10 @@ func TestCreateChannel(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.AllowEmailAccounts = true })
 
 		guestUser := th.CreateUser()
-		th.App.VerifyUserEmail(guestUser.Id, guestUser.Email)
+		appErr := th.App.VerifyUserEmail(guestUser.Id, guestUser.Email)
+		require.Nil(t, appErr)
 
-		appErr := th.App.DemoteUserToGuest(th.Context, guestUser)
+		appErr = th.App.DemoteUserToGuest(th.Context, guestUser)
 		require.Nil(t, appErr)
 
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guestUser.Id, "")
@@ -222,7 +223,8 @@ func TestCreateChannel(t *testing.T) {
 		_, _, err := guestClient.Login(context.Background(), guestUser.Username, guestUser.Password)
 		require.NoError(t, err)
 		t.Cleanup(func() {
-			guestClient.Logout(context.Background())
+			_, lErr := guestClient.Logout(context.Background())
+			require.NoError(t, lErr)
 		})
 
 		userOutsideOfChannels := th.CreateUser()
