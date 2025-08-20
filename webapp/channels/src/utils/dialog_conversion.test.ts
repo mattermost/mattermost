@@ -910,7 +910,7 @@ describe('dialog_conversion', () => {
 
         it('should handle select field values', () => {
             const values = {
-                select_field: {label: 'Option 1', value: 'opt1'},
+                select_field: 'opt1', // Primitive value (already processed by extractPrimitiveValues)
             } as unknown as AppFormValues;
 
             const elements: DialogElement[] = [
@@ -940,10 +940,7 @@ describe('dialog_conversion', () => {
 
         it('should handle multiselect field values', () => {
             const values = {
-                multiselect_field: [
-                    {label: 'Option 1', value: 'opt1'},
-                    {label: 'Option 3', value: 'opt3'},
-                ],
+                multiselect_field: ['opt1', 'opt3'], // Primitive values (already processed by extractPrimitiveValues)
             } as unknown as AppFormValues;
 
             const elements: DialogElement[] = [
@@ -975,10 +972,7 @@ describe('dialog_conversion', () => {
 
         it('should validate multiselect field options in enhanced mode', () => {
             const values = {
-                multiselect_field: [
-                    {label: 'Option 1', value: 'opt1'},
-                    {label: 'Invalid Option', value: 'invalid'},
-                ],
+                multiselect_field: ['opt1', 'invalid'], // Primitive values (already processed by extractPrimitiveValues)
             } as unknown as AppFormValues;
 
             const elements: DialogElement[] = [
@@ -1012,10 +1006,7 @@ describe('dialog_conversion', () => {
 
         it('should handle multiselect field without options validation', () => {
             const values = {
-                multiselect_field: [
-                    {label: 'User 1', value: 'user1'},
-                    {label: 'User 2', value: 'user2'},
-                ],
+                multiselect_field: ['user1', 'user2'], // Primitive values (already processed by extractPrimitiveValues)
             } as unknown as AppFormValues;
 
             const elements: DialogElement[] = [
@@ -1219,7 +1210,7 @@ describe('dialog_conversion', () => {
 
         it('should validate select field options in enhanced mode', () => {
             const values = {
-                select_field: {label: 'Invalid Option', value: 'invalid'},
+                select_field: 'invalid', // Primitive value (already processed by extractPrimitiveValues)
             } as unknown as AppFormValues;
 
             const elements: DialogElement[] = [

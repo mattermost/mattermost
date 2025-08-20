@@ -257,9 +257,7 @@ export function getDefaultValue(element: DialogElement): AppFormValue {
         if (element.options && element.default) {
             // Handle multiselect defaults (comma-separated values)
             if (element.type === 'select' && element.multiselect) {
-                const defaultValues = Array.isArray(element.default) ?
-                    element.default :
-                    String(element.default).split(',').map((val) => val.trim());
+                const defaultValues = Array.isArray(element.default) ? element.default : String(element.default).split(',').map((val) => val.trim());
 
                 const defaultOptions = defaultValues.map((value) => {
                     const option = element.options!.find((opt) => opt.value === value);
@@ -513,8 +511,18 @@ export function extractPrimitiveValues(values: Record<string, any>): Record<stri
             return;
         }
 
-        if (value && typeof value === 'object' && 'value' in value) {
-            // Extract value from select option object {label: "...", value: "..."}
+        if (Array.isArray(value)) {
+            // Handle multiselect arrays - extract values from each option object
+            const extractedValues = value.
+                filter((item) => item && typeof item === 'object' && 'value' in item).
+                map((item) => item.value).
+                filter((val) => val !== null && val !== undefined && val !== '' && val !== '<nil>');
+
+            if (extractedValues.length > 0) {
+                normalized[key] = extractedValues;
+            }
+        } else if (value && typeof value === 'object' && 'value' in value) {
+            // Extract value from single select option object {label: "...", value: "..."}
             const extractedValue = value.value;
 
             // Only store if the extracted value is meaningful
@@ -549,16 +557,34 @@ export function restoreFormFieldValues(storedValues: Record<string, any>, formFi
 
         const field = formFields.find((f) => f.name === key);
         if (field && (field.type === 'static_select' || field.type === 'radio') && field.options && value) {
-            // For select/radio fields, find the matching option and create option object
-            const matchingOption = field.options.find((option: any) => option.value === value);
-            if (matchingOption) {
-                converted[key] = {
-                    label: matchingOption.label,
-                    value: matchingOption.value,
-                };
+            if (field.multiselect && Array.isArray(value)) {
+                // For multiselect fields, convert array of primitive values to array of option objects
+                const matchingOptions = value.
+                    map((val) => field.options?.find((option: any) => option.value === val)).
+                    filter((option) => option !== undefined).
+                    map((option: any) => ({
+                        label: option.label,
+                        value: option.value,
+                    }));
+
+                if (matchingOptions.length > 0) {
+                    converted[key] = matchingOptions;
+                } else {
+                    // Fallback: use the primitive array as-is if no matching options found
+                    converted[key] = value;
+                }
             } else {
-                // Fallback: use the value as-is if no matching option found (but only if meaningful)
-                converted[key] = value;
+                // For single select/radio fields, find the matching option and create option object
+                const matchingOption = field.options.find((option: any) => option.value === value);
+                if (matchingOption) {
+                    converted[key] = {
+                        label: matchingOption.label,
+                        value: matchingOption.value,
+                    };
+                } else {
+                    // Fallback: use the value as-is if no matching option found (but only if meaningful)
+                    converted[key] = value;
+                }
             }
         } else {
             // For non-select fields, use primitive value
@@ -661,61 +687,54 @@ export function convertAppFormValuesToDialogSubmission(
             break;
 
         case DialogElementTypes.SELECT:
+            // Values are already converted to primitives by extractPrimitiveValues
+            // Only validate that the values exist in the options list
             if (Array.isArray(value)) {
                 if (element.multiselect) {
-                    // For multiselect, convert array of AppSelectOption to array of values
-                    const multiValues = value.map((item) => {
-                        if (!element.options) {
-                            return item.value;
-                        }
-                        const validOption = element.options.find((opt) => opt.value === item.value);
-                        if (!validOption) {
+                    // Validate each value in multiselect array
+                    const validatedValues = element.options ? value.filter((val) => {
+                        const isValid = element.options!.some((opt) => opt.value === val);
+                        if (!isValid) {
                             errors.push({
                                 field: element.name,
-                                message: `"${element.name}" field is not valid: Selected value not found in options: ${item.value}`,
+                                message: `"${element.name}" field is not valid: Selected value not found in options: ${val}`,
                                 code: ValidationErrorCode.INVALID_FORMAT,
                             });
-                            return null;
                         }
-                        return validOption.value;
-                    }).filter(Boolean);
-                    submission[element.name] = multiValues;
+                        return isValid;
+                    }) : value;
+                    submission[element.name] = validatedValues;
                 } else {
-                    // For single select with array input, take the first value
+                    // Single select with array - take first value and validate
                     const firstValue = value[0];
-                    if (firstValue && element.options) {
-                        const validOption = element.options.find((opt) => opt.value === firstValue.value);
-                        if (validOption) {
-                            submission[element.name] = validOption.value;
+                    if (firstValue !== undefined && element.options) {
+                        const isValid = element.options.some((opt) => opt.value === firstValue);
+                        if (isValid) {
+                            submission[element.name] = firstValue;
                         } else {
                             errors.push({
                                 field: element.name,
-                                message: `"${element.name}" field is not valid: Selected value not found in options: ${firstValue.value}`,
+                                message: `"${element.name}" field is not valid: Selected value not found in options: ${firstValue}`,
                                 code: ValidationErrorCode.INVALID_FORMAT,
                             });
                             submission[element.name] = null;
                         }
                     } else {
-                        submission[element.name] = firstValue?.value || null;
+                        submission[element.name] = firstValue || null;
                     }
                 }
-            } else if (typeof value === 'object' && value !== null && 'value' in value) {
-                // Handle single AppSelectOption
-                const selectOption = value as AppSelectOption;
-
-                if (options.enhanced && element.options) {
-                    const validOption = element.options.find((opt) => opt.value === selectOption.value);
-                    if (!validOption) {
+            } else {
+                // Single primitive value - validate if options exist
+                if (element.options && options.enhanced && value !== null && value !== undefined) {
+                    const isValid = element.options.some((opt) => opt.value === value);
+                    if (!isValid) {
                         errors.push({
                             field: element.name,
-                            message: `"${element.name}" field is not valid: Selected value not found in options: ${selectOption.value}`,
+                            message: `"${element.name}" field is not valid: Selected value not found in options: ${value}`,
                             code: ValidationErrorCode.INVALID_FORMAT,
                         });
                     }
                 }
-                submission[element.name] = selectOption.value;
-            } else {
-                // Handle primitive values
                 submission[element.name] = value;
             }
             break;
