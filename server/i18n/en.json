@@ -6332,7 +6332,7 @@
   },
   {
     "id": "app.pap.access_control.channel_shared",
-    "translation": "Channel is shared and cannot have access control policies applied."
+    "translation": "Shared channels cannot have access control policy applied."
   },
   {
     "id": "app.pap.access_control.insufficient_channel_permissions",

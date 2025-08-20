@@ -57,7 +57,7 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 
 		if !hasManageSystemPermission {
 			// For non-system admins, check channel-specific permission
-			if policy.ID == "" {
+			if !model.IsValidId(policy.ID) {
 				c.SetInvalidParam("policy.id")
 				return
 			}
@@ -175,10 +175,7 @@ func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if user has system admin permission OR any channel admin permission
-	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
-	hasChannelAdminPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageChannelAccessRules)
-
-	if !hasManageSystemPermission && !hasChannelAdminPermission {
+	if !(c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) || c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageChannelAccessRules)) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
@@ -208,10 +205,7 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if user has system admin permission OR any channel admin permission
-	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
-	hasChannelAdminPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageChannelAccessRules)
-
-	if !hasManageSystemPermission && !hasChannelAdminPermission {
+	if !(c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) || c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageChannelAccessRules)) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
@@ -491,10 +485,7 @@ func searchChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *
 
 func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Check if user has system admin permission OR any channel admin permission
-	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
-	hasChannelAdminPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageChannelAccessRules)
-
-	if !hasManageSystemPermission && !hasChannelAdminPermission {
+	if !(c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) || c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageChannelAccessRules)) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
@@ -537,10 +528,7 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Check if user has system admin permission OR any channel admin permission
-	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
-	hasChannelAdminPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageChannelAccessRules)
-
-	if !hasManageSystemPermission && !hasChannelAdminPermission {
+	if !(c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) || c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageChannelAccessRules)) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
