@@ -329,7 +329,7 @@ func (s *MmctlE2ETestSuite) TestConfigMigrateCmdF() {
 
 	s.Run("Should fail without the --local flag", func() {
 		printer.Clean()
-		args := []string{"from", "to"}
+		args := []string{"config.json", "output.json"}
 
 		err := configMigrateCmdF(s.th.Client, &cobra.Command{}, args)
 		s.Require().Error(err)
@@ -338,9 +338,24 @@ func (s *MmctlE2ETestSuite) TestConfigMigrateCmdF() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Should be able to migrate config", func() {
+	s.Run("Should be able to migrate config to file", func() {
 		printer.Clean()
-		args := []string{"config.json", "toDb"}
+		args := []string{"config.json", "output.json"}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("local", true, "")
+
+		err := configMigrateCmdF(s.th.LocalClient, cmd, args)
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Should be able to migrate config to database", func() {
+		printer.Clean()
+
+		// Get the current database DSN from the test configuration
+		currentDSN := *s.th.App.Config().SqlSettings.DataSource
+		args := []string{"config.json", currentDSN}
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("local", true, "")
