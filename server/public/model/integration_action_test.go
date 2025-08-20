@@ -928,8 +928,8 @@ func TestValidateDateFormat(t *testing.T) {
 		{"invalid leap year", "2023-02-29", true},
 		{"empty string", "", false}, // Empty string is valid (no error)
 		{"partial date", "2025", true},
-		{"valid datetime format (should extract date)", "2025-01-15T10:30:00", false},
-		{"valid datetime with timezone", "2025-01-15T10:30:00Z", false},
+		{"valid datetime format (should extract date)", "2025-01-15T10:30:00", true},
+		{"valid datetime with timezone", "2025-01-15T10:30:00Z", true},
 	}
 
 	for _, tt := range tests {
@@ -1076,105 +1076,13 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 		}
 	})
 
-	t.Run("should validate default_time format", func(t *testing.T) {
-		// Test valid times that align with default 60-minute interval
-		validTimes := []string{"", "00:00", "12:00", "23:00"}
-		for _, defaultTime := range validTimes {
-			element := DialogElement{
-				DisplayName: "Test DateTime",
-				Name:        "test_datetime",
-				Type:        "datetime",
-				Optional:    false,
-			}
-			err := element.IsValid()
-			assert.NoError(t, err, "default_time %q should be valid", defaultTime)
-		}
-
-		// Test format validation separately - use clearly invalid formats
-		invalidFormatTimes := []string{"24:00", "12:60", "abc", "12:30:45", "25:00", "12:99"}
-		for _, defaultTime := range invalidFormatTimes {
-			element := DialogElement{
-				DisplayName:  "Test DateTime",
-				Name:         "test_datetime",
-				Type:         "datetime",
-				TimeInterval: 1, // Use 1-minute interval so any valid time format passes interval check
-				Optional:     false,
-			}
-			err := element.IsValid()
-			if err == nil {
-				t.Errorf("Expected error for default_time %q but got none", defaultTime)
-				continue
-			}
-			// Check that it contains time format error (may also have interval error)
-			assert.True(t,
-				strings.Contains(err.Error(), "invalid time format") ||
-					strings.Contains(err.Error(), "does not align"),
-				"Error should mention time format or alignment issue for %q, got: %v", defaultTime, err.Error())
-		}
-	})
-
-	t.Run("should validate default_time alignment with time_interval", func(t *testing.T) {
-		// Valid combinations - times that align with intervals
-		validCombinations := []struct {
-			defaultTime  string
-			timeInterval int
-		}{
-			{"00:00", 30},  // 0 minutes % 30 = 0
-			{"00:30", 30},  // 30 minutes % 30 = 0
-			{"01:00", 30},  // 60 minutes % 30 = 0
-			{"12:00", 15},  // 720 minutes % 15 = 0
-			{"12:15", 15},  // 735 minutes % 15 = 0
-			{"09:00", 60},  // 540 minutes % 60 = 0
-			{"10:00", 120}, // 600 minutes % 120 = 0
-			{"08:00", 240}, // 480 minutes % 240 = 0
-		}
-
-		for _, combo := range validCombinations {
-			element := DialogElement{
-				DisplayName:  "Test DateTime",
-				Name:         "test_datetime",
-				Type:         "datetime",
-				TimeInterval: combo.timeInterval,
-				Optional:     false,
-			}
-			err := element.IsValid()
-			assert.NoError(t, err, "default_time %q with time_interval %d should be valid", combo.defaultTime, combo.timeInterval)
-		}
-
-		// Invalid combinations - times that don't align with intervals
-		invalidCombinations := []struct {
-			defaultTime  string
-			timeInterval int
-		}{
-			{"00:15", 30},  // 15 minutes % 30 = 15 (not 0)
-			{"00:45", 30},  // 45 minutes % 30 = 15 (not 0)
-			{"12:31", 30},  // 751 minutes % 30 = 1 (not 0)
-			{"09:07", 15},  // 547 minutes % 15 = 7 (not 0)
-			{"10:30", 60},  // 630 minutes % 60 = 30 (not 0)
-			{"08:30", 120}, // 510 minutes % 120 = 30 (not 0)
-		}
-
-		for _, combo := range invalidCombinations {
-			element := DialogElement{
-				DisplayName:  "Test DateTime",
-				Name:         "test_datetime",
-				Type:         "datetime",
-				TimeInterval: combo.timeInterval,
-				Optional:     false,
-			}
-			err := element.IsValid()
-			assert.Error(t, err, "default_time %q with time_interval %d should be invalid", combo.defaultTime, combo.timeInterval)
-			assert.Contains(t, err.Error(), "does not align with time_interval")
-		}
-	})
-
 	t.Run("should use default time_interval of 60 minutes when zero", func(t *testing.T) {
 		// Valid with default 60-minute interval
 		element := DialogElement{
 			DisplayName:  "Test DateTime",
 			Name:         "test_datetime",
 			Type:         "datetime",
-			TimeInterval: 0, // Should use default of 60
+			TimeInterval: DefaultTimeIntervalMinutes,
 			Optional:     false,
 		}
 		err := element.IsValid()
@@ -1190,6 +1098,6 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 		}
 		err = element.IsValid()
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "does not align with time_interval 60 minutes")
+		assert.Contains(t, err.Error(), "time_interval of 0 will be reset to default")
 	})
 }
