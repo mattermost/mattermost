@@ -10747,5 +10747,9 @@
   {
     "id": "app.content_flagging.group_id.app_error",
     "translation": "Cannot fetch Content Flagging property group"
+  },
+  {
+    "id": "api.content_flagging.error.not_available_on_team",
+    "translation": "Content flagging feature is not enabled on this team."
   }
 ]

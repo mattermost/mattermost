@@ -14,14 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// TODO: move these to model package
-const (
-	contentFlaggingStatusPending  = "pending"
-	contentFlaggingStatusAssigned = "assigned"
-	contentFlaggingStatusRemoved  = "removed"
-	contentFlaggingStatusRetained = "retained"
-)
-
 var contentFlaggingGroupId string
 
 func ContentFlaggingEnabledForTeam(config *model.Config, teamId string) bool {
@@ -47,21 +39,13 @@ func ContentFlaggingEnabledForTeam(config *model.Config, teamId string) bool {
 	return hasAdditionalReviewers
 }
 
-func (a *App) contentFlaggingGroupId() (string, *model.AppError) {
-	if contentFlaggingGroupId != "" {
-		return contentFlaggingGroupId, nil
-	}
-
-	// TODO: use model.ContentFlaggingGroupName once the PR https://github.com/mattermost/mattermost/pull/33395/files is merged
-	group, err := a.Srv().propertyService.GetPropertyGroup("content_flagging")
-	if err != nil {
-		return "", model.NewAppError("getContentFlaggingGroupId", "app.content_flagging.get_group.error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	contentFlaggingGroupId = group.ID
-	return contentFlaggingGroupId, nil
-}
-
 func (a *App) FlagPost(c request.CTX, post *model.Post, reportingUserId string, flagData model.FlagContentRequest) *model.AppError {
+	commentRequired := a.Config().ContentFlaggingSettings.AdditionalSettings.ReporterCommentRequired
+	validReasons := a.Config().ContentFlaggingSettings.AdditionalSettings.Reasons
+	if appErr := flagData.IsValid(*commentRequired, *validReasons); appErr != nil {
+		return appErr
+	}
+
 	groupId, appErr := a.contentFlaggingGroupId()
 	if appErr != nil {
 		return appErr
@@ -81,41 +65,40 @@ func (a *App) FlagPost(c request.CTX, post *model.Post, reportingUserId string, 
 		return appErr
 	}
 
-	// TODO: use constant for target type and field names
 	propertyValues := []*model.PropertyValue{
 		{
 			TargetID:   post.Id,
-			TargetType: "post",
+			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
-			FieldID:    mappedFields["status"].ID,
-			Value:      json.RawMessage(`"` + contentFlaggingStatusPending + `"`),
+			FieldID:    mappedFields[contentFlaggingPropertyNameStatus].ID,
+			Value:      json.RawMessage(`"` + model.ContentFlaggingStatusPending + `"`),
 		},
 		{
 			TargetID:   post.Id,
-			TargetType: "post",
+			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
-			FieldID:    mappedFields["reporting_user_id"].ID,
+			FieldID:    mappedFields[contentFlaggingPropertyNameReportingUserID].ID,
 			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, reportingUserId)),
 		},
 		{
 			TargetID:   post.Id,
-			TargetType: "post",
+			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
-			FieldID:    mappedFields["reporting_reason"].ID,
+			FieldID:    mappedFields[contentFlaggingPropertyNameReportingReason].ID,
 			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, strings.Trim(flagData.Reason, `"`))),
 		},
 		{
 			TargetID:   post.Id,
-			TargetType: "post",
+			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
-			FieldID:    mappedFields["reporting_comment"].ID,
+			FieldID:    mappedFields[contentFlaggingPropertyNameReportingComment].ID,
 			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, strings.Trim(flagData.Comment, `"`))),
 		},
 		{
 			TargetID:   post.Id,
-			TargetType: "post",
+			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
-			FieldID:    mappedFields["reporting_time"].ID,
+			FieldID:    mappedFields[contentFlaggingPropertyNameReportingTime].ID,
 			Value:      json.RawMessage(fmt.Sprintf("%d", model.GetMillis())),
 		},
 	}
@@ -132,6 +115,19 @@ func (a *App) FlagPost(c request.CTX, post *model.Post, reportingUserId string, 
 	}
 
 	return nil
+}
+
+func (a *App) contentFlaggingGroupId() (string, *model.AppError) {
+	if contentFlaggingGroupId != "" {
+		return contentFlaggingGroupId, nil
+	}
+
+	group, err := a.Srv().propertyService.GetPropertyGroup(model.ContentFlaggingGroupName)
+	if err != nil {
+		return "", model.NewAppError("getContentFlaggingGroupId", "app.content_flagging.get_group.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	contentFlaggingGroupId = group.ID
+	return contentFlaggingGroupId, nil
 }
 
 func (a *App) getPostContentFlaggingProperties(groupID, postId string) ([]*model.PropertyValue, *model.AppError) {
@@ -160,8 +156,7 @@ func (a *App) canFlagPost(groupId, postId string) *model.AppError {
 		return appErr
 	}
 
-	// TODO: replace "status" string with model.contentFlaggingPropertyNameStatus
-	statusPropertyField, err := a.Srv().propertyService.GetPropertyFieldByName(groupID, "", "status")
+	statusPropertyField, err := a.Srv().propertyService.GetPropertyFieldByName(groupID, "", contentFlaggingPropertyNameStatus)
 	if err != nil {
 		return model.NewAppError("canFlagPost", "app.content_flagging.get_property_field_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -181,12 +176,12 @@ func (a *App) canFlagPost(groupId, postId string) *model.AppError {
 
 	var reason string
 
-	switch string(statusValue.Value) {
-	case contentFlaggingStatusPending, contentFlaggingStatusAssigned:
+	switch strings.Trim(string(statusValue.Value), `"`) {
+	case model.ContentFlaggingStatusPending, model.ContentFlaggingStatusAssigned:
 		reason = "app.content_flagging.can_flag_post.in_progress"
-	case contentFlaggingStatusRetained:
+	case model.ContentFlaggingStatusRetained:
 		reason = "app.content_flagging.can_flag_post.retained"
-	case contentFlaggingStatusRemoved:
+	case model.ContentFlaggingStatusRemoved:
 		reason = "app.content_flagging.can_flag_post.removed"
 	default:
 		reason = "app.content_flagging.can_flag_post.unknown"
@@ -284,24 +279,17 @@ func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
 		}
 	}
 
+	var additionalReviewers []*model.User
 	// Additional reviewers
-	if *reviewerSettings.TeamAdminsAsReviewers || *reviewerSettings.SystemAdminsAsReviewers {
+	if *reviewerSettings.TeamAdminsAsReviewers {
 		options := &model.UserGetOptions{
-			InTeamId: teamId,
-			Page:     0,
-			PerPage:  100,
-			Active:   true,
+			InTeamId:  teamId,
+			Page:      0,
+			PerPage:   100,
+			Active:    true,
+			TeamRoles: []string{model.TeamAdminRoleId},
 		}
 
-		if *reviewerSettings.TeamAdminsAsReviewers {
-			options.TeamRoles = []string{model.TeamAdminRoleId}
-		}
-
-		if *reviewerSettings.SystemAdminsAsReviewers {
-			options.Roles = []string{model.SystemAdminRoleId}
-		}
-
-		var additionalReviewers []*model.User
 		for {
 			page, appErr := a.GetUsersInTeam(options)
 			if appErr != nil {
@@ -314,13 +302,36 @@ func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
 			}
 			options.Page++
 		}
+	}
 
-		for _, user := range additionalReviewers {
-			if user.IsBot || user.IsGuest() {
-				continue
-			}
-			reviewerUserIDs = append(reviewerUserIDs, user.Id)
+	if *reviewerSettings.SystemAdminsAsReviewers {
+		options := &model.UserGetOptions{
+			InTeamId: teamId,
+			Page:     0,
+			PerPage:  100,
+			Active:   true,
+			Roles:    []string{model.SystemAdminRoleId},
 		}
+
+		for {
+			page, appErr := a.GetUsersInTeam(options)
+			if appErr != nil {
+				return nil, model.NewAppError("getReviewersForTeam", "app.content_flagging.get_users_in_team.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
+			}
+
+			additionalReviewers = append(additionalReviewers, page...)
+			if len(page) < options.PerPage {
+				break
+			}
+			options.Page++
+		}
+	}
+
+	for _, user := range additionalReviewers {
+		if user.IsBot || user.IsGuest() {
+			continue
+		}
+		reviewerUserIDs = append(reviewerUserIDs, user.Id)
 	}
 
 	return reviewerUserIDs, nil

@@ -10,6 +10,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	PropertyValueTargetTypePost = "post"
+	PropertyValueTargetTypeUser = "user"
+)
+
 type PropertyValue struct {
 	ID         string          `json:"id"`
 	TargetID   string          `json:"target_id"`

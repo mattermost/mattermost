@@ -270,7 +270,7 @@ func (a *App) PatchCPAValues(userID string, fieldValueMap map[string]json.RawMes
 
 		value := &model.PropertyValue{
 			GroupID:    groupID,
-			TargetType: "user",
+			TargetType: model.PropertyValueTargetTypeUser,
 			TargetID:   userID,
 			FieldID:    fieldID,
 			Value:      sanitizedValue,

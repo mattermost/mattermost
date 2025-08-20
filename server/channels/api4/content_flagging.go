@@ -99,6 +99,18 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	enabled := app.ContentFlaggingEnabledForTeam(c.App.Config(), channel.TeamId)
+	if !enabled {
+		c.Err = model.NewAppError("flagPost", "api.content_flagging.error.not_available_on_team", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	var flagRequest model.FlagContentRequest
 	if err := json.NewDecoder(r.Body).Decode(&flagRequest); err != nil {
 		c.SetInvalidParamWithErr("flagPost", err)
