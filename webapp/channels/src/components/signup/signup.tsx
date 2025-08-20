@@ -4,7 +4,6 @@
 import classNames from 'classnames';
 import throttle from 'lodash/throttle';
 import React, {useState, useEffect, useRef, useCallback} from 'react';
-import type {FocusEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {useLocation, useHistory, Route} from 'react-router-dom';
@@ -500,24 +499,16 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         }
     };
 
-    function sendSignUpTelemetryEvents() {
-    }
-
-    type TelemetryErrorList = {errors: Array<{field: string; rule: string}>; success: boolean};
-
     const isUserValid = () => {
         let isValid = true;
 
         const providedEmail = emailInput.current?.value.trim();
-        const telemetryEvents: TelemetryErrorList = {errors: [], success: true};
 
         if (!providedEmail) {
             setEmailError(formatMessage({id: 'signup_user_completed.required', defaultMessage: 'This field is required'}));
-            telemetryEvents.errors.push({field: 'email', rule: 'not_provided'});
             isValid = false;
         } else if (!isEmail(providedEmail)) {
             setEmailError(formatMessage({id: 'signup_user_completed.validEmail', defaultMessage: 'Please enter a valid email address'}));
-            telemetryEvents.errors.push({field: 'email', rule: 'invalid_email'});
             isValid = false;
         }
 
@@ -542,30 +533,21 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                         },
                     );
                 }
-                telemetryEvents.errors.push({field: 'username', rule: usernameError.id.toLowerCase()});
                 setNameError(nameError);
                 isValid = false;
             }
         } else {
             setNameError(formatMessage({id: 'signup_user_completed.required', defaultMessage: 'This field is required'}));
-            telemetryEvents.errors.push({field: 'username', rule: 'not_provided'});
             isValid = false;
         }
 
         const providedPassword = passwordInput.current?.value ?? '';
-        const {error, telemetryErrorIds} = isValidPassword(providedPassword, passwordConfig, intl);
+        const {error} = isValidPassword(providedPassword, passwordConfig, intl);
 
         if (error) {
             setPasswordError(error as string);
-            telemetryEvents.errors = [...telemetryEvents.errors, ...telemetryErrorIds];
             isValid = false;
         }
-
-        if (telemetryEvents.errors.length) {
-            telemetryEvents.success = false;
-        }
-
-        sendSignUpTelemetryEvents();
 
         return isValid;
     };
@@ -576,7 +558,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
 
     const handleSubmit = async (e: React.MouseEvent | React.KeyboardEvent) => {
         e.preventDefault();
-        sendSignUpTelemetryEvents();
         setIsWaiting(true);
         setSubmitClicked(true);
 
@@ -684,14 +665,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                 </span>
             </div>
         );
-    };
-
-    const handleOnBlur = (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const text = e.target.value;
-        if (!text) {
-            return;
-        }
-        sendSignUpTelemetryEvents();
     };
 
     const getContent = () => {
@@ -822,7 +795,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         disabled={isWaiting || Boolean(parsedEmail)}
                                         autoFocus={true}
                                         customMessage={emailCustomLabelForInput}
-                                        onBlur={handleOnBlur}
                                     />
                                     <Input
                                         data-testid='signup-body-card-form-name-input'
@@ -845,7 +817,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                                 value: formatMessage({id: 'signup_user_completed.userHelp', defaultMessage: 'You can use lowercase letters, numbers, periods, dashes, and underscores.'}),
                                             }
                                         }
-                                        onBlur={handleOnBlur}
                                     />
                                     <PasswordInput
                                         data-testid='signup-body-card-form-password-input'
@@ -858,7 +829,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         createMode={true}
                                         info={passwordInfo as string}
                                         error={passwordError}
-                                        onBlur={handleOnBlur}
                                     />
                                     {getNewsletterCheck()}
                                     <SaveButton
