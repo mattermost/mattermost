@@ -16,7 +16,6 @@ import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     className?: string;
-    isAdmin: boolean;
 }
 
 const InviteMembersButton = (props: Props): JSX.Element | null => {

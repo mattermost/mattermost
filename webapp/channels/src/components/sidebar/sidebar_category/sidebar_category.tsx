@@ -315,7 +315,6 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                         inviteMembersButton = (
                             <InviteMembersButton
                                 className='followingSibling'
-                                isAdmin={this.props.isAdmin}
                             />
                         );
                     }
