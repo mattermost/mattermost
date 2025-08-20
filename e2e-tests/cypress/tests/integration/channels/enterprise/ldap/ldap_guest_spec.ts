@@ -31,6 +31,9 @@ describe('LDAP guest', () => {
         // * Check if server has license for LDAP
         cy.apiRequireLicenseForFeature('LDAP');
 
+        // # Enable LDAP
+        cy.apiUpdateConfig({LdapSettings: {Enable: true}});
+
         // # Test LDAP configuration and server connection
         // # Synchronize user attributes
         cy.apiLDAPTest();

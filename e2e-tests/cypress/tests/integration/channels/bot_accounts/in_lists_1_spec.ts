@@ -59,6 +59,8 @@ describe('Bots in lists', () => {
     });
 
     it('MM-T1834 Bots are not listed on “Users” list in System Console > Users', () => {
+        cy.apiAdminLogin();
+
         // # Go to system console > users
         cy.visit('/admin_console/user_management/users');
 

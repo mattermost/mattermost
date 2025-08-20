@@ -29,6 +29,9 @@ describe('Extended Session Length', () => {
         cy.shouldNotRunOnCloudEdition();
         cy.apiRequireLicense();
 
+        // # Enable LDAP
+        cy.apiUpdateConfig({LdapSettings: {Enable: true}});
+
         // * Server database should match with the DB client and config at "cypress.json"
         cy.apiRequireServerDBToMatch();
 

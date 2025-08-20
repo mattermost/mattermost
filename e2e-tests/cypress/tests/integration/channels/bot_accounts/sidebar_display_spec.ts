@@ -61,10 +61,6 @@ describe('Bot accounts', () => {
         });
     });
 
-    beforeEach(() => {
-        cy.apiAdminLogin();
-    });
-
     it('MM-T1836 Bot accounts display', () => {
         // # Login as regular user and visit a channel
         cy.apiLogin(testUser);

@@ -54,6 +54,9 @@ describe('System Console', () => {
         // * Check if server has license for LDAP Groups
         cy.apiRequireLicenseForFeature('LDAPGroups');
 
+        // # Enable LDAP
+        cy.apiUpdateConfig({LdapSettings: {Enable: true}});
+
         cy.apiInitSetup({
             teamPrefix: {name: 'a-team', displayName: 'A Team'},
             channelPrefix: {name: 'a-channel', displayName: 'A Channel'},

@@ -41,6 +41,9 @@ context('ldap', () => {
             // * Check if server has license for LDAP
             cy.apiRequireLicenseForFeature('LDAP');
 
+            // # Enable LDAP
+            cy.apiUpdateConfig({LdapSettings: {Enable: true}});
+
             // # Initial api setup
             cy.apiInitSetup().then(({team, user}) => {
                 testTeam = team;

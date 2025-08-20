@@ -21,6 +21,9 @@ describe('LDAP settings', () => {
 
         // * Check if server has license for LDAP
         cy.apiRequireLicenseForFeature('LDAP');
+
+        // # Enable LDAP
+        cy.apiUpdateConfig({LdapSettings: {Enable: true}});
     });
 
     it('MM-T2699 Connection test button - Successful', () => {

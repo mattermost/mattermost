@@ -81,13 +81,7 @@ describe('Category muting', () => {
     });
 
     it('MM-T3489_2 being added to a new channel should not mute it, even if the Channels category is muted', () => {
-        // * Verify that the Channels category starts unmuted
-        cy.get('.SidebarChannelGroupHeader:contains(CHANNELS)').should('be.visible').should('not.have.class', 'muted');
-
-        // # Mute Channels
-        clickCategoryMenuItem({categoryDisplayName: 'CHANNELS', menuItemText: 'Mute Category', categoryMenuButtonName: 'Channels'});
-
-        cy.makeClient({user: getAdminAccount()}).then((client) => {
+        cy.makeClient({user: getAdminAccount()}).then(({client}) => {
             // # Have another user create a channel
             const channelName = `channel${getRandomId()}`;
             cy.wrap(client.createChannel({
@@ -107,6 +101,15 @@ describe('Category muting', () => {
                 update_at: 0,
                 last_root_post_at: 0,
             })).then((channel: Cypress.Channel) => {
+                cy.apiLogin(testUser);
+                cy.visit(`/${testTeam.name}/channels/off-topic`);
+
+                // * Verify that the Channels category starts unmuted
+                cy.get('.SidebarChannelGroupHeader:contains(CHANNELS)').should('be.visible').should('not.have.class', 'muted');
+
+                // # Mute Channels
+                clickCategoryMenuItem({categoryDisplayName: 'CHANNELS', menuItemText: 'Mute Category', categoryMenuButtonName: 'Channels'});
+
                 // # And then invite us to it
                 cy.wrap(client.addToChannel(testUser.id, channel.id));
 

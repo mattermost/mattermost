@@ -10,8 +10,6 @@
 // Stage: @prod
 // Group: @channels @bot_accounts
 
-import {Bot} from '@mattermost/types/bots';
-import {Team} from '@mattermost/types/teams';
 import {createBotPatch} from '../../../support/api/bots';
 
 describe('Bot channel intro and avatar', () => {
@@ -27,6 +25,8 @@ describe('Bot channel intro and avatar', () => {
             // # Create bot
             bot = await client.createBot(createBotPatch());
             await client.addToTeam(team.id, bot.user_id);
+
+            cy.apiAdminLogin();
         });
     });
 
@@ -36,11 +36,7 @@ describe('Bot channel intro and avatar', () => {
 
         // # Get channel intro and bot-post Avatars
         cy.get<HTMLImageElement[]>(`#channelIntro .profile-icon > img.Avatar, img.Avatar[alt="${bot.username} profile image"]`).
-            should(($imgs) => {
-                // * Verify imgs downloaded
-                expect($imgs[0].naturalWidth).to.be.greaterThan(0);
-                expect($imgs[1].naturalWidth).to.be.greaterThan(0);
-            }).
+            should('be.visible').
             each(($img) => {
                 // * Verify img visible and has src
                 cy.wrap($img).

@@ -32,6 +32,9 @@ describe('AD / LDAP', () => {
         cy.shouldNotRunOnCloudEdition();
         cy.apiRequireLicenseForFeature('LDAP', 'SAML');
 
+        // # Enable LDAP
+        cy.apiUpdateConfig({LdapSettings: {Enable: true}});
+
         // # Create new LDAP user
         cy.createLDAPUser().then((user) => {
             samlLdapUser = user;

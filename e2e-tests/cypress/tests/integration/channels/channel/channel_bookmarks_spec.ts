@@ -52,6 +52,12 @@ describe('Channel Bookmarks', () => {
                     cy.apiAddUserToChannel(channelToArchive.id, user1.id);
                 });
 
+                cy.makeClient().then(async ({client}) => {
+                    const bookmarks = await client.getChannelBookmarks(publicChannel.id);
+                    cy.wrap(bookmarks.length).should('eq', 0);
+                });
+
+                cy.apiAdminLogin();
                 cy.visit(`/${testTeam.name}/channels/${publicChannel.name}`);
             });
         });
@@ -59,19 +65,15 @@ describe('Channel Bookmarks', () => {
 
     describe('functionality', () => {
         it('bookmarks bar hidden when empty', () => {
-        // # Go to channel menu
+            // # Go to channel menu
             cy.uiGetChannelInfoButton();
-            cy.makeClient().then(async ({client}) => {
-                const bookmarks = await client.getChannelBookmarks(publicChannel.id);
-                cy.wrap(bookmarks.length).should('eq', 0);
-            });
 
             // * Verify bookmarks bar not present
             cy.findByTestId('channel-bookmarks-container').should('not.exist');
         });
 
         it('create link bookmark from channel menu', () => {
-        // # Create link
+            // # Create link
             const {link, realLink} = createLinkBookmark({fromChannelMenu: true});
 
             // * Verify bar now visible

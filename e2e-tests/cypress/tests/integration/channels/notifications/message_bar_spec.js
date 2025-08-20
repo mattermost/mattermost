@@ -61,6 +61,9 @@ describe('Notifications', () => {
             const townChannel = await client.getChannelByName(testTeam.id, 'town-square');
             const townChannelId = townChannel.id;
 
+            cy.apiAdminLogin();
+            cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
+
             // # Post messages in town-square channel
             Cypress._.times(15, (postNumber) => {
                 cy.postMessageAs({sender: otherUser, message: `P${postNumber}`, channelId: townChannelId});

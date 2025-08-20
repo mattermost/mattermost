@@ -27,12 +27,6 @@ describe('Leave an archived channel', () => {
         });
     });
 
-    beforeEach(() => {
-        // # Login as test user and visit off-topic
-        cy.apiLogin(testUser);
-        cy.visit(`/${testTeam.name}/channels/off-topic`);
-    });
-
     it('MM-T1687 App does not crash when another user archives a channel', () => {
         cy.makeClient({user: getAdminAccount()}).then(async ({client}) => {
             // # Have another user create a private channel
@@ -50,6 +44,10 @@ describe('Leave an archived channel', () => {
 
                 return channel;
             }).then((channel) => {
+                // # Login as test user and visit off-topic
+                cy.apiLogin(testUser);
+                cy.visit(`/${testTeam.name}/channels/off-topic`);
+
                 // * Verify that the newly created channel is in the sidebar
                 cy.get(`#sidebarItem_${channel.name}`).should('be.visible');
 
@@ -58,6 +56,8 @@ describe('Leave an archived channel', () => {
                 // # Then archive the channel
                 await client.deleteChannel(channel.id);
 
+                cy.reload();
+
                 // * Verify that the channel is no longer in the sidebar and that the app hasn't crashed
                 cy.get(`#sidebarItem_${channel.name}`).should('not.exist');
             });
@@ -65,6 +65,10 @@ describe('Leave an archived channel', () => {
     });
 
     it('MM-T1688 archived channels only appear in search results as long as the user does not leave them', () => {
+        // # Login as test user and visit off-topic
+        cy.apiLogin(testUser);
+        cy.visit(`/${testTeam.name}/channels/off-topic`);
+
         // # Create a new channel
         cy.uiCreateChannel({isNewSidebar: true}).then(({name: channelName}) => {
             // # Make a post

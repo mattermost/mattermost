@@ -29,6 +29,7 @@ describe('Deactivated user', () => {
             cy.apiUpdateConfig({
                 ServiceSettings: {
                     EnableUserAccessTokens: true,
+                    StrictCSRFEnforcement: false,
                 },
                 TeamSettings: {
                     EnableUserDeactivation: true,
@@ -71,7 +72,7 @@ describe('Deactivated user', () => {
                 cy.setCookie('MMAUTHTOKEN', personalAccessToken);
 
                 // # Reload the page to use the PAT for authentication
-                cy.visit('/');
+                cy.reload();
 
                 // * Verify the auth cookie has been set with the PAT
                 cy.getCookie('MMAUTHTOKEN').
@@ -96,7 +97,7 @@ describe('Deactivated user', () => {
                 });
 
                 // # Use an admin client to deactivate the user
-                cy.makeClient({user: adminUser}).then((client) => {
+                cy.makeClient({user: adminUser}).then(({client}) => {
                     // # Deactivate the test user
                     client.updateUserActive(testUser.id, false).then(() => {
                         // # Try to use the PAT after user deactivation
