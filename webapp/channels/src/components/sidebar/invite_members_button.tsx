@@ -23,9 +23,6 @@ const InviteMembersButton = (props: Props): JSX.Element | null => {
     const intl = useIntl();
     const currentTeamId = useSelector(getCurrentTeamId);
 
-    const handleButtonClick = () => {
-    };
-
     if (!currentTeamId) {
         return null;
     }
@@ -41,7 +38,6 @@ const InviteMembersButton = (props: Props): JSX.Element | null => {
                 className={`intro-links color--link cursor--pointer${props.className ? ` ${props.className}` : ''}`}
                 modalId={ModalIdentifiers.INVITATION}
                 dialogType={InvitationModal}
-                onClick={handleButtonClick}
                 dialogProps={{focusOriginElement: 'inviteMembersButton'}}
             >
                 <div

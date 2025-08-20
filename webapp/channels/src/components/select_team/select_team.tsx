@@ -330,7 +330,6 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                     <Link
                         id='createNewTeamLink'
                         to='/create_team'
-                        onClick={() => {}}
                         className='signup-team-login'
                     >
                         <FormattedMessage
@@ -350,7 +349,6 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                         <Link
                             to='/admin_console'
                             className='signup-team-login'
-                            onClick={() => {}}
                         >
                             <FormattedMessage
                                 id='signup_team_system_console'

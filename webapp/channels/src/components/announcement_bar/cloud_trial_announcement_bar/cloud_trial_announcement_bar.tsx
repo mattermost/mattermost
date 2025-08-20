@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
@@ -47,12 +46,6 @@ type PropsWithPricingModal = Props & {
 const MAX_DAYS_BANNER = 'max_days_banner';
 const THREE_DAYS_BANNER = '3_days_banner';
 class CloudTrialAnnouncementBarInternal extends React.PureComponent<PropsWithPricingModal> {
-    async componentDidMount() {
-        if (!isEmpty(this.props.subscription) && this.shouldShowBanner()) {
-            // Banner view tracking removed
-        }
-    }
-
     handleClose = async () => {
         const {daysLeftOnTrial} = this.props;
         let dismissValue = '';

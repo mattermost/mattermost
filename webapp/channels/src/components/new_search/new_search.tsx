@@ -243,10 +243,6 @@ const NewSearch = (): JSX.Element => {
             dispatch(updateSearchTeam(searchTeam));
 
             if (searchType === '' || searchType === 'messages' || searchType === 'files') {
-                if (crossTeamSearchEnabled) {
-                    trackCrossTeamSearch();
-                }
-
                 dispatch(showSearchResults(false));
             } else {
                 pluginSearch.forEach((pluginData: any) => {
@@ -257,10 +253,7 @@ const NewSearch = (): JSX.Element => {
             }
             setFocused(false);
             setCurrentChannel('');
-        }, [pluginSearch, currentTeamId, crossTeamSearchEnabled]);
-
-    const trackCrossTeamSearch = () => {
-    };
+        }, [pluginSearch, currentTeamId]);
 
     const onClose = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();

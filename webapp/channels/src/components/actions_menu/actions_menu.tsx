@@ -129,11 +129,9 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
     };
 
     handleOpenMarketplace = (): void => {
-        const openedFrom = 'actions_menu';
         const openMarketplaceData = {
             modalId: ModalIdentifiers.PLUGIN_MARKETPLACE,
             dialogType: MarketplaceModal,
-            dialogProps: {openedFrom},
         };
         this.props.actions.openModal(openMarketplaceData);
 

@@ -43,9 +43,6 @@ export default class TeamSignupDisplayNamePage extends React.PureComponent<Props
         };
     }
 
-    componentDidMount(): void {
-    }
-
     isValidTeamName = (): boolean => {
         return this.state.teamDisplayName.length >= Constants.MIN_TEAMNAME_LENGTH && this.state.teamDisplayName.length <= Constants.MAX_TEAMNAME_LENGTH;
     };

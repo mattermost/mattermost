@@ -67,9 +67,6 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
         };
     }
 
-    public componentDidMount() {
-    }
-
     public submitBack = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
         e.preventDefault();
         const newState = this.props.state;

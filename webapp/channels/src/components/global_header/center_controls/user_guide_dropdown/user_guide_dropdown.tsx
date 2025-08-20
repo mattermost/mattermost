@@ -52,9 +52,6 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
         });
     };
 
-    askTheCommunityClick = () => {
-    };
-
     renderDropdownItems = (): React.ReactNode => {
         const {
             intl,
@@ -95,7 +92,6 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                         iconClassName='icon-help'
                         url={askTheCommunityUrl}
                         text={intl.formatMessage({id: 'userGuideHelp.askTheCommunity', defaultMessage: 'Ask the community'})}
-                        onClick={this.askTheCommunityClick}
                     />
                 )}
                 {this.props.reportAProblemLink && (

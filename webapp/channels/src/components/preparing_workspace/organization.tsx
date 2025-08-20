@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import debounce from 'lodash/debounce';
 import React, {useState, useEffect, useRef} from 'react';
 import type {ChangeEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
@@ -37,9 +36,6 @@ type Props = PreparingWorkspacePageProps & {
     updateTeam: (teamToUpdate: Team) => Promise<{error: string | null; updatedTeam: Team | null}>;
     setInviteId: (inviteId: string) => void;
 }
-
-const reportValidationError = debounce(() => {
-}, 700, {leading: false});
 
 const Organization = (props: Props) => {
     const {formatMessage} = useIntl();
@@ -119,11 +115,6 @@ const Organization = (props: Props) => {
             createTeamFromOrgName();
         } else if (!validation.error && thereIsAlreadyATeam) {
             updateTeamNameFromOrgName();
-        }
-
-        if (validation.error || teamApiError.current) {
-            reportValidationError();
-            return;
         }
         props.next?.();
     };

@@ -410,8 +410,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             id: 'login.noAccount',
             defaultMessage: 'Don\'t have an account?',
         });
-        const handleClick = () => {
-        };
         if (showSignup) {
             return (
                 <AlternateLinkLayout
@@ -426,7 +424,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 className='login-body-alternate-link'
                 alternateLinkPath={'/access_problem'}
                 alternateLinkLabel={linkLabel}
-                onClick={handleClick}
             />
         );
     }, [showSignup]);

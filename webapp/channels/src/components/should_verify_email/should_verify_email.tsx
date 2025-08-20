@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useState, useCallback, useEffect} from 'react';
+import React, {useState, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import {useLocation, useHistory} from 'react-router-dom';
@@ -32,9 +32,6 @@ const ShouldVerifyEmail = () => {
 
     const [resendStatus, setResendStatus] = useState(ResendStatus.PENDING);
     const [isWaiting, setIsWaiting] = useState(false);
-
-    useEffect(() => {
-    }, []);
 
     const handleReturnButtonOnClick = useCallback(() => {
         history.push('/');

@@ -48,7 +48,6 @@ export const NoBillingHistorySection = (props: NoBillingHistorySectionProps) => 
             location='billing_history'
             href={props.selfHosted ? HostedCustomerLinks.SELF_HOSTED_BILLING : CloudLinks.BILLING_DOCS}
             className='BillingHistory__noHistory-link'
-            onClick={() => {}}
         >
             <FormattedMessage
                 id='admin.billing.history.seeHowBillingWorks'
