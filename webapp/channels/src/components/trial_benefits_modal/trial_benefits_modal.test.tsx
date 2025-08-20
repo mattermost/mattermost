@@ -141,18 +141,6 @@ describe('components/trial_benefits_modal/trial_benefits_modal', () => {
         expect(mockOnExited).toHaveBeenCalled();
     });
 
-    test('should handle slide prev next click', () => {
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <TrialBenefitsModal
-                    {...props}
-                />
-            </Provider>,
-        );
-
-        wrapper.find(Carousel).props().onNextSlideClick!(5);
-    });
-
     test('should present the just started trial modal content', () => {
         const wrapper = mountWithIntl(
             <Provider store={store}>
