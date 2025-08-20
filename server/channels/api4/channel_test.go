@@ -1953,7 +1953,9 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 
 	t.Run("unauthorized when logged out", func(t *testing.T) {
 		input := []string{th.BasicChannel.Id, th.BasicChannel2.Id}
-		client.Logout(context.Background())
+		_, lErr := client.Logout(context.Background())
+		require.NoError(t, lErr)
+
 		_, resp, err := client.GetPublicChannelsByIdsForTeam(context.Background(), teamId, input)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
@@ -1985,7 +1987,8 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 		_, _, err := guestClient.Login(context.Background(), guest.Username, "Password1")
 		require.NoError(t, err)
 		t.Cleanup(func() {
-			guestClient.Logout(context.Background())
+			_, lErr := guestClient.Logout(context.Background())
+			require.NoError(t, lErr)
 		})
 
 		input := []string{th.BasicChannel.Id, th.BasicChannel2.Id}
