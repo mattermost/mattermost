@@ -182,17 +182,6 @@
         "FileMaxQueueSize": 1000,
         "AdvancedLoggingJSON": {}
     },
-    "NotificationLogSettings": {
-        "EnableConsole": true,
-        "ConsoleLevel": "DEBUG",
-        "ConsoleJson": true,
-        "EnableColor": false,
-        "EnableFile": true,
-        "FileLevel": "INFO",
-        "FileJson": true,
-        "FileLocation": "",
-        "AdvancedLoggingJSON": {}
-    },
     "PasswordSettings": {
         "MinimumLength": 5,
         "Lowercase": false,
