@@ -165,19 +165,30 @@ func (r *Bulk) periodicFlusher() {
 
 // _flush MUST be called with an acquired lock.
 func (r *Bulk) _flush() error {
+	t0 := time.Now()
+	r.logger.Debug("Opensearch.Bulk._flush: started", mlog.Time("t0", t0))
+	defer func() {
+		t1 := time.Now()
+		r.logger.Debug("Opensearch.Bulk._flush: ended", mlog.Time("t1", t1), mlog.String("duration", t1.Sub(t0).String()))
+	}()
+
 	if r.pendingRequests == 0 {
+		r.logger.Debug("Opensearch.Bulk._flush: no pending requests")
 		return nil
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), r.reqTimeout)
 	defer cancel()
 
+	b := r.buf.Bytes()
 	_, err := r.client.Bulk(ctx, opensearchapi.BulkReq{
-		Body: bytes.NewReader(r.buf.Bytes()),
+		Body: bytes.NewReader(b),
 	})
 	if err != nil {
+		r.logger.Debug("Opensearch.Bulk._flush: ERROR", mlog.Err(err))
 		return err
 	}
+	r.logger.Debug("Opensearch.Bulk._flush: r.client.Bulk finished with no errors", mlog.String("req", string(b)))
 	r.buf.Reset()
 	r.pendingRequests = 0
 

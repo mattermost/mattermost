@@ -849,7 +849,15 @@ func (os *OpensearchInterfaceImpl) IndexChannel(rctx request.CTX, channel *model
 }
 
 func (os *OpensearchInterfaceImpl) SyncBulkIndexChannels(rctx request.CTX, channels []*model.Channel, getUserIDsForChannel func(channel *model.Channel) ([]string, error), teamMemberIDs []string) *model.AppError {
+	t0 := time.Now()
+	rctx.Logger().Debug("SyncBulkIndexChannels: started", mlog.Time("t0", t0))
+	defer func() {
+		t1 := time.Now()
+		rctx.Logger().Debug("SyncBulkIndexChannels: ended", mlog.Time("t1", t1), mlog.String("duration", t1.Sub(t0).String()))
+	}()
+
 	if len(channels) == 0 {
+		rctx.Logger().Debug("SyncBulkIndexChannels: no channels")
 		return nil
 	}
 
@@ -863,6 +871,7 @@ func (os *OpensearchInterfaceImpl) SyncBulkIndexChannels(rctx request.CTX, chann
 	indexName := *os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels
 	metrics := os.Platform.Metrics()
 
+	rctx.Logger().Debug("SyncBulkIndexChannels: looping over channels", mlog.Int("len(channels)", len(channels)))
 	for _, channel := range channels {
 		userIDs, err := getUserIDsForChannel(channel)
 		if err != nil {
@@ -879,14 +888,20 @@ func (os *OpensearchInterfaceImpl) SyncBulkIndexChannels(rctx request.CTX, chann
 			return model.NewAppError("Opensearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
+		rctx.Logger().Debug("SyncBulkIndexChannels: added IndexOp", mlog.String("channel_id", searchChannel.Id))
+
 		if metrics != nil {
 			metrics.IncrementChannelIndexCounter()
 		}
 	}
 
+	t0 = time.Now()
+	rctx.Logger().Debug("SyncBulkIndexChannels: starting flush", mlog.Time("t0", t0))
 	if err := os.syncBulkProcessor.Flush(); err != nil {
 		return model.NewAppError("Opensearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	t1 := time.Now()
+	rctx.Logger().Debug("SyncBulkIndexChannels: flush ended", mlog.Time("t1", t1), mlog.String("duration", t1.Sub(t0).String()))
 
 	return nil
 }
