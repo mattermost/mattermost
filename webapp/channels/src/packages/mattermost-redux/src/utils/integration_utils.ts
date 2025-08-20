@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {parseISO, isValid, format} from 'date-fns';
+import {parseISO, isValid} from 'date-fns';
 
 import type {DialogElement} from '@mattermost/types/integrations';
 
-// date-fns formats for validation
-const ISO_DATE_FORMAT_DATEFNS = 'yyyy-MM-dd';
-const RFC3339_DATETIME_FORMAT_DATEFNS = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+// Validation patterns for exact storage format matching
+const DATE_FORMAT_PATTERN = /^\d{4}-\d{2}-\d{2}$/; // YYYY-MM-DD
+const DATETIME_FORMAT_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/; // YYYY-MM-DDTHH:mm:ssZ
 
 type DialogError = {
     id: string;
@@ -19,12 +19,6 @@ type DialogError = {
  * Validates date/datetime field values for format and range constraints
  */
 function validateDateTimeValue(value: string, elem: DialogElement): DialogError | null {
-    // Handle relative dates first
-    const relativePattern = /^(today|tomorrow|yesterday|[+-]\d{1,4}[dwMH])$/;
-    if (relativePattern.test(value)) {
-        return null; // Relative dates are always valid
-    }
-
     // Use parseISO for consistent validation with stringToMoment
     const parsedDate = parseISO(value);
     if (!isValid(parsedDate)) {
@@ -38,36 +32,18 @@ function validateDateTimeValue(value: string, elem: DialogElement): DialogError 
     const isDateField = elem.type === 'date';
     if (isDateField) {
         // Date fields must be exactly YYYY-MM-DD
-        try {
-            const reformatted = format(parsedDate, ISO_DATE_FORMAT_DATEFNS);
-            if (reformatted !== value) {
-                return {
-                    id: 'interactive_dialog.error.bad_format',
-                    defaultMessage: 'Date field must be in YYYY-MM-DD format',
-                };
-            }
-        } catch (error) {
+        if (!DATE_FORMAT_PATTERN.test(value)) {
             return {
                 id: 'interactive_dialog.error.bad_format',
-                defaultMessage: 'Invalid date format',
+                defaultMessage: 'Date field must be in YYYY-MM-DD format',
             };
         }
-    } else {
-        // DateTime fields must match RFC3339 format exactly
-        try {
-            const reformatted = format(parsedDate, RFC3339_DATETIME_FORMAT_DATEFNS);
-            if (reformatted !== value) {
-                return {
-                    id: 'interactive_dialog.error.bad_format',
-                    defaultMessage: 'DateTime field must be in YYYY-MM-DDTHH:mm:ssZ format',
-                };
-            }
-        } catch (error) {
-            return {
-                id: 'interactive_dialog.error.bad_format',
-                defaultMessage: 'Invalid datetime format',
-            };
-        }
+    } else if (!DATETIME_FORMAT_PATTERN.test(value)) {
+        // DateTime fields must match exact format we output: YYYY-MM-DDTHH:mm:ssZ
+        return {
+            id: 'interactive_dialog.error.bad_format',
+            defaultMessage: 'DateTime field must be in YYYY-MM-DDTHH:mm:ssZ format',
+        };
     }
     return null;
 }

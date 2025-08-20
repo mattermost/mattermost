@@ -84,13 +84,8 @@ describe('integration utils', () => {
         it('should return null for valid date formats', () => {
             const dateElement = TestHelper.getDialogElementMock({type: 'date'});
 
-            // Valid ISO date
+            // Only exact storage format should be valid
             expect(checkDialogElementForError(dateElement, '2025-01-15')).toBeNull();
-
-            // Valid relative dates
-            expect(checkDialogElementForError(dateElement, 'today')).toBeNull();
-            expect(checkDialogElementForError(dateElement, 'tomorrow')).toBeNull();
-            expect(checkDialogElementForError(dateElement, '+5d')).toBeNull();
         });
 
         it('should return null for valid datetime formats', () => {
@@ -98,13 +93,6 @@ describe('integration utils', () => {
 
             // Only exact storage format should be valid
             expect(checkDialogElementForError(datetimeElement, '2025-01-15T14:30:00Z')).toBeNull();
-
-            // Valid relative patterns
-            expect(checkDialogElementForError(datetimeElement, 'today')).toBeNull();
-            expect(checkDialogElementForError(datetimeElement, 'tomorrow')).toBeNull();
-            expect(checkDialogElementForError(datetimeElement, '+3d')).toBeNull();
-            expect(checkDialogElementForError(datetimeElement, '+1w')).toBeNull();
-            expect(checkDialogElementForError(datetimeElement, '+2M')).toBeNull();
         });
 
         it('should return error for invalid date formats', () => {
