@@ -193,9 +193,6 @@ describe('date_utils', () => {
         });
     });
 
-
-
-
     describe('parseISO integration', () => {
         it('should handle valid ISO dates with parseISO', () => {
             expect(stringToMoment('2025-01-15')?.isValid()).toBe(true);
@@ -250,19 +247,20 @@ describe('date_utils', () => {
             // Create moment in EST (UTC-5)
             const momentValue = moment.tz('2025-01-15T14:30:00', 'America/New_York');
             const result = momentToString(momentValue, true);
+
             // 2:30 PM EST = 7:30 PM UTC
             expect(result).toBe('2025-01-15T19:30:00Z');
         });
 
         it('should return null for invalid moment', () => {
             expect(momentToString(null, true)).toBeNull();
-            
+
             // Suppress moment.js deprecation warning for this test
             const originalWarn = console.warn;
             console.warn = jest.fn();
-            
+
             expect(momentToString(moment('invalid'), true)).toBeNull();
-            
+
             console.warn = originalWarn;
         });
     });
@@ -272,18 +270,18 @@ describe('date_utils', () => {
             // Scenario: User in EST selects 2:30 PM on Jan 15, 2025
             const userTimezone = 'America/New_York';
             const displayTimezone = 'Europe/London';
-            
+
             // 1. User selects time in their timezone (EST)
             const userSelectedTime = moment.tz('2025-01-15T14:30:00', userTimezone);
-            
+
             // 2. Store as UTC string (what we send to server)
             const storedValue = momentToString(userSelectedTime, true);
             expect(storedValue).toBe('2025-01-15T19:30:00Z'); // 2:30 PM EST = 7:30 PM UTC
-            
+
             // 3. Read back from storage and display in different timezone (London)
             const retrievedMoment = stringToMoment(storedValue, displayTimezone);
             expect(retrievedMoment?.tz(displayTimezone).format('YYYY-MM-DD HH:mm:ss')).toBe('2025-01-15 19:30:00'); // 7:30 PM GMT
-            
+
             // 4. Verify original user can see their original time
             expect(retrievedMoment?.tz(userTimezone).format('YYYY-MM-DD HH:mm:ss')).toBe('2025-01-15 14:30:00'); // 2:30 PM EST
         });
@@ -291,14 +289,14 @@ describe('date_utils', () => {
         it('should handle timezone boundary edge cases', () => {
             // Test date change across timezone boundaries
             const userTimezone = 'America/Los_Angeles'; // UTC-8
-            
+
             // User selects 11:30 PM on Jan 15 (PST)
             const userSelectedTime = moment.tz('2025-01-15T23:30:00', userTimezone);
-            
+
             // Store as UTC
             const storedValue = momentToString(userSelectedTime, true);
             expect(storedValue).toBe('2025-01-16T07:30:00Z'); // Next day in UTC
-            
+
             // Verify user still sees their original date/time when displayed back
             const retrievedMoment = stringToMoment(storedValue, userTimezone);
             expect(retrievedMoment?.tz(userTimezone).format('YYYY-MM-DD HH:mm:ss')).toBe('2025-01-15 23:30:00');
@@ -307,17 +305,17 @@ describe('date_utils', () => {
         it('should handle daylight saving time transitions', () => {
             // Test around DST transition in EST (Spring forward: March 9, 2025)
             const userTimezone = 'America/New_York';
-            
+
             // Before DST (EST = UTC-5)
             const beforeDST = moment.tz('2025-03-08T14:30:00', userTimezone);
             const storedBefore = momentToString(beforeDST, true);
             expect(storedBefore).toBe('2025-03-08T19:30:00Z'); // 2:30 PM EST = 7:30 PM UTC
-            
-            // After DST (EDT = UTC-4)  
+
+            // After DST (EDT = UTC-4)
             const afterDST = moment.tz('2025-03-10T14:30:00', userTimezone);
             const storedAfter = momentToString(afterDST, true);
             expect(storedAfter).toBe('2025-03-10T18:30:00Z'); // 2:30 PM EDT = 6:30 PM UTC
-            
+
             // Verify both retrieve correctly
             expect(stringToMoment(storedBefore, userTimezone)?.tz(userTimezone).format('HH:mm')).toBe('14:30');
             expect(stringToMoment(storedAfter, userTimezone)?.tz(userTimezone).format('HH:mm')).toBe('14:30');
@@ -326,18 +324,18 @@ describe('date_utils', () => {
         it('should handle min/max date comparisons across timezones', () => {
             // Test that min/max date constraints work correctly across timezone boundaries
             const userTimezone = 'America/New_York';
-            
+
             // Set min_date to Jan 15, 2025 (user's perspective)
             const minDate = '2025-01-15';
             const resolvedMinDate = resolveRelativeDate(minDate, userTimezone);
             const minMoment = stringToMoment(resolvedMinDate, userTimezone);
-            
+
             // User selects a datetime on Jan 14 at 11:30 PM EST
             const userSelection = moment.tz('2025-01-14T23:30:00', userTimezone);
-            
+
             // Even though it's Jan 15 in UTC, it should be valid because user sees Jan 14
             expect(userSelection.tz(userTimezone).isBefore(minMoment?.tz(userTimezone), 'day')).toBe(true);
-            
+
             // But the actual comparison should be done in user's timezone context
             const userSelectionDate = userSelection.tz(userTimezone).format('YYYY-MM-DD');
             expect(userSelectionDate < resolvedMinDate).toBe(true); // Jan 14 < Jan 15
@@ -346,14 +344,14 @@ describe('date_utils', () => {
         it('should handle cross-timezone display correctly', () => {
             // Test displaying the same UTC time in multiple timezones
             const storedUTC = '2025-01-15T19:30:00Z';
-            
+
             const timezones = {
                 'America/New_York': '2025-01-15 14:30:00', // EST (UTC-5)
-                'Europe/London': '2025-01-15 19:30:00',    // GMT (UTC+0)
-                'Asia/Tokyo': '2025-01-16 04:30:00',       // JST (UTC+9, next day)
+                'Europe/London': '2025-01-15 19:30:00', // GMT (UTC+0)
+                'Asia/Tokyo': '2025-01-16 04:30:00', // JST (UTC+9, next day)
                 'Australia/Sydney': '2025-01-16 06:30:00', // AEDT (UTC+11, next day)
             };
-            
+
             Object.entries(timezones).forEach(([timezone, expected]) => {
                 const moment = stringToMoment(storedUTC, timezone);
                 const displayed = moment?.tz(timezone).format('YYYY-MM-DD HH:mm:ss');

@@ -635,7 +635,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
         return fields.filter((f) => f.name !== form.submit_buttons).map((originalField, index) => {
             // Use sanitized field for safe usage in components
             const field = createSanitizedField(originalField);
-            
+
             return (
                 <AppsFormField
                     field={field}

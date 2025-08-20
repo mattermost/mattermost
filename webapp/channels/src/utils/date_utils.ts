@@ -12,7 +12,6 @@ export enum DateReference {
     YESTERDAY = 'yesterday',
 }
 
-
 // RFC3339 datetime format with seconds for plugin compatibility
 export const RFC3339_DATETIME_FORMAT = 'YYYY-MM-DDTHH:mm:ss[Z]';
 
@@ -56,11 +55,11 @@ export function stringToMoment(value: string | null, timezone?: string): Moment 
 
 /**
  * Convert a Moment object to an ISO string for storage
- * 
- * For datetime fields, always stores in UTC format (YYYY-MM-DDTHH:mm:ssZ) for consistent 
- * server processing. Input moment can be in any timezone - .utc() handles the conversion 
+ *
+ * For datetime fields, always stores in UTC format (YYYY-MM-DDTHH:mm:ssZ) for consistent
+ * server processing. Input moment can be in any timezone - .utc() handles the conversion
  * correctly. The stored UTC value can be correctly translated back to any display timezone.
- * 
+ *
  * For date fields, stores in local date format (YYYY-MM-DD) since timezone is not relevant.
  */
 export function momentToString(momentValue: Moment | null, isDateTime: boolean): string | null {
@@ -143,5 +142,4 @@ export function resolveRelativeDate(dateStr: string, timezone?: string): string 
     // Return as-is if not a recognized relative reference
     return dateStr;
 }
-
 
