@@ -80,7 +80,6 @@ export enum OrgSize {
 
 type Props = {
     onClose?: () => void;
-    page?: string;
 }
 
 function StartTrialFormModal(props: Props): JSX.Element | null {

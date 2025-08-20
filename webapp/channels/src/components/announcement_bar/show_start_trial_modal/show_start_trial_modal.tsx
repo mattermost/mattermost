@@ -70,7 +70,7 @@ const ShowStartTrialModal = () => {
         const hasEnvMoreThan6Hours = now > installationDatePlus6Hours;
         const hasEnvMoreThan10Users = Number(totalUsers) > userThreshold;
         if (isUserAdmin && !isBenefitsModalOpened && hasEnvMoreThan10Users && hasEnvMoreThan6Hours && !hadAdminDismissedModal && !isLicensedOrPreviousLicensed) {
-            openStartTrialFormModal({trackingLocation: 'show_start_trial_modal'}, handleOnClose);
+            openStartTrialFormModal(handleOnClose);
         }
     }, [totalUsers]);
 

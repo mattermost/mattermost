@@ -6,12 +6,8 @@ import {useCallback} from 'react';
 import {useExternalLink} from './use_external_link';
 import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from './useCWSAvailabilityCheck';
 
-export type TelemetryProps = {
-    trackingLocation: string;
-}
-
 export type UseOpenPricingModalReturn = {
-    openPricingModal: (telemetryProps?: TelemetryProps) => void;
+    openPricingModal: () => void;
     isAirGapped: boolean;
 }
 

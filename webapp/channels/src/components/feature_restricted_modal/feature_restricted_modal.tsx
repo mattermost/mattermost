@@ -89,7 +89,7 @@ const FeatureRestrictedModal = ({
 
     const handleViewPlansClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         if (isSystemAdmin && !isAirGapped) {
-            openPricingModal({trackingLocation: 'feature_restricted_modal'});
+            openPricingModal();
             dismissAction();
         } else if (!isSystemAdmin) {
             notifyAdmin(e);

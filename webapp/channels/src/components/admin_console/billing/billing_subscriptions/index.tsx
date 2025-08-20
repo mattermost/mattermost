@@ -72,7 +72,7 @@ const BillingSubscriptions = () => {
         dispatch(getCloudCustomer());
 
         if (actionQueryParam === 'show_pricing_modal' && !isAirGapped) {
-            openPricingModal({trackingLocation: 'billing_subscriptions_external_direct_link'});
+            openPricingModal();
         }
     }, []);
 

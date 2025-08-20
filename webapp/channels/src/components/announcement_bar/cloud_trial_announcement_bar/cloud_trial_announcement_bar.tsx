@@ -9,6 +9,7 @@ import type {Subscription} from '@mattermost/types/cloud';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
+import type {UseOpenPricingModalReturn} from 'components/common/hooks/useOpenPricingModal';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
 import {
@@ -38,10 +39,7 @@ type Props = {
     };
 };
 
-type PropsWithPricingModal = Props & {
-    openPricingModal: (telemetryProps?: {trackingLocation: string}) => void;
-    isAirGapped: boolean;
-};
+type PropsWithPricingModal = Props & UseOpenPricingModalReturn;
 
 const MAX_DAYS_BANNER = 'max_days_banner';
 const THREE_DAYS_BANNER = '3_days_banner';
@@ -78,7 +76,7 @@ class CloudTrialAnnouncementBarInternal extends React.PureComponent<PropsWithPri
     };
 
     showModal = () => {
-        this.props.openPricingModal({trackingLocation: 'cloud_trial_announcement_bar'});
+        this.props.openPricingModal();
     };
 
     render() {

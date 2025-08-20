@@ -19,7 +19,7 @@ interface Words {
     status: React.ReactNode;
 }
 
-export default function useWords(highestLimit: LimitSummary | false, isAdminUser: boolean, callerInfo: string): Words | false {
+export default function useWords(highestLimit: LimitSummary | false, isAdminUser: boolean): Words | false {
     const intl = useIntl();
     const {openPricingModal, isAirGapped} = useOpenPricingModal();
     if (!highestLimit) {
@@ -49,7 +49,7 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
             return (
                 <a
                     id='view_plans_cta'
-                    onClick={() => openPricingModal({trackingLocation: callerInfo})}
+                    onClick={openPricingModal}
                 >
                     {chunks}
                 </a>

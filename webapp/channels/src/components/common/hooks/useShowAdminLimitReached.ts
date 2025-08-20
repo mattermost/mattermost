@@ -78,7 +78,7 @@ export default function useShowAdminLimitReached() {
                 }),
                 onClick: () => {
                     dispatch(closeModal(ModalIdentifiers.CLOUD_LIMITS));
-                    openPricingModal({trackingLocation: 'admin_login_limit_reached_dashboard'});
+                    openPricingModal();
                 },
             };
         }
