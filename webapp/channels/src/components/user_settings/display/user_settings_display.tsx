@@ -190,12 +190,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         }
     }
 
-    trackChangeIfNecessary(preference: PreferenceType, oldValue: any): void {
-        if (preference.value !== oldValue) {
-            // Track preference changes if needed
-        }
-    }
-
     submitLastActive = () => {
         const {user, actions} = this.props;
         const {lastActiveDisplay} = this.state;
@@ -311,8 +305,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             oneClickReactionsOnPostsPreference,
             colorizeUsernamesPreference,
         ];
-
-        this.trackChangeIfNecessary(collapsedReplyThreadsPreference, this.props.collapsedReplyThreads);
 
         await this.props.actions.savePreferences(userId, preferences);
 
