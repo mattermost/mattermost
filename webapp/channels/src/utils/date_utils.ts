@@ -3,7 +3,6 @@
 
 import {parseISO, isValid} from 'date-fns';
 import moment, {type Moment} from 'moment-timezone';
-import {useMemo} from 'react';
 
 export enum DateReference {
 
@@ -13,9 +12,6 @@ export enum DateReference {
     YESTERDAY = 'yesterday',
 }
 
-// Time validation regex for time-only validation
-// HH:MM format (24-hour notation)
-export const TIME_FORMAT_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
 // RFC3339 datetime format with seconds for plugin compatibility
 export const RFC3339_DATETIME_FORMAT = 'YYYY-MM-DDTHH:mm:ss[Z]';
@@ -60,6 +56,12 @@ export function stringToMoment(value: string | null, timezone?: string): Moment 
 
 /**
  * Convert a Moment object to an ISO string for storage
+ * 
+ * For datetime fields, always stores in UTC format (YYYY-MM-DDTHH:mm:ssZ) for consistent 
+ * server processing. Input moment can be in any timezone - .utc() handles the conversion 
+ * correctly. The stored UTC value can be correctly translated back to any display timezone.
+ * 
+ * For date fields, stores in local date format (YYYY-MM-DD) since timezone is not relevant.
  */
 export function momentToString(momentValue: Moment | null, isDateTime: boolean): string | null {
     if (!momentValue || !momentValue.isValid()) {
@@ -67,7 +69,8 @@ export function momentToString(momentValue: Moment | null, isDateTime: boolean):
     }
 
     if (isDateTime) {
-        // Store datetime in UTC format with seconds: "2025-01-14T14:30:00Z"
+        // Always store datetime in UTC format (YYYY-MM-DDTHH:mm:ssZ) for consistent server processing
+        // Input moment can be in any timezone - .utc() handles the conversion correctly
         return momentValue.utc().format(RFC3339_DATETIME_FORMAT);
     }
 
@@ -141,82 +144,4 @@ export function resolveRelativeDate(dateStr: string, timezone?: string): string 
     return dateStr;
 }
 
-/**
- * Hook to memoize relative date resolution based on timezone and current time
- */
-export function useMemoizedRelativeDate(dateStr: string, timezone?: string): string {
-    const currentMinute = Math.floor(Date.now() / (1000 * 60));
-
-    return useMemo(() => {
-        return resolveRelativeDate(dateStr, timezone);
-    }, [dateStr, timezone, currentMinute]); // Re-compute every minute
-}
-
-export interface DateValidationError {
-    id: string;
-    defaultMessage: string;
-    values?: Record<string, string>;
-}
-
-/**
- * Validate if a date string is within min/max constraints
- * Returns structured validation error for internationalization
- */
-export function validateDateRange(
-    dateStr: string | null,
-    minDate?: string,
-    maxDate?: string,
-    timezone?: string,
-    locale?: string,
-): DateValidationError | null {
-    if (!dateStr) {
-        return null;
-    }
-
-    const date = stringToMoment(dateStr, timezone);
-    if (!date) {
-        return {
-            id: 'apps_form.date_field.invalid_format',
-            defaultMessage: 'Invalid date format',
-        };
-    }
-
-    if (minDate) {
-        const min = stringToMoment(resolveRelativeDate(minDate, timezone), timezone);
-        if (min && date.isBefore(min, 'day')) {
-            // Format date for user preferences using Intl.DateTimeFormat
-            const formattedDate = new Intl.DateTimeFormat(locale, {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-            }).format(new Date(min.year(), min.month(), min.date()));
-
-            return {
-                id: 'apps_form.date_field.min_date_error',
-                defaultMessage: 'Date must be after {minDate}',
-                values: {minDate: formattedDate},
-            };
-        }
-    }
-
-    if (maxDate) {
-        const max = stringToMoment(resolveRelativeDate(maxDate, timezone), timezone);
-        if (max && date.isAfter(max, 'day')) {
-            // Format date for user preferences using Intl.DateTimeFormat
-            const formattedDate = new Intl.DateTimeFormat(locale, {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-            }).format(new Date(max.year(), max.month(), max.date()));
-
-            return {
-                id: 'apps_form.date_field.max_date_error',
-                defaultMessage: 'Date must be before {maxDate}',
-                values: {maxDate: formattedDate},
-            };
-        }
-    }
-
-    return null;
-}
 

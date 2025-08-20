@@ -36,6 +36,7 @@ const DEFAULT_TIME_INTERVAL_MINUTES = 60;
 
 export type AppsFormProps = {
     form: AppForm;
+    timezone?: string;
     isEmbedded?: boolean;
     onExited: () => void;
     onHide?: () => void;
@@ -85,28 +86,21 @@ const validateDateFieldValue = (fieldName: string, valueType: string, value: str
 const validateAppField = (field: AppField): string[] => {
     const errors: string[] = [];
 
-    // Validate and sanitize time_interval for datetime fields
+    // Validate time_interval for datetime fields (no mutation)
     if (field.type === AppFieldTypes.DATETIME && field.time_interval !== undefined) {
         if (typeof field.time_interval !== 'number' || field.time_interval <= 0 || field.time_interval > 1440) {
             errors.push(`Field "${field.name}": time_interval must be a positive number between 1 and 1440 minutes`);
-
-            // Reset invalid time_interval to default to prevent PropTypes warnings
-            field.time_interval = DEFAULT_TIME_INTERVAL_MINUTES;
         } else if (1440 % field.time_interval !== 0) {
             errors.push(`Field "${field.name}": time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got ${field.time_interval}`);
-
-            // Reset invalid time_interval to default to prevent PropTypes warnings
-            field.time_interval = DEFAULT_TIME_INTERVAL_MINUTES;
         }
     }
 
-    // Validate min_date and max_date for date/datetime fields
+    // Validate min_date and max_date for date/datetime fields (no mutation)
     if (field.type === AppFieldTypes.DATE || field.type === AppFieldTypes.DATETIME) {
         if (field.min_date) {
             const result = validateDateFieldValue(field.name, 'min_date', field.min_date);
             if (result) {
                 errors.push(result.warning);
-                field.min_date = result.datePortion; // Reset to date portion
             }
 
             const moment = stringToMoment(field.min_date);
@@ -119,7 +113,6 @@ const validateAppField = (field: AppField): string[] => {
             const result = validateDateFieldValue(field.name, 'max_date', field.max_date);
             if (result) {
                 errors.push(result.warning);
-                field.max_date = result.datePortion; // Reset to date portion
             }
             const moment = stringToMoment(field.max_date);
             if (!moment) {
@@ -137,12 +130,11 @@ const validateAppField = (field: AppField): string[] => {
             }
         }
 
-        // Validate default value format for date fields
+        // Validate default value format for date fields (no mutation)
         if (field.type === AppFieldTypes.DATE && field.value && typeof field.value === 'string') {
             const result = validateDateFieldValue(field.name, 'default value', field.value);
             if (result) {
                 errors.push(result.warning);
-                field.value = result.datePortion; // Reset to date portion
             }
         }
     }
@@ -150,10 +142,47 @@ const validateAppField = (field: AppField): string[] => {
     return errors;
 };
 
-const initFormValues = (form: AppForm): AppFormValues => {
+// Helper function to get safe date value without mutating original
+const getSafeDateValue = (dateString: string): string => {
+    const resolved = resolveRelativeDate(dateString);
+    if (resolved.includes('T') && resolved.match(/^\d{4}-\d{2}-\d{2}T/)) {
+        return resolved.split('T')[0]; // Extract date portion
+    }
+    return resolved;
+};
+
+// Create sanitized copy of field for safe usage
+const createSanitizedField = (field: AppField): AppField => {
+    const sanitized = {...field};
+
+    // Sanitize time_interval for datetime fields
+    if (field.type === AppFieldTypes.DATETIME && field.time_interval !== undefined) {
+        const interval = field.time_interval;
+        if (typeof interval !== 'number' || interval <= 0 || interval > 1440 || 1440 % interval !== 0) {
+            sanitized.time_interval = DEFAULT_TIME_INTERVAL_MINUTES;
+        }
+    }
+
+    // Sanitize date values for date/datetime fields
+    if (field.type === AppFieldTypes.DATE || field.type === AppFieldTypes.DATETIME) {
+        if (field.min_date) {
+            sanitized.min_date = getSafeDateValue(field.min_date);
+        }
+        if (field.max_date) {
+            sanitized.max_date = getSafeDateValue(field.max_date);
+        }
+        if (field.type === AppFieldTypes.DATE && field.value && typeof field.value === 'string') {
+            sanitized.value = getSafeDateValue(field.value);
+        }
+    }
+
+    return sanitized;
+};
+
+const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
     const values: AppFormValues = {};
     if (form && form.fields) {
-        // Validate all fields first and log any validation errors
+        // Validate all fields first and log any validation errors (no mutations)
         const allErrors: string[] = [];
         form.fields.forEach((f) => {
             const fieldErrors = validateAppField(f);
@@ -166,16 +195,19 @@ const initFormValues = (form: AppForm): AppFormValues => {
             console.warn('AppForm field validation errors:', allErrors);
         }
 
-        form.fields.forEach((f) => {
-            let defaultValue: AppFormValue = null;
-            if (f.type === AppFieldTypes.BOOL) {
-                defaultValue = false;
-            } else if (f.type === AppFieldTypes.DATETIME && f.is_required && !f.value) {
-                // Set default to current time for required datetime fields
-                const currentTime = moment();
+        // Work with sanitized copies for safe usage
+        form.fields.forEach((originalField) => {
+            const field = createSanitizedField(originalField);
 
-                // Validate time_interval before using it
-                const timePickerInterval = (typeof f.time_interval === 'number' && f.time_interval > 0 && f.time_interval <= 1440) ? f.time_interval : DEFAULT_TIME_INTERVAL_MINUTES;
+            let defaultValue: AppFormValue = null;
+            if (field.type === AppFieldTypes.BOOL) {
+                defaultValue = false;
+            } else if (field.type === AppFieldTypes.DATETIME && field.is_required && !field.value) {
+                // Set default to current time for required datetime fields
+                const currentTime = timezone ? moment.tz(timezone) : moment();
+
+                // Use sanitized time_interval (guaranteed to be valid)
+                const timePickerInterval = field.time_interval || DEFAULT_TIME_INTERVAL_MINUTES;
 
                 // Round the current time to the nearest time interval
                 const roundedMinutes = Math.round(currentTime.minutes() / timePickerInterval) * timePickerInterval;
@@ -183,7 +215,7 @@ const initFormValues = (form: AppForm): AppFormValues => {
                 defaultValue = momentToString(defaultMoment, true);
             }
 
-            values[f.name] = f.value || defaultValue;
+            values[field.name] = field.value || defaultValue;
         });
     }
 
@@ -194,8 +226,8 @@ export class AppsForm extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
-        const {form} = props;
-        const values = initFormValues(form);
+        const {form, timezone} = props;
+        const values = initFormValues(form, timezone);
 
         this.state = {
             loading: false,
@@ -211,7 +243,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
     static getDerivedStateFromProps(nextProps: Props, prevState: State) {
         if (nextProps.form !== prevState.form) {
             return {
-                values: initFormValues(nextProps.form),
+                values: initFormValues(nextProps.form, nextProps.timezone),
                 form: nextProps.form,
             };
         }
@@ -600,7 +632,10 @@ export class AppsForm extends React.PureComponent<Props, State> {
             return null;
         }
 
-        return fields.filter((f) => f.name !== form.submit_buttons).map((field, index) => {
+        return fields.filter((f) => f.name !== form.submit_buttons).map((originalField, index) => {
+            // Use sanitized field for safe usage in components
+            const field = createSanitizedField(originalField);
+            
             return (
                 <AppsFormField
                     field={field}
