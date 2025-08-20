@@ -47,10 +47,10 @@ import * as Utils from 'utils/utils';
 import type {ModalData} from 'types/actions';
 
 import PostReminderSubMenu from './post_reminder_submenu';
-import {trackDotMenuEvent} from './utils';
-import type {ChangeEvent} from './utils';
 
 import './dot_menu.scss';
+
+type ChangeEvent = React.KeyboardEvent | React.MouseEvent;
 
 type ShortcutKeyProps = {
     shortcutKey: string;
@@ -205,10 +205,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
     handleFlagMenuItemActivated = () => {
         if (this.props.isFlagged) {
             this.props.actions.unflagPost(this.props.post.id);
-            trackDotMenuEvent();
         } else {
             this.props.actions.flagPost(this.props.post.id);
-            trackDotMenuEvent();
         }
     };
 
@@ -220,27 +218,22 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
 
     copyLink = () => {
         Utils.copyToClipboard(`${this.props.teamUrl}/pl/${this.props.post.id}`);
-        trackDotMenuEvent();
     };
 
     copyText = () => {
         Utils.copyToClipboard(this.props.post.message_source || this.props.post.message);
-        trackDotMenuEvent();
     };
 
     handlePinMenuItemActivated = (): void => {
         if (this.props.post.is_pinned) {
             this.props.actions.unpinPost(this.props.post.id);
-            trackDotMenuEvent();
         } else {
             this.props.actions.pinPost(this.props.post.id);
-            trackDotMenuEvent();
         }
     };
 
     handleMarkPostAsUnread = (): void => {
         this.props.actions.markPostAsUnread(this.props.post, this.props.location);
-        trackDotMenuEvent();
     };
 
     handleDeleteMenuItemActivated = (): void => {
@@ -254,8 +247,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         };
 
         this.props.actions.openModal(deletePostModalData);
-
-        trackDotMenuEvent();
     };
 
     handleFlagPostMenuItemClicked = () => {
@@ -277,7 +268,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             return;
         }
 
-        trackDotMenuEvent();
         const moveThreadModalData = {
             modalId: ModalIdentifiers.MOVE_THREAD_MODAL,
             dialogType: MoveThreadModal,
@@ -296,7 +286,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             return;
         }
 
-        trackDotMenuEvent();
         const forwardPostModalData = {
             modalId: ModalIdentifiers.FORWARD_POST_MODAL,
             dialogType: ForwardPostModal,
@@ -315,7 +304,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             this.props.location === Locations.CENTER ? 'post_textbox' : 'reply_textbox',
             this.props.location === Locations.RHS_ROOT || this.props.location === Locations.RHS_COMMENT || this.props.location === Locations.SEARCH,
         );
-        trackDotMenuEvent();
     };
 
     handleSetThreadFollow = () => {
@@ -329,11 +317,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         } else {
             followingThread = !isFollowingThread;
         }
-        if (followingThread) {
-            trackDotMenuEvent();
-        } else {
-            trackDotMenuEvent();
-        }
         actions.setThreadFollow(
             userId,
             teamId,
@@ -343,7 +326,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
     };
 
     handleCommentClick = (e: ChangeEvent) => {
-        trackDotMenuEvent();
         this.props.handleCommentClick?.(e);
     };
 
