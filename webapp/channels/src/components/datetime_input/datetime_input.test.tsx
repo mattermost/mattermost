@@ -21,14 +21,14 @@ const mockIsBeforeTime = timezoneUtils.isBeforeTime as jest.MockedFunction<typeo
 
 describe('components/datetime_input/DateTimeInput', () => {
     const baseProps = {
-        time: moment('2025-06-08T12:09:00.000Z'),
+        time: moment('2025-06-08T12:09:00Z'),
         handleChange: jest.fn(),
         timezone: 'UTC',
     };
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockGetCurrentMomentForTimezone.mockReturnValue(moment('2025-06-08T10:00:00.000Z'));
+        mockGetCurrentMomentForTimezone.mockReturnValue(moment('2025-06-08T10:00:00Z'));
         mockIsBeforeTime.mockReturnValue(false);
     });
 
@@ -126,7 +126,7 @@ describe('components/datetime_input/DateTimeInput', () => {
 
     describe('date selection', () => {
         test('should handle day selection for today with time adjustment', async () => {
-            mockGetCurrentMomentForTimezone.mockReturnValue(moment('2025-06-08T08:00:00.000Z'));
+            mockGetCurrentMomentForTimezone.mockReturnValue(moment('2025-06-08T08:00:00Z'));
             mockIsBeforeTime.mockReturnValue(true);
 
             renderWithContext(<DateTimeInput {...baseProps}/>);
@@ -148,7 +148,7 @@ describe('components/datetime_input/DateTimeInput', () => {
         });
 
         test('should handle day selection for future date', async () => {
-            mockGetCurrentMomentForTimezone.mockReturnValue(moment('2025-06-08T08:00:00.000Z'));
+            mockGetCurrentMomentForTimezone.mockReturnValue(moment('2025-06-08T08:00:00Z'));
 
             renderWithContext(<DateTimeInput {...baseProps}/>);
 
@@ -209,7 +209,7 @@ describe('components/datetime_input/DateTimeInput', () => {
 
         test('should allow past dates and all times when allowPastDates is true', () => {
             // Test the core time generation logic directly
-            const selectedDate = moment('2025-06-08T15:00:00.000Z'); // 3 PM
+            const selectedDate = moment('2025-06-08T15:00:00Z'); // 3 PM
 
             // When allowPastDates=true, time intervals should start from beginning of day
             const timeOptions = getTimeInIntervals(selectedDate.clone().startOf('day'), 30);
@@ -225,7 +225,7 @@ describe('components/datetime_input/DateTimeInput', () => {
 
         test('should restrict past dates and times when allowPastDates is false (default)', () => {
             // Test the core time generation logic for restricted past times
-            const currentTime = moment('2025-06-08T15:30:00.000Z'); // 3:30 PM
+            const currentTime = moment('2025-06-08T15:30:00Z'); // 3:30 PM
             const roundedTime = getRoundedTime(currentTime, 30); // Should round to 3:30 PM
 
             // When allowPastDates=false and selecting today, time options should start from current time

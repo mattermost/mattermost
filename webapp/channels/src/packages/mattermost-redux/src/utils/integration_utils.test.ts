@@ -96,13 +96,15 @@ describe('integration utils', () => {
         it('should return null for valid datetime formats', () => {
             const datetimeElement = TestHelper.getDialogElementMock({type: 'datetime'});
 
-            // Valid ISO datetime formats
-            expect(checkDialogElementForError(datetimeElement, '2025-01-15T14:30Z')).toBeNull();
+            // Only exact storage format should be valid
             expect(checkDialogElementForError(datetimeElement, '2025-01-15T14:30:00Z')).toBeNull();
-            expect(checkDialogElementForError(datetimeElement, '2025-01-15T14:30')).toBeNull();
 
             // Valid relative patterns
-            expect(checkDialogElementForError(datetimeElement, '+3H')).toBeNull();
+            expect(checkDialogElementForError(datetimeElement, 'today')).toBeNull();
+            expect(checkDialogElementForError(datetimeElement, 'tomorrow')).toBeNull();
+            expect(checkDialogElementForError(datetimeElement, '+3d')).toBeNull();
+            expect(checkDialogElementForError(datetimeElement, '+1w')).toBeNull();
+            expect(checkDialogElementForError(datetimeElement, '+2M')).toBeNull();
         });
 
         it('should return error for invalid date formats', () => {
@@ -123,6 +125,11 @@ describe('integration utils', () => {
             // Invalid formats
             expect(checkDialogElementForError(datetimeElement, 'invalid-datetime')).toBeTruthy();
             expect(checkDialogElementForError(datetimeElement, '2025-01-15')).toBeTruthy(); // Date only in datetime field
+
+            // Wrong datetime formats (should be YYYY-MM-DDTHH:mm:ssZ)
+            expect(checkDialogElementForError(datetimeElement, '2025-01-15T14:30Z')).toBeTruthy(); // Missing seconds
+            expect(checkDialogElementForError(datetimeElement, '2025-01-15T14:30:00')).toBeTruthy(); // Missing timezone
+            expect(checkDialogElementForError(datetimeElement, '2025-01-15T14:30')).toBeTruthy(); // Missing seconds and timezone
         });
 
         it('should return null for empty values', () => {

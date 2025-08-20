@@ -172,7 +172,6 @@ const initFormValues = (form: AppForm): AppFormValues => {
                 defaultValue = false;
             } else if (f.type === AppFieldTypes.DATETIME && f.is_required && !f.value) {
                 // Set default to current time for required datetime fields
-
                 const currentTime = moment();
 
                 // Validate time_interval before using it

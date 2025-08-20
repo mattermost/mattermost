@@ -40,23 +40,19 @@ const (
 	DefaultTimeIntervalMinutes        = 60 // Default time interval for DateTime fields
 
 	// Go date/time format constants
-	ISODateFormat                       = "2006-01-02"                    // YYYY-MM-DD
-	ISODateTimeFormat                   = "2006-01-02T15:04:05Z"          // RFC3339 UTC
-	ISODateTimeWithMillisFormat         = "2006-01-02T15:04:05.000Z"      // RFC3339 with milliseconds UTC
-	ISODateTimeWithTimezoneFormat       = "2006-01-02T15:04:05-07:00"     // RFC3339 with timezone
-	ISODateTimeWithMillisTimezoneFormat = "2006-01-02T15:04:05.000-07:00" // RFC3339 with milliseconds and timezone
-	ISODateTimeNoTimezoneFormat         = "2006-01-02T15:04:05"           // ISO datetime without timezone
-	ISODateTimeNoSecondsFormat          = "2006-01-02T15:04"              // ISO datetime without seconds
+	ISODateFormat                 = "2006-01-02"                // YYYY-MM-DD
+	ISODateTimeFormat             = "2006-01-02T15:04:05Z"      // RFC3339 UTC
+	ISODateTimeWithTimezoneFormat = "2006-01-02T15:04:05-07:00" // RFC3339 with timezone
+	ISODateTimeNoTimezoneFormat   = "2006-01-02T15:04:05"       // ISO datetime without timezone
+	ISODateTimeNoSecondsFormat    = "2006-01-02T15:04"          // ISO datetime without seconds
 )
 
 // Common datetime formats used by both date and datetime validation
 var commonDateTimeFormats = []string{
-	ISODateTimeFormat,                   // RFC3339 UTC
-	ISODateTimeWithMillisFormat,         // RFC3339 with milliseconds UTC
-	ISODateTimeWithTimezoneFormat,       // RFC3339 with timezone
-	ISODateTimeWithMillisTimezoneFormat, // RFC3339 with milliseconds and timezone
-	ISODateTimeNoTimezoneFormat,         // ISO datetime without timezone
-	ISODateTimeNoSecondsFormat,          // ISO datetime without seconds
+	ISODateTimeFormat,             // RFC3339 UTC
+	ISODateTimeWithTimezoneFormat, // RFC3339 with timezone
+	ISODateTimeNoTimezoneFormat,   // ISO datetime without timezone
+	ISODateTimeNoSecondsFormat,    // ISO datetime without seconds
 }
 
 var PostActionRetainPropKeys = []string{PostPropsFromWebhook, PostPropsOverrideUsername, PostPropsOverrideIconURL}

@@ -84,9 +84,8 @@ describe('AppsFormDateTimeField', () => {
     it('should render DateTimeInput when value exists', () => {
         renderComponent({value: '2025-01-15T14:30:00Z'});
 
-        expect(screen.getByTestId('datetime-input')).toBeInTheDocument();
-
         // DateTimeInput renders current time by default in the mock
+        expect(screen.getByTestId('datetime-input')).toBeInTheDocument();
     });
 
     it('should render DateTimeInput when no value', () => {
@@ -122,9 +121,8 @@ describe('AppsFormDateTimeField', () => {
         const fieldWithInterval = {...defaultField, time_interval: 30};
         renderComponent({field: fieldWithInterval, value: '2025-01-15T14:30:00Z'});
 
-        expect(screen.getByTestId('datetime-input')).toBeInTheDocument();
-
         // The time_interval is passed to DateTimeInput component
+        expect(screen.getByTestId('datetime-input')).toBeInTheDocument();
     });
 
     it('should handle datetime change', () => {
@@ -205,8 +203,5 @@ describe('AppsFormDateTimeField', () => {
             // DateTimeInput should receive allowPastDates=true
             expect(screen.getByTestId('datetime-input')).toBeInTheDocument();
         });
-
-        // Note: Invalid min_date validation is now handled centrally in integration_utils.ts
-        // Component gracefully handles invalid min_date without crashing
     });
 });

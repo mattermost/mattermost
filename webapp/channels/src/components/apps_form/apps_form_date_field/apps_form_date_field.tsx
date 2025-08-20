@@ -103,8 +103,6 @@ const AppsFormDateField: React.FC<Props> = ({
         defaultMessage: 'Select a date',
     });
 
-    // Validation is now handled centrally in integration_utils.ts
-
     const calendarIcon = (
         <i className='icon-calendar-outline'/>
     );

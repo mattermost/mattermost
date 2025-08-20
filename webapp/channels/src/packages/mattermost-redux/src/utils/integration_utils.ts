@@ -1,7 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {parseISO, isValid, format} from 'date-fns';
+
 import type {DialogElement} from '@mattermost/types/integrations';
+
+// date-fns formats for validation
+const ISO_DATE_FORMAT_DATEFNS = 'yyyy-MM-dd';
+const RFC3339_DATETIME_FORMAT_DATEFNS = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
 type DialogError = {
     id: string;
@@ -13,46 +19,59 @@ type DialogError = {
  * Validates date/datetime field values for format and range constraints
  */
 function validateDateTimeValue(value: string, elem: DialogElement): DialogError | null {
-    // Basic format validation using simplified patterns
-    const isDateField = elem.type === 'date';
-    const datePattern = /^\d{4}-\d{2}-\d{2}$/; // YYYY-MM-DD
-    const dateTimePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?Z?$/; // YYYY-MM-DDTHH:mm(:ss)?Z?
-    const relativePattern = /^(today|tomorrow|yesterday|[+-]\d{1,4}[dwMH])$/; // Relative dates
-
-    // Check if value matches expected format
-    let isValidFormat = false;
+    // Handle relative dates first
+    const relativePattern = /^(today|tomorrow|yesterday|[+-]\d{1,4}[dwMH])$/;
     if (relativePattern.test(value)) {
-        isValidFormat = true; // Relative dates are always valid format
-    } else if (isDateField && datePattern.test(value)) {
-        isValidFormat = true;
-    } else if (!isDateField && dateTimePattern.test(value)) {
-        isValidFormat = true;
+        return null; // Relative dates are always valid
     }
 
-    if (!isValidFormat) {
+    // Use parseISO for consistent validation with stringToMoment
+    const parsedDate = parseISO(value);
+    if (!isValid(parsedDate)) {
         return {
             id: 'interactive_dialog.error.bad_format',
             defaultMessage: 'Invalid date format',
         };
     }
 
-    // For non-relative dates, validate the date is real
-    if (!relativePattern.test(value)) {
-        const date = new Date(value);
-        if (isNaN(date.getTime())) {
+    // Validate format matches expected storage format
+    const isDateField = elem.type === 'date';
+    if (isDateField) {
+        // Date fields must be exactly YYYY-MM-DD
+        try {
+            const reformatted = format(parsedDate, ISO_DATE_FORMAT_DATEFNS);
+            if (reformatted !== value) {
+                return {
+                    id: 'interactive_dialog.error.bad_format',
+                    defaultMessage: 'Date field must be in YYYY-MM-DD format',
+                };
+            }
+        } catch (error) {
             return {
                 id: 'interactive_dialog.error.bad_format',
                 defaultMessage: 'Invalid date format',
             };
         }
+    } else {
+        // DateTime fields must match RFC3339 format exactly
+        try {
+            const reformatted = format(parsedDate, RFC3339_DATETIME_FORMAT_DATEFNS);
+            if (reformatted !== value) {
+                return {
+                    id: 'interactive_dialog.error.bad_format',
+                    defaultMessage: 'DateTime field must be in YYYY-MM-DDTHH:mm:ssZ format',
+                };
+            }
+        } catch (error) {
+            return {
+                id: 'interactive_dialog.error.bad_format',
+                defaultMessage: 'Invalid datetime format',
+            };
+        }
     }
-
-    // Range validation would be complex here without access to timezone and locale
-    // Keep this simple for the centralized validation - detailed range validation
-    // can be handled server-side or in specialized validation when needed
-
     return null;
 }
+
 export function checkDialogElementForError(elem: DialogElement, value: any): DialogError | undefined | null {
     // Check if value is empty (handles arrays for multiselect)
     let isEmpty;
