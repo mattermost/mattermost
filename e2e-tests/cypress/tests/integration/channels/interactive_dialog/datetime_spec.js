@@ -32,7 +32,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
                 cy.get('.date-time-input').click();
             });
         });
-        
+
         // Calendar should be visible with modal-overflow class automatically applied
         cy.get('.rdp', {timeout: 5000}).should('be.visible');
     };
