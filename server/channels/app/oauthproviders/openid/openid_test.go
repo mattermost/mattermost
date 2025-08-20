@@ -14,75 +14,75 @@ import (
 
 func TestOpenIDProvider_GetUserFromJSON(t *testing.T) {
 	tests := []struct {
-		name           string
-		openIDUser     *OpenIDUser
+		name             string
+		openIDUser       *OpenIDUser
 		expectedUsername string
-		description    string
+		description      string
 	}{
 		{
 			name: "preferred_username_priority",
 			openIDUser: &OpenIDUser{
-				Sub:              "12345",
+				Sub:               "12345",
 				PreferredUsername: "john.doe",
-				Username:         "johndoe",
-				Nickname:         "johnny",
-				Email:            "john.doe@example.com",
-				Name:             "John Doe",
+				Username:          "johndoe",
+				Nickname:          "johnny",
+				Email:             "john.doe@example.com",
+				Name:              "John Doe",
 			},
 			expectedUsername: "john.doe",
-			description:     "Should prioritize preferred_username over other claims",
+			description:      "Should prioritize preferred_username over other claims",
 		},
 		{
 			name: "username_fallback",
 			openIDUser: &OpenIDUser{
-				Sub:              "12346",
+				Sub:               "12346",
 				PreferredUsername: "",
-				Username:         "johndoe",
-				Nickname:         "johnny",
-				Email:            "john.doe@example.com",
-				Name:             "John Doe",
+				Username:          "johndoe",
+				Nickname:          "johnny",
+				Email:             "john.doe@example.com",
+				Name:              "John Doe",
 			},
 			expectedUsername: "johndoe",
-			description:     "Should use username when preferred_username is empty",
+			description:      "Should use username when preferred_username is empty",
 		},
 		{
 			name: "nickname_fallback",
 			openIDUser: &OpenIDUser{
-				Sub:              "12347",
+				Sub:               "12347",
 				PreferredUsername: "",
-				Username:         "",
-				Nickname:         "johnny",
-				Email:            "john.doe@example.com",
-				Name:             "John Doe",
+				Username:          "",
+				Nickname:          "johnny",
+				Email:             "john.doe@example.com",
+				Name:              "John Doe",
 			},
 			expectedUsername: "johnny",
-			description:     "Should use nickname when preferred_username and username are empty",
+			description:      "Should use nickname when preferred_username and username are empty",
 		},
 		{
 			name: "email_local_part_fallback",
 			openIDUser: &OpenIDUser{
-				Sub:              "12348",
+				Sub:               "12348",
 				PreferredUsername: "",
-				Username:         "",
-				Nickname:         "",
-				Email:            "john.doe@example.com",
-				Name:             "John Doe",
+				Username:          "",
+				Nickname:          "",
+				Email:             "john.doe@example.com",
+				Name:              "John Doe",
 			},
 			expectedUsername: "john.doe",
-			description:     "Should use email local-part when all username claims are empty",
+			description:      "Should use email local-part when all username claims are empty",
 		},
 		{
 			name: "email_without_at_fallback",
 			openIDUser: &OpenIDUser{
-				Sub:              "12349",
+				Sub:               "12349",
 				PreferredUsername: "",
-				Username:         "",
-				Nickname:         "",
-				Email:            "johndoe",
-				Name:             "John Doe",
+				Username:          "",
+				Nickname:          "",
+				Email:             "johndoe",
+				Name:              "John Doe",
 			},
 			expectedUsername: "johndoe",
-			description:     "Should handle email without @ symbol",
+			description:      "Should handle email without @ symbol",
 		},
 	}
 
@@ -188,4 +188,4 @@ func TestOpenIDUser_getAuthData(t *testing.T) {
 		Sub: "12345",
 	}
 	assert.Equal(t, "12345", user.getAuthData())
-} 
+}

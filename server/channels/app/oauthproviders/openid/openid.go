@@ -16,14 +16,14 @@ type OpenIDProvider struct {
 }
 
 type OpenIDUser struct {
-	Sub              string `json:"sub"`
+	Sub               string `json:"sub"`
 	PreferredUsername string `json:"preferred_username"`
-	Username         string `json:"username"`
-	Nickname         string `json:"nickname"`
-	Email            string `json:"email"`
-	Name             string `json:"name"`
-	GivenName        string `json:"given_name"`
-	FamilyName       string `json:"family_name"`
+	Username          string `json:"username"`
+	Nickname          string `json:"nickname"`
+	Email             string `json:"email"`
+	Name              string `json:"name"`
+	GivenName         string `json:"given_name"`
+	FamilyName        string `json:"family_name"`
 }
 
 func init() {
@@ -33,7 +33,7 @@ func init() {
 
 func userFromOpenIDUser(logger mlog.LoggerIFace, oidUser *OpenIDUser) *model.User {
 	user := &model.User{}
-	
+
 	// Prioritize username claims according to OpenID Connect spec
 	// 1. preferred_username (most preferred)
 	// 2. username
@@ -53,9 +53,9 @@ func userFromOpenIDUser(logger mlog.LoggerIFace, oidUser *OpenIDUser) *model.Use
 			username = emailParts[0]
 		}
 	}
-	
+
 	user.Username = model.CleanUsername(logger, username)
-	
+
 	// Set name fields
 	if oidUser.GivenName != "" && oidUser.FamilyName != "" {
 		user.FirstName = oidUser.GivenName
@@ -72,7 +72,7 @@ func userFromOpenIDUser(logger mlog.LoggerIFace, oidUser *OpenIDUser) *model.Use
 			user.FirstName = oidUser.Name
 		}
 	}
-	
+
 	user.Email = strings.ToLower(oidUser.Email)
 	userId := oidUser.getAuthData()
 	user.AuthData = &userId
@@ -129,4 +129,4 @@ func (op *OpenIDProvider) GetUserFromIdToken(_ request.CTX, idToken string) (*mo
 
 func (op *OpenIDProvider) IsSameUser(_ request.CTX, dbUser, oauthUser *model.User) bool {
 	return dbUser.AuthData == oauthUser.AuthData
-} 
+}
