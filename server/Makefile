@@ -219,9 +219,7 @@ ifneq ($(DOCKER_SERVICES_OVERRIDE),true)
 endif
 
 start-docker: ## Starts the docker containers for local development.
-ifneq ($(IS_CI),false)
-	@echo CI Build: skipping docker start
-else ifeq ($(MM_NO_DOCKER),true)
+ifeq ($(MM_NO_DOCKER),true)
 	@echo No Docker Enabled: skipping docker start
 else
 	@echo Starting docker containers
@@ -442,13 +440,11 @@ ifeq ($(IS_CI),true)
 else
 	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
 endif
-ifneq ($(IS_CI),true)
-  ifneq ($(MM_NO_DOCKER),true)
-    ifneq ($(TEMP_DOCKER_SERVICES),)
-	  @echo Stopping temporary docker services
-	  docker compose stop $(TEMP_DOCKER_SERVICES)
-    endif
-  endif
+ifneq ($(MM_NO_DOCKER),true)
+	ifneq ($(TEMP_DOCKER_SERVICES),)
+	@echo Stopping temporary docker services
+	docker compose stop $(TEMP_DOCKER_SERVICES)
+	endif
 endif
 
 test-server: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
@@ -456,13 +452,11 @@ test-server: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server: test-server-pre
 	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -timeout=90m $(COVERAGE_FLAG)
-ifneq ($(IS_CI),true)
-  ifneq ($(MM_NO_DOCKER),true)
-    ifneq ($(TEMP_DOCKER_SERVICES),)
-	  @echo Stopping temporary docker services
-	  docker compose stop $(TEMP_DOCKER_SERVICES)
-    endif
-  endif
+ifneq ($(MM_NO_DOCKER),true)
+	ifneq ($(TEMP_DOCKER_SERVICES),)
+	@echo Stopping temporary docker services
+	docker compose stop $(TEMP_DOCKER_SERVICES)
+	endif
 endif
 
 test-server-ee: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
