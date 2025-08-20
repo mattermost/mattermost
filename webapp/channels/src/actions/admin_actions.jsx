@@ -548,6 +548,17 @@ export function upgradeToE0Status() {
     };
 }
 
+export function isAllowedToUpgradeToEnterprise() {
+    return async () => {
+        try {
+            await Client4.isAllowedToUpgradeToEnterprise();
+            return {data: true};
+        } catch (error) {
+            return {error};
+        }
+    };
+}
+
 export function restartServer() {
     return async () => {
         const data = await Client4.restartServer();
