@@ -269,7 +269,7 @@ function onDynamicSelectSource(req, res) {
 
     res.setHeader('Content-Type', 'application/json');
     return res.json({
-        items: filteredOptions
+        items: filteredOptions,
     });
 }
 
