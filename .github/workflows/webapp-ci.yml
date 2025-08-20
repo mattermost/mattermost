@@ -8,6 +8,8 @@ on:
     paths:
       - "webapp/**"
       - "e2e-tests/**"
+      - ".github/workflows/webapp-ci.yml"
+      - ".github/actions/webapp-setup/**"
 
 concurrency:
   group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.ref) || '' }}
