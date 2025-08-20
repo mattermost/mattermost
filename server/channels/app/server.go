@@ -722,9 +722,6 @@ func (s *Server) Shutdown() {
 	// shutdown main and notification loggers which will flush any remaining log records.
 	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer timeoutCancel()
-	if err = s.NotificationsLog().ShutdownWithTimeout(timeoutCtx); err != nil {
-		fmt.Fprintf(os.Stderr, "Error shutting down notification logger: %v", err)
-	}
 	if err = s.Log().ShutdownWithTimeout(timeoutCtx); err != nil {
 		fmt.Fprintf(os.Stderr, "Error shutting down main logger: %v", err)
 	}
@@ -1831,8 +1828,4 @@ func (s *Server) Platform() *platform.PlatformService {
 
 func (s *Server) Log() *mlog.Logger {
 	return s.platform.Logger()
-}
-
-func (s *Server) NotificationsLog() *mlog.Logger {
-	return s.platform.NotificationsLogger()
 }

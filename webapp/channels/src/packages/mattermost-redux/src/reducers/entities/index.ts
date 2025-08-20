@@ -10,6 +10,7 @@ import channelBookmarks from './channel_bookmarks';
 import channelCategories from './channel_categories';
 import channels from './channels';
 import cloud from './cloud';
+import contentFlagging from './content_flagging';
 import emojis from './emojis';
 import files from './files';
 import general from './general';
@@ -59,4 +60,5 @@ export default combineReducers({
     channelBookmarks,
     scheduledPosts,
     sharedChannels,
+    contentFlagging,
 });

@@ -278,7 +278,7 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	if bypassUpload {
 		if isLocal {
 			// First, we validate whether the server is in HA.
-			config, _, err := c.GetOldClientConfig(context.TODO(), "")
+			config, _, err := c.GetClientConfig(context.TODO(), "")
 			if err != nil {
 				return err
 			}
@@ -383,7 +383,7 @@ func importValidateCmdF(c client.Client, command *cobra.Command, args []string) 
 			return err
 		}
 
-		config, _, err := c.GetOldClientConfig(context.TODO(), "")
+		config, _, err := c.GetClientConfig(context.TODO(), "")
 		if err != nil {
 			return err
 		}
