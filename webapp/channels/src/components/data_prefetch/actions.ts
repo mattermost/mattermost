@@ -7,12 +7,6 @@ import type {RelationOneToOne} from '@mattermost/types/utilities';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 
-export function trackPreloadedChannels() {
-    return () => {
-        // Telemetry tracking removed
-    };
-}
-
 enum Priority {
     high = 1,
     medium,
