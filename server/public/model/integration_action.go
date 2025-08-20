@@ -665,12 +665,7 @@ func validateRelativePattern(value string) bool {
 // isValidRelativeFormat checks if a string matches relative date patterns
 func isValidRelativeFormat(value string) bool {
 	relativeFormats := []string{"today", "tomorrow", "yesterday"}
-	for _, format := range relativeFormats {
-		if value == format {
-			return true
-		}
-	}
-	return validateRelativePattern(value)
+	return slices.Contains(relativeFormats, value) || validateRelativePattern(value)
 }
 
 // validateDateFormat validates date strings: ISO date, datetime (with warning), or relative formats
