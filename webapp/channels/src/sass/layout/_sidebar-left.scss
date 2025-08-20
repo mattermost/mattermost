@@ -1308,32 +1308,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 }
 
-/* context menu shown when right-clicking on a channel in the LHS when using the desktop app */
-.react-contextmenu--visible {
-    z-index: 100;
-    padding: 2px 0;
-    border: 1px solid #c6c6c6;
-    border-radius: 5px;
-    background: #f0f0f0;
-    color: black;
-    cursor: pointer;
-}
-
-.react-contextmenu-item {
-    padding: 0 22px;
-    margin: 1px 0;
-
-    &:hover {
-        background: #489dfe;
-        color: variables.$white;
-    }
-
-    &:focus,
-    span {
-        outline: none;
-    }
-}
-
 // global header style adjustments
 @media screen and (min-width: 769px) {
 

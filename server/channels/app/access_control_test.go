@@ -52,7 +52,7 @@ func TestGetChannelsForPolicy(t *testing.T) {
 			ID:       pID,
 			Name:     "parentPolicy",
 			Revision: 1,
-			Version:  model.AccessControlPolicyVersionV0_1,
+			Version:  model.AccessControlPolicyVersionV0_2,
 			Rules: []model.AccessControlPolicyRule{
 				{
 					Actions:    []string{"*"},
@@ -78,7 +78,7 @@ func TestGetChannelsForPolicy(t *testing.T) {
 			ID:       pID,
 			Name:     "parentPolicy",
 			Revision: 1,
-			Version:  model.AccessControlPolicyVersionV0_1,
+			Version:  model.AccessControlPolicyVersionV0_2,
 			Rules: []model.AccessControlPolicyRule{
 				{
 					Actions:    []string{"*"},
@@ -153,7 +153,7 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 			ID:       pID,
 			Name:     "parentPolicy",
 			Revision: 1,
-			Version:  model.AccessControlPolicyVersionV0_1,
+			Version:  model.AccessControlPolicyVersionV0_2,
 			Rules: []model.AccessControlPolicyRule{
 				{
 					Actions:    []string{"*"},
@@ -216,7 +216,7 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 		ID:       parentID,
 		Name:     "parentPolicy",
 		Revision: 1,
-		Version:  model.AccessControlPolicyVersionV0_1,
+		Version:  model.AccessControlPolicyVersionV0_2,
 		Rules: []model.AccessControlPolicyRule{
 			{
 				Actions:    []string{"*"},
@@ -376,7 +376,7 @@ func TestUnassignPoliciesFromChannels(t *testing.T) {
 		Type:     model.AccessControlPolicyTypeParent,
 		Name:     "parent-for-unassign-tests",
 		Revision: 1,
-		Version:  model.AccessControlPolicyVersionV0_1,
+		Version:  model.AccessControlPolicyVersionV0_2,
 		Rules: []model.AccessControlPolicyRule{
 			{Actions: []string{"*"}, Expression: "true"},
 		},
@@ -613,7 +613,7 @@ func TestValidateAccessControlPolicyPermission(t *testing.T) {
 	channelPolicy := &model.AccessControlPolicy{
 		ID:       privateChannel.Id,
 		Type:     model.AccessControlPolicyTypeChannel,
-		Version:  model.AccessControlPolicyVersionV0_1,
+		Version:  model.AccessControlPolicyVersionV0_2,
 		Revision: 1,
 		Rules: []model.AccessControlPolicyRule{
 			{Actions: []string{"*"}, Expression: "true"},
@@ -632,7 +632,7 @@ func TestValidateAccessControlPolicyPermission(t *testing.T) {
 		ID:       model.NewId(),
 		Name:     "parentPolicy",
 		Type:     model.AccessControlPolicyTypeParent,
-		Version:  model.AccessControlPolicyVersionV0_1,
+		Version:  model.AccessControlPolicyVersionV0_2,
 		Revision: 1,
 		Rules: []model.AccessControlPolicyRule{
 			{Actions: []string{"*"}, Expression: "true"},
@@ -722,7 +722,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 		policy := &model.AccessControlPolicy{
 			ID:       privateChannel.Id,
 			Type:     model.AccessControlPolicyTypeChannel,
-			Version:  model.AccessControlPolicyVersionV0_1,
+			Version:  model.AccessControlPolicyVersionV0_2,
 			Revision: 1,
 			Rules: []model.AccessControlPolicyRule{
 				{Actions: []string{"*"}, Expression: "true"},
@@ -737,7 +737,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 		policy := &model.AccessControlPolicy{
 			ID:       anotherChannel.Id,
 			Type:     model.AccessControlPolicyTypeChannel,
-			Version:  model.AccessControlPolicyVersionV0_1,
+			Version:  model.AccessControlPolicyVersionV0_2,
 			Revision: 1,
 			Rules: []model.AccessControlPolicyRule{
 				{Actions: []string{"*"}, Expression: "true"},
@@ -753,7 +753,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 		policy := &model.AccessControlPolicy{
 			ID:       model.NewId(),
 			Type:     model.AccessControlPolicyTypeParent,
-			Version:  model.AccessControlPolicyVersionV0_1,
+			Version:  model.AccessControlPolicyVersionV0_2,
 			Revision: 1,
 			Rules: []model.AccessControlPolicyRule{
 				{Actions: []string{"*"}, Expression: "true"},
@@ -781,7 +781,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 		policy := &model.AccessControlPolicy{
 			ID:       publicChannel.Id,
 			Type:     model.AccessControlPolicyTypeChannel,
-			Version:  model.AccessControlPolicyVersionV0_1,
+			Version:  model.AccessControlPolicyVersionV0_2,
 			Revision: 1,
 			Rules: []model.AccessControlPolicyRule{
 				{Actions: []string{"*"}, Expression: "true"},
@@ -814,7 +814,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 		policy := &model.AccessControlPolicy{
 			ID:       sharedChannel.Id,
 			Type:     model.AccessControlPolicyTypeChannel,
-			Version:  model.AccessControlPolicyVersionV0_1,
+			Version:  model.AccessControlPolicyVersionV0_2,
 			Revision: 1,
 			Rules: []model.AccessControlPolicyRule{
 				{Actions: []string{"*"}, Expression: "true"},

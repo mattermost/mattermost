@@ -1657,65 +1657,6 @@ func (s *ExperimentalAuditSettings) GetAdvancedLoggingConfig() []byte {
 	return []byte("{}")
 }
 
-type NotificationLogSettings struct {
-	EnableConsole       *bool           `access:"write_restrictable,cloud_restrictable"`
-	ConsoleLevel        *string         `access:"write_restrictable,cloud_restrictable"`
-	ConsoleJson         *bool           `access:"write_restrictable,cloud_restrictable"`
-	EnableColor         *bool           `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	EnableFile          *bool           `access:"write_restrictable,cloud_restrictable"`
-	FileLevel           *string         `access:"write_restrictable,cloud_restrictable"`
-	FileJson            *bool           `access:"write_restrictable,cloud_restrictable"`
-	FileLocation        *string         `access:"write_restrictable,cloud_restrictable"`
-	AdvancedLoggingJSON json.RawMessage `access:"write_restrictable,cloud_restrictable"`
-}
-
-func (s *NotificationLogSettings) SetDefaults() {
-	if s.EnableConsole == nil {
-		s.EnableConsole = NewPointer(true)
-	}
-
-	if s.ConsoleLevel == nil {
-		s.ConsoleLevel = NewPointer("DEBUG")
-	}
-
-	if s.EnableFile == nil {
-		s.EnableFile = NewPointer(true)
-	}
-
-	if s.FileLevel == nil {
-		s.FileLevel = NewPointer("INFO")
-	}
-
-	if s.FileLocation == nil {
-		s.FileLocation = NewPointer("")
-	}
-
-	if s.ConsoleJson == nil {
-		s.ConsoleJson = NewPointer(true)
-	}
-
-	if s.EnableColor == nil {
-		s.EnableColor = NewPointer(false)
-	}
-
-	if s.FileJson == nil {
-		s.FileJson = NewPointer(true)
-	}
-
-	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
-		s.AdvancedLoggingJSON = []byte("{}")
-	}
-}
-
-// GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
-func (s *NotificationLogSettings) GetAdvancedLoggingConfig() []byte {
-	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
-		return s.AdvancedLoggingJSON
-	}
-
-	return []byte("{}")
-}
-
 type PasswordSettings struct {
 	MinimumLength    *int  `access:"authentication_password"`
 	Lowercase        *bool `access:"authentication_password"`
@@ -2395,16 +2336,17 @@ type TeamSettings struct {
 	RestrictDirectMessage           *string `access:"site_users_and_teams"`
 	EnableLastActiveTime            *bool   `access:"site_users_and_teams"`
 	// In seconds.
-	UserStatusAwayTimeout               *int64   `access:"experimental_features"`
-	MaxChannelsPerTeam                  *int64   `access:"site_users_and_teams"`
-	MaxNotificationsPerChannel          *int64   `access:"environment_push_notification_server"`
-	EnableConfirmNotificationsToChannel *bool    `access:"site_notifications"`
-	TeammateNameDisplay                 *string  `access:"site_users_and_teams"`
-	ExperimentalViewArchivedChannels    *bool    `access:"experimental_features,site_users_and_teams"`
-	ExperimentalEnableAutomaticReplies  *bool    `access:"experimental_features"`
-	LockTeammateNameDisplay             *bool    `access:"site_users_and_teams"`
-	ExperimentalPrimaryTeam             *string  `access:"experimental_features"`
-	ExperimentalDefaultChannels         []string `access:"experimental_features"`
+	UserStatusAwayTimeout               *int64  `access:"experimental_features"`
+	MaxChannelsPerTeam                  *int64  `access:"site_users_and_teams"`
+	MaxNotificationsPerChannel          *int64  `access:"environment_push_notification_server"`
+	EnableConfirmNotificationsToChannel *bool   `access:"site_notifications"`
+	TeammateNameDisplay                 *string `access:"site_users_and_teams"`
+	// Deprecated: This field is no longer in use, and should always be true.
+	ExperimentalViewArchivedChannels   *bool    `access:"experimental_features,site_users_and_teams"`
+	ExperimentalEnableAutomaticReplies *bool    `access:"experimental_features"`
+	LockTeammateNameDisplay            *bool    `access:"site_users_and_teams"`
+	ExperimentalPrimaryTeam            *string  `access:"experimental_features"`
+	ExperimentalDefaultChannels        []string `access:"experimental_features"`
 }
 
 func (s *TeamSettings) SetDefaults() {
@@ -3825,7 +3767,6 @@ type Config struct {
 	SqlSettings                 SqlSettings
 	LogSettings                 LogSettings
 	ExperimentalAuditSettings   ExperimentalAuditSettings
-	NotificationLogSettings     NotificationLogSettings
 	PasswordSettings            PasswordSettings
 	FileSettings                FileSettings
 	EmailSettings               EmailSettings
@@ -3965,7 +3906,6 @@ func (o *Config) SetDefaults() {
 	o.RateLimitSettings.SetDefaults()
 	o.LogSettings.SetDefaults()
 	o.ExperimentalAuditSettings.SetDefaults()
-	o.NotificationLogSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
 	o.DisplaySettings.SetDefaults()
@@ -4139,6 +4079,10 @@ func (s *TeamSettings) isValid() *AppError {
 
 	if len(*s.SiteName) > SitenameMaxLength {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sitename_length.app_error", map[string]any{"MaxLength": SitenameMaxLength}, "", http.StatusBadRequest)
+	}
+
+	if !*s.ExperimentalViewArchivedChannels {
+		return NewAppError("Config.IsValid", "model.config.is_valid.experimental_view_archived_channels.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
