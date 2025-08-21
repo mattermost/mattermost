@@ -38,7 +38,7 @@ func (f *FlagContentRequest) IsValid(commentRequired bool, validReasons []string
 	}
 
 	if utf8.RuneCountInString(f.Comment) > commentMaxRunes {
-		return NewAppError("FlagContentRequest.IsValid", "api.content_flagging.error.comment_too_long", nil, "", http.StatusBadRequest)
+		return NewAppError("FlagContentRequest.IsValid", "api.content_flagging.error.comment_too_long", map[string]any{"MaxLength": commentMaxRunes}, "", http.StatusBadRequest)
 	}
 
 	return nil

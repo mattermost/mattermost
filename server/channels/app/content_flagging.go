@@ -56,7 +56,8 @@ func (a *App) FlagPost(c request.CTX, postId, teamId, reportingUserId string, fl
 		return appErr
 	}
 
-	if appErr := a.canFlagPost(groupId, postId); appErr != nil {
+	appErr = a.canFlagPost(groupId, postId)
+	if appErr != nil {
 		return appErr
 	}
 
@@ -114,12 +115,14 @@ func (a *App) FlagPost(c request.CTX, postId, teamId, reportingUserId string, fl
 	}
 
 	if *a.Config().ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent {
-		if _, appErr := a.DeletePost(c, postId, contentReviewBot.UserId); appErr != nil {
+		_, appErr = a.DeletePost(c, postId, contentReviewBot.UserId)
+		if appErr != nil {
 			return model.NewAppError("FlagPost", "app.content_flagging.delete_post.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
 		}
 	}
 
-	if appErr := a.createContentReviewPost(c, teamId, postId); appErr != nil {
+	appErr = a.createContentReviewPost(c, teamId, postId)
+	if appErr != nil {
 		return appErr
 	}
 
@@ -139,19 +142,10 @@ func (a *App) contentFlaggingGroupId() (string, *model.AppError) {
 	return contentFlaggingGroupId, nil
 }
 
-func (a *App) getPostContentFlaggingProperties(groupID, postId string) ([]*model.PropertyValue, *model.AppError) {
-	propertyValues, err := a.Srv().propertyService.SearchPropertyValues(groupID, postId, model.PropertyValueSearchOpts{PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES})
-	if err != nil {
-		return nil, model.NewAppError("getPostContentFlaggingProperties", "app.content_flagging.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return propertyValues, nil
-}
-
 func (a *App) canFlagPost(groupId, postId string) *model.AppError {
 	statusPropertyField, err := a.Srv().propertyService.GetPropertyFieldByName(groupId, "", contentFlaggingPropertyNameStatus)
 	if err != nil {
-		return model.NewAppError("canFlagPost", "app.content_flagging.get_property_field_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("canFlagPost", "app.content_flagging.get_status_property.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	propertyValues, err := a.Srv().propertyService.SearchPropertyValues(groupId, postId, model.PropertyValueSearchOpts{PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES, FieldID: statusPropertyField.ID})

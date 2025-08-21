@@ -184,7 +184,7 @@ func (a *App) GetOrCreateSystemOwnedBot(rctx request.CTX, botDisplayNameTranslat
 	}
 
 	if len(sysAdminList) == 0 {
-		return nil, model.NewAppError("GetSystemBot", "app.bot.get_or_create_system_bot.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("GetSystemBot", "app.bot.get_system_bot.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	T := i18n.GetUserTranslations(sysAdminList[0].Locale)

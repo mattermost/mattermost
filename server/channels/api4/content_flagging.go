@@ -81,6 +81,7 @@ func getTeamPostFlaggingFeatureStatus(c *Context, w http.ResponseWriter, r *http
 }
 
 func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
 		return
 	}

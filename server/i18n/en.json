@@ -1734,12 +1734,32 @@
     "translation": "Failed to update server translations."
   },
   {
+    "id": "api.content_flagging.error.comment_required",
+    "translation": "Please add a comment explaining why you’re flagging this message."
+  },
+  {
+    "id": "api.content_flagging.error.comment_too_long",
+    "translation": "Message flagging reason cannot be longer than {{.MaxLength}} characters."
+  },
+  {
     "id": "api.content_flagging.error.disabled",
     "translation": "Content flagging feature is disabled."
   },
   {
     "id": "api.content_flagging.error.license",
     "translation": "Your license does not support content flagging."
+  },
+  {
+    "id": "api.content_flagging.error.not_available_on_team",
+    "translation": "Content flagging feature is not enabled on this team."
+  },
+  {
+    "id": "api.content_flagging.error.reason_invalid",
+    "translation": "Unknown reason specified for flagging message."
+  },
+  {
+    "id": "api.content_flagging.error.reason_required",
+    "translation": "Please select a reason for flagging this message."
   },
   {
     "id": "api.context.404.app_error",
@@ -5095,6 +5115,34 @@
     "translation": "We encountered an error saving the compliance report."
   },
   {
+    "id": "app.content_flagging.create_property_values.app_error",
+    "translation": "Unable to save property values for the flagged post."
+  },
+  {
+    "id": "app.content_flagging.delete_post.app_error",
+    "translation": "Unable to soft-delete the flagged post."
+  },
+  {
+    "id": "app.content_flagging.get_group.error",
+    "translation": "Failed to get Content Flagging bot."
+  },
+  {
+    "id": "app.content_flagging.get_status_property.app_error",
+    "translation": "Failed to get Status property field."
+  },
+  {
+    "id": "app.content_flagging.get_users_in_team.app_error",
+    "translation": "Failed to search reviewers in team."
+  },
+  {
+    "id": "app.content_flagging.search_property_fields.app_error",
+    "translation": "Failed to search Content Flagging property fields."
+  },
+  {
+    "id": "app.content_flagging.search_status_property.app_error",
+    "translation": "Failed to search Property Values for the flagged post."
+  },
+  {
     "id": "app.create_basic_user.save_member.app_error",
     "translation": "Unable to create default team memberships"
   },
@@ -7155,18 +7203,6 @@
   {
     "id": "app.system.save.app_error",
     "translation": "We encountered an error saving the system property."
-  },
-  {
-    "id": "app.system.system_bot.bot_displayname",
-    "translation": "System"
-  },
-  {
-    "id": "app.system.content_review_bot.bot_displayname",
-    "translation": "Content Review"
-  },
-  {
-    "id": "app.system.content_flagging_bot.bot_displayname",
-    "translation": "Content Review"
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -10763,13 +10799,5 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user {{.user}}"
-  },
-  {
-    "id": "app.content_flagging.group_id.app_error",
-    "translation": "Cannot fetch Content Flagging property group"
-  },
-  {
-    "id": "api.content_flagging.error.not_available_on_team",
-    "translation": "Content flagging feature is not enabled on this team."
   }
 ]
