@@ -33,6 +33,7 @@
       summary: Get content flagging status for a team
       description: |
         Returns the content flagging status for a specific team, indicating whether content flagging is enabled on the specified team or not.
+        An enterprise advanced license is required.
       tags:
         - Content Flagging
       parameters:
@@ -57,6 +58,51 @@
           description: Forbidden - User does not have permission to access this team.
         '404':
           description: The specified team was not found or the feature is disabled via the feature flag.
+        '500':
+          description: Internal server error.
+        '501':
+          description: Feature is disabled either via config or an Enterprise Advanced license is not available.
+  /api/v4/content_flagging/post/{post_id}/flag:
+    post:
+      summary: Flag a post
+      description: |
+        Flags a post with a reason and a comment. The user must have to the channel to which the post belongs to.
+        An enterprise advanced license is required.
+      tags:
+        - Content Flagging
+      parameters:
+        - in: path
+          name: post_id
+          required: true
+          schema:
+            type: string
+          description: The ID of the post to be flagged
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: The reason for flagging the post. This must be one of the configured reasons available for selection.
+                comment:
+                  type: string
+                  description: Comment from the user flagging the post.
+      responses:
+        "200":
+          description: Dialog open successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        '400':
+          description: Bad request - Invalid input data or missing required fields.
+        '403':
+          description: Forbidden - User does not have permission to flag this post.
+        '404':
+          description: Post not found or feature is disabled via the feature flag.
         '500':
           description: Internal server error.
         '501':
