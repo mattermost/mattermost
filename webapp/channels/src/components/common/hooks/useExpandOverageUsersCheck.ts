@@ -2,9 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {defineMessage} from 'react-intl';
-import {useSelector} from 'react-redux';
-
-import {getExpandSeatsLink} from 'selectors/cloud';
 
 const cta = defineMessage({
     id: 'licensingPage.overageUsersBanner.cta',
@@ -12,10 +9,7 @@ const cta = defineMessage({
 });
 
 export const useExpandOverageUsersCheck = () => {
-    const expandableLink = useSelector(getExpandSeatsLink);
-
     return {
         cta,
-        expandableLink,
     };
 };
