@@ -44,7 +44,7 @@ describe('Interactive Menu - Action Button Error Handling', () => {
 
         // # Post an incoming webhook with action button that will trigger an error
         cy.postIncomingWebhook({url: incomingWebhook.url, data: payload, waitFor: 'attachment-pretext'});
-        
+
         // * Wait for the button to be available
         cy.findByText('Error Button 1').should('be.visible');
 
@@ -62,7 +62,7 @@ describe('Interactive Menu - Action Button Error Handling', () => {
 
         // # Post an incoming webhook with error and success buttons
         cy.postIncomingWebhook({url: incomingWebhook.url, data: payload, waitFor: 'attachment-pretext'});
-        
+
         // * Wait for the buttons to be available
         cy.findByText('Error Button').should('be.visible');
         cy.findByText('Success Button').should('be.visible');
@@ -77,10 +77,10 @@ describe('Interactive Menu - Action Button Error Handling', () => {
 
         // # Click on "Success Button" to trigger successful action
         cy.findByText('Success Button').should('be.visible').click({force: true});
-        
+
         // * Wait for successful response and verify the specific error from this test is cleared
         cy.uiWaitUntilMessagePostedIncludes('a < a | b > a');
-        
+
         // * Find the specific attachment container for this test and verify its error is cleared
         cy.contains('.attachment', 'Action Button Error Clear Test - Error and Success')
             .find('.has-error').should('not.exist');
@@ -91,7 +91,7 @@ describe('Interactive Menu - Action Button Error Handling', () => {
 
         // # Post an incoming webhook with action button that has tooltip
         cy.postIncomingWebhook({url: incomingWebhook.url, data: payload, waitFor: 'attachment-pretext'});
-        
+
         // * Wait for the tooltip button to be available
         cy.findByText('Button with Tooltip').should('be.visible');
 

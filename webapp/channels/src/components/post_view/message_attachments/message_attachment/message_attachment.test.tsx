@@ -276,8 +276,8 @@ describe('components/post_view/MessageAttachment', () => {
         // Trigger action
         await wrapper.instance().handleAction({
             preventDefault: jest.fn(),
-            currentTarget: {getAttribute: jest.fn().mockReturnValue('attr_value')} as any,
-        } as React.MouseEvent, []);
+            currentTarget: {getAttribute: jest.fn().mockReturnValue('attr_value')},
+        } as any, []);
 
         // Update wrapper to get latest state
         wrapper.update();
@@ -305,8 +305,8 @@ describe('components/post_view/MessageAttachment', () => {
         // Trigger action
         await wrapper.instance().handleAction({
             preventDefault: jest.fn(),
-            currentTarget: {getAttribute: jest.fn().mockReturnValue('attr_value')} as any,
-        } as React.MouseEvent, []);
+            currentTarget: {getAttribute: jest.fn().mockReturnValue('attr_value')},
+        } as any, []);
 
         // Update wrapper to get latest state
         wrapper.update();
@@ -334,8 +334,8 @@ describe('components/post_view/MessageAttachment', () => {
         // Trigger new action
         await wrapper.instance().handleAction({
             preventDefault: jest.fn(),
-            currentTarget: {getAttribute: jest.fn().mockReturnValue('attr_value')} as any,
-        } as React.MouseEvent, []);
+            currentTarget: {getAttribute: jest.fn().mockReturnValue('attr_value')},
+        } as any, []);
 
         // Error should be cleared on successful action
         expect(wrapper.state('actionError')).toBeNull();
@@ -356,8 +356,8 @@ describe('components/post_view/MessageAttachment', () => {
         // Trigger action
         await wrapper.instance().handleAction({
             preventDefault: jest.fn(),
-            currentTarget: {getAttribute: jest.fn().mockReturnValue('attr_value')} as any,
-        } as React.MouseEvent, []);
+            currentTarget: {getAttribute: jest.fn().mockReturnValue('attr_value')},
+        } as any, []);
 
         // Update wrapper to get latest state
         wrapper.update();
