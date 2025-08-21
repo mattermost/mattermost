@@ -5,7 +5,6 @@ import {screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import type {ClientConfig} from '@mattermost/types/config';
 import type {Team} from '@mattermost/types/teams';
 
 import * as teams from 'mattermost-redux/selectors/entities/teams';
@@ -24,11 +23,6 @@ jest.mock('actions/views/channel', () => ({
 
 jest.mock('utils/browser_history', () => ({
     getHistory: jest.fn(),
-}));
-
-jest.mock('mattermost-redux/selectors/entities/general', () => ({
-    ...jest.requireActual('mattermost-redux/selectors/entities/general') as typeof import('mattermost-redux/selectors/entities/general'),
-    getConfig: () => mockConfig,
 }));
 
 // Mock the roles selector which is a dependency for other selectors
@@ -52,16 +46,10 @@ const baseProps = {
     onHide: jest.fn(),
 };
 
-let mockConfig: Partial<ClientConfig>;
-
 describe('ChannelSettingsArchiveTab', () => {
     const {getHistory} = require('utils/browser_history');
     beforeEach(() => {
         jest.clearAllMocks();
-
-        mockConfig = {
-            ExperimentalViewArchivedChannels: 'false',
-        };
 
         jest.spyOn(teams, 'getCurrentTeam').mockReturnValue({
             id: 'team1',

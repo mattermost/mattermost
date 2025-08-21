@@ -1440,7 +1440,6 @@ func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
 
 func (a *App) SearchFilesInTeamForUser(c request.CTX, terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.FileInfoList, *model.AppError) {
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
-	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
 	if !*a.Config().ServiceSettings.EnableFileSearch {
 		return nil, model.NewAppError("SearchFilesInTeamForUser", "store.sql_file_info.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
@@ -1450,7 +1449,7 @@ func (a *App) SearchFilesInTeamForUser(c request.CTX, terms string, userId strin
 
 	for _, params := range paramsList {
 		params.OrTerms = isOrSearch
-		params.IncludeDeletedChannels = includeDeleted
+		params.IncludeDeletedChannels = includeDeletedChannels
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
 			// Convert channel names to channel IDs

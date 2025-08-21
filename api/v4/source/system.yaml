@@ -433,20 +433,9 @@
         ##### Permissions
         No permission required.
       operationId: GetClientConfig
-      parameters:
-        - name: format
-          in: query
-          required: true
-          description: Must be `old`, other formats not implemented yet
-          schema:
-            type: string
       responses:
         "200":
           description: Configuration retrieval successful
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
   /api/v4/config/environment:
     get:
       tags:
@@ -1135,6 +1124,20 @@
                   error:
                     type: string
                     description: Error happened during the upgrade
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v4/upgrade_to_enterprise/allowed:
+    get:
+      tags:
+        - system
+      summary: Check if the user is allowed to upgrade to Enterprise Edition
+      description: >
+        Check if the user is allowed to upgrade to Enterprise Edition
+      operationId: IsAllowedToUpgradeToEnterprise
+      responses:
+        "200":
+          description: User is allowed to upgrade to Enterprise Edition
         "403":
           $ref: "#/components/responses/Forbidden"
 
