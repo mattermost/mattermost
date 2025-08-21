@@ -46,6 +46,8 @@ jobs:
           provenance: false
           file: server/build/Dockerfile.buildenv
           load: true
+          push: false
+          pull: false
           tags: mattermostdevelopment/mattermost-build-server:test
 
       - name: buildenv/test
@@ -58,6 +60,7 @@ jobs:
         with:
           provenance: false
           file: server/build/Dockerfile.buildenv
+          load: false
           push: true
           pull: true
           tags: mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
@@ -88,6 +91,8 @@ jobs:
           provenance: false
           file: server/build/Dockerfile.buildenv-fips
           load: true
+          push: false
+          pull: false
           tags: mattermost/mattermost-build-server-fips:test
 
       - name: buildenv/test
@@ -100,6 +105,7 @@ jobs:
         with:
           provenance: false
           file: server/build/Dockerfile.buildenv-fips
+          load: false
           push: true
           pull: true
           tags: mattermost/mattermost-build-server-fips:${{ steps.go.outputs.GO_VERSION }}
