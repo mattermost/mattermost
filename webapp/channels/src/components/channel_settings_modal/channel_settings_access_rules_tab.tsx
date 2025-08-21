@@ -97,6 +97,7 @@ function ChannelSettingsAccessRulesTab({
 
     const handleExpressionChange = useCallback((newExpression: string) => {
         setExpression(newExpression);
+
         // Don't clear form error here - let validation determine if the error should be cleared
         setSaveChangesPanelState(undefined);
     }, []);
