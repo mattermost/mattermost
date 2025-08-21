@@ -2264,8 +2264,6 @@
   "admin.user_item.sysAdmin": "Systeembeheerder",
   "admin.user_item.teamAdmin": "Teambeheerder",
   "admin.user_item.teamMember": "Teamlid",
-  "admin.viewArchivedChannelsHelpText": "Wanneer waar, gebruikers toestaan om de inhoud van gearchiveerde kanalen te bekijken, te delen en te zoeken. Gebruikers kunnen alleen de inhoud bekijken in kanalen waarvan ze lid waren voordat het kanaal werd gearchiveerd.",
-  "admin.viewArchivedChannelsTitle": "Gebruikers toestaan om gearchiveerde kanalen te bekijken:",
   "admin.webserverModeDisabled": "Uitgeschakeld",
   "admin.webserverModeDisabledDescription": "Mattermost server zal geen statische file serveren.",
   "admin.webserverModeGzip": "gzip",

@@ -4175,14 +4175,6 @@
     "translation": "Bot login is forbidden."
   },
   {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Attempted to sign in using the experimental feature ClientSideCert without providing a valid certificate."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Attempt to use the experimental feature ClientSideCertEnable without a valid enterprise license."
-  },
-  {
     "id": "api.user.login.guest_accounts.disabled.error",
     "translation": "Guest accounts are disabled"
   },
@@ -4517,6 +4509,10 @@
   {
     "id": "api4.plugin.reattachPlugin.invalid_request",
     "translation": "Failed to parse request"
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "You do not have permission to manage this access control policy."
   },
   {
     "id": "app.acknowledgement.batch_save.app_error",
@@ -6317,6 +6313,26 @@
   {
     "id": "app.oauth.update_app.updating.app_error",
     "translation": "We encountered an error updating the app."
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "Channel is group constrained and cannot have access control policies applied."
+  },
+  {
+    "id": "app.pap.access_control.channel_not_private",
+    "translation": "Access control policies can only be applied to private channels."
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "Shared channels cannot have access control policy applied."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "You do not have permission to manage access control for this channel."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "You do not have permission to manage this access control policy."
   },
   {
     "id": "app.pap.assign_access_control_policy_to_channels.app_error",
@@ -8991,6 +9007,10 @@
   {
     "id": "model.config.is_valid.cache_type.app_error",
     "translation": "Cache type must be either lru or redis."
+  },
+  {
+    "id": "model.config.is_valid.client_side_cert_enable.app_error",
+    "translation": "Certificate-based authentication has been removed. Please disable ClientSideCertEnable to continue."
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
