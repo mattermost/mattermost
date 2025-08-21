@@ -679,7 +679,6 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 			},
 		}
 
-
 		// If not available in marketplace, add the prepackaged
 		if remoteMarketplacePlugins[prepackaged.Manifest.Id] == nil {
 			remoteMarketplacePlugins[prepackaged.Manifest.Id] = prepackagedMarketplace
@@ -985,7 +984,6 @@ func (ch *Channels) processPrepackagedPlugins(prepackagedPluginsDir string) erro
 	return nil
 }
 
-
 // processPrepackagedPlugin will return the prepackaged plugin metadata and will also
 // install the prepackaged plugin if it had been previously enabled and AutomaticPrepackagedPlugins is true.
 func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin.PrepackagedPlugin, error) {
@@ -1014,7 +1012,6 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 	}
 
 	logger = logger.With(mlog.String("plugin_id", plugin.Manifest.Id))
-
 
 	// Skip installing the plugin at all if automatic prepackaged plugins is disabled
 	if !*ch.cfgSvc.Config().PluginSettings.AutomaticPrepackagedPlugins {
@@ -1062,7 +1059,6 @@ func (ch *Channels) pluginIsTransitionallyPrepackaged(m *model.Manifest) bool {
 
 	return false
 }
-
 
 // shouldPersistTransitionallyPrepackagedPlugin determines if a transitionally prepackaged plugin
 // should be persisted to the filestore, taking into account whether it's already enabled and
