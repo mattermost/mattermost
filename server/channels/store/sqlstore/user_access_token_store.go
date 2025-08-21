@@ -77,12 +77,7 @@ func (s SqlUserAccessTokenStore) Delete(tokenId string) (err error) {
 }
 
 func (s SqlUserAccessTokenStore) deleteSessionsAndTokensById(transaction *sqlxTxWrapper, tokenId string) error {
-	query := ""
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.Id = ?"
-	} else if s.DriverName() == model.DatabaseDriverMysql {
-		query = "DELETE s.* FROM Sessions s INNER JOIN UserAccessTokens o ON o.Token = s.Token WHERE o.Id = ?"
-	}
+	query := "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.Id = ?"
 
 	if _, err := transaction.Exec(query, tokenId); err != nil {
 		return errors.Wrapf(err, "failed to delete Sessions with UserAccessToken id=%s", tokenId)
@@ -117,12 +112,7 @@ func (s SqlUserAccessTokenStore) DeleteAllForUser(userId string) (err error) {
 }
 
 func (s SqlUserAccessTokenStore) deleteSessionsandTokensByUser(transaction *sqlxTxWrapper, userId string) error {
-	query := ""
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.UserId = ?"
-	} else if s.DriverName() == model.DatabaseDriverMysql {
-		query = "DELETE s.* FROM Sessions s INNER JOIN UserAccessTokens o ON o.Token = s.Token WHERE o.UserId = ?"
-	}
+	query := "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.UserId = ?"
 
 	if _, err := transaction.Exec(query, userId); err != nil {
 		return errors.Wrapf(err, "failed to delete Sessions with UserAccessToken userId=%s", userId)
@@ -242,12 +232,7 @@ func (s SqlUserAccessTokenStore) UpdateTokenDisable(tokenId string) (err error) 
 }
 
 func (s SqlUserAccessTokenStore) deleteSessionsAndDisableToken(transaction *sqlxTxWrapper, tokenId string) error {
-	query := ""
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.Id = ?"
-	} else if s.DriverName() == model.DatabaseDriverMysql {
-		query = "DELETE s.* FROM Sessions s INNER JOIN UserAccessTokens o ON o.Token = s.Token WHERE o.Id = ?"
-	}
+	query := "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.Id = ?"
 
 	if _, err := transaction.Exec(query, tokenId); err != nil {
 		return errors.Wrapf(err, "failed to delete Sessions with UserAccessToken id=%s", tokenId)

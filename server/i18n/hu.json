@@ -164,18 +164,6 @@
     "translation": "Nem lehet engedélyezni az e-mailek kötegelését, ha a fürtözés engedélyezve van."
   },
   {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "A Bleve IndexingDir beállítást be kell állítani, ha a Bleve EnableIndexing értéke igaz"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "A Bleve EnableIndexing beállítást igazra kell állítani, ha a Bleve EnableSearching értéke igaz"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "A Bleve EnableIndexing beállítást igazra kell állítani, ha a Bleve EnableAutocomplete értéke igaz"
-  },
-  {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
     "translation": "Érvénytelen RemoteImageProxyURL az atmos/camo számára. A megosztott kulcsra kell állítani."
   },
@@ -984,10 +972,6 @@
     "translation": "Nem sikerült lekérni a bejegyzéseket a csatornához."
   },
   {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Nem sikerült lekérni a bejegyzéscsomagot indexeléshez."
-  },
-  {
     "id": "app.post.get_posts_around.get.app_error",
     "translation": "Nem sikerült lekérni a bejegyzéseket a csatornához."
   },
@@ -1002,10 +986,6 @@
   {
     "id": "app.post.get_flagged_posts.app_error",
     "translation": "Nem sikerült lekérni a megjelölt bejegyzéseket."
-  },
-  {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "Nem sikerült lekérni a fájlcsomagot indexeléshez."
   },
   {
     "id": "app.post.get_direct_posts.app_error",
@@ -1174,10 +1154,6 @@
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
     "translation": "Nem sikerült beolvasni a plugin állapotokat a fürtből."
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Nem lehet beállítani a bővítményt úgy, hogy a fájltár kezelje."
   },
   {
     "id": "app.plugin.filesystem.app_error",
@@ -2968,10 +2944,6 @@
     "translation": "Egy vagy több bejegyzést nem sikerült eljuttatni a {{.Remote}} távoli webhelyre, mert offline állapotban van. A bejegyzés(ek) akkor lesznek kézbesítve, amikor a webhely online."
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Hiba történt a Bleve indexek törlésekor: a motor le van tiltva"
-  },
-  {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "Hiányzó TO cím."
   },
@@ -3418,166 +3390,6 @@
   {
     "id": "brand.save_brand_image.decode.app_error",
     "translation": "Nem sikerült dekódolni a kép adatot."
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Nem sikerült lezárni a felhasználó indexet."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Nem sikerült lezárni a bejegyzés indexet."
-  },
-  {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Nem sikerült lezárni a fájl indexet."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Nem sikerült lezárni a csatorna indexet."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "A felhasználó keresést nem sikerült befejezni."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "A felhasználó keresést nem sikerült befejezni."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "A felhasználó keresést nem sikerült befejezni."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "A bejegyzés keresést nem sikerült befejezni."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "A fájl keresést nem sikerült befejezni."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "A csatorna keresést nem sikerült befejezni."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Nem sikerült törölni a felhasználó indexeket."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Nem sikerült törölni a bejegyzés indexeket."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Nem sikerült törölni a fájl indexeket."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Nem sikerült törölni a csatorna indexeket."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Megpróbál indexelni egy új köteget, amikor az összes entitás elkészült."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "A Bleve indexelő munkás nem tudta értelmezni a kezdési időt."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "A Bleve indexelő munkás nem tudta értelmezni a befejezési időt."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Nem sikerült futtatni a Bleve index munkát: motor inaktív."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Nem sikerült indexelni a felhasználó köteget."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Nem sikerült indexelni a bejegyzés köteget."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Nem sikerült indexelni a fájl köteget."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Nem sikerült indexelni a csatorna köteget."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Nem sikerült indexelni a felhasználót."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Nem sikerült indexelni a bejegyzést."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "Nem sikerült indexelni a fájlt."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Nem sikerült indexelni a csatornát."
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Nem sikerült törölni a felhasználó bejegyzéseket"
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Nem sikerült törölni a felhasználó fájlokat."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Nem sikerült törölni a felhasználót."
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Nem sikerült törölni a bejegyzés fájlokat."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Nem sikerült törölni a bejegyzést."
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Nem sikerült törölni a fájokat."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Nem sikerült törölni a fájlt."
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Nem sikerült törölni a csatorna bejegyzéseket"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Nem sikerült törölni a csatornát."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Hiba a bleve felhasználó index létrehozásakor."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Hiba a bleve bejegyzés index létrehozásakor."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Hiba a bleve fájl index létrehozásakor."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Hiba a bleve csatorna index létrehozásakor."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve már beindult."
   },
   {
     "id": "app.webhooks.update_outgoing.app_error",
@@ -4110,10 +3922,6 @@
   {
     "id": "app.channel.get_channels_by_ids.app_error",
     "translation": "Nem sikerült lekérni a csatornákat azonosítók szerint."
-  },
-  {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Nem sikerült lekérni a csatornákat kötegelt indexeléséhez."
   },
   {
     "id": "app.channel.get_channels.not_found.app_error",
@@ -4806,10 +4614,6 @@
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
     "translation": "Sikeresen frissített a Mattermost Enterprise Edition-re. Kérjük, indítsa újra a szervert a frissítés befejezéséhez."
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Hiba történt a backendből történő fájl olvasásakor"
   },
   {
     "id": "api.unable_to_create_zip_file",
@@ -8111,10 +7915,6 @@
     "translation": "Sikertelen kép korlát ellenőrzés. A felbontás túl nagy."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "A legrégebbi elemet (felhasználó, csatorna vagy bejegyzés) nem sikerült lekérdezni az adatbázisból."
-  },
-  {
     "id": "app.valid_password_generic.app_error",
     "translation": "A jelszó érvénytelen"
   },
@@ -8347,14 +8147,6 @@
     "translation": "Nem tudom megnövelni a munkamenet hosszát"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Nem sikerült lekérni egy archivált csatorna felhasználóit"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Nem sikerült lekérni egy archivált csatorna bejegyzéseit"
-  },
-  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "A kapott Bejegyzés Azonosítók száma meghaladja a maximális mennyiséget ({{.MaxLength}})"
   },
@@ -8485,10 +8277,6 @@
   {
     "id": "model.member.is_valid.emails.app_error",
     "translation": "E-mail lista üres"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "A Bleve Bulk Indexing Batch Size beállításnak {{.BatchSize}} hosszúnak kell lennie."
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",

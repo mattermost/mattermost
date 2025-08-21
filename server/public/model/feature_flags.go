@@ -68,6 +68,15 @@ type FeatureFlags struct {
 	CustomProfileAttributes bool
 
 	AttributeBasedAccessControl bool
+
+	ContentFlagging bool
+
+	// Enable AppsForm for Interactive Dialogs instead of legacy dialog implementation
+	InteractiveDialogAppsForm bool
+
+	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this field when feature is GA
+	// Enable channel admins to manage ABAC rules for their channels
+	ChannelAdminManageABACRules bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -96,6 +105,10 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ExperimentalAuditSettingsSystemConsoleUI = true
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
+	f.ContentFlagging = false
+	f.InteractiveDialogAppsForm = true
+	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this default when feature is GA
+	f.ChannelAdminManageABACRules = false // Default to false for safety
 }
 
 // ToMap returns the feature flags as a map[string]string

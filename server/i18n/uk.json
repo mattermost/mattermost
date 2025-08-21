@@ -657,7 +657,7 @@
   },
   {
     "id": "api.command_invite.name",
-    "translation": "запросити"
+    "translation": "запрошення"
   },
   {
     "id": "api.command_invite.permission.app_error",
@@ -1329,15 +1329,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all було вимкнено, оскільки канал має більше ніж {{.Users}} користувачів."
+    "translation": "Сповіщення @all вимкнено у каналах з більш ніж {{.Users}} користувачами. За додатковою інформацією зверніться до системного адміністратора."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel було вимкнено, оскільки канал має більше ніж {{.Users}} користувачів."
+    "translation": "Сповіщення @channel вимкнено у каналах, що мають більше ніж {{.Users}} користувачів. За додатковою інформацією зверніться до системного адміністратора."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here було вимкнено, оскільки канал має більше ніж {{.Users}} користувачів."
+    "translation": "Сповіщення @here вимкнено у каналах з більш ніж {{.Users}} користувачами. За додатковою інформацією зверніться до системного адміністратора."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -1505,7 +1505,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nДодані канали:\n"
+    "translation": "\nКанали додано:\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
@@ -4605,11 +4605,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версія 134+"
+    "translation": "Версія 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версія 134+"
+    "translation": "Версія 138+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -4662,10 +4662,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Отримайте останню версію браузера Chrome"
-  },
-  {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Помилка при очищенні індексів Bleve: механізм вимкнено"
   },
   {
     "id": "plugin_api.bot_cant_create_bot",
@@ -4776,18 +4772,6 @@
     "translation": "Параметр {{.EnableIndexing}} має бути увімкнений, якщо {{.Autocomplete}} увімкнено"
   },
   {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Параметр Bleve IndexingDir має бути встановлений, якщо параметр Bleve EnableIndexing має значення Так"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Параметр Bleve EnableIndexing повинен мати значення Так, якщо параметр Bleve EnableSearching має значення Так"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Параметр Bleve EnableIndexing має бути встановлений на Так, якщо параметр Bleve EnableAutocomplete встановлений на Так"
-  },
-  {
     "id": "model.command.is_valid.autocomplete_data.app_error",
     "translation": "Неправильні AutocompleteData"
   },
@@ -4886,118 +4870,6 @@
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "Не вдалося створити шаблон {{.Backend}} для каналів"
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Не вдалося закрити індекс користувача."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Не вдалося закрити індекс допису."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Не вдалося закрити індекс каналу."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Пошук користувача не вдалося завершити."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Пошук користувача не вдалося завершити."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Пошук користувача не вдалося завершити."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Пошук по повідомленням не вдалося завершити."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Пошук каналу не вдалося завершити."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Не вдалося очистити індекси користувача."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Не вдалося очистити індекси дописів."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Не вдалося очистити індекси каналу."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Спроба індексувати новий пакет, коли всі сутності вже були завершені."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Індексатор Bleve не зміг розібрати час запуску."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Індексатор Bleve не зміг розібрати кінцевий час."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Не вдалося запустити завдання індексації Bleve: механізм неактивний."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Не вдалося проіндексувати пакет користувачів."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Не вдалося проіндексувати пакет дописів."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Не вдалося проіндексувати пакет каналів."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Не вдалося проіндексувати користувача."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Не вдалося проіндексувати допис."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Не вдалося проіндексувати канал."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Не вдалося видалити користувача."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Не вдалося видалити допис."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Не вдалося видалити канал."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Помилка при створенні індексу користувача bleve."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Помилка при створенні індексу допису bleve."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Помилка при створенні індекс-каналу bleve."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve вже запущено."
   },
   {
     "id": "app.user_terms_of_service.save.app_error",
@@ -5126,10 +4998,6 @@
   {
     "id": "app.plugin.get_public_key.get_file.app_error",
     "translation": "Виникла помилка при отриманні відкритого ключа зі сховища."
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Не вдалося встановити плагін як керований файловим сховищем."
   },
   {
     "id": "app.plugin.delete_public_key.delete.app_error",
@@ -5844,14 +5712,6 @@
     "translation": "Не вдалося видалити дописи в каналі"
   },
   {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Не вдалося видалити повідомлення користувача"
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Не вдалося видалити дописи в каналі"
-  },
-  {
     "id": "app.scheme.delete.app_error",
     "translation": "Не вдалося видалити цю схему."
   },
@@ -6220,10 +6080,6 @@
     "translation": "Не вдалося знайти учасників каналу."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Не вдається отримати пакет каналів для індексації."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Не вдалося отримати канали для наданої схеми."
   },
@@ -6254,10 +6110,6 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "Не вдалося отримати дописи для каналу."
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Не вдалось отримати пакет дописів для індексації."
   },
   {
     "id": "app.post.get_posts.app_error",
@@ -7925,7 +7777,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
-    "translation": "Зв'язатися з відділом продажів"
+    "translation": "Звернутися до відділу продажів"
   },
   {
     "id": "api.templates.cloud_welcome_email.app_market_place",
@@ -8062,10 +7914,6 @@
   {
     "id": "api.unable_to_create_zip_file",
     "translation": "Помилка створення zip-файлу."
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Помилка читання файлу з бекенду"
   },
   {
     "id": "api.upgrade_to_enterprise.generic_error.app_error",
@@ -8280,10 +8128,6 @@
     "translation": "Неможливо створити користувача. Сервер перевищує ліміт безпечних користувачів. Зверніться до свого адміністратора з повідомленням: ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Не вдається отримати повідомлення для архівованого каналу"
-  },
-  {
     "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
     "translation": "Не вдалося відсортувати закладку. Неправильне введення."
   },
@@ -8358,10 +8202,6 @@
   {
     "id": "api.user.update_user_roles.license.app_error",
     "translation": "Користувацькі схеми дозволів не підтримуються поточною ліцензією"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Не вдається отримати користувачів для архівованого каналу"
   },
   {
     "id": "app.channel.bookmark.delete.app_error",
@@ -8844,10 +8684,6 @@
     "translation": "Неможливо отримати допис, оскільки він перевищив ліміт плану хмари."
   },
   {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "Не вдається отримати пакет файлів для індексації."
-  },
-  {
     "id": "app.post.move_thread_command.error",
     "translation": "Не вдається видалити обговорення"
   },
@@ -9044,10 +8880,6 @@
     "translation": "URL-адреса занадто довга"
   },
   {
-    "id": "bleveengine.search_files.error",
-    "translation": "Пошук файлів не вдалося завершити."
-  },
-  {
     "id": "app.save_scheduled_post.channel_deleted.app_error",
     "translation": "Неможливо запланувати допис в архівному каналі."
   },
@@ -9072,18 +8904,6 @@
     "translation": "Обліковий запис з такою електронною адресою вже існує."
   },
   {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Не вдалося видалити файли."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Не вдалося видалити файли користувача."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Не вдалося очистити індекси файлів."
-  },
-  {
     "id": "brand.save_brand_image.check_image_limits.app_error",
     "translation": "Не вдалося перевірити межі зображення. Роздільна здатність занадто висока."
   },
@@ -9094,10 +8914,6 @@
   {
     "id": "app.user.get_thread_count_for_user.app_error",
     "translation": "Ми не змогли отримати кількість обговорень для користувача."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Помилка при створенні індексу bleve-файлу."
   },
   {
     "id": "app.role.get_all.app_error",
@@ -9161,15 +8977,11 @@
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Неможливо активувати користувача. Сервер перевищує ліміт безпечних користувачів. Зверніться до свого адміністратора з повідомленням: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Не вдалося активувати користувача. Кількість користувачів на сервері перевищує безпечний ліміт. ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "app.user.update_thread_read_for_user.app_error",
     "translation": "Не вдалось оновити стан читання для обговорення"
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Не вдалося видалити файли повідомлень."
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -9328,20 +9140,8 @@
     "translation": "Не вдалось позначити всі обговорення користувача як прочитані"
   },
   {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Не вдалося проіндексувати пакет файлів."
-  },
-  {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Не вдалося закрити індекс файлу."
-  },
-  {
     "id": "common.parse_error_int64",
     "translation": "Не вдалося розібрати значення:{{.Value}} на int64"
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Не вдалося видалити файл."
   },
   {
     "id": "app.update_error",
@@ -9388,10 +9188,6 @@
     "translation": "Недійсний post_id"
   },
   {
-    "id": "bleveengine.index_file.error",
-    "translation": "Не вдалося проіндексувати файл."
-  },
-  {
     "id": "app.user.update.countAdmins.app_error",
     "translation": "Помилка при визначенні кількості облікових записів системного адміністратора."
   },
@@ -9412,16 +9208,8 @@
     "translation": "Помилка при читанні файлу."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "Не вдалося отримати найстаріший об'єкт (користувача, канал або повідомлення) з бази даних."
-  },
-  {
     "id": "app.webhooks.get_incoming_count.app_error",
     "translation": "Не вдалося отримати веб-хук для teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
-  },
-  {
-    "id": "bleveengine.purge_list.not_implemented",
-    "translation": "Функція списку очищення недоступна для Bleve."
   },
   {
     "id": "ent.data_retention.run_failed.error",
@@ -9750,10 +9538,6 @@
   {
     "id": "model.channel_bookmark.is_valid.original_id.app_error",
     "translation": "Недійсний початковий ідентифікатор."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Розмір пакета індексування Bleve Bulk повинен бути щонайменше {{.BatchSize}}."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
@@ -10372,10 +10156,6 @@
     "translation": "Сеанс не знайдено."
   },
   {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Неможливо отримати закладки для заархівованого каналу"
-  },
-  {
     "id": "app.custom_profile_attributes.count_property_fields.app_error",
     "translation": "Не вдалося підрахувати кількість полів для групи атрибутів користувацького профілю"
   },
@@ -10576,10 +10356,6 @@
     "translation": "Не вдалося отримати поля CPA"
   },
   {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "Помилки під час виправлення значення CPA"
-  },
-  {
     "id": "ent.saml.cpa_field_mapping.list_error",
     "translation": "Не вдалося отримати поля CPA"
   },
@@ -10616,10 +10392,6 @@
     "translation": "Некоректний ідентифікатор AD/LDAP"
   },
   {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "Помилки під час оновлення значень CPA"
-  },
-  {
     "id": "ent.saml.login.ldap_user_missing",
     "translation": "На сервері AD/LDAP не зареєстровано користувача, який відповідає користувачеві SAML."
   },
@@ -10646,5 +10418,45 @@
   {
     "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
     "translation": "Потрібно надіслати електронного листа для повідомлення про проблему."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Служба контролю доступу недоступна. Неможливо відфільтрувати користувачів для каналу з підтримкою ABAC."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Неправильне оновлення учасника каналу: учасник каналу завжди має схему користувача."
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "Неправильне оновлення члена команди: член команди завжди має схему користувача."
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Не вдалося завантажити файл. Канал завантаження не є спільним з віддаленим користувачем."
+  },
+  {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Неможливо створити користувача. На сервері перевищено максимальну кількість ліцензованих користувачів. Зверніться до свого адміністратора: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "Користувач не має необхідних атрибутів для приєднання до каналу."
+  },
+  {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "Канали, для яких застосовано політику, не можуть бути оновлені."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "Виникла помилка в хуку OnSamlLogin. Будь ласка, зверніться до вашого системного адміністратора."
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Неправильний тип тесту: {{.TestType}}"
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Неможливо запросити користувачів-гостей до цього каналу, оскільки він має обмеження доступу на основі атрибутів користувача."
   }
 ]

@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ContentFlaggingEvent, NotificationTarget} from './content_flagging';
+
 export type ClientConfig = {
     AboutLink: string;
     AllowBannerDismissal: string;
@@ -113,21 +115,23 @@ export type ClientConfig = {
     EnableUserTypingMessages: string;
     EnforceMultifactorAuthentication: string;
     ExperimentalChannelCategorySorting: string;
-    ExperimentalClientSideCertCheck: string;
-    ExperimentalClientSideCertEnable: string;
     ExperimentalEnableAuthenticationTransfer: string;
     ExperimentalEnableAutomaticReplies: string;
     ExperimentalEnableDefaultChannelLeaveJoinMessages: string;
     ExperimentalEnablePostMetadata: string;
     ExperimentalGroupUnreadChannels: string;
     ExperimentalPrimaryTeam: string;
-    ExperimentalViewArchivedChannels: string;
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
     FeatureFlagCallsEnabled: string;
     FeatureFlagCustomProfileAttributes: string;
     FeatureFlagAttributeBasedAccessControl: string;
     FeatureFlagWebSocketEventScope: string;
+    FeatureFlagInteractiveDialogAppsForm: string;
+    FeatureFlagContentFlagging: string;
+
+    // FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this property when feature is GA
+    FeatureFlagChannelAdminManageABACRules?: string;
     ForgotPasswordLink: string;
     GiphySdkKey: string;
     GoogleDeveloperKey: string;
@@ -223,6 +227,7 @@ export type ClientConfig = {
     YoutubeReferrerPolicy: 'true' | 'false';
     ScheduledPosts: string;
     DeleteAccountLink: string;
+    ContentFlaggingEnabled: 'true' | 'false';
 };
 
 export type License = {
@@ -377,7 +382,7 @@ export type ServiceSettings = {
     EnableAPITriggerAdminNotifications: boolean;
     EnableAPIUserDeletion: boolean;
     ExperimentalEnableHardenedMode: boolean;
-    ExperimentalStrictCSRFEnforcement: boolean;
+    StrictCSRFEnforcement: boolean;
     EnableEmailInvitations: boolean;
     DisableBotsWhenOwnerIsDeactivated: boolean;
     EnableBotAccountCreation: boolean;
@@ -431,7 +436,6 @@ export type TeamSettings = {
     MaxNotificationsPerChannel: number;
     EnableConfirmNotificationsToChannel: boolean;
     TeammateNameDisplay: string;
-    ExperimentalViewArchivedChannels: boolean;
     ExperimentalEnableAutomaticReplies: boolean;
     LockTeammateNameDisplay: boolean;
     ExperimentalPrimaryTeam: string;
@@ -494,18 +498,6 @@ export type ExperimentalAuditSettings = {
     Certificate: string;
 };
 
-export type NotificationLogSettings = {
-    EnableConsole: boolean;
-    ConsoleLevel: string;
-    ConsoleJson: boolean;
-    EnableColor: boolean;
-    EnableFile: boolean;
-    FileLevel: string;
-    FileJson: boolean;
-    FileLocation: string;
-    AdvancedLoggingJSON: Record<string, any>;
-};
-
 export type PasswordSettings = {
     MinimumLength: number;
     Lowercase: boolean;
@@ -529,7 +521,10 @@ export type ConnectedWorkspacesSettings = {
     EnableSharedChannels: boolean;
     EnableRemoteClusterService: boolean;
     DisableSharedChannelsStatusSync: boolean;
+    SyncUsersOnConnectionOpen: boolean;
+    GlobalUserSyncBatchSize: number;
     MaxPostsPerSync: number;
+    MemberSyncBatchSize: number;
 }
 
 export type FileSettings = {
@@ -715,6 +710,7 @@ export type LdapSettings = {
     LoginIdAttribute: string;
     PictureAttribute: string;
     SyncIntervalMinutes: number;
+    ReAddRemovedMembers: boolean;
     SkipCertificateVerification: boolean;
     PublicCertificateFile: string;
     PrivateKeyFile: string;
@@ -800,7 +796,7 @@ export type ClusterSettings = {
     AdvertiseAddress: string;
     UseIPAddress: boolean;
     EnableGossipCompression: boolean;
-    EnableExperimentalGossipEncryption: boolean;
+    EnableGossipEncryption: boolean;
     ReadOnlyConfig: boolean;
     GossipPort: number;
 };
@@ -815,8 +811,6 @@ export type MetricsSettings = {
 };
 
 export type ExperimentalSettings = {
-    ClientSideCertEnable: boolean;
-    ClientSideCertCheck: string;
     LinkMetadataTimeoutMilliseconds: number;
     RestrictSystemAdmin: boolean;
     EnableSharedChannels: boolean;
@@ -873,14 +867,6 @@ export type ElasticsearchSettings = {
     IgnoredPurgeIndexes: string;
 };
 
-export type BleveSettings = {
-    IndexDir: string;
-    EnableIndexing: boolean;
-    EnableSearching: boolean;
-    EnableAutocomplete: boolean;
-    BatchSize: number;
-};
-
 export type DataRetentionSettings = {
     EnableMessageDeletion: boolean;
     EnableFileDeletion: boolean;
@@ -894,6 +880,7 @@ export type DataRetentionSettings = {
     BoardsRetentionDays: number;
     TimeBetweenBatchesMilliseconds: number;
     RetentionIdsBatchSize: number;
+    PreservePinnedPosts: boolean;
 };
 
 export type MessageExportSettings = {
@@ -966,9 +953,14 @@ export type CloudSettings = {
     CWSAPIURL: string;
     CWSMock: boolean;
     Disable: boolean;
+    PreviewModalBucketURL: string;
 };
 
-export type FeatureFlags = Record<string, string | boolean>;
+export type FeatureFlags = Record<string, string | boolean> & {
+
+    // FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this property when feature is GA
+    ChannelAdminManageABACRules?: string;
+};
 
 export type ImportSettings = {
     Directory: string;
@@ -983,7 +975,39 @@ export type ExportSettings = {
 export type AccessControlSettings = {
     EnableAttributeBasedAccessControl: boolean;
     EnableChannelScopeAccessControl: boolean;
+    EnableUserManagedAttributes: boolean;
 };
+
+export type ContentFlaggingNotificationSettings = {
+    EventTargetMapping: Record<ContentFlaggingEvent, NotificationTarget[]>;
+}
+
+export type TeamReviewerSetting = {
+    Enabled: boolean;
+    ReviewerIds: string[];
+}
+
+export type ContentFlaggingReviewerSetting = {
+    CommonReviewers: boolean;
+    CommonReviewerIds: string[];
+    TeamReviewersSetting: Record<string, TeamReviewerSetting>;
+    SystemAdminsAsReviewers: boolean;
+    TeamAdminsAsReviewers: boolean;
+}
+
+export type ContentFlaggingAdditionalSettings = {
+    Reasons: string[];
+    ReporterCommentRequired: boolean;
+    ReviewerCommentRequired: boolean;
+    HideFlaggedContent: boolean;
+}
+
+export type ContentFlaggingSettings = {
+    EnableContentFlagging: boolean;
+    NotificationSettings: ContentFlaggingNotificationSettings;
+    ReviewerSettings: ContentFlaggingReviewerSetting;
+    AdditionalSettings: ContentFlaggingAdditionalSettings;
+}
 
 export type AdminConfig = {
     ServiceSettings: ServiceSettings;
@@ -992,7 +1016,6 @@ export type AdminConfig = {
     SqlSettings: SqlSettings;
     LogSettings: LogSettings;
     ExperimentalAuditSettings: ExperimentalAuditSettings;
-    NotificationLogSettings: NotificationLogSettings;
     PasswordSettings: PasswordSettings;
     FileSettings: FileSettings;
     EmailSettings: EmailSettings;
@@ -1016,7 +1039,6 @@ export type AdminConfig = {
     AnalyticsSettings: AnalyticsSettings;
     CacheSettings: CacheSettings;
     ElasticsearchSettings: ElasticsearchSettings;
-    BleveSettings: BleveSettings;
     DataRetentionSettings: DataRetentionSettings;
     MessageExportSettings: MessageExportSettings;
     JobSettings: JobSettings;
@@ -1031,6 +1053,7 @@ export type AdminConfig = {
     WranglerSettings: WranglerSettings;
     ConnectedWorkspacesSettings: ConnectedWorkspacesSettings;
     AccessControlSettings: AccessControlSettings;
+    ContentFlaggingSettings: ContentFlaggingSettings;
 };
 
 export type ReplicaLagSetting = {

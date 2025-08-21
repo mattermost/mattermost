@@ -34,8 +34,8 @@ func TestConfigDefaults(t *testing.T) {
 			if v.Type().Kind() == reflect.Ptr {
 				// Ignoring these 2 settings.
 				// TODO: remove them completely in v8.0.
-				if name == "config.BleveSettings.BulkIndexingTimeWindowSeconds" ||
-					name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" {
+				if name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" ||
+					name == "config.ClusterSettings.EnableExperimentalGossipEncryption" {
 					return
 				}
 
@@ -1725,24 +1725,6 @@ func TestSanitizeDataSource(t *testing.T) {
 			},
 		}
 		driver := DatabaseDriverPostgres
-		for _, tc := range testCases {
-			out, err := SanitizeDataSource(driver, tc.Original)
-			require.NoError(t, err)
-			assert.Equal(t, tc.Sanitized, out)
-		}
-	})
-
-	t.Run(DatabaseDriverMysql, func(t *testing.T) {
-		testCases := []struct {
-			Original  string
-			Sanitized string
-		}{
-			{
-				"mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s",
-				SanitizedPassword + ":" + SanitizedPassword + "@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s",
-			},
-		}
-		driver := DatabaseDriverMysql
 		for _, tc := range testCases {
 			out, err := SanitizeDataSource(driver, tc.Original)
 			require.NoError(t, err)

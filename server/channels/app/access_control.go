@@ -5,6 +5,7 @@ package app
 
 import (
 	"net/http"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -159,16 +160,31 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID str
 			return nil, model.NewAppError("AssignAccessControlPolicyToChannels", "app.pap.assign_access_control_policy_to_channels.app_error", nil, "Channel is shared", http.StatusBadRequest)
 		}
 
-		newPolicy, appErr := policy.Inherit(channel.Id, model.AccessControlPolicyTypeChannel)
+		child, err := acs.GetPolicy(rctx, channel.Id)
+		if err != nil && err.StatusCode != http.StatusNotFound {
+			return nil, model.NewAppError("AssignAccessControlPolicyToChannels", "app.pap.assign_access_control_policy_to_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		if child == nil {
+			child = &model.AccessControlPolicy{
+				ID:       channel.Id,
+				Type:     model.AccessControlPolicyTypeChannel,
+				Active:   policy.Active,
+				CreateAt: model.GetMillis(),
+				Props:    map[string]any{},
+			}
+		}
+		child.Version = model.AccessControlPolicyVersionV0_2
+
+		appErr := child.Inherit(policy)
 		if appErr != nil {
 			return nil, appErr
 		}
 
-		newPolicy, appErr = acs.SavePolicy(rctx, newPolicy)
+		child, appErr = acs.SavePolicy(rctx, child)
 		if appErr != nil {
 			return nil, appErr
 		}
-		policies = append(policies, newPolicy)
+		policies = append(policies, child)
 	}
 
 	return policies, nil
@@ -200,9 +216,24 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 			continue
 		}
 
-		appErr := acs.DeletePolicy(rctx, channelID)
+		child, appErr := acs.GetPolicy(rctx, channelID)
 		if appErr != nil {
-			return appErr
+			return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		}
+
+		child.Imports = slices.DeleteFunc(child.Imports, func(importID string) bool {
+			return importID == policyID
+		})
+		if len(child.Imports) == 0 && len(child.Rules) == 0 {
+			// If the policy has no imports and no rules, we can delete it
+			if err := acs.DeletePolicy(rctx, child.ID); err != nil {
+				return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+			continue
+		}
+		_, appErr = acs.SavePolicy(rctx, child)
+		if appErr != nil {
+			return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -292,4 +323,71 @@ func (a *App) ExpressionToVisualAST(rctx request.CTX, expression string) (*model
 	}
 
 	return visualAST, nil
+}
+
+// ValidateChannelAccessControlPermission validates if a user has permission to manage access control for a specific channel
+func (a *App) ValidateChannelAccessControlPermission(rctx request.CTX, userID, channelID string) *model.AppError {
+	// Verify the channel exists
+	channel, appErr := a.GetChannel(rctx, channelID)
+	if appErr != nil {
+		return appErr
+	}
+
+	// Check if user has channel admin permission for the specific channel
+	if !a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionManageChannelAccessRules) {
+		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.insufficient_channel_permissions", nil, "user_id="+userID+" channel_id="+channelID, http.StatusForbidden)
+	}
+
+	// Verify the channel is a private channel
+	if channel.Type != model.ChannelTypePrivate {
+		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.channel_not_private", nil, "channel_id="+channelID, http.StatusBadRequest)
+	}
+
+	if channel.IsGroupConstrained() {
+		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.channel_group_constrained", nil, "channel_id="+channelID, http.StatusBadRequest)
+	}
+
+	if channel.IsShared() {
+		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.channel_shared", nil, "channel_id="+channelID, http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+// ValidateAccessControlPolicyPermission validates if a user has permission to manage a specific existing access control policy
+func (a *App) ValidateAccessControlPolicyPermission(rctx request.CTX, userID, policyID string) *model.AppError {
+	// System admins can manage any policy
+	if a.HasPermissionTo(userID, model.PermissionManageSystem) {
+		return nil
+	}
+
+	// Get the policy to determine its type
+	policy, appErr := a.GetAccessControlPolicy(rctx, policyID)
+	if appErr != nil {
+		return appErr
+	}
+
+	// Non-system admins can only manage channel-type policies
+	if policy.Type != model.AccessControlPolicyTypeChannel {
+		return model.NewAppError("ValidateAccessControlPolicyPermission", "app.pap.access_control.insufficient_permissions", nil, "user_id="+userID+" policy_type="+policy.Type, http.StatusForbidden)
+	}
+
+	// For channel-type policies, validate channel-specific permission (policy ID equals channel ID)
+	return a.ValidateChannelAccessControlPermission(rctx, userID, policyID)
+}
+
+// ValidateChannelAccessControlPolicyCreation validates if a user can create a channel-specific access control policy
+func (a *App) ValidateChannelAccessControlPolicyCreation(rctx request.CTX, userID string, policy *model.AccessControlPolicy) *model.AppError {
+	// System admins can create any type of policy
+	if a.HasPermissionTo(userID, model.PermissionManageSystem) {
+		return nil
+	}
+
+	// Non-system admins can only create channel-type policies
+	if policy.Type != model.AccessControlPolicyTypeChannel {
+		return model.NewAppError("ValidateChannelAccessControlPolicyCreation", "app.access_control.insufficient_permissions", nil, "user_id="+userID+" policy_type="+policy.Type, http.StatusForbidden)
+	}
+
+	// For channel-type policies, validate channel-specific permission (policy ID equals channel ID)
+	return a.ValidateChannelAccessControlPermission(rctx, userID, policy.ID)
 }

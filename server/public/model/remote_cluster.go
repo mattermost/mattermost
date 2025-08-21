@@ -7,7 +7,9 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/md5"
+	"crypto/pbkdf2"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base32"
 	"encoding/json"
 	"errors"
@@ -262,8 +264,8 @@ func (rc *RemoteCluster) fixTopics() {
 	var sb strings.Builder
 	sb.WriteString(" ")
 
-	ss := strings.Split(rc.Topics, " ")
-	for _, c := range ss {
+	ss := strings.SplitSeq(rc.Topics, " ")
+	for c := range ss {
 		cc := strings.TrimSpace(c)
 		if cc != "" {
 			sb.WriteString(cc)
@@ -401,9 +403,19 @@ func (rci *RemoteClusterInvite) Encrypt(password string) ([]byte, error) {
 		return nil, err
 	}
 
-	key, err := scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)
-	if err != nil {
-		return nil, err
+	var key []byte
+	if rci.Version >= 3 {
+		// Use PBKDF2 for version 3 and above
+		key, err = pbkdf2.Key(sha256.New, password, salt, 600000, 32)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		// Use scrypt for older versions
+		key, err = scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	block, err := aes.NewCipher(key[:])
@@ -437,9 +449,31 @@ func (rci *RemoteClusterInvite) Decrypt(encrypted []byte, password string) error
 	salt := encrypted[:16]
 	encrypted = encrypted[16:]
 
-	key, err := scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)
-	if err != nil {
-		return err
+	// Try PBKDF2 first (for version 3+)
+	if err := rci.tryDecrypt(encrypted, password, salt, true); err == nil {
+		return nil
+	}
+
+	// Fall back to scrypt (for older versions)
+	return rci.tryDecrypt(encrypted, password, salt, false)
+}
+
+func (rci *RemoteClusterInvite) tryDecrypt(encrypted []byte, password string, salt []byte, usePBKDF2 bool) error {
+	var key []byte
+	var err error
+
+	if usePBKDF2 {
+		// Use PBKDF2 for version 3 and above
+		key, err = pbkdf2.Key(sha256.New, password, salt, 600000, 32)
+		if err != nil {
+			return err
+		}
+	} else {
+		// Use scrypt for older versions
+		key, err = scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)
+		if err != nil {
+			return err
+		}
 	}
 
 	block, err := aes.NewCipher(key[:])

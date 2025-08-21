@@ -702,7 +702,7 @@ func _hasMsgLoss(deadQueue []*model.WebSocketEvent, deadQueuePtr int, seq int64)
 func _isInDeadQueue(deadQueue []*model.WebSocketEvent, seq int64) (bool, int) {
 	// Can be optimized to traverse backwards from deadQueuePointer
 	// Hopefully, traversing 128 elements is not too much overhead.
-	for i := 0; i < deadQueueSize; i++ {
+	for i := range deadQueueSize {
 		elem := deadQueue[i]
 		if elem == nil {
 			return false, 0
@@ -716,7 +716,7 @@ func _isInDeadQueue(deadQueue []*model.WebSocketEvent, seq int64) (bool, int) {
 }
 
 func (wc *WebConn) clearDeadQueue() {
-	for i := 0; i < deadQueueSize; i++ {
+	for i := range deadQueueSize {
 		if wc.deadQueue[i] == nil {
 			break
 		}

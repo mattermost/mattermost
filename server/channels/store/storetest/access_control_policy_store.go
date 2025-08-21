@@ -27,7 +27,7 @@ func testAccessControlPolicyStoreSaveAndGet(t *testing.T, rctx request.CTX, ss s
 			Type:     model.AccessControlPolicyTypeParent,
 			Active:   true,
 			Revision: 1,
-			Version:  model.AccessControlPolicyVersionV0_1,
+			Version:  model.AccessControlPolicyVersionV0_2,
 			Imports:  []string{},
 			Rules: []model.AccessControlPolicyRule{
 				{
@@ -56,7 +56,7 @@ func testAccessControlPolicyStoreSaveAndGet(t *testing.T, rctx request.CTX, ss s
 			Type:     model.AccessControlPolicyTypeChannel,
 			Active:   true,
 			Revision: 1,
-			Version:  model.AccessControlPolicyVersionV0_1,
+			Version:  model.AccessControlPolicyVersionV0_2,
 			Imports:  []string{parent1},
 			Rules: []model.AccessControlPolicyRule{
 				{
@@ -85,7 +85,7 @@ func testAccessControlPolicyStoreSaveAndGet(t *testing.T, rctx request.CTX, ss s
 			Type:     model.AccessControlPolicyTypeChannel,
 			Active:   true,
 			Revision: 1,
-			Version:  model.AccessControlPolicyVersionV0_1,
+			Version:  model.AccessControlPolicyVersionV0_2,
 			Imports:  []string{},
 			Rules: []model.AccessControlPolicyRule{
 				{
@@ -137,7 +137,7 @@ func testAccessControlPolicyStoreDelete(t *testing.T, rctx request.CTX, ss store
 			Type:     model.AccessControlPolicyTypeParent,
 			Active:   true,
 			Revision: 1,
-			Version:  model.AccessControlPolicyVersionV0_1,
+			Version:  model.AccessControlPolicyVersionV0_2,
 			Imports:  []string{},
 			Rules: []model.AccessControlPolicyRule{
 				{
@@ -169,7 +169,7 @@ func testAccessControlPolicyStoreDelete(t *testing.T, rctx request.CTX, ss store
 			Type:     model.AccessControlPolicyTypeChannel,
 			Active:   true,
 			Revision: 1,
-			Version:  model.AccessControlPolicyVersionV0_1,
+			Version:  model.AccessControlPolicyVersionV0_2,
 			Imports:  []string{parent1},
 			Rules: []model.AccessControlPolicyRule{
 				{
@@ -207,7 +207,7 @@ func testAccessControlPolicyStoreSetActive(t *testing.T, rctx request.CTX, ss st
 			Type:     model.AccessControlPolicyTypeChannel,
 			Active:   false,
 			Revision: 1,
-			Version:  model.AccessControlPolicyVersionV0_1,
+			Version:  model.AccessControlPolicyVersionV0_2,
 			Imports:  []string{},
 			Rules: []model.AccessControlPolicyRule{
 				{
@@ -251,7 +251,7 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 		Type:     model.AccessControlPolicyTypeParent,
 		Active:   true,
 		Revision: 1,
-		Version:  model.AccessControlPolicyVersionV0_1,
+		Version:  model.AccessControlPolicyVersionV0_2,
 		Imports:  []string{},
 		Rules: []model.AccessControlPolicyRule{
 			{
@@ -276,7 +276,7 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 		Type:     model.AccessControlPolicyTypeChannel,
 		Active:   true,
 		Revision: 1,
-		Version:  model.AccessControlPolicyVersionV0_1,
+		Version:  model.AccessControlPolicyVersionV0_2,
 		Imports:  []string{parentPolicy.ID},
 		Rules: []model.AccessControlPolicyRule{
 			{
@@ -297,7 +297,7 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 		Type:     model.AccessControlPolicyTypeParent,
 		Active:   true,
 		Revision: 1,
-		Version:  model.AccessControlPolicyVersionV0_1,
+		Version:  model.AccessControlPolicyVersionV0_2,
 		Imports:  []string{},
 		Rules: []model.AccessControlPolicyRule{
 			{

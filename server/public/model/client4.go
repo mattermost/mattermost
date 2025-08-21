@@ -294,6 +294,10 @@ func (c *Client4) postsRoute() string {
 	return "/posts"
 }
 
+func (c *Client4) contentFlaggingRoute() string {
+	return "/content_flagging"
+}
+
 func (c *Client4) postsEphemeralRoute() string {
 	return "/posts/ephemeral"
 }
@@ -436,10 +440,6 @@ func (c *Client4) dataRetentionPolicyRoute(policyID string) string {
 
 func (c *Client4) elasticsearchRoute() string {
 	return "/elasticsearch"
-}
-
-func (c *Client4) bleveRoute() string {
-	return "/bleve"
 }
 
 func (c *Client4) commandsRoute() string {
@@ -719,6 +719,32 @@ func (c *Client4) DeleteScheduledPost(ctx context.Context, scheduledPostId strin
 		return nil, nil, NewAppError("DeleteScheduledPost", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &deletedScheduledPost, BuildResponse(r), nil
+}
+
+func (c *Client4) GetFlaggingConfiguration(ctx context.Context) (*ContentFlaggingReportingConfig, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/flag/config", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var config ContentFlaggingReportingConfig
+	if err := json.NewDecoder(r.Body).Decode(&config); err != nil {
+		return nil, nil, NewAppError("GetFlaggingConfiguration", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &config, BuildResponse(r), nil
+}
+
+func (c *Client4) GetTeamPostFlaggingFeatureStatus(ctx context.Context, teamId string) (map[string]bool, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/team/"+teamId+"/status", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var status map[string]bool
+	if err := json.NewDecoder(r.Body).Decode(&status); err != nil {
+		return nil, nil, NewAppError("GetFlaggingConfiguration", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return status, BuildResponse(r), nil
 }
 
 func (c *Client4) bookmarksRoute(channelId string) string {
@@ -5021,10 +5047,9 @@ func (c *Client4) ReloadConfig(ctx context.Context) (*Response, error) {
 	return BuildResponse(r), nil
 }
 
-// GetOldClientConfig will retrieve the parts of the server configuration needed by the
-// client, formatted in the old format.
-func (c *Client4) GetOldClientConfig(ctx context.Context, etag string) (map[string]string, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.configRoute()+"/client?format=old", etag)
+// GetClientConfig will retrieve the parts of the server configuration needed by the client.
+func (c *Client4) GetClientConfig(ctx context.Context, etag string) (map[string]string, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.configRoute()+"/client", etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5779,23 +5804,8 @@ func (c *Client4) GetClusterStatus(ctx context.Context) ([]*ClusterInfo, *Respon
 // LDAP Section
 
 // SyncLdap starts a run of the LDAP sync job.
-//
-// If reAddRemovedMembers is true, then group members who left or were removed from a
-// synced team/channel will be re-joined; otherwise, they will be excluded.
-//
-// The ReAddRemovedMembers option is deprecated. Use LdapSettings.ReAddRemovedMembers instead.
-func (c *Client4) SyncLdap(ctx context.Context, reAddRemovedMembers *bool) (*Response, error) {
-	data := map[string]any{}
-	if reAddRemovedMembers != nil {
-		data["include_removed_members"] = *reAddRemovedMembers
-	}
-
-	reqBody, err := json.Marshal(data)
-	if err != nil {
-		return nil, NewAppError("SyncLdap", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPostBytes(ctx, c.ldapRoute()+"/sync", reqBody)
+func (c *Client4) SyncLdap(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIPostBytes(ctx, c.ldapRoute()+"/sync", nil)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5882,6 +5892,21 @@ func (c *Client4) MigrateIdLdap(ctx context.Context, toAttribute string) (*Respo
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
+}
+
+func (c *Client4) GetGroupsByNames(ctx context.Context, names []string) ([]*Group, *Response, error) {
+	path := fmt.Sprintf("%s/names", c.groupsRoute())
+
+	r, err := c.DoAPIPost(ctx, path, ArrayToJSON(names))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*Group
+	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
+		return nil, nil, NewAppError("GetGroupsByNames", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // GetGroupsByChannel retrieves the Mattermost Groups associated with a given channel
@@ -6478,18 +6503,6 @@ func (c *Client4) TestElasticsearch(ctx context.Context) (*Response, error) {
 // PurgeElasticsearchIndexes immediately deletes all Elasticsearch indexes.
 func (c *Client4) PurgeElasticsearchIndexes(ctx context.Context) (*Response, error) {
 	r, err := c.DoAPIPost(ctx, c.elasticsearchRoute()+"/purge_indexes", "")
-	if err != nil {
-		return BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return BuildResponse(r), nil
-}
-
-// Bleve Section
-
-// PurgeBleveIndexes immediately deletes all Bleve indexes.
-func (c *Client4) PurgeBleveIndexes(ctx context.Context) (*Response, error) {
-	r, err := c.DoAPIPost(ctx, c.bleveRoute()+"/purge_indexes", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}

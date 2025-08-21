@@ -12,7 +12,6 @@ import {ServiceEnvironment} from '@mattermost/types/config';
 import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
-import {Preferences} from 'mattermost-redux/constants';
 
 import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
@@ -69,7 +68,6 @@ const CreateTeam = makeAsyncComponent('CreateTeam', lazy(() => import('component
 const Mfa = makeAsyncComponent('Mfa', lazy(() => import('components/mfa/mfa_controller')));
 const PreparingWorkspace = makeAsyncComponent('PreparingWorkspace', lazy(() => import('components/preparing_workspace')));
 const LaunchingWorkspace = makeAsyncComponent('LaunchingWorkspace', lazy(() => import('components/preparing_workspace/launching_workspace')));
-const CompassThemeProvider = makeAsyncComponent('CompassThemeProvider', lazy(() => import('components/compass_theme_provider/compass_theme_provider')));
 const TeamController = makeAsyncComponent('TeamController', lazy(() => import('components/team_controller')));
 const AnnouncementBarController = makeAsyncComponent('AnnouncementBarController', lazy(() => import('components/announcement_bar')));
 const SystemNotice = makeAsyncComponent('SystemNotice', lazy(() => import('components/system_notice')));
@@ -84,9 +82,7 @@ const Pluggable = makeAsyncPluggableComponent();
 
 const noop = () => {};
 
-export type Props = PropsFromRedux & RouteComponentProps & {
-    customProfileAttributesEnabled?: boolean;
-}
+export type Props = PropsFromRedux & RouteComponentProps
 
 interface State {
     shouldMountAppRoutes?: boolean;
@@ -286,9 +282,6 @@ export default class Root extends React.PureComponent<Props, State> {
 
         if (!prevProps.isConfigLoaded && this.props.isConfigLoaded) {
             this.setRudderConfig();
-            if (this.props.customProfileAttributesEnabled) {
-                this.props.actions.getCustomProfileAttributeFields();
-            }
         }
 
         if (prevState.shouldMountAppRoutes === false && this.state.shouldMountAppRoutes === true) {
@@ -459,7 +452,6 @@ export default class Root extends React.PureComponent<Props, State> {
                     >
                         <Switch>
                             <LoggedInRoute
-                                theme={Preferences.THEMES.denim}
                                 path={'/admin_console'}
                                 component={AdminConsole}
                             />
@@ -494,16 +486,17 @@ export default class Root extends React.PureComponent<Props, State> {
                         from={'/_redirect/pl/:postid'}
                         to={`/${this.props.permalinkRedirectTeamName}/pl/:postid`}
                     />
-                    <CompassThemeProvider theme={this.props.theme}>
+                    <>
                         {(this.props.showLaunchingWorkspace && !this.props.location.pathname.includes('/preparing-workspace') &&
-                            <LaunchingWorkspace
-                                fullscreen={true}
-                                zIndex={LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX}
-                                show={true}
-                                onPageView={noop}
-                                transitionDirection={Animations.Reasons.EnterFromBefore}
-                            />
+                        <LaunchingWorkspace
+                            fullscreen={true}
+                            zIndex={LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX}
+                            show={true}
+                            onPageView={noop}
+                            transitionDirection={Animations.Reasons.EnterFromBefore}
+                        />
                         )}
+
                         <WindowSizeObserver/>
                         <ModalController/>
                         <AnnouncementBarController/>
@@ -573,7 +566,6 @@ export default class Root extends React.PureComponent<Props, State> {
                                     />
                                 ))}
                                 <LoggedInRoute
-                                    theme={this.props.theme}
                                     path={`/:team(${TEAM_NAME_PATH_PATTERN})`}
                                     component={TeamController}
                                 />
@@ -584,7 +576,7 @@ export default class Root extends React.PureComponent<Props, State> {
                         <Pluggable pluggableName='Global'/>
                         <AppBar/>
                         <Readout/>
-                    </CompassThemeProvider>
+                    </>
                 </Switch>
             </RootProvider>
         );

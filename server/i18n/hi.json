@@ -196,38 +196,6 @@
     "translation": "छवि डेटा को डीकोड करने में असमर्थ।"
   },
   {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "उपयोगकर्ता इंडेक्स को बंद करने में विफल।"
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "पोस्ट इंडेक्स को बंद करने में विफल।"
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "चैनल अनुक्रमणिका को बंद करने में विफल।"
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "उपयोगकर्ता खोज पूर्ण करने में विफल."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "उपयोगकर्ता खोज पूर्ण करने में विफल."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "उपयोगकर्ता खोज पूर्ण करने में विफल."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "पोस्ट खोज पूर्ण करने में विफल."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "चैनल खोज पूर्ण करने में विफल."
-  },
-  {
     "id": "web.incoming_webhook.text.app_error",
     "translation": "कोई टेक्स्ट निर्दिष्ट नहीं है।"
   },
@@ -2872,10 +2840,6 @@
     "translation": "पासवर्ड मान्य नहीं है"
   },
   {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve पहले ही शुरू हो चुका है।"
-  },
-  {
     "id": "api.channel.delete_channel.cannot.app_error",
     "translation": "डिफ़ॉल्ट चैनल {{.Channel}} को हटाने में असमर्थ।"
   },
@@ -3573,58 +3537,6 @@
   {
     "id": "ent.cluster.config_changed.info",
     "translation": "id={{ .id }} के लिए क्लस्टर कॉन्फ़िगरेशन बदल गया है। क्लस्टर अस्थिर हो सकता है और पुनरारंभ की आवश्यकता है। यह सुनिश्चित करने के लिए कि क्लस्टर सही ढंग से कॉन्फ़िगर किया गया है, आपको तुरंत रोलिंग पुनरारंभ करना चाहिए।"
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "सभी निकायों के पूर्ण होने पर एक नए बैच को अनुक्रमित करने का प्रयास किया जा रहा है।"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "सबसे पुरानी इकाई (उपयोगकर्ता, चैनल या पोस्ट) को डेटाबेस से पुनर्प्राप्त नहीं किया जा सका।"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "उपयोगकर्ता बैच को अनुक्रमित करने में विफल।"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "पोस्ट बैच को अनुक्रमित करने में विफल।"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "चैनल बैच को अनुक्रमित करने में विफल।"
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "उपयोगकर्ता को अनुक्रमित करने में विफल।"
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "पोस्ट को अनुक्रमित करने में विफल."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "चैनल को अनुक्रमित करने में विफल."
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "उपयोगकर्ता पोस्ट हटाने में विफल"
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "उपयोगकर्ता को हटाने में विफल।"
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "पोस्ट हटाने में विफल."
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "चैनल पोस्ट हटाने में विफल"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "चैनल हटाने में विफल."
   },
   {
     "id": "app.webhooks.update_incoming.app_error",
@@ -5433,10 +5345,6 @@
     "translation": "आईडी द्वारा चैनल प्राप्त करने में असमर्थ।"
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "अनुक्रमण के लिए चैनल बैच प्राप्त करने में असमर्थ।"
-  },
-  {
     "id": "app.channel.get_channels.not_found.app_error",
     "translation": "कोई चैनल नहीं मिला।"
   },
@@ -5503,14 +5411,6 @@
   {
     "id": "app.admin.saml.invalid_response_from_idp.app_error",
     "translation": "पहचान प्रदाता से प्राप्त प्रतिक्रिया को नहीं पढ़ सका।"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "किसी संग्रहीत चैनल के लिए उपयोगकर्ताओं को पुनर्प्राप्त नहीं किया जा सकता"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "किसी संग्रहीत चैनल के लिए पोस्ट पुनर्प्राप्त नहीं कर सकता"
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -6741,42 +6641,6 @@
     "translation": "छवि सीमा जांच विफल। संकल्प बहुत अधिक है।"
   },
   {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "उपयोगकर्ता अनुक्रमणिका को शुद्ध करने में विफल।"
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "पोस्ट इंडेक्स को शुद्ध करने में विफल।"
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "चैनल अनुक्रमणिका को शुद्ध करने में विफल।"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Bleve अनुक्रमण कार्यकर्ता प्रारंभ समय को पार्स करने में विफल रहा।"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Bleve अनुक्रमण कार्यकर्ता समाप्ति समय को पार्स करने में विफल रहा।"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Bleve अनुक्रमणिका कार्य चलाने में विफल: इंजन निष्क्रिय है।"
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "ब्लीव यूजर इंडेक्स बनाने में त्रुटि।"
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "ब्लीव पोस्ट इंडेक्स बनाने में त्रुटि।"
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "ब्लेव चैनल इंडेक्स बनाने में त्रुटि।"
-  },
-  {
     "id": "app.user_terms_of_service.save.app_error",
     "translation": "सेवा की शर्तें सहेजने में असमर्थ।"
   },
@@ -6979,10 +6843,6 @@
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
     "translation": "क्लस्टर से प्लगइन स्थिति प्राप्त करने में असमर्थ।"
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "फ़ाइल स्टोर द्वारा प्रबंधित प्लगइन सेट करने में असमर्थ।"
   },
   {
     "id": "app.plugin.filesystem.app_error",
@@ -7272,18 +7132,6 @@
     "translation": "क्लस्टरिंग सक्षम होने पर ईमेल बैचिंग सक्षम करने में असमर्थ।"
   },
   {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Bleve IndexingDir सेटिंग तब सेट की जानी चाहिए जब Bleve EnableIndexing सही पर सेट हो"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "जब Bleve EnableSearching को सही पर सेट किया जाता है, तो Bleve EnableIndexing सेटिंग को सही पर सेट किया जाना चाहिए"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "जब Bleve EnableAutocomplete को सही पर सेट किया जाता है, तो Bleve EnableIndexing सेटिंग को सही पर सेट किया जाना चाहिए"
-  },
-  {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
     "translation": "Atmos/camo के लिए अमान्य RemoteImageProxyURL. आपकी साझा कुंजी पर सेट होना चाहिए।"
   },
@@ -7564,10 +7412,6 @@
     "translation": "पोस्ट को अधिलेखित करने में असमर्थ।"
   },
   {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "अनुक्रमण के लिए पोस्ट बैच प्राप्त करने में असमर्थ।"
-  },
-  {
     "id": "app.post.get_posts.app_error",
     "translation": "पेजिंग के लिए सीमा पार हो गई है।"
   },
@@ -7808,10 +7652,6 @@
     "translation": "माइक्रोसॉफ्ट एज"
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Bleve अनुक्रमणिका को शुद्ध करने में त्रुटि: इंजन अक्षम है"
-  },
-  {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
     "translation": "निम्न में से एक या अधिक अनुमतियाँ जिन्हें आप जोड़ने या निकालने का प्रयास कर रहे हैं, की अनुमति नहीं है"
   },
@@ -8006,10 +7846,6 @@
   {
     "id": "api.custom_groups.count_err",
     "translation": "त्रुटि गिनती समूह"
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "बैकएंड से फ़ाइल पढ़ने में त्रुटि"
   },
   {
     "id": "api.unable_to_create_zip_file",

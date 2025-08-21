@@ -348,7 +348,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	return ruser, nil
 }
 
-func (a *App) CreateOAuthUser(c request.CTX, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *App) CreateOAuthUser(c request.CTX, service string, userData io.Reader, inviteToken string, inviteId string, tokenUser *model.User) (*model.User, *model.AppError) {
 	if !*a.Config().TeamSettings.EnableUserCreation {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -401,19 +401,40 @@ func (a *App) CreateOAuthUser(c request.CTX, service string, userData io.Reader,
 		return nil, err
 	}
 
-	if teamID != "" {
-		err = a.AddUserToTeamByTeamId(c, teamID, user)
-		if err != nil {
-			return nil, err
-		}
+	if err = a.AddUserToTeamByInviteIfNeeded(c, ruser, inviteToken, inviteId); err != nil {
+		c.Logger().Warn("Failed to add user to team", mlog.Err(err))
+	}
 
-		err = a.AddDirectChannels(c, teamID, user)
+	return ruser, nil
+}
+
+func (a *App) AddUserToTeamByInviteIfNeeded(c request.CTX, user *model.User, inviteToken string, inviteId string) *model.AppError {
+	var team *model.Team
+	var err *model.AppError
+
+	if inviteToken != "" {
+		team, _, err = a.AddUserToTeamByToken(c, user.Id, inviteToken)
 		if err != nil {
+			c.Logger().Warn("Failed to add user to team using invite token", mlog.Err(err))
+			return err
+		}
+	} else if inviteId != "" {
+		team, _, err = a.AddUserToTeamByInviteId(c, inviteId, user.Id)
+		if err != nil {
+			c.Logger().Warn("Failed to add user to team using invite ID", mlog.Err(err))
+			return err
+		}
+	} else {
+		return nil
+	}
+
+	if team != nil {
+		if err = a.AddDirectChannels(c, team.Id, user); err != nil {
 			c.Logger().Warn("Failed to add direct channels", mlog.Err(err))
 		}
 	}
 
-	return ruser, nil
+	return nil
 }
 
 func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
@@ -2976,8 +2997,6 @@ func (a *App) UserIsFirstAdmin(rctx request.CTX, user *model.User) bool {
 	}
 
 	for _, systemAdminUser := range systemAdminUsers {
-		systemAdminUser := systemAdminUser
-
 		if systemAdminUser.CreateAt < user.CreateAt {
 			return false
 		}

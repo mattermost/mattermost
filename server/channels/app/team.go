@@ -420,7 +420,7 @@ func (a *App) UpdateTeamMemberRoles(c request.CTX, teamID string, userID string,
 	member.SchemeUser = false
 	member.SchemeAdmin = false
 
-	for _, roleName := range strings.Fields(newRoles) {
+	for roleName := range strings.FieldsSeq(newRoles) {
 		var role *model.Role
 		role, err = a.GetRoleByName(context.Background(), roleName)
 		if err != nil {
@@ -719,6 +719,10 @@ func (a *App) AddUserToTeamByInviteId(c request.CTX, inviteId string, userID str
 		}
 	}
 	team := teamChanResult.Data
+
+	if team.IsGroupConstrained() {
+		return nil, nil, model.NewAppError("AddUserToTeamByInviteId", "app.team.invite_id.group_constrained.error", nil, "", http.StatusForbidden)
+	}
 
 	userChanResult := <-uchan
 	if userChanResult.NErr != nil {
@@ -1084,13 +1088,9 @@ func (a *App) AddTeamMemberByToken(c request.CTX, userID, tokenID string) (*mode
 }
 
 func (a *App) AddTeamMemberByInviteId(c request.CTX, inviteId, userID string) (*model.TeamMember, *model.AppError) {
-	team, teamMember, err := a.AddUserToTeamByInviteId(c, inviteId, userID)
+	_, teamMember, err := a.AddUserToTeamByInviteId(c, inviteId, userID)
 	if err != nil {
 		return nil, err
-	}
-
-	if team.IsGroupConstrained() {
-		return nil, model.NewAppError("AddTeamMemberByInviteId", "app.team.invite_id.group_constrained.error", nil, "", http.StatusForbidden)
 	}
 
 	return teamMember, nil
