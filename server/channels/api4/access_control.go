@@ -56,6 +56,13 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 
 		if !hasManageSystemPermission {
+			// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
+			if !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
+				c.SetPermissionError(model.PermissionManageSystem)
+				return
+			}
+			// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
+
 			// For non-system admins, check channel-specific permission
 			if !model.IsValidId(policy.ID) {
 				c.SetInvalidParam("policy.id")
@@ -110,6 +117,13 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 	// Check if user has system admin permission OR channel-specific permission
 	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasManageSystemPermission {
+		// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
+		if !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
+		// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
+
 		// For non-system admins, validate policy access permission
 		if appErr := c.App.ValidateAccessControlPolicyPermission(c.AppContext, c.AppContext.Session().UserId, policyID); appErr != nil {
 			c.SetPermissionError(model.PermissionManageSystem)
@@ -148,6 +162,13 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	// Check if user has system admin permission OR channel-specific permission
 	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasManageSystemPermission {
+		// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
+		if !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
+		// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
+
 		// For non-system admins, validate policy access permission
 		if appErr := c.App.ValidateAccessControlPolicyPermission(c.AppContext, c.AppContext.Session().UserId, policyID); appErr != nil {
 			c.SetPermissionError(model.PermissionManageSystem)
@@ -180,6 +201,13 @@ func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) && !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+	// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
+
 	errs, appErr := c.App.CheckExpression(c.AppContext, checkExpressionRequest.Expression)
 	if appErr != nil {
 		c.Err = appErr
@@ -209,6 +237,13 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
+
+	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) && !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+	// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
 
 	users, count, appErr := c.App.TestExpression(c.AppContext, checkExpressionRequest.Expression, model.SubjectSearchOptions{
 		Term:  checkExpressionRequest.Term,
@@ -490,6 +525,13 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) && !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+	// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
+
 	after := r.URL.Query().Get("after")
 	if after != "" && !model.IsValidId(after) {
 		c.SetInvalidParam("after")
@@ -532,6 +574,13 @@ func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
+
+	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) && !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+	// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
 
 	var cel struct {
 		Expression string `json:"expression"`
