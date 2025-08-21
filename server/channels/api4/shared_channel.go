@@ -398,6 +398,18 @@ func canUserDirectMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 				isDirectlyConnected := scs.IsRemoteClusterDirectlyConnected(originalRemoteId)
 				postDebugMessageToTownSquare("IsRemoteClusterDirectlyConnected(" + originalRemoteId + ") returned: " + strconv.FormatBool(isDirectlyConnected))
 
+				// Get additional debug info about the remote cluster state for Town Square
+				if remoteCluster, err := c.App.Srv().GetStore().RemoteCluster().Get(originalRemoteId, false); err != nil {
+					postDebugMessageToTownSquare("**DEBUG**: Could not fetch remote cluster details: " + err.Error())
+				} else {
+					postDebugMessageToTownSquare("**DEBUG**: Remote cluster details - Name: " + remoteCluster.Name +
+						", IsConfirmed: " + strconv.FormatBool(remoteCluster.IsConfirmed()) +
+						", HasCreator: " + strconv.FormatBool(remoteCluster.CreatorId != "") +
+						", CreatorId: " + remoteCluster.CreatorId +
+						", CreateAt: " + strconv.FormatInt(remoteCluster.CreateAt, 10) +
+						", LastPingAt: " + strconv.FormatInt(remoteCluster.LastPingAt, 10))
+				}
+
 				if !isDirectlyConnected {
 					postDebugMessageToTownSquare("Remote cluster is not directly connected - setting canDM to false")
 					postDebugMessageToTownSquare("**ADMIN VS USER TEST**: Admin with PermissionViewMembers: " + strconv.FormatBool(hasViewMembers) + " - Should regular users get canDM=false here while admins get canDM=true?")
