@@ -115,8 +115,6 @@ export type ClientConfig = {
     EnableUserTypingMessages: string;
     EnforceMultifactorAuthentication: string;
     ExperimentalChannelCategorySorting: string;
-    ExperimentalClientSideCertCheck: string;
-    ExperimentalClientSideCertEnable: string;
     ExperimentalEnableAuthenticationTransfer: string;
     ExperimentalEnableAutomaticReplies: string;
     ExperimentalEnableDefaultChannelLeaveJoinMessages: string;
@@ -497,18 +495,6 @@ export type ExperimentalAuditSettings = {
     Certificate: string;
 };
 
-export type NotificationLogSettings = {
-    EnableConsole: boolean;
-    ConsoleLevel: string;
-    ConsoleJson: boolean;
-    EnableColor: boolean;
-    EnableFile: boolean;
-    FileLevel: string;
-    FileJson: boolean;
-    FileLocation: string;
-    AdvancedLoggingJSON: Record<string, any>;
-};
-
 export type PasswordSettings = {
     MinimumLength: number;
     Lowercase: boolean;
@@ -822,8 +808,6 @@ export type MetricsSettings = {
 };
 
 export type ExperimentalSettings = {
-    ClientSideCertEnable: boolean;
-    ClientSideCertCheck: string;
     LinkMetadataTimeoutMilliseconds: number;
     RestrictSystemAdmin: boolean;
     EnableSharedChannels: boolean;
@@ -1025,7 +1009,6 @@ export type AdminConfig = {
     SqlSettings: SqlSettings;
     LogSettings: LogSettings;
     ExperimentalAuditSettings: ExperimentalAuditSettings;
-    NotificationLogSettings: NotificationLogSettings;
     PasswordSettings: PasswordSettings;
     FileSettings: FileSettings;
     EmailSettings: EmailSettings;

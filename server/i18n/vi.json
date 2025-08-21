@@ -8186,10 +8186,6 @@
     "translation": "Ảnh hồ sơ phải được đặt thông qua nhà cung cấp thông tin đăng nhập của người dùng."
   },
   {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Không thể truy xuất bài đăng cho kênh đã lưu trữ"
-  },
-  {
     "id": "app.acknowledgement.delete.app_error",
     "translation": "Không thể xóa xác nhận."
   },
@@ -8212,10 +8208,6 @@
   {
     "id": "api.user.create_user.bad_token_email_data.app_error",
     "translation": "Địa chỉ email trong mã thông báo không khớp với địa chỉ trong dữ liệu người dùng."
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Không thể truy xuất người dùng cho kênh đã lưu trữ"
   },
   {
     "id": "api.user.delete_user.not_enabled.app_error",
