@@ -2253,8 +2253,6 @@
   "admin.user_item.sysAdmin": "Rendszergazda",
   "admin.user_item.teamAdmin": "Csapat admin",
   "admin.user_item.teamMember": "Csapattag",
-  "admin.viewArchivedChannelsHelpText": "(Béta) Ha igaz, lehetővé teszi a felhasználók számára az archivált csatornák tartalmának megtekintését, megosztását és keresését. A felhasználók csak azokon a csatornákon tekinthetik meg a tartalmakat, amelyeknek tagjai voltak a csatorna archiválása előtt.",
-  "admin.viewArchivedChannelsTitle": "Archivált csatornák megtekintésének engedélyezése a felhasználók számára:",
   "admin.webserverModeDisabled": "Tiltva",
   "admin.webserverModeDisabledDescription": "A Mattermost szerver nem fog statikus fájlokat kiszolgálni.",
   "admin.webserverModeGzip": "gzip",

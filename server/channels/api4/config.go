@@ -248,18 +248,6 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	format := r.URL.Query().Get("format")
-
-	if format == "" {
-		c.Err = model.NewAppError("getClientConfig", "api.config.client.old_format.app_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if format != "old" {
-		c.SetInvalidParam("format")
-		return
-	}
-
 	var config map[string]string
 	if c.AppContext.Session().UserId == "" {
 		config = c.App.Srv().Platform().LimitedClientConfigWithComputed()

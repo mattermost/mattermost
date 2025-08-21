@@ -11,7 +11,6 @@
     "@giphy/react-components": "8.1.0",
     "@guyplusplus/turndown-plugin-gfm": "1.0.7",
     "@mattermost/client": "10.11.0",
-    "@mattermost/compass-components": "^0.2.12",
     "@mattermost/desktop-api": "5.10.0-2",
     "@mattermost/dynamic-virtualized-list": "github:mattermost/dynamic-virtualized-list#08dde0c34a12d0384740db27d55e398d139d7a51",
     "@mattermost/types": "10.11.0",
@@ -62,9 +61,8 @@
     "prop-types": "15.8.1",
     "react": "17.0.2",
     "react-beautiful-dnd": "13.1.1",
-    "react-bootstrap": "github:mattermost/react-bootstrap#d821e2b1db1059bd36112d7587fd1b0912b27626",
+    "react-bootstrap": "github:mattermost/react-bootstrap#7d8660f06188a6433bb0f69b5816a97dc9ebe48c",
     "react-color": "2.19.3",
-    "react-contextmenu": "2.14.0",
     "react-custom-scrollbars": "4.2.1",
     "react-day-picker": "8.3.6",
     "react-dom": "17.0.2",
@@ -173,9 +171,6 @@
     "yargs": "17.7.2"
   },
   "overrides": {
-    "@mattermost/compass-components": {
-      "axios": "1.7.9"
-    },
     "@mattermost/desktop-api": {
       "typescript": "$typescript"
     }
