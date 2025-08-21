@@ -251,7 +251,7 @@ func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
 	} else {
 		// If common reviewers are not enabled, we still need to check if the team has specific reviewers
 		teamSettings, exist := (*reviewerSettings.TeamReviewersSetting)[teamId]
-		if exist && teamSettings.ReviewerIds != nil {
+		if exist && *teamSettings.Enabled && teamSettings.ReviewerIds != nil {
 			reviewerUserIDs = append(reviewerUserIDs, *teamSettings.ReviewerIds...)
 		}
 	}

@@ -73,6 +73,8 @@ func TestContentFlaggingEnabledForTeam(t *testing.T) {
 }
 
 func TestGetReviewersForTeam(t *testing.T) {
+	t.Parallel()
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -186,5 +188,79 @@ func TestGetReviewersForTeam(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 1)
 		require.Contains(t, reviewers, th.BasicUser.Id)
+	})
+
+	t.Run("should return team reviewers", func(t *testing.T) {
+		team2 := th.CreateTeam()
+		th.UpdateConfig(func(conf *model.Config) {
+			contentFlaggingSettings := model.ContentFlaggingSettings{}
+			contentFlaggingSettings.SetDefaults()
+
+			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(false)
+			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewerIds = &[]string{th.BasicUser.Id}
+			conf.ContentFlaggingSettings.ReviewerSettings.TeamReviewersSetting = &map[string]model.TeamReviewerSetting{
+				th.BasicTeam.Id: {
+					Enabled:     model.NewPointer(true),
+					ReviewerIds: model.NewPointer([]string{th.BasicUser2.Id}),
+				},
+			}
+		})
+
+		// Reviewers configured for th.BasicTeam
+		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id)
+		require.Nil(t, appErr)
+		require.Len(t, reviewers, 1)
+		require.Contains(t, reviewers, th.BasicUser2.Id)
+
+		// NO reviewers configured for team2
+		reviewers, appErr = th.App.getReviewersForTeam(team2.Id)
+		require.Nil(t, appErr)
+		require.Len(t, reviewers, 0)
+	})
+
+	t.Run("should not return reviewers when disabled for the team", func(t *testing.T) {
+		th.UpdateConfig(func(conf *model.Config) {
+			contentFlaggingSettings := model.ContentFlaggingSettings{}
+			contentFlaggingSettings.SetDefaults()
+
+			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(false)
+			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewerIds = &[]string{th.BasicUser.Id}
+			conf.ContentFlaggingSettings.ReviewerSettings.TeamReviewersSetting = &map[string]model.TeamReviewerSetting{
+				th.BasicTeam.Id: {
+					Enabled:     model.NewPointer(false),
+					ReviewerIds: model.NewPointer([]string{th.BasicUser.Id}),
+				},
+			}
+		})
+
+		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id)
+		require.Nil(t, appErr)
+		require.Len(t, reviewers, 0)
+	})
+	t.Run("should return additional reviewers with team reviewers", func(t *testing.T) {
+		th.UpdateConfig(func(conf *model.Config) {
+			contentFlaggingSettings := model.ContentFlaggingSettings{}
+			contentFlaggingSettings.SetDefaults()
+
+			conf.ContentFlaggingSettings.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(true)
+			conf.ContentFlaggingSettings.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(true)
+
+			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(false)
+			conf.ContentFlaggingSettings.ReviewerSettings.TeamReviewersSetting = &map[string]model.TeamReviewerSetting{
+				th.BasicTeam.Id: {
+					Enabled:     model.NewPointer(true),
+					ReviewerIds: model.NewPointer([]string{th.BasicUser2.Id}),
+				},
+			}
+		})
+
+		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.SystemAdminUser.Id, "")
+		require.Nil(t, appErr)
+
+		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id)
+		require.Nil(t, appErr)
+		require.Len(t, reviewers, 2)
+		require.Contains(t, reviewers, th.BasicUser2.Id)
+		require.Contains(t, reviewers, th.SystemAdminUser.Id)
 	})
 }
