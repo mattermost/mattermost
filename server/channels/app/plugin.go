@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -1050,14 +1051,7 @@ var transitionallyPrepackagedPlugins = []string{
 // pluginIsTransitionallyPrepackaged identifies plugin ids that are currently prepackaged but
 // slated for future removal.
 func (ch *Channels) pluginIsTransitionallyPrepackaged(m *model.Manifest) bool {
-	for _, id := range transitionallyPrepackagedPlugins {
-		if id == m.Id {
-
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(transitionallyPrepackagedPlugins, m.Id)
 }
 
 // shouldPersistTransitionallyPrepackagedPlugin determines if a transitionally prepackaged plugin

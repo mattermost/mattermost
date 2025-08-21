@@ -1331,7 +1331,6 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 	})
 }
 
-
 func TestInstallMarketplacePlugin(t *testing.T) {
 	path, _ := fileutils.FindDir("tests")
 
