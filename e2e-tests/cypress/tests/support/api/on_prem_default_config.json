@@ -467,8 +467,6 @@
         "ListenAddress": ":8067"
     },
     "ExperimentalSettings": {
-        "ClientSideCertEnable": false,
-        "ClientSideCertCheck": "secondary",
         "LinkMetadataTimeoutMilliseconds": 5000,
         "RestrictSystemAdmin": false,
         "EnableSharedChannels": false,
