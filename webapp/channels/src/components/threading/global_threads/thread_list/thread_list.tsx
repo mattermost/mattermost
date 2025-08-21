@@ -129,14 +129,6 @@ const ThreadList = ({
         };
     }, [handleKeyDown]);
 
-    const handleSetFilter = useCallback((filter: ThreadFilter) => {
-        if (filter === ThreadFilter.unread) {
-            clear();
-        }
-
-        setFilter(filter);
-    }, [setFilter, clear]);
-
     const handleLoadMoreItems = useCallback(async (startIndex) => {
         setLoading(true);
         let before = data[startIndex - 1];
@@ -184,7 +176,7 @@ const ThreadList = ({
 
     const {tabListProps, tabProps} = useTabs<ThreadFilter>({
         activeTab: currentFilter,
-        setActiveTab: handleSetFilter,
+        setActiveTab: setFilter,
         tabs: [
             {
                 id: 'threads-list-filter-none',
