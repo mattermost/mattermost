@@ -922,10 +922,6 @@
     "translation": "ophalen"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Nieuw formaat voor de client configuratie is nog niet ondersteund. Gebruik format=old in de query."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Sorry, we kunnen de pagina niet vinden."
   },

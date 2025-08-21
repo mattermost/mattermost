@@ -5791,10 +5791,6 @@
     "translation": "Misslyckades att sammanfoga givna konfigurationer."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Ny format för klient konfigurationen stöds ännu inte. Var vänlig och specificera format=old i sök-strängen."
-  },
-  {
     "id": "api.command_shrug.name",
     "translation": "rycka på axlarna"
   },

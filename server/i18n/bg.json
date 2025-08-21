@@ -5241,10 +5241,6 @@
     "translation": "Неуспешно обединяване на зададената конфигурация."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Новия формат за клиентската конфигурация все още не се поддържа. Моля, посочете format = old в низа на заявката."
-  },
-  {
     "id": "api.command_shrug.name",
     "translation": "свий рамене"
   },

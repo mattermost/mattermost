@@ -920,10 +920,6 @@
     "translation": "umeri"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Noul format pentru configurare client nu supported încă. Vă rugăm să specificaţi formatul = vechi în şirul de interogare."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Ne pare rau, nu am putut găsi pagina."
   },

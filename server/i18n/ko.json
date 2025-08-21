@@ -918,10 +918,6 @@
     "translation": "shrug"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "사용자 설정을 위한 새로운 형식은 아직 지원되지 않습니다. 명령문에서 format=old 를 명시해 주세요."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "죄송합니다, 페이지를 찾을 수 없습니다."
   },

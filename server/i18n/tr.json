@@ -922,10 +922,6 @@
     "translation": "omuz silkme"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "İstemci yapılandırması için yeni biçim henüz desteklenmiyor. Lütfen sorgu dizgesini format=old olarak yazın."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Ne yazık ki sayfa bulunamadı."
   },

@@ -920,10 +920,6 @@
     "translation": "shrug"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "暂未支持客户端配置的新格式。请在查询字串指定 format=old。"
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "对不起，我们找不到该页面。"
   },

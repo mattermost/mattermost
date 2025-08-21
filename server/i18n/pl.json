@@ -924,10 +924,6 @@
     "translation": "wzruszenie ramionami"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Nowy format konfiguracji klienta nie jest jeszcze wspierany. Proszę podać format=old w ciągu znaków zapytania."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Przepraszamy, nie odnaleziono strony."
   },

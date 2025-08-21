@@ -920,10 +920,6 @@
     "translation": "shrug"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "クライアントの設定で新しい形式がまだサポートされていません。クエリー文字列に format=old を指定してください。"
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "申し訳ありません。ページが見付かりません。"
   },

@@ -924,10 +924,6 @@
     "translation": "shrug"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "O novo formato para a configuração do cliente não é suportado ainda. Por favor, especifique na query string format=old."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Desculpe, não conseguimos encontrar a página."
   },
