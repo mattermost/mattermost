@@ -5963,10 +5963,6 @@
     "translation": "Nem sikerült egyesíteni a megadott konfigurációt."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "A kliens konfiguráció új formátuma még nem támogatott. Kérjük, adja meg a format=old paramétert a kérés szövegében."
-  },
-  {
     "id": "api.command_shrug.name",
     "translation": "vállvonás"
   },

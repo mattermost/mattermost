@@ -3020,10 +3020,6 @@
     "translation": "No s'ha pogut combinar la configuració proporcionada."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "El nou format per a la configuració del client encara no és compatible. Especifica format=old a la cadena de consulta."
-  },
-  {
     "id": "api.command_shrug.name",
     "translation": "shrug"
   },

@@ -924,10 +924,6 @@
     "translation": "npi"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Nuevo formato para la configuración del cliente no es compatible todavía. Por favor utiliza format=old en la cadena de consulta."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Lo sentimos, pero no pudimos encontrar la página."
   },

@@ -922,10 +922,6 @@
     "translation": "achselzucken"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Das neue Format für die Clientkonfiguration wird noch nicht unterstützt. Bitte gib \"format=old\" in der Anfrage an."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Entschuldigung, wir konnten die Seite nicht finden."
   },

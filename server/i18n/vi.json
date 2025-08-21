@@ -4130,10 +4130,6 @@
     "translation": "Máy chủ bận, các dịch vụ không quan trọng tạm thời không khả dụng"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Định dạng mới cho cấu hình máy khách chưa được hỗ trợ. Vui lòng xác định format=old trong chuỗi truy vấn."
-  },
-  {
     "id": "model.outgoing_hook.is_valid.token.app_error",
     "translation": "Token không hợp lệ."
   },

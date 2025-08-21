@@ -7840,10 +7840,6 @@
     "translation": "Памылка аб'яднання з дадзенай канфігурацыяй."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Новы фармат канфігурацыі кліента пакуль не падтрымліваецца. Калі ласка, укажыце format=old у радку запыту."
-  },
-  {
     "id": "api.command_shrug.desc",
     "translation": "Дадаць ¯\\_(ツ)_/¯ у ваша паведамленне"
   },

@@ -924,10 +924,6 @@
     "translation": "haussement"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Le nouveau format pour la configuration du client n'est pas encore supporté. Veuillez spécifier format=old dans la chaîne de requête (query string)"
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Désolé, impossible de trouver cette page."
   },

@@ -920,10 +920,6 @@
     "translation": "alzatadispalle"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Il nuovo formato per la configurazione del client non è ancora supportato. Specificare format=old nella query."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Spiacente, impossibile trovare la pagina."
   },

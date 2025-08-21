@@ -924,10 +924,6 @@
     "translation": "пожимание плечами"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Новый формат конфигурации клиента пока не поддерживается. Пожалуйста, укажите format=old в строке запроса."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Извините, мы не смогли найти страницу."
   },

@@ -6649,10 +6649,6 @@
     "translation": "پیکربندی داده شده ادغام نشد."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "قالب جدید برای پیکربندی سرویس گیرنده هنوز پشتیبانی نمی شود. لطفا format=old را در رشته جستجو مشخص کنید."
-  },
-  {
     "id": "api.command_shrug.name",
     "translation": "شانه بالا"
   },

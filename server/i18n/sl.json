@@ -3475,10 +3475,6 @@
     "translation": "Strani ni mogoče najti."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Nov format konfiguracije klienta še ni podprt. Nastavi format=old v poizvedbi."
-  },
-  {
     "id": "api.command_shrug.name",
     "translation": "skomig"
   },

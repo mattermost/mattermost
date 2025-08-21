@@ -3860,10 +3860,6 @@
     "translation": "Nepodařilo se sloučit danou konfiguraci."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Nový formát klientské konfigurace ještě není podporován. Doplňte do dotazu: format=old."
-  },
-  {
     "id": "api.command_shrug.name",
     "translation": "pokrčil rameny"
   },
