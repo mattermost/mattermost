@@ -8144,14 +8144,6 @@
     "translation": "No se pudo obtener todos los roles."
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "No se pueden recuperar los usuarios de un canal archivado"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "No se pueden recuperar los mensajes de un canal archivado"
-  },
-  {
     "id": "api.templates.invite_body.title.reminder",
     "translation": "Recordatorio"
   },

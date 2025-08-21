@@ -52,9 +52,27 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 			return
 		}
 	case model.AccessControlPolicyTypeChannel:
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), policy.ID, model.PermissionManageChannelAccessRules) {
-			c.SetPermissionError(model.PermissionManageChannelAccessRules)
-			return
+		// Check if user has system admin permission first
+		hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+
+		if !hasManageSystemPermission {
+			// For non-system admins, check channel-specific permission
+			if !model.IsValidId(policy.ID) {
+				c.SetInvalidParam("policy.id")
+				return
+			}
+
+			hasChannelPermission := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, policy.ID, model.PermissionManageChannelAccessRules)
+			if !hasChannelPermission {
+				c.SetPermissionError(model.PermissionManageChannelAccessRules)
+				return
+			}
+
+			// Now do the full validation (channel exists, is private, etc.)
+			if appErr := c.App.ValidateChannelAccessControlPolicyCreation(c.AppContext, c.AppContext.Session().UserId, &policy); appErr != nil {
+				c.Err = appErr
+				return
+			}
 		}
 	default:
 		c.SetInvalidParam("type")
@@ -83,16 +101,21 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
 	c.RequirePolicyId()
 	if c.Err != nil {
 		return
 	}
 	policyID := c.Params.PolicyId
+
+	// Check if user has system admin permission OR channel-specific permission
+	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	if !hasManageSystemPermission {
+		// For non-system admins, validate policy access permission
+		if appErr := c.App.ValidateAccessControlPolicyPermission(c.AppContext, c.AppContext.Session().UserId, policyID); appErr != nil {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
+	}
 
 	policy, appErr := c.App.GetAccessControlPolicy(c.AppContext, policyID)
 	if appErr != nil {
@@ -112,11 +135,6 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
 	c.RequirePolicyId()
 	if c.Err != nil {
 		return
@@ -126,6 +144,16 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	auditRec := c.MakeAuditRecord(model.AuditEventDeleteAccessControlPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "id", policyID)
+
+	// Check if user has system admin permission OR channel-specific permission
+	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	if !hasManageSystemPermission {
+		// For non-system admins, validate policy access permission
+		if appErr := c.App.ValidateAccessControlPolicyPermission(c.AppContext, c.AppContext.Session().UserId, policyID); appErr != nil {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
+	}
 
 	appErr := c.App.DeleteAccessControlPolicy(c.AppContext, policyID)
 	if appErr != nil {
@@ -146,7 +174,8 @@ func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+	// Check if user has system admin permission OR any channel admin permission
+	if !(c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) || c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageChannelAccessRules)) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
@@ -175,7 +204,8 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+	// Check if user has system admin permission OR any channel admin permission
+	if !(c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) || c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageChannelAccessRules)) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
@@ -454,7 +484,8 @@ func searchChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *
 }
 
 func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+	// Check if user has system admin permission OR any channel admin permission
+	if !(c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) || c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageChannelAccessRules)) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
@@ -496,7 +527,8 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+	// Check if user has system admin permission OR any channel admin permission
+	if !(c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) || c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageChannelAccessRules)) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}

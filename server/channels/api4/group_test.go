@@ -2274,6 +2274,118 @@ func TestGetGroups(t *testing.T) {
 	})
 }
 
+func TestGetGroupsByNames(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// make sure "createdDate" for next group is after one created in InitBasic()
+	time.Sleep(2 * time.Millisecond)
+	id := model.NewId()
+	groupName := model.NewPointer("name" + id)
+	group, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        groupName,
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewPointer(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
+	id2 := model.NewId()
+	group2Name := model.NewPointer("name" + id2)
+	group2, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id2,
+		Name:        group2Name,
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id2,
+		RemoteId:    model.NewPointer(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
+	// Create a group with AllowReference=false
+	id3 := model.NewId()
+	group3Name := model.NewPointer("name" + id3)
+	group3, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id3,
+		Name:        group3Name,
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id3,
+		RemoteId:    model.NewPointer(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
+	t.Run("without license", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+		groups, resp, err := th.SystemAdminClient.GetGroupsByNames(context.Background(), []string{*groupName})
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+		assert.Nil(t, groups)
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	t.Run("search for one group", func(t *testing.T) {
+		groups, resp, err := th.SystemAdminClient.GetGroupsByNames(context.Background(), []string{*groupName})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.ElementsMatch(t, []*model.Group{group}, groups)
+		assert.Nil(t, groups[0].MemberCount)
+	})
+
+	t.Run("search for multiple groups only finding one", func(t *testing.T) {
+		searchTerms := []string{*group2Name, "fakename", "fakename2"}
+		groups, resp, err := th.SystemAdminClient.GetGroupsByNames(context.Background(), searchTerms)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.ElementsMatch(t, []*model.Group{group2}, groups)
+		assert.Nil(t, groups[0].MemberCount)
+	})
+
+	t.Run("search for multiple groups returning all three", func(t *testing.T) {
+		searchTerms := []string{*groupName, *group2Name, *group3Name}
+		groups, resp, err := th.SystemAdminClient.GetGroupsByNames(context.Background(), searchTerms)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.ElementsMatch(t, []*model.Group{group, group2, group3}, groups)
+		assert.Nil(t, groups[0].MemberCount)
+	})
+
+	t.Run("search for more groups than existing returning existing", func(t *testing.T) {
+		searchTerms := []string{*groupName, *group2Name, *group3Name, "fakename", "fakename2"}
+		groups, resp, err := th.SystemAdminClient.GetGroupsByNames(context.Background(), searchTerms)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.ElementsMatch(t, []*model.Group{group, group2, group3}, groups)
+		assert.Nil(t, groups[0].MemberCount)
+	})
+
+	t.Run("search for groups with invalid names", func(t *testing.T) {
+		searchTerms := []string{"fakename", "fakename2"}
+		groups, resp, err := th.SystemAdminClient.GetGroupsByNames(context.Background(), searchTerms)
+		require.NoError(t, err)
+		require.Empty(t, groups, "no groups should be returned")
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("search for groups is empty", func(t *testing.T) {
+		searchTerms := []string{}
+		groups, resp, err := th.SystemAdminClient.GetGroupsByNames(context.Background(), searchTerms)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		assert.Nil(t, groups)
+	})
+
+	t.Run("attempt search without session", func(t *testing.T) {
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
+		searchTerms := []string{*groupName}
+		_, resp, err := th.Client.GetGroupsByNames(context.Background(), searchTerms)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+}
+
 func TestGetGroupsByUserId(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
