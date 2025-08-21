@@ -71,7 +71,7 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
             <h5 className='MenuCloudTrial__free-trial__content-title'>
                 <FormattedMessage
                     id='menu.cloudFree.enterpriseTrialTitle'
-                    defaultMessage='Enterprise Trial'
+                    defaultMessage='Enterprise Advanced Trial'
                 />
             </h5>
             <div className='MenuCloudTrial__free-trial__content-section'>

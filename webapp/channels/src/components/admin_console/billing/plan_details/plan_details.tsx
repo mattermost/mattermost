@@ -64,6 +64,14 @@ export const PlanDetailsTopElements = ({
             />
         );
         break;
+    case CloudProducts.ADVANCED:
+        productName = (
+            <FormattedMessage
+                id='admin.billing.subscription.planDetails.productName.cloudAdvanced'
+                defaultMessage='Cloud Enterprise Advanced'
+            />
+        );
+        break;
     default:
         productName = (
             <FormattedMessage
