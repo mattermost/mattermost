@@ -730,6 +730,7 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
                 isHidden: it.any(
                     it.licensedForSku(LicenseSkus.EnterpriseAdvanced),
+                    it.licensedForSku(LicenseSkus.Entry),
                     it.not(it.enterpriseReady),
                     it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                 ),
