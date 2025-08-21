@@ -128,6 +128,7 @@ function ChannelSettingsAccessRulesTab({
     const handleAutoSyncToggle = useCallback(() => {
         setAutoSyncMembers((prev) => {
             const newValue = !prev;
+
             // Log the toggle state
             // eslint-disable-next-line no-console
             console.log('Auto-sync members toggled:', newValue);
@@ -176,7 +177,7 @@ function ChannelSettingsAccessRulesTab({
             setOriginalAutoSyncMembers(autoSyncMembers);
 
             // Show success alert for testing purposes
-            window.alert(
+            window.alert( // eslint-disable-line no-alert
                 `Access rules saved!\nExpression: ${expression}\nAuto-sync: ${autoSyncMembers ? 'Enabled' : 'Disabled'}`,
             );
 
