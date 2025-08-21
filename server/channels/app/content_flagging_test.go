@@ -72,6 +72,203 @@ func TestContentFlaggingEnabledForTeam(t *testing.T) {
 	})
 }
 
+func TestGetContentReviewChannels(t *testing.T) {
+	t.Parallel()
+
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	t.Run("should create direct channels with content review bot for common reviewers", func(t *testing.T) {
+		th.UpdateConfig(func(conf *model.Config) {
+			contentFlaggingSettings := model.ContentFlaggingSettings{}
+			contentFlaggingSettings.SetDefaults()
+
+			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(true)
+			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewerIds = &[]string{th.BasicUser.Id, th.BasicUser2.Id}
+		})
+
+		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
+		require.Nil(t, appErr)
+		require.NotNil(t, contentReviewBot)
+
+		channels, appErr := th.App.getContentReviewChannels(th.Context, th.BasicTeam.Id, contentReviewBot.UserId)
+		require.Nil(t, appErr)
+		require.Len(t, channels, 2)
+
+		// Verify channels are direct message channels
+		for _, channel := range channels {
+			require.Equal(t, model.ChannelTypeDirect, channel.Type)
+			require.Contains(t, []string{th.BasicUser.Id, th.BasicUser2.Id}, channel.GetOtherUserIdForDM(contentReviewBot.UserId))
+		}
+	})
+
+	t.Run("should create direct channels for team admins as reviewers", func(t *testing.T) {
+		// Create a new user and make them team admin
+		teamAdmin := th.CreateUser()
+		defer func() {
+			_ = th.App.PermanentDeleteUser(th.Context, teamAdmin)
+		}()
+
+		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, teamAdmin.Id, "")
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamAdminRoleId)
+		require.Nil(t, appErr)
+
+		th.UpdateConfig(func(conf *model.Config) {
+			contentFlaggingSettings := model.ContentFlaggingSettings{}
+			contentFlaggingSettings.SetDefaults()
+
+			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(false)
+			conf.ContentFlaggingSettings.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(true)
+			conf.ContentFlaggingSettings.ReviewerSettings.TeamReviewersSetting = &map[string]model.TeamReviewerSetting{
+				th.BasicTeam.Id: {
+					Enabled: model.NewPointer(true),
+				},
+			}
+		})
+
+		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
+		require.Nil(t, appErr)
+
+		channels, appErr := th.App.getContentReviewChannels(th.Context, th.BasicTeam.Id, contentReviewBot.UserId)
+		require.Nil(t, appErr)
+		require.Len(t, channels, 1)
+
+		// Verify channel is a direct message channel with the team admin
+		channel := channels[0]
+		require.Equal(t, model.ChannelTypeDirect, channel.Type)
+		require.Equal(t, teamAdmin.Id, channel.GetOtherUserIdForDM(contentReviewBot.UserId))
+	})
+
+	t.Run("should create direct channels for system admins as reviewers", func(t *testing.T) {
+		th.UpdateConfig(func(conf *model.Config) {
+			contentFlaggingSettings := model.ContentFlaggingSettings{}
+			contentFlaggingSettings.SetDefaults()
+
+			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(false)
+			conf.ContentFlaggingSettings.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(true)
+			conf.ContentFlaggingSettings.ReviewerSettings.TeamReviewersSetting = &map[string]model.TeamReviewerSetting{
+				th.BasicTeam.Id: {
+					Enabled: model.NewPointer(true),
+				},
+			}
+		})
+
+		// Add system admin to team
+		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.SystemAdminUser.Id, "")
+		require.Nil(t, appErr)
+
+		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
+		require.Nil(t, appErr)
+
+		channels, appErr := th.App.getContentReviewChannels(th.Context, th.BasicTeam.Id, contentReviewBot.UserId)
+		require.Nil(t, appErr)
+		require.Len(t, channels, 1)
+
+		// Verify channel is a direct message channel with the system admin
+		channel := channels[0]
+		require.Equal(t, model.ChannelTypeDirect, channel.Type)
+		require.Equal(t, th.SystemAdminUser.Id, channel.GetOtherUserIdForDM(contentReviewBot.UserId))
+	})
+
+	t.Run("should create direct channels for team-specific reviewers", func(t *testing.T) {
+		th.UpdateConfig(func(conf *model.Config) {
+			contentFlaggingSettings := model.ContentFlaggingSettings{}
+			contentFlaggingSettings.SetDefaults()
+
+			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(false)
+			conf.ContentFlaggingSettings.ReviewerSettings.TeamReviewersSetting = &map[string]model.TeamReviewerSetting{
+				th.BasicTeam.Id: {
+					Enabled:     model.NewPointer(true),
+					ReviewerIds: model.NewPointer([]string{th.BasicUser.Id, th.BasicUser2.Id}),
+				},
+			}
+		})
+
+		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
+		require.Nil(t, appErr)
+
+		channels, appErr := th.App.getContentReviewChannels(th.Context, th.BasicTeam.Id, contentReviewBot.UserId)
+		require.Nil(t, appErr)
+		require.Len(t, channels, 2)
+
+		// Verify channels are direct message channels
+		reviewerIds := []string{}
+		for _, channel := range channels {
+			require.Equal(t, model.ChannelTypeDirect, channel.Type)
+			reviewerIds = append(reviewerIds, channel.GetOtherUserIdForDM(contentReviewBot.UserId))
+		}
+		require.Contains(t, reviewerIds, th.BasicUser.Id)
+		require.Contains(t, reviewerIds, th.BasicUser2.Id)
+	})
+
+	t.Run("should return empty channels when no reviewers configured", func(t *testing.T) {
+		team2 := th.CreateTeam()
+		th.UpdateConfig(func(conf *model.Config) {
+			contentFlaggingSettings := model.ContentFlaggingSettings{}
+			contentFlaggingSettings.SetDefaults()
+
+			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(false)
+			conf.ContentFlaggingSettings.ReviewerSettings.TeamReviewersSetting = &map[string]model.TeamReviewerSetting{}
+		})
+
+		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
+		require.Nil(t, appErr)
+
+		channels, appErr := th.App.getContentReviewChannels(th.Context, team2.Id, contentReviewBot.UserId)
+		require.Nil(t, appErr)
+		require.Len(t, channels, 0)
+	})
+
+	t.Run("should handle mixed reviewer types", func(t *testing.T) {
+		// Create a team admin
+		teamAdmin := th.CreateUser()
+		defer func() {
+			_ = th.App.PermanentDeleteUser(th.Context, teamAdmin)
+		}()
+
+		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, teamAdmin.Id, "")
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamAdminRoleId)
+		require.Nil(t, appErr)
+
+		// Add system admin to team
+		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.SystemAdminUser.Id, "")
+		require.Nil(t, appErr)
+
+		th.UpdateConfig(func(conf *model.Config) {
+			contentFlaggingSettings := model.ContentFlaggingSettings{}
+			contentFlaggingSettings.SetDefaults()
+
+			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(true)
+			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewerIds = &[]string{th.BasicUser.Id}
+			conf.ContentFlaggingSettings.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(true)
+			conf.ContentFlaggingSettings.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(true)
+		})
+
+		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
+		require.Nil(t, appErr)
+
+		channels, appErr := th.App.getContentReviewChannels(th.Context, th.BasicTeam.Id, contentReviewBot.UserId)
+		require.Nil(t, appErr)
+		require.Len(t, channels, 3)
+
+		// Verify all expected reviewers have channels
+		reviewerIds := []string{}
+		for _, channel := range channels {
+			require.Equal(t, model.ChannelTypeDirect, channel.Type)
+			reviewerIds = append(reviewerIds, channel.GetOtherUserIdForDM(contentReviewBot.UserId))
+		}
+		require.Contains(t, reviewerIds, th.BasicUser.Id)
+		require.Contains(t, reviewerIds, teamAdmin.Id)
+		require.Contains(t, reviewerIds, th.SystemAdminUser.Id)
+	})
+}
+
 func TestGetReviewersForTeam(t *testing.T) {
 	t.Parallel()
 
