@@ -49,8 +49,22 @@ const ProfilePopoverOtherUserRow = ({
     // Check if this user can be messaged directly using server-side validation
     useEffect(() => {
         const checkCanMessage = async () => {
+            // DEBUG: Log user details to console for debugging
+            // eslint-disable-next-line no-console
+            console.log('[ProfilePopover Debug] Checking canMessage for user:', {
+                userId: user.id,
+                username: user.username,
+                remote_id: user.remote_id,
+                hasRemoteId: Boolean(user.remote_id),
+                typeof_remote_id: typeof user.remote_id,
+                currentUserId,
+                isSharedChannelsDMsEnabled,
+            });
+
             if (!user.remote_id) {
                 // Local users can always be messaged
+                // eslint-disable-next-line no-console
+                console.log('[ProfilePopover Debug] User has no remote_id - treating as local user, enabling button');
                 setCanMessage(true);
                 return;
             }
@@ -61,9 +75,16 @@ const ProfilePopoverOtherUserRow = ({
                 return;
             }
 
+            // eslint-disable-next-line no-console
+            console.log('[ProfilePopover Debug] User is remote, checking DM permissions via API');
             setIsLoading(true);
             try {
                 const result = await dispatch(canUserDirectMessage(currentUserId, user.id));
+                // eslint-disable-next-line no-console
+                console.log('[ProfilePopover Debug] API result:', {
+                    result,
+                    can_dm: result.data?.can_dm,
+                });
                 if (result.data) {
                     setCanMessage(result.data.can_dm);
                 } else {
@@ -71,6 +92,8 @@ const ProfilePopoverOtherUserRow = ({
                 }
             } catch (error) {
                 // Error checking DM permissions
+                // eslint-disable-next-line no-console
+                console.log('[ProfilePopover Debug] API call failed:', error);
                 setCanMessage(false);
             } finally {
                 setIsLoading(false);
