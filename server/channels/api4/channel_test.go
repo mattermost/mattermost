@@ -1906,57 +1906,112 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 	teamId := th.BasicTeam.Id
-	input := []string{th.BasicChannel.Id}
-	output := []string{th.BasicChannel.DisplayName}
 
-	channels, _, err := client.GetPublicChannelsByIdsForTeam(context.Background(), teamId, input)
-	require.NoError(t, err)
-	require.Len(t, channels, 1, "should return 1 channel")
-	require.Equal(t, output[0], channels[0].DisplayName, "missing channel")
+	t.Run("should return 1 channel", func(t *testing.T) {
+		input := []string{th.BasicChannel.Id}
+		output := []string{th.BasicChannel.DisplayName}
 
-	input = append(input, GenerateTestID())
-	input = append(input, th.BasicChannel2.Id)
-	input = append(input, th.BasicPrivateChannel.Id)
-	output = append(output, th.BasicChannel2.DisplayName)
-	sort.Strings(output)
+		channels, _, err := client.GetPublicChannelsByIdsForTeam(context.Background(), teamId, input)
+		require.NoError(t, err)
+		require.Len(t, channels, 1, "should return 1 channel")
+		require.Equal(t, output[0], channels[0].DisplayName, "missing channel")
+	})
 
-	channels, _, err = client.GetPublicChannelsByIdsForTeam(context.Background(), teamId, input)
-	require.NoError(t, err)
-	require.Len(t, channels, 2, "should return 2 channels")
+	t.Run("should return 2 channels", func(t *testing.T) {
+		input := []string{th.BasicChannel.Id}
+		output := []string{th.BasicChannel.DisplayName}
 
-	for i, c := range channels {
-		require.Equal(t, output[i], c.DisplayName, "missing channel")
-	}
+		input = append(input, GenerateTestID())
+		input = append(input, th.BasicChannel2.Id)
+		input = append(input, th.BasicPrivateChannel.Id)
+		output = append(output, th.BasicChannel2.DisplayName)
+		sort.Strings(output)
 
-	_, resp, err := client.GetPublicChannelsByIdsForTeam(context.Background(), GenerateTestID(), input)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+		channels, _, err := client.GetPublicChannelsByIdsForTeam(context.Background(), teamId, input)
+		require.NoError(t, err)
+		require.Len(t, channels, 2, "should return 2 channels")
 
-	_, resp, err = client.GetPublicChannelsByIdsForTeam(context.Background(), teamId, []string{})
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+		for i, c := range channels {
+			require.Equal(t, output[i], c.DisplayName, "missing channel")
+		}
+	})
 
-	_, resp, err = client.GetPublicChannelsByIdsForTeam(context.Background(), teamId, []string{"junk"})
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+	t.Run("forbidden for invalid team", func(t *testing.T) {
+		input := []string{th.BasicChannel.Id, th.BasicChannel2.Id}
+		_, resp, err := client.GetPublicChannelsByIdsForTeam(context.Background(), GenerateTestID(), input)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 
-	_, resp, err = client.GetPublicChannelsByIdsForTeam(context.Background(), teamId, []string{GenerateTestID()})
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
+	t.Run("bad request for empty input", func(t *testing.T) {
+		_, resp, err := client.GetPublicChannelsByIdsForTeam(context.Background(), teamId, []string{})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 
-	_, resp, err = client.GetPublicChannelsByIdsForTeam(context.Background(), teamId, []string{th.BasicPrivateChannel.Id})
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
+	t.Run("bad request for junk id", func(t *testing.T) {
+		_, resp, err := client.GetPublicChannelsByIdsForTeam(context.Background(), teamId, []string{"junk"})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 
-	_, err = client.Logout(context.Background())
-	require.NoError(t, err)
+	t.Run("not found for non-existent id", func(t *testing.T) {
+		_, resp, err := client.GetPublicChannelsByIdsForTeam(context.Background(), teamId, []string{GenerateTestID()})
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
 
-	_, resp, err = client.GetPublicChannelsByIdsForTeam(context.Background(), teamId, input)
-	require.Error(t, err)
-	CheckUnauthorizedStatus(t, resp)
+	t.Run("not found for private channel id", func(t *testing.T) {
+		_, resp, err := client.GetPublicChannelsByIdsForTeam(context.Background(), teamId, []string{th.BasicPrivateChannel.Id})
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
 
-	_, _, err = th.SystemAdminClient.GetPublicChannelsByIdsForTeam(context.Background(), teamId, input)
-	require.NoError(t, err)
+	t.Run("unauthorized when logged out", func(t *testing.T) {
+		input := []string{th.BasicChannel.Id, th.BasicChannel2.Id}
+		_, lErr := client.Logout(context.Background())
+		require.NoError(t, lErr)
+
+		_, resp, err := client.GetPublicChannelsByIdsForTeam(context.Background(), teamId, input)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("system admin can get channels", func(t *testing.T) {
+		input := []string{th.BasicChannel.Id, th.BasicChannel2.Id}
+		_, _, err := th.SystemAdminClient.GetPublicChannelsByIdsForTeam(context.Background(), teamId, input)
+		require.NoError(t, err)
+	})
+
+	t.Run("guest users should not be able to get channels", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.AllowEmailAccounts = true })
+
+		id := model.NewId()
+		guest := &model.User{
+			Email:         "success+" + id + "@simulator.amazonses.com",
+			Username:      "un_" + id,
+			Nickname:      "nn_" + id,
+			Password:      "Password1",
+			EmailVerified: true,
+		}
+		guest, appErr := th.App.CreateGuest(th.Context, guest)
+		require.Nil(t, appErr)
+
+		guestClient := th.CreateClient()
+		_, _, err := guestClient.Login(context.Background(), guest.Username, "Password1")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_, lErr := guestClient.Logout(context.Background())
+			require.NoError(t, lErr)
+		})
+
+		input := []string{th.BasicChannel.Id, th.BasicChannel2.Id}
+		_, resp, err := guestClient.GetPublicChannelsByIdsForTeam(context.Background(), teamId, input)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 }
 
 func TestGetChannelsForTeamForUser(t *testing.T) {
