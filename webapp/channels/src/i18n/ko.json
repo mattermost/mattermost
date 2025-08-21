@@ -1785,7 +1785,6 @@
   "admin.user_item.sysAdmin": "시스템 관리자",
   "admin.user_item.teamAdmin": "팀 관리자",
   "admin.user_item.teamMember": "팀 회원",
-  "admin.viewArchivedChannelsTitle": "사용자가 보관된 채널을 볼 수 있도록 허용:",
   "admin.webserverModeDisabled": "비활성화",
   "admin.webserverModeDisabledDescription": "Mattermost 서버가 static 파일을 제공하지 않습니다.",
   "admin.webserverModeGzip": "gzip",

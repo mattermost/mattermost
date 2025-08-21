@@ -91,7 +91,6 @@ describe('CloudUsageModal', () => {
         props = {
             title: '',
             onClose: jest.fn(),
-            needsTheme: false,
         };
     });
 

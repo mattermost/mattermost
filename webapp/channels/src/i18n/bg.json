@@ -2776,8 +2776,6 @@
   "admin.user_item.sysAdmin": "Системен администратор",
   "admin.user_item.teamAdmin": "Администратор на екип",
   "admin.user_item.teamMember": "Член на екипа",
-  "admin.viewArchivedChannelsHelpText": "Когато е true, позволява на потребителите да преглеждат, споделят и търсят съдържание на канали, които са архивирани. Потребителите могат да преглеждат съдържанието само в канали, чийто член са били, преди каналът да бъде архивиран.",
-  "admin.viewArchivedChannelsTitle": "Разрешаване на потребителите да виждат архивирани канали:",
   "admin.webserverModeDisabled": "Забранен",
   "admin.webserverModeDisabledDescription": "Mattermost сървъра няма да обслужва статични файлове.",
   "admin.webserverModeGzip": "gzip",

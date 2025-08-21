@@ -19,7 +19,7 @@ export function getClientConfig(): ActionFuncAsync<ClientConfig> {
     return async (dispatch, getState) => {
         let data;
         try {
-            data = await Client4.getClientConfigOld();
+            data = await Client4.getClientConfig();
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             return {error};

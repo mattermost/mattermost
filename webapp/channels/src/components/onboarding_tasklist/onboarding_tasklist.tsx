@@ -15,13 +15,11 @@ import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general
 import {
     getBool,
     getMyPreferences as getMyPreferencesSelector,
-    getTheme,
 } from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {getShowTaskListBool} from 'selectors/onboarding';
 
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import {useFirstAdminUser, useIsCurrentUserSystemAdmin} from 'components/global_header/hooks';
 import {
     useTasksListWithStatus,
@@ -156,7 +154,6 @@ const OnBoardingTaskList = (): JSX.Element | null => {
         getShowTaskListBool,
         (a, b) => a[0] === b[0] && a[1] === b[1],
     );
-    const theme = useSelector(getTheme);
 
     const startTask = (taskName: string) => {
         toggleTaskList();
@@ -245,7 +242,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
     }
 
     return (
-        <CompassThemeProvider theme={theme}>
+        <>
             <CompletedAnimation completed={showAnimation}/>
             <Button
                 onClick={toggleTaskList}
@@ -306,7 +303,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
                     )}
                 </TaskItems>
             </TaskListPopover>
-        </CompassThemeProvider>
+        </>
     );
 };
 

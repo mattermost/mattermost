@@ -15,16 +15,13 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
       />
     }
   >
-    <ForwardRef
+    <HeaderIconButton
       active={false}
       aria-controls="AddChannelDropdown"
       aria-expanded={false}
       aria-label="Help"
-      compact={true}
       icon="help-circle-outline"
-      inverted={true}
       onClick={[Function]}
-      size="sm"
     />
   </WithTooltip>
   <Menu
@@ -89,16 +86,13 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
       />
     }
   >
-    <ForwardRef
+    <HeaderIconButton
       active={false}
       aria-controls="AddChannelDropdown"
       aria-expanded={false}
       aria-label="Help"
-      compact={true}
       icon="help-circle-outline"
-      inverted={true}
       onClick={[Function]}
-      size="sm"
     />
   </WithTooltip>
   <Menu
@@ -156,16 +150,13 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
       />
     }
   >
-    <ForwardRef
+    <HeaderIconButton
       active={false}
       aria-controls="AddChannelDropdown"
       aria-expanded={false}
       aria-label="Help"
-      compact={true}
       icon="help-circle-outline"
-      inverted={true}
       onClick={[Function]}
-      size="sm"
     />
   </WithTooltip>
   <Menu

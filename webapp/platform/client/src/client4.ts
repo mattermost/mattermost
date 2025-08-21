@@ -2651,7 +2651,8 @@ export default class Client4 {
         );
     };
 
-    getClientConfigOld = () => {
+    getClientConfig = () => {
+        // Keep format=old for compatibility with pre-v11 servers
         return this.doFetch<ClientConfig>(
             `${this.getBaseRoute()}/config/client?format=old`,
             {method: 'get'},
@@ -3831,6 +3832,13 @@ export default class Client4 {
         return this.doFetch<Group[]>(
             `${this.getUsersRoute()}/${userID}/groups`,
             {method: 'get'},
+        );
+    };
+
+    getGroupsByNames = (names: string[]) => {
+        return this.doFetch<Group[]>(
+            `${this.getGroupsRoute()}/names`,
+            {method: 'post', body: JSON.stringify(names)},
         );
     };
 

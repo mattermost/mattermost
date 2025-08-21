@@ -1063,21 +1063,6 @@ For more information on this, and how to apply and follow the GNU AGPL, see
 
 ---
 
-## @mattermost/compass-components
-
-This product contains '@mattermost/compass-components' by Mattermost.
-
-components aligning to the compass design system
-
-* HOMEPAGE:
-  * https://github.com/mattermost/compass-components#readme
-
-* LICENSE: MIT
-
-
-
----
-
 ## @mattermost/compass-icons
 
 This product contains '@mattermost/compass-icons' by Mattermost.

@@ -66,7 +66,6 @@ export default function useShowAdminLimitReached() {
             onClose: () => {
                 dispatch(closeModal(ModalIdentifiers.CLOUD_LIMITS));
             },
-            needsTheme: true,
         };
 
         // Only show primary action if not air-gapped
