@@ -20,16 +20,11 @@ const (
 )
 
 type FlagContentRequest struct {
-	TargetId string `json:"target_id"`
-	Reason   string `json:"reason"`
-	Comment  string `json:"comment,omitempty"`
+	Reason  string `json:"reason"`
+	Comment string `json:"comment,omitempty"`
 }
 
 func (f *FlagContentRequest) IsValid(commentRequired bool, validReasons []string) *AppError {
-	if f.TargetId == "" {
-		return NewAppError("FlagContentRequest.IsValid", "api.content_flagging.error.target_id_required", nil, "", http.StatusBadRequest)
-	}
-
 	if f.Reason == "" {
 		return NewAppError("FlagContentRequest.IsValid", "api.content_flagging.error.reason_required", nil, "", http.StatusBadRequest)
 	}

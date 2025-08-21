@@ -14,6 +14,11 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
+const (
+	CONTENT_FLAGGING_MAX_PROPERTY_FIELDS = 100
+	CONTENT_FLAGGING_MAX_PROPERTY_VALUES = 100
+)
+
 var contentFlaggingGroupId string
 
 func ContentFlaggingEnabledForTeam(config *model.Config, teamId string) bool {
@@ -39,7 +44,7 @@ func ContentFlaggingEnabledForTeam(config *model.Config, teamId string) bool {
 	return hasAdditionalReviewers
 }
 
-func (a *App) FlagPost(c request.CTX, post *model.Post, reportingUserId string, flagData model.FlagContentRequest) *model.AppError {
+func (a *App) FlagPost(c request.CTX, postId, teamId, reportingUserId string, flagData model.FlagContentRequest) *model.AppError {
 	commentRequired := a.Config().ContentFlaggingSettings.AdditionalSettings.ReporterCommentRequired
 	validReasons := a.Config().ContentFlaggingSettings.AdditionalSettings.Reasons
 	if appErr := flagData.IsValid(*commentRequired, *validReasons); appErr != nil {
@@ -51,7 +56,7 @@ func (a *App) FlagPost(c request.CTX, post *model.Post, reportingUserId string, 
 		return appErr
 	}
 
-	if appErr := a.canFlagPost(groupId, post.Id); appErr != nil {
+	if appErr := a.canFlagPost(groupId, postId); appErr != nil {
 		return appErr
 	}
 
@@ -60,42 +65,37 @@ func (a *App) FlagPost(c request.CTX, post *model.Post, reportingUserId string, 
 		return appErr
 	}
 
-	channel, appErr := a.GetChannel(c, post.ChannelId)
-	if appErr != nil {
-		return appErr
-	}
-
 	propertyValues := []*model.PropertyValue{
 		{
-			TargetID:   post.Id,
+			TargetID:   postId,
 			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
 			FieldID:    mappedFields[contentFlaggingPropertyNameStatus].ID,
-			Value:      json.RawMessage(`"` + model.ContentFlaggingStatusPending + `"`),
+			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusPending)),
 		},
 		{
-			TargetID:   post.Id,
+			TargetID:   postId,
 			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
 			FieldID:    mappedFields[contentFlaggingPropertyNameReportingUserID].ID,
 			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, reportingUserId)),
 		},
 		{
-			TargetID:   post.Id,
+			TargetID:   postId,
 			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
 			FieldID:    mappedFields[contentFlaggingPropertyNameReportingReason].ID,
-			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, strings.Trim(flagData.Reason, `"`))),
+			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, flagData.Reason)),
 		},
 		{
-			TargetID:   post.Id,
+			TargetID:   postId,
 			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
 			FieldID:    mappedFields[contentFlaggingPropertyNameReportingComment].ID,
-			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, strings.Trim(flagData.Comment, `"`))),
+			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, flagData.Comment)),
 		},
 		{
-			TargetID:   post.Id,
+			TargetID:   postId,
 			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
 			FieldID:    mappedFields[contentFlaggingPropertyNameReportingTime].ID,
@@ -108,9 +108,18 @@ func (a *App) FlagPost(c request.CTX, post *model.Post, reportingUserId string, 
 		return model.NewAppError("FlagPost", "app.content_flagging.create_property_values.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
 	}
 
-	// TODO: hide the flagged post here
+	contentReviewBot, appErr := a.getContentReviewBot(c)
+	if appErr != nil {
+		return appErr
+	}
 
-	if appErr := a.createContentReviewPost(c, channel.TeamId, post.Id); appErr != nil {
+	if *a.Config().ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent {
+		if _, appErr := a.DeletePost(c, postId, contentReviewBot.UserId); appErr != nil {
+			return model.NewAppError("FlagPost", "app.content_flagging.delete_post.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
+		}
+	}
+
+	if appErr := a.createContentReviewPost(c, teamId, postId); appErr != nil {
 		return appErr
 	}
 
@@ -131,7 +140,7 @@ func (a *App) contentFlaggingGroupId() (string, *model.AppError) {
 }
 
 func (a *App) getPostContentFlaggingProperties(groupID, postId string) ([]*model.PropertyValue, *model.AppError) {
-	propertyValues, err := a.Srv().propertyService.SearchPropertyValues(groupID, postId, model.PropertyValueSearchOpts{PerPage: 100})
+	propertyValues, err := a.Srv().propertyService.SearchPropertyValues(groupID, postId, model.PropertyValueSearchOpts{PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES})
 	if err != nil {
 		return nil, model.NewAppError("getPostContentFlaggingProperties", "app.content_flagging.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -140,43 +149,24 @@ func (a *App) getPostContentFlaggingProperties(groupID, postId string) ([]*model
 }
 
 func (a *App) canFlagPost(groupId, postId string) *model.AppError {
-	postPropertyValues, appErr := a.getPostContentFlaggingProperties(groupId, postId)
-	if appErr != nil {
-		return appErr
-	}
-
-	if len(postPropertyValues) == 0 {
-		// If no properties exist for the post, we can flag it
-		return nil
-	}
-
-	// Analyze the value of status property
-	groupID, appErr := a.contentFlaggingGroupId()
-	if appErr != nil {
-		return appErr
-	}
-
-	statusPropertyField, err := a.Srv().propertyService.GetPropertyFieldByName(groupID, "", contentFlaggingPropertyNameStatus)
+	statusPropertyField, err := a.Srv().propertyService.GetPropertyFieldByName(groupId, "", contentFlaggingPropertyNameStatus)
 	if err != nil {
 		return model.NewAppError("canFlagPost", "app.content_flagging.get_property_field_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	var statusValue *model.PropertyValue
-	for _, propertyValue := range postPropertyValues {
-		if propertyValue.FieldID == statusPropertyField.ID {
-			statusValue = propertyValue
-			break
-		}
+	propertyValues, err := a.Srv().propertyService.SearchPropertyValues(groupId, postId, model.PropertyValueSearchOpts{PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES, FieldID: statusPropertyField.ID})
+	if err != nil {
+		return model.NewAppError("canFlagPost", "app.content_flagging.search_status_property.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if statusValue == nil {
-		// If no status property exists, we can flag the post
+	if len(propertyValues) == 0 {
+		// If no status property exist for the post, we can flag it
 		return nil
 	}
 
 	var reason string
 
-	switch strings.Trim(string(statusValue.Value), `"`) {
+	switch strings.Trim(string(propertyValues[0].Value), `"`) {
 	case model.ContentFlaggingStatusPending, model.ContentFlaggingStatusAssigned:
 		reason = "app.content_flagging.can_flag_post.in_progress"
 	case model.ContentFlaggingStatusRetained:
@@ -191,7 +181,7 @@ func (a *App) canFlagPost(groupId, postId string) *model.AppError {
 }
 
 func (a *App) getContentFlaggingMappedFields(groupId string) (map[string]*model.PropertyField, *model.AppError) {
-	fields, err := a.Srv().propertyService.SearchPropertyFields(groupId, "", model.PropertyFieldSearchOpts{PerPage: 100})
+	fields, err := a.Srv().propertyService.SearchPropertyFields(groupId, "", model.PropertyFieldSearchOpts{PerPage: CONTENT_FLAGGING_MAX_PROPERTY_FIELDS})
 	if err != nil {
 		return nil, model.NewAppError("getContentFlaggingMappedFields", "app.content_flagging.search_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -205,12 +195,12 @@ func (a *App) getContentFlaggingMappedFields(groupId string) (map[string]*model.
 }
 
 func (a *App) createContentReviewPost(c request.CTX, teamId, postId string) *model.AppError {
-	channels, appErr := a.getContentReviewChannels(c, teamId)
+	contentReviewBot, appErr := a.getContentReviewBot(c)
 	if appErr != nil {
 		return appErr
 	}
 
-	contentReviewBot, appErr := a.getContentReviewBot(c)
+	channels, appErr := a.getContentReviewChannels(c, teamId, contentReviewBot.UserId)
 	if appErr != nil {
 		return appErr
 	}
@@ -218,6 +208,7 @@ func (a *App) createContentReviewPost(c request.CTX, teamId, postId string) *mod
 	post := &model.Post{
 		Message: fmt.Sprintf("A new content review has been created for team %s and post %s. Please check the flagged content.", teamId, postId),
 		UserId:  contentReviewBot.UserId,
+		Type:    "custom_spillage_report",
 	}
 
 	for _, channel := range channels {
@@ -232,28 +223,21 @@ func (a *App) createContentReviewPost(c request.CTX, teamId, postId string) *mod
 	return nil
 }
 
-func (a *App) getContentReviewChannels(c request.CTX, teamId string) ([]*model.Channel, *model.AppError) {
+func (a *App) getContentReviewChannels(c request.CTX, teamId, contentReviewBotId string) ([]*model.Channel, *model.AppError) {
 	reviewersUserIDs, appErr := a.getReviewersForTeam(teamId)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	bot, appErr := a.getContentReviewBot(c)
 	if appErr != nil {
 		return nil, appErr
 	}
 
 	var channels []*model.Channel
 	for _, userId := range reviewersUserIDs {
-		channel, appErr := a.GetOrCreateDirectChannel(c, userId, bot.UserId)
+		channel, appErr := a.GetOrCreateDirectChannel(c, userId, contentReviewBotId)
 		if appErr != nil {
 			// Don't stop processing other reviewers if one fails
-			c.Logger().Error("Failed to get or create direct channel for one of the reviewers and content review bot", mlog.Err(appErr), mlog.String("user_id", userId), mlog.String("bot_id", bot.UserId))
+			c.Logger().Error("Failed to get or create direct channel for one of the reviewers and content review bot", mlog.Err(appErr), mlog.String("user_id", userId), mlog.String("bot_id", contentReviewBotId))
 		}
 
-		if channel != nil {
-			channels = append(channels, channel)
-		}
+		channels = append(channels, channel)
 	}
 
 	return channels, nil
@@ -266,7 +250,6 @@ func (a *App) getContentReviewBot(c request.CTX) (*model.Bot, *model.AppError) {
 func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
 	var reviewerUserIDs []string
 
-	// Common reviewers
 	reviewerSettings := a.Config().ContentFlaggingSettings.ReviewerSettings
 
 	if *reviewerSettings.CommonReviewers {
@@ -328,9 +311,6 @@ func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
 	}
 
 	for _, user := range additionalReviewers {
-		if user.IsBot || user.IsGuest() {
-			continue
-		}
 		reviewerUserIDs = append(reviewerUserIDs, user.Id)
 	}
 
