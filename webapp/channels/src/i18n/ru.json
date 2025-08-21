@@ -2777,8 +2777,6 @@
   "admin.user_item.userMFARemoveFailed": "Не удалось удалить многофакторную аутентификацию (MFA) пользователя",
   "admin.user_item.userNotFound": "Невозможно загрузить пользователя",
   "admin.user_item.userUpdateFailed": "Не удалось обновить пользователя",
-  "admin.viewArchivedChannelsHelpText": "При значении \"да\" позволяет пользователям просматривать, обмениваться и искать содержимое каналов, которые были заархивированы. Пользователи могут просматривать контент только в тех каналах, участниками которых они были, до того как канал был заархивирован.",
-  "admin.viewArchivedChannelsTitle": "Разрешить пользователям просматривать архивированные каналы:",
   "admin.webserverModeDisabled": "Выключено",
   "admin.webserverModeDisabledDescription": "Mattermost сервер не будет обслуживать статические файлы.",
   "admin.webserverModeGzip": "gzip",
