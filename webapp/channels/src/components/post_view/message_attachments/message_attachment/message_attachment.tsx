@@ -5,7 +5,7 @@ import truncate from 'lodash/truncate';
 import React from 'react';
 import type {KeyboardEvent, MouseEvent, CSSProperties} from 'react';
 
-import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
+import type {PostActionOption} from '@mattermost/types/integration_actions';
 import type {
     MessageAttachment as MessageAttachmentType,
 } from '@mattermost/types/message_attachments';
@@ -144,7 +144,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
 
         const content = [] as JSX.Element[];
 
-        actions.forEach((action: PostAction) => {
+        actions.forEach((action) => {
             if (!action.id || !action.name) {
                 return;
             }
