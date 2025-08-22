@@ -6,7 +6,7 @@ import * as ReactRedux from 'react-redux';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderHookWithContext} from 'tests/react_testing_utils';
+import {renderHookWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import {usePost} from './usePost';
@@ -167,7 +167,7 @@ describe('usePost', () => {
                 reply(200, [post2]);
 
             let postId = 'post1';
-            const {result, rerender, waitForNextUpdate} = renderHookWithContext(
+            const {result, rerender} = renderHookWithContext(
                 () => usePost(postId),
             );
 
@@ -177,12 +177,11 @@ describe('usePost', () => {
             expect(post2Mock.isDone()).toBe(false);
 
             // Wait for the response with post1
-
-            await waitForNextUpdate();
-
-            expect(post1Mock.isDone()).toBe(true);
-            expect(post2Mock.isDone()).toBe(false);
-            expect(result.current).toEqual(post1);
+            await waitFor(() => {
+                expect(post1Mock.isDone()).toBe(true);
+                expect(post2Mock.isDone()).toBe(false);
+                expect(result.current).toEqual(post1);
+            });
 
             // Switch to post2
             postId = 'post2';
@@ -191,11 +190,11 @@ describe('usePost', () => {
             expect(result.current).toEqual(undefined);
 
             // Wait for the response with post2
-            await waitForNextUpdate();
-
-            expect(post1Mock.isDone()).toBe(true);
-            expect(post2Mock.isDone()).toBe(true);
-            expect(result.current).toEqual(post2);
+            await waitFor(() => {
+                expect(post1Mock.isDone()).toBe(true);
+                expect(post2Mock.isDone()).toBe(true);
+                expect(result.current).toEqual(post2);
+            });
 
             // Switch back to post1 which has already been loaded
             postId = 'post1';
@@ -212,7 +211,7 @@ describe('usePost', () => {
                 once().
                 reply(200, [post1, post2]);
 
-            const {result, waitForNextUpdate} = renderHookWithContext(
+            const {result} = renderHookWithContext(
                 () => {
                     return [
                         usePost('post1'),
@@ -226,10 +225,10 @@ describe('usePost', () => {
             expect(mock.isDone()).toBe(false);
 
             // Wait for the response
-            await waitForNextUpdate();
-
-            expect(result.current).toEqual([post1, post2]);
-            expect(mock.isDone()).toBe(true);
+            await waitFor(() => {
+                expect(result.current).toEqual([post1, post2]);
+                expect(mock.isDone()).toBe(true);
+            });
         });
     });
 });

@@ -6,10 +6,15 @@ import * as ReactRedux from 'react-redux';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderHookWithContext} from 'tests/react_testing_utils';
+import {renderHookWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import {useChannel} from './useChannel';
+
+jest.mock('react-redux', () => ({
+    __esModule: true,
+    ...jest.requireActual('react-redux'),
+}));
 
 describe('useChannel', () => {
     const channel1 = TestHelper.getChannelMock({id: 'channel1'});
@@ -167,7 +172,7 @@ describe('useChannel', () => {
                 reply(200, channel2);
 
             let channelId = 'channel1';
-            const {result, rerender, waitForNextUpdate} = renderHookWithContext(
+            const {result, rerender} = renderHookWithContext(
                 () => useChannel(channelId),
             );
 
@@ -177,12 +182,11 @@ describe('useChannel', () => {
             expect(channel2Mock.isDone()).toBe(false);
 
             // Wait for the response with channel1
-
-            await waitForNextUpdate();
-
-            expect(channel1Mock.isDone()).toBe(true);
-            expect(channel2Mock.isDone()).toBe(false);
-            expect(result.current).toEqual(channel1);
+            await waitFor(() => {
+                expect(channel1Mock.isDone()).toBe(true);
+                expect(channel2Mock.isDone()).toBe(false);
+                expect(result.current).toEqual(channel1);
+            });
 
             // Switch to channel2
             channelId = 'channel2';
@@ -191,11 +195,11 @@ describe('useChannel', () => {
             expect(result.current).toEqual(undefined);
 
             // Wait for the response with channel2
-            await waitForNextUpdate();
-
-            expect(channel1Mock.isDone()).toBe(true);
-            expect(channel2Mock.isDone()).toBe(true);
-            expect(result.current).toEqual(channel2);
+            await waitFor(() => {
+                expect(channel1Mock.isDone()).toBe(true);
+                expect(channel2Mock.isDone()).toBe(true);
+                expect(result.current).toEqual(channel2);
+            });
 
             // Switch back to channel1 which has already been loaded
             channelId = 'channel1';

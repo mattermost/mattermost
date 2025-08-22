@@ -41,12 +41,12 @@
   "dependencies": {
     "@mattermost/client": "10.12.0",
     "@mattermost/types": "10.12.0",
-    "@redux-devtools/extension": "^3.2.3",
+    "@redux-devtools/extension": "3.3.0",
     "lodash": "^4.17.21",
     "moment-timezone": "^0.5.38",
-    "redux": "^4.2.0",
-    "redux-batched-actions": "^0.5.0",
-    "redux-thunk": "^2.4.2",
+    "redux": "^5.0.0",
+    "redux-batched-actions": "0.5.0",
+    "redux-thunk": "^3.0.0",
     "serialize-error": "^11.0.3",
     "shallow-equals": "^1.0.0",
     "timezones.json": "^1.7.1"

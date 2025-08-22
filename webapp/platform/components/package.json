@@ -8,6 +8,7 @@
   "scripts": {
     "build": "rollup -c",
     "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet",
+    "check-types": "tsc -b",
     "run": "rollup -c --watch",
     "test": "cross-env TZ=Etc/UTC jest",
     "test:updatesnapshot": "cross-env TZ=Etc/UTC jest --updateSnapshot",
@@ -25,9 +26,11 @@
     "@types/react": "18.3.24",
     "@types/react-bootstrap": "^0.32.35",
     "@types/react-dom": "18.3.7",
-    "@types/react-redux": "^7.1.21",
     "@types/shallow-equals": "^1.0.0",
     "@types/styled-components": "^5.1.19",
+    "babel-plugin-styled-components": "2.1.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "rollup": "^2.75.7",
     "rollup-plugin-scss": "4.0.0",
     "rollup-plugin-ts": "^2.0.5",
@@ -36,18 +39,15 @@
   "peerDependencies": {
     "@babel/runtime-corejs3": "^7.17.8",
     "@mattermost/compass-icons": "0.1.49",
-    "@mui/base": "5.0.0-alpha.127",
-    "@mui/material": "5.11.16",
-    "@mui/styled-engine-sc": "5.11.11",
-    "@tippyjs/react": "^4.2.6",
     "classnames": "^2.3.1",
     "lodash": "^4.17.21",
-    "react": "18.3.1",
-    "react-bootstrap": "github:mattermost/react-bootstrap#7d8660f06188a6433bb0f69b5816a97dc9ebe48c",
-    "react-dom": "18.3.1",
     "react-intl": "*",
     "shallow-equals": "^1.0.0",
-    "styled-components": "^5.3.5",
     "tippy.js": "^6.3.7"
+  },
+  "dependencies": {
+    "@tippyjs/react": "4.2.6",
+    "react-bootstrap": "github:mattermost/react-bootstrap#7d8660f06188a6433bb0f69b5816a97dc9ebe48c",
+    "styled-components": "5.3.7"
   }
 }

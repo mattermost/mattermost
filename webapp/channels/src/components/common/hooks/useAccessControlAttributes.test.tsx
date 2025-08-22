@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {renderHook, act} from '@testing-library/react-hooks';
+import {renderHook, act, waitFor} from '@testing-library/react';
 import React from 'react';
 import {Provider} from 'react-redux';
 import configureStore from 'redux-mock-store';
-import thunk from 'redux-thunk';
+import {thunk} from 'redux-thunk';
 
 import {useAccessControlAttributes, EntityType} from './useAccessControlAttributes';
 
@@ -97,39 +97,37 @@ describe('useAccessControlAttributes', () => {
     });
 
     test('should fetch and process attributes successfully', async () => {
-        const {result, waitForNextUpdate} = renderHook(() => useAccessControlAttributes(EntityType.Channel, 'channel-1', true), {wrapper});
+        const {result} = renderHook(() => useAccessControlAttributes(EntityType.Channel, 'channel-1', true), {wrapper});
 
         // Initial state
         expect(result.current.loading).toBe(true);
 
-        // Wait for the hook to finish fetching
-        await waitForNextUpdate();
-
-        // Check the final state
-        expect(result.current.attributeTags).toEqual(['engineering', 'marketing', 'remote']);
-        expect(result.current.structuredAttributes).toEqual([
-            {name: 'department', values: ['engineering', 'marketing']},
-            {name: 'location', values: ['remote']},
-        ]);
-        expect(result.current.loading).toBe(false);
-        expect(result.current.error).toBe(null);
+        // Wait for the hook to finish fetching and check the final state
+        await waitFor(() => {
+            expect(result.current.attributeTags).toEqual(['engineering', 'marketing', 'remote']);
+            expect(result.current.structuredAttributes).toEqual([
+                {name: 'department', values: ['engineering', 'marketing']},
+                {name: 'location', values: ['remote']},
+            ]);
+            expect(result.current.loading).toBe(false);
+            expect(result.current.error).toBe(null);
+        });
     });
 
     test('should handle errors when fetching attributes', async () => {
-        const {result, waitForNextUpdate} = renderHook(() => useAccessControlAttributes(EntityType.Channel, 'error-channel', true), {wrapper});
+        const {result} = renderHook(() => useAccessControlAttributes(EntityType.Channel, 'error-channel', true), {wrapper});
 
         // Initial state
         expect(result.current.loading).toBe(true);
 
-        // Wait for the hook to finish fetching
-        await waitForNextUpdate();
-
-        // Check the final state
-        expect(result.current.attributeTags).toEqual([]);
-        expect(result.current.structuredAttributes).toEqual([]);
-        expect(result.current.loading).toBe(false);
-        expect(result.current.error).toBeInstanceOf(Error);
-        expect(result.current.error?.message).toBe('Failed to fetch attributes');
+        // Wait for the hook to finish fetching and check the final state
+        await waitFor(() => {
+            expect(result.current.attributeTags).toEqual([]);
+            expect(result.current.structuredAttributes).toEqual([]);
+            expect(result.current.loading).toBe(false);
+            expect(result.current.error).toBeInstanceOf(Error);
+            expect(result.current.error?.message).toBe('Failed to fetch attributes');
+        });
     });
 
     test('should handle unsupported entity types', async () => {
