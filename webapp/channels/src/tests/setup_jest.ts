@@ -3,8 +3,8 @@
 
 /* eslint-disable no-console */
 
+import Adapter from '@cfaester/enzyme-adapter-react-18';
 import {configure} from 'enzyme';
-import Adapter from 'enzyme-adapter-react-17-updated';
 
 import '@testing-library/jest-dom';
 import 'isomorphic-fetch';
@@ -20,7 +20,7 @@ module.exports = async () => {
     process.env.TZ = 'UTC';
 };
 
-configure({adapter: new (Adapter as any)()});
+configure({adapter: new Adapter()});
 
 global.window = Object.create(window);
 Object.defineProperty(window, 'location', {

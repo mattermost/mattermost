@@ -8,8 +8,9 @@ import {
 } from 'redux';
 import type {
     Reducer,
-    Store} from 'redux';
-import thunk from 'redux-thunk';
+    Store,
+} from 'redux';
+import {withExtraArgument as thunkWithExtraArgument} from 'redux-thunk';
 
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -51,7 +52,7 @@ export default function configureStore<S extends GlobalState>({
         // @hmhealey I've added this extra argument to Thunks to store information related to the store that can't be
         // part of Redux state itself. At the moment, this is so that I can attach let DataLoaders dispatch actions.
         // If you want to make use of this, talk to me first since I want to know more.
-        thunk.withExtraArgument({loaders: {}}),
+        thunkWithExtraArgument({loaders: {}}),
     );
 
     const enhancers = composeEnhancers(middleware);
