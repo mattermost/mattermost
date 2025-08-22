@@ -1037,6 +1037,57 @@ func (a *App) userDeactivated(rctx request.CTX, userID string) *model.AppError {
 		rctx.Logger().Warn("unable to remove auth data by user id", mlog.Err(nErr))
 	}
 
+	if err := a.softDeleteUserDMChannels(c, userID, model.GetMillis()); err != nil {
+		c.Logger().Warn("Failed to archive DM channels for deactivated user", mlog.Err(err))
+	}
+	return nil
+}
+
+func (a *App) softDeleteUserDMChannels(c request.CTX, userID string, deleteTimestamp int64) *model.AppError {
+	fromID := ""
+	const pageSize = 200
+
+	for {
+		channels, err := a.Srv().Store().Channel().GetChannelsByUser(userID, false /* includeDeleted */, 0, pageSize, fromID)
+		if err != nil {
+			return model.NewAppError("softDeleteUserDMChannels", "app.channel.get_channels_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		if len(channels) == 0 {
+			break
+		}
+
+		for _, channel := range channels {
+			fromID = channel.Id
+
+			if channel.Type != model.ChannelTypeDirect {
+				continue
+			}
+			if channel.DeleteAt != 0 {
+				continue
+			}
+
+			if err := a.Srv().Store().Channel().SetDeleteAt(channel.Id, deleteTimestamp, deleteTimestamp); err != nil {
+				c.Logger().Error("SetDeleteAt failed", mlog.String("ch_id", channel.Id), mlog.Err(err))
+				return model.NewAppError("softDeleteUserDMChannels", "app.channel.set_delete_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+
+			a.Srv().Store().Channel().InvalidateChannel(channel.Id)
+
+			evt := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, "", channel.Id, "", nil, "")
+
+			updated, _ := a.Srv().Store().Channel().Get(channel.Id, false)
+			if updated != nil {
+				b, _ := json.Marshal(updated)
+				evt.Add("channel", string(b))
+			}
+			a.Publish(evt)
+		}
+
+		if len(channels) < pageSize {
+			break
+		}
+	}
+
 	return nil
 }
 
