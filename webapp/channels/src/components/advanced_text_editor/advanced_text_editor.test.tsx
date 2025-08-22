@@ -6,6 +6,7 @@ import React from 'react';
 import type {Channel} from '@mattermost/types/channels';
 
 import Permissions from 'mattermost-redux/constants/permissions';
+import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
 import {removeDraft, updateDraft} from 'actions/views/drafts';
 
@@ -14,7 +15,7 @@ import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, userEvent, screen, act} from 'tests/react_testing_utils';
-import Constants, {Locations, StoragePrefixes} from 'utils/constants';
+import Constants, {Locations, StoragePrefixes, Preferences, AdvancedTextEditor as AdvancedTextEditorConst} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {PostDraft} from 'types/store/draft';
@@ -499,5 +500,51 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         props.isThreadView = true;
         rerender(<AdvancedTextEditor {...props}/>);
         expect(container.querySelector('#editPostFileDropOverlay')).toBeVisible();
+    });
+
+    it('should show preview button when full formatting toolbar is hidden', async () => {
+        const props: Props = {
+            ...baseProps,
+        };
+
+        const category = Preferences.ADVANCED_TEXT_EDITOR;
+        const preferenceKey = getPreferenceKey(category, AdvancedTextEditorConst.POST);
+        const {container} = renderWithContext(
+            <AdvancedTextEditor
+                {...props}
+            />,
+            mergeObjects(initialState, {
+                entities: {
+                    preferences: {
+                        myPreferences: {
+                            [preferenceKey]: {
+                                user_id: currentUserId,
+                                category,
+                                name: AdvancedTextEditorConst.POST,
+                                value: 'true'
+                            }
+                        }
+                    }
+                },
+            }),
+        );
+
+        const formattingBar = screen.queryByTestId('formattingBarContainer');
+        expect(formattingBar).not.toBeInTheDocument();
+
+        const textbox = screen.getByPlaceholderText('Write to Test Channel');
+        await act(async () => {
+            userEvent.type(textbox, 'hello world');
+        });
+
+        const previewButton = container.querySelector('#PreviewInputTextButton');
+        expect(previewButton).toBeInTheDocument();
+
+        await act(async () => {
+            userEvent.click(previewButton!);
+        });
+
+        // Check that the preview is now shown
+        expect(container.querySelector('.textarea-wrapper-preview')).toBeInTheDocument();
     });
 });

@@ -805,7 +805,7 @@ const AdvancedTextEditor = ({
                             isInEditMode={isInEditMode}
                         />
                         {attachmentPreview}
-                        {!isDisabled && (showFormattingBar || showPreview) && (
+                        {!isDisabled && showFormattingBar && (
                             <TexteditorActions
                                 placement='top'
                                 isScrollbarRendered={renderScrollbar}
@@ -823,6 +823,7 @@ const AdvancedTextEditor = ({
                                 ref={editorActionsRef}
                                 placement='bottom'
                             >
+                                {!showFormattingBar && showFormatJSX}
                                 <ToggleFormattingBar
                                     onClick={toggleAdvanceTextEditor}
                                     active={showFormattingBar}
