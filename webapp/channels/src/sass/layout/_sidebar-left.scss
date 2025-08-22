@@ -474,31 +474,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         min-height: 0;
         flex: 1;
         flex-direction: column;
-
-        .scrollbar--view {
-            z-index: unset !important;
-            margin-top: 8px;
-        }
-
-        .scrollbar--view ~ div {
-            z-index: 2;
-
-            div {
-                z-index: 2;
-            }
-        }
-
-        .scrollbar--verticalTrack {
-            top: 2px;
-            right: 2px;
-            bottom: 2px;
-            border-radius: 3px;
-            pointer-events: none;
-        }
-
-        .scrollbar--vertical {
-            pointer-events: all;
-        }
     }
 
     .SidebarCategory_newLabel {
