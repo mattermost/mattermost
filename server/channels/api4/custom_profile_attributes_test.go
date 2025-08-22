@@ -96,8 +96,8 @@ func TestCreateCPAField(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		managedField := &model.PropertyField{
-			Name:  model.NewId(),
-			Type:  model.PropertyFieldTypeText,
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
 			Attrs: model.StringInterface{
 				model.CustomProfileAttributesPropertyAttrsManaged: "admin",
 				"visibility": "when_set",
