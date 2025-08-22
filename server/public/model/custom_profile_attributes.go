@@ -182,7 +182,7 @@ func (c *CPAField) SanitizeAndValidate() *AppError {
 	}
 
 	// Clear sync properties if managed is set (mutual exclusivity)
-	if c.Attrs.Managed == "admin" {
+	if c.IsAdminManaged() {
 		c.Attrs.LDAP = ""
 		c.Attrs.SAML = ""
 	}
