@@ -151,7 +151,7 @@ func TestCreateChannel(t *testing.T) {
 	t.Run("Test create channel with missing team id", func(t *testing.T) {
 		channel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: ""}
 
-		_, resp, err := client.CreateChannel(context.Background(), channel)
+		_, resp, err = client.CreateChannel(context.Background(), channel)
 		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
 		CheckBadRequestStatus(t, resp)
 	})
@@ -159,7 +159,7 @@ func TestCreateChannel(t *testing.T) {
 	t.Run("Test create channel with missing display name", func(t *testing.T) {
 		channel := &model.Channel{DisplayName: "", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
 
-		_, resp, err := client.CreateChannel(context.Background(), channel)
+		_, resp, err = client.CreateChannel(context.Background(), channel)
 		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
 		CheckBadRequestStatus(t, resp)
 	})
@@ -177,7 +177,8 @@ func TestCreateChannel(t *testing.T) {
 			},
 		}
 
-		createdChannel, resp, err := client.CreateChannel(context.Background(), channel)
+		var createdChannel *model.Channel
+		createdChannel, resp, err = client.CreateChannel(context.Background(), channel)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
@@ -197,9 +198,97 @@ func TestCreateChannel(t *testing.T) {
 			},
 		}
 
-		_, resp, err := client.CreateChannel(context.Background(), channel)
+		_, resp, err = client.CreateChannel(context.Background(), channel)
 		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
 		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Guest users", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.AllowEmailAccounts = true })
+
+		guestUser := th.CreateUser()
+		appErr := th.App.VerifyUserEmail(guestUser.Id, guestUser.Email)
+		require.Nil(t, appErr)
+
+		appErr = th.App.DemoteUserToGuest(th.Context, guestUser)
+		require.Nil(t, appErr)
+
+		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guestUser.Id, "")
+		require.Nil(t, appErr)
+
+		guestClient := th.CreateClient()
+		_, _, err := guestClient.Login(context.Background(), guestUser.Username, guestUser.Password)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_, lErr := guestClient.Logout(context.Background())
+			require.NoError(t, lErr)
+		})
+
+		userOutsideOfChannels := th.CreateUser()
+		_, _, err = th.Client.AddTeamMember(context.Background(), team.Id, userOutsideOfChannels.Id)
+		require.NoError(t, err)
+
+		public := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
+		private := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypePrivate, TeamId: team.Id}
+
+		t.Run("Guest user should not be able to create channels", func(t *testing.T) {
+			_, resp, err = guestClient.CreateChannel(context.Background(), public)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+
+			private.Name = GenerateTestChannelName()
+			_, resp, err = guestClient.CreateChannel(context.Background(), private)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+		})
+
+		t.Run("Guest user should not be able to add channel members if they have no common channels", func(t *testing.T) {
+			// Now actually create the channels with the main client
+			public, _, err = th.Client.CreateChannel(context.Background(), public)
+			require.NoError(t, err)
+			private, _, err = th.Client.CreateChannel(context.Background(), private)
+			require.NoError(t, err)
+
+			// Add the guest user to the private channel
+			_, _, err = th.Client.AddChannelMember(context.Background(), private.Id, guestUser.Id)
+			require.NoError(t, err)
+
+			// Verify that the guest user can access the private channel they were added to
+			_, _, err = guestClient.GetChannel(context.Background(), private.Id, "")
+			require.NoError(t, err)
+
+			// Verify that the guest user cannot add members to the private channel
+			_, resp, err = guestClient.AddChannelMember(context.Background(), private.Id, userOutsideOfChannels.Id)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+
+			// Add the guest user to the public channel
+			_, _, err = th.Client.AddChannelMember(context.Background(), public.Id, guestUser.Id)
+			require.NoError(t, err)
+
+			// Verify that the guest user can access the public channel they were added to
+			_, _, err = guestClient.GetChannel(context.Background(), public.Id, "")
+			require.NoError(t, err)
+
+			// Verify that the guest user cannot add members to the public channel
+			_, resp, err = guestClient.AddChannelMember(context.Background(), public.Id, userOutsideOfChannels.Id)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+
+			// Update team guest permissions to allow creating private channels
+			th.AddPermissionToRole(model.PermissionCreatePrivateChannel.Id, model.TeamGuestRoleId)
+			privateGuest := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypePrivate, TeamId: team.Id}
+			privateGuest, resp, err = guestClient.CreateChannel(context.Background(), privateGuest)
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+
+			// Verify that the guest user can't add users they have no visibility to
+			_, resp, err = guestClient.AddChannelMember(context.Background(), privateGuest.Id, userOutsideOfChannels.Id)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+		})
 	})
 }
 
