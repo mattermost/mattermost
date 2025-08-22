@@ -38,6 +38,17 @@ func TestFlagContentRequest_IsValid(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
+	t.Run("missing comment when required", func(t *testing.T) {
+		req := &FlagContentRequest{
+			Reason:  "spam",
+			Comment: "",
+		}
+		err := req.IsValid(true, validReasons)
+		assert.NotNil(t, err)
+		assert.Equal(t, "api.content_flagging.error.comment_required", err.Id)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+	})
+
 	t.Run("missing reason", func(t *testing.T) {
 		req := &FlagContentRequest{
 			Reason:  "",
@@ -57,17 +68,6 @@ func TestFlagContentRequest_IsValid(t *testing.T) {
 		err := req.IsValid(false, validReasons)
 		assert.NotNil(t, err)
 		assert.Equal(t, "api.content_flagging.error.reason_invalid", err.Id)
-		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
-	})
-
-	t.Run("missing comment when required", func(t *testing.T) {
-		req := &FlagContentRequest{
-			Reason:  "spam",
-			Comment: "",
-		}
-		err := req.IsValid(true, validReasons)
-		assert.NotNil(t, err)
-		assert.Equal(t, "api.content_flagging.error.comment_required", err.Id)
 		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
 	})
 
