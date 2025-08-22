@@ -4,25 +4,6 @@
 $sidebarHeightTransitionDuration: 0.18s;
 $sidebarOpacityAnimationDuration: 0.15s;
 
-#TeamSidebar {
-    z-index: 13;
-    display: flex;
-    width: 64px;
-    height: 100%;
-    flex-direction: column;
-    background-color: var(--sidebar-header-bg);
-    text-align: center;
-
-    .TeamSidebarWrapper {
-        position: relative;
-        overflow: hidden;
-        height: 100%;
-        flex: 1 1 auto;
-        background-color: rgba(0, 0, 0, 0.2);
-        -webkit-overflow-scrolling: touch;
-    }
-}
-
 #SidebarContainer {
     position: relative;
     z-index: 16;
@@ -31,8 +12,10 @@ $sidebarOpacityAnimationDuration: 0.15s;
     min-width: 240px;
     max-width: 240px;
     height: 100%;
+    min-height: 0;
     flex-direction: column;
     background-color: var(--sidebar-bg);
+    overflow-x: visible;
 
     @media screen and (min-width: 769px) {
         width: var(--overrideLhsWidth, 264px);
@@ -486,7 +469,11 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
     .SidebarNavContainer {
         position: relative;
-        flex: 1 1 auto;
+        display: flex;
+        overflow: clip;
+        min-height: 0;
+        flex: 1;
+        flex-direction: column;
 
         .scrollbar--view {
             z-index: unset !important;
