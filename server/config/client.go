@@ -189,11 +189,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["SamlPositionAttributeSet"] = strconv.FormatBool(*c.SamlSettings.PositionAttribute != "")
 		}
 
-		if *license.Features.FutureFeatures {
-			props["ExperimentalClientSideCertEnable"] = strconv.FormatBool(*c.ExperimentalSettings.ClientSideCertEnable)
-			props["ExperimentalClientSideCertCheck"] = *c.ExperimentalSettings.ClientSideCertCheck
-		}
-
 		if *license.Features.Cluster {
 			props["EnableCluster"] = strconv.FormatBool(*c.ClusterSettings.Enable)
 		}

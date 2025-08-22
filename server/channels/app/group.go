@@ -94,6 +94,14 @@ func (a *App) GetGroupsByUserId(userID string, opts model.GroupSearchOpts) ([]*m
 	return groups, nil
 }
 
+func (a *App) GetGroupsByNames(names []string, restrictions *model.ViewUsersRestrictions) ([]*model.Group, *model.AppError) {
+	groups, err := a.Srv().Store().Group().GetByNames(names, restrictions)
+	if err != nil {
+		return nil, model.NewAppError("GetGroupsByNames", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return groups, nil
+}
+
 func (a *App) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
 	if err := a.isUniqueToUsernames(group.GetName()); err != nil {
 		err.Where = "CreateGroup"

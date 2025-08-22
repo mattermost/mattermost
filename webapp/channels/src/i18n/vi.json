@@ -2319,8 +2319,6 @@
   "admin.user_item.sysAdmin": "Quản trị hệ thống",
   "admin.user_item.teamAdmin": "Quản trị viên nhóm",
   "admin.user_item.teamMember": "Thành viên nhóm",
-  "admin.viewArchivedChannelsHelpText": "(Beta) Khi đúng, cho phép người dùng xem, chia sẻ và tìm kiếm nội dung của các kênh đã được lưu trữ. Người dùng chỉ có thể xem nội dung trong các kênh mà họ là thành viên trước khi kênh được lưu trữ.",
-  "admin.viewArchivedChannelsTitle": "Cho phép người dùng xem các kênh đã lưu trữ:",
   "admin.webserverModeDisabled": "Đã tắt",
   "admin.webserverModeDisabledDescription": "Máy chủ Mattermost sẽ không cung cấp các tệp tĩnh.",
   "admin.webserverModeGzip": "gzip",
