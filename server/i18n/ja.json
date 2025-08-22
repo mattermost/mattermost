@@ -8138,14 +8138,6 @@
     "translation": "全てのロールを取得できませんでした。"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "アーカイブされたチャンネルのユーザーを取得できません"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "アーカイブされたチャンネルの投稿を取得できません"
-  },
-  {
     "id": "api.templates.invite_body.title.reminder",
     "translation": "リマインダー"
   },
@@ -10180,10 +10172,6 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
     "translation": "チャンネルブックマークのソート順を更新できませんでした。"
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "アーカイブされたチャンネルのブックマークを取得できませんでした"
   },
   {
     "id": "app.file_info.get_count.app_error",

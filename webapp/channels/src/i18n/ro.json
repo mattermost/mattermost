@@ -2013,8 +2013,6 @@
   "admin.user_item.sysAdmin": "Administrator de sistem",
   "admin.user_item.teamAdmin": "Team Admin",
   "admin.user_item.teamMember": "Membru",
-  "admin.viewArchivedChannelsHelpText": "(Experimental) Când este adevărat, permite utilizatorilor să partajeze permalinks și să caute conținut de canale care au fost arhivate. Utilizatorii pot vizualiza conținutul numai în canalele din care au fost membri înainte de arhivarea canalului.",
-  "admin.viewArchivedChannelsTitle": "Permite utilizatorilor să vizualizeze canalele arhivate:",
   "admin.webserverModeDisabled": "Dezactivat",
   "admin.webserverModeDisabledDescription": "Serverul Mattermost nu va difuza fișiere statice.",
   "admin.webserverModeGzip": "gzip",
