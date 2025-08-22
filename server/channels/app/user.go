@@ -1037,9 +1037,10 @@ func (a *App) userDeactivated(rctx request.CTX, userID string) *model.AppError {
 		rctx.Logger().Warn("unable to remove auth data by user id", mlog.Err(nErr))
 	}
 
-	if err := a.softDeleteUserDMChannels(c, userID, model.GetMillis()); err != nil {
+	if err = a.softDeleteUserDMChannels(c, userID, model.GetMillis()); err != nil {
 		c.Logger().Warn("Failed to archive DM channels for deactivated user", mlog.Err(err))
 	}
+
 	return nil
 }
 
