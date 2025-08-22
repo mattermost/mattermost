@@ -999,6 +999,15 @@ func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	if session := c.AppContext.Session(); session.IsGuest() {
+		for _, channel := range channels {
+			if !c.App.SessionHasPermissionToChannel(c.AppContext, *session, channel.Id, model.PermissionReadChannel) {
+				c.SetPermissionError(model.PermissionReadChannel)
+				return
+			}
+		}
+	}
+
 	appErr = c.App.FillInChannelsProps(c.AppContext, channels)
 	if appErr != nil {
 		c.Err = appErr
