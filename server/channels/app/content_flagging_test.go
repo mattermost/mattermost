@@ -515,7 +515,7 @@ func TestCanFlagPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		statusField, err := th.Server.propertyService.GetPropertyFieldByName(groupId, "", contentFlaggingPropertyNameStatus)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		propertyValue, err := th.Server.propertyService.CreatePropertyValue(&model.PropertyValue{
 			TargetID:   post.Id,
@@ -524,7 +524,7 @@ func TestCanFlagPost(t *testing.T) {
 			TargetType: "post",
 			Value:      json.RawMessage(`"` + model.ContentFlaggingStatusPending + `"`),
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		// Cant fleg when post already flagged in pending status
 		appErr = th.App.canFlagPost(groupId, post.Id)
@@ -534,7 +534,7 @@ func TestCanFlagPost(t *testing.T) {
 		// Cant fleg when post already flagged in assigned status
 		propertyValue.Value = json.RawMessage(`"` + model.ContentFlaggingStatusAssigned + `"`)
 		_, err = th.Server.propertyService.UpdatePropertyValue(groupId, propertyValue)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		appErr = th.App.canFlagPost(groupId, post.Id)
 		require.NotNil(t, appErr)
@@ -542,7 +542,7 @@ func TestCanFlagPost(t *testing.T) {
 		// Cant fleg when post already flagged in retained status
 		propertyValue.Value = json.RawMessage(`"` + model.ContentFlaggingStatusRetained + `"`)
 		_, err = th.Server.propertyService.UpdatePropertyValue(groupId, propertyValue)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		appErr = th.App.canFlagPost(groupId, post.Id)
 		require.NotNil(t, appErr)
@@ -550,7 +550,7 @@ func TestCanFlagPost(t *testing.T) {
 		// Cant fleg when post already flagged in removed status
 		propertyValue.Value = json.RawMessage(`"` + model.ContentFlaggingStatusRemoved + `"`)
 		_, err = th.Server.propertyService.UpdatePropertyValue(groupId, propertyValue)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		appErr = th.App.canFlagPost(groupId, post.Id)
 		require.NotNil(t, appErr)
@@ -600,7 +600,7 @@ func TestFlagPost(t *testing.T) {
 			PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID: mappedFields[contentFlaggingPropertyNameStatus].ID,
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Len(t, statusValues, 1)
 		require.Equal(t, `"`+model.ContentFlaggingStatusPending+`"`, string(statusValues[0].Value))
 
@@ -609,7 +609,7 @@ func TestFlagPost(t *testing.T) {
 			PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID: mappedFields[contentFlaggingPropertyNameReportingUserID].ID,
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Len(t, userValues, 1)
 		require.Equal(t, `"`+th.BasicUser2.Id+`"`, string(userValues[0].Value))
 
@@ -618,7 +618,7 @@ func TestFlagPost(t *testing.T) {
 			PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID: mappedFields[contentFlaggingPropertyNameReportingReason].ID,
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Len(t, reasonValues, 1)
 		require.Equal(t, `"spam"`, string(reasonValues[0].Value))
 
@@ -627,7 +627,7 @@ func TestFlagPost(t *testing.T) {
 			PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID: mappedFields[contentFlaggingPropertyNameReportingComment].ID,
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Len(t, commentValues, 1)
 		require.Equal(t, `"This is spam content"`, string(commentValues[0].Value))
 	})
@@ -771,7 +771,7 @@ func TestFlagPost(t *testing.T) {
 			PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID: mappedFields[contentFlaggingPropertyNameReportingComment].ID,
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Len(t, commentValues, 1)
 		require.Equal(t, `""`, string(commentValues[0].Value))
 	})
@@ -800,12 +800,12 @@ func TestFlagPost(t *testing.T) {
 			PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
 			FieldID: mappedFields[contentFlaggingPropertyNameReportingTime].ID,
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Len(t, timeValues, 1)
 
 		var reportingTime int64
 		err = json.Unmarshal(timeValues[0].Value, &reportingTime)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.True(t, reportingTime >= beforeTime && reportingTime <= afterTime)
 	})
 }
