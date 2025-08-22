@@ -56,10 +56,6 @@
     "translation": "Get fields limit is not valid."
   },
   {
-    "id": "api.not_implemented",
-    "translation": "This feature is not implemented."
-  },
-  {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "You cannot remove an acknowledgment in an archived channel."
   },
@@ -2415,6 +2411,10 @@
   {
     "id": "api.no_license",
     "translation": "E10 or E20 license required to use this endpoint."
+  },
+  {
+    "id": "api.not_implemented",
+    "translation": "This feature is not implemented."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
