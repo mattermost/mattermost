@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -467,5 +468,72 @@ func TestGetReviewersForTeam(t *testing.T) {
 		require.Len(t, reviewers, 2)
 		require.Contains(t, reviewers, th.BasicUser2.Id)
 		require.Contains(t, reviewers, th.SystemAdminUser.Id)
+	})
+}
+
+func TestCanFlagPost(t *testing.T) {
+	t.Parallel()
+
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	t.Run("should be able to flag post which has not already been flagged", func(t *testing.T) {
+		post := th.CreatePost(th.BasicChannel)
+
+		groupId, appErr := th.App.contentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		appErr = th.App.canFlagPost(groupId, post.Id)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("should not be able to flag post which has already been flagged", func(t *testing.T) {
+		post := th.CreatePost(th.BasicChannel)
+
+		groupId, appErr := th.App.contentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		statusField, err := th.Server.propertyService.GetPropertyFieldByName(groupId, "", contentFlaggingPropertyNameStatus)
+		require.Nil(t, err)
+
+		propertyValue, err := th.Server.propertyService.CreatePropertyValue(&model.PropertyValue{
+			TargetID:   post.Id,
+			GroupID:    groupId,
+			FieldID:    statusField.ID,
+			TargetType: "post",
+			Value:      json.RawMessage(`"` + model.ContentFlaggingStatusPending + `"`),
+		})
+		require.Nil(t, err)
+
+		// Cant fleg when post already flagged in pending status
+		appErr = th.App.canFlagPost(groupId, post.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, appErr.Id, "app.content_flagging.can_flag_post.in_progress")
+
+		// Cant fleg when post already flagged in assigned status
+		propertyValue.Value = json.RawMessage(`"` + model.ContentFlaggingStatusAssigned + `"`)
+		_, err = th.Server.propertyService.UpdatePropertyValue(groupId, propertyValue)
+		require.Nil(t, err)
+
+		appErr = th.App.canFlagPost(groupId, post.Id)
+		require.NotNil(t, appErr)
+
+		// Cant fleg when post already flagged in retained status
+		propertyValue.Value = json.RawMessage(`"` + model.ContentFlaggingStatusRetained + `"`)
+		_, err = th.Server.propertyService.UpdatePropertyValue(groupId, propertyValue)
+		require.Nil(t, err)
+
+		appErr = th.App.canFlagPost(groupId, post.Id)
+		require.NotNil(t, appErr)
+
+		// Cant fleg when post already flagged in removed status
+		propertyValue.Value = json.RawMessage(`"` + model.ContentFlaggingStatusRemoved + `"`)
+		_, err = th.Server.propertyService.UpdatePropertyValue(groupId, propertyValue)
+		require.Nil(t, err)
+
+		appErr = th.App.canFlagPost(groupId, post.Id)
+		require.NotNil(t, appErr)
 	})
 }
