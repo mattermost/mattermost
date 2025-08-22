@@ -10753,7 +10753,7 @@
         "translation": "No text specified."
     },
     {
-        "id": "web.incoming_webhook.user.app_error",
-        "translation": "Couldn't find the user {{.user}}"
+    "id": "web.incoming_webhook.user.app_error",
+    "translation": "Couldn't find the user {{.user}}"
     }
 ]

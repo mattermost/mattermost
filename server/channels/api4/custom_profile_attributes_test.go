@@ -93,6 +93,25 @@ func TestCreateCPAField(t *testing.T) {
 			require.Equal(t, createdField, &wsField)
 		})
 	}, "a user with admin permissions should be able to create the field")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		managedField := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsManaged: "admin",
+				"visibility": "when_set",
+			},
+		}
+
+		createdManagedField, resp, err := client.CreateCPAField(context.Background(), managedField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotZero(t, createdManagedField.ID)
+		require.Equal(t, managedField.Name, createdManagedField.Name)
+		require.Equal(t, "admin", createdManagedField.Attrs[model.CustomProfileAttributesPropertyAttrsManaged])
+		require.Equal(t, "when_set", createdManagedField.Attrs["visibility"])
+	}, "admin should be able to create a managed field")
 }
 
 func TestListCPAFields(t *testing.T) {
@@ -282,6 +301,48 @@ func TestPatchCPAField(t *testing.T) {
 			require.Empty(t, ldap)
 		})
 	}, "a user with admin permissions should be able to patch the field")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		// Create a regular field first
+		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+		})
+		require.NoError(t, err)
+
+		createdField, appErr := th.App.CreateCPAField(field)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdField)
+
+		// Verify field is not isManaged initially
+		require.Empty(t, createdField.Attrs[model.CustomProfileAttributesPropertyAttrsManaged])
+
+		// Patch to make it managed
+		managedPatch := &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsManaged: "admin",
+			},
+		}
+
+		patchedManagedField, resp, err := client.PatchCPAField(context.Background(), createdField.ID, managedPatch)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Equal(t, "admin", patchedManagedField.Attrs[model.CustomProfileAttributesPropertyAttrsManaged])
+
+		// Patch to remove managed attribute
+		unManagedPatch := &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsManaged: "",
+			},
+		}
+
+		patchedUnmanagedField, resp, err := client.PatchCPAField(context.Background(), patchedManagedField.ID, unManagedPatch)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		// Verify managed attribute is removed or empty
+		require.Empty(t, patchedUnmanagedField.Attrs[model.CustomProfileAttributesPropertyAttrsManaged])
+	}, "admin should be able to toggle managed attribute on existing field")
 }
 
 func TestDeleteCPAField(t *testing.T) {
@@ -669,5 +730,145 @@ func TestPatchCPAValues(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "Failed to validate property value")
+	})
+
+	t.Run("admin-managed fields", func(t *testing.T) {
+		// Create a managed field (only admins can create fields)
+		managedField := &model.PropertyField{
+			Name: "Managed Field",
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsManaged: "admin",
+			},
+		}
+
+		createdManagedField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), managedField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, createdManagedField)
+
+		// Create a non-managed field for comparison
+		regularField := &model.PropertyField{
+			Name: "Regular Field",
+			Type: model.PropertyFieldTypeText,
+		}
+
+		createdRegularField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), regularField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, createdRegularField)
+
+		t.Run("regular user cannot update managed field", func(t *testing.T) {
+			values := map[string]json.RawMessage{
+				createdManagedField.ID: json.RawMessage(`"Managed Value"`),
+			}
+
+			_, resp, err := th.Client.PatchCPAValues(context.Background(), values)
+			CheckForbiddenStatus(t, resp)
+			require.Error(t, err)
+			CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_managed.app_error")
+		})
+
+		t.Run("regular user can update non-managed field", func(t *testing.T) {
+			values := map[string]json.RawMessage{
+				createdRegularField.ID: json.RawMessage(`"Regular Value"`),
+			}
+
+			patchedValues, resp, err := th.Client.PatchCPAValues(context.Background(), values)
+			CheckOKStatus(t, resp)
+			require.NoError(t, err)
+			require.NotEmpty(t, patchedValues)
+
+			var actualValue string
+			require.NoError(t, json.Unmarshal(patchedValues[createdRegularField.ID], &actualValue))
+			require.Equal(t, "Regular Value", actualValue)
+		})
+
+		t.Run("system admin can update managed field", func(t *testing.T) {
+			values := map[string]json.RawMessage{
+				createdManagedField.ID: json.RawMessage(`"Admin Updated Value"`),
+			}
+
+			patchedValues, resp, err := th.SystemAdminClient.PatchCPAValues(context.Background(), values)
+			CheckOKStatus(t, resp)
+			require.NoError(t, err)
+			require.NotEmpty(t, patchedValues)
+
+			var actualValue string
+			require.NoError(t, json.Unmarshal(patchedValues[createdManagedField.ID], &actualValue))
+			require.Equal(t, "Admin Updated Value", actualValue)
+		})
+
+		t.Run("batch update with managed fields fails for regular user", func(t *testing.T) {
+			// First set some initial values to ensure we can verify they don't change
+			// Set initial values for both fields using th.App (admins can set managed field values)
+			_, appErr := th.App.PatchCPAValue(th.BasicUser.Id, createdRegularField.ID, json.RawMessage(`"Initial Regular Value"`), false)
+			require.Nil(t, appErr)
+
+			_, appErr = th.App.PatchCPAValue(th.BasicUser.Id, createdManagedField.ID, json.RawMessage(`"Initial Managed Value"`), true)
+			require.Nil(t, appErr)
+
+			// Try to batch update both managed and regular fields - this should fail
+			attemptedValues := map[string]json.RawMessage{
+				createdManagedField.ID: json.RawMessage(`"Managed Batch Value"`),
+				createdRegularField.ID: json.RawMessage(`"Regular Batch Value"`),
+			}
+
+			_, resp, err := th.Client.PatchCPAValues(context.Background(), attemptedValues)
+			CheckForbiddenStatus(t, resp)
+			require.Error(t, err)
+			CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_managed.app_error")
+
+			// Verify that no values were updated when the batch operation failed
+			currentValues, appErr := th.App.ListCPAValues(th.BasicUser.Id)
+			require.Nil(t, appErr)
+
+			// Check that values remain unchanged - both fields should retain their initial values
+			regularFieldHasOriginalValue := false
+			managedFieldHasOriginalValue := false
+
+			for _, value := range currentValues {
+				if value.FieldID == createdManagedField.ID {
+					var currentValue string
+					require.NoError(t, json.Unmarshal(value.Value, &currentValue))
+					if currentValue == "Initial Managed Value" {
+						managedFieldHasOriginalValue = true
+					}
+					// Verify it's not the attempted update value
+					require.NotEqual(t, "Managed Batch Value", currentValue, "Managed field should not have been updated in failed batch operation")
+				}
+				if value.FieldID == createdRegularField.ID {
+					var currentValue string
+					require.NoError(t, json.Unmarshal(value.Value, &currentValue))
+					if currentValue == "Initial Regular Value" {
+						regularFieldHasOriginalValue = true
+					}
+					// Verify it's not the attempted update value
+					require.NotEqual(t, "Regular Batch Value", currentValue, "Regular field should not have been updated in failed batch operation")
+				}
+			}
+
+			// Both fields should retain their original values after the failed batch operation
+			require.True(t, regularFieldHasOriginalValue, "Regular field should retain its original value")
+			require.True(t, managedFieldHasOriginalValue, "Managed field should retain its original value")
+		})
+
+		t.Run("batch update with managed fields succeeds for admin", func(t *testing.T) {
+			values := map[string]json.RawMessage{
+				createdManagedField.ID: json.RawMessage(`"Admin Managed Batch"`),
+				createdRegularField.ID: json.RawMessage(`"Admin Regular Batch"`),
+			}
+
+			patchedValues, resp, err := th.SystemAdminClient.PatchCPAValues(context.Background(), values)
+			CheckOKStatus(t, resp)
+			require.NoError(t, err)
+			require.Len(t, patchedValues, 2)
+
+			var managedValue, regularValue string
+			require.NoError(t, json.Unmarshal(patchedValues[createdManagedField.ID], &managedValue))
+			require.NoError(t, json.Unmarshal(patchedValues[createdRegularField.ID], &regularValue))
+			require.Equal(t, "Admin Managed Batch", managedValue)
+			require.Equal(t, "Admin Regular Batch", regularValue)
+		})
 	})
 }
