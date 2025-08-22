@@ -993,6 +993,7 @@
 
     .multi-select__wrapper {
         display: flex;
+        min-height: 0;
         flex-direction: column;
     }
 
