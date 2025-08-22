@@ -77,44 +77,42 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                 })}
             >
                 {isMobileView && <MobileChannelHeader/>}
-                <div className='row main'>
-                    <Switch>
-                        <Route
-                            path={`${url}/pl/:postid(${ID_PATH_PATTERN})`}
-                            render={(props) => (
-                                <PermalinkView
-                                    {...props}
-                                    returnTo={this.state.returnTo}
-                                />
-                            )}
-                        />
-                        <Route
-                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/:path(channels|messages)/:identifier(${IDENTIFIER_PATH_PATTERN})/:postid(${ID_PATH_PATTERN})?`}
-                            component={ChannelIdentifierRouter}
-                        />
-                        <Route
-                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/_playbooks/:playbookId(${ID_PATH_PATTERN})/run`}
-                        >
-                            <PlaybookRunner/>
-                        </Route>
-                        {isCollapsedThreadsEnabled ? (
-                            <Route
-                                path={`/:team(${TEAM_NAME_PATH_PATTERN})/threads/:threadIdentifier(${ID_PATH_PATTERN})?`}
-                                component={GlobalThreads}
+                <Switch>
+                    <Route
+                        path={`${url}/pl/:postid(${ID_PATH_PATTERN})`}
+                        render={(props) => (
+                            <PermalinkView
+                                {...props}
+                                returnTo={this.state.returnTo}
                             />
-                        ) : null}
+                        )}
+                    />
+                    <Route
+                        path={`/:team(${TEAM_NAME_PATH_PATTERN})/:path(channels|messages)/:identifier(${IDENTIFIER_PATH_PATTERN})/:postid(${ID_PATH_PATTERN})?`}
+                        component={ChannelIdentifierRouter}
+                    />
+                    <Route
+                        path={`/:team(${TEAM_NAME_PATH_PATTERN})/_playbooks/:playbookId(${ID_PATH_PATTERN})/run`}
+                    >
+                        <PlaybookRunner/>
+                    </Route>
+                    {isCollapsedThreadsEnabled ? (
                         <Route
-                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/drafts`}
-                            component={Drafts}
+                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/threads/:threadIdentifier(${ID_PATH_PATTERN})?`}
+                            component={GlobalThreads}
                         />
-                        <Route
-                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/${SCHEDULED_POST_URL_SUFFIX}`}
-                            component={Drafts}
-                        />
+                    ) : null}
+                    <Route
+                        path={`/:team(${TEAM_NAME_PATH_PATTERN})/drafts`}
+                        component={Drafts}
+                    />
+                    <Route
+                        path={`/:team(${TEAM_NAME_PATH_PATTERN})/${SCHEDULED_POST_URL_SUFFIX}`}
+                        component={Drafts}
+                    />
 
-                        <Redirect to={lastChannelPath}/>
-                    </Switch>
-                </div>
+                    <Redirect to={lastChannelPath}/>
+                </Switch>
             </div>
         );
     }

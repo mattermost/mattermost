@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {lazy, useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -27,7 +26,7 @@ const ProductNoticesModal = makeAsyncComponent('ProductNoticesModal', lazy(() =>
 const ResetStatusModal = makeAsyncComponent('ResetStatusModal', lazy(() => import('components/reset_status_modal')));
 const MobileSidebarRight = makeAsyncComponent('MobileSidebarRight', lazy(() => import('components/mobile_sidebar_right')));
 
-const BODY_CLASS_FOR_CHANNEL = ['app__body', 'channel-view'];
+const BODY_CLASS_FOR_CHANNEL = ['app__body'];
 
 type Props = {
     shouldRenderCenterChannel: boolean;
@@ -82,11 +81,9 @@ export default function ChannelController(props: Props) {
             >
                 <UnreadsStatusHandler/>
                 <ProductNoticesModal/>
-                <div className={classNames('container-fluid channel-view-inner')}>
-                    {props.shouldRenderCenterChannel ? <CenterChannel/> : <LoadingScreen centered={true}/>}
-                    <Pluggable pluggableName='Root'/>
-                    <ResetStatusModal/>
-                </div>
+                {props.shouldRenderCenterChannel ? <CenterChannel/> : <LoadingScreen centered={true}/>}
+                <Pluggable pluggableName='Root'/>
+                <ResetStatusModal/>
             </div>
             {isMobileView && <MobileSidebarRight/>}
         </>

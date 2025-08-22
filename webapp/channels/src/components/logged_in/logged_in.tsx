@@ -51,15 +51,6 @@ export type Props = {
 export default class LoggedIn extends React.PureComponent<Props> {
     private cleanupDesktopListeners?: () => void;
 
-    constructor(props: Props) {
-        super(props);
-
-        const root = document.getElementById('root');
-        if (root) {
-            root.className += ' channel-view';
-        }
-    }
-
     private isValidState(): boolean {
         return this.props.currentUser != null;
     }

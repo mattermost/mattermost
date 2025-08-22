@@ -10,9 +10,6 @@
             }
 
             .navbar-header {
-                margin: 0 -15px;
-                float: none;
-
                 .dropdown__icon {
                     display: inline-block;
                     width: 4px;
@@ -1094,16 +1091,6 @@
         }
     }
 
-    body {
-        &.white {
-            .inner-wrap {
-                >.row.content {
-                    margin-bottom: -185px;
-                }
-            }
-        }
-    }
-
     .footer,
     .footer-pane {
         height: 187px;
@@ -1503,14 +1490,6 @@
 
         #channel-header {
             display: none;
-        }
-    }
-
-    .channel__wrap {
-        .row {
-            &.header {
-                display: block;
-            }
         }
     }
 

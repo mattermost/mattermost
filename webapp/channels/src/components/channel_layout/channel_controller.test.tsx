@@ -91,17 +91,17 @@ describe('ChannelController', () => {
 });
 
 describe('components/channel_layout/ChannelController', () => {
-    test('Should have app__body and channel-view classes by default', () => {
-        expect(getClassnamesForBody('')).toEqual(['app__body', 'channel-view']);
+    test('Should have app__body class by default', () => {
+        expect(getClassnamesForBody('')).toEqual(['app__body']);
     });
 
     test('Should have os--windows class on body for windows 32 or windows 64', () => {
-        expect(getClassnamesForBody('Win32')).toEqual(['app__body', 'channel-view', 'os--windows']);
-        expect(getClassnamesForBody('Win64')).toEqual(['app__body', 'channel-view', 'os--windows']);
+        expect(getClassnamesForBody('Win32')).toEqual(['app__body', 'os--windows']);
+        expect(getClassnamesForBody('Win64')).toEqual(['app__body', 'os--windows']);
     });
 
     test('Should have os--mac class on body for MacIntel or MacPPC', () => {
-        expect(getClassnamesForBody('MacIntel')).toEqual(['app__body', 'channel-view', 'os--mac']);
-        expect(getClassnamesForBody('MacPPC')).toEqual(['app__body', 'channel-view', 'os--mac']);
+        expect(getClassnamesForBody('MacIntel')).toEqual(['app__body', 'os--mac']);
+        expect(getClassnamesForBody('MacPPC')).toEqual(['app__body', 'os--mac']);
     });
 });

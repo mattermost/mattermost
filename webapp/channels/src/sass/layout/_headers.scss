@@ -248,16 +248,6 @@
     }
 }
 
-.row {
-    &.header {
-        position: relative;
-
-        .channel__wrap & {
-            display: none;
-        }
-    }
-}
-
 .header-dropdown__icon {
     position: relative;
     top: 0;
