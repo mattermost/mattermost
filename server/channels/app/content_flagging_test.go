@@ -537,3 +537,258 @@ func TestCanFlagPost(t *testing.T) {
 		require.NotNil(t, appErr)
 	})
 }
+
+func TestFlagPost(t *testing.T) {
+	t.Parallel()
+
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	// Setup base config for content flagging
+	baseConfig := model.ContentFlaggingSettings{}
+	baseConfig.SetDefaults()
+	baseConfig.ReviewerSettings.CommonReviewers = model.NewPointer(true)
+	baseConfig.ReviewerSettings.CommonReviewerIds = &[]string{th.BasicUser.Id}
+	baseConfig.AdditionalSettings.ReporterCommentRequired = model.NewPointer(false)
+	baseConfig.AdditionalSettings.HideFlaggedContent = model.NewPointer(false)
+	baseConfig.AdditionalSettings.Reasons = &[]string{"spam", "harassment", "inappropriate"}
+
+	th.UpdateConfig(func(conf *model.Config) {
+		conf.ContentFlaggingSettings = baseConfig
+	})
+
+	t.Run("should successfully flag a post with valid data", func(t *testing.T) {
+		post := th.CreatePost(th.BasicChannel)
+
+		flagData := model.FlagContentRequest{
+			Reason:  "spam",
+			Comment: "This is spam content",
+		}
+
+		appErr := th.App.FlagPost(th.Context, post.Id, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		require.Nil(t, appErr)
+
+		// Verify property values were created
+		groupId, appErr := th.App.contentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		mappedFields, appErr := th.App.getContentFlaggingMappedFields(groupId)
+		require.Nil(t, appErr)
+
+		// Check status property
+		statusValues, err := th.Server.propertyService.SearchPropertyValues(groupId, post.Id, model.PropertyValueSearchOpts{
+			PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
+			FieldID: mappedFields[contentFlaggingPropertyNameStatus].ID,
+		})
+		require.Nil(t, err)
+		require.Len(t, statusValues, 1)
+		require.Equal(t, `"`+model.ContentFlaggingStatusPending+`"`, string(statusValues[0].Value))
+
+		// Check reporting user property
+		userValues, err := th.Server.propertyService.SearchPropertyValues(groupId, post.Id, model.PropertyValueSearchOpts{
+			PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
+			FieldID: mappedFields[contentFlaggingPropertyNameReportingUserID].ID,
+		})
+		require.Nil(t, err)
+		require.Len(t, userValues, 1)
+		require.Equal(t, `"`+th.BasicUser2.Id+`"`, string(userValues[0].Value))
+
+		// Check reason property
+		reasonValues, err := th.Server.propertyService.SearchPropertyValues(groupId, post.Id, model.PropertyValueSearchOpts{
+			PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
+			FieldID: mappedFields[contentFlaggingPropertyNameReportingReason].ID,
+		})
+		require.Nil(t, err)
+		require.Len(t, reasonValues, 1)
+		require.Equal(t, `"spam"`, string(reasonValues[0].Value))
+
+		// Check comment property
+		commentValues, err := th.Server.propertyService.SearchPropertyValues(groupId, post.Id, model.PropertyValueSearchOpts{
+			PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
+			FieldID: mappedFields[contentFlaggingPropertyNameReportingComment].ID,
+		})
+		require.Nil(t, err)
+		require.Len(t, commentValues, 1)
+		require.Equal(t, `"This is spam content"`, string(commentValues[0].Value))
+	})
+
+	t.Run("should fail with invalid reason", func(t *testing.T) {
+		post := th.CreatePost(th.BasicChannel)
+
+		flagData := model.FlagContentRequest{
+			Reason:  "invalid_reason",
+			Comment: "This is spam content",
+		}
+
+		appErr := th.App.FlagPost(th.Context, post.Id, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		require.NotNil(t, appErr)
+	})
+
+	t.Run("should fail when comment is required but not provided", func(t *testing.T) {
+		th.UpdateConfig(func(conf *model.Config) {
+			conf.ContentFlaggingSettings.AdditionalSettings.ReporterCommentRequired = model.NewPointer(true)
+		})
+
+		post := th.CreatePost(th.BasicChannel)
+
+		flagData := model.FlagContentRequest{
+			Reason:  "spam",
+			Comment: "",
+		}
+
+		appErr := th.App.FlagPost(th.Context, post.Id, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		require.NotNil(t, appErr)
+
+		// Reset config
+		th.UpdateConfig(func(conf *model.Config) {
+			conf.ContentFlaggingSettings.AdditionalSettings.ReporterCommentRequired = model.NewPointer(false)
+		})
+	})
+
+	t.Run("should fail when trying to flag already flagged post", func(t *testing.T) {
+		post := th.CreatePost(th.BasicChannel)
+
+		flagData := model.FlagContentRequest{
+			Reason:  "spam",
+			Comment: "This is spam content",
+		}
+
+		// Flag the post first time
+		appErr := th.App.FlagPost(th.Context, post.Id, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		require.Nil(t, appErr)
+
+		// Try to flag the same post again
+		appErr = th.App.FlagPost(th.Context, post.Id, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.content_flagging.can_flag_post.in_progress", appErr.Id)
+	})
+
+	t.Run("should hide flagged content when configured", func(t *testing.T) {
+		th.UpdateConfig(func(conf *model.Config) {
+			conf.ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent = model.NewPointer(true)
+		})
+
+		post := th.CreatePost(th.BasicChannel)
+
+		flagData := model.FlagContentRequest{
+			Reason:  "spam",
+			Comment: "This is spam content",
+		}
+
+		appErr := th.App.FlagPost(th.Context, post.Id, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		require.Nil(t, appErr)
+
+		// Verify post was deleted
+		deletedPost, appErr := th.App.GetSinglePost(post.Id, false)
+		require.NotNil(t, appErr)
+		require.Nil(t, deletedPost)
+
+		// Reset config
+		th.UpdateConfig(func(conf *model.Config) {
+			conf.ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent = model.NewPointer(false)
+		})
+	})
+
+	t.Run("should create content review post for reviewers", func(t *testing.T) {
+		post := th.CreatePost(th.BasicChannel)
+
+		flagData := model.FlagContentRequest{
+			Reason:  "harassment",
+			Comment: "This is harassment",
+		}
+
+		appErr := th.App.FlagPost(th.Context, post.Id, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		require.Nil(t, appErr)
+
+		// Get the content review bot
+		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
+		require.Nil(t, appErr)
+
+		// Get direct channel between reviewer and bot
+		dmChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, contentReviewBot.UserId)
+		require.Nil(t, appErr)
+
+		// Check if review post was created in the DM channel
+		posts, appErr := th.App.GetPostsPage(model.GetPostsOptions{
+			ChannelId: dmChannel.Id,
+			Page:      0,
+			PerPage:   10,
+		})
+		require.Nil(t, appErr)
+		require.NotEmpty(t, posts.Posts)
+
+		// Find the content review post
+		var reviewPost *model.Post
+		for _, p := range posts.Posts {
+			if p.Type == "custom_spillage_report" {
+				reviewPost = p
+				break
+			}
+		}
+		require.NotNil(t, reviewPost)
+		require.Contains(t, reviewPost.Message, th.BasicTeam.Id)
+		require.Contains(t, reviewPost.Message, post.Id)
+	})
+
+	t.Run("should work with empty comment when not required", func(t *testing.T) {
+		post := th.CreatePost(th.BasicChannel)
+
+		flagData := model.FlagContentRequest{
+			Reason:  "inappropriate",
+			Comment: "",
+		}
+
+		appErr := th.App.FlagPost(th.Context, post.Id, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		require.Nil(t, appErr)
+
+		// Verify property values were created with empty comment
+		groupId, appErr := th.App.contentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		mappedFields, appErr := th.App.getContentFlaggingMappedFields(groupId)
+		require.Nil(t, appErr)
+
+		commentValues, err := th.Server.propertyService.SearchPropertyValues(groupId, post.Id, model.PropertyValueSearchOpts{
+			PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
+			FieldID: mappedFields[contentFlaggingPropertyNameReportingComment].ID,
+		})
+		require.Nil(t, err)
+		require.Len(t, commentValues, 1)
+		require.Equal(t, `""`, string(commentValues[0].Value))
+	})
+
+	t.Run("should set reporting time property", func(t *testing.T) {
+		post := th.CreatePost(th.BasicChannel)
+
+		flagData := model.FlagContentRequest{
+			Reason:  "spam",
+			Comment: "Test comment",
+		}
+
+		beforeTime := model.GetMillis()
+		appErr := th.App.FlagPost(th.Context, post.Id, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		afterTime := model.GetMillis()
+		require.Nil(t, appErr)
+
+		// Verify reporting time property was set
+		groupId, appErr := th.App.contentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		mappedFields, appErr := th.App.getContentFlaggingMappedFields(groupId)
+		require.Nil(t, appErr)
+
+		timeValues, err := th.Server.propertyService.SearchPropertyValues(groupId, post.Id, model.PropertyValueSearchOpts{
+			PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
+			FieldID: mappedFields[contentFlaggingPropertyNameReportingTime].ID,
+		})
+		require.Nil(t, err)
+		require.Len(t, timeValues, 1)
+
+		var reportingTime int64
+		err = json.Unmarshal(timeValues[0].Value, &reportingTime)
+		require.Nil(t, err)
+		require.True(t, reportingTime >= beforeTime && reportingTime <= afterTime)
+	})
+}
