@@ -52,6 +52,160 @@ func TestGetFlaggingConfiguration(t *testing.T) {
 	})
 }
 
+func TestFlagPost(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
+	th := Setup(t)
+	defer func() {
+		th.TearDown()
+		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
+	}()
+
+	client := th.Client
+
+	t.Run("Should return 501 when Enterprise Advanced license is not present even if feature is enabled", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
+			config.ContentFlaggingSettings.SetDefaults()
+		})
+
+		post := th.CreatePost()
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "spam",
+			Comment: "This is spam content",
+		}
+
+		resp, err := client.FlagPost(context.Background(), post.Id, flagRequest)
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	t.Run("Should return 501 when feature is disabled", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(false)
+			config.ContentFlaggingSettings.SetDefaults()
+		})
+
+		post := th.CreatePost()
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "spam",
+			Comment: "This is spam content",
+		}
+
+		resp, err := client.FlagPost(context.Background(), post.Id, flagRequest)
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	t.Run("Should return 404 when post does not exist", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
+			config.ContentFlaggingSettings.SetDefaults()
+		})
+
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "spam",
+			Comment: "This is spam content",
+		}
+
+		resp, err := client.FlagPost(context.Background(), model.NewId(), flagRequest)
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+
+	t.Run("Should return 403 when user does not have permission to view post", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
+			config.ContentFlaggingSettings.SetDefaults()
+		})
+
+		// Create a private channel and post
+		privateChannel := th.CreatePrivateChannel()
+		post := th.CreatePostWithClient(th.Client, privateChannel)
+
+		// Switch to basic user who doesn't have access to the private channel
+		th.LoginBasic()
+
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "spam",
+			Comment: "This is spam content",
+		}
+
+		resp, err := client.FlagPost(context.Background(), post.Id, flagRequest)
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("Should return 400 when content flagging is not enabled for the team", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
+			config.ContentFlaggingSettings.SetDefaults()
+			// Set up config so content flagging is not enabled for this team
+			config.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(false)
+			config.ContentFlaggingSettings.ReviewerSettings.TeamReviewers = &map[string][]string{}
+		})
+
+		post := th.CreatePost()
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "spam",
+			Comment: "This is spam content",
+		}
+
+		resp, err := client.FlagPost(context.Background(), post.Id, flagRequest)
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("Should return 400 when flag request body is invalid", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
+			config.ContentFlaggingSettings.SetDefaults()
+			config.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(true)
+			config.ContentFlaggingSettings.ReviewerSettings.CommonReviewerIds = &[]string{"reviewer_user_id_1"}
+		})
+
+		post := th.CreatePost()
+
+		// Send invalid JSON
+		url := client.APIURL + "/content_flagging/post/" + post.Id + "/flag"
+		req, _ := http.NewRequest("POST", url, nil)
+		req.Header.Set("Authorization", "Bearer "+client.AuthToken)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := client.HTTPClient.Do(req)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		resp.Body.Close()
+	})
+
+	t.Run("Should successfully flag a post when all conditions are met", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
+			config.ContentFlaggingSettings.SetDefaults()
+			config.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(true)
+			config.ContentFlaggingSettings.ReviewerSettings.CommonReviewerIds = &[]string{"reviewer_user_id_1"}
+		})
+
+		post := th.CreatePost()
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "spam",
+			Comment: "This is spam content",
+		}
+
+		resp, err := client.FlagPost(context.Background(), post.Id, flagRequest)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+}
+
 func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 	mainHelper.Parallel(t)
 
