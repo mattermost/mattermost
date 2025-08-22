@@ -18,6 +18,7 @@ import (
 
 func TestPropertyValueStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("CreatePropertyValue", func(t *testing.T) { testCreatePropertyValue(t, rctx, ss) })
+	t.Run("CreateManyPropertyValues", func(t *testing.T) { testCreateManyPropertyValues(t, rctx, ss) })
 	t.Run("CreatePropertyValueWithArray", func(t *testing.T) { testCreatePropertyValueWithArray(t, rctx, ss) })
 	t.Run("GetPropertyValue", func(t *testing.T) { testGetPropertyValue(t, rctx, ss) })
 	t.Run("GetManyPropertyValues", func(t *testing.T) { testGetManyPropertyValues(t, rctx, ss) })
@@ -72,6 +73,225 @@ func testCreatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		value, err := ss.PropertyValue().Create(newValue)
 		require.Error(t, err)
 		require.Zero(t, value)
+	})
+}
+
+func testCreateManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
+	t.Run("should return nil when given empty slice", func(t *testing.T) {
+		values, err := ss.PropertyValue().CreateMany([]*model.PropertyValue{})
+		require.NoError(t, err)
+		require.Nil(t, values)
+	})
+
+	t.Run("should fail if any property value is not valid", func(t *testing.T) {
+		validValue := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"valid value"`),
+		}
+
+		invalidValue := &model.PropertyValue{
+			TargetID:   "", // Invalid: empty target ID
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"invalid value"`),
+		}
+
+		values, err := ss.PropertyValue().CreateMany([]*model.PropertyValue{validValue, invalidValue})
+		require.Zero(t, values)
+		require.ErrorContains(t, err, "model.property_value.is_valid.app_error")
+
+		// Verify no values were created
+		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			TargetID: validValue.TargetID,
+			PerPage:  10,
+		})
+		require.NoError(t, err)
+		require.Empty(t, results)
+	})
+
+	t.Run("should be able to create multiple property values", func(t *testing.T) {
+		value1 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"value 1"`),
+		}
+
+		value2 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"value 2"`),
+		}
+
+		value3 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"value 3"`),
+		}
+
+		values, err := ss.PropertyValue().CreateMany([]*model.PropertyValue{value1, value2, value3})
+		require.NoError(t, err)
+		require.Len(t, values, 3)
+
+		// Verify all values have IDs and timestamps set
+		for i, value := range values {
+			require.NotZero(t, value.ID)
+			require.NotZero(t, value.CreateAt)
+			require.NotZero(t, value.UpdateAt)
+			require.Zero(t, value.DeleteAt)
+			require.Equal(t, json.RawMessage(fmt.Sprintf(`"value %d"`, i+1)), value.Value)
+		}
+
+		// Verify values can be retrieved from database
+		retrievedValues, err := ss.PropertyValue().GetMany("", []string{value1.ID, value2.ID, value3.ID})
+		require.NoError(t, err)
+		require.Len(t, retrievedValues, 3)
+	})
+
+	t.Run("should handle array values", func(t *testing.T) {
+		value1 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`["option1", "option2"]`),
+		}
+
+		value2 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`["option3", "option4", "option5"]`),
+		}
+
+		values, err := ss.PropertyValue().CreateMany([]*model.PropertyValue{value1, value2})
+		require.NoError(t, err)
+		require.Len(t, values, 2)
+
+		// Verify array values are preserved
+		var arrayValues1 []string
+		require.NoError(t, json.Unmarshal(values[0].Value, &arrayValues1))
+		require.Equal(t, []string{"option1", "option2"}, arrayValues1)
+
+		var arrayValues2 []string
+		require.NoError(t, json.Unmarshal(values[1].Value, &arrayValues2))
+		require.Equal(t, []string{"option3", "option4", "option5"}, arrayValues2)
+	})
+
+	t.Run("should enforce uniqueness constraints", func(t *testing.T) {
+		groupID := model.NewId()
+		targetID := model.NewId()
+		fieldID := model.NewId()
+
+		// Create first value
+		value1 := &model.PropertyValue{
+			TargetID:   targetID,
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"first value"`),
+		}
+
+		_, err := ss.PropertyValue().Create(value1)
+		require.NoError(t, err)
+
+		// Try to create duplicate value
+		value2 := &model.PropertyValue{
+			TargetID:   targetID,
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"duplicate value"`),
+		}
+
+		value3 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"unique value"`),
+		}
+
+		values, err := ss.PropertyValue().CreateMany([]*model.PropertyValue{value2, value3})
+		require.Error(t, err)
+		require.Zero(t, values)
+
+		// Verify the unique value was not created due to transaction rollback
+		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			TargetID: value3.TargetID,
+			PerPage:  10,
+		})
+		require.NoError(t, err)
+		require.Empty(t, results)
+	})
+
+	t.Run("should create values with same field but different targets", func(t *testing.T) {
+		groupID := model.NewId()
+		fieldID := model.NewId()
+
+		value1 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"target 1 value"`),
+		}
+
+		value2 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"target 2 value"`),
+		}
+
+		values, err := ss.PropertyValue().CreateMany([]*model.PropertyValue{value1, value2})
+		require.NoError(t, err)
+		require.Len(t, values, 2)
+
+		// Verify both values were created successfully
+		for _, value := range values {
+			require.NotZero(t, value.ID)
+			require.Equal(t, groupID, value.GroupID)
+			require.Equal(t, fieldID, value.FieldID)
+		}
+	})
+
+	t.Run("should create values across different groups", func(t *testing.T) {
+		value1 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"group 1 value"`),
+		}
+
+		value2 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"group 2 value"`),
+		}
+
+		values, err := ss.PropertyValue().CreateMany([]*model.PropertyValue{value1, value2})
+		require.NoError(t, err)
+		require.Len(t, values, 2)
+
+		// Verify values are in different groups
+		require.NotEqual(t, values[0].GroupID, values[1].GroupID)
+		require.Contains(t, string(values[0].Value), "group 1")
+		require.Contains(t, string(values[1].Value), "group 2")
 	})
 }
 
