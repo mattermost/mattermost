@@ -21,12 +21,6 @@ describe('Leave an archived channel', () => {
     let testUser: UserProfile;
 
     before(() => {
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
-
         cy.apiInitSetup().then(({team, user}) => {
             testTeam = team;
             testUser = user;

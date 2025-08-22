@@ -460,10 +460,6 @@ func (c *Client4) elasticsearchRoute() string {
 	return "/elasticsearch"
 }
 
-func (c *Client4) bleveRoute() string {
-	return "/bleve"
-}
-
 func (c *Client4) commandsRoute() string {
 	return "/commands"
 }
@@ -4063,10 +4059,9 @@ func (c *Client4) ReloadConfig(ctx context.Context) (*Response, error) {
 	return BuildResponse(r), nil
 }
 
-// GetOldClientConfig will retrieve the parts of the server configuration needed by the
-// client, formatted in the old format.
-func (c *Client4) GetOldClientConfig(ctx context.Context, etag string) (map[string]string, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.configRoute()+"/client?format=old", etag)
+// GetClientConfig will retrieve the parts of the server configuration needed by the client.
+func (c *Client4) GetClientConfig(ctx context.Context, etag string) (map[string]string, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.configRoute()+"/client", etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4740,6 +4735,21 @@ func (c *Client4) MigrateIdLdap(ctx context.Context, toAttribute string) (*Respo
 	return BuildResponse(r), nil
 }
 
+func (c *Client4) GetGroupsByNames(ctx context.Context, names []string) ([]*Group, *Response, error) {
+	path := fmt.Sprintf("%s/names", c.groupsRoute())
+
+	r, err := c.DoAPIPost(ctx, path, ArrayToJSON(names))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*Group
+	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
+		return nil, nil, NewAppError("GetGroupsByNames", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return list, BuildResponse(r), nil
+}
+
 // GetGroupsByChannel retrieves the Mattermost Groups associated with a given channel
 func (c *Client4) GetGroupsByChannel(ctx context.Context, channelId string, opts GroupSearchOpts) ([]*GroupWithSchemeAdmin, int, *Response, error) {
 	path := fmt.Sprintf("%s/groups?q=%v&include_member_count=%v&filter_allow_reference=%v", c.channelRoute(channelId), opts.Q, opts.IncludeMemberCount, opts.FilterAllowReference)
@@ -5257,18 +5267,6 @@ func (c *Client4) TestElasticsearch(ctx context.Context) (*Response, error) {
 // PurgeElasticsearchIndexes immediately deletes all Elasticsearch indexes.
 func (c *Client4) PurgeElasticsearchIndexes(ctx context.Context) (*Response, error) {
 	r, err := c.DoAPIPost(ctx, c.elasticsearchRoute()+"/purge_indexes", "")
-	if err != nil {
-		return BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return BuildResponse(r), nil
-}
-
-// Bleve Section
-
-// PurgeBleveIndexes immediately deletes all Bleve indexes.
-func (c *Client4) PurgeBleveIndexes(ctx context.Context) (*Response, error) {
-	r, err := c.DoAPIPost(ctx, c.bleveRoute()+"/purge_indexes", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}

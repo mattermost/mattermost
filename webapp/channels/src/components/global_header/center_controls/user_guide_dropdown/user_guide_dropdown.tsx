@@ -5,10 +5,9 @@ import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
-import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
-
 import {trackEvent} from 'actions/telemetry_actions';
 
+import IconButton from 'components/global_header/header_icon_button';
 import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
@@ -139,12 +138,9 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                     title={tooltipText}
                 >
                     <IconButton
-                        size={'sm'}
                         icon={'help-circle-outline'}
                         onClick={() => {}} // icon button currently requires onclick ... needs to revisit
                         active={this.state.buttonActive}
-                        inverted={true}
-                        compact={true}
                         aria-controls='AddChannelDropdown'
                         aria-expanded={this.state.buttonActive}
                         aria-label={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}

@@ -4664,10 +4664,6 @@
     "translation": "Obter o último navegador Chrome"
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Erro ao limpar índices do Bleve: o motor é desativado"
-  },
-  {
     "id": "plugin_api.bot_cant_create_bot",
     "translation": "Usuário bot não pode criar usuário bot."
   },
@@ -4776,18 +4772,6 @@
     "translation": "A configuração Search EnableIndexing deve ser definida como verdadeiro quando Elasticsearch EnableAutocomplete estiver definido como verdadeiro"
   },
   {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "A opção Bleve EnableIndexing deve ser configurada para verdadeiro quando o Bleve IndexingDir estiver configurado"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "A opção Bleve EnableIndexing deve ser configurada para verdadeiro quando o Bleve EnableSearching estiver configurado como verdadeiro"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "A opção Bleve EnableIndexing deve ser configurada para verdadeiro quando o Bleve EnableAutocomplete estiver configurado como verdadeiro"
-  },
-  {
     "id": "model.command.is_valid.autocomplete_data.app_error",
     "translation": "Inválido AutocompleteData"
   },
@@ -4886,122 +4870,6 @@
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "Falha ao criar o modelo {{.Backend}} para Canais"
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Falha ao fechar o índice de usuário."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Falha ao fechar índice de publicação."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Falha ao fechar índice de canais."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Falha ao concluir a pesquisa de usuário."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Falha ao concluir a pesquisa de usuário."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Falha ao concluir a pesquisa de usuário."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Falha ao concluir a pesquisa de publicação."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Falha ao concluir a pesquisa do canal."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Falha ao limpar os indices de usuário."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Falha ao limpar os indices de publicação."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Falha ao limpar os indices de canal."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Tentando indexar um novo lote quando todas as entidades estão completas."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Agregador do Bleve falhou em transformar a data de início."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Agregador do Bleve falhou em transformar a data de término."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "A entidade mais antiga (usuário, canal ou publicação) não pôde ser recuperada do banco de dados."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Falha ao executar job do índice Bleve: o motor está inativo."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Falha ao indexar o lote de usuário."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Falha ao indexar o lote de publicação."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Falha ao indexar o lote do canal."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Falha ao indexar o usuário."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Não foi possível indexar a publicação."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Falha ao indexar o canal."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Falha ao excluir o usuário."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Não foi possível apagar a publicação."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Falha ao excluir o canal."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Erro ao criar o índice de usuário bleve."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Erro ao criar o índice de post bleve."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Erro ao criar o índice de canais bleve."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "O Bleve já está iniciado."
   },
   {
     "id": "app.user_terms_of_service.save.app_error",
@@ -5708,14 +5576,6 @@
     "translation": "Ocorreu um erro ao converter a solicitação JSON (marshal)"
   },
   {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Falha ao excluir a publicação do usuário"
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Falha ao excluir o canal de publicação"
-  },
-  {
     "id": "app.scheme.delete.app_error",
     "translation": "Não foi possível excluir este esquema."
   },
@@ -6412,10 +6272,6 @@
     "translation": "Não foi possível obter os membros do canal."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Não foi possível obter o lote de canais para indexação."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Não foi possível obter os canais para o esquema fornecido."
   },
@@ -6442,10 +6298,6 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "Não foi possível obter as publicações do canal."
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Não foi possível obter o lote de publicações para indexação."
   },
   {
     "id": "app.post.get_posts.app_error",
@@ -7200,10 +7052,6 @@
     "translation": "Voltar para {{.SiteName}}"
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Erro ao ler o arquivo do backend"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "Erro ao criar arquivo zip."
   },
@@ -7400,52 +7248,8 @@
     "translation": "Falha ao criar o modelo {{.Backend}} para arquivos"
   },
   {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Falha ao fechar o índice do arquivo."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "A pesquisa de arquivo não foi concluída."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Falha ao limpar os índices do arquivo."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Falha ao indexar lote de arquivos."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "Falha ao indexar o arquivo."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Falha ao excluir os arquivos do usuário."
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Falha ao excluir os arquivos de publicação."
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Falha ao excluir os arquivos."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Falha ao excluir o arquivo."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Erro ao criar o índice do arquivo bleve."
-  },
-  {
     "id": "app.user.get_threads_for_user.not_found",
     "translation": "O tópico do usuário não existe ou não é seguido"
-  },
-  {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "Não foi possível obter o lote de arquivos para indexação."
   },
   {
     "id": "app.export.zip_create.error",
@@ -8828,20 +8632,12 @@
     "translation": "O campo '{{.Field}}' deve ser definido por meio do provedor de login do usuário."
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Não é possível recuperar usuários para um canal arquivado"
-  },
-  {
     "id": "api.user.update_password.password_hash.app_error",
     "translation": "Ocorreu um erro interno ao salvar a senha."
   },
   {
     "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
     "translation": "Você não pode modificar o status do usuário. O usuário é gerenciado pelo LDAP"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Não é possível recuperar publicações de um canal arquivado"
   },
   {
     "id": "app.acknowledgement.get.app_error",
@@ -9764,10 +9560,6 @@
     "translation": "Falha ao excluir um índice desconhecido especificado"
   },
   {
-    "id": "bleveengine.purge_list.not_implemented",
-    "translation": "O recurso de lista de purga não está disponível para o Bleve."
-  },
-  {
     "id": "brand.save_brand_image.check_image_limits.app_error",
     "translation": "Falha na verificação dos limites de imagem. A resolução é muito alta."
   },
@@ -9920,10 +9712,6 @@
     "translation": "Backend de pesquisa inválido. Deve ser elasticsearch ou opensearch."
   },
   {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "O tamanho do lote de indexação em massa Bleve deve ser de pelo menos {{.BatchSize}}."
-  },
-  {
     "id": "model.config.is_valid.link_metadata_timeout.app_error",
     "translation": "Valor inválido para o tempo limite dos metadados do link. Deve ser um número positivo."
   },
@@ -10052,10 +9840,6 @@
     "translation": "Não é possível deletar valores de atributos de perfil personalizados para o usuário"
   },
   {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Não é possível recuperar os favoritos de um canal arquivado"
-  },
-  {
     "id": "api.context.get_session.app_error",
     "translation": "Sessão não encontrada."
   },
@@ -10114,14 +9898,6 @@
   {
     "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
     "translation": "Sua conta está bloqueada devido ao número excessivo de tentativas de senha com falha. Entre em contato com o administrador do sistema."
-  },
-  {
-    "id": "api.license.add_license.mysql.app_error",
-    "translation": "Esta licença não é compatível com o MySQL."
-  },
-  {
-    "id": "api.license.request-trial.mysql.app_error",
-    "translation": "As licenças de avaliação não são compatíveis com os bancos de dados MySQL. Use o PostgreSQL para acessar os recursos de avaliação."
   },
   {
     "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
