@@ -45,7 +45,7 @@ const FullLogEventModal = ({
     const copyLog = useCallback(() => {
         navigator.clipboard.writeText(JSON.stringify(log, undefined, 2));
         showCopySuccess();
-    }, [log]);
+    }, [log, showCopySuccess]);
 
     return (
         <Modal
