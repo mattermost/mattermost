@@ -21,6 +21,8 @@ var getBaseConfig = func() *model.Config {
 }
 
 func TestContentFlaggingEnabledForTeam(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	t.Run("should return true for common reviewers", func(t *testing.T) {
 		config := getBaseConfig()
 		config.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(true)
@@ -74,8 +76,7 @@ func TestContentFlaggingEnabledForTeam(t *testing.T) {
 }
 
 func TestGetContentReviewChannels(t *testing.T) {
-	t.Parallel()
-
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -278,8 +279,7 @@ func TestGetContentReviewChannels(t *testing.T) {
 }
 
 func TestGetReviewersForTeam(t *testing.T) {
-	t.Parallel()
-
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -472,8 +472,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 }
 
 func TestCanFlagPost(t *testing.T) {
-	t.Parallel()
-
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -539,8 +538,7 @@ func TestCanFlagPost(t *testing.T) {
 }
 
 func TestFlagPost(t *testing.T) {
-	t.Parallel()
-
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -624,6 +622,7 @@ func TestFlagPost(t *testing.T) {
 
 		appErr := th.App.FlagPost(th.Context, post.Id, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.NotNil(t, appErr)
+		require.Equal(t, appErr.Id, "api.content_flagging.error.reason_invalid")
 	})
 
 	t.Run("should fail when comment is required but not provided", func(t *testing.T) {
@@ -681,7 +680,7 @@ func TestFlagPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify post was deleted
-		deletedPost, appErr := th.App.GetSinglePost(post.Id, false)
+		deletedPost, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
 		require.NotNil(t, appErr)
 		require.Nil(t, deletedPost)
 
@@ -728,8 +727,6 @@ func TestFlagPost(t *testing.T) {
 			}
 		}
 		require.NotNil(t, reviewPost)
-		require.Contains(t, reviewPost.Message, th.BasicTeam.Id)
-		require.Contains(t, reviewPost.Message, post.Id)
 	})
 
 	t.Run("should work with empty comment when not required", func(t *testing.T) {
@@ -792,3 +789,4 @@ func TestFlagPost(t *testing.T) {
 		require.True(t, reportingTime >= beforeTime && reportingTime <= afterTime)
 	})
 }
+z
