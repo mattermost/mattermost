@@ -10730,5 +10730,37 @@
   {
     "id": "api.content_flagging.error.license",
     "translation": "Twoja licencja nie obsługuje flagowania treści."
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "Nie masz uprawnień do zarządzania tą polityką kontroli dostępu."
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "Kanały są ograniczone do grup i nie mogą mieć zastosowanych polityk kontroli dostępu."
+  },
+  {
+    "id": "app.pap.access_control.channel_not_private",
+    "translation": "Polityki kontroli dostępu mogą być stosowane tylko do kanałów prywatnych."
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "Kanały udostępnione nie mogą mieć zastosowanej polityki kontroli dostępu."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "Nie masz uprawnień do zarządzania kontrolą dostępu dla tego Kanału."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "Nie masz uprawnień do zarządzania tą polityką kontroli dostępu."
+  },
+  {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "Nadrzędne jest już zaimportowane."
+  },
+  {
+    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
+    "translation": "Ukrywanie archiwizowanych kanałów nie jest już obsługiwane. Zamiast tego ustaw te kanały jako prywatne i usuń ich członków."
   }
 ]
