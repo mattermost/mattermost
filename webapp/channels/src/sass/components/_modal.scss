@@ -995,6 +995,10 @@
         display: flex;
         min-height: 0;
         flex-direction: column;
+
+        .more-modal__list {
+            overflow: initial;
+        }
     }
 
     .more-modal__list {
