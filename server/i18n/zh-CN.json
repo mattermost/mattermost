@@ -4698,16 +4698,8 @@
     "translation": "无法保存服务条款。"
   },
   {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve 已启动。"
-  },
-  {
     "id": "app.terms_of_service.create.existing.app_error",
     "translation": "不能为现有的服务条款调用保存。"
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "创建 bleve 频道索引错误。"
   },
   {
     "id": "app.terms_of_service.get.app_error",
@@ -4722,96 +4714,8 @@
     "translation": "未找到服务条款。"
   },
   {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "创建 bleve 消息索引错误。"
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "创建 bleve 用户索引错误。"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "删除频道失败。"
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "删除消息失败。"
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "删除用户失败。"
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "索引频道失败。"
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "索引消息失败。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "批量索引频道失败。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "批量索引消息失败。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "批量索引用户失败。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "无法从数据库中获取最早的实体（用户、频道或消息）。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Bleve 索引工作者解析中止时间失败。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Bleve 索引工作者解析开始时间失败。"
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "尝试在所有实体已完成时创建新批量索引。"
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "清除频道索引失败。"
-  },
-  {
     "id": "app.user_terms_of_service.delete.app_error",
     "translation": "无法删除服务条款。"
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "清除用户索引失败。"
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "消息搜索无法完成。"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "用户搜索无法完成。"
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "用户搜索无法完成。"
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "关闭频道索引失败。"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "用户搜索无法完成。"
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "关闭用户索引失败。"
   },
   {
     "id": "ent.cluster.json_encode.error",
@@ -4894,14 +4798,6 @@
     "translation": "无效的 AutocompleteData"
   },
   {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "当 Bleve EnableSearching 设为true时，必须设定 Bleve EnableIndexing为 true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "当 Bleve IndexingDir 设为是时必须设定 Bleve EnableIndexing 为是"
-  },
-  {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
     "translation": "当 {{.Autocomplete}} 设置为有效时，{{.EnableIndexing}} 设置必须为有效"
   },
@@ -4980,10 +4876,6 @@
   {
     "id": "plugin_api.bot_cant_create_bot",
     "translation": "机器人用户无法创建机器人用户。"
-  },
-  {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "清除 Bleve 索引错误：引擎未启用"
   },
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
@@ -5154,22 +5046,6 @@
     "translation": "未找到服务条款。"
   },
   {
-    "id": "bleveengine.index_user.error",
-    "translation": "索引用户失败。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "运行 Bleve 索引任务失败：引擎未启用。"
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "清除消息索引失败。"
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "频道搜索无法完成。"
-  },
-  {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "创建频道的 {{.Backend}} 模板失败"
   },
@@ -5198,10 +5074,6 @@
     "translation": "频道名称不能为 16 进制格式。请输入其他的频道名称。"
   },
   {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "当 Bleve AutocompleteEnabled设置为 true 时，必须设定 Bleve EnableIndexing 为 true"
-  },
-  {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
     "translation": "无效的访客属性。格式必须为“栏=值”。"
   },
@@ -5228,10 +5100,6 @@
   {
     "id": "model.user.is_valid.update_at.app_error",
     "translation": "更新时必须是有效的时间。"
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "关闭消息索引失败。"
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
@@ -5715,14 +5583,6 @@
   },
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
-    "translation": "删除频道消息失败"
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "删除用户消息失败"
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
     "translation": "删除频道消息失败"
   },
   {
@@ -6466,10 +6326,6 @@
     "translation": "无法为索引获取消息。"
   },
   {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "无法为索引获取消息。"
-  },
-  {
     "id": "app.post.overwrite.app_error",
     "translation": "无法覆盖消息。"
   },
@@ -6820,10 +6676,6 @@
   {
     "id": "app.channel.get_members_by_ids.app_error",
     "translation": "无法获取频道成员。"
-  },
-  {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "无法为索引批量获取频道。"
   },
   {
     "id": "app.channel.get_by_scheme.app_error",
@@ -7340,50 +7192,6 @@
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
     "translation": "创建文件的 {{.Backend}} 模板失败"
-  },
-  {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "关闭文件索引失败。"
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "文件搜索无法完成。"
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "清除文件索引失败。"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "批量索引文件失败。"
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "索引文件失败。"
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "删除用户文件失败。"
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "删除消息文件失败。"
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "删除文件失败。"
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "删除文件失败。"
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "创建 bleve 文件索引错误。"
-  },
-  {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "无法批量获取要建立索引的文件。"
   },
   {
     "id": "app.export.zip_create.error",
@@ -8330,24 +8138,12 @@
     "translation": "无法获取所有角色。"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "无法从已归档频道的获取消息"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "无法从已归档频道的获取消息"
-  },
-  {
     "id": "api.templates.invite_body.title.reminder",
     "translation": "提醒"
   },
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
     "translation": "未能更新自定义状态。 请添加表情符或自定义文本。"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Bleve Bulk索引的的大小不能小于{{.BatchSize}}."
   },
   {
     "id": "model.channel.is_valid.1_or_more.app_error",
@@ -9570,10 +9366,6 @@
     "translation": "无法邀请远端至频道：{{.Error}}"
   },
   {
-    "id": "bleveengine.purge_list.not_implemented",
-    "translation": "清除列表功能对 Bleve 不可用。"
-  },
-  {
     "id": "api.channel.bookmark.channel_bookmark.license.error",
     "translation": "您的许可证不支持频道书签。"
   },
@@ -10372,10 +10164,6 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
     "translation": "更新频道书签的排列顺序失败。"
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "无法获取已归档频道的书签"
   },
   {
     "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
