@@ -8138,14 +8138,6 @@
     "translation": "无法获取所有角色。"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "无法从已归档频道的获取消息"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "无法从已归档频道的获取消息"
-  },
-  {
     "id": "api.templates.invite_body.title.reminder",
     "translation": "提醒"
   },
@@ -10172,10 +10164,6 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
     "translation": "更新频道书签的排列顺序失败。"
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "无法获取已归档频道的书签"
   },
   {
     "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
