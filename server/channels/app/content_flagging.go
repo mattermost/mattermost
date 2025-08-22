@@ -199,14 +199,13 @@ func (a *App) createContentReviewPost(c request.CTX, teamId, postId string) *mod
 		return appErr
 	}
 
-	post := &model.Post{
-		Message: fmt.Sprintf("A new content review has been created for team %s and post %s. Please check the flagged content.", teamId, postId),
-		UserId:  contentReviewBot.UserId,
-		Type:    "custom_spillage_report",
-	}
-
 	for _, channel := range channels {
-		post.ChannelId = channel.Id
+		post := &model.Post{
+			Message:   fmt.Sprintf("A new content review has been created for team %s and post %s. Please check the flagged content.", teamId, postId),
+			UserId:    contentReviewBot.UserId,
+			Type:      "custom_spillage_report",
+			ChannelId: channel.Id,
+		}
 		_, appErr := a.CreatePost(c, post, channel, model.CreatePostFlags{})
 		if appErr != nil {
 			c.Logger().Error("Failed to create content review post in one of the channels", mlog.Err(appErr), mlog.String("channel_id", channel.Id), mlog.String("team_id", teamId))
@@ -242,17 +241,21 @@ func (a *App) getContentReviewBot(c request.CTX) (*model.Bot, *model.AppError) {
 }
 
 func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
-	var reviewerUserIDs []string
+	reviewerUserIDMap := map[string]bool{}
 
 	reviewerSettings := a.Config().ContentFlaggingSettings.ReviewerSettings
 
 	if *reviewerSettings.CommonReviewers {
-		reviewerUserIDs = append(reviewerUserIDs, *reviewerSettings.CommonReviewerIds...)
+		for _, userID := range *reviewerSettings.CommonReviewerIds {
+			reviewerUserIDMap[userID] = true
+		}
 	} else {
 		// If common reviewers are not enabled, we still need to check if the team has specific reviewers
 		teamSettings, exist := (*reviewerSettings.TeamReviewersSetting)[teamId]
 		if exist && *teamSettings.Enabled && teamSettings.ReviewerIds != nil {
-			reviewerUserIDs = append(reviewerUserIDs, *teamSettings.ReviewerIds...)
+			for _, userID := range *teamSettings.ReviewerIds {
+				reviewerUserIDMap[userID] = true
+			}
 		}
 	}
 
@@ -305,7 +308,14 @@ func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
 	}
 
 	for _, user := range additionalReviewers {
-		reviewerUserIDs = append(reviewerUserIDs, user.Id)
+		reviewerUserIDMap[user.Id] = true
+	}
+
+	reviewerUserIDs := make([]string, len(reviewerUserIDMap))
+	i := 0
+	for userID := range reviewerUserIDMap {
+		reviewerUserIDs[i] = userID
+		i++
 	}
 
 	return reviewerUserIDs, nil

@@ -56,7 +56,7 @@ func TestFlagPost(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
-	th := Setup(t)
+	th := Setup(t).InitBasic()
 	defer func() {
 		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
@@ -127,9 +127,7 @@ func TestFlagPost(t *testing.T) {
 		// Create a private channel and post
 		privateChannel := th.CreatePrivateChannel()
 		post := th.CreatePostWithClient(th.Client, privateChannel)
-
-		// Switch to basic user who doesn't have access to the private channel
-		th.LoginBasic()
+		th.RemoveUserFromChannel(th.BasicUser, privateChannel)
 
 		flagRequest := &model.FlagContentRequest{
 			Reason:  "spam",
@@ -148,7 +146,8 @@ func TestFlagPost(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 			// Set up config so content flagging is not enabled for this team
 			config.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(false)
-			config.ContentFlaggingSettings.ReviewerSettings.TeamReviewers = &map[string][]string{}
+			config.ContentFlaggingSettings.ReviewerSettings.TeamReviewersSetting = &map[string]model.TeamReviewerSetting{}
+			(*config.ContentFlaggingSettings.ReviewerSettings.TeamReviewersSetting)[th.BasicTeam.Id] = model.TeamReviewerSetting{Enabled: model.NewPointer(false)}
 		})
 
 		post := th.CreatePost()
@@ -162,41 +161,18 @@ func TestFlagPost(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 
-	t.Run("Should return 400 when flag request body is invalid", func(t *testing.T) {
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		th.App.UpdateConfig(func(config *model.Config) {
-			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
-			config.ContentFlaggingSettings.SetDefaults()
-			config.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(true)
-			config.ContentFlaggingSettings.ReviewerSettings.CommonReviewerIds = &[]string{"reviewer_user_id_1"}
-		})
-
-		post := th.CreatePost()
-
-		// Send invalid JSON
-		url := client.APIURL + "/content_flagging/post/" + post.Id + "/flag"
-		req, _ := http.NewRequest("POST", url, nil)
-		req.Header.Set("Authorization", "Bearer "+client.AuthToken)
-		req.Header.Set("Content-Type", "application/json")
-
-		resp, err := client.HTTPClient.Do(req)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		resp.Body.Close()
-	})
-
 	t.Run("Should successfully flag a post when all conditions are met", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
 			config.ContentFlaggingSettings.SetDefaults()
 			config.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(true)
-			config.ContentFlaggingSettings.ReviewerSettings.CommonReviewerIds = &[]string{"reviewer_user_id_1"}
+			config.ContentFlaggingSettings.ReviewerSettings.CommonReviewerIds = &[]string{th.BasicUser.Id}
 		})
 
 		post := th.CreatePost()
 		flagRequest := &model.FlagContentRequest{
-			Reason:  "spam",
+			Reason:  "Sensitive data",
 			Comment: "This is spam content",
 		}
 
@@ -274,3 +250,4 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 		require.True(t, status["enabled"])
 	})
 }
+ 

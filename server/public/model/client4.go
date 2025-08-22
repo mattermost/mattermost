@@ -734,6 +734,21 @@ func (c *Client4) GetFlaggingConfiguration(ctx context.Context) (*ContentFlaggin
 	return &config, BuildResponse(r), nil
 }
 
+func (c *Client4) FlagPost(ctx context.Context, postId string, flagRequest *FlagContentRequest) (*Response, error) {
+	buf, err := json.Marshal(flagRequest)
+	if err != nil {
+		return nil, NewAppError("FlagPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPost(ctx, fmt.Sprintf("%s/post/%s/flag", c.contentFlaggingRoute(), postId), string(buf))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 func (c *Client4) GetTeamPostFlaggingFeatureStatus(ctx context.Context, teamId string) (map[string]bool, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/team/"+teamId+"/status", "")
 	if err != nil {

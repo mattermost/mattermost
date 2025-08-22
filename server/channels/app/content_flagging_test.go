@@ -469,6 +469,26 @@ func TestGetReviewersForTeam(t *testing.T) {
 		require.Contains(t, reviewers, th.BasicUser2.Id)
 		require.Contains(t, reviewers, th.SystemAdminUser.Id)
 	})
+
+	t.Run("should return unique reviewers", func(t *testing.T) {
+		th.UpdateConfig(func(conf *model.Config) {
+			contentFlaggingSettings := model.ContentFlaggingSettings{}
+			contentFlaggingSettings.SetDefaults()
+
+			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(true)
+			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewerIds = &[]string{th.BasicUser.Id, th.SystemAdminUser.Id}
+			conf.ContentFlaggingSettings.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(true)
+		})
+
+		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.SystemAdminUser.Id, "")
+		require.Nil(t, appErr)
+
+		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id)
+		require.Nil(t, appErr)
+		require.Len(t, reviewers, 2)
+		require.Contains(t, reviewers, th.BasicUser.Id)
+		require.Contains(t, reviewers, th.SystemAdminUser.Id)
+	})
 }
 
 func TestCanFlagPost(t *testing.T) {
@@ -789,4 +809,3 @@ func TestFlagPost(t *testing.T) {
 		require.True(t, reportingTime >= beforeTime && reportingTime <= afterTime)
 	})
 }
-z
