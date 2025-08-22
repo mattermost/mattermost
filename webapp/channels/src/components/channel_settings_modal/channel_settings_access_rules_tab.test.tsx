@@ -429,7 +429,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             );
 
             expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
-            expect(screen.getByText('Users who match the configured attribute values will be automatically added as members')).toBeInTheDocument();
+            expect(screen.getByText('Define access rules above to enable automatic member synchronization.')).toBeInTheDocument();
         });
 
         test('should toggle auto-sync checkbox when clicked', async () => {
@@ -445,18 +445,25 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             const checkbox = screen.getByRole('checkbox');
             expect(checkbox).not.toBeChecked();
+            expect(checkbox).toBeDisabled(); // Initially disabled because no expression
+
+            // First set an expression to enable the checkbox
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('user.attributes.department == "Engineering"');
+
+            await waitFor(() => {
+                expect(checkbox).not.toBeDisabled();
+            });
 
             await userEvent.click(checkbox);
             await waitFor(() => {
                 expect(checkbox).toBeChecked();
             });
-            expect(console.log).toHaveBeenCalledWith('Auto-sync members toggled:', true);
 
             await userEvent.click(checkbox);
             await waitFor(() => {
                 expect(checkbox).not.toBeChecked();
             });
-            expect(console.log).toHaveBeenCalledWith('Auto-sync members toggled:', false);
         });
 
         test('should call setAreThereUnsavedChanges when auto-sync is toggled', async () => {
@@ -471,7 +478,20 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 initialState,
             );
 
+            // Wait for initial loading to complete
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // First set an expression to enable the checkbox
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('user.attributes.department == "Engineering"');
+
             const checkbox = screen.getByRole('checkbox');
+            await waitFor(() => {
+                expect(checkbox).not.toBeDisabled();
+            });
+
             await userEvent.click(checkbox);
 
             await waitFor(() => {
@@ -526,7 +546,15 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 expect(screen.getByTestId('table-editor')).toBeInTheDocument();
             });
 
+            // First set an expression to enable the checkbox
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('user.attributes.department == "Engineering"');
+
             const checkbox = screen.getByRole('checkbox');
+            await waitFor(() => {
+                expect(checkbox).not.toBeDisabled();
+            });
+
             await userEvent.click(checkbox);
 
             await waitFor(() => {
@@ -548,8 +576,13 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
             onChangeCallback('user.attributes.department == "Engineering"');
 
-            // Toggle auto-sync
+            // Wait for checkbox to be enabled
             const checkbox = screen.getByRole('checkbox');
+            await waitFor(() => {
+                expect(checkbox).not.toBeDisabled();
+            });
+
+            // Toggle auto-sync
             await userEvent.click(checkbox);
 
             // Wait for SaveChangesPanel to appear
@@ -561,16 +594,21 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
             await userEvent.click(saveButton);
 
-            // Verify save was called
-            expect(console.log).toHaveBeenCalledWith('Saving channel access rules:', {
-                channelId: 'channel_id',
-                expression: 'user.attributes.department == "Engineering"',
-                autoSyncMembers: true,
+            // Verify save was called with the correct policy structure
+            expect(mockActions.saveChannelPolicy).toHaveBeenCalledWith({
+                id: 'channel_id',
+                name: 'Test Channel',
+                type: 'channel',
+                version: 'v0.2',
+                active: true,
+                revision: 1,
+                created_at: expect.any(Number),
+                rules: [{
+                    actions: ['*'],
+                    expression: 'user.attributes.department == "Engineering"',
+                }],
+                imports: [],
             });
-
-            expect(window.alert).toHaveBeenCalledWith(
-                'Access rules saved!\nExpression: user.attributes.department == "Engineering"\nAuto-sync: Enabled',
-            );
         });
 
         test('should reset changes when Reset button is clicked', async () => {
@@ -651,8 +689,17 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 expect(screen.getByTestId('table-editor')).toBeInTheDocument();
             });
 
-            // Toggle auto-sync to show panel
+            // First set an expression to enable the checkbox
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('user.attributes.department == "Engineering"');
+
+            // Wait for checkbox to be enabled
             const checkbox = screen.getByRole('checkbox');
+            await waitFor(() => {
+                expect(checkbox).not.toBeDisabled();
+            });
+
+            // Toggle auto-sync to show panel
             await userEvent.click(checkbox);
 
             await waitFor(() => {
@@ -673,8 +720,17 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 expect(screen.getByTestId('table-editor')).toBeInTheDocument();
             });
 
-            // Toggle auto-sync to show panel
+            // First set an expression to enable the checkbox
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('user.attributes.department == "Engineering"');
+
+            // Wait for checkbox to be enabled
             const checkbox = screen.getByRole('checkbox');
+            await waitFor(() => {
+                expect(checkbox).not.toBeDisabled();
+            });
+
+            // Toggle auto-sync to show panel
             await userEvent.click(checkbox);
 
             await waitFor(() => {
@@ -705,8 +761,17 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 expect(screen.getByTestId('table-editor')).toBeInTheDocument();
             });
 
-            // Toggle auto-sync to show panel
+            // First set an expression to enable the checkbox
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('user.attributes.department == "Engineering"');
+
+            // Wait for checkbox to be enabled
             const checkbox = screen.getByRole('checkbox');
+            await waitFor(() => {
+                expect(checkbox).not.toBeDisabled();
+            });
+
+            // Toggle auto-sync to show panel
             await userEvent.click(checkbox);
 
             await waitFor(() => {
