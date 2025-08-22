@@ -4,11 +4,11 @@
 .ChannelSettingsModal {
     &__accessRulesTab {
         display: flex;
+        max-height: 100%;
+        flex: 1;
         flex-direction: column;
         padding-bottom: 60px;
-        max-height: 100%;
         overflow-y: auto;
-        flex: 1;
     }
 
     &__systemPolicies {
@@ -83,7 +83,6 @@
         font-size: 14px;
         font-weight: 400;
         line-height: 20px;
-        margin-left: 12px;
 
         &.disabled {
             color: rgba(var(--center-channel-color-rgb), 0.5);
