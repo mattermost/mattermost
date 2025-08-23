@@ -22,61 +22,50 @@ on:
         required: false
         type: boolean
         default: false
+      go-version:
+        required: true
+        type: string
 
 jobs:
   test:
     name: ${{ inputs.name }}
     runs-on: ubuntu-latest-8-cores
+    container: mattermost/mattermost-build-server:${{ inputs.go-version }}
     continue-on-error: ${{ inputs.fullyparallel }} # Used to avoid blocking PRs in case of flakiness
     env:
       COMPOSE_PROJECT_NAME: ghactions
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Calculate Golang Version
-        id: go
-        working-directory: ./server
-        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
-      - name: Setup Go
-        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
-        with:
-          go-version: ${{ steps.go.outputs.GO_VERSION }}
-          cache-dependency-path: server/go.sum
       - name: Store required variables for publishing results
         run: |
           echo "${{ inputs.name }}" > server/test-name
           echo "${{ github.event.pull_request.number }}" > server/pr-number
-      - name: Run docker compose
-        run: |
-          cd server/build
-          docker compose --ansi never run --rm start_dependencies
-          cat ../tests/custom-schema-objectID.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
-          cat ../tests/custom-schema-cpa.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
-          cat ../tests/test-data.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
-          docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
-          docker compose --ansi never ps
+      # - name: Run docker compose
+      #   run: |
+      #     cd server/build
+      #     docker compose --ansi never run --rm start_dependencies
+      #     cat ../tests/custom-schema-objectID.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
+      #     cat ../tests/custom-schema-cpa.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
+      #     cat ../tests/test-data.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+      #     docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+      #     docker compose --ansi never ps
       - name: Run Tests
+        # --env-file=server/build/dotenv/test.env \
+        # --ulimit nofile=8096:8096 \
+        # if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true ]]; then
+        #  export RACE_MODE="-race"
+        # fi
+        # docker run --net ghactions_mm-test \
         env:
-          BUILD_IMAGE: mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
-        run: |
-          if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true ]]; then
-            export RACE_MODE="-race"
-          fi
-          docker run --net ghactions_mm-test \
-            --ulimit nofile=8096:8096 \
-            --env-file=server/build/dotenv/test.env \
-            --env MM_SQLSETTINGS_DRIVERNAME="${{ inputs.drivername }}" \
-            --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
-            --env TEST_DATABASE_MYSQL_DSN="${{ inputs.datasource }}" \
-            --env TEST_DATABASE_POSTGRESQL_DSN="${{ inputs.datasource }}" \
-            --env ENABLE_FULLY_PARALLEL_TESTS="${{ inputs.fullyparallel }}" \
-            --env ENABLE_COVERAGE="${{ inputs.enablecoverage }}" \
-            -v $(go env GOCACHE):/go/cache \
-            -e GOCACHE=/go/cache \
-            -v $PWD:/mattermost \
-            -w /mattermost/server \
-            $BUILD_IMAGE \
-            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
+          MM_SQLSETTINGS_DRIVERNAME: "${{ inputs.drivername }}"
+          MM_SQLSETTINGS_DATASOURCE: "${{ inputs.datasource }}"
+          TEST_DATABASE_MYSQL_DSN: "${{ inputs.datasource }}"
+          TEST_DATABASE_POSTGRESQL_DSN: "${{ inputs.datasource }}"
+          ENABLE_FULLY_PARALLEL_TESTS: "${{ inputs.fullyparallel }}"
+          ENABLE_COVERAGE: "${{ inputs.enablecoverage }}"
+          RACE_MODE: ""
+        run: make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
       - name: Upload coverage to Codecov
         if: ${{ inputs.enablecoverage }}
         uses: codecov/codecov-action@v5
@@ -84,10 +73,10 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           disable_search: true
           files: server/cover.out
-      - name: Stop docker compose
-        run: |
-          cd server/build
-          docker compose --ansi never stop
+      # - name: Stop docker compose
+      #   run: |
+      #     cd server/build
+      #     docker compose --ansi never stop
       - name: Archive logs
         if: ${{ always() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
