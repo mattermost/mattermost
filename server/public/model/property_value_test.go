@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -143,6 +144,34 @@ func TestPropertyValue_IsValid(t *testing.T) {
 			UpdateAt:   0,
 		}
 		require.Error(t, pv.IsValid())
+	})
+
+	t.Run("TargetType exceeds maximum length", func(t *testing.T) {
+		longTargetType := strings.Repeat("a", PropertyValueTargetTypeMaxRunes+1)
+		pv := &PropertyValue{
+			ID:         NewId(),
+			TargetID:   NewId(),
+			TargetType: longTargetType,
+			GroupID:    NewId(),
+			FieldID:    NewId(),
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.Error(t, pv.IsValid())
+	})
+
+	t.Run("TargetType at maximum length is valid", func(t *testing.T) {
+		maxLengthTargetType := strings.Repeat("a", PropertyValueTargetTypeMaxRunes)
+		pv := &PropertyValue{
+			ID:         NewId(),
+			TargetID:   NewId(),
+			TargetType: maxLengthTargetType,
+			GroupID:    NewId(),
+			FieldID:    NewId(),
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.NoError(t, pv.IsValid())
 	})
 }
 
