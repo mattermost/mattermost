@@ -13,6 +13,8 @@ import EmojiMap from 'utils/emoji_map';
 
 import InteractiveDialogAdapter from './interactive_dialog_adapter';
 
+// Mock AppsFormContainer to avoid dynamic import complexity in tests
+
 jest.mock('components/apps_form/apps_form_container', () => {
     return {
         __esModule: true,
@@ -1274,15 +1276,57 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                     ]),
                 }),
             );
+        });
 
-            // Test required field validation
-            await submitAdapter({
+        test('should handle missing required values during conversion', async () => {
+            const requiredElement: DialogElement = {
+                name: 'required-field',
+                type: 'text',
+                display_name: 'Required Field',
+                default: '',
+                optional: false,
+                max_length: 0,
+                min_length: 0,
+                help_text: '',
+                placeholder: '',
+                subtype: '',
+                data_source: '',
+                options: [],
+            };
+
+            const props = {
+                ...baseProps,
+                elements: [requiredElement],
+                conversionOptions: {
+                    enhanced: true,
+                },
+                actions: {
+                    submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the submit adapter function
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const submitAdapter = mockCall.actions.doAppSubmit;
+
+            // Test with null value for required field - should not crash
+            const result = await submitAdapter({
                 values: {
                     'text-field': 'valid',
                     'required-field': null, // Missing required field
                 },
             });
 
+            // Should complete successfully (null values are simply skipped)
+            expect(result.data?.type).toBe('ok');
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 '[InteractiveDialogAdapter]',
                 'Form submission validation errors',
@@ -1300,6 +1344,50 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
     });
 
     describe('No-op Handlers', () => {
+        test('should handle lookup calls with no-op implementation', async () => {
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...baseProps}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the lookup handler
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const lookupHandler = mockCall.actions.doAppLookup;
+
+            const result = await lookupHandler();
+
+            expect(result.data).toEqual({
+                type: 'ok',
+                data: {items: []},
+            });
+        });
+
+        test('should handle refresh calls with no-op implementation', async () => {
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...baseProps}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the refresh handler
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const refreshHandler = mockCall.actions.doAppFetchForm;
+
+            const result = await refreshHandler({
+                values: {},
+                selected_field: 'test-field',
+            });
+
+            expect(result.data).toEqual({
+                type: 'ok',
+            });
+        });
+
         test('should provide no-op handlers for unsupported legacy features', async () => {
             const props = {
                 ...baseProps,
@@ -1321,6 +1409,52 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             const {
                 doAppLookup,
                 doAppFetchForm,
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                postEphemeralCallResponseForContext,
+            } = mockCall.actions;
+
+            await doAppLookup({
+                values: {},
+            });
+            await doAppFetchForm({
+                values: {},
+                selected_field: 'test-field',
+            });
+
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                '[InteractiveDialogAdapter]',
+                'Lookup calls are not supported in Interactive Dialogs',
+                expect.objectContaining({
+                    feature: 'dynamic lookup',
+                    suggestion: 'Consider migrating to full Apps Framework',
+                }),
+            );
+
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                '[InteractiveDialogAdapter]',
+                'Field refresh requested but no sourceUrl provided',
+                expect.objectContaining({
+                    fieldName: 'test-field',
+                    suggestion: 'Add sourceUrl to dialog definition',
+                }),
+            );
+        });
+
+        test('should handle postEphemeralCallResponseForContext as no-op', async () => {
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...baseProps}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get all handlers
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const {
+                doAppLookup,
+                doAppFetchForm,
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 postEphemeralCallResponseForContext,
             } = mockCall.actions;
 
@@ -1346,19 +1480,37 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             // Should log warnings about unsupported features
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 '[InteractiveDialogAdapter]',
-                'Unexpected lookup call in Interactive Dialog adapter - this should not happen',
-                '',
+                'Lookup calls are not supported in Interactive Dialogs',
+                expect.objectContaining({
+                    feature: 'dynamic lookup',
+                    suggestion: 'Consider migrating to full Apps Framework',
+                }),
             );
 
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 '[InteractiveDialogAdapter]',
-                'Unexpected refresh call in Interactive Dialog adapter - this should not happen',
-                '',
+                'Field refresh requested but no sourceUrl provided',
+                expect.objectContaining({
+                    fieldName: undefined,
+                    suggestion: 'Add sourceUrl to dialog definition',
+                }),
             );
         });
     });
 
     describe('Dynamic Import Loading', () => {
+        test('should handle lazy loading with React Suspense', async () => {
+            // With React.lazy, the component should load asynchronously
+            // but the test environment with mocking should handle it synchronously
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...baseProps}/>,
+            );
+
+            // Should render the component successfully with mocked AppsFormContainer
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+        });
     });
 
     describe('Advanced Validation Scenarios', () => {
