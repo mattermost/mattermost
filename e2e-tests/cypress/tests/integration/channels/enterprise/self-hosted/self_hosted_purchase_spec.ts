@@ -21,6 +21,7 @@
 //     * e.g. see (https://github.com/mattermost/mattermost-server/pull/16778/files)
 
 import {UserProfile} from '@mattermost/types/users';
+
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 function verifyPurchaseModal() {

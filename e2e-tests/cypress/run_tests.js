@@ -107,7 +107,7 @@ async function runTests() {
         printMessage(sortedFiles, i, j + 1, count);
 
         const testFile = sortedFiles[i];
-        var testFileAttempt = 1;
+        let testFileAttempt = 1;
         if (testFile in testPasses === false) {
             testPasses[testFile] = {attempt: 1};
         } else {
@@ -154,8 +154,8 @@ async function runTests() {
             },
         });
 
-        for (var testCase of result.runs[0].tests) {
-            var testCaseTitle = testCase.title.join(' - ');
+        for (const testCase of result.runs[0].tests) {
+            const testCaseTitle = testCase.title.join(' - ');
             if (testCaseTitle in testPasses[testFile] === false) {
                 testPasses[testFile][testCaseTitle] = 0;
             }

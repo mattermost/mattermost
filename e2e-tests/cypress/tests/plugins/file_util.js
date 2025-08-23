@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 const fs = require('fs');
-
 const path = require('path');
 
 /**
