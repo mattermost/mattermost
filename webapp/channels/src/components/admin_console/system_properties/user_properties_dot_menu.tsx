@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, PencilOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
 import type {FieldVisibility, UserPropertyField} from '@mattermost/types/properties';
 
 import {openModal} from 'actions/views/modals';
@@ -139,6 +139,18 @@ const DotMenu = ({
         updateField({...field, attrs: {...field.attrs, visibility}});
     };
 
+    const handleEditableByUsersToggle = () => {
+        const newAttrs = {...field.attrs};
+
+        if (field.attrs.managed === 'admin') {
+            delete newAttrs.managed;
+        } else {
+            newAttrs.managed = 'admin';
+        }
+
+        updateField({...field, attrs: newAttrs});
+    };
+
     let selectedVisibilityLabel;
 
     if (field.attrs.visibility === 'always') {
@@ -259,6 +271,23 @@ const DotMenu = ({
                     )}
                 />
             </Menu.SubMenu>
+            <Menu.Item
+                id={`${menuId}_editable-by-users`}
+                onClick={handleEditableByUsersToggle}
+                leadingElement={<PencilOutlineIcon size={18}/>}
+                labels={(
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.dotmenu.editable_by_users.label'
+                        defaultMessage='Editable by users'
+                    />
+                )}
+                trailingElements={field.attrs.managed !== 'admin' && (
+                    <CheckIcon
+                        size={16}
+                        color='var(--button-bg, #1c58d9)'
+                    />
+                )}
+            />
             {field.create_at !== 0 && ([
                 <Menu.Item
                     key={`${menuId}_link_ad-ldap`}

@@ -2815,6 +2815,7 @@
   "admin.system_properties.user_properties.dotmenu.delete.label": "Delete attribute",
   "admin.system_properties.user_properties.dotmenu.duplicate.label": "Duplicate attribute",
   "admin.system_properties.user_properties.dotmenu.duplicate.name_copy": "{fieldName} (copy)",
+  "admin.system_properties.user_properties.dotmenu.editable_by_users.label": "Editable by users",
   "admin.system_properties.user_properties.dotmenu.saml.edit_link.label": "Edit SAML link",
   "admin.system_properties.user_properties.dotmenu.saml.link_property.label": "Link attribute to SAML",
   "admin.system_properties.user_properties.dotmenu.saml.modal.helpText": "The attribute in the SAML server used to sync as a custom attribute in user's profile in Mattermost.",
