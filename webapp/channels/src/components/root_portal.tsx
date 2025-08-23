@@ -11,7 +11,10 @@ interface Props {
 const div = document.createElement('div');
 
 const RootPortal = ({children}: Props) => {
-    const el = useRef<HTMLDivElement>(div);
+
+
+const RootPortal = ({children}: Props) => {
+    const el = useRef<HTMLDivElement>(document.createElement('div'));
 
     useEffect(() => {
         const element = el.current;
