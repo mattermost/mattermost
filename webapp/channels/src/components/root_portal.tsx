@@ -8,11 +8,6 @@ interface Props {
     children: React.ReactNode | React.ReactNodeArray;
 }
 
-const div = document.createElement('div');
-
-const RootPortal = ({children}: Props) => {
-
-
 const RootPortal = ({children}: Props) => {
     const el = useRef<HTMLDivElement>(document.createElement('div'));
 
