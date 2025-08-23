@@ -11,8 +11,10 @@ import type {UserPropertyField} from '@mattermost/types/properties';
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
 
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
+import SystemPolicyIndicator from 'components/system_policy_indicator';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
+import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
 
 import type {GlobalState} from 'types/store';
 
@@ -25,7 +27,6 @@ type ChannelSettingsAccessRulesTabProps = {
 };
 
 function ChannelSettingsAccessRulesTab({
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     channel,
     setAreThereUnsavedChanges,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -42,6 +43,9 @@ function ChannelSettingsAccessRulesTab({
     const [attributesLoaded, setAttributesLoaded] = useState(false);
 
     const actions = useChannelAccessControlActions();
+
+    // Fetch system policies applied to this channel
+    const {policies: systemPolicies, loading: policiesLoading} = useChannelSystemPolicies(channel);
 
     // Load user attributes on component mount
     useEffect(() => {
@@ -75,6 +79,18 @@ function ChannelSettingsAccessRulesTab({
 
     return (
         <div className='ChannelSettingsModal__accessRulesTab'>
+            {/* Display system policies indicator if any are applied */}
+            {!policiesLoading && systemPolicies.length > 0 && (
+                <div className='ChannelSettingsModal__systemPolicies'>
+                    <SystemPolicyIndicator
+                        policies={systemPolicies}
+                        resourceType='channel'
+                        showPolicyNames={true}
+                        variant='detailed'
+                    />
+                </div>
+            )}
+
             <div className='ChannelSettingsModal__accessRulesHeader'>
                 <h3 className='ChannelSettingsModal__accessRulesTitle'>
                     {formatMessage({id: 'channel_settings.access_rules.title', defaultMessage: 'Access Rules'})}
