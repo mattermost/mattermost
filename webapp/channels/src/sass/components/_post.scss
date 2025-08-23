@@ -1519,8 +1519,8 @@
         // greater z-index than img
         position: absolute;
         z-index: 3;
-        top: 8px;
-        right: 8px;
+        top: 4px;
+        right: 4px;
         display: none;
         padding: 4px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
@@ -1571,30 +1571,19 @@
             }
         }
 
-        &--small-image {
-            position: absolute;
-            top: -8px;
-            left: 24px;
-            width: 68px;
-        }
-
-        &--small-image-no-copy-button {
-            left: 32px;
-            width: 38px;
-        }
-
         &:hover button.size-aware-image__copy_link,
         &:hover a.size-aware-image__download {
             color: rgba(var(--center-channel-color-rgb), 0.75);
         }
     }
     // styles for image container of large images.
-    .image-loaded-container {
+    .file-preview__button {
         position: relative;
-        display: inline-block;
 
-        &:hover .image-preview-utility-buttons-container {
-            display: inline-block;
+        &:hover {
+            .image-preview-utility-buttons-container {
+                display: inline-flex;
+            }
         }
     }
 
