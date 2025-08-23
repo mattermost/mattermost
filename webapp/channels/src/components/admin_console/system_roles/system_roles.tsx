@@ -47,9 +47,9 @@ const columns: Column[] = [
 
 const roleNames = ['system_admin', 'system_manager', 'system_user_manager', 'system_custom_group_admin', 'system_read_only_admin'];
 
-const rows: Row[] = [];
-
 const SystemRoles = ({roles}: Props) => {
+    const rows: Row[] = [];
+
     roleNames.forEach((name) => {
         const role = roles[name];
         if (role) {
