@@ -139,7 +139,7 @@ const ConfirmModal = ({
         onExited?.();
 
         if (focusOriginElement) {
-            focusElement(focusOriginElement!, true);
+            focusElement(focusOriginElement, true);
         }
     }, [focusOriginElement, onExited]);
 
