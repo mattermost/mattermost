@@ -36,6 +36,23 @@ func TestPropertyField_PreSave(t *testing.T) {
 		pf.PreSave()
 		assert.Equal(t, pf.CreateAt, pf.UpdateAt)
 	})
+
+	t.Run("sets DeleteAt to 0 for new fields", func(t *testing.T) {
+		pf := &PropertyField{DeleteAt: 12345}
+		pf.PreSave()
+		assert.Zero(t, pf.DeleteAt)
+	})
+
+	t.Run("does not modify DeleteAt for existing fields", func(t *testing.T) {
+		existingCreateAt := int64(12345)
+		existingDeleteAt := int64(67890)
+		pf := &PropertyField{
+			CreateAt: existingCreateAt,
+			DeleteAt: existingDeleteAt,
+		}
+		pf.PreSave()
+		assert.Equal(t, existingDeleteAt, pf.DeleteAt)
+	})
 }
 
 func TestPropertyField_IsValid(t *testing.T) {
