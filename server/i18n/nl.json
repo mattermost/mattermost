@@ -10738,5 +10738,37 @@
   {
     "id": "api.content_flagging.error.license",
     "translation": "Je licentie ondersteunt het markeren van inhoud niet."
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "Je hebt geen rechten om dit toegangscontrolebeleid te beheren."
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "Kanaal is groepsgebonden en kan geen toegangscontrolebeleid hebben."
+  },
+  {
+    "id": "app.pap.access_control.channel_not_private",
+    "translation": "Beleid voor toegangscontrole kan alleen worden toegepast op privékanalen."
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "Op gedeelde kanalen kan geen toegangscontrolebeleid worden toegepast."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "Je hebt geen toestemming om de toegangscontrole voor dit kanaal te beheren."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "Je hebt geen rechten om dit toegangscontrolebeleid te beheren."
+  },
+  {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "Het bovenliggend beleid is al geïmporteerd."
+  },
+  {
+    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
+    "translation": "Het verbergen van gearchiveerde kanalen wordt niet langer ondersteund. Maak deze kanalen privé en verwijder in plaats daarvan leden."
   }
 ]
