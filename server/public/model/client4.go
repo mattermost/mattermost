@@ -735,21 +735,21 @@ func (c *Client4) DoAPIDeleteJSON(ctx context.Context, url string, data any) (*h
 // DoAPIRequestWithHeaders makes an HTTP request with the specified method, URL, and custom headers.
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIRequestWithHeaders(ctx context.Context, method, url, data string, headers map[string]string) (*http.Response, error) {
-	return c.doAPIRequestReader(ctx, method, url, strings.NewReader(data), headers)
+	return c.doAPIRequestReader(ctx, method, url, "", strings.NewReader(data), headers)
 }
 
 func (c *Client4) doAPIRequest(ctx context.Context, method, url, data, etag string) (*http.Response, error) {
-	return c.doAPIRequestReader(ctx, method, url, strings.NewReader(data), map[string]string{HeaderEtagClient: etag})
+	return c.doAPIRequestReader(ctx, method, url, "", strings.NewReader(data), map[string]string{HeaderEtagClient: etag})
 }
 
 func (c *Client4) doAPIRequestBytes(ctx context.Context, method, url string, data []byte, etag string) (*http.Response, error) {
-	return c.doAPIRequestReader(ctx, method, url, bytes.NewReader(data), map[string]string{HeaderEtagClient: etag})
+	return c.doAPIRequestReader(ctx, method, url, "", bytes.NewReader(data), map[string]string{HeaderEtagClient: etag})
 }
 
 // doAPIRequestReader makes an HTTP request using an io.Reader for the request body and custom headers.
 // This is the most flexible DoAPI method, supporting streaming data and custom headers.
 // Returns the HTTP response or any error that occurred during the request.
-func (c *Client4) doAPIRequestReader(ctx context.Context, method, url string, data io.Reader, headers map[string]string) (*http.Response, error) {
+func (c *Client4) doAPIRequestReader(ctx context.Context, method, url, contentType string, data io.Reader, headers map[string]string) (*http.Response, error) {
 	rq, err := http.NewRequestWithContext(ctx, method, url, data)
 	if err != nil {
 		return nil, err
@@ -761,6 +761,10 @@ func (c *Client4) doAPIRequestReader(ctx context.Context, method, url string, da
 
 	if c.AuthToken != "" {
 		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
+	}
+
+	if contentType != "" {
+		rq.Header.Set("Content-Type", contentType)
 	}
 
 	if len(c.HTTPHeader) > 0 {
@@ -787,82 +791,12 @@ func (c *Client4) doAPIRequestReader(ctx context.Context, method, url string, da
 }
 
 func (c *Client4) DoUploadFile(ctx context.Context, url string, data []byte, contentType string) (*FileUploadResponse, *Response, error) {
-	return c.doUploadFile(ctx, url, bytes.NewReader(data), contentType, 0)
-}
-
-func (c *Client4) doUploadFile(ctx context.Context, url string, body io.Reader, contentType string, contentLength int64) (*FileUploadResponse, *Response, error) {
-	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+url, body)
+	r, err := c.doAPIRequestReader(ctx, http.MethodPost, c.APIURL+url, contentType, bytes.NewReader(data), nil)
 	if err != nil {
-		return nil, nil, err
+		return nil, BuildResponse(r), err
 	}
-	if contentLength != 0 {
-		rq.ContentLength = contentLength
-	}
-	rq.Header.Set("Content-Type", contentType)
-
-	if c.AuthToken != "" {
-		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
-	}
-
-	rp, err := c.HTTPClient.Do(rq)
-	if err != nil {
-		return nil, BuildResponse(rp), err
-	}
-	defer closeBody(rp)
-
-	if rp.StatusCode >= 300 {
-		return nil, BuildResponse(rp), AppErrorFromJSON(rp.Body)
-	}
-
-	return DecodeJSONFromResponse[*FileUploadResponse](rp)
-}
-
-func (c *Client4) DoEmojiUploadFile(ctx context.Context, url string, data []byte, contentType string) (*Emoji, *Response, error) {
-	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+url, bytes.NewReader(data))
-	if err != nil {
-		return nil, nil, err
-	}
-	rq.Header.Set("Content-Type", contentType)
-
-	if c.AuthToken != "" {
-		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
-	}
-
-	rp, err := c.HTTPClient.Do(rq)
-	if err != nil {
-		return nil, BuildResponse(rp), err
-	}
-	defer closeBody(rp)
-
-	if rp.StatusCode >= 300 {
-		return nil, BuildResponse(rp), AppErrorFromJSON(rp.Body)
-	}
-
-	return DecodeJSONFromResponse[*Emoji](rp)
-}
-
-func (c *Client4) DoUploadImportTeam(ctx context.Context, url string, data []byte, contentType string) (map[string]string, *Response, error) {
-	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+url, bytes.NewReader(data))
-	if err != nil {
-		return nil, nil, err
-	}
-	rq.Header.Set("Content-Type", contentType)
-
-	if c.AuthToken != "" {
-		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
-	}
-
-	rp, err := c.HTTPClient.Do(rq)
-	if err != nil {
-		return nil, BuildResponse(rp), err
-	}
-	defer closeBody(rp)
-
-	if rp.StatusCode >= 300 {
-		return nil, BuildResponse(rp), AppErrorFromJSON(rp.Body)
-	}
-
-	return DecodeJSONFromResponse[map[string]string](rp)
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*FileUploadResponse](r)
 }
 
 // Authentication Section
@@ -975,7 +909,6 @@ func (c *Client4) CreateUser(ctx context.Context, user *User) (*User, *Response,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*User](r)
 }
 
@@ -991,7 +924,6 @@ func (c *Client4) CreateUserWithToken(ctx context.Context, user *User, tokenId s
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*User](r)
 }
 
@@ -1007,7 +939,6 @@ func (c *Client4) CreateUserWithInviteId(ctx context.Context, user *User, invite
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*User](r)
 }
 
@@ -1018,7 +949,6 @@ func (c *Client4) GetMe(ctx context.Context, etag string) (*User, *Response, err
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*User](r)
 }
 
@@ -1029,7 +959,6 @@ func (c *Client4) GetUser(ctx context.Context, userId, etag string) (*User, *Res
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*User](r)
 }
 
@@ -1040,7 +969,6 @@ func (c *Client4) GetUserByUsername(ctx context.Context, userName, etag string) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*User](r)
 }
 
@@ -1051,7 +979,6 @@ func (c *Client4) GetUserByEmail(ctx context.Context, email, etag string) (*User
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*User](r)
 }
 
@@ -1063,7 +990,6 @@ func (c *Client4) AutocompleteUsersInTeam(ctx context.Context, teamId string, us
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*UserAutocomplete](r)
 }
 
@@ -1075,7 +1001,6 @@ func (c *Client4) AutocompleteUsersInChannel(ctx context.Context, teamId string,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*UserAutocomplete](r)
 }
 
@@ -1087,7 +1012,6 @@ func (c *Client4) AutocompleteUsers(ctx context.Context, username string, limit 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*UserAutocomplete](r)
 }
 
@@ -1098,7 +1022,6 @@ func (c *Client4) GetDefaultProfileImage(ctx context.Context, userId string) ([]
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return ReadBytesFromResponse(r)
 }
 
@@ -1109,7 +1032,6 @@ func (c *Client4) GetProfileImage(ctx context.Context, userId, etag string) ([]b
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return ReadBytesFromResponse(r)
 }
 
@@ -1121,7 +1043,6 @@ func (c *Client4) GetUsers(ctx context.Context, page int, perPage int, etag stri
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*User](r)
 }
 
@@ -1133,7 +1054,6 @@ func (c *Client4) GetUsersWithCustomQueryParameters(ctx context.Context, page in
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*User](r)
 }
 
@@ -1145,7 +1065,6 @@ func (c *Client4) GetUsersInTeam(ctx context.Context, teamId string, page int, p
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*User](r)
 }
 
@@ -1157,7 +1076,6 @@ func (c *Client4) GetNewUsersInTeam(ctx context.Context, teamId string, page int
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*User](r)
 }
 
@@ -1169,7 +1087,6 @@ func (c *Client4) GetRecentlyActiveUsersInTeam(ctx context.Context, teamId strin
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*User](r)
 }
 
@@ -1181,7 +1098,6 @@ func (c *Client4) GetActiveUsersInTeam(ctx context.Context, teamId string, page 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*User](r)
 }
 
@@ -1193,7 +1109,6 @@ func (c *Client4) GetUsersNotInTeam(ctx context.Context, teamId string, page int
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*User](r)
 }
 
@@ -1205,7 +1120,6 @@ func (c *Client4) GetUsersInChannel(ctx context.Context, channelId string, page 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*User](r)
 }
 
@@ -1217,7 +1131,6 @@ func (c *Client4) GetUsersInChannelByStatus(ctx context.Context, channelId strin
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*User](r)
 }
 
@@ -1244,7 +1157,6 @@ func (c *Client4) GetUsersNotInChannelWithOptions(ctx context.Context, channelId
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*User](r)
 }
 
@@ -1256,7 +1168,6 @@ func (c *Client4) GetUsersWithoutTeam(ctx context.Context, page int, perPage int
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*User](r)
 }
 
@@ -1268,7 +1179,6 @@ func (c *Client4) GetUsersInGroup(ctx context.Context, groupID string, page int,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*User](r)
 }
 
@@ -1280,7 +1190,6 @@ func (c *Client4) GetUsersInGroupByDisplayName(ctx context.Context, groupID stri
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*User](r)
 }
 
@@ -1291,7 +1200,6 @@ func (c *Client4) GetUsersByIds(ctx context.Context, userIds []string) ([]*User,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*User](r)
 }
 
@@ -1312,7 +1220,6 @@ func (c *Client4) GetUsersByIdsWithOptions(ctx context.Context, userIds []string
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*User](r)
 }
 
@@ -1323,7 +1230,6 @@ func (c *Client4) GetUsersByUsernames(ctx context.Context, usernames []string) (
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*User](r)
 }
 
@@ -1335,7 +1241,6 @@ func (c *Client4) GetUsersByGroupChannelIds(ctx context.Context, groupChannelIds
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[map[string][]*User](r)
 }
 
@@ -1346,7 +1251,6 @@ func (c *Client4) SearchUsers(ctx context.Context, search *UserSearch) ([]*User,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*User](r)
 }
 
@@ -1357,7 +1261,6 @@ func (c *Client4) UpdateUser(ctx context.Context, user *User) (*User, *Response,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*User](r)
 }
 
@@ -1368,7 +1271,6 @@ func (c *Client4) PatchUser(ctx context.Context, userId string, patch *UserPatch
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*User](r)
 }
 
@@ -1379,7 +1281,6 @@ func (c *Client4) UpdateUserAuth(ctx context.Context, userId string, userAuth *U
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*UserAuth](r)
 }
 
@@ -1407,7 +1308,6 @@ func (c *Client4) GenerateMfaSecret(ctx context.Context, userId string) (*MfaSec
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*MfaSecret](r)
 }
 
@@ -1635,7 +1535,6 @@ func (c *Client4) GetTeamsUnreadForUser(ctx context.Context, userId, teamIdToExc
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*TeamUnread](r)
 }
 
@@ -1647,7 +1546,6 @@ func (c *Client4) GetUserAudits(ctx context.Context, userId string, page int, pe
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[Audits](r)
 }
 
@@ -1712,27 +1610,13 @@ func (c *Client4) SetProfileImage(ctx context.Context, userId string, data []byt
 		return nil, fmt.Errorf("failed to close multipart writer: %w", err)
 	}
 
-	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+c.userRoute(userId)+"/image", bytes.NewReader(body.Bytes()))
+	r, err := c.doAPIRequestReader(ctx, http.MethodPost, c.APIURL+c.userRoute(userId)+"/image", writer.FormDataContentType(), body, nil)
 	if err != nil {
-		return nil, err
+		return BuildResponse(r), err
 	}
-	rq.Header.Set("Content-Type", writer.FormDataContentType())
+	defer closeBody(r)
 
-	if c.AuthToken != "" {
-		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
-	}
-
-	rp, err := c.HTTPClient.Do(rq)
-	if err != nil {
-		return BuildResponse(rp), err
-	}
-	defer closeBody(rp)
-
-	if rp.StatusCode >= 300 {
-		return BuildResponse(rp), AppErrorFromJSON(rp.Body)
-	}
-
-	return BuildResponse(rp), nil
+	return BuildResponse(r), nil
 }
 
 // CreateUserAccessToken will generate a user access token that can be used in place
@@ -1894,7 +1778,6 @@ func (c *Client4) CreateBot(ctx context.Context, bot *Bot) (*Bot, *Response, err
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Bot](r)
 }
 
@@ -1905,7 +1788,6 @@ func (c *Client4) PatchBot(ctx context.Context, userId string, patch *BotPatch) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Bot](r)
 }
 
@@ -1916,7 +1798,6 @@ func (c *Client4) GetBot(ctx context.Context, userId string, etag string) (*Bot,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Bot](r)
 }
 
@@ -1927,7 +1808,6 @@ func (c *Client4) GetBotIncludeDeleted(ctx context.Context, userId string, etag 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Bot](r)
 }
 
@@ -1939,7 +1819,6 @@ func (c *Client4) GetBots(ctx context.Context, page, perPage int, etag string) (
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[BotList](r)
 }
 
@@ -1951,7 +1830,6 @@ func (c *Client4) GetBotsIncludeDeleted(ctx context.Context, page, perPage int, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[BotList](r)
 }
 
@@ -1963,7 +1841,6 @@ func (c *Client4) GetBotsOrphaned(ctx context.Context, page, perPage int, etag s
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[BotList](r)
 }
 
@@ -1974,7 +1851,6 @@ func (c *Client4) DisableBot(ctx context.Context, botUserId string) (*Bot, *Resp
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Bot](r)
 }
 
@@ -1985,7 +1861,6 @@ func (c *Client4) EnableBot(ctx context.Context, botUserId string) (*Bot, *Respo
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Bot](r)
 }
 
@@ -1996,7 +1871,6 @@ func (c *Client4) AssignBot(ctx context.Context, botUserId, newOwnerId string) (
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Bot](r)
 }
 
@@ -2403,15 +2277,20 @@ func (c *Client4) ImportTeam(ctx context.Context, data []byte, filesize int, imp
 		return nil, nil, err
 	}
 
-	if _, err := io.Copy(part, strings.NewReader(importFrom)); err != nil {
+	if _, err = io.Copy(part, strings.NewReader(importFrom)); err != nil {
 		return nil, nil, err
 	}
 
-	if err := writer.Close(); err != nil {
+	if err = writer.Close(); err != nil {
 		return nil, nil, err
 	}
 
-	return c.DoUploadImportTeam(ctx, c.teamImportRoute(teamId), body.Bytes(), writer.FormDataContentType())
+	r, err := c.doAPIRequestReader(ctx, http.MethodPost, c.APIURL+c.teamImportRoute(teamId), writer.FormDataContentType(), body, nil)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[map[string]string](r)
 }
 
 // InviteUsersToTeam invite users by email to the team.
@@ -2517,27 +2396,12 @@ func (c *Client4) SetTeamIcon(ctx context.Context, teamId string, data []byte) (
 		return nil, fmt.Errorf("failed to close multipart writer for team icon: %w", err)
 	}
 
-	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+c.teamRoute(teamId)+"/image", bytes.NewReader(body.Bytes()))
+	r, err := c.doAPIRequestReader(ctx, http.MethodPost, c.APIURL+c.teamRoute(teamId)+"/image", writer.FormDataContentType(), body, nil)
 	if err != nil {
-		return nil, err
+		return BuildResponse(r), err
 	}
-	rq.Header.Set("Content-Type", writer.FormDataContentType())
-
-	if c.AuthToken != "" {
-		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
-	}
-
-	rp, err := c.HTTPClient.Do(rq)
-	if err != nil {
-		return BuildResponse(rp), err
-	}
-	defer closeBody(rp)
-
-	if rp.StatusCode >= 300 {
-		return BuildResponse(rp), AppErrorFromJSON(rp.Body)
-	}
-
-	return BuildResponse(rp), nil
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
 
 // GetTeamIcon gets the team icon of the team.
@@ -2547,7 +2411,6 @@ func (c *Client4) GetTeamIcon(ctx context.Context, teamId, etag string) ([]byte,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return ReadBytesFromResponse(r)
 }
 
@@ -2587,7 +2450,6 @@ func (c *Client4) getAllChannels(ctx context.Context, page int, perPage int, eta
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[ChannelListWithTeamData](r)
 }
 
@@ -2614,7 +2476,6 @@ func (c *Client4) CreateChannel(ctx context.Context, channel *Channel) (*Channel
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Channel](r)
 }
 
@@ -2625,7 +2486,6 @@ func (c *Client4) UpdateChannel(ctx context.Context, channel *Channel) (*Channel
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Channel](r)
 }
 
@@ -2636,7 +2496,6 @@ func (c *Client4) PatchChannel(ctx context.Context, channelId string, patch *Cha
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Channel](r)
 }
 
@@ -2648,7 +2507,6 @@ func (c *Client4) UpdateChannelPrivacy(ctx context.Context, channelId string, pr
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Channel](r)
 }
 
@@ -2659,7 +2517,6 @@ func (c *Client4) RestoreChannel(ctx context.Context, channelId string) (*Channe
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Channel](r)
 }
 
@@ -2672,7 +2529,6 @@ func (c *Client4) CreateDirectChannel(ctx context.Context, userId1, userId2 stri
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Channel](r)
 }
 
@@ -2683,7 +2539,6 @@ func (c *Client4) CreateGroupChannel(ctx context.Context, userIds []string) (*Ch
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Channel](r)
 }
 
@@ -2694,7 +2549,6 @@ func (c *Client4) GetChannel(ctx context.Context, channelId, etag string) (*Chan
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Channel](r)
 }
 
@@ -2737,7 +2591,6 @@ func (c *Client4) GetPinnedPosts(ctx context.Context, channelId string, etag str
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*PostList](r)
 }
 
@@ -2749,7 +2602,6 @@ func (c *Client4) GetPrivateChannelsForTeam(ctx context.Context, teamId string, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*Channel](r)
 }
 
@@ -2761,7 +2613,6 @@ func (c *Client4) GetPublicChannelsForTeam(ctx context.Context, teamId string, p
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*Channel](r)
 }
 
@@ -2773,7 +2624,6 @@ func (c *Client4) GetDeletedChannelsForTeam(ctx context.Context, teamId string, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*Channel](r)
 }
 
@@ -2784,7 +2634,6 @@ func (c *Client4) GetPublicChannelsByIdsForTeam(ctx context.Context, teamId stri
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*Channel](r)
 }
 
@@ -2795,7 +2644,6 @@ func (c *Client4) GetChannelsForTeamForUser(ctx context.Context, teamId, userId 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*Channel](r)
 }
 
@@ -2808,7 +2656,6 @@ func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(ctx context.Context,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*Channel](r)
 }
 
@@ -2821,7 +2668,6 @@ func (c *Client4) GetChannelsForUserWithLastDeleteAt(ctx context.Context, userID
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*Channel](r)
 }
 
@@ -2832,7 +2678,6 @@ func (c *Client4) SearchChannels(ctx context.Context, teamId string, search *Cha
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*Channel](r)
 }
 
@@ -2843,7 +2688,6 @@ func (c *Client4) SearchArchivedChannels(ctx context.Context, teamId string, sea
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*Channel](r)
 }
 
@@ -2854,7 +2698,6 @@ func (c *Client4) SearchAllChannels(ctx context.Context, search *ChannelSearch) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[ChannelListWithTeamData](r)
 }
 
@@ -2868,7 +2711,6 @@ func (c *Client4) SearchAllChannelsForUser(ctx context.Context, term string) (Ch
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[ChannelListWithTeamData](r)
 }
 
@@ -2879,7 +2721,6 @@ func (c *Client4) SearchAllChannelsPaged(ctx context.Context, search *ChannelSea
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*ChannelsWithCount](r)
 }
 
@@ -2890,7 +2731,6 @@ func (c *Client4) SearchGroupChannels(ctx context.Context, search *ChannelSearch
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*Channel](r)
 }
 
@@ -2925,7 +2765,6 @@ func (c *Client4) MoveChannel(ctx context.Context, channelId, teamId string, for
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Channel](r)
 }
 
@@ -2936,7 +2775,6 @@ func (c *Client4) GetChannelByName(ctx context.Context, channelName, teamId stri
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Channel](r)
 }
 
@@ -2947,7 +2785,6 @@ func (c *Client4) GetChannelByNameIncludeDeleted(ctx context.Context, channelNam
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Channel](r)
 }
 
@@ -2958,7 +2795,6 @@ func (c *Client4) GetChannelByNameForTeamName(ctx context.Context, channelName, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Channel](r)
 }
 
@@ -2969,7 +2805,6 @@ func (c *Client4) GetChannelByNameForTeamNameIncludeDeleted(ctx context.Context,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Channel](r)
 }
 
@@ -2981,7 +2816,6 @@ func (c *Client4) GetChannelMembers(ctx context.Context, channelId string, page,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[ChannelMembers](r)
 }
 
@@ -3009,16 +2843,16 @@ func (c *Client4) GetChannelMembersWithTeamData(ctx context.Context, userID stri
 				if line == "" {
 					continue
 				}
-				// TODO(hanzei): Double check
+
 				var member ChannelMemberWithTeamData
-				if err2 := json.Unmarshal([]byte(line), &member); err2 != nil {
-					return nil, BuildResponse(r), fmt.Errorf("failed to unmarshal channel member data: %w", err2)
+				if err = json.Unmarshal([]byte(line), &member); err != nil {
+					return nil, BuildResponse(r), fmt.Errorf("failed to unmarshal channel member data: %w", err)
 				}
 				ch = append(ch, member)
 			}
 
-			if err2 := scanner.Err(); err2 != nil {
-				return nil, BuildResponse(r), fmt.Errorf("scanner error while reading channel members: %w", err2)
+			if err = scanner.Err(); err != nil {
+				return nil, BuildResponse(r), fmt.Errorf("scanner error while reading channel members: %w", err)
 			}
 
 			return ch, BuildResponse(r), nil
@@ -3036,7 +2870,6 @@ func (c *Client4) GetChannelMembersByIds(ctx context.Context, channelId string, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[ChannelMembers](r)
 }
 
@@ -3047,7 +2880,6 @@ func (c *Client4) GetChannelMember(ctx context.Context, channelId, userId, etag 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*ChannelMember](r)
 }
 
@@ -3058,7 +2890,6 @@ func (c *Client4) GetChannelMembersForUser(ctx context.Context, userId, teamId, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[ChannelMembers](r)
 }
 
@@ -3070,7 +2901,6 @@ func (c *Client4) ViewChannel(ctx context.Context, userId string, view *ChannelV
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*ChannelViewResponse](r)
 }
 
@@ -3082,7 +2912,6 @@ func (c *Client4) ReadMultipleChannels(ctx context.Context, userId string, chann
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*ChannelViewResponse](r)
 }
 
@@ -3094,7 +2923,6 @@ func (c *Client4) GetChannelUnread(ctx context.Context, channelId, userId string
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*ChannelUnread](r)
 }
 
@@ -3137,7 +2965,6 @@ func (c *Client4) AddChannelMember(ctx context.Context, channelId, userId string
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*ChannelMember](r)
 }
 
@@ -3149,7 +2976,6 @@ func (c *Client4) AddChannelMembers(ctx context.Context, channelId, postRootId s
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*ChannelMember](r)
 }
 
@@ -3161,7 +2987,6 @@ func (c *Client4) AddChannelMemberWithRootId(ctx context.Context, channelId, use
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*ChannelMember](r)
 }
 
@@ -3183,7 +3008,6 @@ func (c *Client4) AutocompleteChannelsForTeam(ctx context.Context, teamId, name 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[ChannelList](r)
 }
 
@@ -3195,7 +3019,6 @@ func (c *Client4) AutocompleteChannelsForTeamForSearch(ctx context.Context, team
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[ChannelList](r)
 }
 
@@ -3291,7 +3114,6 @@ func (c *Client4) GetPost(ctx context.Context, postId string, etag string) (*Pos
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Post](r)
 }
 
@@ -3302,7 +3124,6 @@ func (c *Client4) GetPostIncludeDeleted(ctx context.Context, postId string, etag
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Post](r)
 }
 
@@ -3543,7 +3364,6 @@ func (c *Client4) CreateScheduledPost(ctx context.Context, scheduledPost *Schedu
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*ScheduledPost](r)
 }
 
@@ -3556,7 +3376,6 @@ func (c *Client4) GetUserScheduledPosts(ctx context.Context, teamId string, incl
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[map[string][]*ScheduledPost](r)
 }
 
@@ -3566,7 +3385,6 @@ func (c *Client4) UpdateScheduledPost(ctx context.Context, scheduledPost *Schedu
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*ScheduledPost](r)
 }
 
@@ -3577,7 +3395,6 @@ func (c *Client4) DeleteScheduledPost(ctx context.Context, scheduledPostId strin
 	}
 
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*ScheduledPost](r)
 }
 
@@ -3587,7 +3404,6 @@ func (c *Client4) GetFlaggingConfiguration(ctx context.Context) (*ContentFlaggin
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*ContentFlaggingReportingConfig](r)
 }
 
@@ -3597,7 +3413,6 @@ func (c *Client4) GetTeamPostFlaggingFeatureStatus(ctx context.Context, teamId s
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[map[string]bool](r)
 }
 
@@ -3621,7 +3436,6 @@ func (c *Client4) SearchFilesWithParams(ctx context.Context, teamId string, para
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*FileInfoList](r)
 }
 
@@ -3730,7 +3544,6 @@ func (c *Client4) SubmitInteractiveDialog(ctx context.Context, request SubmitDia
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*SubmitDialogResponse](r)
 }
 
@@ -3780,7 +3593,6 @@ func (c *Client4) GetFile(ctx context.Context, fileId string) ([]byte, *Response
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return ReadBytesFromResponse(r)
 }
 
@@ -3791,7 +3603,6 @@ func (c *Client4) DownloadFile(ctx context.Context, fileId string, download bool
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return ReadBytesFromResponse(r)
 }
 
@@ -3802,7 +3613,6 @@ func (c *Client4) GetFileThumbnail(ctx context.Context, fileId string) ([]byte, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return ReadBytesFromResponse(r)
 }
 
@@ -3813,7 +3623,6 @@ func (c *Client4) DownloadFileThumbnail(ctx context.Context, fileId string, down
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return ReadBytesFromResponse(r)
 }
 
@@ -3838,7 +3647,6 @@ func (c *Client4) GetFilePreview(ctx context.Context, fileId string) ([]byte, *R
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return ReadBytesFromResponse(r)
 }
 
@@ -3849,7 +3657,6 @@ func (c *Client4) DownloadFilePreview(ctx context.Context, fileId string, downlo
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return ReadBytesFromResponse(r)
 }
 
@@ -3860,7 +3667,6 @@ func (c *Client4) GetFileInfo(ctx context.Context, fileId string) (*FileInfo, *R
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*FileInfo](r)
 }
 
@@ -3871,7 +3677,6 @@ func (c *Client4) GetFileInfosForPost(ctx context.Context, postId string, etag s
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*FileInfo](r)
 }
 
@@ -3882,7 +3687,6 @@ func (c *Client4) GetFileInfosForPostIncludeDeleted(ctx context.Context, postId 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*FileInfo](r)
 }
 
@@ -3962,7 +3766,6 @@ func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*ServerLimits](r)
 }
 
@@ -4014,7 +3817,6 @@ func (c *Client4) GetConfig(ctx context.Context) (*Config, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Config](r)
 }
 
@@ -4037,7 +3839,6 @@ func (c *Client4) GetConfigWithOptions(ctx context.Context, options GetConfigOpt
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[map[string]any](r)
 }
 
@@ -4111,7 +3912,6 @@ func (c *Client4) UpdateConfig(ctx context.Context, config *Config) (*Config, *R
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Config](r)
 }
 
@@ -4149,27 +3949,12 @@ func (c *Client4) UploadLicenseFile(ctx context.Context, data []byte) (*Response
 		return nil, fmt.Errorf("failed to close multipart writer for license upload: %w", err)
 	}
 
-	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+c.licenseRoute(), bytes.NewReader(body.Bytes()))
+	r, err := c.doAPIRequestReader(ctx, http.MethodPost, c.APIURL+c.licenseRoute(), writer.FormDataContentType(), body, nil)
 	if err != nil {
-		return nil, err
+		return BuildResponse(r), err
 	}
-	rq.Header.Set("Content-Type", writer.FormDataContentType())
-
-	if c.AuthToken != "" {
-		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
-	}
-
-	rp, err := c.HTTPClient.Do(rq)
-	if err != nil {
-		return BuildResponse(rp), err
-	}
-	defer closeBody(rp)
-
-	if rp.StatusCode >= 300 {
-		return BuildResponse(rp), AppErrorFromJSON(rp.Body)
-	}
-
-	return BuildResponse(rp), nil
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
 
 // RemoveLicenseFile will remove the server license it exists. Note that this will
@@ -4191,7 +3976,6 @@ func (c *Client4) GetLicenseLoadMetric(ctx context.Context) (map[string]int, *Re
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[map[string]int](r)
 }
 
@@ -4206,7 +3990,6 @@ func (c *Client4) GetAnalyticsOld(ctx context.Context, name, teamId string) (Ana
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[AnalyticsRows](r)
 }
 
@@ -4219,7 +4002,6 @@ func (c *Client4) CreateIncomingWebhook(ctx context.Context, hook *IncomingWebho
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*IncomingWebhook](r)
 }
 
@@ -4230,7 +4012,6 @@ func (c *Client4) UpdateIncomingWebhook(ctx context.Context, hook *IncomingWebho
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*IncomingWebhook](r)
 }
 
@@ -4379,7 +4160,6 @@ func (c *Client4) GetPreferences(ctx context.Context, userId string) (Preference
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[Preferences](r)
 }
 
@@ -4422,7 +4202,6 @@ func (c *Client4) GetPreferenceByCategoryAndName(ctx context.Context, userId str
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Preference](r)
 }
 
@@ -4458,7 +4237,7 @@ func fileToMultipart(data []byte, filename string) ([]byte, *multipart.Writer, e
 		return nil, nil, err
 	}
 
-	if err := writer.Close(); err != nil {
+	if err = writer.Close(); err != nil {
 		return nil, nil, err
 	}
 
@@ -4538,7 +4317,6 @@ func (c *Client4) GetSamlCertificateStatus(ctx context.Context) (*SamlCertificat
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*SamlCertificateStatus](r)
 }
 
@@ -4608,26 +4386,12 @@ func (c *Client4) GetComplianceReport(ctx context.Context, reportId string) (*Co
 
 // DownloadComplianceReport returns a full compliance report as a file.
 func (c *Client4) DownloadComplianceReport(ctx context.Context, reportId string) ([]byte, *Response, error) {
-	rq, err := http.NewRequestWithContext(ctx, "GET", c.APIURL+c.complianceReportDownloadRoute(reportId), nil)
+	r, err := c.DoAPIGet(ctx, c.complianceReportDownloadRoute(reportId), "")
 	if err != nil {
-		return nil, nil, err
+		return nil, BuildResponse(r), err
 	}
-
-	if c.AuthToken != "" {
-		rq.Header.Set(HeaderAuth, "BEARER "+c.AuthToken)
-	}
-
-	rp, err := c.HTTPClient.Do(rq)
-	if err != nil {
-		return nil, BuildResponse(rp), err
-	}
-	defer closeBody(rp)
-
-	if rp.StatusCode >= 300 {
-		return nil, BuildResponse(rp), AppErrorFromJSON(rp.Body)
-	}
-
-	return ReadBytesFromResponse(rp)
+	defer closeBody(r)
+	return ReadBytesFromResponse(r)
 }
 
 // Cluster Section
@@ -4698,7 +4462,6 @@ func (c *Client4) LinkLdapGroup(ctx context.Context, dn string) (*Group, *Respon
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Group](r)
 }
 
@@ -4711,7 +4474,6 @@ func (c *Client4) UnlinkLdapGroup(ctx context.Context, dn string) (*Group, *Resp
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Group](r)
 }
 
@@ -4735,7 +4497,6 @@ func (c *Client4) GetGroupsByNames(ctx context.Context, names []string) ([]*Grou
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*Group](r)
 }
 
@@ -4836,7 +4597,6 @@ func (c *Client4) GetGroups(ctx context.Context, opts GroupSearchOpts) ([]*Group
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*Group](r)
 }
 
@@ -4934,7 +4694,6 @@ func (c *Client4) GetAudits(ctx context.Context, page int, perPage int, etag str
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[Audits](r)
 }
 
@@ -4982,27 +4741,12 @@ func (c *Client4) UploadBrandImage(ctx context.Context, data []byte) (*Response,
 		return nil, fmt.Errorf("failed to close multipart writer for brand image upload: %w", err)
 	}
 
-	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+c.brandRoute()+"/image", bytes.NewReader(body.Bytes()))
+	r, err := c.doAPIRequestReader(ctx, http.MethodPost, c.APIURL+c.brandRoute()+"/image", writer.FormDataContentType(), body, nil)
 	if err != nil {
-		return nil, err
+		return BuildResponse(r), err
 	}
-	rq.Header.Set("Content-Type", writer.FormDataContentType())
-
-	if c.AuthToken != "" {
-		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
-	}
-
-	rp, err := c.HTTPClient.Do(rq)
-	if err != nil {
-		return BuildResponse(rp), err
-	}
-	defer closeBody(rp)
-
-	if rp.StatusCode >= 300 {
-		return BuildResponse(rp), AppErrorFromJSON(rp.Body)
-	}
-
-	return BuildResponse(rp), nil
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
 
 // Logs Section
@@ -5015,7 +4759,6 @@ func (c *Client4) GetLogs(ctx context.Context, page, perPage int) ([]string, *Re
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]string](r)
 }
 
@@ -5049,7 +4792,6 @@ func (c *Client4) CreateOAuthApp(ctx context.Context, app *OAuthApp) (*OAuthApp,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*OAuthApp](r)
 }
 
@@ -5163,28 +4905,13 @@ func (c *Client4) DeauthorizeOAuthApp(ctx context.Context, appId string) (*Respo
 
 // GetOAuthAccessToken is a test helper function for the OAuth access token endpoint.
 func (c *Client4) GetOAuthAccessToken(ctx context.Context, data url.Values) (*AccessResponse, *Response, error) {
-	url := c.URL + "/oauth/access_token"
-	rq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(data.Encode()))
+	r, err := c.doAPIRequestReader(ctx, http.MethodPost, c.URL+"/oauth/access_token", "application/x-www-form-urlencoded", strings.NewReader(data.Encode()), nil)
 	if err != nil {
-		return nil, nil, err
+		return nil, BuildResponse(r), err
 	}
-	rq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	defer closeBody(r)
 
-	if c.AuthToken != "" {
-		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
-	}
-
-	rp, err := c.HTTPClient.Do(rq)
-	if err != nil {
-		return nil, BuildResponse(rp), err
-	}
-	defer closeBody(rp)
-
-	if rp.StatusCode >= 300 {
-		return nil, BuildResponse(rp), AppErrorFromJSON(rp.Body)
-	}
-
-	return DecodeJSONFromResponse[*AccessResponse](rp)
+	return DecodeJSONFromResponse[*AccessResponse](r)
 }
 
 // OutgoingOAuthConnection section
@@ -5236,7 +4963,6 @@ func (c *Client4) CreateOutgoingOAuthConnection(ctx context.Context, connection 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*OutgoingOAuthConnection](r)
 }
 
@@ -5282,7 +5008,6 @@ func (c *Client4) GetDataRetentionPolicyByID(ctx context.Context, policyID strin
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*RetentionPolicyWithTeamAndChannelCounts](r)
 }
 
@@ -5310,7 +5035,6 @@ func (c *Client4) GetDataRetentionPolicies(ctx context.Context, page, perPage in
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*RetentionPolicyWithTeamAndChannelCountsList](r)
 }
 
@@ -5455,7 +5179,6 @@ func (c *Client4) UpsertDraft(ctx context.Context, draft *Draft) (*Draft, *Respo
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Draft](r)
 }
 
@@ -5475,7 +5198,6 @@ func (c *Client4) DeleteDraft(ctx context.Context, userId, channelId, rootId str
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Draft](r)
 }
 
@@ -5488,7 +5210,6 @@ func (c *Client4) CreateCommand(ctx context.Context, cmd *Command) (*Command, *R
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Command](r)
 }
 
@@ -5531,7 +5252,6 @@ func (c *Client4) ListCommands(ctx context.Context, teamId string, customOnly bo
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*Command](r)
 }
 
@@ -5712,15 +5432,20 @@ func (c *Client4) CreateEmoji(ctx context.Context, emoji *Emoji, image []byte, f
 		return nil, nil, fmt.Errorf("failed to marshal emoji data: %w", err)
 	}
 
-	if err := writer.WriteField("emoji", string(emojiJSON)); err != nil {
+	if err = writer.WriteField("emoji", string(emojiJSON)); err != nil {
 		return nil, nil, err
 	}
 
-	if err := writer.Close(); err != nil {
+	if err = writer.Close(); err != nil {
 		return nil, nil, err
 	}
 
-	return c.DoEmojiUploadFile(ctx, c.emojisRoute(), body.Bytes(), writer.FormDataContentType())
+	r, err := c.doAPIRequestReader(ctx, http.MethodPost, c.APIURL+c.emojisRoute(), writer.FormDataContentType(), body, nil)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Emoji](r)
 }
 
 // GetEmojiList returns a page of custom emoji on the system.
@@ -5731,7 +5456,6 @@ func (c *Client4) GetEmojiList(ctx context.Context, page, perPage int) ([]*Emoji
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*Emoji](r)
 }
 
@@ -5754,7 +5478,6 @@ func (c *Client4) GetEmojisByNames(ctx context.Context, names []string) ([]*Emoj
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*Emoji](r)
 }
 
@@ -5795,7 +5518,6 @@ func (c *Client4) GetEmojiImage(ctx context.Context, emojiId string) ([]byte, *R
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return ReadBytesFromResponse(r)
 }
 
@@ -5933,7 +5655,6 @@ func (c *Client4) DownloadJob(ctx context.Context, jobId string) ([]byte, *Respo
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return ReadBytesFromResponse(r)
 }
 
@@ -6072,7 +5793,6 @@ func (c *Client4) GetChannelsForScheme(ctx context.Context, schemeId string, pag
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[ChannelList](r)
 }
 
@@ -6111,27 +5831,12 @@ func (c *Client4) uploadPlugin(ctx context.Context, file io.Reader, force bool) 
 		return nil, nil, err
 	}
 
-	rq, err := http.NewRequestWithContext(ctx, "POST", c.APIURL+c.pluginsRoute(), body)
+	r, err := c.doAPIRequestReader(ctx, http.MethodPost, c.APIURL+c.pluginsRoute(), writer.FormDataContentType(), body, nil)
 	if err != nil {
-		return nil, nil, err
-	}
-	rq.Header.Set("Content-Type", writer.FormDataContentType())
-
-	if c.AuthToken != "" {
-		rq.Header.Set(HeaderAuth, c.AuthType+" "+c.AuthToken)
+		return nil, BuildResponse(r), err
 	}
 
-	rp, err := c.HTTPClient.Do(rq)
-	if err != nil {
-		return nil, BuildResponse(rp), err
-	}
-	defer closeBody(rp)
-
-	if rp.StatusCode >= 300 {
-		return nil, BuildResponse(rp), AppErrorFromJSON(rp.Body)
-	}
-
-	return DecodeJSONFromResponse[*Manifest](rp)
+	return DecodeJSONFromResponse[*Manifest](r)
 }
 
 func (c *Client4) InstallPluginFromURL(ctx context.Context, downloadURL string, force bool) (*Manifest, *Response, error) {
@@ -6143,7 +5848,6 @@ func (c *Client4) InstallPluginFromURL(ctx context.Context, downloadURL string, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Manifest](r)
 }
 
@@ -6154,7 +5858,6 @@ func (c *Client4) InstallMarketplacePlugin(ctx context.Context, request *Install
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Manifest](r)
 }
 
@@ -6191,7 +5894,6 @@ func (c *Client4) GetPlugins(ctx context.Context) (*PluginsResponse, *Response, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*PluginsResponse](r)
 }
 
@@ -6223,7 +5925,6 @@ func (c *Client4) GetWebappPlugins(ctx context.Context) ([]*Manifest, *Response,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*Manifest](r)
 }
 
@@ -6337,7 +6038,6 @@ func (c *Client4) GetServerBusy(ctx context.Context) (*ServerBusyState, *Respons
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*ServerBusyState](r)
 }
 
@@ -6543,7 +6243,6 @@ func (c *Client4) PatchConfig(ctx context.Context, config *Config) (*Config, *Re
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Config](r)
 }
 
@@ -6553,7 +6252,6 @@ func (c *Client4) GetChannelModerations(ctx context.Context, channelID string, e
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*ChannelModeration](r)
 }
 
@@ -6563,7 +6261,6 @@ func (c *Client4) PatchChannelModerations(ctx context.Context, channelID string,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*ChannelModeration](r)
 }
 
@@ -6592,7 +6289,6 @@ func (c *Client4) GetChannelMemberCountsByGroup(ctx context.Context, channelID s
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*ChannelMemberCountByGroup](r)
 }
 
@@ -6656,7 +6352,6 @@ func (c *Client4) UpdateSidebarCategoriesForTeamForUser(ctx context.Context, use
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*SidebarCategoryWithChannels](r)
 }
 
@@ -6667,7 +6362,6 @@ func (c *Client4) GetSidebarCategoryOrderForTeamForUser(ctx context.Context, use
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]string](r)
 }
 
@@ -6678,7 +6372,6 @@ func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(ctx context.Context, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]string](r)
 }
 
@@ -6689,7 +6382,6 @@ func (c *Client4) GetSidebarCategoryForTeamForUser(ctx context.Context, userID, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*SidebarCategoryWithChannels](r)
 }
 
@@ -6764,7 +6456,6 @@ func (c *Client4) CreateUpload(ctx context.Context, us *UploadSession) (*UploadS
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*UploadSession](r)
 }
 
@@ -6793,7 +6484,7 @@ func (c *Client4) GetUploadsForUser(ctx context.Context, userId string) ([]*Uplo
 // a FileInfo object.
 func (c *Client4) UploadData(ctx context.Context, uploadId string, data io.Reader) (*FileInfo, *Response, error) {
 	url := c.uploadRoute(uploadId)
-	r, err := c.doAPIRequestReader(ctx, http.MethodPost, c.APIURL+url, data, nil)
+	r, err := c.doAPIRequestReader(ctx, http.MethodPost, c.APIURL+url, "", data, nil)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6822,7 +6513,6 @@ func (c *Client4) GetCloudProducts(ctx context.Context) ([]*Product, *Response, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*Product](r)
 }
 
@@ -6832,7 +6522,6 @@ func (c *Client4) GetSelfHostedProducts(ctx context.Context) ([]*Product, *Respo
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*Product](r)
 }
 
@@ -6842,7 +6531,6 @@ func (c *Client4) GetProductLimits(ctx context.Context) (*ProductLimits, *Respon
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*ProductLimits](r)
 }
 
@@ -6853,7 +6541,6 @@ func (c *Client4) GetIPFilters(ctx context.Context) (*AllowedIPRanges, *Response
 	}
 
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*AllowedIPRanges](r)
 }
 
@@ -6864,7 +6551,6 @@ func (c *Client4) ApplyIPFilters(ctx context.Context, allowedRanges *AllowedIPRa
 	}
 
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*AllowedIPRanges](r)
 }
 
@@ -6875,7 +6561,6 @@ func (c *Client4) GetMyIP(ctx context.Context) (*GetIPAddressResponse, *Response
 	}
 
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*GetIPAddressResponse](r)
 }
 
@@ -6927,7 +6612,6 @@ func (c *Client4) GetCloudCustomer(ctx context.Context) (*CloudCustomer, *Respon
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*CloudCustomer](r)
 }
 
@@ -6937,7 +6621,6 @@ func (c *Client4) GetSubscription(ctx context.Context) (*Subscription, *Response
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Subscription](r)
 }
 
@@ -6947,7 +6630,6 @@ func (c *Client4) GetInvoicesForSubscription(ctx context.Context) ([]*Invoice, *
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*Invoice](r)
 }
 
@@ -6957,7 +6639,6 @@ func (c *Client4) UpdateCloudCustomer(ctx context.Context, customerInfo *CloudCu
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*CloudCustomer](r)
 }
 
@@ -6967,7 +6648,6 @@ func (c *Client4) UpdateCloudCustomerAddress(ctx context.Context, address *Addre
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*CloudCustomer](r)
 }
 
@@ -6977,7 +6657,6 @@ func (c *Client4) ListImports(ctx context.Context) ([]string, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]string](r)
 }
 
@@ -6996,7 +6675,6 @@ func (c *Client4) ListExports(ctx context.Context) ([]string, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]string](r)
 }
 
@@ -7034,7 +6712,6 @@ func (c *Client4) GeneratePresignedURL(ctx context.Context, name string) (*Presi
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*PresignURLResponse](r)
 }
 
@@ -7080,7 +6757,6 @@ func (c *Client4) GetUserThreads(ctx context.Context, userId, teamId string, opt
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Threads](r)
 }
 
@@ -7119,7 +6795,6 @@ func (c *Client4) GetUserThread(ctx context.Context, userId, teamId, threadId st
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*ThreadResponse](r)
 }
 
@@ -7139,7 +6814,6 @@ func (c *Client4) SetThreadUnreadByPostId(ctx context.Context, userId, teamId, t
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*ThreadResponse](r)
 }
 
@@ -7149,7 +6823,6 @@ func (c *Client4) UpdateThreadReadForUser(ctx context.Context, userId, teamId, t
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*ThreadResponse](r)
 }
 
@@ -7176,7 +6849,6 @@ func (c *Client4) GetAllSharedChannels(ctx context.Context, teamID string, page,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*SharedChannel](r)
 }
 
@@ -7187,7 +6859,6 @@ func (c *Client4) GetRemoteClusterInfo(ctx context.Context, remoteID string) (Re
 		return RemoteClusterInfo{}, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[RemoteClusterInfo](r)
 }
 
@@ -7239,7 +6910,6 @@ func (c *Client4) GetRemoteClusters(ctx context.Context, page, perPage int, filt
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*RemoteCluster](r)
 }
 
@@ -7249,7 +6919,6 @@ func (c *Client4) CreateRemoteCluster(ctx context.Context, rcWithPassword *Remot
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*RemoteClusterWithInvite](r)
 }
 
@@ -7260,7 +6929,6 @@ func (c *Client4) RemoteClusterAcceptInvite(ctx context.Context, rcAcceptInvite 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*RemoteCluster](r)
 }
 
@@ -7271,7 +6939,6 @@ func (c *Client4) GenerateRemoteClusterInvite(ctx context.Context, remoteCluster
 		return "", BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[string](r)
 }
 
@@ -7281,7 +6948,6 @@ func (c *Client4) GetRemoteCluster(ctx context.Context, remoteClusterId string) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*RemoteCluster](r)
 }
 
@@ -7292,7 +6958,6 @@ func (c *Client4) PatchRemoteCluster(ctx context.Context, remoteClusterId string
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*RemoteCluster](r)
 }
 
@@ -7338,7 +7003,6 @@ func (c *Client4) GetSharedChannelRemotesByRemoteCluster(ctx context.Context, re
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*SharedChannelRemote](r)
 }
 
@@ -7370,7 +7034,6 @@ func (c *Client4) GetAncillaryPermissions(ctx context.Context, subsectionPermiss
 		return returnedPermissions, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]string](r)
 }
 
@@ -7381,7 +7044,6 @@ func (c *Client4) GetUsersWithInvalidEmails(ctx context.Context, page, perPage i
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*User](r)
 }
 
@@ -7391,7 +7053,6 @@ func (c *Client4) GetAppliedSchemaMigrations(ctx context.Context) ([]AppliedMigr
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]AppliedMigration](r)
 }
 
@@ -7404,7 +7065,6 @@ func (c *Client4) GetPostsUsage(ctx context.Context) (*PostsUsage, *Response, er
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*PostsUsage](r)
 }
 
@@ -7416,7 +7076,6 @@ func (c *Client4) GetStorageUsage(ctx context.Context) (*StorageUsage, *Response
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*StorageUsage](r)
 }
 
@@ -7427,7 +7086,6 @@ func (c *Client4) GetTeamsUsage(ctx context.Context) (*TeamsUsage, *Response, er
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*TeamsUsage](r)
 }
 
@@ -7437,7 +7095,6 @@ func (c *Client4) GetPostInfo(ctx context.Context, postId string) (*PostInfo, *R
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*PostInfo](r)
 }
 
@@ -7447,7 +7104,6 @@ func (c *Client4) AcknowledgePost(ctx context.Context, postId, userId string) (*
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*PostAcknowledgement](r)
 }
 
@@ -7486,7 +7142,6 @@ func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *Ch
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*ChannelBookmarkWithFileInfo](r)
 }
 
@@ -7497,7 +7152,6 @@ func (c *Client4) UpdateChannelBookmark(ctx context.Context, channelId, bookmark
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*UpdateChannelBookmarkResponse](r)
 }
 
@@ -7508,7 +7162,6 @@ func (c *Client4) UpdateChannelBookmarkSortOrder(ctx context.Context, channelId,
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*ChannelBookmarkWithFileInfo](r)
 }
 
@@ -7519,7 +7172,6 @@ func (c *Client4) DeleteChannelBookmark(ctx context.Context, channelId, bookmark
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*ChannelBookmarkWithFileInfo](r)
 }
 
@@ -7530,7 +7182,6 @@ func (c *Client4) ListChannelBookmarksForChannel(ctx context.Context, channelId 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*ChannelBookmarkWithFileInfo](r)
 }
 
@@ -7567,7 +7218,6 @@ func (c *Client4) GetFilteredUsersStats(ctx context.Context, options *UserCountO
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*UsersStats](r)
 }
 
@@ -7578,7 +7228,6 @@ func (c *Client4) RestorePostVersion(ctx context.Context, postId, versionId stri
 	}
 
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*Post](r)
 }
 
@@ -7588,7 +7237,6 @@ func (c *Client4) CreateCPAField(ctx context.Context, field *PropertyField) (*Pr
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*PropertyField](r)
 }
 
@@ -7598,7 +7246,6 @@ func (c *Client4) ListCPAFields(ctx context.Context) ([]*PropertyField, *Respons
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]*PropertyField](r)
 }
 
@@ -7608,7 +7255,6 @@ func (c *Client4) PatchCPAField(ctx context.Context, fieldID string, patch *Prop
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*PropertyField](r)
 }
 
@@ -7627,7 +7273,6 @@ func (c *Client4) ListCPAValues(ctx context.Context, userID string) (map[string]
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[map[string]json.RawMessage](r)
 }
 
@@ -7637,7 +7282,6 @@ func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]json.Raw
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[map[string]json.RawMessage](r)
 }
 
@@ -7650,7 +7294,6 @@ func (c *Client4) CreateAccessControlPolicy(ctx context.Context, policy *AccessC
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*AccessControlPolicy](r)
 }
 
@@ -7660,7 +7303,6 @@ func (c *Client4) GetAccessControlPolicy(ctx context.Context, id string) (*Acces
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*AccessControlPolicy](r)
 }
 
@@ -7685,7 +7327,6 @@ func (c *Client4) CheckExpression(ctx context.Context, expression string) ([]CEL
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[[]CELExpressionError](r)
 }
 
@@ -7695,7 +7336,6 @@ func (c *Client4) TestExpression(ctx context.Context, params QueryExpressionPara
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*AccessControlPolicyTestResponse](r)
 }
 
@@ -7705,7 +7345,6 @@ func (c *Client4) SearchAccessControlPolicies(ctx context.Context, options Acces
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*AccessControlPoliciesWithCount](r)
 }
 
@@ -7745,7 +7384,6 @@ func (c *Client4) GetChannelsForAccessControlPolicy(ctx context.Context, policyI
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*ChannelsWithCount](r)
 }
 
@@ -7755,6 +7393,5 @@ func (c *Client4) SearchChannelsForAccessControlPolicy(ctx context.Context, poli
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-
 	return DecodeJSONFromResponse[*ChannelsWithCount](r)
 }
