@@ -8150,14 +8150,6 @@
     "translation": "Het is niet gelukt om de aangepaste status bij te werken. Voeg een emoji of een aangepaste tekststatus of beide toe."
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Kan geen berichten ophalen voor een gearchiveerd kanaal"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Kan geen berichten ophalen voor een gearchiveerd kanaal"
-  },
-  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Het aantal ontvangen Post ID's heeft de maximumgrootte van {{.MaxLength}} overschreden"
   },
@@ -10202,10 +10194,6 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
     "translation": "Het bijwerken van de sorteervolgorde van de kanaalbladwijzers is mislukt."
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Kan geen bladwijzers ophalen voor een gearchiveerd kanaal"
   },
   {
     "id": "app.file_info.get_count.app_error",

@@ -2201,8 +2201,6 @@
   "admin.user_item.sysAdmin": "Адміністратар сістэмы",
   "admin.user_item.teamAdmin": "Адміністратар каманды",
   "admin.user_item.teamMember": "Удзельнік каманды",
-  "admin.viewArchivedChannelsHelpText": "Пры значэнні \"так\" дазваляе карыстальнікам праглядаць, абменьвацца і шукаць змесціва каналаў, якія былі заархіваваны. Карыстальнікі могуць праглядаць кантэнт толькі ў тых каналах, удзельнікамі якіх яны былі, да таго, як канал быў заархіваваны.",
-  "admin.viewArchivedChannelsTitle": "Дазволіць карыстальнікам праглядаць архіваваныя каналы:",
   "admin.webserverModeDisabled": "Адключана",
   "admin.webserverModeDisabledDescription": "Mattermost сервер не будзе абслугоўваць статычныя файлы.",
   "admin.webserverModeGzip": "gzip",
