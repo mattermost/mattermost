@@ -16,7 +16,7 @@ import {
     SectionHeader,
 } from 'components/admin_console/system_properties/controls';
 
-import {UserMultiSelector} from '../../content_flagging/user_multiselector/user_multiselector';
+import {UserSelector} from '../../content_flagging/user_multiselector/user_multiselector';
 import type {SystemConsoleCustomSettingsComponentProps} from '../../schema_admin_settings';
 
 import './content_reviewers.scss';
@@ -148,10 +148,11 @@ export default function ContentFlaggingContentReviewers(props: SystemConsoleCust
                             </div>
 
                             <div className='setting-content'>
-                                <UserMultiSelector
+                                <UserSelector
+                                    isMulti={true}
                                     id='content_reviewers_common_reviewers'
-                                    initialValue={reviewerSetting.CommonReviewerIds}
-                                    onChange={handleCommonReviewersChange}
+                                    multiSelectInitialValue={reviewerSetting.CommonReviewerIds}
+                                    multiSelectOnChange={handleCommonReviewersChange}
                                 />
                             </div>
                         </div>
