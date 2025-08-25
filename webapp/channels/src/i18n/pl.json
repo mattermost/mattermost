@@ -3111,7 +3111,7 @@
   "admin.userManagement.userDetail.teamsTitle": "Członkostwo w zespol",
   "admin.userManagement.userDetail.userId": "Identyfikator użytkownika: {userId}",
   "admin.userManagement.userDetail.username": "Nazwa użytkownika",
-  "admin.userMultiSelector.loading": "Wczytuję użytkowników...",
+  "admin.userMultiSelector.loading": "Wczytuję użytkowników",
   "admin.userMultiSelector.noUsers": "Nie odnaleziono użytkowników",
   "admin.userMultiSelector.placeholder": "Zacznij wpisywać, aby szukać użytkowników...",
   "admin.user_attributes_feature_discovery.desc": "Zdefiniuj atrybuty profilu użytkownika specyficzne dla organizacji i zarządzaj nimi, ponieważ mogą one być synchronizowane z dostawcą tożsamości AD/LDAP lub SAML.",
