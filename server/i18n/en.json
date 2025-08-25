@@ -4627,10 +4627,6 @@
         "translation": "Unable to get channel type counts."
     },
     {
-        "id": "app.channel.soft_delete.app_error",
-        "translation": "Failed to mark the channel as deleted."
-    },
-    {
         "id": "app.channel.autofollow.app_error",
         "translation": "Failed to update thread membership for mentioned user"
     },
@@ -5141,6 +5137,10 @@
     {
         "id": "app.custom_profile_attributes.property_field_delete.app_error",
         "translation": "Unable to delete Custom Profile Attribute field"
+    },
+    {
+        "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
+        "translation": "Cannot update value for an admin-managed Custom Profile Attribute field"
     },
     {
         "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
@@ -7911,6 +7911,14 @@
     {
         "id": "ent.elasticsearch.create_client.connect_failed",
         "translation": "Setting up {{.Backend}} Client Failed"
+    },
+    {
+        "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+        "translation": "Failed to create Elasticsearch bulk processor"
+    },
+    {
+        "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+        "translation": "Failed to create Elasticsearch sync bulk processor"
     },
     {
         "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
@@ -10753,7 +10761,11 @@
         "translation": "No text specified."
     },
     {
-    "id": "web.incoming_webhook.user.app_error",
-    "translation": "Couldn't find the user {{.user}}"
+        "id": "web.incoming_webhook.user.app_error",
+        "translation": "Couldn't find the user {{.user}}"
+    },
+    {
+        "id": "app.channel.set_delete_at.app_error",
+        "translation": "Unable to set delete timestamp for the channel."
     }
 ]
