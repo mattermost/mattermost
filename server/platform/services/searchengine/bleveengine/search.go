@@ -18,6 +18,13 @@ import (
 const DeletePostsBatchSize = 500
 const DeleteFilesBatchSize = 500
 
+// createInactiveUserFilter creates a query to filter out inactive users
+func createInactiveUserFilter() query.Query {
+	inactiveQ := bleve.NewTermQuery("0")
+	inactiveQ.SetField("DeleteAt")
+	return inactiveQ
+}
+
 func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError {
 	b.Mutex.RLock()
 	defer b.Mutex.RUnlock()
@@ -437,9 +444,7 @@ func (b *BleveEngine) SearchUsersInChannel(teamId, channelId string, restrictedT
 
 	// Filter out inactive users if AllowInactive is false
 	if !options.AllowInactive {
-		inactiveQ := bleve.NewTermQuery("0")
-		inactiveQ.SetField("DeleteAt")
-		queries = append(queries, inactiveQ)
+		queries = append(queries, createInactiveUserFilter())
 	}
 
 	query := bleve.NewConjunctionQuery(queries...)
@@ -483,9 +488,7 @@ func (b *BleveEngine) SearchUsersInChannel(teamId, channelId string, restrictedT
 
 	// Filter out inactive users if AllowInactive is false
 	if !options.AllowInactive {
-		inactiveQ := bleve.NewTermQuery("0")
-		inactiveQ.SetField("DeleteAt")
-		boolQ.AddMust(inactiveQ)
+		boolQ.AddMust(createInactiveUserFilter())
 	}
 
 	nuchanSearch := bleve.NewSearchRequest(boolQ)
@@ -531,9 +534,7 @@ func (b *BleveEngine) SearchUsersInTeam(teamId string, restrictedToChannels []st
 
 		// Filter out inactive users if AllowInactive is false
 		if !options.AllowInactive {
-			inactiveQ := bleve.NewTermQuery("0")
-			inactiveQ.SetField("DeleteAt")
-			boolQ.AddMust(inactiveQ)
+			boolQ.AddMust(createInactiveUserFilter())
 		}
 
 		if len(restrictedToChannels) > 0 {
