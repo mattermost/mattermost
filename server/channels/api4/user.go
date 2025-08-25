@@ -811,20 +811,6 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		etag     string
 	)
 
-	if inChannelId != "" {
-		if !*c.App.Config().TeamSettings.ExperimentalViewArchivedChannels {
-			channel, cErr := c.App.GetChannel(c.AppContext, inChannelId)
-			if cErr != nil {
-				c.Err = cErr
-				return
-			}
-			if channel.DeleteAt != 0 {
-				c.Err = model.NewAppError("Api4.getUsersInChannel", "api.user.view_archived_channels.get_users_in_channel.app_error", nil, "", http.StatusForbidden)
-				return
-			}
-		}
-	}
-
 	if withoutTeamBool, _ := strconv.ParseBool(withoutTeam); withoutTeamBool {
 		// Use a special permission for now
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListUsersWithoutTeam) {
@@ -1916,25 +1902,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	mfaToken := props["token"]
 	deviceId := props["device_id"]
 	ldapOnly := props["ldap_only"] == "true"
-
-	if *c.App.Config().ExperimentalSettings.ClientSideCertEnable {
-		if license := c.App.Channels().License(); license == nil || !*license.Features.FutureFeatures {
-			c.Err = model.NewAppError("ClientSideCertNotAllowed", "api.user.login.client_side_cert.license.app_error", nil, "", http.StatusBadRequest)
-			return
-		}
-		certPem, certSubject, certEmail := c.App.CheckForClientSideCert(r)
-		c.Logger.Debug("Client Cert", mlog.String("cert_subject", certSubject), mlog.String("cert_email", certEmail))
-
-		if certPem == "" || certEmail == "" {
-			c.Err = model.NewAppError("ClientSideCertMissing", "api.user.login.client_side_cert.certificate.app_error", nil, "", http.StatusBadRequest)
-			return
-		}
-
-		if *c.App.Config().ExperimentalSettings.ClientSideCertCheck == model.ClientSideCertCheckPrimaryAuth {
-			loginId = certEmail
-			password = "certificate"
-		}
-	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)

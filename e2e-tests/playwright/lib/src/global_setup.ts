@@ -93,7 +93,7 @@ async function printLicenseInfo(client: Client4) {
 }
 
 async function printClientInfo(client: Client4) {
-    const config = await client.getClientConfigOld();
+    const config = await client.getClientConfig();
     // eslint-disable-next-line no-console
     console.log(`Build Info:
   - BuildNumber                 = ${config.BuildNumber}
