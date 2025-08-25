@@ -49,7 +49,7 @@ func (ps *PlatformService) License() *model.License {
 func (ps *PlatformService) LoadLicense() {
 	c := request.EmptyContext(ps.logger)
 
-	if model.BuildEnterpriseReady == "false" {
+	if model.BuildEnterpriseReady != "true" {
 		return
 	}
 
