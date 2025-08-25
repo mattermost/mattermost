@@ -29,25 +29,15 @@ const DataGridSearch = ({
     filterProps,
     onSearch,
 }: Props) => {
-    // This state wasn't used in the class component.
-    // const [termFromState, setTermFromState] = useState('');
-
     const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const term = e.target.value;
 
-        // setTermFromState(term);
         onSearch(term);
     }, [onSearch]);
 
     const resetSearch = useCallback(() => {
         onSearch('');
     }, [onSearch]);
-
-    // This method was declared in the class component but never used.
-    // eslint-disable-next-line
-    const onFilter = (filters: FilterOptions) => {
-        filterProps?.onFilter(filters);
-    };
 
     let filter;
     if (filterProps) {
