@@ -701,17 +701,30 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 		assert.ErrorContains(t, err, "dynamic data_source requires data_source_url")
 	})
 
-	t.Run("should fail dynamic data_source with invalid URL", func(t *testing.T) {
+	t.Run("should fail dynamic data_source with malformed URL", func(t *testing.T) {
 		request := getBaseOpenDialogRequest()
 		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
 			DisplayName:   "Dynamic data_source",
 			Name:          "dynamic_field",
 			Type:          "select",
 			DataSource:    "dynamic",
-			DataSourceURL: "http://insecure.com/api/options",
+			DataSourceURL: "not-a-valid-url",
 		})
 		err := request.IsValid()
 		assert.ErrorContains(t, err, "invalid data_source_url for dynamic select")
+	})
+
+	t.Run("should pass dynamic data_source with HTTP URL", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName:   "Dynamic data_source",
+			Name:          "dynamic_field",
+			Type:          "select",
+			DataSource:    "dynamic",
+			DataSourceURL: "http://example.com/api/options",
+		})
+		err := request.IsValid()
+		assert.NoError(t, err)
 	})
 
 	t.Run("should pass dynamic data_source with plugin URL", func(t *testing.T) {
@@ -753,13 +766,13 @@ func TestIsValidLookupURL(t *testing.T) {
 			url:      "https://example.com/api/lookup",
 			expected: true,
 		},
+		"valid HTTP URL": {
+			url:      "http://example.com/api/lookup",
+			expected: true,
+		},
 		"valid plugin path": {
 			url:      "/plugins/myplugin/lookup",
 			expected: true,
-		},
-		"invalid HTTP URL": {
-			url:      "http://example.com/api/lookup",
-			expected: false,
 		},
 		"empty URL": {
 			url:      "",
@@ -792,6 +805,10 @@ func TestIsValidLookupURL(t *testing.T) {
 		"127.0.0.1 HTTP": {
 			url:      "http://127.0.0.1:8080/api/lookup",
 			expected: true,
+		},
+		"malformed URL": {
+			url:      "not-a-url",
+			expected: false,
 		},
 	}
 

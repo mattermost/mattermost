@@ -788,25 +788,7 @@ func IsValidLookupURL(url string) bool {
 		return false
 	}
 
-	// Only allow HTTPS for external URLs (more secure than HTTP)
-	if strings.HasPrefix(url, "https://") {
-		return IsValidHTTPURL(url)
-	}
-
-	// Allow HTTP URLs to localhost and 127.0.0.1 for testing scenarios
-	if strings.HasPrefix(url, "http://") {
-		if IsValidHTTPURL(url) {
-			parsedURL, err := neturl.Parse(url)
-			if err != nil {
-				return false
-			}
-			host := parsedURL.Hostname()
-			return host == "localhost" || host == "127.0.0.1"
-		}
-		return false
-	}
-
-	// Only allow plugin paths that start with /plugins/
+	// Allow plugin paths that start with /plugins/
 	if strings.HasPrefix(url, "/plugins/") {
 		// Additional validation for plugin paths - ensure no path traversal
 		if strings.Contains(url, "..") || strings.Contains(url, "//") {
@@ -815,5 +797,6 @@ func IsValidLookupURL(url string) bool {
 		return true
 	}
 
-	return false
+	// For external URLs, use the same basic validation as other models
+	return IsValidHTTPURL(url)
 }
