@@ -166,6 +166,10 @@ func (a *App) CreateBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.Ap
 }
 
 func (a *App) GetSystemBot(rctx request.CTX) (*model.Bot, *model.AppError) {
+	return a.GetOrCreateSystemOwnedBot(rctx, "app.system.system_bot.bot_displayname")
+}
+
+func (a *App) GetOrCreateSystemOwnedBot(rctx request.CTX, botDisplayNameTranslationString string) (*model.Bot, *model.AppError) {
 	perPage := 1
 	userOptions := &model.UserGetOptions{
 		Page:     0,
@@ -186,7 +190,7 @@ func (a *App) GetSystemBot(rctx request.CTX) (*model.Bot, *model.AppError) {
 	T := i18n.GetUserTranslations(sysAdminList[0].Locale)
 	systemBot := &model.Bot{
 		Username:    model.BotSystemBotUsername,
-		DisplayName: T("app.system.system_bot.bot_displayname"),
+		DisplayName: T(botDisplayNameTranslationString),
 		Description: "",
 		OwnerId:     sysAdminList[0].Id,
 	}
