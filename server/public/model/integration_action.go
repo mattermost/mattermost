@@ -16,7 +16,6 @@ import (
 	"io"
 	"math/big"
 	"net/http"
-	neturl "net/url"
 	"reflect"
 	"slices"
 	"strconv"
