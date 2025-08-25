@@ -21,7 +21,6 @@
     "@tippyjs/react": "4.2.6",
     "@types/color-hash": "1.0.2",
     "@types/turndown": "5.0.5",
-    "axios": "1.7.9",
     "bootstrap": "3.4.1",
     "buffer": "6.0.3",
     "chart.js": "3.8.2",
