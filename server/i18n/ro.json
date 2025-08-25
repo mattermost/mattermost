@@ -2072,14 +2072,6 @@
     "translation": "Conectarea la bot este interzisă."
   },
   {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "A încercat să faceţi sign in utilizând caracteristica experimentale ClientSideCert fără a furniza un certificat valabil."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Încercaţi să utilizaţi caracteristica experimentale ClientSideCertEnable fara licenta valida enterprise."
-  },
-  {
     "id": "api.user.login.inactive.app_error",
     "translation": "Conectare a eşuat deoarece contul a fost dezactivat.  Vă rugăm să contactaţi un administrator."
   },

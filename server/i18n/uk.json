@@ -2076,14 +2076,6 @@
     "translation": "Вхід через ботів заборонено."
   },
   {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Спроба входу за допомогою експериментальної функції ClientSideCert без надання дійсного сертифікату."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Спроба використання експериментальної можливості ClientSideCertEnable без дійсної Enterprise ліцензії."
-  },
-  {
     "id": "api.user.login.inactive.app_error",
     "translation": "Не вдалося увійти, оскільки ваш обліковий запис було деактивовано.   Будь ласка, зверніться до адміністратора."
   },

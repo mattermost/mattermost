@@ -2076,14 +2076,6 @@
     "translation": "Bot login is forbidden."
   },
   {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Próbowano zalogować się przy użyciu eksperymentalnej funkcji ClientSideCert bez podania ważnego certyfikatu."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Próba użycia eksperymentalnej funkcji ClientSideCertEnable bez ważnej licencji enterprise."
-  },
-  {
     "id": "api.user.login.inactive.app_error",
     "translation": "Logowanie nie powiodło się ponieważ Twoje konto zostało dezaktywowane. Skontaktuj się z administratorem."
   },

@@ -4384,14 +4384,6 @@
     "translation": "Gäståtkomst har inaktiverats"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Försök att använda experimentfunktionen ClientSideCertEnable utan en giltig enterpriselicens."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Försökte logga in med den experimentella funktionaliteten ClientSideCert med ett ogiltigt certifikat."
-  },
-  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Bot-inloggning är inte tillåten."
   },

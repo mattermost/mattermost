@@ -2071,14 +2071,6 @@
     "translation": "Bot login sind verboten."
   },
   {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Versuchte Anmeldung unter Verwendung der experimentellen Funktion ClientSideCert ohne Angabe eines gültigen Zertifikats."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Versuchte Anmeldung unter Verwendung der experimentellen Funktion ClientSideCertEnable ohne Angabe einer gültigen Enterprise-Lizenz."
-  },
-  {
     "id": "api.user.login.inactive.app_error",
     "translation": "Anmeldung nicht möglich, weil dein Konto deaktiviert wurde.  Bitte wende dich an einen Administrator."
   },

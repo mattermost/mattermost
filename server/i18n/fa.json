@@ -2896,14 +2896,6 @@
     "translation": "حساب های مهمان غیرفعال شده است"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "تلاش برای استفاده از ویژگی آزمایشی ClientSideCertEnable بدون مجوز معتبر شرکت."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "سعی در ورود به سیستم با استفاده از ویژگی آزمایشی ClientSideCert بدون ارائه گواهی معتبر است."
-  },
-  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "ورود بات ممنوع است."
   },

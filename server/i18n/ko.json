@@ -2064,14 +2064,6 @@
     "translation": "봇 로그인은 금지되어 있습니다."
   },
   {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "유효한 인증서를 제공하지 않고 실험 기능인 ClientSideCert를 사용하여 로그인을 시도했습니다."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "유효한 엔터프라이즈 라이선스가 없이 실험 기능인 ClientSideCertEnable을 사용하려고 합니다."
-  },
-  {
     "id": "api.user.login.inactive.app_error",
     "translation": "Login failed because your account has been set to inactive.  Please contact an administrator."
   },

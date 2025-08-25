@@ -2064,14 +2064,6 @@
     "translation": "禁止機器人登入。"
   },
   {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "嘗試使用實驗性功能 ClientSideCert 登入，但未提供有效的憑證。"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "嘗試使用實驗性功能 ClientSideCertEnable，但沒有有效的企業授權。"
-  },
-  {
     "id": "api.user.login.inactive.app_error",
     "translation": "登入失敗，您的帳號已停權。請聯絡系統管理員。"
   },

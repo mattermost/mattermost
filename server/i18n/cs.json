@@ -2524,14 +2524,6 @@
     "translation": "Účty typu host jsou vypnuté"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Pokus o použití experimentální funkce ClientSideCertEnable bez platné licence Enterprise."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Pokusili jste se přihlásit pomocí experimentální funkce ClientSideCert bez poskytnutí platného certifikátu."
-  },
-  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Přihlášení robota je zakázáno."
   },

@@ -2066,14 +2066,6 @@
     "translation": "禁止机器人登入。"
   },
   {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "尝试使用实验功能 ClientSideCert 登入但未提供有效的证书。"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "尝试使用实验功能 ClientSideCert 登入但未拥有有效的企业许可证。"
-  },
-  {
     "id": "api.user.login.inactive.app_error",
     "translation": "您的帐号因被停用而登入失败。请联系系统管理员。"
   },

@@ -2076,14 +2076,6 @@
     "translation": "Логин бота запрещен."
   },
   {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Попытка войти с использованием экспериментальной возможности ClientSideCert без предоставления действительного сертификата."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Попытка использования экспериментальной возможности ClientSideCert без действительной корпоративной лицензии."
-  },
-  {
     "id": "api.user.login.inactive.app_error",
     "translation": "Вход не удался, поскольку ваша учетная запись отключена. Пожалуйста, свяжитесь с администратором."
   },

@@ -2072,14 +2072,6 @@
     "translation": "Il login dei bot non è permesso."
   },
   {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Tentativo di eseguire il login utilizzando la funzione sperimentale ClientSideCert senza fornire un valido certificato."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Tentativo di utilizzare la funzione sperimentale ClientSideCertEnable senza una licenza enterprise valida."
-  },
-  {
     "id": "api.user.login.inactive.app_error",
     "translation": "Login fallito perchè il tuo account è stato disattivato.  Per favore contatta il tuo amministratore."
   },

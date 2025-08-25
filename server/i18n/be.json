@@ -5068,14 +5068,6 @@
     "translation": "Гасцявыя ўліковыя запісы адключаныя"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Спроба выкарыстання эксперыментальнай магчымасці ClientSideCert без сапраўднай карпаратыўнай ліцэнзіі."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Спроба ўвайсці з выкарыстаннем эксперыментальнай магчымасці ClientSideCert без прадастаўлення сапраўднага сертыфіката."
-  },
-  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Лагін бота забаронены."
   },

@@ -2076,14 +2076,6 @@
     "translation": "Bot login is forbidden"
   },
   {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Tentative de connexion à l'aide de la fonctionnalité expérimentale ClientSideCert sans avoir fourni un certificat valide"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Tentative d'utilisation la fonctionnalité expérimentale ClientSideCertEnable sans avoir défini une licence entreprise valide"
-  },
-  {
     "id": "api.user.login.inactive.app_error",
     "translation": "La connexion a échoué car votre compte a été désactivé.  Veuillez contacter un administrateur."
   },

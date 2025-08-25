@@ -4372,14 +4372,6 @@
     "translation": "A vendég fiókok tiltva vannak"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Megpróbálta használni a ClientSideCertEnable kísérleti funkciót érvényes enterprise licenc nélkül."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Megkísérelt bejelentkezni a ClientSideCert kísérleti szolgáltatással érvényes tanúsítvány megadása nélkül."
-  },
-  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Bot bejelentkezés tiltott."
   },

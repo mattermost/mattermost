@@ -2071,14 +2071,6 @@
     "translation": "Het is verboden voor Bots om in te loggen."
   },
   {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Er is geprobeerd aan te melden met de experimentele functie ClientSideCert zonder een geldig certificaat te verstrekken."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Er is geprobeerd om de experimentele functie te gebruiken ClientSideCert zonder een geldig Enterprise-licentie."
-  },
-  {
     "id": "api.user.login.inactive.app_error",
     "translation": "Inloggen in niet mogelijk, omdat het account uitgeschakeld is. Neem contact op met een beheerder."
   },

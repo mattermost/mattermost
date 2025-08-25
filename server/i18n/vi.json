@@ -3226,10 +3226,6 @@
     "translation": "Phần mềm tra cứu tổng hợp thất bại do việc tạo mục lục không thành công"
   },
   {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Đã cố đăng nhập bằng tính năng thử nghiệm ClientSideCert mà không cung cấp chứng chỉ hợp lệ"
-  },
-  {
     "id": "model.utils.decode_json.app_error",
     "translation": "không thể giải mã"
   },
@@ -4948,10 +4944,6 @@
   {
     "id": "ent.elasticsearch.generic.disabled",
     "translation": "Tìm kiếm Elaticsearch không được kích hoạt trên máy chủ này"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Cố gắng sử dụng tính năng thử nghiệm ClientSideCertEnable mà không có giấy phép doanh nghiệp hợp lệ"
   },
   {
     "id": "api.command_leave.fail.app_error",
