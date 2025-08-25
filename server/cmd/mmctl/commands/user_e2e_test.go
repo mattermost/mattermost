@@ -116,6 +116,34 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 	})
 }
 
+// assertUserInSlice checks if a user is present in a slice of users
+func (s *MmctlE2ETestSuite) assertUserInSlice(users []*model.User, targetUser *model.User, shouldBeFound bool, msg string) {
+	s.T().Helper()
+
+	found := false
+	for _, u := range users {
+		if u.Id == targetUser.Id {
+			found = true
+			break
+		}
+	}
+
+	if shouldBeFound {
+		s.Require().True(found, msg)
+	} else {
+		s.Require().False(found, msg)
+	}
+}
+
+// assertUserNotInSlice checks that a user is not present in any user in a slice (for OutOfChannel checks)
+func (s *MmctlE2ETestSuite) assertUserNotInSlice(users []*model.User, targetUser *model.User, msg string) {
+	s.T().Helper()
+
+	for _, u := range users {
+		s.Require().NotEqual(targetUser.Id, u.Id, msg)
+	}
+}
+
 func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusion() {
 	s.SetupTestHelper().InitBasic()
 
@@ -150,14 +178,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusion() {
 		s.Require().NoError(err)
 
 		// Check that the user is in autocomplete results
-		found := false
-		for _, u := range rusers.Users {
-			if u.Id == user.Id {
-				found = true
-				break
-			}
-		}
-		s.Require().True(found, "active user should appear in autocomplete results")
+		s.assertUserInSlice(rusers.Users, user, true, "active user should appear in autocomplete results")
 
 		// Deactivate user via mmctl
 		err = userDeactivateCmdF(c, &cobra.Command{}, []string{user.Email})
@@ -183,19 +204,10 @@ func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusion() {
 		s.Require().NoError(err)
 
 		// Check that the user is not in autocomplete results
-		found = false
-		for _, u := range rusers.Users {
-			if u.Id == user.Id {
-				found = true
-				break
-			}
-		}
-		s.Require().False(found, "deactivated user should not appear in autocomplete results")
+		s.assertUserInSlice(rusers.Users, user, false, "deactivated user should not appear in autocomplete results")
 
 		// Also check OutOfChannel users are properly filtered
-		for _, u := range rusers.OutOfChannel {
-			s.Require().NotEqual(user.Id, u.Id, "deactivated user should not appear in out-of-channel autocomplete results")
-		}
+		s.assertUserNotInSlice(rusers.OutOfChannel, user, "deactivated user should not appear in out-of-channel autocomplete results")
 
 		// Reactivate user via mmctl
 		err = userActivateCmdF(c, &cobra.Command{}, []string{user.Email})
@@ -213,14 +225,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusion() {
 		s.Require().NoError(err)
 
 		// Check that the user is back in autocomplete results
-		found = false
-		for _, u := range rusers.Users {
-			if u.Id == user.Id {
-				found = true
-				break
-			}
-		}
-		s.Require().True(found, "reactivated user should appear in autocomplete results again")
+		s.assertUserInSlice(rusers.Users, user, true, "reactivated user should appear in autocomplete results again")
 	})
 }
 
@@ -257,14 +262,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusionMultipleCon
 		s.Require().NoError(err)
 
 		// Check that the user is in team autocomplete results
-		found := false
-		for _, u := range teamUsers.Users {
-			if u.Id == user.Id {
-				found = true
-				break
-			}
-		}
-		s.Require().True(found, "active user should appear in team autocomplete results")
+		s.assertUserInSlice(teamUsers.Users, user, true, "active user should appear in team autocomplete results")
 
 		// Test 2: General user search (used for DM creation)
 		searchUsers, _, err := s.th.SystemAdminClient.SearchUsers(context.Background(), &model.UserSearch{
@@ -273,14 +271,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusionMultipleCon
 		s.Require().NoError(err)
 
 		// Check that the user is in search results
-		found = false
-		for _, u := range searchUsers {
-			if u.Id == user.Id {
-				found = true
-				break
-			}
-		}
-		s.Require().True(found, "active user should appear in user search results")
+		s.assertUserInSlice(searchUsers, user, true, "active user should appear in user search results")
 
 		// Deactivate user via mmctl
 		err = userDeactivateCmdF(c, &cobra.Command{}, []string{user.Email})
@@ -305,14 +296,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusionMultipleCon
 		s.Require().NoError(err)
 
 		// Check that the user is NOT in team autocomplete results
-		found = false
-		for _, u := range teamUsers.Users {
-			if u.Id == user.Id {
-				found = true
-				break
-			}
-		}
-		s.Require().False(found, "deactivated user should not appear in team autocomplete results")
+		s.assertUserInSlice(teamUsers.Users, user, false, "deactivated user should not appear in team autocomplete results")
 
 		// Test 2 After Deactivation: General user search
 		// This uses the default API behavior with AllowInactive=false
@@ -323,14 +307,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusionMultipleCon
 		s.Require().NoError(err)
 
 		// Check that the user is NOT in search results
-		found = false
-		for _, u := range searchUsers {
-			if u.Id == user.Id {
-				found = true
-				break
-			}
-		}
-		s.Require().False(found, "deactivated user should not appear in user search results")
+		s.assertUserInSlice(searchUsers, user, false, "deactivated user should not appear in user search results")
 
 		// Test 3: Channel autocomplete (should also be excluded)
 		// This uses the default API behavior with AllowInactive=false
@@ -345,19 +322,10 @@ func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusionMultipleCon
 		s.Require().NoError(err)
 
 		// Check that the user is NOT in channel autocomplete results
-		found = false
-		for _, u := range channelUsers.Users {
-			if u.Id == user.Id {
-				found = true
-				break
-			}
-		}
-		s.Require().False(found, "deactivated user should not appear in channel autocomplete results")
+		s.assertUserInSlice(channelUsers.Users, user, false, "deactivated user should not appear in channel autocomplete results")
 
 		// Also check that deactivated user is not in OutOfChannel list
-		for _, u := range channelUsers.OutOfChannel {
-			s.Require().NotEqual(user.Id, u.Id, "deactivated user should not appear in out-of-channel autocomplete results")
-		}
+		s.assertUserNotInSlice(channelUsers.OutOfChannel, user, "deactivated user should not appear in out-of-channel autocomplete results")
 
 		// Reactivate user via mmctl
 		err = userActivateCmdF(c, &cobra.Command{}, []string{user.Email})
@@ -374,14 +342,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusionMultipleCon
 		)
 		s.Require().NoError(err)
 
-		found = false
-		for _, u := range teamUsers.Users {
-			if u.Id == user.Id {
-				found = true
-				break
-			}
-		}
-		s.Require().True(found, "reactivated user should appear in team autocomplete results again")
+		s.assertUserInSlice(teamUsers.Users, user, true, "reactivated user should appear in team autocomplete results again")
 
 		// User search
 		searchUsers, _, err = s.th.SystemAdminClient.SearchUsers(context.Background(), &model.UserSearch{
@@ -389,14 +350,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusionMultipleCon
 		})
 		s.Require().NoError(err)
 
-		found = false
-		for _, u := range searchUsers {
-			if u.Id == user.Id {
-				found = true
-				break
-			}
-		}
-		s.Require().True(found, "reactivated user should appear in user search results again")
+		s.assertUserInSlice(searchUsers, user, true, "reactivated user should appear in user search results again")
 
 		// Test 4: Check that deactivated users can be found with AllowInactive=true option
 		// First, deactivate user again
@@ -416,14 +370,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivationAutocompleteExclusionMultipleCon
 		s.Require().NoError(err)
 
 		// Check that the user IS found when AllowInactive=true
-		found = false
-		for _, u := range searchUsers {
-			if u.Id == user.Id {
-				found = true
-				break
-			}
-		}
-		s.Require().True(found, "deactivated user should appear in search results when AllowInactive=true")
+		s.assertUserInSlice(searchUsers, user, true, "deactivated user should appear in search results when AllowInactive=true")
 	})
 }
 
