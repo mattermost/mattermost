@@ -256,9 +256,6 @@ const (
 	GlobalrelayCustomerTypeA10    = "A10"
 	GlobalrelayCustomerTypeCustom = "CUSTOM"
 
-	ClientSideCertCheckPrimaryAuth   = "primary"
-	ClientSideCertCheckSecondaryAuth = "secondary"
-
 	ImageProxyTypeLocal     = "local"
 	ImageProxyTypeAtmosCamo = "atmos/camo"
 
@@ -1163,28 +1160,24 @@ func (s *MetricsSettings) isValid() *AppError {
 }
 
 type ExperimentalSettings struct {
-	ClientSideCertEnable                                  *bool   `access:"experimental_features,cloud_restrictable"`
-	ClientSideCertCheck                                   *string `access:"experimental_features,cloud_restrictable"`
-	LinkMetadataTimeoutMilliseconds                       *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	RestrictSystemAdmin                                   *bool   `access:"*_read,write_restrictable"`
-	EnableSharedChannels                                  *bool   `access:"experimental_features"` // Deprecated: use `ConnectedWorkspacesSettings.EnableSharedChannels`
-	EnableRemoteClusterService                            *bool   `access:"experimental_features"` // Deprecated: use `ConnectedWorkspacesSettings.EnableRemoteClusterService`
-	DisableAppBar                                         *bool   `access:"experimental_features"`
-	DisableRefetchingOnBrowserFocus                       *bool   `access:"experimental_features"`
-	DelayChannelAutocomplete                              *bool   `access:"experimental_features"`
-	DisableWakeUpReconnectHandler                         *bool   `access:"experimental_features"`
-	UsersStatusAndProfileFetchingPollIntervalMilliseconds *int64  `access:"experimental_features"`
-	YoutubeReferrerPolicy                                 *bool   `access:"experimental_features"`
-	ExperimentalChannelCategorySorting                    *bool   `access:"experimental_features"`
+	// Deprecated: This field is no longer in use, server will fail to start if enabled.
+	ClientSideCertEnable                                  *bool  `access:"experimental_features,cloud_restrictable"`
+	LinkMetadataTimeoutMilliseconds                       *int64 `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	RestrictSystemAdmin                                   *bool  `access:"*_read,write_restrictable"`
+	EnableSharedChannels                                  *bool  `access:"experimental_features"` // Deprecated: use `ConnectedWorkspacesSettings.EnableSharedChannels`
+	EnableRemoteClusterService                            *bool  `access:"experimental_features"` // Deprecated: use `ConnectedWorkspacesSettings.EnableRemoteClusterService`
+	DisableAppBar                                         *bool  `access:"experimental_features"`
+	DisableRefetchingOnBrowserFocus                       *bool  `access:"experimental_features"`
+	DelayChannelAutocomplete                              *bool  `access:"experimental_features"`
+	DisableWakeUpReconnectHandler                         *bool  `access:"experimental_features"`
+	UsersStatusAndProfileFetchingPollIntervalMilliseconds *int64 `access:"experimental_features"`
+	YoutubeReferrerPolicy                                 *bool  `access:"experimental_features"`
+	ExperimentalChannelCategorySorting                    *bool  `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
 	if s.ClientSideCertEnable == nil {
 		s.ClientSideCertEnable = NewPointer(false)
-	}
-
-	if s.ClientSideCertCheck == nil {
-		s.ClientSideCertCheck = NewPointer(ClientSideCertCheckSecondaryAuth)
 	}
 
 	if s.LinkMetadataTimeoutMilliseconds == nil {
@@ -1650,65 +1643,6 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 
 // GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
 func (s *ExperimentalAuditSettings) GetAdvancedLoggingConfig() []byte {
-	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
-		return s.AdvancedLoggingJSON
-	}
-
-	return []byte("{}")
-}
-
-type NotificationLogSettings struct {
-	EnableConsole       *bool           `access:"write_restrictable,cloud_restrictable"`
-	ConsoleLevel        *string         `access:"write_restrictable,cloud_restrictable"`
-	ConsoleJson         *bool           `access:"write_restrictable,cloud_restrictable"`
-	EnableColor         *bool           `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	EnableFile          *bool           `access:"write_restrictable,cloud_restrictable"`
-	FileLevel           *string         `access:"write_restrictable,cloud_restrictable"`
-	FileJson            *bool           `access:"write_restrictable,cloud_restrictable"`
-	FileLocation        *string         `access:"write_restrictable,cloud_restrictable"`
-	AdvancedLoggingJSON json.RawMessage `access:"write_restrictable,cloud_restrictable"`
-}
-
-func (s *NotificationLogSettings) SetDefaults() {
-	if s.EnableConsole == nil {
-		s.EnableConsole = NewPointer(true)
-	}
-
-	if s.ConsoleLevel == nil {
-		s.ConsoleLevel = NewPointer("DEBUG")
-	}
-
-	if s.EnableFile == nil {
-		s.EnableFile = NewPointer(true)
-	}
-
-	if s.FileLevel == nil {
-		s.FileLevel = NewPointer("INFO")
-	}
-
-	if s.FileLocation == nil {
-		s.FileLocation = NewPointer("")
-	}
-
-	if s.ConsoleJson == nil {
-		s.ConsoleJson = NewPointer(true)
-	}
-
-	if s.EnableColor == nil {
-		s.EnableColor = NewPointer(false)
-	}
-
-	if s.FileJson == nil {
-		s.FileJson = NewPointer(true)
-	}
-
-	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
-		s.AdvancedLoggingJSON = []byte("{}")
-	}
-}
-
-// GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
-func (s *NotificationLogSettings) GetAdvancedLoggingConfig() []byte {
 	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
 		return s.AdvancedLoggingJSON
 	}
@@ -3826,7 +3760,6 @@ type Config struct {
 	SqlSettings                 SqlSettings
 	LogSettings                 LogSettings
 	ExperimentalAuditSettings   ExperimentalAuditSettings
-	NotificationLogSettings     NotificationLogSettings
 	PasswordSettings            PasswordSettings
 	FileSettings                FileSettings
 	EmailSettings               EmailSettings
@@ -3966,7 +3899,6 @@ func (o *Config) SetDefaults() {
 	o.RateLimitSettings.SetDefaults()
 	o.LogSettings.SetDefaults()
 	o.ExperimentalAuditSettings.SetDefaults()
-	o.NotificationLogSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
 	o.DisplaySettings.SetDefaults()
@@ -4150,6 +4082,10 @@ func (s *TeamSettings) isValid() *AppError {
 }
 
 func (s *ExperimentalSettings) isValid() *AppError {
+	if *s.ClientSideCertEnable {
+		return NewAppError("Config.IsValid", "model.config.is_valid.client_side_cert_enable.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *s.LinkMetadataTimeoutMilliseconds <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.link_metadata_timeout.app_error", nil, "", http.StatusBadRequest)
 	}

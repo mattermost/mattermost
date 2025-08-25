@@ -48,7 +48,6 @@ const (
 	TrackConfigSQL                 = "config_sql"
 	TrackConfigLog                 = "config_log"
 	TrackConfigAudit               = "config_audit"
-	TrackConfigNotificationLog     = "config_notifications_log"
 	TrackConfigFile                = "config_file"
 	TrackConfigRate                = "config_rate"
 	TrackConfigEmail               = "config_email"
@@ -638,17 +637,6 @@ func (ts *TelemetryService) trackConfig() {
 		"advanced_logging_json": len(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON) != 0,
 	}
 
-	configs[TrackConfigNotificationLog] = map[string]any{
-		"enable_console":          *cfg.NotificationLogSettings.EnableConsole,
-		"console_level":           *cfg.NotificationLogSettings.ConsoleLevel,
-		"console_json":            *cfg.NotificationLogSettings.ConsoleJson,
-		"enable_file":             *cfg.NotificationLogSettings.EnableFile,
-		"file_level":              *cfg.NotificationLogSettings.FileLevel,
-		"file_json":               *cfg.NotificationLogSettings.FileJson,
-		"isdefault_file_location": isDefault(*cfg.NotificationLogSettings.FileLocation, ""),
-		"advanced_logging_json":   len(cfg.NotificationLogSettings.AdvancedLoggingJSON) != 0,
-	}
-
 	configs[TrackConfigPassword] = map[string]any{
 		"minimum_length": *cfg.PasswordSettings.MinimumLength,
 		"lowercase":      *cfg.PasswordSettings.Lowercase,
@@ -844,8 +832,6 @@ func (ts *TelemetryService) trackConfig() {
 	}
 
 	configs[TrackConfigExperimental] = map[string]any{
-		"client_side_cert_enable":             *cfg.ExperimentalSettings.ClientSideCertEnable,
-		"isdefault_client_side_cert_check":    isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.ClientSideCertCheckPrimaryAuth),
 		"link_metadata_timeout_milliseconds":  *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
 		"restrict_system_admin":               *cfg.ExperimentalSettings.RestrictSystemAdmin,
 		"enable_app_bar":                      !*cfg.ExperimentalSettings.DisableAppBar,
