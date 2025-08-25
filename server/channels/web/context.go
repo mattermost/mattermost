@@ -129,7 +129,7 @@ func (c *Context) IsSystemAdmin() bool {
 	return c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 }
 
-func (c *Context) SessionRequired(r *http.Request) {
+func (c *Context) SessionRequired() {
 	if !*c.App.Config().ServiceSettings.EnableUserAccessTokens &&
 		c.AppContext.Session().Props[model.SessionPropType] == model.SessionTypeUserAccessToken &&
 		c.AppContext.Session().Props[model.SessionPropIsBot] != model.SessionPropIsBotValue {

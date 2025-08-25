@@ -2433,7 +2433,7 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 	if switchRequest.EmailToOAuth() {
 		link, err = c.App.SwitchEmailToOAuth(c.AppContext, w, r, switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.NewService)
 	} else if switchRequest.OAuthToEmail() {
-		c.SessionRequired(r)
+		c.SessionRequired()
 		if c.Err != nil {
 			return
 		}

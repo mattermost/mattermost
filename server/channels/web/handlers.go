@@ -319,7 +319,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.AppContext = c.AppContext.WithLogger(c.Logger)
 
 	if c.Err == nil && h.RequireSession {
-		c.SessionRequired(r)
+		c.SessionRequired()
 	}
 
 	if c.Err == nil && h.RequireSession && !h.SkipTermsOfService {
