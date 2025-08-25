@@ -73,18 +73,32 @@ function ChannelSettingsAccessRulesTab({
         loadAttributes();
     }, [actions]);
 
-    // Load existing channel access rules (placeholder for now)
+    // Load existing channel access rules
     useEffect(() => {
-        // TODO: Load existing channel access rules from the backend
-        // For now, we'll just set empty values
-        const existingExpression = ''; // This would come from the channel's existing policy
-        const existingAutoSync = false; // This would come from the channel's existing policy
+        const loadChannelPolicy = async () => {
+            try {
+                const result = await actions.getChannelPolicy(channel.id);
+                if (result.data) {
+                    // Extract expression from the policy rules
+                    const existingExpression = result.data.rules?.[0]?.expression || '';
+                    const existingAutoSync = result.data.active || false;
 
-        setExpression(existingExpression);
-        setOriginalExpression(existingExpression);
-        setAutoSyncMembers(existingAutoSync);
-        setOriginalAutoSyncMembers(existingAutoSync);
-    }, [channel]);
+                    setExpression(existingExpression);
+                    setOriginalExpression(existingExpression);
+                    setAutoSyncMembers(existingAutoSync);
+                    setOriginalAutoSyncMembers(existingAutoSync);
+                }
+            } catch (error) {
+                // If no policy exists (404), that's fine - use defaults
+                setExpression('');
+                setOriginalExpression('');
+                setAutoSyncMembers(false);
+                setOriginalAutoSyncMembers(false);
+            }
+        };
+
+        loadChannelPolicy();
+    }, [channel.id, actions]);
 
     // Update parent component when changes occur
     useEffect(() => {
@@ -112,18 +126,20 @@ function ChannelSettingsAccessRulesTab({
     }, [formatMessage]);
 
     const handleAutoSyncToggle = useCallback(() => {
-        const newValue = !autoSyncMembers;
-        setAutoSyncMembers(newValue);
+        setAutoSyncMembers((prev) => {
+            const newValue = !prev;
 
-        // Placeholder: Log the toggle state
-        // eslint-disable-next-line no-console
-        console.log('Auto-sync members toggled:', newValue);
-    }, [autoSyncMembers]);
+            // Log the toggle state
+            // eslint-disable-next-line no-console
+            console.log('Auto-sync members toggled:', newValue);
+            return newValue;
+        });
+    }, []);
 
     // Handle save action
     const handleSave = useCallback(async (): Promise<boolean> => {
         try {
-            // Placeholder: Log the data that would be saved
+            // Log the save action for testing purposes
             // eslint-disable-next-line no-console
             console.log('Saving channel access rules:', {
                 channelId: channel.id,
@@ -131,16 +147,39 @@ function ChannelSettingsAccessRulesTab({
                 autoSyncMembers,
             });
 
-            // TODO: Implement actual save logic here
-            // This would call the backend API to save the access rules
+            // Build the policy object
+            const policy = {
+                id: channel.id,
+                name: channel.display_name,
+                type: 'channel',
+                version: 'v0.2',
+                active: autoSyncMembers,
+                revision: 1,
+                created_at: Date.now(),
+                rules: expression ? [{
+                    actions: ['*'],
+                    expression,
+                }] : [],
+                imports: systemPolicies.map((p) => p.id), // Include existing parent policies
+                props: {
+                    auto_sync: [autoSyncMembers], // Props expects arrays
+                },
+            };
 
-            // Simulate successful save
+            // Save the policy
+            const result = await actions.saveChannelPolicy(policy);
+            if (result.error) {
+                throw new Error(result.error.message || 'Failed to save policy');
+            }
+
+            // Update original values on successful save
             setOriginalExpression(expression);
             setOriginalAutoSyncMembers(autoSyncMembers);
 
-            // Show alert for demo purposes
-            // eslint-disable-next-line no-alert
-            alert(`Access rules saved!\nExpression: ${expression || '(none)'}\nAuto-sync: ${autoSyncMembers ? 'Enabled' : 'Disabled'}`);
+            // Show success alert for testing purposes
+            window.alert( // eslint-disable-line no-alert
+                `Access rules saved!\nExpression: ${expression}\nAuto-sync: ${autoSyncMembers ? 'Enabled' : 'Disabled'}`,
+            );
 
             return true;
         } catch (error) {
@@ -152,7 +191,7 @@ function ChannelSettingsAccessRulesTab({
             }));
             return false;
         }
-    }, [channel.id, expression, autoSyncMembers, formatMessage]);
+    }, [channel.id, channel.display_name, expression, autoSyncMembers, systemPolicies, actions, formatMessage]);
 
     // Handle save changes panel actions
     const handleSaveChanges = useCallback(async () => {
