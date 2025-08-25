@@ -55,6 +55,7 @@ import type {
     FetchIPResponse,
     LdapSettings,
 } from '@mattermost/types/config';
+import type {ContentFlaggingConfig} from '@mattermost/types/content_flagging';
 import type {
     DataRetentionCustomPolicies,
     CreateDataRetentionCustomPolicy,
@@ -537,6 +538,10 @@ export default class Client4 {
 
     getClientMetricsRoute() {
         return `${this.getBaseRoute()}/client_perf`;
+    }
+
+    getContentFlaggingRoute() {
+        return `${this.getBaseRoute()}/content_flagging`;
     }
 
     getCSRFFromCookie() {
@@ -2627,6 +2632,13 @@ export default class Client4 {
         );
     };
 
+    isAllowedToUpgradeToEnterprise = async () => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/upgrade_to_enterprise/allowed`,
+            {method: 'get'},
+        );
+    };
+
     restartServer = async () => {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/restart`,
@@ -2652,7 +2664,8 @@ export default class Client4 {
         );
     };
 
-    getClientConfigOld = () => {
+    getClientConfig = () => {
+        // Keep format=old for compatibility with pre-v11 servers
         return this.doFetch<ClientConfig>(
             `${this.getBaseRoute()}/config/client?format=old`,
             {method: 'get'},
@@ -3835,6 +3848,13 @@ export default class Client4 {
         );
     };
 
+    getGroupsByNames = (names: string[]) => {
+        return this.doFetch<Group[]>(
+            `${this.getGroupsRoute()}/names`,
+            {method: 'post', body: JSON.stringify(names)},
+        );
+    };
+
     getGroupsNotAssociatedToTeam = (teamID: string, q = '', page = 0, perPage = PER_PAGE_DEFAULT, source = 'ldap', onlySyncableSources = false) => {
         return this.doFetch<Group[]>(
             `${this.getGroupsRoute()}${buildQueryString({not_associated_to_team: teamID, page, per_page: perPage, q, include_member_count: true, group_source: source, only_syncable_sources: onlySyncableSources})}`,
@@ -4584,6 +4604,20 @@ export default class Client4 {
     getChannelAccessControlAttributes = (channelId: string) => {
         return this.doFetch<AccessControlAttributes>(
             `${this.getChannelRoute(channelId)}/access_control/attributes`,
+            {method: 'get'},
+        );
+    };
+
+    getTeamContentFlaggingStatus = (teamId: string) => {
+        return this.doFetch<{enabled: boolean}>(
+            `${this.getContentFlaggingRoute()}/team/${teamId}/status`,
+            {method: 'get'},
+        );
+    };
+
+    getContentFlaggingConfig = () => {
+        return this.doFetch<ContentFlaggingConfig>(
+            `${this.getContentFlaggingRoute()}/flag/config`,
             {method: 'get'},
         );
     };

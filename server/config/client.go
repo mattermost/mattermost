@@ -21,7 +21,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["TeammateNameDisplay"] = *c.TeamSettings.TeammateNameDisplay
 	props["LockTeammateNameDisplay"] = strconv.FormatBool(*c.TeamSettings.LockTeammateNameDisplay)
 	props["ExperimentalPrimaryTeam"] = *c.TeamSettings.ExperimentalPrimaryTeam
-	props["ExperimentalViewArchivedChannels"] = strconv.FormatBool(*c.TeamSettings.ExperimentalViewArchivedChannels)
 	props["EnableJoinLeaveMessageByDefault"] = strconv.FormatBool(*c.TeamSettings.EnableJoinLeaveMessageByDefault)
 
 	props["EnableBotAccountCreation"] = strconv.FormatBool(*c.ServiceSettings.EnableBotAccountCreation)
@@ -186,11 +185,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["SamlPositionAttributeSet"] = strconv.FormatBool(*c.SamlSettings.PositionAttribute != "")
 		}
 
-		if *license.Features.FutureFeatures {
-			props["ExperimentalClientSideCertEnable"] = strconv.FormatBool(*c.ExperimentalSettings.ClientSideCertEnable)
-			props["ExperimentalClientSideCertCheck"] = *c.ExperimentalSettings.ClientSideCertCheck
-		}
-
 		if *license.Features.Cluster {
 			props["EnableCluster"] = strconv.FormatBool(*c.ClusterSettings.Enable)
 		}
@@ -238,6 +232,10 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["MobileEnableBiometrics"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableBiometrics)
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
+		}
+
+		if model.MinimumEnterpriseAdvancedLicense(license) {
+			props["ContentFlaggingEnabled"] = strconv.FormatBool(c.FeatureFlags.ContentFlagging && *c.ContentFlaggingSettings.EnableContentFlagging)
 		}
 	}
 

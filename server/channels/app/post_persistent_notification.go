@@ -302,15 +302,18 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 			if user == nil {
 				continue
 			}
+			rctx := request.EmptyContext(a.Log().With(
+				mlog.String("receiver_id", userID),
+			))
 
 			status, err := a.GetStatus(userID)
 			if err != nil {
-				mlog.Warn("Unable to fetch online status", mlog.String("user_id", userID), mlog.Err(err))
+				mlog.Warn("Unable to fetch online status", mlog.Err(err))
 				status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 			}
 
 			isGM := channel.Type == model.ChannelTypeGroup
-			if a.ShouldSendPushNotification(profileMap[userID], channelNotifyProps[channel.Id][userID], true, status, post, isGM) {
+			if a.ShouldSendPushNotification(rctx, profileMap[userID], channelNotifyProps[channel.Id][userID], true, status, post, isGM) {
 				a.sendPushNotification(
 					notification,
 					user,

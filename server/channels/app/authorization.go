@@ -100,14 +100,11 @@ func (a *App) SessionHasPermissionToChannel(rctx request.CTX, session model.Sess
 		return false
 	} else if appErr != nil {
 		rctx.Logger().Warn("Failed to get channel", mlog.String("channel_id", channelID), mlog.Err(appErr))
+		return false
 	}
 
 	if session.IsUnrestricted() || a.RolesGrantPermission(session.GetUserRoles(), model.PermissionManageSystem.Id) {
 		return true
-	}
-
-	if appErr == nil && a.isChannelArchivedAndHidden(channel) {
-		return false
 	}
 
 	ids, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(rctx, session.UserId, true, true)
@@ -121,7 +118,7 @@ func (a *App) SessionHasPermissionToChannel(rctx request.CTX, session model.Sess
 		}
 	}
 
-	if appErr == nil && channel.TeamId != "" {
+	if channel.TeamId != "" {
 		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
 	}
 
@@ -138,22 +135,15 @@ func (a *App) SessionHasPermissionToChannels(rctx request.CTX, session model.Ses
 		return true
 	}
 
+	// make sure all channels exist, otherwise return false.
 	for _, channelID := range channelIDs {
 		if channelID == "" {
 			return false
 		}
 
-		// make sure all channels exist, otherwise return false.
-		for _, channelID := range channelIDs {
-			channel, appErr := a.GetChannel(rctx, channelID)
-			if appErr != nil {
-				return false
-			}
-
-			// if any channel is archived and the user doesn't have permission to view archived channels, return false
-			if a.isChannelArchivedAndHidden(channel) {
-				return false
-			}
+		_, appErr := a.GetChannel(rctx, channelID)
+		if appErr != nil {
+			return false
 		}
 	}
 
@@ -205,7 +195,7 @@ func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID 
 		return false
 	}
 
-	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, session.UserId, *a.Config().TeamSettings.ExperimentalViewArchivedChannels); err == nil {
+	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, session.UserId); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
@@ -325,7 +315,7 @@ func (a *App) HasPermissionToChannel(rctx request.CTX, askingUserId string, chan
 }
 
 func (a *App) HasPermissionToChannelByPost(rctx request.CTX, askingUserId string, postID string, permission *model.Permission) bool {
-	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, askingUserId, *a.Config().TeamSettings.ExperimentalViewArchivedChannels); err == nil {
+	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, askingUserId); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
@@ -417,9 +407,6 @@ func (a *App) SessionHasPermissionToReadChannel(rctx request.CTX, session model.
 }
 
 func (a *App) HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) bool {
-	if a.isChannelArchivedAndHidden(channel) {
-		return false
-	}
 	if a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionReadChannelContent) {
 		return true
 	}
@@ -432,9 +419,6 @@ func (a *App) HasPermissionToReadChannel(rctx request.CTX, userID string, channe
 }
 
 func (a *App) HasPermissionToChannelMemberCount(rctx request.CTX, userID string, channel *model.Channel) bool {
-	if a.isChannelArchivedAndHidden(channel) {
-		return false
-	}
 	if a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionReadChannelContent) {
 		return true
 	}
@@ -444,8 +428,4 @@ func (a *App) HasPermissionToChannelMemberCount(rctx request.CTX, userID string,
 	}
 
 	return false
-}
-
-func (a *App) isChannelArchivedAndHidden(channel *model.Channel) bool {
-	return !*a.Config().TeamSettings.ExperimentalViewArchivedChannels && channel.DeleteAt != 0
 }

@@ -36,11 +36,7 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) error {
 		Columns("Id", "CreateAt", "Bytes").
 		Values(license.Id, license.CreateAt, license.Bytes)
 
-	if ls.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Id=Id"))
-	} else {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (Id) DO NOTHING"))
-	}
+	query = query.SuffixExpr(sq.Expr("ON CONFLICT (Id) DO NOTHING"))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {

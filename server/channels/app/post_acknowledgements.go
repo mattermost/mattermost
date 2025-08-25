@@ -59,7 +59,7 @@ func (a *App) saveAcknowledgementForPostWithPost(rctx request.CTX, post *model.P
 
 	if appErr := a.ResolvePersistentNotification(rctx, post, userID); appErr != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform)
-		a.NotificationsLog().Error("Error resolving persistent notification",
+		a.Log().LogM(mlog.MlvlNotificationError, "Error resolving persistent notification",
 			mlog.String("sender_id", userID),
 			mlog.String("post_id", post.RootId),
 			mlog.String("status", model.NotificationStatusError),
@@ -211,7 +211,7 @@ func (a *App) SaveAcknowledgementsForPost(rctx request.CTX, postID string, userI
 	for _, userID := range userIDs {
 		if appErr := a.ResolvePersistentNotification(rctx, post, userID); appErr != nil {
 			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform)
-			a.NotificationsLog().Error("Error resolving persistent notification",
+			a.Log().LogM(mlog.MlvlNotificationError, "Error resolving persistent notification",
 				mlog.String("sender_id", userID),
 				mlog.String("post_id", post.RootId),
 				mlog.String("status", model.NotificationStatusError),
@@ -282,7 +282,7 @@ func (a *App) SaveAcknowledgementForPostWithModel(rctx request.CTX, acknowledgem
 
 	if appErr := a.ResolvePersistentNotification(rctx, post, acknowledgement.UserId); appErr != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform)
-		a.NotificationsLog().Error("Error resolving persistent notification",
+		a.Log().LogM(mlog.MlvlNotificationError, "Error resolving persistent notification",
 			mlog.String("sender_id", acknowledgement.UserId),
 			mlog.String("post_id", post.RootId),
 			mlog.String("status", model.NotificationStatusError),

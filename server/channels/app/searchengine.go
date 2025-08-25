@@ -53,18 +53,6 @@ func (a *App) PurgeElasticsearchIndexes(rctx request.CTX, indexes []string) *mod
 	return appErr
 }
 
-func (a *App) PurgeBleveIndexes(rctx request.CTX) *model.AppError {
-	engine := a.SearchEngine().BleveEngine
-	if engine == nil {
-		err := model.NewAppError("PurgeBleveIndexes", "searchengine.bleve.disabled.error", nil, "", http.StatusNotImplemented)
-		return err
-	}
-	if err := engine.PurgeIndexes(rctx); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (a *App) ActiveSearchBackend() string {
 	return a.ch.srv.platform.SearchEngine.ActiveEngine()
 }

@@ -1677,7 +1677,7 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 				s, err := a.Srv().Store().Attributes().GetSubject(rctx, user.Id, groupID)
 				if err != nil {
 					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
-						fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusNotFound)
+						fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusForbidden)
 				}
 
 				decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
@@ -3056,7 +3056,7 @@ func (a *App) sendWebSocketPostUnreadEvent(rctx request.CTX, channelUnread *mode
 }
 
 func (a *App) AutocompleteChannels(rctx request.CTX, userID, term string) (model.ChannelListWithTeamData, *model.AppError) {
-	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	includeDeleted := true
 	term = strings.TrimSpace(term)
 
 	user, appErr := a.GetUser(userID)
@@ -3073,7 +3073,7 @@ func (a *App) AutocompleteChannels(rctx request.CTX, userID, term string) (model
 }
 
 func (a *App) AutocompleteChannelsForTeam(rctx request.CTX, teamID, userID, term string) (model.ChannelList, *model.AppError) {
-	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	includeDeleted := true
 	term = strings.TrimSpace(term)
 
 	user, appErr := a.GetUser(userID)
@@ -3090,7 +3090,7 @@ func (a *App) AutocompleteChannelsForTeam(rctx request.CTX, teamID, userID, term
 }
 
 func (a *App) AutocompleteChannelsForSearch(rctx request.CTX, teamID string, userID string, term string) (model.ChannelList, *model.AppError) {
-	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	includeDeleted := true
 
 	term = strings.TrimSpace(term)
 
@@ -3140,7 +3140,7 @@ func (a *App) SearchAllChannels(rctx request.CTX, term string, opts model.Channe
 }
 
 func (a *App) SearchChannels(rctx request.CTX, teamID string, term string) (model.ChannelList, *model.AppError) {
-	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	includeDeleted := true
 
 	term = strings.TrimSpace(term)
 
@@ -3164,7 +3164,7 @@ func (a *App) SearchArchivedChannels(rctx request.CTX, teamID string, term strin
 }
 
 func (a *App) SearchChannelsForUser(rctx request.CTX, userID, teamID, term string) (model.ChannelList, *model.AppError) {
-	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	includeDeleted := true
 
 	term = strings.TrimSpace(term)
 
