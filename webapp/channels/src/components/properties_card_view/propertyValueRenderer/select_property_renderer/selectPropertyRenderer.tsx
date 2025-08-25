@@ -53,7 +53,7 @@ function getOptionColors(colorName: string): {backgroundColor: string; color: st
         // Default is light grey color
         return {
             backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.12)',
-            color: '#3F4350',
+            color: 'rgba(var(--center-channel-color-rgb), 1)',
         };
     }
 }
