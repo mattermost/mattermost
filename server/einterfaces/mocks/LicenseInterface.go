@@ -72,9 +72,9 @@ func (_m *LicenseInterface) GetPrevTrial() (*model.License, error) {
 	return r0, r1
 }
 
-// NewMattermostEntryLicense provides a mock function with given fields: telemetryId
-func (_m *LicenseInterface) NewMattermostEntryLicense(telemetryId string) *model.License {
-	ret := _m.Called(telemetryId)
+// NewMattermostEntryLicense provides a mock function with given fields: serverId
+func (_m *LicenseInterface) NewMattermostEntryLicense(serverId string) *model.License {
+	ret := _m.Called(serverId)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NewMattermostEntryLicense")
@@ -82,7 +82,7 @@ func (_m *LicenseInterface) NewMattermostEntryLicense(telemetryId string) *model
 
 	var r0 *model.License
 	if rf, ok := ret.Get(0).(func(string) *model.License); ok {
-		r0 = rf(telemetryId)
+		r0 = rf(serverId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.License)
