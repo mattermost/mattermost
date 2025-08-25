@@ -319,7 +319,7 @@ func TestGetAccessControlPolicy(t *testing.T) {
 
 		_, resp, err := th.Client.GetAccessControlPolicy(context.Background(), samplePolicy.ID)
 		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		CheckNotImplementedStatus(t, resp)
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -385,7 +385,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 
 		resp, err := th.Client.DeleteAccessControlPolicy(context.Background(), samplePolicyID)
 		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		CheckNotImplementedStatus(t, resp)
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
