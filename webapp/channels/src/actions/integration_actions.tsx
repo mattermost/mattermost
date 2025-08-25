@@ -7,7 +7,8 @@ import * as IntegrationActions from 'mattermost-redux/actions/integrations';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getDialogArguments} from 'mattermost-redux/selectors/entities/integrations';
-import {getUser} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 
 import type {ActionFuncAsync} from 'types/store';
 
@@ -189,6 +190,10 @@ export function submitInteractiveDialog(submission: DialogSubmission): ActionFun
         if (dialogArguments && dialogArguments.channel_id) {
             submission.channel_id = dialogArguments.channel_id;
         }
+
+        // Populate user_id and team_id from current state (matching base implementation)
+        submission.user_id = getCurrentUserId(state);
+        submission.team_id = getCurrentTeamId(state);
 
         // Dispatch the base action with our enhanced submission
         const {data, error} = await dispatch(IntegrationActions.submitInteractiveDialog(submission));

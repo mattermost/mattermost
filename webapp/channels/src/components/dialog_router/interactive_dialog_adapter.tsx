@@ -178,9 +178,9 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 callback_id: this.props.callbackId || '',
                 state: this.props.state || '',
                 submission: convertedValues as {[x: string]: string},
-                user_id: '',
-                channel_id: '',
-                team_id: '',
+                user_id: '', // Populated by submitInteractiveDialog action
+                channel_id: '', // Populated by submitInteractiveDialog action
+                team_id: '', // Populated by submitInteractiveDialog action
                 cancelled: false,
             };
 
@@ -261,9 +261,9 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             callback_id: this.props.callbackId || '',
             state: this.props.state || '',
             cancelled: true,
-            user_id: '',
-            channel_id: '',
-            team_id: '',
+            user_id: '', // Populated by submitInteractiveDialog action
+            channel_id: '', // Populated by submitInteractiveDialog action
+            team_id: '', // Populated by submitInteractiveDialog action
             submission: {},
         };
 
