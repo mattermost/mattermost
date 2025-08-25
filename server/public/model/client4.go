@@ -153,7 +153,7 @@ func DecodeJSONFromResponse[T any](r *http.Response) (T, *Response, error) {
 		return result, BuildResponse(r), nil
 	}
 	if err := json.NewDecoder(r.Body).Decode(&result); err != nil {
-		return result, BuildResponse(r), err
+		return result, BuildResponse(r), fmt.Errorf("failed to decode JSON response: %w", err)
 	}
 	return result, BuildResponse(r), nil
 }
@@ -814,11 +814,7 @@ func (c *Client4) doUploadFile(ctx context.Context, url string, body io.Reader, 
 		return nil, BuildResponse(rp), AppErrorFromJSON(rp.Body)
 	}
 
-	var res FileUploadResponse
-	if err := json.NewDecoder(rp.Body).Decode(&res); err != nil {
-		return nil, nil, err
-	}
-	return &res, BuildResponse(rp), nil
+	return DecodeJSONFromResponse[*FileUploadResponse](rp)
 }
 
 func (c *Client4) DoEmojiUploadFile(ctx context.Context, url string, data []byte, contentType string) (*Emoji, *Response, error) {
@@ -842,11 +838,7 @@ func (c *Client4) DoEmojiUploadFile(ctx context.Context, url string, data []byte
 		return nil, BuildResponse(rp), AppErrorFromJSON(rp.Body)
 	}
 
-	var e Emoji
-	if err := json.NewDecoder(rp.Body).Decode(&e); err != nil {
-		return nil, nil, err
-	}
-	return &e, BuildResponse(rp), nil
+	return DecodeJSONFromResponse[*Emoji](rp)
 }
 
 func (c *Client4) DoUploadImportTeam(ctx context.Context, url string, data []byte, contentType string) (map[string]string, *Response, error) {
@@ -4738,16 +4730,13 @@ func (c *Client4) MigrateIdLdap(ctx context.Context, toAttribute string) (*Respo
 func (c *Client4) GetGroupsByNames(ctx context.Context, names []string) ([]*Group, *Response, error) {
 	path := fmt.Sprintf("%s/names", c.groupsRoute())
 
-	r, err := c.DoAPIPost(ctx, path, ArrayToJSON(names))
+	r, err := c.DoAPIPostJSON(ctx, path, names)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var list []*Group
-	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
-		return nil, nil, NewAppError("GetGroupsByNames", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return list, BuildResponse(r), nil
+
+	return DecodeJSONFromResponse[[]*Group](r)
 }
 
 // GetGroupsByChannel retrieves the Mattermost Groups associated with a given channel
