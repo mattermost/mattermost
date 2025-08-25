@@ -99,7 +99,7 @@ export default function CenterMessageLock(props: Props) {
     let cta: React.ReactNode = (
         <button
             className='btn btn-primary'
-            onClick={(e) => notifyAdmin(e, 'center_channel_posts_over_limit_banner')}
+            onClick={(e) => notifyAdmin(e)}
             disabled={notifyRequestStatus === NotifyStatus.AlreadyComplete}
         >
             {notifyAdminBtnText}
@@ -134,7 +134,7 @@ export default function CenterMessageLock(props: Props) {
                             href='#'
                             onClick={(e: React.MouseEvent) => {
                                 e.preventDefault();
-                                openPricingModal({trackingLocation: 'center_channel_posts_over_limit_banner'});
+                                openPricingModal();
                             }}
                         >
                             {chunks}
@@ -147,7 +147,7 @@ export default function CenterMessageLock(props: Props) {
         cta = isAirGapped ? null : (
             <button
                 className='btn is-admin'
-                onClick={() => openPricingModal({trackingLocation: 'center_channel_posts_over_limit_banner'})}
+                onClick={() => openPricingModal()}
             >
                 {
                     intl.formatMessage({

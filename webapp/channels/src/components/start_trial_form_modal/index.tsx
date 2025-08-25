@@ -12,7 +12,6 @@ import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 
 import {requestTrialLicense} from 'actions/admin_actions';
 import {validateBusinessEmail} from 'actions/cloud';
-import {trackEvent} from 'actions/telemetry_actions';
 import {closeModal, openModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
@@ -25,7 +24,7 @@ import CountrySelector from 'components/payment_form/country_selector';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 
-import {AboutLinks, LicenseLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {AboutLinks, LicenseLinks, ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -81,7 +80,6 @@ export enum OrgSize {
 
 type Props = {
     onClose?: () => void;
-    page?: string;
 }
 
 function StartTrialFormModal(props: Props): JSX.Element | null {
@@ -121,7 +119,6 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
     };
 
     useEffect(() => {
-        trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL, 'form_opened');
         if (email && !didOnce) {
             handleValidateBusinessEmail(email);
         }
@@ -158,7 +155,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
             company_country: country,
             company_size: orgSize,
         };
-        const {error, data} = await dispatch(requestTrialLicense(trialRequestBody, props.page || 'license'));
+        const {error, data} = await dispatch(requestTrialLicense(trialRequestBody));
         if (error) {
             setLoadStatus(TrialLoadStatus.Failed);
             let title;
@@ -228,7 +225,6 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
         if (props.onClose) {
             props.onClose();
         }
-        trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL, 'form_closed');
         dispatch(closeModal(ModalIdentifiers.START_TRIAL_FORM_MODAL));
     };
 

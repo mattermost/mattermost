@@ -14,8 +14,6 @@ import type {PostImage} from '@mattermost/types/posts';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import ExternalImage from 'components/external_image';
 import ExternalLink from 'components/external_link';
 import FilePreviewModal from 'components/file_preview_modal';
@@ -191,11 +189,6 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         const actionExecutingMessage = this.getActionOption(actionOptions, 'ActionExecutingMessage');
         if (actionExecutingMessage) {
             this.setState({actionExecuting: true, actionExecutingMessage: actionExecutingMessage.value});
-        }
-
-        const trackOption = this.getActionOption(actionOptions, 'TrackEventId');
-        if (trackOption) {
-            trackEvent('admin', 'click_warn_metric_bot_id', {metric: trackOption.value});
         }
 
         const actionId = e.currentTarget.getAttribute('data-action-id') || '';

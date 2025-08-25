@@ -35,7 +35,7 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
     const viewPlansButton = isAirGapped ? null : (
         <button
             id='starter_edition_view_plans'
-            onClick={() => openPricingModal({trackingLocation: 'license_settings_view_plans'})}
+            onClick={openPricingModal}
             className='btn btn-tertiary btn-sm PlanDetails__viewPlansButton'
         >
             {intl.formatMessage({
