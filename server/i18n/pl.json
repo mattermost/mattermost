@@ -8152,14 +8152,6 @@
     "translation": "Nie można wydłużyć sesji"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Nie można pobrać użytkowników dla zarchiwizowanego kanału"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Nie można pobrać postów dla zarchiwizowanego kanału"
-  },
-  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Liczba identyfikatorów postów osiągnęła maksymalny rozmiar {{.MaxLength}}"
   },
@@ -10182,10 +10174,6 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
     "translation": "Nie udało się zaktualizować kolejności sortowania zakładki kanału."
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Nie można pobrać zakładek dla zarchiwizowanego kanału"
   },
   {
     "id": "app.file_info.get_count.app_error",

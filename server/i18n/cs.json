@@ -7660,10 +7660,6 @@
     "translation": "Profilový obrázek musí být nastaven prostřednictvím poskytovatele přihlášení uživatele."
   },
   {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Nelze načíst příspěvky pro archivovaný kanál"
-  },
-  {
     "id": "app.acknowledgement.getforpost.get.app_error",
     "translation": "Nelze získat potvrzení pro příspěvek."
   },
@@ -7690,10 +7686,6 @@
   {
     "id": "app.channel.count_urgent_posts_since.app_error",
     "translation": "Nelze spočítat naléhavé příspěvky od daného data."
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Nelze načíst uživatele pro archivovaný kanál"
   },
   {
     "id": "api4.plugin.reattachPlugin.invalid_request",
@@ -10194,10 +10186,6 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
     "translation": "Nepodařilo se aktualizovat pořadí záložek kanálu."
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Nelze načíst záložky pro archivovaný kanál"
   },
   {
     "id": "app.file_info.get_count.app_error",
