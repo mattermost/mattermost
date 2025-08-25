@@ -2401,8 +2401,6 @@
   "admin.user_item.sysAdmin": "Admin del Sistema",
   "admin.user_item.teamAdmin": "Administrador de Equipo",
   "admin.user_item.teamMember": "Miembro del equipo",
-  "admin.viewArchivedChannelsHelpText": "Cuando es verdadero, permite a los usuarios, ver, compartir y buscar contenido en canales que han sido archivados. Los usuarios sólo podrán ver el contenido en los canales de los cuales fueron miembros antes de que el canal fuera archivado.",
-  "admin.viewArchivedChannelsTitle": "Permitir la vista de canales archivados a los usuarios:",
   "admin.webserverModeDisabled": "Desactivado",
   "admin.webserverModeDisabledDescription": "El servidor Mattermost no servirá archivos estáticos.",
   "admin.webserverModeGzip": "gzip",
