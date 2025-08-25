@@ -7980,14 +7980,6 @@
     "translation": "Impossible d'obtenir le nombre de fichiers du canal"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Impossible de retrouver les utilisateurs pour un canal archivé"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Impossible de retrouver les messages pour un canal archivé"
-  },
-  {
     "id": "api.templates.invite_team_and_channels_subject",
     "translation": "[{{ .SiteName}}] {{ .SenderName }} vous a invité à rejoindre {{ .ChannelsLen }} canaux de l'équipe {{ .TeamDisplayName }}"
   },
