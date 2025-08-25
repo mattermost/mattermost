@@ -98,7 +98,7 @@ describe('SelectPropertyRenderer', () => {
         expect(element).toHaveTextContent('option4');
         expect(element).toHaveStyle({
             backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.12)',
-            color: '#3F4350',
+            color: 'rgba(var(--center-channel-color-rgb), 1)',
         });
     });
 
@@ -124,7 +124,7 @@ describe('SelectPropertyRenderer', () => {
         const element = screen.getByTestId('select-property');
         expect(element).toHaveStyle({
             backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.12)',
-            color: '#3F4350',
+            color: 'rgba(var(--center-channel-color-rgb), 1)',
         });
     });
 
@@ -143,7 +143,7 @@ describe('SelectPropertyRenderer', () => {
         expect(element).toHaveTextContent('nonexistent_option');
         expect(element).toHaveStyle({
             backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.12)',
-            color: '#3F4350',
+            color: 'rgba(var(--center-channel-color-rgb), 1)',
         });
     });
 
@@ -168,7 +168,7 @@ describe('SelectPropertyRenderer', () => {
         expect(element).toHaveTextContent('some_value');
         expect(element).toHaveStyle({
             backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.12)',
-            color: '#3F4350',
+            color: 'rgba(var(--center-channel-color-rgb), 1)',
         });
     });
 
@@ -191,7 +191,7 @@ describe('SelectPropertyRenderer', () => {
         expect(element).toHaveTextContent('some_value');
         expect(element).toHaveStyle({
             backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.12)',
-            color: '#3F4350',
+            color: 'rgba(var(--center-channel-color-rgb), 1)',
         });
     });
 });
