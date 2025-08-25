@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React, {memo, useMemo} from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
@@ -47,35 +47,42 @@ const columns: Column[] = [
 
 const roleNames = ['system_admin', 'system_manager', 'system_user_manager', 'system_custom_group_admin', 'system_read_only_admin'];
 
-const SystemRoles = ({roles}: Props) => {
-    const rows: Row[] = [];
+const noop = () => {};
 
-    roleNames.forEach((name) => {
-        const role = roles[name];
-        if (role) {
-            rows.push({
-                cells: {
-                    role: <FormattedMessage {...rolesStrings[role.name].name}/>,
-                    description: <FormattedMessage {...rolesStrings[role.name].description}/>,
-                    type: <FormattedMessage {...rolesStrings[role.name].type}/>,
-                    edit: (
-                        <span
-                            className='SystemRoles_editRow'
-                            data-testid={`${role.name}_edit`}
-                        >
-                            <Link to={`/admin_console/user_management/system_roles/${role.id}`} >
-                                <FormattedMessage
-                                    id='admin.permissions.roles.edit'
-                                    defaultMessage='Edit'
-                                />
-                            </Link>
-                        </span>
-                    ),
-                },
-                onClick: () => getHistory().push(`/admin_console/user_management/system_roles/${role.id}`),
-            });
-        }
-    });
+const SystemRoles = ({roles}: Props) => {
+    const rows: Row[] = useMemo(() => {
+        const roleRows: Row[] = [];
+
+        roleNames.forEach((name) => {
+            const role = roles[name];
+
+            if (role) {
+                roleRows.push({
+                    cells: {
+                        role: <FormattedMessage {...rolesStrings[role.name].name}/>,
+                        description: <FormattedMessage {...rolesStrings[role.name].description}/>,
+                        type: <FormattedMessage {...rolesStrings[role.name].type}/>,
+                        edit: (
+                            <span
+                                className='SystemRoles_editRow'
+                                data-testid={`${role.name}_edit`}
+                            >
+                                <Link to={`/admin_console/user_management/system_roles/${role.id}`} >
+                                    <FormattedMessage
+                                        id='admin.permissions.roles.edit'
+                                        defaultMessage='Edit'
+                                    />
+                                </Link>
+                            </span>
+                        ),
+                    },
+                    onClick: () => getHistory().push(`/admin_console/user_management/system_roles/${role.id}`),
+                });
+            }
+        });
+
+        return roleRows;
+    }, [roles]);
 
     return (
         <div className='wrapper--fixed'>
@@ -100,8 +107,8 @@ const SystemRoles = ({roles}: Props) => {
                                 startCount={0}
                                 endCount={rows.length}
                                 loading={false}
-                                nextPage={() => {}}
-                                previousPage={() => {}}
+                                nextPage={noop}
+                                previousPage={noop}
                             />
                         </div>
                     </AdminPanel>
