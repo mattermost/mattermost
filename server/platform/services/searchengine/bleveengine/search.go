@@ -481,6 +481,13 @@ func (b *BleveEngine) SearchUsersInChannel(teamId, channelId string, restrictedT
 		boolQ.AddMust(restrictedChannelsQ)
 	}
 
+	// Filter out inactive users if AllowInactive is false
+	if !options.AllowInactive {
+		inactiveQ := bleve.NewTermQuery("0")
+		inactiveQ.SetField("DeleteAt")
+		boolQ.AddMust(inactiveQ)
+	}
+
 	nuchanSearch := bleve.NewSearchRequest(boolQ)
 	nuchanSearch.Size = options.Limit
 	nuchan, err := b.UserIndex.Search(nuchanSearch)
