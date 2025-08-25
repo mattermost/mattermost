@@ -227,8 +227,8 @@ func (ts *TeamService) RemoveTeamMember(rctx request.CTX, teamMember *model.Team
 }
 
 // GetMember return the team member from the team.
-func (ts *TeamService) GetMember(c request.CTX, teamID string, userID string) (*model.TeamMember, error) {
-	member, err := ts.store.GetMember(c, teamID, userID)
+func (ts *TeamService) GetMember(rctx request.CTX, teamID string, userID string) (*model.TeamMember, error) {
+	member, err := ts.store.GetMember(rctx, teamID, userID)
 	if err != nil {
 		return nil, err
 	}

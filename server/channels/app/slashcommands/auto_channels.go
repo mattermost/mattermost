@@ -38,7 +38,7 @@ func NewAutoChannelCreator(a *app.App, team *model.Team, userID string) *AutoCha
 	}
 }
 
-func (cfg *AutoChannelCreator) createRandomChannel(c request.CTX) (*model.Channel, error) {
+func (cfg *AutoChannelCreator) createRandomChannel(rctx request.CTX) (*model.Channel, error) {
 	var displayName string
 	if cfg.Fuzzy {
 		displayName = utils.FuzzName()
@@ -56,20 +56,20 @@ func (cfg *AutoChannelCreator) createRandomChannel(c request.CTX) (*model.Channe
 		CreateAt:    cfg.CreateTime,
 	}
 
-	channel, err := cfg.a.CreateChannel(c, channel, true)
+	channel, err := cfg.a.CreateChannel(rctx, channel, true)
 	if err != nil {
 		return nil, err
 	}
 	return channel, nil
 }
 
-func (cfg *AutoChannelCreator) CreateTestChannels(c request.CTX, num utils.Range) ([]*model.Channel, error) {
+func (cfg *AutoChannelCreator) CreateTestChannels(rctx request.CTX, num utils.Range) ([]*model.Channel, error) {
 	numChannels := utils.RandIntFromRange(num)
 	channels := make([]*model.Channel, numChannels)
 
 	for i := range numChannels {
 		var err error
-		channels[i], err = cfg.createRandomChannel(c)
+		channels[i], err = cfg.createRandomChannel(rctx)
 		if err != nil {
 			return nil, err
 		}

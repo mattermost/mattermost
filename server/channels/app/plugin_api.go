@@ -29,11 +29,11 @@ type PluginAPI struct {
 	manifest *model.Manifest
 }
 
-func NewPluginAPI(a *App, c request.CTX, manifest *model.Manifest) *PluginAPI {
+func NewPluginAPI(a *App, rctx request.CTX, manifest *model.Manifest) *PluginAPI {
 	return &PluginAPI{
 		id:       manifest.Id,
 		manifest: manifest,
-		ctx:      c,
+		ctx:      rctx,
 		app:      a,
 		logger:   a.Log().Sugar(mlog.String("plugin_id", manifest.Id)),
 	}

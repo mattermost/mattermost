@@ -38,7 +38,7 @@ func newSqlSessionStore(sqlStore *SqlStore) store.SessionStore {
 	return s
 }
 
-func (me SqlSessionStore) Save(c request.CTX, session *model.Session) (*model.Session, error) {
+func (me SqlSessionStore) Save(rctx request.CTX, session *model.Session) (*model.Session, error) {
 	if session.Id != "" {
 		return nil, store.NewErrInvalidInput("Session", "id", session.Id)
 	}
@@ -69,7 +69,7 @@ func (me SqlSessionStore) Save(c request.CTX, session *model.Session) (*model.Se
 		return nil, errors.Wrapf(err, "failed to save Session with id=%s", session.Id)
 	}
 
-	teamMembers, err := me.Team().GetTeamsForUser(c, session.UserId, "", true)
+	teamMembers, err := me.Team().GetTeamsForUser(rctx, session.UserId, "", true)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", session.UserId)
 	}
@@ -84,7 +84,7 @@ func (me SqlSessionStore) Save(c request.CTX, session *model.Session) (*model.Se
 	return session, nil
 }
 
-func (me SqlSessionStore) Get(c request.CTX, sessionIdOrToken string) (*model.Session, error) {
+func (me SqlSessionStore) Get(rctx request.CTX, sessionIdOrToken string) (*model.Session, error) {
 	sessions := []*model.Session{}
 
 	query := me.sessionSelectQuery.
@@ -99,7 +99,7 @@ func (me SqlSessionStore) Get(c request.CTX, sessionIdOrToken string) (*model.Se
 		return nil, errors.Wrap(err, "session_get_tosql")
 	}
 
-	err = me.DBXFromContext(c.Context()).Select(&sessions, sql, args...)
+	err = me.DBXFromContext(rctx.Context()).Select(&sessions, sql, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Sessions with sessionIdOrToken=%s", sessionIdOrToken)
 	}
@@ -109,7 +109,7 @@ func (me SqlSessionStore) Get(c request.CTX, sessionIdOrToken string) (*model.Se
 	session := sessions[0]
 
 	tempMembers, err := me.Team().GetTeamsForUser(
-		RequestContextWithMaster(c),
+		RequestContextWithMaster(rctx),
 		session.UserId, "", true)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", session.UserId)
@@ -123,7 +123,7 @@ func (me SqlSessionStore) Get(c request.CTX, sessionIdOrToken string) (*model.Se
 	return session, nil
 }
 
-func (me SqlSessionStore) GetSessions(c request.CTX, userId string) ([]*model.Session, error) {
+func (me SqlSessionStore) GetSessions(rctx request.CTX, userId string) ([]*model.Session, error) {
 	sessions := []*model.Session{}
 
 	query := me.sessionSelectQuery.
@@ -140,7 +140,7 @@ func (me SqlSessionStore) GetSessions(c request.CTX, userId string) ([]*model.Se
 		return nil, errors.Wrapf(err, "failed to find Sessions with userId=%s", userId)
 	}
 
-	teamMembers, err := me.Team().GetTeamsForUser(c, userId, "", true)
+	teamMembers, err := me.Team().GetTeamsForUser(rctx, userId, "", true)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", userId)
 	}
@@ -158,7 +158,7 @@ func (me SqlSessionStore) GetSessions(c request.CTX, userId string) ([]*model.Se
 
 // GetLRUSessions gets the Least Recently Used sessions from the store. Note: the use of limit and offset
 // are intentional; they are hardcoded from the app layer (i.e., will not result in a non-performant query).
-func (me SqlSessionStore) GetLRUSessions(c request.CTX, userId string, limit uint64, offset uint64) ([]*model.Session, error) {
+func (me SqlSessionStore) GetLRUSessions(rctx request.CTX, userId string, limit uint64, offset uint64) ([]*model.Session, error) {
 	builder := me.sessionSelectQuery.
 		Where(sq.Eq{"UserId": userId}).
 		OrderBy("LastActivityAt DESC").
