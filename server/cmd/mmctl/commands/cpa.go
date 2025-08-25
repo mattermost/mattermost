@@ -37,7 +37,7 @@ func buildFieldAttrs(cmd *cobra.Command) (model.StringInterface, error) {
 
 	// First parse --attrs if provided
 	if attrsStr, err := cmd.Flags().GetString("attrs"); err == nil && attrsStr != "" && cmd.Flags().Changed("attrs") {
-		var attrsMap map[string]interface{}
+		var attrsMap map[string]any
 		if err := json.Unmarshal([]byte(attrsStr), &attrsMap); err != nil {
 			return nil, fmt.Errorf("failed to parse attrs JSON: %w", err)
 		}

@@ -31,7 +31,7 @@ var CPAFieldListCmd = &cobra.Command{
 var CPAFieldCreateCmd = &cobra.Command{
 	Use:   "create [name] [type]",
 	Short: "Create a CPA field",
-	Long: `Create a new Custom Profile Attribute field with the specified name and type.`,
+	Long:  `Create a new Custom Profile Attribute field with the specified name and type.`,
 	Example: `  cpa field create "Department" text --managed
   cpa field create "Skills" multiselect --option Go --option React --option Python
   cpa field create "Level" select --attrs '{"visibility":"always"}'`,
@@ -228,7 +228,7 @@ func cpaFieldEditCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 
 		// Handle --attrs flag (overrides individual flags)
 		if attrsStr, err := cmd.Flags().GetString("attrs"); err == nil && attrsStr != "" && cmd.Flags().Changed("attrs") {
-			var attrsMap map[string]interface{}
+			var attrsMap map[string]any
 			if err := json.Unmarshal([]byte(attrsStr), &attrsMap); err != nil {
 				return fmt.Errorf("failed to parse attrs JSON: %w", err)
 			}
