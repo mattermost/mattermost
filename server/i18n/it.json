@@ -8052,14 +8052,6 @@
     "translation": " "
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": " "
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": " "
   },

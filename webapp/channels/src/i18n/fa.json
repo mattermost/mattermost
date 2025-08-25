@@ -2127,8 +2127,6 @@
   "admin.user_item.sysAdmin": "ادمین سیستم",
   "admin.user_item.teamAdmin": "ادمین تیم",
   "admin.user_item.teamMember": "عضو تیم",
-  "admin.viewArchivedChannelsHelpText": "وقتی درست است، به کاربران اجازه می‌دهد محتوای کانال‌هایی را که بایگانی شده‌اند مشاهده، به اشتراک بگذارند و جستجو کنند. کاربران فقط می توانند محتوای کانال هایی را مشاهده کنند که قبل از بایگانی شدن کانال در آن عضویت داشته اند.",
-  "admin.viewArchivedChannelsTitle": "به کاربران اجازه دهید کانال های آرشیو شده را مشاهده کنند:",
   "admin.webserverModeDisabled": "معلول",
   "admin.webserverModeDisabledDescription": "سرور Mattermost فایل های استاتیک را ارائه نمی دهد.",
   "admin.webserverModeGzip": "gzip",
