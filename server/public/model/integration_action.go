@@ -62,6 +62,9 @@ type PostAction struct {
 	// The text on the button, or in the select placeholder.
 	Name string `json:"name,omitempty"`
 
+	// Tooltip text displayed on hover.
+	Tooltip string `json:"tooltip,omitempty"`
+
 	// If the action is disabled.
 	Disabled bool `json:"disabled,omitempty"`
 
