@@ -29,7 +29,6 @@ const (
 	ProfessionalTier = 10
 	EnterpriseTier   = 20
 
-	// TODO: For now, treat Entry as Ent for feature unlocks. License feature list should cover disallowed functionality. Adjust if necessary.
 	EntryTier              = 30
 	EnterpriseAdvancedTier = 30
 )

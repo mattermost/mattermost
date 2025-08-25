@@ -8,5 +8,5 @@ import "github.com/mattermost/mattermost/server/public/model"
 type LicenseInterface interface {
 	CanStartTrial() (bool, error)
 	GetPrevTrial() (*model.License, error)
-	NewMattermostEntryLicense(telemetryId string) *model.License
+	NewMattermostEntryLicense(serverId string) *model.License
 }
