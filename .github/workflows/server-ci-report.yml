@@ -15,7 +15,7 @@ jobs:
       REPORT_MATRIX: ${{ steps.report.outputs.REPORT_MATRIX }}
     steps:
       - name: report/download-artifacts-from-PR-workflow
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
@@ -45,7 +45,7 @@ jobs:
       matrix: ${{ fromJson(needs.generate-report-matrix.outputs.REPORT_MATRIX) }}
     steps:
       - name: report/download-artifacts-from-PR-workflow
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
@@ -57,7 +57,7 @@ jobs:
         run: echo "NUMBER=$(cat ${{ matrix.test.artifact }}/pr-number)" >> ${GITHUB_OUTPUT}
       - name: Publish test report
         id: report
-        uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857 # v5.5.1
+        uses: mikepenz/action-junit-report@3585e9575db828022551b4231f165eb59a0e74e3 # v5.6.2
         with:
           report_paths: ${{ matrix.test.artifact }}/report.xml
           check_name: ${{ matrix.test.name }} (Results)
