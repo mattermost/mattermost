@@ -4,7 +4,7 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot while
 <div
   className="DataGrid"
 >
-  <DataGridSearch
+  <Memo(DataGridSearch)
     onSearch={[Function]}
     term=""
   />
@@ -32,7 +32,7 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
 <div
   className="DataGrid"
 >
-  <DataGridSearch
+  <Memo(DataGridSearch)
     onSearch={[Function]}
     term=""
   />
@@ -143,7 +143,7 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
 <div
   className="DataGrid customTable"
 >
-  <DataGridSearch
+  <Memo(DataGridSearch)
     onSearch={[Function]}
     term=""
   />
@@ -242,7 +242,7 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
 <div
   className="DataGrid"
 >
-  <DataGridSearch
+  <Memo(DataGridSearch)
     onSearch={[Function]}
     term=""
   />
