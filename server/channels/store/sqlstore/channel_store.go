@@ -2169,7 +2169,7 @@ func (s SqlChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID st
 func (s SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 }
 
-func (s SqlChannelStore) GetMemberForPost(postId string, userId string, includeArchivedChannels bool) (*model.ChannelMember, error) {
+func (s SqlChannelStore) GetMemberForPost(postId string, userId string) (*model.ChannelMember, error) {
 	var dbMember channelMemberWithSchemeRoles
 	query := `
 		SELECT
@@ -2210,9 +2210,6 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string, includeA
 		AND
 			Posts.Id = ?`
 
-	if !includeArchivedChannels {
-		query += " AND Channels.DeleteAt = 0"
-	}
 	if err := s.GetReplica().Get(&dbMember, query, userId, postId); err != nil {
 		return nil, errors.Wrapf(err, "failed to get ChannelMember with postId=%s and userId=%s", postId, userId)
 	}
@@ -3049,9 +3046,9 @@ func (s SqlChannelStore) GetMembersForUserWithCursorPagination(userId string, pe
 	return dbMembers.ToModel(), nil
 }
 
-func (s SqlChannelStore) GetTeamMembersForChannel(channelID string) ([]string, error) {
+func (s SqlChannelStore) GetTeamMembersForChannel(rctx request.CTX, channelID string) ([]string, error) {
 	teamMemberIDs := []string{}
-	if err := s.GetReplica().Select(&teamMemberIDs, `SELECT tm.UserId
+	if err := s.DBXFromContext(rctx.Context()).Select(&teamMemberIDs, `SELECT tm.UserId
 		FROM Channels c, Teams t, TeamMembers tm
 		WHERE
 			c.TeamId=t.Id

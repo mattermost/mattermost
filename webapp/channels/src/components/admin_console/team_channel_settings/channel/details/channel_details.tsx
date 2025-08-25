@@ -85,7 +85,9 @@ interface ChannelDetailsState {
     isLocalArchived: boolean;
     showArchiveConfirmModal: boolean;
     policyToggled: boolean;
+    accessControlPolicy?: AccessControlPolicy;
     accessControlPolicies: AccessControlPolicy[];
+    accessControlPoliciesToRemove: string[];
     abacSupported: boolean;
 }
 
@@ -111,6 +113,7 @@ export type ChannelDetailsActions = {
     getAccessControlPolicy: (channelId: string) => Promise<ActionResult>;
     searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
     assignChannelToAccessControlPolicy: (policyId: string, channelId: string) => Promise<ActionResult>;
+    unassignChannelsFromAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
     deleteAccessControlPolicy: (policyId: string) => Promise<ActionResult>;
 };
 
@@ -140,7 +143,9 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             isLocalArchived: props.channel?.delete_at !== 0,
             showArchiveConfirmModal: false,
             policyToggled: false,
+            accessControlPolicy: undefined,
             accessControlPolicies: [],
+            accessControlPoliciesToRemove: [],
             abacSupported: props.abacSupported,
         };
     }
@@ -407,7 +412,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         }
 
         this.setState({showConvertConfirmModal: false, showRemoveConfirmModal: false, showConvertAndRemoveConfirmModal: false, showArchiveConfirmModal: false, saving: true});
-        const {groups, isSynced, isPublic, isPrivacyChanging, channelPermissions, usersToAdd, usersToRemove, rolesToUpdate, policyToggled, accessControlPolicies} = this.state;
+        const {groups, isSynced, isPublic, isPrivacyChanging, channelPermissions, usersToAdd, usersToRemove, rolesToUpdate, policyToggled, accessControlPolicies, accessControlPoliciesToRemove} = this.state;
         let serverError: JSX.Element | undefined;
         let saveNeeded = false;
 
@@ -597,10 +602,29 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             }
 
             if (accessControlPolicies.length > 0) {
-                await actions.assignChannelToAccessControlPolicy(accessControlPolicies[0].id, channelID).catch((error) => {
+                try {
+                    await Promise.all(
+                        accessControlPolicies.map((policy) =>
+                            actions.assignChannelToAccessControlPolicy(policy.id, channelID),
+                        ),
+                    );
+                } catch (error) {
                     serverError = <FormError error={error.message}/>;
                     saveNeeded = true;
-                });
+                }
+            }
+
+            if (accessControlPoliciesToRemove.length > 0) {
+                try {
+                    await Promise.all(
+                        accessControlPoliciesToRemove.map((policyId) =>
+                            actions.unassignChannelsFromAccessControlPolicy(policyId, [channelID]),
+                        ),
+                    );
+                } catch (error) {
+                    serverError = <FormError error={error.message}/>;
+                    saveNeeded = true;
+                }
             }
         } else {
             await actions.deleteAccessControlPolicy(channelID).catch((error) => {
@@ -783,9 +807,25 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         this.props.actions.setNavigationBlocked(true);
     };
 
-    private onPolicyRemoved = () => {
+    private onPolicyRemoveAll = () => {
+        const {accessControlPolicies, accessControlPoliciesToRemove} = this.state;
+        for (const policy of accessControlPolicies) {
+            this.setState({
+                accessControlPoliciesToRemove: [...accessControlPoliciesToRemove, policy.id] as string[],
+                saveNeeded: true,
+            });
+        }
         this.setState({
             accessControlPolicies: [],
+        });
+        this.props.actions.setNavigationBlocked(true);
+    };
+
+    private onPolicyRemove = (policyId: string) => {
+        const {accessControlPoliciesToRemove, accessControlPolicies} = this.state;
+        this.setState({
+            accessControlPoliciesToRemove: [...accessControlPoliciesToRemove, policyId],
+            accessControlPolicies: accessControlPolicies.filter((policy) => policy.id !== policyId),
             saveNeeded: true,
         });
         this.props.actions.setNavigationBlocked(true);
@@ -803,6 +843,10 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                 const currentAccessControlPolicy = result.data;
                 const policies: AccessControlPolicy[] = [];
                 const promises: Array<Promise<any>> = [];
+
+                this.setState({
+                    accessControlPolicy: currentAccessControlPolicy,
+                });
 
                 if (currentAccessControlPolicy.imports && currentAccessControlPolicy.imports.length > 0) {
                     for (const policyId of currentAccessControlPolicy.imports) {
@@ -914,10 +958,11 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
 
                 {this.props.abacSupported && policyToggled && (
                     <ChannelAccessControl
-                        accessControlPolicies={this.state.accessControlPolicies}
+                        parentPolicies={this.state.accessControlPolicies}
                         actions={{
                             onPolicySelected: this.onPolicySelected,
-                            onPolicyRemoved: this.onPolicyRemoved,
+                            onPolicyRemoveAll: this.onPolicyRemoveAll,
+                            onPolicyRemove: this.onPolicyRemove,
                             searchPolicies: this.props.actions.searchPolicies,
                         }}
                     />
