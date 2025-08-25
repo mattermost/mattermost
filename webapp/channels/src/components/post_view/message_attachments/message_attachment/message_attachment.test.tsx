@@ -303,12 +303,13 @@ describe('components/post_view/MessageAttachment', () => {
         expect(wrapper.find('.has-error')).toHaveLength(0);
 
         // Trigger action
-        await wrapper.instance().handleAction({
+        wrapper.instance().handleAction({
             preventDefault: jest.fn(),
             currentTarget: {getAttribute: jest.fn().mockReturnValue('attr_value')},
         } as any, []);
 
-        // Update wrapper to get latest state
+        // Wait for the promise to be rejected and state to be updated
+        await new Promise((resolve) => setTimeout(resolve, 0));
         wrapper.update();
 
         // Error should now be displayed
