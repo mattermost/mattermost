@@ -2169,7 +2169,7 @@ func (s SqlChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID st
 func (s SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 }
 
-func (s SqlChannelStore) GetMemberForPost(postId string, userId string, includeArchivedChannels bool) (*model.ChannelMember, error) {
+func (s SqlChannelStore) GetMemberForPost(postId string, userId string) (*model.ChannelMember, error) {
 	var dbMember channelMemberWithSchemeRoles
 	query := `
 		SELECT
@@ -2210,9 +2210,6 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string, includeA
 		AND
 			Posts.Id = ?`
 
-	if !includeArchivedChannels {
-		query += " AND Channels.DeleteAt = 0"
-	}
 	if err := s.GetReplica().Get(&dbMember, query, userId, postId); err != nil {
 		return nil, errors.Wrapf(err, "failed to get ChannelMember with postId=%s and userId=%s", postId, userId)
 	}

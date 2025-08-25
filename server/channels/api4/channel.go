@@ -999,6 +999,15 @@ func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	if session := c.AppContext.Session(); session.IsGuest() {
+		for _, channel := range channels {
+			if !c.App.SessionHasPermissionToChannel(c.AppContext, *session, channel.Id, model.PermissionReadChannel) {
+				c.SetPermissionError(model.PermissionReadChannel)
+				return
+			}
+		}
+	}
+
 	appErr = c.App.FillInChannelsProps(c.AppContext, channels)
 	if appErr != nil {
 		c.Err = appErr
@@ -1857,9 +1866,22 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Security check: if the user is a guest, they must have access to the channel
 	// to view its members
-	if c.AppContext.Session().IsGuest() && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
-		return
+	if c.AppContext.Session().IsGuest() {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
+			c.SetPermissionError(model.PermissionReadChannel)
+			return
+		}
+		for _, userId := range userIds {
+			allowed, appErr := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, userId)
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+			if !allowed {
+				c.SetPermissionError(model.PermissionInviteUser)
+				return
+			}
+		}
 	}
 
 	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {

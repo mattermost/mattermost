@@ -10,8 +10,6 @@ import type {Channel, ChannelType} from '@mattermost/types/channels';
 import DeleteChannelModal from 'components/delete_channel_modal/delete_channel_modal';
 import type {Props} from 'components/delete_channel_modal/delete_channel_modal';
 
-import {getHistory} from 'utils/browser_history';
-
 describe('components/delete_channel_modal', () => {
     const channel: Channel = {
         id: 'owsyt8n43jfxjpzh9np93mx1wa',
@@ -31,20 +29,14 @@ describe('components/delete_channel_modal', () => {
         group_constrained: false,
     };
 
-    const currentTeamDetails = {
-        name: 'mattermostDev',
-    };
-
     const baseProps: Props = {
         channel,
-        currentTeamDetails,
         actions: {
             deleteChannel: jest.fn(() => {
                 return {data: true};
             }),
         },
         onExited: jest.fn(),
-        penultimateViewedChannelName: 'my-prev-channel',
     };
 
     test('should match snapshot for delete_channel_modal', () => {
@@ -76,7 +68,6 @@ describe('components/delete_channel_modal', () => {
 
         expect(actions.deleteChannel).toHaveBeenCalledTimes(1);
         expect(actions.deleteChannel).toHaveBeenCalledWith(props.channel.id);
-        expect(getHistory().push).toHaveBeenCalledWith('/mattermostDev/channels/my-prev-channel');
         expect(wrapper.state('show')).toEqual(false);
     });
 
