@@ -20,9 +20,9 @@
 
 // This is needed to make the DataSpillageReport component full width in the RHS.
 #rhsContainer  .post__body:has(.DataSpillageReport) {
-    width: calc(100% + 44px) !important;
-    left: -44px;
     position: relative;
+    left: -44px;
+    width: calc(100% + 44px) !important;
     margin-top: 25px;
 }
 
