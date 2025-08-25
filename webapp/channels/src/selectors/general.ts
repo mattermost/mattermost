@@ -30,3 +30,9 @@ export function isDevModeEnabled(state: GlobalState) {
     const EnableDeveloper = config && config.EnableDeveloper ? config.EnableDeveloper === 'true' : false;
     return EnableDeveloper;
 }
+
+// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this function when feature is GA
+export function isChannelAdminManageABACRulesEnabled(state: GlobalState): boolean {
+    const config = getConfig(state);
+    return config?.FeatureFlagChannelAdminManageABACRules === 'true';
+}

@@ -315,8 +315,6 @@
         "ListenAddress": ":8067"
     },
     "ExperimentalSettings": {
-        "ClientSideCertEnable": false,
-        "ClientSideCertCheck": "secondary"
     },
     "AnalyticsSettings": {
         "MaxUsersForStatistics": 2500

@@ -832,4 +832,50 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'test@example.com');
     });
+
+    test('should not show custom attribute input field when field is admin-managed', async () => {
+        const adminManagedAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            attrs: {
+                ...customProfileAttribute.attrs,
+                managed: 'admin',
+            },
+        };
+
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [adminManagedAttribute],
+            user: {...user},
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+        expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('textbox', {name: adminManagedAttribute.name})).not.toBeInTheDocument();
+        expect(await screen.findByText('This field can only be changed by an administrator.')).toBeInTheDocument();
+    });
+
+    test('should show custom attribute input field when field is not admin-managed', async () => {
+        const regularAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            attrs: {
+                ...customProfileAttribute.attrs,
+                managed: '',
+            },
+        };
+
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [regularAttribute],
+            user: {...user},
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+        expect(await screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
+        expect(screen.getByRole('textbox', {name: regularAttribute.name})).toBeInTheDocument();
+        expect(screen.queryByText('This field can only be changed by an administrator.')).not.toBeInTheDocument();
+    });
 });
