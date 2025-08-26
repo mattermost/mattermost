@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
@@ -319,4 +320,17 @@ func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
 	}
 
 	return reviewerUserIDs, nil
+}
+
+func (a *App) sendContentFlaggingConfirmationMessage(c request.CTX, userID, channelID string) *model.AppError {
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return appErr
+	}
+
+	T := i18n.GetUserTranslations(user.Locale)
+
+	post := &model.Post{
+		Message:
+	}
 }

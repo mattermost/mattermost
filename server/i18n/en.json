@@ -10799,5 +10799,9 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user {{.user}}"
+  },
+  {
+    "id": "app.content_flagging.flag_post_confirmation.message",
+    "translation": "The message from @{{.user}} has been flagged for review. You will be notified once it is reviewed by a Content Reviewer. "
   }
 ]
