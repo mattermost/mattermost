@@ -112,7 +112,9 @@ describe('components/FlagPostModal', () => {
 
         // Add a comment
         const commentTextbox = screen.getByPlaceholderText('Describe your concern...');
-        await userEvent.type(commentTextbox, 'This is inappropriate content');
+        await act(async () => {
+            await userEvent.type(commentTextbox, 'This is inappropriate content');
+        });
 
         // Click submit
         const submitButton = screen.getByText('Submit');
