@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor} from '@testing-library/react';
+import {screen, waitFor, act} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
@@ -116,7 +116,9 @@ describe('components/FlagPostModal', () => {
 
         // Click submit
         const submitButton = screen.getByText('Submit');
-        await userEvent.click(submitButton);
+        await act(async () => {
+            await userEvent.click(submitButton);
+        });
 
         // Verify API call was made
         await waitFor(() => {
