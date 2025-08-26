@@ -93,7 +93,6 @@ describe('components/FlagPostModal', () => {
     });
 
     it('should call Client4.flagPost when submit button is clicked with valid form data', async () => {
-        const user = userEvent.setup();
         const mockFlagPost = jest.fn().mockResolvedValue({});
         mockedClient4.flagPost = mockFlagPost;
 
@@ -108,16 +107,16 @@ describe('components/FlagPostModal', () => {
         );
 
         // Select a reason
-        await user.click(screen.getByText('Select a reason for flagging'));
-        await user.click(screen.getByText('Reason 1'));
+        await userEvent.click(screen.getByText('Select a reason for flagging'));
+        await userEvent.click(screen.getByText('Reason 1'));
 
         // Add a comment
         const commentTextbox = screen.getByPlaceholderText('Describe your concern...');
-        await user.type(commentTextbox, 'This is inappropriate content');
+        await userEvent.type(commentTextbox, 'This is inappropriate content');
 
         // Click submit
         const submitButton = screen.getByText('Submit');
-        await user.click(submitButton);
+        await userEvent.click(submitButton);
 
         // Verify API call was made
         await waitFor(() => {
