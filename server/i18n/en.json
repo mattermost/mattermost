@@ -5107,12 +5107,32 @@
     "translation": "We encountered an error saving the compliance report."
   },
   {
+    "id": "app.content_flagging.can_flag_post.in_progress",
+    "translation": "Cannot flag this post as is already flagged."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.removed",
+    "translation": "Cannot flag this post it was removed in a previous flagging request."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.retained",
+    "translation": "Cannot flag this post as it was retained in a previous flagging request."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.unknown",
+    "translation": "Cannot flag this post as it is in unknown status."
+  },
+  {
     "id": "app.content_flagging.create_property_values.app_error",
     "translation": "Unable to save property values for the flagged post."
   },
   {
     "id": "app.content_flagging.delete_post.app_error",
     "translation": "Unable to soft-delete the flagged post."
+  },
+  {
+    "id": "app.content_flagging.flag_post_confirmation.message",
+    "translation": "The message from @{{.username}} has been flagged for review. You will be notified once it is reviewed by a Content Reviewer. "
   },
   {
     "id": "app.content_flagging.get_group.error",
@@ -7185,6 +7205,10 @@
     "translation": "Onboarding can only be completed by a System Administrator."
   },
   {
+    "id": "app.system.content_review_bot.bot_displayname",
+    "translation": "Content Review"
+  },
+  {
     "id": "app.system.get_by_name.app_error",
     "translation": "Unable to find the system variable."
   },
@@ -7199,6 +7223,10 @@
   {
     "id": "app.system.save.app_error",
     "translation": "We encountered an error saving the system property."
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "System"
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -10807,9 +10835,5 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user {{.user}}"
-  },
-  {
-    "id": "app.content_flagging.flag_post_confirmation.message",
-    "translation": "The message from @{{.username}} has been flagged for review. You will be notified once it is reviewed by a Content Reviewer. "
   }
 ]

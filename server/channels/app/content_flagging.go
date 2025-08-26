@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"net/http"
 	"strings"
 
@@ -57,7 +58,12 @@ func (a *App) FlagPost(c request.CTX, post *model.Post, teamId, reportingUserId 
 		return appErr
 	}
 
-	appErr = a.canFlagPost(groupId, post.Id)
+	reportingUser, appErr := a.GetUser(reportingUserId)
+	if appErr != nil {
+		return appErr
+	}
+
+	appErr = a.canFlagPost(groupId, post.Id, reportingUser.Locale)
 	if appErr != nil {
 		return appErr
 	}
@@ -145,7 +151,7 @@ func (a *App) contentFlaggingGroupId() (string, *model.AppError) {
 	return contentFlaggingGroupId, nil
 }
 
-func (a *App) canFlagPost(groupId, postId string) *model.AppError {
+func (a *App) canFlagPost(groupId, postId, userLocal string) *model.AppError {
 	statusPropertyField, err := a.Srv().propertyService.GetPropertyFieldByName(groupId, "", contentFlaggingPropertyNameStatus)
 	if err != nil {
 		return model.NewAppError("canFlagPost", "app.content_flagging.get_status_property.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -162,16 +168,17 @@ func (a *App) canFlagPost(groupId, postId string) *model.AppError {
 	}
 
 	var reason string
+	T := i18n.GetUserTranslations(userLocal)
 
 	switch strings.Trim(string(propertyValues[0].Value), `"`) {
 	case model.ContentFlaggingStatusPending, model.ContentFlaggingStatusAssigned:
-		reason = "app.content_flagging.can_flag_post.in_progress"
+		reason = T("app.content_flagging.can_flag_post.in_progress")
 	case model.ContentFlaggingStatusRetained:
-		reason = "app.content_flagging.can_flag_post.retained"
+		reason = T("app.content_flagging.can_flag_post.retained")
 	case model.ContentFlaggingStatusRemoved:
-		reason = "app.content_flagging.can_flag_post.removed"
+		reason = T("app.content_flagging.can_flag_post.removed")
 	default:
-		reason = "app.content_flagging.can_flag_post.unknown"
+		reason = T("app.content_flagging.can_flag_post.unknown")
 	}
 
 	return model.NewAppError("canFlagPost", reason, nil, "", http.StatusBadRequest)
@@ -204,9 +211,9 @@ func (a *App) createContentReviewPost(c request.CTX, teamId, postId string) *mod
 
 	for _, channel := range channels {
 		post := &model.Post{
-			Message:   fmt.Sprintf("A new content review has been created for team %s and post %s. Please check the flagged content.", teamId, postId),
+			Message:   "TODO - use mobile specific message here - https://mattermost.atlassian.net/browse/MM-65134",
 			UserId:    contentReviewBot.UserId,
-			Type:      "custom_spillage_report",
+			Type:      model.ContentFlaggingPostType,
 			ChannelId: channel.Id,
 		}
 		_, appErr := a.CreatePost(c, post, channel, model.CreatePostFlags{})
@@ -240,7 +247,7 @@ func (a *App) getContentReviewChannels(c request.CTX, teamId, contentReviewBotId
 }
 
 func (a *App) getContentReviewBot(c request.CTX) (*model.Bot, *model.AppError) {
-	return a.GetOrCreateSystemOwnedBot(c, "app.system.content_review_bot.bot_displayname")
+	return a.GetOrCreateSystemOwnedBot(c, i18n.T("app.system.content_review_bot.bot_displayname"))
 }
 
 func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
@@ -316,7 +323,7 @@ func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
 
 	reviewerUserIDs := make([]string, len(reviewerUserIDMap))
 	i := 0
-	for userID := range reviewerUserIDMap {
+	for userID := range maps.Keys(reviewerUserIDMap) {
 		reviewerUserIDs[i] = userID
 		i++
 	}

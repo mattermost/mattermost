@@ -66,7 +66,7 @@
     post:
       summary: Flag a post
       description: |
-        Flags a post with a reason and a comment. The user must have to the channel to which the post belongs to.
+        Flags a post with a reason and a comment. The user must have access to the channel to which the post belongs to.
         An enterprise advanced license is required.
       tags:
         - Content Flagging
@@ -92,7 +92,7 @@
                   description: Comment from the user flagging the post.
       responses:
         "200":
-          description: Dialog open successful
+          description: Post flagged successfully
           content:
             application/json:
               schema:

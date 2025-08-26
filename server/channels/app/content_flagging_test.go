@@ -312,7 +312,6 @@ func TestGetReviewersForTeam(t *testing.T) {
 		})
 
 		// Sysadmin explicitly need to be a team member to be returned as reviewer
-		//var appErr *model.AppError
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.SystemAdminUser.Id, "")
 		require.Nil(t, appErr)
 
@@ -504,7 +503,7 @@ func TestCanFlagPost(t *testing.T) {
 		groupId, appErr := th.App.contentFlaggingGroupId()
 		require.Nil(t, appErr)
 
-		appErr = th.App.canFlagPost(groupId, post.Id)
+		appErr = th.App.canFlagPost(groupId, post.Id, "en")
 		require.Nil(t, appErr)
 	})
 
@@ -526,33 +525,33 @@ func TestCanFlagPost(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		// Cant fleg when post already flagged in pending status
-		appErr = th.App.canFlagPost(groupId, post.Id)
+		// Can't fleg when post already flagged in pending status
+		appErr = th.App.canFlagPost(groupId, post.Id, "en")
 		require.NotNil(t, appErr)
-		require.Equal(t, appErr.Id, "app.content_flagging.can_flag_post.in_progress")
+		require.Equal(t, "Cannot flag this post as is already flagged.", appErr.Id)
 
-		// Cant fleg when post already flagged in assigned status
+		// Can't fleg when post already flagged in assigned status
 		propertyValue.Value = json.RawMessage(`"` + model.ContentFlaggingStatusAssigned + `"`)
 		_, err = th.Server.propertyService.UpdatePropertyValue(groupId, propertyValue)
 		require.NoError(t, err)
 
-		appErr = th.App.canFlagPost(groupId, post.Id)
+		appErr = th.App.canFlagPost(groupId, post.Id, "en")
 		require.NotNil(t, appErr)
 
-		// Cant fleg when post already flagged in retained status
+		// Can't fleg when post already flagged in retained status
 		propertyValue.Value = json.RawMessage(`"` + model.ContentFlaggingStatusRetained + `"`)
 		_, err = th.Server.propertyService.UpdatePropertyValue(groupId, propertyValue)
 		require.NoError(t, err)
 
-		appErr = th.App.canFlagPost(groupId, post.Id)
+		appErr = th.App.canFlagPost(groupId, post.Id, "en")
 		require.NotNil(t, appErr)
 
-		// Cant fleg when post already flagged in removed status
+		// Can't fleg when post already flagged in removed status
 		propertyValue.Value = json.RawMessage(`"` + model.ContentFlaggingStatusRemoved + `"`)
 		_, err = th.Server.propertyService.UpdatePropertyValue(groupId, propertyValue)
 		require.NoError(t, err)
 
-		appErr = th.App.canFlagPost(groupId, post.Id)
+		appErr = th.App.canFlagPost(groupId, post.Id, "en")
 		require.NotNil(t, appErr)
 	})
 }
@@ -585,7 +584,7 @@ func TestFlagPost(t *testing.T) {
 			Comment: "This is spam content",
 		}
 
-		appErr := th.App.FlagPost(th.Context, post.Id, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		appErr := th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.Nil(t, appErr)
 
 		// Verify property values were created
@@ -640,7 +639,7 @@ func TestFlagPost(t *testing.T) {
 			Comment: "This is spam content",
 		}
 
-		appErr := th.App.FlagPost(th.Context, post.Id, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		appErr := th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.NotNil(t, appErr)
 		require.Equal(t, appErr.Id, "api.content_flagging.error.reason_invalid")
 	})
@@ -657,7 +656,7 @@ func TestFlagPost(t *testing.T) {
 			Comment: "",
 		}
 
-		appErr := th.App.FlagPost(th.Context, post.Id, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		appErr := th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.NotNil(t, appErr)
 
 		// Reset config
@@ -675,11 +674,11 @@ func TestFlagPost(t *testing.T) {
 		}
 
 		// Flag the post first time
-		appErr := th.App.FlagPost(th.Context, post.Id, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		appErr := th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.Nil(t, appErr)
 
 		// Try to flag the same post again
-		appErr = th.App.FlagPost(th.Context, post.Id, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.NotNil(t, appErr)
 		require.Equal(t, "app.content_flagging.can_flag_post.in_progress", appErr.Id)
 	})
@@ -696,7 +695,7 @@ func TestFlagPost(t *testing.T) {
 			Comment: "This is spam content",
 		}
 
-		appErr := th.App.FlagPost(th.Context, post.Id, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		appErr := th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.Nil(t, appErr)
 
 		// Verify post was deleted
@@ -718,7 +717,7 @@ func TestFlagPost(t *testing.T) {
 			Comment: "This is harassment",
 		}
 
-		appErr := th.App.FlagPost(th.Context, post.Id, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		appErr := th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.Nil(t, appErr)
 
 		// Get the content review bot
@@ -757,7 +756,7 @@ func TestFlagPost(t *testing.T) {
 			Comment: "",
 		}
 
-		appErr := th.App.FlagPost(th.Context, post.Id, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		appErr := th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.Nil(t, appErr)
 
 		// Verify property values were created with empty comment
@@ -785,7 +784,7 @@ func TestFlagPost(t *testing.T) {
 		}
 
 		beforeTime := model.GetMillis()
-		appErr := th.App.FlagPost(th.Context, post.Id, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		appErr := th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		afterTime := model.GetMillis()
 		require.Nil(t, appErr)
 

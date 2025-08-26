@@ -173,7 +173,7 @@ func TestFlagPost(t *testing.T) {
 		post := th.CreatePost()
 		flagRequest := &model.FlagContentRequest{
 			Reason:  "Sensitive data",
-			Comment: "This is spam content",
+			Comment: "This is sensitive data",
 		}
 
 		resp, err := client.FlagPost(context.Background(), post.Id, flagRequest)
