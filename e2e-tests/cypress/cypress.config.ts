@@ -52,7 +52,7 @@ export default defineConfig({
     },
     e2e: {
         setupNodeEvents(on, config) {
-            return require('./tests/plugins/index.js')(on, config); // eslint-disable-line global-require
+            return require('./tests/plugins/index.js')(on, config);  
         },
         baseUrl: process.env.MM_SERVICESETTINGS_SITEURL || 'http://localhost:8065',
         excludeSpecPattern: '**/node_modules/**/*',

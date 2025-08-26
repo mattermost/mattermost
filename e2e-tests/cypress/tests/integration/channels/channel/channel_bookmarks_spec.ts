@@ -23,7 +23,7 @@ describe('Channel Bookmarks', () => {
 
     let testTeam: Team;
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     let user1: UserProfile;
     let admin: UserProfile;
     let publicChannel: Channel;

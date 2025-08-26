@@ -6,6 +6,7 @@
     "@babel/eslint-parser": "7.28.0",
     "@babel/eslint-plugin": "7.27.1",
     "@cypress/request": "3.0.9",
+    "@eslint/js": "9.34.0",
     "@mattermost/client": "10.9.0",
     "@mattermost/types": "10.9.0",
     "@testing-library/cypress": "10.0.3",
@@ -28,7 +29,6 @@
     "async": "3.2.6",
     "authenticator": "1.1.5",
     "axios": "1.11.0",
-    "axios-retry": "4.5.0",
     "chai": "5.2.1",
     "chalk": "4.1.2",
     "client-oauth2": "github:larkox/js-client-oauth2#e24e2eb5dfcbbbb3a59d095e831dbe0012b0ac49",
@@ -52,6 +52,8 @@
     "eslint-plugin-react": "7.37.5",
     "express": "5.1.0",
     "extract-zip": "2.0.1",
+    "globals": "16.3.0",
+    "jiti": "2.5.1",
     "knex": "3.1.0",
     "localforage": "1.10.0",
     "lodash.intersection": "4.4.0",
@@ -75,6 +77,7 @@
     "shelljs": "0.10.0",
     "timezones.json": "1.7.2",
     "typescript": "5.9.2",
+    "typescript-eslint": "8.41.0",
     "uuid": "11.1.0",
     "yargs": "17.7.2"
   },
@@ -100,7 +103,7 @@
     "test": "cross-env TZ=Etc/UTC cypress run",
     "test:ci": "node run_tests.js",
     "uniq-meta": "grep -r \"^// $META:\" cypress | grep -ow '@\\w*' | sort | uniq",
-    "check": "eslint --ext .js,.ts . --quiet --cache",
-    "fix": "eslint --ext .js,.ts . --quiet --fix --cache"
+    "check": "eslint .",
+    "fix": "eslint . --quiet --fix --cache"
   }
 }

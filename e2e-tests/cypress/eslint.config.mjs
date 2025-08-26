@@ -20,7 +20,7 @@ eslintPluginHeader.rules.header.meta.schema = false;
 
 export default [
     {
-        ignores: ['**/node_modules', '**/dist', '**/playwright-report', '**/test-results', '**/results'],
+        ignores: ['**/node_modules', '**/logs', '**/results'],
     },
     ...compat
         .extends('eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:import/recommended')
@@ -51,7 +51,7 @@ export default [
         rules: {
             'cypress/assertion-before-screenshot': 'warn',
             'cypress/no-assigning-return-values': 'error',
-            'cypress/no-force': 'warn',
+            'cypress/no-force': 'off',
             'cypress/no-async-tests': 'error',
             'cypress/no-pause': 'error',
             'cypress/no-unnecessary-waiting': 0,

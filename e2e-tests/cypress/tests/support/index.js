@@ -5,7 +5,7 @@
 // Read more at: https://on.cypress.io/configuration
 // ***********************************************************
 
-/* eslint-disable no-loop-func */
+ 
 
 import dayjs from 'dayjs';
 import localforage from 'localforage';
