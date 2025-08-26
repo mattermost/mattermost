@@ -270,6 +270,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
             modalHeaderText={modalTitle}
             bodyPadding={false}
             modalLocation={'top'}
+            enforceFocus={false}
         >
             <div className='ChannelSettingsModal__bodyWrapper'>
                 {renderModalBody()}
