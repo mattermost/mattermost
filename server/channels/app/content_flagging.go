@@ -339,7 +339,7 @@ func (a *App) sendContentFlaggingConfirmationMessage(c request.CTX, flaggingUser
 
 	T := i18n.GetUserTranslations(flaggedPostAuthor.Locale)
 	post := &model.Post{
-		Message:   T("app.content_flagging.flag_post_confirmation.message", map[string]interface{}{"username": flaggedPostAuthor.Username}),
+		Message:   T("app.content_flagging.flag_post_confirmation.message", map[string]any{"username": flaggedPostAuthor.Username}),
 		ChannelId: channelID,
 	}
 
