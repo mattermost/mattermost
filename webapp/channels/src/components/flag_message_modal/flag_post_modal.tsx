@@ -7,9 +7,11 @@ import {useDispatch, useSelector} from 'react-redux';
 import ReactSelect, {type StylesConfig} from 'react-select';
 
 import {GenericModal} from '@mattermost/components';
+import type {ServerError} from '@mattermost/types/errors';
 import type {PostPreviewMetadata} from '@mattermost/types/posts';
 
 import {getContentFlaggingConfig} from 'mattermost-redux/actions/content_flagging';
+import {Client4} from 'mattermost-redux/client';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {contentFlaggingConfig} from 'mattermost-redux/selectors/entities/content_flagging';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
@@ -22,11 +24,6 @@ import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbo
 import type {GlobalState} from 'types/store';
 
 import './flag_post_modal.scss';
-import {Client4} from 'mattermost-redux/client';
-import { ServerError } from "@mattermost/types/errors";
-import { isSubRowSelected } from "@tanstack/react-table";
-import {request} from "@giphy/js-fetch-api";
-import {typeOf} from "react-is";
 
 const noop = () => {};
 
