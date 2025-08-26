@@ -118,17 +118,7 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-<<<<<<< Updated upstream
-	var flagRequest model.FlagContentRequest
-	if err := json.NewDecoder(r.Body).Decode(&flagRequest); err != nil {
-		c.SetInvalidParamWithErr("flagPost", err)
-		return
-	}
-
 	appErr = c.App.FlagPost(c.AppContext, post, channel.TeamId, userId, flagRequest)
-=======
-	appErr = c.App.FlagPost(c.AppContext, post.Id, channel.TeamId, userId, flagRequest)
->>>>>>> Stashed changes
 	if appErr != nil {
 		c.Err = appErr
 		return
