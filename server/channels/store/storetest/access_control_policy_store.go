@@ -357,7 +357,8 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 	t.Run("GetAll by IDs", func(t *testing.T) {
 		// Test searching by specific IDs
 		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
-			IDs: []string{parentPolicy.ID, resourcePolicy.ID},
+			IDs:   []string{parentPolicy.ID, resourcePolicy.ID},
+			Limit: 10,
 		})
 		require.NoError(t, err)
 		require.NotNil(t, policies)
@@ -373,7 +374,8 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 
 		// Test searching by single ID
 		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
-			IDs: []string{parentPolicy.ID},
+			IDs:   []string{parentPolicy.ID},
+			Limit: 10,
 		})
 		require.NoError(t, err)
 		require.NotNil(t, policies)
@@ -382,7 +384,8 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 
 		// Test searching by non-existent IDs
 		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
-			IDs: []string{model.NewId(), model.NewId()},
+			IDs:   []string{model.NewId(), model.NewId()},
+			Limit: 10,
 		})
 		require.NoError(t, err)
 		require.NotNil(t, policies)
@@ -390,8 +393,9 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 
 		// Test combining IDs with Type filter
 		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
-			IDs:  []string{parentPolicy.ID, resourcePolicy.ID},
-			Type: model.AccessControlPolicyTypeParent,
+			IDs:   []string{parentPolicy.ID, resourcePolicy.ID},
+			Type:  model.AccessControlPolicyTypeParent,
+			Limit: 10,
 		})
 		require.NoError(t, err)
 		require.NotNil(t, policies)
