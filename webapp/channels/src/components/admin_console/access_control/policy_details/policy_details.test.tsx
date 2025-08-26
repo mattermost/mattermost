@@ -7,6 +7,8 @@ import {act} from 'react-dom/test-utils';
 
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 
+import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
+
 import PolicyDetails from './policy_details';
 
 jest.mock('utils/browser_history', () => ({
@@ -14,6 +16,13 @@ jest.mock('utils/browser_history', () => ({
         push: jest.fn(),
     }),
 }));
+
+// Mock the useChannelAccessControlActions hook
+jest.mock('hooks/useChannelAccessControlActions', () => ({
+    useChannelAccessControlActions: jest.fn(),
+}));
+
+const mockUseChannelAccessControlActions = useChannelAccessControlActions as jest.MockedFunction<typeof useChannelAccessControlActions>;
 
 describe('components/admin_console/access_control/policy_details/PolicyDetails', () => {
     const mockCreatePolicy = jest.fn();
@@ -33,9 +42,14 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
     const mockGetAccessControlFields = jest.fn();
     const mockCreateJob = jest.fn();
     const mockUpdateAccessControlPolicyActive = jest.fn();
-
+    const mockGetVisualAST = jest.fn();
     const defaultProps = {
         policyId: 'policy1',
+        accessControlSettings: {
+            EnableAttributeBasedAccessControl: true,
+            EnableChannelScopeAccessControl: true,
+            EnableUserManagedAttributes: false,
+        },
         channels: [
             {id: 'channel1', name: 'Channel 1', display_name: 'Channel 1', team_display_name: 'Team 1', type: 'O'} as ChannelWithTeamData,
             {id: 'channel2', name: 'channel2', display_name: 'Channel 2', team_display_name: 'Team 2', type: 'P'} as ChannelWithTeamData,
@@ -64,10 +78,18 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             getAccessControlFields: mockGetAccessControlFields,
             createJob: mockCreateJob,
             updateAccessControlPolicyActive: mockUpdateAccessControlPolicyActive,
+            getVisualAST: mockGetVisualAST,
         },
     };
 
     beforeEach(() => {
+        // Mock the hook to return the actions that PolicyDetails expects
+        mockUseChannelAccessControlActions.mockReturnValue({
+            getAccessControlFields: mockGetAccessControlFields,
+            getVisualAST: mockGetVisualAST,
+            searchUsers: jest.fn(),
+        });
+
         mockCreatePolicy.mockReset();
         mockUpdatePolicy.mockReset();
         mockDeletePolicy.mockReset();
@@ -85,6 +107,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         mockGetAccessControlFields.mockReset();
         mockCreateJob.mockReset();
         mockUpdateAccessControlPolicyActive.mockReset();
+        mockGetVisualAST.mockReset();
     });
 
     test('should match snapshot with new policy', () => {

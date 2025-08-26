@@ -35,7 +35,7 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
     const isFreeTrial = subscription?.is_free_trial === 'true';
     const freeTrialEndDay = moment(subscription?.trial_end_at).format('MMMM DD');
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
 
     const openTrialBenefitsModal = async () => {
         await dispatch(openModal({
@@ -61,12 +61,17 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
         return null;
     }
 
+    // Don't show if air-gapped
+    if (isAirGapped) {
+        return null;
+    }
+
     const freeTrialContent = (
         <div className='MenuCloudTrial__free-trial'>
             <h5 className='MenuCloudTrial__free-trial__content-title'>
                 <FormattedMessage
                     id='menu.cloudFree.enterpriseTrialTitle'
-                    defaultMessage='Enterprise Trial'
+                    defaultMessage='Enterprise Advanced Trial'
                 />
             </h5>
             <div className='MenuCloudTrial__free-trial__content-section'>

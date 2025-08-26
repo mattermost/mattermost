@@ -1,14 +1,11 @@
 module github.com/mattermost/mattermost/server/public
 
-go 1.23.0
-
-toolchain go1.23.9
+go 1.24.5
 
 require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/dyatlov/go-opengraph/opengraph v0.0.0-20220524092352-606d7b1e5f8a
 	github.com/francoispqt/gojay v1.2.13
-	github.com/go-sql-driver/mysql v1.9.2
 	github.com/golang/mock v1.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/websocket v1.5.3
@@ -38,7 +35,6 @@ require (
 )
 
 require (
-	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/beevik/etree v1.5.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/fatih/color v1.18.0 // indirect

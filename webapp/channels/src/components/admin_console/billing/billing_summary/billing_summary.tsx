@@ -55,7 +55,7 @@ export const noBillingHistory = (
         <ExternalLink
             location='billing_summary'
             href={CloudLinks.BILLING_DOCS}
-            className='BillingSummary__noBillingHistory-link'
+            className='btn btn-primary BillingSummary__noBillingHistory-link'
             onClick={() => trackEvent('cloud_admin', 'click_how_billing_works', {screen: 'subscriptions'})}
         >
             <FormattedMessage
@@ -98,14 +98,14 @@ export const FreeTrial = ({daysLeftOnTrial}: FreeTrialProps) => {
                 {daysLeftOnTrial > TrialPeriodDays.TRIAL_WARNING_THRESHOLD &&
                     <FormattedMessage
                         id='admin.billing.subscription.freeTrial.description'
-                        defaultMessage='Your free trial will expire in {daysLeftOnTrial} days. Add your payment information to continue after the trial ends.'
+                        defaultMessage='Your free trial will expire in {daysLeftOnTrial} days. Contact sales to continue after the trial ends.'
                         values={{daysLeftOnTrial}}
                     />
                 }
                 {(daysLeftOnTrial > TrialPeriodDays.TRIAL_1_DAY && daysLeftOnTrial <= TrialPeriodDays.TRIAL_WARNING_THRESHOLD) &&
                     <FormattedMessage
                         id='admin.billing.subscription.freeTrial.lessThan3Days.description'
-                        defaultMessage='Your free trial will end in {daysLeftOnTrial, number} {daysLeftOnTrial, plural, one {day} other {days}}. Add payment information to continue enjoying the benefits of Cloud Professional.'
+                        defaultMessage='Your free trial will end in {daysLeftOnTrial, number} {daysLeftOnTrial, plural, one {day} other {days}}. Contact sales to continue enjoying the benefits of Cloud Professional.'
                         values={{daysLeftOnTrial}}
                     />
                 }
@@ -119,9 +119,8 @@ export const FreeTrial = ({daysLeftOnTrial}: FreeTrialProps) => {
             <button
                 type='button'
                 onClick={() => openSalesLink()}
-                className='UpgradeMattermostCloud__upgradeButton'
+                className='UpgradeMattermostCloud__upgradeButton btn btn-primary'
             >
-
                 <FormattedMessage
                     id='admin.billing.subscription.privateCloudCard.contactSales'
                     defaultMessage='Contact Sales'

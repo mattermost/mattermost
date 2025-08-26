@@ -20,7 +20,7 @@
     "gen-lang-imports": "node scripts/gen_lang_imports.mjs"
   },
   "dependencies": {
-    "@mattermost/compass-icons": "0.1.48",
+    "@mattermost/compass-icons": "0.1.49",
     "react-intl": "6.6.2",
     "typescript": "5.6.3"
   },
@@ -72,15 +72,7 @@
       "react": "17.0.2",
       "react-dom": "17.0.2"
     },
-    "react-bootstrap": {
-      "react": "17.0.2",
-      "react-dom": "17.0.2"
-    },
     "react-color": {
-      "react": "17.0.2",
-      "react-dom": "17.0.2"
-    },
-    "react-contextmenu": {
       "react": "17.0.2",
       "react-dom": "17.0.2"
     },

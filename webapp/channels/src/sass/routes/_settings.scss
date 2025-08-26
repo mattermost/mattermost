@@ -210,9 +210,15 @@
 
             .security-links {
                 margin-right: 20px;
+                text-decoration: none;
 
-                .fa {
+                .icon {
                     margin-right: 6px;
+                    font-size: inherit;
+                }
+
+                &.danger {
+                    color: variables.$red;
                 }
             }
 
@@ -294,6 +300,19 @@
                             padding: 0;
                             margin-block-end: 24px;
                             margin-block-start: 24px;
+                        }
+                    }
+
+                    .Input_fieldset {
+                        background: var(--center-channel-bg);
+
+                        .Input_wrapper {
+                            padding: 0 12px;
+
+                            .Input {
+                                height: 28px;
+                                border: none;
+                            }
                         }
                     }
                 }
@@ -629,6 +648,12 @@
                     }
                 }
             }
+
+            // Remove this when MM-62778 is completed
+            &:focus-visible {
+                border-radius: 4px;
+                box-shadow: 0 0 1px 3px rgba(var(--link-color-rgb), 0.5), 0 0 0 1px var(--link-color);
+            }
         }
     }
 
@@ -740,7 +765,7 @@
         text-decoration: underline;
     }
 
-    > .secion-min__header {
+    > .section-min__header {
         display: flex;
         flex-direction: row;
         justify-content: space-between;

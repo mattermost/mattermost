@@ -1204,7 +1204,7 @@ func TestGetTeamMembers(t *testing.T) {
 	users = append(users, *th.BasicUser)
 	users = append(users, *th.BasicUser2)
 
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		user := model.User{
 			Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
 			Username: fmt.Sprintf("user%v", i),
@@ -1513,7 +1513,7 @@ func TestClearTeamMembersCache(t *testing.T) {
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockTeamStore := mocks.TeamStore{}
 	tms := []*model.TeamMember{}
-	for i := 0; i < 200; i++ {
+	for range 200 {
 		tms = append(tms, &model.TeamMember{
 			TeamId: "1",
 		})
@@ -1705,6 +1705,52 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 		require.Len(t, res, 1)
 		require.NotNil(t, res[0].Error)
 	})
+}
+
+func TestInviteGuestsToChannelsWithPolicyEnforced(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableEmailInvitations = true
+	})
+
+	// Create a private channel
+	channel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+
+	// Create a policy with the same ID as the channel
+	channelPolicy := &model.AccessControlPolicy{
+		Type:     model.AccessControlPolicyTypeChannel,
+		ID:       channel.Id, // Use the channel ID directly
+		Name:     "Test Channel Policy",
+		Revision: 1,
+		Version:  model.AccessControlPolicyVersionV0_2,
+		Rules: []model.AccessControlPolicyRule{
+			{
+				Actions:    []string{"view", "join_channel"},
+				Expression: "user.attributes.program == \"test-program\"",
+			},
+		},
+	}
+
+	// Save the channel policy
+	channelPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, channelPolicy)
+	require.NoError(t, err)
+	require.NotNil(t, channelPolicy)
+
+	// Attempt to invite guests to the policy-enforced channel
+	guestsInvite := &model.GuestsInvite{
+		Emails:   []string{"guest@example.com"},
+		Channels: []string{channel.Id},
+		Message:  "test message",
+	}
+
+	// Call the function we want to test
+	_, _, _, appErr := th.App.prepareInviteGuestsToChannels(th.BasicTeam.Id, guestsInvite, th.BasicUser.Id)
+
+	// Verify that the appropriate error is returned
+	require.NotNil(t, appErr)
+	require.Equal(t, "api.team.invite_guests.policy_enforced_channel.app_error", appErr.Id)
 }
 
 func TestTeamSendEvents(t *testing.T) {

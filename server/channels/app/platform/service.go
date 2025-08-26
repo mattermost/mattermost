@@ -30,7 +30,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
-	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
@@ -50,6 +49,11 @@ type PlatformService struct {
 	filestore       filestore.FileBackend
 	exportFilestore filestore.FileBackend
 
+	// Channel for batching status updates
+	statusUpdateChan       chan *model.Status
+	statusUpdateExitSignal chan struct{}
+	statusUpdateDoneSignal chan struct{}
+
 	cacheProvider cache.Provider
 	statusCache   cache.Cache
 	sessionCache  cache.Cache
@@ -62,8 +66,7 @@ type PlatformService struct {
 	isFirstUserAccountLock sync.Mutex
 	isFirstUserAccount     atomic.Bool
 
-	logger              *mlog.Logger
-	notificationsLogger *mlog.Logger
+	logger *mlog.Logger
 
 	startMetrics bool
 	metrics      *platformMetrics
@@ -136,6 +139,9 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		},
 		licenseListeners:          map[string]func(*model.License, *model.License){},
 		additionalClusterHandlers: map[model.ClusterEvent]einterfaces.ClusterMessageHandler{},
+		statusUpdateChan:          make(chan *model.Status, statusUpdateBufferSize),
+		statusUpdateExitSignal:    make(chan struct{}),
+		statusUpdateDoneSignal:    make(chan struct{}),
 	}
 
 	// Assume the first user account has not been created yet. A call to the DB will later check if this is really the case.
@@ -163,9 +169,41 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		ps.configStore = configStore
 	}
 
-	// Step 1: Cache provider.
+	// Step 1: Start logging.
+	err := ps.initLogging()
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize logging: %w", err)
+	}
+
+	ps.Log().Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
+
+	logCurrentVersion := fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
+	ps.Log().Info(
+		logCurrentVersion,
+		mlog.String("current_version", model.CurrentVersion),
+		mlog.String("build_number", model.BuildNumber),
+		mlog.String("build_date", model.BuildDate),
+		mlog.String("build_hash", model.BuildHash),
+		mlog.String("build_hash_enterprise", model.BuildHashEnterprise),
+		mlog.String("service_environment", model.GetServiceEnvironment()),
+	)
+
+	if model.BuildEnterpriseReady == "true" {
+		isTrial := false
+		if licence := ps.License(); licence != nil {
+			isTrial = licence.IsTrial
+		}
+		ps.Log().Info(
+			"Enterprise Build",
+			mlog.Bool("enterprise_build", true),
+			mlog.Bool("is_trial", isTrial),
+		)
+	} else {
+		ps.Log().Info("Team Edition Build", mlog.Bool("enterprise_build", false))
+	}
+
+	// Step 2: Cache provider.
 	cacheConfig := ps.configStore.Get().CacheSettings
-	var err error
 	if *cacheConfig.CacheType == model.CacheTypeLRU {
 		ps.cacheProvider = cache.NewProvider()
 	} else if *cacheConfig.CacheType == model.CacheTypeRedis {
@@ -183,29 +221,15 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("unable to create cache provider: %w", err)
 	}
 
-	// The value of res is used later, after the logger is initialized.
-	// There's a certain order of steps we need to follow in the server startup phase.
 	res, err := ps.cacheProvider.Connect()
 	if err != nil {
 		return nil, fmt.Errorf("unable to connect to cache provider: %w", err)
 	}
 
-	// Step 2: Start logging.
-	if err2 := ps.initLogging(); err2 != nil {
-		return nil, fmt.Errorf("failed to initialize logging: %w", err2)
-	}
 	ps.Log().Info("Successfully connected to cache backend", mlog.String("backend", *cacheConfig.CacheType), mlog.String("result", res))
-
-	// This is called after initLogging() to avoid a race condition.
-	ps.Log().Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
 	// Step 3: Search Engine
 	searchEngine := searchengine.NewBroker(ps.Config())
-	bleveEngine := bleveengine.NewBleveEngine(ps.Config())
-	if err := bleveEngine.Start(); err != nil {
-		return nil, err
-	}
-	searchEngine.RegisterBleveEngine(bleveEngine)
 	ps.SearchEngine = searchEngine
 
 	// Step 4: Init Enterprise
@@ -397,6 +421,10 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 }
 
 func (ps *PlatformService) Start(broadcastHooks map[string]BroadcastHook) error {
+	// Start the status update processor.
+	// Must be done before hub start.
+	go ps.processStatusUpdates()
+
 	ps.hubStart(broadcastHooks)
 
 	ps.configListenerId = ps.AddConfigListener(func(_, _ *model.Config) {
@@ -496,6 +524,12 @@ func (ps *PlatformService) TotalWebsocketConnections() int {
 
 func (ps *PlatformService) Shutdown() error {
 	ps.HubStop()
+
+	// Shutdown status processor.
+	// Must be done after hub shutdown.
+	close(ps.statusUpdateExitSignal)
+	// wait for it to be stopped.
+	<-ps.statusUpdateDoneSignal
 
 	ps.RemoveLicenseListener(ps.licenseListenerId)
 

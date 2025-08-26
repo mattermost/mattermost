@@ -16,7 +16,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {PostTypes, ChannelTypes, FileTypes, IntegrationTypes} from 'mattermost-redux/action_types';
 import {selectChannel} from 'mattermost-redux/actions/channels';
 import {systemEmojis, getCustomEmojiByName} from 'mattermost-redux/actions/emojis';
-import {searchGroups} from 'mattermost-redux/actions/groups';
+import {getGroupsByNames} from 'mattermost-redux/actions/groups';
 import {bindClientFunc, forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {
     deletePreferences,
@@ -1016,16 +1016,8 @@ export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
         const loadedProfiles = new Set<string>((data || []).map((p) => p.username));
         const groupsToCheck = Array.from(usernamesAndGroupsToLoad).filter((name) => !loadedProfiles.has(name));
 
-        groupsToCheck.forEach((name) => {
-            const groupParams = {
-                q: name,
-                filter_allow_reference: true,
-                page: 0,
-                per_page: 60,
-                include_member_count: true,
-            };
-            promises.push(dispatch(searchGroups(groupParams)));
-        });
+        const getGroupsPromise = dispatch(getGroupsByNames(groupsToCheck));
+        promises.push(getGroupsPromise);
     }
 
     return Promise.all(promises);
@@ -1098,7 +1090,7 @@ export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts
             groupsByName = getAllGroupsByName(state);
         }
 
-        const pattern = /\B@(([a-z0-9_.-]*[a-z0-9_])[.-]*)/gi;
+        const pattern = /\B@(([a-z0-9.\-_:]*[a-z0-9_])[.\-:]*)/gi;
 
         let match;
         while ((match = pattern.exec(text)) !== null) {
@@ -1243,6 +1235,13 @@ export function doPostActionWithCookie(postId: string, actionId: string, actionC
                 type: IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID,
                 data: data.trigger_id,
             });
+            const state = getState();
+            const post = PostSelectors.getPost(state, postId);
+            dispatch({
+                type: IntegrationTypes.RECEIVED_DIALOG_ARGUMENTS,
+                data: {
+                    channel_id: post.channel_id,
+                }});
         }
 
         return {data};

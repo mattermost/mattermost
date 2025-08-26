@@ -380,15 +380,14 @@ export function applyTheme(theme: Theme) {
         changeCss('.app__body .search-item-container', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1));
         changeCss('.app__body .modal .custom-textarea:focus', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.3));
         changeCss('.app__body .channel-intro, .app__body hr, .app__body .modal .settings-modal .settings-table .settings-content .appearance-section .theme-elements__header, .app__body .user-settings .authorized-app:not(:last-child)', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
-        changeCss('.app__body .post.post--comment.other--root.current--user .post-comment, .app__body pre', 'background:' + changeOpacity(theme.centerChannelColor, 0.05));
-        changeCss('.app__body .post.post--comment.other--root.current--user .post-comment, .app__body .more-modal__list .more-modal__row, .app__body .member-div:first-child, .app__body .member-div, .app__body .access-history__table .access__report, .app__body .activity-log__table', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.4));
+        changeCss('.app__body pre', 'background:' + changeOpacity(theme.centerChannelColor, 0.05));
+        changeCss('.app__body .more-modal__list .more-modal__row, .app__body .member-div:first-child, .app__body .member-div, .app__body .access-history__table .access__report, .app__body .activity-log__table', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1));
         changeCss('@media(max-width: 1800px){.app__body .inner-wrap.move--left .post.post--comment.same--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07));
         changeCss('.app__body .post.post--hovered', 'background:' + changeOpacity(theme.centerChannelColor, 0.08));
         changeCss('.app__body .attachment__body__wrap.btn-close', 'background:' + changeOpacity(theme.centerChannelColor, 0.08));
         changeCss('.app__body .attachment__body__wrap.btn-close', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('@media(min-width: 768px){.app__body .post.a11y--active, .app__body .modal .settings-modal .settings-table .settings-content .section-min:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.04));
         changeCss('@media(min-width: 768px){.app__body .post.post--editing', 'background:' + changeOpacity(theme.buttonBg, 0.08));
-        changeCss('@media(min-width: 768px){.app__body .post.current--user:hover .post__body ', 'background: transparent;');
         changeCss('.app__body .more-modal__row.more-modal__row--selected, .app__body .date-separator.hovered--before:after, .app__body .date-separator.hovered--after:before, .app__body .new-separator.hovered--after:before, .app__body .new-separator.hovered--before:after', 'background:' + changeOpacity(theme.centerChannelColor, 0.07));
         changeCss('@media(min-width: 768px){.app__body .dropdown-menu>li>a:focus, .app__body .dropdown-menu>li>a:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.15));
         changeCss('.app__body .form-control[disabled], .app__body .form-control[readonly], .app__body fieldset[disabled] .form-control', 'background:' + changeOpacity(theme.centerChannelColor, 0.1));
@@ -397,7 +396,6 @@ export function applyTheme(theme: Theme) {
         changeCss('body', 'scrollbar-arrow-color:' + theme.centerChannelColor);
         changeCss('.app__body .post.post--compact .post-image__column .post-image__details svg, .app__body .modal .about-modal .about-modal__logo svg, .app__body .status svg, .app__body .edit-post__actions .icon svg', 'fill:' + theme.centerChannelColor);
         changeCss('.app__body .post-list__new-messages-below', 'background:' + changeColor(theme.centerChannelColor, 0.5));
-        changeCss('.app__body .post.post--comment.current--user .post__body', 'border-color:' + changeOpacity(theme.buttonBg, 0.24));
         changeCss('.app__body .emoji-picker', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .emoji-picker', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .emoji-picker__search-icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.4));
@@ -949,6 +947,20 @@ function changeColor(colourIn: string, amt: number): string {
     return rgb;
 }
 
+export function getUsername(user: UserProfile) {
+    if (user.remote_id && user.props?.RemoteUsername) {
+        return user.props.RemoteUsername;
+    }
+    return user.username;
+}
+
+export function getEmail(user: UserProfile) {
+    if (user.remote_id && user.props?.RemoteEmail) {
+        return user.props?.RemoteEmail;
+    }
+    return user.email;
+}
+
 export function getFullName(user: UserProfile) {
     if (user.first_name && user.last_name) {
         return user.first_name + ' ' + user.last_name;
@@ -1297,65 +1309,63 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
 
             let isReply = false;
 
-            if (isSystemAdmin(user.roles)) {
-                if (match) {
-                    // Get team by name
-                    const {teamName} = match;
-                    let team = getTeamByName(state, teamName);
-                    if (!team) {
-                        const {data: teamData} = await store.dispatch(getTeamByNameAction(teamName));
-                        team = teamData;
-                    }
-                    if (team && team.delete_at === 0) {
-                        let channel;
+            if (match) {
+                // Get team by name
+                const {teamName} = match;
+                let team = getTeamByName(state, teamName);
+                if (!team) {
+                    const {data: teamData} = await store.dispatch(getTeamByNameAction(teamName));
+                    team = teamData;
+                }
+                if (team && team.delete_at === 0) {
+                    let channel;
 
-                        // Handle channel url - Get channel data from channel name
-                        if (match.type === 'channel') {
-                            const {channelName} = match;
-                            channel = getChannelsNameMapInTeam(state, team.id)[channelName as string];
+                    // Handle channel url - Get channel data from channel name
+                    if (match.type === 'channel') {
+                        const {channelName} = match;
+                        channel = getChannelsNameMapInTeam(state, team.id)[channelName as string];
+                        if (!channel) {
+                            const {data: channelData} = await store.dispatch(getChannelByNameAndTeamName(teamName, channelName!, true));
+                            channel = channelData;
+                        }
+                    } else { // Handle permalink - Get channel data from post
+                        const {postId} = match;
+                        let post = getPost(state, postId!);
+                        if (!post) {
+                            const {data: postData} = await store.dispatch(getPostAction(match.postId!));
+                            post = postData!;
+                        }
+                        if (post) {
+                            isReply = Boolean(post.root_id);
+
+                            channel = getChannel(state, post.channel_id);
                             if (!channel) {
-                                const {data: channelData} = await store.dispatch(getChannelByNameAndTeamName(teamName, channelName!, true));
+                                const {data: channelData} = await store.dispatch(getChannelAction(post.channel_id));
                                 channel = channelData;
                             }
-                        } else { // Handle permalink - Get channel data from post
-                            const {postId} = match;
-                            let post = getPost(state, postId!);
-                            if (!post) {
-                                const {data: postData} = await store.dispatch(getPostAction(match.postId!));
-                                post = postData!;
-                            }
-                            if (post) {
-                                isReply = Boolean(post.root_id);
-
-                                channel = getChannel(state, post.channel_id);
-                                if (!channel) {
-                                    const {data: channelData} = await store.dispatch(getChannelAction(post.channel_id));
-                                    channel = channelData;
-                                }
+                        }
+                    }
+                    if (channel && channel.type === Constants.PRIVATE_CHANNEL) {
+                        let member = getMyChannelMemberships(state)[channel.id];
+                        if (!member) {
+                            const membership = await store.dispatch(getChannelMember(channel.id, getCurrentUserId(state)));
+                            if ('data' in membership) {
+                                member = membership.data!;
                             }
                         }
-                        if (channel && channel.type === Constants.PRIVATE_CHANNEL) {
-                            let member = getMyChannelMemberships(state)[channel.id];
-                            if (!member) {
-                                const membership = await store.dispatch(getChannelMember(channel.id, getCurrentUserId(state)));
-                                if ('data' in membership) {
-                                    member = membership.data!;
+                        if (!member) {
+                            const {data} = await store.dispatch(joinPrivateChannelPrompt(team, channel.display_name, false));
+                            if (data!.join) {
+                                let error = false;
+                                if (!getTeamMemberships(state)[team.id]) {
+                                    const joinTeamResult = await store.dispatch(addUserToTeam(team.id, user.id));
+                                    error = joinTeamResult.error;
                                 }
-                            }
-                            if (!member) {
-                                const {data} = await store.dispatch(joinPrivateChannelPrompt(team, channel.display_name, false));
-                                if (data!.join) {
-                                    let error = false;
-                                    if (!getTeamMemberships(state)[team.id]) {
-                                        const joinTeamResult = await store.dispatch(addUserToTeam(team.id, user.id));
-                                        error = joinTeamResult.error;
-                                    }
-                                    if (!error) {
-                                        await store.dispatch(joinChannel(user.id, team.id, channel.id, channel.name));
-                                    }
-                                } else {
-                                    return;
+                                if (!error) {
+                                    await store.dispatch(joinChannel(user.id, team.id, channel.id, channel.name));
                                 }
+                            } else {
+                                return;
                             }
                         }
                     }

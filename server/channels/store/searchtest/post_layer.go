@@ -23,7 +23,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search posts using pagination",
 		Fn:   testSearchPostsWithPagination,
-		Tags: []string{EngineElasticSearch, EngineBleve},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should return pinned and unpinned posts",
@@ -33,12 +33,12 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search for quoted patterns with AND OR combinations",
 		Fn:   testSearchANDORQuotesCombinations,
-		Tags: []string{EnginePostgres, EngineMySQL, EngineElasticSearch},
+		Tags: []string{EnginePostgres, EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search without stemming",
 		Fn:   testStemming,
-		Tags: []string{EnginePostgres, EngineMySQL},
+		Tags: []string{EnginePostgres},
 	},
 	{
 		// Postgres supports search with and without quotes
@@ -50,7 +50,7 @@ var searchPostStoreTests = []searchTest{
 		// MySql supports search with quotes only
 		Name: "Should be able to search for email addresses with quotes",
 		Fn:   testSearchEmailAddressesWithQuotes,
-		Tags: []string{EngineMySQL},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search when markdown underscores are applied",
@@ -105,12 +105,12 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to exclude messages that contain a search term",
 		Fn:   testFilterMessagesWithATerm,
-		Tags: []string{EngineMySQL, EnginePostgres},
+		Tags: []string{EnginePostgres},
 	},
 	{
 		Name: "Should be able to search using boolean operators",
 		Fn:   testSearchUsingBooleanOperators,
-		Tags: []string{EngineMySQL, EnginePostgres, EngineElasticSearch},
+		Tags: []string{EnginePostgres, EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search with combined filters",
@@ -120,7 +120,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to ignore stop words",
 		Fn:   testSearchIgnoringStopWords,
-		Tags: []string{EngineMySQL, EngineElasticSearch},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should support search stemming",
@@ -151,7 +151,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should support terms with underscore",
 		Fn:   testSupportTermsWithUnderscore,
-		Tags: []string{EngineMySQL, EngineElasticSearch},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should search or exclude post using hashtags",
@@ -216,7 +216,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search in deleted/archived channels",
 		Fn:   testSearchInDeletedOrArchivedChannels,
-		Tags: []string{EngineMySQL, EnginePostgres},
+		Tags: []string{EnginePostgres},
 	},
 	{
 		Name:        "Should be able to search terms with dashes",
@@ -233,7 +233,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search terms with underscores",
 		Fn:   testSearchTermsWithUnderscores,
-		Tags: []string{EngineMySQL, EngineElasticSearch},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search posts made by bot accounts",
@@ -258,7 +258,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should not support slash as character separator",
 		Fn:   testSlashShouldNotBeCharSeparator,
-		Tags: []string{EngineMySQL, EngineElasticSearch},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search in comments",
@@ -268,7 +268,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search terms within links",
 		Fn:   testSupportSearchTermsWithinLinks,
-		Tags: []string{EngineMySQL, EngineElasticSearch},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should not return links that are embedded in markdown",
@@ -278,6 +278,11 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should search across teams",
 		Fn:   testSearchAcrossTeams,
+		Tags: []string{EngineAll},
+	},
+	{
+		Name: "Should search across teams with from filter",
+		Fn:   testSearchAcrossTeamsWithFromFilter,
 		Tags: []string{EngineAll},
 	},
 	{
@@ -2023,6 +2028,60 @@ func testSearchAcrossTeams(t *testing.T, th *SearchTestHelper) {
 	require.NoError(t, err)
 
 	require.Len(t, results.Posts, 2)
+}
+
+func testSearchAcrossTeamsWithFromFilter(t *testing.T, th *SearchTestHelper) {
+	err := th.addUserToChannels(th.User, []string{th.ChannelAnotherTeam.Id})
+	require.NoError(t, err)
+	defer th.Store.Channel().RemoveMember(th.Context, th.ChannelAnotherTeam.Id, th.User.Id)
+
+	err = th.addUserToChannels(th.User2, []string{th.ChannelAnotherTeam.Id})
+	require.NoError(t, err)
+	defer th.Store.Channel().RemoveMember(th.Context, th.ChannelAnotherTeam.Id, th.User2.Id)
+
+	// Create posts from different users in different teams
+	p1, err := th.createPost(th.User.Id, th.ChannelAnotherTeam.Id, "cross team search test", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	_, err = th.createPost(th.User2.Id, th.ChannelAnotherTeam.Id, "cross team search test", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User2.Id)
+
+	p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "cross team search test", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+
+	_, err = th.createPost(th.User2.Id, th.ChannelBasic.Id, "cross team search test", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+
+	t.Run("Cross-team search with from filter should work", func(t *testing.T) {
+		// Cross-team search with from filter (empty teamId)
+		params := &model.SearchParams{
+			Terms:     "search test",
+			FromUsers: []string{th.User.Id},
+		}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, "", 0, 20)
+		require.NoError(t, err)
+
+		// Should find both posts from th.User across teams
+		require.Len(t, results.Posts, 2)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+		th.checkPostInSearchResults(t, p3.Id, results.Posts)
+	})
+
+	t.Run("Team-scoped search with from filter should still work", func(t *testing.T) {
+		// Team-scoped search with from filter (specific teamId)
+		params := &model.SearchParams{
+			Terms:     "search test",
+			FromUsers: []string{th.User.Id},
+		}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		// Should find only the post from th.User in th.Team
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p3.Id, results.Posts)
+	})
 }
 
 func testSearchPostDeleted(t *testing.T, th *SearchTestHelper) {

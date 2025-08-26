@@ -14,6 +14,7 @@ const state: GlobalState = {
             firstAdminVisitMarketplaceStatus: false,
             firstAdminCompleteSetup: false,
             customProfileAttributes: {},
+            cwsAvailability: 'pending',
         },
         users: {
             currentUserId: '',
@@ -49,6 +50,7 @@ const state: GlobalState = {
             stats: {},
             groupsAssociatedToTeam: {},
             totalCount: 0,
+            contentFlaggingStatus: {},
         },
         channels: {
             currentChannelId: '',
@@ -221,6 +223,7 @@ const state: GlobalState = {
             errorsByTeamId: {},
             byChannelOrThreadId: {},
         },
+        contentFlagging: {},
     },
     errors: [],
     requests: {

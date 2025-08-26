@@ -1,14 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
-import {Provider} from 'react-redux';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
 
 import type {GlobalState} from 'types/store';
 
@@ -29,19 +26,23 @@ describe('components/external_link', () => {
         },
     };
 
-    it('should match snapshot', () => {
-        const store = mockStore(initialState);
-        const wrapper = mount(
-            <Provider store={store}>
-                <ExternalLink
-                    location='test'
-                    href='https://mattermost.com'
-
-                >{'Click Me'}</ExternalLink>
-            </Provider>,
+    it('should render external link with correct attributes', () => {
+        renderWithContext(
+            <ExternalLink
+                location='test'
+                href='https://mattermost.com'
+            >
+                {'Click Me'}
+            </ExternalLink>,
+            initialState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        const linkElement = screen.getByRole('link', {name: 'Click Me'});
+
+        expect(linkElement).toBeInTheDocument();
+        expect(linkElement).toHaveAttribute('target', '_blank');
+        expect(linkElement).toHaveAttribute('rel', 'noopener noreferrer');
+        expect(linkElement).toHaveAttribute('href', expect.stringContaining('https://mattermost.com'));
     });
 
     it('should attach parameters', () => {
@@ -67,9 +68,45 @@ describe('components/external_link', () => {
             state,
         );
 
-        expect(screen.queryByText('Click Me')).toHaveAttribute(
+        const linkElement = screen.getByRole('link', {name: 'Click Me'});
+
+        expect(linkElement).toHaveAttribute(
             'href',
             expect.stringMatching('utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid='),
+        );
+    });
+
+    it('should use in-product-preview utm_medium for cloud preview workspaces', () => {
+        const state = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {
+                    ...initialState?.entities?.general,
+                    config: {
+                        DiagnosticsEnabled: 'true',
+                    },
+                },
+                cloud: {
+                    subscription: {
+                        is_cloud_preview: true,
+                    },
+                },
+            },
+        };
+        renderWithContext(
+            <ExternalLink
+                location='test'
+                href='https://mattermost.com'
+            >
+                {'Click Me'}
+            </ExternalLink>,
+            state,
+        );
+
+        expect(screen.queryByText('Click Me')).toHaveAttribute(
+            'href',
+            expect.stringMatching('utm_medium=in-product-preview'),
         );
     });
 
@@ -98,7 +135,7 @@ describe('components/external_link', () => {
 
         expect(screen.queryByText('Click Me')).toHaveAttribute(
             'href',
-            'https://mattermost.com/?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid=&test=true',
+            'https://mattermost.com/?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid=&edition=team&server_version=&test=true',
         );
     });
 
@@ -191,7 +228,7 @@ describe('components/external_link', () => {
 
         expect(screen.queryByText('Click Me')).toHaveAttribute(
             'href',
-            'https://mattermost.com/?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid=#desktop',
+            'https://mattermost.com/?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid=&edition=team&server_version=#desktop',
         );
     });
 });

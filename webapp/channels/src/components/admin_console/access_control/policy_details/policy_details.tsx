@@ -8,8 +8,9 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {GenericModal} from '@mattermost/components';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
+import type {AccessControlSettings} from '@mattermost/types/config';
 import type {JobTypeBase} from '@mattermost/types/jobs';
-import type {PropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -19,9 +20,11 @@ import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import ChannelSelectorModal from 'components/channel_selector_modal';
 import SaveButton from 'components/save_button';
+import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import TextSetting from 'components/widgets/settings/text_setting';
 
+import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {getHistory} from 'utils/browser_history';
 import {JobTypes} from 'utils/constants';
 
@@ -43,7 +46,6 @@ interface PolicyActions {
     setNavigationBlocked: (blocked: boolean) => void;
     assignChannelsToAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
     unassignChannelsFromAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
-    getAccessControlFields: (after: string, limit: number) => Promise<ActionResult>;
     createJob: (job: JobTypeBase & { data: any }) => Promise<ActionResult>;
     updateAccessControlPolicyActive: (policyId: string, active: boolean) => Promise<ActionResult>;
 }
@@ -51,6 +53,7 @@ interface PolicyActions {
 export interface PolicyDetailsProps {
     policy?: AccessControlPolicy;
     policyId?: string;
+    accessControlSettings: AccessControlSettings;
     actions: PolicyActions;
 }
 
@@ -64,6 +67,7 @@ function PolicyDetails({
     policy,
     policyId,
     actions,
+    accessControlSettings,
 }: PolicyDetailsProps): JSX.Element {
     const [policyName, setPolicyName] = useState(policy?.name || '');
     const [expression, setExpression] = useState(policy?.rules?.[0]?.expression || '');
@@ -78,10 +82,14 @@ function PolicyDetails({
     });
     const [saveNeeded, setSaveNeeded] = useState(false);
     const [channelsCount, setChannelsCount] = useState(0);
-    const [autocompleteResult, setAutocompleteResult] = useState<PropertyField[]>([]);
+    const [autocompleteResult, setAutocompleteResult] = useState<UserPropertyField[]>([]);
+    const [attributesLoaded, setAttributesLoaded] = useState(false);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
     const {formatMessage} = useIntl();
+
+    const abacActions = useChannelAccessControlActions();
+
     useEffect(() => {
         loadPage();
     }, [policyId]);
@@ -94,22 +102,25 @@ function PolicyDetails({
 
         // Expression is simple if it only contains user.attributes.X == "Y" or user.attributes.X in ["Y", "Z"]
         // or user.attributes.X.startsWith/endsWith/contains("Y")
+        // or ["Y", "Z"] in user.attributes.X (for multiselect attributes)
         return expr.split('&&').every((condition) => {
             const trimmed = condition.trim();
-            return trimmed.match(/^user\.attributes\.\w+\s*(==|!=)\s*['"][^'"]+['"]$/) ||
+            return trimmed.match(/^user\.attributes\.\w+\s*(==|!=)\s*['"][^'"]*['"]$/) ||
                    trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]+['"].*?\)$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\.endsWith\(['"][^'"]+['"].*?\)$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\.contains\(['"][^'"]+['"].*?\)$/);
+                   trimmed.match(/^((\[.*?\])||['"][^'"]*['"].*?)\s+in\s+user\.attributes\.\w+$/) ||
+                   trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
+                   trimmed.match(/^user\.attributes\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
+                   trimmed.match(/^user\.attributes\.\w+\.contains\(['"][^'"]*['"].*?\)$/);
         });
     };
 
-    const loadPage = async () => {
+    const loadPage = async (): Promise<void> => {
         // Fetch autocomplete fields first, as they are general and needed for both new and existing policies.
-        const fieldsPromise = actions.getAccessControlFields('', 100).then((result) => {
+        const fieldsPromise = abacActions.getAccessControlFields('', 100).then((result) => {
             if (result.data) {
                 setAutocompleteResult(result.data);
             }
+            setAttributesLoaded(true);
         });
 
         if (policyId) {
@@ -133,6 +144,25 @@ function PolicyDetails({
         }
     };
 
+    const preSaveCheck = () => {
+        if (policyName.length === 0) {
+            setServerError(formatMessage({
+                id: 'admin.access_control.policy.edit_policy.error.name_required',
+                defaultMessage: 'Please add a name to the policy',
+            }));
+            return false;
+        }
+        if (expression.length === 0) {
+            setServerError(formatMessage({
+                id: 'admin.access_control.policy.edit_policy.error.expression_required',
+                defaultMessage: 'Please add an expression to the policy',
+            }));
+            return false;
+        }
+
+        return true;
+    };
+
     const handleSubmit = async (apply = false) => {
         let success = true;
         let currentPolicyId = policyId;
@@ -143,7 +173,7 @@ function PolicyDetails({
             name: policyName,
             rules: [{expression, actions: ['*']}] as AccessControlPolicyRule[],
             type: 'parent',
-            version: 'v0.1',
+            version: 'v0.2',
         }).then((result) => {
             if (result.error) {
                 setServerError(result.error.message);
@@ -164,7 +194,10 @@ function PolicyDetails({
         try {
             await actions.updateAccessControlPolicyActive(currentPolicyId, autoSyncMembership);
         } catch (error) {
-            setServerError(`Error updating policy active status: ${error.message}`);
+            setServerError(formatMessage({
+                id: 'admin.access_control.policy.edit_policy.error.update_active_status',
+                defaultMessage: 'Error updating policy active status: {error}',
+            }, {error: error.message}));
             success = false;
             return;
         }
@@ -181,7 +214,10 @@ function PolicyDetails({
 
                 setChannelChanges({removed: {}, added: {}, removedCount: 0});
             } catch (error) {
-                setServerError(`Error assigning channels: ${error.message}`);
+                setServerError(formatMessage({
+                    id: 'admin.access_control.policy.edit_policy.error.assign_channels',
+                    defaultMessage: 'Error assigning channels: {error}',
+                }, {error: error.message}));
                 success = false;
                 return;
             }
@@ -196,7 +232,10 @@ function PolicyDetails({
                 };
                 await actions.createJob(job);
             } catch (error) {
-                setServerError(`Error creating job: ${error.message}`);
+                setServerError(formatMessage({
+                    id: 'admin.access_control.policy.edit_policy.error.create_job',
+                    defaultMessage: 'Error creating job: {error}',
+                }, {error: error.message}));
                 success = false;
                 return;
             }
@@ -206,7 +245,7 @@ function PolicyDetails({
         setSaveNeeded(false);
         setShowConfirmationModal(false);
         actions.setNavigationBlocked(false);
-        getHistory().push('/admin_console/user_management/attribute_based_access_control');
+        getHistory().push('/admin_console/system_attributes/attribute_based_access_control');
     };
 
     const handleDelete = async () => {
@@ -221,7 +260,10 @@ function PolicyDetails({
             try {
                 await actions.unassignChannelsFromAccessControlPolicy(policyId, Object.keys(channelChanges.removed));
             } catch (error) {
-                setServerError(`Error unassigning channels: ${error.message}`);
+                setServerError(formatMessage({
+                    id: 'admin.access_control.policy.edit_policy.error.unassign_channels',
+                    defaultMessage: 'Error unassigning channels: {error}',
+                }, {error: error.message}));
                 success = false;
             }
         }
@@ -231,47 +273,43 @@ function PolicyDetails({
             try {
                 await actions.deletePolicy(policyId);
             } catch (error) {
-                setServerError(`Error deleting policy: ${error.message}`);
+                setServerError(formatMessage({
+                    id: 'admin.access_control.policy.edit_policy.error.delete_policy',
+                    defaultMessage: 'Error deleting policy: {error}',
+                }, {error: error.message}));
             }
         }
 
         if (success) {
-            getHistory().push('/admin_console/user_management/attribute_based_access_control');
+            getHistory().push('/admin_console/system_attributes/attribute_based_access_control');
         }
     };
 
-    const handleChannelChanges = (channels: ChannelWithTeamData[], isAdding: boolean) => {
+    const addToNewChannels = (channels: ChannelWithTeamData[]) => {
         setChannelChanges((prev) => {
             const newChanges = cloneDeep(prev);
-
-            channels.forEach((channel) => {
-                if (isAdding) {
-                    if (newChanges.removed[channel.id]) {
-                        delete newChanges.removed[channel.id];
-                        newChanges.removedCount--;
-                    } else {
-                        newChanges.added[channel.id] = channel;
-                    }
-                } else if (newChanges.added[channel.id]) {
-                    delete newChanges.added[channel.id];
-                } else if (!newChanges.removed[channel.id]) {
-                    newChanges.removedCount++;
-                    newChanges.removed[channel.id] = channel;
+            channels.forEach((channel: ChannelWithTeamData) => {
+                if (newChanges.removed[channel.id]?.id === channel.id) {
+                    delete newChanges.removed[channel.id];
+                    newChanges.removedCount--;
+                } else {
+                    newChanges.added[channel.id] = channel;
                 }
             });
-
             return newChanges;
         });
         setSaveNeeded(true);
         actions.setNavigationBlocked(true);
     };
 
-    const handleUndoRemove = (channel: ChannelWithTeamData) => {
+    const addToRemovedChannels = (channel: ChannelWithTeamData) => {
         setChannelChanges((prev) => {
             const newChanges = cloneDeep(prev);
-            if (newChanges.removed[channel.id]) {
-                delete newChanges.removed[channel.id];
-                newChanges.removedCount--;
+            if (newChanges.added[channel.id]?.id === channel.id) {
+                delete newChanges.added[channel.id];
+            } else if (newChanges.removed[channel.id]?.id !== channel.id) {
+                newChanges.removedCount++;
+                newChanges.removed[channel.id] = channel;
             }
             return newChanges;
         });
@@ -292,7 +330,7 @@ function PolicyDetails({
             <AdminHeader withBackButton={true}>
                 <div>
                     <BlockableLink
-                        to='/admin_console/user_management/attribute_based_access_control'
+                        to='/admin_console/system_attributes/attribute_based_access_control'
                         className='fa fa-angle-left back'
                     />
                     <FormattedMessage
@@ -320,9 +358,11 @@ function PolicyDetails({
                             onChange={(_, value) => {
                                 setPolicyName(value);
                                 setSaveNeeded(true);
+                                actions.setNavigationBlocked(true);
                             }}
                             labelClassName='col-sm-4 vertically-centered-label'
                             inputClassName='col-sm-8'
+                            autoFocus={policyId === undefined}
                         />
                         <BooleanSetting
                             id='admin.access_control.policy.edit_policy.autoSyncMembership'
@@ -338,6 +378,7 @@ function PolicyDetails({
                             onChange={(_, value) => {
                                 setAutoSyncMembership(value);
                                 setSaveNeeded(true);
+                                actions.setNavigationBlocked(true);
                             }}
                             setByEnv={false}
                             helpText={
@@ -348,15 +389,48 @@ function PolicyDetails({
                             }
                         />
                     </div>
-
+                    {attributesLoaded && autocompleteResult.length === 0 && (<div className='admin-console__warning-notice'>
+                        <SectionNotice
+                            type='warning'
+                            title={
+                                <FormattedMessage
+                                    id='admin.access_control.policy.edit_policy.notice.title'
+                                    defaultMessage='Please add user attributes and values to use Attribute-Based Access Control'
+                                />
+                            }
+                            text={formatMessage({
+                                id: 'admin.access_control.policy.edit_policy.notice.text',
+                                defaultMessage: 'You havent configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server. To start using attribute based access, please configure user attributes in System Attributes.',
+                            })}
+                            primaryButton={{
+                                text: formatMessage({
+                                    id: 'admin.access_control.policy.edit_policy.notice.button',
+                                    defaultMessage: 'Configure user attributes',
+                                }),
+                                onClick: () => {
+                                    getHistory().push('/admin_console/system_attributes/user_attributes');
+                                },
+                            }}
+                        />
+                    </div>)}
                     <Card
                         expanded={true}
                         className={'console'}
                     >
                         <Card.Header>
                             <TitleAndButtonCardHeader
-                                title={'Attribute based access rules'}
-                                subtitle={'Select user attributes and values as rules to restrict channel membership.'}
+                                title={
+                                    <FormattedMessage
+                                        id='admin.access_control.policy.edit_policy.access_rules.title'
+                                        defaultMessage='Attribute-based access rules'
+                                    />
+                                }
+                                subtitle={
+                                    <FormattedMessage
+                                        id='admin.access_control.policy.edit_policy.access_rules.subtitle'
+                                        defaultMessage='Select user attributes and values as rules to restrict channel membership.'
+                                    />
+                                }
                                 buttonText={
                                     editorMode === 'table' ? (
                                         <FormattedMessage
@@ -374,7 +448,10 @@ function PolicyDetails({
                                 isDisabled={editorMode === 'cel' && !isSimpleExpression(expression)}
                                 tooltipText={
                                     editorMode === 'cel' && !isSimpleExpression(expression) ?
-                                        'Complex expression detected. Simple expressions editor is not available at the moment.' :
+                                        formatMessage({
+                                            id: 'admin.access_control.policy.edit_policy.complex_expression_tooltip',
+                                            defaultMessage: 'Complex expression detected. Simple expressions editor is not available at the moment.',
+                                        }) :
                                         undefined
                                 }
                             />
@@ -386,12 +463,20 @@ function PolicyDetails({
                                     onChange={(value) => {
                                         setExpression(value);
                                         setSaveNeeded(true);
+                                        actions.setNavigationBlocked(true);
                                     }}
                                     onValidate={() => {}}
-                                    userAttributes={autocompleteResult.map((attr) => ({
-                                        attribute: attr.name,
-                                        values: [],
-                                    }))}
+                                    userAttributes={autocompleteResult.
+                                        filter((attr) => {
+                                            if (accessControlSettings.EnableUserManagedAttributes) {
+                                                return true;
+                                            }
+                                            return attr.attrs?.ldap || attr.attrs?.saml;
+                                        }).
+                                        map((attr) => ({
+                                            attribute: attr.name,
+                                            values: [],
+                                        }))}
                                 />
                             ) : (
                                 <TableEditor
@@ -399,12 +484,15 @@ function PolicyDetails({
                                     onChange={(value) => {
                                         setExpression(value);
                                         setSaveNeeded(true);
+                                        actions.setNavigationBlocked(true);
                                     }}
                                     onValidate={() => {}}
-                                    userAttributes={autocompleteResult.map((attr) => ({
-                                        attribute: attr.name,
-                                        values: [],
-                                    }))}
+                                    userAttributes={autocompleteResult}
+                                    onParseError={() => {
+                                        setEditorMode('cel');
+                                    }}
+                                    enableUserManagedAttributes={accessControlSettings.EnableUserManagedAttributes}
+                                    actions={abacActions}
                                 />
                             )}
                         </Card.Body>
@@ -425,7 +513,7 @@ function PolicyDetails({
                                 subtitle={
                                     <FormattedMessage
                                         id='admin.access_control.policy.edit_policy.channel_selector.subtitle'
-                                        defaultMessage='Add channels that this property based access policy will apply to.'
+                                        defaultMessage='Add channels that this attribute-based access policy will apply to.'
                                     />
                                 }
                                 buttonText={
@@ -439,8 +527,7 @@ function PolicyDetails({
                         </Card.Header>
                         <Card.Body expanded={true}>
                             <ChannelList
-                                onRemoveCallback={(channel) => handleChannelChanges([channel], false)}
-                                onUndoRemoveCallback={handleUndoRemove}
+                                onRemoveCallback={(channel) => addToRemovedChannels(channel)}
                                 channelsToRemove={channelChanges.removed}
                                 channelsToAdd={channelChanges.added}
                                 policyId={policyId}
@@ -496,10 +583,9 @@ function PolicyDetails({
             {addChannelOpen && (
                 <ChannelSelectorModal
                     onModalDismissed={() => setAddChannelOpen(false)}
-                    onChannelsSelected={(channels) => handleChannelChanges(channels, true)}
+                    onChannelsSelected={(channels) => addToNewChannels(channels)}
                     groupID={''}
                     alreadySelected={Object.values(channelChanges.added).map((channel) => channel.id)}
-                    excludeAccessControlPolicyEnforced={true}
                     excludeTypes={['O', 'D', 'G']}
                 />
             )}
@@ -545,6 +631,9 @@ function PolicyDetails({
                 <SaveButton
                     disabled={!saveNeeded}
                     onClick={() => {
+                        if (!preSaveCheck()) {
+                            return;
+                        }
                         if (hasChannels()) {
                             setShowConfirmationModal(true);
                         } else {
@@ -560,7 +649,7 @@ function PolicyDetails({
                 />
                 <BlockableLink
                     className='btn btn-quaternary'
-                    to='/admin_console/user_management/attribute_based_access_control'
+                    to='/admin_console/system_attributes/attribute_based_access_control'
                 >
                     <FormattedMessage
                         id='admin.access_control.edit_policy.cancel'

@@ -55,6 +55,42 @@ export async function ldapTest(success, error) {
     }
 }
 
+export async function ldapTestConnection(success, error, settings) {
+    const {data, error: err} = await dispatch(AdminActions.testLdapConnection(settings));
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function ldapTestFilters(success, error, settings) {
+    const {data, error: err} = await dispatch(AdminActions.testLdapFilters(settings));
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function ldapTestAttributes(success, error, settings) {
+    const {data, error: err} = await dispatch(AdminActions.testLdapAttributes(settings));
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function ldapTestGroupAttributes(success, error, settings) {
+    const {data, error: err} = await dispatch(AdminActions.testLdapGroupAttributes(settings));
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
 export async function invalidateAllCaches(success, error) {
     const {data, error: err} = await dispatch(AdminActions.invalidateCaches());
     if (data && success) {
@@ -369,20 +405,6 @@ export async function rebuildChannelsIndex(success, error) {
     success();
 }
 
-export async function blevePurgeIndexes(success, error) {
-    const purgeBleveIndexes = bindClientFunc({
-        clientFunc: Client4.purgeBleveIndexes,
-        params: [],
-    });
-
-    const {data, error: err} = await dispatch(purgeBleveIndexes);
-    if (data && success) {
-        success(data);
-    } else if (err && error) {
-        error({id: err.server_error_id, ...err});
-    }
-}
-
 export function setNavigationBlocked(blocked) {
     return {
         type: ActionTypes.SET_NAVIGATION_BLOCKED,
@@ -525,6 +547,17 @@ export function upgradeToE0Status() {
     return async () => {
         const data = await Client4.upgradeToEnterpriseStatus();
         return data;
+    };
+}
+
+export function isAllowedToUpgradeToEnterprise() {
+    return async () => {
+        try {
+            await Client4.isAllowedToUpgradeToEnterprise();
+            return {data: true};
+        } catch (error) {
+            return {error};
+        }
     };
 }
 

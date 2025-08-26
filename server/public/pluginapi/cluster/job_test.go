@@ -313,7 +313,7 @@ func TestSchedule(t *testing.T) {
 
 		key := makeKey()
 
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			job, err := Schedule(mockPluginAPI, key, MakeWaitForInterval(100*time.Millisecond), callback)
 			require.NoError(t, err)
 			require.NotNil(t, job)
@@ -324,7 +324,7 @@ func TestSchedule(t *testing.T) {
 		time.Sleep(1 * time.Second)
 
 		var wg sync.WaitGroup
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			job := jobs[i]
 			wg.Add(1)
 			go func() {
@@ -363,7 +363,7 @@ func TestSchedule(t *testing.T) {
 		keyB := makeKey()
 
 		var jobs []*Job
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			var key string
 			var callback func()
 			if i <= 1 {
@@ -384,7 +384,7 @@ func TestSchedule(t *testing.T) {
 		time.Sleep(1 * time.Second)
 
 		var wg sync.WaitGroup
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			job := jobs[i]
 			wg.Add(1)
 			go func() {

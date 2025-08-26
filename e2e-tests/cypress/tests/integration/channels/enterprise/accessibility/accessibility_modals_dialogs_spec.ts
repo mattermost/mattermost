@@ -30,7 +30,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
             testChannel = channel;
             testUser = user;
 
-            cy.apiCreateUser().then(({user: newUser}) => {
+            cy.apiCreateUser({prefix: 'user000b'}).then(({user: newUser}) => {
                 cy.apiAddUserToTeam(testTeam.id, newUser.id).then(() => {
                     cy.apiAddUserToChannel(testChannel.id, newUser.id);
                 });
@@ -71,7 +71,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
             });
 
             // * Verify if the reader is able to read out the selected row
-            cy.get('.filtered-user-list .sr-only').
+            cy.get('.filtered-user-list div.sr-only:not([role="status"])').
                 should('have.attr', 'aria-live', 'polite').
                 and('have.attr', 'aria-atomic', 'true').
                 invoke('text').then((text) => {
@@ -167,9 +167,9 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
                 wait(TIMEOUTS.HALF_SEC).
                 typeWithForce('u').
                 wait(TIMEOUTS.HALF_SEC).
-                typeWithForce('{downarrow}{downarrow}{downarrow}{uparrow}');
+                typeWithForce('{downarrow}{downarrow}{downarrow}{downarrow}{uparrow}');
             cy.get('#multiSelectList').
-                children().eq(1).
+                children().eq(2).
                 should('have.class', 'more-modal__row--selected').
                 within(() => {
                     cy.get('.more-modal__name').invoke('text').then((user) => {
@@ -181,7 +181,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
                 });
 
             // * Verify if the reader is able to read out the selected row
-            cy.get('.filtered-user-list .sr-only').
+            cy.get('.filtered-user-list div.sr-only:not([role="status"])').
                 should('have.attr', 'aria-live', 'polite').
                 and('have.attr', 'aria-atomic', 'true').
                 invoke('text').then((text) => {

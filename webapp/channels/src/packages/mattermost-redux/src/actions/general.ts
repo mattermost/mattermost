@@ -19,7 +19,7 @@ export function getClientConfig(): ActionFuncAsync<ClientConfig> {
     return async (dispatch, getState) => {
         let data;
         try {
-            data = await Client4.getClientConfigOld();
+            data = await Client4.getClientConfig();
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             return {error};
@@ -104,6 +104,30 @@ export function getFirstAdminSetupComplete(): ActionFuncAsync<SystemSetting> {
         data = JSON.parse(data.value);
         dispatch({type: GeneralTypes.FIRST_ADMIN_COMPLETE_SETUP_RECEIVED, data});
         return {data};
+    };
+}
+
+export function checkCWSAvailability(): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const config = state.entities.general.config;
+        const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
+
+        if (!isEnterpriseReady) {
+            dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_SUCCESS, data: 'not_applicable'});
+            return {data: 'not_applicable'};
+        }
+
+        dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_REQUEST});
+
+        try {
+            await Client4.cwsAvailabilityCheck();
+            dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_SUCCESS, data: 'available'});
+            return {data: 'available'};
+        } catch (error) {
+            dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_FAILURE});
+            return {data: 'unavailable'};
+        }
     };
 }
 

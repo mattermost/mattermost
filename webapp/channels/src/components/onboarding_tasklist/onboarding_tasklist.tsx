@@ -10,18 +10,17 @@ import {CloseIcon, PlaylistCheckIcon} from '@mattermost/compass-icons/components
 
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getMyPreferences, savePreferences} from 'mattermost-redux/actions/preferences';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {
     getBool,
     getMyPreferences as getMyPreferencesSelector,
-    getTheme,
 } from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import {getShowTaskListBool} from 'selectors/onboarding';
 
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import {useFirstAdminUser, useIsCurrentUserSystemAdmin} from 'components/global_header/hooks';
 import {
     useTasksListWithStatus,
@@ -128,6 +127,10 @@ const Button = styled.button<{open: boolean}>(({open}) => {
 const OnBoardingTaskList = (): JSX.Element | null => {
     const {formatMessage} = useIntl();
     const hasPreferences = useSelector((state: GlobalState) => Object.keys(getMyPreferencesSelector(state)).length !== 0);
+    const subscription = useSelector(getCloudSubscription);
+    const license = useSelector(getLicense);
+    const isCloud = license?.Cloud === 'true';
+    const isCloudPreview = subscription?.is_cloud_preview === true;
 
     useEffect(() => {
         dispatch(getPrevTrialLicense());
@@ -152,7 +155,6 @@ const OnBoardingTaskList = (): JSX.Element | null => {
         getShowTaskListBool,
         (a, b) => a[0] === b[0] && a[1] === b[1],
     );
-    const theme = useSelector(getTheme);
 
     const startTask = (taskName: string) => {
         toggleTaskList();
@@ -244,12 +246,12 @@ const OnBoardingTaskList = (): JSX.Element | null => {
         trackEvent(OnboardingTaskCategory, open ? OnboardingTaskList.ONBOARDING_TASK_LIST_CLOSE : OnboardingTaskList.ONBOARDING_TASK_LIST_OPEN);
     }, [open, currentUserId]);
 
-    if (!hasPreferences || !showTaskList || !isEnableOnboardingFlow) {
+    if (!hasPreferences || !showTaskList || !isEnableOnboardingFlow || (isCloud && isCloudPreview)) {
         return null;
     }
 
     return (
-        <CompassThemeProvider theme={theme}>
+        <>
             <CompletedAnimation completed={showAnimation}/>
             <Button
                 onClick={toggleTaskList}
@@ -303,14 +305,14 @@ const OnBoardingTaskList = (): JSX.Element | null => {
                             >
                                 <FormattedMessage
                                     id='onboardingTask.checklist.dismiss_link'
-                                    defaultMessage='No thanks, I’ll figure it out myself'
+                                    defaultMessage="No thanks, I'll figure it out myself"
                                 />
                             </span>
                         </>
                     )}
                 </TaskItems>
             </TaskListPopover>
-        </CompassThemeProvider>
+        </>
     );
 };
 

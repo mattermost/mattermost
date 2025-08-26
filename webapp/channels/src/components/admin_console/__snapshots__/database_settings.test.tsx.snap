@@ -387,7 +387,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
             className="help-text"
           >
             <MemoizedFormattedMessage
-              defaultMessage="Shows the currently active backend used for search. Values can be none, database, elasticsearch, bleve etc."
+              defaultMessage="Shows the currently active backend used for search. Values can be none, database, elasticsearch."
               id="admin.database.search_backend.help_text"
             />
           </div>

@@ -387,6 +387,21 @@ func (mr *MockClientMockRecorder) DeleteExport(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteExport", reflect.TypeOf((*MockClient)(nil).DeleteExport), arg0, arg1)
 }
 
+// DeleteImport mocks base method.
+func (m *MockClient) DeleteImport(arg0 context.Context, arg1 string) (*model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteImport", arg0, arg1)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteImport indicates an expected call of DeleteImport.
+func (mr *MockClientMockRecorder) DeleteImport(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteImport", reflect.TypeOf((*MockClient)(nil).DeleteImport), arg0, arg1)
+}
+
 // DeleteIncomingWebhook mocks base method.
 func (m *MockClient) DeleteIncomingWebhook(arg0 context.Context, arg1 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
@@ -506,6 +521,21 @@ func (m *MockClient) DoAPIPost(arg0 context.Context, arg1, arg2 string) (*http.R
 func (mr *MockClientMockRecorder) DoAPIPost(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoAPIPost", reflect.TypeOf((*MockClient)(nil).DoAPIPost), arg0, arg1, arg2)
+}
+
+// DownloadComplianceExport mocks base method.
+func (m *MockClient) DownloadComplianceExport(arg0 context.Context, arg1 string, arg2 io.Writer) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DownloadComplianceExport", arg0, arg1, arg2)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DownloadComplianceExport indicates an expected call of DownloadComplianceExport.
+func (mr *MockClientMockRecorder) DownloadComplianceExport(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DownloadComplianceExport", reflect.TypeOf((*MockClient)(nil).DownloadComplianceExport), arg0, arg1, arg2)
 }
 
 // DownloadExport mocks base method.
@@ -730,6 +760,22 @@ func (m *MockClient) GetChannelsForTeamForUser(arg0 context.Context, arg1, arg2 
 func (mr *MockClientMockRecorder) GetChannelsForTeamForUser(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChannelsForTeamForUser", reflect.TypeOf((*MockClient)(nil).GetChannelsForTeamForUser), arg0, arg1, arg2, arg3, arg4)
+}
+
+// GetClientConfig mocks base method.
+func (m *MockClient) GetClientConfig(arg0 context.Context, arg1 string) (map[string]string, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetClientConfig", arg0, arg1)
+	ret0, _ := ret[0].(map[string]string)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetClientConfig indicates an expected call of GetClientConfig.
+func (mr *MockClientMockRecorder) GetClientConfig(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClientConfig", reflect.TypeOf((*MockClient)(nil).GetClientConfig), arg0, arg1)
 }
 
 // GetCommandById mocks base method.
@@ -988,22 +1034,6 @@ func (m *MockClient) GetOAuthApps(arg0 context.Context, arg1, arg2 int) ([]*mode
 func (mr *MockClientMockRecorder) GetOAuthApps(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOAuthApps", reflect.TypeOf((*MockClient)(nil).GetOAuthApps), arg0, arg1, arg2)
-}
-
-// GetOldClientConfig mocks base method.
-func (m *MockClient) GetOldClientConfig(arg0 context.Context, arg1 string) (map[string]string, *model.Response, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOldClientConfig", arg0, arg1)
-	ret0, _ := ret[0].(map[string]string)
-	ret1, _ := ret[1].(*model.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// GetOldClientConfig indicates an expected call of GetOldClientConfig.
-func (mr *MockClientMockRecorder) GetOldClientConfig(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOldClientConfig", reflect.TypeOf((*MockClient)(nil).GetOldClientConfig), arg0, arg1)
 }
 
 // GetOutgoingWebhook mocks base method.
@@ -2074,18 +2104,18 @@ func (mr *MockClientMockRecorder) SoftDeleteTeam(arg0, arg1 interface{}) *gomock
 }
 
 // SyncLdap mocks base method.
-func (m *MockClient) SyncLdap(arg0 context.Context, arg1 *bool) (*model.Response, error) {
+func (m *MockClient) SyncLdap(arg0 context.Context) (*model.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SyncLdap", arg0, arg1)
+	ret := m.ctrl.Call(m, "SyncLdap", arg0)
 	ret0, _ := ret[0].(*model.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SyncLdap indicates an expected call of SyncLdap.
-func (mr *MockClientMockRecorder) SyncLdap(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) SyncLdap(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncLdap", reflect.TypeOf((*MockClient)(nil).SyncLdap), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncLdap", reflect.TypeOf((*MockClient)(nil).SyncLdap), arg0)
 }
 
 // UpdateChannelPrivacy mocks base method.
@@ -2259,6 +2289,22 @@ func (m *MockClient) UpdateUserActive(arg0 context.Context, arg1 string, arg2 bo
 func (mr *MockClientMockRecorder) UpdateUserActive(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserActive", reflect.TypeOf((*MockClient)(nil).UpdateUserActive), arg0, arg1, arg2)
+}
+
+// UpdateUserAuth mocks base method.
+func (m *MockClient) UpdateUserAuth(arg0 context.Context, arg1 string, arg2 *model.UserAuth) (*model.UserAuth, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserAuth", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.UserAuth)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// UpdateUserAuth indicates an expected call of UpdateUserAuth.
+func (mr *MockClientMockRecorder) UpdateUserAuth(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserAuth", reflect.TypeOf((*MockClient)(nil).UpdateUserAuth), arg0, arg1, arg2)
 }
 
 // UpdateUserHashedPassword mocks base method.

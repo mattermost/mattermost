@@ -66,17 +66,20 @@ Object {
               <div
                 class="Input_container"
               >
-                <fieldset
+                <div
                   class="Input_fieldset name_input"
+                  data-testid="input-wrapper"
                 >
-                  <legend
+                  <label
                     class="Input_legend"
-                  />
+                    for="input_name"
+                  >
+                                            
+                  </label>
                   <div
                     class="Input_wrapper"
                   >
                     <input
-                      aria-invalid="false"
                       aria-label="Name"
                       class="Input form-control large"
                       id="input_name"
@@ -86,19 +89,22 @@ Object {
                       value=""
                     />
                   </div>
-                </fieldset>
+                </div>
               </div>
               <div
                 class="Input_container"
               >
-                <fieldset
+                <div
                   class="Input_fieldset email_input Input_fieldset___error Input_fieldset___legend"
+                  data-testid="input-wrapper"
                 >
-                  <legend
+                  <label
                     class="Input_legend Input_legend___focus"
+                    for="input_email"
                   >
+                                            
                     Business Email
-                  </legend>
+                  </label>
                   <div
                     class="Input_wrapper"
                   >
@@ -114,14 +120,17 @@ Object {
                       value="test@mattermost.com"
                     />
                   </div>
-                </fieldset>
+                </div>
                 <div
                   class="Input___customMessage Input___error"
                   id="error_email"
                   role="alert"
                 >
                   <i
+                    aria-hidden="true"
+                    aria-label=""
                     class="icon error icon-alert-circle-outline"
+                    role="img"
                   />
                   <span>
                     Please enter a valid business email address.
@@ -131,17 +140,20 @@ Object {
               <div
                 class="Input_container"
               >
-                <fieldset
+                <div
                   class="Input_fieldset company_name_input"
+                  data-testid="input-wrapper"
                 >
-                  <legend
+                  <label
                     class="Input_legend"
-                  />
+                    for="input_company_name"
+                  >
+                                            
+                  </label>
                   <div
                     class="Input_wrapper"
                   >
                     <input
-                      aria-invalid="false"
                       aria-label="Company Name"
                       class="Input form-control large"
                       id="input_company_name"
@@ -151,7 +163,7 @@ Object {
                       value=""
                     />
                   </div>
-                </fieldset>
+                </div>
               </div>
               <div
                 class="DropdownInput Input_container"
@@ -330,7 +342,7 @@ Object {
               >
                 By selecting Start trial, I agree to the 
                 <a
-                  href="https://mattermost.com/software-evaluation-agreement/?utm_source=mattermost&utm_medium=in-product&utm_content=start_trial_form_modal&uid=user1&sid=test123"
+                  href="https://mattermost.com/software-evaluation-agreement/?utm_source=mattermost&utm_medium=in-product&utm_content=start_trial_form_modal&uid=user1&sid=test123&edition=team&server_version="
                   location="start_trial_form_modal"
                   rel="noopener noreferrer"
                   target="_blank"
@@ -339,7 +351,7 @@ Object {
                 </a>
                 , 
                 <a
-                  href="https://mattermost.com/pl/privacy-policy/?utm_source=mattermost&utm_medium=in-product&utm_content=start_trial_form_modal&uid=user1&sid=test123"
+                  href="https://mattermost.com/pl/privacy-policy/?utm_source=mattermost&utm_medium=in-product&utm_content=start_trial_form_modal&uid=user1&sid=test123&edition=team&server_version="
                   location="start_trial_form_modal"
                   rel="noopener noreferrer"
                   target="_blank"
@@ -352,7 +364,7 @@ Object {
                 class="buttons"
               >
                 <button
-                  class="confirm-btn btn btn-default"
+                  class="btn btn-primary btn btn-default"
                   disabled=""
                   type="button"
                 >

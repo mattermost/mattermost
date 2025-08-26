@@ -39,17 +39,13 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	th.Service.UpdateConfig(func(cfg *model.Config) {
 		*cfg.LogSettings.FileLocation = dir
-		*cfg.NotificationLogSettings.FileLocation = dir
 	})
 
 	logLocation := config.GetLogFileLocation(dir)
-	notificationsLogLocation := config.GetNotificationsLogFileLocation(dir)
 
 	genMockLogFiles := func() {
 		d1 := []byte("hello\ngo\n")
 		genErr := os.WriteFile(logLocation, d1, 0600)
-		require.NoError(t, genErr)
-		genErr = os.WriteFile(notificationsLogLocation, d1, 0600)
 		require.NoError(t, genErr)
 	}
 	genMockLogFiles()
@@ -73,10 +69,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		"goroutines",
 	}
 
-	expectedFileNamesWithLogs := append(expectedFileNames, []string{
-		"mattermost.log",
-		"notifications.log",
-	}...)
+	expectedFileNamesWithLogs := append(expectedFileNames, "mattermost.log")
 
 	var fileDatas []model.FileData
 
@@ -102,8 +95,6 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	t.Run("remove the log files and ensure that an error is returned", func(t *testing.T) {
 		err = os.Remove(logLocation)
-		require.NoError(t, err)
-		err = os.Remove(notificationsLogLocation)
 		require.NoError(t, err)
 		t.Cleanup(genMockLogFiles)
 
@@ -198,7 +189,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	t.Run("Happy path", func(t *testing.T) {
 		d := getDiagnostics(t)
 
-		assert.Equal(t, 1, d.Version)
+		assert.Equal(t, 2, d.Version)
 
 		/* License */
 		assert.Equal(t, "My awesome Company", d.License.Company)
@@ -360,13 +351,18 @@ func TestGetSanitizedConfigFile(t *testing.T) {
 	require.NoError(t, err)
 
 	// Ensure sensitive fields are redacted
-	assert.Equal(t, model.FakeSetting, *config.SqlSettings.DataSource)
+	assert.Equal(t, model.FakeSetting, *config.FileSettings.PublicLinkSalt)
 
 	// Ensure non-sensitive fields are present
 	assert.Equal(t, "example.com", *config.ServiceSettings.AllowedUntrustedInternalConnections)
 
 	// Ensure feature flags are present
 	assert.Equal(t, "true", config.FeatureFlags.TestFeature)
+
+	// Ensure DataSource is partially sanitized (not completely replaced with FakeSetting)
+	// The default test database connection string should have username/password redacted
+	assert.Contains(t, *config.SqlSettings.DataSource, "****:****")
+	assert.NotEqual(t, model.FakeSetting, *config.SqlSettings.DataSource)
 }
 
 func TestGetCPUProfile(t *testing.T) {

@@ -1162,7 +1162,7 @@ func TestCreatePost(t *testing.T) {
 		user1 := th.CreateUser()
 		user2 := th.CreateUser()
 		user3 := th.CreateUser()
-		gm, appErr := th.App.createGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id})
+		gm, appErr := th.App.createGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id}, user1.Id)
 		require.Nil(t, appErr)
 		require.NotNil(t, gm)
 
@@ -1202,7 +1202,7 @@ func TestCreatePost(t *testing.T) {
 
 		channelForPreview := th.CreateChannel(th.Context, th.BasicTeam)
 
-		for i := 0; i < 20; i++ {
+		for range 20 {
 			user := th.CreateUser()
 			th.LinkUserToTeam(user, th.BasicTeam)
 			th.AddUserToChannel(user, channelForPreview)
@@ -1235,7 +1235,7 @@ func TestCreatePost(t *testing.T) {
 		n := 1000
 		var wg sync.WaitGroup
 		wg.Add(n)
-		for i := 0; i < n; i++ {
+		for range n {
 			go func() {
 				defer wg.Done()
 				post := previewPost.Clone()
@@ -2423,7 +2423,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		user2 := th.BasicUser2
 		user3 := th.SystemAdminUser
 
-		channel, err := th.App.createGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id})
+		channel, err := th.App.createGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id}, user1.Id)
 		require.Nil(t, err)
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
@@ -3234,48 +3234,6 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		require.Len(t, l.Order, 2)
 		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)
 		require.Empty(t, l.Posts[postRoot.Id].Participants[0].AuthData)
-	})
-}
-
-func TestReplyToPostWithLag(t *testing.T) {
-	if !replicaFlag {
-		t.Skipf("requires test flag -mysql-replica")
-	}
-
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	if *th.App.Config().SqlSettings.DriverName != model.DatabaseDriverMysql {
-		t.Skipf("requires %q database driver", model.DatabaseDriverMysql)
-	}
-
-	mainHelper.SQLStore.UpdateLicense(model.NewTestLicense("somelicense"))
-
-	t.Run("replication lag time great than reply time", func(t *testing.T) {
-		err := mainHelper.SetReplicationLagForTesting(5)
-		require.NoError(t, err)
-		defer func() {
-			err := mainHelper.SetReplicationLagForTesting(0)
-			require.NoError(t, err)
-		}()
-		mainHelper.ToggleReplicasOn()
-		defer mainHelper.ToggleReplicasOff()
-
-		root, appErr := th.App.CreatePost(th.Context, &model.Post{
-			UserId:    th.BasicUser.Id,
-			ChannelId: th.BasicChannel.Id,
-			Message:   "root post",
-		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
-		require.Nil(t, appErr)
-
-		reply, appErr := th.App.CreatePost(th.Context, &model.Post{
-			UserId:    th.BasicUser2.Id,
-			ChannelId: th.BasicChannel.Id,
-			RootId:    root.Id,
-			Message:   fmt.Sprintf("@%s", th.BasicUser2.Username),
-		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
-		require.Nil(t, appErr)
-		require.NotNil(t, reply)
 	})
 }
 

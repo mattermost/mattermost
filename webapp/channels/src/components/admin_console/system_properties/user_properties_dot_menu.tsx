@@ -1,18 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ComponentProps} from 'react';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
 import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
 import type {FieldVisibility, UserPropertyField} from '@mattermost/types/properties';
 
+import {openModal} from 'actions/views/modals';
+
 import * as Menu from 'components/menu';
 
-import './user_properties_dot_menu.scss';
+import {ModalIdentifiers} from 'utils/constants';
+
+import AttributeModal from './attribute_modal';
 import {useUserPropertyFieldDelete} from './user_properties_delete_modal';
 import {isCreatePending} from './user_properties_utils';
+
+import './user_properties_dot_menu.scss';
 
 type Props = {
     field: UserPropertyField;
@@ -21,6 +27,82 @@ type Props = {
     updateField: (field: UserPropertyField) => void;
     deleteField: (id: string) => void;
 }
+
+export const useAttributeLinkModal = (field: UserPropertyField, updateField: Props['updateField']) => {
+    const dispatch = useDispatch();
+
+    const promptEditLdapLink = () => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.ATTRIBUTE_MODAL_LDAP,
+            dialogType: AttributeModal,
+            dialogProps: {
+                initialValue: field.attrs.ldap || '',
+                fieldType: field.type,
+                onExited: () => {},
+                onSave: async (newValue: string) => {
+                    updateField({
+                        ...field,
+                        type: 'text',
+                        attrs: {
+                            ...field.attrs,
+                            ldap: newValue,
+                        },
+                    });
+                },
+                error: null,
+                helpText: (
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.dotmenu.ad_ldap.modal.helpText'
+                        defaultMessage="The attribute in the AD/LDAP server used to sync as a custom attribute in user's profile in Mattermost."
+                    />
+                ),
+                modalHeaderText: (
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.dotmenu.ad_ldap.link_property.label'
+                        defaultMessage='Link attribute to AD/LDAP'
+                    />
+                ),
+            },
+        }));
+    };
+
+    const promptEditSamlLink = () => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.ATTRIBUTE_MODAL_SAML,
+            dialogType: AttributeModal,
+            dialogProps: {
+                initialValue: field.attrs.saml || '',
+                fieldType: field.type,
+                onExited: () => {},
+                onSave: async (newValue: string) => {
+                    updateField({
+                        ...field,
+                        type: 'text',
+                        attrs: {
+                            ...field.attrs,
+                            saml: newValue,
+                        },
+                    });
+                },
+                error: null,
+                helpText: (
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.dotmenu.saml.modal.helpText'
+                        defaultMessage="The attribute in the SAML server used to sync as a custom attribute in user's profile in Mattermost."
+                    />
+                ),
+                modalHeaderText: (
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.dotmenu.saml.modal.title'
+                        defaultMessage='Link attribute to SAML'
+                    />
+                ),
+            },
+        }));
+    };
+
+    return {promptEditLdapLink, promptEditSamlLink};
+};
 
 const menuId = 'user-property-field_dotmenu';
 
@@ -33,6 +115,7 @@ const DotMenu = ({
 }: Props) => {
     const {formatMessage} = useIntl();
     const {promptDelete} = useUserPropertyFieldDelete();
+    const {promptEditLdapLink, promptEditSamlLink} = useAttributeLinkModal(field, updateField);
 
     const handleDuplicate = () => {
         const name = formatMessage({
@@ -177,45 +260,37 @@ const DotMenu = ({
                 />
             </Menu.SubMenu>
             {field.create_at !== 0 && ([
-                <Menu.LinkItem
+                <Menu.Item
                     key={`${menuId}_link_ad-ldap`}
                     id={`${menuId}_link_ad-ldap`}
-                    to={`/admin_console/authentication/ldap#custom_profile_attribute-${field.name}`}
                     leadingElement={<SyncIcon size={18}/>}
+                    onClick={() => promptEditLdapLink()}
                     labels={field.attrs.ldap ? (
                         <FormattedMessage
                             id='admin.system_properties.user_properties.dotmenu.ad_ldap.edit_link.label'
-                            defaultMessage={'Edit link with: <Chip>AD/LDAP: {propertyName}</Chip>'}
-                            values={{
-                                Chip: (chunks: React.ReactNode) => <Chip>{chunks}</Chip>,
-                                propertyName: field.attrs.ldap,
-                            }}
+                            defaultMessage='Edit LDAP link'
                         />
                     ) : (
                         <FormattedMessage
                             id='admin.system_properties.user_properties.dotmenu.ad_ldap.link_property.label'
-                            defaultMessage={'Link property to AD/LDAP'}
+                            defaultMessage='Link attribute to AD/LDAP'
                         />
                     )}
                 />,
-                <Menu.LinkItem
+                <Menu.Item
                     key={`${menuId}_link_saml`}
                     id={`${menuId}_link_saml`}
-                    to={`/admin_console/authentication/saml#custom_profile_attribute-${field.name}`}
                     leadingElement={<SyncIcon size={18}/>}
+                    onClick={() => promptEditSamlLink()}
                     labels={field.attrs.saml ? (
                         <FormattedMessage
                             id='admin.system_properties.user_properties.dotmenu.saml.edit_link.label'
-                            defaultMessage={'Edit link with: <Chip>SAML: {propertyName}</Chip>'}
-                            values={{
-                                Chip: (chunks: React.ReactNode) => <Chip>{chunks}</Chip>,
-                                propertyName: field.attrs.saml,
-                            }}
+                            defaultMessage='Edit SAML link'
                         />
                     ) : (
                         <FormattedMessage
                             id='admin.system_properties.user_properties.dotmenu.saml.link_property.label'
-                            defaultMessage={'Link property to SAML'}
+                            defaultMessage='Link attribute to SAML'
                         />
                     )}
                 />,
@@ -229,7 +304,7 @@ const DotMenu = ({
                     labels={(
                         <FormattedMessage
                             id='admin.system_properties.user_properties.dotmenu.duplicate.label'
-                            defaultMessage={'Duplicate property'}
+                            defaultMessage={'Duplicate attribute'}
                         />
                     )}
                 />
@@ -242,21 +317,12 @@ const DotMenu = ({
                 labels={(
                     <FormattedMessage
                         id='admin.system_properties.user_properties.dotmenu.delete.label'
-                        defaultMessage={'Delete property'}
+                        defaultMessage={'Delete attribute'}
                     />
                 )}
             />
         </Menu.Container>
     );
 };
-
-const Chip = ({children, ...rest}: ComponentProps<'span'>) => (
-    <span
-        className='user-property-field-dotmenu__chip'
-        {...rest}
-    >
-        {children}
-    </span>
-);
 
 export default DotMenu;

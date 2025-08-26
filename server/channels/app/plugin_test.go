@@ -5,22 +5,18 @@ package app
 
 import (
 	"archive/tar"
-	"bytes"
 	"compress/gzip"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
-	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"sort"
 	"testing"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -341,113 +337,6 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 	})
 }
 
-func TestServePluginRequest(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t)
-	defer th.TearDown()
-
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
-
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest("GET", "/plugins/foo/bar", nil)
-	th.App.ch.ServePluginRequest(w, r)
-	assert.Equal(t, http.StatusNotImplemented, w.Result().StatusCode)
-}
-
-func TestPrivateServePluginRequest(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t)
-	defer th.TearDown()
-
-	testCases := []struct {
-		Description string
-		ConfigFunc  func(cfg *model.Config)
-		URL         string
-		ExpectedURL string
-	}{
-		{
-			"no subpath",
-			func(cfg *model.Config) {},
-			"/plugins/id/endpoint",
-			"/endpoint",
-		},
-		{
-			"subpath",
-			func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL += "/subpath" },
-			"/subpath/plugins/id/endpoint",
-			"/endpoint",
-		},
-	}
-
-	for _, testCase := range testCases {
-		t.Run(testCase.Description, func(t *testing.T) {
-			th.App.UpdateConfig(testCase.ConfigFunc)
-			expectedBody := []byte("body")
-			request := httptest.NewRequest(http.MethodGet, testCase.URL, bytes.NewReader(expectedBody))
-			recorder := httptest.NewRecorder()
-
-			handler := func(context *plugin.Context, w http.ResponseWriter, r *http.Request) {
-				assert.Equal(t, testCase.ExpectedURL, r.URL.Path)
-
-				body, _ := io.ReadAll(r.Body)
-				assert.Equal(t, expectedBody, body)
-			}
-
-			request = mux.SetURLVars(request, map[string]string{"plugin_id": "id"})
-
-			th.App.ch.servePluginRequest(recorder, request, handler)
-		})
-	}
-}
-
-func TestHandlePluginRequest(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PluginSettings.Enable = false
-		*cfg.ServiceSettings.EnableUserAccessTokens = true
-	})
-
-	token, err := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{
-		UserId: th.BasicUser.Id,
-	})
-	require.Nil(t, err)
-
-	var assertions func(*http.Request)
-	router := mux.NewRouter()
-	router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", func(_ http.ResponseWriter, r *http.Request) {
-		th.App.ch.servePluginRequest(nil, r, func(_ *plugin.Context, _ http.ResponseWriter, r *http.Request) {
-			assertions(r)
-		})
-	})
-
-	r := httptest.NewRequest("GET", "/plugins/foo/bar", nil)
-	r.Header.Add("Authorization", "Bearer "+token.Token)
-	assertions = func(r *http.Request) {
-		assert.Equal(t, "/bar", r.URL.Path)
-		assert.Equal(t, th.BasicUser.Id, r.Header.Get("Mattermost-User-Id"))
-	}
-	router.ServeHTTP(nil, r)
-
-	r = httptest.NewRequest("GET", "/plugins/foo/bar?a=b&access_token="+token.Token+"&c=d", nil)
-	assertions = func(r *http.Request) {
-		assert.Equal(t, "/bar", r.URL.Path)
-		assert.Equal(t, "a=b&c=d", r.URL.RawQuery)
-		assert.Equal(t, th.BasicUser.Id, r.Header.Get("Mattermost-User-Id"))
-	}
-	router.ServeHTTP(nil, r)
-
-	r = httptest.NewRequest("GET", "/plugins/foo/bar?a=b&access_token=asdf&c=d", nil)
-	assertions = func(r *http.Request) {
-		assert.Equal(t, "/bar", r.URL.Path)
-		assert.Equal(t, "a=b&c=d", r.URL.RawQuery)
-		assert.Empty(t, r.Header.Get("Mattermost-User-Id"))
-	}
-	router.ServeHTTP(nil, r)
-}
-
 func TestGetPluginStatusesDisabled(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -478,7 +367,13 @@ func TestGetPluginStatuses(t *testing.T) {
 
 func TestPluginSync(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t)
+	path, _ := fileutils.FindDir("tests")
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.PluginSettings.SignaturePublicKeyFiles = []string{
+			filepath.Join(path, "development-private-key.asc"),
+		}
+	})
 	defer th.TearDown()
 
 	testCases := []struct {
@@ -526,8 +421,6 @@ func TestPluginSync(t *testing.T) {
 
 			env := th.App.GetPluginsEnvironment()
 			require.NotNil(t, env)
-
-			path, _ := fileutils.FindDir("tests")
 
 			t.Run("new bundle in the file store", func(t *testing.T) {
 				th.App.UpdateConfig(func(cfg *model.Config) {
@@ -610,15 +503,10 @@ func TestPluginSync(t *testing.T) {
 					*cfg.PluginSettings.RequirePluginSignature = true
 				})
 
-				key, err := os.Open(filepath.Join(path, "development-private-key.asc"))
-				require.NoError(t, err)
-				appErr := th.App.AddPublicKey("pub_key", key)
-				checkNoError(t, appErr)
-
 				signatureFileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz.sig"))
 				require.NoError(t, err)
 				defer signatureFileReader.Close()
-				_, appErr = th.App.WriteFile(signatureFileReader, getSignatureStorePath("testplugin"))
+				_, appErr := th.App.WriteFile(signatureFileReader, getSignatureStorePath("testplugin"))
 				checkNoError(t, appErr)
 
 				appErr = th.App.SyncPlugins()
@@ -832,13 +720,17 @@ func (a pluginStatusById) Less(i, j int) bool { return a[i].PluginId < a[j].Plug
 
 func TestProcessPrepackagedPlugins(t *testing.T) {
 	mainHelper.Parallel(t)
-	// Find the tests folder before we change directories to the temporary workspace.
-	testsPath, _ := fileutils.FindDir("tests")
+	testsPath, found := fileutils.FindDir("tests")
+	require.True(t, found, "failed to find tests directory")
 
 	setup := func(t *testing.T) *TestHelper {
 		t.Helper()
 
-		th := Setup(t)
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.PluginSettings.SignaturePublicKeyFiles = []string{
+				filepath.Join(testsPath, "development-private-key.asc"),
+			}
+		})
 		t.Cleanup(th.TearDown)
 
 		// Make a prepackaged_plugins directory for use with the tests.
@@ -892,7 +784,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		t.Helper()
 
 		require.Equal(t, pluginID, actual.Manifest.Id)
-		require.NotEmpty(t, actual.Signature, "testplugin has no signature")
+		require.NotEmpty(t, actual.SignaturePath, "testplugin has no signature")
 		require.Equal(t, version, actual.Manifest.Version)
 	}
 

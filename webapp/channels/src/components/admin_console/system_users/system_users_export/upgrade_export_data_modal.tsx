@@ -15,7 +15,7 @@ type Props = {
 }
 
 export function UpgradeExportDataModal({onExited}: Props) {
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
 
     const confirm = () => {
         openPricingModal();
@@ -57,6 +57,7 @@ export function UpgradeExportDataModal({onExited}: Props) {
             confirmButtonText={viewPlansButton}
             onConfirm={confirm}
             onExited={onExited}
+            hideConfirm={isAirGapped}
         />
     );
 }

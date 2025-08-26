@@ -49,6 +49,7 @@ export const SettingsTypes = {
     TYPE_FILE_UPLOAD: 'fileupload' as const,
     TYPE_CUSTOM: 'custom' as const,
     TYPE_ROLES: 'roles' as const,
+    TYPE_EXPANDABLE_SETTING: 'expandable_setting' as const,
 };
 
 export const InviteTypes = {
@@ -91,6 +92,8 @@ export const Preferences = {
     CLICK_TO_REPLY: 'click_to_reply',
     CLICK_TO_REPLY_DEFAULT: 'true',
     COLLAPSED_REPLY_THREADS_FALLBACK_DEFAULT: 'off',
+    RENDER_EMOTICONS_AS_EMOJI: 'render_emoticons_as_emoji',
+    RENDER_EMOTICONS_AS_EMOJI_DEFAULT: 'true',
     LINK_PREVIEW_DISPLAY: 'link_previews',
     LINK_PREVIEW_DISPLAY_DEFAULT: 'true',
     COLLAPSE_DISPLAY: 'collapse_previews',
@@ -326,6 +329,9 @@ export const ActionTypes = keyMirror({
 
     SET_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES: null,
     CLEAR_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES: null,
+
+    SET_READOUT: 'SET_READOUT',
+    CLEAR_READOUT: 'CLEAR_READOUT',
 });
 
 export const PostRequestTypes = keyMirror({
@@ -473,6 +479,9 @@ export const ModalIdentifiers = {
     SHARED_CHANNEL_REMOTE_UNINVITE: 'shared_channel_remote_uninvite',
     CONFIRM_RESET_FAILED_ATTEMPTS_MODAL: 'confirm_reset_failed_attempts_modal',
     USER_PROPERTY_FIELD_DELETE: 'user_property_field_delete',
+    ATTRIBUTE_MODAL_LDAP: 'attribute_modal_ldap',
+    ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
+    FLAG_POST: 'flag_post',
 };
 
 export const UserStatuses = {
@@ -509,6 +518,7 @@ export const CloudProducts = {
     PROFESSIONAL: 'cloud-professional',
     ENTERPRISE: 'cloud-enterprise',
     LEGACY: 'cloud-legacy',
+    ADVANCED: 'cloud-advanced',
 };
 
 export const CloudBillingTypes = {
@@ -925,6 +935,7 @@ export const ErrorPageTypes = {
     PERMALINK_NOT_FOUND: 'permalink_not_found',
     TEAM_NOT_FOUND: 'team_not_found',
     CHANNEL_NOT_FOUND: 'channel_not_found',
+    POST_NOT_FOUND: 'post_not_found',
     CLOUD_ARCHIVED: 'cloud_archived',
 };
 
@@ -1148,7 +1159,6 @@ export const DocLinks = {
     DEFAULT_LDAP_GROUP_SYNC: 'https://mattermost.com/pl/default-ldap-group-sync',
     DESKTOP_MANAGED_RESOURCES: 'https://mattermost.com/pl/desktop-managed-resources',
     ELASTICSEARCH: 'https://mattermost.com/pl/setup-elasticsearch',
-    ENABLE_CLIENT_SIDE_CERTIFICATION: 'https://mattermost.com/pl/enable-client-side-certification',
     ENABLE_HARDENED_MODE: 'https://mattermost.com/pl/enable-hardened-mode',
     FORMAT_MESSAGES: 'https://mattermost.com/pl/format-messages',
     FILE_STORAGE: 'https://mattermost.com/pl/configure-file-storage',
@@ -1196,6 +1206,7 @@ export const LicenseLinks = {
     SOFTWARE_SERVICES_LICENSE_AGREEMENT: 'https://mattermost.com/pl/software-and-services-license-agreement',
     SOFTWARE_SERVICES_LICENSE_AGREEMENT_TEXT: 'Software Services and License Agreement',
     UNSUPPORTED: 'https://mattermost.com/pricing/',
+    UNSUPPORTED_UPGRADE_LINK: 'https://docs.mattermost.com/administration-guide/upgrade/enterprise-install-upgrade.html#upgrading-to-enterprise-edition-from-mattermost-team-edition',
 };
 
 export const MattermostLink = 'https://mattermost.com/';
@@ -1311,6 +1322,7 @@ export const PermissionsScope = {
     [Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL]: 'channel_scope',
     [Permissions.MANAGE_PUBLIC_CHANNEL_BANNER]: 'channel_scope',
     [Permissions.MANAGE_PRIVATE_CHANNEL_BANNER]: 'channel_scope',
+    [Permissions.MANAGE_CHANNEL_ACCESS_RULES]: 'channel_scope',
 };
 
 export const DefaultRolePermissions = {
@@ -1392,6 +1404,7 @@ export const DefaultRolePermissions = {
         Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.MANAGE_PUBLIC_CHANNEL_BANNER,
         Permissions.MANAGE_PRIVATE_CHANNEL_BANNER,
+        Permissions.MANAGE_CHANNEL_ACCESS_RULES,
     ],
     team_admin: [
         Permissions.EDIT_OTHERS_POSTS,
@@ -1429,6 +1442,7 @@ export const DefaultRolePermissions = {
         Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.MANAGE_PUBLIC_CHANNEL_BANNER,
         Permissions.MANAGE_PRIVATE_CHANNEL_BANNER,
+        Permissions.MANAGE_CHANNEL_ACCESS_RULES,
     ],
     guests: [
         Permissions.EDIT_POST,
@@ -1558,7 +1572,7 @@ export const Constants = {
     HERE_MENTION_REGEX: /(?:\B|\b_+)@(here)(?!(\.|-|_)*[^\W_])/gi,
     NOTIFY_ALL_MEMBERS: 5,
     ALL_MEMBERS_MENTIONS_REGEX: /(?:\B|\b_+)@(channel|all)(?!(\.|-|_)*[^\W_])/gi,
-    MENTIONS_REGEX: /(?:\B|\b_+)@([a-z0-9.\-_]+)/gi,
+    MENTIONS_REGEX: /(?:\B|\b_+)@([a-z0-9.\-_]+(?::[a-z0-9.\-_]+)?)/gi,
     DEFAULT_CHARACTER_LIMIT: 4000,
     IMAGE_TYPE_GIF: 'gif',
     TEXT_TYPES: ['txt', 'rtf', 'vtt'],
@@ -2096,17 +2110,11 @@ export const Constants = {
     ALLOW_EDIT_POST_NEVER: 'never',
     ALLOW_EDIT_POST_TIME_LIMIT: 'time_limit',
     UNSET_POST_EDIT_TIME_LIMIT: -1,
-    MENTION_CHANNELS: 'mention.channels',
     MENTION_MORE_CHANNELS: 'mention.morechannels',
-    MENTION_UNREAD_CHANNELS: 'mention.unread.channels',
     MENTION_UNREAD: 'mention.unread',
-    MENTION_MEMBERS: 'mention.members',
-    MENTION_MORE_MEMBERS: 'mention.moremembers',
-    MENTION_NONMEMBERS: 'mention.nonmembers',
     MENTION_PUBLIC_CHANNELS: 'mention.public.channels',
     MENTION_PRIVATE_CHANNELS: 'mention.private.channels',
     MENTION_RECENT_CHANNELS: 'mention.recent.channels',
-    MENTION_SPECIAL: 'mention.special',
     MENTION_GROUPS: 'search.group',
     STATUS_INTERVAL: 60000,
     AUTOCOMPLETE_TIMEOUT: 100,

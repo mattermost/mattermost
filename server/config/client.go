@@ -21,7 +21,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["TeammateNameDisplay"] = *c.TeamSettings.TeammateNameDisplay
 	props["LockTeammateNameDisplay"] = strconv.FormatBool(*c.TeamSettings.LockTeammateNameDisplay)
 	props["ExperimentalPrimaryTeam"] = *c.TeamSettings.ExperimentalPrimaryTeam
-	props["ExperimentalViewArchivedChannels"] = strconv.FormatBool(*c.TeamSettings.ExperimentalViewArchivedChannels)
 	props["EnableJoinLeaveMessageByDefault"] = strconv.FormatBool(*c.TeamSettings.EnableJoinLeaveMessageByDefault)
 
 	props["EnableBotAccountCreation"] = strconv.FormatBool(*c.ServiceSettings.EnableBotAccountCreation)
@@ -52,6 +51,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableInlineLatex"] = strconv.FormatBool(*c.ServiceSettings.EnableInlineLatex)
 	props["ExtendSessionLengthWithActivity"] = strconv.FormatBool(*c.ServiceSettings.ExtendSessionLengthWithActivity)
 	props["ManagedResourcePaths"] = *c.ServiceSettings.ManagedResourcePaths
+	props["DeleteAccountLink"] = *c.ServiceSettings.DeleteAccountLink
 
 	// This setting is only temporary, so keep using the old setting name for the mobile and web apps
 	props["ExperimentalEnablePostMetadata"] = "true"
@@ -100,6 +100,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["DisableRefetchingOnBrowserFocus"] = strconv.FormatBool(*c.ExperimentalSettings.DisableRefetchingOnBrowserFocus)
 	props["DisableWakeUpReconnectHandler"] = strconv.FormatBool(*c.ExperimentalSettings.DisableWakeUpReconnectHandler)
 	props["UsersStatusAndProfileFetchingPollIntervalMilliseconds"] = strconv.FormatInt(*c.ExperimentalSettings.UsersStatusAndProfileFetchingPollIntervalMilliseconds, 10)
+	props["ExperimentalChannelCategorySorting"] = strconv.FormatBool(*c.ExperimentalSettings.ExperimentalChannelCategorySorting)
 
 	// Here we set the new option, but we also send the old FeatureFlag property for backwards compatibility on mobile < 2.27
 	props["EnableCrossTeamSearch"] = strconv.FormatBool(*c.ServiceSettings.EnableCrossTeamSearch)
@@ -152,6 +153,10 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["YoutubeReferrerPolicy"] = strconv.FormatBool(*c.ExperimentalSettings.YoutubeReferrerPolicy)
 	props["UniqueEmojiReactionLimitPerPost"] = strconv.FormatInt(int64(*c.ServiceSettings.UniqueEmojiReactionLimitPerPost), 10)
 
+	props["EnableAttributeBasedAccessControl"] = strconv.FormatBool(*c.AccessControlSettings.EnableAttributeBasedAccessControl)
+	props["EnableChannelScopeAccessControl"] = strconv.FormatBool(*c.AccessControlSettings.EnableChannelScopeAccessControl)
+	props["EnableUserManagedAttributes"] = strconv.FormatBool(*c.AccessControlSettings.EnableUserManagedAttributes)
+
 	props["WranglerPermittedWranglerRoles"] = strings.Join(c.WranglerSettings.PermittedWranglerRoles, ",")
 	props["WranglerAllowedEmailDomain"] = strings.Join(c.WranglerSettings.AllowedEmailDomain, ",")
 	props["WranglerMoveThreadMaxCount"] = strconv.FormatInt(*c.WranglerSettings.MoveThreadMaxCount, 10)
@@ -182,11 +187,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["SamlLastNameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.LastNameAttribute != "")
 			props["SamlNicknameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.NicknameAttribute != "")
 			props["SamlPositionAttributeSet"] = strconv.FormatBool(*c.SamlSettings.PositionAttribute != "")
-		}
-
-		if *license.Features.FutureFeatures {
-			props["ExperimentalClientSideCertEnable"] = strconv.FormatBool(*c.ExperimentalSettings.ClientSideCertEnable)
-			props["ExperimentalClientSideCertCheck"] = *c.ExperimentalSettings.ClientSideCertCheck
 		}
 
 		if *license.Features.Cluster {
@@ -236,6 +236,10 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["MobileEnableBiometrics"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableBiometrics)
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
+		}
+
+		if model.MinimumEnterpriseAdvancedLicense(license) {
+			props["ContentFlaggingEnabled"] = strconv.FormatBool(c.FeatureFlags.ContentFlagging && *c.ContentFlaggingSettings.EnableContentFlagging)
 		}
 	}
 
@@ -406,6 +410,11 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 			props["MobileEnableBiometrics"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableBiometrics)
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
+		}
+
+		if model.MinimumEnterpriseAdvancedLicense(license) {
+			props["MobileEnableSecureFilePreview"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableSecureFilePreview)
+			props["MobileAllowPdfLinkNavigation"] = strconv.FormatBool(*c.NativeAppSettings.MobileAllowPdfLinkNavigation)
 		}
 	}
 
