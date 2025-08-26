@@ -1,0 +1,5 @@
+FROM cgr.dev/mattermost.com/go-msft-fips:1.24.5-dev@sha256:d7b2872c129277c01447903b7fde7a186fe211b59613172a7e40a3cc0dc5f126
+
+RUN apk add curl ca-certificates mailcap unrtf wv poppler-utils tzdata
+
+RUN git config --global --add safe.directory /mattermost

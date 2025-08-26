@@ -9,7 +9,14 @@ export default defineConfig({
     downloadsFolder: 'tests/downloads',
     fixturesFolder: 'tests/fixtures',
     numTestsKeptInMemory: 0,
-    retries: 2,
+    retries: {
+
+        // 2 retries for cypress:run
+        runMode: 2,
+
+        // No retries for cypress:open
+        openMode: 0,
+    },
     screenshotsFolder: 'tests/screenshots',
     taskTimeout: 60000,
     video: true,

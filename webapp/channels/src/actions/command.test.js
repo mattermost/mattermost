@@ -30,11 +30,6 @@ const initialState = {
                 },
             },
         },
-        general: {
-            config: {
-                ExperimentalViewArchivedChannels: 'false',
-            },
-        },
         posts: {
             posts: {
                 root_id: {id: 'root_id', channel_id: '123'},
@@ -123,6 +118,9 @@ const initialState = {
                 forms: {},
             },
             pluginEnabled: true,
+        },
+        general: {
+            config: {},
         },
     },
     views: {

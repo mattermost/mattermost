@@ -15,16 +15,15 @@ import (
 )
 
 const (
-	LogRotateSizeMB         = 100
-	LogCompress             = true
-	LogRotateMaxAge         = 0
-	LogRotateMaxBackups     = 0
-	LogFilename             = "mattermost.log"
-	LogNotificationFilename = "notifications.log"
-	LogMinLevelLen          = 5
-	LogMinMsgLen            = 45
-	LogDelim                = " "
-	LogEnableCaller         = true
+	LogRotateSizeMB     = 100
+	LogCompress         = true
+	LogRotateMaxAge     = 0
+	LogRotateMaxBackups = 0
+	LogFilename         = "mattermost.log"
+	LogMinLevelLen      = 5
+	LogMinMsgLen        = 45
+	LogDelim            = " "
+	LogEnableCaller     = true
 )
 
 type fileLocationFunc func(string) string
@@ -102,29 +101,6 @@ func GetLogFileLocation(fileLocation string) string {
 	}
 
 	return filepath.Join(fileLocation, LogFilename)
-}
-
-func GetNotificationsLogFileLocation(fileLocation string) string {
-	if fileLocation == "" {
-		fileLocation, _ = fileutils.FindDir("logs")
-	}
-
-	return filepath.Join(fileLocation, LogNotificationFilename)
-}
-
-func GetLogSettingsFromNotificationsLogSettings(notificationLogSettings *model.NotificationLogSettings) *model.LogSettings {
-	settings := &model.LogSettings{}
-	settings.SetDefaults()
-	settings.ConsoleJson = notificationLogSettings.ConsoleJson
-	settings.ConsoleLevel = notificationLogSettings.ConsoleLevel
-	settings.EnableConsole = notificationLogSettings.EnableConsole
-	settings.EnableFile = notificationLogSettings.EnableFile
-	settings.FileJson = notificationLogSettings.FileJson
-	settings.FileLevel = notificationLogSettings.FileLevel
-	settings.FileLocation = notificationLogSettings.FileLocation
-	settings.AdvancedLoggingJSON = notificationLogSettings.AdvancedLoggingJSON
-	settings.EnableColor = notificationLogSettings.EnableColor
-	return settings
 }
 
 func makeSimpleConsoleTarget(level string, outputJSON bool, color bool) (mlog.TargetCfg, error) {
