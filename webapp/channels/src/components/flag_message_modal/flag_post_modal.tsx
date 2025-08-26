@@ -22,6 +22,9 @@ import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbo
 import type {GlobalState} from 'types/store';
 
 import './flag_post_modal.scss';
+import {Client4} from 'mattermost-redux/client';
+import { ServerError } from "@mattermost/types/errors";
+import { isSubRowSelected } from "@tanstack/react-table";
 
 const noop = () => {};
 
@@ -47,6 +50,8 @@ export default function FlagPostModal({postId, onExited}: Props) {
     const [reason, setReason] = React.useState<string>('');
     const [commentError, setCommentError] = React.useState<string>('');
     const [reasonError, setReasonError] = React.useState<string>('');
+    const [requestError, setRequestError] = React.useState<string>('');
+    const [submitting, setSubmitting] = React.useState<boolean>(false);
     const [showCommentPreview, setShowCommentPreview] = React.useState<boolean>(false);
 
     const label = formatMessage({id: 'flag_message_modal.heading', defaultMessage: 'Flag message'});
@@ -138,16 +143,24 @@ export default function FlagPostModal({postId, onExited}: Props) {
         return hasError;
     }, [comment, contentFlaggingSettings?.reporter_comment_required, formatMessage, reason]);
 
-    const handleConfirm = useCallback(() => {
+    const handleConfirm = useCallback(async () => {
         const hasError = validateForm();
         if (hasError) {
             return;
         }
 
-        // TODO: Implement the flagging action here in a follow up PR
+        try {
+            setSubmitting(true);
+            const response = await Client4.flagPost(post.id, reason, comment);
+            console.log({response});
+            onExited();
+        } catch (error) {
+            console.error({error});
+            setRequestError((error as ServerError).message);
+        }
 
-        onExited();
-    }, [validateForm, onExited]);
+        setSubmitting(false);
+    }, [validateForm, post.id, reason, comment, onExited]);
 
     return (
         <GenericModal
@@ -163,6 +176,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
             confirmButtonText={submitButtonText}
             onExited={onExited}
             autoCloseOnConfirmButton={false}
+            isConfirmDisabled={submitting}
         >
             <div className='FlagPostModal FlagPostModal__body'>
                 <div className='FlagPostModal__section FlagPostModal__post_preview'>
@@ -233,6 +247,12 @@ export default function FlagPostModal({postId, onExited}: Props) {
                         maxLength={1000}
                     />
                 </div>
+                {requestError &&
+                    <div className='FlagPostModal__request-error'>
+                        <i className='icon icon-alert-outline'/>
+                        <span>{requestError}</span>
+                    </div>
+                }
             </div>
         </GenericModal>
     );

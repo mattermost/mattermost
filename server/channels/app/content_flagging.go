@@ -4,7 +4,6 @@
 package app
 
 import (
-	"encoding/json"
 	"fmt"
 	"maps"
 	"net/http"
@@ -46,6 +45,7 @@ func ContentFlaggingEnabledForTeam(config *model.Config, teamId string) bool {
 	return hasAdditionalReviewers
 }
 
+<<<<<<< Updated upstream
 func (a *App) FlagPost(c request.CTX, post *model.Post, teamId, reportingUserId string, flagData model.FlagContentRequest) *model.AppError {
 	commentRequired := a.Config().ContentFlaggingSettings.AdditionalSettings.ReporterCommentRequired
 	validReasons := a.Config().ContentFlaggingSettings.AdditionalSettings.Reasons
@@ -136,6 +136,93 @@ func (a *App) FlagPost(c request.CTX, post *model.Post, teamId, reportingUserId 
 	}()
 
 	return a.sendContentFlaggingConfirmationMessage(c, reportingUserId, post.UserId, post.ChannelId)
+=======
+func (a *App) FlagPost(c request.CTX, postId, teamId, reportingUserId string, flagData model.FlagContentRequest) *model.AppError {
+	return model.NewAppError("FlagPost", "app.content_flagging.create_property_values.app_error", nil, "", http.StatusInternalServerError)
+
+	//commentRequired := a.Config().ContentFlaggingSettings.AdditionalSettings.ReporterCommentRequired
+	//validReasons := a.Config().ContentFlaggingSettings.AdditionalSettings.Reasons
+	//if appErr := flagData.IsValid(*commentRequired, *validReasons); appErr != nil {
+	//	return appErr
+	//}
+	//
+	//groupId, appErr := a.contentFlaggingGroupId()
+	//if appErr != nil {
+	//	return appErr
+	//}
+	//
+	//appErr = a.canFlagPost(groupId, postId)
+	//if appErr != nil {
+	//	return appErr
+	//}
+	//
+	//mappedFields, appErr := a.getContentFlaggingMappedFields(groupId)
+	//if appErr != nil {
+	//	return appErr
+	//}
+	//
+	//propertyValues := []*model.PropertyValue{
+	//	{
+	//		TargetID:   postId,
+	//		TargetType: model.PropertyValueTargetTypePost,
+	//		GroupID:    groupId,
+	//		FieldID:    mappedFields[contentFlaggingPropertyNameStatus].ID,
+	//		Value:      json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusPending)),
+	//	},
+	//	{
+	//		TargetID:   postId,
+	//		TargetType: model.PropertyValueTargetTypePost,
+	//		GroupID:    groupId,
+	//		FieldID:    mappedFields[contentFlaggingPropertyNameReportingUserID].ID,
+	//		Value:      json.RawMessage(fmt.Sprintf(`"%s"`, reportingUserId)),
+	//	},
+	//	{
+	//		TargetID:   postId,
+	//		TargetType: model.PropertyValueTargetTypePost,
+	//		GroupID:    groupId,
+	//		FieldID:    mappedFields[contentFlaggingPropertyNameReportingReason].ID,
+	//		Value:      json.RawMessage(fmt.Sprintf(`"%s"`, flagData.Reason)),
+	//	},
+	//	{
+	//		TargetID:   postId,
+	//		TargetType: model.PropertyValueTargetTypePost,
+	//		GroupID:    groupId,
+	//		FieldID:    mappedFields[contentFlaggingPropertyNameReportingComment].ID,
+	//		Value:      json.RawMessage(fmt.Sprintf(`"%s"`, flagData.Comment)),
+	//	},
+	//	{
+	//		TargetID:   postId,
+	//		TargetType: model.PropertyValueTargetTypePost,
+	//		GroupID:    groupId,
+	//		FieldID:    mappedFields[contentFlaggingPropertyNameReportingTime].ID,
+	//		Value:      json.RawMessage(fmt.Sprintf("%d", model.GetMillis())),
+	//	},
+	//}
+	//
+	//_, err := a.Srv().propertyService.CreatePropertyValues(propertyValues)
+	//if err != nil {
+	//	return model.NewAppError("FlagPost", "app.content_flagging.create_property_values.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
+	//}
+	//
+	//contentReviewBot, appErr := a.getContentReviewBot(c)
+	//if appErr != nil {
+	//	return appErr
+	//}
+	//
+	//if *a.Config().ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent {
+	//	_, appErr = a.DeletePost(c, postId, contentReviewBot.UserId)
+	//	if appErr != nil {
+	//		return model.NewAppError("FlagPost", "app.content_flagging.delete_post.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
+	//	}
+	//}
+	//
+	//appErr = a.createContentReviewPost(c, teamId, postId)
+	//if appErr != nil {
+	//	return appErr
+	//}
+	//
+	//return nil
+>>>>>>> Stashed changes
 }
 
 func (a *App) contentFlaggingGroupId() (string, *model.AppError) {

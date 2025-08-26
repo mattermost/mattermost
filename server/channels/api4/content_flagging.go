@@ -91,6 +91,12 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var flagRequest model.FlagContentRequest
+	if err := json.NewDecoder(r.Body).Decode(&flagRequest); err != nil {
+		c.SetInvalidParamWithErr("flagPost", err)
+		return
+	}
+
 	postId := c.Params.PostId
 	userId := c.AppContext.Session().UserId
 
@@ -112,6 +118,7 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+<<<<<<< Updated upstream
 	var flagRequest model.FlagContentRequest
 	if err := json.NewDecoder(r.Body).Decode(&flagRequest); err != nil {
 		c.SetInvalidParamWithErr("flagPost", err)
@@ -119,6 +126,9 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	appErr = c.App.FlagPost(c.AppContext, post, channel.TeamId, userId, flagRequest)
+=======
+	appErr = c.App.FlagPost(c.AppContext, post.Id, channel.TeamId, userId, flagRequest)
+>>>>>>> Stashed changes
 	if appErr != nil {
 		c.Err = appErr
 		return
