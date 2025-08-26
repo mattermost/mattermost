@@ -98,3 +98,76 @@ func (s *ElasticsearchInterfaceTestSuite) SetupTest() {
 
 	s.Nil(s.CommonTestSuite.ESImpl.PurgeIndexes(s.th.Context))
 }
+
+func (s *ElasticsearchInterfaceTestSuite) TestSyncBulkIndexChannels() {
+	s.Run("Should index multiple channels successfully", func() {
+		// Create test channels
+		channel1 := &model.Channel{
+			TeamId:      s.th.BasicTeam.Id,
+			Type:        model.ChannelTypeOpen,
+			Name:        "test-channel-1",
+			DisplayName: "Test Channel 1",
+		}
+		channel1.PreSave()
+
+		channel2 := &model.Channel{
+			TeamId:      s.th.BasicTeam.Id,
+			Type:        model.ChannelTypePrivate,
+			Name:        "test-channel-2",
+			DisplayName: "Test Channel 2",
+		}
+		channel2.PreSave()
+
+		channels := []*model.Channel{channel1, channel2}
+
+		// Mock getUserIDsForChannel function
+		getUserIDsForChannel := func(channel *model.Channel) ([]string, error) {
+			return []string{s.th.BasicUser.Id, s.th.BasicUser2.Id}, nil
+		}
+
+		teamMemberIDs := []string{s.th.BasicUser.Id, s.th.BasicUser2.Id}
+
+		// Test the bulk indexing
+		appErr := s.CommonTestSuite.ESImpl.SyncBulkIndexChannels(s.th.Context, channels, getUserIDsForChannel, teamMemberIDs)
+		s.Require().Nil(appErr)
+
+		// Refresh the index to ensure data is searchable
+		s.Require().NoError(s.CommonTestSuite.RefreshIndexFn())
+
+		// Verify both channels are indexed
+		found, _, err := s.CommonTestSuite.GetDocumentFn("channels", channel1.Id)
+		s.Require().NoError(err)
+		s.Require().True(found)
+
+		found, _, err = s.CommonTestSuite.GetDocumentFn("channels", channel2.Id)
+		s.Require().NoError(err)
+		s.Require().True(found)
+	})
+
+	s.Run("Should handle empty channels list", func() {
+		getUserIDsForChannel := func(channel *model.Channel) ([]string, error) {
+			return []string{}, nil
+		}
+
+		appErr := s.CommonTestSuite.ESImpl.SyncBulkIndexChannels(s.th.Context, []*model.Channel{}, getUserIDsForChannel, []string{})
+		s.Require().Nil(appErr)
+	})
+
+	s.Run("Should handle getUserIDsForChannel error", func() {
+		channel := &model.Channel{
+			TeamId:      s.th.BasicTeam.Id,
+			Type:        model.ChannelTypeOpen,
+			Name:        "test-channel-error",
+			DisplayName: "Test Channel Error",
+		}
+		channel.PreSave()
+
+		getUserIDsForChannel := func(channel *model.Channel) ([]string, error) {
+			return nil, model.NewAppError("TestError", "test.error", nil, "", 500)
+		}
+
+		appErr := s.CommonTestSuite.ESImpl.SyncBulkIndexChannels(s.th.Context, []*model.Channel{channel}, getUserIDsForChannel, []string{})
+		s.Require().NotNil(appErr)
+		s.Require().Contains(appErr.Error(), "test.error")
+	})
+}

@@ -1256,14 +1256,6 @@
     "translation": "Колькасць атрыманых ID паведамленняў перавышае максімальны памер {{.MaxLength}}"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Не ўдаецца атрымаць карыстальнікаў для архіўнага канала"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Не ўдаецца атрымаць паведамленні для архіўнага канала"
-  },
-  {
     "id": "app.session.extend_session_expiry.app_error",
     "translation": "Немагчыма павялічыць працягласць сеансу"
   },

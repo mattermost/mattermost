@@ -8044,14 +8044,6 @@
     "translation": "Список администраторов пуст."
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Не удается получить пользователей для архивного канала"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Не удается получить сообщения для архивного канала"
-  },
-  {
     "id": "api.user.upload_profile_user.check_image_limits.app_error",
     "translation": "Ошибка проверки ограничений изображения. Разрешение слишком высокое."
   },
@@ -9858,10 +9850,6 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
     "translation": "Не удалось обновить порядок сортировки закладок канала."
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Невозможно получить закладки для заархивированного канала"
   },
   {
     "id": "app.delete_scheduled_post.delete_permission.error",
