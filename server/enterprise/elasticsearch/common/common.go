@@ -34,7 +34,16 @@ const (
 	// At the moment, this number is hardcoded. If needed, we can expose
 	// this to the config.
 	BulkFlushInterval = 5 * time.Second
+
+	// Size of the largest request to be done, in bytes
+	BulkFlushBytes = 10 * 1024 * 1024 // 10 MiB
 )
+
+type BulkSettings struct {
+	FlushBytes    int
+	FlushInterval time.Duration
+	FlushNumReqs  int
+}
 
 var (
 	urlRe          = regexp.MustCompile(URLRegexpRE)
