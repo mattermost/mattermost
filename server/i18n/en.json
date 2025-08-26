@@ -10810,6 +10810,6 @@
   },
   {
     "id": "app.content_flagging.flag_post_confirmation.message",
-    "translation": "The message from @{{.user}} has been flagged for review. You will be notified once it is reviewed by a Content Reviewer. "
+    "translation": "The message from @{{.username}} has been flagged for review. You will be notified once it is reviewed by a Content Reviewer. "
   }
 ]

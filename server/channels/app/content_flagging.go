@@ -45,7 +45,7 @@ func ContentFlaggingEnabledForTeam(config *model.Config, teamId string) bool {
 	return hasAdditionalReviewers
 }
 
-func (a *App) FlagPost(c request.CTX, postId, teamId, reportingUserId string, flagData model.FlagContentRequest) *model.AppError {
+func (a *App) FlagPost(c request.CTX, post *model.Post, teamId, reportingUserId string, flagData model.FlagContentRequest) *model.AppError {
 	commentRequired := a.Config().ContentFlaggingSettings.AdditionalSettings.ReporterCommentRequired
 	validReasons := a.Config().ContentFlaggingSettings.AdditionalSettings.Reasons
 	if appErr := flagData.IsValid(*commentRequired, *validReasons); appErr != nil {
@@ -57,7 +57,7 @@ func (a *App) FlagPost(c request.CTX, postId, teamId, reportingUserId string, fl
 		return appErr
 	}
 
-	appErr = a.canFlagPost(groupId, postId)
+	appErr = a.canFlagPost(groupId, post.Id)
 	if appErr != nil {
 		return appErr
 	}
@@ -69,35 +69,35 @@ func (a *App) FlagPost(c request.CTX, postId, teamId, reportingUserId string, fl
 
 	propertyValues := []*model.PropertyValue{
 		{
-			TargetID:   postId,
+			TargetID:   post.Id,
 			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
 			FieldID:    mappedFields[contentFlaggingPropertyNameStatus].ID,
 			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusPending)),
 		},
 		{
-			TargetID:   postId,
+			TargetID:   post.Id,
 			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
 			FieldID:    mappedFields[contentFlaggingPropertyNameReportingUserID].ID,
 			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, reportingUserId)),
 		},
 		{
-			TargetID:   postId,
+			TargetID:   post.Id,
 			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
 			FieldID:    mappedFields[contentFlaggingPropertyNameReportingReason].ID,
 			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, flagData.Reason)),
 		},
 		{
-			TargetID:   postId,
+			TargetID:   post.Id,
 			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
 			FieldID:    mappedFields[contentFlaggingPropertyNameReportingComment].ID,
 			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, flagData.Comment)),
 		},
 		{
-			TargetID:   postId,
+			TargetID:   post.Id,
 			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
 			FieldID:    mappedFields[contentFlaggingPropertyNameReportingTime].ID,
@@ -116,18 +116,20 @@ func (a *App) FlagPost(c request.CTX, postId, teamId, reportingUserId string, fl
 	}
 
 	if *a.Config().ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent {
-		_, appErr = a.DeletePost(c, postId, contentReviewBot.UserId)
+		_, appErr = a.DeletePost(c, post.Id, contentReviewBot.UserId)
 		if appErr != nil {
 			return model.NewAppError("FlagPost", "app.content_flagging.delete_post.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
 		}
 	}
 
-	appErr = a.createContentReviewPost(c, teamId, postId)
-	if appErr != nil {
-		return appErr
-	}
+	go func() {
+		appErr = a.createContentReviewPost(c, teamId, post.Id)
+		if appErr != nil {
+			c.Logger().Error("Failed to create content review post", mlog.Err(appErr), mlog.String("team_id", teamId), mlog.String("post_id", post.Id))
+		}
+	}()
 
-	return nil
+	return a.sendContentFlaggingConfirmationMessage(c, reportingUserId, post.UserId, post.ChannelId)
 }
 
 func (a *App) contentFlaggingGroupId() (string, *model.AppError) {
@@ -322,15 +324,18 @@ func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
 	return reviewerUserIDs, nil
 }
 
-func (a *App) sendContentFlaggingConfirmationMessage(c request.CTX, userID, channelID string) *model.AppError {
-	user, appErr := a.GetUser(userID)
+func (a *App) sendContentFlaggingConfirmationMessage(c request.CTX, flaggingUserId, flaggedPostAuthorId, channelID string) *model.AppError {
+	flaggedPostAuthor, appErr := a.GetUser(flaggedPostAuthorId)
 	if appErr != nil {
 		return appErr
 	}
 
-	T := i18n.GetUserTranslations(user.Locale)
-
+	T := i18n.GetUserTranslations(flaggedPostAuthor.Locale)
 	post := &model.Post{
-		Message:
+		Message:   T("app.content_flagging.flag_post_confirmation.message", map[string]interface{}{"username": flaggedPostAuthor.Username}),
+		ChannelId: channelID,
 	}
+
+	a.SendEphemeralPost(c, flaggingUserId, post)
+	return nil
 }

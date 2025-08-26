@@ -118,7 +118,7 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appErr = c.App.FlagPost(c.AppContext, post.Id, channel.TeamId, userId, flagRequest)
+	appErr = c.App.FlagPost(c.AppContext, post, channel.TeamId, userId, flagRequest)
 	if appErr != nil {
 		c.Err = appErr
 		return
