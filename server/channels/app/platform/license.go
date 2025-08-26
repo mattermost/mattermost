@@ -49,10 +49,6 @@ func (ps *PlatformService) License() *model.License {
 func (ps *PlatformService) LoadLicense() {
 	c := request.EmptyContext(ps.logger)
 
-	if model.BuildEnterpriseReady != "true" {
-		return
-	}
-
 	// ENV var overrides all other sources of license.
 	licenseStr := os.Getenv(LicenseEnv)
 	if licenseStr != "" {
@@ -106,7 +102,7 @@ func (ps *PlatformService) LoadLicense() {
 
 	record, nErr := ps.Store.License().Get(sqlstore.RequestContextWithMaster(c), licenseId)
 	if nErr != nil {
-		if ps.Config().FeatureFlags.EnableMattermostEntry {
+		if ps.Config().FeatureFlags.EnableMattermostEntry && model.BuildEnterpriseReady == "true" {
 			ps.logger.Info("Mattermost Entry is enabled. Unlocking enterprise features.")
 			ps.SetLicense(ps.LicenseManager().NewMattermostEntryLicense(ps.telemetryId))
 		} else {
