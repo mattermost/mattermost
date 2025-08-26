@@ -100,6 +100,9 @@ export const generateMapValueFromRawValue = (rawValue: string, usersByUsername: 
 
     for (const mapping of mentionMappings) {
         const user = usersByUsername[mapping.username];
+        if (!user) {
+            continue;
+        }
         const displayName = displayUsername(user, teammateNameDisplay, false);
         result = replaceFirstUnprocessed(result, mapping.fullMatch, `@${mapping.username}<x-name>@${displayName}</x-name>`, replacedPositions);
     }

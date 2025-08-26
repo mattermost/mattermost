@@ -506,6 +506,28 @@ describe('generateMapValueFromRawValue', () => {
         const result = generateMapValueFromRawValue(rawValue, users);
         expect(result).toBe('Hello world, no mentions here');
     });
+
+    it('should leave unknown users unchanged', () => {
+        const rawValue = 'Hello @unknown_user';
+        const users = {
+            john_doe: {id: '1', username: 'john_doe'} as UserProfile,
+        };
+
+        const result = generateMapValueFromRawValue(rawValue, users);
+        expect(result).toBe('Hello @unknown_user');
+    });
+
+    it('should handle mixed existing and non-existing users', () => {
+        mockDisplayUsername.mockReturnValue('John Doe');
+
+        const rawValue = 'Hello @john_doe and @unknown_user';
+        const users = {
+            john_doe: {id: '1', username: 'john_doe'} as UserProfile,
+        };
+
+        const result = generateMapValueFromRawValue(rawValue, users);
+        expect(result).toBe('Hello @john_doe<x-name>@John Doe</x-name> and @unknown_user');
+    });
 });
 
 describe('generateRawValueFromMapValue', () => {
