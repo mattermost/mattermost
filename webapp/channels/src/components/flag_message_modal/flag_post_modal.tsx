@@ -25,6 +25,8 @@ import './flag_post_modal.scss';
 import {Client4} from 'mattermost-redux/client';
 import { ServerError } from "@mattermost/types/errors";
 import { isSubRowSelected } from "@tanstack/react-table";
+import {request} from "@giphy/js-fetch-api";
+import {typeOf} from "react-is";
 
 const noop = () => {};
 
@@ -151,15 +153,15 @@ export default function FlagPostModal({postId, onExited}: Props) {
 
         try {
             setSubmitting(true);
-            const response = await Client4.flagPost(post.id, reason, comment);
-            console.log({response});
+            await Client4.flagPost(post.id, reason, comment);
+            setSubmitting(false);
             onExited();
         } catch (error) {
-            console.error({error});
+            // eslint-disable-next-line no-console
+            console.error(error);
             setRequestError((error as ServerError).message);
+            setSubmitting(false);
         }
-
-        setSubmitting(false);
     }, [validateForm, post.id, reason, comment, onExited]);
 
     return (
