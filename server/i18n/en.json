@@ -5143,6 +5143,10 @@
     "translation": "Unable to delete Custom Profile Attribute field"
   },
   {
+    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
+    "translation": "Cannot update value for an admin-managed Custom Profile Attribute field"
+  },
+  {
     "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
     "translation": "Cannot update value for a synced Custom Profile Attribute field"
   },
@@ -7911,6 +7915,14 @@
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
     "translation": "Setting up {{.Backend}} Client Failed"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "Failed to create Elasticsearch bulk processor"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+    "translation": "Failed to create Elasticsearch sync bulk processor"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",

@@ -6071,6 +6071,7 @@
   "user.settings.general.emptyPassword": "Please enter your current password.",
   "user.settings.general.emptyPosition": "Click 'Edit' to add your job title / position",
   "user.settings.general.field_handled_externally": "This field is handled through your login provider. If you want to change it, you need to do so through your login provider.",
+  "user.settings.general.field_managed_by_admin": "This field can only be changed by an administrator.",
   "user.settings.general.firstName": "First Name",
   "user.settings.general.fullName": "Full Name",
   "user.settings.general.imageTooLarge": "Unable to upload profile image. File is too large.",
