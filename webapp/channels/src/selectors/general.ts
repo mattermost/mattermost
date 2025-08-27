@@ -34,5 +34,12 @@ export function isDevModeEnabled(state: GlobalState) {
 // FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this function when feature is GA
 export function isChannelAdminManageABACRulesEnabled(state: GlobalState): boolean {
     const config = getConfig(state);
-    return config?.FeatureFlagChannelAdminManageABACRules === 'true';
+
+    // Check both the feature flag and the EnableChannelScopeAccessControl setting
+    // The feature flag will be removed when the feature is GA
+    const featureFlagEnabled = config?.FeatureFlagChannelAdminManageABACRules === 'true';
+    const channelScopeEnabled = config?.EnableChannelScopeAccessControl === 'true';
+
+    // Return true if either the feature flag is enabled OR the channel scope access control is enabled
+    return featureFlagEnabled || channelScopeEnabled;
 }
