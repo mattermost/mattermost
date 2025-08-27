@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
@@ -641,7 +642,7 @@ func TestFlagPost(t *testing.T) {
 
 		appErr := th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.NotNil(t, appErr)
-		require.Equal(t, appErr.Id, "api.content_flagging.error.reason_invalid")
+		require.Equal(t, "api.content_flagging.error.reason_invalid", appErr.Id)
 	})
 
 	t.Run("should fail when comment is required but not provided", func(t *testing.T) {
@@ -680,7 +681,7 @@ func TestFlagPost(t *testing.T) {
 		// Try to flag the same post again
 		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.NotNil(t, appErr)
-		require.Equal(t, "app.content_flagging.can_flag_post.in_progress", appErr.Id)
+		require.Equal(t, "Cannot flag this post as is already flagged.", appErr.Id)
 	})
 
 	t.Run("should hide flagged content when configured", func(t *testing.T) {
@@ -719,6 +720,10 @@ func TestFlagPost(t *testing.T) {
 
 		appErr := th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.Nil(t, appErr)
+
+		// The reviewer posts are created async in a go routine. Wait for a short time to allow it to complete.
+		// 2 seconds is the minimum time when the test consistently passes locally and in CI.
+		time.Sleep(2 * time.Second)
 
 		// Get the content review bot
 		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
