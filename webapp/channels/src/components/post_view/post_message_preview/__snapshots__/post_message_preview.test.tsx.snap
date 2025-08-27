@@ -20,11 +20,22 @@ exports[`PostMessagePreview direct and group messages should render preview for 
           <span
             className="profile-icon"
           >
-            <Memo(Avatar)
-              className="avatar-post-preview"
-              size="sm"
-              url="/api/v4/users/user_1/image?_=0"
-              username="username1"
+            <PreviewPostAvatar
+              enablePostIconOverride={false}
+              hasImageProxy={false}
+              post={
+                Object {
+                  "id": "post_id",
+                  "message": "post message",
+                  "metadata": Object {},
+                }
+              }
+              user={
+                Object {
+                  "id": "user_1",
+                  "username": "username1",
+                }
+              }
             />
           </span>
         </div>
@@ -106,11 +117,22 @@ exports[`PostMessagePreview direct and group messages should render preview for 
           <span
             className="profile-icon"
           >
-            <Memo(Avatar)
-              className="avatar-post-preview"
-              size="sm"
-              url="/api/v4/users/user_1/image?_=0"
-              username="username1"
+            <PreviewPostAvatar
+              enablePostIconOverride={false}
+              hasImageProxy={false}
+              post={
+                Object {
+                  "id": "post_id",
+                  "message": "post message",
+                  "metadata": Object {},
+                }
+              }
+              user={
+                Object {
+                  "id": "user_1",
+                  "username": "username1",
+                }
+              }
             />
           </span>
         </div>
@@ -192,11 +214,26 @@ exports[`PostMessagePreview nested previews should render file preview 1`] = `
           <span
             className="profile-icon"
           >
-            <Memo(Avatar)
-              className="avatar-post-preview"
-              size="sm"
-              url="/api/v4/users/user_1/image?_=0"
-              username="username1"
+            <PreviewPostAvatar
+              enablePostIconOverride={false}
+              hasImageProxy={false}
+              post={
+                Object {
+                  "file_ids": Array [
+                    "file_1",
+                    "file_2",
+                  ],
+                  "id": "post_id",
+                  "message": "post message",
+                  "metadata": Object {},
+                }
+              }
+              user={
+                Object {
+                  "id": "user_1",
+                  "username": "username1",
+                }
+              }
             />
           </span>
         </div>
@@ -298,11 +335,29 @@ exports[`PostMessagePreview nested previews should render opengraph preview 1`] 
           <span
             className="profile-icon"
           >
-            <Memo(Avatar)
-              className="avatar-post-preview"
-              size="sm"
-              url="/api/v4/users/user_1/image?_=0"
-              username="username1"
+            <PreviewPostAvatar
+              enablePostIconOverride={false}
+              hasImageProxy={false}
+              post={
+                Object {
+                  "id": "post_id",
+                  "message": "post message",
+                  "metadata": Object {
+                    "embeds": Array [
+                      Object {
+                        "type": "opengraph",
+                        "url": "https://example.com",
+                      },
+                    ],
+                  },
+                }
+              }
+              user={
+                Object {
+                  "id": "user_1",
+                  "username": "username1",
+                }
+              }
             />
           </span>
         </div>
@@ -412,11 +467,27 @@ exports[`PostMessagePreview should not render bot icon 1`] = `
           <span
             className="profile-icon"
           >
-            <Memo(Avatar)
-              className="avatar-post-preview"
-              size="sm"
-              url="/api/v4/users/user_1/image?_=0"
-              username="username1"
+            <PreviewPostAvatar
+              enablePostIconOverride={false}
+              hasImageProxy={false}
+              post={
+                Object {
+                  "id": "post_id",
+                  "message": "post message",
+                  "metadata": Object {},
+                  "props": Object {
+                    "from_webhook": "false",
+                    "override_icon_url": "https://fakeicon.com/image.jpg",
+                    "use_user_icon": "false",
+                  },
+                }
+              }
+              user={
+                Object {
+                  "id": "user_1",
+                  "username": "username1",
+                }
+              }
             />
           </span>
         </div>
@@ -503,11 +574,27 @@ exports[`PostMessagePreview should render bot icon 1`] = `
           <span
             className="profile-icon"
           >
-            <Memo(Avatar)
-              className="avatar-post-preview"
-              size="sm"
-              url="https://fakeicon.com/image.jpg"
-              username="username1"
+            <PreviewPostAvatar
+              enablePostIconOverride={true}
+              hasImageProxy={false}
+              post={
+                Object {
+                  "id": "post_id",
+                  "message": "post message",
+                  "metadata": Object {},
+                  "props": Object {
+                    "from_webhook": "true",
+                    "override_icon_url": "https://fakeicon.com/image.jpg",
+                    "use_user_icon": false,
+                  },
+                }
+              }
+              user={
+                Object {
+                  "id": "user_1",
+                  "username": "username1",
+                }
+              }
             />
           </span>
         </div>
@@ -594,11 +681,22 @@ exports[`PostMessagePreview should render correctly 1`] = `
           <span
             className="profile-icon"
           >
-            <Memo(Avatar)
-              className="avatar-post-preview"
-              size="sm"
-              url="/api/v4/users/user_1/image?_=0"
-              username="username1"
+            <PreviewPostAvatar
+              enablePostIconOverride={false}
+              hasImageProxy={false}
+              post={
+                Object {
+                  "id": "post_id",
+                  "message": "post message",
+                  "metadata": Object {},
+                }
+              }
+              user={
+                Object {
+                  "id": "user_1",
+                  "username": "username1",
+                }
+              }
             />
           </span>
         </div>
@@ -682,11 +780,22 @@ exports[`PostMessagePreview show render without preview when preview posts becom
           <span
             className="profile-icon"
           >
-            <Memo(Avatar)
-              className="avatar-post-preview"
-              size="sm"
-              url="/api/v4/users/user_1/image?_=0"
-              username="username1"
+            <PreviewPostAvatar
+              enablePostIconOverride={false}
+              hasImageProxy={false}
+              post={
+                Object {
+                  "id": "post_id",
+                  "message": "post message",
+                  "metadata": Object {},
+                }
+              }
+              user={
+                Object {
+                  "id": "user_1",
+                  "username": "username1",
+                }
+              }
             />
           </span>
         </div>
