@@ -52,7 +52,6 @@ func (ps *PropertyService) UpdatePropertyFields(groupID string, fields []*model.
 }
 
 func (ps *PropertyService) DeletePropertyField(groupID, id string) error {
-	fmt.Println(fmt.Sprintf("####################################### DeletePropertyField: groupID: %s, id: %s", groupID, id))
 	// if groupID is not empty, we need to check first that the field belongs to the group
 	if groupID != "" {
 		if _, err := ps.GetPropertyField(groupID, id); err != nil {
