@@ -554,6 +554,7 @@ export enum LicenseSkus {
     Professional = 'professional',
     Enterprise = 'enterprise',
     EnterpriseAdvanced = 'advanced',
+    Entry = 'entry',
 }
 
 export function getLicenseTier(licenseSku: string): number {
@@ -562,6 +563,7 @@ export function getLicenseTier(licenseSku: string): number {
         return 10;
     case LicenseSkus.Enterprise:
         return 20;
+    case LicenseSkus.Entry:
     case LicenseSkus.EnterpriseAdvanced:
         return 30;
     default:
@@ -820,6 +822,7 @@ export const PostTypes = {
     WRANGLER: 'system_wrangler',
     CUSTOM_CALLS: 'custom_calls',
     CUSTOM_CALLS_RECORDING: 'custom_calls_recording',
+    CUSTOM_DATA_SPILLAGE_REPORT: 'custom_spillage_report',
 };
 
 export const StatTypes = keyMirror({
@@ -1472,6 +1475,23 @@ export const ZoomSettings = {
     SCALE_DELTA: 0.25,
     MIN_SCALE: 0.25,
     MAX_SCALE: 3.0,
+};
+
+export const DataSpillagePropertyNames = {
+    Status: 'Status',
+    FlaggedBy: 'Flagged by',
+    Reason: 'Reason',
+    Comment: 'Comment',
+    ReportingTime: 'Reporting Time',
+    ReviewingUser: 'Reviewing User',
+    ActionBy: 'Action By',
+    ActionComment: 'Action Comment',
+    ActionTime: 'Action Time',
+    Message: 'Message',
+    PostedIn: 'Posted in',
+    Team: 'Team',
+    PostedBy: 'Posted by',
+    PostedAt: 'Posted at',
 };
 
 export const Constants = {

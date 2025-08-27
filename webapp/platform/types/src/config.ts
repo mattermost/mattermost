@@ -129,6 +129,9 @@ export type ClientConfig = {
     FeatureFlagWebSocketEventScope: string;
     FeatureFlagInteractiveDialogAppsForm: string;
     FeatureFlagContentFlagging: string;
+
+    // FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this property when feature is GA
+    FeatureFlagChannelAdminManageABACRules?: string;
     ForgotPasswordLink: string;
     GiphySdkKey: string;
     GoogleDeveloperKey: string;
@@ -225,6 +228,11 @@ export type ClientConfig = {
     ScheduledPosts: string;
     DeleteAccountLink: string;
     ContentFlaggingEnabled: 'true' | 'false';
+
+    // Access Control Settings
+    EnableAttributeBasedAccessControl: string;
+    EnableChannelScopeAccessControl: string;
+    EnableUserManagedAttributes: string;
 };
 
 export type License = {
@@ -953,7 +961,11 @@ export type CloudSettings = {
     PreviewModalBucketURL: string;
 };
 
-export type FeatureFlags = Record<string, string | boolean>;
+export type FeatureFlags = Record<string, string | boolean> & {
+
+    // FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this property when feature is GA
+    ChannelAdminManageABACRules?: string;
+};
 
 export type ImportSettings = {
     Directory: string;

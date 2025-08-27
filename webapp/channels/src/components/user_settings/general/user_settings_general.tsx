@@ -1500,6 +1500,15 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             />
                         </span>
                     );
+                } else if (attribute.attrs?.managed === 'admin') {
+                    extraInfo = (
+                        <span>
+                            <FormattedMessage
+                                id='user.settings.general.field_managed_by_admin'
+                                defaultMessage='This field can only be changed by an administrator.'
+                            />
+                        </span>
+                    );
                 } else {
                     let attributeLabel: JSX.Element | string = (
                         attribute.name
