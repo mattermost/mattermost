@@ -21,8 +21,6 @@ const (
 	CONTENT_FLAGGING_MAX_PROPERTY_VALUES = 100
 )
 
-var contentFlaggingGroupId string
-
 func ContentFlaggingEnabledForTeam(config *model.Config, teamId string) bool {
 	reviewerSettings := config.ContentFlaggingSettings.ReviewerSettings
 
@@ -139,16 +137,11 @@ func (a *App) FlagPost(c request.CTX, post *model.Post, teamId, reportingUserId 
 }
 
 func (a *App) contentFlaggingGroupId() (string, *model.AppError) {
-	if contentFlaggingGroupId != "" {
-		return contentFlaggingGroupId, nil
-	}
-
 	group, err := a.Srv().propertyService.GetPropertyGroup(model.ContentFlaggingGroupName)
 	if err != nil {
 		return "", model.NewAppError("getContentFlaggingGroupId", "app.content_flagging.get_group.error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	contentFlaggingGroupId = group.ID
-	return contentFlaggingGroupId, nil
+	return group.ID, nil
 }
 
 func (a *App) canFlagPost(groupId, postId, userLocal string) *model.AppError {
