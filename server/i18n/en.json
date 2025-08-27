@@ -2433,6 +2433,10 @@
     "translation": "E10 or E20 license required to use this endpoint."
   },
   {
+    "id": "api.not_implemented",
+    "translation": "This feature is not implemented."
+  },
+  {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
     "translation": "invalid_request: Supplied redirect_uri did not match registered callback_url."
   },
