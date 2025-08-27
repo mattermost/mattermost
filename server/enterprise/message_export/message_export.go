@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/mattermost/enterprise/message_export/global_relay_export"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -17,7 +18,6 @@ import (
 	ejobs "github.com/mattermost/mattermost/server/v8/einterfaces/jobs"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/actiance_export"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/csv_export"
-	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/global_relay_export"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 )
 

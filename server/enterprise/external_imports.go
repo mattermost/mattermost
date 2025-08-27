@@ -36,4 +36,6 @@ import (
 	_ "github.com/mattermost/enterprise/outgoing_oauth_connections"
 	// Needed to ensure the init() method in the EE gets run
 	_ "github.com/mattermost/enterprise/access_control"
+	// Needed to ensure the init() method in the EE gets run
+	_ "github.com/mattermost/enterprise/message_export/global_relay_export"
 )

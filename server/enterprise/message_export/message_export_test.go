@@ -22,12 +22,12 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/enterprise/message_export/global_relay_export"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	st "github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/actiance_export"
-	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/global_relay_export"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
