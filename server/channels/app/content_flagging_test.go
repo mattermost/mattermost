@@ -25,6 +25,8 @@ func TestContentFlaggingEnabledForTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	t.Run("should return true for common reviewers", func(t *testing.T) {
+		// Reset global variable to ensure test isolation
+		contentFlaggingGroupId = ""
 		config := getBaseConfig()
 		config.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(true)
 		config.ContentFlaggingSettings.ReviewerSettings.CommonReviewerIds = &[]string{"reviewer_user_id_1", "reviewer_user_id_2"}
@@ -34,6 +36,8 @@ func TestContentFlaggingEnabledForTeam(t *testing.T) {
 	})
 
 	t.Run("should return true when configured for specified team", func(t *testing.T) {
+		// Reset global variable to ensure test isolation
+		contentFlaggingGroupId = ""
 		config := getBaseConfig()
 		config.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(false)
 		config.ContentFlaggingSettings.ReviewerSettings.TeamReviewersSetting = &map[string]model.TeamReviewerSetting{
@@ -48,6 +52,8 @@ func TestContentFlaggingEnabledForTeam(t *testing.T) {
 	})
 
 	t.Run("should return true when using Additional Reviewers", func(t *testing.T) {
+		// Reset global variable to ensure test isolation
+		contentFlaggingGroupId = ""
 		config := getBaseConfig()
 		config.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(false)
 		config.ContentFlaggingSettings.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(true)
@@ -80,6 +86,9 @@ func TestGetContentReviewChannels(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	// Reset global variable to ensure test isolation
+	contentFlaggingGroupId = ""
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
@@ -283,6 +292,9 @@ func TestGetReviewersForTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	// Reset global variable to ensure test isolation
+	contentFlaggingGroupId = ""
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
@@ -496,6 +508,9 @@ func TestCanFlagPost(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	// Reset global variable to ensure test isolation
+	contentFlaggingGroupId = ""
+
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
 	t.Run("should be able to flag post which has not already been flagged", func(t *testing.T) {
@@ -561,6 +576,9 @@ func TestFlagPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	// Reset global variable to ensure test isolation
+	contentFlaggingGroupId = ""
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
