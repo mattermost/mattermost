@@ -22,6 +22,7 @@ func (api *API) InitContentFlagging() {
 	api.BaseRoutes.ContentFlagging.Handle("/team/{team_id:[A-Za-z0-9]+}/status", api.APISessionRequired(getTeamPostFlaggingFeatureStatus)).Methods(http.MethodGet)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/flag", api.APISessionRequired(flagPost)).Methods(http.MethodPost)
 	api.BaseRoutes.ContentFlagging.Handle("/fields", api.APISessionRequired(getContentFlaggingFields)).Methods(http.MethodGet)
+	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/field_values", api.APISessionRequired(getPostPropertyValues)).Methods(http.MethodGet)
 }
 
 func requireContentFlaggingEnabled(c *Context) {
@@ -136,6 +137,11 @@ func getFlaggingConfig(contentFlaggingSettings model.ContentFlaggingSettings) *m
 }
 
 func getContentFlaggingFields(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireContentFlaggingEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
 	groupId, appErr := c.App.ContentFlaggingGroupId()
 	if appErr != nil {
 		c.Err = appErr
@@ -150,6 +156,57 @@ func getContentFlaggingFields(c *Context, w http.ResponseWriter, r *http.Request
 
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(mappedFields); err != nil {
+		mlog.Error("failed to encode content flagging configuration to return API response", mlog.Err(err))
+		return
+	}
+}
+
+func getPostPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireContentFlaggingEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	// The requesting user must be a reviewer of the post's team
+	// to be able to fetch the post's Content Flagging property values
+	postId := c.Params.PostId
+	post, appErr := c.App.GetPostIfAuthorized(c.AppContext, postId, c.AppContext.Session(), false)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	userId := c.AppContext.Session().UserId
+	isReviewer, appErr := c.App.IsUserTeamContentReviewer(userId, channel.TeamId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !isReviewer {
+		c.Err = model.NewAppError("getPostPropertyValues", "api.content_flagging.error.reviewer_only", nil, "", http.StatusForbidden)
+		return
+	}
+
+	propertyValues, appErr := c.App.GetPostContentFlaggingPropertyValues(postId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(propertyValues); err != nil {
 		mlog.Error("failed to encode content flagging configuration to return API response", mlog.Err(err))
 		return
 	}

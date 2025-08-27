@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"maps"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -220,7 +221,7 @@ func (a *App) createContentReviewPost(c request.CTX, teamId, postId string) *mod
 }
 
 func (a *App) getContentReviewChannels(c request.CTX, teamId, contentReviewBotId string) ([]*model.Channel, *model.AppError) {
-	reviewersUserIDs, appErr := a.getReviewersForTeam(teamId)
+	reviewersUserIDs, appErr := a.getReviewersForTeam(teamId, true)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -243,7 +244,7 @@ func (a *App) getContentReviewBot(c request.CTX) (*model.Bot, *model.AppError) {
 	return a.GetOrCreateSystemOwnedBot(c, i18n.T("app.system.content_review_bot.bot_displayname"))
 }
 
-func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
+func (a *App) getReviewersForTeam(teamId string, includeAdditionalReviewers bool) ([]string, *model.AppError) {
 	reviewerUserIDMap := map[string]bool{}
 
 	reviewerSettings := a.Config().ContentFlaggingSettings.ReviewerSettings
@@ -262,56 +263,58 @@ func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
 		}
 	}
 
-	var additionalReviewers []*model.User
-	// Additional reviewers
-	if *reviewerSettings.TeamAdminsAsReviewers {
-		options := &model.UserGetOptions{
-			InTeamId:  teamId,
-			Page:      0,
-			PerPage:   100,
-			Active:    true,
-			TeamRoles: []string{model.TeamAdminRoleId},
-		}
-
-		for {
-			page, appErr := a.GetUsersInTeam(options)
-			if appErr != nil {
-				return nil, model.NewAppError("getReviewersForTeam", "app.content_flagging.get_users_in_team.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
+	if includeAdditionalReviewers {
+		var additionalReviewers []*model.User
+		// Additional reviewers
+		if *reviewerSettings.TeamAdminsAsReviewers {
+			options := &model.UserGetOptions{
+				InTeamId:  teamId,
+				Page:      0,
+				PerPage:   100,
+				Active:    true,
+				TeamRoles: []string{model.TeamAdminRoleId},
 			}
 
-			additionalReviewers = append(additionalReviewers, page...)
-			if len(page) < options.PerPage {
-				break
-			}
-			options.Page++
-		}
-	}
+			for {
+				page, appErr := a.GetUsersInTeam(options)
+				if appErr != nil {
+					return nil, model.NewAppError("getReviewersForTeam", "app.content_flagging.get_users_in_team.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
+				}
 
-	if *reviewerSettings.SystemAdminsAsReviewers {
-		options := &model.UserGetOptions{
-			InTeamId: teamId,
-			Page:     0,
-			PerPage:  100,
-			Active:   true,
-			Roles:    []string{model.SystemAdminRoleId},
+				additionalReviewers = append(additionalReviewers, page...)
+				if len(page) < options.PerPage {
+					break
+				}
+				options.Page++
+			}
 		}
 
-		for {
-			page, appErr := a.GetUsersInTeam(options)
-			if appErr != nil {
-				return nil, model.NewAppError("getReviewersForTeam", "app.content_flagging.get_users_in_team.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
+		if *reviewerSettings.SystemAdminsAsReviewers {
+			options := &model.UserGetOptions{
+				InTeamId: teamId,
+				Page:     0,
+				PerPage:  100,
+				Active:   true,
+				Roles:    []string{model.SystemAdminRoleId},
 			}
 
-			additionalReviewers = append(additionalReviewers, page...)
-			if len(page) < options.PerPage {
-				break
+			for {
+				page, appErr := a.GetUsersInTeam(options)
+				if appErr != nil {
+					return nil, model.NewAppError("getReviewersForTeam", "app.content_flagging.get_users_in_team.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
+				}
+
+				additionalReviewers = append(additionalReviewers, page...)
+				if len(page) < options.PerPage {
+					break
+				}
+				options.Page++
 			}
-			options.Page++
 		}
-	}
 
-	for _, user := range additionalReviewers {
-		reviewerUserIDMap[user.Id] = true
+		for _, user := range additionalReviewers {
+			reviewerUserIDMap[user.Id] = true
+		}
 	}
 
 	reviewerUserIDs := make([]string, len(reviewerUserIDMap))
@@ -338,4 +341,40 @@ func (a *App) sendContentFlaggingConfirmationMessage(c request.CTX, flaggingUser
 
 	a.SendEphemeralPost(c, flaggingUserId, post)
 	return nil
+}
+
+func (a *App) IsUserTeamContentReviewer(userId, teamId string) (bool, *model.AppError) {
+	// not fetching additional reviewers as if the user exist in common or team
+	// specific reviewers, they are definitely a reviewer, and it saves multiple database calls.
+	reviewers, appErr := a.getReviewersForTeam(teamId, false)
+	if appErr != nil {
+		return false, appErr
+	}
+
+	if slices.Contains(reviewers, userId) {
+		return true, nil
+	}
+
+	// if user is not in common or team specific reviewers, we need to check if they are
+	// an additional reviewer.
+	reviewers, appErr = a.getReviewersForTeam(teamId, true)
+	if appErr != nil {
+		return false, appErr
+	}
+
+	return slices.Contains(reviewers, userId), nil
+}
+
+func (a *App) GetPostContentFlaggingPropertyValues(postId string) ([]*model.PropertyValue, *model.AppError) {
+	groupId, appErr := a.ContentFlaggingGroupId()
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	propertyValues, err := a.Srv().propertyService.SearchPropertyValues(groupId, postId, model.PropertyValueSearchOpts{PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES})
+	if err != nil {
+		return nil, model.NewAppError("GetPostContentFlaggingPropertyValues", "app.content_flagging.search_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return propertyValues, nil
 }
