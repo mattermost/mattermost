@@ -4627,7 +4627,7 @@ export default class Client4 {
             `${this.getContentFlaggingRoute()}/post/${postId}/flag`,
             {
                 method: 'post',
-                body: JSON.stringify({reason, comment}),
+                body: JSON.stringify({reason, comment: JSON.stringify(comment)}),
             },
         );
     };

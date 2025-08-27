@@ -98,7 +98,7 @@ func (a *App) FlagPost(c request.CTX, post *model.Post, teamId, reportingUserId 
 			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
 			FieldID:    mappedFields[contentFlaggingPropertyNameReportingComment].ID,
-			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, flagData.Comment)),
+			Value:      json.RawMessage(flagData.Comment),
 		},
 		{
 			TargetID:   post.Id,
