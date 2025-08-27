@@ -21,6 +21,7 @@ func (api *API) InitContentFlagging() {
 	api.BaseRoutes.ContentFlagging.Handle("/flag/config", api.APISessionRequired(getFlaggingConfiguration)).Methods(http.MethodGet)
 	api.BaseRoutes.ContentFlagging.Handle("/team/{team_id:[A-Za-z0-9]+}/status", api.APISessionRequired(getTeamPostFlaggingFeatureStatus)).Methods(http.MethodGet)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/flag", api.APISessionRequired(flagPost)).Methods(http.MethodPost)
+	api.BaseRoutes.ContentFlagging.Handle("/fields", api.APISessionRequired(getContentFlaggingFields)).Methods(http.MethodGet)
 }
 
 func requireContentFlaggingEnabled(c *Context) {
@@ -131,5 +132,25 @@ func getFlaggingConfig(contentFlaggingSettings model.ContentFlaggingSettings) *m
 	return &model.ContentFlaggingReportingConfig{
 		Reasons:                 contentFlaggingSettings.AdditionalSettings.Reasons,
 		ReporterCommentRequired: contentFlaggingSettings.AdditionalSettings.ReporterCommentRequired,
+	}
+}
+
+func getContentFlaggingFields(c *Context, w http.ResponseWriter, r *http.Request) {
+	groupId, appErr := c.App.ContentFlaggingGroupId()
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	mappedFields, appErr := c.App.GetContentFlaggingMappedFields(groupId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(mappedFields); err != nil {
+		mlog.Error("failed to encode content flagging configuration to return API response", mlog.Err(err))
+		return
 	}
 }

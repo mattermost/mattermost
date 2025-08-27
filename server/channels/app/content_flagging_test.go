@@ -501,7 +501,7 @@ func TestCanFlagPost(t *testing.T) {
 	t.Run("should be able to flag post which has not already been flagged", func(t *testing.T) {
 		post := th.CreatePost(th.BasicChannel)
 
-		groupId, appErr := th.App.contentFlaggingGroupId()
+		groupId, appErr := th.App.ContentFlaggingGroupId()
 		require.Nil(t, appErr)
 
 		appErr = th.App.canFlagPost(groupId, post.Id, "en")
@@ -511,7 +511,7 @@ func TestCanFlagPost(t *testing.T) {
 	t.Run("should not be able to flag post which has already been flagged", func(t *testing.T) {
 		post := th.CreatePost(th.BasicChannel)
 
-		groupId, appErr := th.App.contentFlaggingGroupId()
+		groupId, appErr := th.App.ContentFlaggingGroupId()
 		require.Nil(t, appErr)
 
 		statusField, err := th.Server.propertyService.GetPropertyFieldByName(groupId, "", contentFlaggingPropertyNameStatus)
@@ -589,10 +589,10 @@ func TestFlagPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify property values were created
-		groupId, appErr := th.App.contentFlaggingGroupId()
+		groupId, appErr := th.App.ContentFlaggingGroupId()
 		require.Nil(t, appErr)
 
-		mappedFields, appErr := th.App.getContentFlaggingMappedFields(groupId)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
 		// Check status property
@@ -765,10 +765,10 @@ func TestFlagPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify property values were created with empty comment
-		groupId, appErr := th.App.contentFlaggingGroupId()
+		groupId, appErr := th.App.ContentFlaggingGroupId()
 		require.Nil(t, appErr)
 
-		mappedFields, appErr := th.App.getContentFlaggingMappedFields(groupId)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
 		commentValues, err := th.Server.propertyService.SearchPropertyValues(groupId, post.Id, model.PropertyValueSearchOpts{
@@ -794,10 +794,10 @@ func TestFlagPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify reporting time property was set
-		groupId, appErr := th.App.contentFlaggingGroupId()
+		groupId, appErr := th.App.ContentFlaggingGroupId()
 		require.Nil(t, appErr)
 
-		mappedFields, appErr := th.App.getContentFlaggingMappedFields(groupId)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
 		timeValues, err := th.Server.propertyService.SearchPropertyValues(groupId, post.Id, model.PropertyValueSearchOpts{

@@ -51,7 +51,7 @@ func (a *App) FlagPost(c request.CTX, post *model.Post, teamId, reportingUserId 
 		return appErr
 	}
 
-	groupId, appErr := a.contentFlaggingGroupId()
+	groupId, appErr := a.ContentFlaggingGroupId()
 	if appErr != nil {
 		return appErr
 	}
@@ -66,7 +66,7 @@ func (a *App) FlagPost(c request.CTX, post *model.Post, teamId, reportingUserId 
 		return appErr
 	}
 
-	mappedFields, appErr := a.getContentFlaggingMappedFields(groupId)
+	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupId)
 	if appErr != nil {
 		return appErr
 	}
@@ -136,7 +136,7 @@ func (a *App) FlagPost(c request.CTX, post *model.Post, teamId, reportingUserId 
 	return a.sendContentFlaggingConfirmationMessage(c, reportingUserId, post.UserId, post.ChannelId)
 }
 
-func (a *App) contentFlaggingGroupId() (string, *model.AppError) {
+func (a *App) ContentFlaggingGroupId() (string, *model.AppError) {
 	group, err := a.Srv().propertyService.GetPropertyGroup(model.ContentFlaggingGroupName)
 	if err != nil {
 		return "", model.NewAppError("getContentFlaggingGroupId", "app.content_flagging.get_group.error", nil, err.Error(), http.StatusInternalServerError)
@@ -177,10 +177,10 @@ func (a *App) canFlagPost(groupId, postId, userLocal string) *model.AppError {
 	return model.NewAppError("canFlagPost", reason, nil, "", http.StatusBadRequest)
 }
 
-func (a *App) getContentFlaggingMappedFields(groupId string) (map[string]*model.PropertyField, *model.AppError) {
+func (a *App) GetContentFlaggingMappedFields(groupId string) (map[string]*model.PropertyField, *model.AppError) {
 	fields, err := a.Srv().propertyService.SearchPropertyFields(groupId, "", model.PropertyFieldSearchOpts{PerPage: CONTENT_FLAGGING_MAX_PROPERTY_FIELDS})
 	if err != nil {
-		return nil, model.NewAppError("getContentFlaggingMappedFields", "app.content_flagging.search_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetContentFlaggingMappedFields", "app.content_flagging.search_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	mappedFields := map[string]*model.PropertyField{}
