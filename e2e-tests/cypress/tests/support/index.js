@@ -194,12 +194,12 @@ function sysadminSetup(user) {
         cy.externalRequest({user, method: 'put', path: 'config', data: getDefaultConfig(), failOnStatusCode: false});
     }
 
+    // # Reset config to default
+    cy.apiUpdateConfig();
+
     if (!user.email_verified) {
         cy.apiVerifyUserEmailById(user.id);
     }
-
-    // # Reset config to default
-    cy.apiUpdateConfig();
 
     // # Reset admin preference, online status and locale
     resetUserPreference(user.id);
