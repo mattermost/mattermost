@@ -264,8 +264,8 @@ describe('rhs view actions', () => {
 
             const mentionsQuotedTerms = `"@here" "test" "search" "${currentUsername}" "@${currentUsername}" "${currentUserFirstName}" "custom-hyphenated-term"`;
             const compareStore = mockStore(initialState);
-            compareStore.dispatch(SearchActions.searchPostsWithParams('', {include_deleted_channels: true, terms: mentionsQuotedTerms, is_or_search: true, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
-            compareStore.dispatch(SearchActions.searchFilesWithParams('', {include_deleted_channels: true, terms, is_or_search: true, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
+            compareStore.dispatch(SearchActions.searchPostsWithParams('', {include_deleted_channels: true, terms: mentionsQuotedTerms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
+            compareStore.dispatch(SearchActions.searchFilesWithParams('', {include_deleted_channels: true, terms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
         });
