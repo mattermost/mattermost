@@ -1213,14 +1213,6 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	var appErr *model.AppError
 	if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
 		channels, appErr = c.App.SearchChannels(c.AppContext, c.Params.TeamId, props.Term)
-	} else {
-		// If the user is not a team member, return a 404
-		if _, appErr = c.App.GetTeamMember(c.AppContext, c.Params.TeamId, c.AppContext.Session().UserId); appErr != nil {
-			c.Err = appErr
-			return
-		}
-
-		channels, appErr = c.App.SearchChannelsForUser(c.AppContext, c.AppContext.Session().UserId, c.Params.TeamId, props.Term)
 	}
 
 	if appErr != nil {
@@ -1249,22 +1241,8 @@ func searchArchivedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 	}
 
 	var channels model.ChannelList
-	var member *model.TeamMember
 	var appErr *model.AppError
 	if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
-		channels, appErr = c.App.SearchArchivedChannels(c.AppContext, c.Params.TeamId, props.Term, c.AppContext.Session().UserId)
-	} else {
-		// If the user is not a team member, return a 404
-		member, appErr = c.App.GetTeamMember(c.AppContext, c.Params.TeamId, c.AppContext.Session().UserId)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-		if member.SchemeGuest {
-			c.Err = model.NewAppError("searchArchivedChannelsForTeam", "api.channel.search_archived_channels_for_team.guest.app_error", nil, "", http.StatusForbidden)
-			return
-		}
-
 		channels, appErr = c.App.SearchArchivedChannels(c.AppContext, c.Params.TeamId, props.Term, c.AppContext.Session().UserId)
 	}
 
