@@ -12,6 +12,7 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import EmojiMap from 'utils/emoji_map';
 
 import InteractiveDialogAdapter from './interactive_dialog_adapter';
+import { lookupInteractiveDialog } from 'actions/integration_actions';
 
 // Mock AppsFormContainer to avoid dynamic import complexity in tests
 
@@ -1314,6 +1315,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
                 actions: {
                     submitInteractiveDialog: jest.fn().mockResolvedValue({data: {}}),
+                    lookupInteractiveDialog: jest.fn().mockResolvedValue({data: {items: []}}),
                 },
             };
 
