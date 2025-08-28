@@ -182,6 +182,7 @@ describe('dialog_conversion', () => {
         it('should map select fields with data_source correctly', () => {
             expect(getFieldType({type: DialogElementTypes.SELECT, data_source: 'users'} as DialogElement)).toBe('user');
             expect(getFieldType({type: DialogElementTypes.SELECT, data_source: 'channels'} as DialogElement)).toBe('channel');
+            expect(getFieldType({type: DialogElementTypes.SELECT, data_source: 'dynamic'} as DialogElement)).toBe('dynamic_select');
         });
 
         it('should return null for unknown types', () => {
@@ -362,6 +363,31 @@ describe('dialog_conversion', () => {
                 label: 'Option 1',
                 value: 'option1',
             });
+        });
+
+        it('should handle dynamic select defaults', () => {
+            const element = {
+                type: 'select',
+                data_source: 'dynamic',
+                default: 'preset_value',
+            } as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toEqual({
+                label: 'preset_value',
+                value: 'preset_value',
+            });
+        });
+
+        it('should handle empty default for dynamic select', () => {
+            const element = {
+                type: 'select',
+                data_source: 'dynamic',
+                default: '',
+            } as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toBeNull();
         });
     });
 
@@ -722,6 +748,59 @@ describe('dialog_conversion', () => {
             expect(form.fields?.[0].type).toBe('text'); // Converted to text as fallback
             expect(form.fields?.[0].description).toBe('This field could not be converted properly');
             expect(form.fields?.[1].name).toBe('valid_field');
+        });
+
+        it('should convert dynamic select element with data_source_url', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'dynamic_field',
+                    type: 'select',
+                    display_name: 'Dynamic Field',
+                    data_source: 'dynamic',
+                    data_source_url: '/plugins/myplugin/lookup',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields).toHaveLength(1);
+            expect(form.fields?.[0].type).toBe('dynamic_select');
+            expect(form.fields?.[0].lookup?.path).toBe('/plugins/myplugin/lookup');
+        });
+
+        it('should convert dynamic select element without data_source_url', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'dynamic_field',
+                    type: 'select',
+                    display_name: 'Dynamic Field',
+                    data_source: 'dynamic',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields).toHaveLength(1);
+            expect(form.fields?.[0].type).toBe('dynamic_select');
+            expect(form.fields?.[0].lookup?.path).toBe('');
         });
 
         it('should handle refresh property for select fields', () => {
