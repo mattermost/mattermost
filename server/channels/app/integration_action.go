@@ -514,7 +514,9 @@ func (a *App) SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogR
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	// Limit response size to prevent OOM attacks
+	limitedReader := io.LimitReader(resp.Body, MaxDialogResponseSize)
+	body, err := io.ReadAll(limitedReader)
 	if err != nil {
 		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.read_body_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -528,6 +530,53 @@ func (a *App) SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogR
 	err = json.Unmarshal(body, &response)
 	if err != nil {
 		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.decode_json_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return &response, nil
+}
+
+func (a *App) LookupInteractiveDialog(c request.CTX, request model.SubmitDialogRequest) (*model.LookupDialogResponse, *model.AppError) {
+	url := request.URL
+	request.URL = ""
+	request.Type = "dialog_lookup"
+
+	b, err := json.Marshal(request)
+	if err != nil {
+		return nil, model.NewAppError("LookupInteractiveDialog", "app.lookup_interactive_dialog.json_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	// Log request, regardless of whether destination is internal or external
+	c.Logger().Info("LookupInteractiveDialog POST request, through DoActionRequest",
+		mlog.String("url", url),
+		mlog.String("user_id", request.UserId),
+		mlog.String("channel_id", request.ChannelId),
+		mlog.String("team_id", request.TeamId),
+	)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	defer cancel()
+	resp, appErr := a.DoActionRequest(c.WithContext(ctx), url, b)
+	if appErr != nil {
+		return nil, appErr
+	}
+	defer resp.Body.Close()
+
+	// Limit response size to prevent OOM attacks
+	limitedReader := io.LimitReader(resp.Body, MaxDialogResponseSize)
+	body, err := io.ReadAll(limitedReader)
+	if err != nil {
+		return nil, model.NewAppError("LookupInteractiveDialog", "app.lookup_interactive_dialog.read_body_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	var response model.LookupDialogResponse
+	if len(body) == 0 {
+		// Return empty response if no data
+		return &response, nil
+	}
+
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return nil, model.NewAppError("LookupInteractiveDialog", "app.lookup_interactive_dialog.decode_json_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return &response, nil

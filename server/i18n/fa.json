@@ -5224,14 +5224,6 @@
     "translation": "اتصال وب سوکت به روز نشد."
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "نمی توان کاربران را برای یک کانال بایگانی شده بازیابی کرد"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "نمی توان پست های یک کانال بایگانی شده را بازیابی کرد"
-  },
-  {
     "id": "api.user.verify_email.token_parse.error",
     "translation": "تجزیه و تحلیل داده های رمز از تأیید نامه ایمیل انجام نشد"
   },

@@ -5413,14 +5413,6 @@
     "translation": "पहचान प्रदाता से प्राप्त प्रतिक्रिया को नहीं पढ़ सका।"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "किसी संग्रहीत चैनल के लिए उपयोगकर्ताओं को पुनर्प्राप्त नहीं किया जा सकता"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "किसी संग्रहीत चैनल के लिए पोस्ट पुनर्प्राप्त नहीं कर सकता"
-  },
-  {
     "id": "api.user.upload_profile_user.array.app_error",
     "translation": "अनुरोध में 'छवि' के तहत खाली सरणी।"
   },

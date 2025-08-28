@@ -7095,7 +7095,7 @@ func testChannelStoreSearchGroupChannels(t *testing.T, rctx request.CTX, ss stor
 	// Make gc3 policy enforced
 	_, err = ss.AccessControlPolicy().Save(rctx, &model.AccessControlPolicy{
 		ID:      gc3.Id,
-		Version: model.AccessControlPolicyVersionV0_1,
+		Version: model.AccessControlPolicyVersionV0_2,
 		Type:    model.AccessControlPolicyTypeChannel,
 		Rules: []model.AccessControlPolicyRule{
 			{

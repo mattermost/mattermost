@@ -51,6 +51,7 @@ function ChannelBookmarks({
                         <Container
                             ref={drop.innerRef}
                             data-testid='channel-bookmarks-container'
+                            className='channel-bookmarks-container'
                             {...drop.droppableProps}
                         >
                             {order.map(makeItemRenderer(bookmarks, snap.isDraggingOver, !canReorder))}
