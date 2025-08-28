@@ -203,3 +203,29 @@ export function submitInteractiveDialog(submission: DialogSubmission): ActionFun
         return {data};
     };
 }
+
+/**
+ * Proxy action for looking up dynamic options in an interactive dialog
+ * This enhances the base Redux action by checking for dialog arguments in the state
+ * before falling back to the current channel ID
+ */
+export function lookupInteractiveDialog(submission: DialogSubmission): ActionFuncAsync<{items: Array<{text: string; value: string}>}> {
+    return async (dispatch, getState) => {
+        const state = getState();
+
+        // Get dialog arguments from state if available
+        const dialogArguments = getDialogArguments(state);
+
+        // Use channel_id from dialog arguments if available
+        if (dialogArguments && dialogArguments.channel_id) {
+            submission.channel_id = dialogArguments.channel_id;
+        }
+
+        // Dispatch the base action with our enhanced submission
+        const {data, error} = await dispatch(IntegrationActions.lookupInteractiveDialog(submission));
+        if (error) {
+            return {error};
+        }
+        return {data};
+    };
+}
