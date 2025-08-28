@@ -151,12 +151,12 @@ export default function FlagPostModal({postId, onExited}: Props) {
         try {
             setSubmitting(true);
             await Client4.flagPost(post.id, reason, comment);
-            setSubmitting(false);
             onExited();
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error(error);
             setRequestError((error as ServerError).message);
+        } finally {
             setSubmitting(false);
         }
     }, [validateForm, post.id, reason, comment, onExited]);
