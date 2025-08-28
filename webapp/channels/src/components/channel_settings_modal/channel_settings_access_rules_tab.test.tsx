@@ -57,6 +57,8 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         getAccessControlFields: jest.fn(),
         getVisualAST: jest.fn(),
         searchUsers: jest.fn(),
+        getChannelPolicy: jest.fn(),
+        saveChannelPolicy: jest.fn(),
     };
 
     const mockUserAttributes: UserPropertyField[] = [
@@ -134,6 +136,12 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         mockActions.getAccessControlFields.mockResolvedValue({
             data: mockUserAttributes,
         });
+
+        // Mock getChannelPolicy to reject (no existing policy)
+        mockActions.getChannelPolicy.mockRejectedValue(new Error('Policy not found'));
+
+        // Mock saveChannelPolicy to resolve successfully
+        mockActions.saveChannelPolicy.mockResolvedValue({data: {success: true}});
 
         // Suppress console methods for tests
         jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -430,15 +438,24 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 initialState,
             );
 
+            // Wait for initial loading to complete
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
             const checkbox = screen.getByRole('checkbox');
             expect(checkbox).not.toBeChecked();
 
             await userEvent.click(checkbox);
-            expect(checkbox).toBeChecked();
+            await waitFor(() => {
+                expect(checkbox).toBeChecked();
+            });
             expect(console.log).toHaveBeenCalledWith('Auto-sync members toggled:', true);
 
             await userEvent.click(checkbox);
-            expect(checkbox).not.toBeChecked();
+            await waitFor(() => {
+                expect(checkbox).not.toBeChecked();
+            });
             expect(console.log).toHaveBeenCalledWith('Auto-sync members toggled:', false);
         });
 
@@ -503,6 +520,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
+
+            // Wait for initial loading to complete
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
 
             const checkbox = screen.getByRole('checkbox');
             await userEvent.click(checkbox);
@@ -624,6 +646,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 initialState,
             );
 
+            // Wait for initial loading to complete
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
             // Toggle auto-sync to show panel
             const checkbox = screen.getByRole('checkbox');
             await userEvent.click(checkbox);
@@ -640,6 +667,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
+
+            // Wait for initial loading to complete
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
 
             // Toggle auto-sync to show panel
             const checkbox = screen.getByRole('checkbox');
@@ -667,6 +699,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
+
+            // Wait for initial loading to complete
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
 
             // Toggle auto-sync to show panel
             const checkbox = screen.getByRole('checkbox');
