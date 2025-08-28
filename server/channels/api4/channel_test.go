@@ -2531,56 +2531,18 @@ func TestSearchArchivedChannels(t *testing.T) {
 	_, _, err = th.SystemAdminClient.SearchArchivedChannels(context.Background(), th.BasicTeam.Id, search)
 	require.NoError(t, err)
 
-	// Check the appropriate permissions are enforced.
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
-	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
-	}()
-
-	// Remove list channels permission from the user
-	th.RemovePermissionFromRole(model.PermissionListTeamChannels.Id, model.TeamUserRoleId)
-
-	t.Run("Search for a BasicDeletedChannel, which the user is a member of", func(t *testing.T) {
-		search.Term = th.BasicDeletedChannel.Name
-		channelList, _, err := client.SearchArchivedChannels(context.Background(), th.BasicTeam.Id, search)
-		require.NoError(t, err)
-
-		channelNames := []string{}
-		for _, c := range channelList {
-			channelNames = append(channelNames, c.Name)
-		}
-		require.Contains(t, channelNames, th.BasicDeletedChannel.Name)
-	})
-
-	t.Run("Remove the user from BasicDeletedChannel and search again, should still return", func(t *testing.T) {
-		appErr := th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, th.BasicUser.Id, th.BasicDeletedChannel)
-		require.Nil(t, appErr)
-
-		search.Term = th.BasicDeletedChannel.Name
-		channelList, _, err := client.SearchArchivedChannels(context.Background(), th.BasicTeam.Id, search)
-		require.NoError(t, err)
-
-		channelNames := []string{}
-		for _, c := range channelList {
-			channelNames = append(channelNames, c.Name)
-		}
-		require.Contains(t, channelNames, th.BasicDeletedChannel.Name)
-	})
-
-	t.Run("Guest user should receive 403 Forbidden", func(t *testing.T) {
-		th.App.Srv().SetLicense(model.NewTestLicense(""))
-		defer th.App.Srv().SetLicense(nil)
-
-		enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+	t.Run("User should receive 403 Forbidden when no permission to list team channels", func(t *testing.T) {
+		// Check the appropriate permissions are enforced.
+		defaultRolePermissions := th.SaveDefaultRolePermissions()
 		defer func() {
-			th.App.UpdateConfig(func(cfg *model.Config) { cfg.GuestAccountsSettings.Enable = &enableGuestAccounts })
+			th.RestoreDefaultRolePermissions(defaultRolePermissions)
 		}()
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 
-		_, guestClient := th.CreateGuestAndClient(t)
+		// Remove list channels permission from the user
+		th.RemovePermissionFromRole(model.PermissionListTeamChannels.Id, model.TeamUserRoleId)
 
 		search.Term = th.BasicDeletedChannel.Name
-		_, resp, err := guestClient.SearchArchivedChannels(context.Background(), th.BasicTeam.Id, search)
+		_, resp, err := client.SearchArchivedChannels(context.Background(), th.BasicTeam.Id, search)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
