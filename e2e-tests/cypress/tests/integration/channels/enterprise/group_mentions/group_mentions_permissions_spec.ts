@@ -277,7 +277,7 @@ describe('Group Mentions', () => {
 
         // # Create a new channel as a sysadmin
         cy.apiCreateChannel(testTeam.id, 'group-mention', 'Group Mentions').then(({channel}) => {
-            cy.apiCreateUser().then(({user}) => {  
+            cy.apiCreateUser().then(({user}) => {
                 // # Add user to the team and channel
                 cy.apiAddUserToTeam(testTeam.id, user.id).then(() => {
                     cy.apiAddUserToChannel(channel.id, user.id);

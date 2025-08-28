@@ -72,7 +72,7 @@ describe('Verify Accessibility Support in different input fields', () => {
     it('MM-T1457 Verify Accessibility Support in Search Autocomplete', () => {
         // # Adding at least five other users in the channel
         for (let i = 0; i < 5; i++) {
-            cy.apiCreateUser().then(({user}) => {  
+            cy.apiCreateUser().then(({user}) => {
                 cy.apiAddUserToTeam(testTeam.id, user.id).then(() => {
                     cy.apiAddUserToChannel(testChannel.id, user.id);
                 });

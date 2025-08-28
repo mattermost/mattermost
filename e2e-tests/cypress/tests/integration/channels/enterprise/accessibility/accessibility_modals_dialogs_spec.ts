@@ -141,7 +141,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
     it('MM-T1468 Accessibility Support in Add people to Channel Dialog screen', () => {
         // # Add atleast 5 users
         for (let i = 0; i < 5; i++) {
-            cy.apiCreateUser().then(({user}) => {  
+            cy.apiCreateUser().then(({user}) => {
                 cy.apiAddUserToTeam(testTeam.id, user.id);
             });
         }

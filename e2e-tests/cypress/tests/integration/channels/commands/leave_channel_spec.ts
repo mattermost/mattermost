@@ -32,7 +32,7 @@ describe('Leave Channel Command', () => {
 
         // # Post /leave command in center channel
         cy.postMessage('/leave ');
-        cy.wait(TIMEOUTS.TWO_SEC);  
+        cy.wait(TIMEOUTS.TWO_SEC);
 
         // * Assert that user is redirected to townsquare
         cy.url().should('include', '/channels/town-square');

@@ -184,7 +184,7 @@ describe('Self hosted Purchase', () => {
         // The waits for these fetches is usually enough. Add a little wait
         // for all the selectors to be updated and rerenders to happen
         // so that we do not accidentally hit the air-gapped modal
-         
+
         cy.wait(50);
 
         // # Click the upgrade button to open the modal
@@ -259,7 +259,7 @@ describe('Self hosted Purchase', () => {
         cy.contains(todayPadded);
         cy.contains('Self-Hosted Professional');
 
-         
+
         const dollarUSLocale = Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD', minimumFractionDigits: 2});
 
         // * Verify payment matches what the user was told they would pay
@@ -328,7 +328,7 @@ describe('Self hosted Purchase', () => {
         // The waits for these fetches is usually enough. Add a little wait
         // for all the selectors to be updated and rerenders to happen
         // so that we do not accidentally hit the air-gapped modal
-         
+
         cy.wait(50);
 
         // # Click the upgrade button to open the modal
@@ -375,7 +375,7 @@ describe('Self hosted Purchase', () => {
         // The waits for these fetches is usually enough. Add a little wait
         // for all the selectors to be updated and rerenders to happen
         // so that we do not accidentally hit the air-gapped modal
-         
+
         cy.wait(50);
 
         // # Click the upgrade button to open the modal
@@ -432,7 +432,7 @@ describe('Self hosted Purchase', () => {
         // The waits for these fetches is usually enough. Add a little wait
         // for all the selectors to be updated and rerenders to happen
         // so that we do not accidentally hit the air-gapped modal
-         
+
         cy.wait(50);
 
         // # Click the upgrade button to open the modal
@@ -462,7 +462,7 @@ describe('Self hosted Purchase', () => {
         cy.get('#UpgradeButton').should('exist').click();
         cy.wait('@airGappedCheck');
         cy.wait('@products');
-         
+
         cy.wait(50);
 
         // # Click the upgrade button to open the modal

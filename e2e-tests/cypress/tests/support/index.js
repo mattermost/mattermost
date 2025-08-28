@@ -5,7 +5,7 @@
 // Read more at: https://on.cypress.io/configuration
 // ***********************************************************
 
- 
+
 
 import dayjs from 'dayjs';
 import localforage from 'localforage';

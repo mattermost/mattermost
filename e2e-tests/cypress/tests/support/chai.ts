@@ -3,7 +3,7 @@
 
 chai.use((chai: Chai.ChaiStatic) => {
     function assertIsFoo({exactStyles = true} = {}) {
-         
+
         const obj = this._obj as JQuery<HTMLElement>;
 
         this.assert(
@@ -30,7 +30,7 @@ chai.use((chai: Chai.ChaiStatic) => {
 
         return this;
     }
-     
+
 
     chai.Assertion.addMethod('a11yVisible', assertIsFoo);
 });

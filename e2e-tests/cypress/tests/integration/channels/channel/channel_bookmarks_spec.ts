@@ -23,7 +23,7 @@ describe('Channel Bookmarks', () => {
 
     let testTeam: Team;
 
-     
+
     let user1: UserProfile;
     let admin: UserProfile;
     let publicChannel: Channel;

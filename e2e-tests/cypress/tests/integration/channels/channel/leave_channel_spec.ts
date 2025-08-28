@@ -70,7 +70,7 @@ describe('Leave channel', () => {
 
             // # Archive the channel
             cy.uiLeaveChannel();
-            cy.wait(TIMEOUTS.TWO_SEC);  
+            cy.wait(TIMEOUTS.TWO_SEC);
 
             // * RHS should not be visible
             cy.get('#rhsContainer').should('not.exist');
@@ -108,7 +108,7 @@ describe('Leave channel', () => {
 
             // # Archive the channel
             cy.uiLeaveChannel();
-            cy.wait(TIMEOUTS.TWO_SEC);  
+            cy.wait(TIMEOUTS.TWO_SEC);
 
             // * RHS should not be visible
             cy.get('#rhsContainer').should('not.exist');

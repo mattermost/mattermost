@@ -7,6 +7,7 @@ import js from '@eslint/js';
 import {FlatCompat} from '@eslint/eslintrc';
 import eslintPluginHeader from 'eslint-plugin-header';
 import pluginCypress from 'eslint-plugin-cypress';
+import noOnlyTest from 'eslint-plugin-no-only-tests';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,6 +35,7 @@ export default [
             '@typescript-eslint': typescriptEslint,
             header: eslintPluginHeader,
             cypress: pluginCypress,
+            'no-only-tests': noOnlyTest,
         },
         languageOptions: {
             globals: {
@@ -56,18 +58,28 @@ export default [
             'cypress/no-pause': 'error',
             'cypress/no-unnecessary-waiting': 0,
             'cypress/unsafe-to-chain-command': 0,
+            'func-names': 0,
+            'import/no-unresolved': 0,
+            'max-nested-callbacks': 0,
+            'no-unused-expressions': 0,
+            'no-process-env': 0,
+            'no-duplicate-imports': 0,
+            'no-undefined': 0,
+            'no-use-before-define': 0,
+            'no-only-tests/no-only-tests': ['error', {'focus': ['only']}],
+            'no-console': 'error',
             '@typescript-eslint/explicit-module-boundary-types': 'off',
             '@typescript-eslint/no-explicit-any': 'off',
             '@typescript-eslint/no-require-imports': 'off',
             '@typescript-eslint/no-unused-expressions': 'off',
             '@typescript-eslint/no-var-requires': 'off',
-            'no-console': 'error',
             'header/header': [
                 'error',
                 'line',
                 ' Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.\n See LICENSE.txt for license information.',
                 2,
             ],
+            'import/no-duplicates': 2,
             'import/order': [
                 'error',
                 {
@@ -76,6 +88,9 @@ export default [
                 },
             ],
             'import/no-unresolved': 'off',
+            'max-lines': ['warn', {'max': 800, 'skipBlankLines': true, 'skipComments': true}],
+            'eol-last': ['error', 'always'],
+            'no-trailing-spaces': 'error',
         },
     },
 ];
