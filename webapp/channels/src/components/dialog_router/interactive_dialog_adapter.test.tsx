@@ -1356,7 +1356,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
         });
     });
 
-
     describe('Dynamic Import Loading', () => {
         test('should handle lazy loading with React Suspense', async () => {
             // With React.lazy, the component should load asynchronously
