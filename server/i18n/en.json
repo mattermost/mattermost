@@ -2413,6 +2413,10 @@
     "translation": "E10 or E20 license required to use this endpoint."
   },
   {
+    "id": "api.not_implemented",
+    "translation": "This feature is not implemented."
+  },
+  {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
     "translation": "invalid_request: Supplied redirect_uri did not match registered callback_url."
   },
@@ -7911,6 +7915,14 @@
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
     "translation": "Setting up {{.Backend}} Client Failed"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "Failed to create Elasticsearch bulk processor"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+    "translation": "Failed to create Elasticsearch sync bulk processor"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",

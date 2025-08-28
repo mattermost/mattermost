@@ -17,7 +17,29 @@ import type {AutocompleteOptionType} from './user_multiselector';
 
 import './user_profile_option.scss';
 
-export function UserOptionComponent(props: OptionProps<AutocompleteOptionType<UserProfile>, true>) {
+export function MultiUserOptionComponent(props: OptionProps<AutocompleteOptionType<UserProfile>, true>) {
+    const {data, innerProps} = props;
+
+    const userProfile = data.raw;
+    const userDisplayName = useSelector((state: GlobalState) => getDisplayNameByUser(state, userProfile));
+
+    return (
+        <div
+            className='UserOptionComponent'
+            {...innerProps}
+        >
+            <Avatar
+                size='xxs'
+                username={userProfile?.username}
+                url={imageURLForUser(data.value)}
+            />
+
+            {userDisplayName}
+        </div>
+    );
+}
+
+export function SingleUserOptionComponent(props: OptionProps<AutocompleteOptionType<UserProfile>, false>) {
     const {data, innerProps} = props;
 
     const userProfile = data.raw;

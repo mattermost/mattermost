@@ -195,7 +195,7 @@ exports[`DesktopNotificationSettings should match snapshot, on min setting 1`] =
     class="section-min"
   >
     <div
-      class="secion-min__header"
+      class="section-min__header"
     >
       <h4
         class="section-min__title"
