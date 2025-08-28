@@ -609,6 +609,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                     id='appsModalIconUrl'
                     alt={'modal title icon'}
                     className='more-modal__image'
+                    style={{marginRight: '12px'}}
                     width='36'
                     height='36'
                     src={icon}
