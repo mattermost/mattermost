@@ -159,7 +159,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Generate email templates
         run: |
-          sudo npm install -g mjml@4.9.0
+          npm install -g mjml@4.9.0
           make build-templates
       - name: Check generated email templates
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the email templates using `make build-templates`"; exit 1; fi
