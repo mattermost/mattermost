@@ -13,3 +13,8 @@ export const contentFlaggingFeatureEnabled = (state: GlobalState): boolean => {
 };
 
 export const contentFlaggingConfig = (state: GlobalState) => state.entities.contentFlagging.settings;
+
+export const contentFlaggingFields = (state: GlobalState) => {
+    const fields = state.entities.contentFlagging.fields || {};
+    return Object.keys(fields).length ? fields : undefined;
+};

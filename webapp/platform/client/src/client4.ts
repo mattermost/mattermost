@@ -112,7 +112,7 @@ import type {
 import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
-import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties';
+import {PropertyField, PropertyValue, UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
@@ -147,7 +147,7 @@ import type {
     GetFilteredUsersStatsOpts,
     UserCustomStatus,
 } from '@mattermost/types/users';
-import type {DeepPartial, PartialExcept, RelationOneToOne} from '@mattermost/types/utilities';
+import type {DeepPartial, IDMappedCollection, PartialExcept, RelationOneToOne} from '@mattermost/types/utilities';
 
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';
@@ -4629,6 +4629,13 @@ export default class Client4 {
                 method: 'post',
                 body: JSON.stringify({reason, comment: JSON.stringify(comment)}),
             },
+        );
+    };
+
+    getPostContentFlaggingFields = () => {
+        return this.doFetch<IDMappedCollection<PropertyField>>(
+            `${this.getContentFlaggingRoute()}/fields`,
+            {method: 'get'},
         );
     };
 }

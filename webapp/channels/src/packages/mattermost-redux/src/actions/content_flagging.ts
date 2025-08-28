@@ -2,12 +2,15 @@
 // See LICENSE.txt for license information.
 
 import type {ContentFlaggingConfig} from '@mattermost/types/content_flagging';
+import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
+import type {IDMappedCollection} from '@mattermost/types/utilities';
 
 import {TeamTypes, ContentFlaggingTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
+import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 
 export function getTeamContentFlaggingStatus(teamId: string): ActionFuncAsync<{enabled: boolean}> {
     return async (dispatch, getState) => {
@@ -51,5 +54,43 @@ export function getContentFlaggingConfig(): ActionFuncAsync<ContentFlaggingConfi
         }
 
         return {data: response};
+    };
+}
+
+export function getPostContentFlaggingFields(): ActionFuncAsync<IDMappedCollection<PropertyField>> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.getPostContentFlaggingFields();
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({
+            type: ContentFlaggingTypes.RECEIVED_POST_CONTENT_FLAGGING_FIELDS,
+            data,
+        });
+
+        return {data};
+    };
+}
+
+export function loadPostContentFlaggingFields(): ActionFuncAsync<IDMappedCollection<PropertyField>> {
+    // Use data loader and fetch data to manage multiple, simultaneous dispatches
+    return async (dispatch, getState, {loaders}: any) => {
+        if (!loaders.postContentFlaggingFieldsLoader) {
+            loaders.postContentFlaggingFieldsLoader = new DelayedDataLoader<Array<PropertyValue<unknown>>>({
+                fetchBatch: () => dispatch(getPostContentFlaggingFields()),
+                maxBatchSize: 1,
+                wait: 200,
+            });
+        }
+
+        const loader = loaders.postContentFlaggingFieldsLoader as DelayedDataLoader<Array<PropertyValue<unknown>>>;
+        loader.queue([true]);
+
+        return {};
     };
 }

@@ -25,185 +25,8 @@ import {DataSpillagePropertyNames} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 import './data_spillage_report.scss';
-
-// TODO: this function will be replaced with actual data fetched from API in a later PR
-function getDummyPropertyFields(): PropertyField[] {
-    return [
-        {
-            id: 'status_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.Status,
-            type: 'select',
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-            attrs: {
-                editable: false,
-                options: [
-                    {
-                        id: 'option_pending_review',
-                        name: 'Pending review',
-                        color: 'light_gray',
-                    },
-                    {
-                        id: 'option_reviewer_assigned',
-                        name: 'Reviewer assigned',
-                        color: 'light_blue',
-                    },
-                    {
-                        id: 'option_dismissed',
-                        name: 'Flag dismissed',
-                        color: 'dark_blue',
-                    },
-                    {
-                        id: 'option_removed',
-                        name: 'Removed',
-                        color: 'dark_red',
-                    },
-                ],
-            },
-        },
-        {
-            id: 'reporting_user_id_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.FlaggedBy,
-            type: 'user',
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'reason_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.Reason,
-            type: 'select',
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'comment_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.Comment,
-            type: 'text',
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'reporting_time_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.ReportingTime,
-            type: 'text',
-            attrs: {subType: 'timestamp'},
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'reviewer_user_id_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.ReviewingUser,
-            type: 'user',
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-            attrs: {
-                editable: true,
-            },
-        },
-        {
-            id: 'actor_user_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.ActionBy,
-            type: 'user',
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'actor_comment_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.ActionComment,
-            type: 'text',
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'action_time_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.ActionTime,
-            type: 'text',
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'post_preview_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.Message,
-            type: 'text',
-            attrs: {subType: 'post'},
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'channel_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.PostedIn,
-            type: 'text',
-            attrs: {subType: 'channel'},
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'team_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.Team,
-            type: 'text',
-            attrs: {subType: 'team'},
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'post_author_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.PostedBy,
-            type: 'user',
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'post_creation_time_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.PostedAt,
-            type: 'text',
-            attrs: {subType: 'timestamp'},
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-    ];
-}
+import { useUser } from "components/common/hooks/useUser";
+import { useContentFlaggingFields } from "components/common/hooks/useContentFlaggingFields";
 
 // TODO: this function will be replaced with actual data fetched from API in a later PR
 function getDummyPropertyValues(postId: string, channelId: string, teamId: string, authorId: string, postCreateAt: number): Array<PropertyValue<unknown>> {
@@ -367,7 +190,7 @@ export default function DataSpillageReport({post, isRHS}: Props) {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
 
-    const [propertyFields, setPropertyFields] = useState<PropertyField[]>([]);
+    const propertyFields = useContentFlaggingFields(true);
     const [propertyValues, setPropertyValues] = useState<Array<PropertyValue<unknown>>>([]);
 
     const reportedPostId = post.props.reported_post_id as string;
@@ -378,19 +201,11 @@ export default function DataSpillageReport({post, isRHS}: Props) {
     const reportingUserIdValue = propertyValues.find((value) => value.field_id === reportingUserFieldId?.id);
     const reportingUser = useSelector((state: GlobalState) => getUser(state, reportingUserIdValue ? reportingUserIdValue.value as string : ''));
 
-    useEffect(() => {
-        if (!reportingUser && reportingUserIdValue && reportedPost) {
-            dispatch(getMissingProfilesByIds([
-                reportingUserIdValue.value as string,
-                reportedPost.user_id,
-            ]));
-        }
-    }, [dispatch, reportedPost, reportingUser, reportingUserIdValue]);
+
 
     useEffect(() => {
         if (reportedPost && channel) {
             // TODO: this function will be replaced with actual data fetched from API in a later PR
-            setPropertyFields(getDummyPropertyFields());
             setPropertyValues(getDummyPropertyValues(reportedPostId, reportedPost.channel_id, channel.team_id, reportedPost.user_id, post.create_at));
         }
     }, [reportedPost, reportedPostId, channel, post.create_at]);
