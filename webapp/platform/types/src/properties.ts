@@ -15,7 +15,10 @@ export type PropertyField = {
     group_id: string;
     name: string;
     type: FieldType;
-    attrs?: {[key: string]: unknown};
+    attrs?: {
+        subType?: string;
+        [key: string]: unknown;
+    };
     target_id?: string;
     target_type?: string;
     create_at: number;
@@ -28,6 +31,7 @@ export type PropertyValue<T> = {
     target_id: string;
     target_type: string;
     group_id: string;
+    field_id: string;
     value: T;
     create_at: number;
     update_at: number;
@@ -62,5 +66,12 @@ export type UserPropertyField = PropertyField & {
         saml?: string;
     };
 };
+
+export type SelectPropertyField = PropertyField & {
+    attrs?: {
+        editable?: boolean;
+        options?: PropertyFieldOption[];
+    };
+}
 
 export type UserPropertyFieldPatch = Partial<Pick<UserPropertyField, 'name' | 'attrs' | 'type'>>;
