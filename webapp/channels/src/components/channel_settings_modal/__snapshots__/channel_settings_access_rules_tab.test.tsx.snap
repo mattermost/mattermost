@@ -29,15 +29,17 @@ exports[`components/channel_settings_modal/ChannelSettingsAccessRulesTab should 
     >
       <label
         class="ChannelSettingsModal__autoSyncLabel"
+        title="Define access rules to enable auto-add members"
       >
         <input
           class="ChannelSettingsModal__autoSyncCheckbox"
+          disabled=""
           id="autoSyncMembersCheckbox"
           name="autoSyncMembers"
           type="checkbox"
         />
         <span
-          class="ChannelSettingsModal__autoSyncText"
+          class="ChannelSettingsModal__autoSyncText disabled"
         >
           Auto-add members based on access rules
         </span>
@@ -45,7 +47,7 @@ exports[`components/channel_settings_modal/ChannelSettingsAccessRulesTab should 
       <p
         class="ChannelSettingsModal__autoSyncDescription"
       >
-        Users who match the configured attribute values will be automatically added as members
+        Define access rules above to enable automatic member synchronization.
       </p>
     </div>
   </div>

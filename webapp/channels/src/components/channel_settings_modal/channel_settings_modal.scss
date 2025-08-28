@@ -30,12 +30,12 @@
 
         .modal-body {
             display: flex;
-            overflow: visible;
             width: auto;
             min-height: 150px;
             flex-direction: column;
             margin: 0;
             gap: 24px;
+            overflow-y: auto;
         }
     }
 
