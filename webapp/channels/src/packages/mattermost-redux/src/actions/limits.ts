@@ -32,7 +32,7 @@ export function getServerLimits(): ActionFuncAsync<ServerLimits> {
             postHistoryLimit: response?.data?.postHistoryLimit ?? 0,
         };
 
-        dispatch({type: LimitsTypes.RECIEVED_APP_LIMITS, data});
+        dispatch({type: LimitsTypes.RECEIVED_APP_LIMITS, data});
 
         return {data};
     };

@@ -4476,10 +4476,10 @@ describe('limitedViews', () => {
             expect(nextState).toBe(initialState); // reference equality preserved
         });
 
-        it(`${LimitsTypes.RECIEVED_APP_LIMITS} clears out limited views if there are no longer post history limits`, () => {
+        it(`${LimitsTypes.RECEIVED_APP_LIMITS} clears out limited views if there are no longer post history limits`, () => {
             const initialState = {...zeroState, channels: {channelId: 123}};
             const nextState = reducers.limitedViews(initialState, {
-                type: LimitsTypes.RECIEVED_APP_LIMITS,
+                type: LimitsTypes.RECEIVED_APP_LIMITS,
                 data: {
                     postHistoryLimit: 0,
                     activeUserCount: 100,
@@ -4492,10 +4492,10 @@ describe('limitedViews', () => {
             expect(nextState).toEqual(zeroState);
         });
 
-        it(`${LimitsTypes.RECIEVED_APP_LIMITS} clears out limited views if postHistoryLimit is undefined`, () => {
+        it(`${LimitsTypes.RECEIVED_APP_LIMITS} clears out limited views if postHistoryLimit is undefined`, () => {
             const initialState = {...zeroState, channels: {channelId: 123}};
             const nextState = reducers.limitedViews(initialState, {
-                type: LimitsTypes.RECIEVED_APP_LIMITS,
+                type: LimitsTypes.RECEIVED_APP_LIMITS,
                 data: {
                     activeUserCount: 100,
                     maxUsersLimit: 0,
@@ -4507,10 +4507,10 @@ describe('limitedViews', () => {
             expect(nextState).toEqual(zeroState);
         });
 
-        it(`${LimitsTypes.RECIEVED_APP_LIMITS} preserves limited views if there are still post history limits`, () => {
+        it(`${LimitsTypes.RECEIVED_APP_LIMITS} preserves limited views if there are still post history limits`, () => {
             const initialState = {...zeroState, channels: {channelId: 123}};
             const nextState = reducers.limitedViews(initialState, {
-                type: LimitsTypes.RECIEVED_APP_LIMITS,
+                type: LimitsTypes.RECEIVED_APP_LIMITS,
                 data: {
                     postHistoryLimit: 1000,
                     activeUserCount: 100,

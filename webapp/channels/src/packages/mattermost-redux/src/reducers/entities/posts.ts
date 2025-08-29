@@ -1513,7 +1513,7 @@ export function limitedViews(
         }
         return state;
     }
-    case LimitsTypes.RECIEVED_APP_LIMITS: {
+    case LimitsTypes.RECEIVED_APP_LIMITS: {
         const serverLimits = action.data;
 
         // If server limits change and there is no post history limit any more (e.g. upgrade to unlimited plan),
