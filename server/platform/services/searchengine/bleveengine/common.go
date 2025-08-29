@@ -25,6 +25,7 @@ type BLVUser struct {
 	SuggestionsWithoutFullname []string
 	TeamsIds                   []string
 	ChannelsIds                []string
+	DeleteAt                   int64
 }
 
 type BLVPost struct {
@@ -93,6 +94,7 @@ func BLVUserFromUserAndTeams(user *model.User, teamsIds, channelsIds []string) *
 		SuggestionsWithoutFullname: usernameAndNicknameSuggestions,
 		TeamsIds:                   teamsIds,
 		ChannelsIds:                channelsIds,
+		DeleteAt:                   user.DeleteAt,
 	}
 }
 
