@@ -138,11 +138,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
     };
 
     beforeEach(() => {
-        // Clear mocks but preserve implementations
-        mockActions.getAccessControlFields.mockClear();
-        mockActions.getChannelPolicy.mockClear();
-        mockActions.saveChannelPolicy.mockClear();
-        mockActions.searchUsers.mockClear();
+        jest.clearAllMocks();
         mockUseChannelAccessControlActions.mockReturnValue(mockActions);
         mockUseChannelSystemPolicies.mockReturnValue({
             policies: [],
@@ -594,8 +590,17 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         });
 
         test('should save changes when Save button is clicked', async () => {
-            // Mock searchUsers to return an empty result (no membership changes)
-            mockActions.searchUsers.mockResolvedValue({data: {users: []}});
+            // Ensure the searchUsers mock returns current user for validation to pass
+            mockActions.searchUsers.mockResolvedValue({
+                data: {
+                    users: [{
+                        id: 'current_user_id',
+                        username: 'testuser',
+                        first_name: 'Test',
+                        last_name: 'User',
+                    }],
+                },
+            });
             mockActions.getChannelMembers.mockResolvedValue({data: []});
 
             renderWithContext(
@@ -621,6 +626,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             const checkbox = screen.getByRole('checkbox');
             await userEvent.click(checkbox);
 
+            // Verify checkbox is checked
+            await waitFor(() => {
+                expect(checkbox).toBeChecked();
+            });
+
             // Wait for SaveChangesPanel to appear
             await waitFor(() => {
                 expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
@@ -629,6 +639,15 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             // Click Save button
             const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
             await userEvent.click(saveButton);
+
+            // Wait for confirmation modal to appear (membership changes detected)
+            await waitFor(() => {
+                expect(screen.getByText('Save and apply rules')).toBeInTheDocument();
+            });
+
+            // Click "Save and apply" in the confirmation modal
+            const confirmButton = screen.getByText('Save and apply');
+            await userEvent.click(confirmButton);
 
             // Wait for async validation and save to complete
             await waitFor(() => {
@@ -641,7 +660,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 name: 'Test Channel',
                 type: 'channel',
                 version: 'v0.2',
-                active: true,
+                active: false, // Policy starts as inactive until job completes
                 revision: 1,
                 created_at: expect.any(Number),
                 rules: [{
@@ -792,6 +811,18 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         });
 
         test('should update SaveChangesPanel state to saved after successful save', async () => {
+            // Ensure the searchUsers mock returns current user for validation to pass
+            mockActions.searchUsers.mockResolvedValue({
+                data: {
+                    users: [{
+                        id: 'current_user_id',
+                        username: 'testuser',
+                        first_name: 'Test',
+                        last_name: 'User',
+                    }],
+                },
+            });
+
             renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
@@ -823,6 +854,16 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
             await userEvent.click(saveButton);
 
+            // Wait for confirmation modal to appear (membership changes detected)
+            await waitFor(() => {
+                expect(screen.getByText('Save and apply rules')).toBeInTheDocument();
+            });
+
+            // Click "Save and apply" in the confirmation modal
+            const confirmButton = screen.getByText('Save and apply');
+            await userEvent.click(confirmButton);
+
+            // Wait for save to complete and panel to show saved state
             await waitFor(() => {
                 const panel = screen.getByTestId('save-changes-panel');
                 expect(panel).toHaveAttribute('data-state', 'saved');
@@ -928,11 +969,13 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         ];
 
         const mockUsersMatchingCombined = [
+            {id: 'current_user_id', username: 'testuser', email: 'test@example.com'}, // Include current user
             {id: 'user1', username: 'user1', email: 'user1@test.com'},
             {id: 'user2', username: 'user2', email: 'user2@test.com'},
         ];
 
         const mockUsersMatchingOnlyChannel = [
+            {id: 'current_user_id', username: 'testuser', email: 'test@example.com'}, // Include current user
             {id: 'user1', username: 'user1', email: 'user1@test.com'},
             {id: 'user2', username: 'user2', email: 'user2@test.com'},
             {id: 'user3', username: 'user3', email: 'user3@test.com'}, // This user only matches channel expression
@@ -1079,7 +1122,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             // Verify searchUsers was called for validation with combined expression
             await waitFor(() => {
                 const validationCalls = mockActions.searchUsers.mock.calls.filter((call) =>
-                    call[3] === 100, // Self-exclusion validation uses limit 100
+                    call[3] === 1000, // Self-exclusion validation uses limit 1000
                 );
                 expect(validationCalls.length).toBeGreaterThan(0);
 
