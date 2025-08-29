@@ -42,4 +42,5 @@ export type FileSearchResults = {
     file_infos: Map<string, FileSearchResultItem>;
     next_file_info_id: string;
     prev_file_info_id: string;
+    first_inaccessible_file_time: number;
 };

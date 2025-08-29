@@ -6,16 +6,16 @@ import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
+import type {GlobalState} from '@mattermost/types/store';
+
+import {isSearchTruncated} from 'mattermost-redux/selectors/entities/search';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {isAdmin} from 'mattermost-redux/utils/user_utils';
 
-import useGetLimits from 'components/common/hooks/useGetLimits';
-import useGetUsage from 'components/common/hooks/useGetUsage';
+import useGetServerLimits from 'components/common/hooks/useGetServerLimits';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
 import {DataSearchTypes} from 'utils/constants';
-import {asGBString} from 'utils/limits';
 
 const StyledDiv = styled.div`
 width: 100%;
@@ -47,19 +47,22 @@ type Props = {
 function SearchLimitsBanner(props: Props) {
     const {formatMessage, formatNumber} = useIntl();
     const {openPricingModal, isAirGapped} = useOpenPricingModal();
-    const usage = useGetUsage();
-    const [cloudLimits] = useGetLimits();
+    const [serverLimits] = useGetServerLimits();
     const isAdminUser = isAdmin(useSelector(getCurrentUser).roles);
-    const isCloud = useSelector(isCurrentLicenseCloud);
 
-    if (!isCloud) {
+    // Check if current search results were actually truncated
+    const searchTruncated = useSelector((state: GlobalState) => {
+        const searchType = props.searchType === DataSearchTypes.FILES_SEARCH_TYPE ? 'files' : 'posts';
+        return isSearchTruncated(state, searchType);
+    });
+
+    // Only show banner if search results were actually truncated
+    if (!searchTruncated || !serverLimits?.postHistoryLimit) {
         return null;
     }
 
-    const currentFileStorageUsage = usage.files.totalStorage;
-    const fileStorageLimit = cloudLimits?.files?.total_storage;
-    const currentMessagesUsage = usage.messages.history;
-    const messagesLimit = cloudLimits?.messages?.history;
+    const limit = formatNumber(serverLimits.postHistoryLimit);
+    const searchContent = props.searchType === DataSearchTypes.FILES_SEARCH_TYPE ? 'files' : 'messages';
 
     let ctaAction = formatMessage({
         id: 'workspace_limits.search_limit.view_plans',
@@ -73,74 +76,34 @@ function SearchLimitsBanner(props: Props) {
         });
     }
 
-    const renderBanner = (bannerText: React.ReactNode, id: string) => {
-        return (<StyledDiv id={id}>
+    const bannerMessage = isAirGapped ? formatMessage({
+        id: 'workspace_limits.search_limit.banner_text_airgapped',
+        defaultMessage: 'Some older {searchContent} may not be shown because your workspace has over {limit} messages.',
+    }, {
+        searchContent,
+        limit,
+    }) : formatMessage({
+        id: 'workspace_limits.search_limit.banner_text',
+        defaultMessage: 'Some older {searchContent} may not be shown because your workspace has over {limit} messages. <a>{ctaAction}</a>',
+    }, {
+        searchContent,
+        limit,
+        ctaAction,
+        a: (chunks: React.ReactNode | React.ReactNodeArray) => (
+            <StyledA onClick={() => openPricingModal({trackingLocation: 'search_limits_banner'})}>
+                {chunks}
+            </StyledA>
+        ),
+    });
+
+    return (
+        <StyledDiv id={`${props.searchType}_search_limits_banner`}>
             <InnerDiv>
                 <i className='icon-eye-off-outline'/>
-                <span>{bannerText}</span>
+                <span>{bannerMessage}</span>
             </InnerDiv>
-        </StyledDiv>);
-    };
-
-    switch (props.searchType) {
-    case DataSearchTypes.FILES_SEARCH_TYPE: {
-        if ((fileStorageLimit === undefined) || !(currentFileStorageUsage > fileStorageLimit)) {
-            return null;
-        }
-        const filesBannerMessage = isAirGapped ?
-            formatMessage({
-                id: 'workspace_limits.search_files_limit.banner_text_airgapped',
-                defaultMessage: 'Some older files may not be shown because your workspace has met its file storage limit of {storage}.',
-            }, {
-                storage: asGBString(fileStorageLimit, formatNumber),
-            }) :
-            formatMessage({
-                id: 'workspace_limits.search_files_limit.banner_text',
-                defaultMessage: 'Some older files may not be shown because your workspace has met its file storage limit of {storage}. <a>{ctaAction}</a>',
-            }, {
-                ctaAction,
-                storage: asGBString(fileStorageLimit, formatNumber),
-                a: (chunks: React.ReactNode | React.ReactNodeArray) => (
-                    <StyledA
-                        onClick={() => openPricingModal({trackingLocation: 'file_search_limits_banner'})}
-                    >
-                        {chunks}
-                    </StyledA>
-                ),
-            });
-        return renderBanner(filesBannerMessage, `${DataSearchTypes.FILES_SEARCH_TYPE}_search_limits_banner`);
-    }
-
-    case DataSearchTypes.MESSAGES_SEARCH_TYPE: {
-        if ((messagesLimit === undefined) || !(currentMessagesUsage > messagesLimit)) {
-            return null;
-        }
-        const messagesBannerMessage = isAirGapped ?
-            formatMessage({
-                id: 'workspace_limits.search_message_limit.banner_text_airgapped',
-                defaultMessage: 'Some older messages may not be shown because your workspace has over {messages} messages.',
-            }, {
-                messages: formatNumber(messagesLimit),
-            }) :
-            formatMessage({
-                id: 'workspace_limits.search_message_limit.banner_text',
-                defaultMessage: 'Some older messages may not be shown because your workspace has over {messages} messages. <a>{ctaAction}</a>',
-            }, {
-                ctaAction,
-                messages: formatNumber(messagesLimit),
-                a: (chunks: React.ReactNode | React.ReactNodeArray) => (
-                    <StyledA
-                        onClick={() => openPricingModal({trackingLocation: 'messages_search_limits_banner'})}
-                    >
-                        {chunks}
-                    </StyledA>
-                ),
-            });
-        return renderBanner(messagesBannerMessage, `${DataSearchTypes.MESSAGES_SEARCH_TYPE}_search_limits_banner`);
-    }
-    default:
-        return null;
-    }
+        </StyledDiv>
+    );
 }
 
 export default SearchLimitsBanner;

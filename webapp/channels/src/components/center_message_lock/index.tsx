@@ -14,8 +14,8 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {isAdmin} from 'mattermost-redux/utils/user_utils';
 
-import useGetLimits from 'components/common/hooks/useGetLimits';
 import {NotifyStatus} from 'components/common/hooks/useGetNotifyAdmin';
+import useGetServerLimits from 'components/common/hooks/useGetServerLimits';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
 
@@ -45,7 +45,8 @@ export default function CenterMessageLock(props: Props) {
 
     const {openPricingModal, isAirGapped} = useOpenPricingModal();
     const isAdminUser = isAdmin(useSelector(getCurrentUser).roles);
-    const [cloudLimits, limitsLoaded] = useGetLimits();
+
+    const [serverLimits, limitsLoaded] = useGetServerLimits();
     const currentTeam = useSelector(getCurrentTeam);
 
     // firstInaccessiblePostTime is the most recently inaccessible post's created at date.
@@ -77,7 +78,7 @@ export default function CenterMessageLock(props: Props) {
         team: currentTeam?.display_name,
     };
 
-    const limit = intl.formatNumber(cloudLimits?.messages?.history || 0);
+    const limit = intl.formatNumber(serverLimits?.postHistoryLimit || 0);
 
     let title = intl.formatMessage(
         {
