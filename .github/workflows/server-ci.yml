@@ -313,7 +313,7 @@ jobs:
       - go
       - check-mattermost-vet
     runs-on: ubuntu-22.04
-    container: mattermostdevelopment/mattermost-build-server-fips:${{ needs.go.outputs.version }}
+    container: mattermost/mattermost-build-server-fips:${{ needs.go.outputs.version }}
     defaults:
       run:
         working-directory: server
