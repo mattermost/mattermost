@@ -8145,6 +8145,10 @@
     "translation": "Your license does not support ID Loaded Push Notifications."
   },
   {
+    "id": "ent.jobs.start_synchronize_job.timeout",
+    "translation": "Reached AD/LDAP synchronization job timeout."
+  },
+  {
     "id": "ent.ldap.app_error",
     "translation": "ldap interface was nil."
   },
@@ -8299,6 +8303,18 @@
   {
     "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
     "translation": "Exporting channel information for {{.NumChannels}} channels."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Failed to calculate channel export data."
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Failed to convert a value from the job's data field."
+  },
+  {
+    "id": "ent.message_export.run_export.app_error",
+    "translation": "Failed to select message export data."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
