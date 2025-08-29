@@ -146,8 +146,6 @@ PLUGIN_PACKAGES += mattermost-plugin-calls-v1.10.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.10.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.3.0
-# We need to prepackage both versions of playbooks and install the correct one based on the server license. See MM-60025.
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.41.1
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0

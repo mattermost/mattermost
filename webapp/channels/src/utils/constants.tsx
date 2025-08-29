@@ -554,6 +554,7 @@ export enum LicenseSkus {
     Professional = 'professional',
     Enterprise = 'enterprise',
     EnterpriseAdvanced = 'advanced',
+    Entry = 'entry',
 }
 
 export function getLicenseTier(licenseSku: string): number {
@@ -562,6 +563,7 @@ export function getLicenseTier(licenseSku: string): number {
         return 10;
     case LicenseSkus.Enterprise:
         return 20;
+    case LicenseSkus.Entry:
     case LicenseSkus.EnterpriseAdvanced:
         return 30;
     default:
