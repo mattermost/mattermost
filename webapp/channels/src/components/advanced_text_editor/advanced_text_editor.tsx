@@ -43,6 +43,7 @@ import SuggestionList from 'components/suggestion/suggestion_list';
 import Textbox from 'components/textbox';
 import type {TextboxElement} from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
+import {convertDisplayPositionToRawPosition, convertRawPositionToDisplayPosition} from 'components/textbox/util';
 import {OnboardingTourSteps, OnboardingTourStepsForGuestUsers, TutorialTourName} from 'components/tours/constant';
 import {SendMessageTour} from 'components/tours/onboarding_tour';
 
@@ -294,7 +295,9 @@ const AdvancedTextEditor = ({
 
         setTimeout(() => {
             const textbox = textboxRef.current?.getInputBox();
-            Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
+            const displaySelectionStart = convertRawPositionToDisplayPosition(res.selectionStart, res.message, usersByUsername, teammateNameDisplay);
+            const displaySelectionEnd = convertRawPositionToDisplayPosition(res.selectionEnd, res.message, usersByUsername, teammateNameDisplay);
+            Utils.setSelectionRange(textbox, displaySelectionStart, displaySelectionEnd);
         });
     }, [showPreview, handleDraftChange, draft]);
 
@@ -339,6 +342,8 @@ const AdvancedTextEditor = ({
         handleDraftChange,
         showPreview,
         focusTextbox,
+        usersByUsername,
+        teammateNameDisplay,
     );
     const {
         labels: priorityLabels,
@@ -421,6 +426,14 @@ const AdvancedTextEditor = ({
         handleSubmitWithErrorHandling();
     }, [dispatch, draft, handleSubmitWithErrorHandling, isInEditMode, isRHS]);
 
+    const getCurrentRawValue = useCallback(() => {
+        let rawValue = '';
+        if (textboxRef.current && typeof textboxRef.current.getRawValue === 'function') {
+            rawValue = textboxRef.current.getRawValue();
+        }
+        return rawValue.length === 0 ? getCurrentValue() : rawValue;
+    }, [textboxRef]);
+
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
         channelId,
@@ -440,6 +453,9 @@ const AdvancedTextEditor = ({
         toggleEmojiPicker,
         isInEditMode,
         handleCancel,
+        getCurrentRawValue,
+        usersByUsername,
+        teammateNameDisplay,
     );
 
     const handleSubmitWithEvent = useCallback((e: React.FormEvent) => {
@@ -487,12 +503,23 @@ const AdvancedTextEditor = ({
 
     const getCurrentSelection = useCallback(() => {
         const input = textboxRef.current?.getInputBox();
+        if (!input) {
+            return {start: 0, end: 0};
+        }
+
+        const displayStart = input.selectionStart || 0;
+        const displayEnd = input.selectionEnd || 0;
+
+        const rawValue = getCurrentRawValue();
+
+        const rawStart = convertDisplayPositionToRawPosition(displayStart, rawValue, usersByUsername, teammateNameDisplay);
+        const rawEnd = convertDisplayPositionToRawPosition(displayEnd, rawValue, usersByUsername, teammateNameDisplay);
 
         return {
-            start: input.selectionStart,
-            end: input.selectionEnd,
+            start: rawStart,
+            end: rawEnd,
         };
-    }, [textboxRef]);
+    }, [textboxRef, getCurrentRawValue, usersByUsername, teammateNameDisplay]);
 
     const handleWidthChange = useCallback((width: number) => {
         const input = textboxRef.current?.getInputBox();
@@ -700,7 +727,7 @@ const AdvancedTextEditor = ({
             slot1={(
                 <FormattingBar
                     applyMarkdown={applyMarkdown}
-                    getCurrentMessage={getCurrentValue}
+                    getCurrentMessage={getCurrentRawValue}
                     getCurrentSelection={getCurrentSelection}
                     disableControls={showPreview}
                     additionalControls={additionalControls}

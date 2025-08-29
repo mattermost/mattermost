@@ -9,6 +9,7 @@ import {useSelector} from 'react-redux';
 
 import {EmoticonHappyOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Emoji} from '@mattermost/types/emojis';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
@@ -16,6 +17,7 @@ import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import useEmojiPicker, {useEmojiPickerOffset} from 'components/emoji_picker/use_emoji_picker';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import {generateDisplayValueFromRawValue, convertDisplayPositionToRawPosition} from 'components/textbox/util';
 import WithTooltip from 'components/with_tooltip';
 
 import {horizontallyWithin} from 'utils/floating';
@@ -35,6 +37,8 @@ const useEditorEmojiPicker = (
     handleDraftChange: (draft: PostDraft) => void,
     shouldShowPreview: boolean,
     focusTextbox: () => void,
+    usersByUsername?: Record<string, UserProfile>,
+    teammateNameDisplay?: string,
 ) => {
     const intl = useIntl();
 
@@ -63,14 +67,18 @@ const useEditorEmojiPicker = (
             setCaretPosition(newMessage.length);
         } else {
             const {message} = draft;
-            const {firstPiece, lastPiece} = splitMessageBasedOnCaretPosition(caretPosition, message);
+            const displayValue = generateDisplayValueFromRawValue(draft.message, usersByUsername, teammateNameDisplay);
+            const rawCaretPosition = convertDisplayPositionToRawPosition(caretPosition, message, usersByUsername, teammateNameDisplay);
+
+            const {firstPiece, lastPiece} = splitMessageBasedOnCaretPosition(rawCaretPosition, message);
+            const {firstPiece: displayFirstPiece} = splitMessageBasedOnCaretPosition(caretPosition, displayValue);
 
             // check whether the first piece of the message is empty when cursor is placed at beginning of message and avoid adding an empty string at the beginning of the message
             newMessage =
                 firstPiece === '' ? `:${emojiAlias}: ${lastPiece}` : `${firstPiece} :${emojiAlias}: ${lastPiece}`;
 
             const newCaretPosition =
-                firstPiece === '' ? `:${emojiAlias}: `.length : `${firstPiece} :${emojiAlias}: `.length;
+                displayFirstPiece === '' ? `:${emojiAlias}: `.length : `${displayFirstPiece} :${emojiAlias}: `.length;
             setCaretPosition(newCaretPosition);
         }
 

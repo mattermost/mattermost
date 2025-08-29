@@ -4,6 +4,7 @@
 import isNil from 'lodash/isNil';
 
 import type {TextboxElement} from 'components/textbox';
+import {convertDisplayPositionToRawPosition} from 'components/textbox/util';
 
 import {Locations} from 'utils/constants';
 import {execCommandInsertText} from 'utils/exec_commands';
@@ -176,7 +177,16 @@ export function isKnownTargetForPaste(event: ClipboardEvent, location: string, i
     return isKnownTarget;
 }
 
-export function pasteHandler(event: ClipboardEvent, location: string, message: string, isNonFormattedPaste: boolean, caretPosition?: number, isInEditMode?: boolean) {
+export function pasteHandler(
+    event: ClipboardEvent,
+    location: string,
+    message: string,
+    isNonFormattedPaste: boolean,
+    caretPosition?: number,
+    isInEditMode?: boolean,
+    usersByUsername?: Record<string, any>,
+    teammateNameDisplay?: string,
+) {
     const isKnownTarget = isKnownTargetForPaste(event, location, isInEditMode);
     if (!isKnownTarget || isNonFormattedPaste) {
         return;
@@ -188,7 +198,31 @@ export function pasteHandler(event: ClipboardEvent, location: string, message: s
         return;
     }
 
-    const {selectionStart, selectionEnd} = target as TextboxElement;
+    const {selectionStart: displaySelectionStart, selectionEnd: displaySelectionEnd} = target as TextboxElement;
+
+    // Convert display positions to raw positions
+    const selectionStart = convertDisplayPositionToRawPosition(
+        displaySelectionStart || 0,
+        message,
+        usersByUsername,
+        teammateNameDisplay,
+    );
+    const selectionEnd = convertDisplayPositionToRawPosition(
+        displaySelectionEnd || 0,
+        message,
+        usersByUsername,
+        teammateNameDisplay,
+    );
+
+    // Convert caretPosition from display to raw position if needed
+    const rawCaretPosition = caretPosition === undefined ?
+        undefined :
+        convertDisplayPositionToRawPosition(
+            caretPosition,
+            message,
+            usersByUsername,
+            teammateNameDisplay,
+        );
 
     const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
     const hasTextUrl = isTextUrl(clipboardData);
@@ -211,7 +245,7 @@ export function pasteHandler(event: ClipboardEvent, location: string, message: s
         const {formattedCodeBlock} = formatGithubCodePaste({selectionStart, selectionEnd, message, clipboardData});
         execCommandInsertText(formattedCodeBlock);
     } else {
-        const {formattedMarkdown} = formatMarkdownMessage(clipboardData, message, caretPosition);
+        const {formattedMarkdown} = formatMarkdownMessage(clipboardData, message, rawCaretPosition);
         execCommandInsertText(formattedMarkdown);
     }
 }

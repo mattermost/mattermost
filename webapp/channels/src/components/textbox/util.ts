@@ -157,6 +157,190 @@ export const generateRawValueFromMapValue = (mapValue: string, inputValue: strin
 };
 
 /**
+ * Generates a display value from the raw value by replacing usernames with their display names.
+ * @param rawValue - The raw value to process.
+ * @param usersByUsername - A mapping of usernames to user profiles.
+ * @param teammateNameDisplay - The display setting for teammate names.
+ * @returns The generated display value
+ */
+export const generateDisplayValueFromRawValue = (rawValue: string, usersByUsername: Record<string, UserProfile> = {}, teammateNameDisplay = Preferences.DISPLAY_PREFER_USERNAME): string => {
+    const mentionMappings = extractMentionRawMappings(rawValue);
+    const processedPositions = new Set<number>();
+
+    let result = rawValue;
+    for (const mapping of mentionMappings) {
+        const user = usersByUsername[mapping.username];
+        if (!user) {
+            continue;
+        }
+        const displayName = displayUsername(user, teammateNameDisplay, false);
+        result = replaceFirstUnprocessed(result, mapping.fullMatch, `@${displayName}`, processedPositions);
+    }
+    return result;
+};
+
+/**
+ * Converts a display position to a raw position.
+ * @param displayPosition - The position in the display value.
+ * @param rawValue - The raw value.
+ * @param usersByUsername - A mapping of usernames to user profiles.
+ * @param teammateNameDisplay - The display setting for teammate names.
+ * @returns The corresponding position in the raw value.
+ */
+export const convertDisplayPositionToRawPosition = (
+    displayPosition: number,
+    rawValue: string,
+    usersByUsername?: Record<string, UserProfile>,
+    teammateNameDisplay = Preferences.DISPLAY_PREFER_USERNAME,
+): number => {
+    if (!usersByUsername || displayPosition <= 0) {
+        return displayPosition;
+    }
+
+    const mapValue = generateMapValueFromRawValue(rawValue, usersByUsername, teammateNameDisplay);
+
+    const mentions: Array<{
+        username: string;
+        displayName: string;
+        rawStart: number;
+        rawEnd: number;
+        displayStart: number;
+        displayEnd: number;
+    }> = [];
+
+    let match;
+    let rawOffset = 0;
+    let displayOffset = 0;
+
+    while ((match = MENTION_REGEX.exec(mapValue)) !== null) {
+        const [fullMatch, username, displayName] = match;
+        const rawMentionLength = `@${username}`.length;
+        const displayMentionLength = `@${displayName}`.length;
+        const mapMentionStart = match.index;
+
+        const rawStart = mapMentionStart - rawOffset;
+        const rawEnd = rawStart + rawMentionLength;
+
+        const displayStart = mapMentionStart - displayOffset;
+        const displayEnd = displayStart + displayMentionLength;
+
+        mentions.push({
+            username,
+            displayName,
+            rawStart,
+            rawEnd,
+            displayStart,
+            displayEnd,
+        });
+
+        const rawOffsetIncrement = fullMatch.length - rawMentionLength;
+        const displayOffsetIncrement = fullMatch.length - displayMentionLength;
+        rawOffset += rawOffsetIncrement;
+        displayOffset += displayOffsetIncrement;
+    }
+
+    let rawPosition = displayPosition;
+
+    for (const mention of mentions) {
+        if (displayPosition <= mention.displayStart) {
+            break;
+        } else if (displayPosition <= mention.displayEnd) {
+            rawPosition = mention.rawEnd;
+            break;
+        } else {
+            const lengthDiff = mention.rawEnd - mention.rawStart - (mention.displayEnd - mention.displayStart);
+            rawPosition += lengthDiff;
+        }
+    }
+
+    return Math.max(0, Math.min(rawPosition, rawValue.length));
+};
+
+/**
+ * Converts a raw position to a display position.
+ * @param rawPosition - The position in the raw value.
+ * @param rawValue - The raw value.
+ * @param usersByUsername - A mapping of usernames to user profiles.
+ * @param teammateNameDisplay - The display setting for teammate names.
+ * @returns The corresponding position in the display value.
+ */
+export const convertRawPositionToDisplayPosition = (
+    rawPosition: number,
+    rawValue: string,
+    usersByUsername?: Record<string, UserProfile>,
+    teammateNameDisplay = Preferences.DISPLAY_PREFER_USERNAME,
+): number => {
+    if (!usersByUsername || rawPosition <= 0) {
+        return rawPosition;
+    }
+
+    const mapValue = generateMapValueFromRawValue(rawValue, usersByUsername, teammateNameDisplay);
+
+    const mentions: Array<{
+        username: string;
+        displayName: string;
+        rawStart: number;
+        rawEnd: number;
+        displayStart: number;
+        displayEnd: number;
+    }> = [];
+
+    let match;
+    let rawOffset = 0;
+    let displayOffset = 0;
+
+    while ((match = MENTION_REGEX.exec(mapValue)) !== null) {
+        const [fullMatch, username, displayName] = match;
+        const rawMentionLength = `@${username}`.length;
+        const displayMentionLength = `@${displayName}`.length;
+        const mapMentionStart = match.index;
+
+        const rawStart = mapMentionStart - rawOffset;
+        const rawEnd = rawStart + rawMentionLength;
+
+        const displayStart = mapMentionStart - displayOffset;
+        const displayEnd = displayStart + displayMentionLength;
+
+        mentions.push({
+            username,
+            displayName,
+            rawStart,
+            rawEnd,
+            displayStart,
+            displayEnd,
+        });
+
+        const rawOffsetIncrement = fullMatch.length - rawMentionLength;
+        const displayOffsetIncrement = fullMatch.length - displayMentionLength;
+        rawOffset += rawOffsetIncrement;
+        displayOffset += displayOffsetIncrement;
+    }
+
+    let displayPosition = rawPosition;
+    let accumulatedLengthDiff = 0;
+
+    for (const mention of mentions) {
+        if (rawPosition <= mention.rawStart) {
+            displayPosition = rawPosition + accumulatedLengthDiff;
+            break;
+        } else if (rawPosition <= mention.rawEnd) {
+            displayPosition = mention.displayEnd;
+            break;
+        } else {
+            const lengthDiff = mention.displayEnd - mention.displayStart - (mention.rawEnd - mention.rawStart);
+            accumulatedLengthDiff += lengthDiff;
+        }
+    }
+
+    if (mentions.length > 0 && rawPosition > mentions[mentions.length - 1].rawEnd) {
+        displayPosition = rawPosition + accumulatedLengthDiff;
+    }
+
+    const displayValue = generateDisplayValueFromMapValue(mapValue);
+    return Math.max(0, Math.min(displayPosition, displayValue.length));
+};
+
+/**
  * Updates the component state when a mention suggestion is selected.
  * @param item - The selected suggestion item.
  * @param inputValue - The current input value.
