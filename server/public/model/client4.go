@@ -4706,6 +4706,27 @@ func (c *Client4) SubmitInteractiveDialog(ctx context.Context, request SubmitDia
 	return &resp, BuildResponse(r), nil
 }
 
+// LookupInteractiveDialog will perform a lookup request for dynamic select elements
+// in interactive dialogs. Used to fetch options for dynamic select fields.
+func (c *Client4) LookupInteractiveDialog(ctx context.Context, request SubmitDialogRequest) (*LookupDialogResponse, *Response, error) {
+	b, err := json.Marshal(request)
+	if err != nil {
+		return nil, nil, NewAppError("LookupInteractiveDialog", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPost(ctx, "/actions/dialogs/lookup", string(b))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var resp LookupDialogResponse
+	err = json.NewDecoder(r.Body).Decode(&resp)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("LookupInteractiveDialog", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &resp, BuildResponse(r), nil
+}
+
 // UploadFile will upload a file to a channel using a multipart request, to be later attached to a post.
 // This method is functionally equivalent to Client4.UploadFileAsRequestBody.
 func (c *Client4) UploadFile(ctx context.Context, data []byte, channelId string, filename string) (*FileUploadResponse, *Response, error) {
