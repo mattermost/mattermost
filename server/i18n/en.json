@@ -536,10 +536,6 @@
     "translation": "{{.Username}} unarchived the channel."
   },
   {
-    "id": "api.channel.search_archived_channels_for_team.guest.app_error",
-    "translation": "Guests are not allowed to search archived channels."
-  },
-  {
     "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
     "translation": "Channel banner can only be configured on Public and Private channels."
   },
