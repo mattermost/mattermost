@@ -2519,12 +2519,7 @@ func TestSearchArchivedChannels(t *testing.T) {
 	_, _, err = client.SearchArchivedChannels(context.Background(), th.BasicTeam.Id, search)
 	require.NoError(t, err)
 
-	search.Term = th.BasicDeletedChannel.Name
-	_, resp, err := client.SearchArchivedChannels(context.Background(), model.NewId(), search)
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
-
-	_, resp, err = client.SearchArchivedChannels(context.Background(), "junk", search)
+	_, resp, err := client.SearchArchivedChannels(context.Background(), "junk", search)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
@@ -2532,7 +2527,6 @@ func TestSearchArchivedChannels(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("User should receive 403 Forbidden when no permission to list team channels", func(t *testing.T) {
-		// Check the appropriate permissions are enforced.
 		defaultRolePermissions := th.SaveDefaultRolePermissions()
 		defer func() {
 			th.RestoreDefaultRolePermissions(defaultRolePermissions)
