@@ -25,6 +25,17 @@ on:
       go-version:
         required: true
         type: string
+      fips-enabled:
+        required: false
+        default: false
+        type: boolean
+
+env:
+  CHAINCTL_IDENTITY: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   test:
@@ -34,12 +45,29 @@ jobs:
     env:
       COMPOSE_PROJECT_NAME: ghactions
     steps:
+      - uses: chainguard-dev/setup-chainctl@main
+        if: ${{ inputs.fips-enabled }}
+        with:
+          identity: ${{ env.CHAINCTL_IDENTITY }}
+
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Setup BUILD_IMAGE
+        id: build
+        run: |
+          if [[ ${{ inputs.fips-enabled }} == 'true' ]]; then
+            echo "IMAGE=mattermost/mattermost-build-server-fips:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
+            echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}-fips" >> "${GITHUB_OUTPUT}"
+          else
+            echo "IMAGE=mattermostdevelopment/mattermost-build-server:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
+            echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}" >> "${GITHUB_OUTPUT}"
+          fi
+
       - name: Store required variables for publishing results
         run: |
           echo "${{ inputs.name }}" > server/test-name
           echo "${{ github.event.pull_request.number }}" > server/pr-number
+
       - name: Run docker compose
         run: |
           cd server/build
@@ -49,9 +77,10 @@ jobs:
           cat ../tests/test-data.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
           docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker compose --ansi never ps
+
       - name: Run Tests
         env:
-          BUILD_IMAGE: mattermostdevelopment/mattermost-build-server:${{ inputs.go-version }}
+          BUILD_IMAGE: ${{ steps.build.outputs.IMAGE }}
         run: |
           if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true ]]; then
             export RACE_MODE="-race"
@@ -61,14 +90,13 @@ jobs:
             --env-file=server/build/dotenv/test.env \
             --env MM_SQLSETTINGS_DRIVERNAME="${{ inputs.drivername }}" \
             --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
-            --env TEST_DATABASE_MYSQL_DSN="${{ inputs.datasource }}" \
             --env TEST_DATABASE_POSTGRESQL_DSN="${{ inputs.datasource }}" \
             --env ENABLE_FULLY_PARALLEL_TESTS="${{ inputs.fullyparallel }}" \
             --env ENABLE_COVERAGE="${{ inputs.enablecoverage }}" \
-            -v $(go env GOCACHE):/go/cache \
-            -e GOCACHE=/go/cache \
+            --env FIPS_TEST_ENABLED="${{ inputs.fips-enabled }}" \
             -v $PWD:/mattermost \
             -w /mattermost/server \
+            --entrypoint "/bin/bash" \
             $BUILD_IMAGE \
             make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
       - name: Upload coverage to Codecov
@@ -78,15 +106,17 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           disable_search: true
           files: server/cover.out
+
       - name: Stop docker compose
         run: |
           cd server/build
           docker compose --ansi never stop
+
       - name: Archive logs
         if: ${{ always() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: ${{ inputs.logsartifact }}
+          name: ${{ steps.build.outputs.LOG_ARTIFACT_NAME }}
           path: |
             server/gotestsum.json
             server/report.xml
