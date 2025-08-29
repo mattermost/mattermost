@@ -26,6 +26,8 @@ export type PropertyField = {
     delete_at: number;
 };
 
+export type NameMappedPropertyFields = {[key: PropertyField['name']]: PropertyField};
+
 export type PropertyValue<T> = {
     id: string;
     target_id: string;

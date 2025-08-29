@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ContentFlaggingConfig} from '@mattermost/types/content_flagging';
-import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
-import type {IDMappedCollection} from '@mattermost/types/utilities';
+import type {NameMappedPropertyFields, PropertyValue} from '@mattermost/types/properties';
 
 import {TeamTypes, ContentFlaggingTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
@@ -57,11 +56,12 @@ export function getContentFlaggingConfig(): ActionFuncAsync<ContentFlaggingConfi
     };
 }
 
-export function getPostContentFlaggingFields(): ActionFuncAsync<IDMappedCollection<PropertyField>> {
+export function getPostContentFlaggingFields(): ActionFuncAsync<NameMappedPropertyFields> {
     return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getPostContentFlaggingFields();
+            console.log({data});
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -77,7 +77,7 @@ export function getPostContentFlaggingFields(): ActionFuncAsync<IDMappedCollecti
     };
 }
 
-export function loadPostContentFlaggingFields(): ActionFuncAsync<IDMappedCollection<PropertyField>> {
+export function loadPostContentFlaggingFields(): ActionFuncAsync<NameMappedPropertyFields> {
     // Use data loader and fetch data to manage multiple, simultaneous dispatches
     return async (dispatch, getState, {loaders}: any) => {
         if (!loaders.postContentFlaggingFieldsLoader) {
@@ -88,7 +88,7 @@ export function loadPostContentFlaggingFields(): ActionFuncAsync<IDMappedCollect
             });
         }
 
-        const loader = loaders.postContentFlaggingFieldsLoader as DelayedDataLoader<Array<PropertyValue<unknown>>>;
+        const loader = loaders.postContentFlaggingFieldsLoader;
         loader.queue([true]);
 
         return {};

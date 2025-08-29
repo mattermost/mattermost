@@ -190,7 +190,9 @@ export default function DataSpillageReport({post, isRHS}: Props) {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
 
-    const propertyFields = useContentFlaggingFields(true);
+    console.log('useContentFlaggingFields');
+    const nameMappedPropertyFields = useContentFlaggingFields('fetch') || {};
+    const propertyFields = Object.values(nameMappedPropertyFields);
     const [propertyValues, setPropertyValues] = useState<Array<PropertyValue<unknown>>>([]);
 
     const reportedPostId = post.props.reported_post_id as string;
