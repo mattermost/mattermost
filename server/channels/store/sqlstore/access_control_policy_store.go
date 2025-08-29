@@ -476,7 +476,7 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccess
 
 	if !cursor.IsEmpty() {
 		query = query.Where(sq.Or{
-			sq.Gt{"ID": cursor.ID},
+			sq.Gt{"Id": cursor.ID},
 		})
 	}
 
@@ -569,7 +569,7 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	}
 
 	if len(opts.IDs) > 0 {
-		condition := sq.Eq{"ID": opts.IDs}
+		condition := sq.Eq{"Id": opts.IDs}
 		query = query.Where(condition)
 		count = count.Where(condition)
 	}
@@ -577,7 +577,7 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	cursor := opts.Cursor
 
 	if !cursor.IsEmpty() {
-		query = query.Where(sq.Gt{"ID": cursor.ID})
+		query = query.Where(sq.Gt{"Id": cursor.ID})
 	}
 
 	limit := uint64(opts.Limit)
