@@ -4,7 +4,6 @@
 import deepEqual from 'fast-deep-equal';
 import React from 'react';
 import type {ReactNode} from 'react';
-import Scrollbars from 'react-custom-scrollbars';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
@@ -14,6 +13,7 @@ import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import {emitCloseRightHandSide} from 'actions/global_actions';
 
+import Scrollbars from 'components/common/scrollbars';
 import Markdown from 'components/markdown';
 import PostProfilePicture from 'components/post_profile_picture';
 import RhsCardHeader from 'components/rhs_card_header';
@@ -37,33 +37,6 @@ type Props = {
 type State = {
     isScrolling: boolean;
 };
-
-export function renderView(props: Props) {
-    return (
-        <div
-            {...props}
-            className='scrollbar--view'
-        />
-    );
-}
-
-export function renderThumbHorizontal(props: Props) {
-    return (
-        <div
-            {...props}
-            className='scrollbar--horizontal'
-        />
-    );
-}
-
-export function renderThumbVertical(props: Props) {
-    return (
-        <div
-            {...props}
-            className='scrollbar--vertical'
-        />
-    );
-}
 
 export default class RhsCard extends React.Component<Props, State> {
     scrollStopAction: DelayedAction;
@@ -165,15 +138,7 @@ export default class RhsCard extends React.Component<Props, State> {
         return (
             <div className='sidebar-right__body sidebar-right__card'>
                 <RhsCardHeader previousRhsState={this.props.previousRhsState}/>
-                <Scrollbars
-                    autoHide={true}
-                    autoHideTimeout={500}
-                    autoHideDuration={500}
-                    renderThumbHorizontal={renderThumbHorizontal}
-                    renderThumbVertical={renderThumbVertical}
-                    renderView={renderView}
-                    onScroll={this.handleScroll}
-                >
+                <Scrollbars onScroll={this.handleScroll}>
                     <div className='post-right__scroll'>
                         {content}
                         <div className='d-flex post-card--info'>
