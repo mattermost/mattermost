@@ -6231,6 +6231,18 @@
     "translation": "Could not update last login timestamp"
   },
   {
+    "id": "app.lookup_interactive_dialog.decode_json_error",
+    "translation": "Encountered an error decoding JSON response from interactive dialog lookup."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.json_error",
+    "translation": "Encountered an error processing JSON response from interactive dialog lookup."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.read_body_error",
+    "translation": "Encountered an error reading response body from interactive dialog lookup."
+  },
+  {
     "id": "app.member_count",
     "translation": "error retrieving member count"
   },
