@@ -61,7 +61,6 @@ export function getPostContentFlaggingFields(): ActionFuncAsync<NameMappedProper
         let data;
         try {
             data = await Client4.getPostContentFlaggingFields();
-            console.log({data});
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -92,5 +91,29 @@ export function loadPostContentFlaggingFields(): ActionFuncAsync<NameMappedPrope
         loader.queue([true]);
 
         return {};
+    };
+}
+
+export function getPostContentFlaggingValues(postId: string): ActionFuncAsync<Array<PropertyValue<unknown>>> {
+    return async (dispatch, getState) => {
+        let response;
+
+        try {
+            response = await Client4.getPostContentFlaggingValues(postId);
+
+            dispatch({
+                type: ContentFlaggingTypes.RECEIVED_POST_CONTENT_FLAGGING_VALUES,
+                data: {
+                    postId,
+                    values: response,
+                },
+            });
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        return {data: response};
     };
 }

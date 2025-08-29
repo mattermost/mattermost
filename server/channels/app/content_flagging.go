@@ -20,6 +20,8 @@ import (
 const (
 	CONTENT_FLAGGING_MAX_PROPERTY_FIELDS = 100
 	CONTENT_FLAGGING_MAX_PROPERTY_VALUES = 100
+
+	FlaggedPostIdPropKey = "reported_post_id"
 )
 
 func ContentFlaggingEnabledForTeam(config *model.Config, teamId string) bool {
@@ -210,6 +212,8 @@ func (a *App) createContentReviewPost(c request.CTX, teamId, postId string) *mod
 			Type:      model.ContentFlaggingPostType,
 			ChannelId: channel.Id,
 		}
+		post.AddProp(FlaggedPostIdPropKey, postId)
+
 		_, appErr := a.CreatePost(c, post, channel, model.CreatePostFlags{})
 		if appErr != nil {
 			c.Logger().Error("Failed to create content review post in one of the channels", mlog.Err(appErr), mlog.String("channel_id", channel.Id), mlog.String("team_id", teamId))

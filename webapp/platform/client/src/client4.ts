@@ -113,7 +113,7 @@ import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageRe
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
 import {
-    NameMappedPropertyFields,
+    NameMappedPropertyFields, type PropertyValue,
     UserPropertyField,
     UserPropertyFieldPatch,
 } from '@mattermost/types/properties';
@@ -4646,6 +4646,13 @@ export default class Client4 {
     getPostContentFlaggingFields = () => {
         return this.doFetch<NameMappedPropertyFields>(
             `${this.getContentFlaggingRoute()}/fields`,
+            {method: 'get'},
+        );
+    };
+
+    getPostContentFlaggingValues = (postId: string) => {
+        return this.doFetch<Array<PropertyValue<unknown>>>(
+            `${this.getContentFlaggingRoute()}/post/${postId}/field_values`,
             {method: 'get'},
         );
     };

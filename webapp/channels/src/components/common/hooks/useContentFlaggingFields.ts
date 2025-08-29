@@ -1,10 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {NameMappedPropertyFields} from '@mattermost/types/properties';
+import type {NameMappedPropertyFields, PropertyValue} from '@mattermost/types/properties';
 
-import {loadPostContentFlaggingFields} from 'mattermost-redux/actions/content_flagging';
-import {contentFlaggingFields} from 'mattermost-redux/selectors/entities/content_flagging';
+import {
+    getPostContentFlaggingValues,
+    loadPostContentFlaggingFields,
+} from 'mattermost-redux/actions/content_flagging';
+import {
+    contentFlaggingFields,
+    postContentFlaggingValues,
+} from 'mattermost-redux/selectors/entities/content_flagging';
 
 import {makeUseEntity} from 'components/common/hooks/useEntity';
 
@@ -12,4 +18,10 @@ export const useContentFlaggingFields = makeUseEntity<NameMappedPropertyFields |
     name: 'useContentFlaggingFields',
     fetch: loadPostContentFlaggingFields,
     selector: contentFlaggingFields,
+});
+
+export const usePostContentFlaggingValues = makeUseEntity<Array<PropertyValue<unknown>>>({
+    name: 'usePostContentFlaggingValues',
+    fetch: getPostContentFlaggingValues,
+    selector: postContentFlaggingValues,
 });

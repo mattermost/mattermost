@@ -23,6 +23,8 @@ export default function PostPreviewPropertyRenderer({value}: Props) {
     const channel = useChannel(post?.channel_id || '');
     const team = useTeam(channel?.team_id || '');
 
+    console.log('PostPreviewPropertyRenderer', {value, post, channel, team});
+
     const {formatMessage} = useIntl();
 
     if (!post || !channel || !team) {

@@ -175,12 +175,18 @@ func getPostPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	// The requesting user must be a reviewer of the post's team
 	// to be able to fetch the post's Content Flagging property values
 	postId := c.Params.PostId
-	post, appErr := c.App.GetPostIfAuthorized(c.AppContext, postId, c.AppContext.Session(), false)
+	posts, _, appErr := c.App.GetPostsByIds([]string{postId})
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
+	if len(posts) == 0 {
+		c.Err = model.NewAppError("getPostPropertyValues", "app.post.get.app_error", nil, "", http.StatusNotFound)
+		return
+	}
+
+	post := posts[0]
 	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
 	if appErr != nil {
 		c.Err = appErr

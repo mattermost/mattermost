@@ -4,7 +4,11 @@
 import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
+import type {
+    NameMappedPropertyFields,
+    PropertyField,
+    PropertyValue,
+} from "@mattermost/types/properties";
 
 import PropertyValueRenderer from './propertyValueRenderer/propertyValueRenderer';
 
@@ -12,7 +16,7 @@ import './properties_card_view.scss';
 
 type Props = {
     title: React.ReactNode;
-    propertyFields: PropertyField[];
+    propertyFields: NameMappedPropertyFields;
     fieldOrder: Array<PropertyField['id']>;
     shortModeFieldOrder: Array<PropertyField['id']>;
     propertyValues: Array<PropertyValue<unknown>>;
@@ -22,14 +26,15 @@ type Props = {
 
 export default function PropertiesCardView({title, propertyFields, fieldOrder, shortModeFieldOrder, propertyValues, mode, actionsRow}: Props) {
     const orderedRows = useMemo<Array<{field: PropertyField; value: PropertyValue<unknown>}>>(() => {
-        if (!propertyFields.length || !fieldOrder.length || !propertyValues.length) {
+        console.log('orderedRows');
+        if (!Object.keys(propertyFields).length || !fieldOrder.length || !propertyValues.length) {
             return [];
         }
 
-        const fieldsById = propertyFields.reduce((acc, field) => {
-            acc[field.id] = field;
-            return acc;
-        }, {} as {[key: string]: PropertyField});
+        // const fieldsById = propertyFields.reduce((acc, field) => {
+        //     acc[field.id] = field;
+        //     return acc;
+        // }, {} as {[key: string]: PropertyField});
 
         const valuesByFieldId = propertyValues.reduce((acc, value) => {
             acc[value.field_id] = value;
@@ -37,9 +42,13 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
         }, {} as {[key: string]: PropertyValue<unknown>});
 
         const fieldOrderToUse = mode === 'short' ? shortModeFieldOrder : fieldOrder;
-        return fieldOrderToUse.map((fieldId) => {
-            const field = fieldsById[fieldId];
-            const value = valuesByFieldId[fieldId];
+        return fieldOrderToUse.map((fieldName) => {
+            const field = propertyFields[fieldName];
+            if (!field) {
+                console.log("NOOOOOOOOO", {fieldName});
+            }
+
+            const value = valuesByFieldId[field.id];
 
             return {
                 field,
@@ -49,6 +58,7 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
     }, [fieldOrder, mode, propertyFields, propertyValues, shortModeFieldOrder]);
 
     if (orderedRows.length === 0) {
+        console.log('Hey!');
         return null;
     }
 
