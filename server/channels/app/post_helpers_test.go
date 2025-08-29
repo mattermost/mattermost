@@ -326,7 +326,11 @@ func TestFilterInaccessiblePosts(t *testing.T) {
 func TestGetFilteredAccessiblePosts(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	th.App.Srv().SetLicense(model.NewMattermostEntryLicense("test-server-id"))
+
+	entryLicenseWithLimits := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+	entryLicenseWithLimits.Limits = &model.LicenseLimits{PostHistory: 100}
+	th.App.Srv().SetLicense(entryLicenseWithLimits)
+
 	err := th.App.Srv().Store().System().Save(&model.System{
 		Name:  model.SystemLastAccessiblePostTime,
 		Value: "2",

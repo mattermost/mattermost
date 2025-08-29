@@ -1609,9 +1609,14 @@ func (a *App) convertUserNameToUserIds(c request.CTX, usernames []string) []stri
 // GetLastAccessiblePostTime returns CreateAt time(from cache) of the last accessible post as per the license limit
 func (a *App) GetLastAccessiblePostTime() (int64, *model.AppError) {
 
-	// Only calculate the last accessible post time for Entry license
+	// Only calculate the last accessible post time when there are actual post history limits
 	license := a.Srv().License()
 	if license == nil || !license.IsMattermostEntry() {
+		return 0, nil
+	}
+
+	// Check if license actually has post history limits enabled
+	if license.Limits == nil || license.Limits.PostHistory == 0 {
 		return 0, nil
 	}
 

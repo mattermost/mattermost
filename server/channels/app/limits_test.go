@@ -622,7 +622,7 @@ func TestGetServerLimitsWithPostHistory(t *testing.T) {
 		mockStore.On("System").Return(&mockSystemStore)
 
 		// Create Entry license with post history limit
-		license := model.NewMattermostEntryLicense("test-server-id")
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
 		license.Limits = &model.LicenseLimits{
 			PostHistory: 1000,
 		}
@@ -653,7 +653,7 @@ func TestGetServerLimitsWithPostHistory(t *testing.T) {
 		mockStore.On("System").Return(&mockSystemStore)
 
 		// Create Entry license with post history limit
-		license := model.NewMattermostEntryLicense("test-server-id")
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
 		license.Limits = &model.LicenseLimits{
 			PostHistory: 1000,
 		}
@@ -680,7 +680,7 @@ func TestGetServerLimitsWithPostHistory(t *testing.T) {
 		mockStore.On("System").Return(&mockSystemStore)
 
 		// Create Entry license with post history limit
-		license := model.NewMattermostEntryLicense("test-server-id")
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
 		license.Limits = &model.LicenseLimits{
 			PostHistory: 1000,
 		}
@@ -754,7 +754,8 @@ func TestGetPostHistoryLimit(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		license := model.NewMattermostEntryLicense("test-server-id")
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+
 		license.Limits = &model.LicenseLimits{
 			PostHistory: 2000,
 		}

@@ -3494,8 +3494,26 @@ func TestGetLastAccessiblePostTime(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, int64(0), r)
 
+	// Test with Entry license but no limits configured - should return 0
+	entryLicenseNoLimits := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+	entryLicenseNoLimits.Limits = nil // No limits configured
+	th.App.Srv().SetLicense(entryLicenseNoLimits)
+	r, err = th.App.GetLastAccessiblePostTime()
+	assert.Nil(t, err)
+	assert.Equal(t, int64(0), r, "Entry license with no limits should return 0")
+
+	// Test with Entry license with zero post history limit - should return 0
+	entryLicenseZeroLimit := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+	entryLicenseZeroLimit.Limits = &model.LicenseLimits{PostHistory: 0} // Zero limit
+	th.App.Srv().SetLicense(entryLicenseZeroLimit)
+	r, err = th.App.GetLastAccessiblePostTime()
+	assert.Nil(t, err)
+	assert.Equal(t, int64(0), r, "Entry license with zero post history limit should return 0")
+
 	// Test with Entry license that has post history limits
-	th.App.Srv().SetLicense(model.NewMattermostEntryLicense("test-server-id"))
+	entryLicenseWithLimits := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+	entryLicenseWithLimits.Limits = &model.LicenseLimits{PostHistory: 1000} // Actual limit
+	th.App.Srv().SetLicense(entryLicenseWithLimits)
 
 	// Test case 1: No system value found (ErrNotFound) - should return 0
 	mockSystemStore := storemocks.SystemStore{}
@@ -3528,7 +3546,9 @@ func TestComputeLastAccessiblePostTime(t *testing.T) {
 		defer th.TearDown()
 
 		// Set Entry license with post history limit of 100 messages
-		th.App.Srv().SetLicense(model.NewMattermostEntryLicense("test-server-id"))
+		entryLicensePostsLimit := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+		entryLicensePostsLimit.Limits = &model.LicenseLimits{PostHistory: 100}
+		th.App.Srv().SetLicense(entryLicensePostsLimit)
 
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockPostStore := storemocks.PostStore{}
