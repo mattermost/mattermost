@@ -918,10 +918,6 @@
     "translation": "shrug"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "사용자 설정을 위한 새로운 형식은 아직 지원되지 않습니다. 명령문에서 format=old 를 명시해 주세요."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "죄송합니다, 페이지를 찾을 수 없습니다."
   },
@@ -2066,14 +2062,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "봇 로그인은 금지되어 있습니다."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "유효한 인증서를 제공하지 않고 실험 기능인 ClientSideCert를 사용하여 로그인을 시도했습니다."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "유효한 엔터프라이즈 라이선스가 없이 실험 기능인 ClientSideCertEnable을 사용하려고 합니다."
   },
   {
     "id": "api.user.login.inactive.app_error",

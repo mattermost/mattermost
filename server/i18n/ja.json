@@ -920,10 +920,6 @@
     "translation": "shrug"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "クライアントの設定で新しい形式がまだサポートされていません。クエリー文字列に format=old を指定してください。"
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "申し訳ありません。ページが見付かりません。"
   },
@@ -2068,14 +2064,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Bot login is forbidden。"
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "有効な証明書が無い状態で、実験的な機能である ClientSideCert でのサインインを試みました。"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "有効なエンタープライズライセンスが無い状態で、実験的な機能である ClientSideCertEnable の使用を試みています。"
   },
   {
     "id": "api.user.login.inactive.app_error",
