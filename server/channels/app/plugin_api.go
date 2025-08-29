@@ -153,11 +153,11 @@ func (api *PluginAPI) GetSystemInstallDate() (int64, *model.AppError) {
 }
 
 func (api *PluginAPI) GetDiagnosticId() string {
-	return api.app.TelemetryId()
+	return api.app.ServerId()
 }
 
 func (api *PluginAPI) GetTelemetryId() string {
-	return api.app.TelemetryId()
+	return api.app.ServerId()
 }
 
 func (api *PluginAPI) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {

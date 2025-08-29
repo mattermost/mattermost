@@ -263,7 +263,6 @@ const defaultServerConfig: AdminConfig = {
         FileLocation: '',
         EnableWebhookDebugging: true,
         EnableDiagnostics: true,
-        VerboseDiagnostics: false,
         EnableSentry: true,
         AdvancedLoggingJSON: {},
         MaxFieldSize: 2048,

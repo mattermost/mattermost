@@ -7,24 +7,12 @@ import {Provider} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
-import Carousel from 'components/common/carousel/carousel';
 import TrialBenefitsModal from 'components/trial_benefits_modal/trial_benefits_modal';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
-import {TELEMETRY_CATEGORIES} from 'utils/constants';
 
 const mockLocation = {pathname: '', search: '', hash: ''};
-
-jest.mock('actions/telemetry_actions.jsx', () => {
-    const original = jest.requireActual('actions/telemetry_actions.jsx');
-    return {
-        ...original,
-        trackEvent: jest.fn(),
-    };
-});
 
 jest.mock('components/admin_console/blockable_link', () => {
     return () => {
@@ -150,37 +138,6 @@ describe('components/trial_benefits_modal/trial_benefits_modal', () => {
         wrapper.find(GenericModal).props().onExited?.();
 
         expect(mockOnExited).toHaveBeenCalled();
-    });
-
-    test('should handle slide prev next click', () => {
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <TrialBenefitsModal
-                    {...props}
-                />
-            </Provider>,
-        );
-
-        wrapper.find(Carousel).props().onNextSlideClick!(5);
-
-        expect(trackEvent).toHaveBeenCalledWith(
-            TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL,
-            'benefits_modal_post_enterprise_view',
-        );
-
-        wrapper.find(Carousel).props().onNextSlideClick!(4);
-
-        expect(trackEvent).toHaveBeenCalledWith(
-            TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL,
-            'benefits_modal_slide_shown_playbooks',
-        );
-
-        wrapper.find(Carousel).props().onPrevSlideClick!(2);
-
-        expect(trackEvent).toHaveBeenCalledWith(
-            TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL,
-            'benefits_modal_slide_shown_ldap',
-        );
     });
 
     test('should present the just started trial modal content', () => {

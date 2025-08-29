@@ -102,7 +102,7 @@ function SearchLimitsBanner(props: Props) {
                 storage: asGBString(fileStorageLimit, formatNumber),
                 a: (chunks: React.ReactNode | React.ReactNodeArray) => (
                     <StyledA
-                        onClick={() => openPricingModal({trackingLocation: 'file_search_limits_banner'})}
+                        onClick={() => openPricingModal()}
                     >
                         {chunks}
                     </StyledA>
@@ -130,7 +130,7 @@ function SearchLimitsBanner(props: Props) {
                 messages: formatNumber(messagesLimit),
                 a: (chunks: React.ReactNode | React.ReactNodeArray) => (
                     <StyledA
-                        onClick={() => openPricingModal({trackingLocation: 'messages_search_limits_banner'})}
+                        onClick={() => openPricingModal()}
                     >
                         {chunks}
                     </StyledA>
