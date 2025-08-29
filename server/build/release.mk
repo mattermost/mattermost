@@ -224,3 +224,14 @@ package-windows: package-prep
 package: package-linux
 	rm -rf tmpprepackaged
 	rm -rf $(DIST_PATH)
+
+test-fips-linux-amd64:
+	DIST_PATH_GENERIC=$(DIST_PATH_LIN_AMD64) CURRENT_PACKAGE_ARCH=linux_amd64 MM_BIN_NAME=mattermost MMCTL_BIN_NAME=mmctl $(MAKE) test-fips-general
+
+test-fips-general:
+	$(GO) version -m $(GOBIN)/$(MM_BIN_NAME) | grep -q "GOEXPERIMENT=systemcrypto" || (echo "ERROR: FIPS mattermost binary missing GOEXPERIMENT=systemcrypto" && exit 1)
+	$(GO) version -m $(GOBIN)/$(MM_BIN_NAME) | grep -q "\-tags=requirefips" || (echo "ERROR: FIPS mattermost binary missing -tags=requirefips" && exit 1)
+	$(GO) tool nm $(GOBIN)/$(MM_BIN_NAME) | grep -q "func_go_openssl_OpenSSL_version" || (echo "ERROR: FIPS mattermost binary missing OpenSSL integration" && exit 1)
+	$(GO) version -m $(GOBIN)/$(MMCTL_BIN_NAME) | grep -q "GOEXPERIMENT=systemcrypto" || (echo "ERROR: FIPS mmctl binary missing GOEXPERIMENT=systemcrypto" && exit 1)
+	$(GO) version -m $(GOBIN)/$(MMCTL_BIN_NAME) | grep -q "\-tags=requirefips" || (echo "ERROR: FIPS mmctl binary missing -tags=requirefips" && exit 1)
+	$(GO) tool nm $(GOBIN)/$(MMCTL_BIN_NAME) | grep -q "func_go_openssl_OpenSSL_version" || (echo "ERROR: FIPS mmctl binary missing OpenSSL integration" && exit 1)

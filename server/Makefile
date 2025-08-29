@@ -106,6 +106,12 @@ GOFLAGS ?= $(GOFLAGS:)
 # for processes spawned from the Makefile
 export GOBIN ?= $(PWD)/bin
 GO ?= go
+
+FIPS_ENABLED ?= false
+ifeq ($(FIPS_ENABLED),true)
+	BUILD_TAGS += requirefips
+endif
+
 DELVE ?= dlv
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildNumber=$(BUILD_NUMBER)"
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildDate=$(BUILD_DATE)"
