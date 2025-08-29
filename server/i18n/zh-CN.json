@@ -920,10 +920,6 @@
     "translation": "shrug"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "暂未支持客户端配置的新格式。请在查询字串指定 format=old。"
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "对不起，我们找不到该页面。"
   },
@@ -2068,14 +2064,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "禁止机器人登入。"
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "尝试使用实验功能 ClientSideCert 登入但未提供有效的证书。"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "尝试使用实验功能 ClientSideCert 登入但未拥有有效的企业许可证。"
   },
   {
     "id": "api.user.login.inactive.app_error",
