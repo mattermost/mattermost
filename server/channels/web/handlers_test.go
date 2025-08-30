@@ -176,12 +176,13 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	web := New(th.Server)
 
 	handler := Handler{
-		Srv:            web.srv,
-		HandleFunc:     handlerForCSRFToken,
-		RequireSession: true,
-		TrustRequester: false,
-		RequireMfa:     false,
-		IsStatic:       false,
+		Srv:                web.srv,
+		HandleFunc:         handlerForCSRFToken,
+		RequireSession:     true,
+		TrustRequester:     false,
+		RequireMfa:         false,
+		SkipTermsOfService: false,
+		IsStatic:           false,
 	}
 
 	cookie := &http.Cookie{
@@ -256,12 +257,13 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	// Handler with RequireSession set to false
 
 	handlerNoSession := Handler{
-		Srv:            th.Server,
-		HandleFunc:     handlerForCSRFToken,
-		RequireSession: false,
-		TrustRequester: false,
-		RequireMfa:     false,
-		IsStatic:       false,
+		Srv:                th.Server,
+		HandleFunc:         handlerForCSRFToken,
+		RequireSession:     false,
+		TrustRequester:     false,
+		RequireMfa:         false,
+		SkipTermsOfService: false,
+		IsStatic:           false,
 	}
 
 	// CSRF Token Used - Success Expected
@@ -302,12 +304,13 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		web := New(th.Server)
 
 		handler := Handler{
-			Srv:            web.srv,
-			HandleFunc:     handlerForCSPHeader,
-			RequireSession: false,
-			TrustRequester: false,
-			RequireMfa:     false,
-			IsStatic:       false,
+			Srv:                web.srv,
+			HandleFunc:         handlerForCSPHeader,
+			RequireSession:     false,
+			TrustRequester:     false,
+			RequireMfa:         false,
+			SkipTermsOfService: false,
+			IsStatic:           false,
 		}
 
 		request := httptest.NewRequest("POST", "/api/v4/test", nil)
@@ -323,12 +326,13 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		web := New(th.Server)
 
 		handler := Handler{
-			Srv:            web.srv,
-			HandleFunc:     handlerForCSPHeader,
-			RequireSession: false,
-			TrustRequester: false,
-			RequireMfa:     false,
-			IsStatic:       true,
+			Srv:                web.srv,
+			HandleFunc:         handlerForCSPHeader,
+			RequireSession:     false,
+			TrustRequester:     false,
+			RequireMfa:         false,
+			SkipTermsOfService: false,
+			IsStatic:           true,
 		}
 
 		request := httptest.NewRequest("POST", "/", nil)
@@ -364,12 +368,13 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		web := New(th.Server)
 
 		handler := Handler{
-			Srv:            web.srv,
-			HandleFunc:     handlerForCSPHeader,
-			RequireSession: false,
-			TrustRequester: false,
-			RequireMfa:     false,
-			IsStatic:       true,
+			Srv:                web.srv,
+			HandleFunc:         handlerForCSPHeader,
+			RequireSession:     false,
+			TrustRequester:     false,
+			RequireMfa:         false,
+			SkipTermsOfService: false,
+			IsStatic:           true,
 		}
 
 		request := httptest.NewRequest("POST", "/", nil)
@@ -408,12 +413,13 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		web := New(th.Server)
 
 		handler := Handler{
-			Srv:            web.srv,
-			HandleFunc:     handlerForCSPHeader,
-			RequireSession: false,
-			TrustRequester: false,
-			RequireMfa:     false,
-			IsStatic:       true,
+			Srv:                web.srv,
+			HandleFunc:         handlerForCSPHeader,
+			RequireSession:     false,
+			TrustRequester:     false,
+			RequireMfa:         false,
+			SkipTermsOfService: false,
+			IsStatic:           true,
 		}
 
 		request := httptest.NewRequest("POST", "/", nil)
@@ -560,12 +566,13 @@ func TestHandlerServeInvalidToken(t *testing.T) {
 			web := New(th.Server)
 
 			handler := Handler{
-				Srv:            web.srv,
-				HandleFunc:     handlerForCSRFToken,
-				RequireSession: true,
-				TrustRequester: false,
-				RequireMfa:     false,
-				IsStatic:       false,
+				Srv:                web.srv,
+				HandleFunc:         handlerForCSRFToken,
+				RequireSession:     true,
+				TrustRequester:     false,
+				RequireMfa:         false,
+				SkipTermsOfService: false,
+				IsStatic:           false,
 			}
 
 			cookie := &http.Cookie{
@@ -590,8 +597,9 @@ func TestCheckCSRFToken(t *testing.T) {
 		th := SetupWithStoreMock(t)
 
 		h := &Handler{
-			RequireSession: true,
-			TrustRequester: false,
+			RequireSession:     true,
+			TrustRequester:     false,
+			SkipTermsOfService: false,
 		}
 
 		token := "token"
@@ -620,8 +628,9 @@ func TestCheckCSRFToken(t *testing.T) {
 		th := SetupWithStoreMock(t)
 
 		h := &Handler{
-			RequireSession: true,
-			TrustRequester: false,
+			RequireSession:     true,
+			TrustRequester:     false,
+			SkipTermsOfService: false,
 		}
 
 		token := "token"
@@ -651,8 +660,9 @@ func TestCheckCSRFToken(t *testing.T) {
 		th := SetupWithStoreMock(t)
 
 		h := &Handler{
-			RequireSession: true,
-			TrustRequester: false,
+			RequireSession:     true,
+			TrustRequester:     false,
+			SkipTermsOfService: false,
 		}
 
 		token := "token"
@@ -680,8 +690,9 @@ func TestCheckCSRFToken(t *testing.T) {
 		th := SetupWithStoreMock(t)
 
 		h := &Handler{
-			RequireSession: true,
-			TrustRequester: false,
+			RequireSession:     true,
+			TrustRequester:     false,
+			SkipTermsOfService: false,
 		}
 
 		token := "token"
@@ -709,8 +720,9 @@ func TestCheckCSRFToken(t *testing.T) {
 		th := SetupWithStoreMock(t)
 
 		h := &Handler{
-			RequireSession: true,
-			TrustRequester: false,
+			RequireSession:     true,
+			TrustRequester:     false,
+			SkipTermsOfService: false,
 		}
 
 		token := "token"
@@ -738,8 +750,9 @@ func TestCheckCSRFToken(t *testing.T) {
 		th := SetupWithStoreMock(t)
 
 		h := &Handler{
-			RequireSession: false,
-			TrustRequester: false,
+			RequireSession:     false,
+			TrustRequester:     false,
+			SkipTermsOfService: false,
 		}
 
 		token := "token"
@@ -763,8 +776,9 @@ func TestCheckCSRFToken(t *testing.T) {
 		th := SetupWithStoreMock(t)
 
 		h := &Handler{
-			RequireSession: false,
-			TrustRequester: false,
+			RequireSession:     false,
+			TrustRequester:     false,
+			SkipTermsOfService: false,
 		}
 
 		token := "token"
