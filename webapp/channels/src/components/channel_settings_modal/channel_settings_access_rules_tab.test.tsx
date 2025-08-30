@@ -750,7 +750,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         });
 
         test('should auto-disable sync when entering empty state', async () => {
-            // Mock with initial policies to allow auto-sync to be enabled
+            // Mock with initial policies (inactive) to allow the test scenario
             mockUseChannelSystemPolicies.mockReturnValue({
                 policies: [
                     {
@@ -775,7 +775,16 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 expect(screen.getByTestId('table-editor')).toBeInTheDocument();
             });
 
-            // Enable auto-sync first
+            // First, add some channel rules so the checkbox becomes enabled
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('user.attributes.Department == "Marketing"');
+
+            await waitFor(() => {
+                const checkbox = screen.getByRole('checkbox');
+                expect(checkbox).not.toBeDisabled();
+            });
+
+            // Now enable auto-sync
             const checkbox = screen.getByRole('checkbox');
             await userEvent.click(checkbox);
             expect(checkbox).toBeChecked();
@@ -788,7 +797,6 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             });
 
             // Trigger re-render by clearing table editor (simulates deleting all rules)
-            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
             onChangeCallback('');
 
             await waitFor(() => {
