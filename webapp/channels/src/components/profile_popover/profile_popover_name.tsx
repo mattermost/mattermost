@@ -7,7 +7,6 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import BotDescription from 'components/profile_popover/profile_popover_bot_description';
 import FullName from 'components/profile_popover/profile_popover_full_name';
-import Position from 'components/profile_popover/profile_popover_position';
 import UserName from 'components/profile_popover/profile_popover_user_name';
 
 import {getUsername} from 'utils/utils';
@@ -38,11 +37,6 @@ const ProfilePopoverName = ({
                 hasFullName={Boolean(fullname)}
                 username={getUsername(user)}
             />
-            {(user.position && !haveOverrideProp) && (
-                <Position
-                    position={user.position}
-                />
-            )}
         </>
     );
 };
