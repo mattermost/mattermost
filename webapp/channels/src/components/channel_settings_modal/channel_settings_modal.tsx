@@ -20,7 +20,7 @@ import {
     setShowPreviewOnChannelSettingsHeaderModal,
     setShowPreviewOnChannelSettingsPurposeModal,
 } from 'actions/views/textbox';
-import {isChannelAdminManageABACRulesEnabled} from 'selectors/general';
+import {isChannelAdminManageABACControlEnabled} from 'selectors/general';
 
 import {focusElement} from 'utils/a11y_utils';
 import Constants from 'utils/constants';
@@ -81,10 +81,10 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
         haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_CHANNEL_ACCESS_RULES),
     );
 
-    // FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove the feature flag check when feature is GA
-    const channelAdminABACRulesEnabled = useSelector(isChannelAdminManageABACRulesEnabled);
+    // FEATURE_FLAG_REMOVAL: ChannelAdminManageABACControl - Remove the feature flag check when feature is GA
+    const channelAdminABACControlEnabled = useSelector(isChannelAdminManageABACControlEnabled);
 
-    const shouldShowAccessRulesTab = channelAdminABACRulesEnabled && canManageChannelAccessRules && channel.type === Constants.PRIVATE_CHANNEL;
+    const shouldShowAccessRulesTab = channelAdminABACControlEnabled && canManageChannelAccessRules && channel.type === Constants.PRIVATE_CHANNEL;
 
     const [show, setShow] = useState(isOpen);
 
@@ -209,7 +209,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
         },
         {
             name: ChannelSettingsTabs.ACCESS_RULES,
-            uiName: formatMessage({id: 'channel_settings.tab.access_rules', defaultMessage: 'Access Rules'}),
+            uiName: formatMessage({id: 'channel_settings.tab.access_control', defaultMessage: 'Access Control'}),
             icon: 'icon icon-account-multiple-outline',
             iconTitle: formatMessage({id: 'generic_icons.access_rules', defaultMessage: 'Access Rules Icon'}),
             display: shouldShowAccessRulesTab,

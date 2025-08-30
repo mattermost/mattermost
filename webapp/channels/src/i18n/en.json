@@ -3718,7 +3718,7 @@
   "channel_settings.save_changes_panel.banner_text.required_error": "Channel banner text cannot be empty when enabled",
   "channel_settings.save_changes_panel.reset": "Reset",
   "channel_settings.save_changes_panel.standard_error": "There are errors in the form above",
-  "channel_settings.tab.access_rules": "Access Rules",
+  "channel_settings.tab.access_control": "Access Control",
   "channel_settings.tab.archive": "Archive Channel",
   "channel_settings.tab.configuration": "Configuration",
   "channel_settings.tab.info": "Info",
