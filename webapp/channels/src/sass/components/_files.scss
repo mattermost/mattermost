@@ -2,6 +2,8 @@
 @use "utils/mixins";
 @use "utils/variables";
 
+$max-image-height: 350px;
+
 .file-preview__container {
     position: relative;
     display: flex;
@@ -183,113 +185,61 @@
             width: 100%;
             max-width: 1024px;
             height: 100%;
-        }
 
-        .image-preload {
-            position: absolute;
-            z-index: 1;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            .fa {
-                font-size: 20px;
-                opacity: 0.73;
-            }
-        }
-
-        $max-image-height: 350px;
-
-        .image-loaded {
-            bottom: 0;
-            min-width: 40px;
-            max-width: 100%;
-            min-height: 40px;
-            max-height: $max-image-height;
-            border-color: rgba(var(--center-channel-color-rgb), 0.12);
-            border-radius: 4px;
-            transition: all 0.1s linear;
-
-            .file-preview__button {
-                display: block;
-
-                &,
-                .small-image-utility-buttons-wrapper {
-                    max-width: 100%;
-                    max-height: $max-image-height;
-                }
-            }
-
-            .image-permalink {
-                max-width: 320px;
-                max-height: 180px;
-            }
-
-            img {
-                position: relative;
-                z-index: 2;
-                overflow: hidden;
+            .image-loaded {
+                bottom: 0;
+                min-width: 50px;
+                max-width: 100%;
+                min-height: 50px;
                 max-height: $max-image-height;
-                align-self: center;
-                border-radius: 4px;
-                cursor: pointer;
+                
                 transition: all 0.1s linear;
 
-                &.image-permalink {
-                    max-width: 100%;
-                    height: auto;
-                }
-
-                &.compact-display {
-                    max-height: 175px;
-                }
-
-                &:hover {
-                    box-shadow: 0 2px 5px 0 rgba(variables.$black, 0.1), 0 2px 10px 0 rgba(variables.$black, 0.1);
-                }
-
-                &.min-preview {
-                    max-width: 100%;
-                    max-height: 50px;
-                }
-
-                &.min-preview--portrait {
-                    max-width: 50px;
-                    max-height: inherit;
-                }
-
-                &.small-image--inside-container {
-                    width: unset;
-                    max-height: inherit;
-                    border-width: 0;
-                    border-radius: 0;
-                    margin: 0;
-                    box-shadow: none;
-                }
-            }
-
-            &.svg {
-                display: block;
-                width: 100%;
-                height: inherit;
-
                 img {
-                    height: inherit;
+                    position: relative;
+                    z-index: 2;
+                    overflow: hidden;
+                    max-height: calc($max-image-height - 2px); // 2px is the top and bottom border width
+                    align-self: center;
+                    cursor: pointer;
+                    transition: all 0.1s linear;
 
-                    &:hover {
-                        box-shadow: 0 2px 5px 0 rgba(variables.$black, 0.1), 0 2px 10px 0 rgba(variables.$black, 0.1);
+                    &.transitioning {
+                        z-index: 1000;
+                        animation: expandImageToModal 0.25s ease-in-out forwards;
+                        pointer-events: none;
+                    }
+
+                    &.image-permalink {
+                        max-width: 100%;
+                        height: auto;
+                    }
+
+                    &.compact-display {
+                        max-height: 175px;
+                    }
+
+                    &.min-preview {
+                        max-width: 100%;
+                        max-height: 50px;
+                    }
+
+                    &.min-preview--portrait {
+                        max-width: 50px;
+                        max-height: inherit;
+                    }
+
+                    &.small-image--inside-container {
+                        width: auto;
+                        max-width: 100%;
+                        height: auto;
+                        max-height: 100%;
+                        border-width: 0;
+                        border-radius: var(--radius-s);
+                        margin: 0;
+                        box-shadow: none;
                     }
                 }
-            }
-
-            >.file-preview__button {
-                min-width: 40px;
-                min-height: 40px;
-                text-align: left;
             }
         }
 
@@ -729,34 +679,19 @@
 
 .file-preview__button {
     display: inline-block;
+    height: 100%;
     max-height: inherit;
     vertical-align: top;
 }
 
-.small-image__container {
-    display: flex;
-    min-width: 48px;
-    max-width: calc(100% - 5px);
-    min-height: 48px;
-    max-height: inherit;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.32);
-    border-radius: 4px;
-    margin: 5px 2px;
-    background: var(--center-channel-bg);
-
-    &:hover {
-        z-index: 2;
-        box-shadow: 0 2px 5px 0 rgba(variables.$black, 0.1), 0 2px 5px 0 rgba(variables.$black, 0.1);
-        transition: all 0.1s linear;
+// Add keyframes for the modal transition
+@keyframes expandImageToModal {
+    from {
+        opacity: 1;
+        transform: scale(1) translateY(0);
     }
-
-    &:hover .image-preview-utility-buttons-container {
-        display: inline-block;
+    to {
+        opacity: 0;
+        transform: scale(1.5) translateY(-10%);
     }
-}
-
-.small-image__container--min-width {
-    width: 48px;
 }

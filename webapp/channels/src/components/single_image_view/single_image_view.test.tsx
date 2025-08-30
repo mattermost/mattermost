@@ -110,7 +110,8 @@ describe('components/SingleImageView', () => {
             />,
         );
 
-        expect(wrapper.find('.image-header').text()).toHaveLength(0);
+        // When expanded, only the toggle button should be present, no filename
+        expect(wrapper.find('.image-header .image-name').exists()).toBe(false);
     });
 
     test('should show filename when image is collapsed', () => {
@@ -121,8 +122,30 @@ describe('components/SingleImageView', () => {
             />,
         );
 
-        expect(wrapper.find('.image-header').text()).
-            toEqual(baseProps.fileInfo.name);
+        // When collapsed, both toggle button and filename should be present
+        expect(wrapper.find('.image-header .image-name').exists()).toBe(true);
+        expect(wrapper.find('.image-header .image-name').text()).toEqual(baseProps.fileInfo.name);
+    });
+
+    test('should add small-image class for small, non-gallery images', () => {
+        const fileInfo = TestHelper.getFileInfoMock({width: 100, height: 100});
+        const props = {...baseProps, fileInfo, isGallery: false};
+        const wrapper = shallow(<SingleImageView {...props}/>);
+        expect(wrapper.find('.image-container--small').exists()).toBe(true);
+    });
+
+    test('should NOT add small-image class for small gallery images', () => {
+        const fileInfo = TestHelper.getFileInfoMock({width: 100, height: 100});
+        const props = {...baseProps, fileInfo, isGallery: true};
+        const wrapper = shallow(<SingleImageView {...props}/>);
+        expect(wrapper.find('.image-container--small').exists()).toBe(false);
+    });
+
+    test('should add hide-controls class for very narrow images', () => {
+        const fileInfo = TestHelper.getFileInfoMock({width: 40});
+        const props = {...baseProps, fileInfo};
+        const wrapper = shallow(<SingleImageView {...props}/>);
+        expect(wrapper.find('.hide-controls').exists()).toBe(true);
     });
 
     describe('permalink preview', () => {

@@ -28,7 +28,7 @@ exports[`components/FilePreviewModal should fall back to default preview if plug
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="none"
+  role="dialog"
   show={true}
   style={
     Object {
@@ -42,8 +42,11 @@ exports[`components/FilePreviewModal should fall back to default preview if plug
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      aria-label="Close preview"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
+      role="button"
+      tabIndex={0}
     >
       <div
         className="file-preview-modal__main-ctr"
@@ -121,8 +124,11 @@ exports[`components/FilePreviewModal should fall back to default preview if plug
           />
         </ModalTitle>
         <div
+          aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
+          role="button"
+          tabIndex={0}
         >
           <LoadingImagePreview
             containerClass="view-image__loading"
@@ -169,7 +175,7 @@ exports[`components/FilePreviewModal should match snapshot 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="none"
+  role="dialog"
   show={true}
   style={
     Object {
@@ -183,8 +189,11 @@ exports[`components/FilePreviewModal should match snapshot 1`] = `
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      aria-label="Close preview"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
+      role="button"
+      tabIndex={0}
     >
       <div
         className="file-preview-modal__main-ctr"
@@ -262,8 +271,11 @@ exports[`components/FilePreviewModal should match snapshot 1`] = `
           />
         </ModalTitle>
         <div
+          aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
+          role="button"
+          tabIndex={0}
         >
           <LoadingImagePreview
             containerClass="view-image__loading"
@@ -310,7 +322,7 @@ exports[`components/FilePreviewModal should match snapshot for external file 1`]
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="none"
+  role="dialog"
   show={true}
   style={
     Object {
@@ -324,8 +336,11 @@ exports[`components/FilePreviewModal should match snapshot for external file 1`]
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      aria-label="Close preview"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
+      role="button"
+      tabIndex={0}
     >
       <div
         className="file-preview-modal__main-ctr"
@@ -403,8 +418,11 @@ exports[`components/FilePreviewModal should match snapshot for external file 1`]
           />
         </ModalTitle>
         <div
+          aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
+          role="button"
+          tabIndex={0}
         >
           <LoadingImagePreview
             containerClass="view-image__loading"
@@ -451,7 +469,7 @@ exports[`components/FilePreviewModal should match snapshot when plugin overrides
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="none"
+  role="dialog"
   show={true}
   style={
     Object {
@@ -465,8 +483,11 @@ exports[`components/FilePreviewModal should match snapshot when plugin overrides
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      aria-label="Close preview"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
+      role="button"
+      tabIndex={0}
     >
       <div
         className="file-preview-modal__main-ctr"
@@ -544,8 +565,11 @@ exports[`components/FilePreviewModal should match snapshot when plugin overrides
           />
         </ModalTitle>
         <div
+          aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
+          role="button"
+          tabIndex={0}
         >
           <component
             fileInfo={
@@ -631,7 +655,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="none"
+  role="dialog"
   show={true}
   style={
     Object {
@@ -645,8 +669,11 @@ exports[`components/FilePreviewModal should match snapshot, loaded 1`] = `
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      aria-label="Close preview"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
+      role="button"
+      tabIndex={0}
     >
       <div
         className="file-preview-modal__main-ctr"
@@ -724,8 +751,11 @@ exports[`components/FilePreviewModal should match snapshot, loaded 1`] = `
           />
         </ModalTitle>
         <div
+          aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
+          role="button"
+          tabIndex={0}
         >
           <ImagePreview
             canDownloadFiles={true}
@@ -784,7 +814,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded and showing f
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="none"
+  role="dialog"
   show={true}
   style={
     Object {
@@ -798,8 +828,11 @@ exports[`components/FilePreviewModal should match snapshot, loaded and showing f
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      aria-label="Close preview"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
+      role="button"
+      tabIndex={0}
     >
       <div
         className="file-preview-modal__main-ctr"
@@ -877,8 +910,11 @@ exports[`components/FilePreviewModal should match snapshot, loaded and showing f
           />
         </ModalTitle>
         <div
+          aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
+          role="button"
+          tabIndex={0}
         >
           <ImagePreview
             canDownloadFiles={true}
@@ -937,7 +973,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .js file
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="none"
+  role="dialog"
   show={true}
   style={
     Object {
@@ -951,8 +987,11 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .js file
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      aria-label="Close preview"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
+      role="button"
+      tabIndex={0}
     >
       <div
         className="file-preview-modal__main-ctr"
@@ -1030,8 +1069,11 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .js file
           />
         </ModalTitle>
         <div
+          aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
+          role="button"
+          tabIndex={0}
         >
           <Memo(CodePreview)
             className="file-preview-modal__code-preview"
@@ -1092,7 +1134,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .m4a fil
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="none"
+  role="dialog"
   show={true}
   style={
     Object {
@@ -1106,8 +1148,11 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .m4a fil
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      aria-label="Close preview"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
+      role="button"
+      tabIndex={0}
     >
       <div
         className="file-preview-modal__main-ctr"
@@ -1185,8 +1230,11 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .m4a fil
           />
         </ModalTitle>
         <div
+          aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
+          role="button"
+          tabIndex={0}
         >
           <Connect(AudioVideoPreview)
             fileInfo={
@@ -1245,7 +1293,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .mov fil
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="none"
+  role="dialog"
   show={true}
   style={
     Object {
@@ -1259,8 +1307,11 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .mov fil
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      aria-label="Close preview"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
+      role="button"
+      tabIndex={0}
     >
       <div
         className="file-preview-modal__main-ctr"
@@ -1338,8 +1389,11 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .mov fil
           />
         </ModalTitle>
         <div
+          aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
+          role="button"
+          tabIndex={0}
         >
           <Connect(AudioVideoPreview)
             fileInfo={
@@ -1398,7 +1452,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with footer 1
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="none"
+  role="dialog"
   show={true}
   style={
     Object {
@@ -1412,8 +1466,11 @@ exports[`components/FilePreviewModal should match snapshot, loaded with footer 1
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      aria-label="Close preview"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
+      role="button"
+      tabIndex={0}
     >
       <div
         className="file-preview-modal__main-ctr"
@@ -1491,8 +1548,11 @@ exports[`components/FilePreviewModal should match snapshot, loaded with footer 1
           />
         </ModalTitle>
         <div
+          aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
+          role="button"
+          tabIndex={0}
         >
           <ImagePreview
             canDownloadFiles={true}
@@ -1551,7 +1611,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with image 1`
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="none"
+  role="dialog"
   show={true}
   style={
     Object {
@@ -1565,8 +1625,11 @@ exports[`components/FilePreviewModal should match snapshot, loaded with image 1`
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      aria-label="Close preview"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
+      role="button"
+      tabIndex={0}
     >
       <div
         className="file-preview-modal__main-ctr"
@@ -1644,8 +1707,11 @@ exports[`components/FilePreviewModal should match snapshot, loaded with image 1`
           />
         </ModalTitle>
         <div
+          aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
+          role="button"
+          tabIndex={0}
         >
           <ImagePreview
             canDownloadFiles={true}
@@ -1704,7 +1770,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with other fi
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="none"
+  role="dialog"
   show={true}
   style={
     Object {
@@ -1718,8 +1784,11 @@ exports[`components/FilePreviewModal should match snapshot, loaded with other fi
     componentClass="div"
   >
     <div
-      className="modal-image__wrapper"
+      aria-label="Close preview"
+      className="modal-image__wrapper initial-load"
       onClick={[Function]}
+      role="button"
+      tabIndex={0}
     >
       <div
         className="file-preview-modal__main-ctr"
@@ -1797,8 +1866,11 @@ exports[`components/FilePreviewModal should match snapshot, loaded with other fi
           />
         </ModalTitle>
         <div
+          aria-label="Close preview"
           className="file-preview-modal__content"
           onClick={[Function]}
+          role="button"
+          tabIndex={0}
         >
           <Connect(Component)
             fileInfo={

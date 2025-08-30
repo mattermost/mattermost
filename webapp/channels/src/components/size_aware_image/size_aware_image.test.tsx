@@ -4,12 +4,16 @@
 import React from 'react';
 import {Provider} from 'react-redux';
 
-import LoadingImagePreview from 'components/loading_image_preview';
-import SizeAwareImage, {SizeAwareImage as SizeAwareImageComponent} from 'components/size_aware_image';
+import SizeAwareImage, {SizeAwareImage as SizeAwareImageComponent} from './size_aware_image';
 
-import {shallowWithIntl, mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
-import {TestHelper} from 'utils/test_helper';
+import {shallowWithIntl, mountWithIntl} from '../../tests/helpers/intl-test-helper';
+import mockStore from '../../tests/test_store';
+import {TestHelper} from '../../utils/test_helper';
+import LoadingImagePreview from '../loading_image_preview';
+
+// Constants from the component
+const MIN_CONTAINER_SIZE = 50;
+const MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS = 100;
 
 describe('components/SizeAwareImage', () => {
     const baseProps = {
@@ -42,7 +46,6 @@ describe('components/SizeAwareImage', () => {
     test('should render an svg when first mounted with dimensions and img display set to none', () => {
         const wrapper = mountWithIntl(<Provider store={store}><SizeAwareImage {...baseProps}/></Provider>);
 
-        // since download and copy icons use svgs now, attachment svg should be searched as a direct child of image-loading__container
         const viewBox = wrapper.find(SizeAwareImageComponent).find('.image-loading__container').children().filter('svg').prop('viewBox');
         expect(viewBox).toEqual('0 0 300 200');
         const style = wrapper.find('.file-preview__button').prop('style');
@@ -85,12 +88,12 @@ describe('components/SizeAwareImage', () => {
         expect(src).toEqual('data:mime_type;base64,mini_preview');
     });
 
-    test('should have display set to initial in loaded state', () => {
+    test('should have display set to flex in loaded state', () => {
         const wrapper = mountWithIntl(<Provider store={store}><SizeAwareImage {...baseProps}/></Provider>);
         wrapper.find(SizeAwareImageComponent).setState({loaded: true, error: false});
 
         const style = wrapper.find('.file-preview__button').prop('style');
-        expect(style).toHaveProperty('display', 'inline-block');
+        expect(style).toHaveProperty('display', 'flex');
     });
 
     test('should render the actual image when first mounted without dimensions', () => {
@@ -152,27 +155,12 @@ describe('components/SizeAwareImage', () => {
         wrapper.instance().setState({isSmallImage: true});
 
         expect(wrapper.find('div.small-image__container').exists()).toEqual(true);
-        expect(wrapper.find('div.small-image__container').prop('className')).
-            toEqual('small-image__container cursor--pointer a11y--active small-image__container--min-width');
-    });
-
-    test('should properly set container div width', () => {
-        const props = {
-            ...baseProps,
-            handleSmallImageContainer: true,
-        };
-
-        const wrapper = shallowWithIntl(<SizeAwareImage {...props}/>);
-
-        wrapper.instance().setState({isSmallImage: true, imageWidth: 220});
-        expect(wrapper.find('div.small-image__container').prop('style')).
-            toHaveProperty('width', 222);
-
-        wrapper.instance().setState({isSmallImage: true, imageWidth: 24});
-        expect(wrapper.find('div.small-image__container').prop('style')).
-            toEqual({});
-        expect(wrapper.find('div.small-image__container').hasClass('small-image__container--min-width')).
-            toEqual(true);
+        expect(wrapper.find('div.small-image__container').prop('style')).toEqual(
+            expect.objectContaining({
+                minWidth: MIN_CONTAINER_SIZE,
+                minHeight: MIN_CONTAINER_SIZE,
+            }),
+        );
     });
 
     test('should properly set img style when it is small', () => {
@@ -186,6 +174,7 @@ describe('components/SizeAwareImage', () => {
         wrapper.instance().setState({isSmallImage: true, imageWidth: 24});
 
         expect(wrapper.find('img').prop('className')).toBe(`${props.className} small-image--inside-container`);
+        expect(wrapper.find('img').prop('style')).toEqual({});
     });
 
     test('should load download and copy link buttons when an image is mounted', () => {
@@ -203,9 +192,15 @@ describe('components/SizeAwareImage', () => {
         const props = {
             ...baseProps,
             fileURL,
+            dimensions: undefined,
         };
         const wrapper = shallowWithIntl(<SizeAwareImage {...props}/>);
-        expect(wrapper.find('.size-aware-image__download').prop('href')).toBe(fileURL);
+
+        const imageUtilityButtons = wrapper.find('injectIntl(ImageUtilityButtons)');
+        expect(imageUtilityButtons).toHaveLength(1);
+        expect(imageUtilityButtons.prop('fileURL')).toBe(fileURL);
+        expect(imageUtilityButtons.prop('src')).toBe(props.src);
+        expect(imageUtilityButtons.prop('isInternalImage')).toBe(true);
     });
 
     test('clicking the copy button sets state.linkCopyInProgress to true', () => {
@@ -213,11 +208,17 @@ describe('components/SizeAwareImage', () => {
         const props = {
             ...baseProps,
             fileURL,
+            dimensions: undefined,
         };
 
         const wrapper = shallowWithIntl(<SizeAwareImage {...props}/>);
         expect(wrapper.state('linkCopyInProgress')).toBe(false);
-        wrapper.find('.size-aware-image__copy_link').first().simulate('click');
+
+        const imageUtilityButtons = wrapper.find('injectIntl(ImageUtilityButtons)');
+        expect(imageUtilityButtons).toHaveLength(1);
+
+        const onCopyLink = imageUtilityButtons.prop('onCopyLink') as () => void;
+        onCopyLink();
         expect(wrapper.state('linkCopyInProgress')).toBe(true);
     });
 
@@ -225,9 +226,139 @@ describe('components/SizeAwareImage', () => {
         const props = {
             ...baseProps,
             enablePublicLink: false,
+            dimensions: undefined,
         };
 
         const wrapper = shallowWithIntl(<SizeAwareImage {...props}/>);
-        expect(wrapper.find('button.size-aware-image__copy_link').exists()).toEqual(false);
+
+        const imageUtilityButtons = wrapper.find('injectIntl(ImageUtilityButtons)');
+        expect(imageUtilityButtons).toHaveLength(1);
+        expect(imageUtilityButtons.prop('enablePublicLink')).toBe(false);
+        expect(imageUtilityButtons.prop('isInternalImage')).toBe(true);
+
+        const enablePublicLink = imageUtilityButtons.prop('enablePublicLink') as boolean;
+        const isInternalImage = imageUtilityButtons.prop('isInternalImage') as boolean;
+        const shouldShowCopyLink = enablePublicLink || !isInternalImage;
+        expect(shouldShowCopyLink).toBe(false);
+    });
+
+    test('should respect custom smallImageThreshold prop', () => {
+        const props = {
+            ...baseProps,
+            smallImageThreshold: 100,
+            handleSmallImageContainer: true,
+        };
+
+        const wrapper = shallowWithIntl(<SizeAwareImage {...props}/>);
+        const instance = wrapper.instance() as SizeAwareImageComponent;
+
+        expect(instance.isSmallImage(80, 200)).toBe(true);
+        expect(instance.isSmallImage(200, 80)).toBe(true);
+        expect(instance.isSmallImage(120, 120)).toBe(false);
+    });
+
+    test('should respect custom minContainerSize prop', () => {
+        const props = {
+            ...baseProps,
+            minContainerSize: 80,
+            handleSmallImageContainer: true,
+        };
+
+        const wrapper = shallowWithIntl(<SizeAwareImage {...props}/>);
+        const instance = wrapper.instance() as SizeAwareImageComponent;
+
+        expect(instance.getContainerSize()).toBe(80);
+
+        wrapper.instance().setState({isSmallImage: true});
+
+        expect(wrapper.find('div.small-image__container').prop('style')).toEqual(
+            expect.objectContaining({
+                minWidth: 80,
+                minHeight: 80,
+            }),
+        );
+    });
+
+    test('should not render utility buttons for external small images', () => {
+        const props = {
+            ...baseProps,
+            fileInfo: undefined,
+            enablePublicLink: true,
+        };
+
+        const wrapper = shallowWithIntl(<SizeAwareImage {...props}/>);
+
+        wrapper.setState({loaded: true, isSmallImage: true});
+
+        const filePreviewButton = wrapper.find('.file-preview__button');
+        const utilityButtons = filePreviewButton.find('.image-preview-utility-buttons-container');
+
+        expect(utilityButtons).toHaveLength(0);
+    });
+
+    test('should pass correct props for small images with small width', () => {
+        const props = {
+            ...baseProps,
+            handleSmallImageContainer: true,
+            dimensions: undefined,
+        };
+
+        const wrapper = shallowWithIntl(<SizeAwareImage {...props}/>);
+
+        wrapper.setState({
+            loaded: true,
+            isSmallImage: true,
+            imageWidth: 80,
+        });
+
+        const imageUtilityButtons = wrapper.find('injectIntl(ImageUtilityButtons)');
+        expect(imageUtilityButtons).toHaveLength(1);
+        expect(imageUtilityButtons.prop('isSmallImage')).toBe(true);
+        expect(imageUtilityButtons.prop('imageWidth')).toBe(80);
+        expect(imageUtilityButtons.prop('handleSmallImageContainer')).toBe(true);
+
+        const isSmallImage = imageUtilityButtons.prop('isSmallImage') as boolean;
+        const imageWidth = imageUtilityButtons.prop('imageWidth') as number;
+        const handleSmallImageContainer = imageUtilityButtons.prop('handleSmallImageContainer') as boolean;
+
+        expect(handleSmallImageContainer && isSmallImage).toBe(true);
+        expect(imageWidth < MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS).toBe(true);
+    });
+
+    test('should render figure element with correct styles for small images', () => {
+        const props = {
+            ...baseProps,
+            handleSmallImageContainer: true,
+        };
+
+        const wrapper = shallowWithIntl(<SizeAwareImage {...props}/>);
+
+        wrapper.setState({isSmallImage: true});
+
+        const figure = wrapper.find('figure.image-loaded-container');
+        expect(figure.exists()).toBe(true);
+        expect(figure.prop('style')).toBeUndefined();
+        expect(figure.hasClass('image-loaded-container')).toBe(true);
+    });
+
+    test('should set correct image style for SVG files', () => {
+        const props = {
+            ...baseProps,
+            fileInfo: TestHelper.getFileInfoMock({
+                name: 'test.svg',
+                extension: 'svg',
+            }),
+        };
+
+        const wrapper = shallowWithIntl(<SizeAwareImage {...props}/>);
+
+        const img = wrapper.find('img');
+        expect(img.prop('style')).toEqual(
+            expect.objectContaining({
+                width: '100%',
+                height: 'auto',
+            }),
+        );
+        expect(img.prop('style')).not.toHaveProperty('objectFit');
     });
 });

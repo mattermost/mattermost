@@ -19,9 +19,9 @@ describe('FileAttachmentList', () => {
         file_ids: ['file_id_1', 'file_id_2', 'file_id_3'],
     });
     const fileInfos = [
-        TestHelper.getFileInfoMock({id: 'file_id_3', name: 'image_3.png', extension: 'png', create_at: 3, post_id: post.id}),
-        TestHelper.getFileInfoMock({id: 'file_id_2', name: 'image_2.png', extension: 'png', create_at: 2, post_id: post.id}),
-        TestHelper.getFileInfoMock({id: 'file_id_1', name: 'image_1.png', extension: 'png', create_at: 1, post_id: post.id}),
+        TestHelper.getFileInfoMock({id: 'file_id_3', name: 'document_3.pdf', extension: 'pdf', create_at: 3, post_id: post.id}),
+        TestHelper.getFileInfoMock({id: 'file_id_2', name: 'document_2.txt', extension: 'txt', create_at: 2, post_id: post.id}),
+        TestHelper.getFileInfoMock({id: 'file_id_1', name: 'document_1.doc', extension: 'doc', create_at: 1, post_id: post.id}),
     ];
     const baseProps = {
         post,
@@ -77,9 +77,9 @@ describe('FileAttachmentList', () => {
 
         const fileAttachments = Array.from(screen.getByTestId('fileAttachmentList').querySelectorAll('.post-image__column'));
         expect(fileAttachments.length).toBe(3);
-        expect(fileAttachments[0]?.textContent?.includes('image_1.png')).toBe(true);
-        expect(fileAttachments[1]?.textContent?.includes('image_2.png')).toBe(true);
-        expect(fileAttachments[2]?.textContent?.includes('image_3.png')).toBe(true);
+        expect(fileAttachments[0]?.textContent?.includes('document_1.doc')).toBe(true);
+        expect(fileAttachments[1]?.textContent?.includes('document_2.txt')).toBe(true);
+        expect(fileAttachments[2]?.textContent?.includes('document_3.pdf')).toBe(true);
     });
 
     test('should render a SingleImageView for a single image', () => {
@@ -96,7 +96,7 @@ describe('FileAttachmentList', () => {
             entities: {
                 files: {
                     files: {
-                        file_id_1: fileInfos[0],
+                        file_id_1: TestHelper.getFileInfoMock({id: 'file_id_1', name: 'image.png', extension: 'png'}),
                     },
                     fileIdsByPostId: {
                         post_id: ['file_id_1'],
@@ -176,9 +176,9 @@ describe('FileAttachmentList', () => {
             entities: {
                 files: {
                     files: {
-                        file_id_1: TestHelper.getFileInfoMock({id: 'file_id_1', name: 'image_1.png', extension: 'png', create_at: 1, delete_at: 4}),
-                        file_id_2: TestHelper.getFileInfoMock({id: 'file_id_2', name: 'image_2.png', extension: 'png', create_at: 2, delete_at: 4}),
-                        file_id_3: TestHelper.getFileInfoMock({id: 'file_id_3', name: 'image_3.png', extension: 'png', create_at: 3, delete_at: 4}),
+                        file_id_1: TestHelper.getFileInfoMock({id: 'file_id_1', name: 'document_1.doc', extension: 'doc', create_at: 1, delete_at: 4}),
+                        file_id_2: TestHelper.getFileInfoMock({id: 'file_id_2', name: 'document_2.txt', extension: 'txt', create_at: 2, delete_at: 4}),
+                        file_id_3: TestHelper.getFileInfoMock({id: 'file_id_3', name: 'document_3.pdf', extension: 'pdf', create_at: 3, delete_at: 4}),
                     },
                     fileIdsByPostId: {
                         post_id: ['file_id_1', 'file_id_2', 'file_id_3'],
@@ -194,15 +194,15 @@ describe('FileAttachmentList', () => {
 
         const fileAttachments = screen.getByTestId('fileAttachmentList').querySelectorAll('.post-image__column');
         expect(fileAttachments.length).toBe(3);
-        expect(fileAttachments[0]?.textContent?.includes('image_1.png')).toBe(true);
-        expect(fileAttachments[1]?.textContent?.includes('image_2.png')).toBe(true);
-        expect(fileAttachments[2]?.textContent?.includes('image_3.png')).toBe(true);
+        expect(fileAttachments[0]?.textContent?.includes('document_1.doc')).toBe(true);
+        expect(fileAttachments[1]?.textContent?.includes('document_2.txt')).toBe(true);
+        expect(fileAttachments[2]?.textContent?.includes('document_3.pdf')).toBe(true);
     });
 
     test('should render file list in edit history RHS', () => {
-        const fileInfo1 = TestHelper.getFileInfoMock({id: 'file_id_1', name: 'image_1.png', extension: 'png', create_at: 1, delete_at: 4});
-        const fileInfo2 = TestHelper.getFileInfoMock({id: 'file_id_2', name: 'image_2.png', extension: 'png', create_at: 2, delete_at: 4});
-        const fileInfo3 = TestHelper.getFileInfoMock({id: 'file_id_3', name: 'image_3.png', extension: 'png', create_at: 3, delete_at: 4});
+        const fileInfo1 = TestHelper.getFileInfoMock({id: 'file_id_1', name: 'document_1.doc', extension: 'doc', create_at: 1, delete_at: 4});
+        const fileInfo2 = TestHelper.getFileInfoMock({id: 'file_id_2', name: 'document_2.txt', extension: 'txt', create_at: 2, delete_at: 4});
+        const fileInfo3 = TestHelper.getFileInfoMock({id: 'file_id_3', name: 'document_3.pdf', extension: 'pdf', create_at: 3, delete_at: 4});
 
         const state = {
             ...defaultState,
@@ -247,8 +247,8 @@ describe('FileAttachmentList', () => {
 
         const fileAttachments = screen.getByTestId('fileAttachmentList').querySelectorAll('.post-image__column');
         expect(fileAttachments.length).toBe(3);
-        expect(fileAttachments[0]?.textContent?.includes('image_1.png')).toBe(true);
-        expect(fileAttachments[1]?.textContent?.includes('image_2.png')).toBe(true);
-        expect(fileAttachments[2]?.textContent?.includes('image_3.png')).toBe(true);
+        expect(fileAttachments[0]?.textContent?.includes('document_1.doc')).toBe(true);
+        expect(fileAttachments[1]?.textContent?.includes('document_2.txt')).toBe(true);
+        expect(fileAttachments[2]?.textContent?.includes('document_3.pdf')).toBe(true);
     });
 });

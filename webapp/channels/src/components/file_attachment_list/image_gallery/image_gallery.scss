@@ -1,0 +1,145 @@
+@use 'sass:math';
+@use 'sass/utils/variables';
+@use 'sass/utils/functions';
+@use 'sass/utils/mixins';
+
+// Add keyframes for the modal transition
+@keyframes expandImageToModal {
+    from {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: scale(1.5) translateY(-10%);
+    }
+}
+
+@keyframes collapseImageFromModal {
+    from {
+        opacity: 0;
+        transform: scale(1.5) translateY(-10%);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.image-gallery {
+    --gallery-item-max-height: 216px;
+    --gallery-item-min-width: 50px;
+    --gallery-item-max-width: 500px;
+    --gallery-collapse-duration: 300ms;
+    --gallery-collapse-easing: cubic-bezier(0.5, 1, 0.5, 1);
+
+    
+    margin: 5px 0;
+    container-type: inline-size;
+    
+    // Prevent scrollbar-induced layout shifts during expansion
+    scrollbar-gutter: stable;
+
+    &__header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+        gap: 8px;
+    }
+
+    &__toggle {
+        display: flex;
+        align-items: center;
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        cursor: pointer;
+        font-size: 12px;
+        gap: 4px;
+        transition: color 150ms ease;
+
+        svg {
+            transition: transform 250ms cubic-bezier(0.4, 0.0, 0.2, 1);
+
+            @media (prefers-reduced-motion: reduce) {
+                transition: transform 100ms ease;
+            }
+        }
+
+        &:hover:not(:disabled) {
+            color: var(--center-channel-color);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+    }
+
+
+
+    &__body {
+        // Define default custom properties for ImageGalleryItem
+        --item-position: relative;
+        --item-height: 100%;
+        --item-max-height: var(--gallery-item-max-height);
+        --item-padding-top: 0;
+        --item-grid-column: auto;
+        --item-child-view-position: relative;
+        --item-child-view-top: auto;
+        --item-child-view-left: auto;
+        --item-child-img-object-fit: cover;
+        --item-child-small-img-object-fit: contain;
+
+        display: grid;
+        overflow: hidden;
+        grid-template-rows: 1fr;
+        transition: grid-template-rows var(--gallery-collapse-duration) var(--gallery-collapse-easing) !important;
+        
+        @media (prefers-reduced-motion: reduce) {
+            transition: grid-template-rows 100ms ease !important;
+        }
+        
+        &.collapsed {
+            grid-template-rows: 0fr !important;
+        }
+    }
+
+
+
+    &__content {
+        display: grid;
+        min-height: 0; // Required for grid-template-rows animation
+        grid-column-gap: 8px;
+        grid-row-gap: 8px;
+        grid-template-columns: repeat(auto-fit, 50px);
+    }
+
+    /* Container Query: large container breakpoint (380px <= width < 640px) */
+    @container (max-width: 639px) {
+        &__content {
+            grid-template-columns: repeat(auto-fit, 24px);
+        }
+    }
+
+    /* Container Query: small container breakpoint (width < 400px) */
+    @container (max-width: 400px) {
+        &__content {
+            grid-auto-rows: unset;
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        &__body {
+            // Override custom properties for mobile view
+            --item-height: 0;
+            --item-max-height: none;
+            --item-padding-top: 100%;
+            --item-grid-column: span 1;
+            --item-child-view-position: absolute;
+            --item-child-view-top: 0;
+            --item-child-view-left: 0;
+            --item-child-small-img-object-fit: cover;
+        }
+    }
+}

@@ -236,7 +236,9 @@ describe('Upload Files', () => {
         }
         cy.get(':nth-child(5) > .post-image__thumbnail > .post-image').should('be.visible');
         cy.postMessage('test');
-        cy.findByTestId('fileAttachmentList').find('.post-image').should('have.length', 5);
+        cy.findByTestId('fileAttachmentList').within(() => {
+            cy.get('.image-gallery__item').should('have.length', 5);
+        });
     });
 
     it('MM-T338 Image Attachment Upload in Mobile View', () => {
