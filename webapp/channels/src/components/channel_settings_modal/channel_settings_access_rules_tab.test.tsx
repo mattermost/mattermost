@@ -459,7 +459,144 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             );
 
             expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
-            expect(screen.getByText('Define access rules above to enable automatic member synchronization.')).toBeInTheDocument();
+            expect(screen.getByText('Auto-add is disabled because no access rules are defined. Channel will use standard Mattermost access controls.')).toBeInTheDocument();
+        });
+
+        test('should show system policy applied message when policies exist but not forcing auto-sync', () => {
+            // Mock system policies applied but not active (not forcing auto-sync)
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [
+                    {
+                        id: 'policy1',
+                        name: 'Test Policy',
+                        type: 'parent',
+                        active: false,
+                        rules: [{expression: 'user.attributes.Department == "Engineering"'}],
+                    },
+                ],
+                loading: false,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
+            expect(screen.getByText('Auto-add is disabled because no channel-level access rules are defined. Channel access will still be restricted by the applied system policy in addition to standard Mattermost access controls.')).toBeInTheDocument();
+        });
+
+        test('should show system policy forced message when policies force auto-sync', () => {
+            // Mock system policies that force auto-sync (active: true)
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [
+                    {
+                        id: 'policy1',
+                        name: 'Test Policy',
+                        type: 'parent',
+                        active: true,
+                        rules: [{expression: 'user.attributes.Department == "Engineering"'}],
+                    },
+                ],
+                loading: false,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
+            expect(screen.getByText('Auto-add is enabled by system policy. Users who match the configured attribute values will be automatically added as members and those who no longer match will be removed.')).toBeInTheDocument();
+        });
+
+        test('should disable auto-sync toggle when system policies force it', () => {
+            // Mock system policies that force auto-sync
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [
+                    {
+                        id: 'policy1',
+                        name: 'Test Policy',
+                        type: 'parent',
+                        active: true,
+                        rules: [{expression: 'user.attributes.Department == "Engineering"'}],
+                    },
+                ],
+                loading: false,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            const checkbox = screen.getByRole('checkbox');
+            expect(checkbox).toBeChecked(); // Should be auto-enabled
+            expect(checkbox).toBeDisabled(); // Should be disabled (can't uncheck)
+        });
+
+        test('should show correct tooltip when system policy forces auto-sync', () => {
+            // Mock system policies that force auto-sync
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [
+                    {
+                        id: 'policy1',
+                        name: 'Test Policy',
+                        type: 'parent',
+                        active: true,
+                        rules: [{expression: 'user.attributes.Department == "Engineering"'}],
+                    },
+                ],
+                loading: false,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            const label = screen.getByRole('checkbox').closest('label');
+            expect(label).toHaveAttribute('title', 'Auto-add is enabled by system policy and cannot be disabled');
+        });
+
+        test('should handle mixed system policies (some active, some not)', () => {
+            // Mock mixed system policies
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [
+                    {
+                        id: 'policy1',
+                        name: 'Active Policy',
+                        type: 'parent',
+                        active: true,
+                        rules: [{expression: 'user.attributes.Department == "Engineering"'}],
+                    },
+                    {
+                        id: 'policy2',
+                        name: 'Inactive Policy',
+                        type: 'parent',
+                        active: false,
+                        rules: [{expression: 'user.attributes.Team == "Backend"'}],
+                    },
+                ],
+                loading: false,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            const checkbox = screen.getByRole('checkbox');
+
+            // Should be forced enabled because ANY policy is active
+            expect(checkbox).toBeChecked();
+            expect(checkbox).toBeDisabled();
+            expect(screen.getByText('Auto-add is enabled by system policy. Users who match the configured attribute values will be automatically added as members and those who no longer match will be removed.')).toBeInTheDocument();
         });
 
         test('should toggle auto-sync checkbox when clicked', async () => {
@@ -526,6 +663,136 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             await waitFor(() => {
                 expect(setAreThereUnsavedChanges).toHaveBeenCalledWith(true);
+            });
+        });
+    });
+
+    describe('Edge Case Handling', () => {
+        test('should handle true empty state (no policies, no rules)', () => {
+            // Default test setup: no policies, no rules
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            const checkbox = screen.getByRole('checkbox');
+
+            // Should be disabled in empty state
+            expect(checkbox).not.toBeChecked();
+            expect(checkbox).toBeDisabled();
+
+            // Should show empty state message
+            expect(screen.getByText('Auto-add is disabled because no access rules are defined. Channel will use standard Mattermost access controls.')).toBeInTheDocument();
+
+            // Should have empty state tooltip
+            const label = checkbox.closest('label');
+            expect(label).toHaveAttribute('title', 'Auto-add is disabled because no access rules are defined');
+        });
+
+        test('should differentiate between empty state and system policies applied', () => {
+            // Mock inactive system policies (applied but not forcing)
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [
+                    {
+                        id: 'policy1',
+                        name: 'Test Policy',
+                        active: false,
+                        rules: [{expression: 'user.attributes.Department == "Engineering"'}],
+                    },
+                ],
+                loading: false,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            // Should show system policy applied message, not empty state message
+            expect(screen.queryByText('Auto-add is disabled because no access rules are defined. Channel will use standard Mattermost access controls.')).not.toBeInTheDocument();
+            expect(screen.getByText('Auto-add is disabled because no channel-level access rules are defined. Channel access will still be restricted by the applied system policy in addition to standard Mattermost access controls.')).toBeInTheDocument();
+        });
+
+        test('should handle system policy loading state', () => {
+            // Mock loading system policies
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [],
+                loading: true,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            // Should still render component without crashing
+            expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
+        });
+
+        test('should handle system policy error state', () => {
+            // Mock system policy error
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [],
+                loading: false,
+                error: 'Failed to load policies',
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            // Should still render component and treat as empty state
+            expect(screen.getByText('Auto-add is disabled because no access rules are defined. Channel will use standard Mattermost access controls.')).toBeInTheDocument();
+        });
+
+        test('should auto-disable sync when entering empty state', async () => {
+            // Mock with initial policies to allow auto-sync to be enabled
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [
+                    {
+                        id: 'policy1',
+                        name: 'Test Policy',
+                        active: false,
+                        rules: [{expression: 'user.attributes.Department == "Engineering"'}],
+                    },
+                ],
+                loading: false,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            // Wait for component to load
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Enable auto-sync first
+            const checkbox = screen.getByRole('checkbox');
+            await userEvent.click(checkbox);
+            expect(checkbox).toBeChecked();
+
+            // Now simulate removing all policies and channel rules (empty state)
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [],
+                loading: false,
+                error: null,
+            });
+
+            // Trigger re-render by clearing table editor (simulates deleting all rules)
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('', [], false);
+
+            await waitFor(() => {
+                // Auto-sync should be auto-disabled in empty state
+                expect(checkbox).not.toBeChecked();
+                expect(checkbox).toBeDisabled();
             });
         });
     });
