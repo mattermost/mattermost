@@ -13,7 +13,12 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentTeamId, getCurrentTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
+import {
+    getCurrentTeamId,
+    getCurrentTeam,
+    getTeam,
+    contentFlaggingEnabledInTeam,
+} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
@@ -97,6 +102,8 @@ function makeMapStateToProps() {
             }
         }
 
+        const canFlagContent = channel && !isSystemMessage(post) && contentFlaggingEnabledInTeam(state, channel.team_id);
+
         return {
             channelIsArchived: isArchivedChannel(channel),
             components: state.plugins.components,
@@ -116,6 +123,7 @@ function makeMapStateToProps() {
             timezone: getCurrentTimezone(state),
             isMilitaryTime,
             canMove: channel ? canWrangler(state, channel.type, threadReplyCount) : false,
+            canFlagContent,
         };
     };
 }

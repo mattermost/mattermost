@@ -5608,14 +5608,6 @@
     "translation": "Guest accounts are disabled"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Attempt to use the experimental feature ClientSideCertEnable without a valid enterprise licence."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Attempted to sign in using the experimental feature ClientSideCert without providing a valid certificate."
-  },
-  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Bot login is forbidden."
   },
@@ -6108,10 +6100,6 @@
   {
     "id": "api.config.get_config.restricted_merge.app_error",
     "translation": "Failed to merge given config."
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
   },
   {
     "id": "api.command_shrug.name",
@@ -8147,14 +8135,6 @@
     "translation": "Unable to extend session length"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Cannot retrieve users for an archived channel"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Cannot retrieve posts for an archived channel"
-  },
-  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "The number of Post IDs received has exceeded the maximum size of {{.MaxLength}}"
   },
@@ -10187,10 +10167,6 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
     "translation": "Failed to update the channel bookmark's sort order."
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Cannot retrieve bookmarks for an archived channel"
   },
   {
     "id": "app.file_info.get_count.app_error",

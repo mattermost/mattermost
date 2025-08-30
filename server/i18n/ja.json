@@ -920,10 +920,6 @@
     "translation": "shrug"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "クライアントの設定で新しい形式がまだサポートされていません。クエリー文字列に format=old を指定してください。"
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "申し訳ありません。ページが見付かりません。"
   },
@@ -2068,14 +2064,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Bot login is forbidden。"
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "有効な証明書が無い状態で、実験的な機能である ClientSideCert でのサインインを試みました。"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "有効なエンタープライズライセンスが無い状態で、実験的な機能である ClientSideCertEnable の使用を試みています。"
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -8138,14 +8126,6 @@
     "translation": "全てのロールを取得できませんでした。"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "アーカイブされたチャンネルのユーザーを取得できません"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "アーカイブされたチャンネルの投稿を取得できません"
-  },
-  {
     "id": "api.templates.invite_body.title.reminder",
     "translation": "リマインダー"
   },
@@ -10180,10 +10160,6 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
     "translation": "チャンネルブックマークのソート順を更新できませんでした。"
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "アーカイブされたチャンネルのブックマークを取得できませんでした"
   },
   {
     "id": "app.file_info.get_count.app_error",
