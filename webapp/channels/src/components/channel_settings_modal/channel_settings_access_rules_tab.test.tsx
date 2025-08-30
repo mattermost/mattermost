@@ -696,6 +696,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                     {
                         id: 'policy1',
                         name: 'Test Policy',
+                        type: 'parent',
                         active: false,
                         rules: [{expression: 'user.attributes.Department == "Engineering"'}],
                     },
@@ -755,6 +756,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                     {
                         id: 'policy1',
                         name: 'Test Policy',
+                        type: 'parent',
                         active: false,
                         rules: [{expression: 'user.attributes.Department == "Engineering"'}],
                     },
@@ -787,7 +789,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             // Trigger re-render by clearing table editor (simulates deleting all rules)
             const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
-            onChangeCallback('', [], false);
+            onChangeCallback('');
 
             await waitFor(() => {
                 // Auto-sync should be auto-disabled in empty state
