@@ -3552,12 +3552,13 @@ func (c *Client4) SearchAllChannels(ctx context.Context, search *ChannelSearch) 
 	}
 	defer closeBody(r)
 
-	var ch ChannelListWithTeamData
-	err = json.NewDecoder(r.Body).Decode(&ch)
+	// The API returns a paginated response with channels and total_count
+	var cwc *ChannelsWithCount
+	err = json.NewDecoder(r.Body).Decode(&cwc)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("SearchAllChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return ch, BuildResponse(r), nil
+	return cwc.Channels, BuildResponse(r), nil
 }
 
 // SearchAllChannelsForUser search in all the channels for a regular user.
@@ -3575,12 +3576,13 @@ func (c *Client4) SearchAllChannelsForUser(ctx context.Context, term string) (Ch
 	}
 	defer closeBody(r)
 
-	var ch ChannelListWithTeamData
-	err = json.NewDecoder(r.Body).Decode(&ch)
+	// The API returns a paginated response with channels and total_count
+	var cwc *ChannelsWithCount
+	err = json.NewDecoder(r.Body).Decode(&cwc)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("SearchAllChannelsForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return ch, BuildResponse(r), nil
+	return cwc.Channels, BuildResponse(r), nil
 }
 
 // SearchAllChannelsPaged searches all the channels and returns the results paged with the total count.
