@@ -76,6 +76,8 @@ const (
 
 	// PreferenceCategoryTheme has the name for the team id where theme is set.
 	PreferenceCategoryTheme = "theme"
+	// PreferenceCategoryThemeDark has the name for the team id where dark theme is set.
+	PreferenceCategoryThemeDark = "theme_dark"
 
 	PreferenceNameCollapsedThreadsEnabled = "collapsed_reply_threads"
 	PreferenceNameChannelDisplayMode      = "channel_display_mode"
@@ -88,6 +90,10 @@ const (
 
 	PreferenceNameShowUnreadSection = "show_unread_section"
 	PreferenceLimitVisibleDmsGms    = "limit_visible_dms_gms"
+
+	// PreferenceNameThemeAutoSwitch controls whether the system should automatically
+	// switch between light and dark themes based on system settings
+	PreferenceNameThemeAutoSwitch = "theme_auto_switch"
 
 	PreferenceMaxLimitVisibleDmsGmsValue = 40
 	MaxPreferenceValueLength             = 20000
@@ -144,10 +150,16 @@ func (o *Preference) IsValid() *AppError {
 		return NewAppError("Preference.IsValid", "model.preference.is_valid.value.app_error", nil, "value="+o.Value, http.StatusBadRequest)
 	}
 
-	if o.Category == PreferenceCategoryTheme {
+	if o.Category == PreferenceCategoryTheme || o.Category == PreferenceCategoryThemeDark {
 		var unused map[string]string
 		if err := json.NewDecoder(strings.NewReader(o.Value)).Decode(&unused); err != nil {
 			return NewAppError("Preference.IsValid", "model.preference.is_valid.theme.app_error", nil, "value="+o.Value, http.StatusBadRequest).Wrap(err)
+		}
+	}
+
+	if o.Name == PreferenceNameThemeAutoSwitch {
+		if o.Value != "true" && o.Value != "false" {
+			return NewAppError("Preference.IsValid", "model.preference.is_valid.theme_auto_switch.app_error", nil, "value="+o.Value, http.StatusBadRequest)
 		}
 	}
 
@@ -164,7 +176,7 @@ func (o *Preference) IsValid() *AppError {
 var preUpdateColorPattern = regexp.MustCompile(`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`)
 
 func (o *Preference) PreUpdate() {
-	if o.Category == PreferenceCategoryTheme {
+	if o.Category == PreferenceCategoryTheme || o.Category == PreferenceCategoryThemeDark {
 		// decode the value of theme (a map of strings to string) and eliminate any invalid values
 		var props map[string]string
 		// just continue, the invalid preference value should get caught by IsValid before saving
