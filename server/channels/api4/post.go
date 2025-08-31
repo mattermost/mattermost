@@ -711,32 +711,15 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if list.FirstInaccessiblePostTime != 0 {
-		// Only return empty thread if the ROOT POST itself is inaccessible
-		// If only some replies are inaccessible, we should still show the accessible parts of the thread
-		rootPost, rootPostExists := list.Posts[c.Params.PostId]
-		if !rootPostExists {
-			// Root post is not in the result set, which means it's inaccessible
-			if err := (&model.PostList{Order: []string{}, FirstInaccessiblePostTime: list.FirstInaccessiblePostTime}).EncodeJSON(w); err != nil {
-				c.Logger.Warn("Error while writing response", mlog.Err(err))
-			}
-			return
+		// e.g. if root post is archived in a cloud plan,
+		// we don't want to display the thread,
+		// but at the same time the request was not bad,
+		// so we return the time of archival and let the client
+		// show an error
+		if err := (&model.PostList{Order: []string{}, FirstInaccessiblePostTime: list.FirstInaccessiblePostTime}).EncodeJSON(w); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
-
-		// Check if the root post itself is inaccessible due to message history limits
-		lastAccessiblePostTime, appErr := c.App.GetLastAccessiblePostTime()
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-		if lastAccessiblePostTime > 0 && rootPost.CreateAt < lastAccessiblePostTime {
-			// Root post is inaccessible due to message history limits
-			if err := (&model.PostList{Order: []string{}, FirstInaccessiblePostTime: list.FirstInaccessiblePostTime}).EncodeJSON(w); err != nil {
-				c.Logger.Warn("Error while writing response", mlog.Err(err))
-			}
-			return
-		}
-
-		// Root post is accessible, continue with the filtered thread (some replies may be inaccessible)
+		return
 	}
 
 	post, ok := list.Posts[c.Params.PostId]
