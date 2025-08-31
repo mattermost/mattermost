@@ -154,29 +154,6 @@ const EnterpriseEditionRightPanel = ({
         );
     };
 
-    const entryLimitsFeatures = [
-        intl.formatMessage({
-            id: 'admin.license.entryFeature.unlimitedMessageHistory',
-            defaultMessage: 'Unlimited message history',
-        }),
-        intl.formatMessage({
-            id: 'admin.license.entryFeature.unlimitedPlaybookRuns',
-            defaultMessage: 'Unlimited playbook runs',
-        }),
-        intl.formatMessage({
-            id: 'admin.license.entryFeature.unlimitedBoardCards',
-            defaultMessage: 'Unlimited board cards',
-        }),
-        intl.formatMessage({
-            id: 'admin.license.entryFeature.unlimitedAIAgentQueries',
-            defaultMessage: 'Unlimited AI agent queries',
-        }),
-        intl.formatMessage({
-            id: 'admin.license.entryFeature.unlimitedCallDuration',
-            defaultMessage: 'Unlimited call duration',
-        }),
-    ];
-
     const subtitle = () => {
         if (isTrialLicense) {
             return (
