@@ -5,7 +5,7 @@ export type LimitsState = {
     serverLimits: ServerLimits;
 };
 
-export interface ServerLimits {
+export type ServerLimits = {
     activeUserCount: number;
     maxUsersLimit: number;
     maxUsersHardLimit?: number;

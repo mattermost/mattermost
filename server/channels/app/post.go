@@ -1611,12 +1611,8 @@ func (a *App) GetLastAccessiblePostTime() (int64, *model.AppError) {
 
 	// Only calculate the last accessible post time when there are actual post history limits
 	license := a.Srv().License()
-	if license == nil || !license.IsMattermostEntry() {
-		return 0, nil
-	}
 
-	// Check if license actually has post history limits enabled
-	if license.Limits == nil || license.Limits.PostHistory == 0 {
+	if license == nil || license.Limits == nil || license.Limits.PostHistory == 0 {
 		return 0, nil
 	}
 

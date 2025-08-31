@@ -128,9 +128,7 @@ export function focusPost(postId: string, returnTo = '', currentUserId: string, 
             return;
         }
 
-        // Only redirect to error if the thread is completely inaccessible (no posts)
-        // If there are accessible posts but some are inaccessible, show the accessible ones
-        if (threadData.first_inaccessible_post_time && (!threadData.order || threadData.order.length === 0)) {
+        if (threadData.first_inaccessible_post_time) {
             getHistory().replace(`/error?type=${ErrorPageTypes.CLOUD_ARCHIVED}&returnTo=${returnTo}`);
             return;
         }

@@ -46,7 +46,7 @@ type Props = {
 
 function SearchLimitsBanner(props: Props) {
     const {formatMessage, formatNumber} = useIntl();
-    const {openPricingModal, isAirGapped} = useOpenPricingModal();
+    const {openPricingModal} = useOpenPricingModal();
     const [serverLimits] = useGetServerLimits();
     const isAdminUser = isAdmin(useSelector(getCurrentUser).roles);
 
@@ -76,20 +76,14 @@ function SearchLimitsBanner(props: Props) {
         });
     }
 
-    const bannerMessage = isAirGapped ? formatMessage({
-        id: 'workspace_limits.search_limit.banner_text_airgapped',
-        defaultMessage: 'Some older {searchContent} may not be shown because your workspace has over {limit} messages.',
-    }, {
-        searchContent,
-        limit,
-    }) : formatMessage({
+    const bannerMessage = formatMessage({
         id: 'workspace_limits.search_limit.banner_text',
         defaultMessage: 'Some older {searchContent} may not be shown because your workspace has over {limit} messages. <a>{ctaAction}</a>',
     }, {
         searchContent,
         limit,
         ctaAction,
-        a: (chunks: React.ReactNode | React.ReactNodeArray) => (
+        a: (chunks: React.ReactNode) => (
             <StyledA onClick={() => openPricingModal({trackingLocation: 'search_limits_banner'})}>
                 {chunks}
             </StyledA>

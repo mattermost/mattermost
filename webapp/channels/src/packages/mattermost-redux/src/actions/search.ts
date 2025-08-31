@@ -211,18 +211,6 @@ export function searchFilesWithParams(teamId: string, params: SearchParameter): 
             },
         ], 'SEARCH_FILE_BATCH'));
 
-        // Dispatch truncation info separately to avoid typing conflicts
-        const firstInaccessibleFileTime = files.first_inaccessible_file_time || 0;
-        if (firstInaccessibleFileTime > 0) {
-            dispatch({
-                type: SearchTypes.RECEIVED_SEARCH_TRUNCATION_INFO,
-                data: {
-                    firstInaccessiblePostTime: firstInaccessibleFileTime,
-                    searchType: 'files',
-                },
-            });
-        }
-
         return {data: files};
     };
 }
