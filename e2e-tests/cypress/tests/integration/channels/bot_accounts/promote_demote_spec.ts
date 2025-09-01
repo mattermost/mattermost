@@ -11,6 +11,7 @@
 // Group: @channels @bot_accounts
 
 import {Team} from '@mattermost/types/teams';
+
 import {createBotPatch} from '../../../support/api/bots';
 
 describe('Managing bots in Teams and Channels', () => {
