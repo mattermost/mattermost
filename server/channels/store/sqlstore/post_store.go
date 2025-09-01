@@ -3134,13 +3134,26 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 				teamIdByChannelId[channelId] = teamId
 			}
 			// no metadata entry, create one
+			if participants == nil {
+				participants = model.StringArray{}
+			}
 			if _, err := transaction.Exec(`INSERT INTO Threads
 				(PostId, ChannelId, ReplyCount, LastReplyAt, Participants, ThreadTeamId)
 				VALUES ($1, $2, $3, $4, $5, $6)
 				ON CONFLICT (PostId) DO UPDATE SET
 					ReplyCount = Threads.ReplyCount + EXCLUDED.ReplyCount,
 					LastReplyAt = GREATEST(Threads.LastReplyAt, EXCLUDED.LastReplyAt),
-					Participants = (SELECT jsonb_agg(DISTINCT elem) FROM jsonb_array_elements(Threads.Participants::jsonb || EXCLUDED.Participants::jsonb) elem),
+					Participants = COALESCE(
+							(
+								SELECT jsonb_agg(DISTINCT elem)
+								FROM (
+									SELECT jsonb_array_elements(Threads.Participants) AS elem
+									UNION
+									SELECT jsonb_array_elements(EXCLUDED.Participants) AS elem
+								) merged
+							),
+							'[]'::jsonb
+						),
 					ThreadTeamId = EXCLUDED.ThreadTeamId,
 					ChannelId = EXCLUDED.ChannelId
 			`, rootId, channelId, count, lastReplyAt, participants, teamId); err != nil {
