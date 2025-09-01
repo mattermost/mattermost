@@ -4,6 +4,7 @@
 package bleveengine
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -25,7 +26,7 @@ type BLVUser struct {
 	SuggestionsWithoutFullname []string
 	TeamsIds                   []string
 	ChannelsIds                []string
-	DeleteAt                   int64
+	DeleteAt                   string
 }
 
 type BLVPost struct {
@@ -94,7 +95,7 @@ func BLVUserFromUserAndTeams(user *model.User, teamsIds, channelsIds []string) *
 		SuggestionsWithoutFullname: usernameAndNicknameSuggestions,
 		TeamsIds:                   teamsIds,
 		ChannelsIds:                channelsIds,
-		DeleteAt:                   user.DeleteAt,
+		DeleteAt:                   strconv.FormatInt(user.DeleteAt, 10),
 	}
 }
 
