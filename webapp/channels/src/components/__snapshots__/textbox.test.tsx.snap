@@ -21,135 +21,143 @@ exports[`components/TextBox should match snapshot with additional, optional prop
       message="some test text"
     />
   </div>
-  <Connect(SuggestionBox)
-    className="form-control custom-textarea textbox-edit-area custom-textarea--emoji-picker bad-connection"
-    contextId="channelId"
-    disabled={true}
-    id="someid"
-    inputComponent={
-      Object {
-        "$$typeof": Symbol(react.memo),
-        "compare": null,
-        "type": Object {
-          "$$typeof": Symbol(react.forward_ref),
-          "propTypes": Object {
-            "className": [Function],
-            "defaultValue": [Function],
-            "disabled": [Function],
-            "id": [Function],
-            "onChange": [Function],
-            "onHeightChange": [Function],
-            "onInput": [Function],
-            "onWidthChange": [Function],
-            "placeholder": [Function],
-            "value": [Function],
-          },
-          "render": [Function],
-        },
-      }
-    }
-    listComponent={[Function]}
-    listPosition="top"
-    onBlur={[Function]}
-    onChange={[Function]}
-    onComposition={[MockFunction]}
-    onHeightChange={[MockFunction]}
-    onItemSelected={[Function]}
-    onKeyDown={[Function]}
-    onKeyPress={[MockFunction]}
-    onKeyUp={[Function]}
-    onMouseUp={[Function]}
-    openWhenEmpty={true}
-    placeholder="placeholder text"
-    providers={
-      Array [
-        AtMentionProvider {
-          "addLastViewAtToProfiles": [Function],
-          "autocompleteGroups": Array [
-            Object {
-              "allow_reference": true,
-              "create_at": 1,
-              "delete_at": 0,
-              "description": "",
-              "display_name": "group_display_name",
-              "has_syncables": false,
-              "id": "gid1",
-              "member_count": 0,
-              "name": "group_name",
-              "remote_id": "",
-              "scheme_admin": false,
-              "source": "",
-              "update_at": 1,
-            },
-            Object {
-              "allow_reference": true,
-              "create_at": 1,
-              "delete_at": 0,
-              "description": "",
-              "display_name": "group_display_name",
-              "has_syncables": false,
-              "id": "gid2",
-              "member_count": 0,
-              "name": "group_name",
-              "remote_id": "",
-              "scheme_admin": false,
-              "source": "",
-              "update_at": 1,
-            },
-          ],
-          "autocompleteUsersInChannel": [Function],
-          "channelId": "channelId",
-          "currentUserId": "currentUserId",
-          "data": null,
-          "disableDispatches": false,
-          "forceDispatch": false,
-          "getProfilesInChannel": [Function],
-          "lastCompletedWord": "",
-          "lastPrefixWithNoResults": "",
-          "latestComplete": true,
-          "latestPrefix": "",
-          "priorityProfiles": undefined,
-          "requestStarted": false,
-          "searchAssociatedGroupsForReference": [Function],
-          "triggerCharacter": "@",
-          "useChannelMentions": true,
-        },
-        ChannelMentionProvider {
-          "autocompleteChannels": [MockFunction],
-          "delayChannelAutocomplete": false,
-          "disableDispatches": false,
-          "forceDispatch": false,
-          "lastCompletedWord": "",
-          "lastPrefixTrimmed": "",
-          "lastPrefixWithNoResults": "",
-          "latestComplete": true,
-          "latestPrefix": "",
-          "requestStarted": false,
-          "triggerCharacter": "~",
-        },
-        EmoticonProvider {
-          "disableDispatches": false,
-          "forceDispatch": false,
-          "latestComplete": true,
-          "latestPrefix": "",
-          "requestStarted": false,
-          "triggerCharacter": ":",
-        },
-      ]
-    }
-    renderDividers={
-      Array [
-        "all",
-      ]
-    }
-    spellCheck="true"
+  <div
     style={
       Object {
-        "visibility": "hidden",
+        "position": "relative",
       }
     }
-    value="some test text"
-  />
+  >
+    <Connect(SuggestionBox)
+      className="form-control custom-textarea textbox-edit-area custom-textarea--emoji-picker bad-connection"
+      contextId="channelId"
+      disabled={true}
+      id="someid"
+      inputComponent={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "compare": null,
+          "type": Object {
+            "$$typeof": Symbol(react.forward_ref),
+            "propTypes": Object {
+              "className": [Function],
+              "defaultValue": [Function],
+              "disabled": [Function],
+              "id": [Function],
+              "onChange": [Function],
+              "onHeightChange": [Function],
+              "onInput": [Function],
+              "onWidthChange": [Function],
+              "placeholder": [Function],
+              "value": [Function],
+            },
+            "render": [Function],
+          },
+        }
+      }
+      listComponent={[Function]}
+      listPosition="top"
+      onBlur={[Function]}
+      onChange={[Function]}
+      onComposition={[MockFunction]}
+      onHeightChange={[MockFunction]}
+      onItemSelected={[Function]}
+      onKeyDown={[Function]}
+      onKeyPress={[MockFunction]}
+      onKeyUp={[Function]}
+      onMouseUp={[Function]}
+      openWhenEmpty={true}
+      placeholder="placeholder text"
+      providers={
+        Array [
+          AtMentionProvider {
+            "addLastViewAtToProfiles": [Function],
+            "autocompleteGroups": Array [
+              Object {
+                "allow_reference": true,
+                "create_at": 1,
+                "delete_at": 0,
+                "description": "",
+                "display_name": "group_display_name",
+                "has_syncables": false,
+                "id": "gid1",
+                "member_count": 0,
+                "name": "group_name",
+                "remote_id": "",
+                "scheme_admin": false,
+                "source": "",
+                "update_at": 1,
+              },
+              Object {
+                "allow_reference": true,
+                "create_at": 1,
+                "delete_at": 0,
+                "description": "",
+                "display_name": "group_display_name",
+                "has_syncables": false,
+                "id": "gid2",
+                "member_count": 0,
+                "name": "group_name",
+                "remote_id": "",
+                "scheme_admin": false,
+                "source": "",
+                "update_at": 1,
+              },
+            ],
+            "autocompleteUsersInChannel": [Function],
+            "channelId": "channelId",
+            "currentUserId": "currentUserId",
+            "data": null,
+            "disableDispatches": false,
+            "forceDispatch": false,
+            "getProfilesInChannel": [Function],
+            "lastCompletedWord": "",
+            "lastPrefixWithNoResults": "",
+            "latestComplete": true,
+            "latestPrefix": "",
+            "priorityProfiles": undefined,
+            "requestStarted": false,
+            "searchAssociatedGroupsForReference": [Function],
+            "triggerCharacter": "@",
+            "useChannelMentions": true,
+          },
+          ChannelMentionProvider {
+            "autocompleteChannels": [MockFunction],
+            "delayChannelAutocomplete": false,
+            "disableDispatches": false,
+            "forceDispatch": false,
+            "lastCompletedWord": "",
+            "lastPrefixTrimmed": "",
+            "lastPrefixWithNoResults": "",
+            "latestComplete": true,
+            "latestPrefix": "",
+            "requestStarted": false,
+            "triggerCharacter": "~",
+          },
+          EmoticonProvider {
+            "disableDispatches": false,
+            "forceDispatch": false,
+            "latestComplete": true,
+            "latestPrefix": "",
+            "requestStarted": false,
+            "triggerCharacter": ":",
+          },
+        ]
+      }
+      renderDividers={
+        Array [
+          "all",
+        ]
+      }
+      spellCheck="true"
+      style={
+        Object {
+          "visibility": "hidden",
+        }
+      }
+      value="some test text"
+    />
+  </div>
 </div>
 `;
 
@@ -174,130 +182,138 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
       message="some test text"
     />
   </div>
-  <Connect(SuggestionBox)
-    className="form-control custom-textarea textbox-edit-area"
-    contextId="channelId"
-    id="someid"
-    inputComponent={
-      Object {
-        "$$typeof": Symbol(react.memo),
-        "compare": null,
-        "type": Object {
-          "$$typeof": Symbol(react.forward_ref),
-          "propTypes": Object {
-            "className": [Function],
-            "defaultValue": [Function],
-            "disabled": [Function],
-            "id": [Function],
-            "onChange": [Function],
-            "onHeightChange": [Function],
-            "onInput": [Function],
-            "onWidthChange": [Function],
-            "placeholder": [Function],
-            "value": [Function],
-          },
-          "render": [Function],
-        },
-      }
-    }
-    listComponent={[Function]}
-    onBlur={[Function]}
-    onChange={[Function]}
-    onItemSelected={[Function]}
-    onKeyDown={[Function]}
-    onKeyPress={[MockFunction]}
-    onKeyUp={[Function]}
-    onMouseUp={[Function]}
-    placeholder="placeholder text"
-    providers={
-      Array [
-        AtMentionProvider {
-          "addLastViewAtToProfiles": [Function],
-          "autocompleteGroups": Array [
-            Object {
-              "allow_reference": true,
-              "create_at": 1,
-              "delete_at": 0,
-              "description": "",
-              "display_name": "group_display_name",
-              "has_syncables": false,
-              "id": "gid1",
-              "member_count": 0,
-              "name": "group_name",
-              "remote_id": "",
-              "scheme_admin": false,
-              "source": "",
-              "update_at": 1,
-            },
-            Object {
-              "allow_reference": true,
-              "create_at": 1,
-              "delete_at": 0,
-              "description": "",
-              "display_name": "group_display_name",
-              "has_syncables": false,
-              "id": "gid2",
-              "member_count": 0,
-              "name": "group_name",
-              "remote_id": "",
-              "scheme_admin": false,
-              "source": "",
-              "update_at": 1,
-            },
-          ],
-          "autocompleteUsersInChannel": [Function],
-          "channelId": "channelId",
-          "currentUserId": "currentUserId",
-          "data": null,
-          "disableDispatches": false,
-          "forceDispatch": false,
-          "getProfilesInChannel": [Function],
-          "lastCompletedWord": "",
-          "lastPrefixWithNoResults": "",
-          "latestComplete": true,
-          "latestPrefix": "",
-          "priorityProfiles": undefined,
-          "requestStarted": false,
-          "searchAssociatedGroupsForReference": [Function],
-          "triggerCharacter": "@",
-          "useChannelMentions": true,
-        },
-        ChannelMentionProvider {
-          "autocompleteChannels": [MockFunction],
-          "delayChannelAutocomplete": false,
-          "disableDispatches": false,
-          "forceDispatch": false,
-          "lastCompletedWord": "",
-          "lastPrefixTrimmed": "",
-          "lastPrefixWithNoResults": "",
-          "latestComplete": true,
-          "latestPrefix": "",
-          "requestStarted": false,
-          "triggerCharacter": "~",
-        },
-        EmoticonProvider {
-          "disableDispatches": false,
-          "forceDispatch": false,
-          "latestComplete": true,
-          "latestPrefix": "",
-          "requestStarted": false,
-          "triggerCharacter": ":",
-        },
-      ]
-    }
-    renderDividers={
-      Array [
-        "all",
-      ]
-    }
-    spellCheck="true"
+  <div
     style={
       Object {
-        "visibility": "visible",
+        "position": "relative",
       }
     }
-    value="some test text"
-  />
+  >
+    <Connect(SuggestionBox)
+      className="form-control custom-textarea textbox-edit-area"
+      contextId="channelId"
+      id="someid"
+      inputComponent={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "compare": null,
+          "type": Object {
+            "$$typeof": Symbol(react.forward_ref),
+            "propTypes": Object {
+              "className": [Function],
+              "defaultValue": [Function],
+              "disabled": [Function],
+              "id": [Function],
+              "onChange": [Function],
+              "onHeightChange": [Function],
+              "onInput": [Function],
+              "onWidthChange": [Function],
+              "placeholder": [Function],
+              "value": [Function],
+            },
+            "render": [Function],
+          },
+        }
+      }
+      listComponent={[Function]}
+      onBlur={[Function]}
+      onChange={[Function]}
+      onItemSelected={[Function]}
+      onKeyDown={[Function]}
+      onKeyPress={[MockFunction]}
+      onKeyUp={[Function]}
+      onMouseUp={[Function]}
+      placeholder="placeholder text"
+      providers={
+        Array [
+          AtMentionProvider {
+            "addLastViewAtToProfiles": [Function],
+            "autocompleteGroups": Array [
+              Object {
+                "allow_reference": true,
+                "create_at": 1,
+                "delete_at": 0,
+                "description": "",
+                "display_name": "group_display_name",
+                "has_syncables": false,
+                "id": "gid1",
+                "member_count": 0,
+                "name": "group_name",
+                "remote_id": "",
+                "scheme_admin": false,
+                "source": "",
+                "update_at": 1,
+              },
+              Object {
+                "allow_reference": true,
+                "create_at": 1,
+                "delete_at": 0,
+                "description": "",
+                "display_name": "group_display_name",
+                "has_syncables": false,
+                "id": "gid2",
+                "member_count": 0,
+                "name": "group_name",
+                "remote_id": "",
+                "scheme_admin": false,
+                "source": "",
+                "update_at": 1,
+              },
+            ],
+            "autocompleteUsersInChannel": [Function],
+            "channelId": "channelId",
+            "currentUserId": "currentUserId",
+            "data": null,
+            "disableDispatches": false,
+            "forceDispatch": false,
+            "getProfilesInChannel": [Function],
+            "lastCompletedWord": "",
+            "lastPrefixWithNoResults": "",
+            "latestComplete": true,
+            "latestPrefix": "",
+            "priorityProfiles": undefined,
+            "requestStarted": false,
+            "searchAssociatedGroupsForReference": [Function],
+            "triggerCharacter": "@",
+            "useChannelMentions": true,
+          },
+          ChannelMentionProvider {
+            "autocompleteChannels": [MockFunction],
+            "delayChannelAutocomplete": false,
+            "disableDispatches": false,
+            "forceDispatch": false,
+            "lastCompletedWord": "",
+            "lastPrefixTrimmed": "",
+            "lastPrefixWithNoResults": "",
+            "latestComplete": true,
+            "latestPrefix": "",
+            "requestStarted": false,
+            "triggerCharacter": "~",
+          },
+          EmoticonProvider {
+            "disableDispatches": false,
+            "forceDispatch": false,
+            "latestComplete": true,
+            "latestPrefix": "",
+            "requestStarted": false,
+            "triggerCharacter": ":",
+          },
+        ]
+      }
+      renderDividers={
+        Array [
+          "all",
+        ]
+      }
+      spellCheck="true"
+      style={
+        Object {
+          "visibility": "visible",
+        }
+      }
+      value="some test text"
+    />
+  </div>
 </div>
 `;
 
@@ -322,130 +338,138 @@ exports[`components/TextBox should throw error when new property is too long 1`]
       message="some test text that exceeds char limit"
     />
   </div>
-  <Connect(SuggestionBox)
-    className="form-control custom-textarea textbox-edit-area"
-    contextId="channelId"
-    id="someid"
-    inputComponent={
-      Object {
-        "$$typeof": Symbol(react.memo),
-        "compare": null,
-        "type": Object {
-          "$$typeof": Symbol(react.forward_ref),
-          "propTypes": Object {
-            "className": [Function],
-            "defaultValue": [Function],
-            "disabled": [Function],
-            "id": [Function],
-            "onChange": [Function],
-            "onHeightChange": [Function],
-            "onInput": [Function],
-            "onWidthChange": [Function],
-            "placeholder": [Function],
-            "value": [Function],
-          },
-          "render": [Function],
-        },
-      }
-    }
-    listComponent={[Function]}
-    onBlur={[Function]}
-    onChange={[Function]}
-    onItemSelected={[Function]}
-    onKeyDown={[Function]}
-    onKeyPress={[MockFunction]}
-    onKeyUp={[Function]}
-    onMouseUp={[Function]}
-    placeholder="placeholder text"
-    providers={
-      Array [
-        AtMentionProvider {
-          "addLastViewAtToProfiles": [Function],
-          "autocompleteGroups": Array [
-            Object {
-              "allow_reference": true,
-              "create_at": 1,
-              "delete_at": 0,
-              "description": "",
-              "display_name": "group_display_name",
-              "has_syncables": false,
-              "id": "gid1",
-              "member_count": 0,
-              "name": "group_name",
-              "remote_id": "",
-              "scheme_admin": false,
-              "source": "",
-              "update_at": 1,
-            },
-            Object {
-              "allow_reference": true,
-              "create_at": 1,
-              "delete_at": 0,
-              "description": "",
-              "display_name": "group_display_name",
-              "has_syncables": false,
-              "id": "gid2",
-              "member_count": 0,
-              "name": "group_name",
-              "remote_id": "",
-              "scheme_admin": false,
-              "source": "",
-              "update_at": 1,
-            },
-          ],
-          "autocompleteUsersInChannel": [Function],
-          "channelId": "channelId",
-          "currentUserId": "currentUserId",
-          "data": null,
-          "disableDispatches": false,
-          "forceDispatch": false,
-          "getProfilesInChannel": [Function],
-          "lastCompletedWord": "",
-          "lastPrefixWithNoResults": "",
-          "latestComplete": true,
-          "latestPrefix": "",
-          "priorityProfiles": undefined,
-          "requestStarted": false,
-          "searchAssociatedGroupsForReference": [Function],
-          "triggerCharacter": "@",
-          "useChannelMentions": true,
-        },
-        ChannelMentionProvider {
-          "autocompleteChannels": [MockFunction],
-          "delayChannelAutocomplete": false,
-          "disableDispatches": false,
-          "forceDispatch": false,
-          "lastCompletedWord": "",
-          "lastPrefixTrimmed": "",
-          "lastPrefixWithNoResults": "",
-          "latestComplete": true,
-          "latestPrefix": "",
-          "requestStarted": false,
-          "triggerCharacter": "~",
-        },
-        EmoticonProvider {
-          "disableDispatches": false,
-          "forceDispatch": false,
-          "latestComplete": true,
-          "latestPrefix": "",
-          "requestStarted": false,
-          "triggerCharacter": ":",
-        },
-      ]
-    }
-    renderDividers={
-      Array [
-        "all",
-      ]
-    }
-    spellCheck="true"
+  <div
     style={
       Object {
-        "visibility": "visible",
+        "position": "relative",
       }
     }
-    value="some test text that exceeds char limit"
-  />
+  >
+    <Connect(SuggestionBox)
+      className="form-control custom-textarea textbox-edit-area"
+      contextId="channelId"
+      id="someid"
+      inputComponent={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "compare": null,
+          "type": Object {
+            "$$typeof": Symbol(react.forward_ref),
+            "propTypes": Object {
+              "className": [Function],
+              "defaultValue": [Function],
+              "disabled": [Function],
+              "id": [Function],
+              "onChange": [Function],
+              "onHeightChange": [Function],
+              "onInput": [Function],
+              "onWidthChange": [Function],
+              "placeholder": [Function],
+              "value": [Function],
+            },
+            "render": [Function],
+          },
+        }
+      }
+      listComponent={[Function]}
+      onBlur={[Function]}
+      onChange={[Function]}
+      onItemSelected={[Function]}
+      onKeyDown={[Function]}
+      onKeyPress={[MockFunction]}
+      onKeyUp={[Function]}
+      onMouseUp={[Function]}
+      placeholder="placeholder text"
+      providers={
+        Array [
+          AtMentionProvider {
+            "addLastViewAtToProfiles": [Function],
+            "autocompleteGroups": Array [
+              Object {
+                "allow_reference": true,
+                "create_at": 1,
+                "delete_at": 0,
+                "description": "",
+                "display_name": "group_display_name",
+                "has_syncables": false,
+                "id": "gid1",
+                "member_count": 0,
+                "name": "group_name",
+                "remote_id": "",
+                "scheme_admin": false,
+                "source": "",
+                "update_at": 1,
+              },
+              Object {
+                "allow_reference": true,
+                "create_at": 1,
+                "delete_at": 0,
+                "description": "",
+                "display_name": "group_display_name",
+                "has_syncables": false,
+                "id": "gid2",
+                "member_count": 0,
+                "name": "group_name",
+                "remote_id": "",
+                "scheme_admin": false,
+                "source": "",
+                "update_at": 1,
+              },
+            ],
+            "autocompleteUsersInChannel": [Function],
+            "channelId": "channelId",
+            "currentUserId": "currentUserId",
+            "data": null,
+            "disableDispatches": false,
+            "forceDispatch": false,
+            "getProfilesInChannel": [Function],
+            "lastCompletedWord": "",
+            "lastPrefixWithNoResults": "",
+            "latestComplete": true,
+            "latestPrefix": "",
+            "priorityProfiles": undefined,
+            "requestStarted": false,
+            "searchAssociatedGroupsForReference": [Function],
+            "triggerCharacter": "@",
+            "useChannelMentions": true,
+          },
+          ChannelMentionProvider {
+            "autocompleteChannels": [MockFunction],
+            "delayChannelAutocomplete": false,
+            "disableDispatches": false,
+            "forceDispatch": false,
+            "lastCompletedWord": "",
+            "lastPrefixTrimmed": "",
+            "lastPrefixWithNoResults": "",
+            "latestComplete": true,
+            "latestPrefix": "",
+            "requestStarted": false,
+            "triggerCharacter": "~",
+          },
+          EmoticonProvider {
+            "disableDispatches": false,
+            "forceDispatch": false,
+            "latestComplete": true,
+            "latestPrefix": "",
+            "requestStarted": false,
+            "triggerCharacter": ":",
+          },
+        ]
+      }
+      renderDividers={
+        Array [
+          "all",
+        ]
+      }
+      spellCheck="true"
+      style={
+        Object {
+          "visibility": "visible",
+        }
+      }
+      value="some test text that exceeds char limit"
+    />
+  </div>
 </div>
 `;
 
@@ -470,129 +494,137 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
       message="some test text that exceeds char limit"
     />
   </div>
-  <Connect(SuggestionBox)
-    className="form-control custom-textarea textbox-edit-area"
-    contextId="channelId"
-    id="someid"
-    inputComponent={
-      Object {
-        "$$typeof": Symbol(react.memo),
-        "compare": null,
-        "type": Object {
-          "$$typeof": Symbol(react.forward_ref),
-          "propTypes": Object {
-            "className": [Function],
-            "defaultValue": [Function],
-            "disabled": [Function],
-            "id": [Function],
-            "onChange": [Function],
-            "onHeightChange": [Function],
-            "onInput": [Function],
-            "onWidthChange": [Function],
-            "placeholder": [Function],
-            "value": [Function],
-          },
-          "render": [Function],
-        },
-      }
-    }
-    listComponent={[Function]}
-    onBlur={[Function]}
-    onChange={[Function]}
-    onItemSelected={[Function]}
-    onKeyDown={[Function]}
-    onKeyPress={[MockFunction]}
-    onKeyUp={[Function]}
-    onMouseUp={[Function]}
-    placeholder="placeholder text"
-    providers={
-      Array [
-        AtMentionProvider {
-          "addLastViewAtToProfiles": [Function],
-          "autocompleteGroups": Array [
-            Object {
-              "allow_reference": true,
-              "create_at": 1,
-              "delete_at": 0,
-              "description": "",
-              "display_name": "group_display_name",
-              "has_syncables": false,
-              "id": "gid1",
-              "member_count": 0,
-              "name": "group_name",
-              "remote_id": "",
-              "scheme_admin": false,
-              "source": "",
-              "update_at": 1,
-            },
-            Object {
-              "allow_reference": true,
-              "create_at": 1,
-              "delete_at": 0,
-              "description": "",
-              "display_name": "group_display_name",
-              "has_syncables": false,
-              "id": "gid2",
-              "member_count": 0,
-              "name": "group_name",
-              "remote_id": "",
-              "scheme_admin": false,
-              "source": "",
-              "update_at": 1,
-            },
-          ],
-          "autocompleteUsersInChannel": [Function],
-          "channelId": "channelId",
-          "currentUserId": "currentUserId",
-          "data": null,
-          "disableDispatches": false,
-          "forceDispatch": false,
-          "getProfilesInChannel": [Function],
-          "lastCompletedWord": "",
-          "lastPrefixWithNoResults": "",
-          "latestComplete": true,
-          "latestPrefix": "",
-          "priorityProfiles": undefined,
-          "requestStarted": false,
-          "searchAssociatedGroupsForReference": [Function],
-          "triggerCharacter": "@",
-          "useChannelMentions": true,
-        },
-        ChannelMentionProvider {
-          "autocompleteChannels": [MockFunction],
-          "delayChannelAutocomplete": false,
-          "disableDispatches": false,
-          "forceDispatch": false,
-          "lastCompletedWord": "",
-          "lastPrefixTrimmed": "",
-          "lastPrefixWithNoResults": "",
-          "latestComplete": true,
-          "latestPrefix": "",
-          "requestStarted": false,
-          "triggerCharacter": "~",
-        },
-        EmoticonProvider {
-          "disableDispatches": false,
-          "forceDispatch": false,
-          "latestComplete": true,
-          "latestPrefix": "",
-          "requestStarted": false,
-          "triggerCharacter": ":",
-        },
-      ]
-    }
-    renderDividers={
-      Array [
-        "all",
-      ]
-    }
-    spellCheck="true"
+  <div
     style={
       Object {
-        "visibility": "visible",
+        "position": "relative",
       }
     }
-    value="some test text that exceeds char limit"
-  />
+  >
+    <Connect(SuggestionBox)
+      className="form-control custom-textarea textbox-edit-area"
+      contextId="channelId"
+      id="someid"
+      inputComponent={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "compare": null,
+          "type": Object {
+            "$$typeof": Symbol(react.forward_ref),
+            "propTypes": Object {
+              "className": [Function],
+              "defaultValue": [Function],
+              "disabled": [Function],
+              "id": [Function],
+              "onChange": [Function],
+              "onHeightChange": [Function],
+              "onInput": [Function],
+              "onWidthChange": [Function],
+              "placeholder": [Function],
+              "value": [Function],
+            },
+            "render": [Function],
+          },
+        }
+      }
+      listComponent={[Function]}
+      onBlur={[Function]}
+      onChange={[Function]}
+      onItemSelected={[Function]}
+      onKeyDown={[Function]}
+      onKeyPress={[MockFunction]}
+      onKeyUp={[Function]}
+      onMouseUp={[Function]}
+      placeholder="placeholder text"
+      providers={
+        Array [
+          AtMentionProvider {
+            "addLastViewAtToProfiles": [Function],
+            "autocompleteGroups": Array [
+              Object {
+                "allow_reference": true,
+                "create_at": 1,
+                "delete_at": 0,
+                "description": "",
+                "display_name": "group_display_name",
+                "has_syncables": false,
+                "id": "gid1",
+                "member_count": 0,
+                "name": "group_name",
+                "remote_id": "",
+                "scheme_admin": false,
+                "source": "",
+                "update_at": 1,
+              },
+              Object {
+                "allow_reference": true,
+                "create_at": 1,
+                "delete_at": 0,
+                "description": "",
+                "display_name": "group_display_name",
+                "has_syncables": false,
+                "id": "gid2",
+                "member_count": 0,
+                "name": "group_name",
+                "remote_id": "",
+                "scheme_admin": false,
+                "source": "",
+                "update_at": 1,
+              },
+            ],
+            "autocompleteUsersInChannel": [Function],
+            "channelId": "channelId",
+            "currentUserId": "currentUserId",
+            "data": null,
+            "disableDispatches": false,
+            "forceDispatch": false,
+            "getProfilesInChannel": [Function],
+            "lastCompletedWord": "",
+            "lastPrefixWithNoResults": "",
+            "latestComplete": true,
+            "latestPrefix": "",
+            "priorityProfiles": undefined,
+            "requestStarted": false,
+            "searchAssociatedGroupsForReference": [Function],
+            "triggerCharacter": "@",
+            "useChannelMentions": true,
+          },
+          ChannelMentionProvider {
+            "autocompleteChannels": [MockFunction],
+            "delayChannelAutocomplete": false,
+            "disableDispatches": false,
+            "forceDispatch": false,
+            "lastCompletedWord": "",
+            "lastPrefixTrimmed": "",
+            "lastPrefixWithNoResults": "",
+            "latestComplete": true,
+            "latestPrefix": "",
+            "requestStarted": false,
+            "triggerCharacter": "~",
+          },
+          EmoticonProvider {
+            "disableDispatches": false,
+            "forceDispatch": false,
+            "latestComplete": true,
+            "latestPrefix": "",
+            "requestStarted": false,
+            "triggerCharacter": ":",
+          },
+        ]
+      }
+      renderDividers={
+        Array [
+          "all",
+        ]
+      }
+      spellCheck="true"
+      style={
+        Object {
+          "visibility": "visible",
+        }
+      }
+      value="some test text that exceeds char limit"
+    />
+  </div>
 </div>
 `;

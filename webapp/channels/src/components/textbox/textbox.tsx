@@ -27,7 +27,7 @@ import {generateMapValueFromInputValue, generateDisplayValueFromMapValue, update
 
 import * as Utils from 'utils/utils';
 
-import {renderMentionOverlay} from './hilight';
+import {renderMentionOverlay} from './highlight';
 
 import type {TextboxElement} from './index';
 
@@ -363,39 +363,41 @@ export default class Textbox extends React.PureComponent<Props> {
                         imageProps={{hideUtilities: true}}
                     />
                 </div>
-                <SuggestionBox
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
-                    ref={this.message}
-                    id={this.props.id}
-                    className={textboxClassName}
-                    spellCheck='true'
-                    placeholder={this.props.createMessage}
-                    onChange={this.handleChange}
-                    onKeyPress={this.props.onKeyPress}
-                    onKeyDown={this.handleKeyDown}
-                    onMouseUp={this.handleMouseUp}
-                    onKeyUp={this.handleKeyUp}
-                    onComposition={this.props.onComposition}
-                    onBlur={this.handleBlur}
-                    onFocus={this.props.onFocus}
-                    onHeightChange={this.props.onHeightChange}
-                    onWidthChange={this.props.onWidthChange}
-                    onPaste={this.props.onPaste}
-                    style={this.getStyle()}
-                    inputComponent={this.props.inputComponent}
-                    listComponent={this.props.suggestionList}
-                    listPosition={this.props.suggestionListPosition}
-                    providers={this.suggestionProviders}
-                    value={this.props.isAdvanced ? this.state.displayValue : this.props.value}
-                    renderDividers={ALL}
-                    disabled={this.props.disabled}
-                    contextId={this.props.channelId}
-                    openWhenEmpty={this.props.openWhenEmpty}
-                    alignWithTextbox={this.props.alignWithTextbox}
-                    onItemSelected={this.handleSuggestionSelected}
-                />
-                {!this.props.preview && renderMentionOverlay(this.getInputBox(), this.state.mentionHighlights, this.state.displayValue)}
+                <div style={{position: 'relative'}}>
+                    <SuggestionBox
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        ref={this.message}
+                        id={this.props.id}
+                        className={textboxClassName}
+                        spellCheck='true'
+                        placeholder={this.props.createMessage}
+                        onChange={this.handleChange}
+                        onKeyPress={this.props.onKeyPress}
+                        onKeyDown={this.handleKeyDown}
+                        onMouseUp={this.handleMouseUp}
+                        onKeyUp={this.handleKeyUp}
+                        onComposition={this.props.onComposition}
+                        onBlur={this.handleBlur}
+                        onFocus={this.props.onFocus}
+                        onHeightChange={this.props.onHeightChange}
+                        onWidthChange={this.props.onWidthChange}
+                        onPaste={this.props.onPaste}
+                        style={this.getStyle()}
+                        inputComponent={this.props.inputComponent}
+                        listComponent={this.props.suggestionList}
+                        listPosition={this.props.suggestionListPosition}
+                        providers={this.suggestionProviders}
+                        value={this.props.isAdvanced ? this.state.displayValue : this.props.value}
+                        renderDividers={ALL}
+                        disabled={this.props.disabled}
+                        contextId={this.props.channelId}
+                        openWhenEmpty={this.props.openWhenEmpty}
+                        alignWithTextbox={this.props.alignWithTextbox}
+                        onItemSelected={this.handleSuggestionSelected}
+                    />
+                    {!this.props.preview && this.props.isAdvanced && renderMentionOverlay(this.getInputBox(), this.state.mentionHighlights, this.state.displayValue)}
+                </div>
             </div>
         );
     }
