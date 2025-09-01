@@ -1115,3 +1115,10 @@ func DefaultUpdatePostOptions() *UpdatePostOptions {
 		IsRestorePost: false,
 	}
 }
+
+type PreparePostForClientOpts struct {
+	IsNewPost       bool
+	IsEditPost      bool
+	IncludePriority bool
+	ForDataSpillage bool
+}
