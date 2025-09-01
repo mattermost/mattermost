@@ -332,7 +332,7 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	// Populate metadata for all posts before syncing
 	for i, post := range sd.posts {
 		if post != nil {
-			sd.posts[i] = scs.app.PreparePostForClient(request.EmptyContext(scs.server.Log()), post, false, false, true)
+			sd.posts[i] = scs.app.PreparePostForClient(request.EmptyContext(scs.server.Log()), post, &model.PreparePostForClientOpts{IncludePriority: true})
 		}
 	}
 

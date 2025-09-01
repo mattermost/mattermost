@@ -150,13 +150,13 @@ export function postPinnedChanged(postId: string, isPinned: boolean, updateAt = 
     };
 }
 
-export function getPost(postId: string): ActionFuncAsync<Post> {
+export function getPost(postId: string, includeDeleted?: boolean, retainData?: boolean): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
         let post;
         const crtEnabled = isCollapsedThreadsEnabled(getState());
 
         try {
-            post = await Client4.getPost(postId);
+            post = await Client4.getPost(postId, includeDeleted, retainData);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: PostTypes.GET_POSTS_FAILURE, error});

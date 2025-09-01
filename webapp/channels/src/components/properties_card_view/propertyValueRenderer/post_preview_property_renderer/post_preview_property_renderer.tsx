@@ -1,16 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import {useSelect} from '@mui/base';
+import React, {useEffect, useRef} from 'react';
 import {useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {PostPreviewMetadata} from '@mattermost/types/posts';
 import type {PropertyValue} from '@mattermost/types/properties';
+
+import {getPost as fetchPost} from 'mattermost-redux/actions/posts';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {useTeam} from 'components/common/hooks/use_team';
 import {useChannel} from 'components/common/hooks/useChannel';
 import {usePost} from 'components/common/hooks/usePost';
 import PostMessagePreview from 'components/post_view/post_message_preview';
+
+import type {GlobalState} from 'types/store';
 
 const noop = () => {};
 
@@ -19,9 +26,23 @@ type Props = {
 }
 
 export default function PostPreviewPropertyRenderer({value}: Props) {
-    const post = usePost(value.value as string);
+    // const post = usePost(value.value as string);
+
+
+    const dispatch = useDispatch();
+    const postId = value.value as string;
+
+    const post = useSelector((state: GlobalState) => getPost(state, postId));
     const channel = useChannel(post?.channel_id || '');
     const team = useTeam(channel?.team_id || '');
+
+    const loaded = useRef(false);
+
+    useEffect(() => {
+        if (!loaded.current && !post) {
+            dispatch(fetchPost(postId, true, true));
+        }
+    }, [dispatch, post, postId]);
 
     console.log('PostPreviewPropertyRenderer', {value, post, channel, team});
 

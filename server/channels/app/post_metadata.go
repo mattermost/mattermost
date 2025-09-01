@@ -64,7 +64,7 @@ func (a *App) PreparePostListForClient(c request.CTX, originalList *model.PostLi
 	}
 
 	for id, originalPost := range originalList.Posts {
-		post := a.PreparePostForClientWithEmbedsAndImages(c, originalPost, false, false, false)
+		post := a.PreparePostForClientWithEmbedsAndImages(c, originalPost, &model.PreparePostForClientOpts{})
 
 		list.Posts[id] = post
 	}
@@ -112,7 +112,7 @@ func (a *App) OverrideIconURLIfEmoji(c request.CTX, post *model.Post) {
 	}
 }
 
-func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNewPost, isEditPost, includePriority bool) *model.Post {
+func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, opts *model.PreparePostForClientOpts) *model.Post {
 	post := originalPost.Clone()
 
 	// Proxy image links before constructing metadata so that requests go through the proxy
@@ -123,7 +123,7 @@ func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNe
 		post.Metadata = &model.PostMetadata{}
 	}
 
-	if post.DeleteAt > 0 {
+	if post.DeleteAt > 0 && !opts.RetainContent {
 		// For deleted posts we don't fill out metadata nor do we return the post content
 		post.Message = ""
 		post.Metadata = &model.PostMetadata{}
@@ -139,13 +139,13 @@ func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNe
 	}
 
 	// Files
-	if fileInfos, _, err := a.getFileMetadataForPost(c, post, isNewPost || isEditPost); err != nil {
+	if fileInfos, _, err := a.getFileMetadataForPost(c, post, opts.IsNewPost || opts.IsEditPost); err != nil {
 		c.Logger().Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		post.Metadata.Files = fileInfos
 	}
 
-	if includePriority && a.IsPostPriorityEnabled() && post.RootId == "" {
+	if opts.IncludePriority && a.IsPostPriorityEnabled() && post.RootId == "" {
 		// Post's Priority if any
 		if priority, err := a.GetPriorityForPost(post.Id); err != nil {
 			c.Logger().Warn("Failed to get post priority for a post", mlog.String("post_id", post.Id), mlog.Err(err))
@@ -164,9 +164,9 @@ func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNe
 	return post
 }
 
-func (a *App) PreparePostForClientWithEmbedsAndImages(c request.CTX, originalPost *model.Post, isNewPost, isEditPost, includePriority bool) *model.Post {
-	post := a.PreparePostForClient(c, originalPost, isNewPost, isEditPost, includePriority)
-	post = a.getEmbedsAndImages(c, post, isNewPost)
+func (a *App) PreparePostForClientWithEmbedsAndImages(c request.CTX, originalPost *model.Post, opts *model.PreparePostForClientOpts) *model.Post {
+	post := a.PreparePostForClient(c, originalPost, opts)
+	post = a.getEmbedsAndImages(c, post, opts.IsNewPost)
 	return post
 }
 
@@ -701,7 +701,7 @@ func (a *App) getLinkMetadataForPermalink(c request.CTX, requestURL string) (*mo
 		permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPost, referencedTeam, referencedChannel)}
 	} else {
 		// referencedPost does not contain a permalink: we get its metadata
-		referencedPostWithMetadata := a.PreparePostForClientWithEmbedsAndImages(c, referencedPost, false, false, false)
+		referencedPostWithMetadata := a.PreparePostForClientWithEmbedsAndImages(c, referencedPost, &model.PreparePostForClientOpts{})
 		permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPostWithMetadata, referencedTeam, referencedChannel)}
 	}
 

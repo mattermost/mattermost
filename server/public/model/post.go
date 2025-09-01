@@ -1120,5 +1120,5 @@ type PreparePostForClientOpts struct {
 	IsNewPost       bool
 	IsEditPost      bool
 	IncludePriority bool
-	ForDataSpillage bool
+	RetainContent   bool
 }

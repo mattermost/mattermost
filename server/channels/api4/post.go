@@ -160,7 +160,7 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	rp = model.AddPostActionCookies(rp, c.App.PostActionCookieSecret())
-	rp = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, rp, true, false, true)
+	rp = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, rp, &model.PreparePostForClientOpts{IsNewPost: true, IncludePriority: true})
 	rp, err := c.App.SanitizePostMetadataForUser(c.AppContext, rp, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -454,7 +454,27 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, false, false, true)
+	retainContent, _ := strconv.ParseBool(r.URL.Query().Get("   "))
+	if retainContent {
+		channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		canRetainContent, appErr := canRetainPostContent(c, c.AppContext.Session().UserId, channel.TeamId)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		if !canRetainContent {
+			c.Err = model.NewAppError("getPost", "api.post.get_post.retain_content.permission_error", nil, "", http.StatusForbidden)
+			return
+		}
+	}
+
+	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true, RetainContent: retainContent})
 	post, err = c.App.SanitizePostMetadataForUser(c.AppContext, post, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -518,7 +538,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		post = c.App.PreparePostForClient(c.AppContext, post, false, false, true)
+		post = c.App.PreparePostForClient(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true})
 		post.StripActionIntegrations()
 		posts = append(posts, post)
 	}
@@ -1380,4 +1400,14 @@ func hasPermittedWranglerRole(c *Context, user *model.User, channelMember *model
 	}
 
 	return false
+}
+
+func canRetainPostContent(c *Context, userId, teamId string) (bool, *model.AppError) {
+	// Currently only a content reviewer may retain the content of a post
+	isReviewer, appErr := c.App.IsUserTeamContentReviewer(userId, teamId)
+	if appErr != nil {
+		return false, appErr
+	}
+
+	return isReviewer, nil
 }
