@@ -45,7 +45,7 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
         return fieldOrderToUse.map((fieldName) => {
             const field = propertyFields[fieldName];
             if (!field) {
-                console.log("NOOOOOOOOO", {fieldName});
+                return null;
             }
 
             const value = valuesByFieldId[field.id];
@@ -84,7 +84,10 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
                                 data-testid='property-card-row'
                             >
                                 <div className='field'>
-                                    {field.name}
+                                    <FormattedMessage
+                                        id={`property_card.field.${field.name}.label`}
+                                        defaultMessage={field.name}
+                                    />
                                 </div>
 
                                 <div className='value'>
