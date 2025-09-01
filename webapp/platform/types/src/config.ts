@@ -964,7 +964,7 @@ export type CloudSettings = {
 export type FeatureFlags = Record<string, string | boolean> & {
 
     // FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this property when feature is GA
-    ChannelAdminManageABACRules?: string;
+    ChannelAdminManageABACRules?: boolean;
 };
 
 export type ImportSettings = {
