@@ -3135,9 +3135,6 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 				teamIdByChannelId[channelId] = teamId
 			}
 			// no metadata entry, create one
-			if participants == nil {
-				participants = model.StringArray{}
-			}
 			if _, err := transaction.Exec(`INSERT INTO Threads
 				(PostId, ChannelId, ReplyCount, LastReplyAt, Participants, ThreadTeamId)
 				VALUES ($1, $2, $3, $4, $5, $6)
