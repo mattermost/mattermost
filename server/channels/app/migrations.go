@@ -28,7 +28,7 @@ const (
 	remainingSchemaMigrationsKey                   = "RemainingSchemaMigrations"
 	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
 	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
-	contentFlaggingMigrationVersion                = "v1"
+	contentFlaggingMigrationVersion                = "v2"
 
 	contentFlaggingPropertyNameFlaggedPostId    = "flagged_post_id"
 	contentFlaggingPropertyNameStatus           = "status"
@@ -40,6 +40,8 @@ const (
 	contentFlaggingPropertyNameActorUserID      = "actor_user_id"
 	contentFlaggingPropertyNameActorComment     = "actor_comment"
 	contentFlaggingPropertyNameActionTime       = "action_time"
+
+	contentFlaggingPropertySubTypeTimestamp = "timestamp"
 )
 
 // This function migrates the default built in roles from code/config to the database.
@@ -661,6 +663,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameReportingTime,
 			Type:    model.PropertyFieldTypeText,
+			Attrs:   map[string]interface{}{"subType": contentFlaggingPropertySubTypeTimestamp},
 		},
 		contentFlaggingPropertyNameReviewerUserID: {
 			GroupID: group.ID,

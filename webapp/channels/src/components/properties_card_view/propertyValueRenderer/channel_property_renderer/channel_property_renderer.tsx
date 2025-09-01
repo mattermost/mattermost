@@ -19,6 +19,8 @@ export default function ChannelPropertyRenderer({value}: Props) {
     const channelId = value.value as string;
     const channel = useChannel(channelId);
 
+    console.log({channelId, channel});
+
     return (
         <div
             className='ChannelPropertyRenderer'

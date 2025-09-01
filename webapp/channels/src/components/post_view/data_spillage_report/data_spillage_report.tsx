@@ -1,23 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 import type {
     NameMappedPropertyFields,
-    PropertyField,
     PropertyValue,
-} from "@mattermost/types/properties";
+} from '@mattermost/types/properties';
 
-import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
+import {getPost as fetchPost} from 'mattermost-redux/actions/posts';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import AtMention from 'components/at_mention';
 import {useChannel} from 'components/common/hooks/useChannel';
-import {usePost} from 'components/common/hooks/usePost';
 import DataSpillageAction from 'components/post_view/data_spillage_report/data_spillage_actions/data_spillage_actions';
 import PropertiesCardView from 'components/properties_card_view/properties_card_view';
 
@@ -26,12 +24,10 @@ import {DataSpillagePropertyNames} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 import './data_spillage_report.scss';
-import { useUser } from "components/common/hooks/useUser";
 import {
     useContentFlaggingFields,
     usePostContentFlaggingValues,
-} from "components/common/hooks/useContentFlaggingFields";
-import { postContentFlaggingValues } from "mattermost-redux/selectors/entities/content_flagging";
+} from "../../common/hooks/useContentFlaggingFields";
 
 // TODO: this function will be replaced with actual data fetched from API in a later PR
 function getDummyPropertyValues(postId: string, channelId: string, teamId: string, authorId: string, postCreateAt: number): Array<PropertyValue<unknown>> {
@@ -174,10 +170,60 @@ function getSyntheticPropertyFields(groupId: string): NameMappedPropertyFields {
             update_at: 0,
             delete_at: 0,
         },
+        reviewer: {
+            id: 'reviewer_field_id',
+            group_id: groupId,
+            name: 'reviewer',
+            type: 'user',
+            attrs: {editable: true},
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        },
+        channel: {
+            id: 'channel_field_id',
+            group_id: groupId,
+            name: 'channel',
+            type: 'text',
+            attrs: {subType: 'channel'},
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        },
+        team: {
+            id: 'team_field_id',
+            group_id: groupId,
+            name: 'team',
+            type: 'text',
+            attrs: {subType: 'team'},
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        },
+        post_author: {
+            id: 'post_author_field_id',
+            group_id: groupId,
+            name: 'post_author',
+            type: 'user',
+            attrs: {},
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        },
+        post_creation_time: {
+            id: 'post_creation_time_field_id',
+            group_id: groupId,
+            name: 'post_creation_time',
+            type: 'text',
+            attrs: {subType: 'timestamp'},
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        },
     };
 }
 
-function getSyntheticPropertyValues(groupId: string, reportedPostId: string): Array<PropertyValue<unknown>> {
+function getSyntheticPropertyValues(groupId: string, reportedPostId: string, channelId: string, teamId: string, postAuthorId: string, postCreateAt: number): Array<PropertyValue<unknown>> {
     return [
         {
             id: 'post_preview_value_id',
@@ -190,6 +236,61 @@ function getSyntheticPropertyValues(groupId: string, reportedPostId: string): Ar
             update_at: 0,
             delete_at: 0,
         },
+        {
+            id: 'reviewer_user_value_id',
+            field_id: 'reviewer_field_id',
+            target_id: reportedPostId,
+            target_type: 'post',
+            group_id: groupId,
+            value: '',
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        },
+        {
+            id: 'channel_value_id',
+            field_id: 'channel_field_id',
+            target_id: reportedPostId,
+            target_type: 'post',
+            group_id: groupId,
+            value: channelId,
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        },
+        {
+            id: 'team_value_id',
+            field_id: 'team_field_id',
+            target_id: reportedPostId,
+            target_type: 'post',
+            group_id: groupId,
+            value: teamId,
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        },
+        {
+            id: 'post_author_value_id',
+            field_id: 'post_author_field_id',
+            target_id: reportedPostId,
+            target_type: 'post',
+            group_id: groupId,
+            value: postAuthorId,
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        },
+        {
+            id: 'post_creation_time_value_id',
+            field_id: 'post_creation_time_field_id',
+            target_id: reportedPostId,
+            target_type: 'post',
+            group_id: groupId,
+            value: postCreateAt,
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        },
     ];
 }
 
@@ -197,23 +298,24 @@ const orderedFieldName = [
     'status',
     'reporting_reason',
     'post_preview',
+    'reviewer',
     'reporting_user_id',
     'reporting_time',
-    'reviewer_user_id',
+    'reporting_comment',
     'actor_user_id',
     'actor_comment',
     'action_time',
-    // 'channel',
-    // 'team',
-    // 'post_author',
-    // 'post_creation_time',
+    'channel',
+    'team',
+    'post_author',
+    'post_creation_time',
 ];
 
 const shortModeFieldOrder = [
     'status',
     'reporting_reason',
     'post_preview',
-    'reviewer_user_id',
+    'reviewer',
 ];
 
 type Props = {
@@ -221,15 +323,33 @@ type Props = {
     isRHS?: boolean;
 };
 
-export default function DataSpillageReport({post, isRHS}: Props) {
+export function DataSpillageReport({post, isRHS}: Props) {
     const {formatMessage} = useIntl();
     const reportedPostId = post.props.reported_post_id as string;
+
+    const loaded = useRef(false);
+    const dispatch = useDispatch();
 
     const naturalPropertyFields = useContentFlaggingFields('fetch');
     const naturalPropertyValues = usePostContentFlaggingValues(reportedPostId);
 
-    // const reportedPost = usePost(reportedPostId);
-    // const channel = useChannel(reportedPost?.channel_id || '');
+    const [reportedPost, setReportedPost] = useState<Post>();
+    const channel = useChannel(reportedPost?.channel_id || '');
+
+    useEffect(() => {
+        const work = async () => {
+            if (!loaded.current && !reportedPost) {
+                const data = await dispatch(fetchPost(reportedPostId, true, true));
+                if (data.data) {
+                    setReportedPost(data.data);
+                }
+
+                loaded.current = true;
+            }
+        };
+
+        work();
+    }, [dispatch, reportedPost, reportedPostId]);
 
     const propertyFields = useMemo((): NameMappedPropertyFields => {
         if (!naturalPropertyFields || !Object.keys(naturalPropertyFields).length) {
@@ -244,9 +364,19 @@ export default function DataSpillageReport({post, isRHS}: Props) {
         if (!naturalPropertyValues || !naturalPropertyValues.length) {
             return [];
         }
-        const syntheticValues = getSyntheticPropertyValues(naturalPropertyValues[0].group_id, reportedPostId);
+
+        console.log({reportedPost});
+
+        const syntheticValues = getSyntheticPropertyValues(
+            naturalPropertyValues[0].group_id,
+            reportedPostId,
+            reportedPost?.channel_id || '',
+            channel?.team_id || '',
+            reportedPost?.user_id || '',
+            reportedPost?.create_at || 0,
+        );
         return [...naturalPropertyValues, ...syntheticValues];
-    }, [naturalPropertyValues, reportedPostId]);
+    }, [channel?.team_id, naturalPropertyValues, reportedPost?.channel_id, reportedPost?.create_at, reportedPost?.user_id, reportedPostId]);
 
     const reportingUserFieldId = propertyFields[DataSpillagePropertyNames.FlaggedBy];
     const reportingUserIdValue = propertyValues.find((value) => value.field_id === reportingUserFieldId?.id);

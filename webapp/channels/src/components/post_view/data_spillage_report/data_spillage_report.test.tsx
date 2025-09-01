@@ -6,9 +6,9 @@ import React from 'react';
 import type {Post} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import DataSpillageReport from 'components/post_view/data_spillage_report/data_spillage_report';
+import { DataSpillageReport } from "components/post_view/data_spillage_report/data_spillage_report";
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import { renderWithContext, screen } from "tests/react_testing_utils";
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';

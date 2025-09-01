@@ -53,8 +53,6 @@ export default function PostPreviewPropertyRenderer({value}: Props) {
         work();
     }, [dispatch, post, postId]);
 
-    console.log('PostPreviewPropertyRenderer', {value, post, channel, team});
-
     const {formatMessage} = useIntl();
 
     if (!post || !channel || !team) {
