@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import { defineMessage, defineMessages, FormattedMessage } from "react-intl";
 
 import type {
     NameMappedPropertyFields,
@@ -13,6 +13,49 @@ import type {
 import PropertyValueRenderer from './propertyValueRenderer/propertyValueRenderer';
 
 import './properties_card_view.scss';
+
+const fieldNameMessages = defineMessages({
+    status: {
+        id: 'property_card.field.status.label',
+        defaultMessage: 'Status',
+    },
+    reporting_reason: {
+        id: 'property_card.field.reporting_reason.label',
+        defaultMessage: 'Reason',
+    },
+    post_preview: {
+        id: 'property_card.field.post_preview.label',
+        defaultMessage: 'Message',
+    },
+    reviewer_user_id: {
+        id: 'property_card.field.reviewer_user_id.label',
+        defaultMessage: 'Reviewer',
+    },
+    reporting_user_id: {
+        id: 'property_card.field.reporting_user_id.label',
+        defaultMessage: 'Flagged by',
+    },
+    reporting_comment: {
+        id: 'property_card.field.reporting_comment.label',
+        defaultMessage: 'Comment',
+    },
+    channel: {
+        id: 'property_card.field.channel.label',
+        defaultMessage: 'Channel',
+    },
+    team: {
+        id: 'property_card.field.team.label',
+        defaultMessage: 'Team',
+    },
+    post_author: {
+        id: 'property_card.field.post_author.label',
+        defaultMessage: 'Posted by',
+    },
+    post_creation_time: {
+        id: 'property_card.field.post_creation_time.label',
+        defaultMessage: 'Posted at',
+    },
+});
 
 type Props = {
     title: React.ReactNode;
@@ -84,10 +127,7 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
                                 data-testid='property-card-row'
                             >
                                 <div className='field'>
-                                    <FormattedMessage
-                                        id={`property_card.field.${field.name}.label`}
-                                        defaultMessage={field.name}
-                                    />
+                                    <FormattedMessage {...fieldNameMessages[field.name as keyof typeof fieldNameMessages]}/>
                                 </div>
 
                                 <div className='value'>
