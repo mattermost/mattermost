@@ -170,19 +170,20 @@ function ChannelSettingsAccessRulesTab({
         return !hasChannelRules && !hasSystemPolicies;
     }, [expression, systemPolicies]);
 
-    // Auto-disable auto-sync when entering empty rules state (but only if not forced by system policy)
+    // Auto-sync members toggle logic
     useEffect(() => {
-        if (isEmptyRulesState && autoSyncMembers && !systemPolicyForcesAutoSync) {
-            setAutoSyncMembers(false);
-        }
-    }, [isEmptyRulesState, autoSyncMembers, systemPolicyForcesAutoSync]);
-
-    // Force auto-sync when system policies require it
-    useEffect(() => {
+        // Priority 1: System policy forcing (highest priority)
+        // When system policies require auto-sync, it must be enabled
         if (systemPolicyForcesAutoSync && !autoSyncMembers) {
             setAutoSyncMembers(true);
+            setOriginalAutoSyncMembers(true); // Update original to prevent "unsaved changes" detection
+        } else if (isEmptyRulesState && autoSyncMembers && !systemPolicyForcesAutoSync) {
+            // Priority 2: Auto-disable when entering empty state (if not forced by system)
+            // When no rules exist and system doesn't force, auto-sync must be disabled
+            setAutoSyncMembers(false);
+            setOriginalAutoSyncMembers(false); // Update original to prevent "unsaved changes" detection
         }
-    }, [systemPolicyForcesAutoSync, autoSyncMembers]);
+    }, [systemPolicyForcesAutoSync, isEmptyRulesState, autoSyncMembers]);
 
     const handleAutoSyncToggle = useCallback(() => {
         // Don't allow toggling if in empty rules state
