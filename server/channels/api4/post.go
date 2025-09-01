@@ -454,7 +454,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	retainContent, _ := strconv.ParseBool(r.URL.Query().Get("   "))
+	retainContent, _ := strconv.ParseBool(r.URL.Query().Get("retain_content"))
 	if retainContent {
 		channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
 		if appErr != nil {

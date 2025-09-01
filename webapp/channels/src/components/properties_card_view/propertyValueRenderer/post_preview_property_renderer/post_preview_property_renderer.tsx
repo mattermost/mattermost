@@ -2,11 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {useSelect} from '@mui/base';
-import React, {useEffect, useRef} from 'react';
+import React, { useEffect, useRef, useState } from "react";
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import type {PostPreviewMetadata} from '@mattermost/types/posts';
+import type { Post, PostPreviewMetadata } from "@mattermost/types/posts";
 import type {PropertyValue} from '@mattermost/types/properties';
 
 import {getPost as fetchPost} from 'mattermost-redux/actions/posts';
@@ -32,16 +32,25 @@ export default function PostPreviewPropertyRenderer({value}: Props) {
     const dispatch = useDispatch();
     const postId = value.value as string;
 
-    const post = useSelector((state: GlobalState) => getPost(state, postId));
+    const [post, setPost] = useState<Post>();
     const channel = useChannel(post?.channel_id || '');
     const team = useTeam(channel?.team_id || '');
 
     const loaded = useRef(false);
 
     useEffect(() => {
-        if (!loaded.current && !post) {
-            dispatch(fetchPost(postId, true, true));
-        }
+        const work = async () => {
+            if (!loaded.current && !post) {
+                const data = await dispatch(fetchPost(postId, true, true));
+                if (data.data) {
+                    setPost(data.data);
+                }
+
+                loaded.current = true;
+            }
+        };
+
+        work();
     }, [dispatch, post, postId]);
 
     console.log('PostPreviewPropertyRenderer', {value, post, channel, team});

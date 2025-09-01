@@ -2228,9 +2228,9 @@ export default class Client4 {
         );
     };
 
-    getPost = (postId: string, includeDeleted?: boolean, retainData?: boolean) => {
+    getPost = (postId: string, includeDeleted?: boolean, retainContent?: boolean) => {
         return this.doFetch<Post>(
-            `${this.getPostRoute(postId)}${buildQueryString({include_deleted: includeDeleted, retain_data: retainData})}`,
+            `${this.getPostRoute(postId)}${buildQueryString({include_deleted: includeDeleted, retain_content: retainContent})}`,
             {method: 'get'},
         );
     };
