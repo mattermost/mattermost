@@ -1762,6 +1762,10 @@
     "translation": "Please select a reason for flagging this message."
   },
   {
+    "id": "api.content_flagging.error.reviewer_only",
+    "translation": "You do not have permission to view this resource."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Sorry, we could not find the page."
   },
@@ -2689,6 +2693,10 @@
       "one": "{{.Count}} image sent: {{.Filenames}}",
       "other": "{{.Count}} images sent: {{.Filenames}}"
     }
+  },
+  {
+    "id": "api.post.get_post.retain_content.permission_error",
+    "translation": "You do not have permission to retain the content of this post."
   },
   {
     "id": "api.post.move_thread.disabled.app_error",
@@ -5153,6 +5161,10 @@
   {
     "id": "app.content_flagging.search_property_fields.app_error",
     "translation": "Failed to search Content Flagging property fields."
+  },
+  {
+    "id": "app.content_flagging.search_property_values.app_error",
+    "translation": "Failed to fetch post's content flagging property values from the database."
   },
   {
     "id": "app.content_flagging.search_status_property.app_error",

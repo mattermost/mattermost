@@ -643,7 +643,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameStatus,
 			Type:    model.PropertyFieldTypeSelect,
-			Attrs: map[string]interface{}{
+			Attrs: map[string]any{
 				"options": []map[string]string{
 					{"name": model.ContentFlaggingStatusPending, "color": "light_grey"},
 					{"name": model.ContentFlaggingStatusAssigned, "color": "dark_blue"},
@@ -671,7 +671,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameReportingTime,
 			Type:    model.PropertyFieldTypeText,
-			Attrs:   map[string]interface{}{"subType": contentFlaggingPropertySubTypeTimestamp},
+			Attrs:   map[string]any{"subType": contentFlaggingPropertySubTypeTimestamp},
 		},
 		contentFlaggingPropertyNameReviewerUserID: {
 			GroupID: group.ID,

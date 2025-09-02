@@ -295,7 +295,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewerIds = &[]string{th.BasicUser.Id, th.BasicUser2.Id}
 		})
 
-		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 2)
 		require.Contains(t, reviewers, th.BasicUser.Id)
@@ -316,7 +316,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.SystemAdminUser.Id, "")
 		require.Nil(t, appErr)
 
-		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 2)
 		require.Contains(t, reviewers, th.BasicUser.Id)
@@ -326,7 +326,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		th.UpdateConfig(func(conf *model.Config) {
 			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewerIds = &[]string{}
 		})
-		reviewers, appErr = th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr = th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 1)
 		require.Contains(t, reviewers, th.SystemAdminUser.Id)
@@ -338,7 +338,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		// If sysadmin is not a team member, they should not be returned as a reviewer
 		appErr = th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.SystemAdminUser.Id, "")
 		require.Nil(t, appErr)
-		reviewers, appErr = th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr = th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 1)
 		require.Contains(t, reviewers, th.BasicUser.Id)
@@ -366,7 +366,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamAdminRoleId)
 		require.Nil(t, appErr)
 
-		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 2)
 		require.Contains(t, reviewers, th.BasicUser.Id)
@@ -377,7 +377,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewerIds = &[]string{}
 		})
 
-		reviewers, appErr = th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr = th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 1)
 		require.Contains(t, reviewers, teamAdmin.Id)
@@ -389,7 +389,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		// If team admin is not a team member, they should not be returned as a reviewer
 		appErr = th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, teamAdmin.Id, "")
 		require.Nil(t, appErr)
-		reviewers, appErr = th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr = th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 1)
 		require.Contains(t, reviewers, th.BasicUser.Id)
@@ -412,13 +412,13 @@ func TestGetReviewersForTeam(t *testing.T) {
 		})
 
 		// Reviewers configured for th.BasicTeam
-		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 1)
 		require.Contains(t, reviewers, th.BasicUser2.Id)
 
 		// NO reviewers configured for team2
-		reviewers, appErr = th.App.getReviewersForTeam(team2.Id)
+		reviewers, appErr = th.App.getReviewersForTeam(team2.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 0)
 	})
@@ -438,7 +438,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 			}
 		})
 
-		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 0)
 	})
@@ -463,7 +463,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.SystemAdminUser.Id, "")
 		require.Nil(t, appErr)
 
-		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 2)
 		require.Contains(t, reviewers, th.BasicUser2.Id)
@@ -483,7 +483,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.SystemAdminUser.Id, "")
 		require.Nil(t, appErr)
 
-		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 2)
 		require.Contains(t, reviewers, th.BasicUser.Id)

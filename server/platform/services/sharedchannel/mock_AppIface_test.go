@@ -560,17 +560,17 @@ func (_m *MockAppIface) PermanentDeleteChannel(c request.CTX, channel *model.Cha
 	return r0
 }
 
-// PreparePostForClient provides a mock function with given fields: c, post, isNewPost, includeDeleted, includePriority
-func (_m *MockAppIface) PreparePostForClient(c request.CTX, post *model.Post, isNewPost bool, includeDeleted bool, includePriority bool) *model.Post {
-	ret := _m.Called(c, post, isNewPost, includeDeleted, includePriority)
+// PreparePostForClient provides a mock function with given fields: c, post, opts
+func (_m *MockAppIface) PreparePostForClient(c request.CTX, post *model.Post, opts *model.PreparePostForClientOpts) *model.Post {
+	ret := _m.Called(c, post, opts)
 
 	if len(ret) == 0 {
 		panic("no return value specified for PreparePostForClient")
 	}
 
 	var r0 *model.Post
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, bool, bool, bool) *model.Post); ok {
-		r0 = rf(c, post, isNewPost, includeDeleted, includePriority)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, *model.PreparePostForClientOpts) *model.Post); ok {
+		r0 = rf(c, post, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
