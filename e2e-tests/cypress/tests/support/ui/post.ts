@@ -70,7 +70,7 @@ function editLastPostWithNewMessage(message: string) {
     cy.get('#edit_textbox').should('be.visible');
 
     // # Update the post message and click Save
-    cy.get('#edit_textbox').invoke('val', '').type(message)
+    cy.get('#edit_textbox').clear().type(message)
     cy.get('#create_post').findByText('Save').should('be.visible').click();
 }
 Cypress.Commands.add('editLastPostWithNewMessage', editLastPostWithNewMessage);
