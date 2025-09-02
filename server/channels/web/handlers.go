@@ -142,6 +142,14 @@ func (h Handler) basicSecurityChecks(c *Context, w http.ResponseWriter, r *http.
 	}
 }
 
+func (h Handler) checkPreauthSecret(c *Context, w http.ResponseWriter, r *http.Request) {
+	preauthSecret := r.Header.Get("X-Mattermost-Preauth-Secret")
+	if preauthSecret != "test" {
+		c.Err = model.NewAppError("checkPreauthSecret", "api.context.preauth_secret_invalid.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+}
+
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w = newWrappedWriter(w)
 	now := time.Now()
@@ -195,6 +203,12 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.Logger = c.App.Log()
 
 	h.basicSecurityChecks(c, w, r)
+	if c.Err != nil {
+		h.handleContextError(c, w, r)
+		return
+	}
+
+	h.checkPreauthSecret(c, w, r)
 	if c.Err != nil {
 		h.handleContextError(c, w, r)
 		return
@@ -410,14 +424,10 @@ func (h Handler) handleContextError(c *Context, w http.ResponseWriter, r *http.R
 		c.Err.Where = ""
 	}
 
-	if IsAPICall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthAPICall(c.App, r) || r.Header.Get("X-Mobile-App") != "" {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(c.Err.StatusCode)
-		if _, err := w.Write([]byte(c.Err.ToJSON())); err != nil {
-			c.Logger.Warn("Failed to write error response", mlog.Err(err))
-		}
-	} else {
-		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(c.Err.StatusCode)
+	if _, err := w.Write([]byte(c.Err.ToJSON())); err != nil {
+		c.Logger.Warn("Failed to write error response", mlog.Err(err))
 	}
 
 	if c.App.Metrics() != nil {
