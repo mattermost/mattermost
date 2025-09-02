@@ -42,7 +42,7 @@ describe('components/TeamMembersModal', () => {
 
         const modalProps = wrapper.find(GenericModal).first().props();
         if (modalProps.onExited) {
-            modalProps.onExited(document.createElement('div'));
+            modalProps.onExited();
         }
 
         expect(baseProps.onExited).toHaveBeenCalledTimes(1);
