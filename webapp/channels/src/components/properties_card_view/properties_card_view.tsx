@@ -27,7 +27,7 @@ const fieldNameMessages = defineMessages({
         id: 'property_card.field.post_preview.label',
         defaultMessage: 'Message',
     },
-    reviewer_user_id: {
+    reviewer: {
         id: 'property_card.field.reviewer_user_id.label',
         defaultMessage: 'Reviewer',
     },
@@ -54,6 +54,10 @@ const fieldNameMessages = defineMessages({
     post_creation_time: {
         id: 'property_card.field.post_creation_time.label',
         defaultMessage: 'Posted at',
+    },
+    reporting_time: {
+        id: 'property_card.field.reporting_time.label',
+        defaultMessage: 'Flagged at',
     },
 });
 
@@ -120,6 +124,8 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
             <div className='PropertyCardView_fields'>
                 {
                     orderedRows.map(({field, value}) => {
+                        const translation = fieldNameMessages[field.name as keyof typeof fieldNameMessages];
+
                         return (
                             <div
                                 key={field.id}
@@ -127,7 +133,8 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
                                 data-testid='property-card-row'
                             >
                                 <div className='field'>
-                                    <FormattedMessage {...fieldNameMessages[field.name as keyof typeof fieldNameMessages]}/>
+                                    {translation && <FormattedMessage {...translation}/>}
+                                    {!translation && field.name}
                                 </div>
 
                                 <div className='value'>

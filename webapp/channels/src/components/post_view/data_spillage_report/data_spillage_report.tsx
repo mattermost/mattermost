@@ -28,6 +28,7 @@ import {
     useContentFlaggingFields,
     usePostContentFlaggingValues,
 } from "../../common/hooks/useContentFlaggingFields";
+import { useUser } from "components/common/hooks/useUser";
 
 // TODO: this function will be replaced with actual data fetched from API in a later PR
 function getDummyPropertyValues(postId: string, channelId: string, teamId: string, authorId: string, postCreateAt: number): Array<PropertyValue<unknown>> {
@@ -380,7 +381,11 @@ export function DataSpillageReport({post, isRHS}: Props) {
 
     const reportingUserFieldId = propertyFields[DataSpillagePropertyNames.FlaggedBy];
     const reportingUserIdValue = propertyValues.find((value) => value.field_id === reportingUserFieldId?.id);
-    const reportingUser = useSelector((state: GlobalState) => getUser(state, reportingUserIdValue ? reportingUserIdValue.value as string : ''));
+    // const reportingUser = useSelector((state: GlobalState) => getUser(state, reportingUserIdValue ? reportingUserIdValue.value as string : ''));
+    const reportingUserId = reportingUserIdValue ? reportingUserIdValue.value as string : '';
+    const reportingUser = useUser(reportingUserId);
+
+    console.log({reportingUser, reportingUserId});
 
     // useEffect(() => {
     //     if (reportedPost && channel) {

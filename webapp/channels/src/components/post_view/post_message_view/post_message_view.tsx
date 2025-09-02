@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, { useMemo } from "react";
 import {FormattedMessage} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
@@ -22,6 +22,11 @@ import type {TextFormattingOptions} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
 import type {PostPluginComponent} from 'types/store/plugins';
+import { PostTypes } from "utils/constants";
+
+const FULL_HEIGHT_POST_TYPES = new Set([
+    PostTypes.CUSTOM_DATA_SPILLAGE_REPORT,
+]);
 
 type Props = {
     post: Post; /* The post to render the message for */
@@ -150,13 +155,8 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
         const channel = getChannel(store.getState(), post.channel_id);
         const isSharedChannel = channel?.shared || false;
 
-        return (
-            <ShowMore
-                checkOverflow={this.state.checkOverflow}
-                text={message}
-                overflowType={overflowType}
-                maxHeight={maxHeight}
-            >
+        const body = (
+            <>
                 <div
                     id={id}
                     className='post-message__text'
@@ -180,6 +180,21 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                         onHeightChange={this.handleHeightReceived}
                     />
                 )}
+            </>
+        );
+
+        if (FULL_HEIGHT_POST_TYPES.has(postType)) {
+            return body;
+        }
+
+        return (
+            <ShowMore
+                checkOverflow={this.state.checkOverflow}
+                text={message}
+                overflowType={overflowType}
+                maxHeight={maxHeight}
+            >
+                {body}
             </ShowMore>
         );
     }

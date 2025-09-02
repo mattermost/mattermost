@@ -633,6 +633,15 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 		existingPropertiesMap[property.Name] = property
 	}
 
+	statusPropertyAttributes := map[string]interface{}{
+		"options": []map[string]string{
+			{"name": model.ContentFlaggingStatusPending, "color": "light_grey"},
+			{"name": model.ContentFlaggingStatusAssigned, "color": "dark_blue"},
+			{"name": model.ContentFlaggingStatusRemoved, "color": "dark_red"},
+			{"name": model.ContentFlaggingStatusRetained, "color": "light_blue"},
+		},
+	}
+
 	expectedPropertiesMap := map[string]*model.PropertyField{
 		contentFlaggingPropertyNameFlaggedPostId: {
 			GroupID: group.ID,
@@ -643,6 +652,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameStatus,
 			Type:    model.PropertyFieldTypeSelect,
+			Attrs:   statusPropertyAttributes,
 		},
 		contentFlaggingPropertyNameReportingUserID: {
 			GroupID: group.ID,
