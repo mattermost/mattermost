@@ -271,6 +271,21 @@ jobs:
       drivername: postgres
       logsartifact: mmctl-test-logs
       go-version: ${{ needs.go.outputs.version }}
+      fips-enabled: false
+  test-mmctl-fips:
+    name: Run mmctl tests (FIPS)
+    needs:
+      - check-mattermost-vet
+      - go
+    uses: ./.github/workflows/mmctl-test-template.yml
+    secrets: inherit
+    with:
+      name: mmctl
+      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      drivername: postgres
+      logsartifact: mmctl-test-logs
+      go-version: ${{ needs.go.outputs.version }}
+      fips-enabled: true
   build-mattermost-server:
     name: Build mattermost server app
     needs:

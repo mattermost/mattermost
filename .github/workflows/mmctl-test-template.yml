@@ -25,6 +25,10 @@ on:
 env:
   CHAINCTL_IDENTITY: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   test:
     name: ${{ inputs.name }}
@@ -36,6 +40,12 @@ jobs:
         if: ${{ inputs.fips-enabled }}
         with:
           identity: ${{ env.CHAINCTL_IDENTITY }}
+
+      - name: buildenv/docker-login
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -78,15 +88,18 @@ jobs:
           else
             export TESTFLAGS="-timeout 30m"
           fi
+          # XXX: Note the entrypoint workaround re: container inconsistencies for future cleanup.
           docker run --net ghactions_mm-test \
             --ulimit nofile=8096:8096 \
             --env-file=server/build/dotenv/test.env \
             --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
             --env MMCTL_TESTFLAGS="$TESTFLAGS" \
+            --env FIPS_ENABLED="${{ inputs.fips-enabled }}" \
             -v $PWD:/mattermost \
             -w /mattermost/server \
+            --entrypoint "/usr/bin/make" \
             $BUILD_IMAGE \
-            make test-mmctl BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
+            test-mmctl BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
 
       - name: Stop docker compose
         run: |
