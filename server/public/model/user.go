@@ -17,11 +17,11 @@ import (
 
 	"github.com/pkg/errors"
 
-	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/language"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
 )
 
 const (
@@ -995,12 +995,7 @@ func (u *UserPatch) SetField(fieldName string, fieldValue string) {
 
 // HashPassword generates a hash using the bcrypt.GenerateFromPassword
 func HashPassword(password string) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
-	if err != nil {
-		return "", err
-	}
-
-	return string(hash), nil
+	return hashers.LatestHasher.Hash(password)
 }
 
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
