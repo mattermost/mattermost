@@ -37,10 +37,10 @@ import {
     fetchChannelsAndMembers,
 } from 'mattermost-redux/actions/channels';
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
-import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
 import {setServerVersion, getClientConfig, getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup as fetchGroup} from 'mattermost-redux/actions/groups';
+import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {
     getCustomEmojiForReaction,
     getPosts,
@@ -1408,6 +1408,7 @@ function handleConfigChanged(msg) {
 
 function handleLicenseChanged(msg) {
     store.dispatch({type: GeneralTypes.CLIENT_LICENSE_RECEIVED, data: msg.data.license});
+
     // Refresh server limits when license changes since limits may have changed
     dispatch(getServerLimits());
 }

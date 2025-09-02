@@ -5,8 +5,6 @@ import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {CloudUsage, Limits} from '@mattermost/types/cloud';
-import type {ServerLimits} from '@mattermost/types/limits';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 

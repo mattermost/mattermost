@@ -6,9 +6,8 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import type {ServerLimits} from '@mattermost/types/limits';
 
-import {getServerLimits as getServerLimitsSelector} from 'mattermost-redux/selectors/entities/limits';
-
 import {getServerLimits as getServerLimitsAction} from 'mattermost-redux/actions/limits';
+import {getServerLimits as getServerLimitsSelector} from 'mattermost-redux/selectors/entities/limits';
 
 import {useIsLoggedIn} from 'components/global_header/hooks';
 
