@@ -920,10 +920,6 @@
     "translation": "umeri"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Noul format pentru configurare client nu supported încă. Vă rugăm să specificaţi formatul = vechi în şirul de interogare."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Ne pare rau, nu am putut găsi pagina."
   },
@@ -2074,14 +2070,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Conectarea la bot este interzisă."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "A încercat să faceţi sign in utilizând caracteristica experimentale ClientSideCert fără a furniza un certificat valabil."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Încercaţi să utilizaţi caracteristica experimentale ClientSideCertEnable fara licenta valida enterprise."
   },
   {
     "id": "api.user.login.inactive.app_error",
