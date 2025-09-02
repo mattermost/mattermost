@@ -5,7 +5,6 @@ import React from 'react';
 
 import {emptyLimits} from 'tests/constants/cloud';
 import {emptyTeams} from 'tests/constants/teams';
-import {adminUsersState, endUsersState} from 'tests/constants/users';
 import {screen, renderWithContext} from 'tests/react_testing_utils';
 import {makeEmptyUsage} from 'utils/limits_test';
 import {TestHelper} from 'utils/test_helper';
@@ -24,7 +23,6 @@ jest.mock('mattermost-redux/actions/cloud', () => {
 const initialState = {
     entities: {
         usage: makeEmptyUsage(),
-        users: adminUsersState(),
         cloud: {
             limits: {...emptyLimits(), limitsLoaded: false},
         },
@@ -32,6 +30,12 @@ const initialState = {
             license: TestHelper.getCloudLicenseMock(),
         },
         teams: emptyTeams(),
+        limits: {
+            serverLimits: {
+                activeUserCount: 0,
+                maxUsersLimit: 0,
+            },
+        },
         posts: {
             postsInChannel: {
                 channelId: [
@@ -54,23 +58,11 @@ const exceededLimitsState = {
     ...initialState,
     entities: {
         ...initialState.entities,
-        cloud: {
-            ...initialState.entities.cloud,
-            limits: {
-                ...initialState.entities.cloud.limits,
-                limitsLoaded: true,
-                limits: {
-                    messages: {
-                        history: 2,
-                    },
-                },
-            },
-        },
-        usage: {
-            ...initialState.entities.usage,
-            messages: {
-                ...initialState.entities.usage.messages,
-                history: 3,
+        limits: {
+            serverLimits: {
+                activeUserCount: 0,
+                maxUsersLimit: 0,
+                postHistoryLimit: 2,
             },
         },
     },
@@ -90,38 +82,33 @@ const exceededLimitsStateNoAccessiblePosts = {
     },
 };
 
-const endUserLimitExceeded = {
-    ...exceededLimitsState,
-    entities: {
-        ...exceededLimitsState.entities,
-        users: endUsersState(),
-    },
-};
-
 describe('CenterMessageLock', () => {
     it('returns null if limits not loaded', () => {
         renderWithContext(
             <CenterMessageLock channelId={'channelId'}/>,
             initialState,
         );
-        expect(screen.queryByText('Notify Admin')).not.toBeInTheDocument();
-        expect(screen.queryByText('Upgrade now')).not.toBeInTheDocument();
+        expect(screen.queryByText('Unlock messages prior to')).not.toBeInTheDocument();
     });
 
-    it('Admins have a call to upgrade', () => {
+    it('shows message when limits are exceeded', () => {
         renderWithContext(
             <CenterMessageLock channelId={'channelId'}/>,
             exceededLimitsState,
         );
-        screen.getByText('Upgrade now');
+        screen.getByText('Unlock messages prior to', {exact: false});
+        screen.getByText('Review our plan options and pricing.');
     });
 
-    it('End users have a call to notify admin', () => {
+    it('pricing button is clickable', () => {
         renderWithContext(
             <CenterMessageLock channelId={'channelId'}/>,
-            endUserLimitExceeded,
+            exceededLimitsState,
         );
-        screen.getByText('Notify Admin');
+        const pricingButton = screen.getByText('Review our plan options and pricing.');
+        expect(pricingButton.tagName).toBe('BUTTON');
+        expect(pricingButton).toHaveAttribute('type', 'button');
+        expect(pricingButton).toHaveClass('btn-link');
     });
 
     it('Filtered messages over one year old display year', () => {

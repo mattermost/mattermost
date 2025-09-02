@@ -9,8 +9,6 @@ import styled from 'styled-components';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {isSearchTruncated} from 'mattermost-redux/selectors/entities/search';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {isAdmin} from 'mattermost-redux/utils/user_utils';
 
 import useGetServerLimits from 'components/common/hooks/useGetServerLimits';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
@@ -48,7 +46,6 @@ function SearchLimitsBanner(props: Props) {
     const {formatMessage, formatNumber} = useIntl();
     const {openPricingModal} = useOpenPricingModal();
     const [serverLimits] = useGetServerLimits();
-    const isAdminUser = isAdmin(useSelector(getCurrentUser).roles);
 
     // Check if current search results were actually truncated
     const searchTruncated = useSelector((state: GlobalState) => {
@@ -64,17 +61,10 @@ function SearchLimitsBanner(props: Props) {
     const limit = formatNumber(serverLimits.postHistoryLimit);
     const searchContent = props.searchType === DataSearchTypes.FILES_SEARCH_TYPE ? 'files' : 'messages';
 
-    let ctaAction = formatMessage({
+    const ctaAction = formatMessage({
         id: 'workspace_limits.search_limit.view_plans',
         defaultMessage: 'View plans',
     });
-
-    if (isAdminUser) {
-        ctaAction = formatMessage({
-            id: 'workspace_limits.search_limit.upgrade_now',
-            defaultMessage: 'Upgrade now',
-        });
-    }
 
     const bannerMessage = formatMessage({
         id: 'workspace_limits.search_limit.banner_text',
