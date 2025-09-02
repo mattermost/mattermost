@@ -313,19 +313,17 @@ jobs:
       - go
       - check-mattermost-vet
     runs-on: ubuntu-22.04
-    container: mattermost/mattermost-build-server-fips:${{ needs.go.outputs.version }}
+    container:
+      image: mattermost/mattermost-build-server-fips:${{ needs.go.outputs.version }}
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     defaults:
       run:
         working-directory: server
     env:
       GOFLAGS: -buildvcs=false # TODO: work around "error obtaining VCS status: exit status 128" in a container
     steps:
-      - name: Login to DockerHub (production repo)
-        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
-        with:
-          registry: docker.io
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Run setup-go-work
