@@ -18,6 +18,9 @@ var (
 	UserInitialsError  = errors.New("could not get user initials")
 	ImageEncodingError = errors.New("could not encode image")
 	GlyphError         = errors.New("could not get glyph")
+
+	OutdatedPasswordHashingError = errors.New("outdated password hashing method")
+	InvalidPasswordError         = NewErrInvalidPassword("")
 )
 
 // ErrInvalidPassword indicates an error against the password settings

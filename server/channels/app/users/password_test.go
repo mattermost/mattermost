@@ -4,13 +4,19 @@
 package users
 
 import (
+	"crypto/rand"
+	"io"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/argon2"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/parser"
 )
 
 func TestIsPasswordValidWithSettings(t *testing.T) {
@@ -128,6 +134,161 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 				require.True(t, ok)
 				assert.Equal(t, tc.ExpectedError, invErr.Id())
 			}
+		})
+	}
+}
+
+func TestCheckUserPassword(t *testing.T) {
+	// Create random salt
+	salt := make([]byte, 16)
+	_, err := io.ReadFull(rand.Reader, salt)
+	require.NoError(t, err)
+
+	// Prepare a pwd and its old hash, generated with bcrypt and argon2i
+	pwd := "testPass123$"
+	pwdBcryptBytes, err := bcrypt.GenerateFromPassword([]byte(pwd), 10)
+	require.NoError(t, err)
+	pwdBcrypt := string(pwdBcryptBytes)
+	pwdArgon2Bytes := argon2.Key([]byte(pwd), salt, 3, 32*1024, 4, 32)
+	pwdArgon2 := string(pwdArgon2Bytes)
+	pwdPbkdf2, err := hashers.LatestHasher.Hash(pwd)
+	require.NoError(t, err)
+
+	testCases := []struct {
+		testName         string
+		storedPassword   string
+		providedPassword string
+		expectedErr      error
+	}{
+		{
+			testName:         "old password hashed with bcrypt errors as outdated",
+			storedPassword:   pwdBcrypt,
+			providedPassword: pwd,
+			expectedErr:      OutdatedPasswordHashingError,
+		},
+		{
+			testName:         "old password hashed with an unknow hasher errors as outdated",
+			storedPassword:   pwdArgon2,
+			providedPassword: pwd,
+			expectedErr:      OutdatedPasswordHashingError,
+		},
+		{
+			testName:         "empty password errors as invalid password",
+			storedPassword:   pwdBcrypt,
+			providedPassword: "",
+			expectedErr:      InvalidPasswordError,
+		},
+		{
+			testName:         "empty hash errors as invalid password",
+			storedPassword:   "",
+			providedPassword: pwd,
+			expectedErr:      InvalidPasswordError,
+		},
+		{
+			testName:         "updated hash with wrong password errors as invalid password",
+			storedPassword:   pwdPbkdf2,
+			providedPassword: "invalid password",
+			expectedErr:      InvalidPasswordError,
+		},
+		{
+			testName:         "updated hash with correct password succeeds",
+			storedPassword:   pwdPbkdf2,
+			providedPassword: pwd,
+			expectedErr:      nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.testName, func(t *testing.T) {
+			// Initialize the user with the stored password
+			user := &model.User{
+				Password: tc.storedPassword,
+			}
+
+			// Check the user's password
+			err := CheckUserPassword(user, tc.providedPassword)
+			if tc.expectedErr != nil {
+				require.Error(t, err)
+				require.ErrorIs(t, err, tc.expectedErr)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestMigratePassword(t *testing.T) {
+	// Create random salt
+	salt := make([]byte, 16)
+	_, err := io.ReadFull(rand.Reader, salt)
+	require.NoError(t, err)
+
+	// Prepare a pwd and its old hash, generated with bcrypt and argon2i
+	pwd := "testPass123$"
+	pwdBcryptBytes, err := bcrypt.GenerateFromPassword([]byte(pwd), 10)
+	require.NoError(t, err)
+	pwdBcrypt := string(pwdBcryptBytes)
+	pwdArgon2Bytes := argon2.Key([]byte(pwd), salt, 3, 32*1024, 4, 32)
+	pwdArgon2 := string(pwdArgon2Bytes)
+	pwdPbkdf2, err := hashers.LatestHasher.Hash(pwd)
+	require.NoError(t, err)
+
+	testCases := []struct {
+		testName         string
+		storedPassword   string
+		providedPassword string
+		expectedErr      error
+	}{
+		{
+			testName:         "old password hashed with bcrypt is migrated",
+			storedPassword:   pwdBcrypt,
+			providedPassword: pwd,
+			expectedErr:      nil,
+		},
+		{
+			testName:         "migrating an already migrated password does nothing",
+			storedPassword:   pwdPbkdf2,
+			providedPassword: pwd,
+			expectedErr:      nil,
+		},
+		{
+			testName:         "old password hashed with anything other than bcrypt is not migrated",
+			storedPassword:   pwdArgon2,
+			providedPassword: pwd,
+			expectedErr:      InvalidPasswordError,
+		},
+		{
+			testName:         "incorrect password is not migrated",
+			storedPassword:   pwdPbkdf2,
+			providedPassword: "another password",
+			expectedErr:      InvalidPasswordError,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.testName, func(t *testing.T) {
+			// Initialize the user with the stored password
+			user := &model.User{
+				Password: tc.storedPassword,
+			}
+
+			// Migrate the user's password
+			newHash, err := MigratePassword(user, tc.providedPassword)
+			if tc.expectedErr != nil {
+				require.Error(t, err)
+				require.ErrorIs(t, err, tc.expectedErr)
+				return
+			}
+
+			require.NoError(t, err)
+
+			// If no error is expected, test now whether the created hash is:
+			// 1. parseable
+			phc, err := parser.New(strings.NewReader(newHash)).Parse()
+			require.NoError(t, err)
+			// 2. it is indeed the hash (with the latest hasher) of the original password
+			err = hashers.LatestHasher.CompareHashAndPassword(phc, tc.providedPassword)
+			require.NoError(t, err)
 		})
 	}
 }

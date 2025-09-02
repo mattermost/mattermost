@@ -4,28 +4,41 @@
 package users
 
 import (
-	"errors"
 	"strings"
 
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
 )
 
 func CheckUserPassword(user *model.User, password string) error {
-	if err := ComparePassword(user.Password, password); err != nil {
-		return NewErrInvalidPassword("")
+	if password == "" || user.Password == "" {
+		return InvalidPasswordError
+	}
+
+	// Validate the stored hash is compliant with the currently used password
+	// hasher, and fail early if it is not
+	hasher, phc := hashers.GetHasherFromPHCString(user.Password)
+	if hasher != hashers.LatestHasher {
+		return OutdatedPasswordHashingError
+	}
+
+	// Run the actual comparison
+	if err := hashers.LatestHasher.CompareHashAndPassword(phc, password); err != nil {
+		return InvalidPasswordError
 	}
 
 	return nil
 }
 
-func ComparePassword(hash string, password string) error {
-	if password == "" || hash == "" {
-		return errors.New("empty password or hash")
+func MigratePassword(user *model.User, password string) (string, error) {
+	// First, validate that the stored hash and the provided password match
+	hasher, phc := hashers.GetHasherFromPHCString(user.Password)
+	if err := hasher.CompareHashAndPassword(phc, password); err != nil {
+		return "", InvalidPasswordError
 	}
 
-	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	// If the password is valid, hash the password with the latest hasher
+	return hashers.LatestHasher.Hash(password)
 }
 
 func (us *UserService) isPasswordValid(password string) error {
