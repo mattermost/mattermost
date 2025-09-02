@@ -98,7 +98,7 @@ jobs:
       - name: Check serialized
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
   check-mattermost-vet:
-    name: Check style
+    name: Check Mattermost style
     needs: go
     runs-on: ubuntu-22.04
     container: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
@@ -201,9 +201,7 @@ jobs:
   test-postgres-binary:
     if: github.event_name == 'push' # Only run postgres binary tests on master/release pushes: odds are low this regresses, so save the cycles for pull requests.
     name: Postgres with binary parameters
-    needs:
-      - go
-      - check-mattermost-vet
+    needs: go
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
@@ -215,9 +213,7 @@ jobs:
       fips-enabled: false
   test-postgres-normal:
     name: Postgres
-    needs:
-      - go
-      - check-mattermost-vet
+    needs: go
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
@@ -229,9 +225,7 @@ jobs:
       fips-enabled: false
   test-postgres-normal-fips:
     name: Postgres (FIPS)
-    needs:
-      - go
-      - check-mattermost-vet
+    needs: go
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
@@ -245,9 +239,7 @@ jobs:
     # Skip coverage generation for cherry-pick PRs into release branches.
     if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
     name: Generate Test Coverage
-    needs:
-      - go
-      - check-mattermost-vet
+    needs: go
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
@@ -260,9 +252,7 @@ jobs:
       go-version: ${{ needs.go.outputs.version }}
   test-mmctl:
     name: Run mmctl tests
-    needs:
-      - check-mattermost-vet
-      - go
+    needs: go
     uses: ./.github/workflows/mmctl-test-template.yml
     secrets: inherit
     with:
@@ -271,12 +261,10 @@ jobs:
       drivername: postgres
       logsartifact: mmctl-test-logs
       go-version: ${{ needs.go.outputs.version }}
-      fips-enabled: false
+      fips-enabled: true
   test-mmctl-fips:
     name: Run mmctl tests (FIPS)
-    needs:
-      - check-mattermost-vet
-      - go
+    needs: go
     uses: ./.github/workflows/mmctl-test-template.yml
     secrets: inherit
     with:
@@ -288,9 +276,7 @@ jobs:
       fips-enabled: true
   build-mattermost-server:
     name: Build mattermost server app
-    needs:
-      - go
-      - check-mattermost-vet
+    needs: go
     runs-on: ubuntu-22.04
     container: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
     defaults:
@@ -324,9 +310,7 @@ jobs:
           retention-days: 2
   build-mattermost-server-fips:
     name: Build mattermost server app (FIPS)
-    needs:
-      - go
-      - check-mattermost-vet
+    needs: go
     runs-on: ubuntu-22.04
     container:
       image: mattermost/mattermost-build-server-fips:${{ needs.go.outputs.version }}
