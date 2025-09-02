@@ -7465,6 +7465,14 @@
     "translation": "We could not count the inactive users."
   },
   {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "Failed to migrate the user's password to the newest hashing method."
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "Failed to update the user's password."
+  },
+  {
     "id": "app.user.clear_all_custom_role_assignments.select.app_error",
     "translation": "Failed to retrieve the users."
   },
