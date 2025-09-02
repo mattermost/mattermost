@@ -322,7 +322,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 4,
-                  "text": "Français (Beta)",
+                  "text": "Français (Alpha)",
                   "value": "fr",
                 },
                 Object {
@@ -451,7 +451,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 4,
-                  "text": "Français (Beta)",
+                  "text": "Français (Alpha)",
                   "value": "fr",
                 },
                 Object {
