@@ -11,3 +11,5 @@ RUN bash -c "source /root/.nvm/nvm.sh && nvm install $NODE_VERSION && nvm use $N
 ENV PATH="/root/.nvm/versions/node/v$NODE_VERSION/bin:$PATH"
 
 RUN git config --global --add safe.directory /mattermost
+
+ENTRYPOINT ["/bin/bash", "-l", "-c"]
