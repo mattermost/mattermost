@@ -1,23 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useSelect} from '@mui/base';
-import React, { useEffect, useRef, useState } from "react";
+import React, {useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch} from 'react-redux';
 
-import type { Post, PostPreviewMetadata } from "@mattermost/types/posts";
+import type {Post, PostPreviewMetadata} from '@mattermost/types/posts';
 import type {PropertyValue} from '@mattermost/types/properties';
 
-import {getPost as fetchPost} from 'mattermost-redux/actions/posts';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getPost as fetchPost} from 'mattermost-redux/actions/posts'
 
 import {useTeam} from 'components/common/hooks/use_team';
 import {useChannel} from 'components/common/hooks/useChannel';
-import {usePost} from 'components/common/hooks/usePost';
 import PostMessagePreview from 'components/post_view/post_message_preview';
-
-import type {GlobalState} from 'types/store';
 
 const noop = () => {};
 
@@ -26,9 +21,6 @@ type Props = {
 }
 
 export default function PostPreviewPropertyRenderer({value}: Props) {
-    // const post = usePost(value.value as string);
-
-
     const dispatch = useDispatch();
     const postId = value.value as string;
 
@@ -39,7 +31,7 @@ export default function PostPreviewPropertyRenderer({value}: Props) {
     const loaded = useRef(false);
 
     useEffect(() => {
-        const work = async () => {
+        const loadPost = async () => {
             if (!loaded.current && !post) {
                 const data = await dispatch(fetchPost(postId, true, true));
                 if (data.data) {
@@ -50,7 +42,7 @@ export default function PostPreviewPropertyRenderer({value}: Props) {
             }
         };
 
-        work();
+        loadPost();
     }, [dispatch, post, postId]);
 
     const {formatMessage} = useIntl();

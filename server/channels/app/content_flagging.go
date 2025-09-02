@@ -21,7 +21,7 @@ const (
 	CONTENT_FLAGGING_MAX_PROPERTY_FIELDS = 100
 	CONTENT_FLAGGING_MAX_PROPERTY_VALUES = 100
 
-	FlaggedPostIdPropKey = "reported_post_id"
+	POST_PROP_KEY_FLAGGED_POST_ID = "reported_post_id"
 )
 
 func ContentFlaggingEnabledForTeam(config *model.Config, teamId string) bool {
@@ -212,7 +212,7 @@ func (a *App) createContentReviewPost(c request.CTX, teamId, postId string) *mod
 			Type:      model.ContentFlaggingPostType,
 			ChannelId: channel.Id,
 		}
-		post.AddProp(FlaggedPostIdPropKey, postId)
+		post.AddProp(POST_PROP_KEY_FLAGGED_POST_ID, postId)
 
 		_, appErr := a.CreatePost(c, post, channel, model.CreatePostFlags{})
 		if appErr != nil {
@@ -269,51 +269,20 @@ func (a *App) getReviewersForTeam(teamId string, includeAdditionalReviewers bool
 
 	if includeAdditionalReviewers {
 		var additionalReviewers []*model.User
-		// Additional reviewers
 		if *reviewerSettings.TeamAdminsAsReviewers {
-			options := &model.UserGetOptions{
-				InTeamId:  teamId,
-				Page:      0,
-				PerPage:   100,
-				Active:    true,
-				TeamRoles: []string{model.TeamAdminRoleId},
+			teamAdminReviewers, appErr := a.getAllUsersInTeamForRoles(teamId, []string{model.TeamAdminRoleId})
+			if appErr != nil {
+				return nil, appErr
 			}
-
-			for {
-				page, appErr := a.GetUsersInTeam(options)
-				if appErr != nil {
-					return nil, model.NewAppError("getReviewersForTeam", "app.content_flagging.get_users_in_team.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
-				}
-
-				additionalReviewers = append(additionalReviewers, page...)
-				if len(page) < options.PerPage {
-					break
-				}
-				options.Page++
-			}
+			additionalReviewers = append(additionalReviewers, teamAdminReviewers...)
 		}
 
 		if *reviewerSettings.SystemAdminsAsReviewers {
-			options := &model.UserGetOptions{
-				InTeamId: teamId,
-				Page:     0,
-				PerPage:  100,
-				Active:   true,
-				Roles:    []string{model.SystemAdminRoleId},
+			sysAdminReviewers, appErr := a.getAllUsersInTeamForRoles(teamId, []string{model.SystemAdminRoleId})
+			if appErr != nil {
+				return nil, appErr
 			}
-
-			for {
-				page, appErr := a.GetUsersInTeam(options)
-				if appErr != nil {
-					return nil, model.NewAppError("getReviewersForTeam", "app.content_flagging.get_users_in_team.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
-				}
-
-				additionalReviewers = append(additionalReviewers, page...)
-				if len(page) < options.PerPage {
-					break
-				}
-				options.Page++
-			}
+			additionalReviewers = append(additionalReviewers, sysAdminReviewers...)
 		}
 
 		for _, user := range additionalReviewers {
@@ -329,6 +298,33 @@ func (a *App) getReviewersForTeam(teamId string, includeAdditionalReviewers bool
 	}
 
 	return reviewerUserIDs, nil
+}
+
+func (a *App) getAllUsersInTeamForRoles(teamId string, roles []string) ([]*model.User, *model.AppError) {
+	var additionalReviewers []*model.User
+
+	options := &model.UserGetOptions{
+		InTeamId: teamId,
+		Page:     0,
+		PerPage:  100,
+		Active:   true,
+		Roles:    roles,
+	}
+
+	for {
+		page, appErr := a.GetUsersInTeam(options)
+		if appErr != nil {
+			return nil, model.NewAppError("getReviewersForTeam", "app.content_flagging.get_users_in_team.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
+		}
+
+		additionalReviewers = append(additionalReviewers, page...)
+		if len(page) < options.PerPage {
+			break
+		}
+		options.Page++
+	}
+
+	return additionalReviewers, nil
 }
 
 func (a *App) sendContentFlaggingConfirmationMessage(c request.CTX, flaggingUserId, flaggedPostAuthorId, channelID string) *model.AppError {
@@ -348,7 +344,7 @@ func (a *App) sendContentFlaggingConfirmationMessage(c request.CTX, flaggingUser
 }
 
 func (a *App) IsUserTeamContentReviewer(userId, teamId string) (bool, *model.AppError) {
-	// not fetching additional reviewers as if the user exist in common or team
+	// not fetching additional reviewers because if the user exist in common or team
 	// specific reviewers, they are definitely a reviewer, and it saves multiple database calls.
 	reviewers, appErr := a.getReviewersForTeam(teamId, false)
 	if appErr != nil {

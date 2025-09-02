@@ -2,17 +2,22 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo} from 'react';
-import { defineMessage, defineMessages, FormattedMessage } from "react-intl";
+import {defineMessages, FormattedMessage} from 'react-intl';
 
 import type {
     NameMappedPropertyFields,
     PropertyField,
     PropertyValue,
-} from "@mattermost/types/properties";
+} from '@mattermost/types/properties';
 
 import PropertyValueRenderer from './propertyValueRenderer/propertyValueRenderer';
 
 import './properties_card_view.scss';
+
+type OrderedRow = {
+    field: PropertyField;
+    value: PropertyValue<unknown>;
+};
 
 const fieldNameMessages = defineMessages({
     status: {
@@ -72,42 +77,34 @@ type Props = {
 }
 
 export default function PropertiesCardView({title, propertyFields, fieldOrder, shortModeFieldOrder, propertyValues, mode, actionsRow}: Props) {
-    const orderedRows = useMemo<Array<{field: PropertyField; value: PropertyValue<unknown>}>>(() => {
-        console.log('orderedRows');
-        if (!Object.keys(propertyFields).length || !fieldOrder.length || !propertyValues.length) {
+    const orderedRows = useMemo<OrderedRow[]>(() => {
+        const hasRequiredData =
+            Object.keys(propertyFields).length > 0 &&
+            fieldOrder.length > 0 &&
+            propertyValues.length > 0;
+
+        if (!hasRequiredData) {
             return [];
         }
 
-        // const fieldsById = propertyFields.reduce((acc, field) => {
-        //     acc[field.id] = field;
-        //     return acc;
-        // }, {} as {[key: string]: PropertyField});
+        // Create lookup map for efficient value retrieval
+        const valuesByFieldId = new Map(
+            propertyValues.map((value) => [value.field_id, value]),
+        );
 
-        const valuesByFieldId = propertyValues.reduce((acc, value) => {
-            acc[value.field_id] = value;
-            return acc;
-        }, {} as {[key: string]: PropertyValue<unknown>});
+        // Determine which field order to use
+        const currentFieldOrder = mode === 'short' ? shortModeFieldOrder : fieldOrder;
 
-        const fieldOrderToUse = mode === 'short' ? shortModeFieldOrder : fieldOrder;
-        return fieldOrderToUse.map((fieldName) => {
-            const field = propertyFields[fieldName];
-            if (!field) {
-                return null;
-            }
+        // Build ordered rows, filtering out incomplete entries
+        return currentFieldOrder.
+            map((fieldName) => {
+                const field = propertyFields[fieldName];
+                const value = field ? valuesByFieldId.get(field.id) : undefined;
 
-            const value = valuesByFieldId[field.id];
-
-            return {
-                field,
-                value,
-            };
-        }).filter((entry) => Boolean(entry.value));
+                return field && value ? {field, value} : null;
+            }).
+            filter((row): row is OrderedRow => row !== null);
     }, [fieldOrder, mode, propertyFields, propertyValues, shortModeFieldOrder]);
-
-    if (orderedRows.length === 0) {
-        console.log('Hey!');
-        return null;
-    }
 
     return (
         <div
@@ -133,8 +130,7 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
                                 data-testid='property-card-row'
                             >
                                 <div className='field'>
-                                    {translation && <FormattedMessage {...translation}/>}
-                                    {!translation && field.name}
+                                    {translation ? <FormattedMessage {...translation}/> : field.name}
                                 </div>
 
                                 <div className='value'>

@@ -107,3 +107,62 @@
           description: Internal server error.
         '501':
           description: Feature is disabled either via config or an Enterprise Advanced license is not available.
+  /api/v4/content_flagging/fields:
+    get:
+      summary: Get content flagging property fields
+      description: |
+        Returns the list of property fields that can be associated with content flagging reports. These fields are used for storing metadata about a post's flag.
+        An enterprise advanced license is required.
+      tags:
+        - Content Flagging
+      responses:
+        '200':
+          description: Custom fields retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                description: A map of property field names to their definitions
+                additionalProperties:
+                  $ref: "#/components/schemas/PropertyField"
+        '404':
+          description: Feature is disabled via the feature flag.
+        '500':
+          description: Internal server error.
+        '501':
+          description: Feature is disabled either via config or an Enterprise Advanced license is not available.
+  /api/v4/content_flagging/post/{post_id}/field_values:
+    get:
+      summary: Get content flagging property field values for a post
+      description: |
+        Returns the property field values associated with content flagging reports for a specific post. These values provide additional context about the flags on the post.
+        An enterprise advanced license is required.
+      tags:
+        - Content Flagging
+      parameters:
+        - in: path
+          name: post_id
+          required: true
+          schema:
+            type: string
+          description: The ID of the post to retrieve property field values for
+      responses:
+        '200':
+          description: Property field values retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  items:
+                    $ref: "#/components/schemas/PropertyValue"
+                description: An array of property field values associated with the post
+        '403':
+          description: Forbidden - User does not have permission to access this post.
+        '404':
+          description: Post not found or feature is disabled via the feature flag.
+        '500':
+          description: Internal server error.
+        '501':
+          description: Feature is disabled either via config or an Enterprise Advanced license is not available.

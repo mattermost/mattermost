@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useMemo } from "react";
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
@@ -18,12 +18,13 @@ import ShowMore from 'components/post_view/show_more';
 import type {AttachmentTextOverflowType} from 'components/post_view/show_more/show_more';
 
 import Pluggable from 'plugins/pluggable';
+import {PostTypes} from 'utils/constants';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
 import type {PostPluginComponent} from 'types/store/plugins';
-import { PostTypes } from "utils/constants";
 
+// These posts types must not be rendered with the collapsible "Show More" container.
 const FULL_HEIGHT_POST_TYPES = new Set([
     PostTypes.CUSTOM_DATA_SPILLAGE_REPORT,
 ]);

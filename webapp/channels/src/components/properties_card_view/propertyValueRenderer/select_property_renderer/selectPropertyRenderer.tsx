@@ -15,7 +15,6 @@ type Props = {
 }
 
 export default function SelectPropertyRenderer({field, value}: Props) {
-    console.log('AA');
     const valueConfig = (field as SelectPropertyField).attrs?.options?.find((option) => option.name === value.value);
     const {backgroundColor, color} = getOptionColors(valueConfig?.color || DEFAULT_BACKGROUND_COLOR);
 
@@ -56,7 +55,6 @@ function getOptionColors(colorName: string): {backgroundColor: string; color: st
             color: 'rgba(var(--center-channel-color-rgb), 1)',
         };
     default:
-        // Default is light grey color
         return {
             backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.12)',
             color: 'rgba(var(--center-channel-color-rgb), 1)',
