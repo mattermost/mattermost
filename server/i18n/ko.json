@@ -6941,7 +6941,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| 보안 연결 | 표시 이름 | 연결 ID | 사이트 URL | 초대 수락 | 온라인 | 마지막 응답  |"
+    "translation": "| 보안 연결 | 표시 이름 | 연결 ID | 사이트 URL | 기본 팀 | 초대 수락 | 온라인 | 마지막 응답 | 삭제 |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
