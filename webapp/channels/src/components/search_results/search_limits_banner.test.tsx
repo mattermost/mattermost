@@ -291,8 +291,5 @@ describe('components/select_results/SearchLimitsBanner', () => {
         // Find the CTA link
         const ctaLink = wrapper.find('a');
         expect(ctaLink).toHaveLength(1);
-
-        // Since mocking hooks in enzyme tests is complex, we focus on verifying
-        // the component renders correctly with the expected CTA text
     });
 });

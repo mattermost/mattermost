@@ -694,9 +694,7 @@ func TestGetServerLimitsWithPostHistory(t *testing.T) {
 		require.Equal(t, int64(0), serverLimits.LastAccessiblePostTime)
 		require.Equal(t, int64(5), serverLimits.ActiveUserCount)
 	})
-
 }
-
 func TestGetPostHistoryLimit(t *testing.T) {
 	mainHelper.Parallel(t)
 
