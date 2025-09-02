@@ -12,13 +12,12 @@ import (
 	"testing"
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -2325,7 +2324,7 @@ func testUserStoreUpdatePassword(t *testing.T, rctx request.CTX, ss store.Store)
 	require.NoError(t, nErr)
 
 	_, err = model.HashPassword(strings.Repeat("1234567890", 8))
-	require.ErrorIs(t, err, bcrypt.ErrPasswordTooLong)
+	require.ErrorIs(t, err, hashers.ErrPasswordTooLong)
 
 	hashedPassword, err := model.HashPassword("newpwd")
 	require.NoError(t, err)

@@ -510,7 +510,7 @@ func (u *User) PreSave() *AppError {
 
 	if u.Password != "" {
 		hashed, err := HashPassword(u.Password)
-		if errors.Is(err, bcrypt.ErrPasswordTooLong) {
+		if errors.Is(err, hashers.ErrPasswordTooLong) {
 			return NewAppError("User.PreSave", "model.user.pre_save.password_too_long.app_error",
 				nil, "user_id="+u.Id, http.StatusBadRequest).Wrap(err)
 		} else if err != nil {
