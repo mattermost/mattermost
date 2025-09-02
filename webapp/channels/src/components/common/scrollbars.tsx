@@ -42,6 +42,7 @@ const Scrollbars = React.forwardRef<HTMLElement, ScrollbarsProps>(({
             style={{
                 '--scrollbar-color': `var(${color})`,
             } as React.CSSProperties}
+            tabIndex={-1}
         >
             {children}
         </SimpleBar>
