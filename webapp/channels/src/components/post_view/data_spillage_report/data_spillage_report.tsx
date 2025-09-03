@@ -25,6 +25,7 @@ import './data_spillage_report.scss';
 import {getSyntheticPropertyFields, getSyntheticPropertyValues} from './synthetic_data';
 
 import {useContentFlaggingFields, usePostContentFlaggingValues} from '../../common/hooks/useContentFlaggingFields';
+import { Client4 } from "mattermost-redux/client";
 
 // The order of fields to be displayed in the report, from top to bottom.
 const orderedFieldName = [
@@ -75,9 +76,9 @@ export function DataSpillageReport({post, isRHS}: Props) {
                 // We need to obtain the post directly from action bypassing the selectors
                 // because the post might be soft-deleted and the post reducers do not store deleted posts
                 // in the store.
-                const data = await dispatch(fetchPost(reportedPostId, true, true));
-                if (data.data) {
-                    setReportedPost(data.data);
+                const post = await Client4.getFlaggedPost(reportedPostId);
+                if (post) {
+                    setReportedPost(post);
                     loaded.current = true;
                 }
             }

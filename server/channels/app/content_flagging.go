@@ -147,26 +147,43 @@ func (a *App) ContentFlaggingGroupId() (string, *model.AppError) {
 	return group.ID, nil
 }
 
-func (a *App) canFlagPost(groupId, postId, userLocal string) *model.AppError {
+func (a *App) GetPostContentFlaggingStatusValue(postId string) (*model.PropertyValue, *model.AppError) {
+	groupId, appErr := a.ContentFlaggingGroupId()
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	statusPropertyField, err := a.Srv().propertyService.GetPropertyFieldByName(groupId, "", contentFlaggingPropertyNameStatus)
 	if err != nil {
-		return model.NewAppError("canFlagPost", "app.content_flagging.get_status_property.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetPostContentFlaggingStatusValue", "app.content_flagging.get_status_property.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	propertyValues, err := a.Srv().propertyService.SearchPropertyValues(groupId, postId, model.PropertyValueSearchOpts{PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES, FieldID: statusPropertyField.ID})
 	if err != nil {
-		return model.NewAppError("canFlagPost", "app.content_flagging.search_status_property.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetPostContentFlaggingStatusValue", "app.content_flagging.search_status_property.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if len(propertyValues) == 0 {
-		// If no status property exist for the post, we can flag it
+		return nil, nil
+	}
+
+	return propertyValues[0], nil
+}
+
+func (a *App) canFlagPost(groupId, postId, userLocal string) *model.AppError {
+	status, appErr := a.GetPostContentFlaggingStatusValue(postId)
+	if appErr != nil {
+		return appErr
+	}
+
+	if status == nil {
 		return nil
 	}
 
 	var reason string
 	T := i18n.GetUserTranslations(userLocal)
 
-	switch strings.Trim(string(propertyValues[0].Value), `"`) {
+	switch strings.Trim(string(status.Value), `"`) {
 	case model.ContentFlaggingStatusPending, model.ContentFlaggingStatusAssigned:
 		reason = T("app.content_flagging.can_flag_post.in_progress")
 	case model.ContentFlaggingStatusRetained:

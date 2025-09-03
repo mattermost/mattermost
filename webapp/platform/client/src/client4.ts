@@ -4657,6 +4657,13 @@ export default class Client4 {
             {method: 'get'},
         );
     };
+
+    getFlaggedPost = (postId: string) => {
+        return this.doFetch<Post>(
+            `${this.getContentFlaggingRoute()}/post/${postId}`,
+            {method: 'get'},
+        );
+    };
 }
 
 export function parseAndMergeNestedHeaders(originalHeaders: any) {

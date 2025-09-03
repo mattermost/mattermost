@@ -5,6 +5,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {Client4} from 'mattermost-redux/client';
 import type {Post, PostPreviewMetadata} from '@mattermost/types/posts';
 import type {PropertyValue} from '@mattermost/types/properties';
 
@@ -21,7 +22,6 @@ type Props = {
 }
 
 export default function PostPreviewPropertyRenderer({value}: Props) {
-    const dispatch = useDispatch();
     const postId = value.value as string;
 
     const [post, setPost] = useState<Post>();
@@ -33,9 +33,9 @@ export default function PostPreviewPropertyRenderer({value}: Props) {
     useEffect(() => {
         const loadPost = async () => {
             if (!loaded.current && !post) {
-                const data = await dispatch(fetchPost(postId, true, true));
-                if (data.data) {
-                    setPost(data.data);
+                const post = await Client4.getFlaggedPost(postId);
+                if (post) {
+                    setPost(post);
                 }
 
                 loaded.current = true;
@@ -43,7 +43,7 @@ export default function PostPreviewPropertyRenderer({value}: Props) {
         };
 
         loadPost();
-    }, [dispatch, post, postId]);
+    }, [post, postId]);
 
     const {formatMessage} = useIntl();
 
