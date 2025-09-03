@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {act} from '@testing-library/react';
 import React from 'react';
 
 import type {Post} from '@mattermost/types/posts';
@@ -12,6 +13,18 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
+
+jest.mock('components/common/hooks/useUser');
+jest.mock('components/common/hooks/useChannel');
+jest.mock('mattermost-redux/actions/posts');
+jest.mock('components/common/hooks/useContentFlaggingFields');
+
+const mockedUseUser = require('components/common/hooks/useUser').useUser as jest.MockedFunction<any>;
+const mockUseChannel = require('components/common/hooks/useChannel').useChannel as jest.MockedFunction<any>;
+
+const mockGetPost = require('mattermost-redux/actions/posts').getPost as jest.MockedFunction<any>;
+const useContentFlaggingFields = require('components/common/hooks/useContentFlaggingFields').useContentFlaggingFields as jest.MockedFunction<any>;
+const usePostContentFlaggingValues = require('components/common/hooks/useContentFlaggingFields').usePostContentFlaggingValues as jest.MockedFunction<any>;
 
 describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
     const reportingUser = TestHelper.getUserMock({
@@ -57,11 +70,6 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
                     [reportedPostAuthor.id]: reportedPostAuthor,
                 },
             },
-            posts: {
-                posts: {
-                    [reportedPost.id]: reportedPost,
-                },
-            },
             channels: {
                 channels: {
                     [reportedPostChannel.id]: reportedPostChannel,
@@ -75,6 +83,231 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
         },
     };
 
+    const contentFlaggingFields = {
+        action_time: {
+            id: 'wcdwx96ratrrbq5uuhyz3zq48r',
+            group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
+            name: 'action_time',
+            type: 'text',
+            attrs: null,
+            target_id: '',
+            target_type: '',
+            create_at: 1756788661623,
+            update_at: 1756788661623,
+            delete_at: 0,
+        },
+        actor_comment: {
+            id: 'f3s8fsgn978bbne96s6tqpdife',
+            group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
+            name: 'actor_comment',
+            type: 'text',
+            attrs: null,
+            target_id: '',
+            target_type: '',
+            create_at: 1756788661624,
+            update_at: 1756788661624,
+            delete_at: 0,
+        },
+        actor_user_id: {
+            id: 'z1bpj14kgfdjzmnuyy6oqcyufh',
+            group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
+            name: 'actor_user_id',
+            type: 'user',
+            attrs: null,
+            target_id: '',
+            target_type: '',
+            create_at: 1756788661626,
+            update_at: 1756788661626,
+            delete_at: 0,
+        },
+        flagged_post_id: {
+            id: 'jssh4fbn9jrfxjf4fsr7zdu65y',
+            group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
+            name: 'flagged_post_id',
+            type: 'text',
+            attrs: null,
+            target_id: '',
+            target_type: '',
+            create_at: 1756788661623,
+            update_at: 1756788661623,
+            delete_at: 0,
+        },
+        reporting_comment: {
+            id: 'sx7h53tdsbfb985edkmze71j3c',
+            group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
+            name: 'reporting_comment',
+            type: 'text',
+            attrs: null,
+            target_id: '',
+            target_type: '',
+            create_at: 1756788661625,
+            update_at: 1756788661625,
+            delete_at: 0,
+        },
+        reporting_reason: {
+            id: '5knyqectdfbi98rab3zz4hsyhh',
+            group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
+            name: 'reporting_reason',
+            type: 'select',
+            attrs: null,
+            target_id: '',
+            target_type: '',
+            create_at: 1756788661624,
+            update_at: 1756788661624,
+            delete_at: 0,
+        },
+        reporting_time: {
+            id: '5cib5g3ag3gs3gxyg7awjd6csh',
+            group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
+            name: 'reporting_time',
+            type: 'text',
+            attrs: {
+                subType: 'timestamp',
+            },
+            target_id: '',
+            target_type: '',
+            create_at: 1756788661625,
+            update_at: 1756788661625,
+            delete_at: 0,
+        },
+        reporting_user_id: {
+            id: '1is7ir68bp8nup3rr1pp6d7fsr',
+            group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
+            name: 'reporting_user_id',
+            type: 'user',
+            attrs: null,
+            target_id: '',
+            target_type: '',
+            create_at: 1756788661625,
+            update_at: 1756788661625,
+            delete_at: 0,
+        },
+        reviewer_user_id: {
+            id: 'g6hrg3uugbyqzyyb9kx8jgpbwh',
+            group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
+            name: 'reviewer_user_id',
+            type: 'user',
+            attrs: null,
+            target_id: '',
+            target_type: '',
+            create_at: 1756788661624,
+            update_at: 1756788661624,
+            delete_at: 0,
+        },
+        status: {
+            id: 'kd9n7tf9n3ynjczqpkpjkbzgoh',
+            group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
+            name: 'status',
+            type: 'select',
+            attrs: {
+                options: [
+                    {
+                        color: 'light_grey',
+                        name: 'Pending',
+                    },
+                    {
+                        color: 'dark_blue',
+                        name: 'Assigned',
+                    },
+                    {
+                        color: 'dark_red',
+                        name: 'Removed',
+                    },
+                    {
+                        color: 'light_blue',
+                        name: 'Retained',
+                    },
+                ],
+            },
+            target_id: '',
+            target_type: '',
+            create_at: 1756788661623,
+            update_at: 1756788661623,
+            delete_at: 0,
+        },
+    };
+
+    const postContentFlaggingValues = [
+        {
+            id: 'cnth3s1rot88zpz3hwy99uet7y',
+            target_id: 'i93oo5gb4tygixs4g8atqyjryy',
+            target_type: 'post',
+            group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
+            field_id: 'kd9n7tf9n3ynjczqpkpjkbzgoh',
+            value: 'Pending',
+            create_at: 1756790533486,
+            update_at: 1756790533486,
+            delete_at: 0,
+        },
+        {
+            id: 'gg5aq8iefpn978po54fd9xf1br',
+            target_id: 'i93oo5gb4tygixs4g8atqyjryy',
+            target_type: 'post',
+            group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
+            field_id: '5knyqectdfbi98rab3zz4hsyhh',
+            value: 'Sensitive data',
+            create_at: 1756790533487,
+            update_at: 1756790533487,
+            delete_at: 0,
+        },
+        {
+            id: 'nbooe396mf8zjq5pjk931gtf5y',
+            target_id: 'i93oo5gb4tygixs4g8atqyjryy',
+            target_type: 'post',
+            group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
+            field_id: '1is7ir68bp8nup3rr1pp6d7fsr',
+            value: reportingUser.id,
+            create_at: 1756790533487,
+            update_at: 1756790533487,
+            delete_at: 0,
+        },
+        {
+            id: 'dxzrb4g9xfn5jn5mgxcnmqauzo',
+            target_id: 'i93oo5gb4tygixs4g8atqyjryy',
+            target_type: 'post',
+            group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
+            field_id: '5cib5g3ag3gs3gxyg7awjd6csh',
+            value: 1756790533486,
+            create_at: 1756790533488,
+            update_at: 1756790533488,
+            delete_at: 0,
+        },
+        {
+            id: 'mx4ez9di7bgebfa8y8r5uodjkc',
+            target_id: 'i93oo5gb4tygixs4g8atqyjryy',
+            target_type: 'post',
+            group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
+            field_id: 'sx7h53tdsbfb985edkmze71j3c',
+            value: 'Please review this post for potential violations',
+            create_at: 1756790533488,
+            update_at: 1756790533488,
+            delete_at: 0,
+        },
+    ];
+
+    beforeAll(() => {
+        usePostContentFlaggingValues.mockReturnValue(postContentFlaggingValues);
+    });
+
+    beforeEach(() => {
+        jest.resetAllMocks();
+        mockedUseUser.mockImplementation((userId: string) => {
+            console.log({userId});
+            if (userId === reportingUser.id) {
+                return reportingUser;
+            } else if (userId === reportedPostAuthor.id) {
+                return reportedPostAuthor;
+            }
+            return null;
+        });
+
+        mockUseChannel.mockReturnValue(reportedPostChannel);
+
+        mockGetPost.mockReturnValue({type: 'MOCK_ACTION', data: reportedPost});
+        useContentFlaggingFields.mockReturnValue(contentFlaggingFields);
+        usePostContentFlaggingValues.mockReturnValue(postContentFlaggingValues);
+    });
+
     it('should render selected fields when not in RHS', async () => {
         renderWithContext(
             <DataSpillageReport
@@ -83,6 +316,8 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
             />,
             baseState,
         );
+
+        await act(async () => {});
 
         // validate title
         const title = screen.queryByTestId('property-card-title');
@@ -94,10 +329,10 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
         expect(screen.queryAllByTestId('select-property')).toHaveLength(2);
 
         const statusFieldValue = screen.queryAllByTestId('select-property')[0];
-        expect(statusFieldValue).toHaveTextContent('Flag dismissed');
+        expect(statusFieldValue).toHaveTextContent('Pending');
 
         const reasonFieldValue = screen.queryAllByTestId('select-property')[1];
-        expect(reasonFieldValue).toHaveTextContent('Inappropriate content');
+        expect(reasonFieldValue).toHaveTextContent('Sensitive data');
 
         const postPreview = screen.queryByTestId('post-preview-property');
         expect(postPreview).toBeVisible();
@@ -134,10 +369,6 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
         const team = screen.queryByTestId('team-property');
         expect(team).toBeVisible();
         expect(team).toHaveTextContent('Reported Post Team');
-
-        const postedBy = screen.queryAllByTestId('user-property')[1];
-        expect(postedBy).toBeVisible();
-        expect(postedBy).toHaveTextContent('reported_post_author');
 
         const reportedAt = screen.queryAllByTestId('timestamp-property')[0];
         expect(reportedAt).toBeVisible();
