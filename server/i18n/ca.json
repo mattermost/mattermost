@@ -1300,14 +1300,6 @@
     "translation": "Els comptes de convidat estan desactivats"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "S'ha intentat utilitzar la característica experimental ClientSideCert sense una llicència empresarial vàlida"
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "S'ha intentat iniciar sessió utilitzant la característica experimental ClientSideCert sense proveir un certificat vàlid"
-  },
-  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "L'inici de sessió com a bot està prohibit"
   },
@@ -3018,10 +3010,6 @@
   {
     "id": "api.config.update_config.restricted_merge.app_error",
     "translation": "No s'ha pogut combinar la configuració proporcionada."
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "El nou format per a la configuració del client encara no és compatible. Especifica format=old a la cadena de consulta."
   },
   {
     "id": "api.command_shrug.name",
