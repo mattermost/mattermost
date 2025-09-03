@@ -32,7 +32,7 @@ exports[`components/post_edit_history should display error screen if errors are 
               class="simplebar-content-wrapper"
               role="region"
               style="height: auto; overflow-x: hidden; overflow-y: hidden;"
-              tabindex="0"
+              tabindex="-1"
             >
               <div
                 class="simplebar-content"
@@ -234,7 +234,7 @@ exports[`components/post_edit_history should match snapshot 1`] = `
               class="simplebar-content-wrapper"
               role="region"
               style="height: auto; overflow-x: hidden; overflow-y: hidden;"
-              tabindex="0"
+              tabindex="-1"
             >
               <div
                 class="simplebar-content"
