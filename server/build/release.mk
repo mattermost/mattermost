@@ -141,8 +141,9 @@ endif
 	fi
 
 fetch-prepackaged-plugins:
-	@# Import Mattermost plugin public key
-	gpg --import build/plugin-production-public-key.gpg
+	@# Import Mattermost plugin public key, ignoring errors. In FIPS mode, GPG fails to start
+	@# the gpg-agent, but still imports the key. If it really fails, it will fail validation later.
+	-gpg --import build/plugin-production-public-key.gpg
 	@# Download prepackaged plugins
 	mkdir -p tmpprepackaged
 	@echo "Downloading prepackaged plugins ... "
