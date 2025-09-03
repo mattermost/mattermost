@@ -261,7 +261,7 @@ jobs:
       drivername: postgres
       logsartifact: mmctl-test-logs
       go-version: ${{ needs.go.outputs.version }}
-      fips-enabled: true
+      fips-enabled: false
   test-mmctl-fips:
     name: Run mmctl tests (FIPS)
     needs: go
