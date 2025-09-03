@@ -227,7 +227,7 @@ describe('components/select_results/SearchLimitsBanner', () => {
         const wrapper = mountWithIntl(<Provider store={store}><SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/></Provider>);
 
         const bannerText = wrapper.text();
-        expect(bannerText).toContain('Some older messages may not be shown');
+        expect(bannerText).toContain('Some older messages were not shown');
         expect(bannerText).toContain('10,000 messages');
         expect(bannerText).toContain('View plans');
     });
