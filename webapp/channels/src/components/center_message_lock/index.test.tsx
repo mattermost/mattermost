@@ -100,14 +100,15 @@ describe('CenterMessageLock', () => {
         screen.getByText('Review our plan options and pricing.');
     });
 
-    it('pricing button is clickable', () => {
+    it('pricing link is clickable', () => {
         renderWithContext(
             <CenterMessageLock channelId={'channelId'}/>,
             exceededLimitsState,
         );
-        const pricingButton = screen.getByText('Review our plan options and pricing.');
-        expect(pricingButton.tagName).toBe('A');
-        expect(pricingButton).toHaveClass('btn-link');
+        const pricingLink = screen.getByText('Review our plan options and pricing.');
+        expect(pricingLink.tagName).toBe('A');
+        expect(pricingLink).toHaveAttribute('href', '#');
+        expect(pricingLink).toBeVisible();
     });
 
     it('Filtered messages over one year old display year', () => {

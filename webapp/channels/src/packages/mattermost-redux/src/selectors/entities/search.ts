@@ -33,5 +33,5 @@ export const getSearchTruncationInfo = (state: GlobalState) => {
 
 export const isSearchTruncated = (state: GlobalState, searchType: 'posts' | 'files'): boolean => {
     const truncationInfo = getSearchTruncationInfo(state);
-    return truncationInfo && truncationInfo[searchType] > 0;
+    return Boolean(truncationInfo && truncationInfo[searchType] > 0);
 };
