@@ -7734,5 +7734,21 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
     "translation": "채널 북마크 업데이트하는데 실패했습니다."
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "해당 라이선스에서는 채널 북마크 기능을 지원하지 않습니다."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "채널 북마크를 생성하는데 실패했습니다."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "사용자는 채널 북마크를 생성할 수 없습니다."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "채널 북마크 삭제에 실패했습니다."
   }
 ]
