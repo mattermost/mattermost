@@ -762,6 +762,32 @@ func (c *Client4) GetTeamPostFlaggingFeatureStatus(ctx context.Context, teamId s
 	return status, BuildResponse(r), nil
 }
 
+func (c *Client4) GetPostPropertyValues(ctx context.Context, postId string) ([]PropertyValue, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/post/"+postId+"/field_values", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var propertyValues []PropertyValue
+	if err := json.NewDecoder(r.Body).Decode(&propertyValues); err != nil {
+		return nil, nil, NewAppError("GetFlaggingConfiguration", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return propertyValues, BuildResponse(r), nil
+}
+
+func (c *Client4) GetFlaggedPost(ctx context.Context, postId string) (Post, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/post/"+postId, "")
+	if err != nil {
+		return Post{}, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var post Post
+	if err := json.NewDecoder(r.Body).Decode(&post); err != nil {
+		return Post{}, nil, NewAppError("GetFlaggedPost", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return post, BuildResponse(r), nil
+}
+
 func (c *Client4) bookmarksRoute(channelId string) string {
 	return c.channelRoute(channelId) + "/bookmarks"
 }
