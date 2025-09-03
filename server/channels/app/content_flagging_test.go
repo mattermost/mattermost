@@ -293,6 +293,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 
 			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(true)
 			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewerIds = &[]string{th.BasicUser.Id, th.BasicUser2.Id}
+			conf.ContentFlaggingSettings.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(true)
 		})
 
 		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id, true)

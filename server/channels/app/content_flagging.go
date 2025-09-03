@@ -270,7 +270,7 @@ func (a *App) getReviewersForTeam(teamId string, includeAdditionalReviewers bool
 	if includeAdditionalReviewers {
 		var additionalReviewers []*model.User
 		if *reviewerSettings.TeamAdminsAsReviewers {
-			teamAdminReviewers, appErr := a.getAllUsersInTeamForRoles(teamId, []string{model.TeamAdminRoleId})
+			teamAdminReviewers, appErr := a.getAllUsersInTeamForRoles(teamId, nil, []string{model.TeamAdminRoleId})
 			if appErr != nil {
 				return nil, appErr
 			}
@@ -278,7 +278,7 @@ func (a *App) getReviewersForTeam(teamId string, includeAdditionalReviewers bool
 		}
 
 		if *reviewerSettings.SystemAdminsAsReviewers {
-			sysAdminReviewers, appErr := a.getAllUsersInTeamForRoles(teamId, []string{model.SystemAdminRoleId})
+			sysAdminReviewers, appErr := a.getAllUsersInTeamForRoles(teamId, []string{model.SystemAdminRoleId}, nil)
 			if appErr != nil {
 				return nil, appErr
 			}
@@ -300,15 +300,16 @@ func (a *App) getReviewersForTeam(teamId string, includeAdditionalReviewers bool
 	return reviewerUserIDs, nil
 }
 
-func (a *App) getAllUsersInTeamForRoles(teamId string, roles []string) ([]*model.User, *model.AppError) {
+func (a *App) getAllUsersInTeamForRoles(teamId string, systemRoles, teamRoles []string) ([]*model.User, *model.AppError) {
 	var additionalReviewers []*model.User
 
 	options := &model.UserGetOptions{
-		InTeamId: teamId,
-		Page:     0,
-		PerPage:  100,
-		Active:   true,
-		Roles:    roles,
+		InTeamId:  teamId,
+		Page:      0,
+		PerPage:   100,
+		Active:    true,
+		Roles:     systemRoles,
+		TeamRoles: teamRoles,
 	}
 
 	for {
