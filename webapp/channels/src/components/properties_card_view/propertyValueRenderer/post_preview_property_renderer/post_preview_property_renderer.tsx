@@ -3,13 +3,11 @@
 
 import React, {useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
 
-import {Client4} from 'mattermost-redux/client';
 import type {Post, PostPreviewMetadata} from '@mattermost/types/posts';
 import type {PropertyValue} from '@mattermost/types/properties';
 
-import {getPost as fetchPost} from 'mattermost-redux/actions/posts';
+import {Client4} from 'mattermost-redux/client';
 
 import {useTeam} from 'components/common/hooks/use_team';
 import {useChannel} from 'components/common/hooks/useChannel';

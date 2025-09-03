@@ -11,7 +11,7 @@ import type {
     PropertyValue,
 } from '@mattermost/types/properties';
 
-import {getPost as fetchPost} from 'mattermost-redux/actions/posts';
+import {Client4} from 'mattermost-redux/client';
 
 import AtMention from 'components/at_mention';
 import {useChannel} from 'components/common/hooks/useChannel';
@@ -25,7 +25,6 @@ import './data_spillage_report.scss';
 import {getSyntheticPropertyFields, getSyntheticPropertyValues} from './synthetic_data';
 
 import {useContentFlaggingFields, usePostContentFlaggingValues} from '../../common/hooks/useContentFlaggingFields';
-import { Client4 } from "mattermost-redux/client";
 
 // The order of fields to be displayed in the report, from top to bottom.
 const orderedFieldName = [

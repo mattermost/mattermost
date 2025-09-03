@@ -454,27 +454,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	retainContent, _ := strconv.ParseBool(r.URL.Query().Get("retain_content"))
-	if retainContent {
-		channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-
-		canRetainContent, appErr := canRetainPostContent(c, c.AppContext.Session().UserId, channel.TeamId)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-
-		if !canRetainContent {
-			c.Err = model.NewAppError("getPost", "api.post.get_post.retain_content.permission_error", nil, "", http.StatusForbidden)
-			return
-		}
-	}
-
-	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true, RetainContent: retainContent})
+	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true})
 	post, err = c.App.SanitizePostMetadataForUser(c.AppContext, post, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -1400,14 +1380,4 @@ func hasPermittedWranglerRole(c *Context, user *model.User, channelMember *model
 	}
 
 	return false
-}
-
-func canRetainPostContent(c *Context, userId, teamId string) (bool, *model.AppError) {
-	// Currently only a content reviewer may retain the content of a post
-	isReviewer, appErr := c.App.IsUserTeamContentReviewer(userId, teamId)
-	if appErr != nil {
-		return false, appErr
-	}
-
-	return isReviewer, nil
 }

@@ -1754,6 +1754,10 @@
     "translation": "Content flagging feature is not enabled on this team."
   },
   {
+    "id": "api.content_flagging.error.post_not_flagged",
+    "translation": "Cannot fetch flagged post as the post is not flagged."
+  },
+  {
     "id": "api.content_flagging.error.reason_invalid",
     "translation": "Unknown reason specified for flagging message."
   },
@@ -2693,10 +2697,6 @@
       "one": "{{.Count}} image sent: {{.Filenames}}",
       "other": "{{.Count}} images sent: {{.Filenames}}"
     }
-  },
-  {
-    "id": "api.post.get_post.retain_content.permission_error",
-    "translation": "You do not have permission to retain the content of this post."
   },
   {
     "id": "api.post.move_thread.disabled.app_error",
