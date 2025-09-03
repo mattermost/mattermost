@@ -1,12 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {screen} from '@testing-library/react';
 import React from 'react';
+
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import DotMenu from 'components/dot_menu/dot_menu';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
 
 jest.mock('utils/utils', () => {
     return {
@@ -23,6 +28,52 @@ jest.mock('utils/post_utils', () => {
 });
 
 describe('components/dot_menu/DotMenu on mobile view', () => {
+    const initialState: DeepPartial<GlobalState> = {
+        entities: {
+            general: {
+                config: {},
+            },
+            channels: {
+                myMembers: {},
+                channels: {},
+                messageCounts: {},
+            },
+            preferences: {
+                myPreferences: {},
+            },
+            users: {
+                profiles: {},
+                currentUserId: 'current_user_id',
+                profilesInChannel: {},
+            },
+            teams: {
+                currentTeamId: 'currentTeamId',
+                teams: {
+                    currentTeamId: {
+                        id: 'currentTeamId',
+                        display_name: 'test',
+                        type: 'O',
+                    },
+                },
+            },
+            posts: {
+                posts: {},
+                postsInChannel: {},
+                postsInThread: {},
+            },
+        },
+        views: {
+            browser: {
+                focused: false,
+                windowSize: 'mobileView',
+            },
+            modals: {
+                modalState: {},
+                showLaunchingWorkspace: false,
+            },
+        },
+    };
+
     test('should match snapshot', () => {
         const baseProps = {
             post: TestHelper.getPostMock({id: 'post_id_1'}),
@@ -63,10 +114,13 @@ describe('components/dot_menu/DotMenu on mobile view', () => {
             canMove: true,
         };
 
-        const wrapper = shallow(
+        renderWithContext(
             <DotMenu {...baseProps}/>,
+            initialState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
+        expect(button).toBeInTheDocument();
+        expect(button).toHaveAttribute('aria-label', 'more');
     });
 });

@@ -50,18 +50,18 @@ import './thread_item.scss';
 export type OwnProps = {
     isSelected: boolean;
     threadId: UserThread['id'];
-    style?: any;
+    style?: React.CSSProperties;
     isFirstThreadInList: boolean;
 };
 
 type Props = {
-    channel: Channel;
-    currentRelativeTeamUrl: string;
-    displayName: string;
-    post: Post;
-    postsInThread: Post[];
-    thread: UserThread;
-    isPostPriorityEnabled: boolean;
+    channel?: Channel;
+    currentRelativeTeamUrl?: string;
+    displayName?: string;
+    post?: Post;
+    postsInThread?: Post[];
+    thread?: UserThread | null;
+    isPostPriorityEnabled?: boolean;
 };
 
 const markdownPreviewOptions = {
@@ -91,7 +91,7 @@ function ThreadItem({
     const tipStep = useSelector((state: GlobalState) => getInt(state, Preferences.CRT_TUTORIAL_STEP, currentUserId));
     const showListTutorialTip = tipStep === CrtTutorialSteps.LIST_POPOVER;
     const msgDeleted = formatMessage({id: 'post_body.deleted', defaultMessage: '(message deleted)'});
-    const postAuthor = ensureString(post.props?.override_username) || displayName;
+    const postAuthor = ensureString(post?.props?.override_username) || displayName;
     const getMentionKeysForPost = useMemo(() => makeGetMentionKeysForPost(), []);
     const mentionsKeys = useSelector((state: GlobalState) => getMentionKeysForPost(state, post, channel));
     const ref = useRef<HTMLDivElement>(null);
@@ -116,15 +116,15 @@ function ThreadItem({
 
     const participantIds = useMemo(() => {
         const ids = (thread?.participants || []).flatMap(({id}) => {
-            if (id === post.user_id) {
+            if (id === post?.user_id) {
                 return [];
             }
             return id;
         }).reverse();
-        return [post.user_id, ...ids];
-    }, [thread?.participants]);
+        return [post?.user_id ?? '', ...ids];
+    }, [post?.user_id, thread?.participants]);
 
-    let unreadTimestamp = post.edit_at || post.create_at;
+    let unreadTimestamp = post?.edit_at || post?.create_at;
 
     const selectHandler = useCallback((e: MouseEvent<HTMLElement> | KeyboardEvent<HTMLElement>) => {
         // If the event is a keyboard event, check if the key is 'Enter' or ' '.
@@ -137,7 +137,7 @@ function ThreadItem({
             const hasUnreads = thread ? Boolean(thread.unread_replies) : false;
             const lastViewedAt = hasUnreads ? Date.now() : unreadTimestamp;
 
-            dispatch(manuallyMarkThreadAsUnread(threadId, lastViewedAt));
+            dispatch(manuallyMarkThreadAsUnread(threadId, lastViewedAt ?? 0));
             if (hasUnreads) {
                 dispatch(updateThreadRead(currentUserId, currentTeamId, threadId, Date.now()));
             } else {
@@ -147,12 +147,13 @@ function ThreadItem({
             select(threadId);
         }
     }, [
+        thread,
+        unreadTimestamp,
+        dispatch,
+        threadId,
         currentUserId,
         currentTeamId,
-        threadId,
-        thread,
-        updateThreadRead,
-        unreadTimestamp,
+        select,
     ]);
 
     const imageProps = useMemo(() => ({
@@ -163,7 +164,7 @@ function ThreadItem({
     const goToInChannelHandler = useCallback((e: MouseEvent) => {
         e.stopPropagation();
         goToInChannel(threadId);
-    }, [threadId]);
+    }, [goToInChannel, threadId]);
 
     const handleFormattedTextClick = useCallback((e) => {
         // If the event is a keyboard event, check if the key is 'Enter' or ' '.
@@ -189,7 +190,7 @@ function ThreadItem({
 
     // if we have the whole thread, get the posts in it, sorted from newest to oldest.
     // First post is latest reply. Use that timestamp
-    if (postsInThread.length > 1) {
+    if (postsInThread && postsInThread.length > 1) {
         const p = postsInThread[0];
         unreadTimestamp = p.edit_at || p.create_at;
     }
@@ -255,7 +256,7 @@ function ThreadItem({
                         threadId={threadId}
                         isFollowing={isFollowing ?? false}
                         hasUnreads={Boolean(newReplies)}
-                        unreadTimestamp={unreadTimestamp}
+                        unreadTimestamp={unreadTimestamp ?? 0}
                     >
                         <WithTooltip
                             title={(

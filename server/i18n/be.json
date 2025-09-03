@@ -1256,14 +1256,6 @@
     "translation": "Колькасць атрыманых ID паведамленняў перавышае максімальны памер {{.MaxLength}}"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Не ўдаецца атрымаць карыстальнікаў для архіўнага канала"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Не ўдаецца атрымаць паведамленні для архіўнага канала"
-  },
-  {
     "id": "app.session.extend_session_expiry.app_error",
     "translation": "Немагчыма павялічыць працягласць сеансу"
   },
@@ -5076,14 +5068,6 @@
     "translation": "Гасцявыя ўліковыя запісы адключаныя"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Спроба выкарыстання эксперыментальнай магчымасці ClientSideCert без сапраўднай карпаратыўнай ліцэнзіі."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Спроба ўвайсці з выкарыстаннем эксперыментальнай магчымасці ClientSideCert без прадастаўлення сапраўднага сертыфіката."
-  },
-  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Лагін бота забаронены."
   },
@@ -7846,10 +7830,6 @@
   {
     "id": "api.config.get_config.restricted_merge.app_error",
     "translation": "Памылка аб'яднання з дадзенай канфігурацыяй."
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Новы фармат канфігурацыі кліента пакуль не падтрымліваецца. Калі ласка, укажыце format=old у радку запыту."
   },
   {
     "id": "api.command_shrug.desc",
