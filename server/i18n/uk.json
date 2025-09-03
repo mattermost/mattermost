@@ -924,10 +924,6 @@
     "translation": "знизати плечима"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Новий формат для клієнтської конфігурації поки що не підтримується. Будь ласка, вкажіть format=old у рядку запиту."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Вибачте, ми не змогли знайти цю сторінку."
   },
@@ -2078,14 +2074,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Вхід через ботів заборонено."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Спроба входу за допомогою експериментальної функції ClientSideCert без надання дійсного сертифікату."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Спроба використання експериментальної можливості ClientSideCertEnable без дійсної Enterprise ліцензії."
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -8128,10 +8116,6 @@
     "translation": "Неможливо створити користувача. Сервер перевищує ліміт безпечних користувачів. Зверніться до свого адміністратора з повідомленням: ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Не вдається отримати повідомлення для архівованого каналу"
-  },
-  {
     "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
     "translation": "Не вдалося відсортувати закладку. Неправильне введення."
   },
@@ -8206,10 +8190,6 @@
   {
     "id": "api.user.update_user_roles.license.app_error",
     "translation": "Користувацькі схеми дозволів не підтримуються поточною ліцензією"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Не вдається отримати користувачів для архівованого каналу"
   },
   {
     "id": "app.channel.bookmark.delete.app_error",
@@ -10162,10 +10142,6 @@
   {
     "id": "api.context.get_session.app_error",
     "translation": "Сеанс не знайдено."
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Неможливо отримати закладки для заархівованого каналу"
   },
   {
     "id": "app.custom_profile_attributes.count_property_fields.app_error",

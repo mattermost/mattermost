@@ -29,7 +29,10 @@ import type {UserThread} from '@mattermost/types/threads';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
+import {closeModal} from 'actions/views/modals';
+
 import DeletePostModal from 'components/delete_post_modal';
+import FlagPostModal from 'components/flag_message_modal/flag_post_modal';
 import ForwardPostModal from 'components/forward_post_modal';
 import * as Menu from 'components/menu';
 import MoveThreadModal from 'components/move_thread_modal';
@@ -79,6 +82,7 @@ type Props = {
     timezone?: string;
     isMilitaryTime: boolean;
     canMove: boolean;
+    canFlagContent?: boolean;
 
     actions: {
 
@@ -252,6 +256,19 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         this.props.actions.openModal(deletePostModalData);
 
         trackDotMenuEvent(e, TELEMETRY_LABELS.DELETE);
+    };
+
+    handleFlagPostMenuItemClicked = () => {
+        const flagPostModalData = {
+            modalId: ModalIdentifiers.FLAG_POST,
+            dialogType: FlagPostModal,
+            dialogProps: {
+                postId: this.props.post.id,
+                onExited: () => closeModal(ModalIdentifiers.FLAG_POST),
+            },
+        };
+
+        this.props.actions.openModal(flagPostModalData);
     };
 
     handleMoveThreadMenuItemActivated = (e: ChangeEvent): void => {
@@ -689,6 +706,23 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                                 defaultMessage='Delete'
                             />}
                         onClick={this.handleDeleteMenuItemActivated}
+                        isDestructive={true}
+                    />
+                }
+                {
+                    this.props.canFlagContent &&
+                    <Menu.Item
+                        id={`flag_post_${this.props.post.id}`}
+                        className='flag_post_menu_item'
+                        data-testid={`flag_post_${this.props.post.id}`}
+                        leadingElement={<i className='icon icon-flag-outline'/>}
+                        labels={
+                            <FormattedMessage
+                                id='post_info.flag'
+                                defaultMessage='Flag message'
+                            />
+                        }
+                        onClick={this.handleFlagPostMenuItemClicked}
                         isDestructive={true}
                     />
                 }

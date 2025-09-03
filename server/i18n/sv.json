@@ -381,7 +381,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Ogiltigt driver name för SQL-databas. Måste vara 'mysql' eller 'postgres'."
+    "translation": "Ogiltigt drivrutinsnamn för SQL-databas. Måste vara 'postgres'."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -1349,7 +1349,7 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Ogiltig användare, auth-data måste anges med auth typ."
+    "translation": "Ogiltig användare: Auth-data kan endast användas om användaren använder en extern autentiseringstjänst, annat än mejl/lösenord."
   },
   {
     "id": "model.user.is_valid.auth_data_pwd.app_error",
@@ -4384,14 +4384,6 @@
     "translation": "Gäståtkomst har inaktiverats"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Försök att använda experimentfunktionen ClientSideCertEnable utan en giltig enterpriselicens."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Försökte logga in med den experimentella funktionaliteten ClientSideCert med ett ogiltigt certifikat."
-  },
-  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Bot-inloggning är inte tillåten."
   },
@@ -5789,10 +5781,6 @@
   {
     "id": "api.config.get_config.restricted_merge.app_error",
     "translation": "Misslyckades att sammanfoga givna konfigurationer."
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Ny format för klient konfigurationen stöds ännu inte. Var vänlig och specificera format=old i sök-strängen."
   },
   {
     "id": "api.command_shrug.name",
@@ -8150,16 +8138,8 @@
     "translation": "Påminnelse"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Det går inte att hämta användare från en arkiverad kanal"
-  },
-  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Antalet mottagna inläggs-ID:n har överskridit den maximala storleken {{.MaxLength}}"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Det går inte att hämta inlägg från en arkiverad kanal"
   },
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
@@ -10188,10 +10168,6 @@
     "translation": "Kunde inte uppdatera sorteringsordningen av bokmärken i kanalen."
   },
   {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Det går inte att hämta bokmärken för en arkiverad kanal"
-  },
-  {
     "id": "app.file_info.get_count.app_error",
     "translation": "Kunde inte räkna alla filer."
   },
@@ -10670,5 +10646,109 @@
   {
     "id": "api.team.invite_guests.policy_enforced_channel.app_error",
     "translation": "Det går inte att bjuda in gästanvändare till den här kanalen eftersom den har åtkomstbegränsningar baserade på användarattribut."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Ogiltig uppdatering av kanalmedlem: En kanalmedlem har alltid ett användarschema."
+  },
+  {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "Funktionen för flaggning av innehåll är inaktiverad."
+  },
+  {
+    "id": "api.content_flagging.error.license",
+    "translation": "Din licens stöder inte funktionen för flaggning av innehåll."
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "Ogiltig uppdatering av teammedlem: En teammedlem har alltid ett användarschema."
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Misslyckades med att ladda upp filen. Uppladdningskanalen delas inte med den andra servern."
+  },
+  {
+    "id": "app.cloud.preview_modal_bucket_url_not_configured",
+    "translation": "URL:en för förhandsgranskning är inte konfigurerad"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "Misslyckades med att hämta fönsterdata för förhandsgranskning"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_parse_error",
+    "translation": "Misslyckades med att analysera fönsterdata för förhandsgranskning"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.thread_follower.error",
+    "translation": "Misslyckades med att validera data om trådföljare för direktinlägg."
+  },
+  {
+    "id": "app.import.validate_post_import_data.thread_follower.error",
+    "translation": "Misslyckades med att validera data om trådföljare för inlägg."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.empty.error",
+    "translation": "Importera följardata tom."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.user_missing.error",
+    "translation": "Saknar nödvändig följaregenskap: användare."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
+    "translation": "Gemensamma granskare eller ytterligare granskare måste anges när \"Samma granskare för alla team\" är aktiverat."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.reasons_not_set.app_error",
+    "translation": "Skälet för flaggning kan inte vara tomt."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
+    "translation": "Teamgranskare eller ytterligare granskare måste anges när du ställer in \"Aktiverad\" för ett team."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_event",
+    "translation": "Ogiltig flaggningshändelse angiven."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_target",
+    "translation": "Ogiltigt mål för flaggningshändelse angivet."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
+    "translation": "Meddelanden om nya flaggade inlägg kan inte inaktiveras för granskare."
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "Du har inte behörighet att hantera denna åtkomstkontrollpolicy."
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "Kanalen är grupp-begränsad och kan inte omfattas av policy för åtkomstkontroll."
+  },
+  {
+    "id": "app.pap.access_control.channel_not_private",
+    "translation": "Policyer för åtkomstkontroll kan endast tillämpas på privata kanaler."
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "Delade kanaler kan inte omfattas av en policy för åtkomstkontroll."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "Du har inte behörighet att hantera åtkomstkontroll för denna kanal."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "Du har inte behörighet att hantera denna åtkomstkontrollpolicy."
+  },
+  {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "Föräldern är redan importerad."
+  },
+  {
+    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
+    "translation": "Att dölja arkiverade kanaler stöds inte längre. Gör dessa kanaler privata och ta bort medlemmar istället."
   }
 ]

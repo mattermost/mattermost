@@ -922,10 +922,6 @@
     "translation": "achselzucken"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Das neue Format für die Clientkonfiguration wird noch nicht unterstützt. Bitte gib \"format=old\" in der Anfrage an."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Entschuldigung, wir konnten die Seite nicht finden."
   },
@@ -2073,14 +2069,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Bot login sind verboten."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Versuchte Anmeldung unter Verwendung der experimentellen Funktion ClientSideCert ohne Angabe eines gültigen Zertifikats."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Versuchte Anmeldung unter Verwendung der experimentellen Funktion ClientSideCertEnable ohne Angabe einer gültigen Enterprise-Lizenz."
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -8150,14 +8138,6 @@
     "translation": "Kann Sitzungsdauer nicht verlängern"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Kann keine Benutzer für einen archivierten Kanal holen"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Kann keine Nachrichten für einen archivierten Kanal holen"
-  },
-  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Die Anzahl der erhaltenen Post IDs hat die maximale Größe von {{.MaxLength}} überschritten"
   },
@@ -10192,10 +10172,6 @@
     "translation": "Die Sortierreihenfolge des Kanal-Lesezeichens konnte nicht aktualisiert werden."
   },
   {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Lesezeichen für einen archivierten Kanal können nicht abgerufen werden"
-  },
-  {
     "id": "app.file_info.get_count.app_error",
     "translation": "Die Anzahl aller Dateien konnte nicht ermittelt werden."
   },
@@ -10742,5 +10718,69 @@
   {
     "id": "api.content_flagging.error.license",
     "translation": "Deine Lizenz unterstützt das Markieren von Inhalten nicht."
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "Du hast nicht die Berechtigung, diese Richtlinie zu verwalten."
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "Der Kanal ist gruppenbeschränkt und kann keine Richtlinien zur Zugriffskontrolle anwenden."
+  },
+  {
+    "id": "app.pap.access_control.channel_not_private",
+    "translation": "Richtlinien zur Zugangskontrolle können nur auf private Kanäle angewendet werden."
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "Auf gemeinsam genutzte Kanäle kann keine Richtlinie zur Zugriffskontrolle angewendet werden."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "Du hast nicht die Berechtigung, die Zugriffskontrolle für diesen Kanal zu verwalten."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "Du hast nicht die Berechtigung, diese Richtlinie zu verwalten."
+  },
+  {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "Das Elternteil ist bereits importiert."
+  },
+  {
+    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
+    "translation": "Das Verstecken von archivierten Kanälen wird nicht mehr unterstützt. Mache diese Kanäle stattdessen privat und entferne Mitglieder."
+  },
+  {
+    "id": "api.not_implemented",
+    "translation": "Diese Funktion ist nicht implementiert."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
+    "translation": "Wert für ein vom Administrator verwaltetes benutzerdefiniertes Profilattributfeld kann nicht aktualisiert werden"
+  },
+  {
+    "id": "app.lookup_interactive_dialog.decode_json_error",
+    "translation": "Bei der Dekodierung der JSON-Antwort von der interaktiven Dialogsuche ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.json_error",
+    "translation": "Es ist ein Fehler bei der Verarbeitung der JSON-Antwort von der interaktiven Dialogsuche aufgetreten."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.read_body_error",
+    "translation": "Es ist ein Fehler beim Lesen des Antwortkörpers eines interaktiven Dialogs aufgetreten."
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "Fehler beim Erstellen des Elasticsearch-Massenverarbeiters"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+    "translation": "Elasticsearch Sync Bulk-Prozessor konnte nicht erstellt werden"
+  },
+  {
+    "id": "model.config.is_valid.client_side_cert_enable.app_error",
+    "translation": "Die zertifikatsbasierte Authentifizierung wurde entfernt. Bitte deaktiviere ClientSideCertEnable, um fortzufahren."
   }
 ]
