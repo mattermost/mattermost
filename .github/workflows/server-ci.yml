@@ -330,7 +330,7 @@ jobs:
       - name: Build
         run: |
           make config-reset
-          make build-cmd BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
+          make build-client build-linux-amd64 BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
           make package BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
       - name: Test FIPS (amd64)
         run: make test-fips-linux-amd64
