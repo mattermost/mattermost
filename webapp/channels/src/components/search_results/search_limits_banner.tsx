@@ -68,7 +68,7 @@ function SearchLimitsBanner(props: Props) {
 
     const bannerMessage = formatMessage({
         id: 'workspace_limits.search_limit.banner_text',
-        defaultMessage: 'Some older {searchContent} may not be shown because your workspace has over {limit} messages. <a>{ctaAction}</a>',
+        defaultMessage: 'Some older {searchContent} were not shown because your workspace has over {limit} messages. <a>{ctaAction}</a>',
     }, {
         searchContent,
         limit,
