@@ -136,10 +136,19 @@ func TestGetPostPropertyValues(t *testing.T) {
 		})
 
 		post := th.CreatePost()
+		response, err := client.FlagPost(context.Background(), post.Id, &model.FlagContentRequest{
+			Reason:  "Sensitive data",
+			Comment: "This is sensitive content",
+		})
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, response.StatusCode)
+
+		// Now get the property values
 		propertyValues, resp, err := client.GetPostPropertyValues(context.Background(), post.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotNil(t, propertyValues)
+		require.Len(t, propertyValues, 5)
 	})
 }
 
@@ -243,11 +252,11 @@ func TestGetFlaggedPost(t *testing.T) {
 		})
 
 		post := th.CreatePost()
-		
+
 		// First flag the post
 		flagRequest := &model.FlagContentRequest{
-			Reason:  "spam",
-			Comment: "This is spam content",
+			Reason:  "Sensitive data",
+			Comment: "This is sensitive content",
 		}
 		resp, err := client.FlagPost(context.Background(), post.Id, flagRequest)
 		require.NoError(t, err)
