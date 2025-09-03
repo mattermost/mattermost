@@ -53,7 +53,7 @@ describe('components/select_results/SearchLimitsBanner', () => {
                     },
                 },
                 limits: {
-                    serverLimits: null,
+                    serverLimits: undefined,
                 },
                 search: {
                     results: [],
@@ -63,7 +63,7 @@ describe('components/select_results/SearchLimitsBanner', () => {
                     matches: {},
                     recent: {},
                     current: {},
-                    truncationInfo: null,
+                    truncationInfo: undefined,
                 },
                 usage,
             },

@@ -106,8 +106,7 @@ describe('CenterMessageLock', () => {
             exceededLimitsState,
         );
         const pricingButton = screen.getByText('Review our plan options and pricing.');
-        expect(pricingButton.tagName).toBe('BUTTON');
-        expect(pricingButton).toHaveAttribute('type', 'button');
+        expect(pricingButton.tagName).toBe('A');
         expect(pricingButton).toHaveClass('btn-link');
     });
 
