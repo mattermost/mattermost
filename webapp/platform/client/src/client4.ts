@@ -4549,7 +4549,7 @@ export default class Client4 {
         if (channelId) {
             params.append('channelId', channelId);
         }
-        
+
         return this.doFetch<UserPropertyField[]>(
             `${this.getBaseRoute()}/access_control_policies/cel/autocomplete/fields?${params.toString()}`,
             {method: 'get'},
@@ -4561,7 +4561,7 @@ export default class Client4 {
         if (channelId) {
             requestBody.channelId = channelId;
         }
-        
+
         return this.doFetch<CELExpressionError[]>(
             `${this.getBaseRoute()}/access_control_policies/cel/check`,
             {method: 'post', body: JSON.stringify(requestBody)},
@@ -4570,12 +4570,12 @@ export default class Client4 {
 
     testAccessControlExpression = (expression: string, term: string, after: string, limit: number, channelId?: string) => {
         const requestBody: {expression: string; term: string; after: string; limit: number; channelId?: string} = {
-            expression, term, after, limit
+            expression, term, after, limit,
         };
         if (channelId) {
             requestBody.channelId = channelId;
         }
-        
+
         return this.doFetch<AccessControlTestResult>(
             `${this.getBaseRoute()}/access_control_policies/cel/test`,
             {method: 'post', body: JSON.stringify(requestBody)},
@@ -4587,7 +4587,7 @@ export default class Client4 {
         if (channelId) {
             requestBody.channelId = channelId;
         }
-        
+
         return this.doFetch<AccessControlVisualAST>(
             `${this.getBaseRoute()}/access_control_policies/cel/visual_ast`,
             {method: 'post', body: JSON.stringify(requestBody)},
