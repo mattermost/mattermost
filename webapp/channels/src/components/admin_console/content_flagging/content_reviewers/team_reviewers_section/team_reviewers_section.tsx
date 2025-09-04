@@ -16,7 +16,7 @@ import {TeamIcon} from 'components/widgets/team_icon/team_icon';
 
 import * as Utils from 'utils/utils';
 
-import {UserMultiSelector} from '../../user_multiselector/user_multiselector';
+import {UserSelector} from '../../user_multiselector/user_multiselector';
 
 import './team_reviewers_section.scss';
 
@@ -141,10 +141,11 @@ export default function TeamReviewers({teamReviewersSetting, onChange}: Props): 
                     </div>
                 ),
                 reviewers: (
-                    <UserMultiSelector
+                    <UserSelector
+                        isMulti={true}
                         id={`team_content_reviewer_${team.id}`}
-                        initialValue={teamReviewersSetting[team.id]?.ReviewerIds || []}
-                        onChange={getHandleReviewersChange(team.id)}
+                        multiSelectInitialValue={teamReviewersSetting[team.id]?.ReviewerIds || []}
+                        multiSelectOnChange={getHandleReviewersChange(team.id)}
                     />
                 ),
                 enabled: (

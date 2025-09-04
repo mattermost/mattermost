@@ -228,6 +228,11 @@ export type ClientConfig = {
     ScheduledPosts: string;
     DeleteAccountLink: string;
     ContentFlaggingEnabled: 'true' | 'false';
+
+    // Access Control Settings
+    EnableAttributeBasedAccessControl: string;
+    EnableChannelScopeAccessControl: string;
+    EnableUserManagedAttributes: string;
 };
 
 export type License = {
@@ -959,7 +964,7 @@ export type CloudSettings = {
 export type FeatureFlags = Record<string, string | boolean> & {
 
     // FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this property when feature is GA
-    ChannelAdminManageABACRules?: string;
+    ChannelAdminManageABACRules?: boolean;
 };
 
 export type ImportSettings = {

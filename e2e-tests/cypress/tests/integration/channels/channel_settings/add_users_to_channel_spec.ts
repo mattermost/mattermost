@@ -8,7 +8,7 @@
 // ***************************************************************
 
 // Stage: @prod
-// Group: @channels @channel @channel_settings @smoke
+// Group: @channels @channel @channel_settings
 
 import {getRandomId} from '../../../utils';
 
@@ -23,6 +23,9 @@ describe('Channel Settings', () => {
     const users: Cypress.UserProfile[] = [];
 
     before(() => {
+        // Require a license for groups
+        cy.apiRequireLicense();
+
         cy.apiInitSetup().then(({team, user}) => {
             testTeam = team;
             firstUser = user;

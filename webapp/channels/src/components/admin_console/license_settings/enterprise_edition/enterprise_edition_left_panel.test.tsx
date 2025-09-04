@@ -14,7 +14,7 @@ import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
-import {SelfHostedProducts} from 'utils/constants';
+import {LicenseSkus, SelfHostedProducts} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import EnterpriseEditionLeftPanel from './enterprise_edition_left_panel';
@@ -210,5 +210,84 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         );
 
         expect(screen.getByText('Expires in 5 days')).toHaveClass('expiration-days-danger');
+    });
+
+    test('should render simplified panel for Entry license', () => {
+        const testLicense = {
+            ...license,
+            SkuShortName: LicenseSkus.Entry,
+        };
+
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    license: testLicense,
+                },
+            },
+        });
+
+        const props = {
+            ...baseProps,
+            license: testLicense,
+        };
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...props}
+            />,
+            testState,
+        );
+
+        // Check for the title section
+        expect(screen.getByText('Enterprise Edition')).toBeInTheDocument();
+        expect(screen.getByText('Mattermost Entry')).toBeInTheDocument();
+
+        // Check for the subtitle with limits link
+        expect(screen.getByText(/Entry offers Enterprise Advanced capabilities with/)).toBeInTheDocument();
+        expect(screen.getByText('limits')).toBeInTheDocument();
+
+        // Check for the "Have a license?" section
+        expect(screen.getByText('Have a license?')).toBeInTheDocument();
+        expect(screen.getByText('Upload your license here to unlock licensed features')).toBeInTheDocument();
+
+        // Check for the upload license button
+        const uploadButton = screen.getByRole('button', {name: /Upload license/i});
+        expect(uploadButton).toBeInTheDocument();
+
+        // Verify that the license details section is NOT rendered for Entry SKU
+        expect(screen.queryByText('License details')).not.toBeInTheDocument();
+        expect(screen.queryByText('LICENSED SEATS:')).not.toBeInTheDocument();
+        expect(screen.queryByText('ACTIVE USERS:')).not.toBeInTheDocument();
+    });
+
+    test('should disable upload button for Entry license when license is set by env var', () => {
+        const testLicense = {
+            ...license,
+            SkuShortName: LicenseSkus.Entry,
+        };
+
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    license: testLicense,
+                },
+            },
+        });
+
+        const props = {
+            ...baseProps,
+            license: testLicense,
+            isLicenseSetByEnvVar: true,
+        };
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...props}
+            />,
+            testState,
+        );
+
+        const uploadButton = screen.getByRole('button', {name: /Upload license/i});
+        expect(uploadButton).toBeDisabled();
     });
 });
