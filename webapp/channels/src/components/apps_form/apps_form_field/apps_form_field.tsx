@@ -21,6 +21,9 @@ import type {InputTypes} from 'components/widgets/settings/text_setting';
 
 import AppsFormSelectField from './apps_form_select_field';
 
+import AppsFormDateField from '../apps_form_date_field';
+import AppsFormDateTimeField from '../apps_form_datetime_field';
+
 const TEXT_DEFAULT_MAX_LENGTH = 150;
 const TEXTAREA_DEFAULT_MAX_LENGTH = 3000;
 
@@ -189,6 +192,48 @@ export default class AppsFormField extends React.PureComponent<Props> {
                 <Markdown
                     message={field.description}
                 />
+            );
+        }
+        case AppFieldTypes.DATE: {
+            return (
+                <div className='form-group'>
+                    {field.label && (
+                        <label className='control-label'>
+                            {displayNameContent}
+                        </label>
+                    )}
+                    <AppsFormDateField
+                        field={field}
+                        value={value as string | null}
+                        onChange={onChange}
+                    />
+                    {helpTextContent && (
+                        <div className='help-text'>
+                            {helpTextContent}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+        case AppFieldTypes.DATETIME: {
+            return (
+                <div className='form-group'>
+                    {field.label && (
+                        <label className='control-label'>
+                            {displayNameContent}
+                        </label>
+                    )}
+                    <AppsFormDateTimeField
+                        field={field}
+                        value={value as string | null}
+                        onChange={onChange}
+                    />
+                    {helpTextContent && (
+                        <div className='help-text'>
+                            {helpTextContent}
+                        </div>
+                    )}
+                </div>
             );
         }
         }

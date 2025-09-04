@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {parseISO, isValid} from 'date-fns';
+
 import {isProductScope, type ProductScope} from './products';
 import {isArrayOf, isStringArray} from './utilities';
 
@@ -467,7 +469,39 @@ export type AppField = {
     subtype?: string;
     min_length?: number;
     max_length?: number;
+
+    // Date props
+    min_date?: string;
+    max_date?: string;
+    time_interval?: number;
 };
+
+/**
+ * Validates if a string is a valid date format (ISO date, datetime, or relative reference)
+ */
+function isValidDateString(dateStr: string): boolean {
+    // Check for relative date patterns
+    const relativePatterns = [
+        /^today$/,
+        /^tomorrow$/,
+        /^yesterday$/,
+        /^[+-]\d{1,4}[dwm]$/, // Dynamic patterns like +5d, -2w, +1m (days, weeks, months only)
+    ];
+
+    for (const pattern of relativePatterns) {
+        if (pattern.test(dateStr)) {
+            return true;
+        }
+    }
+
+    // Use parseISO for all ISO date format validation (accepts any valid ISO format)
+    try {
+        const parsed = parseISO(dateStr);
+        return isValid(parsed);
+    } catch {
+        return false; // parseISO failed - invalid format or date
+    }
+}
 
 function isAppField(v: unknown): v is AppField {
     if (typeof v !== 'object' || v === null) {
@@ -537,6 +571,32 @@ function isAppField(v: unknown): v is AppField {
     }
 
     if (field.max_length !== undefined && typeof field.max_length !== 'number') {
+        return false;
+    }
+
+    if (field.min_date !== undefined) {
+        if (typeof field.min_date !== 'string') {
+            return false;
+        }
+
+        // Validate that min_date is a valid date format (ISO or relative)
+        if (!isValidDateString(field.min_date)) {
+            return false;
+        }
+    }
+
+    if (field.max_date !== undefined) {
+        if (typeof field.max_date !== 'string') {
+            return false;
+        }
+
+        // Validate that max_date is a valid date format (ISO or relative)
+        if (!isValidDateString(field.max_date)) {
+            return false;
+        }
+    }
+
+    if (field.time_interval !== undefined && typeof field.time_interval !== 'number') {
         return false;
     }
 

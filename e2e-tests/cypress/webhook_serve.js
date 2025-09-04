@@ -30,6 +30,8 @@ server.post('/boolean_dialog_request', onBooleanDialogRequest);
 server.post('/multiselect_dialog_request', onMultiSelectDialogRequest);
 server.post('/dynamic_select_dialog_request', onDynamicSelectDialogRequest);
 server.post('/dynamic_select_source', onDynamicSelectSource);
+server.post('/datetime_dialog_request', onDateTimeDialogRequest);
+server.post('/datetime_dialog_submit', onDateTimeDialogSubmit);
 server.post('/dialog/field-refresh', onFieldRefreshDialogRequest);
 server.post('/dialog/multistep', onMultistepDialogRequest);
 server.post('/field_refresh_source', onFieldRefreshSource);
@@ -58,6 +60,8 @@ function ping(req, res) {
             'POST /multiselect_dialog_request',
             'POST /dynamic_select_dialog_request',
             'POST /dynamic_select_source',
+            'POST /datetime_dialog_request',
+            'POST /datetime_dialog_submit',
             'POST /dialog/field-refresh',
             'POST /dialog/multistep',
             'POST /field_refresh_source',
@@ -277,6 +281,79 @@ function onDynamicSelectSource(req, res) {
     return res.json({
         items: filteredOptions,
     });
+}
+
+function onDateTimeDialogRequest(req, res) {
+    const {body} = req;
+    if (body.trigger_id) {
+        let dialog;
+        const command = body.text ? body.text.trim() : '';
+
+        // Use focused dialog functions based on command parameter
+        switch (command) {
+        case 'basic':
+            dialog = webhookUtils.getBasicDateDialog(body.trigger_id, webhookBaseUrl);
+            break;
+        case 'mindate':
+            dialog = webhookUtils.getMinDateConstraintDialog(body.trigger_id, webhookBaseUrl);
+            break;
+        case 'interval':
+            dialog = webhookUtils.getCustomIntervalDialog(body.trigger_id, webhookBaseUrl);
+            break;
+        case 'relative':
+            dialog = webhookUtils.getRelativeDateDialog(body.trigger_id, webhookBaseUrl);
+            break;
+        default:
+            // Default to basic datetime dialog for backward compatibility
+            dialog = webhookUtils.getBasicDateTimeDialog(body.trigger_id, webhookBaseUrl);
+            break;
+        }
+        console.log('Opening DateTime dialog', dialog.dialog.title);
+        openDialog(dialog);
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({text: 'DateTime dialog triggered via slash command!'});
+}
+
+function onDateTimeDialogSubmit(req, res) {
+    console.log('DateTime dialog submit handler called!');
+    const {body} = req;
+
+    res.setHeader('Content-Type', 'application/json');
+
+    // Log the submitted datetime values for debugging
+    console.log('DateTime dialog submission:', JSON.stringify(body, null, 2));
+
+    // Extract datetime values from submission
+    const submission = body.submission || {};
+    const eventDate = submission.event_date;
+    const meetingTime = submission.meeting_time;
+    const relativeDate = submission.relative_date;
+    const relativeDateTime = submission.relative_datetime;
+
+    // Create a success message with the submitted values
+    let message = 'Form submitted successfully! ';
+    if (eventDate || meetingTime || relativeDate || relativeDateTime) {
+        message += 'Submitted values: ';
+        if (eventDate) {
+            message += `Event Date: ${eventDate}, `;
+        }
+        if (meetingTime) {
+            message += `Meeting Time: ${meetingTime}, `;
+        }
+        if (relativeDate) {
+            message += `Relative Date: ${relativeDate}, `;
+        }
+        if (relativeDateTime) {
+            message += `Relative DateTime: ${relativeDateTime}, `;
+        }
+        message = message.slice(0, -2); // Remove trailing comma and space
+    }
+
+    // Send success response that will appear as a post in the channel
+    sendSysadminResponse(message, body.channel_id);
+    return res.json({text: message});
 }
 
 function onDialogSubmit(req, res) {

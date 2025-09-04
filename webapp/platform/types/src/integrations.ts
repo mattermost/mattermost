@@ -192,6 +192,9 @@ export type DialogElement = {
         value: any;
     }>;
     refresh?: boolean; // Optional field refresh functionality (Apps Form feature flag only)
+    min_date?: string;
+    max_date?: string;
+    time_interval?: number;
 };
 
 export type SubmitDialogResponse = {

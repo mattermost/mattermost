@@ -1368,7 +1368,48 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             await waitFor(() => {
                 expect(getByTestId('apps-form-container')).toBeInTheDocument();
             });
+
+            // Get all handlers
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const {
+                doAppLookup,
+                doAppFetchForm,
+                postEphemeralCallResponseForContext,
+            } = mockCall.actions;
+
+            // Test lookup handler returns empty items
+            const lookupResult = await doAppLookup({
+                selected_field: 'test_field',
+                query: 'test',
+                values: {},
+            });
+            expect(lookupResult.data).toEqual({
+                type: 'ok',
+                data: {items: []},
+            });
+
+            // Test refresh handler returns ok
+            const refreshResult = await doAppFetchForm();
+            expect(refreshResult.data).toEqual({
+                type: 'ok',
+            });
+
+            // Test ephemeral handler is a no-op function
+            expect(() => {
+                postEphemeralCallResponseForContext();
+            }).not.toThrow();
+            expect(typeof postEphemeralCallResponseForContext).toBe('function');
+
+            // Should log warnings about unsupported features
+            expect(mockConsole.warn).toHaveBeenCalledWith(
+                '[InteractiveDialogAdapter]',
+                'Unexpected refresh call in Interactive Dialog adapter - this should not happen',
+                '',
+            );
         });
+    });
+
+    describe('Dynamic Import Loading', () => {
     });
 
     describe('Advanced Validation Scenarios', () => {
