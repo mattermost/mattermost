@@ -4,9 +4,8 @@
 import type {ReactWrapper} from 'enzyme';
 import {shallow} from 'enzyme';
 import nock from 'nock';
-import React from 'react';
+import React, {act} from 'react';
 import type {ComponentProps} from 'react';
-import {act} from 'react-dom/test-utils';
 import type {match} from 'react-router-dom';
 
 import {CollapsedThreads} from '@mattermost/types/config';

@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {screen, fireEvent} from '@testing-library/react';
-import React from 'react';
-import {act} from 'react-dom/test-utils';
+import React, {act} from 'react';
 
 import type {UserPropertyField, UserPropertyFieldGroupID, UserPropertyFieldType} from '@mattermost/types/properties';
 

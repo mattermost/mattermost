@@ -2,9 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {screen} from '@testing-library/react';
-import React from 'react';
+import React, {act} from 'react';
 import type {ComponentProps} from 'react';
-import {act} from 'react-dom/test-utils';
 
 import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
