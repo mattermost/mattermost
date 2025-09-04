@@ -4007,6 +4007,10 @@
     "translation": "Login failed because of invalid password."
   },
   {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "The format of the hashed password is invalid and could not be parsed."
+  },
+  {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Blank email."
   },
