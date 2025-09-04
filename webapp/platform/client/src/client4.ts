@@ -4628,6 +4628,16 @@ export default class Client4 {
             {method: 'get'},
         );
     };
+
+    flagPost = (postId: string, reason: string, comment?: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getContentFlaggingRoute()}/post/${postId}/flag`,
+            {
+                method: 'post',
+                body: JSON.stringify({reason, comment: JSON.stringify(comment)}),
+            },
+        );
+    };
 }
 
 export function parseAndMergeNestedHeaders(originalHeaders: any) {
