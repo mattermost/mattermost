@@ -84,9 +84,9 @@ func (a *App) checkUserPassword(user *model.User, password string, invalidateCac
 			}
 
 			return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized).Wrap(err)
-		} else {
-			return model.NewAppError("checkUserPassword", "app.valid_password_generic.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+
+		return model.NewAppError("checkUserPassword", "app.valid_password_generic.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Migrate the password if needed
