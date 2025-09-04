@@ -20,7 +20,11 @@ export type PostPreviewFieldMetadata = {
     fetchDeletedPost?: boolean;
 };
 
-export type FieldMetadata = PostPreviewFieldMetadata;
+export type TextFieldMetadata = {
+    placeholder?: string;
+};
+
+export type FieldMetadata = PostPreviewFieldMetadata | TextFieldMetadata;
 
 export type PropertiesCardViewMetadata = {
     [key: string]: FieldMetadata;

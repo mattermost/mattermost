@@ -8,7 +8,11 @@ import type {
     PropertyValue,
 } from '@mattermost/types/properties';
 
-import type {FieldMetadata, PostPreviewFieldMetadata} from 'components/properties_card_view/properties_card_view';
+import type {
+    FieldMetadata,
+    PostPreviewFieldMetadata,
+    TextFieldMetadata,
+} from 'components/properties_card_view/properties_card_view';
 
 import ChannelPropertyRenderer from './channel_property_renderer/channel_property_renderer';
 import PostPreviewPropertyRenderer from './post_preview_property_renderer/post_preview_property_renderer';
@@ -63,7 +67,12 @@ function RenderTextSubtype({field, value, metadata}: Props) {
     const subType = field.attrs?.subType ?? 'text';
     switch (subType) {
     case 'text':
-        return <TextPropertyRenderer value={value}/>;
+        return (
+            <TextPropertyRenderer
+                value={value}
+                metadata={metadata as TextFieldMetadata}
+            />
+        );
     case 'post':
         return (
             <PostPreviewPropertyRenderer

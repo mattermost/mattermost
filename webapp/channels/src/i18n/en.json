@@ -74,6 +74,7 @@
   "add_command.autocompleteDescription.help": "(Optional) Describe your slash command for the autocomplete list.",
   "add_command.autocompleteDescription.placeholder": "Example: \"Returns search results for patient records\"",
   "add_command.autocompleteHint": "Autocomplete Hint",
+  "data_spillage_report_post.reporting_comment.placeholder": "No comment.",
   "add_command.autocompleteHint.help": "(Optional) Specify the arguments associated with your slash command.",
   "add_command.autocompleteHint.placeholder": "Example: [Patient Name]",
   "add_command.cancel": "Cancel",

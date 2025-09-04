@@ -130,8 +130,11 @@ export function DataSpillageReport({post, isRHS}: Props) {
                 getPost: loadFlaggedPost,
                 fetchDeletedPost: true,
             },
+            reporting_comment: {
+                placeholder: formatMessage({id: 'data_spillage_report_post.reporting_comment.placeholder', defaultMessage: 'No comment'}),
+            },
         };
-    }, []);
+    }, [formatMessage]);
 
     return (
         <div
