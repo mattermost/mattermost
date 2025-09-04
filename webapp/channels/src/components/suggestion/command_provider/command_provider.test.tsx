@@ -8,6 +8,8 @@ import type {AutocompleteSuggestion} from '@mattermost/types/integrations';
 
 import {Client4} from 'mattermost-redux/client';
 
+import * as UserAgent from 'utils/user_agent';
+
 import CommandProvider, {commandsGroup, CommandSuggestion} from './command_provider';
 
 describe('CommandSuggestion', () => {
@@ -121,8 +123,6 @@ describe('CommandProvider', () => {
     });
 });
 
-import * as UserAgent from 'utils/user_agent';
-
 test('should forward pretext to handleWebapp unaltered (case-preserving)', () => {
     const uaSpy = jest.spyOn(UserAgent, 'isMobile').mockReturnValue(false);
 
@@ -146,17 +146,16 @@ test('should forward pretext to handleWebapp unaltered (case-preserving)', () =>
     uaSpy.mockRestore();
 });
 
-
 test('handleWebapp calls backend with pretext unaltered', async () => {
-  const original = Client4.getCommandAutocompleteSuggestionsList;
-  const mock = jest.fn().mockResolvedValue([]);
-  Client4.getCommandAutocompleteSuggestionsList = mock;
+    const original = Client4.getCommandAutocompleteSuggestionsList;
+    const mock = jest.fn().mockResolvedValue([]);
+    Client4.getCommandAutocompleteSuggestionsList = mock;
 
-  const provider = new CommandProvider({
-    teamId: 'current_team',
-    channelId: 'current_channel',
-    rootId: 'current_root',
-  });
+    const provider = new CommandProvider({
+        teamId: 'current_team',
+        channelId: 'current_channel',
+        rootId: 'current_root',
+    });
 
   const pretext = '/autolink set AbC Templ.';
   const cb = jest.fn();
