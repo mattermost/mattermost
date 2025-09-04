@@ -8,11 +8,13 @@ import {Preferences} from 'mattermost-redux/constants';
 
 import {applyTheme} from 'utils/utils';
 
+import ButtonExamples from 'components/button/button_examples';
 import SectionNoticeComponentLibrary from './section_notice.cl';
 
 import './component_library.scss';
 
 const componentMap = {
+    'Button': ButtonExamples,
     'Section Notice': SectionNoticeComponentLibrary,
 };
 

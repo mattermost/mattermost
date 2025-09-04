@@ -1,0 +1,379 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+@use "sass/utils/mixins";
+
+// Using CSS variables from theme provider - no hardcoded colors needed
+
+// Base button styles
+.Button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    border-radius: var(--radius-s);
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 600;
+    font-style: normal;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s ease-out;
+    outline: none;
+    
+    &:hover {
+        text-decoration: none;
+    }
+    
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.32;
+    }
+    
+    &:focus {
+        box-shadow: 0 0 0 2px var(--sidebar-text-active-border);
+    }
+    
+    &:focus:not(:focus-visible) {
+        box-shadow: none;
+    }
+    
+    &:focus-visible {
+        box-shadow: 0 0 0 2px var(--sidebar-text-active-border);
+    }
+}
+
+// Size variants
+.Button--xs {
+    height: 24px;
+    padding: 4px 6px;
+    font-size: 12px;
+    line-height: 16px;
+    
+    &.Button--icon-only {
+        width: 24px;
+        padding: 4px;
+    }
+}
+
+.Button--sm {
+    height: 32px;
+    padding: 8px 16px;
+    font-size: 12px;
+    line-height: 16px;
+    
+    &.Button--icon-only {
+        width: 32px;
+        padding: 8px;
+    }
+}
+
+.Button--md {
+    height: 40px;
+    padding: 10px 20px;
+    font-size: 14px;
+    line-height: 20px;
+    
+    &.Button--icon-only {
+        width: 40px;
+        padding: 10px;
+    }
+}
+
+.Button--lg {
+    height: 48px;
+    padding: 12px 24px;
+    font-size: 16px;
+    line-height: 24px;
+    
+    &.Button--icon-only {
+        width: 48px;
+        padding: 12px;
+    }
+}
+
+// Full width variant
+.Button--full-width {
+    width: 100%;
+}
+
+// Emphasis variants - Default style
+.Button--primary.Button--default {
+    background-color: var(--button-bg);
+    color: var(--button-color);
+    
+    &:hover:not(:disabled) {
+        background-color: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08)), var(--button-bg);
+    }
+    
+    &:active:not(:disabled) {
+        background-color: linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16)), var(--button-bg);
+    }
+    
+    &:disabled {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.32);
+    }
+    
+    // Destructive variant
+    &.Button--destructive {
+        background-color: var(--error-text);
+        color: var(--button-color);
+        
+        &:hover:not(:disabled) {
+            background-color: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08)), var(--error-text);
+        }
+        
+        &:active:not(:disabled) {
+            background-color: linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16)), var(--error-text);
+        }
+    }
+}
+
+.Button--secondary.Button--default {
+    background-color: transparent;
+    border: 1px solid var(--button-bg);
+    color: var(--button-bg);
+    
+    &:hover:not(:disabled) {
+        background-color: rgba(var(--button-bg-rgb), 0.08);
+    }
+    
+    &:active:not(:disabled) {
+        background-color: rgba(var(--button-bg-rgb), 0.16);
+    }
+    
+    &:disabled {
+        border-color: rgba(var(--center-channel-color-rgb), 0.32);
+        color: rgba(var(--center-channel-color-rgb), 0.32);
+    }
+    
+    // Destructive variant
+    &.Button--destructive {
+        border-color: var(--error-text);
+        color: var(--error-text);
+        
+        &:hover:not(:disabled) {
+            background-color: rgba(var(--semantic-color-danger), 0.08);
+        }
+        
+        &:active:not(:disabled) {
+            background-color: rgba(var(--semantic-color-danger), 0.16);
+        }
+    }
+}
+
+.Button--tertiary.Button--default {
+    background-color: rgba(var(--button-bg-rgb), 0.08);
+    color: var(--button-bg);
+    
+    &:hover:not(:disabled) {
+        background-color: rgba(var(--button-bg-rgb), 0.12);
+    }
+    
+    &:active:not(:disabled) {
+        background-color: rgba(var(--button-bg-rgb), 0.16);
+    }
+    
+    &:disabled {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.32);
+    }
+    
+    // Destructive variant
+    &.Button--destructive {
+        background-color: rgba(var(--semantic-color-danger), 0.08);
+        color: var(--error-text);
+        
+        &:hover:not(:disabled) {
+            background-color: rgba(var(--semantic-color-danger), 0.12);
+        }
+        
+        &:active:not(:disabled) {
+            background-color: rgba(var(--semantic-color-danger), 0.16);
+        }
+    }
+}
+
+.Button--quaternary.Button--default {
+    background-color: transparent;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    
+    &:hover:not(:disabled) {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.88);
+    }
+    
+    &:active:not(:disabled) {
+        background-color: rgba(var(--center-channel-color-rgb), 0.16);
+        color: var(--center-channel-color);
+    }
+    
+    &:disabled {
+        color: rgba(var(--center-channel-color-rgb), 0.32);
+    }
+    
+    // Destructive variant
+    &.Button--destructive {
+        color: var(--error-text);
+        
+        &:hover:not(:disabled) {
+            background-color: rgba(var(--semantic-color-danger), 0.08);
+        }
+        
+        &:active:not(:disabled) {
+            background-color: rgba(var(--semantic-color-danger), 0.16);
+        }
+    }
+}
+
+.Button--link.Button--default {
+    background-color: transparent;
+    padding: 0;
+    height: auto;
+    color: var(--link-color);
+    text-decoration: underline;
+    
+    &:hover:not(:disabled) {
+        color: rgba(var(--button-bg-rgb), 0.75);
+    }
+    
+    &:active:not(:disabled) {
+        color: var(--button-bg);
+    }
+    
+    &:disabled {
+        color: rgba(var(--center-channel-color-rgb), 0.32);
+    }
+    
+    // Destructive variant
+    &.Button--destructive {
+        color: var(--error-text);
+        
+        &:hover:not(:disabled) {
+            color: rgba(var(--semantic-color-danger), 0.75);
+        }
+        
+        &:active:not(:disabled) {
+            color: var(--error-text);
+        }
+    }
+}
+
+// Inverted style variants (for dark backgrounds)
+.Button--primary.Button--inverted {
+    background-color: var(--button-color);
+    color: var(--button-bg);
+    
+    &:hover:not(:disabled) {
+        background-color: rgba(var(--button-color-rgb), 0.88);
+    }
+    
+    &:active:not(:disabled) {
+        background-color: rgba(var(--button-color-rgb), 0.75);
+    }
+}
+
+.Button--secondary.Button--inverted {
+    background-color: transparent;
+    border: 1px solid var(--button-color);
+    color: var(--button-color);
+    
+    &:hover:not(:disabled) {
+        background-color: rgba(var(--button-color-rgb), 0.08);
+    }
+    
+    &:active:not(:disabled) {
+        background-color: rgba(var(--button-color-rgb), 0.16);
+    }
+}
+
+.Button--tertiary.Button--inverted {
+    background-color: rgba(var(--button-color-rgb), 0.08);
+    color: var(--button-color);
+    
+    &:hover:not(:disabled) {
+        background-color: rgba(var(--button-color-rgb), 0.12);
+    }
+    
+    &:active:not(:disabled) {
+        background-color: rgba(var(--button-color-rgb), 0.16);
+    }
+}
+
+.Button--quaternary.Button--inverted {
+    background-color: transparent;
+    color: rgba(var(--button-color-rgb), 0.75);
+    
+    &:hover:not(:disabled) {
+        background-color: rgba(var(--button-color-rgb), 0.08);
+        color: rgba(var(--button-color-rgb), 0.88);
+    }
+    
+    &:active:not(:disabled) {
+        background-color: rgba(var(--button-color-rgb), 0.16);
+        color: var(--button-color);
+    }
+}
+
+.Button--link.Button--inverted {
+    background-color: transparent;
+    padding: 0;
+    height: auto;
+    color: var(--button-color);
+    text-decoration: underline;
+    
+    &:hover:not(:disabled) {
+        color: rgba(var(--button-color-rgb), 0.75);
+    }
+    
+    &:active:not(:disabled) {
+        color: var(--button-color);
+    }
+}
+
+// Loading state
+.Button--loading {
+    .Button__label {
+        visibility: hidden;
+    }
+    
+    .Button__loading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+}
+
+// Icon spacing
+.Button__icon--before {
+    margin-right: -4px;
+}
+
+.Button__icon--after {
+    margin-left: -4px;
+}
+
+// Label
+.Button__label {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+// Loading spinner
+.Button__loading {
+    .icon-loading-spinner {
+        animation: spin 1s linear infinite;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
