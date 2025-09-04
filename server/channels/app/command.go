@@ -179,6 +179,7 @@ func (a *App) ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Com
 }
 
 func (a *App) ExecuteCommand(c request.CTX, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+	mlog.Info("ExecuteCommand request", mlog.String("command", args.Command), mlog.String("user_id", args.UserId), mlog.String("channel_id", args.ChannelId), mlog.String("team_id", args.TeamId))
 	trigger := ""
 	message := ""
 	index := strings.IndexFunc(args.Command, unicode.IsSpace)
@@ -202,6 +203,7 @@ func (a *App) ExecuteCommand(c request.CTX, args *model.CommandArgs) (*model.Com
 	args.TriggerId = triggerId
 
 	// Plugins can override built in and custom commands
+	mlog.Info("Checking for plugin command", mlog.String("trigger", trigger), mlog.String("user_id", args.UserId), mlog.String("channel_id", args.ChannelId), mlog.String("team_id", args.TeamId))
 	cmd, response, appErr := a.tryExecutePluginCommand(c, args)
 	if appErr != nil {
 		return nil, appErr
