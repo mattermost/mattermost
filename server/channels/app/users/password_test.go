@@ -287,7 +287,7 @@ func TestMigratePassword(t *testing.T) {
 			phc, err := parser.New(strings.NewReader(newHash)).Parse()
 			require.NoError(t, err)
 			// 2. it is indeed the hash (with the latest hasher) of the original password
-			err = hashers.LatestHasher.CompareHashAndPassword(phc, tc.providedPassword)
+			err = hashers.CompareHashAndPassword(phc, tc.providedPassword)
 			require.NoError(t, err)
 		})
 	}

@@ -512,47 +512,4 @@ func TestMigratePassword(t *testing.T) {
 		err = th.App.checkUserPassword(user, pwd, false)
 		require.Nil(t, err)
 	})
-
-	t.Run("migration fails with invalid password", func(t *testing.T) {
-		user := createUserWithHash(pwdBcrypt)
-
-		err := th.App.migratePassword(user, "wrongpassword")
-		require.NotNil(t, err)
-		require.Equal(t, "api.user.check_user_password.invalid.app_error", err.Id)
-
-		fmt.Println(user.Password)
-
-		updatedUser, err := th.App.GetUser(user.Id)
-		fmt.Println(updatedUser.Password)
-		require.Nil(t, err)
-		require.Equal(t, user.FailedAttempts+1, updatedUser.FailedAttempts)
-		require.Equal(t, pwdBcrypt, updatedUser.Password)
-	})
-
-	t.Run("migration with empty password", func(t *testing.T) {
-		user := createUserWithHash(pwdBcrypt)
-
-		err := th.App.migratePassword(user, "")
-		require.NotNil(t, err)
-		require.Equal(t, "api.user.check_user_password.invalid.app_error", err.Id)
-	})
-
-	t.Run("migration with user having empty password hash", func(t *testing.T) {
-		user := createUserWithHash("")
-
-		user, err := th.App.GetUser(user.Id)
-		require.Nil(t, err)
-
-		err = th.App.migratePassword(user, pwd)
-		require.NotNil(t, err)
-		require.Equal(t, "api.user.check_user_password.invalid.app_error", err.Id)
-	})
-
-	t.Run("migration with malformed password hash", func(t *testing.T) {
-		user := createUserWithHash("invalidhash")
-
-		err := th.App.migratePassword(user, pwd)
-		require.NotNil(t, err)
-		require.Equal(t, "api.user.check_user_password.invalid.app_error", err.Id)
-	})
 }

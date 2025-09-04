@@ -122,3 +122,11 @@ func GetHasherFromPHCString(phcString string) (PasswordHasher, parser.PHC) {
 		return getOriginalHasher(phcString)
 	}
 }
+
+func CompareHashAndPassword(phc parser.PHC, password string) error {
+	return LatestHasher.CompareHashAndPassword(phc, password)
+}
+
+func IsLatestHasher(hasher PasswordHasher) bool {
+	return LatestHasher == hasher
+}
