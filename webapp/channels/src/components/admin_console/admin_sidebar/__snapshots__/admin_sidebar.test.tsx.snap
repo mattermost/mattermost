@@ -23,23 +23,7 @@ exports[`components/AdminSidebar Plugins should filter plugins 1`] = `
       value="autolink"
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -103,23 +87,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -194,23 +162,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -857,17 +809,6 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                 />
               }
             />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
-                />
-              }
-            />
           </AdminSidebarCategory>
         </ul>
       </SearchKeywordMarking>
@@ -899,23 +840,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -1947,17 +1872,6 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 />
               }
             />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
-                />
-              }
-            />
           </AdminSidebarCategory>
         </ul>
       </SearchKeywordMarking>
@@ -1989,23 +1903,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -3024,17 +2922,6 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 />
               }
             />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
-                />
-              }
-            />
           </AdminSidebarCategory>
         </ul>
       </SearchKeywordMarking>
@@ -3066,23 +2953,7 @@ exports[`components/AdminSidebar should match snapshot with license with profess
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -4012,17 +3883,6 @@ exports[`components/AdminSidebar should match snapshot with license with profess
                 />
               }
             />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
-                />
-              }
-            />
           </AdminSidebarCategory>
         </ul>
       </SearchKeywordMarking>
@@ -4054,23 +3914,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -4717,17 +4561,6 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                 />
               }
             />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
-                />
-              }
-            />
           </AdminSidebarCategory>
         </ul>
       </SearchKeywordMarking>
@@ -4759,23 +4592,7 @@ exports[`components/AdminSidebar should match snapshot, no access 1`] = `
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -4814,23 +4631,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -5474,17 +5275,6 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
                 />
               }
             />
@@ -5519,23 +5309,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -6182,17 +5956,6 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                 />
               }
             />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
-                />
-              }
-            />
           </AdminSidebarCategory>
         </ul>
       </SearchKeywordMarking>
@@ -6224,23 +5987,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -7084,17 +6831,6 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
                 />
               }
             />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
-                />
-              }
-            />
           </AdminSidebarCategory>
         </ul>
       </SearchKeywordMarking>
@@ -7126,23 +6862,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -8069,17 +7789,6 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
                 />
               }
             />

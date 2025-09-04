@@ -89,7 +89,6 @@ import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selec
 import {
     getTeamIdByChannelId,
     getMyTeams,
-    getCurrentRelativeTeamUrl,
     getCurrentTeamId,
     getCurrentTeamUrl,
     getTeam,
@@ -120,7 +119,7 @@ import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
-import InteractiveDialog from 'components/interactive_dialog';
+import DialogRouter from 'components/dialog_router';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 
 import WebSocketClient from 'client/web_websocket_client';
@@ -1263,25 +1262,11 @@ function handleChannelCreatedEvent(msg) {
 }
 
 function handleChannelDeletedEvent(msg) {
-    const state = getState();
-    const config = getConfig(state);
-    const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
-    if (getCurrentChannelId(state) === msg.data.channel_id && !viewArchivedChannels) {
-        const teamUrl = getCurrentRelativeTeamUrl(state);
-        const currentTeamId = getCurrentTeamId(state);
-        const redirectChannel = getRedirectChannelNameForTeam(state, currentTeamId);
-        getHistory().push(teamUrl + '/channels/' + redirectChannel);
-    }
-
-    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_DELETED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, deleteAt: msg.data.delete_at, viewArchivedChannels}});
+    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_DELETED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, deleteAt: msg.data.delete_at, viewArchivedChannels: true}});
 }
 
 function handleChannelUnarchivedEvent(msg) {
-    const state = getState();
-    const config = getConfig(state);
-    const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
-
-    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_UNARCHIVED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, viewArchivedChannels}});
+    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_UNARCHIVED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, viewArchivedChannels: true}});
 }
 
 function handlePreferenceChangedEvent(msg) {
@@ -1440,7 +1425,7 @@ function handleOpenDialogEvent(msg) {
         return;
     }
 
-    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: InteractiveDialog}));
+    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: DialogRouter}));
 }
 
 function handleGroupUpdatedEvent(msg) {

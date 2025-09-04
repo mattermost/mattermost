@@ -11,6 +11,9 @@ import {TestHelper} from 'utils/test_helper';
 
 import PostEditHistory from './post_edit_history';
 
+// jsdom doesn't implement scrolling, so we need to manually define this
+window.HTMLElement.prototype.scrollTo = jest.fn();
+
 describe('components/post_edit_history', () => {
     const baseProps: ComponentProps<typeof PostEditHistory> = {
         channelDisplayName: 'channel_display_name',

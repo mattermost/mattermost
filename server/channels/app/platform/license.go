@@ -102,8 +102,13 @@ func (ps *PlatformService) LoadLicense() {
 
 	record, nErr := ps.Store.License().Get(sqlstore.RequestContextWithMaster(c), licenseId)
 	if nErr != nil {
-		ps.logger.Warn("License key from https://mattermost.com required to unlock enterprise features.", mlog.Err(nErr))
-		ps.SetLicense(nil)
+		if ps.Config().FeatureFlags.EnableMattermostEntry && model.BuildEnterpriseReady == "true" {
+			ps.logger.Info("Mattermost Entry is enabled. Unlocking enterprise features.")
+			ps.SetLicense(ps.LicenseManager().NewMattermostEntryLicense(ps.telemetryId))
+		} else {
+			ps.logger.Warn("License key from https://mattermost.com required to unlock enterprise features.", mlog.Err(nErr))
+			ps.SetLicense(nil)
+		}
 		return
 	}
 
@@ -132,10 +137,6 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 
 	if license.Features.Users == nil {
 		return nil, model.NewAppError("addLicense", "api.license.add_license.invalid.app_error", nil, "", http.StatusBadRequest).Wrap(errors.New("license.Features.Users is nil"))
-	}
-
-	if license.SkuShortName == model.LicenseShortSkuEnterpriseAdvanced && *ps.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
-		return nil, model.NewAppError("addLicense", "api.license.add_license.mysql.app_error", nil, "", http.StatusBadRequest).Wrap(errors.New("mysql is not supported for this license"))
 	}
 
 	uniqueUserCount, err := ps.Store.User().Count(model.UserCountOptions{})
@@ -229,13 +230,6 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 }
 
 func (ps *PlatformService) SetLicense(license *model.License) bool {
-	if license != nil && license.SkuShortName == model.LicenseShortSkuEnterpriseAdvanced && *ps.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
-		if ps.logger != nil {
-			ps.logger.Error("MySQL is not supported for this license", mlog.String("sku_short_name", license.SkuShortName))
-		}
-		return false
-	}
-
 	oldLicense := ps.licenseValue.Load()
 
 	defer func() {

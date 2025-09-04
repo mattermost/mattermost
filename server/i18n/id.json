@@ -888,30 +888,6 @@
     "translation": "Tidak dapat memuat kiriman"
   },
   {
-    "id": "bleveengine.index_user.error",
-    "translation": "Tidak dapat memuat kiriman"
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Tidak dapat memuat kiriman"
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Tidak dapat memperoleh kanal"
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Tidak dapat memuat kiriman"
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Tidak dapat memuat kiriman"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Tidak dapat memperoleh kanal"
-  },
-  {
     "id": "app.submit_interactive_dialog.json_error",
     "translation": "Percakapan interaktif pada encoding JSON mengalami masalah ."
   },
@@ -1800,10 +1776,6 @@
   {
     "id": "api.context.404.app_error",
     "translation": "Maaf, tidak dapat menemukan halaman yang dimaksud"
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Format baru untuk konfigurasi klien belum didukung. Harap tentukan ormat=old dalam string kueri."
   },
   {
     "id": "api.command_shrug.name",

@@ -15,6 +15,7 @@ import {
     PoundIcon,
     InformationOutlineIcon,
     SyncIcon,
+    ShieldAlertOutlineIcon,
 } from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import type {UserPropertyField} from '@mattermost/types/properties';
@@ -62,9 +63,10 @@ interface AttributeSelectorProps {
     buttonId: string;
     autoOpen?: boolean;
     onMenuOpened?: () => void;
+    enableUserManagedAttributes: boolean;
 }
 
-const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled, onChange, menuId, buttonId, autoOpen = false, onMenuOpened}: AttributeSelectorProps) => {
+const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled, onChange, menuId, buttonId, autoOpen = false, onMenuOpened, enableUserManagedAttributes}: AttributeSelectorProps) => {
     const {formatMessage} = useIntl();
     const [filter, setFilter] = useState('');
     const prevAutoOpen = useRef(false);
@@ -134,6 +136,7 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                 const {name} = option;
                 const hasSpaces = name.includes(' ');
                 const isSynced = option.attrs?.ldap || option.attrs?.saml;
+                const allowed = isSynced || enableUserManagedAttributes;
 
                 const menuItem = (
                     <Menu.Item
@@ -144,7 +147,7 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                         aria-checked={name === currentAttribute}
                         onClick={hasSpaces ? undefined : () => handleAttributeChange(name)}
                         labels={<span>{name}</span>}
-                        disabled={hasSpaces}
+                        disabled={hasSpaces || !allowed}
                         leadingElement={
                             <AttributeIcon
                                 attribute={option}
@@ -156,6 +159,12 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                                 {hasSpaces && (
                                     <InformationOutlineIcon
                                         size={18}
+                                    />
+                                )}
+                                {!allowed && !isSynced && (
+                                    <ShieldAlertOutlineIcon
+                                        size={18}
+                                        color='rgba(var(--center-channel-color-rgb), 0.5)'
                                     />
                                 )}
                                 {isSynced && (
@@ -178,6 +187,11 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                     tooltipContent = formatMessage({
                         id: 'admin.access_control.table_editor.attribute_spaces_not_supported',
                         defaultMessage: 'CEL is not compatible with variable names containing spaces',
+                    });
+                } else if (!allowed) {
+                    tooltipContent = formatMessage({
+                        id: 'admin.access_control.table_editor.not_safe_to_use',
+                        defaultMessage: 'Values for this attribute are managed by users and should not be used for access control. Please link attribute to AD/LDAP for use in access policies.',
                     });
                 } else if (isSynced) {
                     tooltipContent = formatMessage({

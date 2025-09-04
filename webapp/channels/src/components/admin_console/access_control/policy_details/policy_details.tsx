@@ -8,6 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {GenericModal} from '@mattermost/components';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
+import type {AccessControlSettings} from '@mattermost/types/config';
 import type {JobTypeBase} from '@mattermost/types/jobs';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
@@ -23,6 +24,7 @@ import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import TextSetting from 'components/widgets/settings/text_setting';
 
+import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {getHistory} from 'utils/browser_history';
 import {JobTypes} from 'utils/constants';
 
@@ -44,15 +46,14 @@ interface PolicyActions {
     setNavigationBlocked: (blocked: boolean) => void;
     assignChannelsToAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
     unassignChannelsFromAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
-    getAccessControlFields: (after: string, limit: number) => Promise<ActionResult>;
     createJob: (job: JobTypeBase & { data: any }) => Promise<ActionResult>;
     updateAccessControlPolicyActive: (policyId: string, active: boolean) => Promise<ActionResult>;
-    getVisualAST: (expression: string) => Promise<ActionResult>;
 }
 
 export interface PolicyDetailsProps {
     policy?: AccessControlPolicy;
     policyId?: string;
+    accessControlSettings: AccessControlSettings;
     actions: PolicyActions;
 }
 
@@ -66,6 +67,7 @@ function PolicyDetails({
     policy,
     policyId,
     actions,
+    accessControlSettings,
 }: PolicyDetailsProps): JSX.Element {
     const [policyName, setPolicyName] = useState(policy?.name || '');
     const [expression, setExpression] = useState(policy?.rules?.[0]?.expression || '');
@@ -86,6 +88,8 @@ function PolicyDetails({
     const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
     const {formatMessage} = useIntl();
 
+    const abacActions = useChannelAccessControlActions();
+
     useEffect(() => {
         loadPage();
     }, [policyId]);
@@ -98,10 +102,12 @@ function PolicyDetails({
 
         // Expression is simple if it only contains user.attributes.X == "Y" or user.attributes.X in ["Y", "Z"]
         // or user.attributes.X.startsWith/endsWith/contains("Y")
+        // or ["Y", "Z"] in user.attributes.X (for multiselect attributes)
         return expr.split('&&').every((condition) => {
             const trimmed = condition.trim();
             return trimmed.match(/^user\.attributes\.\w+\s*(==|!=)\s*['"][^'"]*['"]$/) ||
                    trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/) ||
+                   trimmed.match(/^((\[.*?\])||['"][^'"]*['"].*?)\s+in\s+user\.attributes\.\w+$/) ||
                    trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
                    trimmed.match(/^user\.attributes\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
                    trimmed.match(/^user\.attributes\.\w+\.contains\(['"][^'"]*['"].*?\)$/);
@@ -110,7 +116,7 @@ function PolicyDetails({
 
     const loadPage = async (): Promise<void> => {
         // Fetch autocomplete fields first, as they are general and needed for both new and existing policies.
-        const fieldsPromise = actions.getAccessControlFields('', 100).then((result) => {
+        const fieldsPromise = abacActions.getAccessControlFields('', 100).then((result) => {
             if (result.data) {
                 setAutocompleteResult(result.data);
             }
@@ -167,7 +173,7 @@ function PolicyDetails({
             name: policyName,
             rules: [{expression, actions: ['*']}] as AccessControlPolicyRule[],
             type: 'parent',
-            version: 'v0.1',
+            version: 'v0.2',
         }).then((result) => {
             if (result.error) {
                 setServerError(result.error.message);
@@ -352,6 +358,7 @@ function PolicyDetails({
                             onChange={(_, value) => {
                                 setPolicyName(value);
                                 setSaveNeeded(true);
+                                actions.setNavigationBlocked(true);
                             }}
                             labelClassName='col-sm-4 vertically-centered-label'
                             inputClassName='col-sm-8'
@@ -371,6 +378,7 @@ function PolicyDetails({
                             onChange={(_, value) => {
                                 setAutoSyncMembership(value);
                                 setSaveNeeded(true);
+                                actions.setNavigationBlocked(true);
                             }}
                             setByEnv={false}
                             helpText={
@@ -455,12 +463,20 @@ function PolicyDetails({
                                     onChange={(value) => {
                                         setExpression(value);
                                         setSaveNeeded(true);
+                                        actions.setNavigationBlocked(true);
                                     }}
                                     onValidate={() => {}}
-                                    userAttributes={autocompleteResult.map((attr) => ({
-                                        attribute: attr.name,
-                                        values: [],
-                                    }))}
+                                    userAttributes={autocompleteResult.
+                                        filter((attr) => {
+                                            if (accessControlSettings.EnableUserManagedAttributes) {
+                                                return true;
+                                            }
+                                            return attr.attrs?.ldap || attr.attrs?.saml;
+                                        }).
+                                        map((attr) => ({
+                                            attribute: attr.name,
+                                            values: [],
+                                        }))}
                                 />
                             ) : (
                                 <TableEditor
@@ -468,15 +484,15 @@ function PolicyDetails({
                                     onChange={(value) => {
                                         setExpression(value);
                                         setSaveNeeded(true);
+                                        actions.setNavigationBlocked(true);
                                     }}
                                     onValidate={() => {}}
                                     userAttributes={autocompleteResult}
                                     onParseError={() => {
                                         setEditorMode('cel');
                                     }}
-                                    actions={{
-                                        getVisualAST: actions.getVisualAST,
-                                    }}
+                                    enableUserManagedAttributes={accessControlSettings.EnableUserManagedAttributes}
+                                    actions={abacActions}
                                 />
                             )}
                         </Card.Body>
@@ -570,7 +586,6 @@ function PolicyDetails({
                     onChannelsSelected={(channels) => addToNewChannels(channels)}
                     groupID={''}
                     alreadySelected={Object.values(channelChanges.added).map((channel) => channel.id)}
-                    excludeAccessControlPolicyEnforced={true}
                     excludeTypes={['O', 'D', 'G']}
                 />
             )}

@@ -53,7 +53,7 @@ func (a *App) CreateSession(c request.CTX, session *model.Session) (*model.Sessi
 
 func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 	apiKey := os.Getenv("MM_CLOUD_API_KEY")
-	if apiKey != "" && apiKey == token {
+	if apiKey != "" && subtle.ConstantTimeCompare([]byte(apiKey), []byte(token)) == 1 {
 		// Need a bare-bones session object for later checks
 		session := &model.Session{
 			Token:   token,
@@ -105,15 +105,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 	if session == nil || session.Id == "" {
 		session, appErr = a.createSessionForUserAccessToken(c, token)
 		if appErr != nil {
-			detailedError := ""
-			statusCode := http.StatusUnauthorized
-			if appErr.Id != "app.user_access_token.invalid_or_missing" {
-				detailedError = appErr.Error()
-				statusCode = appErr.StatusCode
-			} else {
-				c.Logger().Warn("Error while creating session for user access token", mlog.Err(appErr))
-			}
-			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": token, "Error": detailedError}, "", statusCode)
+			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": token}, "", appErr.StatusCode).Wrap(appErr)
 		}
 	}
 

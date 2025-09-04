@@ -13,6 +13,7 @@
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
+
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 describe('Verify Accessibility Support in Modals & Dialogs', () => {
@@ -30,7 +31,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
             testChannel = channel;
             testUser = user;
 
-            cy.apiCreateUser().then(({user: newUser}) => {
+            cy.apiCreateUser({prefix: 'user000b'}).then(({user: newUser}) => {
                 cy.apiAddUserToTeam(testTeam.id, newUser.id).then(() => {
                     cy.apiAddUserToChannel(testChannel.id, newUser.id);
                 });
@@ -140,7 +141,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
     it('MM-T1468 Accessibility Support in Add people to Channel Dialog screen', () => {
         // # Add atleast 5 users
         for (let i = 0; i < 5; i++) {
-            cy.apiCreateUser().then(({user}) => { // eslint-disable-line
+            cy.apiCreateUser().then(({user}) => {
                 cy.apiAddUserToTeam(testTeam.id, user.id);
             });
         }
@@ -167,9 +168,9 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
                 wait(TIMEOUTS.HALF_SEC).
                 typeWithForce('u').
                 wait(TIMEOUTS.HALF_SEC).
-                typeWithForce('{downarrow}{downarrow}{downarrow}{uparrow}');
+                typeWithForce('{downarrow}{downarrow}{downarrow}{downarrow}{uparrow}');
             cy.get('#multiSelectList').
-                children().eq(1).
+                children().eq(2).
                 should('have.class', 'more-modal__row--selected').
                 within(() => {
                     cy.get('.more-modal__name').invoke('text').then((user) => {

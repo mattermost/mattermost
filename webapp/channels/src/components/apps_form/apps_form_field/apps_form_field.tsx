@@ -2,8 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
-import type {AppField, AppSelectOption} from '@mattermost/types/apps';
+import type {AppField, AppFormValue, AppSelectOption} from '@mattermost/types/apps';
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 
@@ -14,6 +15,7 @@ import type AutocompleteSelector from 'components/autocomplete_selector';
 import Markdown from 'components/markdown';
 import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
 import BoolSetting from 'components/widgets/settings/bool_setting';
+import RadioSetting from 'components/widgets/settings/radio_setting';
 import TextSetting from 'components/widgets/settings/text_setting';
 import type {InputTypes} from 'components/widgets/settings/text_setting';
 
@@ -28,7 +30,7 @@ export interface Props {
     errorText?: React.ReactNode;
     teammateNameDisplay?: string;
 
-    value: AppSelectOption | string | boolean | number | null;
+    value: AppFormValue;
     onChange: (name: string, value: any) => void;
     autoFocus?: boolean;
     listComponent?: React.ComponentProps<typeof AutocompleteSelector>['listComponent'];
@@ -72,16 +74,27 @@ export default class AppsFormField extends React.PureComponent<Props> {
 
         const displayName = (field.modal_label || field.label) as string;
         let displayNameContent: React.ReactNode = (field.modal_label || field.label) as string;
-        displayNameContent = (
-            <>
-                {displayName}
-                {!field.is_required && (
+        if (field.is_required) {
+            displayNameContent = (
+                <>
+                    {displayName}
+                    <span className='error-text'>{' *'}</span>
+                </>
+            );
+        } else {
+            displayNameContent = (
+                <>
+                    {displayName}
                     <span className='light'>
-                        {' (optional)'}
+                        {' '}
+                        <FormattedMessage
+                            id='interactive_dialog.element.optional'
+                            defaultMessage='(optional)'
+                        />
                     </span>
-                )}
-            </>
-        );
+                </>
+            );
+        }
 
         const helpText = field.description;
         let helpTextContent: React.ReactNode = <Markdown message={helpText}/>;
@@ -133,6 +146,7 @@ export default class AppsFormField extends React.PureComponent<Props> {
             return (
                 <AppsFormSelectField
                     {...this.props}
+                    id={name}
                     teammateNameDisplay={this.props.teammateNameDisplay}
                     field={field}
                     label={displayNameContent}
@@ -153,6 +167,19 @@ export default class AppsFormField extends React.PureComponent<Props> {
                     value={boolValue || false}
                     helpText={helpTextContent}
                     placeholder={placeholder}
+                    onChange={onChange}
+                />
+            );
+        }
+        case AppFieldTypes.RADIO: {
+            const radioValue = value as string;
+            return (
+                <RadioSetting
+                    id={name}
+                    label={displayNameContent}
+                    helpText={helpTextContent}
+                    options={field.options?.map((o) => ({text: o.label, value: o.value}))}
+                    value={radioValue}
                     onChange={onChange}
                 />
             );

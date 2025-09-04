@@ -97,9 +97,12 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           <TableEditor
             actions={
               Object {
+                "getAccessControlFields": [MockFunction],
                 "getVisualAST": [MockFunction],
+                "searchUsers": [MockFunction],
               }
             }
+            enableUserManagedAttributes={false}
             onChange={[Function]}
             onParseError={[Function]}
             onValidate={[Function]}
@@ -300,9 +303,12 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           <TableEditor
             actions={
               Object {
+                "getAccessControlFields": [MockFunction],
                 "getVisualAST": [MockFunction],
+                "searchUsers": [MockFunction],
               }
             }
+            enableUserManagedAttributes={false}
             onChange={[Function]}
             onParseError={[Function]}
             onValidate={[Function]}
