@@ -2,4 +2,4 @@
 // See LICENSE.txt for license information.
 
 export {default} from './button';
-export type {ButtonProps, ButtonSize, ButtonEmphasis, ButtonStyle} from './button';
+export type {ButtonProps, ButtonSize, ButtonEmphasis} from './button';

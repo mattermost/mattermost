@@ -98,8 +98,8 @@
     width: 100%;
 }
 
-// Emphasis variants - Default style
-.Button--primary.Button--default {
+// Emphasis variants
+.Button--primary {
     background-color: var(--button-bg);
     color: var(--button-color);
     
@@ -131,7 +131,7 @@
     }
 }
 
-.Button--secondary.Button--default {
+.Button--secondary {
     background-color: transparent;
     border: 1px solid var(--button-bg);
     color: var(--button-bg);
@@ -164,7 +164,7 @@
     }
 }
 
-.Button--tertiary.Button--default {
+.Button--tertiary {
     background-color: rgba(var(--button-bg-rgb), 0.08);
     color: var(--button-bg);
     
@@ -196,7 +196,7 @@
     }
 }
 
-.Button--quaternary.Button--default {
+.Button--quaternary {
     background-color: transparent;
     color: rgba(var(--center-channel-color-rgb), 0.75);
     
@@ -228,7 +228,7 @@
     }
 }
 
-.Button--link.Button--default {
+.Button--link {
     background-color: transparent;
     padding: 0;
     height: auto;
@@ -261,7 +261,7 @@
     }
 }
 
-// Inverted style variants (for dark backgrounds)
+// Inverted style overrides (for dark backgrounds)
 .Button--primary.Button--inverted {
     background-color: var(--button-color);
     color: var(--button-bg);

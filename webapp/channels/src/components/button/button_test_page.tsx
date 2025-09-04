@@ -59,11 +59,11 @@ const ButtonTestPage: React.FC = () => {
             <section style={{backgroundColor: '#1e325c', padding: '20px', borderRadius: '8px'}}>
                 <h2 style={{color: 'white', margin: '0 0 20px 0'}}>Inverted (Dark Background)</h2>
                 <div style={{display: 'flex', gap: '16px'}}>
-                    <Button emphasis="primary" style="inverted">Primary</Button>
-                    <Button emphasis="secondary" style="inverted">Secondary</Button>
-                    <Button emphasis="tertiary" style="inverted">Tertiary</Button>
-                    <Button emphasis="quaternary" style="inverted">Quaternary</Button>
-                    <Button emphasis="link" style="inverted">Link</Button>
+                    <Button emphasis="primary" inverted>Primary</Button>
+                    <Button emphasis="secondary" inverted>Secondary</Button>
+                    <Button emphasis="tertiary" inverted>Tertiary</Button>
+                    <Button emphasis="quaternary" inverted>Quaternary</Button>
+                    <Button emphasis="link" inverted>Link</Button>
                 </div>
             </section>
         </div>

@@ -9,7 +9,7 @@ import './button.scss';
 
 export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg';
 export type ButtonEmphasis = 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'link';
-export type ButtonStyle = 'default' | 'inverted';
+// Removed ButtonStyle type - now using inverted boolean prop
 
 export interface ButtonProps {
     /** Button content */
@@ -21,8 +21,8 @@ export interface ButtonProps {
     /** Emphasis level of the button */
     emphasis?: ButtonEmphasis;
     
-    /** Visual style variant */
-    style?: ButtonStyle;
+    /** Visual style variant - inverted for dark backgrounds */
+    inverted?: boolean;
     
     /** Whether the button represents a destructive action */
     destructive?: boolean;
@@ -52,7 +52,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
             children,
             size = 'md',
             emphasis = 'primary',
-            style = 'default',
+            inverted = false,
             destructive = false,
             loading = false,
             iconBefore,
@@ -70,12 +70,12 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
             'Button',
             `Button--${size}`,
             `Button--${emphasis}`,
-            `Button--${style}`,
             {
                 'Button--destructive': destructive,
                 'Button--loading': loading,
                 'Button--full-width': fullWidth,
                 'Button--icon-only': !children && (iconBefore || iconAfter),
+                'Button--inverted': inverted,
             },
             className,
         );

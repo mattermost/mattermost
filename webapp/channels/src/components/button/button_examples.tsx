@@ -75,11 +75,11 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                 <div style={{backgroundColor: '#1e325c', padding: '20px', borderRadius: '8px'}}>
                     <h4 style={{color: 'white', margin: '0 0 16px 0'}}>Inverted Style (Dark Background)</h4>
                     <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap'}}>
-                        <Button emphasis="primary" style="inverted">Primary Inverted</Button>
-                        <Button emphasis="secondary" style="inverted">Secondary Inverted</Button>
-                        <Button emphasis="tertiary" style="inverted">Tertiary Inverted</Button>
-                        <Button emphasis="quaternary" style="inverted">Quaternary Inverted</Button>
-                        <Button emphasis="link" style="inverted">Link Inverted</Button>
+                        <Button emphasis="primary" inverted>Primary Inverted</Button>
+                        <Button emphasis="secondary" inverted>Secondary Inverted</Button>
+                        <Button emphasis="tertiary" inverted>Tertiary Inverted</Button>
+                        <Button emphasis="quaternary" inverted>Quaternary Inverted</Button>
+                        <Button emphasis="link" inverted>Link Inverted</Button>
                     </div>
                 </div>
             </div>
