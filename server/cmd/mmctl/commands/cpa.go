@@ -6,6 +6,7 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
@@ -42,9 +43,7 @@ func buildFieldAttrs(cmd *cobra.Command) (model.StringInterface, error) {
 			return nil, fmt.Errorf("failed to parse attrs JSON: %w", err)
 		}
 		// Copy to our attrs map
-		for k, v := range attrsMap {
-			attrs[k] = v
-		}
+		maps.Copy(attrs, attrsMap)
 	}
 
 	// Individual flags override --attrs (applied on top)

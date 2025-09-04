@@ -5,7 +5,6 @@ package commands
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -213,44 +212,10 @@ func cpaFieldEditCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 
 	// Build attrs from flags if any changes
 	if hasAttrsChanges(cmd) {
-		// Start with empty attrs map - we'll merge with existing on server side
-		attrs := make(model.StringInterface)
-
-		// Apply flag changes - build CPA-specific attrs
-		if cmd.Flags().Changed("managed") {
-			managed, _ := cmd.Flags().GetBool("managed")
-			if managed {
-				attrs["managed"] = "admin"
-			} else {
-				attrs["managed"] = ""
-			}
+		attrs, err := buildFieldAttrs(cmd)
+		if err != nil {
+			return err
 		}
-
-		// Handle --attrs flag (overrides individual flags)
-		if attrsStr, err := cmd.Flags().GetString("attrs"); err == nil && attrsStr != "" && cmd.Flags().Changed("attrs") {
-			var attrsMap map[string]any
-			if err := json.Unmarshal([]byte(attrsStr), &attrsMap); err != nil {
-				return fmt.Errorf("failed to parse attrs JSON: %w", err)
-			}
-
-			// Merge with individual flags (attrs takes precedence)
-			for k, v := range attrsMap {
-				attrs[k] = v
-			}
-		}
-
-		// Handle --option flags for select/multiselect fields
-		if options, err := cmd.Flags().GetStringSlice("option"); err == nil && len(options) > 0 && cmd.Flags().Changed("option") {
-			var selectOptions []*model.CustomProfileAttributesSelectOption
-			for _, optionName := range options {
-				selectOptions = append(selectOptions, &model.CustomProfileAttributesSelectOption{
-					ID:   model.NewId(),
-					Name: optionName,
-				})
-			}
-			attrs["options"] = selectOptions
-		}
-
 		if len(attrs) > 0 {
 			patch.Attrs = &attrs
 		}
