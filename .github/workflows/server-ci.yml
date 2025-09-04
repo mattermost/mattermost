@@ -284,6 +284,8 @@ jobs:
         working-directory: server
     env:
       GOFLAGS: -buildvcs=false # TODO: work around "error obtaining VCS status: exit status 128" in a container
+      BUILD_NUMBER: "${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
+      FIPS_ENABLED: false
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -292,8 +294,8 @@ jobs:
       - name: Build
         run: |
           make config-reset
-          make build-cmd BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
-          make package BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
+          make build-cmd
+          make package
       - name: Persist dist artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
@@ -322,6 +324,8 @@ jobs:
         working-directory: server
     env:
       GOFLAGS: -buildvcs=false # TODO: work around "error obtaining VCS status: exit status 128" in a container
+      BUILD_NUMBER: "${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
+      FIPS_ENABLED: true
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -330,8 +334,8 @@ jobs:
       - name: Build
         run: |
           make config-reset
-          make build-client build-linux-amd64 BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
-          make package-linux-amd64 BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
+          make build-client build-linux-amd64
+          make package-linux-amd64
       - name: Test FIPS (amd64)
         run: make test-fips-linux-amd64
       - name: Persist dist artifacts
