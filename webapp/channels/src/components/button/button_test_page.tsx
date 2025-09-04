@@ -8,11 +8,11 @@ import Button from './button';
 // Simple test page that you can temporarily add to any existing route for quick testing
 const ButtonTestPage: React.FC = () => {
     return (
-        <div style={{padding: '40px', maxWidth: '1200px', margin: '0 auto'}}>
-            <h1>Button Component Test</h1>
+        <div style={{padding: '40px', maxWidth: '1200px', margin: '0 auto', color: 'var(--center-channel-color)'}}>
+            <h1 style={{color: 'var(--center-channel-color)', marginBottom: '32px'}}>Button Component Test</h1>
             
             <section style={{marginBottom: '40px'}}>
-                <h2>Primary Buttons</h2>
+                <h2 style={{color: 'var(--center-channel-color)', marginBottom: '20px'}}>Primary Buttons</h2>
                 <div style={{display: 'flex', gap: '16px', marginBottom: '16px'}}>
                     <Button emphasis="primary" size="xs">X-Small</Button>
                     <Button emphasis="primary" size="sm">Small</Button>
@@ -28,7 +28,7 @@ const ButtonTestPage: React.FC = () => {
             </section>
 
             <section style={{marginBottom: '40px'}}>
-                <h2>Secondary Buttons</h2>
+                <h2 style={{color: 'var(--center-channel-color)', marginBottom: '20px'}}>Secondary Buttons</h2>
                 <div style={{display: 'flex', gap: '16px', marginBottom: '16px'}}>
                     <Button emphasis="secondary">Default</Button>
                     <Button emphasis="secondary" disabled>Disabled</Button>
@@ -37,7 +37,7 @@ const ButtonTestPage: React.FC = () => {
             </section>
 
             <section style={{marginBottom: '40px'}}>
-                <h2>All Emphasis Types</h2>
+                <h2 style={{color: 'var(--center-channel-color)', marginBottom: '20px'}}>All Emphasis Types</h2>
                 <div style={{display: 'flex', gap: '16px', marginBottom: '16px'}}>
                     <Button emphasis="primary">Primary</Button>
                     <Button emphasis="secondary">Secondary</Button>
@@ -48,7 +48,7 @@ const ButtonTestPage: React.FC = () => {
             </section>
 
             <section style={{marginBottom: '40px'}}>
-                <h2>With Icons</h2>
+                <h2 style={{color: 'var(--center-channel-color)', marginBottom: '20px'}}>With Icons</h2>
                 <div style={{display: 'flex', gap: '16px', marginBottom: '16px'}}>
                     <Button emphasis="primary" iconBefore={<span>➕</span>}>Add</Button>
                     <Button emphasis="secondary" iconAfter={<span>→</span>}>Next</Button>
