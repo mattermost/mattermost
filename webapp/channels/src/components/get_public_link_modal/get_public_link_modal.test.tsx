@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React from 'react';
-import {act} from 'react-dom/test-utils';
+import React, {act} from 'react';
 
 import GetLinkModal from 'components/get_link_modal';
 import GetPublicLinkModal from 'components/get_public_link_modal/get_public_link_modal';

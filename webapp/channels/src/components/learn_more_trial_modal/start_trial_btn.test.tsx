@@ -3,8 +3,7 @@
 
 import type {ReactWrapper} from 'enzyme';
 import {shallow} from 'enzyme';
-import React from 'react';
-import {act} from 'react-dom/test-utils';
+import React, {act} from 'react';
 import {Provider} from 'react-redux';
 
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';

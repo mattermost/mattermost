@@ -3,8 +3,7 @@
 
 import {fireEvent, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
-import {act} from 'react-dom/test-utils';
+import React, {act} from 'react';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
