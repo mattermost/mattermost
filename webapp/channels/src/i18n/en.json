@@ -5964,7 +5964,6 @@
   "user.settings.advance.onForAllMessages": "On for all messages",
   "user.settings.advance.onForCode": "On only for code blocks starting with ```",
   "user.settings.advance.performance.disableClientPlugins": "Disable Client-side Plugins",
-  "user.settings.advance.performance.disableTelemetry": "Disable telemetry events sent from the client",
   "user.settings.advance.performance.disableTypingMessages": "Disable \"User is typing...\" messages",
   "user.settings.advance.performance.info1": "You may enable these settings temporarily to help isolate performance issues while debugging. We don't recommend leaving these settings enabled for an extended period of time as they can negatively impact your user experience.",
   "user.settings.advance.performance.info2": "You may need to refresh the page before these settings take effect.",

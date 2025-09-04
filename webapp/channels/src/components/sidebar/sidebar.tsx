@@ -4,8 +4,6 @@
 import classNames from 'classnames';
 import React, {lazy} from 'react';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import {makeAsyncComponent} from 'components/async_load';
 import DataPrefetch from 'components/data_prefetch';
 import ResizableLhs from 'components/resizable_sidebar/resizable_lhs';
@@ -131,7 +129,6 @@ export default class Sidebar extends React.PureComponent<Props, State> {
 
     showMoreDirectChannelsModal = () => {
         this.setState({showDirectChannelsModal: true});
-        trackEvent('ui', 'ui_channels_more_direct_v2');
     };
 
     hideMoreDirectChannelsModal = () => {
@@ -144,7 +141,6 @@ export default class Sidebar extends React.PureComponent<Props, State> {
             dialogType: EditCategoryModal,
             dialogProps: {},
         });
-        trackEvent('ui', 'ui_sidebar_menu_createCategory');
     };
 
     showMoreChannelsModal = () => {
@@ -152,7 +148,6 @@ export default class Sidebar extends React.PureComponent<Props, State> {
             modalId: ModalIdentifiers.MORE_CHANNELS,
             dialogType: BrowseChannels,
         });
-        trackEvent('ui', 'ui_channels_more_public_v2');
     };
 
     invitePeopleModal = () => {
@@ -161,7 +156,6 @@ export default class Sidebar extends React.PureComponent<Props, State> {
             dialogType: InvitationModal,
             dialogProps: {focusOriginElement: 'browseOrAddChannelMenuButton'},
         });
-        trackEvent('ui', 'ui_channels_dropdown_invite_people');
     };
 
     showNewChannelModal = () => {
@@ -170,7 +164,6 @@ export default class Sidebar extends React.PureComponent<Props, State> {
             dialogType: NewChannelModal,
         });
         this.closeEditRHS();
-        trackEvent('ui', 'ui_channels_create_channel_v2');
     };
 
     showCreateUserGroupModal = () => {
@@ -178,7 +171,6 @@ export default class Sidebar extends React.PureComponent<Props, State> {
             modalId: ModalIdentifiers.USER_GROUPS_CREATE,
             dialogType: CreateUserGroupsModal,
         });
-        trackEvent('ui', 'ui_channels_create_user_group');
     };
 
     handleOpenMoreDirectChannelsModal = (e?: Event) => {
