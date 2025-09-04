@@ -94,9 +94,11 @@ var (
 	ErrMismatchedHashAndPassword = fmt.Errorf("hash and password do not match")
 )
 
-// getDefaultHasher returns a [BCrypt] hasher, which is somewhat special, since it
-// uses the whole PHC string as the hash.
-func getDefaultHasher(phcString string) (PasswordHasher, parser.PHC) {
+// getOriginalHasher returns a [BCrypt] hasher, the first hasher used in the
+// codebase.
+func getOriginalHasher(phcString string) (PasswordHasher, parser.PHC) {
+	// [BCrypt] is somewhat of an edge case, since it is not PHC-compliant, and
+	// needs the whole PHC string in its Hash field
 	return NewBCrypt(), parser.PHC{Hash: phcString}
 }
 
@@ -109,7 +111,7 @@ func GetHasherFromPHCString(phcString string) (PasswordHasher, parser.PHC) {
 	phc, err := parser.New(strings.NewReader(phcString)).Parse()
 	if err != nil {
 		// If the PHC string is invalid, return the default hasher
-		return getDefaultHasher(phcString)
+		return getOriginalHasher(phcString)
 	}
 
 	switch phc.Id {
@@ -117,6 +119,6 @@ func GetHasherFromPHCString(phcString string) (PasswordHasher, parser.PHC) {
 		return LatestHasher, phc
 	// If the function ID is unknown, return the default hasher
 	default:
-		return getDefaultHasher(phcString)
+		return getOriginalHasher(phcString)
 	}
 }
