@@ -1404,7 +1404,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 '[InteractiveDialogAdapter]',
                 'Field refresh requested but no sourceUrl provided',
-                {"fieldName": undefined, "suggestion": "Add sourceUrl to dialog definition"},
+                {fieldName: undefined, suggestion: 'Add sourceUrl to dialog definition'},
             );
         });
     });
