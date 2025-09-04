@@ -23,7 +23,6 @@ import {readMultipleChannels} from 'mattermost-redux/actions/channels';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {shouldShowUnreadsCategory} from 'mattermost-redux/selectors/entities/preferences';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
 import {makeGetUnreadIdsForCategory} from 'selectors/views/channel_sidebar';
 
@@ -138,7 +137,6 @@ const SidebarCategoryMenu = ({
 
     function handleSortChannels(sorting: CategorySorting) {
         dispatch(setCategorySorting(category.id, sorting));
-        trackEvent('ui', `ui_sidebar_sort_dm_${sorting}`);
     }
 
     let sortChannelsSelectedValue = (
@@ -223,7 +221,6 @@ const SidebarCategoryMenu = ({
 
     const handleViewCategory = useCallback(() => {
         dispatch(readMultipleChannels(unreadsIds));
-        trackEvent('ui', 'ui_sidebar_category_menu_viewCategory');
     }, [dispatch, unreadsIds]);
 
     const markAsReadMenuItem = showUnreadsCategory === false ? (
