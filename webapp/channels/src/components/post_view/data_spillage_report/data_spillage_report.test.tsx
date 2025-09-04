@@ -7,6 +7,8 @@ import React from 'react';
 import type {Post} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import {Client4} from 'mattermost-redux/client';
+
 import {DataSpillageReport} from 'components/post_view/data_spillage_report/data_spillage_report';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
@@ -18,6 +20,7 @@ jest.mock('components/common/hooks/useUser');
 jest.mock('components/common/hooks/useChannel');
 jest.mock('mattermost-redux/actions/posts');
 jest.mock('components/common/hooks/useContentFlaggingFields');
+jest.mock('mattermost-redux/client');
 
 const mockedUseUser = require('components/common/hooks/useUser').useUser as jest.MockedFunction<any>;
 const mockUseChannel = require('components/common/hooks/useChannel').useChannel as jest.MockedFunction<any>;
@@ -25,6 +28,8 @@ const mockUseChannel = require('components/common/hooks/useChannel').useChannel 
 const mockGetPost = require('mattermost-redux/actions/posts').getPost as jest.MockedFunction<any>;
 const useContentFlaggingFields = require('components/common/hooks/useContentFlaggingFields').useContentFlaggingFields as jest.MockedFunction<any>;
 const usePostContentFlaggingValues = require('components/common/hooks/useContentFlaggingFields').usePostContentFlaggingValues as jest.MockedFunction<any>;
+
+const mockedClient4 = jest.mocked(Client4);
 
 describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
     const reportingUser = TestHelper.getUserMock({
@@ -285,14 +290,9 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
         },
     ];
 
-    beforeAll(() => {
-        usePostContentFlaggingValues.mockReturnValue(postContentFlaggingValues);
-    });
-
     beforeEach(() => {
         jest.resetAllMocks();
         mockedUseUser.mockImplementation((userId: string) => {
-            console.log({userId});
             if (userId === reportingUser.id) {
                 return reportingUser;
             } else if (userId === reportedPostAuthor.id) {
@@ -306,16 +306,20 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
         mockGetPost.mockReturnValue({type: 'MOCK_ACTION', data: reportedPost});
         useContentFlaggingFields.mockReturnValue(contentFlaggingFields);
         usePostContentFlaggingValues.mockReturnValue(postContentFlaggingValues);
+        mockedClient4.getFlaggedPost = jest.fn().mockResolvedValue(reportedPost);
+        usePostContentFlaggingValues.mockReturnValue(postContentFlaggingValues);
     });
 
     it('should render selected fields when not in RHS', async () => {
-        renderWithContext(
+        const {debug} = renderWithContext(
             <DataSpillageReport
                 post={post}
                 isRHS={false}
             />,
             baseState,
         );
+
+        debug();
 
         await act(async () => {});
 
@@ -353,6 +357,8 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
             />,
             baseState,
         );
+
+        await act(async () => {});
 
         const flaggedBy = screen.queryAllByTestId('user-property')[0];
         expect(flaggedBy).toBeVisible();
