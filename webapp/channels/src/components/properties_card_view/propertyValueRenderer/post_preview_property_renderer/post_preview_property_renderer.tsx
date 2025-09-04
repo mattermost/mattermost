@@ -31,12 +31,17 @@ export default function PostPreviewPropertyRenderer({value}: Props) {
     useEffect(() => {
         const loadPost = async () => {
             if (!loaded.current && !post) {
-                const post = await Client4.getFlaggedPost(postId);
-                if (post) {
-                    setPost(post);
+                try {
+                    const post = await Client4.getFlaggedPost(postId);
+                    if (post) {
+                        setPost(post);
+                    }
+                } catch (error) {
+                    // eslint-disable-next-line no-console
+                    console.log(error);
+                } finally {
+                    loaded.current = true;
                 }
-
-                loaded.current = true;
             }
         };
 

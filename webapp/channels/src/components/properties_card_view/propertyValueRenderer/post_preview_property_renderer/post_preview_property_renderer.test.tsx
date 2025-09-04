@@ -10,6 +10,8 @@ import type {PropertyValue} from '@mattermost/types/properties';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {Client4} from 'mattermost-redux/client';
+
 import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
@@ -17,11 +19,11 @@ import PostPreviewPropertyRenderer from './post_preview_property_renderer';
 
 jest.mock('components/common/hooks/useChannel');
 jest.mock('components/common/hooks/use_team');
-jest.mock('mattermost-redux/actions/posts');
+jest.mock('mattermost-redux/client');
 
 const mockUseChannel = require('components/common/hooks/useChannel').useChannel as jest.MockedFunction<any>;
 const mockUseTeam = require('components/common/hooks/use_team').useTeam as jest.MockedFunction<any>;
-const mockGetPost = require('mattermost-redux/actions/posts').getPost as jest.MockedFunction<any>;
+const mockedClient4 = jest.mocked(Client4);
 
 describe('PostPreviewPropertyRenderer', () => {
     const mockUser: UserProfile = {
@@ -91,7 +93,7 @@ describe('PostPreviewPropertyRenderer', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockGetPost.mockReturnValue({type: 'MOCK_ACTION', data: mockPost});
+        mockedClient4.getFlaggedPost.mockResolvedValue(mockPost);
     });
 
     it('should render PostMessagePreview when all data is available', async () => {
@@ -111,15 +113,16 @@ describe('PostPreviewPropertyRenderer', () => {
         expect(getByText('Originally posted in ~Test Channel')).toBeVisible();
     });
 
-    it('should return null when post is not found', () => {
+    it('should return null when post is not found', async () => {
         mockUseChannel.mockReturnValue(mockChannel);
         mockUseTeam.mockReturnValue(mockTeam);
-        mockGetPost.mockReturnValue({type: 'MOCK_ACTION', data: null});
+        mockedClient4.getFlaggedPost.mockRejectedValue({message: 'Post not found'});
 
         const {container} = renderWithContext(
             <PostPreviewPropertyRenderer {...defaultProps}/>,
             baseState,
         );
+        await act(async () => {});
 
         expect(container.firstChild).toBeNull();
     });
