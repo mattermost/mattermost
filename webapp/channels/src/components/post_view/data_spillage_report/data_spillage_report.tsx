@@ -20,6 +20,7 @@ import PropertiesCardView from 'components/properties_card_view/properties_card_
 import {DataSpillagePropertyNames} from 'utils/constants';
 
 import './data_spillage_report.scss';
+import DataSpillageFooter from './data_spillage_footer/data_spillage_footer';
 import {getSyntheticPropertyFields, getSyntheticPropertyValues} from './synthetic_data';
 
 import {useContentFlaggingFields, usePostContentFlaggingValues} from '../../common/hooks/useContentFlaggingFields';
@@ -136,6 +137,14 @@ export function DataSpillageReport({post, isRHS}: Props) {
         };
     }, [formatMessage]);
 
+    const footer = useMemo(() => {
+        if (isRHS) {
+            return null;
+        }
+
+        return (<DataSpillageFooter post={post}/>);
+    }, [isRHS, post]);
+
     return (
         <div
             className={`DataSpillageReport mode_${mode}`}
@@ -151,6 +160,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
                 actionsRow={<DataSpillageAction/>}
                 mode={mode}
                 metadata={metadata}
+                footer={footer}
             />
         </div>
     );
