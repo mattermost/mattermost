@@ -143,7 +143,7 @@ const DotMenu = ({
         const newAttrs = {...field.attrs};
 
         if (field.attrs.managed === 'admin') {
-            delete newAttrs.managed;
+            Reflect.deleteProperty(newAttrs, 'managed');
         } else {
             newAttrs.managed = 'admin';
         }
