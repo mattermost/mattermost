@@ -11,6 +11,7 @@ import type {FieldVisibility, UserPropertyField} from '@mattermost/types/propert
 import {openModal} from 'actions/views/modals';
 
 import * as Menu from 'components/menu';
+import Toggle from 'components/toggle';
 
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -273,6 +274,8 @@ const DotMenu = ({
             </Menu.SubMenu>
             <Menu.Item
                 id={`${menuId}_editable-by-users`}
+                role='menuitemcheckbox'
+                aria-checked={field.attrs.managed !== 'admin'}
                 onClick={handleEditableByUsersToggle}
                 leadingElement={<PencilOutlineIcon size={18}/>}
                 labels={(
@@ -281,10 +284,14 @@ const DotMenu = ({
                         defaultMessage='Editable by users'
                     />
                 )}
-                trailingElements={field.attrs.managed !== 'admin' && (
-                    <CheckIcon
-                        size={16}
-                        color='var(--button-bg, #1c58d9)'
+                trailingElements={(
+                    <Toggle
+                        size='btn-sm'
+                        disabled={false}
+                        onToggle={handleEditableByUsersToggle}
+                        toggled={field.attrs.managed !== 'admin'}
+                        toggleClassName='btn-toggle-primary'
+                        tabIndex={-1}
                     />
                 )}
             />
