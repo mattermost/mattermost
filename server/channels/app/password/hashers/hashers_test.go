@@ -21,7 +21,7 @@ func TestGetHasherFromPHCString(t *testing.T) {
 		{
 			testName:       "valid PBKDF2",
 			input:          "$pbkdf2$f=SHA256,w=600000,l=32$5Zq8TvET7nMrXof49Rp4Sw$d0Mx8467kv+3ylbGrkyu4jTd8O8SP51k4s1RuWb9S/o",
-			expectedHasher: LatestHasher,
+			expectedHasher: latestHasher,
 			expectedPHC: parser.PHC{
 				Id:      "pbkdf2",
 				Version: "",

@@ -7,19 +7,19 @@
 // migrate to a new hasher in the future, the steps needed are:
 //  1. Add a new type that implements the [PasswordHasher] interface. Let's call
 //     it `NewHasher`.
-//  2. Update the [LatestHasher] variable so that it points to a `NewHasher`
+//  2. Update the [latestHasher] variable so that it points to a `NewHasher`
 //     instance:
 //
 // ``` diff
 // var (
 //
-//	// LatestHasher is the hasher currently in use.
+//	// latestHasher is the hasher currently in use.
 //	// Any password hashed with a different hasher must be migrated to this one.
 //
-// -	LatestHasher PasswordHasher = DefaultPBKDF2()
-// +	LatestHasher PasswordHasher = DefaultNewHasher()
+// -	latestHasher PasswordHasher = DefaultPBKDF2()
+// +	latestHasher PasswordHasher = DefaultNewHasher()
 // ```
-//  3. Modify [GetHasherFromPHCString] so that it returns [LatestHasher] when the
+//  3. Modify [GetHasherFromPHCString] so that it returns [latestHasher] when the
 //     PHC's ID is the one specified by `NewHasher`, and move the current hasher
 //     to return a normal instance:
 //
@@ -28,7 +28,7 @@
 //		switch phc.Id {
 //	  - case PBKDF2FunctionId:
 //	  - case NewHasherFunctionId:
-//	    return LatestHasher, phc
+//	    return latestHasher, phc
 //	  - case PBKDF2FunctionId:
 //	  - return DefaultPBKDF2()
 //	    // If the function ID is unknown, return the default hasher
@@ -81,9 +81,9 @@ const (
 )
 
 var (
-	// LatestHasher is the hasher currently in use.
+	// latestHasher is the hasher currently in use.
 	// Any password hashed with a different hasher must be migrated to this one.
-	LatestHasher PasswordHasher = DefaultPBKDF2()
+	latestHasher PasswordHasher = DefaultPBKDF2()
 
 	// ErrPasswordTooLong is the error returned when the provided password is
 	// longer than [PasswordMaxLengthBytes].
@@ -116,7 +116,7 @@ func GetHasherFromPHCString(phcString string) (PasswordHasher, parser.PHC) {
 
 	switch phc.Id {
 	case PBKDF2FunctionId:
-		return LatestHasher, phc
+		return latestHasher, phc
 	// If the function ID is unknown, return the default hasher
 	default:
 		return getOriginalHasher(phcString)
@@ -124,13 +124,13 @@ func GetHasherFromPHCString(phcString string) (PasswordHasher, parser.PHC) {
 }
 
 func Hash(password string) (string, error) {
-	return LatestHasher.Hash(password)
+	return latestHasher.Hash(password)
 }
 
 func CompareHashAndPassword(phc parser.PHC, password string) error {
-	return LatestHasher.CompareHashAndPassword(phc, password)
+	return latestHasher.CompareHashAndPassword(phc, password)
 }
 
 func IsLatestHasher(hasher PasswordHasher) bool {
-	return LatestHasher == hasher
+	return latestHasher == hasher
 }

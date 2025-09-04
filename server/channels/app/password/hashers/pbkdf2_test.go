@@ -72,7 +72,7 @@ func TestPBKDF2CompareHashAndPassword(t *testing.T) {
 		},
 	}
 
-	hasher := LatestHasher
+	hasher := DefaultPBKDF2()
 
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
