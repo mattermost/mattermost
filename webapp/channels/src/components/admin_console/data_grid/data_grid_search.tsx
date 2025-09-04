@@ -13,7 +13,7 @@ import './data_grid.scss';
 
 type Props = {
     onSearch: (term: string) => void;
-    term: string;
+    term?: string;
     extraComponent?: JSX.Element;
 
     filterProps?: {
