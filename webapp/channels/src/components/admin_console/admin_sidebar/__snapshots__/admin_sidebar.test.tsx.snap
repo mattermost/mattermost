@@ -23,23 +23,7 @@ exports[`components/AdminSidebar Plugins should filter plugins 1`] = `
       value="autolink"
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -103,23 +87,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -194,23 +162,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -888,23 +840,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -1967,23 +1903,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -3033,23 +2953,7 @@ exports[`components/AdminSidebar should match snapshot with license with profess
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -4010,23 +3914,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -4704,23 +4592,7 @@ exports[`components/AdminSidebar should match snapshot, no access 1`] = `
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -4759,23 +4631,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -5453,23 +5309,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -6147,23 +5987,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -7038,23 +6862,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
