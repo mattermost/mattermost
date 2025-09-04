@@ -511,7 +511,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
         return (
             <AppsFormContainer
                 form={form}
-                context={context}
+                appContext={context}
                 onExited={this.props.onExited || (() => {})}
                 onHide={this.cancelAdapter}
                 actions={{
