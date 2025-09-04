@@ -4,6 +4,7 @@
 import React, {useMemo} from 'react';
 import {defineMessages, FormattedMessage} from 'react-intl';
 
+import type {Post} from '@mattermost/types/posts';
 import type {
     NameMappedPropertyFields,
     PropertyField,
@@ -13,6 +14,17 @@ import type {
 import PropertyValueRenderer from './propertyValueRenderer/propertyValueRenderer';
 
 import './properties_card_view.scss';
+
+export type PostPreviewFieldMetadata = {
+    getPost?: (postId: string) => Promise<Post>;
+    fetchDeletedPost?: boolean;
+};
+
+export type FieldMetadata = PostPreviewFieldMetadata;
+
+export type PropertiesCardViewMetadata = {
+    [key: string]: FieldMetadata;
+}
 
 type OrderedRow = {
     field: PropertyField;
@@ -74,9 +86,10 @@ type Props = {
     propertyValues: Array<PropertyValue<unknown>>;
     mode?: 'short' | 'full';
     actionsRow?: React.ReactNode;
+    metadata?: PropertiesCardViewMetadata;
 }
 
-export default function PropertiesCardView({title, propertyFields, fieldOrder, shortModeFieldOrder, propertyValues, mode, actionsRow}: Props) {
+export default function PropertiesCardView({title, propertyFields, fieldOrder, shortModeFieldOrder, propertyValues, mode, actionsRow, metadata}: Props) {
     const orderedRows = useMemo<OrderedRow[]>(() => {
         const hasRequiredData =
             Object.keys(propertyFields).length > 0 &&
@@ -137,6 +150,7 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
                                     <PropertyValueRenderer
                                         field={field}
                                         value={value}
+                                        metadata={metadata ? metadata[field.name] : undefined}
                                     />
                                 </div>
                             </div>

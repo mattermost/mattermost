@@ -6,10 +6,7 @@ import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
-import type {
-    NameMappedPropertyFields,
-    PropertyValue,
-} from '@mattermost/types/properties';
+import type {NameMappedPropertyFields, PropertyValue} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -17,6 +14,7 @@ import AtMention from 'components/at_mention';
 import {useChannel} from 'components/common/hooks/useChannel';
 import {useUser} from 'components/common/hooks/useUser';
 import DataSpillageAction from 'components/post_view/data_spillage_report/data_spillage_actions/data_spillage_actions';
+import type {PropertiesCardViewMetadata} from 'components/properties_card_view/properties_card_view';
 import PropertiesCardView from 'components/properties_card_view/properties_card_view';
 
 import {DataSpillagePropertyNames} from 'utils/constants';
@@ -126,6 +124,15 @@ export function DataSpillageReport({post, isRHS}: Props) {
 
     const mode = isRHS ? 'full' : 'short';
 
+    const metadata = useMemo<PropertiesCardViewMetadata>(() => {
+        return {
+            post_preview: {
+                getPost: loadFlaggedPost,
+                fetchDeletedPost: true,
+            },
+        };
+    }, []);
+
     return (
         <div
             className={`DataSpillageReport mode_${mode}`}
@@ -140,7 +147,12 @@ export function DataSpillageReport({post, isRHS}: Props) {
                 shortModeFieldOrder={shortModeFieldOrder}
                 actionsRow={<DataSpillageAction/>}
                 mode={mode}
+                metadata={metadata}
             />
         </div>
     );
+}
+
+async function loadFlaggedPost(postId: string) {
+    return Client4.getFlaggedPost(postId);
 }
