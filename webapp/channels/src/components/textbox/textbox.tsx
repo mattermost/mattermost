@@ -23,7 +23,7 @@ import type Provider from 'components/suggestion/provider';
 import SuggestionBox from 'components/suggestion/suggestion_box';
 import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list';
-import {generateMapValueFromInputValue, generateDisplayValueFromMapValue, updateStateWhenSuggestionSelected, updateStateWhenOnChanged, resetState, calculateMentionPositions} from 'components/textbox/util';
+import {generateDisplayValueFromRawValue, updateStateWhenSuggestionSelected, updateStateWhenOnChanged, resetState, calculateMentionPositions} from 'components/textbox/util';
 
 import * as Utils from 'utils/utils';
 
@@ -86,7 +86,6 @@ const VISIBLE = {visibility: 'visible'};
 const HIDDEN = {visibility: 'hidden'};
 
 interface TextboxState {
-    mapValue: string;
     displayValue: string;
     rawValue: string;
     mentionHighlights: Array<{start: number; end: number; username: string}>;
@@ -99,7 +98,6 @@ export default class Textbox extends React.PureComponent<Props> {
     private readonly preview: React.RefObject<HTMLDivElement>;
 
     state: TextboxState = {
-        mapValue: '',
         displayValue: '',
         rawValue: '',
         mentionHighlights: [],
@@ -151,14 +149,12 @@ export default class Textbox extends React.PureComponent<Props> {
         this.message = React.createRef();
         this.preview = React.createRef();
 
-        const mapValue = generateMapValueFromInputValue(props.value, props.usersByUsername, props.teammateNameDisplay);
-        const displayValue = generateDisplayValueFromMapValue(mapValue);
+        const displayValue = generateDisplayValueFromRawValue(props.value, props.usersByUsername, props.teammateNameDisplay);
 
         this.state = {
-            mapValue,
             displayValue,
             rawValue: props.value,
-            mentionHighlights: calculateMentionPositions(mapValue, displayValue),
+            mentionHighlights: calculateMentionPositions(props.value, displayValue, props.usersByUsername, props.teammateNameDisplay),
         };
     }
 
@@ -168,7 +164,7 @@ export default class Textbox extends React.PureComponent<Props> {
             return;
         }
         updateStateWhenOnChanged(
-            this.state.mapValue,
+            this.state.rawValue,
             this.props.usersByUsername,
             this.props.teammateNameDisplay,
             this.setState.bind(this),
