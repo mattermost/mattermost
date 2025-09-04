@@ -213,8 +213,6 @@
   "admin.billing.subscription.planDetails.features.multilanguage": "Višejezični prijevodi",
   "admin.billing.subscription.planDetails.features.unlimitedUsers": "Neograničen broj korisnika",
   "admin.billing.subscription.planDetails.features.unlimittedUsersAndMessagingHistory": "Neograničen broj korisnika i poruka povijesti",
-  "admin.billing.subscription.planDetails.flatFeePerMonth": "/mjesec (Neograničen broj korisnika). ",
-  "admin.billing.subscription.planDetails.perUserPerMonth": "/korisnik/mjesec. ",
   "admin.billing.subscription.planDetails.productName.unknown": "Nepoznat proizvod",
   "admin.billing.subscription.planDetails.userCount": "{userCount} korisnika",
   "admin.billing.subscription.privateCloudCard.contactSupport": "Kontakt podrške",
