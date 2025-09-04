@@ -39,7 +39,7 @@ require (
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
 	github.com/mattermost/gosaml2 v0.10.0
 	github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956
-	github.com/mattermost/logr/v2 v2.0.22
+	github.com/mattermost/logr/v2 v2.0.23-0.20250904090901-e85982db78e6
 	github.com/mattermost/mattermost/server/public v0.1.12
 	github.com/mattermost/morph v1.1.0
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0

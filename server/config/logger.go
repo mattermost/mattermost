@@ -79,7 +79,7 @@ func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings,
 		targetCfg.Levels = []mlog.Level{mlog.LvlAuditAPI, mlog.LvlAuditContent, mlog.LvlAuditPerms, mlog.LvlAuditCLI}
 
 		// apply audit specific formatting
-		targetCfg.FormatOptions = json.RawMessage(`{"disable_timestamp": false, "disable_msg": true, "disable_stacktrace": true, "disable_level": true}`)
+		targetCfg.FormatOptions = json.RawMessage(`{"disable_timestamp": false, "disable_msg": true, "disable_stacktrace": true, "disable_level": true, "use_utc": true}`)
 
 		cfg["_defAudit"] = targetCfg
 	}
@@ -180,12 +180,12 @@ func stringToStdLevel(level string) (mlog.Level, error) {
 }
 
 func makeJSONFormatOptions() json.RawMessage {
-	str := fmt.Sprintf(`{"enable_caller": %t}`, LogEnableCaller)
+	str := fmt.Sprintf(`{"enable_caller": %t, "use_utc": true}`, LogEnableCaller)
 	return json.RawMessage(str)
 }
 
 func makePlainFormatOptions(enableColor bool) json.RawMessage {
-	str := fmt.Sprintf(`{"delim": "%s", "min_level_len": %d, "min_msg_len": %d, "enable_color": %t, "enable_caller": %t}`,
+	str := fmt.Sprintf(`{"delim": "%s", "min_level_len": %d, "min_msg_len": %d, "enable_color": %t, "enable_caller": %t, "use_utc": true}`,
 		LogDelim, LogMinLevelLen, LogMinMsgLen, enableColor, LogEnableCaller)
 	return json.RawMessage(str)
 }
