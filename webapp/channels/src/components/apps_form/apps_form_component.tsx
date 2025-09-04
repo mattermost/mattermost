@@ -257,7 +257,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
             }
 
             return {
-                values: initFormValues(nextProps.form, nextProps.timezone),
+                values,
                 form: nextProps.form,
             };
         }

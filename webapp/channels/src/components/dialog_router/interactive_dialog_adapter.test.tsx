@@ -1403,8 +1403,8 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             // Should log warnings about unsupported features
             expect(mockConsole.warn).toHaveBeenCalledWith(
                 '[InteractiveDialogAdapter]',
-                'Unexpected refresh call in Interactive Dialog adapter - this should not happen',
-                '',
+                'Field refresh requested but no sourceUrl provided',
+                {"fieldName": undefined, "suggestion": "Add sourceUrl to dialog definition"},
             );
         });
     });

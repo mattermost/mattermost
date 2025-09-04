@@ -801,6 +801,16 @@ export function convertAppFormValuesToDialogSubmission(
                 submission[element.name] = selectOption.value;
             } else {
                 // Handle primitive values
+                if (options.enhanced && element.options) {
+                    const validOption = element.options.find((opt) => opt.value === value);
+                    if (!validOption) {
+                        errors.push({
+                            field: element.name,
+                            message: `"${element.name}" field is not valid: Selected value not found in options: ${value}`,
+                            code: ValidationErrorCode.INVALID_FORMAT,
+                        });
+                    }
+                }
                 submission[element.name] = value;
             }
             break;
