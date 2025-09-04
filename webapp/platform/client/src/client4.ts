@@ -4463,9 +4463,13 @@ export default class Client4 {
         );
     };
 
-    getAccessControlPolicy = (id: string) => {
+    getAccessControlPolicy = (id: string, channelId?: string) => {
+        let url = `${this.getBaseRoute()}/access_control_policies/${id}`;
+        if (channelId) {
+            url += `?channelId=${encodeURIComponent(channelId)}`;
+        }
         return this.doFetch<AccessControlPolicy>(
-            `${this.getBaseRoute()}/access_control_policies/${id}`,
+            url,
             {method: 'get'},
         );
     };

@@ -114,6 +114,9 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 	policyID := c.Params.PolicyId
 
+	// Extract optional channelId from query parameters for context
+	channelID := r.URL.Query().Get("channelId")
+
 	// Check if user has system admin permission OR channel-specific permission
 	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasManageSystemPermission {
@@ -124,8 +127,8 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 		}
 		// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
 
-		// For non-system admins, validate policy access permission
-		if appErr := c.App.ValidateAccessControlPolicyPermission(c.AppContext, c.AppContext.Session().UserId, policyID); appErr != nil {
+		// For non-system admins, validate policy access permission (read-only access for GET requests)
+		if appErr := c.App.ValidateAccessControlPolicyPermissionWithChannelContext(c.AppContext, c.AppContext.Session().UserId, policyID, true, channelID); appErr != nil {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}

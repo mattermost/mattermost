@@ -13,12 +13,13 @@ import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
-export function getAccessControlPolicy(id: string) {
+export function getAccessControlPolicy(id: string, channelId?: string) {
     return bindClientFunc({
         clientFunc: Client4.getAccessControlPolicy,
         onSuccess: [AdminTypes.RECEIVED_ACCESS_CONTROL_POLICY],
         params: [
             id,
+            channelId,
         ],
     });
 }
