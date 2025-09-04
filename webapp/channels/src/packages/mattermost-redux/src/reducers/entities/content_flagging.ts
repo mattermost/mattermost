@@ -19,6 +19,35 @@ function settings(state = {}, action: MMReduxAction) {
     }
 }
 
+function fields(state = {}, action: MMReduxAction) {
+    switch (action.type) {
+    case ContentFlaggingTypes.RECEIVED_POST_CONTENT_FLAGGING_FIELDS: {
+        return {
+            ...state,
+            ...action.data,
+        };
+    }
+    default:
+        return state;
+    }
+}
+
+function postValues(state = {}, action: MMReduxAction) {
+    switch (action.type) {
+    case ContentFlaggingTypes.RECEIVED_POST_CONTENT_FLAGGING_VALUES: {
+        const x = {
+            ...state,
+            [action.data.postId]: action.data.values,
+        };
+        return x;
+    }
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     settings,
+    fields,
+    postValues,
 });

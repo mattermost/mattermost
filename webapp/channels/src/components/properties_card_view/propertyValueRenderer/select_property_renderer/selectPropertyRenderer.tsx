@@ -49,8 +49,12 @@ function getOptionColors(colorName: string): {backgroundColor: string; color: st
             backgroundColor: 'var(--error-text)',
             color: '#FFF',
         };
+    case 'light_grey':
+        return {
+            backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.12)',
+            color: 'rgba(var(--center-channel-color-rgb), 1)',
+        };
     default:
-        // Default is light grey color
         return {
             backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.12)',
             color: 'rgba(var(--center-channel-color-rgb), 1)',
