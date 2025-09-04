@@ -16,13 +16,11 @@ exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 
   <ErrorModal>
     <injectIntl(FullScreenModal)
       onClose={[Function]}
-      overrideTargetEvent={true}
       show={false}
     >
       <injectIntl(FullScreenModal)
         forwardedRef={null}
         onClose={[Function]}
-        overrideTargetEvent={true}
         show={false}
       >
         <FullScreenModal

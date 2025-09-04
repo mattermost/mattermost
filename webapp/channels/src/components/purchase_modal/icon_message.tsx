@@ -24,7 +24,7 @@ type Props = {
 export default function IconMessage(props: Props) {
     const {
         icon,
-        error,
+        error = false,
         formattedButtonText,
         formattedTertiaryButonText,
         formattedTitle,
@@ -34,7 +34,7 @@ export default function IconMessage(props: Props) {
         tertiaryButtonHandler,
         footer,
         testId,
-        className,
+        className = '',
     } = props;
 
     let button = null;
@@ -104,10 +104,3 @@ export default function IconMessage(props: Props) {
         </div>
     );
 }
-
-IconMessage.defaultProps = {
-    error: false,
-    subtitle: '',
-    date: '',
-    className: '',
-};

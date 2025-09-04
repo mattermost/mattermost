@@ -28,8 +28,6 @@ exports[`components/sidebar/sidebar_category should match snapshot 2`] = `
     displayName="custom_category_1"
     isCollapsed={false}
     isCollapsible={true}
-    isDragging={false}
-    isDraggingOver={false}
     muted={false}
     onClick={[Function]}
   >
@@ -100,8 +98,6 @@ exports[`components/sidebar/sidebar_category should match snapshot when collapse
     displayName="custom_category_1"
     isCollapsed={true}
     isCollapsible={true}
-    isDragging={false}
-    isDraggingOver={false}
     muted={false}
     onClick={[Function]}
   >
@@ -172,8 +168,6 @@ exports[`components/sidebar/sidebar_category should match snapshot when isNewCat
     displayName="custom_category_1"
     isCollapsed={false}
     isCollapsible={true}
-    isDragging={false}
-    isDraggingOver={false}
     muted={false}
     onClick={[Function]}
   >
@@ -270,8 +264,6 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
     displayName="DIRECT MESSAGES"
     isCollapsed={false}
     isCollapsible={true}
-    isDragging={false}
-    isDraggingOver={false}
     muted={false}
     onClick={[Function]}
   >
@@ -380,8 +372,6 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
     displayName="DIRECT MESSAGES"
     isCollapsed={false}
     isCollapsible={false}
-    isDragging={false}
-    isDraggingOver={false}
     muted={false}
     onClick={[Function]}
   >

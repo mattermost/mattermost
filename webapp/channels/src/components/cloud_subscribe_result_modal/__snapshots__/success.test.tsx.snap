@@ -16,13 +16,11 @@ exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 
   <SuccessModal>
     <injectIntl(FullScreenModal)
       onClose={[Function]}
-      overrideTargetEvent={true}
       show={true}
     >
       <injectIntl(FullScreenModal)
         forwardedRef={null}
         onClose={[Function]}
-        overrideTargetEvent={true}
         show={true}
       >
         <FullScreenModal
@@ -131,7 +129,6 @@ exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 
                   <IconMessage
                     buttonHandler={[Function]}
                     className="success"
-                    date=""
                     error={false}
                     formattedButtonText={
                       <Memo(MemoizedFormattedMessage)
@@ -167,7 +164,6 @@ exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 
                         width={444}
                       />
                     }
-                    subtitle=""
                   >
                     <div
                       className="IconMessage"

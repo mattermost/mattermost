@@ -20,7 +20,7 @@ type Props = {
 }
 
 const AdminPanelWithButton = ({
-    className,
+    className = '',
     subtitle,
     title,
     buttonText,
@@ -56,10 +56,6 @@ const AdminPanelWithButton = ({
             {children}
         </AdminPanel>
     );
-};
-
-AdminPanelWithButton.defaultProps = {
-    className: '',
 };
 
 export default AdminPanelWithButton;
