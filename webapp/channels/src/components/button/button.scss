@@ -214,16 +214,16 @@
 
 .Button--quaternary {
     background-color: transparent;
-    color: rgba(var(--center-channel-color-rgb), 0.75);
+    color: rgba(var(--button-bg-rgb), 0.75);
     
     &:hover:not(:disabled) {
-        background-color: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.88);
+        background-color: rgba(var(--button-bg-rgb), 0.08);
+        color: rgba(var(--button-bg-rgb), 0.88);
     }
     
     &:active:not(:disabled) {
-        background-color: rgba(var(--center-channel-color-rgb), 0.16);
-        color: var(--center-channel-color);
+        background-color: rgba(var(--button-bg-rgb), 0.16);
+        color: var(--button-bg);
     }
     
     &:disabled {
