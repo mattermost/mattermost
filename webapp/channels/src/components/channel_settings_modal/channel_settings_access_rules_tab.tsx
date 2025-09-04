@@ -716,6 +716,7 @@ function ChannelSettingsAccessRulesTab({
                 onConfirm={() => setShowSelfExclusionModal(false)}
                 hideCancel={true}
                 confirmButtonClass='btn btn-primary'
+                isStacked={true}
             />
 
             {/* Confirmation modal for membership changes */}

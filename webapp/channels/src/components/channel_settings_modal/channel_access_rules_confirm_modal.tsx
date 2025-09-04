@@ -121,6 +121,7 @@ function ChannelAccessRulesConfirmModal({
             modalHeaderText={modalTitle}
             modalSubheaderText={modalSubtitle}
             bodyPadding={false}
+            isStacked={true}
         >
             {showUserList ? (
 
