@@ -9718,12 +9718,15 @@ func (c *Client4) DeleteAccessControlPolicy(ctx context.Context, id string) (*Re
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) CheckExpression(ctx context.Context, expression string) ([]CELExpressionError, *Response, error) {
+func (c *Client4) CheckExpression(ctx context.Context, expression string, channelId ...string) ([]CELExpressionError, *Response, error) {
 	checkExpressionRequest := struct {
 		Expression string `json:"expression"`
 		ChannelId  string `json:"channelId,omitempty"`
 	}{
 		Expression: expression,
+	}
+	if len(channelId) > 0 && channelId[0] != "" {
+		checkExpressionRequest.ChannelId = channelId[0]
 	}
 	b, err := json.Marshal(checkExpressionRequest)
 	if err != nil {

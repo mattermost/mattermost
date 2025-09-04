@@ -503,12 +503,8 @@ func TestCheckExpression(t *testing.T) {
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
 		mockAccessControlService.On("CheckExpression", mock.AnythingOfType("*request.Context"), "true").Return([]model.CELExpressionError{}, nil).Times(1)
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
-		})
-
-		// Channel admin should be able to check expressions (channelId passed via body in frontend)
-		errors, resp, err := channelAdminClient.CheckExpression(context.Background(), "true")
+		// Channel admin should be able to check expressions for their channel
+		errors, resp, err := channelAdminClient.CheckExpression(context.Background(), "true", privateChannel.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Empty(t, errors, "expected no errors")

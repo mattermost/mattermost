@@ -92,12 +92,18 @@ function ChannelSettingsAccessRulesTab({
                 if (result.data) {
                     setUserAttributes(result.data);
                 }
+                setAttributesLoaded(true);
             } catch (error) {
                 setUserAttributes([]);
-            } finally {
-                // Always set attributesLoaded to true to render the interface
-                // Channel admins should still see the UI even if they can't load attributes
-                setAttributesLoaded(true);
+
+                // Only set attributesLoaded for permission errors (403), not for other errors
+                // This allows channel admins to still use the interface when they get 403 on attributes
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                if (errorMessage.includes('403') || errorMessage.includes('Forbidden')) {
+                    setAttributesLoaded(true);
+                }
+
+                // For other errors, keep attributesLoaded false so UI doesn't render
             }
         };
 
@@ -156,6 +162,9 @@ function ChannelSettingsAccessRulesTab({
     }, []);
 
     const handleParseError = useCallback((errorMessage?: string) => {
+        // eslint-disable-next-line no-console
+        console.warn('Failed to parse expression in table editor');
+
         // Don't show UI errors for permission issues (403/Forbidden)
         if (errorMessage?.includes('403') || errorMessage?.includes('Forbidden')) {
             return;
@@ -165,7 +174,7 @@ function ChannelSettingsAccessRulesTab({
             id: 'channel_settings.access_rules.parse_error',
             defaultMessage: 'Invalid expression format',
         }));
-    }, []);
+    }, [formatMessage]);
 
     // Helper function to detect empty rules state
     const isEmptyRulesState = useMemo((): boolean => {
