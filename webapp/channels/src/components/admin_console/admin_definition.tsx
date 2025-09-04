@@ -533,6 +533,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: `user_management/system_roles/:role_id(${ID_PATH_PATTERN})`,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('LDAPGroups')),
+                    it.licensedForSku(LicenseSkus.Entry),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
@@ -546,6 +547,7 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
                 isHidden: it.any(
                     it.not(it.licensedForFeature('LDAPGroups')),
+                    it.licensedForSku(LicenseSkus.Entry),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
@@ -659,7 +661,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'system_attributes/attribute_based_access_control',
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
                 isHidden: it.any(
-                    it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                     it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                 ),
@@ -727,7 +729,7 @@ const AdminDefinition: AdminDefinitionType = {
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
                 isHidden: it.any(
-                    it.licensedForSku(LicenseSkus.EnterpriseAdvanced),
+                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
                     it.not(it.enterpriseReady),
                     it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                 ),

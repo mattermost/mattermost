@@ -2135,10 +2135,6 @@
     "translation": "Απέτυχε η συγχώνευση της ρύθμισης που έχει δοθεί."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Η νέα μορφή για τη διαμόρφωση του πελάτη δεν υποστηρίζεται ακόμη. Προσδιορίστε format=old στη συμβολοσειρά ερωτήματος."
-  },
-  {
     "id": "api.command_share.unshare_channel.help",
     "translation": "Καταργεί την κοινή χρήση του τρέχοντος καναλιού"
   },
