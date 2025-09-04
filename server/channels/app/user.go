@@ -26,6 +26,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -1500,7 +1501,7 @@ func (a *App) UpdatePassword(rctx request.CTX, user *model.User, newPassword str
 		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	hashedPassword, err := model.HashPassword(newPassword)
+	hashedPassword, err := hashers.Hash(newPassword)
 	if err != nil {
 		// can't be password length (checked in IsPasswordValid)
 		return model.NewAppError("UpdatePassword", "api.user.update_password.password_hash.app_error", nil, "user_id="+user.Id, http.StatusInternalServerError).Wrap(err)

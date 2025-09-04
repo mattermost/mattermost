@@ -376,7 +376,7 @@ func TestCheckUserPassword(t *testing.T) {
 	pwdBcryptBytes, err := bcrypt.GenerateFromPassword([]byte(pwd), 10)
 	require.NoError(t, err)
 	pwdBcrypt := string(pwdBcryptBytes)
-	pwdPBKDF2, err := hashers.LatestHasher.Hash(pwd)
+	pwdPBKDF2, err := hashers.Hash(pwd)
 	require.NoError(t, err)
 
 	createUserWithHash := func(hash string) *model.User {

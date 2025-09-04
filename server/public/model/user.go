@@ -509,7 +509,7 @@ func (u *User) PreSave() *AppError {
 	}
 
 	if u.Password != "" {
-		hashed, err := HashPassword(u.Password)
+		hashed, err := hashers.Hash(u.Password)
 		if errors.Is(err, hashers.ErrPasswordTooLong) {
 			return NewAppError("User.PreSave", "model.user.pre_save.password_too_long.app_error",
 				nil, "user_id="+u.Id, http.StatusBadRequest).Wrap(err)
@@ -991,11 +991,6 @@ func (u *UserPatch) SetField(fieldName string, fieldValue string) {
 	case "Username":
 		u.Username = &fieldValue
 	}
-}
-
-// HashPassword generates a hash using the bcrypt.GenerateFromPassword
-func HashPassword(password string) (string, error) {
-	return hashers.LatestHasher.Hash(password)
 }
 
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)

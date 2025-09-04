@@ -151,7 +151,7 @@ func TestCheckUserPassword(t *testing.T) {
 	pwdBcrypt := string(pwdBcryptBytes)
 	pwdArgon2Bytes := argon2.Key([]byte(pwd), salt, 3, 32*1024, 4, 32)
 	pwdArgon2 := string(pwdArgon2Bytes)
-	pwdPbkdf2, err := hashers.LatestHasher.Hash(pwd)
+	pwdPbkdf2, err := hashers.Hash(pwd)
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -230,7 +230,7 @@ func TestMigratePassword(t *testing.T) {
 	pwdBcrypt := string(pwdBcryptBytes)
 	pwdArgon2Bytes := argon2.Key([]byte(pwd), salt, 3, 32*1024, 4, 32)
 	pwdArgon2 := string(pwdArgon2Bytes)
-	pwdPbkdf2, err := hashers.LatestHasher.Hash(pwd)
+	pwdPbkdf2, err := hashers.Hash(pwd)
 	require.NoError(t, err)
 
 	testCases := []struct {

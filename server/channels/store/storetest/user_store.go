@@ -2323,10 +2323,10 @@ func testUserStoreUpdatePassword(t *testing.T, rctx request.CTX, ss store.Store)
 	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
 	require.NoError(t, nErr)
 
-	_, err = model.HashPassword(strings.Repeat("1234567890", 8))
+	_, err = hashers.Hash(strings.Repeat("1234567890", 8))
 	require.ErrorIs(t, err, hashers.ErrPasswordTooLong)
 
-	hashedPassword, err := model.HashPassword("newpwd")
+	hashedPassword, err := hashers.Hash("newpwd")
 	require.NoError(t, err)
 
 	err = ss.User().UpdatePassword(u1.Id, hashedPassword)

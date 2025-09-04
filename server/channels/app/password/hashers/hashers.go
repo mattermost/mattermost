@@ -123,6 +123,10 @@ func GetHasherFromPHCString(phcString string) (PasswordHasher, parser.PHC) {
 	}
 }
 
+func Hash(password string) (string, error) {
+	return LatestHasher.Hash(password)
+}
+
 func CompareHashAndPassword(phc parser.PHC, password string) error {
 	return LatestHasher.CompareHashAndPassword(phc, password)
 }
