@@ -28,7 +28,6 @@
     
     &:disabled {
         cursor: not-allowed;
-        opacity: 0.32;
     }
     
     &:focus {
@@ -214,7 +213,7 @@
 
 .Button--quaternary {
     background-color: transparent;
-    color: rgba(var(--button-bg-rgb), 0.75);
+    color: var(--button-bg);
     
     &:hover:not(:disabled) {
         background-color: rgba(var(--button-bg-rgb), 0.08);
@@ -349,18 +348,12 @@
     }
 }
 
-// Loading state
-.Button--loading {
-    .Button__label {
-        visibility: hidden;
-    }
-    
-    .Button__loading {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-    }
+// Loading spinner positioning
+.Button__loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 // Icon spacing
@@ -378,18 +371,9 @@
     white-space: nowrap;
 }
 
-// Loading spinner
+// Loading spinner uses FontAwesome fa-pulse animation
 .Button__loading {
-    .icon-loading-spinner {
-        animation: spin 1s linear infinite;
-    }
-}
-
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
+    .fa-pulse {
+        font-size: inherit;
     }
 }

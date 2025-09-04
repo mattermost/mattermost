@@ -101,7 +101,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
                 
                 {loading && (
                     <span className="Button__loading">
-                        <i className="icon icon-loading-spinner" />
+                        <i className="fa fa-spinner fa-fw fa-pulse" />
                     </span>
                 )}
                 
