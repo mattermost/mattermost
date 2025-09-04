@@ -6,15 +6,18 @@ import React from 'react';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
+import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
-import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
+import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsAccessRulesTab from './channel_settings_access_rules_tab';
 
-// Mock the hook
+// Mock the hooks
 jest.mock('hooks/useChannelAccessControlActions');
+jest.mock('hooks/useChannelSystemPolicies');
 
 // Mock TableEditor
 jest.mock('components/admin_console/access_control/editors/table_editor/table_editor', () => {
@@ -22,14 +25,40 @@ jest.mock('components/admin_console/access_control/editors/table_editor/table_ed
     return jest.fn(() => React.createElement('div', {'data-testid': 'table-editor'}, 'TableEditor'));
 });
 
+// Mock SaveChangesPanel
+jest.mock('components/widgets/modals/components/save_changes_panel', () => {
+    const React = require('react');
+    return jest.fn((props) => {
+        return React.createElement('div', {
+            'data-testid': 'save-changes-panel',
+            'data-state': props.state,
+        }, [
+            React.createElement('button', {
+                key: 'save',
+                'data-testid': 'SaveChangesPanel__save-btn',
+                onClick: props.handleSubmit,
+            }, 'Save'),
+            React.createElement('button', {
+                key: 'cancel',
+                'data-testid': 'SaveChangesPanel__cancel-btn',
+                onClick: props.handleCancel,
+            }, 'Reset'),
+        ]);
+    });
+});
+
 const mockUseChannelAccessControlActions = useChannelAccessControlActions as jest.MockedFunction<typeof useChannelAccessControlActions>;
+const mockUseChannelSystemPolicies = useChannelSystemPolicies as jest.MockedFunction<typeof useChannelSystemPolicies>;
 const MockedTableEditor = TableEditor as jest.MockedFunction<typeof TableEditor>;
+const MockedSaveChangesPanel = SaveChangesPanel as jest.MockedFunction<typeof SaveChangesPanel>;
 
 describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () => {
     const mockActions = {
         getAccessControlFields: jest.fn(),
         getVisualAST: jest.fn(),
         searchUsers: jest.fn(),
+        getChannelPolicy: jest.fn(),
+        saveChannelPolicy: jest.fn(),
     };
 
     const mockUserAttributes: UserPropertyField[] = [
@@ -99,13 +128,26 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
     beforeEach(() => {
         jest.clearAllMocks();
         mockUseChannelAccessControlActions.mockReturnValue(mockActions);
+        mockUseChannelSystemPolicies.mockReturnValue({
+            policies: [],
+            loading: false,
+            error: null,
+        });
         mockActions.getAccessControlFields.mockResolvedValue({
             data: mockUserAttributes,
         });
 
+        // Mock getChannelPolicy to reject (no existing policy)
+        mockActions.getChannelPolicy.mockRejectedValue(new Error('Policy not found'));
+
+        // Mock saveChannelPolicy to resolve successfully
+        mockActions.saveChannelPolicy.mockResolvedValue({data: {success: true}});
+
         // Suppress console methods for tests
         jest.spyOn(console, 'error').mockImplementation(() => {});
         jest.spyOn(console, 'warn').mockImplementation(() => {});
+        jest.spyOn(console, 'log').mockImplementation(() => {});
+        jest.spyOn(window, 'alert').mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -366,5 +408,380 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         );
 
         expect(document.querySelector('.ChannelSettingsModal__accessRulesDescription')).toBeInTheDocument();
+    });
+
+    describe('Auto-sync members toggle', () => {
+        test('should render auto-sync checkbox', () => {
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            const checkbox = screen.getByRole('checkbox');
+            expect(checkbox).toBeInTheDocument();
+            expect(checkbox).toHaveClass('ChannelSettingsModal__autoSyncCheckbox');
+        });
+
+        test('should render auto-sync label and description', () => {
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
+            expect(screen.getByText('Users who match the configured attribute values will be automatically added as members')).toBeInTheDocument();
+        });
+
+        test('should toggle auto-sync checkbox when clicked', async () => {
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            // Wait for initial loading to complete
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            const checkbox = screen.getByRole('checkbox');
+            expect(checkbox).not.toBeChecked();
+
+            await userEvent.click(checkbox);
+            await waitFor(() => {
+                expect(checkbox).toBeChecked();
+            });
+            expect(console.log).toHaveBeenCalledWith('Auto-sync members toggled:', true);
+
+            await userEvent.click(checkbox);
+            await waitFor(() => {
+                expect(checkbox).not.toBeChecked();
+            });
+            expect(console.log).toHaveBeenCalledWith('Auto-sync members toggled:', false);
+        });
+
+        test('should call setAreThereUnsavedChanges when auto-sync is toggled', async () => {
+            const setAreThereUnsavedChanges = jest.fn();
+            const propsWithCallback = {
+                ...baseProps,
+                setAreThereUnsavedChanges,
+            };
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...propsWithCallback}/>,
+                initialState,
+            );
+
+            const checkbox = screen.getByRole('checkbox');
+            await userEvent.click(checkbox);
+
+            await waitFor(() => {
+                expect(setAreThereUnsavedChanges).toHaveBeenCalledWith(true);
+            });
+        });
+    });
+
+    describe('SaveChangesPanel integration', () => {
+        test('should not show SaveChangesPanel when there are no changes', async () => {
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            expect(screen.queryByTestId('save-changes-panel')).not.toBeInTheDocument();
+        });
+
+        test('should show SaveChangesPanel when expression changes', async () => {
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Get the onChange callback passed to TableEditor
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+
+            // Simulate expression change
+            onChangeCallback('user.attributes.department == "Engineering"');
+
+            await waitFor(() => {
+                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+            });
+        });
+
+        test('should show SaveChangesPanel when auto-sync is toggled', async () => {
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            // Wait for initial loading to complete
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            const checkbox = screen.getByRole('checkbox');
+            await userEvent.click(checkbox);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+            });
+        });
+
+        test('should save changes when Save button is clicked', async () => {
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Change expression
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('user.attributes.department == "Engineering"');
+
+            // Toggle auto-sync
+            const checkbox = screen.getByRole('checkbox');
+            await userEvent.click(checkbox);
+
+            // Wait for SaveChangesPanel to appear
+            await waitFor(() => {
+                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+            });
+
+            // Click Save button
+            const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+            await userEvent.click(saveButton);
+
+            // Verify save was called
+            expect(console.log).toHaveBeenCalledWith('Saving channel access rules:', {
+                channelId: 'channel_id',
+                expression: 'user.attributes.department == "Engineering"',
+                autoSyncMembers: true,
+            });
+
+            expect(window.alert).toHaveBeenCalledWith(
+                'Access rules saved!\nExpression: user.attributes.department == "Engineering"\nAuto-sync: Enabled',
+            );
+        });
+
+        test('should reset changes when Reset button is clicked', async () => {
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Change expression
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('user.attributes.department == "Engineering"');
+
+            // Toggle auto-sync
+            const checkbox = screen.getByRole('checkbox');
+            await userEvent.click(checkbox);
+            expect(checkbox).toBeChecked();
+
+            // Wait for SaveChangesPanel to appear
+            await waitFor(() => {
+                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+            });
+
+            // Click Reset button
+            const resetButton = screen.getByTestId('SaveChangesPanel__cancel-btn');
+            await userEvent.click(resetButton);
+
+            // Verify panel disappears
+            await waitFor(() => {
+                expect(screen.queryByTestId('save-changes-panel')).not.toBeInTheDocument();
+            });
+
+            // Verify checkbox is reset
+            expect(checkbox).not.toBeChecked();
+        });
+
+        test('should show error state when there is a form error', async () => {
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Trigger parse error
+            const onParseErrorCallback = MockedTableEditor.mock.calls[0][0].onParseError;
+            onParseErrorCallback('Invalid expression');
+
+            // Change expression to trigger panel
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('invalid expression');
+
+            await waitFor(() => {
+                const panel = screen.getByTestId('save-changes-panel');
+                expect(panel).toBeInTheDocument();
+                expect(panel).toHaveAttribute('data-state', 'error');
+            });
+        });
+
+        test('should show error state when showTabSwitchError is true', async () => {
+            const propsWithError = {
+                ...baseProps,
+                showTabSwitchError: true,
+            };
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...propsWithError}/>,
+                initialState,
+            );
+
+            // Wait for initial loading to complete
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Toggle auto-sync to show panel
+            const checkbox = screen.getByRole('checkbox');
+            await userEvent.click(checkbox);
+
+            await waitFor(() => {
+                const panel = screen.getByTestId('save-changes-panel');
+                expect(panel).toBeInTheDocument();
+                expect(panel).toHaveAttribute('data-state', 'error');
+            });
+        });
+
+        test('should pass correct props to SaveChangesPanel', async () => {
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            // Wait for initial loading to complete
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Toggle auto-sync to show panel
+            const checkbox = screen.getByRole('checkbox');
+            await userEvent.click(checkbox);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+            });
+
+            expect(MockedSaveChangesPanel).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    handleSubmit: expect.any(Function),
+                    handleCancel: expect.any(Function),
+                    handleClose: expect.any(Function),
+                    tabChangeError: false,
+                    state: undefined,
+                    cancelButtonText: 'Reset',
+                }),
+                expect.anything(),
+            );
+        });
+
+        test('should update SaveChangesPanel state to saved after successful save', async () => {
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            // Wait for initial loading to complete
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Toggle auto-sync to show panel
+            const checkbox = screen.getByRole('checkbox');
+            await userEvent.click(checkbox);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+            });
+
+            // Click Save button
+            const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+            await userEvent.click(saveButton);
+
+            await waitFor(() => {
+                const panel = screen.getByTestId('save-changes-panel');
+                expect(panel).toHaveAttribute('data-state', 'saved');
+            });
+        });
+    });
+
+    describe('System policies integration', () => {
+        test('should show system policies indicator when policies are present', () => {
+            const mockPolicies = [
+                {
+                    id: 'policy1',
+                    name: 'Test Policy',
+                    type: 'parent',
+                    version: 'v0.2',
+                    revision: 1,
+                    active: true,
+                    createAt: 1234567890,
+                    rules: [],
+                    imports: [],
+                },
+            ];
+
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: mockPolicies,
+                loading: false,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            expect(document.querySelector('.ChannelSettingsModal__systemPolicies')).toBeInTheDocument();
+        });
+
+        test('should not show system policies indicator when no policies', () => {
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [],
+                loading: false,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            expect(document.querySelector('.ChannelSettingsModal__systemPolicies')).not.toBeInTheDocument();
+        });
+
+        test('should not show system policies indicator while loading', () => {
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [],
+                loading: true,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            expect(document.querySelector('.ChannelSettingsModal__systemPolicies')).not.toBeInTheDocument();
+        });
     });
 });

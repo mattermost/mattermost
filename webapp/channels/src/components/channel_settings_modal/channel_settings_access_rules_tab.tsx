@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -12,6 +12,7 @@ import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/acce
 
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import SystemPolicyIndicator from 'components/system_policy_indicator';
+import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
@@ -29,7 +30,6 @@ type ChannelSettingsAccessRulesTabProps = {
 function ChannelSettingsAccessRulesTab({
     channel,
     setAreThereUnsavedChanges,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     showTabSwitchError,
 }: ChannelSettingsAccessRulesTabProps) {
     const {formatMessage} = useIntl();
@@ -39,8 +39,17 @@ function ChannelSettingsAccessRulesTab({
 
     // State for the access control expression and user attributes
     const [expression, setExpression] = useState('');
+    const [originalExpression, setOriginalExpression] = useState('');
     const [userAttributes, setUserAttributes] = useState<UserPropertyField[]>([]);
     const [attributesLoaded, setAttributesLoaded] = useState(false);
+
+    // Auto-sync members toggle state
+    const [autoSyncMembers, setAutoSyncMembers] = useState(false);
+    const [originalAutoSyncMembers, setOriginalAutoSyncMembers] = useState(false);
+
+    // SaveChangesPanel state
+    const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
+    const [formError, setFormError] = useState('');
 
     const actions = useChannelAccessControlActions();
 
@@ -64,18 +73,161 @@ function ChannelSettingsAccessRulesTab({
         loadAttributes();
     }, [actions]);
 
-    const handleExpressionChange = (newExpression: string) => {
-        setExpression(newExpression);
-        if (setAreThereUnsavedChanges) {
-            setAreThereUnsavedChanges(true);
-        }
-    };
+    // Load existing channel access rules
+    useEffect(() => {
+        const loadChannelPolicy = async () => {
+            try {
+                const result = await actions.getChannelPolicy(channel.id);
+                if (result.data) {
+                    // Extract expression from the policy rules
+                    const existingExpression = result.data.rules?.[0]?.expression || '';
+                    const existingAutoSync = result.data.active || false;
 
-    const handleParseError = () => {
-        // For now, just log the error. In the future, we might want to show an error message
+                    setExpression(existingExpression);
+                    setOriginalExpression(existingExpression);
+                    setAutoSyncMembers(existingAutoSync);
+                    setOriginalAutoSyncMembers(existingAutoSync);
+                }
+            } catch (error) {
+                // If no policy exists (404), that's fine - use defaults
+                setExpression('');
+                setOriginalExpression('');
+                setAutoSyncMembers(false);
+                setOriginalAutoSyncMembers(false);
+            }
+        };
+
+        loadChannelPolicy();
+    }, [channel.id, actions]);
+
+    // Update parent component when changes occur
+    useEffect(() => {
+        const unsavedChanges =
+            expression !== originalExpression ||
+            autoSyncMembers !== originalAutoSyncMembers;
+
+        setAreThereUnsavedChanges?.(unsavedChanges);
+    }, [expression, originalExpression, autoSyncMembers, originalAutoSyncMembers, setAreThereUnsavedChanges]);
+
+    const handleExpressionChange = useCallback((newExpression: string) => {
+        setExpression(newExpression);
+
+        // Don't clear form error here - let validation determine if the error should be cleared
+        setSaveChangesPanelState(undefined);
+    }, []);
+
+    const handleParseError = useCallback(() => {
         // eslint-disable-next-line no-console
         console.warn('Failed to parse expression in table editor');
-    };
+        setFormError(formatMessage({
+            id: 'channel_settings.access_rules.parse_error',
+            defaultMessage: 'Invalid expression format',
+        }));
+    }, [formatMessage]);
+
+    const handleAutoSyncToggle = useCallback(() => {
+        setAutoSyncMembers((prev) => {
+            const newValue = !prev;
+
+            // Log the toggle state
+            // eslint-disable-next-line no-console
+            console.log('Auto-sync members toggled:', newValue);
+            return newValue;
+        });
+    }, []);
+
+    // Handle save action
+    const handleSave = useCallback(async (): Promise<boolean> => {
+        try {
+            // Log the save action for testing purposes
+            // eslint-disable-next-line no-console
+            console.log('Saving channel access rules:', {
+                channelId: channel.id,
+                expression,
+                autoSyncMembers,
+            });
+
+            // Build the policy object
+            const policy = {
+                id: channel.id,
+                name: channel.display_name,
+                type: 'channel',
+                version: 'v0.2',
+                active: autoSyncMembers,
+                revision: 1,
+                created_at: Date.now(),
+                rules: expression ? [{
+                    actions: ['*'],
+                    expression,
+                }] : [],
+                imports: systemPolicies.map((p) => p.id), // Include existing parent policies
+                props: {
+                    auto_sync: [autoSyncMembers], // Props expects arrays
+                },
+            };
+
+            // Save the policy
+            const result = await actions.saveChannelPolicy(policy);
+            if (result.error) {
+                throw new Error(result.error.message || 'Failed to save policy');
+            }
+
+            // Update original values on successful save
+            setOriginalExpression(expression);
+            setOriginalAutoSyncMembers(autoSyncMembers);
+
+            // Show success alert for testing purposes
+            window.alert( // eslint-disable-line no-alert
+                `Access rules saved!\nExpression: ${expression}\nAuto-sync: ${autoSyncMembers ? 'Enabled' : 'Disabled'}`,
+            );
+
+            return true;
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Failed to save access rules:', error);
+            setFormError(formatMessage({
+                id: 'channel_settings.access_rules.save_error',
+                defaultMessage: 'Failed to save access rules',
+            }));
+            return false;
+        }
+    }, [channel.id, channel.display_name, expression, autoSyncMembers, systemPolicies, actions, formatMessage]);
+
+    // Handle save changes panel actions
+    const handleSaveChanges = useCallback(async () => {
+        const success = await handleSave();
+        if (!success) {
+            setSaveChangesPanelState('error');
+            return;
+        }
+        setSaveChangesPanelState('saved');
+    }, [handleSave]);
+
+    const handleCancel = useCallback(() => {
+        // Reset to original values
+        setExpression(originalExpression);
+        setAutoSyncMembers(originalAutoSyncMembers);
+
+        // Clear errors and panel state
+        setFormError('');
+        setSaveChangesPanelState(undefined);
+    }, [originalExpression, originalAutoSyncMembers]);
+
+    const handleClose = useCallback(() => {
+        setSaveChangesPanelState(undefined);
+    }, []);
+
+    // Calculate if there are errors
+    const hasErrors = Boolean(formError) || Boolean(showTabSwitchError);
+
+    // Calculate whether to show the save changes panel
+    const shouldShowPanel = useMemo(() => {
+        const unsavedChanges =
+            expression !== originalExpression ||
+            autoSyncMembers !== originalAutoSyncMembers;
+
+        return unsavedChanges || saveChangesPanelState === 'saved';
+    }, [expression, originalExpression, autoSyncMembers, originalAutoSyncMembers, saveChangesPanelState]);
 
     return (
         <div className='ChannelSettingsModal__accessRulesTab'>
@@ -109,7 +261,7 @@ function ChannelSettingsAccessRulesTab({
                     <TableEditor
                         value={expression}
                         onChange={handleExpressionChange}
-                        onValidate={() => {}}
+                        onValidate={() => setFormError('')}
                         userAttributes={userAttributes}
                         onParseError={handleParseError}
                         actions={actions}
@@ -125,8 +277,50 @@ function ChannelSettingsAccessRulesTab({
                 })}
             </p>
 
-            {/* Placeholder for future auto-add members section */}
-            {/* TODO: Add autoadd members based on access rules section */}
+            {/* Auto-sync members toggle */}
+            <div className='ChannelSettingsModal__autoSyncSection'>
+                <label className='ChannelSettingsModal__autoSyncLabel'>
+                    <input
+                        type='checkbox'
+                        className='ChannelSettingsModal__autoSyncCheckbox'
+                        checked={autoSyncMembers}
+                        onChange={handleAutoSyncToggle}
+                        id='autoSyncMembersCheckbox'
+                        name='autoSyncMembers'
+                    />
+                    <span className='ChannelSettingsModal__autoSyncText'>
+                        {formatMessage({
+                            id: 'channel_settings.access_rules.auto_sync',
+                            defaultMessage: 'Auto-add members based on access rules',
+                        })}
+                    </span>
+                </label>
+                <p className='ChannelSettingsModal__autoSyncDescription'>
+                    {formatMessage({
+                        id: 'channel_settings.access_rules.auto_sync_description',
+                        defaultMessage: 'Users who match the configured attribute values will be automatically added as members',
+                    })}
+                </p>
+            </div>
+
+            {/* SaveChangesPanel for unsaved changes */}
+            {shouldShowPanel && (
+                <SaveChangesPanel
+                    handleSubmit={handleSaveChanges}
+                    handleCancel={handleCancel}
+                    handleClose={handleClose}
+                    tabChangeError={hasErrors}
+                    state={hasErrors ? 'error' : saveChangesPanelState}
+                    customErrorMessage={formError || (showTabSwitchError ? undefined : formatMessage({
+                        id: 'channel_settings.access_rules.form_error',
+                        defaultMessage: 'There are errors in the form above',
+                    }))}
+                    cancelButtonText={formatMessage({
+                        id: 'channel_settings.save_changes_panel.reset',
+                        defaultMessage: 'Reset',
+                    })}
+                />
+            )}
         </div>
     );
 }
