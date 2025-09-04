@@ -10,8 +10,18 @@
 
 .clCenterBackground {
     background-color: var(--center-channel-bg);
+    color: var(--center-channel-color);
+    
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--center-channel-color);
+    }
 }
 
 .clSidebarBackground {
     background-color: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--sidebar-text);
+    }
 }
