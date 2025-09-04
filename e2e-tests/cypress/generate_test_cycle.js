@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable no-await-in-loop, no-console */
+/* eslint-disable no-console */
 
 /*
  * This command, which is normally used in CI, generates test cycle in full or partial

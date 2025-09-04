@@ -52,7 +52,8 @@ export function editLastPost(message) {
         cy.get('#edit_textbox').should('be.visible');
 
         // # Update the post message and type ENTER
-        cy.get('#edit_textbox').invoke('val', '').type(message).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+        cy.get('#edit_textbox').invoke('val', '').type(message);
+        cy.get('#create_post').findByText('Save').should('be.visible').click();
 
         // * Edit modal should not be visible
         cy.get('#edit_textbox').should('not.exist');
