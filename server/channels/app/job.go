@@ -12,6 +12,28 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
+// getChannelIDFromJobData extracts channel ID from access control sync job data.
+// Returns channel ID if the job is for a specific channel, empty string if it's a system-wide job.
+func (a *App) getChannelIDFromJobData(jobData model.StringMap) string {
+	parentID, ok := jobData["parent_id"]
+	if !ok || parentID == "" {
+		return ""
+	}
+
+	// In the access control system:
+	// - Channel policies have ID == channelID
+	// - Parent policies have their own system-wide ID
+	//
+	// For channel admin jobs: parent_id is channelID (since channel policy ID equals channel ID)
+	// For system admin jobs: parent_id could be either channel policy ID or parent policy ID
+	//
+	// We return the parent_id as channelID because:
+	// 1. If it's a channel policy ID, it equals the channel ID ✅
+	// 2. If it's a parent policy ID, the permission check will fail safely ✅
+	// 3. This maintains security: only users with permission to that specific ID can create the job
+	return parentID
+}
+
 func (a *App) GetJob(c request.CTX, id string) (*model.Job, *model.AppError) {
 	job, err := a.Srv().Store().Job().Get(c, id)
 	if err != nil {
@@ -98,7 +120,24 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		model.JobTypeExtractContent:
 		return a.SessionHasPermissionTo(session, model.PermissionManageJobs), model.PermissionManageJobs
 	case model.JobTypeAccessControlSync:
-		return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem
+		// Allow system admins OR channel admins to create access control sync jobs
+		hasSystemPermission := a.SessionHasPermissionTo(session, model.PermissionManageSystem)
+		if hasSystemPermission {
+			return true, model.PermissionManageSystem
+		}
+
+		// For channel admins, check if they have permission for the specific channel/policy
+		channelID := a.getChannelIDFromJobData(job.Data)
+		if channelID != "" {
+			// ✅ SECURE: Check specific channel permission
+			hasChannelPermission := a.HasPermissionToChannel(request.EmptyContext(a.Srv().Log()), session.UserId, channelID, model.PermissionManageChannelAccessRules)
+			if hasChannelPermission {
+				return true, model.PermissionManageChannelAccessRules
+			}
+		}
+
+		// Fallback: deny access if no specific channel permission and not system admin
+		return false, model.PermissionManageSystem
 	}
 
 	return false, nil

@@ -9721,6 +9721,7 @@ func (c *Client4) DeleteAccessControlPolicy(ctx context.Context, id string) (*Re
 func (c *Client4) CheckExpression(ctx context.Context, expression string) ([]CELExpressionError, *Response, error) {
 	checkExpressionRequest := struct {
 		Expression string `json:"expression"`
+		ChannelId  string `json:"channelId,omitempty"`
 	}{
 		Expression: expression,
 	}

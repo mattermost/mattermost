@@ -113,12 +113,13 @@ export function unassignChannelsFromAccessControlPolicy(policyId: string, channe
     });
 }
 
-export function getAccessControlFields(after: string, limit: number) {
+export function getAccessControlFields(after: string, limit: number, channelId?: string) {
     return bindClientFunc({
         clientFunc: Client4.getAccessControlFields,
         params: [
             after,
             limit,
+            channelId,
         ],
     });
 }
@@ -133,11 +134,11 @@ export function updateAccessControlPolicyActive(policyId: string, active: boolea
     });
 }
 
-export function searchUsersForExpression(expression: string, term: string, after: string, limit: number): ActionFuncAsync<AccessControlTestResult> {
+export function searchUsersForExpression(expression: string, term: string, after: string, limit: number, channelId?: string): ActionFuncAsync<AccessControlTestResult> {
     return async (dispatch, getState) => {
         let data;
         try {
-            data = await Client4.testAccessControlExpression(expression, term, after, limit);
+            data = await Client4.testAccessControlExpression(expression, term, after, limit, channelId);
         } catch (error) {
             forceLogoutIfNecessary(error as ServerError, dispatch, getState);
             return {error};
@@ -151,9 +152,9 @@ export function searchUsersForExpression(expression: string, term: string, after
     };
 }
 
-export function getVisualAST(expression: string) {
+export function getVisualAST(expression: string, channelId?: string) {
     return bindClientFunc({
         clientFunc: Client4.expressionToVisualFormat,
-        params: [expression],
+        params: [expression, channelId],
     });
 }

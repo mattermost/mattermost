@@ -68,7 +68,7 @@ function ChannelSettingsAccessRulesTab({
     const [usersToRemove, setUsersToRemove] = useState<string[]>([]);
     const [isProcessingSave, setIsProcessingSave] = useState(false);
 
-    const actions = useChannelAccessControlActions();
+    const actions = useChannelAccessControlActions(channel.id);
 
     // Fetch system policies applied to this channel
     const {policies: systemPolicies, loading: policiesLoading} = useChannelSystemPolicies(channel);
@@ -92,9 +92,12 @@ function ChannelSettingsAccessRulesTab({
                 if (result.data) {
                     setUserAttributes(result.data);
                 }
-                setAttributesLoaded(true);
             } catch (error) {
-                // do nothing for now, we might want to show an error message in the future
+                setUserAttributes([]);
+            } finally {
+                // Always set attributesLoaded to true to render the interface
+                // Channel admins should still see the UI even if they can't load attributes
+                setAttributesLoaded(true);
             }
         };
 
@@ -152,14 +155,17 @@ function ChannelSettingsAccessRulesTab({
         setSaveChangesPanelState(undefined);
     }, []);
 
-    const handleParseError = useCallback(() => {
-        // eslint-disable-next-line no-console
-        console.warn('Failed to parse expression in table editor');
+    const handleParseError = useCallback((errorMessage?: string) => {
+        // Don't show UI errors for permission issues (403/Forbidden)
+        if (errorMessage?.includes('403') || errorMessage?.includes('Forbidden')) {
+            return;
+        }
+
         setFormError(formatMessage({
             id: 'channel_settings.access_rules.parse_error',
             defaultMessage: 'Invalid expression format',
         }));
-    }, [formatMessage]);
+    }, []);
 
     // Helper function to detect empty rules state
     const isEmptyRulesState = useMemo((): boolean => {
@@ -317,32 +323,16 @@ function ChannelSettingsAccessRulesTab({
             const willBeEmptyState = isEmptyRulesState;
 
             if (willBeEmptyState) {
-                // Edge case: Save empty policy to return to standard access
-                // This effectively removes ABAC restrictions while keeping the policy structure
-                const emptyPolicy = {
-                    id: channel.id,
-                    name: channel.display_name,
-                    type: 'channel',
-                    version: 'v0.2',
-                    active: false, // Disable the policy
-                    revision: 1,
-                    created_at: Date.now(),
-                    rules: [], // Empty rules array
-                    imports: systemPolicies.map((p) => p.id), // Keep system policy imports
-                };
-
-                // Save the empty policy
-                const result = await actions.saveChannelPolicy(emptyPolicy);
-                if (result.error) {
-                    throw new Error(result.error.message || 'Failed to save empty policy');
-                }
-
-                // Ensure active status is disabled
+                // Edge case: Delete policy entirely to return to standard access
+                // When no rules AND no system policies exist, delete the channel policy
                 try {
-                    await actions.updateAccessControlPolicyActive(channel.id, false);
-                } catch (activeError) {
-                    // eslint-disable-next-line no-console
-                    console.warn('Failed to update policy active status for empty state:', activeError);
+                    await actions.deleteChannelPolicy(channel.id);
+                } catch (deleteError: unknown) {
+                    // Ignore "not found" errors - policy might not exist yet
+                    const errorMessage = deleteError instanceof Error ? deleteError.message : String(deleteError);
+                    if (errorMessage && !errorMessage.includes('not found')) {
+                        throw new Error(errorMessage || 'Failed to delete channel policy');
+                    }
                 }
 
                 // Update original values to reflect the empty state
