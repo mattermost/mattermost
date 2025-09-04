@@ -115,8 +115,6 @@ export type ClientConfig = {
     EnableUserTypingMessages: string;
     EnforceMultifactorAuthentication: string;
     ExperimentalChannelCategorySorting: string;
-    ExperimentalClientSideCertCheck: string;
-    ExperimentalClientSideCertEnable: string;
     ExperimentalEnableAuthenticationTransfer: string;
     ExperimentalEnableAutomaticReplies: string;
     ExperimentalEnableDefaultChannelLeaveJoinMessages: string;
@@ -131,6 +129,9 @@ export type ClientConfig = {
     FeatureFlagWebSocketEventScope: string;
     FeatureFlagInteractiveDialogAppsForm: string;
     FeatureFlagContentFlagging: string;
+
+    // FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this property when feature is GA
+    FeatureFlagChannelAdminManageABACRules?: string;
     ForgotPasswordLink: string;
     GiphySdkKey: string;
     GoogleDeveloperKey: string;
@@ -227,6 +228,11 @@ export type ClientConfig = {
     ScheduledPosts: string;
     DeleteAccountLink: string;
     ContentFlaggingEnabled: 'true' | 'false';
+
+    // Access Control Settings
+    EnableAttributeBasedAccessControl: string;
+    EnableChannelScopeAccessControl: string;
+    EnableUserManagedAttributes: string;
 };
 
 export type License = {
@@ -495,18 +501,6 @@ export type ExperimentalAuditSettings = {
     FileMaxQueueSize: number;
     AdvancedLoggingJSON: Record<string, any>;
     Certificate: string;
-};
-
-export type NotificationLogSettings = {
-    EnableConsole: boolean;
-    ConsoleLevel: string;
-    ConsoleJson: boolean;
-    EnableColor: boolean;
-    EnableFile: boolean;
-    FileLevel: string;
-    FileJson: boolean;
-    FileLocation: string;
-    AdvancedLoggingJSON: Record<string, any>;
 };
 
 export type PasswordSettings = {
@@ -822,8 +816,6 @@ export type MetricsSettings = {
 };
 
 export type ExperimentalSettings = {
-    ClientSideCertEnable: boolean;
-    ClientSideCertCheck: string;
     LinkMetadataTimeoutMilliseconds: number;
     RestrictSystemAdmin: boolean;
     EnableSharedChannels: boolean;
@@ -969,7 +961,11 @@ export type CloudSettings = {
     PreviewModalBucketURL: string;
 };
 
-export type FeatureFlags = Record<string, string | boolean>;
+export type FeatureFlags = Record<string, string | boolean> & {
+
+    // FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this property when feature is GA
+    ChannelAdminManageABACRules?: boolean;
+};
 
 export type ImportSettings = {
     Directory: string;
@@ -1025,7 +1021,6 @@ export type AdminConfig = {
     SqlSettings: SqlSettings;
     LogSettings: LogSettings;
     ExperimentalAuditSettings: ExperimentalAuditSettings;
-    NotificationLogSettings: NotificationLogSettings;
     PasswordSettings: PasswordSettings;
     FileSettings: FileSettings;
     EmailSettings: EmailSettings;

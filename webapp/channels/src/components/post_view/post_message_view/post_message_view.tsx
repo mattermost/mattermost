@@ -170,6 +170,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                         post={post}
                         channelId={post.channel_id}
                         showPostEditedIndicator={this.props.showPostEditedIndicator}
+                        isRHS={isRHS}
                     />
                 </div>
                 {(!isSharedChannel || this.props.sharedChannelsPluginsEnabled) && (

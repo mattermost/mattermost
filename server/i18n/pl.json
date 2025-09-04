@@ -924,10 +924,6 @@
     "translation": "wzruszenie ramionami"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Nowy format konfiguracji klienta nie jest jeszcze wspierany. Proszę podać format=old w ciągu znaków zapytania."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Przepraszamy, nie odnaleziono strony."
   },
@@ -2078,14 +2074,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Bot login is forbidden."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Próbowano zalogować się przy użyciu eksperymentalnej funkcji ClientSideCert bez podania ważnego certyfikatu."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Próba użycia eksperymentalnej funkcji ClientSideCertEnable bez ważnej licencji enterprise."
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -8152,14 +8140,6 @@
     "translation": "Nie można wydłużyć sesji"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Nie można pobrać użytkowników dla zarchiwizowanego kanału"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Nie można pobrać postów dla zarchiwizowanego kanału"
-  },
-  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Liczba identyfikatorów postów osiągnęła maksymalny rozmiar {{.MaxLength}}"
   },
@@ -10184,10 +10164,6 @@
     "translation": "Nie udało się zaktualizować kolejności sortowania zakładki kanału."
   },
   {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Nie można pobrać zakładek dla zarchiwizowanego kanału"
-  },
-  {
     "id": "app.file_info.get_count.app_error",
     "translation": "Nie udało się uzyskać liczby wszystkich plików."
   },
@@ -10746,5 +10722,69 @@
   {
     "id": "api.content_flagging.error.license",
     "translation": "Twoja licencja nie obsługuje flagowania treści."
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "Nie masz uprawnień do zarządzania tą polityką kontroli dostępu."
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "Kanały są ograniczone do grup i nie mogą mieć zastosowanych polityk kontroli dostępu."
+  },
+  {
+    "id": "app.pap.access_control.channel_not_private",
+    "translation": "Polityki kontroli dostępu mogą być stosowane tylko do kanałów prywatnych."
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "Kanały udostępnione nie mogą mieć zastosowanej polityki kontroli dostępu."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "Nie masz uprawnień do zarządzania kontrolą dostępu dla tego Kanału."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "Nie masz uprawnień do zarządzania tą polityką kontroli dostępu."
+  },
+  {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "Nadrzędne jest już zaimportowane."
+  },
+  {
+    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
+    "translation": "Ukrywanie archiwizowanych kanałów nie jest już obsługiwane. Zamiast tego ustaw te kanały jako prywatne i usuń ich członków."
+  },
+  {
+    "id": "api.not_implemented",
+    "translation": "Ta funkcja nie została zaimplementowana."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
+    "translation": "Nie można zaktualizować wartości pola Atrybut profilu niestandardowego zarządzanego przez administratora"
+  },
+  {
+    "id": "app.lookup_interactive_dialog.decode_json_error",
+    "translation": "Napotkano błąd dekodowania odpowiedzi JSON z interaktywnego wyszukiwania okna dialogowego."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.json_error",
+    "translation": "Napotkano błąd przetwarzania odpowiedzi JSON z interaktywnego wyszukiwania okna dialogowego."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.read_body_error",
+    "translation": "Napotkano błąd odczytu treści odpowiedzi z interaktywnego okna dialogowego."
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "Nie udało się utworzyć procesora zbiorczego Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+    "translation": "Nie udało się utworzyć masowego procesora synchronizacji Elasticsearch"
+  },
+  {
+    "id": "model.config.is_valid.client_side_cert_enable.app_error",
+    "translation": "Uwierzytelnianie oparte na certyfikatach zostało usunięte. Wyłącz ClientSideCertEnable, aby kontynuować."
   }
 ]

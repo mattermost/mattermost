@@ -920,10 +920,6 @@
     "translation": "shrug"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "暂未支持客户端配置的新格式。请在查询字串指定 format=old。"
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "对不起，我们找不到该页面。"
   },
@@ -2068,14 +2064,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "禁止机器人登入。"
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "尝试使用实验功能 ClientSideCert 登入但未提供有效的证书。"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "尝试使用实验功能 ClientSideCert 登入但未拥有有效的企业许可证。"
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -8138,14 +8126,6 @@
     "translation": "无法获取所有角色。"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "无法从已归档频道的获取消息"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "无法从已归档频道的获取消息"
-  },
-  {
     "id": "api.templates.invite_body.title.reminder",
     "translation": "提醒"
   },
@@ -10172,10 +10152,6 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
     "translation": "更新频道书签的排列顺序失败。"
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "无法获取已归档频道的书签"
   },
   {
     "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
