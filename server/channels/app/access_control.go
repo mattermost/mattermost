@@ -410,11 +410,7 @@ func (a *App) isSystemPolicyAppliedToChannel(rctx request.CTX, policyID, channel
 
 	// Check if the channel policy imports this system policy
 	if channelPolicy.Imports != nil {
-		for _, importedPolicyID := range channelPolicy.Imports {
-			if importedPolicyID == policyID {
-				return true // Found the policy applied to this channel
-			}
-		}
+		return slices.Contains(channelPolicy.Imports, policyID)
 	}
 
 	return false
