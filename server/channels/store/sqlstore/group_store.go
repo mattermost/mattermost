@@ -296,6 +296,16 @@ func (s *SqlGroupStore) GetByName(name string, opts model.GroupSearchOpts) (*mod
 	return &group, nil
 }
 
+func (s *SqlGroupStore) GetByNames(names []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
+	groups := []*model.Group{}
+	query := s.userGroupsSelectQuery.Where(sq.Eq{"Name": names})
+	query = applyViewRestrictionsFilter(query, viewRestrictions, true)
+	if err := s.GetReplica().SelectBuilder(&groups, query); err != nil {
+		return nil, errors.Wrap(err, "failed to find Groups by names")
+	}
+	return groups, nil
+}
+
 func (s *SqlGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, error) {
 	groups := []*model.Group{}
 	query := s.userGroupsSelectQuery.Where(sq.Eq{"Id": groupIDs})

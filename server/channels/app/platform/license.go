@@ -102,8 +102,13 @@ func (ps *PlatformService) LoadLicense() {
 
 	record, nErr := ps.Store.License().Get(sqlstore.RequestContextWithMaster(c), licenseId)
 	if nErr != nil {
-		ps.logger.Warn("License key from https://mattermost.com required to unlock enterprise features.", mlog.Err(nErr))
-		ps.SetLicense(nil)
+		if ps.Config().FeatureFlags.EnableMattermostEntry && model.BuildEnterpriseReady == "true" {
+			ps.logger.Info("Mattermost Entry is enabled. Unlocking enterprise features.")
+			ps.SetLicense(ps.LicenseManager().NewMattermostEntryLicense(ps.telemetryId))
+		} else {
+			ps.logger.Warn("License key from https://mattermost.com required to unlock enterprise features.", mlog.Err(nErr))
+			ps.SetLicense(nil)
+		}
 		return
 	}
 

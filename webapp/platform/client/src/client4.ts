@@ -2664,7 +2664,8 @@ export default class Client4 {
         );
     };
 
-    getClientConfigOld = () => {
+    getClientConfig = () => {
+        // Keep format=old for compatibility with pre-v11 servers
         return this.doFetch<ClientConfig>(
             `${this.getBaseRoute()}/config/client?format=old`,
             {method: 'get'},
@@ -3001,6 +3002,13 @@ export default class Client4 {
     submitInteractiveDialog = (data: DialogSubmission) => {
         return this.doFetch<SubmitDialogResponse>(
             `${this.getBaseRoute()}/actions/dialogs/submit`,
+            {method: 'post', body: JSON.stringify(data)},
+        );
+    };
+
+    lookupInteractiveDialog = (data: DialogSubmission) => {
+        return this.doFetch<{items: Array<{text: string; value: string}>}>(
+            `${this.getBaseRoute()}/actions/dialogs/lookup`,
             {method: 'post', body: JSON.stringify(data)},
         );
     };
@@ -3844,6 +3852,13 @@ export default class Client4 {
         return this.doFetch<Group[]>(
             `${this.getUsersRoute()}/${userID}/groups`,
             {method: 'get'},
+        );
+    };
+
+    getGroupsByNames = (names: string[]) => {
+        return this.doFetch<Group[]>(
+            `${this.getGroupsRoute()}/names`,
+            {method: 'post', body: JSON.stringify(names)},
         );
     };
 

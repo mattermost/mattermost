@@ -8,10 +8,12 @@ on:
     paths:
       - "server/**"
       - "e2e-tests/**"
-      - ".github/**"
+      - ".github/workflows/server-ci.yml"
+      - ".github/workflows/server-test-template.yml"
+      - ".github/workflows/mmctl-test-template.yml"
 
 concurrency:
-  group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.ref) || '' }}
+  group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.ref) || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
