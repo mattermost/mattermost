@@ -166,3 +166,32 @@
           description: Internal server error.
         '501':
           description: Feature is disabled either via config or an Enterprise Advanced license is not available.
+  /api/v4/content_flagging/post/{post_id}:
+    get:
+        summary: Get a flagged post with all its content.
+        description: |
+            Returns the flagged post with all its data, even if it is soft-deleted. This endpoint is only acceible by content reviewers. A content reviewer can only fetch flagged posts from this API if the post is indeed flagged and they are a content reviewer of the post's team.
+            An enterprise advanced license is required.
+        tags:
+            - Content Flagging
+        parameters:
+            - in: path
+              name: post_id
+              required: true
+              schema:
+                  type: string
+              description: The ID of the post to retrieve
+        responses:
+            '200':
+              description: The flagged post is fetched correctlky
+              content:
+                  application/json:
+                  $ref: "#/components/schemas/Post"
+            '403':
+              description: Forbidden - User does not have permission to access this post, or is not a reviewer of the post's team.
+            '404':
+              description: Post not found or feature is disabled via the feature flag.
+            '500':
+              description: Internal server error.
+            '501':
+              description: Feature is disabled either via config or an Enterprise Advanced license is not available.
