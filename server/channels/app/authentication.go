@@ -68,7 +68,10 @@ func (a *App) checkUserPassword(user *model.User, password string, invalidateCac
 	}
 
 	// Get the hasher and parsed PHC
-	hasher, phc := hashers.GetHasherFromPHCString(user.Password)
+	hasher, phc, err := hashers.GetHasherFromPHCString(user.Password)
+	if err != nil {
+		return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid_hash.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
+	}
 
 	// Compare the password using the hasher that generated it
 	if err := hasher.CompareHashAndPassword(phc, password); err != nil {

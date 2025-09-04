@@ -19,7 +19,7 @@ func TestGetHasherFromPHCString(t *testing.T) {
 		expectedErr    bool
 	}{
 		{
-			testName:       "valid PBKDF2",
+			testName:       "latest hasher (PBKDF2)",
 			input:          "$pbkdf2$f=SHA256,w=600000,l=32$5Zq8TvET7nMrXof49Rp4Sw$d0Mx8467kv+3ylbGrkyu4jTd8O8SP51k4s1RuWb9S/o",
 			expectedHasher: latestHasher,
 			expectedPHC: parser.PHC{
@@ -33,6 +33,29 @@ func TestGetHasherFromPHCString(t *testing.T) {
 				Salt: "5Zq8TvET7nMrXof49Rp4Sw",
 				Hash: "d0Mx8467kv+3ylbGrkyu4jTd8O8SP51k4s1RuWb9S/o",
 			},
+			expectedErr: false,
+		},
+		{
+			testName: "valid, non-default PBKDF2",
+			input:    "$pbkdf2$f=SHA256,w=10000,l=10$5Zq8TvET7nMrXof49Rp4Sw$d0Mx8467kv+3ylbGrkyu4jTd8O8SP51k4s1RuWb9S/o",
+			expectedHasher: PBKDF2{
+				hashFunc:   PBKDF2SHA256,
+				workFactor: 10000,
+				keyLength:  10,
+				phcHeader:  "$pbkdf2$f=SHA256,w=10000,l=10$",
+			},
+			expectedPHC: parser.PHC{
+				Id:      "pbkdf2",
+				Version: "",
+				Params: map[string]string{
+					"f": "SHA256",
+					"w": "10000",
+					"l": "10",
+				},
+				Salt: "5Zq8TvET7nMrXof49Rp4Sw",
+				Hash: "d0Mx8467kv+3ylbGrkyu4jTd8O8SP51k4s1RuWb9S/o",
+			},
+			expectedErr: false,
 		},
 		{
 			testName:       "valid bcrypt",
@@ -41,12 +64,39 @@ func TestGetHasherFromPHCString(t *testing.T) {
 			expectedPHC: parser.PHC{
 				Hash: "$2a$10$z0OlN1MpiLVlLTyE1xtEjOJ6/xV95RAwwIUaYKQBAqoeyvPgLEnUa",
 			},
+			expectedErr: false,
+		},
+		{
+			testName:       "invalid phc - default to bcrypt",
+			input:          "invalid",
+			expectedHasher: NewBCrypt(),
+			expectedPHC: parser.PHC{
+				Hash: "invalid",
+			},
+			expectedErr: false,
+		},
+		{
+			testName: "valid PBKDF2 with invalid parameters",
+			input:    "$pbkdf2$f=SHA256,w=-50,l=0$5Zq8TvET7nMrXof49Rp4Sw$d0Mx8467kv+3ylbGrkyu4jTd8O8SP51k4s1RuWb9S/o",
+			expectedHasher: PBKDF2{
+				hashFunc:   PBKDF2SHA256,
+				workFactor: 10000,
+				keyLength:  10,
+				phcHeader:  "$pbkdf2$f=SHA256,w=10000,l=10$",
+			},
+			expectedPHC: parser.PHC{},
+			expectedErr: true,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
-			actualHasher, actualPHC := GetHasherFromPHCString(tc.input)
+			actualHasher, actualPHC, err := GetHasherFromPHCString(tc.input)
+			if tc.expectedErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
 			require.Equal(t, tc.expectedHasher, actualHasher)
 			require.Equal(t, tc.expectedPHC, actualPHC)
 		})

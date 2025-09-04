@@ -19,31 +19,25 @@
 // -	latestHasher PasswordHasher = DefaultPBKDF2()
 // +	latestHasher PasswordHasher = DefaultNewHasher()
 // ```
-//  3. Modify [GetHasherFromPHCString] so that it returns [latestHasher] when the
-//     PHC's ID is the one specified by `NewHasher`, and move the current hasher
-//     to return a normal instance:
+//  3. Modify [GetHasherFromPHCString] to add a new case in the switch to
+//     identify the new function ID.
 //
-// ``` diff
+// If what is needed is to upgrade to a new set of parameters for the same
+// hashing method (let's say keep using PBKDF2 but increase the work factor
+// from 60,000 to 120,000), then no modification to [GetHasherFromPHCString]
+// is needed. Simply update the [latestHasher] varible with the new parameter,
+// and [IsPHCValid] will detect the difference in the parameter.
 //
-//		switch phc.Id {
-//	  - case PBKDF2FunctionId:
-//	  - case NewHasherFunctionId:
-//	    return latestHasher, phc
-//	  - case PBKDF2FunctionId:
-//	  - return DefaultPBKDF2()
-//	    // If the function ID is unknown, return the default hasher
-//	    default:
-//	    return getDefaultHasher(phcString)
-//
-// ```
-//
-// Note that the migration happens in [users.MigratePassword], which is triggered
+// Note that the migration happens in [App.migratePassword], which is triggered
 // whenever the user enters their password and an old hashing method is
-// identified when parsing their stored hashed password: the
-// [users.OutdatedPasswordHashingError] is thrown by [users.CheckUserPassword].
+// identified when parsing their stored hashed password.
 // This means that the older password hashers can *never* be removed, unless all
 // users whose passwords are not migrated are either forced to re-login, or
 // forced to generate a new password.
+//
+// Another important note is that once a server upgrades to a version with an
+// updated hashing method, downgrading to any previous version will break the
+// login flow for users whose passwords were migrated to the newer method.
 package hashers
 
 import (
@@ -73,6 +67,10 @@ type PasswordHasher interface {
 	// Implementations need to make sure that the comparisons are done in constant
 	// time; e.g., using crypto/internal/fips140/subtle.ConstantTimeCompare.
 	CompareHashAndPassword(hash parser.PHC, password string) error
+
+	// IsPHCValid validates whether a parsed PHC string conforms to the parameters
+	// of the hasher.
+	IsPHCValid(hash parser.PHC) bool
 }
 
 const (
@@ -107,19 +105,31 @@ func getOriginalHasher(phcString string) (PasswordHasher, parser.PHC) {
 // If the PHC string is not valid, or the function ID is unknown, this function
 // defaults to the first hasher ever used, which did not properly implement PHC:
 // the [BCrypt] hasher.
-func GetHasherFromPHCString(phcString string) (PasswordHasher, parser.PHC) {
+func GetHasherFromPHCString(phcString string) (PasswordHasher, parser.PHC, error) {
 	phc, err := parser.New(strings.NewReader(phcString)).Parse()
 	if err != nil {
-		// If the PHC string is invalid, return the default hasher
-		return getOriginalHasher(phcString)
+		// If the PHC string is invalid, return the original hasher, bcrypt
+		bcrypt, bcryptPhc := getOriginalHasher(phcString)
+		return bcrypt, bcryptPhc, nil
 	}
 
+	// First check whether PHC conforms to the latest hasher
+	if latestHasher.IsPHCValid(phc) {
+		return latestHasher, phc, nil
+	}
+
+	// If not, check the function ID and create a new one depending on it
 	switch phc.Id {
 	case PBKDF2FunctionId:
-		return latestHasher, phc
-	// If the function ID is unknown, return the default hasher
+		pbkdf2, err := NewPBKDF2FromPHC(phc)
+		if err != nil {
+			return PBKDF2{}, parser.PHC{}, fmt.Errorf("the provided PHC string is PBKDF2, but is not valid: %w", err)
+		}
+		return pbkdf2, phc, nil
+	// If the function ID is unknown, return the original hasher
 	default:
-		return getOriginalHasher(phcString)
+		bcrypt, phc := getOriginalHasher(phcString)
+		return bcrypt, phc, nil
 	}
 }
 

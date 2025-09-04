@@ -80,3 +80,8 @@ func (b BCrypt) CompareHashAndPassword(hash parser.PHC, password string) error {
 
 	return err
 }
+
+// IsPHCValid returns always false: [BCrypt] is not PHC compliant
+func (b BCrypt) IsPHCValid(hash parser.PHC) bool {
+	return false
+}

@@ -422,6 +422,8 @@ func TestCheckUserPassword(t *testing.T) {
 
 	t.Run("password migration from outdated hash", func(t *testing.T) {
 		user := createUserWithHash(pwdBcrypt)
+		require.Contains(t, user.Password, "$2a$10")
+		require.NotContains(t, user.Password, "pbkdf2")
 
 		err := th.App.checkUserPassword(user, pwd, false)
 		require.Nil(t, err)
@@ -468,6 +470,34 @@ func TestCheckUserPassword(t *testing.T) {
 		err = th.App.checkUserPassword(user, pwd, false)
 		require.NotNil(t, err)
 		require.Equal(t, "api.user.check_user_password.invalid.app_error", err.Id)
+	})
+
+	t.Run("successful migration from PBKDF2 with old parameter to new parameter", func(t *testing.T) {
+		// Create a PBKDF2 hasher with work factor = 10000 instead of the default 60000
+		oldParamPBKDF2, err := hashers.NewPBKDF2(hashers.PBKDF2SHA256, 10000, 32)
+		require.NoError(t, err)
+
+		pwdOldParamPBKDF2, err := oldParamPBKDF2.Hash(pwd)
+		require.NoError(t, err)
+
+		user := createUserWithHash(pwdOldParamPBKDF2)
+		require.Contains(t, user.Password, "$pbkdf2")
+		// The user hash contains the old parameter
+		require.Contains(t, user.Password, "w=10000")
+
+		appErr := th.App.checkUserPassword(user, pwd, false)
+		require.Nil(t, appErr)
+
+		updatedUser, appErr := th.App.GetUser(user.Id)
+		require.Nil(t, appErr)
+		require.NotEqual(t, pwdBcrypt, updatedUser.Password)
+		require.Contains(t, updatedUser.Password, "$pbkdf2")
+		// The new user hash contains the new parameter
+		require.Contains(t, updatedUser.Password, "w=60000")
+
+		// Re-check with updated password
+		appErr = th.App.checkUserPassword(user, pwd, false)
+		require.Nil(t, appErr)
 	})
 }
 

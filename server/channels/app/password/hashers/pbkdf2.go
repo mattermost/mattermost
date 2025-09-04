@@ -82,11 +82,29 @@ type PBKDF2 struct {
 //   - Work factor: 600,000
 //   - Key length: 32 bytes
 func DefaultPBKDF2() PBKDF2 {
-	return NewPBKDF2(defaultPRF, defaultWorkFactor, defaultKeyLength)
+	hasher, err := NewPBKDF2(defaultPRF, defaultWorkFactor, defaultKeyLength)
+	if err != nil {
+		panic("DefaultPBKDF2 implementation is incorrect")
+	}
+	return hasher
 }
 
 // NewPBKDF2 returns a [PBKDF2] initialized with the provided parameters
-func NewPBKDF2(hashFunc PseudoRandomFunction, workFactor int, keyLength int) PBKDF2 {
+func NewPBKDF2(hashFunc PseudoRandomFunction, workFactor int, keyLength int) (PBKDF2, error) {
+	switch hashFunc {
+	case PBKDF2SHA1, PBKDF2SHA256, PBKDF2SHA512:
+		break
+	default:
+		return PBKDF2{}, fmt.Errorf("invalid hash function parameter 'f=%s'", hashFunc)
+	}
+
+	if workFactor <= 0 {
+		return PBKDF2{}, fmt.Errorf("work factor must be strictly positive")
+	}
+
+	if keyLength <= 0 {
+		return PBKDF2{}, fmt.Errorf("key length must be strictly positive")
+	}
 	// Precompute and store the PHC header, since it is common to every hashed
 	// password; it will be something like:
 	// $pbkdf2$f=SHA256,w=600000,l=32$
@@ -112,7 +130,25 @@ func NewPBKDF2(hashFunc PseudoRandomFunction, workFactor int, keyLength int) PBK
 		workFactor: workFactor,
 		keyLength:  keyLength,
 		phcHeader:  phcHeader.String(),
+	}, nil
+}
+
+// NewPBKDF2FromPHC returns a [PBKDF2] that conforms to the provided parsed PHC,
+// using the same parameters (if valid) present there.
+func NewPBKDF2FromPHC(phc parser.PHC) (PBKDF2, error) {
+	hashFunc := PseudoRandomFunction(phc.Params["f"])
+
+	workFactor, err := strconv.Atoi(phc.Params["w"])
+	if err != nil {
+		return PBKDF2{}, fmt.Errorf("invalid work factor parameter 'w=%s'", phc.Params["w"])
 	}
+
+	keyLength, err := strconv.Atoi(phc.Params["l"])
+	if err != nil {
+		return PBKDF2{}, fmt.Errorf("invalid key length parameter 'l=%s'", phc.Params["l"])
+	}
+
+	return NewPBKDF2(hashFunc, workFactor, keyLength)
 }
 
 // getFunction returns the [hash.Hash] function specified by the
@@ -197,7 +233,7 @@ func (p PBKDF2) Hash(password string) (string, error) {
 // this hasher and parameters.
 func (p PBKDF2) CompareHashAndPassword(hash parser.PHC, password string) error {
 	// Validate parameters
-	if !p.isPHCValid(hash) {
+	if !p.IsPHCValid(hash) {
 		return fmt.Errorf("the stored password does not comply with the PBKDF2 parser's PHC serialization")
 	}
 
@@ -220,10 +256,11 @@ func (p PBKDF2) CompareHashAndPassword(hash parser.PHC, password string) error {
 	return nil
 }
 
-// isPHCValid validates that the provided [parser.PHC] is valid, meaning:
+// IsPHCValid validates that the provided [parser.PHC] is valid, meaning:
 //   - The function used to generate it was [PBKDF2FunctionId].
-//   - The parameters used to generate it were []
-func (p PBKDF2) isPHCValid(phc parser.PHC) bool {
+//   - The parameters used to generate it were the same as the ones used to
+//     create this hasher.
+func (p PBKDF2) IsPHCValid(phc parser.PHC) bool {
 	return phc.Id == PBKDF2FunctionId &&
 		len(phc.Params) == 3 &&
 		phc.Params["f"] == string(p.hashFunc) &&
