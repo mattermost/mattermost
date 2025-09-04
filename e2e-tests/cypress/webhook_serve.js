@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable camelcase, no-console */
+/* eslint-disable no-console */
 
 const express = require('express');
 const axios = require('axios');
 const ClientOAuth2 = require('client-oauth2');
 
 const webhookUtils = require('./utils/webhook_utils');
-
 const postMessageAs = require('./tests/plugins/post_message_as');
 
 const port = 3000;
@@ -134,7 +133,7 @@ async function postOAuthMessage(req, res) {
                 root_id: rootId,
             },
         });
-    } catch (err) {
+    } catch {
         // Do nothing
     }
     return res.status(200).send('OK');

@@ -36,7 +36,7 @@ describe('Category sorting', () => {
         // # Create 5 channels and add them to a custom category
         for (let i = 0; i < 5; i++) {
             channelNames.push(createChannelAndAddToCategory(categoryName));
-            cy.get('#SidebarContainer .scrollbar--view').scrollTo('bottom', {ensureScrollable: false});
+            cy.get('#SidebarContainer .simplebar-content-wrapper').scrollTo('bottom', {ensureScrollable: false});
         }
 
         // # Sort alphabetically
@@ -47,7 +47,7 @@ describe('Category sorting', () => {
 
         // # Add another channel
         channelNames.push(createChannelAndAddToCategory(categoryName));
-        cy.get('#SidebarContainer .scrollbar--view').scrollTo('bottom', {ensureScrollable: false});
+        cy.get('#SidebarContainer .simplebar-content-wrapper').scrollTo('bottom', {ensureScrollable: false});
 
         // * Verify channels are still sorted alphabetically
         verifyAlphabeticalSortingOrder(categoryName, channelNames.length);
@@ -64,7 +64,7 @@ describe('Category sorting', () => {
 
         // # Add another channel
         channelNames.push(createChannelAndAddToCategory(categoryName));
-        cy.get('#SidebarContainer .scrollbar--view').scrollTo('bottom', {ensureScrollable: false});
+        cy.get('#SidebarContainer .simplebar-content').scrollTo('bottom', {ensureScrollable: false});
 
         // # Sort channel names in reverse order that they were created (ie. most recent to least)
         sortedByRecencyChannelNames = channelNames.concat().reverse();
@@ -98,7 +98,7 @@ describe('Category sorting', () => {
 
         // # Add another channel
         channelNames.push(createChannelAndAddToCategory(categoryName));
-        cy.get('#SidebarContainer .scrollbar--view').scrollTo('bottom', {ensureScrollable: false});
+        cy.get('#SidebarContainer .simplebar-content').scrollTo('bottom', {ensureScrollable: false});
 
         // * Verify that the channel has been placed at the bottom of the category
         cy.get(`.SidebarChannelGroup:contains(${categoryName}) .NavGroupContent li:nth-child(1) a[id^="sidebarItem_${channelNames[channelNames.length - 1]}"]`).should('be.visible');
