@@ -90,6 +90,7 @@ export const renderWithContext = (
 
             results.rerender(renderState.component);
         },
+        store: testStore,
     };
 };
 
