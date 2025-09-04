@@ -10,13 +10,17 @@ interface ButtonExamplesProps {
 }
 
 const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
+    // Determine text color based on background
+    const isSidebarBackground = backgroundClass?.includes('clSidebarBackground');
+    const textColor = isSidebarBackground ? 'var(--sidebar-text)' : 'var(--center-channel-color)';
+    
     return (
         <div className={`ButtonExamples ${backgroundClass || ''}`}>
-            <div style={{padding: '20px', color: 'var(--center-channel-color)'}}>
-                <h3 style={{color: 'var(--center-channel-color)', marginBottom: '24px'}}>Button Component Examples</h3>
+            <div style={{padding: '20px', color: textColor}}>
+                <h3 style={{color: textColor, marginBottom: '24px'}}>Button Component Examples</h3>
                 
                 <div style={{marginBottom: '24px'}}>
-                    <h4 style={{color: 'var(--center-channel-color)', marginBottom: '16px'}}>Emphasis Variants (Medium)</h4>
+                    <h4 style={{color: textColor, marginBottom: '16px'}}>Emphasis Variants (Medium)</h4>
                     <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px'}}>
                         <Button emphasis="primary">Primary</Button>
                         <Button emphasis="secondary">Secondary</Button>
@@ -27,7 +31,7 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                 </div>
 
                 <div style={{marginBottom: '24px'}}>
-                    <h4 style={{color: 'var(--center-channel-color)', marginBottom: '16px'}}>Destructive Variants</h4>
+                    <h4 style={{color: textColor, marginBottom: '16px'}}>Destructive Variants</h4>
                     <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px'}}>
                         <Button emphasis="primary" destructive={true}>Destructive Primary</Button>
                         <Button emphasis="secondary" destructive={true}>Destructive Secondary</Button>
@@ -38,7 +42,7 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                 </div>
 
                 <div style={{marginBottom: '24px'}}>
-                    <h4 style={{color: 'var(--center-channel-color)', marginBottom: '16px'}}>Size Variants (Primary)</h4>
+                    <h4 style={{color: textColor, marginBottom: '16px'}}>Size Variants (Primary)</h4>
                     <div style={{display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '12px'}}>
                         <Button emphasis="primary" size="xs">X-Small</Button>
                         <Button emphasis="primary" size="sm">Small</Button>
@@ -48,7 +52,7 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                 </div>
 
                 <div style={{marginBottom: '24px'}}>
-                    <h4 style={{color: 'var(--center-channel-color)', marginBottom: '16px'}}>States</h4>
+                    <h4 style={{color: textColor, marginBottom: '16px'}}>States</h4>
                     <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px'}}>
                         <Button emphasis="primary">Default</Button>
                         <Button emphasis="primary" disabled={true}>Disabled</Button>
@@ -57,7 +61,7 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                 </div>
 
                 <div style={{marginBottom: '24px'}}>
-                    <h4 style={{color: 'var(--center-channel-color)', marginBottom: '16px'}}>With Icons</h4>
+                    <h4 style={{color: textColor, marginBottom: '16px'}}>With Icons</h4>
                     <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px'}}>
                         <Button emphasis="primary" iconBefore={<i className="icon icon-plus"/>}>Add Item</Button>
                         <Button emphasis="secondary" iconAfter={<i className="icon icon-chevron-right"/>}>Next</Button>
@@ -66,7 +70,7 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                 </div>
 
                 <div style={{marginBottom: '24px'}}>
-                    <h4 style={{color: 'var(--center-channel-color)', marginBottom: '16px'}}>Full Width</h4>
+                    <h4 style={{color: textColor, marginBottom: '16px'}}>Full Width</h4>
                     <div style={{marginBottom: '12px'}}>
                         <Button emphasis="primary" fullWidth={true}>Full Width Button</Button>
                     </div>
