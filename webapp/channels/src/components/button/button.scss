@@ -104,11 +104,19 @@
     color: var(--button-color);
     
     &:hover:not(:disabled) {
+        // Fallback for older browsers
         background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08));
+        // Modern browsers with color-mix support
+        background-color: color-mix(in srgb, var(--button-bg) 92%, black 8%);
+        background-image: none;
     }
     
     &:active:not(:disabled) {
+        // Fallback for older browsers  
         background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16));
+        // Modern browsers with color-mix support
+        background-color: color-mix(in srgb, var(--button-bg) 84%, black 16%);
+        background-image: none;
     }
     
     &:disabled {
@@ -122,11 +130,19 @@
         color: var(--button-color);
         
         &:hover:not(:disabled) {
+            // Fallback for older browsers
             background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08));
+            // Modern browsers with color-mix support
+            background-color: color-mix(in srgb, var(--error-text) 92%, black 8%);
+            background-image: none;
         }
         
         &:active:not(:disabled) {
+            // Fallback for older browsers
             background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16));
+            // Modern browsers with color-mix support
+            background-color: color-mix(in srgb, var(--error-text) 84%, black 16%);
+            background-image: none;
         }
     }
 }
