@@ -199,6 +199,9 @@ export function getFieldType(element: DialogElement): string | null {
         if (element.data_source === 'channels') {
             return AppFieldTypes.CHANNEL;
         }
+        if (element.data_source === 'dynamic') {
+            return AppFieldTypes.DYNAMIC_SELECT;
+        }
         return AppFieldTypes.STATIC_SELECT;
     case DialogElementTypes.BOOL:
         return AppFieldTypes.BOOL;
@@ -228,7 +231,36 @@ export function getDefaultValue(element: DialogElement): AppFormValue {
 
     case DialogElementTypes.SELECT:
     case DialogElementTypes.RADIO: {
+        // Handle dynamic selects that use data_source instead of static options
+        if (element.type === 'select' && element.data_source === 'dynamic' && element.default) {
+            return {
+                label: String(element.default),
+                value: String(element.default),
+            };
+        }
+
         if (element.options && element.default) {
+            // Handle multiselect defaults (comma-separated values)
+            if (element.type === 'select' && element.multiselect) {
+                const defaultValues = Array.isArray(element.default) ?
+                    element.default :
+                    String(element.default).split(',').map((val) => val.trim());
+
+                const defaultOptions = defaultValues.map((value) => {
+                    const option = element.options!.find((opt) => opt.value === value);
+                    if (option) {
+                        return {
+                            label: String(option.text),
+                            value: option.value,
+                        };
+                    }
+                    return null;
+                }).filter(Boolean) as AppSelectOption[];
+
+                return defaultOptions.length > 0 ? defaultOptions : null;
+            }
+
+            // Single select default
             const defaultOption = element.options.find((option) => option.value === element.default);
             if (defaultOption) {
                 return {
@@ -334,6 +366,19 @@ export function convertElement(element: DialogElement, options: ConversionOption
     // Add options for select and radio fields
     if (element.type === DialogElementTypes.SELECT || element.type === DialogElementTypes.RADIO) {
         appField.options = getOptions(element);
+
+        // Add multiselect support for select fields
+        if (element.type === 'select' && element.multiselect) {
+            appField.multiselect = true;
+        }
+
+        // Add lookup support for dynamic selects
+        if (element.type === DialogElementTypes.SELECT && element.data_source === 'dynamic') {
+            appField.lookup = {
+                path: element.data_source_url || '',
+                expand: {},
+            };
+        }
     }
 
     return {field: appField, errors};
@@ -478,8 +523,46 @@ export function convertAppFormValuesToDialogSubmission(
             break;
 
         case DialogElementTypes.SELECT:
-            // Preserve exact values for select fields
-            if (typeof value === 'object' && value !== null && 'value' in value) {
+            if (Array.isArray(value)) {
+                if (element.multiselect) {
+                    // For multiselect, convert array of AppSelectOption to array of values
+                    const multiValues = value.map((item) => {
+                        if (!element.options) {
+                            return item.value;
+                        }
+                        const validOption = element.options.find((opt) => opt.value === item.value);
+                        if (!validOption) {
+                            errors.push({
+                                field: element.name,
+                                message: `"${element.name}" field is not valid: Selected value not found in options: ${item.value}`,
+                                code: ValidationErrorCode.INVALID_FORMAT,
+                            });
+                            return null;
+                        }
+                        return validOption.value;
+                    }).filter(Boolean);
+                    submission[element.name] = multiValues;
+                } else {
+                    // For single select with array input, take the first value
+                    const firstValue = value[0];
+                    if (firstValue && element.options) {
+                        const validOption = element.options.find((opt) => opt.value === firstValue.value);
+                        if (validOption) {
+                            submission[element.name] = validOption.value;
+                        } else {
+                            errors.push({
+                                field: element.name,
+                                message: `"${element.name}" field is not valid: Selected value not found in options: ${firstValue.value}`,
+                                code: ValidationErrorCode.INVALID_FORMAT,
+                            });
+                            submission[element.name] = null;
+                        }
+                    } else {
+                        submission[element.name] = firstValue?.value || null;
+                    }
+                }
+            } else if (typeof value === 'object' && value !== null && 'value' in value) {
+                // Handle single AppSelectOption
                 const selectOption = value as AppSelectOption;
 
                 if (options.enhanced && element.options) {
@@ -494,6 +577,7 @@ export function convertAppFormValuesToDialogSubmission(
                 }
                 submission[element.name] = selectOption.value;
             } else {
+                // Handle primitive values
                 submission[element.name] = value;
             }
             break;

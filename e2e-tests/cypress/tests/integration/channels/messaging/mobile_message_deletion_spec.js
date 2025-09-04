@@ -34,7 +34,7 @@ describe('Delete Parent Message', () => {
 
             // * Add 2 replies
             const replyCount = 2;
-            for (var i = 0; i < replyCount; i++) {
+            for (let i = 0; i < replyCount; i++) {
                 cy.postMessageReplyInRHS('Reply');
             }
 

@@ -10,7 +10,7 @@ import type {Team} from '@mattermost/types/teams';
 import {General} from 'mattermost-redux/constants';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import {mountWithThemedIntl} from 'tests/helpers/themed-intl-test-helper';
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 import {SelfHostedProducts} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
@@ -116,7 +116,7 @@ describe('InvitationModal', () => {
     });
 
     it('shows invite view when view state is invite', () => {
-        const wrapper = mountWithThemedIntl(
+        const wrapper = mountWithIntl(
             <Provider store={store}>
                 <InvitationModal {...props}/>
             </Provider>,
@@ -125,7 +125,7 @@ describe('InvitationModal', () => {
     });
 
     it('shows result view when view state is result', () => {
-        const wrapper = mountWithThemedIntl(
+        const wrapper = mountWithIntl(
             <Provider store={store}>
                 <InvitationModal {...props}/>
             </Provider>,
@@ -142,7 +142,7 @@ describe('InvitationModal', () => {
             canAddUsers: false,
             canInviteGuests: false,
         };
-        const wrapper = mountWithThemedIntl(
+        const wrapper = mountWithIntl(
             <Provider store={store}>
                 <InvitationModal {...props}/>
             </Provider>,
@@ -172,7 +172,7 @@ describe('InvitationModal', () => {
             invitableChannels: [regularChannel, policyEnforcedChannel],
         };
 
-        const wrapper = mountWithThemedIntl(
+        const wrapper = mountWithIntl(
             <Provider store={store}>
                 <InvitationModal {...props}/>
             </Provider>,

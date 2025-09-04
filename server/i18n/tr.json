@@ -922,10 +922,6 @@
     "translation": "omuz silkme"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "İstemci yapılandırması için yeni biçim henüz desteklenmiyor. Lütfen sorgu dizgesini format=old olarak yazın."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Ne yazık ki sayfa bulunamadı."
   },
@@ -2073,14 +2069,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Bot oturumu açılmasına izin verilmiyor."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Geçerli bir sertifika belirtilmeden deneme aşamasındaki ClientSideCert özelliği kullanılarak oturum açılmaya çalışıldı."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Geçerli bir Enterprise sürümü lisansı olmadan deneme aşamasındaki ClientSideCert özelliği kullanılmaya çalışıldı."
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -8150,14 +8138,6 @@
     "translation": "Oturum süresi uzatılamadı"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Arşivlenmiş bir kanalın kullanıcıları alınamaz"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Arşivlenmiş bir kanalın yazıları alınamaz"
-  },
-  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Alınan ileti kimliklerinin sayısı en fazla boyut sınırı olan {{.MaxLength}} değerini aşıyor"
   },
@@ -10178,10 +10158,6 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
     "translation": "Kanal yer imi güncellenemedi."
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Arşivlenmiş bir kanalın yer imleri alınamaz"
   },
   {
     "id": "app.file_info.get_count.app_error",

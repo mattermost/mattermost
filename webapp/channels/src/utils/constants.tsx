@@ -481,6 +481,7 @@ export const ModalIdentifiers = {
     USER_PROPERTY_FIELD_DELETE: 'user_property_field_delete',
     ATTRIBUTE_MODAL_LDAP: 'attribute_modal_ldap',
     ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
+    FLAG_POST: 'flag_post',
 };
 
 export const UserStatuses = {
@@ -517,6 +518,7 @@ export const CloudProducts = {
     PROFESSIONAL: 'cloud-professional',
     ENTERPRISE: 'cloud-enterprise',
     LEGACY: 'cloud-legacy',
+    ADVANCED: 'cloud-advanced',
 };
 
 export const CloudBillingTypes = {
@@ -552,6 +554,7 @@ export enum LicenseSkus {
     Professional = 'professional',
     Enterprise = 'enterprise',
     EnterpriseAdvanced = 'advanced',
+    Entry = 'entry',
 }
 
 export function getLicenseTier(licenseSku: string): number {
@@ -560,6 +563,7 @@ export function getLicenseTier(licenseSku: string): number {
         return 10;
     case LicenseSkus.Enterprise:
         return 20;
+    case LicenseSkus.Entry:
     case LicenseSkus.EnterpriseAdvanced:
         return 30;
     default:
@@ -856,6 +860,7 @@ export const PostTypes = {
     WRANGLER: 'system_wrangler',
     CUSTOM_CALLS: 'custom_calls',
     CUSTOM_CALLS_RECORDING: 'custom_calls_recording',
+    CUSTOM_DATA_SPILLAGE_REPORT: 'custom_spillage_report',
 };
 
 export const StatTypes = keyMirror({
@@ -1157,7 +1162,6 @@ export const DocLinks = {
     DEFAULT_LDAP_GROUP_SYNC: 'https://mattermost.com/pl/default-ldap-group-sync',
     DESKTOP_MANAGED_RESOURCES: 'https://mattermost.com/pl/desktop-managed-resources',
     ELASTICSEARCH: 'https://mattermost.com/pl/setup-elasticsearch',
-    ENABLE_CLIENT_SIDE_CERTIFICATION: 'https://mattermost.com/pl/enable-client-side-certification',
     ENABLE_HARDENED_MODE: 'https://mattermost.com/pl/enable-hardened-mode',
     FORMAT_MESSAGES: 'https://mattermost.com/pl/format-messages',
     FILE_STORAGE: 'https://mattermost.com/pl/configure-file-storage',
@@ -1205,6 +1209,7 @@ export const LicenseLinks = {
     SOFTWARE_SERVICES_LICENSE_AGREEMENT: 'https://mattermost.com/pl/software-and-services-license-agreement',
     SOFTWARE_SERVICES_LICENSE_AGREEMENT_TEXT: 'Software Services and License Agreement',
     UNSUPPORTED: 'https://mattermost.com/pricing/',
+    UNSUPPORTED_UPGRADE_LINK: 'https://docs.mattermost.com/administration-guide/upgrade/enterprise-install-upgrade.html#upgrading-to-enterprise-edition-from-mattermost-team-edition',
 };
 
 export const MattermostLink = 'https://mattermost.com/';
@@ -1508,6 +1513,23 @@ export const ZoomSettings = {
     SCALE_DELTA: 0.25,
     MIN_SCALE: 0.25,
     MAX_SCALE: 3.0,
+};
+
+export const DataSpillagePropertyNames = {
+    Status: 'Status',
+    FlaggedBy: 'Flagged by',
+    Reason: 'Reason',
+    Comment: 'Comment',
+    ReportingTime: 'Reporting Time',
+    ReviewingUser: 'Reviewing User',
+    ActionBy: 'Action By',
+    ActionComment: 'Action Comment',
+    ActionTime: 'Action Time',
+    Message: 'Message',
+    PostedIn: 'Posted in',
+    Team: 'Team',
+    PostedBy: 'Posted by',
+    PostedAt: 'Posted at',
 };
 
 export const Constants = {

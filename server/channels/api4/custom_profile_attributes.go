@@ -205,8 +205,6 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// This check is unnecessary for now
-	// Will be required when/if admins can patch other's values
 	userID := c.AppContext.Session().UserId
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), userID) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
@@ -222,6 +220,32 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventPatchCPAValues, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
+
+	// if the user is not an admin, we need to check that there are no
+	// admin-managed fields
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		fields, appErr := c.App.ListCPAFields()
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		// Check if any of the fields being updated are admin-managed
+		for _, field := range fields {
+			if _, isBeingUpdated := updates[field.ID]; isBeingUpdated {
+				// Convert to CPAField to check if managed
+				cpaField, fErr := model.NewCPAFieldFromPropertyField(field)
+				if fErr != nil {
+					c.Err = model.NewAppError("Api4.patchCPAValues", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(fErr)
+					return
+				}
+				if cpaField.IsAdminManaged() {
+					c.Err = model.NewAppError("Api4.patchCPAValues", "app.custom_profile_attributes.property_field_is_managed.app_error", nil, "", http.StatusForbidden)
+					return
+				}
+			}
+		}
+	}
 
 	results := make(map[string]json.RawMessage, len(updates))
 	for fieldID, rawValue := range updates {

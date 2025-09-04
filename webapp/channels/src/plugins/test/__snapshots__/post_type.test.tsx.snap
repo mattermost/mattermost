@@ -121,6 +121,7 @@ exports[`plugins/PostMessageView should match snapshot with no extended post typ
           "onImageLoaded": [Function],
         }
       }
+      isRHS={false}
       message="this is some text"
       options={Object {}}
       post={

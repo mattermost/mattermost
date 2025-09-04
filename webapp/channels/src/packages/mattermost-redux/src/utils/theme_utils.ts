@@ -172,7 +172,7 @@ export function setThemeDefaults(theme: Partial<Theme>): Theme {
 }
 
 // getContrastingSimpleColor returns a contrasting color - either black or white, depending on the luminance
-// of the supplied color. Both input and outpur colors are in hexadecimal color code.
+// of the supplied color. Both input and output colors are in hexadecimal color code.
 export function getContrastingSimpleColor(colorHexCode: string): string {
     const color = colorHexCode.startsWith('#') ? colorHexCode.slice(1) : colorHexCode;
 

@@ -924,10 +924,6 @@
     "translation": "haussement"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Le nouveau format pour la configuration du client n'est pas encore supporté. Veuillez spécifier format=old dans la chaîne de requête (query string)"
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Désolé, impossible de trouver cette page."
   },
@@ -2078,14 +2074,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Bot login is forbidden"
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Tentative de connexion à l'aide de la fonctionnalité expérimentale ClientSideCert sans avoir fourni un certificat valide"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Tentative d'utilisation la fonctionnalité expérimentale ClientSideCertEnable sans avoir défini une licence entreprise valide"
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -7978,14 +7966,6 @@
   {
     "id": "app.channel.get_file_count.app_error",
     "translation": "Impossible d'obtenir le nombre de fichiers du canal"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Impossible de retrouver les utilisateurs pour un canal archivé"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Impossible de retrouver les messages pour un canal archivé"
   },
   {
     "id": "api.templates.invite_team_and_channels_subject",

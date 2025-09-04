@@ -1,0 +1,33 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.DataSpillageReport {
+    max-width: 700px;
+    border-radius: 4px;
+    background: var(--center-channel-bg, #FFF);
+    box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.08);
+
+    #rhsContainer & {
+        box-shadow: none;
+    }
+
+    &.mode_short {
+        padding: 16px 19px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-left: 3px solid var(--error-text, #5D89EA);
+    }
+}
+
+// This is needed to make the DataSpillageReport component full width in the RHS.
+#rhsContainer  .post__body:has(.DataSpillageReport) {
+    position: relative;
+    left: -44px;
+    width: calc(100% + 44px) !important;
+    margin-top: 25px;
+}
+
+// This is needed to override the hover effect on posts in the RHS as otherwise it interferes
+// with the appearance of select options and badges and other texts in the card.
+#rhsContainer .post:not(.post--editing):not(.post--editing):has(.DataSpillageReport):hover {
+    background-color: unset;
+}
