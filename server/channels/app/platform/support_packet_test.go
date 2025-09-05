@@ -190,6 +190,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		d := getDiagnostics(t)
 
 		assert.Equal(t, 2, d.Version)
+		assert.NotEmpty(t, d.Timestamp)
 
 		/* License */
 		assert.Equal(t, "My awesome Company", d.License.Company)

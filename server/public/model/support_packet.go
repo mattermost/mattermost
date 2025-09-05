@@ -3,18 +3,14 @@
 
 package model
 
-import (
-	"encoding/json"
-	"io"
-)
-
 const (
 	CurrentSupportPacketVersion = 2
 	SupportPacketErrorFile      = "warning.txt"
 )
 
 type SupportPacketDiagnostics struct {
-	Version int `yaml:"version"`
+	Version   int    `yaml:"version"`
+	Timestamp string `yaml:"timestamp"`
 
 	License struct {
 		Company      string `yaml:"company"`
@@ -161,15 +157,4 @@ type FileData struct {
 type SupportPacketOptions struct {
 	IncludeLogs   bool     `json:"include_logs"`   // IncludeLogs is the option to include server logs
 	PluginPackets []string `json:"plugin_packets"` // PluginPackets is a list of pluginids to call hooks
-}
-
-// SupportPacketOptionsFromReader decodes a json-encoded request from the given io.Reader.
-func SupportPacketOptionsFromReader(reader io.Reader) (*SupportPacketOptions, error) {
-	var r *SupportPacketOptions
-	err := json.NewDecoder(reader).Decode(&r)
-	if err != nil {
-		return nil, err
-	}
-
-	return r, nil
 }
