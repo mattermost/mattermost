@@ -22,13 +22,6 @@ on:
         default: false
         type: boolean
 
-env:
-  CHAINCTL_IDENTITY: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f
-
-permissions:
-  id-token: write
-  contents: read
-
 jobs:
   test:
     name: ${{ inputs.name }}
@@ -36,11 +29,6 @@ jobs:
     env:
       COMPOSE_PROJECT_NAME: ghactions
     steps:
-      - uses: chainguard-dev/setup-chainctl@main
-        if: ${{ inputs.fips-enabled }}
-        with:
-          identity: ${{ env.CHAINCTL_IDENTITY }}
-
       - name: buildenv/docker-login
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
