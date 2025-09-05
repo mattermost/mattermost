@@ -10762,5 +10762,37 @@
   {
     "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
     "translation": "Het verbergen van gearchiveerde kanalen wordt niet langer ondersteund. Maak deze kanalen privé en verwijder in plaats daarvan leden."
+  },
+  {
+    "id": "api.not_implemented",
+    "translation": "Deze functie is niet geïmplementeerd."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
+    "translation": "Kan waarde voor een door de beheerder beheerd aangepast profielattribuutveld niet bijwerken"
+  },
+  {
+    "id": "app.lookup_interactive_dialog.decode_json_error",
+    "translation": "Er is een fout opgetreden bij het decoderen van de JSON respons van het interactief dialoogvenster voor opzoeken."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.json_error",
+    "translation": "Er is een fout opgetreden bij het verwerken van het JSON antwoord van het interactief opzoeken van een dialoogvenster."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.read_body_error",
+    "translation": "Er is een fout opgetreden bij het lezen van de respons bij het opzoeken van het interactief dialoogvenster ."
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "Aanmaken van Elasticsearch-bulkprocessor is mislukt"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+    "translation": "Aanmaken van Elasticsearch-bulkprocessor is mislukt"
+  },
+  {
+    "id": "model.config.is_valid.client_side_cert_enable.app_error",
+    "translation": "Certificaat-gebaseerde authenticatie is verwijderd. Schakel ClientSideCertEnable uit om verder te gaan."
   }
 ]

@@ -4,6 +4,7 @@
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 import {Channel} from '@mattermost/types/channels';
+
 import {getAdminAccount} from '../../../support/env';
 
 // ***************************************************************
