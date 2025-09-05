@@ -168,31 +168,43 @@ function ChannelSettingsAccessRulesTab({
 
     // Validate that current user satisfies the expression
     const validateSelfExclusion = useCallback(async (testExpression: string): Promise<boolean> => {
-        if (!testExpression.trim() || !currentUser?.id) {
-            return true; // No expression or no user, skip validation
+        if (!testExpression.trim()) {
+            return true; // No expression, skip validation
+        }
+
+        if (!currentUser?.id) {
+            return false;
         }
 
         try {
-            // Test if current user matches the expression
-            const result = await actions.searchUsers(testExpression, '', '', 100);
-            if (result.data) {
-                const matchingUserIds = result.data.users.map((u) => u.id);
-                const currentUserMatches = matchingUserIds.includes(currentUser.id);
-
-                if (!currentUserMatches) {
-                    // Current user would be excluded
-                    setShowSelfExclusionModal(true);
-                    return false;
-                }
+            const result = await actions.searchUsers(testExpression, '', '', 1000);
+            if (!result.data || !result.data.users || result.data.users.length === 0) {
+                // No users match the expression (including current user)
+                setShowSelfExclusionModal(true);
+                return false;
             }
+
+            // Check if current user matches using efficient single iteration
+            const currentUserMatches = result.data.users.some((u) => u.id === currentUser.id);
+            if (!currentUserMatches) {
+                // Current user would be excluded
+                setShowSelfExclusionModal(true);
+                return false;
+            }
+
+            return true;
         } catch (error) {
-            // If search fails, we can't validate, so allow save but log the error
+            // If validation fails, prevent save for security - don't risk self-exclusion
             // eslint-disable-next-line no-console
             console.error('Failed to validate self-exclusion:', error);
+            setFormError(formatMessage({
+                id: 'channel_settings.access_rules.error.validation_failed',
+                defaultMessage: 'Failed to validate access rules. Please try again.',
+            }));
+            return false;
         }
-
-        return true;
-    }, [currentUser?.id, actions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentUser]);
 
     // Handle save action
     const handleSave = useCallback(async (): Promise<boolean> => {

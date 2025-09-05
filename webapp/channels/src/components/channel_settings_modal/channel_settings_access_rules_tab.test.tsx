@@ -118,6 +118,15 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             },
             users: {
                 currentUserId: 'current_user_id',
+                profiles: {
+                    current_user_id: {
+                        id: 'current_user_id',
+                        username: 'testuser',
+                        first_name: 'Test',
+                        last_name: 'User',
+                        email: 'test@example.com',
+                    },
+                },
             },
         },
         plugins: {
@@ -126,7 +135,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        // Clear mocks but preserve implementations
+        mockActions.getAccessControlFields.mockClear();
+        mockActions.getChannelPolicy.mockClear();
+        mockActions.saveChannelPolicy.mockClear();
+        mockActions.searchUsers.mockClear();
         mockUseChannelAccessControlActions.mockReturnValue(mockActions);
         mockUseChannelSystemPolicies.mockReturnValue({
             policies: [],
@@ -142,6 +155,20 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
         // Mock saveChannelPolicy to resolve successfully
         mockActions.saveChannelPolicy.mockResolvedValue({data: {success: true}});
+
+        // Mock searchUsers to return current user (for self-exclusion validation)
+        mockActions.searchUsers.mockResolvedValue({
+            data: {
+                users: [
+                    {
+                        id: 'current_user_id',
+                        username: 'testuser',
+                        first_name: 'Test',
+                        last_name: 'User',
+                    },
+                ],
+            },
+        });
 
         // Suppress console methods for tests
         jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -593,6 +620,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             // Click Save button
             const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
             await userEvent.click(saveButton);
+
+            // Wait for async validation and save to complete
+            await waitFor(() => {
+                expect(mockActions.saveChannelPolicy).toHaveBeenCalled();
+            });
 
             // Verify save was called with the correct policy structure
             expect(mockActions.saveChannelPolicy).toHaveBeenCalledWith({
