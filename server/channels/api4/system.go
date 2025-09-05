@@ -106,7 +106,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	fileDatas := c.App.GenerateSupportPacket(c.AppContext, supportPacketOptions)
 
-	now := time.Now()
+	now := time.Now().UTC()
 	outputZipFilename := supportPacketFileName(now, c.App.License().Customer.Company)
 
 	// Create a buffer and write the zip file to it
