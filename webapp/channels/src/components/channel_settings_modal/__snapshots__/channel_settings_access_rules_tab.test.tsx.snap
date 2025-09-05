@@ -29,7 +29,7 @@ exports[`components/channel_settings_modal/ChannelSettingsAccessRulesTab should 
     >
       <label
         class="ChannelSettingsModal__autoSyncLabel"
-        title="Define access rules to enable auto-add members"
+        title="Auto-add is disabled because no access rules are defined"
       >
         <input
           class="ChannelSettingsModal__autoSyncCheckbox"
@@ -47,7 +47,7 @@ exports[`components/channel_settings_modal/ChannelSettingsAccessRulesTab should 
       <p
         class="ChannelSettingsModal__autoSyncDescription"
       >
-        Define access rules above to enable automatic member synchronization.
+        Auto-add is disabled because no access rules are defined. Channel will use standard Mattermost access controls.
       </p>
     </div>
   </div>

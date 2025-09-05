@@ -110,6 +110,118 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 	}
 }
 
+func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Create a private channel and make BasicUser a channel admin
+	privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+	_, err := th.App.AddUserToChannel(th.Context, th.BasicUser, privateChannel, false)
+	require.Nil(t, err)
+
+	// Update BasicUser to have channel admin permissions for this channel
+	_, err = th.App.UpdateChannelMemberRoles(th.Context, privateChannel.Id, th.BasicUser.Id,
+		model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+	require.Nil(t, err)
+
+	job := model.Job{
+		Id:   model.NewId(),
+		Type: model.JobTypeAccessControlSync,
+	}
+
+	t.Run("system admin can create access control sync job", func(t *testing.T) {
+		adminSession := model.Session{
+			UserId: th.SystemAdminUser.Id,
+			Roles:  model.SystemUserRoleId + " " + model.SystemAdminRoleId,
+		}
+
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(adminSession, &job)
+		assert.True(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
+	})
+
+	t.Run("channel admin can create access control sync job for their channel", func(t *testing.T) {
+		channelAdminSession := model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  model.SystemUserRoleId,
+		}
+
+		// Create job with channel-specific data (like channel admin would)
+		jobWithChannelData := model.Job{
+			Id:   model.NewId(),
+			Type: model.JobTypeAccessControlSync,
+			Data: model.StringMap{
+				"parent_id": privateChannel.Id, // Channel admin jobs have parent_id = channelID
+			},
+		}
+
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(channelAdminSession, &jobWithChannelData)
+		assert.True(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageChannelAccessRules.Id, permissionRequired.Id)
+	})
+
+	t.Run("channel admin cannot create access control sync job for other channel", func(t *testing.T) {
+		// Create another private channel that BasicUser is NOT admin of
+		otherChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+
+		// EXPLICITLY remove channel admin role from BasicUser for otherChannel
+		// (CreatePrivateChannel might auto-add admin roles)
+		_, err := th.App.UpdateChannelMemberRoles(th.Context, otherChannel.Id, th.BasicUser.Id, model.ChannelUserRoleId)
+		require.Nil(t, err)
+
+		// Verify BasicUser is NOT a channel admin of otherChannel
+		otherChannelMember, err := th.App.GetChannelMember(th.Context, otherChannel.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.NotNil(t, otherChannelMember)
+		// BasicUser should only be a regular member, not admin
+		assert.Equal(t, model.ChannelUserRoleId, otherChannelMember.Roles)
+
+		channelAdminSession := model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  model.SystemUserRoleId,
+		}
+
+		// Try to create job for channel they don't admin
+		jobWithOtherChannelData := model.Job{
+			Id:   model.NewId(),
+			Type: model.JobTypeAccessControlSync,
+			Data: model.StringMap{
+				"parent_id": otherChannel.Id,
+			},
+		}
+
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(channelAdminSession, &jobWithOtherChannelData)
+		assert.False(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
+	})
+
+	t.Run("regular user cannot create access control sync job", func(t *testing.T) {
+		regularUser := th.CreateUser()
+		regularUserSession := model.Session{
+			UserId: regularUser.Id,
+			Roles:  model.SystemUserRoleId,
+		}
+
+		// Regular user tries to create job with channel data
+		jobWithChannelData := model.Job{
+			Id:   model.NewId(),
+			Type: model.JobTypeAccessControlSync,
+			Data: model.StringMap{
+				"parent_id": privateChannel.Id,
+			},
+		}
+
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(regularUserSession, &jobWithChannelData)
+		assert.False(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
+	})
+}
+
 func TestSessionHasPermissionToReadJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
