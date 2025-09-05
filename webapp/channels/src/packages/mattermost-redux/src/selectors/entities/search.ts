@@ -26,3 +26,12 @@ export const getAllUserMentionKeys: (state: GlobalState) => UserMentionKey[] = c
         return userMentionKeys.concat(groupMentionKeys);
     },
 );
+
+export const getSearchTruncationInfo = (state: GlobalState) => {
+    return state.entities.search.truncationInfo;
+};
+
+export const isSearchTruncated = (state: GlobalState, searchType: 'posts' | 'files'): boolean => {
+    const truncationInfo = getSearchTruncationInfo(state);
+    return Boolean(truncationInfo && truncationInfo[searchType] > 0);
+};
