@@ -78,6 +78,10 @@ else
 	BUILD_TYPE_NAME = team
 endif
 
+ifeq ($(FIPS_ENABLED),true)
+	BUILD_TYPE_NAME = $(BUILD_TYPE_NAME)-fips
+endif
+
 # Clean up the old means of importing enterprise source, if it exists
 ifneq ($(wildcard channels/imports/imports.go),)
 	IGNORE := $(shell rm -f channels/imports/imports.go)
