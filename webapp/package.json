@@ -63,6 +63,12 @@
     },
     "braces": "3.0.3",
     "cheerio": "1.0.0-rc.12",
+    "@testing-library/dom": {
+      "dom-accessibility-api": "0.6.3"
+    },
+    "@testing-library/jest-dom": {
+      "dom-accessibility-api": "0.6.3"
+    },
     "@types/estree": "0.0.51",
     "asn1.js": "5.4.1",
     "react-beautiful-dnd": {
