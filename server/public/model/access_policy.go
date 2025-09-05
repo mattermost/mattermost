@@ -43,6 +43,7 @@ type AccessControlPolicySearch struct {
 	Term            string                    `json:"term"`
 	Type            string                    `json:"type"`
 	ParentID        string                    `json:"parent_id"`
+	IDs             []string                  `json:"ids"`
 	Cursor          AccessControlPolicyCursor `json:"cursor"`
 	Limit           int                       `json:"limit"`
 	IncludeChildren bool                      `json:"include_children"`

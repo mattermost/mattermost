@@ -568,6 +568,12 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 		count = count.Where(sq.Eq{"Active": true})
 	}
 
+	if len(opts.IDs) > 0 {
+		condition := sq.Eq{"Id": opts.IDs}
+		query = query.Where(condition)
+		count = count.Where(condition)
+	}
+
 	cursor := opts.Cursor
 
 	if !cursor.IsEmpty() {

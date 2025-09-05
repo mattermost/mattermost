@@ -5,6 +5,8 @@ import {useMemo} from 'react';
 import {useDispatch} from 'react-redux';
 
 import type {AccessControlVisualAST, AccessControlTestResult, AccessControlPolicy} from '@mattermost/types/access_control';
+import type {ChannelMembership} from '@mattermost/types/channels';
+import type {JobTypeBase} from '@mattermost/types/jobs';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {
@@ -13,7 +15,10 @@ import {
     searchUsersForExpression,
     getAccessControlPolicy,
     createAccessControlPolicy,
+    updateAccessControlPolicyActive,
 } from 'mattermost-redux/actions/access_control';
+import {getChannelMembers} from 'mattermost-redux/actions/channels';
+import {createJob} from 'mattermost-redux/actions/jobs';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 export interface ChannelAccessControlActions {
@@ -22,6 +27,9 @@ export interface ChannelAccessControlActions {
     searchUsers: (expression: string, term: string, after: string, limit: number) => Promise<ActionResult<AccessControlTestResult>>;
     getChannelPolicy: (channelId: string) => Promise<ActionResult<AccessControlPolicy>>;
     saveChannelPolicy: (policy: AccessControlPolicy) => Promise<ActionResult<AccessControlPolicy>>;
+    getChannelMembers: (channelId: string, page?: number, perPage?: number) => Promise<ActionResult<ChannelMembership[]>>;
+    createJob: (job: JobTypeBase & { data: any }) => Promise<ActionResult>;
+    updateAccessControlPolicyActive: (policyId: string, active: boolean) => Promise<ActionResult>;
 }
 
 /**
@@ -76,6 +84,27 @@ export const useChannelAccessControlActions = (): ChannelAccessControlActions =>
          */
         saveChannelPolicy: (policy: AccessControlPolicy) => {
             return dispatch(createAccessControlPolicy(policy));
+        },
+
+        /**
+         * Get channel members for a specific channel
+         */
+        getChannelMembers: (channelId: string, page = 0, perPage = 200) => {
+            return dispatch(getChannelMembers(channelId, page, perPage));
+        },
+
+        /**
+         * Create a job for access control synchronization
+         */
+        createJob: (job: JobTypeBase & { data: any }) => {
+            return dispatch(createJob(job));
+        },
+
+        /**
+         * Update the active status of an access control policy
+         */
+        updateAccessControlPolicyActive: (policyId: string, active: boolean) => {
+            return dispatch(updateAccessControlPolicyActive(policyId, active));
         },
     }), [dispatch]);
 };
