@@ -42,6 +42,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
     const dispatch = useDispatch();
 
     useEffect(() => {
+        // TODO use new hook here
         dispatch(getContentFlaggingConfig());
     }, [dispatch]);
 

@@ -74,7 +74,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
                 // We need to obtain the post directly from action bypassing the selectors
                 // because the post might be soft-deleted and the post reducers do not store deleted posts
                 // in the store.
-                const post = await Client4.getFlaggedPost(reportedPostId);
+                const post = await loadFlaggedPost(reportedPostId);
                 if (post) {
                     setReportedPost(post);
                     loaded.current = true;
@@ -145,6 +145,14 @@ export function DataSpillageReport({post, isRHS}: Props) {
         return (<DataSpillageFooter post={post}/>);
     }, [isRHS, post]);
 
+    const actionRow = useMemo(() => {
+        return (reportedPost && reportingUser) ? (
+            <DataSpillageAction
+                flaggedPost={reportedPost}
+                reportingUser={reportingUser}
+            />) : null;
+    }, [reportedPost, reportingUser]);
+
     return (
         <div
             className={`DataSpillageReport mode_${mode}`}
@@ -157,7 +165,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
                 propertyValues={propertyValues}
                 fieldOrder={orderedFieldName}
                 shortModeFieldOrder={shortModeFieldOrder}
-                actionsRow={<DataSpillageAction/>}
+                actionsRow={actionRow}
                 mode={mode}
                 metadata={metadata}
                 footer={footer}

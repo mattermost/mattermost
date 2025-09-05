@@ -134,6 +134,7 @@ func getFlaggingConfig(contentFlaggingSettings model.ContentFlaggingSettings) *m
 	return &model.ContentFlaggingReportingConfig{
 		Reasons:                 contentFlaggingSettings.AdditionalSettings.Reasons,
 		ReporterCommentRequired: contentFlaggingSettings.AdditionalSettings.ReporterCommentRequired,
+		ReviewerCommentRequired: contentFlaggingSettings.AdditionalSettings.ReviewerCommentRequired,
 	}
 }
 

@@ -1,11 +1,57 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
-import './data_spillage_actions.scss';
+import {useDispatch} from 'react-redux';
 
-export default function DataSpillageAction() {
+import './data_spillage_actions.scss';
+import type {Post} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
+
+import {closeModal, openModal} from 'actions/views/modals';
+
+import RemoveFlaggedMessageConfirmationModal
+    from 'components/remove_flagged_message_confirmation_modal/remove_flagged_message_confirmation_modal';
+
+import {ModalIdentifiers} from 'utils/constants';
+
+type Props = {
+    flaggedPost: Post;
+    reportingUser: UserProfile;
+}
+
+export default function DataSpillageAction({flaggedPost, reportingUser}: Props) {
+    const dispatch = useDispatch();
+
+    const handleRemoveMessage = useCallback(() => {
+        const data = {
+            modalId: ModalIdentifiers.REMOVE_FLAGGED_post,
+            dialogType: RemoveFlaggedMessageConfirmationModal,
+            dialogProps: {
+                flaggedPost,
+                reportingUser,
+                onExited: () => closeModal(ModalIdentifiers.REMOVE_FLAGGED_post),
+            },
+        };
+
+        dispatch(openModal(data));
+    }, [dispatch, flaggedPost, reportingUser]);
+
+    useEffect(() => {
+        const data = {
+            modalId: ModalIdentifiers.REMOVE_FLAGGED_post,
+            dialogType: RemoveFlaggedMessageConfirmationModal,
+            dialogProps: {
+                flaggedPost,
+                reportingUser,
+                onExited: () => closeModal(ModalIdentifiers.REMOVE_FLAGGED_post),
+            },
+        };
+
+        dispatch(openModal(data));
+    }, [dispatch, flaggedPost, reportingUser]);
+
     return (
         <div
             className='DataSpillageAction'
@@ -14,6 +60,7 @@ export default function DataSpillageAction() {
             <button
                 className='btn btn-danger btn-sm'
                 data-testid='data-spillage-action-remove-message'
+                onClick={handleRemoveMessage}
             >
                 <FormattedMessage
                     id='data_spillage_report.remove_message.button_text'

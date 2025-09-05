@@ -8,4 +8,5 @@ export type NotificationTarget = 'reviewers' | 'author' | 'reporter';
 export type ContentFlaggingConfig = {
     reasons: string[];
     reporter_comment_required: boolean;
+    reviewer_comment_required: boolean;
 };

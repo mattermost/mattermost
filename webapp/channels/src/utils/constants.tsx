@@ -482,6 +482,7 @@ export const ModalIdentifiers = {
     ATTRIBUTE_MODAL_LDAP: 'attribute_modal_ldap',
     ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
     FLAG_POST: 'flag_post',
+    REMOVE_FLAGGED_post: 'remove_flagged_post',
 };
 
 export const UserStatuses = {
