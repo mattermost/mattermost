@@ -44,13 +44,14 @@ const email = 'test@mattermost.com';
 const licenseId = generateId();
 const currentUserId = 'current_user';
 const postHistoryLimit = 10000;
-const lastAccessiblePostTime = 1640995200000; // January 1, 2022
+const lastAccessiblePostTime = new Date('2021-12-31T12:00:00.000Z').getTime();
 
-const bannerText = `${postHistoryLimit.toLocaleString()}-message limit reached. Messages sent before January 1, 2022 are hidden. Upgrade to restore access`;
+const bannerText = `${postHistoryLimit.toLocaleString()}-message limit reached. Messages sent before December 31, 2021 are hidden. Upgrade to restore access`;
 
 describe('components/announcement_bar/PostHistoryLimitBanner', () => {
     let mockOpenPricingModal: jest.Mock;
     let mockDispatch: jest.Mock;
+    let mockToLocaleDateString: jest.SpyInstance;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -60,6 +61,17 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
 
         mockDispatch = jest.fn();
         require('react-redux').useDispatch.mockReturnValue(mockDispatch);
+
+        // Set up a default mock for toLocaleDateString that returns "December 31, 2021"
+        // This matches our global lastAccessiblePostTime variable
+        mockToLocaleDateString = jest.spyOn(Date.prototype, 'toLocaleDateString').
+            mockReturnValue('December 31, 2021');
+    });
+
+    afterEach(() => {
+        if (mockToLocaleDateString) {
+            mockToLocaleDateString.mockRestore();
+        }
     });
 
     const createInitialState = (
@@ -154,7 +166,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
     });
 
     describe('Time-Based Dismissal Logic', () => {
-        const preferenceName = `post_history_limit_${licenseId.substring(0, 8)}`;
+        const preferenceName = 'post_history_limit_banner';
 
         it('should not show banner when recently dismissed by admin (< 7 days)', () => {
             setupServerLimits(true);
@@ -243,7 +255,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
     });
 
     describe('User Interactions', () => {
-        const preferenceName = `post_history_limit_${licenseId.substring(0, 8)}`;
+        const preferenceName = 'post_history_limit_banner';
 
         it('should call openPricingModal when upgrade button is clicked', () => {
             setupServerLimits(true);
@@ -286,7 +298,10 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
 
     describe('Date Formatting', () => {
         it('should format date correctly for recent dates', () => {
-            const recentDate = new Date('2023-07-15').getTime();
+            const recentDate = new Date('2023-07-15T12:00:00.000Z').getTime();
+
+            // Override the global mock for this specific test
+            mockToLocaleDateString.mockReturnValue('July 15, 2023');
 
             mockUseGetServerLimits.mockReturnValue([{
                 postHistoryLimit: 5000,
@@ -301,10 +316,18 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
             renderWithContext(<PostHistoryLimitBanner/>, state);
 
             expect(screen.getByText(/July 15, 2023/)).toBeInTheDocument();
+            expect(mockToLocaleDateString).toHaveBeenCalledWith('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            });
         });
 
         it('should format date correctly for older dates with year', () => {
-            const oldDate = new Date('2021-12-01').getTime();
+            const oldDate = new Date('2021-12-01T12:00:00.000Z').getTime();
+
+            // Override the global mock for this specific test
+            mockToLocaleDateString.mockReturnValue('December 1, 2021');
 
             mockUseGetServerLimits.mockReturnValue([{
                 postHistoryLimit: 8000,
@@ -319,6 +342,11 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
             renderWithContext(<PostHistoryLimitBanner/>, state);
 
             expect(screen.getByText(/December 1, 2021/)).toBeInTheDocument();
+            expect(mockToLocaleDateString).toHaveBeenCalledWith('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            });
         });
     });
 
@@ -327,7 +355,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
             setupServerLimits(true);
 
             const dismissalTime = Date.now() - (7.5 * 24 * 60 * 60 * 1000); // 7.5 days ago
-            const preferenceName = `post_history_limit_${licenseId.substring(0, 8)}`;
+            const preferenceName = 'post_history_limit_banner';
             const preferences = [{
                 category: Preferences.POST_HISTORY_LIMIT_BANNER,
                 name: preferenceName,
@@ -345,7 +373,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
             setupServerLimits(true);
 
             const dismissalTime = Date.now() - (7.5 * 24 * 60 * 60 * 1000); // 7.5 days ago
-            const preferenceName = `post_history_limit_${licenseId.substring(0, 8)}`;
+            const preferenceName = 'post_history_limit_banner';
             const preferences = [{
                 category: Preferences.POST_HISTORY_LIMIT_BANNER,
                 name: preferenceName,
@@ -365,7 +393,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
         it('should handle invalid dismissal timestamp gracefully', () => {
             setupServerLimits(true);
 
-            const preferenceName = `post_history_limit_${licenseId.substring(0, 8)}`;
+            const preferenceName = 'post_history_limit_banner';
             const preferences = [{
                 category: Preferences.POST_HISTORY_LIMIT_BANNER,
                 name: preferenceName,
@@ -395,7 +423,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
         it('should show banner when preference exists but has no value', () => {
             setupServerLimits(true);
 
-            const preferenceName = `post_history_limit_${licenseId.substring(0, 8)}`;
+            const preferenceName = 'post_history_limit_banner';
             const preferences = [{
                 category: Preferences.POST_HISTORY_LIMIT_BANNER,
                 name: preferenceName,

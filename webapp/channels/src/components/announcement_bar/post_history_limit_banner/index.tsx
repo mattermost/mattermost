@@ -6,7 +6,6 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getPostHistoryLimitBannerPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
@@ -20,15 +19,13 @@ import type {GlobalState} from 'types/store';
 
 import './post_history_limit_banner.scss';
 
-const shouldShowDespiteDismissal = (
-    dismissalTimestamp: number,
-    isAdmin: boolean,
-    postsStillTruncated: boolean,
-): boolean => {
-    if (!dismissalTimestamp || !postsStillTruncated) {
-        return false;
+const shouldShowBanner = (dismissalTimestamp: number, isAdmin: boolean): boolean => {
+    // If no dismissal timestamp then it hasn't been dismissed, show the banner
+    if (!dismissalTimestamp) {
+        return true;
     }
 
+    //Check if it's time to show again after grace period
     const daysSinceDismissal = (Date.now() - dismissalTimestamp) / (1000 * 60 * 60 * 24);
     const threshold = isAdmin ? 7 : 30; // 7 days for admins, 30 for users
 
@@ -41,16 +38,24 @@ const PostHistoryLimitBanner = () => {
     const [serverLimits, limitsLoaded] = useGetServerLimits();
     const currentUser = useSelector((state: GlobalState) => getCurrentUser(state));
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
-    const license = useSelector(getLicense);
     const postHistoryLimitPreferences = useSelector(getPostHistoryLimitBannerPreferences);
+
+    // Don't show banner if limits are not loaded yet
+    if (!limitsLoaded) {
+        return null;
+    }
 
     // Key condition: posts are actually being truncated
     const postsAreTruncated = (serverLimits?.lastAccessiblePostTime || 0) > 0;
     const postHistoryLimit = serverLimits?.postHistoryLimit || 0;
     const lastAccessiblePostTime = serverLimits?.lastAccessiblePostTime || 0;
 
-    const prefixLicenseId = (license.Id || '').substring(0, 8);
-    const preferenceName = `post_history_limit_${prefixLicenseId}`;
+    // If no limit is reached, then no need to show the banner
+    if (!postsAreTruncated) {
+        return null;
+    }
+
+    const preferenceName = 'post_history_limit_banner';
 
     // Get dismissal timestamp from preferences
     const dismissalPreference = postHistoryLimitPreferences.find(
@@ -58,12 +63,10 @@ const PostHistoryLimitBanner = () => {
     );
     const dismissalTimestamp = dismissalPreference ? parseInt(dismissalPreference.value, 10) : 0;
 
-    // Check if banner should show despite previous dismissal
-    const showDespiteDismissal = shouldShowDespiteDismissal(
-        dismissalTimestamp,
-        isAdmin,
-        postsAreTruncated,
-    );
+    // Check if banner should show per dismissal
+    if (!shouldShowBanner(dismissalTimestamp, isAdmin)) {
+        return null;
+    }
 
     const handleClose = () => {
         dispatch(savePreferences(currentUser.id, [{
@@ -78,13 +81,6 @@ const PostHistoryLimitBanner = () => {
         e.preventDefault();
         openPricingModal({trackingLocation: 'post_history_limit_banner'});
     };
-
-    // Show banner if never dismissed OR enough time has passed AND still truncated
-    const shouldShow = limitsLoaded && postsAreTruncated && (!dismissalTimestamp || showDespiteDismissal);
-
-    if (!shouldShow) {
-        return null;
-    }
 
     // Format the cutoff date
     const cutoffDate = new Date(lastAccessiblePostTime);
@@ -119,9 +115,6 @@ const PostHistoryLimitBanner = () => {
             message={message}
             showLinkAsButton={true}
             className='post-history-limit-banner'
-
-            //  color='#ffd470'
-            // textColor='#1a1919'
             icon={<i className='icon icon-alert-outline'/>}
             handleClose={handleClose}
         />
