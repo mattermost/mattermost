@@ -692,6 +692,10 @@
             height: 40px;
             padding: 0 16px;
         }
+
+        &.filter-row--full {
+            width: 100%;
+        }
     }
 
     .member-count {
@@ -758,7 +762,7 @@
         flex: 20;
     }
 
-    >div:not([data-simplebar]) {
+    >div {
         overflow: auto;
         min-height: 100%;
     }
@@ -982,30 +986,24 @@
 
 .filtered-user-list {
     display: flex;
+    width: 100%;
     height: calc(90vh - 120px);
     flex-direction: column;
 
-    .filter-row,
-    .filter-controls,
-    .more-modal__dropdown {
-        flex: 0;
+    >div {
+        flex: 1 1 auto;
     }
 
     .multi-select__wrapper {
         display: flex;
-        min-height: 0;
+        height: 1px;
         flex-direction: column;
-
-        .more-modal__list {
-            overflow: initial;
-        }
+        flex-grow: 500;
     }
 
     .more-modal__list {
-        position: relative;
-        overflow: clip;
-        min-height: 0;
-        flex: 1;
+        height: 1px;
+        flex-grow: 500;
     }
 
     .filter-button {
@@ -1068,6 +1066,10 @@
             color: variables.$gray;
             font-size: 1.25em;
             text-align: center;
+        }
+
+        .filter-row--full {
+            flex-grow: 0;
         }
     }
 

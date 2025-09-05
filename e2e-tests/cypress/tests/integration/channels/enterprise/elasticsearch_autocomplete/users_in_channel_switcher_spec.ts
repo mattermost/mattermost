@@ -13,7 +13,6 @@
 import {getRandomLetter} from '../../../../utils';
 import {doTestQuickChannelSwitcher} from '../../autocomplete/common_test';
 import {createSearchData, SimpleUser} from '../../autocomplete/helpers';
-
 import {enableElasticSearch} from './helpers';
 
 describe('Autocomplete with Elasticsearch - Users', () => {

@@ -4,21 +4,29 @@
 import React, {useCallback} from 'react';
 import {useHistory} from 'react-router-dom';
 
+import {trackEvent} from 'actions/telemetry_actions';
+
 import './three_days_left_trial_modal.scss';
 
 export type LearnMoreActionButtonProps = {
+    id: string;
     route: string;
     message: string;
+    telemetryCategory: string;
+    telemetryId: string;
     onClick?: () => void;
     styleLink?: boolean; // show as a anchor link
 }
 
 const LearnMoreActionButton = (
     {
+        id,
         route,
         message,
         onClick,
         styleLink = false,
+        telemetryId,
+        telemetryCategory,
     }: LearnMoreActionButtonProps) => {
     const history = useHistory();
 
@@ -32,6 +40,11 @@ const LearnMoreActionButton = (
         if (onClick) {
             onClick();
         }
+
+        trackEvent(
+            telemetryCategory,
+            telemetryId + '_section_opened_' + id,
+        );
     }, [route, onClick]);
 
     return (

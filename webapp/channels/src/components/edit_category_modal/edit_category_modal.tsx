@@ -6,6 +6,8 @@ import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 
+import {trackEvent} from 'actions/telemetry_actions';
+
 import QuickInput, {MaxLengthInput} from 'components/quick_input';
 
 import {localizeMessage} from 'utils/utils';
@@ -73,6 +75,7 @@ export default class EditCategoryModal extends React.PureComponent<Props, State>
             this.props.actions.renameCategory(this.props.categoryId, this.state.categoryName);
         } else {
             this.props.actions.createCategory(this.props.currentTeamId, this.state.categoryName, this.props.channelIdsToAdd);
+            trackEvent('ui', 'ui_sidebar_created_category');
         }
     };
 

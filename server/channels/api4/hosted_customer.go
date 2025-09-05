@@ -44,7 +44,7 @@ func handleSubscribeToNewsletter(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	req.ServerID = c.App.Srv().ServerId()
+	req.ServerID = c.App.Srv().TelemetryId()
 
 	if err := c.App.Cloud().SubscribeToNewsletter("", req); err != nil {
 		c.Err = model.NewAppError(where, "api.server.cws.subscribe_to_newsletter.app_error", nil, "CWS Server failed to subscribe to newsletter.", http.StatusInternalServerError).Wrap(err)

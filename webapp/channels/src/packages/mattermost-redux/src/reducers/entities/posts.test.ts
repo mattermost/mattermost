@@ -8,6 +8,7 @@ import {
     PostTypes,
     ThreadTypes,
     CloudTypes,
+    LimitsTypes,
 } from 'mattermost-redux/action_types';
 import {Posts} from 'mattermost-redux/constants';
 import * as reducers from 'mattermost-redux/reducers/entities/posts';
@@ -4468,6 +4469,54 @@ describe('limitedViews', () => {
                 type: ChannelTypes.LEAVE_CHANNEL,
                 data: {
                     id: 'nonExistentChannelId',
+                },
+            });
+
+            expect(nextState).toEqual(initialState);
+            expect(nextState).toBe(initialState); // reference equality preserved
+        });
+
+        it(`${LimitsTypes.RECEIVED_APP_LIMITS} clears out limited views if there are no longer post history limits`, () => {
+            const initialState = {...zeroState, channels: {channelId: 123}};
+            const nextState = reducers.limitedViews(initialState, {
+                type: LimitsTypes.RECEIVED_APP_LIMITS,
+                data: {
+                    postHistoryLimit: 0,
+                    activeUserCount: 100,
+                    maxUsersLimit: 0,
+                    maxUsersHardLimit: 0,
+                    lastAccessiblePostTime: 0,
+                },
+            });
+
+            expect(nextState).toEqual(zeroState);
+        });
+
+        it(`${LimitsTypes.RECEIVED_APP_LIMITS} clears out limited views if postHistoryLimit is undefined`, () => {
+            const initialState = {...zeroState, channels: {channelId: 123}};
+            const nextState = reducers.limitedViews(initialState, {
+                type: LimitsTypes.RECEIVED_APP_LIMITS,
+                data: {
+                    activeUserCount: 100,
+                    maxUsersLimit: 0,
+                    maxUsersHardLimit: 0,
+                    lastAccessiblePostTime: 0,
+                },
+            });
+
+            expect(nextState).toEqual(zeroState);
+        });
+
+        it(`${LimitsTypes.RECEIVED_APP_LIMITS} preserves limited views if there are still post history limits`, () => {
+            const initialState = {...zeroState, channels: {channelId: 123}};
+            const nextState = reducers.limitedViews(initialState, {
+                type: LimitsTypes.RECEIVED_APP_LIMITS,
+                data: {
+                    postHistoryLimit: 1000,
+                    activeUserCount: 100,
+                    maxUsersLimit: 0,
+                    maxUsersHardLimit: 0,
+                    lastAccessiblePostTime: 1234567890,
                 },
             });
 

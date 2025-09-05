@@ -64,6 +64,14 @@ jest.mock('stores/redux_store', () => {
     };
 });
 
+jest.mock('actions/telemetry_actions.jsx', () => {
+    const original = jest.requireActual('actions/telemetry_actions.jsx');
+    return {
+        ...original,
+        trackEvent: jest.fn(),
+    };
+});
+
 describe('Actions.User', () => {
     const initialState = {
         entities: {

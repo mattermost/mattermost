@@ -8,7 +8,22 @@ exports[`comoponents/rhs_card/RhsCard should match on post when no plugin defini
     previousRhsState={Object {}}
   />
   <Scrollbars
+    autoHeight={false}
+    autoHeightMax={200}
+    autoHeightMin={0}
+    autoHide={true}
+    autoHideDuration={500}
+    autoHideTimeout={500}
+    hideTracksWhenNotNeeded={false}
     onScroll={[Function]}
+    renderThumbHorizontal={[Function]}
+    renderThumbVertical={[Function]}
+    renderTrackHorizontal={[Function]}
+    renderTrackVertical={[Function]}
+    renderView={[Function]}
+    tagName="div"
+    thumbMinSize={30}
+    universal={false}
   >
     <div
       className="post-right__scroll"
@@ -99,7 +114,22 @@ exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining 
     previousRhsState={Object {}}
   />
   <Scrollbars
+    autoHeight={false}
+    autoHeightMax={200}
+    autoHeightMin={0}
+    autoHide={true}
+    autoHideDuration={500}
+    autoHideTimeout={500}
+    hideTracksWhenNotNeeded={false}
     onScroll={[Function]}
+    renderThumbHorizontal={[Function]}
+    renderThumbVertical={[Function]}
+    renderTrackHorizontal={[Function]}
+    renderTrackVertical={[Function]}
+    renderView={[Function]}
+    tagName="div"
+    thumbMinSize={30}
+    universal={false}
   >
     <div
       className="post-right__scroll"
@@ -190,7 +220,22 @@ exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining 
     previousRhsState={Object {}}
   />
   <Scrollbars
+    autoHeight={false}
+    autoHeightMax={200}
+    autoHeightMin={0}
+    autoHide={true}
+    autoHideDuration={500}
+    autoHideTimeout={500}
+    hideTracksWhenNotNeeded={false}
     onScroll={[Function]}
+    renderThumbHorizontal={[Function]}
+    renderThumbVertical={[Function]}
+    renderTrackHorizontal={[Function]}
+    renderTrackVertical={[Function]}
+    renderView={[Function]}
+    tagName="div"
+    thumbMinSize={30}
+    universal={false}
   >
     <div
       className="post-right__scroll"

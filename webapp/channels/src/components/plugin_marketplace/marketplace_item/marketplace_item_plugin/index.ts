@@ -9,6 +9,7 @@ import {getPluginStatus} from 'mattermost-redux/selectors/entities/admin';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {installPlugin} from 'actions/marketplace';
+import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {closeModal} from 'actions/views/modals';
 import {getInstalling, getError} from 'selectors/views/marketplace';
 
@@ -33,6 +34,7 @@ function mapStateToProps(state: GlobalState, props: Props) {
         installing,
         error,
         isDefaultMarketplace,
+        trackEvent,
         pluginStatus,
     };
 }

@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	SystemServerId                         = "DiagnosticId"
+	SystemTelemetryId                      = "DiagnosticId"
 	SystemRanUnitTests                     = "RanUnitTests"
 	SystemLastSecurityTime                 = "LastSecurityTime"
 	SystemActiveLicenseId                  = "ActiveLicenseId"

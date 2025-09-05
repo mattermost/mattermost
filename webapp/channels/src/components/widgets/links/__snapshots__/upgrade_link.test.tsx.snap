@@ -36,7 +36,7 @@ exports[`components/widgets/links/UpgradeLink should match the snapshot on show 
 </ContextProvider>
 `;
 
-exports[`components/widgets/links/UpgradeLink should open window when button clicked 1`] = `
+exports[`components/widgets/links/UpgradeLink should trigger telemetry call when button clicked 1`] = `
 <Provider
   store={
     Object {
@@ -49,7 +49,9 @@ exports[`components/widgets/links/UpgradeLink should open window when button cli
     }
   }
 >
-  <UpgradeLink>
+  <UpgradeLink
+    telemetryInfo="testing"
+  >
     <button
       className="upgradeLink"
       onClick={[Function]}

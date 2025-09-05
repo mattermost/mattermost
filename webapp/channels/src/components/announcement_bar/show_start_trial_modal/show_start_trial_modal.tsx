@@ -9,6 +9,7 @@ import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
+import {trackEvent} from 'actions/telemetry_actions';
 import {isModalOpen} from 'selectors/views/modals';
 
 import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
@@ -17,6 +18,7 @@ import useOpenStartTrialFormModal from 'components/common/hooks/useOpenStartTria
 import {
     Preferences,
     Constants,
+    TELEMETRY_CATEGORIES,
     ModalIdentifiers,
 } from 'utils/constants';
 
@@ -54,6 +56,10 @@ const ShowStartTrialModal = () => {
     const isLicensedOrPreviousLicensed = (isCurrentLicensed || isPrevLicensed);
 
     const handleOnClose = () => {
+        trackEvent(
+            TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_AUTO_MODAL,
+            'close_start_trial_auto_modal',
+        );
         dispatch(savePreferences(currentUser.id, [
             {
                 category: Preferences.START_TRIAL_MODAL,
@@ -70,7 +76,11 @@ const ShowStartTrialModal = () => {
         const hasEnvMoreThan6Hours = now > installationDatePlus6Hours;
         const hasEnvMoreThan10Users = Number(totalUsers) > userThreshold;
         if (isUserAdmin && !isBenefitsModalOpened && hasEnvMoreThan10Users && hasEnvMoreThan6Hours && !hadAdminDismissedModal && !isLicensedOrPreviousLicensed) {
-            openStartTrialFormModal(handleOnClose);
+            openStartTrialFormModal({trackingLocation: 'show_start_trial_modal'}, handleOnClose);
+            trackEvent(
+                TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_AUTO_MODAL,
+                'trigger_start_trial_auto_modal',
+            );
         }
     }, [totalUsers]);
 

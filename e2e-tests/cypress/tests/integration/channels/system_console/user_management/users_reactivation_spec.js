@@ -12,10 +12,11 @@
 
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 import * as MESSAGES from '../../../../fixtures/messages';
+
 import {getRandomId} from '../../../../utils';
 
 describe('System Console > User Management > Reactivation', () => {
-    let teamName;
+    var teamName;
     before(() => {
         cy.shouldNotRunOnCloudEdition();
 

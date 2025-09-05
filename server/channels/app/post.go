@@ -23,6 +23,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
 var pendingPostIDsCacheTTL = 30 * time.Second
@@ -77,6 +78,37 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 				mlog.String("channel_id", post.ChannelId),
 				mlog.String("user_id", post.UserId),
 				mlog.Err(err),
+			)
+		}
+	}
+	if channel.SchemeId != nil && *channel.SchemeId != "" {
+		isReadOnly, ircErr := a.Srv().Store().Channel().IsChannelReadOnlyScheme(*channel.SchemeId)
+		if ircErr != nil {
+			mlog.Warn("Error trying to check if it was a post to a readonly channel", mlog.Err(ircErr))
+		}
+		if isReadOnly {
+			a.Srv().telemetryService.SendTelemetryForFeature(
+				telemetry.TrackReadOnlyFeature,
+				"read_only_channel_posted",
+				map[string]any{
+					telemetry.TrackPropertyUser:    post.UserId,
+					telemetry.TrackPropertyChannel: post.ChannelId,
+				},
+			)
+		}
+	}
+
+	if channel.IsShared() {
+		// if not marked as shared we don't try to reach the store, but needs double checking as it might not be truly shared
+		isShared, shErr := a.Srv().Store().SharedChannel().HasChannel(channel.Id)
+		if shErr == nil && isShared {
+			a.Srv().telemetryService.SendTelemetryForFeature(
+				telemetry.TrackSharedChannelsFeature,
+				"shared_channel_posted",
+				map[string]any{
+					telemetry.TrackPropertyUser:    post.UserId,
+					telemetry.TrackPropertyChannel: channel.Id,
+				},
 			)
 		}
 	}
@@ -1574,10 +1606,12 @@ func (a *App) convertUserNameToUserIds(c request.CTX, usernames []string) []stri
 	return usernames
 }
 
-// GetLastAccessiblePostTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
+// GetLastAccessiblePostTime returns CreateAt time(from cache) of the last accessible post as per the license limit
 func (a *App) GetLastAccessiblePostTime() (int64, *model.AppError) {
+	// Only calculate the last accessible post time when there are actual post history limits
 	license := a.Srv().License()
-	if license == nil || !license.IsCloud() {
+
+	if license == nil || license.Limits == nil || license.Limits.PostHistory == 0 {
 		return 0, nil
 	}
 
@@ -1601,13 +1635,10 @@ func (a *App) GetLastAccessiblePostTime() (int64, *model.AppError) {
 	return lastAccessiblePostTime, nil
 }
 
-// ComputeLastAccessiblePostTime updates cache with CreateAt time of the last accessible post as per the cloud plan's limit.
+// ComputeLastAccessiblePostTime updates cache with CreateAt time of the last accessible post as per the license limit.
 // Use GetLastAccessiblePostTime() to access the result.
 func (a *App) ComputeLastAccessiblePostTime() error {
-	limit, appErr := a.getCloudMessagesHistoryLimit()
-	if appErr != nil {
-		return appErr
-	}
+	limit := a.GetPostHistoryLimit()
 
 	if limit == 0 {
 		// All posts are accessible - we must check if a previous value was set so we can clear it
@@ -1628,7 +1659,7 @@ func (a *App) ComputeLastAccessiblePostTime() error {
 				return model.NewAppError("ComputeLastAccessiblePostTime", "app.system.permanent_delete_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
-		// Cloud limit is not applicable
+		// Message history limit is not applicable
 		return nil
 	}
 
@@ -1650,25 +1681,6 @@ func (a *App) ComputeLastAccessiblePostTime() error {
 	}
 
 	return nil
-}
-
-func (a *App) getCloudMessagesHistoryLimit() (int64, *model.AppError) {
-	license := a.Srv().License()
-	if license == nil || !license.IsCloud() {
-		return 0, nil
-	}
-
-	limits, err := a.Cloud().GetCloudLimits("")
-	if err != nil {
-		return 0, model.NewAppError("getCloudMessagesHistoryLimit", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if limits == nil || limits.Messages == nil || limits.Messages.History == nil {
-		// Cloud limit is not applicable
-		return 0, nil
-	}
-
-	return int64(*limits.Messages.History), nil
 }
 
 func (a *App) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError) {

@@ -208,6 +208,7 @@ body.app__body #root {
     #channel_view,
     .product-wrapper {
         grid-area: center;
+        overflow: visible;
     }
 
     .product-wrapper {

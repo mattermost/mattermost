@@ -258,6 +258,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
   </Connect(Droppable)>
   <InviteMembersButton
     className="followingSibling"
+    isAdmin={false}
   />
 </div>
 `;
@@ -368,6 +369,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
   </Connect(Droppable)>
   <InviteMembersButton
     className="followingSibling"
+    isAdmin={false}
   />
 </div>
 `;

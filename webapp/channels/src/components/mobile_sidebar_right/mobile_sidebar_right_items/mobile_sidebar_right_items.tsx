@@ -8,6 +8,7 @@ import type {WrappedComponentProps} from 'react-intl';
 import {Permissions} from 'mattermost-redux/constants';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
+import {trackEvent} from 'actions/telemetry_actions';
 
 import AboutBuildModal from 'components/about_build_modal';
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
@@ -163,6 +164,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                                     defaultMessage: 'Add people to the team',
                                 })}
                                 icon={<i className='fa fa-user-plus'/>}
+                                onClick={() => trackEvent('ui', 'click_sidebar_team_dropdown_invite_people')}
                             />
                         </TeamPermissionGate>
                     )}

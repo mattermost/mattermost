@@ -11,6 +11,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserGuestUser, isCurrentUserSystemAdmin, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
+import {trackEvent as trackEventAction} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
 import {
     openInvitationsModal,
@@ -39,11 +40,12 @@ import {
 } from 'components/tours';
 import {ELEMENT_ID_FOR_USER_ACCOUNT_MENU_BUTTON} from 'components/user_account_menu/user_account_menu';
 
-import {ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
 import {OnboardingTaskCategory, OnboardingTaskList, OnboardingTasksName, TaskNameMapToSteps} from './constants';
+import {generateTelemetryTag} from './utils';
 
 const useGetTaskDetails = () => {
     const {formatMessage} = useIntl();
@@ -187,9 +189,16 @@ export const useHandleOnBoardingTaskData = () => {
     return useCallback((
         taskName: string,
         step: number,
+        trackEvent = true,
+        trackEventSuffix?: string,
         taskCategory = OnboardingTaskCategory,
     ) => {
         storeSavePreferences(taskCategory, taskName, step);
+        if (trackEvent) {
+            const eventSuffix = trackEventSuffix ? `${step}--${trackEventSuffix}` : step.toString();
+            const telemetryTag = generateTelemetryTag(OnboardingTaskCategory, taskName, eventSuffix);
+            trackEventAction(OnboardingTaskCategory, telemetryTag);
+        }
     }, [storeSavePreferences]);
 };
 
@@ -269,9 +278,16 @@ export const useHandleOnBoardingTaskTrigger = () => {
             break;
         }
         case OnboardingTasksName.START_TRIAL: {
+            trackEventAction(
+                TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_TASK_LIST,
+                'open_start_trial_modal',
+            );
             dispatch(openModal({
                 modalId: ModalIdentifiers.LEARN_MORE_TRIAL_MODAL,
                 dialogType: LearnMoreTrialModal,
+                dialogProps: {
+                    launchedBy: 'onboarding',
+                },
             }));
 
             handleSaveData(taskName, TaskNameMapToSteps[taskName].FINISHED, true);

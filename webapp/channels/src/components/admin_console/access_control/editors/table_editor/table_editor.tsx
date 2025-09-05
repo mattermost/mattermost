@@ -132,7 +132,7 @@ function TableEditor({
             }
             onParseError(err.message);
         });
-    }, [value]);
+    }, [value, onValidate, onParseError]);
 
     // Converts the internal rows state back into a CEL expression string
     // and calls the onChange and onValidate props.

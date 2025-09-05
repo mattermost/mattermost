@@ -3,7 +3,7 @@
 
 import * as dotenv from 'dotenv';
 
-dotenv.config({quiet: true});
+dotenv.config();
 
 // All process.env should be defined here
 export class TestConfig {

@@ -2,9 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {Bot, BotPatch} from '@mattermost/types/bots';
-import {ChainableT} from 'tests/types';
-
 import {getRandomId} from '../../utils';
+import {ChainableT} from 'tests/types';
 
 // *****************************************************************************
 // Bots

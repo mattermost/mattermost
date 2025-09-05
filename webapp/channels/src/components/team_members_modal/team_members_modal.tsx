@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {GenericModal} from '@mattermost/components';
 import type {Team} from '@mattermost/types/teams';
 
 import Permissions from 'mattermost-redux/constants/permissions';
@@ -17,8 +17,6 @@ import {focusElement} from 'utils/a11y_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
 import type {ModalData} from 'types/actions';
-
-import './team_members_modal.scss';
 
 type Props = {
     currentTeam?: Team;
@@ -78,25 +76,28 @@ export default class TeamMembersModal extends React.PureComponent<Props, State> 
         }
 
         return (
-            <GenericModal
-                id='teamMembersModal'
-                className='more-modal'
-                compassDesign={true}
+            <Modal
+                dialogClassName='a11y__modal more-modal'
                 show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.handleExit}
-                modalHeaderTextId='teamMemberModalLabel'
-                modalHeaderText={
-                    <FormattedMessage
-                        id='team_member_modal.members'
-                        defaultMessage='{team} Members'
-                        values={{
-                            team: teamDisplayName,
-                        }}
-                    />
-                }
-                ariaLabelledby='teamMemberModalLabel'
-                headerButton={
+                role='none'
+                aria-labelledby='teamMemberModalLabel'
+                id='teamMembersModal'
+            >
+                <Modal.Header closeButton={true}>
+                    <Modal.Title
+                        componentClass='h1'
+                        id='teamMemberModalLabel'
+                    >
+                        <FormattedMessage
+                            id='team_member_modal.members'
+                            defaultMessage='{team} Members'
+                            values={{
+                                team: teamDisplayName,
+                            }}
+                        />
+                    </Modal.Title>
                     <TeamPermissionGate
                         teamId={this.props.currentTeam?.id}
                         permissions={[Permissions.ADD_USER_TO_TEAM, Permissions.INVITE_GUEST]}
@@ -113,15 +114,13 @@ export default class TeamMembersModal extends React.PureComponent<Props, State> 
                             />
                         </button>
                     </TeamPermissionGate>
-                }
-                enforceFocus={false}
-                modalLocation='top'
-                bodyPadding={false}
-            >
-                <MemberListTeam
-                    teamId={this.props.currentTeam?.id}
-                />
-            </GenericModal>
+                </Modal.Header>
+                <Modal.Body>
+                    <MemberListTeam
+                        teamId={this.props.currentTeam?.id}
+                    />
+                </Modal.Body>
+            </Modal>
         );
     }
 }

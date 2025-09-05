@@ -7,6 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {readMultipleChannels} from 'mattermost-redux/actions/channels';
 
+import {trackEvent} from 'actions/telemetry_actions';
 import {getUnreadChannels} from 'selectors/views/channel_sidebar';
 
 import * as Menu from 'components/menu';
@@ -34,6 +35,7 @@ export default function UnreadChannels({
         }
 
         dispatch(readMultipleChannels(unreadChannels.map((v) => v.id)));
+        trackEvent('ui', 'ui_sidebar_category_menu_viewUnreadCategory');
     }, [unreadChannels, dispatch]);
 
     if (unreadChannels.length === 0) {

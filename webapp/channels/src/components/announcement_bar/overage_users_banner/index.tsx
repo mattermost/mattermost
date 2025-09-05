@@ -61,7 +61,11 @@ const OverageUsersBanner = () => {
     const hasPermission = isAdmin && isOverageState && !isCloud;
     const {
         cta,
-    } = useExpandOverageUsersCheck();
+        trackEventFn,
+    } = useExpandOverageUsersCheck({
+        isWarningState: isBetween5PercerntAnd10PercentPurchasedSeats,
+        banner: 'global banner',
+    });
 
     const handleClose = () => {
         dispatch(savePreferences(currentUser.id, [{
@@ -74,7 +78,7 @@ const OverageUsersBanner = () => {
 
     const handleContactSalesClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
-
+        trackEventFn('Contact Sales');
         openContactSales();
     };
 

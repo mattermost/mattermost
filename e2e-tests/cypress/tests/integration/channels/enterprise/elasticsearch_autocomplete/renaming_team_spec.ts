@@ -12,7 +12,6 @@
 
 import {Channel} from '@mattermost/types/channels';
 import {UserProfile} from '@mattermost/types/users';
-
 import {getRandomId} from '../../../../utils';
 
 import {

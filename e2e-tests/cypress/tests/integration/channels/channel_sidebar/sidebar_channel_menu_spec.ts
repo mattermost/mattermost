@@ -16,6 +16,7 @@ import {
     beUnread,
 } from '../../../support/assertions';
 import {getAdminAccount} from '../../../support/env';
+
 import {getRandomId, stubClipboard} from '../../../utils';
 
 describe('Sidebar channel menu', () => {

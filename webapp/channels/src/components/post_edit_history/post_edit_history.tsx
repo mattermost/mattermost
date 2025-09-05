@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo, useEffect, useRef, useState} from 'react';
+import Scrollbars from 'react-custom-scrollbars';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -9,7 +10,6 @@ import type {Post} from '@mattermost/types/posts';
 
 import {getPostEditHistory} from 'mattermost-redux/actions/posts';
 
-import Scrollbars from 'components/common/scrollbars';
 import AlertIcon from 'components/common/svg_images_components/alert_svg';
 import LoadingScreen from 'components/loading_screen';
 import SearchResultsHeader from 'components/search_results_header';
@@ -19,6 +19,27 @@ import EditedPostItem from './edited_post_item';
 import type {PropsFromRedux} from './index';
 import './post_edit_history.scss';
 
+const renderView = (props: Record<string, unknown>): JSX.Element => (
+    <div
+        {...props}
+        className='scrollbar--view'
+    />
+);
+
+const renderThumbHorizontal = (props: Record<string, unknown>): JSX.Element => (
+    <div
+        {...props}
+        className='scrollbar--horizontal'
+    />
+);
+
+const renderThumbVertical = (props: Record<string, unknown>): JSX.Element => (
+    <div
+        {...props}
+        className='scrollbar--vertical'
+    />
+);
+
 const PostEditHistory = ({
     channelDisplayName,
     originalPost,
@@ -27,7 +48,7 @@ const PostEditHistory = ({
     const [hasError, setHasError] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const dispatch = useDispatch();
-    const scrollbars = useRef<HTMLDivElement>(null);
+    const scrollbars = useRef<Scrollbars | null>(null);
     const {formatMessage} = useIntl();
     const retrieveErrorHeading = formatMessage({
         id: 'post_info.edit.history.retrieveError',
@@ -52,7 +73,7 @@ const PostEditHistory = ({
             setIsLoading(false);
         };
         fetchPostEditHistory();
-        scrollbars.current?.scrollTo({top: 0});
+        scrollbars.current?.scrollToTop();
     }, [originalPost, dispatch]);
 
     useEffect(() => {
@@ -119,7 +140,15 @@ const PostEditHistory = ({
             id='rhsContainer'
             className='sidebar-right__body sidebar-right__edit-post-history'
         >
-            <Scrollbars ref={scrollbars}>
+            <Scrollbars
+                ref={scrollbars}
+                autoHide={true}
+                autoHideTimeout={500}
+                autoHideDuration={500}
+                renderThumbHorizontal={renderThumbHorizontal}
+                renderThumbVertical={renderThumbVertical}
+                renderView={renderView}
+            >
                 <SearchResultsHeader>
                     <h2 id='rhsPanelTitle'>
                         {title}

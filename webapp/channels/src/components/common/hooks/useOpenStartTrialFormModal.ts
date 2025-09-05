@@ -10,13 +10,16 @@ import StartTrialFormModal from 'components/start_trial_form_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
 
+import type {TelemetryProps} from './useOpenPricingModal';
+
 export default function useOpenStartTrialFormModal() {
     const dispatch = useDispatch();
-    return useCallback((onClose?: () => void) => {
+    return useCallback((telemetryProps?: TelemetryProps, onClose?: () => void) => {
         dispatch(openModal({
             modalId: ModalIdentifiers.START_TRIAL_FORM_MODAL,
             dialogType: StartTrialFormModal,
             dialogProps: {
+                page: telemetryProps?.trackingLocation,
                 onClose,
             },
         }));

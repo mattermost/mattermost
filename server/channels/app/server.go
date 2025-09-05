@@ -338,12 +338,12 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 	s.htmlTemplateWatcher = htmlTemplateWatcher
 
-	s.telemetryService, err = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.Log())
+	s.telemetryService, err = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.platform.SearchEngine, s.Log(), *s.Config().LogSettings.VerboseDiagnostics)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to initialize telemetry service")
 	}
 
-	s.platform.SetTelemetryId(s.ServerId()) // TODO: move this into platform once telemetry service moved to platform.
+	s.platform.SetTelemetryId(s.TelemetryId()) // TODO: move this into platform once telemetry service moved to platform.
 
 	emailService, err := email.NewService(email.ServiceConfig{
 		ConfigFn:           s.platform.Config,
@@ -484,6 +484,17 @@ func (s *Server) runJobs() {
 	})
 	s.Go(func() {
 		runSecurityJob(s)
+	})
+	s.Go(func() {
+		firstRun, appErr := s.getFirstServerRunTimestamp()
+		if appErr != nil {
+			mlog.Warn("Fetching time of first server run failed. Setting to 'now'.")
+			if err := s.ensureFirstServerRunTimestamp(); err != nil {
+				mlog.Error("Failed to set first server run timestamp to current time", mlog.Err(err))
+			}
+			firstRun = utils.MillisFromTime(time.Now())
+		}
+		s.telemetryService.RunTelemetryJob(firstRun)
 	})
 	s.Go(func() {
 		runSessionCleanupJob(s)
@@ -633,7 +644,11 @@ func (s *Server) Shutdown() {
 	s.RemoveLicenseListener(s.loggerLicenseListenerId)
 	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
 
-	var err error
+	err := s.telemetryService.Shutdown()
+	if err != nil {
+		s.Log().Warn("Unable to cleanly shutdown telemetry client", mlog.Err(err))
+	}
+
 	s.serviceMux.RLock()
 	if s.sharedChannelService != nil {
 		if err = s.sharedChannelService.Shutdown(); err != nil {
@@ -1530,7 +1545,7 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeResendInvitationEmail,
-		resend_invitation_email.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store()),
+		resend_invitation_email.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store(), s.telemetryService),
 		nil,
 	)
 
@@ -1608,12 +1623,11 @@ func (s *Server) initJobs() {
 	s.platform.Jobs = s.Jobs
 }
 
-func (s *Server) ServerId() string {
-	props, err := s.Store().System().Get()
-	if err != nil {
+func (s *Server) TelemetryId() string {
+	if s.telemetryService == nil {
 		return ""
 	}
-	return props[model.SystemServerId]
+	return s.telemetryService.TelemetryID
 }
 
 func (s *Server) HTTPService() httpservice.HTTPService {
