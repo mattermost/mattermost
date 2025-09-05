@@ -32,7 +32,7 @@ type Props = {
     /**
      * Settings or tab section
      */
-    section: string;
+    section?: string;
     updateSection?: (section: string) => void;
     setting?: string;
     submit?: ((setting?: string) => void) | null;
