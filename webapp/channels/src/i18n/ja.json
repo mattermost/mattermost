@@ -3693,7 +3693,7 @@
   "channel_settings_modal.header.placeholder": "このチャンネルのヘッダーを入力してください",
   "channel_settings_modal.name.placeholder": "チャンネル名を入力してください",
   "channel_settings_modal.purpose.placeholder": "このチャンネルの目的を入力してください（オプション）",
-  "channel_switch_modal.deactivated": "無効にする",
+  "channel_switch_modal.deactivated": "無効化済み",
   "channel_toggle_button.private": "非公開",
   "channel_toggle_button.public": "公開",
   "claim.email_to_ldap.enterLdapPwd": "AD/LDAPアカウントのユーザーIDとパスワードを入力してください",
