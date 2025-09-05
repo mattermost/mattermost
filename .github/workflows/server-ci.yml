@@ -63,8 +63,8 @@ jobs:
         run: make modules-tidy
       - name: Check modules
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git diff; exit 1; fi
-  golangci:
-    name: golangci-lint
+  check-style:
+    name: check-style
     needs: go
     runs-on: ubuntu-22.04
     container: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
@@ -79,7 +79,7 @@ jobs:
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run golangci
-        run: make golangci-lint
+        run: make check-style
   check-gen-serialized:
     name: Check serialization methods for hot structs
     needs: go
@@ -97,25 +97,6 @@ jobs:
         run: make gen-serialized
       - name: Check serialized
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
-  check-mattermost-vet:
-    name: Check Mattermost style
-    needs: go
-    runs-on: ubuntu-22.04
-    container: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
-    defaults:
-      run:
-        working-directory: server
-    steps:
-      - name: Checkout mattermost project
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Run setup-go-work
-        run: make setup-go-work
-      - name: Reset config
-        run: make config-reset
-      - name: Run plugin-checker
-        run: make plugin-checker
-      - name: Run mattermost-vet
-        run: make vet BUILD_NUMBER='${GITHUB_HEAD_REF}'
   check-mattermost-vet-api:
     name: Vet API
     needs: go
