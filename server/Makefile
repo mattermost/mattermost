@@ -164,6 +164,13 @@ PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.2.0
 PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.2.1
 
+# Overwrite the definition of PLUGIN_PACKAGES with the list of FIPS-ready plugins
+ifeq ($(FIPS_ENABLED),true)
+  PLUGIN_PACKAGES = playbooks-2.4.0+6ec94a4b-fips
+  PLUGIN_PACKAGES += mattermost-ai-1.3.1+33dea39-fips
+  PLUGIN_PACKAGES += focalboard-9.1.5-fips
+endif
+
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
