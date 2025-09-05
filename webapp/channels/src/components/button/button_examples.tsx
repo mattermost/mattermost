@@ -65,9 +65,6 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                 {/* MATRIX 2: ALL SIZES × ALL ICON VARIANTS (20 combinations) */}
                 <div style={{marginBottom: '40px'}}>
                     <h4 style={{marginBottom: '16px'}}>📊 Sizes × ALL Icon Variants (20 combinations)</h4>
-                    <p style={{marginBottom: '16px', fontSize: '12px', color: 'rgba(0,0,0,0.6)'}}>
-                        Icon containers: XS=16×16px, SM=20×20px, MD=24×24px, LG=28×28px | Gaps: XS/SM=6px, MD=8px, LG=10px | Icon fonts: XS=14px, SM=16px, MD=18px, LG=20px
-                    </p>
                     <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '14px'}}>
                         <thead>
                             <tr style={{borderBottom: '2px solid rgba(0,0,0,0.1)'}}>
@@ -81,10 +78,7 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                             {sizes.map((size) => (
                                 <tr key={size} style={{borderBottom: '1px solid rgba(0,0,0,0.05)'}}>
                                     <td style={{padding: '8px', fontWeight: 600, fontSize: '12px'}}>
-                                        {size} <br/>
-                                        <span style={{fontSize: '10px', color: 'rgba(0,0,0,0.5)'}}>
-                                            {size === 'xs' ? '16×16px' : size === 'sm' ? '20×20px' : size === 'md' ? '24×24px' : '28×28px'}
-                                        </span>
+                                        {size}
                                     </td>
                                     {icons.map((icon) => (
                                         <td key={icon.label} style={{padding: '8px', textAlign: 'center'}}>
