@@ -366,43 +366,6 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                     </div>
                 </div>
 
-                {/* SUMMARY STATS */}
-                <div style={{backgroundColor: 'rgba(0,0,0,0.02)', padding: '16px', borderRadius: '8px', textAlign: 'center'}}>
-                    <h4 style={{margin: '0 0 8px 0', color: 'rgba(0,0,0,0.8)'}}>🎯 TOTAL PERMUTATIONS DISPLAYED</h4>
-                    <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginTop: '12px'}}>
-                        <div>
-                            <strong>Matrix 1:</strong> 20 combinations<br/>
-                            <small>(5 emphasis × 4 sizes)</small>
-                        </div>
-                        <div>
-                            <strong>Matrix 2:</strong> 16 combinations<br/>
-                            <small>(4 sizes × 4 icon variants)</small>
-                        </div>
-                        <div>
-                            <strong>Matrix 3:</strong> 30 combinations<br/>
-                            <small>(5 emphasis × 6 states)</small>
-                        </div>
-                        <div>
-                            <strong>Matrix 4:</strong> 20 combinations<br/>
-                            <small>(5 emphasis × 4 icon types)</small>
-                        </div>
-                        <div>
-                            <strong>Matrix 5:</strong> 24 combinations<br/>
-                            <small>(4 sizes × 6 states)</small>
-                        </div>
-                        <div>
-                            <strong>Matrix 6:</strong> 25 combinations<br/>
-                            <small>(5 emphasis × 5 fullWidth states)</small>
-                        </div>
-                        <div>
-                            <strong>Matrix 7:</strong> 135 combinations<br/>
-                            <small>(All inverted variations: 6 complete matrix duplicates)</small>
-                        </div>
-                    </div>
-                    <div style={{marginTop: '16px', fontSize: '18px', fontWeight: 700, color: 'rgba(0,0,0,0.8)'}}>
-                        📊 <strong>270 Total Button Variations</strong> 📊
-                    </div>
-                </div>
             </div>
         </div>
     );
