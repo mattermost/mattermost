@@ -48,6 +48,87 @@ func New(r io.Reader) *Parser {
 	return &Parser{reader: bufio.NewReader(io.LimitReader(r, MaxRunes))}
 }
 
+// Token represents a minimal unit of meaning in the parsed string.
+type Token uint
+
+const (
+	// ILLEGAL is a token representing an illegal token
+	ILLEGAL Token = 1 << iota
+
+	// Separator tokens
+	// EOF is a token representing the end of the input
+	EOF
+	// DOLLARSIGN is a token representing a '$'
+	DOLLARSIGN
+	// COMMA is a token representing a ','
+	COMMA
+	// EQUALSIGN is a token representing a '='
+	EQUALSIGN
+
+	// Literals
+	// FUNCTIONID is a token representing a non-empty set of any of the following symbols:
+	// [a-z0-9-]
+	FUNCTIONID
+	// PARAMNAME is a token representing a non-empty set of any of the following symbols:
+	// [a-z0-9-]
+	PARAMNAME
+	// PARAMVALUE is a token representing a non-empty set of any of the following symbols:
+	// [a-zA-Z0-9/+.-]
+	PARAMVALUE
+	// B64ENCODED is a token representing a non-empty set of any of the following symbols:
+	// [A-Za-z0-9+/]
+	B64ENCODED
+)
+
+const (
+	// IDENT is a generic identifier that represents any of its possibilities:
+	// either a FUNCTIONID, a PARAMNAME, a PARAMVALUE or a B64ENCODED
+	IDENT Token = FUNCTIONID | PARAMNAME | PARAMVALUE | B64ENCODED
+)
+
+// eof is a constant literal representing EOF
+const eof = rune(0)
+
+// [a-z]
+func isLowercaseLetter(ch rune) bool {
+	return (ch >= 'a' && ch <= 'z')
+}
+
+// [A-Za-z]
+func isLetter(ch rune) bool {
+	return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')
+}
+
+// [0-9]
+func isDigit(ch rune) bool {
+	return (ch >= '0' && ch <= '9')
+}
+
+// [A-Za-z0-9+/]
+func isB64(ch rune) bool {
+	return isLetter(ch) || isDigit(ch) || ch == '+' || ch == '/'
+}
+
+// [/+.-]
+func isSymbol(ch rune) bool {
+	return ch == '/' || ch == '+' || ch == '.' || ch == '-'
+}
+
+// [a-z0-9-]
+func isLowercaseLetterOrDigitOrMinus(ch rune) bool {
+	return isLowercaseLetter(ch) || isDigit(ch) || ch == '-'
+}
+
+// [a-zA-Z0-9/+.-]
+func isLetterOrDigitOrSymbol(ch rune) bool {
+	return isLetter(ch) || isDigit(ch) || isSymbol(ch)
+}
+
+// no identifiers allowed
+func none(ch rune) bool {
+	return false
+}
+
 // read reads a single rune, returning [eof] in case of any error.
 func (p *Parser) read() rune {
 	ch, _, err := p.reader.ReadRune()
@@ -350,85 +431,4 @@ func (p *Parser) Parse() (PHC, error) {
 			return PHC{}, fmt.Errorf("found %q, expected either ',', '$' or EOF", literal)
 		}
 	}
-}
-
-// Token represents a minimal unit of meaning in the parsed string.
-type Token uint
-
-const (
-	// ILLEGAL is a token representing an illegal token
-	ILLEGAL Token = 1 << iota
-
-	// Separator tokens
-	// EOF is a token representing the end of the input
-	EOF
-	// DOLLARSIGN is a token representing a '$'
-	DOLLARSIGN
-	// COMMA is a token representing a ','
-	COMMA
-	// EQUALSIGN is a token representing a '='
-	EQUALSIGN
-
-	// Literals
-	// FUNCTIONID is a token representing a non-empty set of any of the following symbols:
-	// [a-z0-9-]
-	FUNCTIONID
-	// PARAMNAME is a token representing a non-empty set of any of the following symbols:
-	// [a-z0-9-]
-	PARAMNAME
-	// PARAMVALUE is a token representing a non-empty set of any of the following symbols:
-	// [a-zA-Z0-9/+.-]
-	PARAMVALUE
-	// B64ENCODED is a token representing a non-empty set of any of the following symbols:
-	// [A-Za-z0-9+/]
-	B64ENCODED
-)
-
-const (
-	// IDENT is a generic identifier that represents any of its possibilities:
-	// either a FUNCTIONID, a PARAMNAME, a PARAMVALUE or a B64ENCODED
-	IDENT Token = FUNCTIONID | PARAMNAME | PARAMVALUE | B64ENCODED
-)
-
-// eof is a constant literal representing EOF
-const eof = rune(0)
-
-// [a-z]
-func isLowercaseLetter(ch rune) bool {
-	return (ch >= 'a' && ch <= 'z')
-}
-
-// [A-Za-z]
-func isLetter(ch rune) bool {
-	return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')
-}
-
-// [0-9]
-func isDigit(ch rune) bool {
-	return (ch >= '0' && ch <= '9')
-}
-
-// [A-Za-z0-9+/]
-func isB64(ch rune) bool {
-	return isLetter(ch) || isDigit(ch) || ch == '+' || ch == '/'
-}
-
-// [/+.-]
-func isSymbol(ch rune) bool {
-	return ch == '/' || ch == '+' || ch == '.' || ch == '-'
-}
-
-// [a-z0-9-]
-func isLowercaseLetterOrDigitOrMinus(ch rune) bool {
-	return isLowercaseLetter(ch) || isDigit(ch) || ch == '-'
-}
-
-// [a-zA-Z0-9/+.-]
-func isLetterOrDigitOrSymbol(ch rune) bool {
-	return isLetter(ch) || isDigit(ch) || isSymbol(ch)
-}
-
-// no identifiers allowed
-func none(ch rune) bool {
-	return false
 }
