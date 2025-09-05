@@ -182,8 +182,8 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
 
                 {/* MATRIX 6: FULL WIDTH × ALL EMPHASIS × SELECTED STATES */}
                 <div style={{marginBottom: '40px'}}>
-                    <h4 style={{marginBottom: '16px'}}>Full Width × ALL Emphasis × Key States</h4>
-                    {emphases.map((emphasis) => (
+                    <h4 style={{marginBottom: '16px'}}>Full Width × Selected Emphasis × Key States</h4>
+                    {emphases.filter(emphasis => !['quaternary', 'link'].includes(emphasis)).map((emphasis) => (
                         <div key={emphasis} style={{marginBottom: '12px'}}>
                             <h6 style={{marginBottom: '8px', textTransform: 'capitalize', fontSize: '12px', fontWeight: 600, color: 'rgba(0,0,0,0.6)'}}>{emphasis}</h6>
                             <div style={{display: 'grid', gap: '4px'}}>
@@ -348,10 +348,10 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                         </table>
                     </div>
 
-                    {/* INVERTED MATRIX 6: FULL WIDTH × ALL EMPHASIS × SELECTED STATES */}
+                    {/* INVERTED MATRIX 6: FULL WIDTH × SELECTED EMPHASIS × SELECTED STATES */}
                     <div style={{marginBottom: '24px'}}>
-                        <h5 style={{color: 'white', marginBottom: '12px', fontSize: '14px', fontWeight: 600}}>Full Width × Emphasis × Key States (Inverted)</h5>
-                        {emphases.map((emphasis) => (
+                        <h5 style={{color: 'white', marginBottom: '12px', fontSize: '14px', fontWeight: 600}}>Full Width × Selected Emphasis × Key States (Inverted)</h5>
+                        {emphases.filter(emphasis => !['quaternary', 'link'].includes(emphasis)).map((emphasis) => (
                             <div key={emphasis} style={{marginBottom: '12px'}}>
                                 <h6 style={{marginBottom: '8px', textTransform: 'capitalize', fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.7)'}}>{emphasis}</h6>
                                 <div style={{display: 'grid', gap: '4px'}}>
