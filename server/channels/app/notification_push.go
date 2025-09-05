@@ -513,7 +513,7 @@ func (a *App) rawSendToPushProxy(msg *model.PushNotification) (model.PushRespons
 }
 
 func (a *App) sendToPushProxy(rctx request.CTX, msg *model.PushNotification, session *model.Session) error {
-	msg.ServerId = a.TelemetryId()
+	msg.ServerId = a.ServerId()
 
 	rctx.Logger().LogM(mlog.MlvlNotificationTrace, "Notification will be sent",
 		mlog.String("status", model.PushSendPrepare),
@@ -727,7 +727,7 @@ func (a *App) SendTestPushNotification(rctx request.CTX, deviceID string) string
 	msg := &model.PushNotification{
 		Version:  "2",
 		Type:     model.PushTypeTest,
-		ServerId: a.TelemetryId(),
+		ServerId: a.ServerId(),
 		Badge:    -1,
 	}
 	msg.SetDeviceIdAndPlatform(deviceID)

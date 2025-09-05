@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
@@ -9,7 +9,6 @@ import {GenericModal} from '@mattermost/components';
 
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {closeModal} from 'actions/views/modals';
 
 import SystemRolesSVG from 'components/admin_console/feature_discovery/features/images/system_roles_svg';
@@ -18,7 +17,7 @@ import {BtnStyle} from 'components/common/carousel/carousel_button';
 import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
 import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
 
-import {ConsolePages, DocLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {ConsolePages, DocLinks, ModalIdentifiers} from 'utils/constants';
 
 import LearnMoreTrialModalStep from './learn_more_trial_modal_step';
 import type {LearnMoreTrialModalStepProps} from './learn_more_trial_modal_step';
@@ -27,14 +26,12 @@ import StartTrialBtn from './start_trial_btn';
 type Props = {
     onClose?: () => void;
     onExited: () => void;
-    launchedBy?: string;
 }
 
 const LearnMoreTrialModal = (
     {
         onClose,
         onExited,
-        launchedBy = '',
     }: Props): JSX.Element | null => {
     const {formatMessage} = useIntl();
     const [embargoed, setEmbargoed] = useState(false);
@@ -56,7 +53,6 @@ const LearnMoreTrialModal = (
     const startTrialBtn = (
         <StartTrialBtn
             handleEmbargoError={handleEmbargoError}
-            telemetryId={`start_trial__learn_more_modal__${launchedBy}`}
             onClick={dismissAction}
         />
     );
@@ -68,13 +64,6 @@ const LearnMoreTrialModal = (
 
         onExited();
     }, [onClose, onExited]);
-
-    useEffect(() => {
-        trackEvent(
-            TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL,
-            'learn_more_trial_modal_view',
-        );
-    }, []);
 
     const buttonLabel = formatMessage({id: 'learn_more_trial_modal_step.learnMoreAboutFeature', defaultMessage: 'Learn more about this feature.'});
 
@@ -123,17 +112,6 @@ const LearnMoreTrialModal = (
         },
     ], []);
 
-    const handleOnPrevNextSlideClick = useCallback((slideIndex: number) => {
-        const slideId = steps[slideIndex - 1]?.id;
-
-        if (slideId) {
-            trackEvent(
-                TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL,
-                'learn_more_trial_modal_slide_shown_' + slideId,
-            );
-        }
-    }, [steps]);
-
     const getSlides = useMemo(
         () =>
             steps.map(({id, ...rest}) => (
@@ -165,8 +143,6 @@ const LearnMoreTrialModal = (
                 dataSlides={getSlides}
                 id={'learnMoreTrialModalCarousel'}
                 infiniteSlide={false}
-                onNextSlideClick={handleOnPrevNextSlideClick}
-                onPrevSlideClick={handleOnPrevNextSlideClick}
                 disableNextButton={embargoed}
                 btnsStyle={BtnStyle.CHEVRON}
                 actionButton={startTrialBtn}

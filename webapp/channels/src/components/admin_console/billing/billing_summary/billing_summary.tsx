@@ -10,7 +10,6 @@ import type {Invoice, InvoiceLineItem, Product} from '@mattermost/types/cloud';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
 
 import BlockableLink from 'components/admin_console/blockable_link';
@@ -56,7 +55,6 @@ export const noBillingHistory = (
             location='billing_summary'
             href={CloudLinks.BILLING_DOCS}
             className='btn btn-primary BillingSummary__noBillingHistory-link'
-            onClick={() => trackEvent('cloud_admin', 'click_how_billing_works', {screen: 'subscriptions'})}
         >
             <FormattedMessage
                 id='admin.billing.subscriptions.billing_summary.noBillingHistory.link'

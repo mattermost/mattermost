@@ -39,7 +39,6 @@ exports[`components/trial_benefits_modal/trial_benefits_modal_step should match 
     Step description
   </div>
   <TrialBenefitsModalStepMore
-    id="stepId"
     message="button"
     onClick={[MockFunction]}
     route="/test/page"

@@ -16,8 +16,6 @@ import {
     ExitToAppIcon,
 } from '@mattermost/compass-icons/components';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMoveToSubmenu from 'components/channel_move_to_sub_menu';
 import * as Menu from 'components/menu';
@@ -57,7 +55,6 @@ const SidebarChannelMenu = ({
         function handleMarkAsRead() {
             // We use mark multiple to not update the active channel in the server
             readMultipleChannels([channel.id]);
-            trackEvent('ui', 'ui_sidebar_channel_menu_markAsRead');
         }
 
         markAsReadUnreadMenuItem = (
@@ -77,7 +74,6 @@ const SidebarChannelMenu = ({
     } else {
         function handleMarkAsUnread() {
             markMostRecentPostInChannelAsUnread(channel.id);
-            trackEvent('ui', 'ui_sidebar_channel_menu_markAsUnread');
         }
 
         markAsReadUnreadMenuItem = (
@@ -99,7 +95,6 @@ const SidebarChannelMenu = ({
     if (isFavorite) {
         function handleUnfavoriteChannel() {
             unfavoriteChannel(channel.id);
-            trackEvent('ui', 'ui_sidebar_channel_menu_unfavorite');
         }
 
         favoriteUnfavoriteMenuItem = (
@@ -118,7 +113,6 @@ const SidebarChannelMenu = ({
     } else {
         function handleFavoriteChannel() {
             favoriteChannel(channel.id);
-            trackEvent('ui', 'ui_sidebar_channel_menu_favorite');
         }
 
         favoriteUnfavoriteMenuItem = (
@@ -225,7 +219,6 @@ const SidebarChannelMenu = ({
                 dialogType: ChannelInviteModal,
                 dialogProps: {channel},
             });
-            trackEvent('ui', 'ui_sidebar_channel_menu_addMembers');
         }
 
         addMembersMenuItem = (
@@ -271,7 +264,6 @@ const SidebarChannelMenu = ({
             channelLeaveHandler(() => {
                 isLeaving.current = false;
             });
-            trackEvent('ui', 'ui_sidebar_channel_menu_leave');
         }
 
         leaveChannelMenuItem = (

@@ -14,7 +14,7 @@ function AtPlanMention(props: Props) {
 
     const handleClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         e.preventDefault();
-        openPricingModal({trackingLocation: 'notify_admin_message_view'});
+        openPricingModal();
     };
 
     if (isAirGapped) {

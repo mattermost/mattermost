@@ -40,7 +40,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render 1`] = `
     installing={false}
     isDefaultMarketplace={true}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion=""
@@ -102,7 +101,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render installe
     installing={false}
     isDefaultMarketplace={true}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion="1.0.0"
@@ -172,7 +170,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with emp
     isDefaultMarketplace={true}
     labels={Array []}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion=""
@@ -240,7 +237,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
     installing={false}
     isDefaultMarketplace={true}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion=""
@@ -308,7 +304,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
     installing={false}
     isDefaultMarketplace={true}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion=""
@@ -375,7 +370,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
     installing={false}
     isDefaultMarketplace={true}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion=""
@@ -453,7 +447,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with one
       ]
     }
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion=""
@@ -535,7 +528,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with plu
         "version": "",
       }
     }
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion=""
@@ -605,7 +597,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with ser
     installing={false}
     isDefaultMarketplace={true}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion=""
@@ -688,7 +679,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with two
       ]
     }
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion=""
@@ -751,7 +741,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with upd
     isDefaultMarketplace={true}
     name="name"
     releaseNotesUrl="http://example.com/release"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion="0.9.9"
@@ -815,7 +804,6 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with upd
     installing={false}
     isDefaultMarketplace={true}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={
       <UpdateDetails
         installedVersion="0.9.9"

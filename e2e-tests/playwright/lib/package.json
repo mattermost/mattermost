@@ -47,7 +47,7 @@
     "@mattermost/types": "file:../../../webapp/platform/types",
     "@percy/cli": "1.31.1",
     "@percy/playwright": "1.0.9",
-    "async-wait-until": "2.0.27",
+    "async-wait-until": "2.0.30",
     "axe-core": "4.10.3",
     "deepmerge": "4.3.1",
     "dotenv": "17.2.1",
@@ -57,12 +57,12 @@
   "devDependencies": {
     "@rollup/plugin-typescript": "12.1.4",
     "@types/mime-types": "3.0.1",
-    "@types/node": "24.1.0",
-    "@types/react": "19.1.8",
-    "rollup": "4.46.0",
+    "@types/node": "24.3.0",
+    "@types/react": "19.1.11",
+    "rollup": "4.48.1",
     "rollup-plugin-copy": "3.5.0"
   },
   "peerDependencies": {
-    "@playwright/test": "1.54.1"
+    "@playwright/test": "1.55.0"
   }
 }

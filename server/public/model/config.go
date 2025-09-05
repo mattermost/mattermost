@@ -1456,7 +1456,6 @@ type LogSettings struct {
 	FileLocation           *string         `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	EnableWebhookDebugging *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	EnableDiagnostics      *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
-	VerboseDiagnostics     *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableSentry           *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	AdvancedLoggingJSON    json.RawMessage `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	MaxFieldSize           *int            `access:"environment_logging,write_restrictable,cloud_restrictable"`
@@ -1514,10 +1513,6 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.EnableDiagnostics == nil {
 		s.EnableDiagnostics = NewPointer(true)
-	}
-
-	if s.VerboseDiagnostics == nil {
-		s.VerboseDiagnostics = NewPointer(false)
 	}
 
 	if s.EnableSentry == nil {

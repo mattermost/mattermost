@@ -19,7 +19,7 @@ describe('Connected Workspaces', () => {
     let testUser: Cypress.UserProfile;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let admin: Cypress.UserProfile;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     let testChannel: Cypress.Channel;
 
     before(() => {
