@@ -3246,6 +3246,14 @@ func (s *SqlPostStore) GetPostReminders(now int64) (_ []*model.PostReminder, err
 	return reminders, nil
 }
 
+func (s *SqlPostStore) DeleteAllPostRemindersForPost(postId string) error {
+	_, err := s.GetMaster().Exec(`DELETE from PostReminders WHERE PostId = ?`, postId)
+	if err != nil {
+		return errors.Wrapf(err, "failed to delete post reminders for postId %s", postId)
+	}
+	return nil
+}
+
 func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostReminderMetadata, error) {
 	meta := &store.PostReminderMetadata{}
 	err := s.GetReplica().Get(meta, `SELECT c.id as ChannelID,

@@ -396,3 +396,67 @@ func (a *App) GetPostContentFlaggingPropertyValues(postId string) ([]*model.Prop
 
 	return propertyValues, nil
 }
+
+func (a *App) PermanentDeleteFlaggedPost(c request.CTX, reviewerId string, post *model.Post) *model.AppError {
+	// when a flagged post is removed, the following things need to be done
+	// 1. Hard delete corresponding file infos
+	// 2. Hard delete file infos associated to post's edit history
+	// 3. Hard delete post's edit history
+	// 4. Hard delete the files from file storage
+	// 5. Hard delete post's priority data
+	// 6. Hard delete post's postacknowledgements
+	// 7. Hard delete postreminders
+	// 8. Scrub the post's content - message, props
+
+	editHistories, appErr := a.GetEditHistoryForPost(post.Id)
+	if appErr != nil {
+		editHistories = []*model.Post{}
+
+		if appErr.StatusCode != http.StatusNotFound {
+			c.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to get edit history for post", mlog.Err(appErr), mlog.String("post_id", post.Id))
+		}
+	}
+
+	for _, editHistory := range editHistories {
+		if filesDeleteAppErr := a.PermanentDeleteFilesByPost(c, editHistory.Id); filesDeleteAppErr != nil {
+			c.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to permanently delete files for one of the edit history posts", mlog.Err(filesDeleteAppErr), mlog.String("post_id", editHistory.Id))
+		}
+
+		if deletePostAppErr := a.PermanentDeletePost(c, editHistory.Id, reviewerId); deletePostAppErr != nil {
+			c.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to permanently delete one of the edit history posts", mlog.Err(deletePostAppErr), mlog.String("post_id", editHistory.Id))
+		}
+	}
+
+	if filesDeleteAppErr := a.PermanentDeleteFilesByPost(c, post.Id); filesDeleteAppErr != nil {
+		c.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to permanently delete files for the post", mlog.Err(filesDeleteAppErr), mlog.String("post_id", post.Id))
+	}
+
+	if err := a.DeletePriorityForPost(post.Id); err != nil {
+		c.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to delete post priority for the post", mlog.Err(err), mlog.String("post_id", post.Id))
+	}
+
+	if err := a.Srv().Store().PostAcknowledgement().DeleteAllForPost(post.Id); err != nil {
+		c.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to delete post acknowledgements for the post", mlog.Err(err), mlog.String("post_id", post.Id))
+	}
+
+	if err := a.Srv().Store().Post().DeleteAllPostRemindersForPost(post.Id); err != nil {
+		c.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to delete post reminders for the post", mlog.Err(err), mlog.String("post_id", post.Id))
+	}
+
+	scrubPost(post)
+	_, _, err := a.Srv().Store().Post().OverwriteMultiple(c, []*model.Post{post})
+	if err != nil {
+		return model.NewAppError("PermanentlyRemoveFlaggedPost", "app.content_flagging.update_post.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	return nil
+}
+
+func scrubPost(post *model.Post) {
+	post.Message = "*Content deleted as part of Content Flagging review process*"
+	post.MessageSource = post.Message
+	post.Hashtags = ""
+	post.Metadata = nil
+	post.FileIds = []string{}
+	post.SetProps(make(map[string]any))
+}
