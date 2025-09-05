@@ -20,20 +20,6 @@ const FullLogEventModal = ({
 }: Props) => {
     const [copySuccess, setCopySuccess] = useState(false);
 
-    const renderContents = () => {
-        if (log == null) {
-            return <div/>;
-        }
-
-        return (
-            <div>
-                <pre>
-                    {JSON.stringify(log, undefined, 2)}
-                </pre>
-            </div>
-        );
-    };
-
     const showCopySuccess = () => {
         setCopySuccess(true);
 
@@ -80,7 +66,13 @@ const FullLogEventModal = ({
                 )}
             </Modal.Header>
             <Modal.Body>
-                {renderContents()}
+                {
+                    log === null ? <div/> : <div>
+                        <pre>
+                            {JSON.stringify(log, undefined, 2)}
+                        </pre>
+                    </div>
+                }
             </Modal.Body>
             <Modal.Footer>
                 <button
