@@ -84,7 +84,7 @@ const EnterpriseEditionLeftPanel = ({
     const viewPlansButton = isAirGapped ? null : (
         <button
             id='enterprise_edition_view_plans'
-            onClick={openPricingModal}
+            onClick={() => openPricingModal({trackingLocation: 'license_settings_view_plans'})}
             className='btn btn-tertiary btn-sm PlanDetails__viewPlansButton'
         >
             {formatMessage({

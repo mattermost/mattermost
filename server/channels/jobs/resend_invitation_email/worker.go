@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
 const FourtyEightHoursInMillis int64 = 172800000
@@ -26,27 +27,29 @@ type AppIface interface {
 }
 
 type ResendInvitationEmailWorker struct {
-	name      string
-	stop      chan bool
-	stopped   chan bool
-	jobs      chan model.Job
-	jobServer *jobs.JobServer
-	logger    mlog.LoggerIFace
-	app       AppIface
-	store     store.Store
+	name             string
+	stop             chan bool
+	stopped          chan bool
+	jobs             chan model.Job
+	jobServer        *jobs.JobServer
+	logger           mlog.LoggerIFace
+	app              AppIface
+	store            store.Store
+	telemetryService *telemetry.TelemetryService
 }
 
-func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) *ResendInvitationEmailWorker {
+func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store, telemetryService *telemetry.TelemetryService) *ResendInvitationEmailWorker {
 	const workerName = "ResendInvitationEmail"
 	worker := ResendInvitationEmailWorker{
-		name:      workerName,
-		stop:      make(chan bool, 1),
-		stopped:   make(chan bool, 1),
-		jobs:      make(chan model.Job),
-		jobServer: jobServer,
-		logger:    jobServer.Logger().With(mlog.String("worker_name", workerName)),
-		app:       app,
-		store:     store,
+		name:             workerName,
+		stop:             make(chan bool, 1),
+		stopped:          make(chan bool, 1),
+		jobs:             make(chan model.Job),
+		jobServer:        jobServer,
+		logger:           jobServer.Logger().With(mlog.String("worker_name", workerName)),
+		app:              app,
+		store:            store,
+		telemetryService: telemetryService,
 	}
 	return &worker
 }
@@ -211,4 +214,5 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFa
 		logger.Error("Worker: Failed to send emails", mlog.Err(appErr))
 		rseworker.setJobError(logger, job, appErr)
 	}
+	rseworker.telemetryService.SendTelemetry("track_invite_email_resend", map[string]any{interval: interval})
 }

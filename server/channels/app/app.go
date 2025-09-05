@@ -37,8 +37,8 @@ func New(options ...AppOption) *App {
 	return app
 }
 
-func (a *App) ServerId() string {
-	return a.Srv().ServerId()
+func (a *App) TelemetryId() string {
+	return a.Srv().TelemetryId()
 }
 
 func (s *Server) TemplatesContainer() *templates.Container {

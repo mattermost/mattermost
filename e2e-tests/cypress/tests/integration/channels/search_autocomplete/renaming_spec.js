@@ -11,6 +11,7 @@
 // Group: @channels @autocomplete
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
+
 import {withTimestamp, createEmail} from '../enterprise/elasticsearch_autocomplete/helpers';
 
 describe('Autocomplete without Elasticsearch - Renaming', () => {

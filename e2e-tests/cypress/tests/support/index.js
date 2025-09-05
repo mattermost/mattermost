@@ -5,10 +5,11 @@
 // Read more at: https://on.cypress.io/configuration
 // ***********************************************************
 
-
+/* eslint-disable no-loop-func */
 
 import dayjs from 'dayjs';
 import localforage from 'localforage';
+
 import '@testing-library/cypress/add-commands';
 import 'cypress-file-upload';
 import 'cypress-wait-until';
@@ -36,6 +37,7 @@ import './task_commands';
 import './ui';
 import './ui_commands'; // soon to deprecate
 import {DEFAULT_TEAM} from './constants';
+
 import {getDefaultConfig} from './api/system';
 
 Cypress.dayjs = dayjs;

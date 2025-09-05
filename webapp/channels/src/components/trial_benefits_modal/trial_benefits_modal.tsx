@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import moment from 'moment';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {matchPath, useLocation} from 'react-router-dom';
@@ -11,6 +11,7 @@ import {GenericModal} from '@mattermost/components';
 
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
+import {trackEvent} from 'actions/telemetry_actions';
 import {isModalOpen} from 'selectors/views/modals';
 
 import BlockableLink from 'components/admin_console/blockable_link';
@@ -22,7 +23,7 @@ import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_
 import PersonWithChecklistSvg from 'components/common/svg_images_components/person_with_checklist';
 import SuccessSvg from 'components/common/svg_images_components/success_svg';
 
-import {ConsolePages, DocLinks, ModalIdentifiers} from 'utils/constants';
+import {ConsolePages, DocLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -55,6 +56,15 @@ const TrialBenefitsModal = ({
     const isCloud = license?.Cloud === 'true';
 
     const openInvitePeopleModal = useOpenInvitePeopleModal();
+
+    useEffect(() => {
+        if (!trialJustStarted) {
+            trackEvent(
+                TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL,
+                'benefits_modal_post_enterprise_view',
+            );
+        }
+    }, []);
 
     // by default all licence last 30 days plus 8 hours. We use this value as a fallback for the trial license duration information shown in the modal
     const trialLicenseDuration = (1000 * 60 * 60 * 24 * 30) + (1000 * 60 * 60 * 8);
@@ -197,6 +207,17 @@ const TrialBenefitsModal = ({
         handleOnClose();
     };
 
+    const handleOnPrevNextSlideClick = useCallback((slideIndex: number) => {
+        const slideId = steps[slideIndex - 1]?.id;
+
+        if (slideId) {
+            trackEvent(
+                TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL,
+                'benefits_modal_slide_shown_' + slideId,
+            );
+        }
+    }, [steps]);
+
     const getSlides = useCallback(() => steps.map(({id, ...rest}) => (
         <TrialBenefitsModalStep
             {...rest}
@@ -292,6 +313,8 @@ const TrialBenefitsModal = ({
                 dataSlides={getSlides()}
                 id={'trialBenefitsModalCarousel'}
                 infiniteSlide={false}
+                onNextSlideClick={handleOnPrevNextSlideClick}
+                onPrevSlideClick={handleOnPrevNextSlideClick}
             />
         );
     };

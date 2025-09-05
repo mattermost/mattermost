@@ -11,6 +11,11 @@ import {savePreferences as storeSavePreferences} from 'mattermost-redux/actions/
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getInt} from 'mattermost-redux/selectors/entities/preferences';
 
+import {trackEvent as trackEventAction} from 'actions/telemetry_actions';
+
+import {
+    generateTelemetryTag,
+} from 'components/onboarding_tasks';
 import {
     getLastStep,
     isKeyPressed,
@@ -24,6 +29,7 @@ import type {
 
 import {
     AutoTourStatus,
+    ChannelsTour,
     FINISHED,
     SKIPPED,
     TTNameMapToATStatusKey,
@@ -43,7 +49,7 @@ export const useTourTipManager = (tourCategory: string): ChannelsTourTipManager 
     const handleActions = useHandleNavigationAndExtraActions(tourCategory);
 
     const handleSaveDataAndTrackEvent = useCallback(
-        (stepValue: number, eventSource: ActionType, autoTour = true) => {
+        (stepValue: number, eventSource: ActionType, autoTour = true, trackEvent = true) => {
             const preferences = [
                 {
                     user_id: currentUserId,
@@ -59,6 +65,11 @@ export const useTourTipManager = (tourCategory: string): ChannelsTourTipManager 
                 },
             ];
             dispatch(storeSavePreferences(currentUserId, preferences));
+            if (trackEvent) {
+                const eventSuffix = `${stepValue}--${eventSource}`;
+                const telemetryTag = generateTelemetryTag(ChannelsTour, tourCategory, eventSuffix);
+                trackEventAction(tourCategory, telemetryTag);
+            }
         },
         [currentUserId, currentChannelId, tourCategory],
     );

@@ -3,6 +3,8 @@
 
 import type {CloudCustomer, InvoiceLineItem, Subscription} from '@mattermost/types/cloud';
 
+import {trackEvent} from 'actions/telemetry_actions';
+
 import {CloudLinks} from 'utils/constants';
 
 export function buildInvoiceSummaryPropsFromLineItems(lineItems: InvoiceLineItem[]) {
@@ -39,6 +41,7 @@ export function isCustomerCardExpired(customer?: CloudCustomer): boolean {
 }
 
 export function openExternalPricingLink() {
+    trackEvent('cloud_admin', 'click_pricing_link');
     window.open(CloudLinks.PRICING, '_blank');
 }
 

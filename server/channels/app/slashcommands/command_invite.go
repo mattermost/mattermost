@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
 type InviteProvider struct {
@@ -217,7 +218,14 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 
 		if msg[0] == '@' || (msg[0] != '~' && j == 0) {
 			targetMentionName := strings.TrimPrefix(msg, "@")
-			users, _ := i.getUsersFromMentionName(a, targetMentionName)
+			users, group := i.getUsersFromMentionName(a, targetMentionName)
+			if group != nil {
+				a.Srv().GetTelemetryService().SendTelemetryForFeature(
+					telemetry.TrackGroupsFeature,
+					"invite_group_to_channel__command",
+					map[string]any{telemetry.TrackPropertyUser: c.Session().UserId, telemetry.TrackPropertyGroup: group.Id},
+				)
+			}
 			if len(users) == 0 {
 				*resps = append(*resps, args.T("api.command_invite.missing_user.app_error", map[string]any{
 					"User": targetMentionName,

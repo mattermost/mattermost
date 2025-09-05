@@ -12,6 +12,7 @@
 
 import {beRead, beUnread} from '../../../support/assertions';
 import {getAdminAccount} from '../../../support/env';
+
 import {getRandomId} from '../../../utils';
 
 describe('Handle new post', () => {

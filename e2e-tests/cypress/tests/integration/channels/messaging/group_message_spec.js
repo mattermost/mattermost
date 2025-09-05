@@ -16,7 +16,7 @@ describe('Group Message', () => {
     let testTeam;
     let testUser;
     let townsquareLink;
-    const users = [];
+    var users = [];
 
     const groupUsersCount = 3;
 

@@ -135,7 +135,7 @@ const Limits = (): JSX.Element | null => {
                     <>
                         {!isAirGapped && (
                             <button
-                                onClick={openPricingModal}
+                                onClick={() => openPricingModal({trackingLocation: 'billing_subscriptions_limits_dashboard'})}
                                 className='btn btn-primary'
                             >
                                 {intl.formatMessage({

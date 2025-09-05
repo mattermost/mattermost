@@ -3,6 +3,8 @@
 
 import React, {useCallback, useEffect, useState} from 'react';
 
+import {trackEvent} from 'actions/telemetry_actions.jsx';
+
 import Markdown from 'components/markdown';
 
 import AnnouncementBar from './default_announcement_bar';
@@ -41,6 +43,7 @@ const TextDismissableBar = ({
         if (!allowDismissal) {
             return;
         }
+        trackEvent('signup', 'click_dismiss_bar');
 
         localStorage.setItem(localStoragePrefix + text?.toString(), 'true');
         setDismissed(true);

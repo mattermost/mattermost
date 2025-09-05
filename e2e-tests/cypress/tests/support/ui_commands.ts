@@ -4,8 +4,9 @@
 import localforage from 'localforage';
 
 import * as TIMEOUTS from '../fixtures/timeouts';
-import {ChainableT} from '../types';
 import {isMac} from '../utils';
+
+import {ChainableT} from '../types';
 
 // ***********************************************************
 // Read more: https://on.cypress.io/custom-commands

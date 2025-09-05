@@ -13,7 +13,6 @@
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
-
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Leave channel', () => {
@@ -70,7 +69,7 @@ describe('Leave channel', () => {
 
             // # Archive the channel
             cy.uiLeaveChannel();
-            cy.wait(TIMEOUTS.TWO_SEC);
+            cy.wait(TIMEOUTS.TWO_SEC); // eslint-disable-line cypress/no-unnecessary-waiting
 
             // * RHS should not be visible
             cy.get('#rhsContainer').should('not.exist');
@@ -108,7 +107,7 @@ describe('Leave channel', () => {
 
             // # Archive the channel
             cy.uiLeaveChannel();
-            cy.wait(TIMEOUTS.TWO_SEC);
+            cy.wait(TIMEOUTS.TWO_SEC); // eslint-disable-line cypress/no-unnecessary-waiting
 
             // * RHS should not be visible
             cy.get('#rhsContainer').should('not.exist');

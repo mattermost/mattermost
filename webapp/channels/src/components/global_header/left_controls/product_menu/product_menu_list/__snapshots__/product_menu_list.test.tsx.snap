@@ -137,6 +137,11 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
       teamId=""
     >
       <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "openedFrom": "product_menu",
+          }
+        }
         dialogType={[Function]}
         icon={
           <ViewGridPlusOutlineIcon
@@ -320,6 +325,11 @@ exports[`components/global/product_switcher_menu should match snapshot with most
       teamId=""
     >
       <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "openedFrom": "product_menu",
+          }
+        }
         dialogType={[Function]}
         icon={
           <ViewGridPlusOutlineIcon
@@ -630,6 +640,11 @@ exports[`components/global/product_switcher_menu should show integrations should
       teamId=""
     >
       <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "openedFrom": "product_menu",
+          }
+        }
         dialogType={[Function]}
         icon={
           <ViewGridPlusOutlineIcon

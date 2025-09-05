@@ -4,8 +4,10 @@
 import classNames from 'classnames';
 import debounce from 'lodash/debounce';
 import React, {lazy} from 'react';
+import type {CSSProperties} from 'react';
 import {DragDropContext, Droppable} from 'react-beautiful-dnd';
 import type {DropResult, DragStart, BeforeCapture} from 'react-beautiful-dnd';
+import Scrollbars from 'react-custom-scrollbars';
 import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 import {SpringSystem} from 'rebound';
 import type {Spring} from 'rebound';
@@ -16,8 +18,9 @@ import type {Team} from '@mattermost/types/teams';
 
 import {General} from 'mattermost-redux/constants';
 
+import {trackEvent} from 'actions/telemetry_actions';
+
 import {makeAsyncComponent} from 'components/async_load';
-import Scrollbars from 'components/common/scrollbars';
 import SidebarCategory from 'components/sidebar/sidebar_category';
 
 import {findNextUnreadChannelId} from 'utils/channel_utils';
@@ -32,6 +35,44 @@ const DraftsLink = makeAsyncComponent('DraftsLink', lazy(() => import('component
 const GlobalThreadsLink = makeAsyncComponent('GlobalThreadsLink', lazy(() => import('components/threading/global_threads_link')));
 const UnreadChannelIndicator = makeAsyncComponent('UnreadChannelIndicator', lazy(() => import('../unread_channel_indicator')));
 const UnreadChannels = makeAsyncComponent('UnreadChannels', lazy(() => import('../unread_channels')));
+
+export function renderView(props: React.HTMLProps<HTMLDivElement>) {
+    return (
+        <div
+            {...props}
+            className='scrollbar--view'
+        />
+    );
+}
+
+export function renderThumbHorizontal(props: React.HTMLProps<HTMLDivElement>) {
+    return (
+        <div
+            {...props}
+            className='scrollbar--horizontal'
+        />
+    );
+}
+
+export function renderTrackVertical(props: React.HTMLProps<HTMLDivElement>) {
+    return (
+        <div
+            {...props}
+            className='scrollbar--verticalTrack'
+        />
+    );
+}
+
+export function renderThumbVertical(props: React.HTMLProps<HTMLDivElement>) {
+    return (
+        <div
+            {...props}
+            className='scrollbar--vertical'
+        />
+    );
+}
+
+const scrollbarStyles: CSSProperties = {position: 'absolute'};
 
 type Props = WrappedComponentProps & {
     currentTeam?: Team;
@@ -68,6 +109,7 @@ type Props = WrappedComponentProps & {
 type State = {
     showTopUnread: boolean;
     showBottomUnread: boolean;
+    autoHide: boolean;
 };
 
 // scrollMargin is the margin at the edge of the channel list that we leave when scrolling to a channel.
@@ -82,9 +124,10 @@ const scrollMarginWithUnread = 55;
 
 export class SidebarList extends React.PureComponent<Props, State> {
     channelRefs: Map<string, HTMLLIElement>;
-    scrollbar: React.RefObject<HTMLDivElement>;
+    scrollbar: React.RefObject<Scrollbars>;
     animate: SpringSystem;
     scrollAnimation: Spring;
+    channelsListScrollTimeout: NodeJS.Timeout | null = null;
 
     constructor(props: Props) {
         super(props);
@@ -93,6 +136,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
         this.state = {
             showTopUnread: false,
             showBottomUnread: false,
+            autoHide: true,
         };
         this.scrollbar = React.createRef();
 
@@ -119,7 +163,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
 
         // reset the scrollbar upon switching teams
         if (this.props.currentTeam !== prevProps.currentTeam) {
-            this.scrollbar.current!.scrollTo({top: 0});
+            this.scrollbar.current!.scrollToTop();
         }
 
         // Scroll to selected channel so it's in view
@@ -161,7 +205,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
 
     handleScrollAnimationUpdate = (spring: Spring) => {
         const val = spring.getCurrentValue();
-        this.scrollbar.current!.scrollTo?.({top: val});
+        this.scrollbar.current!.scrollTop(val);
     };
 
     scrollToFirstUnreadChannel = () => {
@@ -185,8 +229,8 @@ export class SidebarList extends React.PureComponent<Props, State> {
         const top = element.offsetTop;
         const bottom = top + element.offsetHeight;
 
-        const scrollTop = this.scrollbar.current!.scrollTop;
-        const clientHeight = this.scrollbar.current!.clientHeight;
+        const scrollTop = this.scrollbar.current!.getScrollTop();
+        const scrollHeight = this.scrollbar.current!.getClientHeight();
 
         if (top < (scrollTop + categoryHeaderHeight)) {
             // Scroll up to the item
@@ -202,10 +246,10 @@ export class SidebarList extends React.PureComponent<Props, State> {
             }
 
             this.scrollToPosition(scrollEnd);
-        } else if (bottom > scrollTop + clientHeight) {
+        } else if (bottom > scrollTop + scrollHeight) {
             // Scroll down to the item
             const margin = (scrollingToUnread || !this.state.showBottomUnread) ? scrollMargin : scrollMarginWithUnread;
-            const scrollEnd = (bottom - clientHeight) + margin;
+            const scrollEnd = (bottom - scrollHeight) + margin;
 
             this.scrollToPosition(scrollEnd);
         }
@@ -213,7 +257,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
 
     scrollToPosition = (scrollEnd: number) => {
         // Stop the current animation before scrolling
-        this.scrollAnimation.setCurrentValue(this.scrollbar.current!.scrollTop).setAtRest();
+        this.scrollAnimation.setCurrentValue(this.scrollbar.current!.getScrollTop()).setAtRest();
 
         this.scrollAnimation.setEndValue(scrollEnd);
     };
@@ -237,7 +281,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
         if (firstUnreadChannel) {
             const firstUnreadElement = this.channelRefs.get(firstUnreadChannel);
 
-            if (firstUnreadElement && ((firstUnreadElement.offsetTop + firstUnreadElement.offsetHeight) - scrollMargin - categoryHeaderHeight) < this.scrollbar.current!.scrollTop) {
+            if (firstUnreadElement && ((firstUnreadElement.offsetTop + firstUnreadElement.offsetHeight) - scrollMargin - categoryHeaderHeight) < this.scrollbar.current!.getScrollTop()) {
                 showTopUnread = true;
             }
         }
@@ -245,7 +289,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
         if (lastUnreadChannel) {
             const lastUnreadElement = this.channelRefs.get(lastUnreadChannel);
 
-            if (lastUnreadElement && (lastUnreadElement.offsetTop + scrollMargin) > (this.scrollbar.current!.scrollTop + this.scrollbar.current!.clientHeight)) {
+            if (lastUnreadElement && (lastUnreadElement.offsetTop + scrollMargin) > (this.scrollbar.current!.getScrollTop() + this.scrollbar.current!.getClientHeight())) {
                 showBottomUnread = true;
             }
         }
@@ -412,12 +456,28 @@ export class SidebarList extends React.PureComponent<Props, State> {
         if (result.reason === 'DROP' && result.destination) {
             if (result.type === 'SIDEBAR_CHANNEL') {
                 this.props.actions.moveChannelsInSidebar(result.destination.droppableId, result.destination.index, result.draggableId);
+                trackEvent('ui', 'ui_sidebar_dragdrop_dropped_channel');
             } else if (result.type === 'SIDEBAR_CATEGORY') {
                 this.props.actions.moveCategory(this.props.currentTeam!.id, result.draggableId, result.destination.index);
+                trackEvent('ui', 'ui_sidebar_dragdrop_dropped_category');
             }
         }
 
         this.props.actions.stopDragging();
+    };
+
+    showChannelListScrollbar = () => {
+        if (this.channelsListScrollTimeout !== null) {
+            clearTimeout(this.channelsListScrollTimeout);
+        }
+
+        this.setState({autoHide: false});
+    };
+
+    hideChannelListScrollbar = () => {
+        this.channelsListScrollTimeout = setTimeout(() => {
+            this.setState({autoHide: true});
+        }, 300);
     };
 
     render() {
@@ -520,12 +580,23 @@ export class SidebarList extends React.PureComponent<Props, State> {
                         extraClass='nav-pills__unread-indicator-bottom'
                         content={below}
                     />
-                    <Scrollbars
-                        ref={this.scrollbar}
-                        onScroll={this.onScroll}
+                    <div
+                        onPointerLeave={this.hideChannelListScrollbar}
+                        onPointerOver={this.showChannelListScrollbar}
                     >
-                        {channelList}
-                    </Scrollbars>
+                        <Scrollbars
+                            ref={this.scrollbar}
+                            autoHide={this.state.autoHide}
+                            renderThumbHorizontal={renderThumbHorizontal}
+                            renderThumbVertical={renderThumbVertical}
+                            renderTrackVertical={renderTrackVertical}
+                            renderView={renderView}
+                            onScroll={this.onScroll}
+                            style={scrollbarStyles}
+                        >
+                            {channelList}
+                        </Scrollbars>
+                    </div>
                 </div>
             </>
         );

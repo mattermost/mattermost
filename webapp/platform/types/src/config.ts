@@ -485,6 +485,7 @@ export type LogSettings = {
     FileLocation: string;
     EnableWebhookDebugging: boolean;
     EnableDiagnostics: boolean;
+    VerboseDiagnostics: boolean;
     EnableSentry: boolean;
     AdvancedLoggingJSON: Record<string, any>;
     MaxFieldSize: number;
@@ -963,7 +964,7 @@ export type CloudSettings = {
 export type FeatureFlags = Record<string, string | boolean> & {
 
     // FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this property when feature is GA
-    ChannelAdminManageABACRules?: boolean;
+    ChannelAdminManageABACRules?: string;
 };
 
 export type ImportSettings = {

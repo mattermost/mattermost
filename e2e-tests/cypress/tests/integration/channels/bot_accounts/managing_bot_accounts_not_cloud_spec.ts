@@ -11,7 +11,6 @@
 // Group: @channels @bot_accounts @plugin @not_cloud
 
 import {Team} from '@mattermost/types/teams';
-
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 import {matterpollPlugin} from '../../../utils/plugins';
 

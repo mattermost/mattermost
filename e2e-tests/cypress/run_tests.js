@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable no-console */
+/* eslint-disable no-await-in-loop, no-console */
 
 /*
  * This command, which normally use in CI, runs Cypress test in full or partial
@@ -107,7 +107,7 @@ async function runTests() {
         printMessage(sortedFiles, i, j + 1, count);
 
         const testFile = sortedFiles[i];
-        let testFileAttempt = 1;
+        var testFileAttempt = 1;
         if (testFile in testPasses === false) {
             testPasses[testFile] = {attempt: 1};
         } else {
@@ -154,8 +154,8 @@ async function runTests() {
             },
         });
 
-        for (const testCase of result.runs[0].tests) {
-            const testCaseTitle = testCase.title.join(' - ');
+        for (var testCase of result.runs[0].tests) {
+            var testCaseTitle = testCase.title.join(' - ');
             if (testCaseTitle in testPasses[testFile] === false) {
                 testPasses[testFile][testCaseTitle] = 0;
             }

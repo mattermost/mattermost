@@ -14,7 +14,6 @@ import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 import {AdminConfig} from '@mattermost/types/config';
-
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 function setLDAPTestSettings(config: AdminConfig) {
@@ -85,7 +84,7 @@ context('ldap', () => {
             // # Link 2 groups to testChannel
             cy.visit(`/admin_console/user_management/channels/${testChannel.id}`);
             cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'Channel Configuration');
-            cy.wait(TIMEOUTS.TWO_SEC);
+            cy.wait(TIMEOUTS.TWO_SEC); //eslint-disable-line cypress/no-unnecessary-waiting
 
             // # Link first group
             cy.get('#addGroupsToChannelToggle').click();
@@ -129,7 +128,7 @@ context('ldap', () => {
             // # Add board-one to test team
             cy.visit(`/admin_console/user_management/teams/${testTeam.id}`);
             cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'Team Configuration');
-            cy.wait(TIMEOUTS.TWO_SEC);
+            cy.wait(TIMEOUTS.TWO_SEC); //eslint-disable-line cypress/no-unnecessary-waiting
 
             // # Turn on sync group members
             cy.findByTestId('syncGroupSwitch').
@@ -171,7 +170,7 @@ context('ldap', () => {
             // # Go to testTeam config page
             cy.visit(`/admin_console/user_management/teams/${testTeam.id}`);
             cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'Team Configuration');
-            cy.wait(TIMEOUTS.TWO_SEC);
+            cy.wait(TIMEOUTS.TWO_SEC); //eslint-disable-line cypress/no-unnecessary-waiting
 
             // # Make the team so anyone can join it
             cy.findByTestId('allowAllToggleSwitch').scrollIntoView().click();
@@ -209,7 +208,7 @@ context('ldap', () => {
             // # Add board-one to test team
             cy.visit(`/admin_console/user_management/channels/${testChannel.id}`);
             cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'Channel Configuration');
-            cy.wait(TIMEOUTS.TWO_SEC);
+            cy.wait(TIMEOUTS.TWO_SEC); //eslint-disable-line cypress/no-unnecessary-waiting
 
             // Make it private and then cancel
             cy.findByTestId('allow-all-toggle').click();
@@ -265,7 +264,7 @@ context('ldap', () => {
                 // Reload
                 cy.visit(`/admin_console/user_management/channels/${privateChannel.id}`);
                 cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'Channel Configuration');
-                cy.wait(TIMEOUTS.THREE_SEC);
+                cy.wait(TIMEOUTS.THREE_SEC); //eslint-disable-line cypress/no-unnecessary-waiting
 
                 // Make it public and save
                 // * Ensure it still showing the channel as private
@@ -297,7 +296,7 @@ context('ldap', () => {
             cy.get('.DataGrid_searchBar').within(() => {
                 cy.findByPlaceholderText('Search').should('be.visible').type('Town Square');
             });
-            cy.wait(TIMEOUTS.FIVE_SEC);
+            cy.wait(TIMEOUTS.FIVE_SEC); //eslint-disable-line cypress/no-unnecessary-waiting
 
             cy.findAllByTestId('town-squareedit').then((elements) => {
                 elements[0].click();

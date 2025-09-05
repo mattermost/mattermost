@@ -1,8 +1,8 @@
 .team-sidebar {
     z-index: 17;
     display: flex;
-    overflow: hidden;
     width: 65px;
+    height: 100%;
     flex-direction: column;
     background-color: var(--sidebar-header-bg);
     text-align: center;
@@ -27,8 +27,7 @@
         position: relative;
         overflow: hidden;
         height: 100%;
-        flex: 1;
-        padding-top: 4px;
+        flex: 1 1 auto;
         -webkit-overflow-scrolling: touch;
 
         .draggable-team-container {
@@ -128,6 +127,10 @@
                     }
                 }
             }
+        }
+
+        .scrollbar--view {
+            padding-top: 4px;
         }
 
         .team-container a:hover {

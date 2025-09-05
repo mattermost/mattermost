@@ -12,7 +12,6 @@
 // node run_tests.js --group='@channel_settings'
 
 import {ChannelType} from '@mattermost/types/channels';
-
 import {getRandomId} from '../../../utils';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 

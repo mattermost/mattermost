@@ -45,6 +45,7 @@ const TrialBenefitsModalStep = (
             </div>
             {(pageURL && buttonLabel) && (
                 <TrialBenefitsModalStepMore
+                    id={id}
                     route={pageURL}
                     message={buttonLabel}
                     onClick={onClose}

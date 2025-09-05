@@ -7,6 +7,7 @@ import {defineMessages} from 'react-intl';
 type CopyOptions = {
     successCopyTimeout?: number;
     text: string;
+    trackCallback?: () => void;
 };
 
 type CopyResponse = {
@@ -20,6 +21,7 @@ const DEFAULT_COPY_TIMEOUT = 4000;
 export default function useCopyText({
     text,
     successCopyTimeout: successCopyTimeoutReceived,
+    trackCallback,
 }: CopyOptions): CopyResponse {
     const [copiedRecently, setCopiedRecently] = useState(false);
     const [copyError, setCopyError] = useState(false);
@@ -31,6 +33,8 @@ export default function useCopyText({
     }
 
     const onClick = useCallback(() => {
+        trackCallback?.();
+
         if (timerRef.current) {
             clearTimeout(timerRef.current);
             timerRef.current = null;
@@ -70,7 +74,7 @@ export default function useCopyText({
             setCopiedRecently(false);
             setCopyError(false);
         }, successCopyTimeout);
-    }, [successCopyTimeout, text]);
+    }, [successCopyTimeout, text, trackCallback]);
 
     return {
         copiedRecently,

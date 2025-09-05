@@ -17,10 +17,12 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import styled from 'styled-components';
 
+import {TrackCrossTeamSearchFeature, TrackCrossTeamSearchAllTeamsEvent, TrackCrossTeamSearchCurrentTeamEvent, TrackCrossTeamSearchDifferentTeamEvent} from 'mattermost-redux/constants/telemetry';
 import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
 import {getIsCrossTeamSearchEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
+import {trackFeatureEvent} from 'actions/telemetry_actions';
 import {updateSearchTerms, showSearchResults, updateSearchType, updateSearchTeam} from 'actions/views/rhs';
 import {getSearchButtons} from 'selectors/plugins';
 import {getSearchTeam, getSearchTerms, getSearchType} from 'selectors/rhs';
@@ -243,6 +245,10 @@ const NewSearch = (): JSX.Element => {
             dispatch(updateSearchTeam(searchTeam));
 
             if (searchType === '' || searchType === 'messages' || searchType === 'files') {
+                if (crossTeamSearchEnabled) {
+                    trackCrossTeamSearch(currentTeamId, searchTeam);
+                }
+
                 dispatch(showSearchResults(false));
             } else {
                 pluginSearch.forEach((pluginData: any) => {
@@ -253,7 +259,17 @@ const NewSearch = (): JSX.Element => {
             }
             setFocused(false);
             setCurrentChannel('');
-        }, [pluginSearch, currentTeamId]);
+        }, [pluginSearch, currentTeamId, crossTeamSearchEnabled]);
+
+    const trackCrossTeamSearch = (currentTeamId: string, searchTeamId: string) => {
+        if (searchTeamId === '') {
+            trackFeatureEvent(TrackCrossTeamSearchFeature, TrackCrossTeamSearchAllTeamsEvent);
+        } else if (searchTeamId === currentTeamId) {
+            trackFeatureEvent(TrackCrossTeamSearchFeature, TrackCrossTeamSearchCurrentTeamEvent);
+        } else {
+            trackFeatureEvent(TrackCrossTeamSearchFeature, TrackCrossTeamSearchDifferentTeamEvent);
+        }
+    };
 
     const onClose = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();

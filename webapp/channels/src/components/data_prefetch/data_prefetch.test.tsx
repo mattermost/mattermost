@@ -28,6 +28,7 @@ describe('/components/data_prefetch', () => {
         currentChannelId: '',
         actions: {
             prefetchChannelPosts: jest.fn(() => Promise.resolve({})),
+            trackPreloadedChannels: jest.fn(),
         },
         prefetchQueueObj: {
             1: [],

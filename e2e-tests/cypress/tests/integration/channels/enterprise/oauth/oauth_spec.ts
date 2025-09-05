@@ -11,6 +11,7 @@
 
 import {getRandomId} from '../../../../utils';
 import {checkboxesTitleToIdMap} from '../system_console/channel_moderation/constants';
+
 import {enablePermission, goToSystemScheme, saveConfigForScheme} from '../system_console/channel_moderation/helpers';
 
 describe('Integrations page', () => {

@@ -3,8 +3,7 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
-
-import {GenericModal} from '@mattermost/components';
+import {Modal} from 'react-bootstrap';
 
 import {TestHelper} from 'utils/test_helper';
 
@@ -40,9 +39,9 @@ describe('components/TeamMembersModal', () => {
             />,
         );
 
-        const modalProps = wrapper.find(GenericModal).first().props();
+        const modalProps = wrapper.find(Modal).first().props();
         if (modalProps.onExited) {
-            modalProps.onExited();
+            modalProps.onExited(document.createElement('div'));
         }
 
         expect(baseProps.onExited).toHaveBeenCalledTimes(1);

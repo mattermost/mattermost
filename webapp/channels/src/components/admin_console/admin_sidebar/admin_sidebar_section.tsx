@@ -4,6 +4,8 @@
 import classNames from 'classnames';
 import React from 'react';
 
+import {trackEvent} from 'actions/telemetry_actions.jsx';
+
 import BlockableLink from 'components/admin_console/blockable_link';
 
 import {createSafeId} from 'utils/utils';
@@ -58,12 +60,14 @@ const AdminSidebarSection = ({name, title, action, children = [], definitionKey,
         </span>
     );
     const sidebarItemSafeId = createSafeId(name);
+    const sidebarItemClickHandler = () => trackEvent('admin', sidebarItemSafeId);
     let sidebarItem = (
         <BlockableLink
             id={sidebarItemSafeId}
             className={`${className}-title`}
             activeClassName={`${className}-title ${className}-title--active`}
             to={link}
+            onClick={sidebarItemClickHandler}
         >
             <span className={`${className}-title__text`}>
                 {title}{tagDiv}

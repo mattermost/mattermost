@@ -13,6 +13,7 @@
 import {
     FixedPublicLinks,
 } from '../../../../utils';
+
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 import {backToTeam, saveSetting} from './helper';

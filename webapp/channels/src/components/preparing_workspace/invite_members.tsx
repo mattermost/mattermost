@@ -46,6 +46,8 @@ const InviteMembers = (props: Props) => {
         className += ' ' + props.className;
     }
 
+    useEffect(props.onPageView, []);
+
     useEffect(() => {
         setShowSkipButton(false);
         const timer = setTimeout(() => {

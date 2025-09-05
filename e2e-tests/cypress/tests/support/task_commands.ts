@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {type AxiosResponse} from 'axios';
+import {AxiosResponse} from 'axios';
 
 import {ChainableT} from '../types';
 

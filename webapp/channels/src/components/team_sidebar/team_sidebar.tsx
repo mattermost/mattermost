@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React from 'react';
 import {DragDropContext, Droppable} from 'react-beautiful-dnd';
 import type {DroppableProvided, DropResult} from 'react-beautiful-dnd';
+import Scrollbars from 'react-custom-scrollbars';
 import {injectIntl, FormattedMessage} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
@@ -13,7 +14,6 @@ import type {Team} from '@mattermost/types/teams';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
-import Scrollbars from 'components/common/scrollbars';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import TeamButton from 'components/team_sidebar/components/team_button';
 
@@ -34,6 +34,33 @@ export interface Props extends PropsFromRedux, WrappedComponentProps {
 type State = {
     showOrder: boolean;
     teamsOrder: Team[];
+}
+
+export function renderView(props: Props) {
+    return (
+        <div
+            {...props}
+            className='scrollbar--view'
+        />
+    );
+}
+
+export function renderThumbHorizontal(props: Props) {
+    return (
+        <div
+            {...props}
+            className='scrollbar--horizontal'
+        />
+    );
+}
+
+export function renderThumbVertical(props: Props) {
+    return (
+        <div
+            {...props}
+            className='scrollbar--vertical'
+        />
+    );
 }
 
 export class TeamSidebar extends React.PureComponent<Props, State> {
@@ -290,10 +317,17 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                 role='navigation'
                 aria-labelledby='teamSidebarWrapper'
             >
-                <Scrollbars>
-                    <div
-                        className='team-wrapper'
-                        id='teamSidebarWrapper'
+                <div
+                    className='team-wrapper'
+                    id='teamSidebarWrapper'
+                >
+                    <Scrollbars
+                        autoHide={true}
+                        autoHideTimeout={500}
+                        autoHideDuration={500}
+                        renderThumbHorizontal={renderThumbHorizontal}
+                        renderThumbVertical={renderThumbVertical}
+                        renderView={renderView}
                     >
                         <DragDropContext
                             onDragEnd={this.onDragEnd}
@@ -316,8 +350,8 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                             </Droppable>
                         </DragDropContext>
                         {joinableTeams}
-                    </div>
-                </Scrollbars>
+                    </Scrollbars>
+                </div>
                 {plugins}
             </div>
         );

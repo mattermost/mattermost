@@ -7,6 +7,7 @@ import {useDispatch} from 'react-redux';
 
 import {FolderPlusOutlineIcon} from '@mattermost/compass-icons/components';
 
+import {trackEvent} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
 
 import EditCategoryModal from 'components/edit_category_modal';
@@ -28,6 +29,7 @@ const CreateNewCategoryMenuItem = ({
             modalId: ModalIdentifiers.EDIT_CATEGORY,
             dialogType: EditCategoryModal,
         }));
+        trackEvent('ui', 'ui_sidebar_category_menu_createCategory');
     }, [dispatch]);
 
     return (

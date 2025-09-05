@@ -586,6 +586,8 @@ export function flagPost(postId: string): ActionFuncAsync {
             value: 'true',
         };
 
+        Client4.trackEvent('action', 'action_posts_flag');
+
         return dispatch(savePreferences(currentUserId, [preference]));
     };
 }
@@ -1193,6 +1195,8 @@ export function unflagPost(postId: string): ActionFuncAsync {
             name: postId,
             value: 'true',
         };
+
+        Client4.trackEvent('action', 'action_posts_unflag');
 
         return dispatch(deletePreferences(currentUserId, [preference]));
     };

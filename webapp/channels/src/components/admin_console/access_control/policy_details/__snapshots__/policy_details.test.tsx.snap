@@ -98,9 +98,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             actions={
               Object {
                 "getAccessControlFields": [MockFunction],
-                "getChannelPolicy": [MockFunction],
                 "getVisualAST": [MockFunction],
-                "saveChannelPolicy": [MockFunction],
                 "searchUsers": [MockFunction],
               }
             }
@@ -306,9 +304,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             actions={
               Object {
                 "getAccessControlFields": [MockFunction],
-                "getChannelPolicy": [MockFunction],
                 "getVisualAST": [MockFunction],
-                "saveChannelPolicy": [MockFunction],
                 "searchUsers": [MockFunction],
               }
             }

@@ -80,6 +80,7 @@ exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
     href="http://download.com/path"
     id="actionButton"
     location="product_notices_modal"
+    onClick={[Function]}
   >
     Download
   </ForwardRef>
@@ -146,6 +147,7 @@ exports[`ProductNoticesModal Should match snapshot for system admin notice 1`] =
     href="http://download.com/path"
     id="actionButton"
     location="product_notices_modal"
+    onClick={[Function]}
   >
     Download
   </ForwardRef>

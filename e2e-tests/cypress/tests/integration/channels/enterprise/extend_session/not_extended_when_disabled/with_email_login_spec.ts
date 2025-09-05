@@ -10,7 +10,6 @@
 // Group: @channels @enterprise @not_cloud @extend_session
 
 import {UserProfile} from '@mattermost/types/users';
-
 import {verifyExtendedSession, verifyNotExtendedSession} from './helpers';
 
 describe('Extended Session Length', () => {

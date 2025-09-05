@@ -21,6 +21,7 @@ describe('InviteMembers component', () => {
             teamInviteId: '1234',
             className: 'test-class',
             configSiteUrl: 'https://my-org.mattermost.com/config',
+            onPageView: jest.fn(),
             previous: <div>{'Previous step'}</div>,
             next: jest.fn(),
             setEmails: setEmailsFn,

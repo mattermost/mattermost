@@ -12,6 +12,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import AlertBanner from 'components/alert_banner';
 import withOpenStartTrialFormModal from 'components/common/hocs/cloud/with_open_start_trial_form_modal';
+import type {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
 import ExternalLink from 'components/external_link';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
@@ -30,7 +31,7 @@ interface TrialBannerProps {
     handleUpgrade: () => Promise<void>;
     upgradeError: string | null;
     restartError: string | null;
-    openTrialForm?: () => void;
+    openTrialForm?: (telemetryProps?: TelemetryProps) => void;
 
     handleRestart: () => Promise<void>;
 
@@ -131,7 +132,7 @@ const TrialBanner = ({
 
     const handleRequestLicense = () => {
         if (openTrialForm) {
-            openTrialForm();
+            openTrialForm({trackingLocation: 'license_settings.trial_banner'});
         }
     };
 

@@ -11,7 +11,6 @@
 // Group: @channels @enterprise @elasticsearch @autocomplete @not_cloud
 
 import {Channel} from '@mattermost/types/channels';
-
 import {
     enableElasticSearch,
     searchAndVerifyChannel,

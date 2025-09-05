@@ -69,7 +69,7 @@ describe('Keyboard Shortcuts', () => {
 
             // # add test to the message
             cy.get('#edit_textbox').type(postEditMessage);
-            cy.get('#create_post').findByText('Save').should('be.visible').click();
+            cy.get('#edit_textbox').type('{enter}');
 
             // * Verify edited message
             cy.uiWaitUntilMessagePostedIncludes(postMessage + postEditMessage);

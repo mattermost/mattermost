@@ -9,12 +9,13 @@ import './alternate_link.scss';
 
 type AlternateLinkProps = {
     className?: string;
+    onClick?: () => void;
     alternateMessage?: string;
     alternateLinkPath?: string;
     alternateLinkLabel?: string;
 }
 
-const AlternateLink = ({className, alternateMessage, alternateLinkPath, alternateLinkLabel}: AlternateLinkProps) => {
+const AlternateLink = ({className, onClick = () => {}, alternateMessage, alternateLinkPath, alternateLinkLabel}: AlternateLinkProps) => {
     if (!alternateMessage && !alternateLinkPath && !alternateLinkLabel) {
         return null;
     }
@@ -36,6 +37,7 @@ const AlternateLink = ({className, alternateMessage, alternateLinkPath, alternat
                         pathname: alternateLinkPath,
                         search: location.search,
                     }}
+                    onClick={onClick}
                 >
                     {alternateLinkLabel}
                 </Link>
