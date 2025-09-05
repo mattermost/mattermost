@@ -767,31 +767,40 @@ func isValidGuestRoles(data UserImportData) bool {
 	isSystemGuest := model.IsInRole(*data.Roles, model.SystemGuestRoleId)
 
 	var isTeamGuest, isChannelGuest bool
-	if data.Teams != nil {
-		// counters for guest roles for teams and channels
-		// we expect the total count of guest roles to be equal to the total count of teams and channels
-		var gtc, ctc int
+
+	if data.Teams != nil && len(*data.Teams) > 0 {
+		// Count total channels and guest channels across all teams
+		var guestTeamCount, totalChannels, totalGuestChannels int
+
 		for _, team := range *data.Teams {
 			if team.Roles != nil && model.IsInRole(*team.Roles, model.TeamGuestRoleId) {
-				gtc++
+				guestTeamCount++
 			}
 
 			if team.Channels == nil {
 				continue
 			}
+
+			totalChannels += len(*team.Channels)
 			for _, channel := range *team.Channels {
 				if channel.Roles != nil && model.IsInRole(*channel.Roles, model.ChannelGuestRoleId) {
-					ctc++
+					totalGuestChannels++
 				}
 			}
+		}
 
-			if ctc == len(*team.Channels) {
-				isChannelGuest = true
-			}
-		}
-		if gtc == len(*data.Teams) {
-			isTeamGuest = true
-		}
+		// User is a team guest if all teams have guest roles
+		isTeamGuest = guestTeamCount == len(*data.Teams)
+
+		// User is a channel guest if all channels have guest roles AND there are channels
+		// OR if user is system guest and team guest but has no channels (valid guest state)
+		isChannelGuest = (totalChannels > 0 && totalGuestChannels == totalChannels) ||
+			(isSystemGuest && isTeamGuest && totalChannels == 0)
+	} else {
+		// User has no team or channel memberships, we will treat it as valid as they would be
+		// guests if added to a team or channel
+		isTeamGuest = true
+		isChannelGuest = true
 	}
 
 	// basically we want to be sure if the user either fully guest in all 3 places or not at all
