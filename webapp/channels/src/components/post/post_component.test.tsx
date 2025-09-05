@@ -276,43 +276,43 @@ describe('PostComponent', () => {
                 replyCount: 1,
             };
 
-            test('should select post in RHS when clicked in center channel', () => {
+            test('should select post in RHS when clicked in center channel', async () => {
                 renderWithContext(<PostComponent {...propsForRootPost}/>, state);
 
-                userEvent.click(screen.getByText('1 reply'));
+                await userEvent.click(screen.getByText('1 reply'));
 
                 // Yes, this action has a different name than the one you'd expect
                 expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
             });
 
-            test('should select post in RHS when clicked in center channel in a DM/GM', () => {
+            test('should select post in RHS when clicked in center channel in a DM/GM', async () => {
                 const props = {
                     ...propsForRootPost,
                     team: undefined,
                 };
                 renderWithContext(<PostComponent {...props}/>, state);
 
-                userEvent.click(screen.getByText('1 reply'));
+                await userEvent.click(screen.getByText('1 reply'));
 
                 // Yes, this action has a different name than the one you'd expect
                 expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
                 expect(getHistory().push).not.toHaveBeenCalled();
             });
 
-            test('should select post in RHS when clicked in a search result on the current team', () => {
+            test('should select post in RHS when clicked in a search result on the current team', async () => {
                 const props = {
                     ...propsForRootPost,
                     location: Locations.SEARCH,
                 };
                 renderWithContext(<PostComponent {...props}/>, state);
 
-                userEvent.click(screen.getByText('1 reply'));
+                await userEvent.click(screen.getByText('1 reply'));
 
                 expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
                 expect(getHistory().push).not.toHaveBeenCalled();
             });
 
-            test('should jump to post when clicked in a search result on another team', () => {
+            test('should jump to post when clicked in a search result on another team', async () => {
                 const props = {
                     ...propsForRootPost,
                     location: Locations.SEARCH,
@@ -320,7 +320,7 @@ describe('PostComponent', () => {
                 };
                 renderWithContext(<PostComponent {...props}/>, state);
 
-                userEvent.click(screen.getByText('1 reply'));
+                await userEvent.click(screen.getByText('1 reply'));
 
                 expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).not.toHaveBeenCalled();
                 expect(getHistory().push).toHaveBeenCalled();
@@ -369,7 +369,7 @@ describe('PostComponent', () => {
             expect(container.querySelectorAll('.post-image__column')[2]).toHaveTextContent(fileInfo3.name);
         });
 
-        test('should show file list in edit container when editing', () => {
+        test('should show file list in edit container when editing', async () => {
             const fileInfo1 = TestHelper.getFileInfoMock({id: 'fileId1', name: 'file1.jpg'});
             const fileInfo2 = TestHelper.getFileInfoMock({id: 'fileId2', name: 'file2.jpg'});
             const fileInfo3 = TestHelper.getFileInfoMock({id: 'fileId3', name: 'file3.jpg'});

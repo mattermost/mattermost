@@ -43,12 +43,12 @@ describe('AddReactionButton', () => {
 
         expect(screen.queryByText('Emoji Picker')).not.toBeInTheDocument();
 
-        userEvent.click(screen.getByLabelText('Add a reaction'));
+        await userEvent.click(screen.getByLabelText('Add a reaction'));
 
         expect(screen.queryByText('Emoji Picker')).toBeVisible();
 
         // Search for an emoji instead of clicking on one because the emoji picker doesn't render items when testing
-        userEvent.type(screen.getByPlaceholderText('Search emojis'), 'banana{enter}');
+        await userEvent.type(screen.getByPlaceholderText('Search emojis'), 'banana{enter}');
 
         expect(props.onEmojiClick).toHaveBeenCalledWith(expect.objectContaining({short_name: 'banana'}));
         expect(screen.queryByText('Emoji Picker')).not.toBeInTheDocument();

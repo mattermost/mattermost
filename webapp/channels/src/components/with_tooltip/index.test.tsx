@@ -4,7 +4,7 @@
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import {renderWithContext, screen, waitFor, act} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 
 import WithTooltip from './index';
 
@@ -32,14 +32,10 @@ describe('WithTooltip', () => {
             </WithTooltip>,
         );
 
-        await act(async () => {
-            userEvent.hover(screen.getByText('Hover Me'));
+        await userEvent.hover(screen.getByText('Hover Me'), {advanceTimers: jest.advanceTimersByTime});
 
-            jest.advanceTimersByTime(1000);
-
-            await waitFor(() => {
-                expect(screen.getByText('Tooltip will appear on hover')).toBeInTheDocument();
-            });
+        await waitFor(() => {
+            expect(screen.getByText('Tooltip will appear on hover')).toBeInTheDocument();
         });
     });
 
@@ -52,18 +48,14 @@ describe('WithTooltip', () => {
             </WithTooltip>,
         );
 
-        await act(async () => {
-            const trigger = screen.getByText('Hover Me');
+        const trigger = screen.getByText('Hover Me');
 
-            // Clicking the button will simulate a focus event
-            userEvent.click(trigger);
+        // Clicking the button will simulate a focus event
+        await userEvent.click(trigger, {advanceTimers: jest.advanceTimersByTime});
 
-            jest.advanceTimersByTime(1000);
-
-            await waitFor(() => {
-                expect(trigger).toHaveFocus();
-                expect(screen.getByText('Tooltip will appear on hover')).toBeInTheDocument();
-            });
+        await waitFor(() => {
+            expect(trigger).toHaveFocus();
+            expect(screen.getByText('Tooltip will appear on hover')).toBeInTheDocument();
         });
     });
 
@@ -81,17 +73,13 @@ describe('WithTooltip', () => {
             </WithTooltip>,
         );
 
-        await act(async () => {
-            expect(onOpen).not.toHaveBeenCalled();
+        expect(onOpen).not.toHaveBeenCalled();
 
-            userEvent.hover(screen.getByText('Hover Me'));
+        await userEvent.hover(screen.getByText('Hover Me'), {advanceTimers: jest.advanceTimersByTime});
 
-            jest.advanceTimersByTime(1000);
-
-            await waitFor(() => {
-                expect(screen.getByText('Tooltip will appear on hover')).toBeInTheDocument();
-                expect(onOpen).toHaveBeenCalled();
-            });
+        await waitFor(() => {
+            expect(screen.getByText('Tooltip will appear on hover')).toBeInTheDocument();
+            expect(onOpen).toHaveBeenCalled();
         });
     });
 });

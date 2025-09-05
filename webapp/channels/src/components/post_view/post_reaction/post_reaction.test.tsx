@@ -70,7 +70,7 @@ describe('components/post_view/PostReaction', () => {
             initialState,
         );
 
-        userEvent.type(screen.getByPlaceholderText('Search emojis'), '{enter}');
+        await userEvent.type(screen.getByPlaceholderText('Search emojis'), '{enter}');
 
         expect(baseProps.actions.toggleReaction).toHaveBeenCalledTimes(1);
         expect(baseProps.actions.toggleReaction).toHaveBeenCalledWith('post_id_1', 'grinning');

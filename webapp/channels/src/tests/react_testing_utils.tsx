@@ -5,7 +5,7 @@ import {render, renderHook} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type {History} from 'history';
 import {createBrowserHistory} from 'history';
-import React from 'react';
+import React, {act} from 'react';
 import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
 import {Router} from 'react-router-dom';

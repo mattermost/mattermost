@@ -159,7 +159,7 @@ describe('components/AboutBuildModal', () => {
         expect(screen.getByRole('link', {name: 'mobile'})).toHaveAttribute('href', 'https://github.com/mattermost/mattermost-mobile/blob/master/NOTICE.txt');
     });
 
-    test('should call onExited callback when the modal is hidden', () => {
+    test('should call onExited callback when the modal is hidden', async () => {
         const onExited = jest.fn();
         const state = {
             entities: {
@@ -185,7 +185,7 @@ describe('components/AboutBuildModal', () => {
             state,
         );
 
-        userEvent.click(screen.getByText('Close'));
+        await userEvent.click(screen.getByText('Close'));
         expect(onExited).toHaveBeenCalledTimes(1);
     });
 

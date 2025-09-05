@@ -310,7 +310,7 @@ describe('renderWithContext', () => {
         expect(screen.getByText('Bonjour, Kilo!')).toBeInTheDocument();
     });
 
-    test('should be able to dispatch and handle redux actions', () => {
+    test('should be able to dispatch and handle redux actions', async () => {
         const TestComponent = () => {
             const user1 = useSelector((state: GlobalState) => getUser(state, 'user1'));
             const dispatch = useDispatch();
@@ -336,7 +336,7 @@ describe('renderWithContext', () => {
 
         expect(screen.getByText('User1 is NOT_LOADED!')).toBeInTheDocument();
 
-        userEvent.click(screen.getByText('Load User'));
+        await userEvent.click(screen.getByText('Load User'));
 
         expect(screen.getByText('User1 is Lima!')).toBeInTheDocument();
     });
@@ -376,14 +376,14 @@ describe('renderWithContext', () => {
 
         expect(screen.getByText('Open Modal')).toBeVisible();
 
-        userEvent.click(screen.getByText('Open Modal'));
+        await userEvent.click(screen.getByText('Open Modal'));
 
         // Use waitFor because the modal animates in and out
         await waitFor(() => {
             expect(screen.queryByText('This is a modal!')).toBeInTheDocument();
         });
 
-        userEvent.click(screen.getByLabelText('Close'));
+        await userEvent.click(screen.getByLabelText('Close'));
 
         await waitFor(() => {
             expect(screen.queryByText('This is a modal!')).not.toBeInTheDocument();

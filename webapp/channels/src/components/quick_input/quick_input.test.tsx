@@ -64,7 +64,7 @@ describe('components/QuickInput', () => {
         });
     });
 
-    test('should dismiss clear button', () => {
+    test('should dismiss clear button', async () => {
         const focusFn = jest.fn();
         class MockComp extends React.PureComponent {
             focus = focusFn;
@@ -83,7 +83,7 @@ describe('components/QuickInput', () => {
 
         expect(screen.queryByTestId('input-clear')).toBeInTheDocument();
 
-        userEvent.click(screen.getByTestId('input-clear'));
+        await userEvent.click(screen.getByTestId('input-clear'));
 
         rerender(
             <QuickInput
