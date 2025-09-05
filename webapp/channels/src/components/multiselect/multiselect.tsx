@@ -493,7 +493,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
         return (
             <>
                 <div className='filtered-user-list'>
-                    <div className='filter-row filter-row--full'>
+                    <div className='filter-row'>
                         <div
                             className={classNames('multi-select__container react-select', {
                                 'has-error': this.state.hasError,

@@ -13,6 +13,10 @@ const PostTypePlugin = () => (
     <span id='pluginId'>{'PostTypePlugin'}</span>
 );
 
+jest.mock('components/properties_card_view/propertyValueRenderer/post_preview_property_renderer/post_preview_property_renderer', () => {
+    return jest.fn(() => <div data-testid='post-preview-property-renderer-mock'>{'PostPreviewPropertyRenderer Mock'}</div>);
+});
+
 describe('plugins/PostMessageView', () => {
     const post = {type: 'testtype', message: 'this is some text', id: 'post_id'} as any;
 

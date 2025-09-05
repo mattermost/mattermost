@@ -338,6 +338,51 @@ func TestGetClientConfig(t *testing.T) {
 				"AllowDownloadLogs":  "true",
 			},
 		},
+		{
+			"access control settings enabled",
+			&model.Config{
+				AccessControlSettings: model.AccessControlSettings{
+					EnableAttributeBasedAccessControl: model.NewPointer(true),
+					EnableChannelScopeAccessControl:   model.NewPointer(true),
+					EnableUserManagedAttributes:       model.NewPointer(true),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"EnableAttributeBasedAccessControl": "true",
+				"EnableChannelScopeAccessControl":   "true",
+				"EnableUserManagedAttributes":       "true",
+			},
+		},
+		{
+			"access control settings disabled",
+			&model.Config{
+				AccessControlSettings: model.AccessControlSettings{
+					EnableAttributeBasedAccessControl: model.NewPointer(false),
+					EnableChannelScopeAccessControl:   model.NewPointer(false),
+					EnableUserManagedAttributes:       model.NewPointer(false),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"EnableAttributeBasedAccessControl": "false",
+				"EnableChannelScopeAccessControl":   "false",
+				"EnableUserManagedAttributes":       "false",
+			},
+		},
+		{
+			"access control settings default",
+			&model.Config{},
+			"",
+			nil,
+			map[string]string{
+				"EnableAttributeBasedAccessControl": "false",
+				"EnableChannelScopeAccessControl":   "false",
+				"EnableUserManagedAttributes":       "false",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {
