@@ -4,13 +4,15 @@
 import {useMemo} from 'react';
 import {useDispatch} from 'react-redux';
 
-import type {AccessControlVisualAST, AccessControlTestResult} from '@mattermost/types/access_control';
+import type {AccessControlVisualAST, AccessControlTestResult, AccessControlPolicy} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {
     getAccessControlFields,
     getVisualAST,
     searchUsersForExpression,
+    getAccessControlPolicy,
+    createAccessControlPolicy,
 } from 'mattermost-redux/actions/access_control';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -18,6 +20,8 @@ export interface ChannelAccessControlActions {
     getAccessControlFields: (after: string, limit: number) => Promise<ActionResult<UserPropertyField[]>>;
     getVisualAST: (expression: string) => Promise<ActionResult<AccessControlVisualAST>>;
     searchUsers: (expression: string, term: string, after: string, limit: number) => Promise<ActionResult<AccessControlTestResult>>;
+    getChannelPolicy: (channelId: string) => Promise<ActionResult<AccessControlPolicy>>;
+    saveChannelPolicy: (policy: AccessControlPolicy) => Promise<ActionResult<AccessControlPolicy>>;
 }
 
 /**
@@ -58,6 +62,20 @@ export const useChannelAccessControlActions = (): ChannelAccessControlActions =>
          */
         searchUsers: (expression: string, term: string, after: string, limit: number) => {
             return dispatch(searchUsersForExpression(expression, term, after, limit));
+        },
+
+        /**
+         * Get the access control policy for a specific channel
+         */
+        getChannelPolicy: (channelId: string) => {
+            return dispatch(getAccessControlPolicy(channelId));
+        },
+
+        /**
+         * Save or update the access control policy for a channel
+         */
+        saveChannelPolicy: (policy: AccessControlPolicy) => {
+            return dispatch(createAccessControlPolicy(policy));
         },
     }), [dispatch]);
 };
