@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost/server/v8/channels/app/password/parser"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/phcparser"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,7 +25,7 @@ func TestPBKDF2Hash(t *testing.T) {
 	str, err := hasher.Hash(password)
 	require.NoError(t, err)
 
-	phc, err := parser.New(strings.NewReader(str)).Parse()
+	phc, err := phcparser.New(strings.NewReader(str)).Parse()
 	require.NoError(t, err)
 	require.Equal(t, "pbkdf2", phc.Id)
 	require.Equal(t, "", phc.Version)
@@ -80,7 +80,7 @@ func TestPBKDF2CompareHashAndPassword(t *testing.T) {
 			storedPHCStr, err := hasher.Hash(tc.storedPwd)
 			require.NoError(t, err)
 
-			storedPHC, err := parser.New(strings.NewReader(storedPHCStr)).Parse()
+			storedPHC, err := phcparser.New(strings.NewReader(storedPHCStr)).Parse()
 			require.NoError(t, err)
 
 			err = hasher.CompareHashAndPassword(storedPHC, tc.inputPwd)

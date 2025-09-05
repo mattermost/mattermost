@@ -17,7 +17,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost/server/v8/channels/app/password/parser"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/phcparser"
 )
 
 // PseudoRandomFunction is the type of any string specifying a pseudo-random
@@ -135,7 +135,7 @@ func NewPBKDF2(hashFunc PseudoRandomFunction, workFactor int, keyLength int) (PB
 
 // NewPBKDF2FromPHC returns a [PBKDF2] that conforms to the provided parsed PHC,
 // using the same parameters (if valid) present there.
-func NewPBKDF2FromPHC(phc parser.PHC) (PBKDF2, error) {
+func NewPBKDF2FromPHC(phc phcparser.PHC) (PBKDF2, error) {
 	hashFunc := PseudoRandomFunction(phc.Params["f"])
 
 	workFactor, err := strconv.Atoi(phc.Params["w"])
@@ -226,12 +226,12 @@ func (p PBKDF2) Hash(password string) (string, error) {
 	return phcString.String(), nil
 }
 
-// CompareHashAndPassword compares the provided [parser.PHC] with the plain-text
+// CompareHashAndPassword compares the provided [phcparser.PHC] with the plain-text
 // password.
 //
-// The provided [parser.PHC] is validated to double-check it was generated with
+// The provided [phcparser.PHC] is validated to double-check it was generated with
 // this hasher and parameters.
-func (p PBKDF2) CompareHashAndPassword(hash parser.PHC, password string) error {
+func (p PBKDF2) CompareHashAndPassword(hash phcparser.PHC, password string) error {
 	// Validate parameters
 	if !p.IsPHCValid(hash) {
 		return fmt.Errorf("the stored password does not comply with the PBKDF2 parser's PHC serialization")
@@ -256,11 +256,11 @@ func (p PBKDF2) CompareHashAndPassword(hash parser.PHC, password string) error {
 	return nil
 }
 
-// IsPHCValid validates that the provided [parser.PHC] is valid, meaning:
+// IsPHCValid validates that the provided [phcparser.PHC] is valid, meaning:
 //   - The function used to generate it was [PBKDF2FunctionId].
 //   - The parameters used to generate it were the same as the ones used to
 //     create this hasher.
-func (p PBKDF2) IsPHCValid(phc parser.PHC) bool {
+func (p PBKDF2) IsPHCValid(phc phcparser.PHC) bool {
 	return phc.Id == PBKDF2FunctionId &&
 		len(phc.Params) == 3 &&
 		phc.Params["f"] == string(p.hashFunc) &&

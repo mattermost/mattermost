@@ -6,7 +6,7 @@ package hashers
 import (
 	"errors"
 
-	"github.com/mattermost/mattermost/server/v8/channels/app/password/parser"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/phcparser"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -72,7 +72,7 @@ func (b BCrypt) Hash(password string) (string, error) {
 // as the input for its first argument: this is why [BCrypt] is an edge case for
 // a [PasswordHasher]: it only uses the [PHC.Hash] field, and ignores anything
 // else in there.
-func (b BCrypt) CompareHashAndPassword(hash parser.PHC, password string) error {
+func (b BCrypt) CompareHashAndPassword(hash phcparser.PHC, password string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(hash.Hash), []byte(password))
 	if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 		return ErrMismatchedHashAndPassword
@@ -82,6 +82,6 @@ func (b BCrypt) CompareHashAndPassword(hash parser.PHC, password string) error {
 }
 
 // IsPHCValid returns always false: [BCrypt] is not PHC compliant
-func (b BCrypt) IsPHCValid(hash parser.PHC) bool {
+func (b BCrypt) IsPHCValid(hash phcparser.PHC) bool {
 	return false
 }

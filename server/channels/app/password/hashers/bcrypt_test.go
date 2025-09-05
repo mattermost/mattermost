@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost/server/v8/channels/app/password/parser"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/phcparser"
 	"github.com/stretchr/testify/require"
 )
 
@@ -77,7 +77,7 @@ func TestBCryptCompareHashAndPassword(t *testing.T) {
 			hash, err := hasher.Hash(tc.storedPwd)
 			require.NoError(t, err)
 
-			err = hasher.CompareHashAndPassword(parser.PHC{Hash: hash}, tc.inputPwd)
+			err = hasher.CompareHashAndPassword(phcparser.PHC{Hash: hash}, tc.inputPwd)
 			if tc.expectedErr != nil {
 				require.ErrorIs(t, err, tc.expectedErr)
 			} else {

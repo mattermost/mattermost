@@ -6,7 +6,7 @@ package hashers
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost/server/v8/channels/app/password/parser"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/phcparser"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,14 +15,14 @@ func TestGetHasherFromPHCString(t *testing.T) {
 		testName       string
 		input          string
 		expectedHasher PasswordHasher
-		expectedPHC    parser.PHC
+		expectedPHC    phcparser.PHC
 		expectedErr    bool
 	}{
 		{
 			testName:       "latest hasher (PBKDF2)",
 			input:          "$pbkdf2$f=SHA256,w=600000,l=32$5Zq8TvET7nMrXof49Rp4Sw$d0Mx8467kv+3ylbGrkyu4jTd8O8SP51k4s1RuWb9S/o",
 			expectedHasher: latestHasher,
-			expectedPHC: parser.PHC{
+			expectedPHC: phcparser.PHC{
 				Id:      "pbkdf2",
 				Version: "",
 				Params: map[string]string{
@@ -44,7 +44,7 @@ func TestGetHasherFromPHCString(t *testing.T) {
 				keyLength:  10,
 				phcHeader:  "$pbkdf2$f=SHA256,w=10000,l=10$",
 			},
-			expectedPHC: parser.PHC{
+			expectedPHC: phcparser.PHC{
 				Id:      "pbkdf2",
 				Version: "",
 				Params: map[string]string{
@@ -61,7 +61,7 @@ func TestGetHasherFromPHCString(t *testing.T) {
 			testName:       "valid bcrypt",
 			input:          "$2a$10$z0OlN1MpiLVlLTyE1xtEjOJ6/xV95RAwwIUaYKQBAqoeyvPgLEnUa",
 			expectedHasher: NewBCrypt(),
-			expectedPHC: parser.PHC{
+			expectedPHC: phcparser.PHC{
 				Hash: "$2a$10$z0OlN1MpiLVlLTyE1xtEjOJ6/xV95RAwwIUaYKQBAqoeyvPgLEnUa",
 			},
 			expectedErr: false,
@@ -70,7 +70,7 @@ func TestGetHasherFromPHCString(t *testing.T) {
 			testName:       "invalid phc - default to bcrypt",
 			input:          "invalid",
 			expectedHasher: NewBCrypt(),
-			expectedPHC: parser.PHC{
+			expectedPHC: phcparser.PHC{
 				Hash: "invalid",
 			},
 			expectedErr: false,
@@ -84,7 +84,7 @@ func TestGetHasherFromPHCString(t *testing.T) {
 				keyLength:  10,
 				phcHeader:  "$pbkdf2$f=SHA256,w=10000,l=10$",
 			},
-			expectedPHC: parser.PHC{},
+			expectedPHC: phcparser.PHC{},
 			expectedErr: true,
 		},
 	}

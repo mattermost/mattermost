@@ -44,7 +44,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost/server/v8/channels/app/password/parser"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/phcparser"
 )
 
 // PasswordHasher is a password hasher compliant with the PHC string format:
@@ -66,11 +66,11 @@ type PasswordHasher interface {
 	//
 	// Implementations need to make sure that the comparisons are done in constant
 	// time; e.g., using crypto/internal/fips140/subtle.ConstantTimeCompare.
-	CompareHashAndPassword(hash parser.PHC, password string) error
+	CompareHashAndPassword(hash phcparser.PHC, password string) error
 
 	// IsPHCValid validates whether a parsed PHC string conforms to the parameters
 	// of the hasher.
-	IsPHCValid(hash parser.PHC) bool
+	IsPHCValid(hash phcparser.PHC) bool
 }
 
 const (
@@ -94,10 +94,10 @@ var (
 
 // getOriginalHasher returns a [BCrypt] hasher, the first hasher used in the
 // codebase.
-func getOriginalHasher(phcString string) (PasswordHasher, parser.PHC) {
+func getOriginalHasher(phcString string) (PasswordHasher, phcparser.PHC) {
 	// [BCrypt] is somewhat of an edge case, since it is not PHC-compliant, and
 	// needs the whole PHC string in its Hash field
-	return NewBCrypt(), parser.PHC{Hash: phcString}
+	return NewBCrypt(), phcparser.PHC{Hash: phcString}
 }
 
 // GetHasherFromPHC returns the password hasher that was used to generate the
@@ -105,8 +105,8 @@ func getOriginalHasher(phcString string) (PasswordHasher, parser.PHC) {
 // If the PHC string is not valid, or the function ID is unknown, this function
 // defaults to the first hasher ever used, which did not properly implement PHC:
 // the [BCrypt] hasher.
-func GetHasherFromPHCString(phcString string) (PasswordHasher, parser.PHC, error) {
-	phc, err := parser.New(strings.NewReader(phcString)).Parse()
+func GetHasherFromPHCString(phcString string) (PasswordHasher, phcparser.PHC, error) {
+	phc, err := phcparser.New(strings.NewReader(phcString)).Parse()
 	if err != nil {
 		// If the PHC string is invalid, return the original hasher, bcrypt
 		bcrypt, bcryptPhc := getOriginalHasher(phcString)
@@ -123,7 +123,7 @@ func GetHasherFromPHCString(phcString string) (PasswordHasher, parser.PHC, error
 	case PBKDF2FunctionId:
 		pbkdf2, err := NewPBKDF2FromPHC(phc)
 		if err != nil {
-			return PBKDF2{}, parser.PHC{}, fmt.Errorf("the provided PHC string is PBKDF2, but is not valid: %w", err)
+			return PBKDF2{}, phcparser.PHC{}, fmt.Errorf("the provided PHC string is PBKDF2, but is not valid: %w", err)
 		}
 		return pbkdf2, phc, nil
 	// If the function ID is unknown, return the original hasher
@@ -138,9 +138,9 @@ func Hash(password string) (string, error) {
 	return latestHasher.Hash(password)
 }
 
-// CompareHashAndPassword compares the parsed [parser.PHC] and the provided
+// CompareHashAndPassword compares the parsed [phcparser.PHC] and the provided
 // password using the latest hashing method.
-func CompareHashAndPassword(phc parser.PHC, password string) error {
+func CompareHashAndPassword(phc phcparser.PHC, password string) error {
 	return latestHasher.CompareHashAndPassword(phc, password)
 }
 

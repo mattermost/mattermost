@@ -3,7 +3,7 @@
 
 // Package parser provides a type to parse strings conformant to the PHC string format:
 // https://github.com/P-H-C/phc-string-format/blob/master/phc-sf-spec.md
-package parser
+package phcparser
 
 import (
 	"bufio"
