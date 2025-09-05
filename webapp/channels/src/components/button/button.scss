@@ -263,7 +263,10 @@
     
     &:hover:not(:disabled) {
         color: color-mix(in srgb, var(--link-color) 92%, black 8%);
-        text-decoration: underline;
+
+        .Button__label {
+            text-decoration: underline;
+        }
     }
     
     &:active:not(:disabled) {
@@ -300,6 +303,12 @@
     &:active:not(:disabled) {
         background-color: rgba(var(--button-color-rgb), 0.75);
     }
+    
+    &:disabled {
+        background-color: rgba(var(--button-color-rgb), 0.32) !important;
+        border-color: rgba(var(--button-color-rgb), 0.32) !important;
+        color: rgba(var(--button-color-rgb), 0.16) !important;
+    }
 }
 
 .Button--secondary.Button--inverted {
@@ -314,6 +323,12 @@
     &:active:not(:disabled) {
         background-color: rgba(var(--button-color-rgb), 0.16);
     }
+    
+    &:disabled {
+        background-color: transparent !important;
+        border-color: rgba(var(--button-color-rgb), 0.32) !important;
+        color: rgba(var(--button-color-rgb), 0.32) !important;
+    }
 }
 
 .Button--tertiary.Button--inverted {
@@ -326,6 +341,12 @@
     
     &:active:not(:disabled) {
         background-color: rgba(var(--button-color-rgb), 0.16);
+    }
+    
+    &:disabled {
+        background-color: rgba(var(--button-color-rgb), 0.08) !important;
+        border-color: transparent !important;
+        color: rgba(var(--button-color-rgb), 0.32) !important;
     }
 }
 
@@ -342,11 +363,16 @@
         background-color: rgba(var(--button-color-rgb), 0.16);
         color: var(--button-color);
     }
+    
+    &:disabled {
+        background-color: transparent !important;
+        border-color: transparent !important;
+        color: rgba(var(--button-color-rgb), 0.32) !important;
+    }
 }
 
 .Button--link.Button--inverted {
     color: var(--button-color);
-    text-decoration: underline;
     
     &:hover:not(:disabled) {
         color: rgba(var(--button-color-rgb), 0.75);
@@ -354,6 +380,13 @@
     
     &:active:not(:disabled) {
         color: var(--button-color);
+    }
+    
+    &:disabled {
+        background-color: transparent !important;
+        border-color: transparent !important;
+        color: rgba(var(--button-color-rgb), 0.32) !important;
+        text-decoration: none !important;
     }
 }
 
@@ -451,5 +484,31 @@
     background-color: transparent !important;
     border-color: transparent !important;
     color: rgba(var(--center-channel-color-rgb), 0.32) !important;
+    text-decoration: none !important;
+}
+
+// Inverted button disabled styles - ensure disabled state overrides destructive
+.Button--primary.Button--inverted:disabled,
+.Button--secondary.Button--inverted:disabled,
+.Button--tertiary.Button--inverted:disabled,
+.Button--quaternary.Button--inverted:disabled,
+.Button--link.Button--inverted:disabled {
+    opacity: 1 !important; // Override any global disabled opacity
+}
+
+// Inverted destructive disabled overrides
+.Button--primary.Button--destructive.Button--inverted:disabled,
+.Button--secondary.Button--destructive.Button--inverted:disabled,
+.Button--tertiary.Button--destructive.Button--inverted:disabled {
+    background-color: rgba(var(--button-color-rgb), 0.08) !important;
+    border-color: rgba(var(--button-color-rgb), 0.32) !important;
+    color: rgba(var(--button-color-rgb), 0.32) !important;
+}
+
+.Button--quaternary.Button--destructive.Button--inverted:disabled,
+.Button--link.Button--destructive.Button--inverted:disabled {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    color: rgba(var(--button-color-rgb), 0.32) !important;
     text-decoration: none !important;
 }
