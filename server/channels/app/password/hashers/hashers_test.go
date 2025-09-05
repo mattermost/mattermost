@@ -102,3 +102,39 @@ func TestGetHasherFromPHCString(t *testing.T) {
 		})
 	}
 }
+
+func TestIsLatestHasher(t *testing.T) {
+	pbkdf2WithOtherParams, err := NewPBKDF2(PBKDF2SHA1, 10000, 16)
+	require.NoError(t, err)
+
+	testCases := []struct {
+		testName       string
+		inputHasher    PasswordHasher
+		expectedOutput bool
+	}{
+		{
+			"latestHasher is the latest hasher",
+			latestHasher,
+			true,
+		},
+		{
+			"DefaultPBKDF2 is the latest hasher",
+			DefaultPBKDF2(),
+			true,
+		},
+		{
+			"PBKDF2 with other parameters is not the latest hasher",
+			pbkdf2WithOtherParams,
+			false,
+		},
+		{
+			"bcrypt is not the latest hasher",
+			NewBCrypt(),
+			false,
+		},
+	}
+	for _, tc := range testCases {
+		actualOutput := IsLatestHasher(tc.inputHasher)
+		require.Equal(t, tc.expectedOutput, actualOutput)
+	}
+}
