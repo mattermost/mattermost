@@ -8,8 +8,6 @@ import type {NotifyAdminRequest} from '@mattermost/types/cloud';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 export const NotifyStatus = {
     NotStarted: 'NOT_STARTED',
     Started: 'STARTED',
@@ -31,11 +29,6 @@ type UseNotifyAdminArgs = {
 
 type NotifyAdminArgs = {
     requestData: NotifyAdminRequest;
-    trackingArgs: {
-        category: any;
-        event: any;
-        props?: any;
-    };
 }
 
 const messages = defineMessages({
@@ -71,11 +64,10 @@ export const useGetNotifyAdmin = (args: UseNotifyAdminArgs) => {
         return messages[status];
     }, [args.ctaText]);
 
-    const notifyAdmin = useCallback(async ({requestData, trackingArgs}: NotifyAdminArgs) => {
+    const notifyAdmin = useCallback(async ({requestData}: NotifyAdminArgs) => {
         try {
             setStatus(NotifyStatus.Started);
             await Client4.notifyAdmin(requestData);
-            trackEvent(trackingArgs.category, trackingArgs.event, trackingArgs.props);
             setStatus(NotifyStatus.Success);
         } catch (error) {
             if (error && error.status_code === 403) {
