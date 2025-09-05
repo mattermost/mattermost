@@ -43,8 +43,7 @@ type Parser struct {
 // string is longer, the remaining runes are ignored.
 const MaxRunes = 256
 
-// New builds a new [Parser] out of an io.Reader, wrapping it in a io.LimitReader
-// first, and then in a bufio.Reader.
+// New builds a new [Parser], limiting the input to [MaxRunes] runes.
 func New(r io.Reader) *Parser {
 	return &Parser{reader: bufio.NewReader(io.LimitReader(r, MaxRunes))}
 }
