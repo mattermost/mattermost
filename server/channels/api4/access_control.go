@@ -58,7 +58,7 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		if !hasManageSystemPermission {
 			// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
 			if !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-				c.SetPermissionError(model.PermissionManageSystem)
+				c.Err = model.NewAppError("createAccessControlPolicy", "api.not_implemented", nil, "", http.StatusNotImplemented)
 				return
 			}
 			// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
@@ -119,7 +119,7 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 	if !hasManageSystemPermission {
 		// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
 		if !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-			c.SetPermissionError(model.PermissionManageSystem)
+			c.Err = model.NewAppError("getAccessControlPolicy", "api.not_implemented", nil, "", http.StatusNotImplemented)
 			return
 		}
 		// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
@@ -164,7 +164,7 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	if !hasManageSystemPermission {
 		// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
 		if !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-			c.SetPermissionError(model.PermissionManageSystem)
+			c.Err = model.NewAppError("deleteAccessControlPolicy", "api.not_implemented", nil, "", http.StatusNotImplemented)
 			return
 		}
 		// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
@@ -203,7 +203,7 @@ func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) && !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-		c.SetPermissionError(model.PermissionManageSystem)
+		c.Err = model.NewAppError("checkExpression", "api.not_implemented", nil, "", http.StatusNotImplemented)
 		return
 	}
 	// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
@@ -240,7 +240,7 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) && !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-		c.SetPermissionError(model.PermissionManageSystem)
+		c.Err = model.NewAppError("testExpression", "api.not_implemented", nil, "", http.StatusNotImplemented)
 		return
 	}
 	// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
@@ -527,7 +527,7 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) && !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-		c.SetPermissionError(model.PermissionManageSystem)
+		c.Err = model.NewAppError("getFieldsAutocomplete", "api.not_implemented", nil, "", http.StatusNotImplemented)
 		return
 	}
 	// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
@@ -577,7 +577,7 @@ func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) && !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-		c.SetPermissionError(model.PermissionManageSystem)
+		c.Err = model.NewAppError("convertToVisualAST", "api.not_implemented", nil, "", http.StatusNotImplemented)
 		return
 	}
 	// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
