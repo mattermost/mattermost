@@ -16,8 +16,6 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Permissions} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import BlockableLink from 'components/admin_console/blockable_link';
 import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
@@ -421,8 +419,6 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             if ('error' in result) {
                 serverError = <FormError error={result.error.message}/>;
                 saveNeeded = true;
-            } else {
-                trackEvent('admin_channel_config_page', 'channel_archived', {channel_id: channelID});
             }
             this.setState({serverError, saving: false, saveNeeded, isPrivacyChanging: false, usersToRemoveCount: 0, rolesToUpdate: {}, usersToAdd: {}, usersToRemove: {}}, () => {
                 actions.setNavigationBlocked(saveNeeded);
@@ -435,8 +431,6 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             const result = await actions.unarchiveChannel(channel.id);
             if ('error' in result) {
                 serverError = <FormError error={result.error.message}/>;
-            } else {
-                trackEvent('admin_channel_config_page', 'channel_unarchived', {channel_id: channelID});
             }
             this.setState({serverError, previousServerError: undefined});
         }
@@ -503,13 +497,6 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         }
 
         if (!(resultWithError && 'error' in resultWithError) && !('error' in patchResult)) {
-            if (unlink.length > 0) {
-                trackEvent('admin_channel_config_page', 'groups_removed_from_channel', {count: unlink.length, channel_id: channelID});
-            }
-            if (link.length > 0) {
-                trackEvent('admin_channel_config_page', 'groups_added_to_channel', {count: link.length, channel_id: channelID});
-            }
-
             const actionsToAwait: any[] = [];
             if (this.props.channelModerationEnabled) {
                 actionsToAwait.push(actions.getGroups(channelID));
@@ -658,24 +645,16 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             if (addUserActions.length > 0) {
                 const result = await Promise.all(addUserActions);
                 const resultWithError = result.find((r) => 'error' in r);
-                const count = result.filter((r) => 'data' in r).length;
                 if (resultWithError && 'error' in resultWithError) {
                     serverError = <FormError error={resultWithError.error.message}/>;
-                }
-                if (count > 0) {
-                    trackEvent('admin_channel_config_page', 'members_added_to_channel', {count, channel_id: channelID});
                 }
             }
 
             if (removeUserActions.length > 0) {
                 const result = await Promise.all(removeUserActions);
                 const resultWithError = result.find((r) => 'error' in r);
-                const count = result.filter((r) => 'data' in r).length;
                 if (resultWithError && 'error' in resultWithError) {
                     serverError = <FormError error={resultWithError.error.message}/>;
-                }
-                if (count > 0) {
-                    trackEvent('admin_channel_config_page', 'members_removed_from_channel', {count, channel_id: channelID});
                 }
             }
 
@@ -693,24 +672,16 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             if (rolesToPromote.length > 0) {
                 const result = await Promise.all(rolesToPromote);
                 const resultWithError = result.find((r) => 'error' in r);
-                const count = result.filter((r) => 'data' in r).length;
                 if (resultWithError && 'error' in resultWithError) {
                     serverError = <FormError error={resultWithError.error.message}/>;
-                }
-                if (count > 0) {
-                    trackEvent('admin_channel_config_page', 'members_elevated_to_channel_admin', {count, channel_id: channelID});
                 }
             }
 
             if (rolesToDemote.length > 0) {
                 const result = await Promise.all(rolesToDemote);
                 const resultWithError = result.find((r) => 'error' in r);
-                const count = result.filter((r) => 'data' in r).length;
                 if (resultWithError && 'error' in resultWithError) {
                     serverError = <FormError error={resultWithError.error.message}/>;
-                }
-                if (count > 0) {
-                    trackEvent('admin_channel_config_page', 'admins_demoted_to_channel_member', {count, channel_id: channelID});
                 }
             }
         }

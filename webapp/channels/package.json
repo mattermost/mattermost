@@ -80,7 +80,6 @@
     "redux-persist": "6.0.0",
     "redux-thunk": "2.4.2",
     "regenerator-runtime": "0.13.10",
-    "rudder-sdk-js": "1.0.16",
     "semver": "7.6.3",
     "serialize-error": "11.0.3",
     "shallow-equals": "1.0.0",
