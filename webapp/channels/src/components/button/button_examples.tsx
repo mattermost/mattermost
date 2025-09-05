@@ -52,7 +52,7 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                                     {sizes.map((size) => (
                                         <td key={size} style={{padding: '8px', textAlign: 'center'}}>
                                             <Button emphasis={emphasis} size={size}>
-                                                {size}
+                                                {size === 'xs' ? 'Extra-small' : size === 'sm' ? 'Small' : size === 'md' ? 'Medium' : 'Large'}
                                             </Button>
                                         </td>
                                     ))}
@@ -83,7 +83,7 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                                     {icons.map((icon) => (
                                         <td key={icon.label} style={{padding: '8px', textAlign: 'center'}}>
                                             <Button emphasis="primary" size={size} {...icon.props}>
-                                                {icon.label === 'Only' ? '' : `${size}`}
+                                                {icon.label === 'Only' ? '' : size === 'xs' ? 'X-small' : size === 'sm' ? 'Small' : size === 'md' ? 'Medium' : 'Large'}
                                             </Button>
                                         </td>
                                     ))}
@@ -170,7 +170,7 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                                     {states.map((state) => (
                                         <td key={state.label} style={{padding: '8px', textAlign: 'center'}}>
                                             <Button emphasis="primary" size={size} {...state.props}>
-                                                {size}-{state.label}
+                                                {(size === 'xs' ? 'X-small' : size === 'sm' ? 'Small' : size === 'md' ? 'Medium' : 'Large')}-{state.label}
                                             </Button>
                                         </td>
                                     ))}
@@ -220,7 +220,7 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                                         {sizes.map((size) => (
                                             <td key={size} style={{padding: '6px', textAlign: 'center'}}>
                                                 <Button emphasis={emphasis} size={size} inverted>
-                                                    {size}
+                                                    {size === 'xs' ? 'Extra-small' : size === 'sm' ? 'Small' : size === 'md' ? 'Medium' : 'Large'}
                                                 </Button>
                                             </td>
                                         ))}
