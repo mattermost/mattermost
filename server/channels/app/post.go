@@ -23,7 +23,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
-	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
 var pendingPostIDsCacheTTL = 30 * time.Second
@@ -78,37 +77,6 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 				mlog.String("channel_id", post.ChannelId),
 				mlog.String("user_id", post.UserId),
 				mlog.Err(err),
-			)
-		}
-	}
-	if channel.SchemeId != nil && *channel.SchemeId != "" {
-		isReadOnly, ircErr := a.Srv().Store().Channel().IsChannelReadOnlyScheme(*channel.SchemeId)
-		if ircErr != nil {
-			mlog.Warn("Error trying to check if it was a post to a readonly channel", mlog.Err(ircErr))
-		}
-		if isReadOnly {
-			a.Srv().telemetryService.SendTelemetryForFeature(
-				telemetry.TrackReadOnlyFeature,
-				"read_only_channel_posted",
-				map[string]any{
-					telemetry.TrackPropertyUser:    post.UserId,
-					telemetry.TrackPropertyChannel: post.ChannelId,
-				},
-			)
-		}
-	}
-
-	if channel.IsShared() {
-		// if not marked as shared we don't try to reach the store, but needs double checking as it might not be truly shared
-		isShared, shErr := a.Srv().Store().SharedChannel().HasChannel(channel.Id)
-		if shErr == nil && isShared {
-			a.Srv().telemetryService.SendTelemetryForFeature(
-				telemetry.TrackSharedChannelsFeature,
-				"shared_channel_posted",
-				map[string]any{
-					telemetry.TrackPropertyUser:    post.UserId,
-					telemetry.TrackPropertyChannel: channel.Id,
-				},
 			)
 		}
 	}
@@ -411,7 +379,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	if rpost.RootId != "" {
 		if appErr := a.ResolvePersistentNotification(c, parentPostList.Posts[post.RootId], rpost.UserId); appErr != nil {
 			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform)
-			a.NotificationsLog().Error("Error resolving persistent notification",
+			a.Log().LogM(mlog.MlvlNotificationError, "Error resolving persistent notification",
 				mlog.String("sender_id", rpost.UserId),
 				mlog.String("post_id", post.RootId),
 				mlog.String("status", model.NotificationStatusError),
@@ -547,7 +515,7 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 		t, err := a.Srv().Store().Team().Get(channel.TeamId)
 		if err != nil {
 			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
-			a.NotificationsLog().Error("Missing team",
+			a.Log().LogM(mlog.MlvlNotificationError, "Missing team",
 				mlog.String("post_id", post.Id),
 				mlog.String("status", model.NotificationStatusError),
 				mlog.String("reason", model.NotificationReasonFetchError),
@@ -841,7 +809,7 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 	postJSON, jsonErr := post.ToJSON()
 	if jsonErr != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonMarshalError, model.NotificationNoPlatform)
-		a.NotificationsLog().Error("Error in marshalling post to JSON",
+		a.Log().LogM(mlog.MlvlNotificationError, "Error in marshalling post to JSON",
 			mlog.String("type", model.NotificationTypeWebsocket),
 			mlog.String("post_id", post.Id),
 			mlog.String("status", model.NotificationStatusError),
@@ -879,7 +847,7 @@ func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post,
 	postWithoutPermalinkPreviewJSON, err := post.ToJSON()
 	if err != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonMarshalError, model.NotificationNoPlatform)
-		a.NotificationsLog().Error("Error in marshalling post to JSON",
+		a.Log().LogM(mlog.MlvlNotificationError, "Error in marshalling post to JSON",
 			mlog.String("type", model.NotificationTypeWebsocket),
 			mlog.String("post_id", post.Id),
 			mlog.String("status", model.NotificationStatusError),
@@ -891,7 +859,7 @@ func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post,
 
 	if !model.IsValidId(previewProp) {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonParseError, model.NotificationNoPlatform)
-		a.NotificationsLog().Error("Invalid post prop id for permalink post",
+		a.Log().LogM(mlog.MlvlNotificationError, "Invalid post prop id for permalink post",
 			mlog.String("type", model.NotificationTypeWebsocket),
 			mlog.String("post_id", post.Id),
 			mlog.String("status", model.NotificationStatusError),
@@ -907,7 +875,7 @@ func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post,
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
 			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
-			a.NotificationsLog().Error("permalink post not found",
+			a.Log().LogM(mlog.MlvlNotificationError, "permalink post not found",
 				mlog.String("type", model.NotificationTypeWebsocket),
 				mlog.String("post_id", post.Id),
 				mlog.String("status", model.NotificationStatusError),
@@ -926,7 +894,7 @@ func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post,
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
 			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
-			a.NotificationsLog().Error("Cannot get channel",
+			a.Log().LogM(mlog.MlvlNotificationError, "Cannot get channel",
 				mlog.String("type", model.NotificationTypeWebsocket),
 				mlog.String("post_id", post.Id),
 				mlog.String("status", model.NotificationStatusError),
@@ -1716,7 +1684,6 @@ func (a *App) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams)
 func (a *App) SearchPostsForUser(c request.CTX, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
 	var postSearchResults *model.PostSearchResults
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
-	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
 	if !*a.Config().ServiceSettings.EnablePostSearch {
 		return nil, model.NewAppError("SearchPostsForUser", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamID, userID), http.StatusNotImplemented)
@@ -1726,7 +1693,7 @@ func (a *App) SearchPostsForUser(c request.CTX, terms string, userID string, tea
 
 	for _, params := range paramsList {
 		params.OrTerms = isOrSearch
-		params.IncludeDeletedChannels = includeDeleted
+		params.IncludeDeletedChannels = includeDeletedChannels
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
 			// TODO: we have to send channel ids

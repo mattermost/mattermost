@@ -2031,11 +2031,11 @@ func (s *RetryLayerChannelStore) GetMemberCountsByGroup(ctx context.Context, cha
 
 }
 
-func (s *RetryLayerChannelStore) GetMemberForPost(postID string, userID string, includeArchivedChannels bool) (*model.ChannelMember, error) {
+func (s *RetryLayerChannelStore) GetMemberForPost(postID string, userID string) (*model.ChannelMember, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetMemberForPost(postID, userID, includeArchivedChannels)
+		result, err := s.ChannelStore.GetMemberForPost(postID, userID)
 		if err == nil {
 			return result, nil
 		}
@@ -2472,11 +2472,11 @@ func (s *RetryLayerChannelStore) GetTeamForChannel(channelID string) (*model.Tea
 
 }
 
-func (s *RetryLayerChannelStore) GetTeamMembersForChannel(channelID string) ([]string, error) {
+func (s *RetryLayerChannelStore) GetTeamMembersForChannel(rctx request.CTX, channelID string) ([]string, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetTeamMembersForChannel(channelID)
+		result, err := s.ChannelStore.GetTeamMembersForChannel(rctx, channelID)
 		if err == nil {
 			return result, nil
 		}
@@ -5582,6 +5582,27 @@ func (s *RetryLayerGroupStore) GetByName(name string, opts model.GroupSearchOpts
 	tries := 0
 	for {
 		result, err := s.GroupStore.GetByName(name, opts)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerGroupStore) GetByNames(names []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
+
+	tries := 0
+	for {
+		result, err := s.GroupStore.GetByNames(names, viewRestrictions)
 		if err == nil {
 			return result, nil
 		}

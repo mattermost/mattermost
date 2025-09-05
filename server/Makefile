@@ -146,12 +146,10 @@ PLUGIN_PACKAGES += mattermost-plugin-calls-v1.10.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.10.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.3.0
-# We need to prepackage both versions of playbooks and install the correct one based on the server license. See MM-60025.
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.41.1
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.3.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
-PLUGIN_PACKAGES += mattermost-plugin-agents-v1.2.4
+PLUGIN_PACKAGES += mattermost-plugin-agents-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.5
 PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.2.1
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
@@ -329,9 +327,6 @@ cache-mocks:
 	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
 	$(GOBIN)/mockery --config platform/services/cache/.mockery.yaml
 
-telemetry-mocks: ## Creates mock files.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
-	$(GOBIN)/mockery --config platform/services/telemetry/.mockery.yaml
 
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./channels/store
@@ -384,7 +379,7 @@ mmctl-mocks: ## Creates mocks for mmctl
 pluginapi: ## Generates api and hooks glue code for plugins
 	cd ./public && $(GO) generate $(GOFLAGS) ./plugin
 
-mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks mocks-public cache-mocks
+mocks: store-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks mocks-public cache-mocks
 
 layers: store-layers pluginapi
 
@@ -523,28 +518,28 @@ inject-test-data: # add test data to the local instance.
 test-mmctl-unit: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-mmctl-unit: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-mmctl-unit: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
-test-mmctl-unit: gotestsum
+test-mmctl-unit: check-prereqs-enterprise gotestsum
 	@echo Running mmctl unit tests
 	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
 
 test-mmctl-e2e: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-mmctl-e2e: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-mmctl-e2e: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
-test-mmctl-e2e: gotestsum start-docker
+test-mmctl-e2e: check-prereqs-enterprise gotestsum start-docker
 	@echo Running mmctl e2e tests
 	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
 
 test-mmctl: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-mmctl: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-mmctl: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
-test-mmctl: gotestsum start-docker
+test-mmctl: check-prereqs-enterprise gotestsum start-docker
 	@echo Running all mmctl tests
 	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
 
 test-mmctl-coverage: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-mmctl-coverage: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-mmctl-coverage: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
-test-mmctl-coverage: gotestsum start-docker
+test-mmctl-coverage: check-prereqs-enterprise gotestsum start-docker
 	@echo Running all mmctl tests with coverage
 	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit e2e $(MMCTL_BUILD_TAGS)' -coverprofile=mmctlcover.out $(MMCTL_TESTFLAGS)
 	$(GO) tool cover -html=mmctlcover.out
@@ -707,7 +702,7 @@ config-openid: ## Configures OpenID.
 config-reset: ## Resets the config/config.json file to the default production values.
 	@echo Resetting configuration to production default
 	rm -f config/config.json
-	OUTPUT_CONFIG=$(PWD)/config/config.json $(GO) $(GOFLAGS) run -tags production ./scripts/config_generator
+	OUTPUT_CONFIG=$(PWD)/config/config.json $(GO) run $(GOFLAGS) -tags production ./scripts/config_generator
 
 diff-config: ## Compares default configuration between two mattermost versions
 	@./scripts/diff-config.sh

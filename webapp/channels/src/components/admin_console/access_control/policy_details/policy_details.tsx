@@ -24,6 +24,7 @@ import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import TextSetting from 'components/widgets/settings/text_setting';
 
+import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {getHistory} from 'utils/browser_history';
 import {JobTypes} from 'utils/constants';
 
@@ -45,10 +46,8 @@ interface PolicyActions {
     setNavigationBlocked: (blocked: boolean) => void;
     assignChannelsToAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
     unassignChannelsFromAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
-    getAccessControlFields: (after: string, limit: number) => Promise<ActionResult>;
     createJob: (job: JobTypeBase & { data: any }) => Promise<ActionResult>;
     updateAccessControlPolicyActive: (policyId: string, active: boolean) => Promise<ActionResult>;
-    getVisualAST: (expression: string) => Promise<ActionResult>;
 }
 
 export interface PolicyDetailsProps {
@@ -89,6 +88,8 @@ function PolicyDetails({
     const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
     const {formatMessage} = useIntl();
 
+    const abacActions = useChannelAccessControlActions();
+
     useEffect(() => {
         loadPage();
     }, [policyId]);
@@ -115,7 +116,7 @@ function PolicyDetails({
 
     const loadPage = async (): Promise<void> => {
         // Fetch autocomplete fields first, as they are general and needed for both new and existing policies.
-        const fieldsPromise = actions.getAccessControlFields('', 100).then((result) => {
+        const fieldsPromise = abacActions.getAccessControlFields('', 100).then((result) => {
             if (result.data) {
                 setAutocompleteResult(result.data);
             }
@@ -172,7 +173,7 @@ function PolicyDetails({
             name: policyName,
             rules: [{expression, actions: ['*']}] as AccessControlPolicyRule[],
             type: 'parent',
-            version: 'v0.1',
+            version: 'v0.2',
         }).then((result) => {
             if (result.error) {
                 setServerError(result.error.message);
@@ -491,9 +492,7 @@ function PolicyDetails({
                                         setEditorMode('cel');
                                     }}
                                     enableUserManagedAttributes={accessControlSettings.EnableUserManagedAttributes}
-                                    actions={{
-                                        getVisualAST: actions.getVisualAST,
-                                    }}
+                                    actions={abacActions}
                                 />
                             )}
                         </Card.Body>
@@ -587,7 +586,6 @@ function PolicyDetails({
                     onChannelsSelected={(channels) => addToNewChannels(channels)}
                     groupID={''}
                     alreadySelected={Object.values(channelChanges.added).map((channel) => channel.id)}
-                    excludeAccessControlPolicyEnforced={true}
                     excludeTypes={['O', 'D', 'G']}
                 />
             )}

@@ -130,7 +130,6 @@
         "MaxNotificationsPerChannel": 1000,
         "EnableConfirmNotificationsToChannel": true,
         "TeammateNameDisplay": "username",
-        "ExperimentalViewArchivedChannels": false,
         "ExperimentalEnableAutomaticReplies": false,
         "LockTeammateNameDisplay": false,
         "ExperimentalPrimaryTeam": "",
@@ -147,10 +146,8 @@
         "DataSource": "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable\u0026connect_timeout=10\u0026binary_parameters=yes",
         "DataSourceReplicas": [],
         "DataSourceSearchReplicas": [],
-        "MaxIdleConns": 20,
         "ConnMaxLifetimeMilliseconds": 3600000,
         "ConnMaxIdleTimeMilliseconds": 300000,
-        "MaxOpenConns": 300,
         "Trace": false,
         "AtRestEncryptKey": "",
         "QueryTimeout": 30,
@@ -170,7 +167,6 @@
         "FileLocation": "",
         "EnableWebhookDebugging": true,
         "EnableDiagnostics": false,
-        "VerboseDiagnostics": false,
         "EnableSentry": false,
         "AdvancedLoggingJSON": {},
         "MaxFieldSize": 2048
@@ -183,17 +179,6 @@
         "FileMaxBackups": 0,
         "FileCompress": false,
         "FileMaxQueueSize": 1000,
-        "AdvancedLoggingJSON": {}
-    },
-    "NotificationLogSettings": {
-        "EnableConsole": true,
-        "ConsoleLevel": "DEBUG",
-        "ConsoleJson": true,
-        "EnableColor": false,
-        "EnableFile": true,
-        "FileLevel": "INFO",
-        "FileJson": true,
-        "FileLocation": "",
         "AdvancedLoggingJSON": {}
     },
     "PasswordSettings": {
@@ -481,8 +466,6 @@
         "ListenAddress": ":8067"
     },
     "ExperimentalSettings": {
-        "ClientSideCertEnable": false,
-        "ClientSideCertCheck": "secondary",
         "LinkMetadataTimeoutMilliseconds": 5000,
         "RestrictSystemAdmin": false,
         "EnableSharedChannels": false,

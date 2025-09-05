@@ -14,7 +14,6 @@ import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 
 import AlertBanner from 'components/alert_banner';
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import UpgradeLink from 'components/widgets/links/upgrade_link';
 
 import {CloudBanners, Preferences} from 'utils/constants';
@@ -30,7 +29,6 @@ const CloudTrialBanner = ({trialEndDate}: Props): JSX.Element | null => {
     const endDate = new Date(trialEndDate);
     const DISMISSED_DAYS = 10;
     const {formatMessage} = useIntl();
-    const [openSalesLink] = useOpenSalesLink();
     const dispatch = useDispatch();
     const user = useSelector(getCurrentUser);
     const storedDismissedEndDate = useSelector((state: GlobalState) => getPreference(state, Preferences.CLOUD_TRIAL_BANNER, CloudBanners.UPGRADE_FROM_TRIAL));
@@ -72,7 +70,7 @@ const CloudTrialBanner = ({trialEndDate}: Props): JSX.Element | null => {
             title={(
                 <FormattedMessage
                     id='admin.subscription.cloudTrialCard.upgradeTitle'
-                    defaultMessage='Upgrade to one of our paid plans to avoid Free plan data limits'
+                    defaultMessage='Upgrade to one of our paid plans to keep your workspace '
                 />
             )}
             message={(
@@ -90,21 +88,10 @@ const CloudTrialBanner = ({trialEndDate}: Props): JSX.Element | null => {
                 <UpgradeLink
                     buttonText={formatMessage({id: 'admin.subscription.cloudTrialCard.upgrade', defaultMessage: 'Upgrade'})}
                     styleButton={true}
-                    telemetryInfo='billing_subscriptions_cloud_trial_banner'
                 />
             )}
             actionButtonRight={(
-                <button
-                    onClick={openSalesLink}
-                    className='AlertBanner__buttonRight'
-                >
-                    <FormattedMessage
-                        id='admin.billing.subscription.privateCloudCard.contactSalesy'
-                        defaultMessage={
-                            'Contact sales'
-                        }
-                    />
-                </button>
+                null
             )}
         />
     );

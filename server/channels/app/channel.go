@@ -14,7 +14,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
-	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -1709,13 +1708,6 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 		return nil, model.NewAppError("AddUserToChannel", "app.channel_member_history.log_join_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	if user.IsGuest() {
-		a.Srv().telemetryService.SendTelemetryForFeature(
-			telemetry.TrackGuestFeature,
-			"add_guest_to_channel",
-			map[string]any{telemetry.TrackPropertyUser: user.Id})
-	}
-
 	a.Srv().Platform().InvalidateChannelCacheForUser(user.Id)
 	a.invalidateCacheForChannelMembers(channel.Id)
 
@@ -2815,12 +2807,10 @@ func (a *App) SetActiveChannel(c request.CTX, userID string, channelID string) *
 
 	oldStatus := model.StatusOffline
 
-	oldChannelID := ""
 	if err != nil {
 		status = &model.Status{UserId: userID, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: channelID}
 	} else {
 		oldStatus = status.Status
-		oldChannelID = status.ActiveChannel
 		status.ActiveChannel = channelID
 		if !status.Manual && channelID != "" {
 			status.Status = model.StatusOnline
@@ -2832,35 +2822,6 @@ func (a *App) SetActiveChannel(c request.CTX, userID string, channelID string) *
 
 	if status.Status != oldStatus {
 		a.Srv().Platform().BroadcastStatus(status)
-	}
-
-	if channelID != "" && oldChannelID != channelID {
-		// is this a read-only channel?
-		isReadOnly, ircErr := a.Srv().Store().Channel().IsReadOnlyChannel(channelID)
-		if ircErr != nil {
-			mlog.Warn("Error trying to check if it is a readonly channel", mlog.Err(ircErr))
-		}
-		if isReadOnly {
-			a.Srv().telemetryService.SendTelemetryForFeature(
-				telemetry.TrackReadOnlyFeature,
-				"read_only_channel_viewed",
-				map[string]any{
-					telemetry.TrackPropertyUser:    userID,
-					telemetry.TrackPropertyChannel: channelID,
-				},
-			)
-		}
-		isShared, shErr := a.Srv().Store().SharedChannel().HasChannel(channelID)
-		if shErr == nil && isShared {
-			a.Srv().telemetryService.SendTelemetryForFeature(
-				telemetry.TrackSharedChannelsFeature,
-				"shared_channel_viewed",
-				map[string]any{
-					telemetry.TrackPropertyUser:    userID,
-					telemetry.TrackPropertyChannel: channelID,
-				},
-			)
-		}
 	}
 
 	return nil
@@ -3056,7 +3017,7 @@ func (a *App) sendWebSocketPostUnreadEvent(c request.CTX, channelUnread *model.C
 }
 
 func (a *App) AutocompleteChannels(c request.CTX, userID, term string) (model.ChannelListWithTeamData, *model.AppError) {
-	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	includeDeleted := true
 	term = strings.TrimSpace(term)
 
 	user, appErr := a.GetUser(userID)
@@ -3073,7 +3034,7 @@ func (a *App) AutocompleteChannels(c request.CTX, userID, term string) (model.Ch
 }
 
 func (a *App) AutocompleteChannelsForTeam(c request.CTX, teamID, userID, term string) (model.ChannelList, *model.AppError) {
-	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	includeDeleted := true
 	term = strings.TrimSpace(term)
 
 	user, appErr := a.GetUser(userID)
@@ -3090,7 +3051,7 @@ func (a *App) AutocompleteChannelsForTeam(c request.CTX, teamID, userID, term st
 }
 
 func (a *App) AutocompleteChannelsForSearch(c request.CTX, teamID string, userID string, term string) (model.ChannelList, *model.AppError) {
-	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	includeDeleted := true
 
 	term = strings.TrimSpace(term)
 
@@ -3140,7 +3101,7 @@ func (a *App) SearchAllChannels(c request.CTX, term string, opts model.ChannelSe
 }
 
 func (a *App) SearchChannels(c request.CTX, teamID string, term string) (model.ChannelList, *model.AppError) {
-	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	includeDeleted := true
 
 	term = strings.TrimSpace(term)
 
@@ -3164,7 +3125,7 @@ func (a *App) SearchArchivedChannels(c request.CTX, teamID string, term string, 
 }
 
 func (a *App) SearchChannelsForUser(c request.CTX, userID, teamID, term string) (model.ChannelList, *model.AppError) {
-	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	includeDeleted := true
 
 	term = strings.TrimSpace(term)
 

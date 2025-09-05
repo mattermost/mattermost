@@ -93,7 +93,7 @@ type Client interface {
 	DeleteCommand(ctx context.Context, commandID string) (*model.Response, error)
 	GetConfig(ctx context.Context) (*model.Config, *model.Response, error)
 	GetConfigWithOptions(ctx context.Context, options model.GetConfigOptions) (map[string]any, *model.Response, error)
-	GetOldClientConfig(ctx context.Context, etag string) (map[string]string, *model.Response, error)
+	GetClientConfig(ctx context.Context, etag string) (map[string]string, *model.Response, error)
 	UpdateConfig(context.Context, *model.Config) (*model.Config, *model.Response, error)
 	PatchConfig(context.Context, *model.Config) (*model.Config, *model.Response, error)
 	ReloadConfig(ctx context.Context) (*model.Response, error)

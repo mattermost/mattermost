@@ -4372,14 +4372,6 @@
     "translation": "A vendég fiókok tiltva vannak"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Megpróbálta használni a ClientSideCertEnable kísérleti funkciót érvényes enterprise licenc nélkül."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Megkísérelt bejelentkezni a ClientSideCert kísérleti szolgáltatással érvényes tanúsítvány megadása nélkül."
-  },
-  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Bot bejelentkezés tiltott."
   },
@@ -5961,10 +5953,6 @@
   {
     "id": "api.config.get_config.restricted_merge.app_error",
     "translation": "Nem sikerült egyesíteni a megadott konfigurációt."
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "A kliens konfiguráció új formátuma még nem támogatott. Kérjük, adja meg a format=old paramétert a kérés szövegében."
   },
   {
     "id": "api.command_shrug.name",
@@ -8145,14 +8133,6 @@
   {
     "id": "app.session.extend_session_expiry.app_error",
     "translation": "Nem tudom megnövelni a munkamenet hosszát"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Nem sikerült lekérni egy archivált csatorna felhasználóit"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Nem sikerült lekérni egy archivált csatorna bejegyzéseit"
   },
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
