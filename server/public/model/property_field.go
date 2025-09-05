@@ -49,17 +49,16 @@ func (pf *PropertyField) Auditable() map[string]any {
 	}
 }
 
+// PreSave will set the Id if missing. It will also fill in the CreateAt, UpdateAt 
+// times and ensure DeleteAt is 0. It should be run before saving the field to the db.
 func (pf *PropertyField) PreSave() {
 	if pf.ID == "" {
 		pf.ID = NewId()
 	}
 
-	// adjust timestamps if the field is new
-	if pf.CreateAt == 0 {
-		pf.CreateAt = GetMillis()
-		pf.UpdateAt = pf.CreateAt
-		pf.DeleteAt = 0
-	}
+	pf.CreateAt = GetMillis()
+	pf.UpdateAt = pf.CreateAt
+	pf.DeleteAt = 0
 }
 
 func (pf *PropertyField) IsValid() error {
