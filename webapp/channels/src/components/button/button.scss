@@ -43,7 +43,6 @@
     }
 }
 
-
 // Size variants
 .Button--xs {
     padding: 4px 10px;
@@ -51,12 +50,11 @@
     line-height: 16px;
     gap: 4px; // Proportional gap for x-small buttons
     
-    // Icon font size for x-small buttons - 14px for good visibility
-    .Button__icon i,
-    .Button__loading i {
-        font-size: 14px;
+    // Icon sizing for x-small buttons
+    .Button__icon i {
+        width: 12px;
+        height: 12px;
     }
-    
 }
 
 .Button--sm {
@@ -65,12 +63,11 @@
     line-height: 16px;
     gap: 5px; // Proportional gap for small buttons
     
-    // Icon font size for small buttons - 16px (standard icon size)
-    .Button__icon i,
-    .Button__loading i {
-        font-size: 16px;
+    // Icon sizing for small buttons
+    .Button__icon i {
+        width: 14px;
+        height: 14px;
     }
-    
 }
 
 .Button--md {
@@ -79,10 +76,10 @@
     line-height: 20px;
     gap: 6px; // Proportional gap for medium buttons
     
-    // Icon font size for medium buttons - 18px (proportional to 14px text)
-    .Button__icon i,
-    .Button__loading i {
-        font-size: 18px;
+    // Icon sizing for medium buttons
+    .Button__icon i {
+        width: 16px;
+        height: 16px;
     }
     
 }
@@ -93,12 +90,11 @@
     line-height: 24px;
     gap: 8px; // Proportional gap for large buttons
     
-    // Icon font size for large buttons - 20px (proportional to 16px text)
-    .Button__icon i,
-    .Button__loading i {
-        font-size: 20px;
+    // Icon sizing for large buttons
+    .Button__icon i {
+        width: 20px;
+        height: 20px;
     }
-    
 }
 
 // Full width variant
@@ -364,9 +360,42 @@
     
 }
 
-// Loading spinner
+// Spinner animation (global)
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+// Loading spinner base styles
 .Button__loading {
     line-height: 0;
+    
+    .spinner {
+        display: inline-block;
+        border-radius: 50%;
+        background: conic-gradient(rgba(var(--center-channel-color-rgb), 0), rgba(var(--center-channel-color-rgb), 0.48));
+        mask-image: radial-gradient(
+            farthest-side,
+            transparent calc(100% - 2px),
+            #fff calc(100% - 1.5px)
+        );
+        animation: spin 750ms linear infinite;
+    }
+}
+
+// Spinner sizing per button size
+.Button--xs .Button__loading .spinner { width: 12px; height: 12px; }
+.Button--sm .Button__loading .spinner { width: 14px; height: 14px; }
+.Button--md .Button__loading .spinner { width: 16px; height: 16px; }
+.Button--lg .Button__loading .spinner { width: 20px; height: 20px; }
+
+// Inverted spinner color override
+.Button--inverted .Button__loading .spinner {
+    background: conic-gradient(rgba(var(--button-color-rgb), 0), rgba(var(--button-color-rgb), 0.48));
 }
 
 // Icon containers - standardized based on Figma design system
@@ -446,9 +475,12 @@
     &.Button--destructive {
         // Primary, Secondary, Tertiary destructive disabled
         &.Button--primary,
-        &.Button--secondary,
         &.Button--tertiary {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.32);
+        }
+
+        &.Button--secondary {
             border-color: rgba(var(--center-channel-color-rgb), 0.32);
             color: rgba(var(--center-channel-color-rgb), 0.32);
         }
