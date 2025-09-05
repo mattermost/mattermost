@@ -14,7 +14,6 @@
         margin: 0 !important;
         padding: 0 !important;
         line-height: 1;
-        font-size: inherit !important;
     }
     
     .fa {
@@ -79,6 +78,12 @@
     font-size: 12px;
     line-height: 16px;
     
+    // Icon font size for x-small buttons - 14px for good visibility
+    .Button__icon i,
+    .Button__loading i {
+        font-size: 14px !important;
+    }
+    
     &.Button--icon-only {
         width: 24px;
         padding: 4px;
@@ -90,6 +95,12 @@
     padding: 8px 16px;
     font-size: 12px;
     line-height: 16px;
+    
+    // Icon font size for small buttons - 16px (standard icon size)
+    .Button__icon i,
+    .Button__loading i {
+        font-size: 16px !important;
+    }
     
     &.Button--icon-only {
         width: 32px;
@@ -103,6 +114,12 @@
     font-size: 14px;
     line-height: 20px;
     
+    // Icon font size for medium buttons - 18px (proportional to 14px text)
+    .Button__icon i,
+    .Button__loading i {
+        font-size: 18px !important;
+    }
+    
     &.Button--icon-only {
         width: 40px;
         padding: 10px;
@@ -114,6 +131,12 @@
     padding: 12px 24px;
     font-size: 16px;
     line-height: 24px;
+    
+    // Icon font size for large buttons - 20px (proportional to 16px text)
+    .Button__icon i,
+    .Button__loading i {
+        font-size: 20px !important;
+    }
     
     &.Button--icon-only {
         width: 48px;
