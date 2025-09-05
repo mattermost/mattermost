@@ -639,7 +639,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		s.Require().Contains(lines[0], "Field Skills successfully updated")
 	})
 
-	s.Run("Should have attrs JSON override individual flags", func() {
+	s.Run("Should have individual flags override attrs JSON", func() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 		viper.Set("json", false)
@@ -651,7 +651,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 			TargetType: "user",
 			Attrs: model.StringInterface{
 				"visibility": "always",
-				"managed":    "", // attrs should override the individual flag
+				"managed":    "admin", // individual flag should override attrs
 			},
 		}
 
@@ -662,8 +662,8 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 				s.Require().Equal("field-id", fieldID)
 				s.Require().NotNil(patch.Attrs)
 
-				// attrs should take precedence over individual flags
-				s.Require().Equal("", (*patch.Attrs)["managed"])
+				// individual flags should take precedence over attrs
+				s.Require().Equal("admin", (*patch.Attrs)["managed"])
 				s.Require().Equal("always", (*patch.Attrs)["visibility"])
 
 				return expectedField, &model.Response{}, nil
