@@ -3100,6 +3100,11 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	currentUserId := c.AppContext.Session().UserId
+	for _, member := range members {
+		member.SanitizeForCurrentUser(currentUserId)
+	}
+
 	if err := json.NewEncoder(w).Encode(members); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
