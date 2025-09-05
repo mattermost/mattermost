@@ -7,7 +7,7 @@ import type {Post} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
-import {PostTypes, PreferenceTypes, SearchTypes, UserTypes} from 'mattermost-redux/action_types';
+import {FileTypes, PostTypes, PreferenceTypes, SearchTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Preferences} from 'mattermost-redux/constants';
 
 function results(state: string[] = [], action: MMReduxAction) {
@@ -44,6 +44,30 @@ function fileResults(state: string[] = [], action: MMReduxAction) {
             return [...new Set(state.concat(action.data.order))];
         }
         return action.data.order;
+    }
+    case FileTypes.REMOVED_FILE: {
+        const newState = [...state];
+        const deletedFiles: string[] = action.data.fileIds;
+        deletedFiles.forEach((fileId) => {
+            const index = newState.indexOf(fileId);
+            if (index !== -1) {
+                newState.splice(index, 1);
+            }
+        });
+
+        return newState;
+    }
+    case PostTypes.POST_REMOVED: {
+        const newState = [...state];
+        const post: Post = action.data;
+        post.file_ids?.forEach((fileId) => {
+            const index = newState.indexOf(fileId);
+            if (index !== -1) {
+                newState.splice(index, 1);
+            }
+        });
+
+        return newState;
     }
     case SearchTypes.REMOVE_SEARCH_FILES:
     case UserTypes.LOGOUT_SUCCESS:
