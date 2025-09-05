@@ -5,13 +5,30 @@
 
 // Using CSS variables from theme provider - no hardcoded colors needed
 
+// Mixin to override global icon styles that interfere with button spacing
+@mixin reset-global-icon-styles {
+    i {
+        display: block !important;
+        width: auto !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 1;
+        font-size: inherit !important;
+    }
+    
+    .fa {
+        margin: 0 !important;
+    }
+}
+
 // Base button styles
 .Button {
     position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 4px;
     border: none;
     border-radius: var(--radius-s);
     font-family: 'Open Sans', sans-serif;
@@ -43,6 +60,18 @@
     }
 }
 
+// Common icon-only button styles
+.Button--icon-only {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    
+    .Button__icon {
+        line-height: 1; // Restore normal line-height for icon-only
+        margin: 0 !important; // No margins needed when centered
+    }
+}
+
 // Size variants
 .Button--xs {
     height: 24px;
@@ -53,13 +82,6 @@
     &.Button--icon-only {
         width: 24px;
         padding: 4px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        
-        .Button__icon {
-            line-height: 1; // Restore normal line-height for icon-only
-        }
     }
 }
 
@@ -72,13 +94,6 @@
     &.Button--icon-only {
         width: 32px;
         padding: 8px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        
-        .Button__icon {
-            line-height: 1; // Restore normal line-height for icon-only
-        }
     }
 }
 
@@ -91,13 +106,6 @@
     &.Button--icon-only {
         width: 40px;
         padding: 10px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        
-        .Button__icon {
-            line-height: 1; // Restore normal line-height for icon-only
-        }
     }
 }
 
@@ -110,13 +118,6 @@
     &.Button--icon-only {
         width: 48px;
         padding: 12px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        
-        .Button__icon {
-            line-height: 1; // Restore normal line-height for icon-only
-        }
     }
 }
 
@@ -364,9 +365,6 @@
 }
 
 .Button--link.Button--inverted {
-    background-color: transparent;
-    padding: 0;
-    height: auto;
     color: var(--button-color);
     text-decoration: underline;
     
@@ -379,46 +377,24 @@
     }
 }
 
-// Loading spinner positioning - let gap handle spacing
+// Loading spinner
 .Button__loading {
-    line-height: 0; // Match icon styling to prevent spacing issues
-    
-    // Override global button icon styles for loading spinner
-    i {
-        display: block !important;
-        width: auto !important;
-        height: auto !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        line-height: 1;
-        font-size: inherit !important; // Use the button's font size
-    }
-    
-    // Override FontAwesome global styles from admin-console.scss
-    .fa {
-        margin: 0 !important;
-    }
+    line-height: 0;
+    @include reset-global-icon-styles;
 }
 
-// Icon base styles - minimal styling to avoid interfering with button gap
+// Icon containers
 .Button__icon {
     display: inline-block;
-    line-height: 0; // Prevent extra line-height spacing
+    line-height: 0;
+    @include reset-global-icon-styles;
     
-    // Override global button icon styles from _buttons.scss
-    i {
-        display: block !important;
-        width: auto !important;
-        height: auto !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        line-height: 1;
-        font-size: inherit !important; // Use the button's font size
+    &--before {
+        margin-left: -4px;
     }
-    
-    // Override FontAwesome global styles from admin-console.scss
-    .fa {
-        margin: 0 !important;
+
+    &--after {
+        margin-right: -6px;
     }
 }
 
