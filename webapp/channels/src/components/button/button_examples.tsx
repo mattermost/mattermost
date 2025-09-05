@@ -66,7 +66,7 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                 <div style={{marginBottom: '40px'}}>
                     <h4 style={{marginBottom: '16px'}}>📊 Sizes × ALL Icon Variants (20 combinations)</h4>
                     <p style={{marginBottom: '16px', fontSize: '12px', color: 'rgba(0,0,0,0.6)'}}>
-                        Proportional scaling: XS/SM = 6px gap + 14px/16px icons, MD = 8px gap + 18px icons, LG = 10px gap + 20px icons
+                        Icon containers: XS=16×16px, SM=20×20px, MD=24×24px, LG=28×28px | Gaps: XS/SM=6px, MD=8px, LG=10px | Icon fonts: XS=14px, SM=16px, MD=18px, LG=20px
                     </p>
                     <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '14px'}}>
                         <thead>
@@ -83,7 +83,7 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                                     <td style={{padding: '8px', fontWeight: 600, fontSize: '12px'}}>
                                         {size} <br/>
                                         <span style={{fontSize: '10px', color: 'rgba(0,0,0,0.5)'}}>
-                                            {size === 'xs' ? '6px gap' : size === 'sm' ? '6px gap' : size === 'md' ? '8px gap' : '10px gap'}
+                                            {size === 'xs' ? '16×16px' : size === 'sm' ? '20×20px' : size === 'md' ? '24×24px' : '28×28px'}
                                         </span>
                                     </td>
                                     {icons.map((icon) => (

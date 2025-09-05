@@ -68,6 +68,12 @@
     .Button__icon {
         line-height: 1; // Restore normal line-height for icon-only
         margin: 0 !important; // No margins needed when centered
+        
+        // Ensure icon containers fill the button space for icon-only
+        &--before,
+        &--after {
+            margin: 0 !important;
+        }
     }
 }
 
@@ -410,15 +416,20 @@
     @include reset-global-icon-styles;
 }
 
-// Icon containers
+// Icon containers - standardized based on Figma design system
 .Button__icon {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     line-height: 0;
     @include reset-global-icon-styles;
 }
 
-// Proportional icon spacing for each size
+// Icon container sizes based on Figma design system specifications
 .Button--xs .Button__icon {
+    width: 16px;
+    height: 16px;
+    
     &--before {
         margin-left: -3px; // Proportional to 6px gap
     }
@@ -429,6 +440,9 @@
 }
 
 .Button--sm .Button__icon {
+    width: 20px;
+    height: 20px;
+    
     &--before {
         margin-left: -3px; // Proportional to 6px gap
     }
@@ -439,6 +453,9 @@
 }
 
 .Button--md .Button__icon {
+    width: 24px;
+    height: 24px;
+    
     &--before {
         margin-left: -4px; // Proportional to 8px gap
     }
@@ -449,6 +466,9 @@
 }
 
 .Button--lg .Button__icon {
+    width: 28px;
+    height: 28px;
+    
     &--before {
         margin-left: -5px; // Proportional to 10px gap
     }
