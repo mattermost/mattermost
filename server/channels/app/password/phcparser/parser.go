@@ -103,7 +103,12 @@ func (p *Parser) scanIdent(isIdentAllowedRune func(rune) bool) (tok Token, lit s
 	return IDENT, buf.String()
 }
 
-func (p *Parser) scanSymbol() (tok Token, lit string) {
+// scanSeparator scans one of the separator tokens:
+// - EOF
+// - $
+// - ,
+// - =
+func (p *Parser) scanSeparator() (tok Token, lit string) {
 	return p.scan(none)
 }
 
@@ -182,7 +187,7 @@ func (p *Parser) Parse() (PHC, error) {
 	out.Id = id
 
 	// Now we expect either EOF, or to continue parsing with a '$'
-	switch token, literal := p.scanSymbol(); token {
+	switch token, literal := p.scanSeparator(); token {
 	case EOF:
 		// Just a function identifier is valid, according to the spec
 		return out, nil
@@ -214,7 +219,7 @@ func (p *Parser) Parse() (PHC, error) {
 		out.Version = versionStr
 
 		// Now we expect either EOF, or to continue parsing with a '$'
-		switch token, literal := p.scanSymbol(); token {
+		switch token, literal := p.scanSeparator(); token {
 		case EOF:
 			// Just a function identifier + version is valid, according to the spec
 			return out, nil
@@ -238,7 +243,7 @@ func (p *Parser) Parse() (PHC, error) {
 	paramNameOrSalt := versionKeyOrParamNameOrSalt
 
 	// We know which one by scaning the next token:
-	switch token, literal := p.scanSymbol(); token {
+	switch token, literal := p.scanSeparator(); token {
 	// If the following token is '=', then it was a parameter name, and we
 	// expect now '=value'
 	case EQUALSIGN:
@@ -285,7 +290,7 @@ func (p *Parser) Parse() (PHC, error) {
 	//   restart the loop
 	// - If we see '$', then we need to parse 'salt[$hash]', and we finish
 	for {
-		switch token, literal := p.scanSymbol(); token {
+		switch token, literal := p.scanSeparator(); token {
 		// We're done!
 		case EOF:
 			return out, nil
@@ -309,7 +314,7 @@ func (p *Parser) Parse() (PHC, error) {
 			}
 			out.Salt = salt
 
-			switch token, newLiteral := p.scanSymbol(); token {
+			switch token, newLiteral := p.scanSeparator(); token {
 			// If what we parsed was a $, then now we expect a $hash
 			case DOLLARSIGN:
 				hash, err := p.parseHash()
@@ -335,13 +340,12 @@ func (p *Parser) Parse() (PHC, error) {
 type Token uint
 
 const (
-	// Special tokens
 	// ILLEGAL is a token representing an illegal token
 	ILLEGAL Token = 1 << iota
+
+	// Separator tokens
 	// EOF is a token representing the end of the input
 	EOF
-
-	// Separator runes
 	// DOLLARSIGN is a token representing a '$'
 	DOLLARSIGN
 	// COMMA is a token representing a ','
