@@ -5,22 +5,6 @@
 
 // Using CSS variables from theme provider - no hardcoded colors needed
 
-// Mixin to override global icon styles that interfere with button spacing
-@mixin reset-global-icon-styles {
-    i {
-        display: block !important;
-        width: auto !important;
-        height: auto !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        line-height: 1;
-    }
-    
-    .fa {
-        margin: 0 !important;
-    }
-}
-
 // Base button styles
 .Button {
     position: relative;
@@ -59,28 +43,10 @@
     }
 }
 
-// Common icon-only button styles
-.Button--icon-only {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    
-    .Button__icon {
-        line-height: 1; // Restore normal line-height for icon-only
-        margin: 0 !important; // No margins needed when centered
-        
-        // Ensure icon containers fill the button space for icon-only
-        &--before,
-        &--after {
-            margin: 0 !important;
-        }
-    }
-}
 
 // Size variants
 .Button--xs {
-    height: 24px;
-    padding: 4px 6px;
+    padding: 4px 10px;
     font-size: 12px;
     line-height: 16px;
     gap: 6px; // Proportional gap for x-small buttons
@@ -91,14 +57,9 @@
         font-size: 14px !important;
     }
     
-    &.Button--icon-only {
-        width: 24px;
-        padding: 4px;
-    }
 }
 
 .Button--sm {
-    height: 32px;
     padding: 8px 16px;
     font-size: 12px;
     line-height: 16px;
@@ -110,14 +71,9 @@
         font-size: 16px !important;
     }
     
-    &.Button--icon-only {
-        width: 32px;
-        padding: 8px;
-    }
 }
 
 .Button--md {
-    height: 40px;
     padding: 10px 20px;
     font-size: 14px;
     line-height: 20px;
@@ -129,14 +85,9 @@
         font-size: 18px !important;
     }
     
-    &.Button--icon-only {
-        width: 40px;
-        padding: 10px;
-    }
 }
 
 .Button--lg {
-    height: 48px;
     padding: 12px 24px;
     font-size: 16px;
     line-height: 24px;
@@ -148,10 +99,6 @@
         font-size: 20px !important;
     }
     
-    &.Button--icon-only {
-        width: 48px;
-        padding: 12px;
-    }
 }
 
 // Full width variant
@@ -413,7 +360,6 @@
 // Loading spinner
 .Button__loading {
     line-height: 0;
-    @include reset-global-icon-styles;
 }
 
 // Icon containers - standardized based on Figma design system
@@ -422,60 +368,27 @@
     align-items: center;
     justify-content: center;
     line-height: 0;
-    @include reset-global-icon-styles;
 }
 
 // Icon container sizes based on Figma design system specifications
 .Button--xs .Button__icon {
-    width: 16px;
-    height: 16px;
-    
-    &--before {
-        margin-left: -3px; // Proportional to 6px gap
-    }
-
-    &--after {
-        margin-right: -3px;
-    }
+    width: 12px;
+    height: 12px;
 }
 
 .Button--sm .Button__icon {
-    width: 20px;
-    height: 20px;
-    
-    &--before {
-        margin-left: -3px; // Proportional to 6px gap
-    }
-
-    &--after {
-        margin-right: -3px;
-    }
+    width: 12px;
+    height: 12px;
 }
 
 .Button--md .Button__icon {
-    width: 24px;
-    height: 24px;
-    
-    &--before {
-        margin-left: -4px; // Proportional to 8px gap
-    }
-
-    &--after {
-        margin-right: -4px;
-    }
+    width: 16px;
+    height: 16px;
 }
 
 .Button--lg .Button__icon {
-    width: 28px;
-    height: 28px;
-    
-    &--before {
-        margin-left: -5px; // Proportional to 10px gap
-    }
-
-    &--after {
-        margin-right: -5px;
-    }
+    width: 20px;
+    height: 20px;
 }
 
 // Label

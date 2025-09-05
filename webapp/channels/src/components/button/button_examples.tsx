@@ -25,7 +25,6 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
         { label: 'Before', props: { iconBefore: <i className="icon icon-plus"/> } },
         { label: 'After', props: { iconAfter: <i className="icon icon-chevron-right"/> } },
         { label: 'Both', props: { iconBefore: <i className="icon icon-plus"/>, iconAfter: <i className="icon icon-chevron-down"/> } },
-        { label: 'Only', props: { iconBefore: <i className="icon icon-plus"/> } },
     ];
 
     return (
@@ -52,7 +51,7 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                                     {sizes.map((size) => (
                                         <td key={size} style={{padding: '8px', textAlign: 'center'}}>
                                             <Button emphasis={emphasis} size={size}>
-                                                {size === 'xs' ? 'Extra-small' : size === 'sm' ? 'Small' : size === 'md' ? 'Medium' : 'Large'}
+                                                {size === 'xs' ? 'X-small' : size === 'sm' ? 'Small' : size === 'md' ? 'Medium' : 'Large'}
                                             </Button>
                                         </td>
                                     ))}
@@ -62,9 +61,9 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                     </table>
                 </div>
 
-                {/* MATRIX 2: ALL SIZES × ALL ICON VARIANTS (20 combinations) */}
+                {/* MATRIX 2: ALL SIZES × ALL ICON VARIANTS (16 combinations) */}
                 <div style={{marginBottom: '40px'}}>
-                    <h4 style={{marginBottom: '16px'}}>📊 Sizes × ALL Icon Variants (20 combinations)</h4>
+                    <h4 style={{marginBottom: '16px'}}>📊 Sizes × ALL Icon Variants (16 combinations)</h4>
                     <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '14px'}}>
                         <thead>
                             <tr style={{borderBottom: '2px solid rgba(0,0,0,0.1)'}}>
@@ -83,7 +82,7 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                                     {icons.map((icon) => (
                                         <td key={icon.label} style={{padding: '8px', textAlign: 'center'}}>
                                             <Button emphasis="primary" size={size} {...icon.props}>
-                                                {icon.label === 'Only' ? '' : size === 'xs' ? 'X-small' : size === 'sm' ? 'Small' : size === 'md' ? 'Medium' : 'Large'}
+                                                {size === 'xs' ? 'X-small' : size === 'sm' ? 'Small' : size === 'md' ? 'Medium' : 'Large'}
                                             </Button>
                                         </td>
                                     ))}
@@ -170,7 +169,7 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                                     {states.map((state) => (
                                         <td key={state.label} style={{padding: '8px', textAlign: 'center'}}>
                                             <Button emphasis="primary" size={size} {...state.props}>
-                                                {(size === 'xs' ? 'X-small' : size === 'sm' ? 'Small' : size === 'md' ? 'Medium' : 'Large')}-{state.label}
+                                                {(size === 'xs' ? 'X-small' : size === 'sm' ? 'Small' : size === 'md' ? 'Medium' : 'Large')} {state.label}
                                             </Button>
                                         </td>
                                     ))}
@@ -284,16 +283,16 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                             <small>(5 emphasis × 4 sizes)</small>
                         </div>
                         <div>
-                            <strong>Matrix 2:</strong> 20 combinations<br/>
-                            <small>(4 sizes × 5 icon variants)</small>
+                            <strong>Matrix 2:</strong> 16 combinations<br/>
+                            <small>(4 sizes × 4 icon variants)</small>
                         </div>
                         <div>
                             <strong>Matrix 3:</strong> 30 combinations<br/>
                             <small>(5 emphasis × 6 states)</small>
                         </div>
                         <div>
-                            <strong>Matrix 4:</strong> 25 combinations<br/>
-                            <small>(5 emphasis × 5 icon types)</small>
+                            <strong>Matrix 4:</strong> 20 combinations<br/>
+                            <small>(5 emphasis × 4 icon types)</small>
                         </div>
                         <div>
                             <strong>Matrix 5:</strong> 24 combinations<br/>
