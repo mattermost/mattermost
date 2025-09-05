@@ -27,7 +27,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 8px; // Default gap - will be overridden by size variants
     border: none;
     border-radius: var(--radius-s);
     font-family: 'Open Sans', sans-serif;
@@ -77,6 +77,7 @@
     padding: 4px 6px;
     font-size: 12px;
     line-height: 16px;
+    gap: 6px; // Proportional gap for x-small buttons
     
     // Icon font size for x-small buttons - 14px for good visibility
     .Button__icon i,
@@ -95,6 +96,7 @@
     padding: 8px 16px;
     font-size: 12px;
     line-height: 16px;
+    gap: 6px; // Proportional gap for small buttons
     
     // Icon font size for small buttons - 16px (standard icon size)
     .Button__icon i,
@@ -113,6 +115,7 @@
     padding: 10px 20px;
     font-size: 14px;
     line-height: 20px;
+    gap: 8px; // Proportional gap for medium buttons
     
     // Icon font size for medium buttons - 18px (proportional to 14px text)
     .Button__icon i,
@@ -131,6 +134,7 @@
     padding: 12px 24px;
     font-size: 16px;
     line-height: 24px;
+    gap: 10px; // Proportional gap for large buttons
     
     // Icon font size for large buttons - 20px (proportional to 16px text)
     .Button__icon i,
@@ -411,13 +415,46 @@
     display: inline-block;
     line-height: 0;
     @include reset-global-icon-styles;
-    
+}
+
+// Proportional icon spacing for each size
+.Button--xs .Button__icon {
     &--before {
-        margin-left: -4px;
+        margin-left: -3px; // Proportional to 6px gap
     }
 
     &--after {
-        margin-right: -6px;
+        margin-right: -3px;
+    }
+}
+
+.Button--sm .Button__icon {
+    &--before {
+        margin-left: -3px; // Proportional to 6px gap
+    }
+
+    &--after {
+        margin-right: -3px;
+    }
+}
+
+.Button--md .Button__icon {
+    &--before {
+        margin-left: -4px; // Proportional to 8px gap
+    }
+
+    &--after {
+        margin-right: -4px;
+    }
+}
+
+.Button--lg .Button__icon {
+    &--before {
+        margin-left: -5px; // Proportional to 10px gap
+    }
+
+    &--after {
+        margin-right: -5px;
     }
 }
 

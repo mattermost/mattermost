@@ -41,14 +41,14 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                             <tr style={{borderBottom: '2px solid rgba(0,0,0,0.1)'}}>
                                 <th style={{textAlign: 'left', padding: '8px', width: '100px'}}>Emphasis</th>
                                 {sizes.map(size => (
-                                    <th key={size} style={{textAlign: 'center', padding: '8px'}}>{size.toUpperCase()}</th>
+                                    <th key={size} style={{textAlign: 'center', padding: '8px'}}>{size}</th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody>
                             {emphases.map((emphasis) => (
                                 <tr key={emphasis} style={{borderBottom: '1px solid rgba(0,0,0,0.05)'}}>
-                                    <td style={{padding: '8px', textTransform: 'capitalize', fontWeight: 600}}>{emphasis}</td>
+                                    <td style={{padding: '8px', fontWeight: 600}}>{emphasis}</td>
                                     {sizes.map((size) => (
                                         <td key={size} style={{padding: '8px', textAlign: 'center'}}>
                                             <Button emphasis={emphasis} size={size}>
@@ -64,9 +64,9 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
 
                 {/* MATRIX 2: ALL SIZES × ALL ICON VARIANTS (20 combinations) */}
                 <div style={{marginBottom: '40px'}}>
-                    <h4 style={{marginBottom: '16px'}}>📊 Icon Font Size Scaling: ALL Sizes × ALL Icon Variants (20 combinations)</h4>
+                    <h4 style={{marginBottom: '16px'}}>📊 Sizes × ALL Icon Variants (20 combinations)</h4>
                     <p style={{marginBottom: '16px', fontSize: '12px', color: 'rgba(0,0,0,0.6)'}}>
-                        Icon sizes: XS=14px, SM=16px, MD=18px, LG=20px (based on Figma specifications)
+                        Proportional scaling: XS/SM = 6px gap + 14px/16px icons, MD = 8px gap + 18px icons, LG = 10px gap + 20px icons
                     </p>
                     <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '14px'}}>
                         <thead>
@@ -80,16 +80,16 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                         <tbody>
                             {sizes.map((size) => (
                                 <tr key={size} style={{borderBottom: '1px solid rgba(0,0,0,0.05)'}}>
-                                    <td style={{padding: '8px', textTransform: 'uppercase', fontWeight: 600, fontSize: '12px'}}>
+                                    <td style={{padding: '8px', fontWeight: 600, fontSize: '12px'}}>
                                         {size} <br/>
                                         <span style={{fontSize: '10px', color: 'rgba(0,0,0,0.5)'}}>
-                                            {size === 'xs' ? '14px' : size === 'sm' ? '16px' : size === 'md' ? '18px' : '20px'}
+                                            {size === 'xs' ? '6px gap' : size === 'sm' ? '6px gap' : size === 'md' ? '8px gap' : '10px gap'}
                                         </span>
                                     </td>
                                     {icons.map((icon) => (
                                         <td key={icon.label} style={{padding: '8px', textAlign: 'center'}}>
                                             <Button emphasis="primary" size={size} {...icon.props}>
-                                                {icon.label === 'Only' ? '' : `${size.toUpperCase()}`}
+                                                {icon.label === 'Only' ? '' : `${size}`}
                                             </Button>
                                         </td>
                                     ))}
@@ -172,7 +172,7 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                         <tbody>
                             {sizes.map((size) => (
                                 <tr key={size} style={{borderBottom: '1px solid rgba(0,0,0,0.05)'}}>
-                                    <td style={{padding: '8px', textTransform: 'uppercase', fontWeight: 600}}>{size}</td>
+                                    <td style={{padding: '8px', fontWeight: 600}}>{size}</td>
                                     {states.map((state) => (
                                         <td key={state.label} style={{padding: '8px', textAlign: 'center'}}>
                                             <Button emphasis="primary" size={size} {...state.props}>
@@ -215,7 +215,7 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                                 <tr style={{borderBottom: '2px solid rgba(255,255,255,0.2)'}}>
                                     <th style={{textAlign: 'left', padding: '6px', width: '80px', color: 'white'}}>Emphasis</th>
                                     {sizes.map(size => (
-                                        <th key={size} style={{textAlign: 'center', padding: '6px', color: 'white'}}>{size.toUpperCase()}</th>
+                                        <th key={size} style={{textAlign: 'center', padding: '6px', color: 'white'}}>{size}</th>
                                     ))}
                                 </tr>
                             </thead>
