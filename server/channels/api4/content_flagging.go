@@ -26,6 +26,7 @@ func (api *API) InitContentFlagging() {
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/field_values", api.APISessionRequired(getPostPropertyValues)).Methods(http.MethodGet)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}", api.APISessionRequired(getFlaggedPost)).Methods(http.MethodGet)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/remove", api.APISessionRequired(removeFlaggedPost)).Methods(http.MethodPut)
+	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/keep", api.APISessionRequired(keepFlaggedPost)).Methods(http.MethodPut)
 }
 
 func requireContentFlaggingEnabled(c *Context) {
@@ -372,6 +373,68 @@ func removeFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if appErr := c.App.PermanentDeleteFlaggedPost(c.AppContext, &actionRequest, userId, post); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	writeOKResponse(w)
+}
+
+func keepFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireContentFlaggingEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	var actionRequest model.FlagContentActionRequest
+	if err := json.NewDecoder(r.Body).Decode(&actionRequest); err != nil {
+		c.SetInvalidParamWithErr("keepFlaggedPost", err)
+		return
+	}
+
+	commentRequired := c.App.Config().ContentFlaggingSettings.AdditionalSettings.ReviewerCommentRequired
+	if err := actionRequest.IsValid(*commentRequired); err != nil {
+		c.Err = err
+		return
+	}
+
+	postId := c.Params.PostId
+	userId := c.AppContext.Session().UserId
+
+	post, appErr := c.App.GetSinglePost(c.AppContext, postId, true)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if post == nil {
+		c.Err = model.NewAppError("keepFlaggedPost", "app.post.get.app_error", nil, "", http.StatusNotFound)
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	isReviewer, appErr := c.App.IsUserTeamContentReviewer(userId, channel.TeamId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !isReviewer {
+		c.Err = model.NewAppError("keepFlaggedPost", "api.content_flagging.error.reviewer_only", nil, "", http.StatusForbidden)
+		return
+	}
+
+	if appErr := c.App.KeepFlaggedPost(c.AppContext, &actionRequest, userId, post); appErr != nil {
 		c.Err = appErr
 		return
 	}
