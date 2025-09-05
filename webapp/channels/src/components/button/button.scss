@@ -462,58 +462,68 @@
     white-space: nowrap;
 }
 
-// Ensure disabled styles take precedence over destructive styles
-.Button--primary.Button--destructive:disabled,
-.Button--secondary.Button--destructive:disabled,
-.Button--tertiary.Button--destructive:disabled {
-    background-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
-    border-color: rgba(var(--center-channel-color-rgb), 0.32) !important;
-    color: rgba(var(--center-channel-color-rgb), 0.32) !important;
-    background-image: none !important;
+// Disabled state overrides - higher specificity ensures precedence without !important
+// Regular (non-inverted) disabled styles
+.Button:disabled.Button--primary.Button--destructive,
+.Button:disabled.Button--secondary.Button--destructive,
+.Button:disabled.Button--tertiary.Button--destructive {
+    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    border-color: rgba(var(--center-channel-color-rgb), 0.32);
+    color: rgba(var(--center-channel-color-rgb), 0.32);
+    background-image: none;
 }
 
-// Special case for quaternary destructive disabled (transparent background)
-.Button--quaternary.Button--destructive:disabled {
-    background-color: transparent !important;
-    border-color: transparent !important;
-    color: rgba(var(--center-channel-color-rgb), 0.32) !important;
+.Button:disabled.Button--quaternary.Button--destructive {
+    background-color: transparent;
+    border-color: transparent;
+    color: rgba(var(--center-channel-color-rgb), 0.32);
 }
 
-// Special case for link destructive disabled (no background, no border)
-.Button--link.Button--destructive:disabled {
-    background-color: transparent !important;
-    border-color: transparent !important;
-    color: rgba(var(--center-channel-color-rgb), 0.32) !important;
-    text-decoration: none !important;
+.Button:disabled.Button--link.Button--destructive {
+    background-color: transparent;
+    border-color: transparent;
+    color: rgba(var(--center-channel-color-rgb), 0.32);
+    text-decoration: none;
 }
 
-// Inverted button disabled styles - ensure disabled state overrides destructive
-.Button--primary.Button--inverted:disabled,
-.Button--secondary.Button--inverted:disabled,
-.Button--tertiary.Button--inverted:disabled,
-.Button--quaternary.Button--inverted:disabled,
-.Button--link.Button--inverted:disabled {
-    opacity: 1 !important; // Override any global disabled opacity
+// Inverted disabled styles - high specificity to override all other states
+.Button:disabled.Button--inverted {
+    opacity: 1; // Override any global disabled opacity
 }
 
-// Inverted destructive disabled overrides
-.Button--primary.Button--destructive.Button--inverted:disabled,
-.Button--tertiary.Button--destructive.Button--inverted:disabled {
-    background-color: rgba(var(--button-color-rgb), 0.08) !important;
-    border-color: rgba(var(--button-color-rgb), 0.08) !important;
-    color: rgba(var(--button-color-rgb), 0.32) !important;
+.Button:disabled.Button--primary.Button--inverted,
+.Button:disabled.Button--primary.Button--destructive.Button--inverted {
+    background-color: rgba(var(--button-color-rgb), 0.08);
+    border-color: rgba(var(--button-color-rgb), 0.08);
+    color: rgba(var(--button-color-rgb), 0.32);
+    background-image: none;
 }
 
-.Button--secondary.Button--destructive.Button--inverted:disabled {
-    background-color: transparent !important;
-    border-color: rgba(var(--button-color-rgb), 0.32) !important;
-    color: rgba(var(--button-color-rgb), 0.32) !important;
+.Button:disabled.Button--secondary.Button--inverted,
+.Button:disabled.Button--secondary.Button--destructive.Button--inverted {
+    background-color: transparent;
+    border-color: rgba(var(--button-color-rgb), 0.32);
+    color: rgba(var(--button-color-rgb), 0.32);
 }
 
-.Button--quaternary.Button--destructive.Button--inverted:disabled,
-.Button--link.Button--destructive.Button--inverted:disabled {
-    background-color: transparent !important;
-    border-color: transparent !important;
-    color: rgba(var(--button-color-rgb), 0.32) !important;
-    text-decoration: none !important;
+.Button:disabled.Button--tertiary.Button--inverted,
+.Button:disabled.Button--tertiary.Button--destructive.Button--inverted {
+    background-color: rgba(var(--button-color-rgb), 0.08);
+    border-color: transparent;
+    color: rgba(var(--button-color-rgb), 0.32);
+}
+
+.Button:disabled.Button--quaternary.Button--inverted,
+.Button:disabled.Button--quaternary.Button--destructive.Button--inverted {
+    background-color: transparent;
+    border-color: transparent;
+    color: rgba(var(--button-color-rgb), 0.32);
+}
+
+.Button:disabled.Button--link.Button--inverted,
+.Button:disabled.Button--link.Button--destructive.Button--inverted {
+    background-color: transparent;
+    border-color: transparent;
+    color: rgba(var(--button-color-rgb), 0.32);
+    text-decoration: none;
 }
