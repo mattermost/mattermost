@@ -17,11 +17,11 @@ import (
 
 	"github.com/pkg/errors"
 
-	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/language"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
 )
 
 const (
@@ -509,8 +509,8 @@ func (u *User) PreSave() *AppError {
 	}
 
 	if u.Password != "" {
-		hashed, err := HashPassword(u.Password)
-		if errors.Is(err, bcrypt.ErrPasswordTooLong) {
+		hashed, err := hashers.Hash(u.Password)
+		if errors.Is(err, hashers.ErrPasswordTooLong) {
 			return NewAppError("User.PreSave", "model.user.pre_save.password_too_long.app_error",
 				nil, "user_id="+u.Id, http.StatusBadRequest).Wrap(err)
 		} else if err != nil {
@@ -991,16 +991,6 @@ func (u *UserPatch) SetField(fieldName string, fieldValue string) {
 	case "Username":
 		u.Username = &fieldValue
 	}
-}
-
-// HashPassword generates a hash using the bcrypt.GenerateFromPassword
-func HashPassword(password string) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
-	if err != nil {
-		return "", err
-	}
-
-	return string(hash), nil
 }
 
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
