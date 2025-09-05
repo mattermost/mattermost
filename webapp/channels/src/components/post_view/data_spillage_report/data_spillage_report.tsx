@@ -146,12 +146,24 @@ export function DataSpillageReport({post, isRHS}: Props) {
     }, [isRHS, post]);
 
     const actionRow = useMemo(() => {
-        return (reportedPost && reportingUser) ? (
+        if (!reportedPost || !reportingUser) {
+            return null;
+        }
+
+        let showActionRow;
+        if (!propertyFields || !propertyValues) {
+            showActionRow = true;
+        } else {
+            const status = propertyValues.find((value) => value.field_id === propertyFields.status.id)?.value as string | undefined;
+            showActionRow = reportedPost && reportingUser && status && (status === 'Pending' || status === 'Assigned');
+        }
+
+        return showActionRow ? (
             <DataSpillageAction
                 flaggedPost={reportedPost}
                 reportingUser={reportingUser}
             />) : null;
-    }, [reportedPost, reportingUser]);
+    }, [propertyFields, propertyValues, reportedPost, reportingUser]);
 
     return (
         <div

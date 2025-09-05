@@ -8,6 +8,8 @@ import {GenericModal} from '@mattermost/components';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {Client4} from 'mattermost-redux/client';
+
 import AtMention from 'components/at_mention';
 import {useChannel} from 'components/common/hooks/useChannel';
 import {useContentFlaggingConfig} from 'components/common/hooks/useContentFlaggingFields';
@@ -114,6 +116,16 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
         }
     }
 
+    const handleConfirm = useCallback(async () => {
+        if (action === 'remove') {
+            await Client4.removeFlaggedPost(flaggedPost.id, comment);
+            onExited();
+        } else if (action === 'keep') {
+            await Client4.keepFlaggedPost(flaggedPost.id, comment);
+            onExited();
+        }
+    }, [action, comment, flaggedPost.id, onExited]);
+
     return (
         <GenericModal
             id='KeepRemoveFlaggedMessageConfirmationModal'
@@ -122,8 +134,8 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
             compassDesign={true}
             keyboardEscape={true}
             enforceFocus={false}
-            handleConfirm={() => {}}
-            handleCancel={() => {}}
+            handleConfirm={handleConfirm}
+            handleCancel={onExited}
             confirmButtonText={buttonText}
             confirmButtonClassName={confirmButtonClass}
             autoCloseOnConfirmButton={false}

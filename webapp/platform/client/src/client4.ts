@@ -4644,6 +4644,26 @@ export default class Client4 {
         );
     };
 
+    removeFlaggedPost = (postId: string, comment?: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getContentFlaggingRoute()}/post/${postId}/remove`,
+            {
+                method: 'put',
+                body: JSON.stringify({comment: JSON.stringify(comment)}),
+            },
+        );
+    };
+
+    keepFlaggedPost = (postId: string, comment?: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getContentFlaggingRoute()}/post/${postId}/keep`,
+            {
+                method: 'put',
+                body: JSON.stringify({comment: JSON.stringify(comment)}),
+            },
+        );
+    };
+
     getPostContentFlaggingFields = () => {
         return this.doFetch<NameMappedPropertyFields>(
             `${this.getContentFlaggingRoute()}/fields`,

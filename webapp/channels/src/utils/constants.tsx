@@ -1518,6 +1518,7 @@ export const ZoomSettings = {
 
 export const DataSpillagePropertyNames = {
     FlaggedBy: 'reporting_user_id',
+    Status: 'status',
 };
 
 export const Constants = {

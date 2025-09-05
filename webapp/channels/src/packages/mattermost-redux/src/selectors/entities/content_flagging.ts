@@ -4,6 +4,7 @@
 import type {GlobalState} from '@mattermost/types/store';
 
 import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import type { ContentFlaggingConfig } from "@mattermost/types/lib/content_flagging";
 
 export const contentFlaggingFeatureEnabled = (state: GlobalState): boolean => {
     const featureFlagEnabled = getFeatureFlagValue(state, 'ContentFlagging') === 'true';
@@ -12,7 +13,7 @@ export const contentFlaggingFeatureEnabled = (state: GlobalState): boolean => {
     return featureFlagEnabled && featureEnabled;
 };
 
-export const contentFlaggingConfig = (state: GlobalState) => {
+export const contentFlaggingConfig = (state: GlobalState): ContentFlaggingConfig | undefined => {
     const config = state.entities.contentFlagging.settings || {};
     return Object.keys(config).length ? config : undefined;
 };
