@@ -305,9 +305,9 @@
     }
     
     &:disabled {
-        background-color: rgba(var(--button-color-rgb), 0.32) !important;
-        border-color: rgba(var(--button-color-rgb), 0.32) !important;
-        color: rgba(var(--button-color-rgb), 0.16) !important;
+        background-color: rgba(var(--button-color-rgb), 0.08) !important;
+        border-color: rgba(var(--button-color-rgb), 0.08) !important;
+        color: rgba(var(--button-color-rgb), 0.32) !important;
     }
 }
 
@@ -498,9 +498,14 @@
 
 // Inverted destructive disabled overrides
 .Button--primary.Button--destructive.Button--inverted:disabled,
-.Button--secondary.Button--destructive.Button--inverted:disabled,
 .Button--tertiary.Button--destructive.Button--inverted:disabled {
     background-color: rgba(var(--button-color-rgb), 0.08) !important;
+    border-color: rgba(var(--button-color-rgb), 0.08) !important;
+    color: rgba(var(--button-color-rgb), 0.32) !important;
+}
+
+.Button--secondary.Button--destructive.Button--inverted:disabled {
+    background-color: transparent !important;
     border-color: rgba(var(--button-color-rgb), 0.32) !important;
     color: rgba(var(--button-color-rgb), 0.32) !important;
 }
