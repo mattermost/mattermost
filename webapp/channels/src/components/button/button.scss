@@ -378,20 +378,51 @@
         display: inline-block;
         border-radius: 50%;
         background: conic-gradient(rgba(var(--center-channel-color-rgb), 0), rgba(var(--center-channel-color-rgb), 0.48));
-        mask-image: radial-gradient(
-            farthest-side,
-            transparent calc(100% - 2px),
-            #fff calc(100% - 1.5px)
-        );
         animation: spin 750ms linear infinite;
+        // mask-image set per size variant below
     }
 }
 
-// Spinner sizing per button size
-.Button--xs .Button__loading .spinner { width: 12px; height: 12px; }
-.Button--sm .Button__loading .spinner { width: 14px; height: 14px; }
-.Button--md .Button__loading .spinner { width: 16px; height: 16px; }
-.Button--lg .Button__loading .spinner { width: 20px; height: 20px; }
+// Spinner sizing and mask overrides per button size
+.Button--xs .Button__loading .spinner { 
+    width: 12px; 
+    height: 12px;
+    mask-image: radial-gradient(
+        farthest-side,
+        transparent calc(100% - 1.5px),
+        #fff calc(100% - 1px)
+    );
+}
+
+.Button--sm .Button__loading .spinner { 
+    width: 14px; 
+    height: 14px;
+    mask-image: radial-gradient(
+        farthest-side,
+        transparent calc(100% - 1.5px),
+        #fff calc(100% - 1px)
+    );
+}
+
+.Button--md .Button__loading .spinner { 
+    width: 16px; 
+    height: 16px;
+    mask-image: radial-gradient(
+        farthest-side,
+        transparent calc(100% - 2px),
+        #fff calc(100% - 1.5px)
+    );
+}
+
+.Button--lg .Button__loading .spinner { 
+    width: 20px; 
+    height: 20px;
+    mask-image: radial-gradient(
+        farthest-side,
+        transparent calc(100% - 2.5px),
+        #fff calc(100% - 2px)
+    );
+}
 
 // Inverted spinner color override
 .Button--inverted .Button__loading .spinner {
