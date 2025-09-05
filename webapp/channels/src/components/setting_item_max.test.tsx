@@ -49,9 +49,6 @@ describe('components/SettingItemMax', () => {
         expect(asFragment()).toMatchSnapshot();
     });
 
-    /**
-     * This test also covers the older test that provides an empty string to 'section' prop. Delete this comment after changes are reviewed and accepted.
-     */
     test('should have called updateSection on handleUpdateSection with section after clicking cancel button', () => {
         const {getByTestId} = renderWithContext(<SettingItemMax {...baseProps}/>);
 
@@ -61,9 +58,6 @@ describe('components/SettingItemMax', () => {
         expect(baseProps.updateSection).toHaveBeenCalledWith(baseProps.section);
     });
 
-    /**
-     * This test also covers the older test that provides an empty string to 'setting' prop. Delete this comment after changes are reviewed and accepted.
-     */
     test('should have called submit on handleSubmit with setting after clicking save button', () => {
         const {getByTestId} = renderWithContext(<SettingItemMax {...baseProps}/>);
 
@@ -73,25 +67,42 @@ describe('components/SettingItemMax', () => {
         expect(baseProps.submit).toHaveBeenCalledWith(baseProps.setting);
     });
 
-    // More clarity needed to how to migrate this test to RTL.
-    it.skip('should have called submit on handleSubmit onKeyDown ENTER', () => {
-        renderWithContext(<SettingItemMax {...baseProps}/>);
+    test('should match snapshot, with new saveTextButton', () => {
+        const props = {...baseProps, saveButtonText: 'CustomText'};
+        const {asFragment} = renderWithContext(<SettingItemMax {...props}/>);
 
-        document.querySelector('select')?.focus();
+        expect(asFragment()).toMatchSnapshot();
+    });
+
+    test('should have called submit on handleSubmit onKeyDown ENTER', () => {
+        const props = {
+            ...baseProps,
+            inputs: [
+                <select
+                    key={0}
+                    data-testid='select'
+                />,
+                <input
+                    key={1}
+                    type='radio'
+                />,
+            ],
+        };
+
+        const {getByRole, getByTestId} = renderWithContext(<SettingItemMax {...props}/>);
+
+        getByTestId('select').focus();
 
         /**
          * RTL recommends to use this approach to test keydown events.
          * https://testing-library.com/docs/guide-events/#keydown
          */
         fireEvent.keyDown(document.activeElement!, {key: 'Enter', code: 'Enter'});
-
         expect(baseProps.submit).toHaveBeenCalledTimes(0);
-    });
 
-    test('should match snapshot, with new saveTextButton', () => {
-        const props = {...baseProps, saveButtonText: 'CustomText'};
-        const {asFragment} = renderWithContext(<SettingItemMax {...props}/>);
+        getByRole('radio').focus();
 
-        expect(asFragment()).toMatchSnapshot();
+        fireEvent.keyDown(document.activeElement!, {key: 'Enter', code: 'Enter'});
+        expect(baseProps.submit).toHaveBeenCalledTimes(1);
     });
 });
