@@ -9,6 +9,7 @@ import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
 import AtMention from 'components/at_mention';
+import {useChannel} from 'components/common/hooks/useChannel';
 import {useContentFlaggingConfig} from 'components/common/hooks/useContentFlaggingFields';
 import {useUser} from 'components/common/hooks/useUser';
 import type {TextboxElement} from 'components/textbox';
@@ -17,18 +18,18 @@ import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbo
 import './remove_flagged_message_confirmation_modal.scss';
 
 type Props = {
+    action: 'keep' | 'remove';
     onExited: () => void;
     flaggedPost: Post;
     reportingUser: UserProfile;
 }
 
-export default function RemoveFlaggedMessageConfirmationModal({onExited, flaggedPost, reportingUser}: Props) {
+export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExited, flaggedPost, reportingUser}: Props) {
     const {formatMessage} = useIntl();
-    const label = formatMessage({id: 'remove_flag_post_confirm_modal.headingf', defaultMessage: 'Remove message from channel'});
 
-    const contentFlaggingConfig = useContentFlaggingConfig('true');
     const flaggedPostAuthor = useUser(flaggedPost.user_id);
-    const flaggedPostChannel = useUser(flaggedPost.channel_id);
+    const flaggedPostChannel = useChannel(flaggedPost.channel_id);
+    const contentFlaggingConfig = useContentFlaggingConfig(flaggedPostChannel?.team_id || '');
 
     const [comment, setComment] = React.useState<string>('');
     const [commentError, setCommentError] = React.useState<string>('');
@@ -48,29 +49,74 @@ export default function RemoveFlaggedMessageConfirmationModal({onExited, flagged
         setShowCommentPreview((prev) => !prev);
     }, []);
 
-    const x = ' and a notification will be sent to the reporter of the flag';
+    const removeActionLabel = formatMessage({id: 'keep_remove_flag_content_modal.action_remove.title', defaultMessage: 'Remove message from channel'});
+    const keepActionLabel = formatMessage({id: 'keep_remove_flag_content_modal.action_keep.title', defaultMessage: 'Keep message'});
 
     const body = formatMessage({
         id: 'remove_flag_confirm_modal.body',
-        defaultMessage:
-            'You are about to remove a message authored by {flaggedPostAuthor} posed in the {flaggedPostChannel} channel and flagged for review by {reportingUser}.' +
-            '{br}{br}If you confirm, the message will be removed from the channel{reporterNotificationText}. This action cannot be reverted.',
+        defaultMessage: 'You are about to remove a message authored by {flaggedPostAuthor} posed in the {flaggedPostChannel} channel and flagged for review by {reportingUser}.',
     }, {
         br: <br/>,
-        flaggedPostChannel,
+        flaggedPostChannel: flaggedPostChannel?.display_name,
         reportingUser: <AtMention mentionName={reportingUser?.username || ''}/>,
         flaggedPostAuthor: <AtMention mentionName={flaggedPostAuthor?.username || ''}/>,
-        reporterNotificationText: x,
+    });
+
+    const removeActionBodySubTextReporterNotification = formatMessage({
+        id: 'keep_remove_flag_content_modal.action_remove.subtext.notify_reporter',
+        defaultMessage: 'If you confirm, the message will be removed from the channel and a notification will be sent to the reporter of the flag. This action cannot be reverted.',
+    });
+    const removeActionBodySubTextNoReporterNotification = formatMessage({
+        id: 'keep_remove_flag_content_modal.action_remove.subtext.no_notify_reporter',
+        defaultMessage: 'If you confirm, the message will be removed from the channel. This action cannot be reverted.',
+    });
+
+    const keepActionBodySubTextReporterNotification = formatMessage({
+        id: 'keep_remove_flag_content_modal.action_keep.subtext.notify_reporter',
+        defaultMessage: 'If you confirm, the message will be visible to all channel members and a notification will be sent to the reporter of the flag.',
+    });
+    const keepActionBodySubTextNoReporterNotification = formatMessage({
+        id: 'keep_remove_flag_content_modal.action_keep.subtext.no_notify_reporter',
+        defaultMessage: 'If you confirm, the message will be visible to all channel members.',
     });
 
     const requiredCommentSectionTitle = formatMessage({id: 'remove_flag_post_confirm_modal.required_comment.title', defaultMessage: 'Comment (required)'});
     const optionalCommentSectionTitle = formatMessage({id: 'remove_flag_post_confirm_modal.optional_comment.title', defaultMessage: 'Comment (optional)'});
-    const commentPlaceholder = formatMessage({id: 'remove_flag_post_confirm_modal.comment.placeholder', defaultMessage: 'Describe your concern...'});
-    const removeMessageButtonText = formatMessage({id: 'data_spillage_report.remove_message.button_text', defaultMessage: 'Remove message'});
+
+    const commentPlaceholder = formatMessage({id: 'keep_remove_flag_content_modal.comment.placeholder', defaultMessage: 'Add your comment here'});
+    const removeMessageButtonText = formatMessage({id: 'keep_remove_flag_content_modal.action_remove.button_text', defaultMessage: 'Remove message'});
+    const keepMessageButtonText = formatMessage({id: 'keep_remove_flag_content_modal.action_keep.button_text', defaultMessage: 'Keep message'});
+
+    let label;
+    let subtext;
+    let buttonText;
+    let confirmButtonClass;
+
+    if (action === 'remove') {
+        label = removeActionLabel;
+        buttonText = removeMessageButtonText;
+        confirmButtonClass = 'btn-danger';
+
+        if (contentFlaggingConfig?.notify_reporter_on_removal) {
+            subtext = removeActionBodySubTextReporterNotification;
+        } else {
+            subtext = removeActionBodySubTextNoReporterNotification;
+        }
+    } else {
+        label = keepActionLabel;
+        buttonText = keepMessageButtonText;
+        confirmButtonClass = 'btn-primary';
+
+        if (contentFlaggingConfig?.notify_reporter_on_dismissal) {
+            subtext = keepActionBodySubTextReporterNotification;
+        } else {
+            subtext = keepActionBodySubTextNoReporterNotification;
+        }
+    }
 
     return (
         <GenericModal
-            id='RemoveFlaggedMessageConfirmationModal'
+            id='KeepRemoveFlaggedMessageConfirmationModal'
             ariaLabel={label}
             modalHeaderText={label}
             compassDesign={true}
@@ -78,16 +124,19 @@ export default function RemoveFlaggedMessageConfirmationModal({onExited, flagged
             enforceFocus={false}
             handleConfirm={() => {}}
             handleCancel={() => {}}
-            confirmButtonText={removeMessageButtonText}
-            confirmButtonClassName='btn-danger'
+            confirmButtonText={buttonText}
+            confirmButtonClassName={confirmButtonClass}
             autoCloseOnConfirmButton={false}
         >
             <div className='body'>
                 <div className='section'>
                     {body}
+                    <br/>
+                    <br/>
+                    {subtext}
                 </div>
 
-                <div className='section'>
+                <div className='section comment_section'>
                     <div
                         className='section_title'
                     >

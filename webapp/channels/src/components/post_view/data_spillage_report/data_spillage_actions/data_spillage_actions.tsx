@@ -11,7 +11,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {closeModal, openModal} from 'actions/views/modals';
 
-import RemoveFlaggedMessageConfirmationModal
+import KeepRemoveFlaggedMessageConfirmationModal
     from 'components/remove_flagged_message_confirmation_modal/remove_flagged_message_confirmation_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
@@ -27,10 +27,11 @@ export default function DataSpillageAction({flaggedPost, reportingUser}: Props) 
     const handleRemoveMessage = useCallback(() => {
         const data = {
             modalId: ModalIdentifiers.REMOVE_FLAGGED_post,
-            dialogType: RemoveFlaggedMessageConfirmationModal,
+            dialogType: KeepRemoveFlaggedMessageConfirmationModal,
             dialogProps: {
                 flaggedPost,
                 reportingUser,
+                action: 'remove' as const,
                 onExited: () => closeModal(ModalIdentifiers.REMOVE_FLAGGED_post),
             },
         };
@@ -38,13 +39,14 @@ export default function DataSpillageAction({flaggedPost, reportingUser}: Props) 
         dispatch(openModal(data));
     }, [dispatch, flaggedPost, reportingUser]);
 
-    useEffect(() => {
+    const handleKeepMessage = useCallback(() => {
         const data = {
             modalId: ModalIdentifiers.REMOVE_FLAGGED_post,
-            dialogType: RemoveFlaggedMessageConfirmationModal,
+            dialogType: KeepRemoveFlaggedMessageConfirmationModal,
             dialogProps: {
                 flaggedPost,
                 reportingUser,
+                action: 'keep' as const,
                 onExited: () => closeModal(ModalIdentifiers.REMOVE_FLAGGED_post),
             },
         };
@@ -71,6 +73,7 @@ export default function DataSpillageAction({flaggedPost, reportingUser}: Props) 
             <button
                 className='btn btn-tertiary btn-sm'
                 data-testid='data-spillage-action-keep-message'
+                onClick={handleKeepMessage}
             >
                 <FormattedMessage
                     id='data_spillage_report.keep_message.button_text'

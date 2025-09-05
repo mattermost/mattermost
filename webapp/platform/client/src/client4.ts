@@ -4627,9 +4627,9 @@ export default class Client4 {
         );
     };
 
-    getContentFlaggingConfig = () => {
+    getContentFlaggingConfig = (teamId?: string) => {
         return this.doFetch<ContentFlaggingConfig>(
-            `${this.getContentFlaggingRoute()}/flag/config`,
+            `${this.getContentFlaggingRoute()}/flag/config${buildQueryString({team_id: teamId})}`,
             {method: 'get'},
         );
     };

@@ -12,7 +12,10 @@ export const contentFlaggingFeatureEnabled = (state: GlobalState): boolean => {
     return featureFlagEnabled && featureEnabled;
 };
 
-export const contentFlaggingConfig = (state: GlobalState) => state.entities.contentFlagging.settings;
+export const contentFlaggingConfig = (state: GlobalState) => {
+    const config = state.entities.contentFlagging.settings || {};
+    return Object.keys(config).length ? config : undefined;
+};
 
 export const contentFlaggingFields = (state: GlobalState) => {
     const fields = state.entities.contentFlagging.fields || {};

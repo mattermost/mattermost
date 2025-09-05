@@ -9,4 +9,6 @@ export type ContentFlaggingConfig = {
     reasons: string[];
     reporter_comment_required: boolean;
     reviewer_comment_required: boolean;
+    notify_reporter_on_dismissal?: boolean;
+    notify_reporter_on_removal?: boolean;
 };

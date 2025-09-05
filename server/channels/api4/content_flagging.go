@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 
@@ -45,7 +46,24 @@ func getFlaggingConfiguration(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	config := getFlaggingConfig(c.App.Config().ContentFlaggingSettings)
+	teamId := r.URL.Query().Get("team_id")
+	asReviewer := false
+	if teamId != "" {
+		isReviewer, appErr := c.App.IsUserTeamContentReviewer(c.AppContext.Session().UserId, teamId)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		if !isReviewer {
+			c.Err = model.NewAppError("getFlaggingConfiguration", "api.content_flagging.error.reviewer_only", nil, "", http.StatusForbidden)
+			return
+		}
+
+		asReviewer = true
+	}
+
+	config := getFlaggingConfig(c.App.Config().ContentFlaggingSettings, asReviewer)
 
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(config); err != nil {
@@ -130,12 +148,20 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	writeOKResponse(w)
 }
 
-func getFlaggingConfig(contentFlaggingSettings model.ContentFlaggingSettings) *model.ContentFlaggingReportingConfig {
-	return &model.ContentFlaggingReportingConfig{
+func getFlaggingConfig(contentFlaggingSettings model.ContentFlaggingSettings, asReviewer bool) *model.ContentFlaggingReportingConfig {
+	config := &model.ContentFlaggingReportingConfig{
 		Reasons:                 contentFlaggingSettings.AdditionalSettings.Reasons,
 		ReporterCommentRequired: contentFlaggingSettings.AdditionalSettings.ReporterCommentRequired,
 		ReviewerCommentRequired: contentFlaggingSettings.AdditionalSettings.ReviewerCommentRequired,
 	}
+
+	if asReviewer {
+		config.NotifyReporterOnRemoval = model.NewPointer(slices.Contains(contentFlaggingSettings.NotificationSettings.EventTargetMapping[model.EventContentRemoved], model.TargetReporter))
+
+		config.NotifyReporterOnDismissal = model.NewPointer(slices.Contains(contentFlaggingSettings.NotificationSettings.EventTargetMapping[model.EventContentDismissed], model.TargetReporter))
+	}
+
+	return config
 }
 
 func getContentFlaggingFields(c *Context, w http.ResponseWriter, r *http.Request) {

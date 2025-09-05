@@ -1,7 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-#RemoveFlaggedMessageConfirmationModal {
+#KeepRemoveFlaggedMessageConfirmationModal {
+    .modal-content {
+        width: 704px;
+    }
+
     .body {
         display: flex;
         flex-direction: column;
@@ -29,7 +33,7 @@
         }
 
         textarea#RemoveFlaggedMessageConfirmationModal__comment {
-            min-height: 110px !important;
+            min-height: 90px !important;
             max-height: 400px;
         }
     }

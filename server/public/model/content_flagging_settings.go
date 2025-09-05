@@ -227,7 +227,9 @@ func (cfs *ContentFlaggingSettings) IsValid() *AppError {
 }
 
 type ContentFlaggingReportingConfig struct {
-	Reasons                 *[]string `json:"reasons"`
-	ReporterCommentRequired *bool     `json:"reporter_comment_required"`
-	ReviewerCommentRequired *bool     `json:"reviewer_comment_required"`
+	Reasons                   *[]string `json:"reasons"`
+	ReporterCommentRequired   *bool     `json:"reporter_comment_required"`
+	ReviewerCommentRequired   *bool     `json:"reviewer_comment_required"`
+	NotifyReporterOnDismissal *bool     `json:"notify_reporter_on_dismissal,omitempty"`
+	NotifyReporterOnRemoval   *bool     `json:"notify_reporter_on_removal,omitempty"`
 }
