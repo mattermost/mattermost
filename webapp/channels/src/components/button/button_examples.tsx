@@ -24,18 +24,18 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
         { label: 'No Icon', props: {} },
         { label: 'Before', props: { iconBefore: <i className="icon icon-plus"/> } },
         { label: 'After', props: { iconAfter: <i className="icon icon-chevron-right"/> } },
-        { label: 'Both', props: { iconBefore: <i className="icon icon-download"/>, iconAfter: <i className="icon icon-chevron-down"/> } },
-        { label: 'Only', props: { iconBefore: <i className="icon icon-settings"/> } },
+        { label: 'Both', props: { iconBefore: <i className="icon icon-plus"/>, iconAfter: <i className="icon icon-chevron-down"/> } },
+        { label: 'Only', props: { iconBefore: <i className="icon icon-plus"/> } },
     ];
 
     return (
         <div className={`ButtonExamples ${backgroundClass || ''}`}>
             <div style={{padding: '20px'}}>
-                <h3 style={{marginBottom: '24px'}}>Button Component - ALL PERMUTATIONS</h3>
+                <h3 style={{marginBottom: '24px'}}>Button Component - All variants</h3>
                 
                 {/* MATRIX 1: ALL EMPHASIS × ALL SIZES (20 combinations) */}
                 <div style={{marginBottom: '40px'}}>
-                    <h4 style={{marginBottom: '16px'}}>📊 Matrix 1: ALL Emphasis × ALL Sizes (20 combinations)</h4>
+                    <h4 style={{marginBottom: '16px'}}>Emphasis × Sizes (20 combinations)</h4>
                     <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '14px'}}>
                         <thead>
                             <tr style={{borderBottom: '2px solid rgba(0,0,0,0.1)'}}>
@@ -62,9 +62,46 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                     </table>
                 </div>
 
-                {/* MATRIX 2: ALL EMPHASIS × ALL STATES (30 combinations) */}
+                {/* MATRIX 2: ALL SIZES × ALL ICON VARIANTS (20 combinations) */}
                 <div style={{marginBottom: '40px'}}>
-                    <h4 style={{marginBottom: '16px'}}>⚡ Matrix 2: ALL Emphasis × ALL States (30 combinations)</h4>
+                    <h4 style={{marginBottom: '16px'}}>📊 Icon Font Size Scaling: ALL Sizes × ALL Icon Variants (20 combinations)</h4>
+                    <p style={{marginBottom: '16px', fontSize: '12px', color: 'rgba(0,0,0,0.6)'}}>
+                        Icon sizes: XS=14px, SM=16px, MD=18px, LG=20px (based on Figma specifications)
+                    </p>
+                    <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '14px'}}>
+                        <thead>
+                            <tr style={{borderBottom: '2px solid rgba(0,0,0,0.1)'}}>
+                                <th style={{textAlign: 'left', padding: '8px', width: '100px'}}>Size</th>
+                                {icons.map(icon => (
+                                    <th key={icon.label} style={{textAlign: 'center', padding: '8px', minWidth: '120px'}}>{icon.label}</th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {sizes.map((size) => (
+                                <tr key={size} style={{borderBottom: '1px solid rgba(0,0,0,0.05)'}}>
+                                    <td style={{padding: '8px', textTransform: 'uppercase', fontWeight: 600, fontSize: '12px'}}>
+                                        {size} <br/>
+                                        <span style={{fontSize: '10px', color: 'rgba(0,0,0,0.5)'}}>
+                                            {size === 'xs' ? '14px' : size === 'sm' ? '16px' : size === 'md' ? '18px' : '20px'}
+                                        </span>
+                                    </td>
+                                    {icons.map((icon) => (
+                                        <td key={icon.label} style={{padding: '8px', textAlign: 'center'}}>
+                                            <Button emphasis="primary" size={size} {...icon.props}>
+                                                {icon.label === 'Only' ? '' : `${size.toUpperCase()}`}
+                                            </Button>
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* MATRIX 3: ALL EMPHASIS × ALL STATES (30 combinations) */}
+                <div style={{marginBottom: '40px'}}>
+                    <h4 style={{marginBottom: '16px'}}>Emphasis × States (30 combinations)</h4>
                     <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '14px'}}>
                         <thead>
                             <tr style={{borderBottom: '2px solid rgba(0,0,0,0.1)'}}>
@@ -91,9 +128,9 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                     </table>
                 </div>
 
-                {/* MATRIX 3: ALL EMPHASIS × ALL ICON COMBINATIONS (25 combinations) */}
+                {/* MATRIX 4: ALL EMPHASIS × ALL ICON COMBINATIONS (25 combinations) */}
                 <div style={{marginBottom: '40px'}}>
-                    <h4 style={{marginBottom: '16px'}}>🎯 Matrix 3: ALL Emphasis × ALL Icon Combinations (25 combinations)</h4>
+                    <h4 style={{marginBottom: '16px'}}>Emphasis × Icon Combinations (25 combinations)</h4>
                     <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '14px'}}>
                         <thead>
                             <tr style={{borderBottom: '2px solid rgba(0,0,0,0.1)'}}>
@@ -120,9 +157,9 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                     </table>
                 </div>
 
-                {/* MATRIX 4: ALL SIZES × ALL STATES FOR PRIMARY (24 combinations) */}
+                {/* MATRIX 5: ALL SIZES × ALL STATES FOR PRIMARY (24 combinations) */}
                 <div style={{marginBottom: '40px'}}>
-                    <h4 style={{marginBottom: '16px'}}>🔥 Matrix 4: ALL Sizes × ALL States (Primary) (24 combinations)</h4>
+                    <h4 style={{marginBottom: '16px'}}>ALL Sizes × ALL States (Primary) (24 combinations)</h4>
                     <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '14px'}}>
                         <thead>
                             <tr style={{borderBottom: '2px solid rgba(0,0,0,0.1)'}}>
@@ -149,9 +186,9 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                     </table>
                 </div>
 
-                {/* MATRIX 5: FULL WIDTH × ALL EMPHASIS × SELECTED STATES */}
+                {/* MATRIX 6: FULL WIDTH × ALL EMPHASIS × SELECTED STATES */}
                 <div style={{marginBottom: '40px'}}>
-                    <h4 style={{marginBottom: '16px'}}>📏 Matrix 5: Full Width × ALL Emphasis × Key States</h4>
+                    <h4 style={{marginBottom: '16px'}}>Full Width × ALL Emphasis × Key States</h4>
                     {emphases.map((emphasis) => (
                         <div key={emphasis} style={{marginBottom: '12px'}}>
                             <h6 style={{marginBottom: '8px', textTransform: 'capitalize', fontSize: '12px', fontWeight: 600, color: 'rgba(0,0,0,0.6)'}}>{emphasis}</h6>
@@ -166,9 +203,9 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                     ))}
                 </div>
 
-                {/* MATRIX 6: INVERTED STYLES - ALL COMBINATIONS ON DARK BACKGROUND */}
+                {/* MATRIX 7: INVERTED STYLES - ALL COMBINATIONS ON DARK BACKGROUND */}
                 <div style={{backgroundColor: '#1e325c', padding: '20px', borderRadius: '8px', marginBottom: '40px'}}>
-                    <h4 style={{color: 'white', marginBottom: '20px'}}>🌙 Matrix 6: INVERTED × ALL Combinations (Dark Background)</h4>
+                    <h4 style={{color: 'white', marginBottom: '20px'}}>INVERTED × ALL Combinations (Dark Background)</h4>
                     
                     {/* Inverted Emphasis × Sizes */}
                     <div style={{marginBottom: '24px'}}>
@@ -253,28 +290,32 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                             <small>(5 emphasis × 4 sizes)</small>
                         </div>
                         <div>
-                            <strong>Matrix 2:</strong> 30 combinations<br/>
+                            <strong>Matrix 2:</strong> 20 combinations<br/>
+                            <small>(4 sizes × 5 icon variants)</small>
+                        </div>
+                        <div>
+                            <strong>Matrix 3:</strong> 30 combinations<br/>
                             <small>(5 emphasis × 6 states)</small>
                         </div>
                         <div>
-                            <strong>Matrix 3:</strong> 25 combinations<br/>
+                            <strong>Matrix 4:</strong> 25 combinations<br/>
                             <small>(5 emphasis × 5 icon types)</small>
                         </div>
                         <div>
-                            <strong>Matrix 4:</strong> 24 combinations<br/>
+                            <strong>Matrix 5:</strong> 24 combinations<br/>
                             <small>(4 sizes × 6 states)</small>
                         </div>
                         <div>
-                            <strong>Matrix 5:</strong> 25 combinations<br/>
+                            <strong>Matrix 6:</strong> 25 combinations<br/>
                             <small>(5 emphasis × 5 fullWidth states)</small>
                         </div>
                         <div>
-                            <strong>Matrix 6:</strong> 80+ combinations<br/>
+                            <strong>Matrix 7:</strong> 80+ combinations<br/>
                             <small>(All inverted variations)</small>
                         </div>
                     </div>
                     <div style={{marginTop: '16px', fontSize: '18px', fontWeight: 700, color: 'rgba(0,0,0,0.8)'}}>
-                        📊 <strong>200+ Total Button Variations</strong> 📊
+                        📊 <strong>220+ Total Button Variations</strong> 📊
                     </div>
                 </div>
             </div>
