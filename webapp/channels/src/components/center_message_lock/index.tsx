@@ -80,7 +80,7 @@ export default function CenterMessageLock(props: Props) {
                     href='#'
                     onClick={(e: React.MouseEvent) => {
                         e.preventDefault();
-                        openPricingModal({trackingLocation: 'center_channel_posts_over_limit_banner'});
+                        openPricingModal();
                     }}
                 >
                     {chunks}
