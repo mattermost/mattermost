@@ -1,0 +1,20 @@
+@use 'utils/mixins';
+
+.post-history-limit-banner {
+    background-color: var(--yellow-400);
+    color: var(--neutral-900);
+    
+    .announcement-bar__text {
+        .btn.btn-tertiary.btn-xs.btn-inverted {
+            @include mixins.link;
+            border-color: var(--neutral-900);
+            
+            color: var(--neutral-900);
+        }
+        
+    }
+    
+    .announcement-bar__close {
+        color: var(--neutral-900);
+    }
+}
