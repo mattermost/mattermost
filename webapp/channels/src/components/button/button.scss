@@ -382,6 +382,22 @@
 // Loading spinner positioning - let gap handle spacing
 .Button__loading {
     line-height: 0; // Match icon styling to prevent spacing issues
+    
+    // Override global button icon styles for loading spinner
+    i {
+        display: block !important;
+        width: auto !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 1;
+        font-size: inherit !important; // Use the button's font size
+    }
+    
+    // Override FontAwesome global styles from admin-console.scss
+    .fa {
+        margin: 0 !important;
+    }
 }
 
 // Icon base styles - minimal styling to avoid interfering with button gap
@@ -389,9 +405,20 @@
     display: inline-block;
     line-height: 0; // Prevent extra line-height spacing
     
+    // Override global button icon styles from _buttons.scss
     i {
-        display: block;
+        display: block !important;
+        width: auto !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
         line-height: 1;
+        font-size: inherit !important; // Use the button's font size
+    }
+    
+    // Override FontAwesome global styles from admin-console.scss
+    .fa {
+        margin: 0 !important;
     }
 }
 
