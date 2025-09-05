@@ -1,3 +1,11 @@
+# Define FIPS_SUFFIX for naming the packages.
+ifeq ($(FIPS_ENABLED),true)
+	FIPS_SUFFIX := "-fips"
+else
+	FIPS_SUFFIX := ""
+endif
+
+
 dist: | check-style test package
 
 build-linux: build-linux-amd64 build-linux-arm64
@@ -201,7 +209,7 @@ package-linux-amd64: package-prep
 	DIST_PATH_GENERIC=$(DIST_PATH_LIN_AMD64) PLUGIN_ARCH=linux-amd64 $(MAKE) package-plugins
 	DIST_PATH_GENERIC=$(DIST_PATH_LIN_AMD64) CURRENT_PACKAGE_ARCH=linux_amd64 MM_BIN_NAME=mattermost MMCTL_BIN_NAME=mmctl $(MAKE) package-general
 	@# Package
-	tar -C $(DIST_PATH_LIN_AMD64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-amd64.tar.gz mattermost ../mattermost
+	tar -C $(DIST_PATH_LIN_AMD64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux$(FIPS_SUFFIX)-amd64.tar.gz mattermost ../mattermost
 	@# Cleanup
 	rm -rf $(DIST_ROOT)/linux_amd64
 
