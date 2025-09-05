@@ -74,7 +74,7 @@ function SearchLimitsBanner(props: Props) {
         limit,
         ctaAction,
         a: (chunks: React.ReactNode) => (
-            <StyledA onClick={() => openPricingModal()}>
+            <StyledA onClick={() => openPricingModal({trackingLocation: 'search_limits_banner'})}>
                 {chunks}
             </StyledA>
         ),
