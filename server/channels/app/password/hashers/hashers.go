@@ -133,7 +133,7 @@ func GetHasherFromPHCString(phcString string) (PasswordHasher, parser.PHC, error
 	}
 }
 
-// Hash hashes the provided password with the latest hasing method.
+// Hash hashes the provided password with the latest hashing method.
 func Hash(password string) (string, error) {
 	return latestHasher.Hash(password)
 }
