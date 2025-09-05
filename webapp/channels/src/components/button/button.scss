@@ -358,11 +358,13 @@
 
 // Icon spacing
 .Button__icon--before {
-    margin-right: -4px;
+    margin-right: -8px;
+    margin-left: -6px;
 }
 
 .Button__icon--after {
-    margin-left: -4px;
+    margin-left: -8px;
+    margin-right: -6px;
 }
 
 // Label
