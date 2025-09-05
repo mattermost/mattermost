@@ -328,6 +328,18 @@ func removeFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var actionRequest model.FlagContentActionRequest
+	if err := json.NewDecoder(r.Body).Decode(&actionRequest); err != nil {
+		c.SetInvalidParamWithErr("removeFlaggedPost", err)
+		return
+	}
+
+	commentRequired := c.App.Config().ContentFlaggingSettings.AdditionalSettings.ReviewerCommentRequired
+	if err := actionRequest.IsValid(*commentRequired); err != nil {
+		c.Err = err
+		return
+	}
+
 	postId := c.Params.PostId
 	userId := c.AppContext.Session().UserId
 
@@ -354,23 +366,12 @@ func removeFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, appErr := c.App.GetPostContentFlaggingStatusValue(postId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if status == nil {
-		c.Err = model.NewAppError("getFlaggedPost", "api.content_flagging.error.post_not_flagged", nil, "", http.StatusNotFound)
-		return
-	}
-
 	if !isReviewer {
 		c.Err = model.NewAppError("removeFlaggedPost", "api.content_flagging.error.reviewer_only", nil, "", http.StatusForbidden)
 		return
 	}
 
-	if appErr := c.App.PermanentDeleteFlaggedPost(c.AppContext, userId, post); appErr != nil {
+	if appErr := c.App.PermanentDeleteFlaggedPost(c.AppContext, &actionRequest, userId, post); appErr != nil {
 		c.Err = appErr
 		return
 	}

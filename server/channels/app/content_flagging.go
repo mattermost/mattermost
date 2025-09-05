@@ -397,7 +397,7 @@ func (a *App) GetPostContentFlaggingPropertyValues(postId string) ([]*model.Prop
 	return propertyValues, nil
 }
 
-func (a *App) PermanentDeleteFlaggedPost(c request.CTX, reviewerId string, post *model.Post) *model.AppError {
+func (a *App) PermanentDeleteFlaggedPost(c request.CTX, actionRequest *model.FlagContentActionRequest, reviewerId string, post *model.Post) *model.AppError {
 	// when a flagged post is removed, the following things need to be done
 	// 1. Hard delete corresponding file infos
 	// 2. Hard delete file infos associated to post's edit history
@@ -407,6 +407,20 @@ func (a *App) PermanentDeleteFlaggedPost(c request.CTX, reviewerId string, post 
 	// 6. Hard delete post's postacknowledgements
 	// 7. Hard delete postreminders
 	// 8. Scrub the post's content - message, props
+
+	status, appErr := a.GetPostContentFlaggingStatusValue(post.Id)
+	if appErr != nil {
+		return appErr
+	}
+
+	if status == nil {
+		return model.NewAppError("removeFlaggedPost", "api.content_flagging.error.post_not_flagged", nil, "", http.StatusBadRequest)
+	}
+
+	statusValue := strings.Trim(string(status.Value), `"`)
+	if statusValue != model.ContentFlaggingStatusPending && statusValue != model.ContentFlaggingStatusAssigned {
+		return model.NewAppError("removeFlaggedPost", "api.content_flagging.error.post_not_in_progress", nil, "", http.StatusBadRequest)
+	}
 
 	editHistories, appErr := a.GetEditHistoryForPost(post.Id)
 	if appErr != nil {
@@ -446,7 +460,52 @@ func (a *App) PermanentDeleteFlaggedPost(c request.CTX, reviewerId string, post 
 	scrubPost(post)
 	_, _, err := a.Srv().Store().Post().OverwriteMultiple(c, []*model.Post{post})
 	if err != nil {
-		return model.NewAppError("PermanentlyRemoveFlaggedPost", "app.content_flagging.update_post.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
+		return model.NewAppError("PermanentlyRemoveFlaggedPost", "app.content_flagging.update_post.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
+	}
+
+	groupId, appErr := a.ContentFlaggingGroupId()
+	if appErr != nil {
+		return appErr
+	}
+
+	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupId)
+	if appErr != nil {
+		return appErr
+	}
+
+	propertyValues := []*model.PropertyValue{
+		{
+			TargetID:   post.Id,
+			TargetType: model.PropertyValueTargetTypePost,
+			GroupID:    groupId,
+			FieldID:    mappedFields[contentFlaggingPropertyNameActorUserID].ID,
+			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, reviewerId)),
+		},
+		{
+			TargetID:   post.Id,
+			TargetType: model.PropertyValueTargetTypePost,
+			GroupID:    groupId,
+			FieldID:    mappedFields[contentFlaggingPropertyNameActorComment].ID,
+			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, strings.Trim(actionRequest.Comment, "\""))),
+		},
+		{
+			TargetID:   post.Id,
+			TargetType: model.PropertyValueTargetTypePost,
+			GroupID:    groupId,
+			FieldID:    mappedFields[contentFlaggingPropertyNameActionTime].ID,
+			Value:      json.RawMessage(fmt.Sprintf("%d", model.GetMillis())),
+		},
+	}
+
+	_, err = a.Srv().propertyService.CreatePropertyValues(propertyValues)
+	if err != nil {
+		return model.NewAppError("PermanentlyRemoveFlaggedPost", "app.content_flagging.create_property_values.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
+	}
+
+	status.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRemoved))
+	_, err = a.Srv().propertyService.UpdatePropertyValue(groupId, status)
+	if err != nil {
+		return model.NewAppError("PermanentlyRemoveFlaggedPost", "app.content_flagging.update_property_value.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
