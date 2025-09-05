@@ -61,37 +61,7 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                     </table>
                 </div>
 
-                {/* MATRIX 2: ALL SIZES × ALL ICON VARIANTS (16 combinations) */}
-                <div style={{marginBottom: '40px'}}>
-                    <h4 style={{marginBottom: '16px'}}>📊 Sizes × ALL Icon Variants (16 combinations)</h4>
-                    <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '14px'}}>
-                        <thead>
-                            <tr style={{borderBottom: '2px solid rgba(0,0,0,0.1)'}}>
-                                <th style={{textAlign: 'left', padding: '8px', width: '100px'}}>Size</th>
-                                {icons.map(icon => (
-                                    <th key={icon.label} style={{textAlign: 'center', padding: '8px', minWidth: '120px'}}>{icon.label}</th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sizes.map((size) => (
-                                <tr key={size} style={{borderBottom: '1px solid rgba(0,0,0,0.05)'}}>
-                                    <td style={{padding: '8px', fontWeight: 600, fontSize: '12px'}}>
-                                        {size}
-                                    </td>
-                                    {icons.map((icon) => (
-                                        <td key={icon.label} style={{padding: '8px', textAlign: 'center'}}>
-                                            <Button emphasis="primary" size={size} {...icon.props}>
-                                                {size === 'xs' ? 'X-small' : size === 'sm' ? 'Small' : size === 'md' ? 'Medium' : 'Large'}
-                                            </Button>
-                                        </td>
-                                    ))}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-
+                
                 {/* MATRIX 3: ALL EMPHASIS × ALL STATES (30 combinations) */}
                 <div style={{marginBottom: '40px'}}>
                     <h4 style={{marginBottom: '16px'}}>Emphasis × States (30 combinations)</h4>
@@ -121,9 +91,40 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                     </table>
                 </div>
 
-                {/* MATRIX 4: ALL EMPHASIS × ALL ICON COMBINATIONS (25 combinations) */}
+                {/* MATRIX 2: ALL SIZES × ALL ICON VARIANTS (16 combinations) */}
                 <div style={{marginBottom: '40px'}}>
-                    <h4 style={{marginBottom: '16px'}}>Emphasis × Icon Combinations (25 combinations)</h4>
+                    <h4 style={{marginBottom: '16px'}}>Sizes × All Icon Variants (16 combinations)</h4>
+                    <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '14px'}}>
+                        <thead>
+                            <tr style={{borderBottom: '2px solid rgba(0,0,0,0.1)'}}>
+                                <th style={{textAlign: 'left', padding: '8px', width: '100px'}}>Size</th>
+                                {icons.map(icon => (
+                                    <th key={icon.label} style={{textAlign: 'center', padding: '8px', minWidth: '120px'}}>{icon.label}</th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {sizes.map((size) => (
+                                <tr key={size} style={{borderBottom: '1px solid rgba(0,0,0,0.05)'}}>
+                                    <td style={{padding: '8px', fontWeight: 600, fontSize: '12px'}}>
+                                        {size}
+                                    </td>
+                                    {icons.map((icon) => (
+                                        <td key={icon.label} style={{padding: '8px', textAlign: 'center'}}>
+                                            <Button emphasis="primary" size={size} {...icon.props}>
+                                                {size === 'xs' ? 'X-small' : size === 'sm' ? 'Small' : size === 'md' ? 'Medium' : 'Large'}
+                                            </Button>
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* MATRIX 4: ALL EMPHASIS × ALL ICON COMBINATIONS (20 combinations) */}
+                <div style={{marginBottom: '40px'}}>
+                    <h4 style={{marginBottom: '16px'}}>Emphasis × Icon Combinations (20 combinations)</h4>
                     <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '14px'}}>
                         <thead>
                             <tr style={{borderBottom: '2px solid rgba(0,0,0,0.1)'}}>
@@ -140,7 +141,7 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                                     {icons.map((icon) => (
                                         <td key={icon.label} style={{padding: '8px', textAlign: 'center'}}>
                                             <Button emphasis={emphasis} {...icon.props}>
-                                                {icon.label === 'Only' ? '' : icon.label}
+                                                {icon.label}
                                             </Button>
                                         </td>
                                     ))}
@@ -197,29 +198,29 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                 </div>
 
                 {/* MATRIX 7: INVERTED STYLES - ALL COMBINATIONS ON DARK BACKGROUND */}
-                <div style={{backgroundColor: '#1e325c', padding: '20px', borderRadius: '8px', marginBottom: '40px'}}>
+                <div style={{backgroundColor: 'var(--sidebar-bg)', padding: '20px', borderRadius: '8px', marginBottom: '40px'}}>
                     <h4 style={{color: 'white', marginBottom: '20px'}}>INVERTED × ALL Combinations (Dark Background)</h4>
                     
-                    {/* Inverted Emphasis × Sizes */}
-                    <div style={{marginBottom: '24px'}}>
-                        <h5 style={{color: 'white', marginBottom: '12px', fontSize: '14px', fontWeight: 600}}>All Emphasis × All Sizes (Inverted)</h5>
-                        <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '12px'}}>
+                    {/* INVERTED MATRIX 1: ALL EMPHASIS × ALL SIZES (20 combinations) */}
+                    <div style={{marginBottom: '32px'}}>
+                        <h5 style={{color: 'white', marginBottom: '12px', fontSize: '14px', fontWeight: 600}}>Emphasis × Sizes (Inverted) - 20 combinations</h5>
+                        <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '14px'}}>
                             <thead>
                                 <tr style={{borderBottom: '2px solid rgba(255,255,255,0.2)'}}>
-                                    <th style={{textAlign: 'left', padding: '6px', width: '80px', color: 'white'}}>Emphasis</th>
+                                    <th style={{textAlign: 'left', padding: '8px', width: '100px', color: 'white'}}>Emphasis</th>
                                     {sizes.map(size => (
-                                        <th key={size} style={{textAlign: 'center', padding: '6px', color: 'white'}}>{size}</th>
+                                        <th key={size} style={{textAlign: 'center', padding: '8px', color: 'white'}}>{size}</th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody>
                                 {emphases.map((emphasis) => (
                                     <tr key={emphasis} style={{borderBottom: '1px solid rgba(255,255,255,0.1)'}}>
-                                        <td style={{padding: '6px', textTransform: 'capitalize', fontWeight: 600, color: 'white'}}>{emphasis}</td>
+                                        <td style={{padding: '8px', fontWeight: 600, color: 'white'}}>{emphasis}</td>
                                         {sizes.map((size) => (
-                                            <td key={size} style={{padding: '6px', textAlign: 'center'}}>
+                                            <td key={size} style={{padding: '8px', textAlign: 'center'}}>
                                                 <Button emphasis={emphasis} size={size} inverted>
-                                                    {size === 'xs' ? 'Extra-small' : size === 'sm' ? 'Small' : size === 'md' ? 'Medium' : 'Large'}
+                                                    {size === 'xs' ? 'X-small' : size === 'sm' ? 'Small' : size === 'md' ? 'Medium' : 'Large'}
                                                 </Button>
                                             </td>
                                         ))}
@@ -229,24 +230,24 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                         </table>
                     </div>
 
-                    {/* Inverted Emphasis × States */}
-                    <div style={{marginBottom: '24px'}}>
-                        <h5 style={{color: 'white', marginBottom: '12px', fontSize: '14px', fontWeight: 600}}>All Emphasis × All States (Inverted)</h5>
-                        <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '12px'}}>
+                    {/* INVERTED MATRIX 2: ALL EMPHASIS × ALL STATES (30 combinations) */}
+                    <div style={{marginBottom: '32px'}}>
+                        <h5 style={{color: 'white', marginBottom: '12px', fontSize: '14px', fontWeight: 600}}>Emphasis × States (Inverted) - 30 combinations</h5>
+                        <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '14px'}}>
                             <thead>
                                 <tr style={{borderBottom: '2px solid rgba(255,255,255,0.2)'}}>
-                                    <th style={{textAlign: 'left', padding: '6px', width: '80px', color: 'white'}}>Emphasis</th>
+                                    <th style={{textAlign: 'left', padding: '8px', width: '100px', color: 'white'}}>Emphasis</th>
                                     {states.map(state => (
-                                        <th key={state.label} style={{textAlign: 'center', padding: '6px', color: 'white', minWidth: '100px'}}>{state.label}</th>
+                                        <th key={state.label} style={{textAlign: 'center', padding: '8px', minWidth: '120px', color: 'white'}}>{state.label}</th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody>
                                 {emphases.map((emphasis) => (
                                     <tr key={emphasis} style={{borderBottom: '1px solid rgba(255,255,255,0.1)'}}>
-                                        <td style={{padding: '6px', textTransform: 'capitalize', fontWeight: 600, color: 'white'}}>{emphasis}</td>
+                                        <td style={{padding: '8px', textTransform: 'capitalize', fontWeight: 600, color: 'white'}}>{emphasis}</td>
                                         {states.map((state) => (
-                                            <td key={state.label} style={{padding: '6px', textAlign: 'center'}}>
+                                            <td key={state.label} style={{padding: '8px', textAlign: 'center'}}>
                                                 <Button emphasis={emphasis} inverted {...state.props}>
                                                     {state.label}
                                                 </Button>
@@ -258,19 +259,110 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                         </table>
                     </div>
 
-                    {/* Inverted with Icons */}
-                    <div>
-                        <h5 style={{color: 'white', marginBottom: '12px', fontSize: '14px', fontWeight: 600}}>Inverted × Icon Combinations</h5>
-                        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px'}}>
-                            <Button emphasis="primary" inverted iconBefore={<i className="icon icon-plus"/>}>Add</Button>
-                            <Button emphasis="secondary" inverted iconAfter={<i className="icon icon-chevron-right"/>}>Next</Button>
-                            <Button emphasis="tertiary" inverted iconBefore={<i className="icon icon-settings"/>} iconAfter={<i className="icon icon-chevron-down"/>}>Settings</Button>
-                            <Button emphasis="quaternary" inverted iconBefore={<i className="icon icon-close"/>}></Button>
-                            <Button emphasis="link" inverted iconBefore={<i className="icon icon-external-link"/>}>External</Button>
-                            <Button emphasis="primary" inverted destructive iconBefore={<i className="icon icon-trash"/>}>Delete</Button>
-                            <Button emphasis="secondary" inverted loading iconBefore={<i className="icon icon-save"/>}>Saving</Button>
-                            <Button emphasis="primary" inverted fullWidth>Full Width Inverted</Button>
-                        </div>
+                    {/* INVERTED MATRIX 3: ALL SIZES × ALL ICON VARIANTS (16 combinations) */}
+                    <div style={{marginBottom: '32px'}}>
+                        <h5 style={{color: 'white', marginBottom: '12px', fontSize: '14px', fontWeight: 600}}>Sizes × Icon Variants (Inverted) - 16 combinations</h5>
+                        <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '14px'}}>
+                            <thead>
+                                <tr style={{borderBottom: '2px solid rgba(255,255,255,0.2)'}}>
+                                    <th style={{textAlign: 'left', padding: '8px', width: '100px', color: 'white'}}>Size</th>
+                                    {icons.map(icon => (
+                                        <th key={icon.label} style={{textAlign: 'center', padding: '8px', minWidth: '120px', color: 'white'}}>{icon.label}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {sizes.map((size) => (
+                                    <tr key={size} style={{borderBottom: '1px solid rgba(255,255,255,0.1)'}}>
+                                        <td style={{padding: '8px', fontWeight: 600, fontSize: '12px', color: 'white'}}>
+                                            {size}
+                                        </td>
+                                        {icons.map((icon) => (
+                                            <td key={icon.label} style={{padding: '8px', textAlign: 'center'}}>
+                                                <Button emphasis="primary" size={size} inverted {...icon.props}>
+                                                    {size === 'xs' ? 'X-small' : size === 'sm' ? 'Small' : size === 'md' ? 'Medium' : 'Large'}
+                                                </Button>
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* INVERTED MATRIX 4: ALL EMPHASIS × ALL ICON COMBINATIONS (20 combinations) */}
+                    <div style={{marginBottom: '32px'}}>
+                        <h5 style={{color: 'white', marginBottom: '12px', fontSize: '14px', fontWeight: 600}}>Emphasis × Icon Combinations (Inverted) - 20 combinations</h5>
+                        <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '14px'}}>
+                            <thead>
+                                <tr style={{borderBottom: '2px solid rgba(255,255,255,0.2)'}}>
+                                    <th style={{textAlign: 'left', padding: '8px', width: '100px', color: 'white'}}>Emphasis</th>
+                                    {icons.map(icon => (
+                                        <th key={icon.label} style={{textAlign: 'center', padding: '8px', minWidth: '120px', color: 'white'}}>{icon.label}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {emphases.map((emphasis) => (
+                                    <tr key={emphasis} style={{borderBottom: '1px solid rgba(255,255,255,0.1)'}}>
+                                        <td style={{padding: '8px', textTransform: 'capitalize', fontWeight: 600, color: 'white'}}>{emphasis}</td>
+                                        {icons.map((icon) => (
+                                            <td key={icon.label} style={{padding: '8px', textAlign: 'center'}}>
+                                                <Button emphasis={emphasis} inverted {...icon.props}>
+                                                    {icon.label}
+                                                </Button>
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* INVERTED MATRIX 5: ALL SIZES × ALL STATES FOR PRIMARY (24 combinations) */}
+                    <div style={{marginBottom: '32px'}}>
+                        <h5 style={{color: 'white', marginBottom: '12px', fontSize: '14px', fontWeight: 600}}>Sizes × States (Primary Inverted) - 24 combinations</h5>
+                        <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '14px'}}>
+                            <thead>
+                                <tr style={{borderBottom: '2px solid rgba(255,255,255,0.2)'}}>
+                                    <th style={{textAlign: 'left', padding: '8px', width: '80px', color: 'white'}}>Size</th>
+                                    {states.map(state => (
+                                        <th key={state.label} style={{textAlign: 'center', padding: '8px', minWidth: '120px', color: 'white'}}>{state.label}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {sizes.map((size) => (
+                                    <tr key={size} style={{borderBottom: '1px solid rgba(255,255,255,0.1)'}}>
+                                        <td style={{padding: '8px', fontWeight: 600, color: 'white'}}>{size}</td>
+                                        {states.map((state) => (
+                                            <td key={state.label} style={{padding: '8px', textAlign: 'center'}}>
+                                                <Button emphasis="primary" size={size} inverted {...state.props}>
+                                                    {(size === 'xs' ? 'X-small' : size === 'sm' ? 'Small' : size === 'md' ? 'Medium' : 'Large')} {state.label}
+                                                </Button>
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* INVERTED MATRIX 6: FULL WIDTH × ALL EMPHASIS × SELECTED STATES */}
+                    <div style={{marginBottom: '24px'}}>
+                        <h5 style={{color: 'white', marginBottom: '12px', fontSize: '14px', fontWeight: 600}}>Full Width × Emphasis × Key States (Inverted)</h5>
+                        {emphases.map((emphasis) => (
+                            <div key={emphasis} style={{marginBottom: '12px'}}>
+                                <h6 style={{marginBottom: '8px', textTransform: 'capitalize', fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.7)'}}>{emphasis}</h6>
+                                <div style={{display: 'grid', gap: '4px'}}>
+                                    <Button emphasis={emphasis} fullWidth inverted>Full Width</Button>
+                                    <Button emphasis={emphasis} fullWidth disabled inverted>Full Width Disabled</Button>
+                                    <Button emphasis={emphasis} fullWidth loading inverted>Full Width Loading</Button>
+                                    <Button emphasis={emphasis} fullWidth destructive inverted>Full Width Destructive</Button>
+                                    <Button emphasis={emphasis} fullWidth inverted iconBefore={<i className="icon icon-plus"/>}>Full Width + Icon</Button>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
@@ -303,12 +395,12 @@ const ButtonExamples: React.FC<ButtonExamplesProps> = ({backgroundClass}) => {
                             <small>(5 emphasis × 5 fullWidth states)</small>
                         </div>
                         <div>
-                            <strong>Matrix 7:</strong> 80+ combinations<br/>
-                            <small>(All inverted variations)</small>
+                            <strong>Matrix 7:</strong> 135 combinations<br/>
+                            <small>(All inverted variations: 6 complete matrix duplicates)</small>
                         </div>
                     </div>
                     <div style={{marginTop: '16px', fontSize: '18px', fontWeight: 700, color: 'rgba(0,0,0,0.8)'}}>
-                        📊 <strong>220+ Total Button Variations</strong> 📊
+                        📊 <strong>270 Total Button Variations</strong> 📊
                     </div>
                 </div>
             </div>
