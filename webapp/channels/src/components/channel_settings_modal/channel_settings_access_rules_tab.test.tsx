@@ -138,7 +138,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        // Clear mocks but preserve implementations
+        mockActions.getAccessControlFields.mockClear();
+        mockActions.getChannelPolicy.mockClear();
+        mockActions.saveChannelPolicy.mockClear();
+        mockActions.searchUsers.mockClear();
         mockUseChannelAccessControlActions.mockReturnValue(mockActions);
         mockUseChannelSystemPolicies.mockReturnValue({
             policies: [],

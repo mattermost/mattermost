@@ -10,8 +10,6 @@
 // Stage: @prod
 // Group: @channels @channel_settings
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 describe('Channel settings', () => {
     let mainUser: Cypress.UserProfile;
     let otherUser: Cypress.UserProfile;
