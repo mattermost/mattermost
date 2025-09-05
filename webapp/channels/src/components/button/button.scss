@@ -54,7 +54,7 @@
     // Icon font size for x-small buttons - 14px for good visibility
     .Button__icon i,
     .Button__loading i {
-        font-size: 14px !important;
+        font-size: 14px;
     }
     
 }
@@ -68,7 +68,7 @@
     // Icon font size for small buttons - 16px (standard icon size)
     .Button__icon i,
     .Button__loading i {
-        font-size: 16px !important;
+        font-size: 16px;
     }
     
 }
@@ -82,7 +82,7 @@
     // Icon font size for medium buttons - 18px (proportional to 14px text)
     .Button__icon i,
     .Button__loading i {
-        font-size: 18px !important;
+        font-size: 18px;
     }
     
 }
@@ -96,7 +96,7 @@
     // Icon font size for large buttons - 20px (proportional to 16px text)
     .Button__icon i,
     .Button__loading i {
-        font-size: 20px !important;
+        font-size: 20px;
     }
     
 }
@@ -304,11 +304,6 @@
         background-color: rgba(var(--button-color-rgb), 0.75);
     }
     
-    &:disabled {
-        background-color: rgba(var(--button-color-rgb), 0.08) !important;
-        border-color: rgba(var(--button-color-rgb), 0.08) !important;
-        color: rgba(var(--button-color-rgb), 0.32) !important;
-    }
 }
 
 .Button--secondary.Button--inverted {
@@ -324,11 +319,6 @@
         background-color: rgba(var(--button-color-rgb), 0.16);
     }
     
-    &:disabled {
-        background-color: transparent !important;
-        border-color: rgba(var(--button-color-rgb), 0.32) !important;
-        color: rgba(var(--button-color-rgb), 0.32) !important;
-    }
 }
 
 .Button--tertiary.Button--inverted {
@@ -343,11 +333,6 @@
         background-color: rgba(var(--button-color-rgb), 0.16);
     }
     
-    &:disabled {
-        background-color: rgba(var(--button-color-rgb), 0.08) !important;
-        border-color: transparent !important;
-        color: rgba(var(--button-color-rgb), 0.32) !important;
-    }
 }
 
 .Button--quaternary.Button--inverted {
@@ -364,11 +349,6 @@
         color: var(--button-color);
     }
     
-    &:disabled {
-        background-color: transparent !important;
-        border-color: transparent !important;
-        color: rgba(var(--button-color-rgb), 0.32) !important;
-    }
 }
 
 .Button--link.Button--inverted {
@@ -382,12 +362,6 @@
         color: var(--button-color);
     }
     
-    &:disabled {
-        background-color: transparent !important;
-        border-color: transparent !important;
-        color: rgba(var(--button-color-rgb), 0.32) !important;
-        text-decoration: none !important;
-    }
 }
 
 // Loading spinner
