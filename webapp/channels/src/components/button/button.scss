@@ -170,11 +170,11 @@
         color: var(--error-text);
         
         &:hover:not(:disabled) {
-            background-color: rgba(var(--semantic-color-danger), 0.08);
+            background-color: rgba(var(--error-text-color-rgb), 0.08);
         }
         
         &:active:not(:disabled) {
-            background-color: rgba(var(--semantic-color-danger), 0.16);
+            background-color: rgba(var(--error-text-color-rgb), 0.16);
         }
     }
 }
@@ -198,15 +198,15 @@
     
     // Destructive variant
     &.Button--destructive {
-        background-color: rgba(var(--semantic-color-danger), 0.08);
+        background-color: rgba(var(--error-text-color-rgb), 0.08);
         color: var(--error-text);
         
         &:hover:not(:disabled) {
-            background-color: rgba(var(--semantic-color-danger), 0.12);
+            background-color: rgba(var(--error-text-color-rgb), 0.12);
         }
         
         &:active:not(:disabled) {
-            background-color: rgba(var(--semantic-color-danger), 0.16);
+            background-color: rgba(var(--error-text-color-rgb), 0.16);
         }
     }
 }
@@ -234,11 +234,13 @@
         color: var(--error-text);
         
         &:hover:not(:disabled) {
-            background-color: rgba(var(--semantic-color-danger), 0.08);
+            color: var(--error-text);
+            background-color: rgba(var(--error-text-color-rgb), 0.08);
         }
         
         &:active:not(:disabled) {
-            background-color: rgba(var(--semantic-color-danger), 0.16);
+            color: var(--error-text);
+            background-color: rgba(var(--error-text-color-rgb), 0.16);
         }
     }
 }
@@ -248,10 +250,11 @@
     padding: 0;
     height: auto;
     color: var(--link-color);
-    text-decoration: underline;
+    text-decoration: none;
     
     &:hover:not(:disabled) {
-        color: rgba(var(--button-bg-rgb), 0.75);
+        color: color-mix(in srgb, var(--link-color) 92%, black 8%);
+        text-decoration: underline;
     }
     
     &:active:not(:disabled) {
@@ -267,7 +270,7 @@
         color: var(--error-text);
         
         &:hover:not(:disabled) {
-            color: rgba(var(--semantic-color-danger), 0.75);
+            color: color-mix(in srgb, var(--error-text) 92%, black 8%);
         }
         
         &:active:not(:disabled) {
@@ -350,10 +353,8 @@
 
 // Loading spinner positioning
 .Button__loading {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    margin-left: -4px;
+    margin-right: -6px;
 }
 
 // Icon spacing
@@ -373,9 +374,27 @@
     white-space: nowrap;
 }
 
-// Loading spinner uses FontAwesome fa-pulse animation
-.Button__loading {
-    .fa-pulse {
-        font-size: inherit;
-    }
+// Ensure disabled styles take precedence over destructive styles
+.Button--primary.Button--destructive:disabled,
+.Button--secondary.Button--destructive:disabled,
+.Button--tertiary.Button--destructive:disabled {
+    background-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
+    border-color: rgba(var(--center-channel-color-rgb), 0.32) !important;
+    color: rgba(var(--center-channel-color-rgb), 0.32) !important;
+    background-image: none !important;
+}
+
+// Special case for quaternary destructive disabled (transparent background)
+.Button--quaternary.Button--destructive:disabled {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    color: rgba(var(--center-channel-color-rgb), 0.32) !important;
+}
+
+// Special case for link destructive disabled (no background, no border)
+.Button--link.Button--destructive:disabled {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    color: rgba(var(--center-channel-color-rgb), 0.32) !important;
+    text-decoration: none !important;
 }
