@@ -48,6 +48,7 @@ func New(r io.Reader) *Parser {
 	return &Parser{reader: bufio.NewReader(io.LimitReader(r, MaxRunes))}
 }
 
+// read reads a single rune, returning [eof] in case of any error.
 func (p *Parser) read() rune {
 	ch, _, err := p.reader.ReadRune()
 	if err != nil {
@@ -56,8 +57,11 @@ func (p *Parser) read() rune {
 	return ch
 }
 
+// unread unreads a single rune
 func (p *Parser) unread() { _ = p.reader.UnreadRune() }
 
+// scan scans either an identifier whose runes are allowed by the provided
+// function, or a single separator token: EOF $ , =
 func (p *Parser) scan(isIdentAllowedRune func(rune) bool) (tok Token, lit string) {
 	ch := p.read()
 
@@ -80,6 +84,8 @@ func (p *Parser) scan(isIdentAllowedRune func(rune) bool) (tok Token, lit string
 	return ILLEGAL, string(ch)
 }
 
+// scanIdent scans a series of contiguous runes allowed by the provided function
+// that form a single identifier.
 func (p *Parser) scanIdent(isIdentAllowedRune func(rune) bool) (tok Token, lit string) {
 	var buf bytes.Buffer
 	buf.WriteRune(p.read())
@@ -112,6 +118,12 @@ func (p *Parser) scanSeparator() (tok Token, lit string) {
 	return p.scan(none)
 }
 
+// parseToken returns the literal string of an expected token, or an error.
+// expected can be an ORed expression of different tokens, like
+//
+//	EOF | DOLLARSIGN | FUNCTIONID
+//
+// In this case, any of those tokens are allowd, and its literal will be returned.
 func (p *Parser) parseToken(expected Token) (string, error) {
 	var allowedRuneFunc func(rune) bool
 	switch expected {
@@ -126,13 +138,14 @@ func (p *Parser) parseToken(expected Token) (string, error) {
 	}
 
 	token, literal := p.scan(allowedRuneFunc)
-	if token&expected == 0 { // expected can be an ORed expression of different tokens
+	if token&expected == 0 {
 		return "", fmt.Errorf("found %q, expected '$'", literal)
 	}
 
 	return literal, nil
 }
 
+// parseFunctionId parses a function ID
 func (p *Parser) parseFunctionId() (string, error) {
 	literal, err := p.parseToken(DOLLARSIGN)
 	if err != nil {
@@ -146,6 +159,7 @@ func (p *Parser) parseFunctionId() (string, error) {
 	return literal, nil
 }
 
+// parseHash parses a base64-encoded hash
 func (p *Parser) parseHash() (string, error) {
 	// We parse the hash
 	hash, err := p.parseToken(B64ENCODED)
@@ -162,6 +176,8 @@ func (p *Parser) parseHash() (string, error) {
 	return hash, nil
 }
 
+// parseParamsRHS parses an equal sign followed by a parameter value, returning
+// only the parameter value.
 func (p *Parser) parseParamRHS() (string, error) {
 	if literal, err := p.parseToken(EQUALSIGN); err != nil {
 		return literal, err
