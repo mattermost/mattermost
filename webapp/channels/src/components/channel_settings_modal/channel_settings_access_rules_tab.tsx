@@ -2,15 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect, useCallback, useMemo} from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
+import ConfirmModal from 'components/confirm_modal';
 import SystemPolicyIndicator from 'components/system_policy_indicator';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
@@ -34,8 +36,9 @@ function ChannelSettingsAccessRulesTab({
 }: ChannelSettingsAccessRulesTabProps) {
     const {formatMessage} = useIntl();
 
-    // Get access control settings from Redux state
+    // Get access control settings and current user from Redux state
     const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
+    const currentUser = useSelector(getCurrentUser);
 
     // State for the access control expression and user attributes
     const [expression, setExpression] = useState('');
@@ -51,6 +54,9 @@ function ChannelSettingsAccessRulesTab({
     // SaveChangesPanel state
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
     const [formError, setFormError] = useState('');
+
+    // Validation modal state
+    const [showSelfExclusionModal, setShowSelfExclusionModal] = useState(false);
 
     const actions = useChannelAccessControlActions();
 
@@ -160,6 +166,46 @@ function ChannelSettingsAccessRulesTab({
         setAutoSyncMembers((prev) => !prev);
     }, [parentPolicyAutoSync, expression, autoSyncMembers]);
 
+    // Validate that current user satisfies the expression
+    const validateSelfExclusion = useCallback(async (testExpression: string): Promise<boolean> => {
+        if (!testExpression.trim()) {
+            return true; // No expression, skip validation
+        }
+
+        if (!currentUser?.id) {
+            return false;
+        }
+
+        try {
+            const result = await actions.searchUsers(testExpression, '', '', 1000);
+            if (!result.data || !result.data.users || result.data.users.length === 0) {
+                // No users match the expression (including current user)
+                setShowSelfExclusionModal(true);
+                return false;
+            }
+
+            // Check if current user matches using efficient single iteration
+            const currentUserMatches = result.data.users.some((u) => u.id === currentUser.id);
+            if (!currentUserMatches) {
+                // Current user would be excluded
+                setShowSelfExclusionModal(true);
+                return false;
+            }
+
+            return true;
+        } catch (error) {
+            // If validation fails, prevent save for security - don't risk self-exclusion
+            // eslint-disable-next-line no-console
+            console.error('Failed to validate self-exclusion:', error);
+            setFormError(formatMessage({
+                id: 'channel_settings.access_rules.error.validation_failed',
+                defaultMessage: 'Failed to validate access rules. Please try again.',
+            }));
+            return false;
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentUser]);
+
     // Handle save action
     const handleSave = useCallback(async (): Promise<boolean> => {
         try {
@@ -170,6 +216,14 @@ function ChannelSettingsAccessRulesTab({
                     defaultMessage: 'Access rules are required when auto-add members is enabled',
                 }));
                 return false;
+            }
+
+            // Validate self-exclusion
+            if (expression.trim()) {
+                const isValid = await validateSelfExclusion(expression);
+                if (!isValid) {
+                    return false;
+                }
             }
 
             // Build the policy object
@@ -209,7 +263,7 @@ function ChannelSettingsAccessRulesTab({
             }));
             return false;
         }
-    }, [channel.id, channel.display_name, expression, autoSyncMembers, systemPolicies, actions, formatMessage]);
+    }, [channel.id, channel.display_name, expression, autoSyncMembers, systemPolicies, actions, formatMessage, validateSelfExclusion]);
 
     // Handle save changes panel actions
     const handleSaveChanges = useCallback(async () => {
@@ -377,6 +431,32 @@ function ChannelSettingsAccessRulesTab({
                     })}
                 />
             )}
+
+            {/* Self-exclusion error modal */}
+            <ConfirmModal
+                show={showSelfExclusionModal}
+                title={
+                    <FormattedMessage
+                        id='channel_settings.access_rules.error.self_exclusion_title'
+                        defaultMessage='Cannot save access rules'
+                    />
+                }
+                message={
+                    <FormattedMessage
+                        id='channel_settings.access_rules.error.self_exclusion_message'
+                        defaultMessage="You cannot set this rule because it would remove you from the channel. Please update the access rules to make sure you satisfy them and they don't cause any unintended issues."
+                    />
+                }
+                confirmButtonText={
+                    <FormattedMessage
+                        id='channel_settings.access_rules.error.back_to_editing'
+                        defaultMessage='Back to editing'
+                    />
+                }
+                onConfirm={() => setShowSelfExclusionModal(false)}
+                hideCancel={true}
+                confirmButtonClass='btn btn-primary'
+            />
         </div>
     );
 }
