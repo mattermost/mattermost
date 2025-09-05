@@ -74,21 +74,20 @@ func (a *App) checkUserPassword(user *model.User, password string, invalidateCac
 	}
 
 	// Compare the password using the hasher that generated it
-	if err := hasher.CompareHashAndPassword(phc, password); err != nil {
-		if errors.Is(err, hashers.ErrMismatchedHashAndPassword) {
-			// Increment the number of failed password attempts in case of
-			// mismatched hash and password
-			if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
-				return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
-			}
-
-			if invalidateCache {
-				a.InvalidateCacheForUser(user.Id)
-			}
-
-			return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized).Wrap(err)
+	err = hasher.CompareHashAndPassword(phc, password)
+	if err != nil && errors.Is(err, hashers.ErrMismatchedHashAndPassword) {
+		// Increment the number of failed password attempts in case of
+		// mismatched hash and password
+		if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
+			return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 		}
 
+		if invalidateCache {
+			a.InvalidateCacheForUser(user.Id)
+		}
+
+		return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized).Wrap(err)
+	} else if err != nil {
 		return model.NewAppError("checkUserPassword", "app.valid_password_generic.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
