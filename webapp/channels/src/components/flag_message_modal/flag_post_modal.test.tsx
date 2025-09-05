@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
+import {screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
@@ -42,7 +42,7 @@ describe('components/FlagPostModal', () => {
         },
     };
 
-    it('should render modal with reasons and post preview', () => {
+    it('should render modal with reasons and post preview', async () => {
         renderWithContext(
             <FlagPostModal
                 postId={'post_id'}
@@ -51,14 +51,16 @@ describe('components/FlagPostModal', () => {
             baseState,
         );
 
-        userEvent.click(screen.getByText('Select a reason for flagging'));
+        await userEvent.click(screen.getByText('Select a reason for flagging'));
 
-        expect(screen.getByText('Reason 1')).toBeVisible();
-        expect(screen.getByText('Reason 2')).toBeVisible();
-        expect(screen.getByText('Reason 3')).toBeVisible();
+        await waitFor(() => {
+            expect(screen.getByText('Reason 1')).toBeVisible();
+            expect(screen.getByText('Reason 2')).toBeVisible();
+            expect(screen.getByText('Reason 3')).toBeVisible();
 
-        expect(screen.getByTestId('FlagPostModal__post-preview_container')).toHaveTextContent('Test message');
-        expect(screen.getByTestId('FlagPostModal__comment_section_title')).toHaveTextContent('Comment (required)');
+            expect(screen.getByTestId('FlagPostModal__post-preview_container')).toHaveTextContent('Test message');
+            expect(screen.getByTestId('FlagPostModal__comment_section_title')).toHaveTextContent('Comment (required)');
+        });
     });
 
     it('should render "required" title when comment is required', () => {

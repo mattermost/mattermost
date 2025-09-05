@@ -162,7 +162,7 @@ describe('components/new_channel_modal', () => {
         expect(createChannelButton).toBeDisabled();
     });
 
-    test('should handle display name change', () => {
+    test('should handle display name change', async () => {
         const value = 'Channel name';
 
         renderWithContext(
@@ -175,7 +175,7 @@ describe('components/new_channel_modal', () => {
         expect(channelNameInput).toBeInTheDocument();
         expect(channelNameInput).toHaveAttribute('value', '');
 
-        userEvent.type(channelNameInput, value);
+        await userEvent.type(channelNameInput, value);
 
         // Display name should have been updated
         expect(channelNameInput).toHaveAttribute('value', value);
@@ -200,7 +200,7 @@ describe('components/new_channel_modal', () => {
         expect(channelNameInput).toBeInTheDocument();
         expect(channelNameInput).toHaveAttribute('value', '');
 
-        userEvent.type(channelNameInput, value);
+        await userEvent.type(channelNameInput, value);
         const urlInputLabel = screen.getByTestId('urlInputLabel');
         expect(urlInputLabel).toHaveTextContent(cleanUpUrlable(value));
 
@@ -208,22 +208,22 @@ describe('components/new_channel_modal', () => {
         const editUrl = screen.getByText('Edit');
         expect(editUrl).toBeInTheDocument();
 
-        userEvent.click(editUrl);
+        await userEvent.click(editUrl);
 
         const editUrlInput = screen.getByTestId('channelURLInput');
-        userEvent.clear(editUrlInput);
-        userEvent.type(editUrlInput, url);
+        await userEvent.clear(editUrlInput);
+        await userEvent.type(editUrlInput, url);
 
-        const doneButton = screen.getByText('Done');
-        await waitFor(() =>
-            userEvent.click(doneButton),
-        );
+        // Tab out of the input since it saves on blur
+        await userEvent.tab();
 
         // URL should have been updated
-        expect(screen.getByText(url, {exact: false})).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.queryByText(url, {exact: false})).toBeInTheDocument();
+        });
 
         // Change display name again
-        userEvent.type(channelNameInput, `${value} updated`);
+        await userEvent.type(channelNameInput, `${value} updated`);
 
         // URL should NOT be updated
         expect(screen.getByText(url, {exact: false})).toBeInTheDocument();
@@ -239,9 +239,7 @@ describe('components/new_channel_modal', () => {
         const privateChannel = screen.getByText('Private Channel');
         expect(privateChannel).toBeInTheDocument();
 
-        await act(async () => {
-            userEvent.click(privateChannel);
-        });
+        await userEvent.click(privateChannel);
 
         // Type should have been updated to private
         expect(privateChannel.parentElement?.nextSibling?.firstChild).toHaveAttribute('aria-label', 'Check Circle Icon');
@@ -250,9 +248,7 @@ describe('components/new_channel_modal', () => {
         const publicChannel = screen.getByText('Public Channel');
         expect(publicChannel).toBeInTheDocument();
 
-        await act(async () => {
-            userEvent.click(publicChannel);
-        });
+        await userEvent.click(publicChannel);
 
         // Type should have been updated to public
         expect(publicChannel.parentElement?.nextSibling?.firstChild).toHaveAttribute('aria-label', 'Check Circle Icon');
@@ -280,7 +276,7 @@ describe('components/new_channel_modal', () => {
         expect(ChannelPurposeTextArea).toHaveValue(value);
     });
 
-    test('should enable confirm button when having valid display name, url and type', () => {
+    test('should enable confirm button when having valid display name, url and type', async () => {
         renderWithContext(
             <NewChannelModal/>,
             initialState,
@@ -296,19 +292,19 @@ describe('components/new_channel_modal', () => {
         expect(channelNameInput).toBeInTheDocument();
         expect(channelNameInput).toHaveAttribute('value', '');
 
-        userEvent.type(channelNameInput, 'Channel name');
+        await userEvent.type(channelNameInput, 'Channel name');
 
         // Change type to private
         const privateChannel = screen.getByText('Private Channel');
         expect(privateChannel).toBeInTheDocument();
 
-        userEvent.click(privateChannel);
+        await userEvent.click(privateChannel);
 
         // Confirm button should be enabled
         expect(createChannelButton).toBeEnabled();
     });
 
-    test('should disable confirm button when display name in error', () => {
+    test('should disable confirm button when display name in error', async () => {
         renderWithContext(
             <NewChannelModal/>,
             initialState,
@@ -319,26 +315,26 @@ describe('components/new_channel_modal', () => {
         expect(channelNameInput).toBeInTheDocument();
         expect(channelNameInput).toHaveAttribute('value', '');
 
-        userEvent.type(channelNameInput, 'Channel name');
+        await userEvent.type(channelNameInput, 'Channel name');
 
         // Change type to private
         const privateChannel = screen.getByText('Private Channel');
         expect(privateChannel).toBeInTheDocument();
 
-        userEvent.click(privateChannel);
+        await userEvent.click(privateChannel);
 
         // Confirm button should be enabled
         const createChannelButton = screen.getByText('Create channel');
         expect(createChannelButton).toBeEnabled();
 
         // Change display name to invalid
-        userEvent.clear(channelNameInput);
+        await userEvent.clear(channelNameInput);
 
         // Confirm button should be disabled
         expect(createChannelButton).toBeDisabled();
     });
 
-    test('should disable confirm button when url in error', () => {
+    test('should disable confirm button when url in error', async () => {
         renderWithContext(
             <NewChannelModal/>,
             initialState,
@@ -349,13 +345,13 @@ describe('components/new_channel_modal', () => {
         expect(channelNameInput).toBeInTheDocument();
         expect(channelNameInput).toHaveAttribute('value', '');
 
-        userEvent.type(channelNameInput, 'Channel name');
+        await userEvent.type(channelNameInput, 'Channel name');
 
         // Change type to private
         const privateChannel = screen.getByText('Private Channel');
         expect(privateChannel).toBeInTheDocument();
 
-        userEvent.click(privateChannel);
+        await userEvent.click(privateChannel);
 
         // Confirm button should be enabled
         const createChannelButton = screen.getByText('Create channel');
@@ -365,11 +361,11 @@ describe('components/new_channel_modal', () => {
         const editUrl = screen.getByText('Edit');
         expect(editUrl).toBeInTheDocument();
 
-        userEvent.click(editUrl);
+        await userEvent.click(editUrl);
 
         const editUrlInput = screen.getByTestId('channelURLInput');
-        userEvent.clear(editUrlInput);
-        userEvent.type(editUrlInput, 'c-');
+        await userEvent.clear(editUrlInput);
+        await userEvent.type(editUrlInput, 'c-');
 
         // Confirm button should be disabled
         expect(createChannelButton).toBeDisabled();
@@ -390,13 +386,13 @@ describe('components/new_channel_modal', () => {
         expect(channelNameInput).toBeInTheDocument();
         expect(channelNameInput).toHaveAttribute('value', '');
 
-        userEvent.type(channelNameInput, 'Channel name');
+        await userEvent.type(channelNameInput, 'Channel name');
 
         // Change type to private
         const privateChannel = screen.getByText('Private Channel');
         expect(privateChannel).toBeInTheDocument();
 
-        userEvent.click(privateChannel);
+        await userEvent.click(privateChannel);
 
         // Confirm button should be enabled
         expect(createChannelButton).toBeEnabled();
@@ -427,7 +423,7 @@ describe('components/new_channel_modal', () => {
         expect(channelNameInput).toBeInTheDocument();
         expect(channelNameInput).toHaveAttribute('value', '');
 
-        userEvent.type(channelNameInput, name);
+        await userEvent.type(channelNameInput, name);
 
         // Display name should be updated
         expect(channelNameInput).toHaveValue(name);
@@ -436,9 +432,7 @@ describe('components/new_channel_modal', () => {
         expect(createChannelButton).toBeEnabled();
 
         // Submit
-        await act(async () => {
-            userEvent.click(createChannelButton);
-        });
+        await userEvent.click(createChannelButton);
 
         // Request should be sent
         expect(createChannel).toHaveBeenCalledWith({
