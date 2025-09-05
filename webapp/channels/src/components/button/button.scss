@@ -57,9 +57,8 @@
         align-items: center;
         justify-content: center;
         
-        .Button__icon--before,
-        .Button__icon--after {
-            margin: 0;
+        .Button__icon {
+            line-height: 1; // Restore normal line-height for icon-only
         }
     }
 }
@@ -77,9 +76,8 @@
         align-items: center;
         justify-content: center;
         
-        .Button__icon--before,
-        .Button__icon--after {
-            margin: 0;
+        .Button__icon {
+            line-height: 1; // Restore normal line-height for icon-only
         }
     }
 }
@@ -97,9 +95,8 @@
         align-items: center;
         justify-content: center;
         
-        .Button__icon--before,
-        .Button__icon--after {
-            margin: 0;
+        .Button__icon {
+            line-height: 1; // Restore normal line-height for icon-only
         }
     }
 }
@@ -117,9 +114,8 @@
         align-items: center;
         justify-content: center;
         
-        .Button__icon--before,
-        .Button__icon--after {
-            margin: 0;
+        .Button__icon {
+            line-height: 1; // Restore normal line-height for icon-only
         }
     }
 }
@@ -383,33 +379,30 @@
     }
 }
 
-// Loading spinner positioning
+// Loading spinner positioning - let gap handle spacing
 .Button__loading {
-    margin-left: -4px;
-    margin-right: -6px;
+    line-height: 0; // Match icon styling to prevent spacing issues
 }
 
-// Icon base styles
+// Icon base styles - minimal styling to avoid interfering with button gap
 .Button__icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: inherit;
-    line-height: 1;
+    display: inline-block;
+    line-height: 0; // Prevent extra line-height spacing
     
     i {
         display: block;
         line-height: 1;
+        vertical-align: top;
     }
 }
 
-// Icon spacing - using gap from base button, so minimal margins needed
+// Icon spacing - let the button's gap handle spacing naturally
 .Button__icon--before {
-    margin-right: -4px; // Reduce gap on right since gap handles spacing
+    // No additional margins needed - gap handles spacing
 }
 
 .Button__icon--after {
-    margin-left: -4px; // Reduce gap on left since gap handles spacing
+    // No additional margins needed - gap handles spacing
 }
 
 // Label
