@@ -619,6 +619,24 @@ func (_m *Hooks) UserHasLoggedIn(c *plugin.Context, user *model.User) {
 	_m.Called(c, user)
 }
 
+// UserWillJoinTeam provides a mock function with given fields: c, team, user, actor
+func (_m *Hooks) UserWillJoinTeam(c *plugin.Context, team *model.Team, user *model.User, actor *model.User) string {
+	ret := _m.Called(c, team, user, actor)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UserWillJoinTeam")
+	}
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.Team, *model.User, *model.User) string); ok {
+		r0 = rf(c, team, user, actor)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
 // UserWillLogIn provides a mock function with given fields: c, user
 func (_m *Hooks) UserWillLogIn(c *plugin.Context, user *model.User) string {
 	ret := _m.Called(c, user)
