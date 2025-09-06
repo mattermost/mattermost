@@ -8,6 +8,8 @@ import type {AutocompleteSuggestion} from '@mattermost/types/integrations';
 
 import {Client4} from 'mattermost-redux/client';
 
+import * as UserAgent from 'utils/user_agent';
+
 import CommandProvider, {commandsGroup, CommandSuggestion} from './command_provider';
 
 describe('CommandSuggestion', () => {
@@ -119,4 +121,60 @@ describe('CommandProvider', () => {
             Client4.getCommandAutocompleteSuggestionsList = f;
         });
     });
+});
+
+test('should forward pretext to handleWebapp unaltered (case-preserving)', () => {
+    const uaSpy = jest.spyOn(UserAgent, 'isMobile').mockReturnValue(false);
+
+    const provider = new CommandProvider({
+        teamId: 'current_team',
+        channelId: 'current_channel',
+        rootId: 'current_root',
+    });
+
+    const pretext = '/autolink set AbC Templ.';
+    const cb = jest.fn();
+
+    const webappSpy = jest.spyOn(provider as any, 'handleWebapp').mockImplementation(() => true);
+
+    provider.handlePretextChanged(pretext, cb);
+
+    expect(webappSpy).toHaveBeenCalledTimes(1);
+    expect(webappSpy.mock.calls[0][0]).toBe(pretext);
+
+    webappSpy.mockRestore();
+    uaSpy.mockRestore();
+});
+
+test('handleWebapp calls backend with pretext unaltered', async () => {
+    const original = Client4.getCommandAutocompleteSuggestionsList;
+    const mock = jest.fn().mockResolvedValue([]);
+    Client4.getCommandAutocompleteSuggestionsList = mock;
+
+    const provider = new CommandProvider({
+        teamId: 'current_team',
+        channelId: 'current_channel',
+        rootId: 'current_root',
+    });
+
+  const pretext = '/autolink set AbC Templ.';
+  const cb = jest.fn();
+
+  await (provider as any).handleWebapp(pretext, cb);
+
+  expect(mock).toHaveBeenCalledTimes(1);
+
+  const [argPretext, argTeamId, argOpts] = mock.mock.calls[0];
+
+  expect(argPretext).toBe(pretext);
+
+  expect(argTeamId).toBe('current_team');
+
+  expect(argOpts).toEqual(expect.objectContaining({
+    channel_id: 'current_channel',
+    root_id: 'current_root',
+    team_id: 'current_team',
+  }));
+
+  Client4.getCommandAutocompleteSuggestionsList = original;
 });

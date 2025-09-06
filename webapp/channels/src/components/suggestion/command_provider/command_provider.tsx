@@ -163,7 +163,7 @@ export default class CommandProvider extends Provider {
     handleMobile(pretext: string, resultCallback: ResultsCallback<AutocompleteSuggestion>) {
         const {teamId} = this.props;
 
-        const command = pretext.toLowerCase();
+        const command = pretext;
         Client4.getCommandsList(teamId).then(
             (data) => {
                 let matches: AutocompleteSuggestion[] = [];
@@ -209,7 +209,7 @@ export default class CommandProvider extends Provider {
     }
 
     handleWebapp(pretext: string, resultCallback: ResultsCallback<AutocompleteSuggestion>) {
-        const command = pretext.toLowerCase();
+        const command = pretext;
 
         const {teamId, channelId, rootId} = this.props;
         const args: CommandArgs = {
