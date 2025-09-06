@@ -465,8 +465,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       />
     </div>
   </div>
-  <ConfirmModal
-    confirmButtonClass="btn btn-primary"
+  <Memo(ConfirmModal)
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Yes, Reset"
@@ -479,7 +478,6 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="admin.permissions.systemScheme.resetDefaultsButtonModalBody"
       />
     }
-    modalClass=""
     onCancel={[Function]}
     onConfirm={[Function]}
     show={false}
@@ -816,8 +814,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       />
     </div>
   </div>
-  <ConfirmModal
-    confirmButtonClass="btn btn-primary"
+  <Memo(ConfirmModal)
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Yes, Reset"
@@ -830,7 +827,6 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="admin.permissions.systemScheme.resetDefaultsButtonModalBody"
       />
     }
-    modalClass=""
     onCancel={[Function]}
     onConfirm={[Function]}
     show={false}
@@ -1167,8 +1163,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       />
     </div>
   </div>
-  <ConfirmModal
-    confirmButtonClass="btn btn-primary"
+  <Memo(ConfirmModal)
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Yes, Reset"
@@ -1181,7 +1176,6 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="admin.permissions.systemScheme.resetDefaultsButtonModalBody"
       />
     }
-    modalClass=""
     onCancel={[Function]}
     onConfirm={[Function]}
     show={false}
@@ -1518,8 +1512,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       />
     </div>
   </div>
-  <ConfirmModal
-    confirmButtonClass="btn btn-primary"
+  <Memo(ConfirmModal)
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Yes, Reset"
@@ -1532,7 +1525,6 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         id="admin.permissions.systemScheme.resetDefaultsButtonModalBody"
       />
     }
-    modalClass=""
     onCancel={[Function]}
     onConfirm={[Function]}
     show={false}
