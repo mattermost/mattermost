@@ -10,7 +10,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import * as preferencesActions from 'mattermost-redux/actions/preferences';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import {getPluginPreferenceKey} from 'utils/plugins/preferences';
 
 import type {GlobalState} from 'types/store';
@@ -109,7 +109,7 @@ describe('plugin setting', () => {
         expect(screen.queryByText(OPTION_1_TEXT)).toBeInTheDocument();
     });
 
-    it('onSubmit gets called', () => {
+    it('onSubmit gets called', async () => {
         const mockSavePreferences = jest.spyOn(preferencesActions, 'savePreferences');
         const props = getBaseProps();
         props.activeSection = SECTION_TITLE;
@@ -129,9 +129,9 @@ describe('plugin setting', () => {
             type: 'radio',
         });
         renderWithContext(<PluginSetting {...props}/>);
-        fireEvent.click(screen.getByText(OPTION_1_TEXT));
-        fireEvent.click(screen.getByText(OPTION_3_TEXT));
-        fireEvent.click(screen.getByText(SAVE_TEXT));
+        await userEvent.click(screen.getByText(OPTION_1_TEXT));
+        await userEvent.click(screen.getByText(OPTION_3_TEXT));
+        await userEvent.click(screen.getByText(SAVE_TEXT));
         expect(props.section.onSubmit).toHaveBeenCalledWith({[SETTING_1_NAME]: '1', [SETTING_2_NAME]: '3'});
         expect(props.updateSection).toHaveBeenCalledWith('');
         expect(mockSavePreferences).toHaveBeenCalledWith('', [

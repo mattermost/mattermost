@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
+import React, {act, useCallback, useState} from 'react';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
@@ -107,7 +107,7 @@ describe('SuggestionBox', () => {
         expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
 
         // Typing some text should cause a suggestion to be shown
-        userEvent.click(screen.getByPlaceholderText('test input'));
+        await userEvent.click(screen.getByPlaceholderText('test input'));
         await userEvent.keyboard('test');
 
         await waitFor(() => {
@@ -150,7 +150,7 @@ describe('SuggestionBox', () => {
         expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
 
         // Typing some text should cause a suggestion to be shown
-        userEvent.click(screen.getByPlaceholderText('test input'));
+        await userEvent.click(screen.getByPlaceholderText('test input'));
         await userEvent.keyboard('test');
 
         await waitFor(() => {
@@ -174,7 +174,7 @@ describe('SuggestionBox', () => {
         );
 
         // Typing some text should cause a suggestion to be shown
-        userEvent.click(screen.getByPlaceholderText('test input'));
+        await userEvent.click(screen.getByPlaceholderText('test input'));
         await userEvent.keyboard('test');
 
         await waitFor(() => {
@@ -204,7 +204,7 @@ describe('SuggestionBox', () => {
             />,
         );
 
-        userEvent.click(screen.getByPlaceholderText('test input'));
+        await userEvent.click(screen.getByPlaceholderText('test input'));
         await userEvent.keyboard('This is important');
 
         // The provider will send results to the SuggestionBox twice to simulate loading results from the server
@@ -248,7 +248,7 @@ describe('SuggestionBox', () => {
         expect(screen.getByPlaceholderText('test input')).toHaveValue('@use@use This is important');
 
         // Wait for the second set of results has been received to ensure the contents of the textbox aren't lost
-        await new Promise((resolve) => setTimeout(resolve, 20));
+        await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
 
         // expect(onSuggestionsReceived).toHaveBeenCalledTimes(1);
         expect(screen.getByPlaceholderText('test input')).toHaveValue('@use@use This is important');
@@ -290,7 +290,7 @@ describe('SuggestionBox', () => {
         );
 
         const input = screen.getByPlaceholderText('test input');
-        userEvent.click(input);
+        await userEvent.click(input);
 
         // Start without showing the autocomplete list
         expect(input).toHaveAttribute('aria-autocomplete', 'list');

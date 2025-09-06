@@ -239,9 +239,7 @@ describe('components/new_channel_modal', () => {
         const privateChannel = screen.getByText('Private Channel');
         expect(privateChannel).toBeInTheDocument();
 
-        await act(async () => {
-            await userEvent.click(privateChannel);
-        });
+        await userEvent.click(privateChannel);
 
         // Type should have been updated to private
         expect(privateChannel.parentElement?.nextSibling?.firstChild).toHaveAttribute('aria-label', 'Check Circle Icon');
@@ -250,9 +248,7 @@ describe('components/new_channel_modal', () => {
         const publicChannel = screen.getByText('Public Channel');
         expect(publicChannel).toBeInTheDocument();
 
-        await act(async () => {
-            await userEvent.click(publicChannel);
-        });
+        await userEvent.click(publicChannel);
 
         // Type should have been updated to public
         expect(publicChannel.parentElement?.nextSibling?.firstChild).toHaveAttribute('aria-label', 'Check Circle Icon');
@@ -436,9 +432,7 @@ describe('components/new_channel_modal', () => {
         expect(createChannelButton).toBeEnabled();
 
         // Submit
-        await act(async () => {
-            await userEvent.click(createChannelButton);
-        });
+        await userEvent.click(createChannelButton);
 
         // Request should be sent
         expect(createChannel).toHaveBeenCalledWith({
