@@ -149,7 +149,7 @@ func TestCreateChannel(t *testing.T) {
 
 	require.Equal(t, *groupConstrainedChannel.GroupConstrained, *rchannel.GroupConstrained, "GroupConstrained flags do not match")
 
-	t.Run("Test create channel with missing team id", func(t *testing.T) {
+	t.Run("Test create channel with missing team id!", func(t *testing.T) {
 		channel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: ""}
 
 		_, resp, err = client.CreateChannel(context.Background(), channel)
