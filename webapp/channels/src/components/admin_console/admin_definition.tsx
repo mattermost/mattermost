@@ -4909,7 +4909,7 @@ const AdminDefinition: AdminDefinitionType = {
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.gitlab', defaultMessage: 'GitLab'}),
                 isHidden: it.any(
-                    it.any(it.licensedForFeature('OpenId'), it.cloudLicensed),
+                    it.licensedForFeature('OpenId'),
                     it.not(it.enterpriseReady),
                 ),
                 schema: {
