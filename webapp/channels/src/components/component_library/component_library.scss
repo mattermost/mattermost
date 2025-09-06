@@ -1,27 +1,302 @@
-.clInput {
-    display: block;
-    margin-bottom: 20px;
-}
-
 .clWrapper {
+    display: flex;
     width: auto;
-    padding: 25px;
-}
-
-.clCenterBackground {
-    background-color: var(--center-channel-bg);
+    padding: 48px;
+    flex-direction: column;
+    gap: 24px;
+    font-size: 14px;
+    line-height: 20px;
+    font-family: 'Open Sans', sans-serif;
+    background: linear-gradient(0deg, var(--center-channel-color-8, rgba(var(--center-channel-color-rgb), 0.08)) 0%, var(--center-channel-color-8, rgba(var(--center-channel-color-rgb), 0.08)) 100%), var(--center-channel-bg, var(--center-channel-bg));
     color: var(--center-channel-color);
+
+    label {
+        margin: 0;
+    }
+
+    .clLiveComponentWrapper {
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        padding: 32px;
+        border-radius: var(--radius-m);
+        margin-bottom: 24px;
+
+        .clInteractiveSection {
+            display: flex;
+            flex-direction: row;
+            gap: 24px;
+
+            h2 {
+                margin-bottom: 24px;
+            }
     
-    h1, h2, h3, h4, h5, h6 {
+            .clControlsPanel {
+                flex: 0 0 300px;
+                min-width: 300px;
+                padding: 24px;
+                background: rgba(var(--center-channel-color-rgb), 0.04);
+                border-radius: var(--radius-s);
+                
+                .clInputs {
+                    gap: 24px;
+
+                    .DropdownInput.Input_container {
+                        margin-top: 0;
+                    }
+
+                    .mm-modal-generic-section-item__fieldset-checkbox-ctr {
+                        margin-bottom: 0;
+                    }
+                }
+            }
+        
+            .clLiveComponentPanel {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-height: 200px;
+                padding: 24px;
+                background: var(--center-channel-bg);
+                border-radius: 4px;
+                border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+                box-shadow: var(--elevation-2);
+
+                &.clSidebarBackground {
+                    background: var(--sidebar-bg);
+                    color: var(--sidebar-text);
+                }
+        
+                .clSection {
+                    margin-top: 0;
+                    margin-bottom: 0;
+                    padding-bottom: 0;
+                    border-bottom: none;
+                }
+            }
+        }
+    }
+
+    select {
+        font: inherit;
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: var(--radius-s);
+        background-color: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        margin: 0;
+        min-inline-size: 200px;
+        justify-content: space-between;
+
+        &, &::picker(select) {
+            appearance: base-select;
+        }
+
+        &::picker-icon {
+            display: none;
+        }
+
+        &::picker(select) {
+            margin-block-start: 4px;
+            background-color: var(--center-channel-bg);
+            box-shadow: var(--elevation-4);
+            border-radius: var(--radius-s);
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            color: var(--center-channel-color);
+            font: inherit;
+            padding: 4px;
+        }
+
+        option {
+            display: flex;
+            justify-content: space-between;
+            border-radius: var(--radius-xs);
+            background-color: var(--center-channel-bg);
+            color: var(--center-channel-color);
+            padding: 4px 12px;
+            font: inherit;
+            
+            &:hover {
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            }
+
+            &::checkmark {
+                order: 2;
+            }
+        }
+
+        .picker-icon {
+            display: flex;
+            transition: rotate 0.2s ease-in-out;
+
+            :open & {
+                rotate: 180deg;
+            }
+            
+            svg {
+                width: 16px;
+                height: 16px;
+                fill: rgba(var(--center-channel-color-rgb), 0.56);
+            }
+        }
+    }
+    
+    input[type="radio"] {
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        margin: 0;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        background-color: var(--center-channel-bg);
+        border-radius: 50%;
+        cursor: pointer;
+        position: relative;
+    
+        &:checked {
+            border-color: var(--button-bg);
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+    
+            &::before {
+                content: '';
+                display: block;
+                width: 8px;
+                height: 8px;
+                background-color: var(--button-bg);
+                border-radius: 50%;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+        }
+    }
+
+    .clInputs {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .clTopInputs {
+        display: flex;
+        flex-direction: row;
+        gap: 32px;
+
+        .clInputWrapper {
+            gap: 12px;
+
+            label {
+                width: auto;
+            }
+        }
+    }
+    
+    .clInputWrapper {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+    
+        &.clRadioWrapper {
+            gap: 8px;
+
+            label {
+                width: auto;
+                font-weight: 500;
+            }
+        }
+    }
+    
+    .clInvertedWrapper {
+        background-color: var(--sidebar-bg);
+        color: var(--sidebar-text);
+        padding: 48px;
+        border-radius: var(--radius-m);
+    }
+    
+    
+    .clSection {
+        margin-bottom: 48px;
+    
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        .clVariantsWrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+    }
+    
+    .clComponentWrapper {
+        background-color: transparent;
+        font-size: 14px;
+        
+        h1, h2, h3 {
+            font-family: Metropolis, sans-serif;
+            font-weight: 600;
+            
+            &:first-child {
+                margin-top: 0;
+            }
+        }
+    
+        table {
+            width: 100%;
+            border-collapse: collapse;
+    
+            tr {
+                border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    
+                td:first-child {
+                    width: 180px;
+                }
+            }
+    
+            thead tr {
+                border-bottom: solid 2px rgba(var(--center-channel-color-rgb), 0.16);
+            }
+    
+            th, td {
+                padding: 16px 16px 16px 0;
+                text-align: left;
+            }
+        }
+    
+        .clComponentVariants {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 48px;
+            border-radius: var(--radius-m);
+        }
+    }
+    
+    .clCenterBackground {
+        background: var(--center-channel-bg);
         color: var(--center-channel-color);
     }
-}
-
-.clSidebarBackground {
-    background-color: var(--sidebar-bg);
-    color: var(--sidebar-text);
     
-    h1, h2, h3, h4, h5, h6 {
+    .clSidebarBackground {
+        background: var(--sidebar-bg);
         color: var(--sidebar-text);
+    
+        table {
+    
+            thead tr {
+                border-bottom: solid 2px rgba(var(--sidebar-text-rgb), 0.16);
+            }
+    
+            tr {
+                border-bottom: 1px solid rgba(var(--sidebar-text-rgb), 0.08);
+            }
+        }
     }
 }

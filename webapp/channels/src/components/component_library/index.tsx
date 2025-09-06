@@ -8,13 +8,14 @@ import {Preferences} from 'mattermost-redux/constants';
 
 import {applyTheme} from 'utils/utils';
 
-import ButtonExamples from 'components/button/button_examples';
+import ButtonComponentLibrary from './button.cl';
 import SectionNoticeComponentLibrary from './section_notice.cl';
 
 import './component_library.scss';
+import { ChevronDownIcon } from '@mattermost/compass-icons/components';
 
 const componentMap = {
-    'Button': ButtonExamples,
+    'Button': ButtonComponentLibrary,
     'Section Notice': SectionNoticeComponentLibrary,
 };
 
@@ -71,48 +72,82 @@ const ComponentLibrary = () => {
     const SelectedComponent = componentMap[selectedComponent];
     return (
         <div className={'clWrapper'}>
-            <label className={'clInput'}>
-                {'Component: '}
-                <select
-                    onChange={onSelectComponent}
-                    value={selectedComponent}
-                >
-                    {componentOptions}
-                </select>
-            </label>
-            <label className={'clInput'}>
-                {'Theme: '}
-                <select
-                    onChange={onSelectTheme}
-                    value={selectedTheme}
-                >
-                    {themeOptions}
-                </select>
-            </label>
-            <label className={'clInput'}>
-                {'Background: '}
-                <label>
-                    {'Center channel'}
-                    <input
-                        onChange={onSelectBackground}
-                        name={'background'}
-                        value={'center'}
-                        type={'radio'}
-                        checked={selectedBackground === 'center'}
-                    />
-                </label>
-                <label>
-                    {'Sidebar'}
-                    <input
-                        onChange={onSelectBackground}
-                        name={'background'}
-                        value={'sidebar'}
-                        type={'radio'}
-                        checked={selectedBackground === 'sidebar'}
-                    />
-                </label>
-            </label>
-            <div className={'clWrapper'}>
+            <div className={'clTopInputs'}>
+                <div className={'clInputWrapper'}>
+                    <label 
+                        className={'clInputLabel'}
+                        htmlFor={'clComponentSelector'}
+                    >
+                        {'Component: '}
+                    </label>
+                    <select
+                        onChange={onSelectComponent}
+                        value={selectedComponent}
+                        id={'clComponentSelector'}
+                    >
+                        <button>
+                            {selectedComponent}
+                            <span className="picker-icon"><ChevronDownIcon /></span>
+                        </button>
+                        {componentOptions}
+                    </select>
+                </div>
+                <div className={'clInputWrapper'}>
+                    <label 
+                        className={'clInputLabel'}
+                        htmlFor={'clThemeSelector'}
+                    >
+                        {'Theme: '}
+                    </label>
+                    <select
+                        onChange={onSelectTheme}
+                        value={selectedTheme}
+                        id={'clThemeSelector'}
+                    >
+                        <button>
+                            {selectedTheme}
+                            <span className="picker-icon"><ChevronDownIcon /></span>
+                        </button>
+                        {themeOptions}
+                    </select>
+                </div>
+                <div className={'clInputWrapper'}>
+                    <label className={'clInputLabel'}>
+                        {'Background: '}
+                        </label>
+                        <div className={'clInputWrapper clRadioWrapper'}>
+                            <input
+                                onChange={onSelectBackground}
+                                name={'background'}
+                                value={'center'}
+                                type={'radio'}
+                                checked={selectedBackground === 'center'}
+                                id={'clBackgroundCenterSelector'}
+                            />
+                            <label htmlFor={'clBackgroundCenterSelector'}>
+                                {'Center channel'}
+                            </label>
+                        </div>
+                        
+                        <div className={'clInputWrapper clRadioWrapper'}>
+                            <input
+                                onChange={onSelectBackground}
+                                name={'background'}
+                                value={'sidebar'}
+                                type={'radio'}
+                                checked={selectedBackground === 'sidebar'}
+                                id={'clBackgroundSidebarSelector'}
+                            />
+                            <label htmlFor={'clBackgroundSidebarSelector'}>
+                                {'Sidebar'}
+                            </label>
+                        </div>
+                        
+                        
+                    
+                </div>
+            </div>
+            <div className={'clComponentWrapper'}>
                 <SelectedComponent
                     backgroundClass={classNames({
                         clCenterBackground: selectedBackground === 'center',
