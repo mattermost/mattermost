@@ -19,11 +19,13 @@ type SqlPropertyValueStore struct {
 	tableSelectQuery sq.SelectBuilder
 }
 
+var propertyValueColumns = []string{"ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt"}
+
 func newPropertyValueStore(sqlStore *SqlStore) store.PropertyValueStore {
 	s := SqlPropertyValueStore{SqlStore: sqlStore}
 
 	s.tableSelectQuery = s.getQueryBuilder().
-		Select("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt").
+		Select(propertyValueColumns...).
 		From("PropertyValues")
 
 	return &s
@@ -47,13 +49,53 @@ func (s *SqlPropertyValueStore) Create(value *model.PropertyValue) (*model.Prope
 
 	builder := s.getQueryBuilder().
 		Insert("PropertyValues").
-		Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt").
+		Columns(propertyValueColumns...).
 		Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt)
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "property_value_create_insert")
 	}
 
 	return value, nil
+}
+
+func (s *SqlPropertyValueStore) CreateMany(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if len(values) == 0 {
+		return nil, nil
+	}
+
+	transaction, err := s.GetMaster().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "property_value_create_many_begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	for _, value := range values {
+		value.PreSave()
+
+		if err := value.IsValid(); err != nil {
+			return nil, errors.Wrap(err, "property_value_create_many_isvalid")
+		}
+
+		valueJSON := value.Value
+		if s.IsBinaryParamEnabled() {
+			valueJSON = AppendBinaryFlag(valueJSON)
+		}
+
+		builder := s.getQueryBuilder().
+			Insert("PropertyValues").
+			Columns(propertyValueColumns...).
+			Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt)
+
+		if _, err := transaction.ExecBuilder(builder); err != nil {
+			return nil, errors.Wrap(err, "property_value_create_many_exec")
+		}
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "property_value_create_many_commit_transaction")
+	}
+
+	return values, nil
 }
 
 func (s *SqlPropertyValueStore) Get(groupID, id string) (*model.PropertyValue, error) {
@@ -238,7 +280,7 @@ func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*mode
 
 		builder := s.getQueryBuilder().
 			Insert("PropertyValues").
-			Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt").
+			Columns(propertyValueColumns...).
 			Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt)
 
 		builder = builder.SuffixExpr(sq.Expr(
