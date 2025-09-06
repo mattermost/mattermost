@@ -6,7 +6,7 @@ import React from 'react';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import ProductBrandingFreeEdition from './product_branding_team_edition';
+import ProductBrandingFreeEdition from './product_branding_free_edition';
 
 describe('ProductBrandingFreeEdition', () => {
     const baseProps = {};
