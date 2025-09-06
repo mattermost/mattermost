@@ -1253,13 +1253,8 @@ func searchArchivedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 	if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
 		channels, appErr = c.App.SearchArchivedChannels(c.AppContext, c.Params.TeamId, props.Term, c.AppContext.Session().UserId)
 	} else {
-		// If the user is not a team member, return a 404
-		if _, appErr = c.App.GetTeamMember(c.AppContext, c.Params.TeamId, c.AppContext.Session().UserId); appErr != nil {
-			c.Err = appErr
-			return
-		}
-
-		channels, appErr = c.App.SearchArchivedChannels(c.AppContext, c.Params.TeamId, props.Term, c.AppContext.Session().UserId)
+		c.SetPermissionError(model.PermissionListTeamChannels)
+		return
 	}
 
 	if appErr != nil {

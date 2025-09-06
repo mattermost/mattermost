@@ -2519,52 +2519,26 @@ func TestSearchArchivedChannels(t *testing.T) {
 	_, _, err = client.SearchArchivedChannels(context.Background(), th.BasicTeam.Id, search)
 	require.NoError(t, err)
 
-	search.Term = th.BasicDeletedChannel.Name
-	_, resp, err := client.SearchArchivedChannels(context.Background(), model.NewId(), search)
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
-
-	_, resp, err = client.SearchArchivedChannels(context.Background(), "junk", search)
+	_, resp, err := client.SearchArchivedChannels(context.Background(), "junk", search)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.SearchArchivedChannels(context.Background(), th.BasicTeam.Id, search)
 	require.NoError(t, err)
 
-	// Check the appropriate permissions are enforced.
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
-	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
-	}()
+	t.Run("User should receive 403 Forbidden when no permission to list team channels", func(t *testing.T) {
+		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defer func() {
+			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		}()
 
-	// Remove list channels permission from the user
-	th.RemovePermissionFromRole(model.PermissionListTeamChannels.Id, model.TeamUserRoleId)
-
-	t.Run("Search for a BasicDeletedChannel, which the user is a member of", func(t *testing.T) {
-		search.Term = th.BasicDeletedChannel.Name
-		channelList, _, err := client.SearchArchivedChannels(context.Background(), th.BasicTeam.Id, search)
-		require.NoError(t, err)
-
-		channelNames := []string{}
-		for _, c := range channelList {
-			channelNames = append(channelNames, c.Name)
-		}
-		require.Contains(t, channelNames, th.BasicDeletedChannel.Name)
-	})
-
-	t.Run("Remove the user from BasicDeletedChannel and search again, should still return", func(t *testing.T) {
-		appErr := th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, th.BasicUser.Id, th.BasicDeletedChannel)
-		require.Nil(t, appErr)
+		// Remove list channels permission from the user
+		th.RemovePermissionFromRole(model.PermissionListTeamChannels.Id, model.TeamUserRoleId)
 
 		search.Term = th.BasicDeletedChannel.Name
-		channelList, _, err := client.SearchArchivedChannels(context.Background(), th.BasicTeam.Id, search)
-		require.NoError(t, err)
-
-		channelNames := []string{}
-		for _, c := range channelList {
-			channelNames = append(channelNames, c.Name)
-		}
-		require.Contains(t, channelNames, th.BasicDeletedChannel.Name)
+		_, resp, err := client.SearchArchivedChannels(context.Background(), th.BasicTeam.Id, search)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 }
 
