@@ -482,6 +482,7 @@ func (a *App) OpenInteractiveDialog(c request.CTX, request model.OpenDialogReque
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventOpenDialog, "", "", userID, nil, "")
+	mlog.Info("OpenInteractiveDialog request", mlog.String("dialog", string(jsonRequest)))
 	message.Add("dialog", string(jsonRequest))
 	a.Publish(message)
 
@@ -491,7 +492,11 @@ func (a *App) OpenInteractiveDialog(c request.CTX, request model.OpenDialogReque
 func (a *App) SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError) {
 	url := request.URL
 	request.URL = ""
-	request.Type = "dialog_submission"
+
+	// Preserve Type field for field refresh functionality, otherwise default to dialog_submission
+	if request.Type != "refresh" {
+		request.Type = "dialog_submission"
+	}
 
 	b, err := json.Marshal(request)
 	if err != nil {

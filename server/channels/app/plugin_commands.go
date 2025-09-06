@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -160,7 +161,10 @@ func (a *App) tryExecutePluginCommand(c request.CTX, args *model.CommandArgs) (*
 		args.AddChannelMention(channelName, channelID)
 	}
 
+	mlog.Info("Executing plugin command", mlog.String("plugin_id", matched.PluginId), mlog.String("command", args.Command), mlog.String("user_id", args.UserId), mlog.String("channel_id", args.ChannelId), mlog.String("team_id", args.TeamId))
 	response, appErr := pluginHooks.ExecuteCommand(pluginContext(c), args)
+	s, _ := json.Marshal(response)
+	mlog.Info("Executing plugin command", mlog.String("t", string(s)))
 
 	// Checking if plugin crashed after running the command
 	if err := pluginsEnvironment.PerformHealthCheck(matched.PluginId); err != nil {
