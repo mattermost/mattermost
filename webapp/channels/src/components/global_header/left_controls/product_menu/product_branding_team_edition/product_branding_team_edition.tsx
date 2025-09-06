@@ -2,11 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useSelector} from 'react-redux';
 import styled from 'styled-components';
+
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import Logo from 'components/common/svg_images_components/logo_dark_blue_svg';
 
-const ProductBrandingTeamEditionContainer = styled.span`
+import {LicenseSkus} from 'utils/constants';
+
+const ProductBrandingFreeEditionContainer = styled.span`
     display: flex;
     align-items: center;
 
@@ -36,16 +41,25 @@ const Badge = styled.span`
     line-height: 16px;
 `;
 
-const ProductBrandingTeamEdition = (): JSX.Element => {
+const ProductBrandingFreeEdition = (): JSX.Element => {
+    const license = useSelector(getLicense);
+
+    let badgeText = '';
+    if (license?.SkuShortName === LicenseSkus.Entry) {
+        badgeText = 'ENTRY EDITION';
+    } else if (license?.IsLicensed === 'false') {
+        badgeText = 'FREE EDITION';
+    }
+
     return (
-        <ProductBrandingTeamEditionContainer tabIndex={-1}>
+        <ProductBrandingFreeEditionContainer tabIndex={-1}>
             <StyledLogo
                 width={116}
                 height={20}
             />
-            <Badge>{'FREE EDITION'}</Badge>
-        </ProductBrandingTeamEditionContainer>
+            <Badge>{badgeText}</Badge>
+        </ProductBrandingFreeEditionContainer>
     );
 };
 
-export default ProductBrandingTeamEdition;
+export default ProductBrandingFreeEdition;

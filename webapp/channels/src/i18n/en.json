@@ -4919,6 +4919,7 @@
   "navbar_dropdown.userGroups.modal.titleEndUser": "User groups available in paid plans",
   "navbar_dropdown.userGroups.tooltip.cloudFreeTrial": "During your trial you are able to create user groups. These user groups will be archived after your trial.",
   "navbar_dropdown.versionText": "This is the free <link>unsupported</link> edition of Mattermost.",
+  "navbar_dropdown.entryVersionText": "Entry offers Enterprise Advance capabilities <link>with limits</link> designed to support evaluation.",
   "navbar_dropdown.viewMembers": "View Members",
   "navbar.addGroups": "Add Groups",
   "navbar.addMembers": "Add Members",
