@@ -32,7 +32,6 @@ export type LogObject = {
     level: LogLevelEnum;
     msg: string;
     timestamp: string;
-    worker: string;
 }
 
 export type LogFilter = {

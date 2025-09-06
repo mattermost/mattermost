@@ -34,6 +34,57 @@ type State = {
 
 const PAGE_SIZE = 50;
 
+// Format UTC timestamp to local date/time string
+const formatLogTimestamp = (utcTimestamp: string): string => {
+    try {
+        // Check if this looks like a real timestamp (contains date-like patterns)
+        // Supports formats like:
+        // - ISO: 2025-09-05T08:18:24Z, 2025-09-05T08:18:24.558Z
+        // - Server format: 2025-09-05 08:18:24.558, 2025-09-05 08:18:24
+        const timestampPattern = /^\d{4}-\d{2}-\d{2}[\sT]\d{2}:\d{2}:\d{2}/;
+        if (!timestampPattern.test(utcTimestamp)) {
+            return utcTimestamp; // Return original for test strings like 'timestamp 1'
+        }
+
+        // Handle server timestamp format: "2025-09-05 08:18:24.558" (assume UTC)
+        let isoString = utcTimestamp;
+        if (utcTimestamp.includes(' ') && !utcTimestamp.includes('T')) {
+            // Convert "YYYY-MM-DD HH:mm:ss.SSS" to ISO format
+            isoString = utcTimestamp.replace(' ', 'T');
+            if (!isoString.endsWith('Z') && !isoString.includes('+') && !isoString.includes('-', 10)) {
+                isoString += 'Z'; // Assume UTC if no timezone info
+            }
+        }
+
+        const date = new Date(isoString);
+
+        // If the timestamp doesn't parse to a valid date, return the original
+        if (isNaN(date.getTime())) {
+            return utcTimestamp;
+        }
+
+        // Format to local date and time
+        const dateOptions: Intl.DateTimeFormatOptions = {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+        };
+        const timeOptions: Intl.DateTimeFormatOptions = {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+        };
+
+        const localDate = date.toLocaleDateString(undefined, dateOptions);
+        const localTime = date.toLocaleTimeString(undefined, timeOptions);
+
+        return `${localDate} ${localTime}`;
+    } catch {
+        return utcTimestamp; // Return original if any error occurs
+    }
+};
+
 export default class LogList extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
@@ -182,7 +233,7 @@ export default class LogList extends React.PureComponent<Props, State> {
                             data-testid='timestamp'
                         >
                             <span className='group-description row-content'>
-                                {log.timestamp}
+                                {formatLogTimestamp(log.timestamp)}
                             </span>
                         </span>
                     ),
