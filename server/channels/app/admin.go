@@ -22,7 +22,7 @@ var latestVersionCache = cache.NewLRU(&cache.CacheOptions{
 	Size: 1,
 })
 
-func (s *Server) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError) {
+func (s *Server) GetLogs(rctx request.CTX, page, perPage int, pluginId string) ([]string, *model.AppError) {
 	var lines []string
 
 	license := s.License()
@@ -38,7 +38,7 @@ func (s *Server) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.
 		}
 	}
 
-	melines, err := s.GetLogsSkipSend(rctx, page, perPage, &model.LogFilter{})
+	melines, err := s.GetLogsSkipSend(rctx, page, perPage, &model.LogFilter{PluginId: pluginId})
 	if err != nil {
 		return nil, err
 	}
@@ -118,8 +118,8 @@ func (a *App) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.Lo
 	return a.Srv().QueryLogs(rctx, page, perPage, logFilter)
 }
 
-func (a *App) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError) {
-	return a.Srv().GetLogs(rctx, page, perPage)
+func (a *App) GetLogs(rctx request.CTX, page, perPage int, pluginId string) ([]string, *model.AppError) {
+	return a.Srv().GetLogs(rctx, page, perPage, pluginId)
 }
 
 func (s *Server) GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
