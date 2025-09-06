@@ -290,10 +290,6 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["EmailLoginButtonBorderColor"] = *c.EmailSettings.LoginButtonBorderColor
 	props["EmailLoginButtonTextColor"] = *c.EmailSettings.LoginButtonTextColor
 
-	props["EnableSignUpWithGitLab"] = strconv.FormatBool(*c.GitLabSettings.Enable)
-	props["GitLabButtonColor"] = *c.GitLabSettings.ButtonColor
-	props["GitLabButtonText"] = *c.GitLabSettings.ButtonText
-
 	props["TermsOfServiceLink"] = *c.SupportSettings.TermsOfServiceLink
 	props["PrivacyPolicyLink"] = *c.SupportSettings.PrivacyPolicyLink
 	props["AboutLink"] = *c.SupportSettings.AboutLink
@@ -390,6 +386,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 			// MM-48727: enable SSO options for free cloud - not in self hosted
 			*license.Features.GoogleOAuth = true
 			*license.Features.Office365OAuth = true
+			*license.Features.OpenId = true
 		}
 
 		if *license.Features.GoogleOAuth {
@@ -404,6 +401,9 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 			props["EnableSignUpWithOpenId"] = strconv.FormatBool(*c.OpenIdSettings.Enable)
 			props["OpenIdButtonColor"] = *c.OpenIdSettings.ButtonColor
 			props["OpenIdButtonText"] = *c.OpenIdSettings.ButtonText
+			props["EnableSignUpWithGitLab"] = strconv.FormatBool(*c.GitLabSettings.Enable)
+			props["GitLabButtonColor"] = *c.GitLabSettings.ButtonColor
+			props["GitLabButtonText"] = *c.GitLabSettings.ButtonText
 		}
 
 		if model.MinimumEnterpriseLicense(license) {
