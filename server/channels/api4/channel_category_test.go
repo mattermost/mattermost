@@ -98,9 +98,9 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 	t.Run("should not crash with null input", func(t *testing.T) {
 		require.NotPanics(t, func() {
 			user, client := setupUserForSubtest(t, th)
-			payload := []byte(`null`)
+			payload := `null`
 			route := fmt.Sprintf("/users/%s/teams/%s/channels/categories", user.Id, th.BasicTeam.Id)
-			r, err := client.DoAPIPostBytes(context.Background(), route, payload)
+			r, err := client.DoAPIPost(context.Background(), route, payload)
 			require.Error(t, err)
 			closeBody(r)
 		})
@@ -486,9 +486,9 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 
 			dmsCategory := categories.Categories[2]
 
-			payload := []byte(`null`)
+			payload := `null`
 			route := fmt.Sprintf("/users/%s/teams/%s/channels/categories/%s", user.Id, th.BasicTeam.Id, dmsCategory.Id)
-			r, err := client.DoAPIPutBytes(context.Background(), route, payload)
+			r, err := client.DoAPIPut(context.Background(), route, payload)
 			require.Error(t, err)
 			closeBody(r)
 		})
@@ -988,9 +988,9 @@ func TestUpdateCategoryOrderForTeamForUser(t *testing.T) {
 	t.Run("should not crash with null input", func(t *testing.T) {
 		require.NotPanics(t, func() {
 			user, client := setupUserForSubtest(t, th)
-			payload := []byte(`null`)
+			payload := `null`
 			route := fmt.Sprintf("/users/%s/teams/%s/channels/categories/order", user.Id, th.BasicTeam.Id)
-			r, err := client.DoAPIPutBytes(context.Background(), route, payload)
+			r, err := client.DoAPIPut(context.Background(), route, payload)
 			require.Error(t, err)
 			closeBody(r)
 		})
