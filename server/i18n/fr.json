@@ -8818,5 +8818,9 @@
   {
     "id": "api.plugin.upload.file_too_large.app_error",
     "translation": "La taille du plugin envoyé excède la limite. Cette limite peut être changée dans la console système via Stockage de fichiers > Taille maximale de fichier"
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Échec de l'ajout du certificat."
   }
 ]
