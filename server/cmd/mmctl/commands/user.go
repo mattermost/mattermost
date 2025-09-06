@@ -974,9 +974,12 @@ func userConvertCmdF(c client.Client, cmd *cobra.Command, userArgs []string) err
 
 func convertUserToBot(c client.Client, _ *cobra.Command, userArgs []string) error {
 	users, err := getUsersFromArgs(c, userArgs)
+
 	if err != nil {
 		printer.PrintError(err.Error())
+		return err
 	}
+
 	for _, user := range users {
 		bot, _, err := c.ConvertUserToBot(context.TODO(), user.Id)
 		if err != nil {
