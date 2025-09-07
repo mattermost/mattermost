@@ -3226,10 +3226,6 @@
     "translation": "Phần mềm tra cứu tổng hợp thất bại do việc tạo mục lục không thành công"
   },
   {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Đã cố đăng nhập bằng tính năng thử nghiệm ClientSideCert mà không cung cấp chứng chỉ hợp lệ"
-  },
-  {
     "id": "model.utils.decode_json.app_error",
     "translation": "không thể giải mã"
   },
@@ -4130,10 +4126,6 @@
     "translation": "Máy chủ bận, các dịch vụ không quan trọng tạm thời không khả dụng"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Định dạng mới cho cấu hình máy khách chưa được hỗ trợ. Vui lòng xác định format=old trong chuỗi truy vấn."
-  },
-  {
     "id": "model.outgoing_hook.is_valid.token.app_error",
     "translation": "Token không hợp lệ."
   },
@@ -4952,10 +4944,6 @@
   {
     "id": "ent.elasticsearch.generic.disabled",
     "translation": "Tìm kiếm Elaticsearch không được kích hoạt trên máy chủ này"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Cố gắng sử dụng tính năng thử nghiệm ClientSideCertEnable mà không có giấy phép doanh nghiệp hợp lệ"
   },
   {
     "id": "api.command_leave.fail.app_error",
@@ -8186,10 +8174,6 @@
     "translation": "Ảnh hồ sơ phải được đặt thông qua nhà cung cấp thông tin đăng nhập của người dùng."
   },
   {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Không thể truy xuất bài đăng cho kênh đã lưu trữ"
-  },
-  {
     "id": "app.acknowledgement.delete.app_error",
     "translation": "Không thể xóa xác nhận."
   },
@@ -8212,10 +8196,6 @@
   {
     "id": "api.user.create_user.bad_token_email_data.app_error",
     "translation": "Địa chỉ email trong mã thông báo không khớp với địa chỉ trong dữ liệu người dùng."
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Không thể truy xuất người dùng cho kênh đã lưu trữ"
   },
   {
     "id": "api.user.delete_user.not_enabled.app_error",

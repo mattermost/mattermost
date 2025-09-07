@@ -911,7 +911,7 @@ func TestGetUsersNotInAbacChannel(t *testing.T) {
 		ID:       abacChannel.Id,
 		Name:     "Test Channel Policy",
 		Revision: 1,
-		Version:  model.AccessControlPolicyVersionV0_1,
+		Version:  model.AccessControlPolicyVersionV0_2,
 		Rules: []model.AccessControlPolicyRule{
 			{
 				Actions:    []string{"view", "join_channel"},

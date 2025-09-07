@@ -3479,10 +3479,6 @@
     "translation": "दिए गए कॉन्फ़िगरेशन को मर्ज करने में विफल।"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "क्लाइंट कॉन्फ़िगरेशन के लिए नया स्वरूप अभी समर्थित नहीं है। कृपया क्वेरी स्ट्रिंग में प्रारूप = पुराना निर्दिष्ट करें।"
-  },
-  {
     "id": "api.command_shrug.hint",
     "translation": "[मैसेज]"
   },
@@ -5413,14 +5409,6 @@
     "translation": "पहचान प्रदाता से प्राप्त प्रतिक्रिया को नहीं पढ़ सका।"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "किसी संग्रहीत चैनल के लिए उपयोगकर्ताओं को पुनर्प्राप्त नहीं किया जा सकता"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "किसी संग्रहीत चैनल के लिए पोस्ट पुनर्प्राप्त नहीं कर सकता"
-  },
-  {
     "id": "api.user.upload_profile_user.array.app_error",
     "translation": "अनुरोध में 'छवि' के तहत खाली सरणी।"
   },
@@ -5451,14 +5439,6 @@
   {
     "id": "api.user.login.guest_accounts.disabled.error",
     "translation": "अतिथि खाते अक्षम हैं"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "एक वैध एंटरप्राइज़ लाइसेंस के बिना प्रायोगिक सुविधा ClientSideCertEnable का उपयोग करने का प्रयास करें।"
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "एक मान्य प्रमाणपत्र प्रदान किए बिना प्रयोगात्मक सुविधा ClientSideCert का उपयोग करके साइन इन करने का प्रयास किया गया।"
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
