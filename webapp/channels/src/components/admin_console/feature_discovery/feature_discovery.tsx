@@ -11,7 +11,6 @@ import type {ClientLicense} from '@mattermost/types/config';
 
 import {EmbargoedEntityTrialError} from 'components/admin_console/license_settings/trial_banner/trial_banner';
 import AlertBanner from 'components/alert_banner';
-import PurchaseLink from 'components/announcement_bar/purchase_link/purchase_link';
 import ExternalLink from 'components/external_link';
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
