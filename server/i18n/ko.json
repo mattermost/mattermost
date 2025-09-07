@@ -7794,5 +7794,13 @@
   {
     "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
     "translation": "당신은 개인 메시지나 그룹 메시지의 name, display_name 또는 purpose 속성을 변경할 수 없습니다."
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "채널 배너는 공개 채널이나 비공개 채널에서만 설정할 수 있습니다."
+  },
+  {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "정책이 적용된 채널들은 업데이트할 수 없습니다."
   }
 ]
