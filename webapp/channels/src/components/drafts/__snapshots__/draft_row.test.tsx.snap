@@ -4,6 +4,9 @@ exports[`components/drafts/drafts_row should match snapshot for channel draft 1`
 <ContextProvider
   value={
     Object {
+      "getServerState": undefined,
+      "identityFunctionCheck": "once",
+      "stabilityCheck": "once",
       "store": Object {
         "clearActions": [Function],
         "dispatch": [Function],
@@ -12,22 +15,14 @@ exports[`components/drafts/drafts_row should match snapshot for channel draft 1`
         "replaceReducer": [Function],
         "subscribe": [Function],
       },
-      "subscription": Subscription {
+      "subscription": Object {
+        "addNestedSub": [Function],
+        "getListeners": [Function],
         "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
+        "isSubscribed": [Function],
+        "notifyNestedSubs": [Function],
+        "trySubscribe": [Function],
+        "tryUnsubscribe": [Function],
       },
     }
   }
@@ -46,6 +41,9 @@ exports[`components/drafts/drafts_row should match snapshot for thread draft 1`]
 <ContextProvider
   value={
     Object {
+      "getServerState": undefined,
+      "identityFunctionCheck": "once",
+      "stabilityCheck": "once",
       "store": Object {
         "clearActions": [Function],
         "dispatch": [Function],
@@ -54,22 +52,14 @@ exports[`components/drafts/drafts_row should match snapshot for thread draft 1`]
         "replaceReducer": [Function],
         "subscribe": [Function],
       },
-      "subscription": Subscription {
+      "subscription": Object {
+        "addNestedSub": [Function],
+        "getListeners": [Function],
         "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
+        "isSubscribed": [Function],
+        "notifyNestedSubs": [Function],
+        "trySubscribe": [Function],
+        "tryUnsubscribe": [Function],
       },
     }
   }
