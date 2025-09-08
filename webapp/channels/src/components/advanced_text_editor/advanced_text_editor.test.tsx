@@ -328,7 +328,6 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             />,
         );
 
-
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
     });
 
@@ -360,7 +359,6 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 channelId={otherChannelId}
             />,
         );
-
 
         expect(mockedUpdateDraft).toHaveBeenCalled();
         expect(mockedUpdateDraft.mock.calls[0][1]).toMatchObject({
@@ -399,7 +397,6 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             />,
         );
 
-
         expect(mockedRemoveDraft).toHaveBeenCalled();
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
     });
@@ -421,7 +418,6 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 channelId={otherChannelId}
             />,
         );
-
 
         expect(mockedRemoveDraft).not.toHaveBeenCalled();
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
