@@ -29,6 +29,7 @@ interface TableEditorProps {
     userAttributes: UserPropertyField[];
     enableUserManagedAttributes: boolean;
     onParseError: (error: string) => void;
+    channelId?: string; // Optional channelId for channel-specific context
     actions: {
         getVisualAST: (expr: string) => Promise<ActionResult>;
     };
@@ -105,6 +106,7 @@ function TableEditor({
     userAttributes,
     enableUserManagedAttributes,
     onParseError,
+    channelId,
     actions,
 }: TableEditorProps): JSX.Element {
     const {formatMessage} = useIntl();
@@ -422,7 +424,8 @@ function TableEditor({
                     actions={{
                         openModal: () => {},
                         searchUsers: (term: string, after: string, limit: number) => {
-                            return searchUsersForExpression(value, term, after, limit);
+                            // Return the action for the modal to dispatch
+                            return searchUsersForExpression(value, term, after, limit, channelId);
                         },
                     }}
                 />

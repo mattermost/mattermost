@@ -15,8 +15,8 @@ import (
 // getChannelIDFromJobData extracts channel ID from access control sync job data.
 // Returns channel ID if the job is for a specific channel, empty string if it's a system-wide job.
 func (a *App) getChannelIDFromJobData(jobData model.StringMap) string {
-	parentID, ok := jobData["parent_id"]
-	if !ok || parentID == "" {
+	policyID, ok := jobData["policy_id"]
+	if !ok || policyID == "" {
 		return ""
 	}
 
@@ -24,14 +24,14 @@ func (a *App) getChannelIDFromJobData(jobData model.StringMap) string {
 	// - Channel policies have ID == channelID
 	// - Parent policies have their own system-wide ID
 	//
-	// For channel admin jobs: parent_id is channelID (since channel policy ID equals channel ID)
-	// For system admin jobs: parent_id could be either channel policy ID or parent policy ID
+	// For channel admin jobs: policy_id is channelID (since channel policy ID equals channel ID)
+	// For system admin jobs: policy_id could be either channel policy ID or parent policy ID
 	//
-	// We return the parent_id as channelID because:
+	// We return the policy_id as channelID because:
 	// 1. If it's a channel policy ID, it equals the channel ID ✅
 	// 2. If it's a parent policy ID, the permission check will fail safely ✅
 	// 3. This maintains security: only users with permission to that specific ID can create the job
-	return parentID
+	return policyID
 }
 
 func (a *App) GetJob(c request.CTX, id string) (*model.Job, *model.AppError) {
