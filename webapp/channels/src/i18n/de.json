@@ -5890,7 +5890,6 @@
   "user.settings.advance.onForAllMessages": "Ein für alle Nachrichten",
   "user.settings.advance.onForCode": "Ein nur für Codeblöcke, die mit ``` beginnen",
   "user.settings.advance.performance.disableClientPlugins": "Deaktiviere clientseitige Plugins",
-  "user.settings.advance.performance.disableTelemetry": "Deaktiviere das Senden von Telemetrie-Events für diesen Client",
   "user.settings.advance.performance.disableTypingMessages": "Deaktiviere \"Benutzer tippt...\" Nachrichten",
   "user.settings.advance.performance.info1": "Du kannst diese Einstellungen temporär aktivieren um zu helfen Performanceprobleme während des Debuggings einzukreisen. Wir raten davon ab, diese Einstellungen über einen längeren Zeitraum aktiviert zu lassen, da sie das Benutzererlebnis negativ beeinflussen.",
   "user.settings.advance.performance.info2": "Du musst die Seite ggf. neu laden, bevor die Einstellungen aktiv sind.",

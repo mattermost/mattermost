@@ -5831,7 +5831,6 @@
   "user.settings.advance.onForAllMessages": "全てのメッセージについて",
   "user.settings.advance.onForCode": "```で始まるコードブロックについて",
   "user.settings.advance.performance.disableClientPlugins": "クライアント側のプラグインを無効にする",
-  "user.settings.advance.performance.disableTelemetry": "クライアントから送信されるテレメトリーイベントを無効にする",
   "user.settings.advance.performance.disableTypingMessages": "\"ユーザーが入力しています...\"メッセージを無効化する",
   "user.settings.advance.performance.info1": "これらの設定は、デバッグ中にパフォーマンスの問題を切り分けるために、一時的に有効にすることができます。これらの設定は、Mattermost上での体験に悪影響を及ぼす可能性があるため、長期間有効にしておくことはお勧めしません。",
   "user.settings.advance.performance.info2": "これらの設定を有効にする前に、ページを更新する必要がある場合があります。",

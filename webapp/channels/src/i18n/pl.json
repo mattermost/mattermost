@@ -5890,7 +5890,6 @@
   "user.settings.advance.onForAllMessages": "Włącz dla wszystkich wiadomości",
   "user.settings.advance.onForCode": "Tylko dla bloków kodu zaczynających się ```",
   "user.settings.advance.performance.disableClientPlugins": "Wyłącz wtyczki po stronie klienta",
-  "user.settings.advance.performance.disableTelemetry": "Wyłączanie zdarzeń telemetrycznych wysyłanych z klienta",
   "user.settings.advance.performance.disableTypingMessages": "Wyłączenie komunikatów \"Użytkownik pisze...\"",
   "user.settings.advance.performance.info1": "Ustawienia te można włączyć tymczasowo, aby ułatwić wyodrębnienie problemów z wydajnością podczas usuwania błędów. Nie zalecamy pozostawiania tych ustawień włączonych przez dłuższy czas, ponieważ mogą one negatywnie wpłynąć na komfort użytkowania.",
   "user.settings.advance.performance.info2": "Może być konieczne odświeżenie strony, zanim te ustawienia zaczną obowiązywać.",

@@ -4546,7 +4546,6 @@
   "user.settings.advance.onForAllMessages": "Activé pour tous les messages",
   "user.settings.advance.onForCode": "Activé pour les blocs de code commençant par ```",
   "user.settings.advance.performance.disableClientPlugins": "Désactiver les plugins côté client",
-  "user.settings.advance.performance.disableTelemetry": "Désactiver les événements de télémétrie envoyés par le client",
   "user.settings.advance.performance.disableTypingMessages": "Désactiver les messages « Untel est en train d'écrire... »",
   "user.settings.advance.performance.info1": "Vous pouvez activer ces paramètres temporairement pour aider à isoler des problèmes de performances pendant le débogage. Nous ne recommendons pas de les laisser activés pour une longue période, car ils peuvent impacter négativement votre expérience utilisateur.",
   "user.settings.advance.performance.info2": "Vous pouvez avoir besoin de rafraîchir la page avant que ces changements prennent effet.",
