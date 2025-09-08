@@ -5890,7 +5890,6 @@
   "user.settings.advance.onForAllMessages": "对所有消息开启",
   "user.settings.advance.onForCode": "只对以 ``` 开头的代码块开启",
   "user.settings.advance.performance.disableClientPlugins": "禁用客户端插件",
-  "user.settings.advance.performance.disableTelemetry": "禁用从客户端发送的遥测事件",
   "user.settings.advance.performance.disableTypingMessages": "禁用“用户正在输入…”消息",
   "user.settings.advance.performance.info1": "您可以在调试期间临时启用这些设置，以帮助隔离性能问题。我们不建议长时间启用这些设置，因为它们可能对您的用户体验产生负面影响。",
   "user.settings.advance.performance.info2": "在这些设置生效之前，您可能需要刷新页面。",
