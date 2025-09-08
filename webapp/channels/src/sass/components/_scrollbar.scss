@@ -22,28 +22,6 @@ body {
         scrollbar-shadow-color: #2d2c4d;
         scrollbar-track-color: rgba(var(--center-channel-bg-rgb), 0.1);
     }
-
-    .ps {
-        > .ps__scrollbar-y-rail {
-            > .ps__scrollbar-y {
-                width: 6px !important;
-            }
-        }
-
-        &:hover {
-            > .ps__scrollbar-y-rail {
-                &:hover {
-                    background: transparent;
-                }
-            }
-        }
-    }
-}
-
-.scrollbar--horizontal,
-.scrollbar--vertical {
-    border-radius: 2px;
-    background-color: rgba(var(--sidebar-text-rgb), 0.32);
 }
 
 .scrollbar--vertical--RHS {
@@ -56,16 +34,4 @@ body {
 
 .scrollbar--thumb--RHS {
     background-color: rgba(var(--center-channel-color-rgb), 0.32);
-}
-
-.scrollbar--view {
-    .browser--ie & {
-        margin: 0 !important;
-        -ms-overflow-style: none;
-        overflow-x: hidden !important;
-
-        .scrollbar--vertical {
-            visibility: hidden;
-        }
-    }
 }

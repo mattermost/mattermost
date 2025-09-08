@@ -423,7 +423,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         }
 
         const input = (
-            <div className='filter-row filter-row--full'>
+            <div className='filter-row'>
                 <span
                     id='searchIcon'
                     aria-hidden='true'

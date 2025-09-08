@@ -48,7 +48,6 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
       <MenuItemExternalLink
         iconClassName="icon-help"
         id="askTheCommunityLink"
-        onClick={[Function]}
         show={true}
         text="Ask the community"
         url="https://mattermost.com/pl/default-ask-mattermost-community/"
@@ -184,7 +183,6 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
       <MenuItemExternalLink
         iconClassName="icon-help"
         id="askTheCommunityLink"
-        onClick={[Function]}
         show={true}
         text="Ask the community"
         url="https://mattermost.com/pl/default-ask-mattermost-community/"

@@ -150,7 +150,7 @@ test(
 Change to the `./` project directory, then run the docker container. (See https://playwright.dev/docs/docker for reference.)
 
 ```bash
-docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.54.0-noble /bin/bash
+docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.55.0-noble /bin/bash
 ```
 
 #### 2. Inside the docker container

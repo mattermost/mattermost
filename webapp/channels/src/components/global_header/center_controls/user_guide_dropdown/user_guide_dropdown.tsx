@@ -5,8 +5,6 @@ import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import IconButton from 'components/global_header/header_icon_button';
 import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
 import Menu from 'components/widgets/menu/menu';
@@ -53,10 +51,6 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
         });
     };
 
-    askTheCommunityClick = () => {
-        trackEvent('ui', 'help_ask_the_community');
-    };
-
     renderDropdownItems = (): React.ReactNode => {
         const {
             intl,
@@ -97,7 +91,6 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                         iconClassName='icon-help'
                         url={askTheCommunityUrl}
                         text={intl.formatMessage({id: 'userGuideHelp.askTheCommunity', defaultMessage: 'Ask the community'})}
-                        onClick={this.askTheCommunityClick}
                     />
                 )}
                 {this.props.reportAProblemLink && (

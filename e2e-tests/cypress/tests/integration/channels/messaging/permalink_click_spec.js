@@ -11,7 +11,6 @@
 // Group: @channels @messaging
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {getAdminAccount} from '../../../support/env';
 
 describe('Permalink message edit', () => {

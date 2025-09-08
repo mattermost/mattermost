@@ -13,6 +13,7 @@
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
+
 import * as MESSAGES from '../../../fixtures/messages';
 import {waitUntilUploadComplete, interceptFileUpload} from '../files_and_attachments/helpers';
 

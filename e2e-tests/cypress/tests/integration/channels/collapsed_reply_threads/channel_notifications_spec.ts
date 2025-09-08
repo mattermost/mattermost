@@ -11,6 +11,7 @@
 
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
+
 import {PostMessageResp} from '../../../support/task_commands';
 import {spyNotificationAs} from '../../../support/notification';
 
