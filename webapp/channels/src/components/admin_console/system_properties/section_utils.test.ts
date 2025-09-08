@@ -106,13 +106,12 @@ describe('useOperation', () => {
 
         await act(async () => {
             await actionPromise;
-
-            const [, status3] = result.current;
-
-            expect(status3.loading).toBe(false);
-            expect(await actionPromise).toBe('test response value');
-            expect(status3.error).toBe(undefined);
         });
+
+        const [, status3] = result.current;
+        expect(status3.loading).toBe(false);
+        expect(status3.error).toBe(undefined);
+        expect(await actionPromise!).toBe('test response value');
     });
 
     it('should run operation on command with error and loading phases: false -> true -> false', async () => {
