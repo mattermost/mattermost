@@ -2222,6 +2222,7 @@
   "discard_changes_modal.leave": "네, 취소합니다.",
   "discard_changes_modal.message": "저장되지 않은 변경사항이 있습니다, 저장하지 않고 취소하겠습니까?",
   "discard_changes_modal.title": "변경을 취소하시겠습니까?",
+  "drafts.empty.title": "현재 작성 중인 임시 글이 없습니다",
   "edit_channel_header_modal.cancel": "취소",
   "edit_channel_header_modal.description": "상단 채널 이름 옆에 표시될 글자를 편집하세요.",
   "edit_channel_header_modal.error": "입력된 내용은 글자 제한이 초과하였습니다. 채널 헤더는 {maxLength} 글자까지 제한됩니다.",
