@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 
 import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
 
@@ -53,10 +53,8 @@ function preRenderSetup(onPreRenderSetupReady: () => void) {
 }
 
 function renderReactRootComponent() {
-    ReactDOM.render((
-        <App/>
-    ),
-    document.getElementById('root'));
+    const root = ReactDOM.createRoot(document.getElementById('root')!);
+    root.render(<App/>);
 }
 
 /**
