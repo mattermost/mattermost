@@ -14,17 +14,21 @@
         margin: 0;
     }
 
-    .clLiveComponentWrapper {
+    .clLiveComponentWrapper,
+    .clComponentVariants {
         background: var(--center-channel-bg);
         color: var(--center-channel-color);
-        padding: 32px;
         border-radius: var(--radius-m);
         margin-bottom: 24px;
+        box-shadow: var(--elevation-1);
+    }
 
+    .clLiveComponentWrapper {      
         .clInteractiveSection {
             display: flex;
             flex-direction: row;
             gap: 32px;
+            padding: 32px;
     
             .clControlsPanel {
                 flex: 0 0 300px;
@@ -63,7 +67,7 @@
                 background: var(--center-channel-bg);
                 border-radius: 4px;
                 border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-                box-shadow: var(--elevation-2);
+                box-shadow: var(--elevation-4);
 
                 &.clSidebarBackground {
                     background: var(--sidebar-bg);
@@ -190,6 +194,18 @@
             label {
                 width: auto;
             }
+
+            .DropdownInput.Input_container {
+                margin-top: 0;
+            }
+
+            .component-selector-dropdown .Input_wrapper {
+                width: 180px;
+            }
+
+            .theme-selector-dropdown .Input_wrapper {
+                width: 150px;
+            }
         }
     }
     
@@ -208,10 +224,7 @@
         }
     }
     
-    .clComponentWrapper {
-        background-color: transparent;
-        font-size: 14px;
-    
+    .clComponentWrapper {    
         table {
             width: 100%;
             border-collapse: collapse;
@@ -234,7 +247,9 @@
             }
         }
 
-        .clControlsPanel, .clComponentVariants {
+        .clControlsPanel, 
+        .clSection-header,
+        .clVariantsHeader {
             h2 {
                 font-size: 25px;
                 line-height: 30px;
@@ -272,7 +287,6 @@
             display: flex;
             flex-direction: column;
             flex-wrap: wrap;
-            padding: 32px;
             border-radius: var(--radius-m);
             overflow: hidden;
 
@@ -285,6 +299,9 @@
                 cursor: pointer;
                 border-radius: var(--radius-s);
                 transition: background-color 0.15s ease;
+                padding: 12px 12px 12px 32px;
+                width: 100%;
+                border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
                 
                 &:hover {
                     background-color: var(--center-channel-color-4);
@@ -293,15 +310,19 @@
                 h2 {
                     margin: 0;
                     flex: 1;
+                    font-size: 14px;
+                    line-height: 20px;
+                    font-weight: 600;
+                    font-family: 'Open Sans', sans-serif;
                 }
 
                 .icon {
-                    font-size: 24px;
+                    font-size: 18px;
                     color: var(--center-channel-color-64);
                     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                     position: absolute;
-                    left: -8px;
-                    top: 2px;
+                    left:12px;
+                    top: 12px;
 
                     &.clVariantsHeader--expanded {
                         transform: rotate(90deg);
@@ -315,17 +336,20 @@
                 display: flex;
                 flex-direction: column;
                 gap: 48px;
+                padding: 32px;
+                width: 100%;
                 
                 &--collapsed {
                     max-height: 0;
                     opacity: 0;
                     transform: translateY(-8px);
+                    padding: 0 32px;
                 }
                 
                 &--expanded {
-                    margin-top: 24px;
                     opacity: 1;
                     transform: translateY(0);
+                    padding: 32px;
                 }
 
                 .clSection {

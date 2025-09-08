@@ -6,12 +6,12 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Preferences} from 'mattermost-redux/constants';
 
 import {applyTheme} from 'utils/utils';
+import DropdownInput from 'components/dropdown_input';
 
 import ButtonComponentLibrary from './button.cl';
 import SectionNoticeComponentLibrary from './section_notice.cl';
 
 import './component_library.scss';
-import { ChevronDownIcon } from '@mattermost/compass-icons/components';
 
 const componentMap = {
     'Button': ButtonComponentLibrary,
@@ -29,6 +29,9 @@ const STORAGE_KEYS = {
     SELECTED_COMPONENT: 'componentLibrary_selectedComponent',
     SELECTED_THEME: 'componentLibrary_selectedTheme',
 } as const;
+
+// Helper function to format theme names consistently
+const formatThemeLabel = (theme: string) => theme.charAt(0).toUpperCase() + theme.slice(1);
 
 // Safe localStorage utilities
 const getStoredValue = <T,>(key: string, defaultValue: T): T => {
@@ -53,8 +56,8 @@ const ComponentLibrary = () => {
     const [selectedComponent, setSelectedComponent] = useState<ComponentName>(() => 
         getStoredValue(STORAGE_KEYS.SELECTED_COMPONENT, defaultComponent)
     );
-    const onSelectComponent = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-        const newValue = e.target.value as ComponentName;
+    const onSelectComponent = useCallback((option: any) => {
+        const newValue = option.value as ComponentName;
         setSelectedComponent(newValue);
         setStoredValue(STORAGE_KEYS.SELECTED_COMPONENT, newValue);
     }, []);
@@ -62,8 +65,8 @@ const ComponentLibrary = () => {
     const [selectedTheme, setSelectedTheme] = useState<ThemeName>(() => 
         getStoredValue(STORAGE_KEYS.SELECTED_THEME, defaultTheme)
     );
-    const onSelectTheme = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-        const newValue = e.target.value as ThemeName;
+    const onSelectTheme = useCallback((option: any) => {
+        const newValue = option.value as ThemeName;
         setSelectedTheme(newValue);
         setStoredValue(STORAGE_KEYS.SELECTED_THEME, newValue);
     }, []);
@@ -73,25 +76,17 @@ const ComponentLibrary = () => {
     }, [selectedTheme]);
 
     const componentOptions = useMemo(() => {
-        return Object.keys(componentMap).map((v) => (
-            <option
-                key={v}
-                value={v}
-            >
-                {v}
-            </option>
-        ));
+        return Object.keys(componentMap).map((v) => ({
+            label: v,
+            value: v,
+        }));
     }, []);
 
     const themeOptions = useMemo(() => {
-        return Object.keys(Preferences.THEMES).map((v) => (
-            <option
-                key={v}
-                value={v}
-            >
-                {v}
-            </option>
-        ));
+        return Object.keys(Preferences.THEMES).map((v) => ({
+            label: formatThemeLabel(v),
+            value: v,
+        }));
     }, []);
 
     const SelectedComponent = componentMap[selectedComponent];
@@ -99,42 +94,24 @@ const ComponentLibrary = () => {
         <div className={'clWrapper'}>
             <div className={'clTopInputs'}>
                 <div className={'clInputWrapper'}>
-                    <label 
-                        className={'clInputLabel'}
-                        htmlFor={'clComponentSelector'}
-                    >
-                        {'Component: '}
-                    </label>
-                    <select
+                    <DropdownInput
+                        className='component-selector-dropdown'
+                        name='component'
+                        placeholder='Component'
+                        value={componentOptions.find(option => option.value === selectedComponent)}
+                        options={componentOptions}
                         onChange={onSelectComponent}
-                        value={selectedComponent}
-                        id={'clComponentSelector'}
-                    >
-                        <button>
-                            {selectedComponent}
-                            <span className="picker-icon"><ChevronDownIcon /></span>
-                        </button>
-                        {componentOptions}
-                    </select>
+                    />
                 </div>
                 <div className={'clInputWrapper'}>
-                    <label 
-                        className={'clInputLabel'}
-                        htmlFor={'clThemeSelector'}
-                    >
-                        {'Theme: '}
-                    </label>
-                    <select
+                    <DropdownInput
+                        className='theme-selector-dropdown'
+                        name='theme'
+                        placeholder='Theme'
+                        value={themeOptions.find(option => option.value === selectedTheme)}
+                        options={themeOptions}
                         onChange={onSelectTheme}
-                        value={selectedTheme}
-                        id={'clThemeSelector'}
-                    >
-                        <button>
-                            {selectedTheme}
-                            <span className="picker-icon"><ChevronDownIcon /></span>
-                        </button>
-                        {themeOptions}
-                    </select>
+                    />
                 </div>
             </div>
             <div className={'clComponentWrapper'}>
