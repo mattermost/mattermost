@@ -19,7 +19,7 @@ jobs:
 
       - name: Setup and install PostgreSQL
         run: | 
-          apt install postgresql
+          sudo apt install postgresql
           locale-gen en_US.UTF-8
           sudo -u postgres psql
           CREATE DATABASE mattermost WITH ENCODING 'UTF8' LC_COLLATE='en_US.UTF-8' LC_CTYPE='en_US.UTF-8' TEMPLATE=template0;
