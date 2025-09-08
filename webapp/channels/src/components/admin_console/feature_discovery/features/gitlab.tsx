@@ -21,7 +21,7 @@ const GitLabFeatureDiscovery: React.FC = () => {
             })}
             copy={defineMessage({
                 id: 'admin.gitlab_feature_discovery.copy',
-                defaultMessage: 'When you connect GitLab as your single sign-on provider, your team can access Mattermost without having to re-enter their GitLab credentials. Available only on Mattermost Professional.',
+                defaultMessage: 'When you connect GitLab as your single sign-on provider, your team can access Mattermost without having to re-enter their GitLab credentials. Available only on Mattermost Professional and above.',
             })}
             learnMoreURL='https://docs.mattermost.com/administration-guide/onboard/sso-gitlab.html'
             featureDiscoveryImage={

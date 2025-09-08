@@ -1183,7 +1183,7 @@
   "admin.general.localization.serverLocaleDescription": "Default language for system messages.",
   "admin.general.localization.serverLocaleTitle": "Default Server Language:",
   "admin.general.log": "Logging",
-  "admin.gitlab_feature_discovery.copy": "When you connect GitLab as your single sign-on provider, your team can access Mattermost without having to re-enter their GitLab credentials. Available only on Mattermost Professional.",
+  "admin.gitlab_feature_discovery.copy": "When you connect GitLab as your single sign-on provider, your team can access Mattermost without having to re-enter their GitLab credentials. Available only on Mattermost Professional and above.",
   "admin.gitlab_feature_discovery.title": "Integrate GitLab SSO with OpenID Connect in Mattermost Professional",
   "admin.gitlab.authTitle": "Auth Endpoint:",
   "admin.gitlab.clientIdDescription": "Obtain this value via the instructions above for logging into GitLab.",
