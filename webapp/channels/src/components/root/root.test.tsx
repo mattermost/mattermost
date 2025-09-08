@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {act} from 'react';
 import type {RouteComponentProps} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
 
@@ -193,7 +193,7 @@ describe('components/Root', () => {
         });
     });
 
-    test('should call history on props change', () => {
+    test('should call history on props change', async () => {
         const props = {
             ...baseProps,
             noAccounts: false,
@@ -213,10 +213,12 @@ describe('components/Root', () => {
 
         rerender(<Root {...props2}/>);
 
-        expect(props.history.push).toHaveBeenLastCalledWith('/signup_user_complete');
+        await waitFor(() => {
+            expect(props.history.push).toHaveBeenLastCalledWith('/signup_user_complete');
+        });
     });
 
-    test('should reload on focus after getting signal login event from another tab', () => {
+    test('should reload on focus after getting signal login event from another tab', async () => {
         renderWithContext(<Root {...baseProps}/>);
 
         const loginSignal = new StorageEvent('storage', {
@@ -228,7 +230,9 @@ describe('components/Root', () => {
         window.dispatchEvent(loginSignal);
         window.dispatchEvent(new Event('focus'));
 
-        expect(window.location.reload).toBeCalledTimes(1);
+        await waitFor(() => {
+            expect(window.location.reload).toBeCalledTimes(1);
+        });
     });
 
     describe('showLandingPageIfNecessary', () => {
@@ -325,6 +329,7 @@ describe('components/Root', () => {
 
             rerender(<Root {...props2}/>);
 
+            await act(() => {});
             expect(Utils.applyTheme).not.toHaveBeenCalled();
         });
     });
