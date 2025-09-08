@@ -3,6 +3,8 @@
 
 /* eslint-disable no-console */
 
+import * as util from 'node:util';
+
 import Adapter from '@cfaester/enzyme-adapter-react-18';
 import {configure} from 'enzyme';
 import nock from 'nock';
@@ -73,35 +75,90 @@ function isDependencyWarning(params: string[]) {
     );
 }
 
-let warns: string[][];
-let errors: string[][];
-beforeAll(() => {
-    const originalWarn = console.warn;
-    console.warn = jest.fn((...params) => {
-        // Ignore any deprecation warnings coming from dependencies
-        if (isDependencyWarning(params)) {
-            return;
-        }
-
-        originalWarn(...params);
-        warns.push(params);
-    });
-
-    const originalError = console.error;
-    console.error = jest.fn((...params) => {
-        originalError(...params);
-        errors.push(params);
-    });
-});
-
+let warnSpy: jest.SpyInstance<void, Parameters<typeof console.warn>>;
+let errorSpy: jest.SpyInstance<void, Parameters<typeof console.error>>;
 beforeEach(() => {
-    warns = [];
-    errors = [];
+    warnSpy = jest.spyOn(console, 'warn');
+    errorSpy = jest.spyOn(console, 'error');
 });
 
 afterEach(() => {
+    const warns = [];
+    const errors = [];
+
+    for (const call of warnSpy.mock.calls) {
+        if (isDependencyWarning(call)) {
+            continue;
+        }
+
+        if (
+            typeof call[0] === 'string' && (
+                call[0].includes('returned a different')
+            )
+        ) {
+            // This warning is about a bad selector or mapStateToProps that returns new results every time it's called.
+            //
+            // TODO Fix these if possible
+            continue;
+        }
+
+        warns.push(call);
+    }
+
+    for (const call of errorSpy.mock.calls) {
+        if (
+            typeof call[0] === 'string' && (
+                call[0].includes('uses the legacy childContextTypes API') ||
+                call[0].includes('findDOMNode is deprecated') ||
+                call[0].includes('uses the legacy contextTypes API') ||
+                call[0].includes('Support for defaultProps will be removed from function components') ||
+                call[0].includes('Support for defaultProps will be removed from memo components')
+            )
+        ) {
+            // These are warnings for deprecated APIs that will be removed in React 19. Most of them are in
+            // React Bootstrap or other dependencies.
+            continue;
+        }
+
+        if (
+            typeof call[0] === 'string' && (
+                call[0].includes('inside a test was not wrapped in act') ||
+                call[0].includes('A suspended resource finished loading inside a test, but the event was not wrapped in act')
+            )
+        ) {
+            // These warnings indicate that we're not using React Testing Library properly because we're not waiting
+            // for some async action to complete. Sometimes, these are side effects during the test which are missed
+            // which could lead our tests to be invalid, but more often than not, this warning is printed because of
+            // unhandled side effects from something that wasn't being tested (such as some data being loaded that we
+            // didn't care about in that test case).
+            //
+            // Ideally, we wouldn't ignore these, but so many of our existing tests are set up in a way that we can't
+            // fix this everywhere at the moment.
+            continue;
+        }
+
+        errors.push(call);
+    }
+
     if (warns.length > 0 || errors.length > 0) {
-        const message = 'Unexpected console logs' + warns + errors;
+        function formatCall(call: string[]) {
+            const args = [...call];
+            const format = args.shift();
+
+            let message = util.format(format, ...args);
+            message = message.split('\n')[0];
+
+            return message;
+        }
+
+        let message = 'Unexpected console errors:';
+        for (const call of warns) {
+            message += `\n\t- (warning) ${formatCall(call)}`;
+        }
+        for (const call of errors) {
+            message += `\n\t- (error) ${formatCall(call)}`;
+        }
+
         throw new Error(message);
     }
 });

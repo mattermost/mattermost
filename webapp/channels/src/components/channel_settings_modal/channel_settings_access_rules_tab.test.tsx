@@ -170,9 +170,9 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             },
         });
 
-        // Suppress console methods for tests
-        jest.spyOn(console, 'error').mockImplementation(() => {});
-        jest.spyOn(console, 'warn').mockImplementation(() => {});
+        // Console methods are suppressed in these tests. They'll be restored by setup_jest.ts after the test.
+        console.error = jest.fn();
+        console.warn = jest.fn();
         jest.spyOn(console, 'log').mockImplementation(() => {});
         jest.spyOn(window, 'alert').mockImplementation(() => {});
     });
@@ -272,13 +272,15 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         expect(screen.getByText('Select user attributes and values as rules to restrict channel membership')).toBeInTheDocument();
     });
 
-    test('should call useChannelAccessControlActions hook', () => {
+    test('should call useChannelAccessControlActions hook', async () => {
         renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
             initialState,
         );
 
-        expect(mockUseChannelAccessControlActions).toHaveBeenCalledTimes(2); // Once for the hook call and once for the mock return
+        await waitFor(() => {
+            expect(mockUseChannelAccessControlActions).toHaveBeenCalledTimes(2); // Once for the hook call and once for the mock return
+        });
     });
 
     test('should load user attributes on mount', async () => {

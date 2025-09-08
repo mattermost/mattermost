@@ -22,10 +22,10 @@ function renderFallbackWithRetry({clearError}: FallbackProps) {
 
 describe('withErrorBoundary', () => {
     const origError = console.error;
-    beforeAll(() => {
+    beforeEach(() => {
         console.error = jest.fn();
     });
-    afterAll(() => {
+    afterEach(() => {
         console.error = origError;
     });
 
