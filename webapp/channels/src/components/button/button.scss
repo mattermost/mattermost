@@ -293,11 +293,11 @@
     color: var(--button-bg);
     
     &:hover:not(:disabled) {
-        background-color: rgba(var(--button-color-rgb), 0.88);
+        background-color: color-mix(in srgb, var(--button-color) 92%, var(--button-bg) 8%);
     }
     
     &:active:not(:disabled) {
-        background-color: rgba(var(--button-color-rgb), 0.75);
+        background-color: color-mix(in srgb, var(--button-color) 84%, var(--button-bg) 16%);
     }
     
 }
