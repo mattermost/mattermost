@@ -23,7 +23,7 @@ jobs:
           CI_TOKEN: ${{ secrets.CI_TOKEN }}
           SUITE_ID: ${{ vars.SUITE_ID }}
         run: |
-          testrigor test-suite run "$SUITE_ID" --token "$CI_TOKEN" --localhost --url http://159.89.95.201:8065/
+          testrigor test-suite run "$SUITE_ID" --token "$CI_TOKEN"
         
 
       #- name: Setup and install PostgreSQL
