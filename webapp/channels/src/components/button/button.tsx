@@ -87,7 +87,11 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
                 {...htmlProps}
             >
                 {iconBefore && (
-                    <span className="Button__icon Button__icon--before">
+                    <span className={classNames(
+                        'Button__icon',
+                        `Button__icon--${size}`,
+                        'Button__icon--before'
+                    )}>
                         {iconBefore}
                     </span>
                 )}
@@ -100,12 +104,22 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
                 
                 {loading && (
                     <span className="Button__loading">
-                        <i className="spinner" />
+                        <i className={classNames(
+                            'Button__spinner',
+                            `Button__spinner--${size}`,
+                            {
+                                'Button__spinner--inverted': inverted,
+                            }
+                        )} />
                     </span>
                 )}
                 
                 {iconAfter && !loading && (
-                    <span className="Button__icon Button__icon--after">
+                    <span className={classNames(
+                        'Button__icon',
+                        `Button__icon--${size}`,
+                        'Button__icon--after'
+                    )}>
                         {iconAfter}
                     </span>
                 )}

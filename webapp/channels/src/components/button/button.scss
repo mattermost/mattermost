@@ -7,11 +7,10 @@
 
 // Base button styles
 .Button {
-    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px; // Default gap - will be overridden by size variants
+    gap: 6px;
     border: none;
     border-radius: var(--radius-s);
     font-family: 'Open Sans', sans-serif;
@@ -50,11 +49,6 @@
     line-height: 16px;
     gap: 4px; // Proportional gap for x-small buttons
     
-    // Icon sizing for x-small buttons
-    .Button__icon i {
-        width: 12px;
-        height: 12px;
-    }
 }
 
 .Button--sm {
@@ -63,11 +57,6 @@
     line-height: 16px;
     gap: 5px; // Proportional gap for small buttons
     
-    // Icon sizing for small buttons
-    .Button__icon i {
-        width: 14px;
-        height: 14px;
-    }
 }
 
 .Button--md {
@@ -75,13 +64,6 @@
     font-size: 14px;
     line-height: 20px;
     gap: 6px; // Proportional gap for medium buttons
-    
-    // Icon sizing for medium buttons
-    .Button__icon i {
-        width: 16px;
-        height: 16px;
-    }
-    
 }
 
 .Button--lg {
@@ -90,11 +72,6 @@
     line-height: 24px;
     gap: 8px; // Proportional gap for large buttons
     
-    // Icon sizing for large buttons
-    .Button__icon i {
-        width: 20px;
-        height: 20px;
-    }
 }
 
 // Full width variant
@@ -373,18 +350,17 @@
 // Loading spinner base styles
 .Button__loading {
     line-height: 0;
-    
-    .spinner {
-        display: inline-block;
-        border-radius: 50%;
-        background: conic-gradient(rgba(var(--center-channel-color-rgb), 0), rgba(var(--center-channel-color-rgb), 0.48));
-        animation: spin 750ms linear infinite;
-        // mask-image set per size variant below
-    }
 }
 
-// Spinner sizing and mask overrides per button size
-.Button--xs .Button__loading .spinner { 
+.Button__spinner {
+    display: inline-block;
+    border-radius: 50%;
+    background: conic-gradient(rgba(var(--center-channel-color-rgb), 0), rgba(var(--center-channel-color-rgb), 0.48));
+    animation: spin 750ms linear infinite;
+}
+
+// Spinner size modifiers
+.Button__spinner--xs { 
     width: 12px; 
     height: 12px;
     mask-image: radial-gradient(
@@ -394,7 +370,7 @@
     );
 }
 
-.Button--sm .Button__loading .spinner { 
+.Button__spinner--sm { 
     width: 14px; 
     height: 14px;
     mask-image: radial-gradient(
@@ -404,7 +380,7 @@
     );
 }
 
-.Button--md .Button__loading .spinner { 
+.Button__spinner--md { 
     width: 16px; 
     height: 16px;
     mask-image: radial-gradient(
@@ -414,7 +390,7 @@
     );
 }
 
-.Button--lg .Button__loading .spinner { 
+.Button__spinner--lg { 
     width: 20px; 
     height: 20px;
     mask-image: radial-gradient(
@@ -425,7 +401,7 @@
 }
 
 // Inverted spinner color override
-.Button--inverted .Button__loading .spinner {
+.Button__spinner--inverted {
     background: conic-gradient(rgba(var(--button-color-rgb), 0), rgba(var(--button-color-rgb), 0.48));
 }
 
@@ -437,57 +413,58 @@
     line-height: 0;
 }
 
-// Icon container sizes based on Figma design system specifications
-.Button--xs .Button__icon {
+// Icon size modifiers
+.Button__icon--xs {
     width: 12px;
     height: 12px;
-
-    &--before {
-        margin-left: -2px;
-    }
-
-    &--after {
-        margin-right: -2px;
-    }
 }
 
-.Button--sm .Button__icon {
-    width: 12px;
-    height: 12px;
-
-    &--before {
-        margin-left: -3px;
-    }
-
-    &--after {
-        margin-right: -3px;
-    }
+.Button__icon--sm {
+    width: 14px;
+    height: 14px;
 }
 
-.Button--md .Button__icon {
+.Button__icon--md {
     width: 16px;
     height: 16px;
-
-    &--before {
-        margin-left: -4px;
-    }
-
-    &--after {
-        margin-right: -4px;
-    }
 }
 
-.Button--lg .Button__icon {
+.Button__icon--lg {
     width: 20px;
     height: 20px;
+}
 
-    &--before {
-        margin-left: -6px;
-    }
+// Icon position modifiers
+.Button__icon--before.Button__icon--xs {
+    margin-left: -2px;
+}
 
-    &--after {
-        margin-right: -6px;
-    }
+.Button__icon--after.Button__icon--xs {
+    margin-right: -2px;
+}
+
+.Button__icon--before.Button__icon--sm {
+    margin-left: -3px;
+}
+
+.Button__icon--after.Button__icon--sm {
+    margin-right: -3px;
+}
+
+.Button__icon--before.Button__icon--md {
+    margin-left: -4px;
+}
+
+.Button__icon--after.Button__icon--md {
+    margin-right: -4px;
+}
+
+.Button__icon--before.Button__icon--lg {
+    margin-left: -6px;
+}
+
+.Button__icon--after.Button__icon--lg {
+    margin-right: -6px;
 }
 
 // Label
