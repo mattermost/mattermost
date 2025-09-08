@@ -42,7 +42,7 @@ describe('components/TeamSettings', () => {
         renderWithContext(<InfoTab {...defaultProps}/>);
         const file = new File(['pdf'], 'pdf.pdf', {type: 'application/pdf'});
         const input = screen.getByTestId('uploadPicture');
-        await userEvent.upload(input, file);
+        await userEvent.upload(input, file, {applyAccept: false});
 
         const error = screen.getByTestId('mm-modal-generic-section-item__error');
         expect(error).toBeVisible();
