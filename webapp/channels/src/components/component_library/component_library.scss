@@ -24,21 +24,19 @@
         .clInteractiveSection {
             display: flex;
             flex-direction: row;
-            gap: 24px;
-
-            h2 {
-                margin-bottom: 24px;
-            }
+            gap: 32px;
     
             .clControlsPanel {
                 flex: 0 0 300px;
                 min-width: 300px;
-                padding: 24px;
-                background: rgba(var(--center-channel-color-rgb), 0.04);
                 border-radius: var(--radius-s);
                 
+                h2:first-child {
+                    margin-top: 0;
+                }
+
                 .clInputs {
-                    gap: 24px;
+                    gap: 20px;
 
                     .DropdownInput.Input_container {
                         margin-top: 0;
@@ -46,6 +44,10 @@
 
                     .mm-modal-generic-section-item__fieldset-checkbox-ctr {
                         margin-bottom: 0;
+
+                        label {
+                            font-weight: 500;
+                        }
                     }
                 }
             }
@@ -66,14 +68,7 @@
                 &.clSidebarBackground {
                     background: var(--sidebar-bg);
                     color: var(--sidebar-text);
-                }
-        
-                .clSection {
-                    margin-top: 0;
-                    margin-bottom: 0;
-                    padding-bottom: 0;
-                    border-bottom: none;
-                }
+                }   
             }
         }
     }
@@ -213,40 +208,9 @@
         }
     }
     
-    .clInvertedWrapper {
-        background-color: var(--sidebar-bg);
-        color: var(--sidebar-text);
-        padding: 48px;
-        border-radius: var(--radius-m);
-    }
-    
-    
-    .clSection {
-        margin-bottom: 48px;
-    
-        &:last-child {
-            margin-bottom: 0;
-        }
-
-        .clVariantsWrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-    }
-    
     .clComponentWrapper {
         background-color: transparent;
         font-size: 14px;
-        
-        h1, h2, h3 {
-            font-family: Metropolis, sans-serif;
-            font-weight: 600;
-            
-            &:first-child {
-                margin-top: 0;
-            }
-        }
     
         table {
             width: 100%;
@@ -269,13 +233,155 @@
                 text-align: left;
             }
         }
+
+        .clControlsPanel, .clComponentVariants {
+            h2 {
+                font-size: 25px;
+                line-height: 30px;
+                font-weight: 600;
+                font-family: Metropolis, sans-serif;
+                margin-bottom: 24px;
+            }
+
+            h3 {
+                font-size: 20px;
+                line-height: 24px;
+                font-weight: 600;
+                font-family: Metropolis, sans-serif;
+                margin-bottom: 16px;
+            }
+
+            h4 {
+                font-size: 16px;
+                line-height: 20px;
+                font-weight: 600;
+                font-family: Metropolis, sans-serif;
+                margin-bottom: 12px;
+            }
+
+            h5 {
+                font-size: 14px;
+                line-height: 20px;
+                font-weight: 600;
+                font-family: 'Open Sans', sans-serif;
+                margin-bottom: 8px;
+            }
+        }
     
         .clComponentVariants {
             display: flex;
-            gap: 12px;
+            flex-direction: column;
             flex-wrap: wrap;
-            padding: 48px;
+            padding: 32px;
             border-radius: var(--radius-m);
+            overflow: hidden;
+
+            .clVariantsHeader {
+                display: flex;
+                position: relative;
+                padding-left: 20px;
+                align-items: center;
+                justify-content: space-between;
+                cursor: pointer;
+                border-radius: var(--radius-s);
+                transition: background-color 0.15s ease;
+                
+                &:hover {
+                    background-color: var(--center-channel-color-4);
+                }
+
+                h2 {
+                    margin: 0;
+                    flex: 1;
+                }
+
+                .icon {
+                    font-size: 24px;
+                    color: var(--center-channel-color-64);
+                    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: absolute;
+                    left: -8px;
+                    top: 2px;
+
+                    &.clVariantsHeader--expanded {
+                        transform: rotate(90deg);
+                    }
+                }
+            }
+
+            .clVariantsContent {
+                overflow: hidden;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                display: flex;
+                flex-direction: column;
+                gap: 48px;
+                
+                &--collapsed {
+                    max-height: 0;
+                    opacity: 0;
+                    transform: translateY(-8px);
+                }
+                
+                &--expanded {
+                    margin-top: 24px;
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+
+                .clSection {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+
+                    &__inverted {
+                        gap: 48px;
+
+                        .clSection {
+                            gap: 8px;
+                        }
+                    }
+
+                    &-header {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 12px;
+        
+                        h3, h4 {
+                            margin: 0;
+                        }
+                    }
+            
+                    &-content {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 32px;
+                    }
+                    
+                    .clVariantsWrapper {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 12px;
+                    }
+        
+                    &__inverted {
+                        background-color: var(--sidebar-bg);
+                        color: var(--sidebar-text);
+                        padding: 32px;
+                        border-radius: var(--radius-m);
+
+                        table {
+    
+                            thead tr {
+                                border-bottom: solid 2px rgba(var(--sidebar-text-rgb), 0.16);
+                            }
+                    
+                            tr {
+                                border-bottom: 1px solid rgba(var(--sidebar-text-rgb), 0.08);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
     
@@ -287,16 +393,5 @@
     .clSidebarBackground {
         background: var(--sidebar-bg);
         color: var(--sidebar-text);
-    
-        table {
-    
-            thead tr {
-                border-bottom: solid 2px rgba(var(--sidebar-text-rgb), 0.16);
-            }
-    
-            tr {
-                border-bottom: 1px solid rgba(var(--sidebar-text-rgb), 0.08);
-            }
-        }
     }
 }

@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 import {Preferences} from 'mattermost-redux/constants';
@@ -25,22 +24,48 @@ const defaultComponent = Object.keys(componentMap)[0] as ComponentName;
 type ThemeName = keyof typeof Preferences.THEMES;
 const defaultTheme = Object.keys(Preferences.THEMES)[0] as ThemeName;
 
-type BackgroundType = 'center' | 'sidebar';
+// localStorage keys
+const STORAGE_KEYS = {
+    SELECTED_COMPONENT: 'componentLibrary_selectedComponent',
+    SELECTED_THEME: 'componentLibrary_selectedTheme',
+} as const;
+
+// Safe localStorage utilities
+const getStoredValue = <T,>(key: string, defaultValue: T): T => {
+    try {
+        const stored = localStorage.getItem(key);
+        return stored ? JSON.parse(stored) : defaultValue;
+    } catch (error) {
+        console.warn(`Failed to get stored value for key "${key}":`, error);
+        return defaultValue;
+    }
+};
+
+const setStoredValue = <T,>(key: string, value: T): void => {
+    try {
+        localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+        console.warn(`Failed to set stored value for key "${key}":`, error);
+    }
+};
 
 const ComponentLibrary = () => {
-    const [selectedComponent, setSelectedComponent] = useState<ComponentName>(defaultComponent);
+    const [selectedComponent, setSelectedComponent] = useState<ComponentName>(() => 
+        getStoredValue(STORAGE_KEYS.SELECTED_COMPONENT, defaultComponent)
+    );
     const onSelectComponent = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedComponent(e.target.value as ComponentName);
+        const newValue = e.target.value as ComponentName;
+        setSelectedComponent(newValue);
+        setStoredValue(STORAGE_KEYS.SELECTED_COMPONENT, newValue);
     }, []);
 
-    const [selectedTheme, setSelectedTheme] = useState(defaultTheme);
+    const [selectedTheme, setSelectedTheme] = useState<ThemeName>(() => 
+        getStoredValue(STORAGE_KEYS.SELECTED_THEME, defaultTheme)
+    );
     const onSelectTheme = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedTheme(e.target.value as ThemeName);
-    }, []);
-
-    const [selectedBackground, setSelectedBackground] = useState<BackgroundType>('center');
-    const onSelectBackground = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        setSelectedBackground(e.currentTarget.value as BackgroundType);
+        const newValue = e.target.value as ThemeName;
+        setSelectedTheme(newValue);
+        setStoredValue(STORAGE_KEYS.SELECTED_THEME, newValue);
     }, []);
 
     useEffect(() => {
@@ -111,48 +136,10 @@ const ComponentLibrary = () => {
                         {themeOptions}
                     </select>
                 </div>
-                <div className={'clInputWrapper'}>
-                    <label className={'clInputLabel'}>
-                        {'Background: '}
-                        </label>
-                        <div className={'clInputWrapper clRadioWrapper'}>
-                            <input
-                                onChange={onSelectBackground}
-                                name={'background'}
-                                value={'center'}
-                                type={'radio'}
-                                checked={selectedBackground === 'center'}
-                                id={'clBackgroundCenterSelector'}
-                            />
-                            <label htmlFor={'clBackgroundCenterSelector'}>
-                                {'Center channel'}
-                            </label>
-                        </div>
-                        
-                        <div className={'clInputWrapper clRadioWrapper'}>
-                            <input
-                                onChange={onSelectBackground}
-                                name={'background'}
-                                value={'sidebar'}
-                                type={'radio'}
-                                checked={selectedBackground === 'sidebar'}
-                                id={'clBackgroundSidebarSelector'}
-                            />
-                            <label htmlFor={'clBackgroundSidebarSelector'}>
-                                {'Sidebar'}
-                            </label>
-                        </div>
-                        
-                        
-                    
-                </div>
             </div>
             <div className={'clComponentWrapper'}>
                 <SelectedComponent
-                    backgroundClass={classNames({
-                        clCenterBackground: selectedBackground === 'center',
-                        clSidebarBackground: selectedBackground === 'sidebar',
-                    })}
+                    backgroundClass="clCenterBackground"
                 />
             </div>
         </div>

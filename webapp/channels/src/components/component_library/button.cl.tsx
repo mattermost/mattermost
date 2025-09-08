@@ -20,6 +20,9 @@ const propPossibilities = {};
 const emphasisValues = ['primary', 'secondary', 'tertiary', 'quaternary', 'link'];
 const sizeValues = ['xs', 'sm', 'md', 'lg'];
 
+// Helper function to format emphasis names consistently with select menu
+const formatEmphasisLabel = (emphasis: string) => emphasis.charAt(0).toUpperCase() + emphasis.slice(1);
+
 type Props = {
     backgroundClass: string;
 };
@@ -39,6 +42,14 @@ const ButtonComponentLibrary = ({
     const [showIconBefore, setShowIconBefore] = useState(false);
     const [showIconAfter, setShowIconAfter] = useState(false);
 
+    // Variants Panel State
+    const [variantsExpanded, setVariantsExpanded] = useState(false);
+
+    // Toggle function for variants panel
+    const toggleVariantsExpanded = useCallback(() => {
+        setVariantsExpanded(prev => !prev);
+    }, []);
+
     // Control Components
     const buttonTextInput = (
         <div className='clInputWrapper'>
@@ -52,7 +63,7 @@ const ButtonComponentLibrary = ({
     );
 
     const emphasisOptions = emphasisValues.map(value => ({
-        label: value.charAt(0).toUpperCase() + value.slice(1),
+        label: formatEmphasisLabel(value),
         value: value,
     }));
 
@@ -233,13 +244,30 @@ const ButtonComponentLibrary = ({
 
             {/* Comprehensive Variants */}
             <div className={`clComponentVariants ${backgroundClass || ''}`}>
-                    <div>
-                        <h2>Button Component - All variants</h2>
+                        <div 
+                            className="clVariantsHeader" 
+                            onClick={toggleVariantsExpanded}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    toggleVariantsExpanded();
+                                }
+                            }}
+                        >
+                            <h2>All variants</h2>
+                            <i className={`icon icon-chevron-right ${variantsExpanded ? 'clVariantsHeader--expanded' : ''}`} />
+                        </div>
                 
-                {/* MATRIX 1: ALL EMPHASIS × ALL SIZES (20 combinations) */}
+                <div className={`clVariantsContent ${variantsExpanded ? 'clVariantsContent--expanded' : 'clVariantsContent--collapsed'}`}>
+                        {/* MATRIX 1: ALL EMPHASIS × ALL SIZES (20 combinations) */}
                 <div className={'clSection'}>
-                    <h3>Emphasis × Sizes (20 combinations)</h3>
-                    <table>
+                    <div className='clSection-header'>
+                        <h3>Emphasis × Sizes (20 combinations)</h3>
+                    </div>
+                    <div className='clSection-content'>
+                        <table>
                         <thead>
                             <tr>
                                 <th>Emphasis</th>
@@ -251,7 +279,7 @@ const ButtonComponentLibrary = ({
                         <tbody>
                             {emphases.map((emphasis) => (
                                 <tr key={emphasis}>
-                                    <td>{emphasis}</td>
+                                    <td>{formatEmphasisLabel(emphasis)}</td>
                                     {sizes.map((size) => (
                                         <td key={size}>
                                             <Button emphasis={emphasis} size={size}>
@@ -263,13 +291,17 @@ const ButtonComponentLibrary = ({
                             ))}
                         </tbody>
                     </table>
+                    </div>
                 </div>
 
                 
                 {/* MATRIX 3: ALL EMPHASIS × ALL STATES (30 combinations) */}
                 <div className={'clSection'}>
-                    <h3>Emphasis × States (30 combinations)</h3>
-                    <table>
+                    <div className='clSection-header'>
+                        <h3>Emphasis × States (30 combinations)</h3>
+                    </div>
+                    <div className='clSection-content'>
+                        <table>
                         <thead>
                             <tr>
                                 <th>Emphasis</th>
@@ -281,7 +313,7 @@ const ButtonComponentLibrary = ({
                         <tbody>
                             {emphases.map((emphasis) => (
                                 <tr key={emphasis}>
-                                    <td>{emphasis}</td>
+                                    <td>{formatEmphasisLabel(emphasis)}</td>
                                     {states.map((state) => (
                                         <td key={state.label}>
                                             <Button emphasis={emphasis} {...state.props}>
@@ -293,12 +325,16 @@ const ButtonComponentLibrary = ({
                             ))}
                         </tbody>
                     </table>
+                    </div>
                 </div>
 
                 {/* MATRIX 2: ALL SIZES × ALL ICON VARIANTS (16 combinations) */}
                 <div className={'clSection'}>
-                    <h3>Sizes × All Icon Variants (16 combinations)</h3>
-                    <table>
+                    <div className='clSection-header'>
+                        <h3>Sizes × All Icon Variants (16 combinations)</h3>
+                    </div>
+                    <div className='clSection-content'>
+                        <table>
                         <thead>
                             <tr>
                                 <th>Size</th>
@@ -324,12 +360,16 @@ const ButtonComponentLibrary = ({
                             ))}
                         </tbody>
                     </table>
+                    </div>
                 </div>
 
                 {/* MATRIX 4: ALL EMPHASIS × ALL ICON COMBINATIONS (20 combinations) */}
                 <div className={'clSection'}>
-                    <h3>Emphasis × Icon Combinations (20 combinations)</h3>
-                    <table>
+                    <div className='clSection-header'>
+                        <h3>Emphasis × Icon Combinations (20 combinations)</h3>
+                    </div>
+                    <div className='clSection-content'>
+                        <table>
                         <thead>
                             <tr>
                                 <th>Emphasis</th>
@@ -341,7 +381,7 @@ const ButtonComponentLibrary = ({
                         <tbody>
                             {emphases.map((emphasis) => (
                                 <tr key={emphasis}>
-                                    <td>{emphasis}</td>
+                                    <td>{formatEmphasisLabel(emphasis)}</td>
                                     {icons.map((icon) => (
                                         <td key={icon.label}>
                                             <Button emphasis={emphasis} {...icon.props}>
@@ -353,12 +393,16 @@ const ButtonComponentLibrary = ({
                             ))}
                         </tbody>
                     </table>
+                    </div>
                 </div>
 
                 {/* MATRIX 5: ALL SIZES × ALL STATES FOR PRIMARY (24 combinations) */}
                 <div className={'clSection'}>
-                    <h3>ALL Sizes × ALL States (Primary) (24 combinations)</h3>
-                    <table>
+                    <div className='clSection-header'>
+                        <h3>ALL Sizes × ALL States (Primary) (24 combinations)</h3>
+                    </div>
+                    <div className='clSection-content'>
+                        <table>
                         <thead>
                             <tr>
                                 <th>Size</th>
@@ -382,33 +426,43 @@ const ButtonComponentLibrary = ({
                             ))}
                         </tbody>
                     </table>
+                    </div>
                 </div>
 
                 {/* MATRIX 6: FULL WIDTH × ALL EMPHASIS × SELECTED STATES */}
                 <div className={'clSection'}>
-                    <h3>Full Width × Selected Emphasis × Key States</h3>
-                    {emphases.filter(emphasis => !['quaternary', 'link'].includes(emphasis)).map((emphasis) => (
-                        <div key={emphasis} className={'clSection'}>
-                            <h5>{emphasis}</h5>
-                            <div className='clVariantsWrapper'>
-                                <Button emphasis={emphasis} fullWidth>Full Width</Button>
-                                <Button emphasis={emphasis} fullWidth disabled>Full Width Disabled</Button>
-                                <Button emphasis={emphasis} fullWidth loading>Full Width Loading</Button>
-                                <Button emphasis={emphasis} fullWidth destructive>Full Width Destructive</Button>
-                                <Button emphasis={emphasis} fullWidth iconBefore={<i className="icon icon-plus"/>}>Full Width + Icon</Button>
+                    <div className='clSection-header'>
+                        <h3>Full Width × Selected Emphasis × Key States</h3>
+                    </div>
+                    <div className='clSection-content'>
+                        {emphases.filter(emphasis => !['quaternary', 'link'].includes(emphasis)).map((emphasis) => (
+                            <div key={emphasis} className={'clSection'}>
+                                <div className='clSection-header'>
+                                 <h4>{formatEmphasisLabel(emphasis)}</h4>
+                                </div>
+                                <div className='clSection-content'>
+                                    <div className='clVariantsWrapper'>
+                                        <Button emphasis={emphasis} fullWidth>Full Width</Button>
+                                        <Button emphasis={emphasis} fullWidth disabled>Full Width Disabled</Button>
+                                        <Button emphasis={emphasis} fullWidth loading>Full Width Loading</Button>
+                                        <Button emphasis={emphasis} fullWidth destructive>Full Width Destructive</Button>
+                                        <Button emphasis={emphasis} fullWidth iconBefore={<i className="icon icon-plus"/>}>Full Width + Icon</Button>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
 
                 {/* MATRIX 7: INVERTED STYLES - ALL COMBINATIONS ON DARK BACKGROUND */}
-                <div className={'clInvertedWrapper'}>
-                    <h3>INVERTED × ALL Combinations (Dark Background)</h3>
-                    
+                <div className={'clSection clSection__inverted'}>                   
                     {/* INVERTED MATRIX 1: ALL EMPHASIS × ALL SIZES (20 combinations) */}
                     <div className={'clSection'}>
-                        <h4>Emphasis × Sizes (Inverted) - 20 combinations</h4>
-                        <table>
+                        <div className='clSection-header'>
+                            <h3>Emphasis × Sizes (Inverted) - 20 combinations</h3>
+                        </div>
+                        <div className='clSection-content'>
+                            <table>
                             <thead>
                                 <tr>
                                     <th>Emphasis</th>
@@ -420,7 +474,7 @@ const ButtonComponentLibrary = ({
                             <tbody>
                                 {emphases.map((emphasis) => (
                                     <tr key={emphasis}>
-                                        <td>{emphasis}</td>
+                                        <td>{formatEmphasisLabel(emphasis)}</td>
                                         {sizes.map((size) => (
                                             <td key={size}>
                                                 <Button emphasis={emphasis} size={size} inverted>
@@ -432,12 +486,16 @@ const ButtonComponentLibrary = ({
                                 ))}
                             </tbody>
                         </table>
+                        </div>
                     </div>
 
                     {/* INVERTED MATRIX 2: ALL EMPHASIS × ALL STATES (30 combinations) */}
                     <div className={'clSection'}>
-                        <h4>Emphasis × States (Inverted) - 30 combinations</h4>
-                        <table>
+                        <div className='clSection-header'>
+                            <h3>Emphasis × States (Inverted) - 30 combinations</h3>
+                        </div>
+                        <div className='clSection-content'>
+                            <table>
                             <thead>
                                 <tr>
                                     <th>Emphasis</th>
@@ -449,7 +507,7 @@ const ButtonComponentLibrary = ({
                             <tbody>
                                 {emphases.map((emphasis) => (
                                     <tr key={emphasis}>
-                                        <td>{emphasis}</td>
+                                        <td>{formatEmphasisLabel(emphasis)}</td>
                                         {states.map((state) => (
                                             <td key={state.label}>
                                                 <Button emphasis={emphasis} inverted {...state.props}>
@@ -461,12 +519,16 @@ const ButtonComponentLibrary = ({
                                 ))}
                             </tbody>
                         </table>
+                        </div>
                     </div>
 
                     {/* INVERTED MATRIX 3: ALL SIZES × ALL ICON VARIANTS (16 combinations) */}
                     <div className={'clSection'}>
-                        <h4>Sizes × Icon Variants (Inverted) - 16 combinations</h4>
-                        <table>
+                        <div className='clSection-header'>
+                            <h3>Sizes × Icon Variants (Inverted) - 16 combinations</h3>
+                        </div>
+                        <div className='clSection-content'>
+                            <table>
                             <thead>
                                 <tr>
                                     <th>Size</th>
@@ -492,11 +554,14 @@ const ButtonComponentLibrary = ({
                                 ))}
                             </tbody>
                         </table>
+                        </div>
                     </div>
 
                     {/* INVERTED MATRIX 4: ALL EMPHASIS × ALL ICON COMBINATIONS (20 combinations) */}
                     <div className={'clSection'}>
-                        <h4>Emphasis × Icon Combinations (Inverted) - 20 combinations</h4>
+                        <div className='clSection-header'>
+                            <h3>Emphasis × Icon Combinations (Inverted) - 20 combinations</h3>
+                        </div>
                         <table>
                             <thead>
                                 <tr>
@@ -509,7 +574,7 @@ const ButtonComponentLibrary = ({
                             <tbody>
                                 {emphases.map((emphasis) => (
                                     <tr key={emphasis}>
-                                        <td>{emphasis}</td>
+                                        <td>{formatEmphasisLabel(emphasis)}</td>
                                         {icons.map((icon) => (
                                             <td key={icon.label}>
                                                 <Button emphasis={emphasis} inverted {...icon.props}>
@@ -525,8 +590,11 @@ const ButtonComponentLibrary = ({
 
                     {/* INVERTED MATRIX 5: ALL SIZES × ALL STATES FOR PRIMARY (24 combinations) */}
                     <div className={'clSection'}>
-                        <h4>Sizes × States (Primary Inverted) - 24 combinations</h4>
-                        <table>
+                        <div className='clSection-header'>
+                            <h3>Sizes × States (Primary Inverted) - 24 combinations</h3>
+                        </div>
+                        <div className='clSection-content'>
+                            <table>
                             <thead>
                                 <tr>
                                     <th>Size</th>
@@ -550,26 +618,33 @@ const ButtonComponentLibrary = ({
                                 ))}
                             </tbody>
                         </table>
+                        </div>
                     </div>
 
                     {/* INVERTED MATRIX 6: FULL WIDTH × SELECTED EMPHASIS × SELECTED STATES */}
                     <div className={'clSection'}>
-                        <h4>Full Width × Selected Emphasis × Key States (Inverted)</h4>
-                        {emphases.filter(emphasis => !['quaternary', 'link'].includes(emphasis)).map((emphasis) => (
-                            <div key={emphasis} className={'clSection'}>
-                                <h5>{emphasis}</h5>
-                                <div className='clVariantsWrapper'>
-                                    <Button emphasis={emphasis} fullWidth inverted>Full Width</Button>
-                                    <Button emphasis={emphasis} fullWidth disabled inverted>Full Width Disabled</Button>
-                                    <Button emphasis={emphasis} fullWidth loading inverted>Full Width Loading</Button>
-                                    <Button emphasis={emphasis} fullWidth destructive inverted>Full Width Destructive</Button>
-                                    <Button emphasis={emphasis} fullWidth inverted iconBefore={<i className="icon icon-plus"/>}>Full Width + Icon</Button>
+                        <div className='clSection-header'>
+                            <h3>Full Width × Selected Emphasis × Key States (Inverted)</h3>
+                        </div>
+                        <div className='clSection-content'>
+                            {emphases.filter(emphasis => !['quaternary', 'link'].includes(emphasis)).map((emphasis) => (
+                                <div key={emphasis} className={'clSection'}>
+                                    <div className='clSection-header'>
+                                        <h4>{formatEmphasisLabel(emphasis)}</h4>
+                                    </div>
+                                    <div className='clVariantsWrapper'>
+                                        <Button emphasis={emphasis} fullWidth inverted>Full Width</Button>
+                                        <Button emphasis={emphasis} fullWidth disabled inverted>Full Width Disabled</Button>
+                                        <Button emphasis={emphasis} fullWidth loading inverted>Full Width Loading</Button>
+                                        <Button emphasis={emphasis} fullWidth destructive inverted>Full Width Destructive</Button>
+                                        <Button emphasis={emphasis} fullWidth inverted iconBefore={<i className="icon icon-plus"/>}>Full Width + Icon</Button>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 </div>
-            </div>
+                </div>
             </div>
         </>
     );
