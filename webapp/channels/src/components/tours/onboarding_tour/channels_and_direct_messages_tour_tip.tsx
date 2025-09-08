@@ -61,7 +61,7 @@ export const ChannelsAndDirectMessagesTour = ({firstChannelName}: Props) => {
                 <FormattedMessage
                     id='onboardingTour.ChannelsAndDirectMessagesTour.directMessages'
                     defaultMessage='<b>Direct messages</b> are for private conversations between individuals or small groups.'
-                    values={{b: (value: string) => <b>{value}</b>}}
+                    values={{b: (value) => <b>{value}</b>}}
                 />
             </p>
         </>

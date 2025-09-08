@@ -160,7 +160,7 @@ const TrialBenefitsModal = ({
                                 {text}
                             </BlockableLink>
                         ),
-                        mobileSecureNotificationsLink: (text: string) => (
+                        mobileSecureNotificationsLink: (text) => (
                             <BlockableLink
                                 to={ConsolePages.PUSH_NOTIFICATION_CENTER}
                                 onClick={handleOnClose}

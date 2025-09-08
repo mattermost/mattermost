@@ -50,7 +50,7 @@ const PermissionDescription = ({
                     defaultMessage='Inherited from <link>{name}</link>.'
                     values={{
                         name: formattedName,
-                        link: (text: string) => (
+                        link: (text) => (
                             <a>{text}</a>
                         ),
                     }}

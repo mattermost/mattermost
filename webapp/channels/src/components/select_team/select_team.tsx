@@ -131,7 +131,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                             id='join_team_group_constrained_denied_adminText'
                             defaultMessage={'You need to be a member of a linked group to join this team. You can add a group to this team <a>here</a>.'}
                             values={{
-                                a: (chunks: string) => (
+                                a: (chunks) => (
                                     <Link to='/admin_console/user_management/groups'>
                                         {chunks}
                                     </Link>
