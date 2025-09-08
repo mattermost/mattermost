@@ -182,9 +182,13 @@ require (
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/therootcompany/xz v1.0.1 // indirect
+	github.com/tiendc/go-deepcopy v1.6.0 // indirect
 	github.com/ulikunitz/xz v0.5.12 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/wiggin77/srslog v1.0.1 // indirect
+	github.com/xuri/efp v0.0.1 // indirect
+	github.com/xuri/excelize/v2 v2.9.1 // indirect
+	github.com/xuri/nfp v0.0.1 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/otel v1.35.0 // indirect
 	go.opentelemetry.io/otel/metric v1.35.0 // indirect

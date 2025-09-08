@@ -30,6 +30,7 @@ func ExtractWithExtraExtractors(logger mlog.LoggerIFace, filename string, r io.R
 		enabledExtractors.Add(extraExtractor)
 	}
 	enabledExtractors.Add(&documentExtractor{})
+	enabledExtractors.Add(&xlsxExtractor{})
 	enabledExtractors.Add(&pdfExtractor{})
 
 	if settings.ArchiveRecursion {
