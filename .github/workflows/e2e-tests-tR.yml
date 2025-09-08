@@ -15,15 +15,15 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install testrigor CLI
-      run: |
-        npm install -g testrigor-cli
+        run: |
+          npm install -g testrigor-cli
 
       - name: Run testrigor tests
-      env:
-        CI_TOKEN: ${{ secrets.CI_TOKEN }}
-        SUITE_ID: ${{ vars.SUITE_ID }}
-      run: |
-        testrigor test-suite run "$SUITE_ID" --token "$CI_TOKEN" --localhost --url http://159.89.95.201:8065/
+        env:
+          CI_TOKEN: ${{ secrets.CI_TOKEN }}
+          SUITE_ID: ${{ vars.SUITE_ID }}
+        run: |
+          testrigor test-suite run "$SUITE_ID" --token "$CI_TOKEN" --localhost --url http://159.89.95.201:8065/
         
 
       #- name: Setup and install PostgreSQL
