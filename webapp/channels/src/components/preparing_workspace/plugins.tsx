@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
+import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
 
@@ -33,12 +33,6 @@ type Props = PreparingWorkspacePageProps & {
 const Plugins = (props: Props) => {
     const {formatMessage} = useIntl();
     let className = 'Plugins-body';
-
-    useEffect(() => {
-        if (props.show) {
-            props.onPageView();
-        }
-    }, [props.show]);
 
     if (props.className) {
         className += ' ' + props.className;
