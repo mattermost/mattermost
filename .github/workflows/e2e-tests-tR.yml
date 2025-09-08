@@ -14,15 +14,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run a one-line script
-        run: echo Hello world!
+      - name: Install testrigor CLI
+      run: |
+        npm install -g testrigor-cli
 
-      - name: Setup and install PostgreSQL
-        run: | 
-          sudo apt install postgresql
-          locale-gen en_US.UTF-8
-          sudo -u postgres psql
-          CREATE DATABASE mattermost WITH ENCODING 'UTF8' LC_COLLATE='en_US.UTF-8' LC_CTYPE='en_US.UTF-8' TEMPLATE=template0;
-          CREATE USER mmuser WITH PASSWORD 'mmuser-password';
-          GRANT ALL PRIVILEGES ON DATABASE mattermost to mmuser;
+      - name: Run testrigor tests
+      env:
+        CI_TOKEN: ${{ secrets.CI_TOKEN }}
+        SUITE_ID: ${{ vars.SUITE_ID }}
+      run: |
+        testrigor test-suite run "$SUITE_ID" --token "$CI_TOKEN" --localhost --url http://159.89.95.201:8065/
+        
+
+      #- name: Setup and install PostgreSQL
+      #  run: | 
+      #    sudo apt install postgresql
+      #    locale-gen en_US.UTF-8
+      #    sudo -u postgres psql
+      #    CREATE DATABASE mattermost WITH ENCODING 'UTF8' LC_COLLATE='en_US.UTF-8' LC_CTYPE='en_US.UTF-8' TEMPLATE=template0;
+      #    CREATE USER mmuser WITH PASSWORD 'mmuser-password';
+      #    GRANT ALL PRIVILEGES ON DATABASE mattermost to mmuser;
 
