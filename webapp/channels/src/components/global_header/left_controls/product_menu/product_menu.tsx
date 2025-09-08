@@ -85,7 +85,7 @@ const ProductMenu = (): JSX.Element => {
     const visitSystemConsoleTaskName = OnboardingTasksName.VISIT_SYSTEM_CONSOLE;
     const handleVisitConsoleClick = () => {
         const steps = TaskNameMapToSteps[visitSystemConsoleTaskName];
-        handleOnBoardingTaskData(visitSystemConsoleTaskName, steps.FINISHED, true, 'finish');
+        handleOnBoardingTaskData(visitSystemConsoleTaskName, steps.FINISHED);
         localStorage.setItem(OnboardingTaskCategory, 'true');
     };
 
