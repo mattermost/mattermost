@@ -189,3 +189,12 @@ const Providers = ({children, store, history, options}: RenderStateProps) => {
         </Provider>
     );
 };
+
+/**
+ * A helper to use when an Enzyme test needs to wait for async code to run in a component before generating a snapshot.
+ *
+ * This should only be used in those cases.
+ */
+export function waitForEnzymeSnapshot() {
+    return act(async () => {});
+}
