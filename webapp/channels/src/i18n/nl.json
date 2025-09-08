@@ -3691,6 +3691,7 @@
   "channel_notifications.preferences": "Meldingsvoorkeuren",
   "channel_notifications.resetToDefault": "Terugzetten naar de standaardinstellingen",
   "channel_select.placeholder": "--- Selecteer een kanaal ---",
+  "channel_settings.access_rules.auto_sync": "Automatisch leden toevoegen op basis van toegangsregels",
   "channel_settings.access_rules.description": "Selecteer kenmerken en waarden waaraan gebruikers moeten voldoen om toegang te krijgen tot dit kanaal. Alle geselecteerde attributen zijn verplicht.",
   "channel_settings.access_rules.subtitle": "Selecteer gebruikerskenmerk en -waarden als regels om het lidmaatschap van kanalen te beperken",
   "channel_settings.access_rules.title": "Toegangsregels",
