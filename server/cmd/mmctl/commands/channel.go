@@ -246,6 +246,48 @@ func getAllPublicChannelsForTeam(c client.Client, teamID string) ([]*model.Chann
 	return channels, nil
 }
 
+func getAllUsersInChannel(c client.Client, channelID string) ([]*model.User, error) {
+	users := []*model.User{}
+	page := 0
+
+	for {
+		usersPage, _, err := c.GetUsersInChannel(context.TODO(), channelID, page, DefaultPageSize, "")
+		if err != nil {
+			return nil, err
+		}
+
+		if len(usersPage) == 0 {
+			break
+		}
+
+		users = append(users, usersPage...)
+		page++
+	}
+
+	return users, nil
+}
+
+func getAllUsersInTeam(c client.Client, teamID string) ([]*model.User, error) {
+	users := []*model.User{}
+	page := 0
+
+	for {
+		usersPage, _, err := c.GetUsersInTeam(context.TODO(), teamID, page, DefaultPageSize, "")
+		if err != nil {
+			return nil, err
+		}
+
+		if len(usersPage) == 0 {
+			break
+		}
+
+		users = append(users, usersPage...)
+		page++
+	}
+
+	return users, nil
+}
+
 func getAllDeletedChannelsForTeam(c client.Client, teamID string) ([]*model.Channel, error) {
 	channels := []*model.Channel{}
 	page := 0
@@ -454,6 +496,7 @@ func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 
 func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	force, _ := cmd.Flags().GetBool("force")
+	autoAddUsers, _ := cmd.Flags().GetBool("auto-add-users")
 
 	team := getTeamFromTeamArg(c, args[0])
 	if team == nil {
@@ -461,6 +504,7 @@ func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	var result *multierror.Error
+	var users []*model.User
 
 	channels := getChannelsFromChannelArgs(c, args[1:])
 	for i, channel := range channels {
@@ -471,6 +515,48 @@ func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 		if channel.TeamId == team.Id {
 			continue
+		}
+
+		if autoAddUsers {
+			usersInChannel, err := getAllUsersInChannel(c, channel.Id)
+			if err != nil {
+				result = multierror.Append(result, fmt.Errorf("unable to get users in channel %q: %w", channel.Name, err))
+				continue
+			}
+			users = append(users, usersInChannel...)
+
+			usersInTeam, err := getAllUsersInTeam(c, team.Id)
+			if err != nil {
+				result = multierror.Append(result, fmt.Errorf("unable to get users in team %q: %w", team.Name, err))
+				continue
+			}
+
+			usersToAdd := []*model.User{}
+			teamUserIds := map[string]bool{}
+			for _, user := range usersInTeam {
+				teamUserIds[user.Id] = true
+			}
+
+			for _, user := range users {
+				if !teamUserIds[user.Id] {
+					usersToAdd = append(usersToAdd, user)
+				}
+			}
+
+			if len(usersToAdd) == 0 {
+				continue
+			}
+
+			for _, user := range usersToAdd {
+				printer.PrintT("Adding user {{.User}} to team {{.Team}}", map[string]any{
+					"User": user.Username,
+					"Team": team.Name,
+				})
+				_, _, err := c.AddTeamMember(context.TODO(), team.Id, user.Id)
+				if err != nil {
+					result = multierror.Append(result, fmt.Errorf("failed to add user %q to team %q: %w", user.Username, team.Name, err))
+				}
+			}
 		}
 
 		newChannel, _, err := c.MoveChannel(context.TODO(), channel.Id, team.Id, force)
