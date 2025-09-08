@@ -14,7 +14,7 @@ import (
 )
 
 func TestXlsxExtractor_Match(t *testing.T) {
-	extractor := &xlsxExtractor{}
+	extractor := &xlsxExtractor{logger: nil}
 
 	testCases := []struct {
 		name     string
@@ -67,7 +67,7 @@ func TestXlsxExtractor_Extract(t *testing.T) {
 		require.NoError(t, err)
 
 		// Extract text
-		extractor := &xlsxExtractor{}
+		extractor := &xlsxExtractor{logger: nil}
 		text, err := extractor.Extract("test.xlsx", bytes.NewReader(buf.Bytes()))
 		require.NoError(t, err)
 
@@ -100,7 +100,7 @@ func TestXlsxExtractor_Extract(t *testing.T) {
 		require.NoError(t, err)
 
 		// Extract text
-		extractor := &xlsxExtractor{}
+		extractor := &xlsxExtractor{logger: nil}
 		text, err := extractor.Extract("test.xlsx", bytes.NewReader(buf.Bytes()))
 		require.NoError(t, err)
 
@@ -129,7 +129,7 @@ func TestXlsxExtractor_Extract(t *testing.T) {
 		require.NoError(t, err)
 
 		// Extract text
-		extractor := &xlsxExtractor{}
+		extractor := &xlsxExtractor{logger: nil}
 		text, err := extractor.Extract("test.xlsx", bytes.NewReader(buf.Bytes()))
 		require.NoError(t, err)
 
@@ -165,7 +165,7 @@ func TestXlsxExtractor_Extract(t *testing.T) {
 		require.NoError(t, err)
 
 		// Extract text
-		extractor := &xlsxExtractor{}
+		extractor := &xlsxExtractor{logger: nil}
 		text, err := extractor.Extract("test.xlsx", bytes.NewReader(buf.Bytes()))
 		require.NoError(t, err)
 
@@ -178,14 +178,14 @@ func TestXlsxExtractor_Extract(t *testing.T) {
 
 	t.Run("Invalid file", func(t *testing.T) {
 		// Try to extract from invalid data
-		extractor := &xlsxExtractor{}
+		extractor := &xlsxExtractor{logger: nil}
 		invalidData := []byte("This is not an Excel file")
 		_, err := extractor.Extract("test.xlsx", bytes.NewReader(invalidData))
 		assert.Error(t, err)
 	})
 
 	t.Run("Name method", func(t *testing.T) {
-		extractor := &xlsxExtractor{}
+		extractor := &xlsxExtractor{logger: nil}
 		assert.Equal(t, "xlsxExtractor", extractor.Name())
 	})
 }
@@ -212,7 +212,7 @@ func TestXlsxExtractor_LargeFile(t *testing.T) {
 		require.NoError(t, err)
 
 		// Extract text
-		extractor := &xlsxExtractor{}
+		extractor := &xlsxExtractor{logger: nil}
 		text, err := extractor.Extract("test.xlsx", bytes.NewReader(buf.Bytes()))
 		require.NoError(t, err)
 
@@ -235,7 +235,7 @@ func TestXlsxExtractor_EdgeCases(t *testing.T) {
 		require.NoError(t, err)
 
 		// Extract text
-		extractor := &xlsxExtractor{}
+		extractor := &xlsxExtractor{logger: nil}
 		text, err := extractor.Extract("test.xlsx", bytes.NewReader(buf.Bytes()))
 		require.NoError(t, err)
 
@@ -258,7 +258,7 @@ func TestXlsxExtractor_EdgeCases(t *testing.T) {
 		require.NoError(t, err)
 
 		// Extract text
-		extractor := &xlsxExtractor{}
+		extractor := &xlsxExtractor{logger: nil}
 		text, err := extractor.Extract("test.xlsx", bytes.NewReader(buf.Bytes()))
 		require.NoError(t, err)
 
@@ -283,7 +283,7 @@ func TestXlsxExtractor_EdgeCases(t *testing.T) {
 		reader := bytes.NewReader(buf.Bytes())
 
 		// Extract should work regardless of reader position
-		extractor := &xlsxExtractor{}
+		extractor := &xlsxExtractor{logger: nil}
 		text, err := extractor.Extract("test.xlsx", reader)
 		require.NoError(t, err)
 		assert.Contains(t, text, "Test")

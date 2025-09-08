@@ -11,10 +11,13 @@ import (
 	"path"
 	"strings"
 
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/xuri/excelize/v2"
 )
 
-type xlsxExtractor struct{}
+type xlsxExtractor struct{
+	logger mlog.LoggerIFace
+}
 
 func (xe *xlsxExtractor) Name() string {
 	return "xlsxExtractor"
@@ -35,20 +38,33 @@ func (xe *xlsxExtractor) Match(filename string) bool {
 func (xe *xlsxExtractor) Extract(filename string, r io.ReadSeeker) (out string, outErr error) {
 	defer func() {
 		if r := recover(); r != nil {
+			if xe.logger != nil {
+				xe.logger.Debug("XLSX extraction panic recovered", mlog.String("filename", filename), mlog.Any("error", r))
+			}
 			out = ""
 			outErr = errors.New("error extracting xlsx text")
 		}
 	}()
 
+	if xe.logger != nil {
+		xe.logger.Debug("Starting XLSX extraction", mlog.String("filename", filename))
+	}
+
 	// Read the file into memory
 	buf := new(bytes.Buffer)
 	if _, err := io.Copy(buf, r); err != nil {
+		if xe.logger != nil {
+			xe.logger.Debug("Failed to read XLSX file", mlog.String("filename", filename), mlog.Err(err))
+		}
 		return "", fmt.Errorf("error reading xlsx file: %v", err)
 	}
 
 	// Open the Excel file from bytes
 	f, err := excelize.OpenReader(buf)
 	if err != nil {
+		if xe.logger != nil {
+			xe.logger.Debug("Failed to open XLSX file", mlog.String("filename", filename), mlog.Err(err))
+		}
 		return "", fmt.Errorf("error opening xlsx file: %v", err)
 	}
 	defer f.Close()
@@ -57,6 +73,9 @@ func (xe *xlsxExtractor) Extract(filename string, r io.ReadSeeker) (out string, 
 	
 	// Get all sheet names
 	sheetNames := f.GetSheetList()
+	if xe.logger != nil {
+		xe.logger.Debug("Processing XLSX sheets", mlog.String("filename", filename), mlog.Int("sheet_count", len(sheetNames)))
+	}
 	
 	for i, sheetName := range sheetNames {
 		// Add sheet separator for multiple sheets
@@ -70,11 +89,15 @@ func (xe *xlsxExtractor) Extract(filename string, r io.ReadSeeker) (out string, 
 		// Get all rows for the sheet
 		rows, err := f.GetRows(sheetName)
 		if err != nil {
+			if xe.logger != nil {
+				xe.logger.Debug("Failed to read sheet", mlog.String("filename", filename), mlog.String("sheet", sheetName), mlog.Err(err))
+			}
 			// Skip sheets that can't be read
 			continue
 		}
 		
 		// Process each row
+		nonEmptyRows := 0
 		for rowIdx, row := range rows {
 			// Skip completely empty rows
 			hasContent := false
@@ -89,6 +112,8 @@ func (xe *xlsxExtractor) Extract(filename string, r io.ReadSeeker) (out string, 
 				continue
 			}
 			
+			nonEmptyRows++
+			
 			// Add row content
 			if rowIdx > 0 {
 				textBuilder.WriteString("\n")
@@ -98,7 +123,16 @@ func (xe *xlsxExtractor) Extract(filename string, r io.ReadSeeker) (out string, 
 			rowText := strings.Join(row, "\t")
 			textBuilder.WriteString(rowText)
 		}
+		
+		if xe.logger != nil {
+			xe.logger.Debug("Processed XLSX sheet", mlog.String("filename", filename), mlog.String("sheet", sheetName), mlog.Int("rows", nonEmptyRows))
+		}
 	}
 	
-	return textBuilder.String(), nil
+	result := textBuilder.String()
+	if xe.logger != nil {
+		xe.logger.Debug("XLSX extraction completed", mlog.String("filename", filename), mlog.Int("text_length", len(result)))
+	}
+	
+	return result, nil
 }
