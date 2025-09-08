@@ -52,7 +52,7 @@ describe('SystemUserDetail', () => {
 
     const waitForLoadingToFinish = async () => {
         await waitForElementToBeRemoved(screen.queryAllByTitle('Loading Icon'));
-        await waitFor(() => expect(screen.queryByText('No teams found')).toBeInTheDocument())
+        await waitFor(() => expect(screen.queryByText('No teams found')).toBeInTheDocument());
     };
 
     test('should match default snapshot', async () => {
