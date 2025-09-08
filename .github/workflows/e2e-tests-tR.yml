@@ -3,9 +3,9 @@ name : End-to-End testing with tR
 #we can make it so it sets up mattermost and runs tR tests
 on:
   push:
-    branches: [tR-e2e-tests, main]
+    branches: [tR-e2e-tests, master]
   pull_request:
-    branches: [tR-e2e-tests, main]
+    branches: [tR-e2e-tests, master]
   workflow_dispatch:
 
 jobs:
