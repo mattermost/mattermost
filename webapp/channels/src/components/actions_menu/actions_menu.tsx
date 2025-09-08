@@ -129,13 +129,16 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
     };
 
     handleOpenMarketplace = (): void => {
-        const openMarketplaceData = {
-            modalId: ModalIdentifiers.PLUGIN_MARKETPLACE,
-            dialogType: MarketplaceModal,
-        };
-        this.props.actions.openModal(openMarketplaceData);
-
         this.closeDropdown();
+
+        // Wait for the menu to close to avoid clashing between the menu's focus trap and the modal's
+        requestAnimationFrame(() => {
+            const openMarketplaceData = {
+                modalId: ModalIdentifiers.PLUGIN_MARKETPLACE,
+                dialogType: MarketplaceModal,
+            };
+            this.props.actions.openModal(openMarketplaceData);
+        });
     };
 
     onClickAppBinding = async (binding: AppBinding) => {
