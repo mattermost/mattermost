@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactWrapper} from 'enzyme';
 import {shallow} from 'enzyme';
 import React, {act} from 'react';
 import {Provider} from 'react-redux';
@@ -81,21 +80,17 @@ describe('components/learn_more_trial_modal/start_trial_btn', () => {
     test('should handle on click', async () => {
         const mockOnClick = jest.fn();
 
-        let wrapper: ReactWrapper<any>;
-
         // Mount the component
-        await act(async () => {
-            wrapper = mountWithIntl(
-                <Provider store={store}>
-                    <StartTrialBtn
-                        {...props}
-                        onClick={mockOnClick}
-                    />
-                </Provider>,
-            );
-        });
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <StartTrialBtn
+                    {...props}
+                    onClick={mockOnClick}
+                />
+            </Provider>,
+        );
 
-        await act(async () => {
+        act(() => {
             wrapper.find('.btn-secondary').simulate('click');
         });
 
@@ -105,22 +100,18 @@ describe('components/learn_more_trial_modal/start_trial_btn', () => {
     test('should handle on click when rendered as button', async () => {
         const mockOnClick = jest.fn();
 
-        let wrapper: ReactWrapper<any>;
-
         // Mount the component
-        await act(async () => {
-            wrapper = mountWithIntl(
-                <Provider store={store}>
-                    <StartTrialBtn
-                        {...props}
-                        renderAsButton={true}
-                        onClick={mockOnClick}
-                    />
-                </Provider>,
-            );
-        });
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <StartTrialBtn
+                    {...props}
+                    renderAsButton={true}
+                    onClick={mockOnClick}
+                />
+            </Provider>,
+        );
 
-        await act(async () => {
+        act(() => {
             wrapper.find('button').simulate('click');
         });
 
@@ -130,23 +121,20 @@ describe('components/learn_more_trial_modal/start_trial_btn', () => {
     // test('does not show success for embargoed countries', async () => {
     //     const mockOnClick = jest.fn();
 
-    //     let wrapper: ReactWrapper<any>;
     //     const clonedState = JSON.parse(JSON.stringify(state));
     //     clonedState.entities.admin.analytics.TOTAL_USERS = 451;
 
     //     // Mount the component
-    //     await act(async () => {
-    //         wrapper = mountWithIntl(
-    //             <Provider store={mockStore(clonedState)}>
-    //                 <StartTrialBtn
-    //                     {...props}
-    //                     onClick={mockOnClick}
-    //                 />
-    //             </Provider>,
-    //         );
-    //     });
+    //     const wrapper = mountWithIntl(
+    //         <Provider store={mockStore(clonedState)}>
+    //             <StartTrialBtn
+    //                 {...props}
+    //                 onClick={mockOnClick}
+    //             />
+    //         </Provider>,
+    //     );
 
-    //     await act(async () => {
+    //     act(() => {
     //         wrapper.find('.start-trial-btn').simulate('click');
     //     });
 
