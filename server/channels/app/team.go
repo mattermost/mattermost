@@ -1524,19 +1524,43 @@ func (a *App) InviteGuestsToChannelsGracefully(rctx request.CTX, teamID string, 
 	}
 
 	var inviteListWithErrors []*model.EmailInviteWithError
-	var goodEmails []string
-	for _, email := range guestsInvite.Emails {
-		invite := &model.EmailInviteWithError{
-			Email: email,
-			Error: nil,
-		}
-		if !users.CheckEmailDomain(email, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
-			invite.Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
-		} else {
-			goodEmails = append(goodEmails, email)
-		}
-		inviteListWithErrors = append(inviteListWithErrors, invite)
+var goodEmails []string
+var invalidEmails []string // collect all invalid emails for count
+
+for _, email := range guestsInvite.Emails {
+	invite := &model.EmailInviteWithError{
+		Email: email,
+		Error: nil,
 	}
+
+	if !users.CheckEmailDomain(email, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
+		invalidEmails = append(invalidEmails, email) // collect invalid emails
+	} else {
+		goodEmails = append(goodEmails, email)
+	}
+
+	inviteListWithErrors = append(inviteListWithErrors, invite)
+}
+
+// Assign errors with count for pluralization
+for _, invite := range inviteListWithErrors {
+	for _, invalid := range invalidEmails {
+		if invite.Email == invalid {
+			invite.Error = model.NewAppError(
+				"InviteGuestsToChannelsGracefully",
+				"api.team.invite_members.invalid_email.app_error",
+				map[string]any{
+					"Addresses": strings.Join(invalidEmails, ", "), // display all invalid emails
+					"count":     len(invalidEmails),               // pass count for pluralization
+				},
+				"",
+				http.StatusBadRequest,
+			)
+			break
+		}
+	}
+}
+
 
 	if len(goodEmails) > 0 {
 		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
