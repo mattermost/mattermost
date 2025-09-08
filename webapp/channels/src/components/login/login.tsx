@@ -835,15 +835,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             );
         }
 
-        if (!enableBaseLogin && !enableExternalSignup) {
-            return (
-                <ColumnLayout
-                    title={formatMessage({id: 'login.noMethods.title', defaultMessage: 'This server doesn’t have any sign-in methods enabled'})}
-                    message={formatMessage({id: 'login.noMethods.subtitle', defaultMessage: 'Please contact your System Administrator to resolve this.'})}
-                />
-            );
-        }
-
+        // Handle redirect before checking configs. This is to support the Pre-Authentication header flow.
         if (desktopLoginLink || query.get('server_token')) {
             return (
                 <Route
@@ -854,6 +846,15 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                             onLogin={postSubmit}
                         />
                     )}
+                />
+            );
+        }
+
+        if (!enableBaseLogin && !enableExternalSignup) {
+            return (
+                <ColumnLayout
+                    title={formatMessage({id: 'login.noMethods.title', defaultMessage: 'This server doesn’t have any sign-in methods enabled'})}
+                    message={formatMessage({id: 'login.noMethods.subtitle', defaultMessage: 'Please contact your System Administrator to resolve this.'})}
                 />
             );
         }
