@@ -470,7 +470,7 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 
 	// Return success response
-	response := map[string]interface{}{
+	response := map[string]any{
 		"status": "OK",
 	}
 
