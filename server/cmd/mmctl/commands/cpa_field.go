@@ -5,7 +5,6 @@ package commands
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -250,11 +249,11 @@ func cpaFieldEditCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 func cpaFieldDeleteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	fieldID := args[0]
 
-	confirm, _ := cmd.Flags().GetBool("confirm")
-
-	if !confirm {
-		printer.PrintError("Are you sure you want to delete this CPA field? Use --confirm flag to proceed.")
-		return errors.New("confirmation required")
+	confirmFlag, _ := cmd.Flags().GetBool("confirm")
+	if !confirmFlag {
+		if err := getConfirmation("Are you sure you want to delete this CPA field?", true); err != nil {
+			return err
+		}
 	}
 
 	// Delete the field

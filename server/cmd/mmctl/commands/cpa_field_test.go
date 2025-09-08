@@ -772,20 +772,15 @@ func (s *MmctlUnitTestSuite) TestCPAFieldDeleteCmd() {
 		s.Require().Contains(lines[0], "Successfully deleted CPA field: field-id")
 	})
 
-	s.Run("Should error when --confirm flag is not provided", func() {
+	s.Run("Should error when --confirm flag is not provided in non-interactive shell", func() {
 		printer.Clean()
 
-		// No client call expected since confirmation is required
+		// No client call expected since confirmation fails in non-interactive shell
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", false, "")
 		err := cpaFieldDeleteCmdF(s.client, cmd, []string{"field-id"})
 		s.Require().Error(err)
-		s.Require().Contains(err.Error(), "confirmation required")
-
-		errorLines := printer.GetErrorLines()
-		s.Require().Len(errorLines, 1)
-		s.Require().Contains(errorLines[0], "Are you sure you want to delete this CPA field?")
-		s.Require().Contains(errorLines[0], "Use --confirm flag to proceed")
+		s.Require().Contains(err.Error(), "could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell")
 	})
 
 	s.Run("Should handle API error when DeleteCPAField client call fails", func() {
