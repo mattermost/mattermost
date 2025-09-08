@@ -115,7 +115,26 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         );
 
         expect(wrapper.find('.upgrade-title').text()).toEqual('Need to increase your headcount?');
-        expect(wrapper.find('.upgrade-subtitle').text()).toEqual('We’re here to work with you and your needs. Contact us today to get more seats on your plan.');
+        expect(wrapper.find('.upgrade-subtitle').text()).toEqual("We're here to work with you and your needs. Contact us today to get more seats on your plan.");
+    });
+
+    test('should render for Entry license', () => {
+        const store = mockStore(initialState);
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <EnterpriseEditionRightPanel
+                    license={{...props.license, SkuShortName: LicenseSkus.Entry}}
+                    isTrialLicense={props.isTrialLicense}
+                />
+            </Provider>,
+        );
+
+        expect(wrapper.find('.upgrade-title').text()).toEqual('Get access to full message history, AI-powered coordination, and secure workflow continuity');
+        expect(wrapper.find('.upgrade-subtitle').text()).toEqual('Purchase a plan to unlock full access, or start a trial to remove limits while you evaluate Enterprise Advanced.');
+
+        // Check for the Contact sales button
+        const contactSalesBtn = wrapper.find('button.btn-primary');
+        expect(contactSalesBtn.text()).toEqual('Contact sales');
     });
 
     test('should render for Trial license', () => {

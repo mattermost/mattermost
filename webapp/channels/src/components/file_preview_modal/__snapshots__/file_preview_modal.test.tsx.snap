@@ -1033,7 +1033,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .js file
           className="file-preview-modal__content"
           onClick={[Function]}
         >
-          <CodePreview
+          <Memo(CodePreview)
             className="file-preview-modal__code-preview"
             fileInfo={
               Object {

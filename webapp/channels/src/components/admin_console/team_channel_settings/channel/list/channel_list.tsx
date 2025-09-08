@@ -10,8 +10,6 @@ import type {ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/cha
 import {debounce} from 'mattermost-redux/actions/helpers';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import DataGrid from 'components/admin_console/data_grid/data_grid';
 import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import type {FilterOptions} from 'components/admin_console/filter/filter';
@@ -274,40 +272,19 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
         const {team_ids: teamIds} = filterOptions.teams.values;
         if (publicChannels.value || privateChannels.value || deleted.value || groupConstrained.value || excludeGroupConstrained.value || (teamIds.value as string[]).length || accessControlPolicyEnforced.value) {
             filters.public = publicChannels.value as boolean;
-            if (filters.public) {
-                trackEvent('admin_channels_page', 'public_filter_applied_to_channel_list');
-            }
 
             filters.private = privateChannels.value as boolean;
-            if (filters.private) {
-                trackEvent('admin_channels_page', 'private_filter_applied_to_channel_list');
-            }
 
             filters.deleted = deleted.value as boolean;
-            if (filters.deleted) {
-                trackEvent('admin_channels_page', 'archived_filter_applied_to_channel_list');
-            }
 
             filters.access_control_policy_enforced = accessControlPolicyEnforced.value as boolean;
-            if (filters.access_control_policy_enforced) {
-                trackEvent('admin_channels_page', 'attributed_based_filter_applied_to_channel_list');
-            }
 
             if (!(groupConstrained.value && excludeGroupConstrained.value)) {
                 filters.group_constrained = groupConstrained.value as boolean;
-                if (filters.group_constrained) {
-                    trackEvent('admin_channels_page', 'group_sync_filter_applied_to_channel_list');
-                }
                 filters.exclude_group_constrained = excludeGroupConstrained.value as boolean;
-                if (filters.exclude_group_constrained) {
-                    trackEvent('admin_channels_page', 'manual_invites_filter_applied_to_channel_list');
-                }
             }
 
             filters.team_ids = teamIds.value as string[];
-            if (filters.team_ids.length > 0) {
-                trackEvent('admin_channels_page', 'team_id_filter_applied_to_channel_list');
-            }
         }
         this.loadPage(0, this.state.term, filters);
     };

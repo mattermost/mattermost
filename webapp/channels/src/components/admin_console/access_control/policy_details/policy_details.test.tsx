@@ -7,6 +7,8 @@ import {act} from 'react-dom/test-utils';
 
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 
+import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
+
 import PolicyDetails from './policy_details';
 
 jest.mock('utils/browser_history', () => ({
@@ -14,6 +16,13 @@ jest.mock('utils/browser_history', () => ({
         push: jest.fn(),
     }),
 }));
+
+// Mock the useChannelAccessControlActions hook
+jest.mock('hooks/useChannelAccessControlActions', () => ({
+    useChannelAccessControlActions: jest.fn(),
+}));
+
+const mockUseChannelAccessControlActions = useChannelAccessControlActions as jest.MockedFunction<typeof useChannelAccessControlActions>;
 
 describe('components/admin_console/access_control/policy_details/PolicyDetails', () => {
     const mockCreatePolicy = jest.fn();
@@ -74,6 +83,15 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
     };
 
     beforeEach(() => {
+        // Mock the hook to return the actions that PolicyDetails expects
+        mockUseChannelAccessControlActions.mockReturnValue({
+            getAccessControlFields: mockGetAccessControlFields,
+            getVisualAST: mockGetVisualAST,
+            searchUsers: jest.fn(),
+            getChannelPolicy: jest.fn(),
+            saveChannelPolicy: jest.fn(),
+        });
+
         mockCreatePolicy.mockReset();
         mockUpdatePolicy.mockReset();
         mockDeletePolicy.mockReset();

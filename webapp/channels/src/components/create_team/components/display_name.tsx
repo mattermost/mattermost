@@ -6,8 +6,6 @@ import {FormattedMessage} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import Input from 'components/widgets/inputs/input/input';
 
 import logoImage from 'images/logo.png';
@@ -45,10 +43,6 @@ export default class TeamSignupDisplayNamePage extends React.PureComponent<Props
         };
     }
 
-    componentDidMount(): void {
-        trackEvent('signup', 'signup_team_01_name');
-    }
-
     isValidTeamName = (): boolean => {
         return this.state.teamDisplayName.length >= Constants.MIN_TEAMNAME_LENGTH && this.state.teamDisplayName.length <= Constants.MAX_TEAMNAME_LENGTH;
     };
@@ -59,7 +53,6 @@ export default class TeamSignupDisplayNamePage extends React.PureComponent<Props
         }
 
         e.preventDefault();
-        trackEvent('display_name', 'click_next');
         const displayName = this.state.teamDisplayName.trim();
 
         const newState = this.props.state;

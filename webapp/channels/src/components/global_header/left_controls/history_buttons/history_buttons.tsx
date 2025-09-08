@@ -6,8 +6,6 @@ import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 import styled from 'styled-components';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import IconButton from 'components/global_header/header_icon_button';
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
@@ -43,13 +41,11 @@ const HistoryButtons = (): JSX.Element => {
     );
 
     const goBack = () => {
-        trackEvent('ui', 'ui_history_back');
         history.goBack();
         requestButtons();
     };
 
     const goForward = () => {
-        trackEvent('ui', 'ui_history_forward');
         history.goForward();
         requestButtons();
     };
