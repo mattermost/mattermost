@@ -17,7 +17,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
         useDispatchMock.mockClear();
     });
 
-    test('should render FREE EDITION for unlicensed', () => {
+    test('should render TEAM EDITION for unlicensed', () => {
         const state = {
             entities: {
                 users: {
@@ -37,7 +37,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
         const wrapper = mountWithIntl(<reactRedux.Provider store={store}><MenuStartTrial id='startTrial'/></reactRedux.Provider>);
 
         expect(wrapper.find('.editionText').exists()).toBe(true);
-        expect(wrapper.text()).toContain('FREE EDITION');
+        expect(wrapper.text()).toContain('TEAM EDITION');
         expect(wrapper.text()).toContain('This is the free');
     });
 

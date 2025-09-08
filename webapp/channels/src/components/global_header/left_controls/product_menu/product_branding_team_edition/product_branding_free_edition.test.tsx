@@ -33,7 +33,7 @@ describe('ProductBrandingFreeEdition', () => {
         expect(logoElement).toBeInTheDocument();
     });
 
-    test('should show FREE EDITION for unlicensed', () => {
+    test('should show TEAM EDITION for unlicensed', () => {
         const state = {
             entities: {
                 general: {
@@ -50,7 +50,7 @@ describe('ProductBrandingFreeEdition', () => {
             state,
         );
 
-        expect(screen.getByText('FREE EDITION')).toBeInTheDocument();
+        expect(screen.getByText('TEAM EDITION')).toBeInTheDocument();
         const logoElement = container.querySelector('svg');
         expect(logoElement).toBeInTheDocument();
     });
@@ -74,7 +74,7 @@ describe('ProductBrandingFreeEdition', () => {
 
         // Should not show any edition badge
         expect(screen.queryByText('ENTRY EDITION')).not.toBeInTheDocument();
-        expect(screen.queryByText('FREE EDITION')).not.toBeInTheDocument();
+        expect(screen.queryByText('TEAM EDITION')).not.toBeInTheDocument();
         expect(screen.queryByText('PROFESSIONAL EDITION')).not.toBeInTheDocument();
     });
 
@@ -97,7 +97,7 @@ describe('ProductBrandingFreeEdition', () => {
 
         // Should not show any edition badge
         expect(screen.queryByText('ENTRY EDITION')).not.toBeInTheDocument();
-        expect(screen.queryByText('FREE EDITION')).not.toBeInTheDocument();
+        expect(screen.queryByText('TEAM EDITION')).not.toBeInTheDocument();
         expect(screen.queryByText('ENTERPRISE EDITION')).not.toBeInTheDocument();
     });
 
@@ -117,6 +117,6 @@ describe('ProductBrandingFreeEdition', () => {
 
         // Should not show any edition badge when license object is empty
         expect(screen.queryByText('ENTRY EDITION')).not.toBeInTheDocument();
-        expect(screen.queryByText('FREE EDITION')).not.toBeInTheDocument();
+        expect(screen.queryByText('TEAM EDITION')).not.toBeInTheDocument();
     });
 });

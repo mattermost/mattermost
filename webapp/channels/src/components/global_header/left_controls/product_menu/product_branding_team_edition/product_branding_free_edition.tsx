@@ -48,7 +48,7 @@ const ProductBrandingFreeEdition = (): JSX.Element => {
     if (license?.SkuShortName === LicenseSkus.Entry) {
         badgeText = 'ENTRY EDITION';
     } else if (license?.IsLicensed === 'false') {
-        badgeText = 'FREE EDITION';
+        badgeText = 'TEAM EDITION';
     }
 
     return (

@@ -48,7 +48,7 @@ const MenuStartTrial = (props: Props): JSX.Element | null => {
 
     // Determine badge text and description based on license type
     const isEntryLicense = isCurrentLicensed === 'true' && skuShortName === LicenseSkus.Entry;
-    const badgeText = isEntryLicense ? 'ENTRY EDITION' : 'FREE EDITION';
+    const badgeText = isEntryLicense ? 'ENTRY EDITION' : 'TEAM EDITION';
 
     return (
         <li
