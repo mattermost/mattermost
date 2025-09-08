@@ -223,7 +223,9 @@ package-windows: package-prep
 	rm -rf $(DIST_ROOT)/windows
 
 # Only package linux by default. Other platforms can be packaged by specifying the platform.
-package: package-linux
+package: package-linux package-cleanup
+
+package-cleanup:
 	rm -rf tmpprepackaged
 	rm -rf $(DIST_PATH)
 
