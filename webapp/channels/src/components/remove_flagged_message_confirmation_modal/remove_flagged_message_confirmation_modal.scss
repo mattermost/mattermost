@@ -36,6 +36,14 @@
             min-height: 90px !important;
             max-height: 400px;
         }
+
+        .request_error {
+            display: flex;
+            width: 90%;
+            align-items: center;
+            color: var(--error-text);
+            font-size: 12px;
+        }
     }
 }
 

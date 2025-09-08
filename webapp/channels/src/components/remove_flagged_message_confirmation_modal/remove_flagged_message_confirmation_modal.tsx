@@ -5,6 +5,7 @@ import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
+import type {ServerError} from '@mattermost/types/errors';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -18,6 +19,8 @@ import type {TextboxElement} from 'components/textbox';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 
 import './remove_flagged_message_confirmation_modal.scss';
+
+const noop = () => {};
 
 type Props = {
     action: 'keep' | 'remove';
@@ -35,13 +38,15 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
 
     const [comment, setComment] = React.useState<string>('');
     const [commentError, setCommentError] = React.useState<string>('');
+    const [requestError, setRequestError] = React.useState<string>('');
+    const [submitting, setSubmitting] = React.useState<boolean>(false);
     const [showCommentPreview, setShowCommentPreview] = React.useState<boolean>(false);
 
     const handleCommentChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
         setComment(e.target.value);
 
         if (contentFlaggingConfig?.reviewer_comment_required && e.target.value.trim() === '') {
-            setCommentError(formatMessage({id: 'flag_message_modal.empty_comment_error', defaultMessage: 'Please add a comment explaining why you’re flagging this message.'}));
+            setCommentError(formatMessage({id: 'keep_remove_flag_content_modal.comment_required.error', defaultMessage: 'Please add a comment.'}));
         } else {
             setCommentError('');
         }
@@ -128,15 +133,38 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
         }
     }
 
-    const handleConfirm = useCallback(async () => {
-        if (action === 'remove') {
-            await Client4.removeFlaggedPost(flaggedPost.id, comment);
-            onExited();
-        } else if (action === 'keep') {
-            await Client4.keepFlaggedPost(flaggedPost.id, comment);
-            onExited();
+    const validateForm = useCallback(() => {
+        let hasErrors = false;
+
+        if (contentFlaggingConfig?.reviewer_comment_required && comment.trim() === '') {
+            setCommentError(formatMessage({id: 'keep_remove_flag_content_modal.comment_required.error', defaultMessage: 'Please add a comment.'}));
+            hasErrors = true;
+        } else {
+            setCommentError('');
         }
-    }, [action, comment, flaggedPost.id, onExited]);
+
+        return hasErrors;
+    }, [comment, contentFlaggingConfig?.reviewer_comment_required, formatMessage]);
+
+    const handleConfirm = useCallback(async () => {
+        const hasError = validateForm();
+        if (hasError) {
+            return;
+        }
+
+        const actionFunc = action === 'remove' ? Client4.removeFlaggedPost : Client4.keepFlaggedPost;
+        try {
+            setSubmitting(true);
+            await actionFunc(flaggedPost.id, comment);
+            onExited();
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error(error);
+            setRequestError((error as ServerError).message);
+        } finally {
+            setSubmitting(false);
+        }
+    }, [action, comment, flaggedPost.id, onExited, validateForm]);
 
     return (
         <GenericModal
@@ -147,10 +175,12 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
             keyboardEscape={true}
             enforceFocus={false}
             handleConfirm={handleConfirm}
-            handleCancel={onExited}
+            handleCancel={noop}
+            onExited={onExited}
             confirmButtonText={buttonText}
             confirmButtonClassName={confirmButtonClass}
             autoCloseOnConfirmButton={false}
+            isConfirmDisabled={submitting}
         >
             <div className='body'>
                 <div className='section'>
@@ -182,6 +212,12 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
                         maxLength={1000}
                     />
                 </div>
+                {requestError &&
+                    <div className='request_error'>
+                        <i className='icon icon-alert-outline'/>
+                        <span>{requestError}</span>
+                    </div>
+                }
             </div>
         </GenericModal>
     );

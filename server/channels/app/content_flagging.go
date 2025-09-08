@@ -516,7 +516,7 @@ func (a *App) PermanentDeleteFlaggedPost(c request.CTX, actionRequest *model.Fla
 		}
 
 		propertyValues = append(propertyValues, status)
-		if err := a.publishReportChange(flaggedPost.Id, channel.TeamId, propertyValues); err != nil {
+		if err := a.publishContentFlaggingReportUpdateEvent(flaggedPost.Id, channel.TeamId, propertyValues); err != nil {
 			c.Logger().Error("Failed to publish report change after permanently removing flagged post", mlog.Err(err), mlog.String("post_id", flaggedPost.Id))
 		}
 	}()
@@ -524,11 +524,11 @@ func (a *App) PermanentDeleteFlaggedPost(c request.CTX, actionRequest *model.Fla
 	return nil
 }
 
-func (a *App) KeepFlaggedPost(c request.CTX, actionRequest *model.FlagContentActionRequest, reviewerId string, post *model.Post) *model.AppError {
-	// for keeping a flagged post we need to-
-	// 1. Undelete the post if it was deleted, that's it
+func (a *App) KeepFlaggedPost(c request.CTX, actionRequest *model.FlagContentActionRequest, reviewerId string, flaggedPost *model.Post) *model.AppError {
+	// for keeping a flagged flaggedPost we need to-
+	// 1. Undelete the flaggedPost if it was deleted, that's it
 
-	status, appErr := a.GetPostContentFlaggingStatusValue(post.Id)
+	status, appErr := a.GetPostContentFlaggingStatusValue(flaggedPost.Id)
 	if appErr != nil {
 		return appErr
 	}
@@ -542,16 +542,16 @@ func (a *App) KeepFlaggedPost(c request.CTX, actionRequest *model.FlagContentAct
 		return model.NewAppError("removeFlaggedPost", "api.content_flagging.error.post_not_in_progress", nil, "", http.StatusBadRequest)
 	}
 
-	// TODO: clear post related caches here
-	post.DeleteAt = 0
-	post.UpdateAt = model.GetMillis()
-	post.PreCommit()
-	_, _, err := a.Srv().Store().Post().OverwriteMultiple(c, []*model.Post{post})
+	// TODO: clear flaggedPost related caches here
+	flaggedPost.DeleteAt = 0
+	flaggedPost.UpdateAt = model.GetMillis()
+	flaggedPost.PreCommit()
+	_, _, err := a.Srv().Store().Post().OverwriteMultiple(c, []*model.Post{flaggedPost})
 	if err != nil {
 		return model.NewAppError("KeepFlaggedPost", "app.content_flagging.update_post.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
 	}
 
-	err = a.Srv().Store().FileInfo().RestoreForPostByIds(c, post.Id, post.FileIds)
+	err = a.Srv().Store().FileInfo().RestoreForPostByIds(c, flaggedPost.Id, flaggedPost.FileIds)
 	if err != nil {
 		return model.NewAppError("KeepFlaggedPost", "app.content_flagging.restore_file_info.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
 	}
@@ -568,21 +568,21 @@ func (a *App) KeepFlaggedPost(c request.CTX, actionRequest *model.FlagContentAct
 
 	propertyValues := []*model.PropertyValue{
 		{
-			TargetID:   post.Id,
+			TargetID:   flaggedPost.Id,
 			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
 			FieldID:    mappedFields[contentFlaggingPropertyNameActorUserID].ID,
 			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, reviewerId)),
 		},
 		{
-			TargetID:   post.Id,
+			TargetID:   flaggedPost.Id,
 			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
 			FieldID:    mappedFields[contentFlaggingPropertyNameActorComment].ID,
 			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, strings.Trim(actionRequest.Comment, "\""))),
 		},
 		{
-			TargetID:   post.Id,
+			TargetID:   flaggedPost.Id,
 			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
 			FieldID:    mappedFields[contentFlaggingPropertyNameActionTime].ID,
@@ -601,9 +601,22 @@ func (a *App) KeepFlaggedPost(c request.CTX, actionRequest *model.FlagContentAct
 		return model.NewAppError("PermanentlyRemoveFlaggedPost", "app.content_flagging.update_property_value.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", post.ChannelId, "", nil, "")
-	appErr = a.publishWebsocketEventForPost(c, post, message)
-	a.invalidateCacheForChannelPosts(post.ChannelId)
+	go func() {
+		channel, appErr := a.GetChannel(c, flaggedPost.ChannelId)
+		if appErr != nil {
+			c.Logger().Error("Failed to get channel for flagged post while publishing report change after permanently removing flagged post", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id), mlog.String("channel_id", flaggedPost.ChannelId))
+			return
+		}
+
+		propertyValues = append(propertyValues, status)
+		if err := a.publishContentFlaggingReportUpdateEvent(flaggedPost.Id, channel.TeamId, propertyValues); err != nil {
+			c.Logger().Error("Failed to publish report change after permanently removing flagged flaggedPost", mlog.Err(err), mlog.String("post_id", flaggedPost.Id))
+		}
+	}()
+
+	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", flaggedPost.ChannelId, "", nil, "")
+	appErr = a.publishWebsocketEventForPost(c, flaggedPost, message)
+	a.invalidateCacheForChannelPosts(flaggedPost.ChannelId)
 
 	return nil
 }
@@ -617,7 +630,7 @@ func scrubPost(post *model.Post) {
 	post.SetProps(make(map[string]any))
 }
 
-func (a *App) publishReportChange(targetId, teamId string, propertyValues []*model.PropertyValue) *model.AppError {
+func (a *App) publishContentFlaggingReportUpdateEvent(targetId, teamId string, propertyValues []*model.PropertyValue) *model.AppError {
 	reviewersUserIDs, appErr := a.getReviewersForTeam(teamId, true)
 	if appErr != nil {
 		return appErr
@@ -625,7 +638,7 @@ func (a *App) publishReportChange(targetId, teamId string, propertyValues []*mod
 
 	bytes, err := json.Marshal(propertyValues)
 	if err != nil {
-		return model.NewAppError("publishReportChange", "app.content_flagging.marshal_property_values.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("publishContentFlaggingReportUpdateEvent", "app.content_flagging.marshal_property_values.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
 	}
 
 	for _, userId := range reviewersUserIDs {
