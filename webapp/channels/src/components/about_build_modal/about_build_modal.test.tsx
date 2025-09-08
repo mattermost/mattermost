@@ -252,7 +252,7 @@ describe('components/AboutBuildModal', () => {
 
     test('should handle API errors gracefully', async () => {
         // Temporarily suppress console.error for this test
-        jest.spyOn(console, 'error').mockImplementation(() => {});
+        console.error = jest.fn();
 
         // Mock the API call to throw an error
         jest.spyOn(Client4, 'getLicenseLoadMetric').mockRejectedValue(new Error('API error'));
