@@ -9,6 +9,7 @@ import (
 	"slices"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -67,6 +68,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetPostReminderMetadata", func(t *testing.T) { testGetPostReminderMetadata(t, rctx, ss, s) })
 	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, rctx, ss) })
 	t.Run("GetEditHistoryForPost", func(t *testing.T) { testGetEditHistoryForPost(t, rctx, ss) })
+	t.Run("PostStoreConcurrentReplies", func(t *testing.T) { testPostStoreConcurrentReplies(t, rctx, ss, s) })
 }
 
 func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -5721,5 +5723,69 @@ func testGetPostsSinceForSyncExcludeMetadata(t *testing.T, rctx request.CTX, ss 
 		require.Equal(t, 1, postTypeCount[model.PostTypeHeaderChange], "should have 1 header change post")
 		require.Equal(t, 1, postTypeCount[model.PostTypeDisplaynameChange], "should have 1 display name change post")
 		require.Equal(t, 1, postTypeCount[model.PostTypePurposeChange], "should have 1 purpose change post")
+	})
+}
+
+func testPostStoreConcurrentReplies(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("Concurrent replies should not fail", func(t *testing.T) {
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "ThreadRaceChannel",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		root := model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Message:   "root post " + NewTestID(),
+		}
+		rootPost, err := ss.Post().Save(rctx, &root)
+		require.NoError(t, err)
+
+		// Prepare concurrent replies
+		reply1 := model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			RootId:    rootPost.Id,
+			Message:   "reply1 " + NewTestID(),
+		}
+		reply2 := model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			RootId:    rootPost.Id,
+			Message:   "reply2 " + NewTestID(),
+		}
+
+		var wg sync.WaitGroup
+		wg.Add(2)
+		errs := make(chan error, 2)
+
+		go func() {
+			defer wg.Done()
+			_, err := ss.Post().Save(rctx, &reply1)
+			errs <- err
+		}()
+		go func() {
+			defer wg.Done()
+			_, err := ss.Post().Save(rctx, &reply2)
+			errs <- err
+		}()
+
+		wg.Wait()
+		close(errs)
+
+		// Ensure no errors occurred during concurrent insert
+		for err := range errs {
+			require.NoError(t, err, "unexpected error while saving concurrent replies")
+		}
+
+		// Validate thread updated correctly
+		thread, err := ss.Thread().Get(rootPost.Id)
+		require.NoError(t, err)
+		assert.Equal(t, int64(2), thread.ReplyCount, "reply count should match number of replies")
+		assert.ElementsMatch(t, []string{reply1.UserId, reply2.UserId}, thread.Participants, "participants should include both users")
 	})
 }
