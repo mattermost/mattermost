@@ -47,7 +47,7 @@ const UsersToBeRemovedModal = ({total, scope, scopeId, users, onExited}: Props) 
             defaultMessage='<b>{total, number} {total, plural, one {User} other {Users}}</b> To Be Removed'
             values={{
                 total,
-                b: (chunks: string) => <b>{chunks}</b>,
+                b: (chunks) => <b>{chunks}</b>,
             }}
         />
     );

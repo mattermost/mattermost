@@ -31,7 +31,7 @@ const AttributeHelpText = memo(({attributeKey, attributeName, attributeType}: At
                 defaultMessage='(Optional) The attribute in the AD/LDAP server used to populate the {name} of users in Mattermost. When set, users cannot edit their {name}, since it is synchronized with the LDAP server. When left blank, users can set their {name} in <strong>Account Menu > Account Settings > Profile</strong>.'
                 values={{
                     name: attributeName,
-                    strong: (msg: string) => <strong>{msg}</strong>,
+                    strong: (msg) => <strong>{msg}</strong>,
                 }}
             />
         )}
@@ -51,7 +51,7 @@ const AttributeHelpText = memo(({attributeKey, attributeName, attributeType}: At
                     defaultMessage='(Warning) This attribute will be converted to a TEXT attribute, if the field is set to synchronize.'
                     values={{
                         name: attributeName,
-                        strong: (msg: string) => <strong>{msg}</strong>,
+                        strong: (msg) => <strong>{msg}</strong>,
                     }}
                 />
             </div>
@@ -134,7 +134,7 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                         id='admin.customProfileAttributes.subtitle'
                         defaultMessage='You can add or remove custom profile attributes by going to the <link>system properties page</link>.'
                         values={{
-                            link: (msg: string) => (
+                            link: (msg) => (
                                 <Link
                                     to='/admin_console/system_attributes/user_attributes'
                                 >

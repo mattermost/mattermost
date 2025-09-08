@@ -246,7 +246,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                             id='channelSelectorModal.title'
                             defaultMessage='Add Channels to <b>Channel Selection</b> List'
                             values={{
-                                b: (chunks: string) => <b>{chunks}</b>,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                     </Modal.Title>

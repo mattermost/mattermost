@@ -58,7 +58,7 @@ const CustomEnableDisableGuestAccountsSetting = ({
             id='admin.guest_access.helpText'
             defaultMessage='When true, external guest can be invited to channels within teams. Please see <a>Permissions Schemes</a> for which roles can invite guests.'
             values={{
-                a: (chunks: string) => <Link to='/admin_console/user_management/permissions/system_scheme'>{chunks}</Link>,
+                a: (chunks) => <Link to='/admin_console/user_management/permissions/system_scheme'>{chunks}</Link>,
             }}
         />
     );

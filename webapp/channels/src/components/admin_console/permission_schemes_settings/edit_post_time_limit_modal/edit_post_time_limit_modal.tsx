@@ -89,7 +89,7 @@ export default function EditPostTimeLimitModal(props: Props) {
                     id='editPost.timeLimitModal.description'
                     defaultMessage='Setting a time limit <b>applies to all users</b> who have the "Edit Post" permissions in any permission scheme.'
                     values={{
-                        b: (chunks: string) => <b>{chunks}</b>,
+                        b: (chunks) => <b>{chunks}</b>,
                     }}
                 />
                 <div className='pt-3'>

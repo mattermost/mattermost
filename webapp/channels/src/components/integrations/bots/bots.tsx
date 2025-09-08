@@ -239,7 +239,7 @@ export default class Bots extends React.PureComponent<Props, State> {
                         id='bots.emptySearch'
                         defaultMessage='No bot accounts match <b>{searchTerm}</b>'
                         values={{
-                            b: (chunks: string) => <b>{chunks}</b>,
+                            b: (chunks) => <b>{chunks}</b>,
                         }}
                     />
                 }
@@ -266,7 +266,7 @@ export default class Bots extends React.PureComponent<Props, State> {
                             id='bots.help2'
                             defaultMessage={'Enable bot account creation in the <a>System Console</a>.'}
                             values={{
-                                a: (chunks: string) => <Link to='/admin_console/integrations/bot_accounts'>{chunks}</Link>,
+                                a: (chunks) => <Link to='/admin_console/integrations/bot_accounts'>{chunks}</Link>,
                             }}
                         />
                     </>

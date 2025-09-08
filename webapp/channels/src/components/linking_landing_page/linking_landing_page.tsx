@@ -245,7 +245,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                         id='getApp.downloadLinkInBrowser'
                         defaultMessage='Or, <a>open this link in your browser</a>.'
                         values={{
-                            a: (chunks: string) => (
+                            a: (chunks) => (
                                 <ExternalLink
                                     href={this.state.location}
                                     location='landingPage'

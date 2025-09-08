@@ -191,7 +191,7 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
                                 defaultMessage='No results found matching <b>{searchQuery}</b>'
                                 values={{
                                     searchQuery: this.props.query,
-                                    b: (value: string) => <b>{value}</b>,
+                                    b: (value) => <b>{value}</b>,
                                 }}
                             />
                         </p>

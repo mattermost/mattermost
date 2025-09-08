@@ -866,7 +866,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         defaultMessage='By proceeding to create your account and use {siteName}, you agree to our <termsOfUseLink>Terms of Use</termsOfUseLink> and <privacyPolicyLink>Privacy Policy</privacyPolicyLink>.  If you do not agree, you cannot use {siteName}.'
                                         values={{
                                             siteName: SiteName,
-                                            termsOfUseLink: (chunks: string) => (
+                                            termsOfUseLink: (chunks) => (
                                                 <ExternalLink
                                                     href={TermsOfServiceLink as string}
                                                     location='signup-terms-of-use'
@@ -874,7 +874,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                                     {chunks}
                                                 </ExternalLink>
                                             ),
-                                            privacyPolicyLink: (chunks: string) => (
+                                            privacyPolicyLink: (chunks) => (
                                                 <ExternalLink
                                                     href={PrivacyPolicyLink as string}
                                                     location='signup-privacy-policy'

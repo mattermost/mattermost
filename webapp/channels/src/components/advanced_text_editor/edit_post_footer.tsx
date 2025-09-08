@@ -51,7 +51,7 @@ export default function EditPostFooter(props: Props) {
                 defaultMessage='<strong>{key}ENTER</strong> to Save, <strong>ESC</strong> to Cancel'
                 values={{
                     key: sendOnCtrlEnter ? ctrlSendKey : '',
-                    strong: (x: string) => <strong>{x}</strong>,
+                    strong: (x) => <strong>{x}</strong>,
                 }}
             />
         </div>

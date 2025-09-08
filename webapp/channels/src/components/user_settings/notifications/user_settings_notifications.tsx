@@ -1026,7 +1026,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                 id='user.settings.notifications.learnMore'
                                 defaultMessage='<a>Learn more about notifications</a>'
                                 values={{
-                                    a: (chunks: string) => ((
+                                    a: (chunks) => ((
                                         <ExternalLink
                                             location='user_settings_notifications'
                                             href='https://mattermost.com/pl/about-notifications'
