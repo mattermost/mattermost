@@ -66,6 +66,50 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  /api/v4/access_control_policies/cel/validate_requester:
+    post:
+      tags:
+        - access control
+      summary: Validate if the current user matches a CEL expression
+      description: |
+        Validates whether the current authenticated user matches the given CEL expression.
+        This is used to determine if a channel admin can test expressions they match.
+        ##### Permissions
+        Must be authenticated. Channel admins can only test expressions they match.
+      operationId: ValidateExpressionAgainstRequester
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expression:
+                  type: string
+                  description: The CEL expression to validate against the current user.
+              required:
+                - expression
+      responses:
+        "200":
+          description: Validation result returned successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requester_matches:
+                    type: boolean
+                    description: Whether the current user matches the expression.
+                required:
+                  - requester_matches
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /api/v4/access_control_policies/cel/test:
     post:
       tags:
