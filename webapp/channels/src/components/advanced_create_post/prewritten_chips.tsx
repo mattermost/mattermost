@@ -9,8 +9,6 @@ import styled from 'styled-components';
 import {getChannel, getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import Chip from 'components/common/chip/chip';
 
 import Constants from 'utils/constants';
@@ -160,7 +158,7 @@ const PrewrittenChips = ({channelId, currentUserId, prefillMessage}: Props) => {
 
     return (
         <ChipContainer>
-            {chips.map(({event, message, display, leadingIcon}) => {
+            {chips.map(({message, display, leadingIcon}) => {
                 const values = {username: channelTeammateUsername};
                 const messageToPrefill = message.id ? formatMessage(
                     message,
@@ -180,9 +178,6 @@ const PrewrittenChips = ({channelId, currentUserId, prefillMessage}: Props) => {
                         additionalMarkup={additionalMarkup}
                         values={values}
                         onClick={() => {
-                            if (event) {
-                                trackEvent('ui', event);
-                            }
                             prefillMessage(messageToPrefill, true);
                         }}
                         otherOption={!message.id}

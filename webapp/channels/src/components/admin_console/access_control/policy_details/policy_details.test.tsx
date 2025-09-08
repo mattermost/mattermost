@@ -88,6 +88,8 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             getAccessControlFields: mockGetAccessControlFields,
             getVisualAST: mockGetVisualAST,
             searchUsers: jest.fn(),
+            getChannelPolicy: jest.fn(),
+            saveChannelPolicy: jest.fn(),
         });
 
         mockCreatePolicy.mockReset();

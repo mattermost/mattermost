@@ -11,7 +11,6 @@ import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selecto
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
 import {unregisterAdminConsolePlugin} from 'actions/admin_actions';
-import {trackPluginInitialization} from 'actions/telemetry_actions';
 import {unregisterPluginTranslationsSource} from 'actions/views/root';
 import {unregisterAllPluginWebSocketEvents, unregisterPluginReconnectHandler} from 'actions/websocket_actions';
 import store from 'stores/redux_store';
@@ -107,8 +106,6 @@ export async function initializePlugins(): Promise<void> {
             console.error(loadErr.message); //eslint-disable-line no-console
         });
     }));
-
-    trackPluginInitialization(data);
 }
 
 // getPlugins queries the server for all enabled plugins
