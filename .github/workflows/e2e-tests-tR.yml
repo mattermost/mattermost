@@ -1,10 +1,11 @@
 name : End-to-End testing with tR
-#just testing stuff
+#now that we got a workflow file that manages to work on branch push
+#we can make it so it sets up mattermost and runs tR tests
 on:
   push:
-    branches: tR-e2e-tests
+    branches: [tR-e2e-tests, main]
   pull_request:
-    branches: tR-e2e-tests
+    branches: [tR-e2e-tests, main]
   workflow_dispatch:
 
 jobs:
@@ -14,4 +15,14 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Run a one-line script
-        run: echo Hello world! 
+        run: echo Hello world!
+
+      - name: Setup and install PostgreSQL
+        run: | 
+          apt install postgresql
+          locale-gen en_US.UTF-8
+          sudo -u postgres psql
+          CREATE DATABASE mattermost WITH ENCODING 'UTF8' LC_COLLATE='en_US.UTF-8' LC_CTYPE='en_US.UTF-8' TEMPLATE=template0;
+          CREATE USER mmuser WITH PASSWORD 'mmuser-password';
+          GRANT ALL PRIVILEGES ON DATABASE mattermost to mmuser;
+
