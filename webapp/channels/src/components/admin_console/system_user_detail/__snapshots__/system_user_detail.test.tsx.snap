@@ -811,9 +811,11 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
               class="AbstractList__body"
             >
               <div
-                class="AbstractList__empty"
+                class="AbstractList__loading"
               >
-                No teams found
+                <i
+                  class="fa fa-spinner fa-pulse fa-2x"
+                />
               </div>
             </div>
           </div>

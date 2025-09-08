@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {act} from 'react';
 
 import type {UserPropertyField} from '@mattermost/types/properties';
 
@@ -363,7 +363,9 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
 
         // Simulate expression change
-        onChangeCallback('user.attributes.department == "Engineering"');
+        act(() => {
+            onChangeCallback('user.attributes.department == "Engineering"');
+        });
 
         expect(setAreThereUnsavedChanges).toHaveBeenCalledWith(true);
     });

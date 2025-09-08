@@ -137,17 +137,17 @@ describe('identifyElementRegion', () => {
             },
         );
 
+        // Use waitFor since we're waiting for any lazily-loaded components to load
         await waitFor(() => {
             expect(identifyElementRegion(screen.getAllByText(channel.display_name)[0])).toEqual('channel_sidebar');
-        });
 
-        expect(identifyElementRegion(screen.getAllByText(channel.display_name)[1])).toEqual('channel_header');
-        expect(identifyElementRegion(screen.getAllByText(channel.header)[0])).toEqual('channel_header');
+            expect(identifyElementRegion(screen.getAllByText(channel.display_name)[1])).toEqual('channel_header');
 
-        await waitFor(() => {
+            expect(identifyElementRegion(screen.getAllByText(channel.header)[0])).toEqual('channel_header');
+
             expect(identifyElementRegion(screen.getByText(post.message))).toEqual('post');
-        });
 
-        expect(identifyElementRegion(screen.getByPlaceholderText('Write to ' + channel.display_name))).toEqual('post_textbox');
+            expect(identifyElementRegion(screen.getByPlaceholderText('Write to ' + channel.display_name))).toEqual('post_textbox');
+        });
     });
 });
