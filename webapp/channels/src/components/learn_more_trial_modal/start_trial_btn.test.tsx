@@ -12,14 +12,6 @@ import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 
-jest.mock('actions/telemetry_actions.jsx', () => {
-    const original = jest.requireActual('actions/telemetry_actions.jsx');
-    return {
-        ...original,
-        trackEvent: jest.fn(),
-    };
-});
-
 jest.mock('mattermost-redux/actions/general', () => ({
     ...jest.requireActual('mattermost-redux/actions/general'),
     getLicenseConfig: () => ({type: 'adsf'}),
@@ -76,7 +68,6 @@ describe('components/learn_more_trial_modal/start_trial_btn', () => {
     const props = {
         onClick: jest.fn(),
         message: 'Start trial',
-        telemetryId: 'test_telemetry_id',
     };
 
     test('should match snapshot', () => {

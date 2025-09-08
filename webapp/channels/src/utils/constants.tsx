@@ -554,6 +554,7 @@ export enum LicenseSkus {
     Professional = 'professional',
     Enterprise = 'enterprise',
     EnterpriseAdvanced = 'advanced',
+    Entry = 'entry',
 }
 
 export function getLicenseTier(licenseSku: string): number {
@@ -562,6 +563,7 @@ export function getLicenseTier(licenseSku: string): number {
         return 10;
     case LicenseSkus.Enterprise:
         return 20;
+    case LicenseSkus.Entry:
     case LicenseSkus.EnterpriseAdvanced:
         return 30;
     default:
@@ -793,44 +795,6 @@ export const AdvancedTextEditorTextboxIds = {
     Default: 'textbox',
 };
 
-export const TELEMETRY_CATEGORIES = {
-    CLOUD_PURCHASING: 'cloud_purchasing',
-    CLOUD_PRICING: 'cloud_pricing',
-    SELF_HOSTED_PURCHASING: 'self_hosted_purchasing',
-    SELF_HOSTED_EXPANSION: 'self_hosted_expansion',
-    CLOUD_ADMIN: 'cloud_admin',
-    CLOUD_DELINQUENCY: 'cloud_delinquency',
-    SELF_HOSTED_ADMIN: 'self_hosted_admin',
-    POST_INFO_MORE: 'post_info_more_menu',
-    POST_INFO: 'post_info',
-    SELF_HOSTED_START_TRIAL_AUTO_MODAL: 'self_hosted_start_trial_auto_modal',
-    SELF_HOSTED_START_TRIAL_MODAL: 'self_hosted_start_trial_modal',
-    CLOUD_START_TRIAL_BUTTON: 'cloud_start_trial_button',
-    CLOUD_THREE_DAYS_LEFT_MODAL: 'cloud_three_days_left_modal',
-    SELF_HOSTED_START_TRIAL_TASK_LIST: 'self_hosted_start_trial_task_list',
-    SELF_HOSTED_LICENSE_EXPIRED: 'self_hosted_license_expired',
-    WORKSPACE_OPTIMIZATION_DASHBOARD: 'workspace_optimization_dashboard',
-    REQUEST_BUSINESS_EMAIL: 'request_business_email',
-    TRUE_UP_REVIEW: 'true_up_review',
-};
-
-export const TELEMETRY_LABELS = {
-    UNSAVE: 'unsave',
-    SAVE: 'save',
-    COPY_LINK: 'copy_link',
-    COPY_TEXT: 'copy_text',
-    DELETE: 'delete',
-    EDIT: 'edit',
-    FOLLOW: 'follow',
-    UNFOLLOW: 'unfollow',
-    PIN: 'pin',
-    UNPIN: 'unpin',
-    REPLY: 'reply',
-    UNREAD: 'unread',
-    FORWARD: 'forward',
-    MOVE_THREAD: 'move_thread',
-};
-
 export const PostTypes = {
     JOIN_LEAVE: 'system_join_leave',
     JOIN_CHANNEL: 'system_join_channel',
@@ -858,6 +822,7 @@ export const PostTypes = {
     WRANGLER: 'system_wrangler',
     CUSTOM_CALLS: 'custom_calls',
     CUSTOM_CALLS_RECORDING: 'custom_calls_recording',
+    CUSTOM_DATA_SPILLAGE_REPORT: 'custom_spillage_report',
 };
 
 export const StatTypes = keyMirror({
@@ -1510,6 +1475,23 @@ export const ZoomSettings = {
     SCALE_DELTA: 0.25,
     MIN_SCALE: 0.25,
     MAX_SCALE: 3.0,
+};
+
+export const DataSpillagePropertyNames = {
+    Status: 'Status',
+    FlaggedBy: 'Flagged by',
+    Reason: 'Reason',
+    Comment: 'Comment',
+    ReportingTime: 'Reporting Time',
+    ReviewingUser: 'Reviewing User',
+    ActionBy: 'Action By',
+    ActionComment: 'Action Comment',
+    ActionTime: 'Action Time',
+    Message: 'Message',
+    PostedIn: 'Posted in',
+    Team: 'Team',
+    PostedBy: 'Posted by',
+    PostedAt: 'Posted at',
 };
 
 export const Constants = {
