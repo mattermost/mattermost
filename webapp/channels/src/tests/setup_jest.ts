@@ -5,6 +5,7 @@
 
 import Adapter from '@cfaester/enzyme-adapter-react-18';
 import {configure} from 'enzyme';
+import nock from 'nock';
 
 import '@testing-library/jest-dom';
 import 'isomorphic-fetch';
@@ -129,3 +130,6 @@ jest.mock('react-redux', () => ({
     __esModule: true,
     ...jest.requireActual('react-redux'),
 }));
+
+// Prevent any connections from being made to the internet outside of Nock
+nock.disableNetConnect();
