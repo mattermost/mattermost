@@ -54,9 +54,18 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
     const removeActionLabel = formatMessage({id: 'keep_remove_flag_content_modal.action_remove.title', defaultMessage: 'Remove message from channel'});
     const keepActionLabel = formatMessage({id: 'keep_remove_flag_content_modal.action_keep.title', defaultMessage: 'Keep message'});
 
-    const body = formatMessage({
-        id: 'remove_flag_confirm_modal.body',
+    const removeActionBody = formatMessage({
+        id: 'keep_remove_flag_content_modal.action_remove.body',
         defaultMessage: 'You are about to remove a message authored by {flaggedPostAuthor} posed in the {flaggedPostChannel} channel and flagged for review by {reportingUser}.',
+    }, {
+        br: <br/>,
+        flaggedPostChannel: flaggedPostChannel?.display_name,
+        reportingUser: <AtMention mentionName={reportingUser?.username || ''}/>,
+        flaggedPostAuthor: <AtMention mentionName={flaggedPostAuthor?.username || ''}/>,
+    });
+    const keepActionBody = formatMessage({
+        id: 'keep_remove_flag_content_modal.action_keep.body',
+        defaultMessage: 'You are about to keep a flagged message authored by {flaggedPostAuthor} posed in the {flaggedPostChannel} channel and flagged for review by {reportingUser}.',
     }, {
         br: <br/>,
         flaggedPostChannel: flaggedPostChannel?.display_name,
@@ -91,11 +100,13 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
 
     let label;
     let subtext;
+    let body;
     let buttonText;
     let confirmButtonClass;
 
     if (action === 'remove') {
         label = removeActionLabel;
+        body = removeActionBody;
         buttonText = removeMessageButtonText;
         confirmButtonClass = 'btn-danger';
 
@@ -106,6 +117,7 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
         }
     } else {
         label = keepActionLabel;
+        body = keepActionBody;
         buttonText = keepMessageButtonText;
         confirmButtonClass = 'btn-primary';
 

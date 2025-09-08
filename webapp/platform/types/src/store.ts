@@ -8,7 +8,7 @@ import type {ChannelBookmarksState} from './channel_bookmarks';
 import type {ChannelCategoriesState} from './channel_categories';
 import type {ChannelsState} from './channels';
 import type {CloudState, CloudUsage} from './cloud';
-import type {ContentFlaggingConfig} from './content_flagging';
+import type {ContentFlaggingState} from './content_flagging';
 import type {EmojisState} from './emojis';
 import type {FilesState} from './files';
 import type {GeneralState} from './general';
@@ -17,9 +17,8 @@ import type {HostedCustomerState} from './hosted_customer';
 import type {IntegrationsState} from './integrations';
 import type {JobsState} from './jobs';
 import type {LimitsState} from './limits';
-import type {Post, PostsState} from './posts';
+import type {PostsState} from './posts';
 import type {PreferenceType} from './preferences';
-import type {PropertyField, PropertyValue} from './properties';
 import type {
     AdminRequestsStatuses, ChannelsRequestsStatuses,
     FilesRequestsStatuses, GeneralRequestsStatuses,
@@ -35,7 +34,6 @@ import type {TeamsState} from './teams';
 import type {ThreadsState} from './threads';
 import type {Typing} from './typing';
 import type {UsersState} from './users';
-import type {IDMappedCollection} from './utilities';
 
 export type GlobalState = {
     entities: {
@@ -85,11 +83,7 @@ export type GlobalState = {
             remotes?: Record<string, RemoteClusterInfo[]>;
             remotesByRemoteId?: Record<string, RemoteClusterInfo>;
         };
-        contentFlagging: {
-            settings?: ContentFlaggingConfig;
-            fields?: IDMappedCollection<PropertyField>;
-            postValues?: {[key: Post['id']]: Array<PropertyValue<unknown>>};
-        };
+        contentFlagging: ContentFlaggingState;
     };
     errors: any[];
     requests: {

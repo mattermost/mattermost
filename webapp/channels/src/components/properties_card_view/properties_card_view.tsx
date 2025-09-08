@@ -48,6 +48,10 @@ const fieldNameMessages = defineMessages({
         id: 'property_card.field.post_preview.label',
         defaultMessage: 'Message',
     },
+    post_id: {
+        id: 'property_card.field.post_od.label',
+        defaultMessage: 'Post ID',
+    },
     reviewer: {
         id: 'property_card.field.reviewer_user_id.label',
         defaultMessage: 'Reviewer',

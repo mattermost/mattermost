@@ -94,6 +94,7 @@ export default function PostPreviewPropertyRenderer({value, metadata}: Props) {
                 handleFileDropdownOpened={noop}
                 preventClickAction={true}
                 previewFooterMessage={postPreviewFooterMessage}
+                usePostAsSource={true}
             />
         </div>
     );

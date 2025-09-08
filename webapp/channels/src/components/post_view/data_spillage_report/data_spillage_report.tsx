@@ -30,6 +30,7 @@ const orderedFieldName = [
     'status',
     'reporting_reason',
     'post_preview',
+    'post_id',
     'reviewer',
     'reporting_user_id',
     'reporting_time',
