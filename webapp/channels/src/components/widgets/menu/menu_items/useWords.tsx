@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
 import React from 'react';
 import type {ReactNode} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
@@ -39,7 +38,7 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
         });
     }
 
-    const values: Record<string, PrimitiveType | FormatXMLElementFn<string, string> | ((chunks: React.ReactNode | React.ReactNodeArray) => JSX.Element)> = {
+    const values = {
         callToAction,
         a: (chunks: React.ReactNode | React.ReactNodeArray) => {
             if (isAirGapped) {
@@ -55,7 +54,7 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
                 </a>
             );
         },
-
+        limit: '',
     };
 
     let featureToNotifyOn = '';
