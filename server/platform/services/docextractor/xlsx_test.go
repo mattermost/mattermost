@@ -5,6 +5,7 @@ package docextractor
 
 import (
 	"bytes"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -202,8 +203,8 @@ func TestXlsxExtractor_LargeFile(t *testing.T) {
 
 		// Add 100 rows of data
 		for i := 2; i <= 101; i++ {
-			f.SetCellValue("Sheet1", "A"+string(rune('0'+i)), i-1)
-			f.SetCellValue("Sheet1", "B"+string(rune('0'+i)), "Value"+string(rune('0'+i)))
+			f.SetCellValue("Sheet1", "A"+strconv.Itoa(i), i-1)
+			f.SetCellValue("Sheet1", "B"+strconv.Itoa(i), "Value"+strconv.Itoa(i))
 		}
 
 		// Save to buffer

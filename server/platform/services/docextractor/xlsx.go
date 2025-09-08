@@ -98,7 +98,7 @@ func (xe *xlsxExtractor) Extract(filename string, r io.ReadSeeker) (out string, 
 		
 		// Process each row
 		nonEmptyRows := 0
-		for rowIdx, row := range rows {
+		for _, row := range rows {
 			// Skip completely empty rows
 			hasContent := false
 			for _, cell := range row {
@@ -115,7 +115,7 @@ func (xe *xlsxExtractor) Extract(filename string, r io.ReadSeeker) (out string, 
 			nonEmptyRows++
 			
 			// Add row content
-			if rowIdx > 0 {
+			if nonEmptyRows > 1 {
 				textBuilder.WriteString("\n")
 			}
 			

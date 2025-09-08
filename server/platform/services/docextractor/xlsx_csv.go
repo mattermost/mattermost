@@ -267,7 +267,7 @@ func (xe *xlsxExtractorCSV) extractAsTSV(f *excelize.File, sheetNames []string, 
 		}
 		
 		nonEmptyRows := 0
-		for rowIdx, row := range rows {
+		for _, row := range rows {
 			hasContent := false
 			for _, cell := range row {
 				if strings.TrimSpace(cell) != "" {
@@ -282,7 +282,7 @@ func (xe *xlsxExtractorCSV) extractAsTSV(f *excelize.File, sheetNames []string, 
 			
 			nonEmptyRows++
 			
-			if rowIdx > 0 {
+			if nonEmptyRows > 1 {
 				textBuilder.WriteString("\n")
 			}
 			
