@@ -12,8 +12,6 @@ import {General} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import ExternalLink from 'components/external_link';
 import BotTag from 'components/widgets/tag/bot_tag';
 import Avatar from 'components/widgets/users/avatar';
@@ -104,26 +102,6 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
         });
     };
 
-    trackRoleChanges = (roles: string, oldRoles: string) => {
-        if (UserUtils.hasUserAccessTokenRole(roles) && !UserUtils.hasUserAccessTokenRole(oldRoles)) {
-            trackEvent('actions', 'add_roles', {role: General.SYSTEM_USER_ACCESS_TOKEN_ROLE});
-        } else if (!UserUtils.hasUserAccessTokenRole(roles) && UserUtils.hasUserAccessTokenRole(oldRoles)) {
-            trackEvent('actions', 'remove_roles', {role: General.SYSTEM_USER_ACCESS_TOKEN_ROLE});
-        }
-
-        if (UserUtils.hasPostAllRole(roles) && !UserUtils.hasPostAllRole(oldRoles)) {
-            trackEvent('actions', 'add_roles', {role: General.SYSTEM_POST_ALL_ROLE});
-        } else if (!UserUtils.hasPostAllRole(roles) && UserUtils.hasPostAllRole(oldRoles)) {
-            trackEvent('actions', 'remove_roles', {role: General.SYSTEM_POST_ALL_ROLE});
-        }
-
-        if (UserUtils.hasPostAllPublicRole(roles) && !UserUtils.hasPostAllPublicRole(oldRoles)) {
-            trackEvent('actions', 'add_roles', {role: General.SYSTEM_POST_ALL_PUBLIC_ROLE});
-        } else if (!UserUtils.hasPostAllPublicRole(roles) && UserUtils.hasPostAllPublicRole(oldRoles)) {
-            trackEvent('actions', 'remove_roles', {role: General.SYSTEM_POST_ALL_PUBLIC_ROLE});
-        }
-    };
-
     onHide = () => {
         this.setState({show: false});
     };
@@ -145,7 +123,6 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
         }
 
         const result = await this.props.actions.updateUserRoles(this.props.user!.id, roles);
-        this.trackRoleChanges(roles, this.props.user!.roles);
 
         if (isSuccess(result)) {
             this.props.onSuccess(roles);

@@ -4065,7 +4065,6 @@
   "user.settings.advance.onForAllMessages": "Bekapcsolva minden üzenethez",
   "user.settings.advance.onForCode": "Bekapcsolva csak a ``` kezdetű kódblokkokhoz",
   "user.settings.advance.performance.disableClientPlugins": "Kliens oldali bővítmények tiltása",
-  "user.settings.advance.performance.disableTelemetry": "A kliens által küldött telemetriai események letiltása",
   "user.settings.advance.performance.disableTypingMessages": "A \"felhasználó gépel...\" üzenetek letiltása",
   "user.settings.advance.performance.info1": "Ezeket a beállításokat ideiglenesen engedélyezheti, hogy segítsen a teljesítményproblémák elkülönítésében a hibakeresés során. Nem javasoljuk, hogy ezeket a beállításokat hosszabb időre engedélyezve hagyja, mivel negatívan befolyásolhatják a felhasználói élményt.",
   "user.settings.advance.performance.info2": "Előfordulhat, hogy frissítenie kell az oldalt, mielőtt ezek a beállítások érvénybe lépnének.",
