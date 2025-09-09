@@ -146,7 +146,7 @@ test('should forward pretext to handleWebapp unaltered (case-preserving)', () =>
     uaSpy.mockRestore();
 });
 
-test('handleWebapp calls backend with pretext unaltered', async () => {
+test('handleWebapp calls backend with command lowercased but args preserved', async () => {
     const original = Client4.getCommandAutocompleteSuggestionsList;
     const mock = jest.fn().mockResolvedValue([]);
     Client4.getCommandAutocompleteSuggestionsList = mock;
@@ -157,24 +157,49 @@ test('handleWebapp calls backend with pretext unaltered', async () => {
         rootId: 'current_root',
     });
 
-  const pretext = '/autolink set AbC Templ.';
-  const cb = jest.fn();
+    const pretext = '/autolink set AbC Templ.';
+    const cb = jest.fn();
 
-  await (provider as any).handleWebapp(pretext, cb);
+    await (provider as any).handleWebapp(pretext, cb);
 
-  expect(mock).toHaveBeenCalledTimes(1);
+    expect(mock).toHaveBeenCalledTimes(1);
 
-  const [argPretext, argTeamId, argOpts] = mock.mock.calls[0];
+    const [argPretext, argTeamId, argOpts] = mock.mock.calls[0];
 
-  expect(argPretext).toBe(pretext);
+    const spaceIndex = pretext.indexOf(' ');
+    const expected = spaceIndex === -1 ? pretext.toLowerCase() : pretext.slice(0, spaceIndex).toLowerCase() + pretext.slice(spaceIndex);
 
-  expect(argTeamId).toBe('current_team');
+    expect(argPretext).toBe(expected);
 
-  expect(argOpts).toEqual(expect.objectContaining({
-    channel_id: 'current_channel',
-    root_id: 'current_root',
-    team_id: 'current_team',
-  }));
+    expect(argTeamId).toBe('current_team');
 
-  Client4.getCommandAutocompleteSuggestionsList = original;
+    expect(argOpts).toEqual(expect.objectContaining({
+        channel_id: 'current_channel',
+        root_id: 'current_root',
+        team_id: 'current_team',
+    }));
+
+    Client4.getCommandAutocompleteSuggestionsList = original;
+});
+
+test('handleWebapp keeps matchedPretext as original (UI case-preserving)', async () => {
+    const original = Client4.getCommandAutocompleteSuggestionsList;
+    Client4.getCommandAutocompleteSuggestionsList = jest.fn().mockResolvedValue([]);
+
+    const provider = new CommandProvider({
+        teamId: 'current_team',
+        channelId: 'current_channel',
+        rootId: 'current_root',
+    });
+
+    const pretext = '/autolink set AbC Templ.';
+    const cb = jest.fn();
+
+    await (provider as any).handleWebapp(pretext, cb);
+
+    expect(cb).toHaveBeenCalledTimes(1);
+    const arg = cb.mock.calls[0][0];
+    expect(arg.matchedPretext).toBe(pretext);
+
+    Client4.getCommandAutocompleteSuggestionsList = original;
 });
