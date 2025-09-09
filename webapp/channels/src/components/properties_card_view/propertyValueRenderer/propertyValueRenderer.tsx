@@ -8,6 +8,12 @@ import type {
     PropertyValue,
 } from '@mattermost/types/properties';
 
+import type {
+    FieldMetadata,
+    PostPreviewFieldMetadata,
+    TextFieldMetadata,
+} from 'components/properties_card_view/properties_card_view';
+
 import ChannelPropertyRenderer from './channel_property_renderer/channel_property_renderer';
 import PostPreviewPropertyRenderer from './post_preview_property_renderer/post_preview_property_renderer';
 import SelectPropertyRenderer from './select_property_renderer/selectPropertyRenderer';
@@ -21,15 +27,17 @@ import './property_value_renderer.scss';
 type Props = {
     field: PropertyField;
     value: PropertyValue<unknown>;
+    metadata?: FieldMetadata;
 };
 
-export default function PropertyValueRenderer({field, value}: Props) {
+export default function PropertyValueRenderer({field, value, metadata}: Props) {
     switch (field.type) {
     case 'text':
         return (
             <RenderTextSubtype
                 field={field}
                 value={value}
+                metadata={metadata}
             />
         );
     case 'user':
@@ -51,7 +59,7 @@ export default function PropertyValueRenderer({field, value}: Props) {
     }
 }
 
-function RenderTextSubtype({field, value}: Props) {
+function RenderTextSubtype({field, value, metadata}: Props) {
     if (field.type !== 'text') {
         return null;
     }
@@ -59,9 +67,19 @@ function RenderTextSubtype({field, value}: Props) {
     const subType = field.attrs?.subType ?? 'text';
     switch (subType) {
     case 'text':
-        return <TextPropertyRenderer value={value}/>;
+        return (
+            <TextPropertyRenderer
+                value={value}
+                metadata={metadata as TextFieldMetadata}
+            />
+        );
     case 'post':
-        return <PostPreviewPropertyRenderer value={value}/>;
+        return (
+            <PostPreviewPropertyRenderer
+                value={value}
+                metadata={metadata as PostPreviewFieldMetadata}
+            />
+        );
     case 'channel':
         return <ChannelPropertyRenderer value={value}/>;
     case 'team':

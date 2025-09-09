@@ -17,8 +17,9 @@ import type {HostedCustomerState} from './hosted_customer';
 import type {IntegrationsState} from './integrations';
 import type {JobsState} from './jobs';
 import type {LimitsState} from './limits';
-import type {PostsState} from './posts';
+import type {Post, PostsState} from './posts';
 import type {PreferenceType} from './preferences';
+import type {PropertyField, PropertyValue} from './properties';
 import type {
     AdminRequestsStatuses, ChannelsRequestsStatuses,
     FilesRequestsStatuses, GeneralRequestsStatuses,
@@ -34,6 +35,7 @@ import type {TeamsState} from './teams';
 import type {ThreadsState} from './threads';
 import type {Typing} from './typing';
 import type {UsersState} from './users';
+import type {IDMappedCollection} from './utilities';
 
 export type GlobalState = {
     entities: {
@@ -85,6 +87,8 @@ export type GlobalState = {
         };
         contentFlagging: {
             settings?: ContentFlaggingConfig;
+            fields?: IDMappedCollection<PropertyField>;
+            postValues?: {[key: Post['id']]: Array<PropertyValue<unknown>>};
         };
     };
     errors: any[];

@@ -345,7 +345,7 @@ func (a *App) sendPostUpdateEvent(c request.CTX, post *model.Post) {
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", post.ChannelId, "", nil, "")
 
 	// Prepare the post with metadata for the event
-	preparedPost := a.PreparePostForClient(c, post, false, true, true)
+	preparedPost := a.PreparePostForClient(c, post, &model.PreparePostForClientOpts{IsEditPost: true, IncludePriority: true})
 
 	if appErr := a.publishWebsocketEventForPost(c, preparedPost, message); appErr != nil {
 		c.Logger().Warn("Failed to send post update event for acknowledgement sync", mlog.String("post_id", post.Id), mlog.Err(appErr))

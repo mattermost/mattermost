@@ -112,7 +112,12 @@ import type {
 import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
-import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties';
+import type {
+    NameMappedPropertyFields,
+    UserPropertyField,
+    UserPropertyFieldPatch,
+    PropertyValue,
+} from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
@@ -2213,9 +2218,9 @@ export default class Client4 {
         );
     };
 
-    getPost = (postId: string) => {
+    getPost = (postId: string, includeDeleted?: boolean, retainContent?: boolean) => {
         return this.doFetch<Post>(
-            `${this.getPostRoute(postId)}`,
+            `${this.getPostRoute(postId)}${buildQueryString({include_deleted: includeDeleted, retain_content: retainContent})}`,
             {method: 'get'},
         );
     };
@@ -4596,6 +4601,27 @@ export default class Client4 {
                 method: 'post',
                 body: JSON.stringify({reason, comment: JSON.stringify(comment)}),
             },
+        );
+    };
+
+    getPostContentFlaggingFields = () => {
+        return this.doFetch<NameMappedPropertyFields>(
+            `${this.getContentFlaggingRoute()}/fields`,
+            {method: 'get'},
+        );
+    };
+
+    getPostContentFlaggingValues = (postId: string) => {
+        return this.doFetch<Array<PropertyValue<unknown>>>(
+            `${this.getContentFlaggingRoute()}/post/${postId}/field_values`,
+            {method: 'get'},
+        );
+    };
+
+    getFlaggedPost = (postId: string) => {
+        return this.doFetch<Post>(
+            `${this.getContentFlaggingRoute()}/post/${postId}`,
+            {method: 'get'},
         );
     };
 }
