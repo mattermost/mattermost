@@ -364,7 +364,11 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
         expect(flaggedBy).toBeVisible();
         expect(flaggedBy).toHaveTextContent('reporting_user');
 
-        const comment = screen.queryByTestId('text-property');
+        const postId = screen.queryAllByTestId('text-property')[0];
+        expect(postId).toBeVisible();
+        expect(postId).toHaveTextContent(reportedPost.id);
+
+        const comment = screen.queryAllByTestId('text-property')[1];
         expect(comment).toBeVisible();
         expect(comment).toHaveTextContent('Please review this post for potential violations');
 

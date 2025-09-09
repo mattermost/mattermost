@@ -8,6 +8,10 @@ import Textbox, {type Props} from 'components/textbox/textbox';
 
 import {TestHelper} from 'utils/test_helper';
 
+jest.mock('components/remove_flagged_message_confirmation_modal/remove_flagged_message_confirmation_modal', () => {
+    return jest.fn(() => <div data-testid='keep-remove-flagged-message-confirmation-modal'>{'KeepRemoveFlaggedMessageConfirmationModal Mock'}</div>);
+});
+
 describe('components/TextBox', () => {
     const baseProps: Props = {
         channelId: 'channelId',

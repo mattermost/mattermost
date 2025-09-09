@@ -25,11 +25,11 @@ export default function DataSpillageFooter({post}: Props) {
     return (
         <div
             className='DataSpillageFooter'
-            data-testid='data-spillage-action'
+            data-testid='data-spillage-footer'
         >
             <button
                 className='btn btn-primary btn-sm'
-                data-testid='data-spillage-action-remove-message'
+                data-testid='data-spillage-action-view-details'
                 onClick={onClick}
             >
                 <FormattedMessage
