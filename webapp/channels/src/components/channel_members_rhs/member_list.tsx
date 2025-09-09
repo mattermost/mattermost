@@ -25,10 +25,13 @@ export enum ListItemType {
     Separator = 'separator',
 }
 
-export interface ListItem {
-    type: ListItemType;
-    data: ChannelMember | JSX.Element;
-}
+export type ListItem = {
+    type: ListItemType.FirstSeparator | ListItemType.Separator;
+    data: JSX.Element;
+} | {
+    type: ListItemType.Member;
+    data: ChannelMember;
+};
 export interface Props {
     channel: Channel;
     members: ListItem[];

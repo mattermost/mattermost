@@ -62,6 +62,7 @@ import type {
     MessageWillBeUpdatedHook,
     AppBarChannelAction,
     DesktopNotificationHook,
+    PluggableText,
 } from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
@@ -90,7 +91,7 @@ function dispatchPluginComponentWithData<T extends keyof PluginsState['component
 }
 
 type ReactResolvable = React.ReactNode | React.ElementType;
-const resolveReactElement = (element: ReactResolvable) => {
+const resolveReactElement = (element: ReactResolvable): React.ReactNode => {
     if (
         element &&
         !React.isValidElement(element) &&
@@ -279,7 +280,7 @@ export default class PluginRegistry {
             pluginId: this.id,
             icon: resolveReactElement(icon),
             action,
-            text,
+            text: text as PluggableText,
         };
 
         dispatchPluginComponentWithData('ChannelIntroButton', data);
@@ -674,9 +675,9 @@ export default class PluginRegistry {
         dispatchPluginComponentWithData('FileUploadMethod', {
             id,
             pluginId: this.id,
-            text,
+            text: text as PluggableText,
             action,
-            icon,
+            icon: icon as React.ReactNode,
         });
 
         return id;

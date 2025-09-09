@@ -242,7 +242,7 @@ export type ProductComponent = PluginComponent & {
     /**
      * A string or React element to display in the product switcher
      */
-    switcherText: React.ReactNode | React.ElementType;
+    switcherText: React.ReactNode;
 
     /**
      * The route to be displayed at starting from the siteURL

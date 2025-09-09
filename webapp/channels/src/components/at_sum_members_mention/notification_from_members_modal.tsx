@@ -22,7 +22,8 @@ import {openDirectChannelToUserId} from 'actions/channel_actions';
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
-import MemberList from 'components/channel_members_rhs/member_list';
+import type {ListItem} from 'components/channel_members_rhs/member_list';
+import MemberList, {ListItemType} from 'components/channel_members_rhs/member_list';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {mapFeatureIdToTranslation} from 'utils/notify_admin_utils';
@@ -41,17 +42,6 @@ export interface ChannelMember {
     membership?: ChannelMembership;
     status?: string;
     displayName: string;
-}
-
-enum ListItemType {
-    Member = 'member',
-    FirstSeparator = 'first-separator',
-    Separator = 'separator',
-}
-
-export interface ListItem {
-    type: ListItemType;
-    data: ChannelMember | JSX.Element;
 }
 
 const MembersContainer = styled.div`
