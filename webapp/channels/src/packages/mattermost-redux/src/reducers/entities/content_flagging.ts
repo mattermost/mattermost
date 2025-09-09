@@ -8,10 +8,9 @@ import type {
     ContentFlaggingState,
 } from '@mattermost/types/content_flagging';
 import type {
-    PropertyField,
+    NameMappedPropertyFields,
     PropertyValue,
 } from '@mattermost/types/properties';
-import type {IDMappedCollection} from '@mattermost/types/utilities';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {ContentFlaggingTypes} from 'mattermost-redux/action_types';
@@ -29,7 +28,7 @@ function settings(state: ContentFlaggingState['settings'] = {} as ContentFlaggin
     }
 }
 
-function fields(state: ContentFlaggingState['fields'] = {} as IDMappedCollection<PropertyField>, action: MMReduxAction) {
+function fields(state: ContentFlaggingState['fields'] = {} as NameMappedPropertyFields, action: MMReduxAction) {
     switch (action.type) {
     case ContentFlaggingTypes.RECEIVED_POST_CONTENT_FLAGGING_FIELDS: {
         return {

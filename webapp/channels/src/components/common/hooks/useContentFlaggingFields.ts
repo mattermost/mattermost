@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ContentFlaggingConfig} from '@mattermost/types/lib/content_flagging';
+import type {ContentFlaggingConfig} from '@mattermost/types/content_flagging';
 import type {NameMappedPropertyFields, PropertyValue} from '@mattermost/types/properties';
 
 import {

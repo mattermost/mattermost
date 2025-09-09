@@ -1,11 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {IDMappedCollection} from '@mattermost/types/utilities';
-
 import type {Post} from './posts';
 import type {
-    PropertyField,
+    NameMappedPropertyFields,
     PropertyValue,
 } from './properties';
 
@@ -23,7 +21,7 @@ export type ContentFlaggingConfig = {
 
 export type ContentFlaggingState = {
     settings?: ContentFlaggingConfig;
-    fields?: IDMappedCollection<PropertyField>;
+    fields?: NameMappedPropertyFields;
     postValues?: {
         [key: Post['id']]: Array<PropertyValue<unknown>>;
     };
