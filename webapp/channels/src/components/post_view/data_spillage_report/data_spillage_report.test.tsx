@@ -12,13 +12,6 @@ import {Client4} from 'mattermost-redux/client';
 import {DataSpillageReport} from 'components/post_view/data_spillage_report/data_spillage_report';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
-
-// Mock the store dispatch to prevent actions from reaching reducers
-const mockDispatch = jest.fn().mockImplementation(() => Promise.resolve());
-jest.mock('react-redux', () => ({
-    ...jest.requireActual('react-redux'),
-    useDispatch: () => mockDispatch,
-}));
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -301,7 +294,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
 
     beforeEach(() => {
         jest.resetAllMocks();
-        
+
         // Mock all hooks before any component rendering
         mockedUseUser.mockImplementation((userId: string) => {
             if (userId === reportingUser.id) {
@@ -316,7 +309,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
 
         // Mock the action to return a resolved promise instead of dispatching
         mockGetPost.mockResolvedValue({type: 'MOCK_ACTION', data: reportedPost});
-        
+
         useContentFlaggingFields.mockReturnValue(contentFlaggingFields);
         usePostContentFlaggingValues.mockReturnValue(postContentFlaggingValues);
         mockedClient4.getFlaggedPost = jest.fn().mockResolvedValue(reportedPost);
