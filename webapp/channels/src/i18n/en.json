@@ -6509,7 +6509,7 @@
   "workspace_limits.modals.view_plans": "View plans",
   "workspace_limits.post_history_banner.text": "{limit, number}-message limit reached. Messages sent before {date} are hidden. Upgrade to restore access",
   "workspace_limits.post_history_banner.upgrade_button": "Upgrade",
-  "workspace_limits.search_limit.banner_text": "Some older {searchContent} may not be shown because your workspace has over {limit} messages. <a>{ctaAction}</a>",
+  "workspace_limits.search_limit.banner_text": "Some older {searchContent} were not shown shown because your workspace has over {limit} messages. <a>{ctaAction}</a>",
   "workspace_limits.search_limit.view_plans": "View plans",
   "workspace_limits.teams_limit_reached.tool_tip": "You've reached the team limit for your current plan. Consider upgrading to unarchive this team or archive your other teams",
   "workspace_limits.teams_limit_reached.upgrade_to_unarchive": "Upgrade to Unarchive",
