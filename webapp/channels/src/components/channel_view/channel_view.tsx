@@ -187,7 +187,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     overlayType='center'
                     id={DropOverlayIdCenterChannel}
                 />
-                <ChannelHeader {...this.props}/>
+                <ChannelHeader/>
                 {this.props.isChannelBookmarksEnabled && <ChannelBookmarks channelId={this.props.channelId}/>}
                 <ChannelBanner channelId={this.props.channelId}/>
                 <DeferredPostView
