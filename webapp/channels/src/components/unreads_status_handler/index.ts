@@ -1,11 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Location} from 'history';
 import {connect} from 'react-redux';
 import {withRouter, matchPath} from 'react-router-dom';
-import type {RouteChildrenProps} from 'react-router-dom';
-import {bindActionCreators} from 'redux';
-import type {Dispatch} from 'redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -15,7 +13,7 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import UnreadsStatusHandler from './unreads_status_handler';
 
-type Props = RouteChildrenProps;
+type Props = {location: Location};
 
 function mapStateToProps(state: GlobalState, {location: {pathname}}: Props) {
     const config = getConfig(state);
@@ -35,11 +33,4 @@ function mapStateToProps(state: GlobalState, {location: {pathname}}: Props) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch) {
-    return {
-        actions: bindActionCreators({
-        }, dispatch),
-    };
-}
-
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(UnreadsStatusHandler));
+export default withRouter(connect(mapStateToProps)(UnreadsStatusHandler));
