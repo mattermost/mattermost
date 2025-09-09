@@ -28,7 +28,6 @@ import serviceReducers from '../reducers';
  */
 export default function configureStore<S extends GlobalState>({
     appReducers,
-    getAppReducers,
     preloadedState,
 }: {
     appReducers: Record<string, Reducer>;
@@ -68,18 +67,6 @@ export default function configureStore<S extends GlobalState>({
     reducerRegistry.setChangeListener((reducers: Record<string, Reducer>) => {
         store.replaceReducer(createReducer(reducers, serviceReducers, appReducers));
     });
-
-    if (module.hot) {
-        // Enable Webpack hot module replacement for reducers
-        module.hot.accept(() => {
-            const registryReducers = reducerRegistry.getReducers();
-            const nextServiceReducers = require('../reducers').default; // eslint-disable-line global-require
-            const nextAppReducers = getAppReducers();
-
-            // Ensure registryReducers comes first so that stored service/app reducers are replaced by the new ones
-            store.replaceReducer(createReducer(registryReducers, nextServiceReducers, nextAppReducers));
-        });
-    }
 
     return store;
 }
