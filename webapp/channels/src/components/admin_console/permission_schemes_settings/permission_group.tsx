@@ -143,7 +143,7 @@ export default class PermissionGroup extends React.PureComponent<Props, State> {
         return true;
     };
 
-    renderPermission = (permission: string, additionalValues: AdditionalValues) => {
+    renderPermission = (permission: string, additionalValues: Record<string, any>) => {
         if (!this.isInScope(permission)) {
             return null;
         }

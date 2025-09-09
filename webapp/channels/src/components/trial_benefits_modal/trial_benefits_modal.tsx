@@ -144,7 +144,7 @@ const TrialBenefitsModal = ({
                     id='trial_benefits.modal.trialStartedDescriptionBody'
                     defaultMessage='You now have access to <guestAccountsLink>guest accounts</guestAccountsLink>, <autoComplianceReportsLink>automated compliance reports</autoComplianceReportsLink>, and <mobileSecureNotificationsLink>mobile secure-ID push notifications</mobileSecureNotificationsLink>, among many other features.'
                     values={{
-                        guestAccountsLink: (text: string) => (
+                        guestAccountsLink: (text) => (
                             <BlockableLink
                                 to={ConsolePages.GUEST_ACCOUNTS}
                                 onClick={handleOnClose}
@@ -152,7 +152,7 @@ const TrialBenefitsModal = ({
                                 {text}
                             </BlockableLink>
                         ),
-                        autoComplianceReportsLink: (text: string) => (
+                        autoComplianceReportsLink: (text) => (
                             <BlockableLink
                                 to={ConsolePages.COMPLIANCE_EXPORT}
                                 onClick={handleOnClose}

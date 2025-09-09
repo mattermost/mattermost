@@ -250,8 +250,8 @@ function renderDisplayNameChangeMessage(post: Post): ReactNode {
     }
 
     const username = renderUsername(post.props.username);
-    const oldDisplayName = post.props.old_displayname;
-    const newDisplayName = post.props.new_displayname;
+    const oldDisplayName = ensureString(post.props.old_displayname);
+    const newDisplayName = ensureString(post.props.new_displayname);
 
     return (
         <FormattedMessage
@@ -290,8 +290,8 @@ function renderPurposeChangeMessage(post: Post): ReactNode {
     }
 
     const username = renderUsername(post.props.username);
-    const oldPurpose = post.props.old_purpose;
-    const newPurpose = post.props.new_purpose;
+    const oldPurpose = ensureString(post.props.old_purpose);
+    const newPurpose = ensureString(post.props.new_purpose);
 
     if (post.props.new_purpose) {
         if (post.props.old_purpose) {
@@ -560,7 +560,7 @@ export function renderWranglerSystemMessage(post: Post): ReactNode {
         };
         const numMessages = ensureNumber(post.props.NumMessages);
         if (numMessages > 1) {
-            values.number = post.props.NumMessages;
+            values.number = numMessages;
         }
     }
     return (
