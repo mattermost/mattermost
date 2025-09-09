@@ -137,17 +137,34 @@ describe('identifyElementRegion', () => {
             },
         );
 
+        // await waitFor(() => {
+        //     expect(screen.queryByText(post.message)).toBeInTheDocument();
+        //     expect(document.getElementById('channelHeaderTitle')).toBeInTheDocument();
+        // });
+
+        // screen.debug(undefined, 1000000);
+        // return;
         // Use waitFor since we're waiting for any lazily-loaded components to load
         await waitFor(() => {
-            expect(identifyElementRegion(screen.getAllByText(channel.display_name)[0])).toEqual('channel_sidebar');
+            const lhsChannel = screen.queryByLabelText(`${channel.display_name.toLowerCase()} public channel`);
+            expect(lhsChannel).toBeInTheDocument();
+            expect(identifyElementRegion(lhsChannel!)).toEqual('channel_sidebar');
 
-            expect(identifyElementRegion(screen.getAllByText(channel.display_name)[1])).toEqual('channel_header');
+            const channelHeaderTitle = document.getElementById('channelHeaderTitle');
+            expect(channelHeaderTitle).toBeInTheDocument();
+            expect(identifyElementRegion(channelHeaderTitle!)).toEqual('channel_header');
 
-            expect(identifyElementRegion(screen.getAllByText(channel.header)[0])).toEqual('channel_header');
+            const channelHeaderText = screen.queryByText(channel.header);
+            expect(channelHeaderText).toBeInTheDocument();
+            expect(identifyElementRegion(channelHeaderText!)).toEqual('channel_header');
 
-            expect(identifyElementRegion(screen.getByText(post.message))).toEqual('post');
+            const postText = screen.queryByText(post.message);
+            expect(postText).toBeInTheDocument();
+            expect(identifyElementRegion(postText!)).toEqual('post');
 
-            expect(identifyElementRegion(screen.getByPlaceholderText('Write to ' + channel.display_name))).toEqual('post_textbox');
+            const postTextbox = screen.queryByPlaceholderText('Write to ' + channel.display_name);
+            expect(postTextbox).toBeInTheDocument();
+            expect(identifyElementRegion(postTextbox!)).toEqual('post_textbox');
         });
     });
 });
