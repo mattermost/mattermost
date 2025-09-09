@@ -89,6 +89,9 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             searchUsers: jest.fn(),
             getChannelPolicy: jest.fn(),
             saveChannelPolicy: jest.fn(),
+            getChannelMembers: jest.fn(),
+            createJob: jest.fn(),
+            updateAccessControlPolicyActive: jest.fn(),
         });
 
         mockCreatePolicy.mockReset();
