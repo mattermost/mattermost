@@ -6,6 +6,8 @@ import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 
+import Button from 'components/button/button';
+
 import {focusElement} from 'utils/a11y_utils';
 
 import './confirm_modal.scss';
@@ -148,6 +150,7 @@ export default class ConfirmModal extends React.Component<Props, State> {
         }
     };
 
+
     render() {
         let checkbox;
         if (this.props.showCheckbox) {
@@ -180,15 +183,15 @@ export default class ConfirmModal extends React.Component<Props, State> {
         let cancelButton;
         if (!this.props.hideCancel) {
             cancelButton = (
-                <button
+                <Button
                     type='button'
                     data-testid='cancel-button'
-                    className='btn btn-tertiary'
+                    emphasis='tertiary'
                     onClick={this.handleCancel}
                     id='cancelModalButton'
                 >
                     {cancelText}
-                </button>
+                </Button>
             );
         }
 
@@ -218,15 +221,16 @@ export default class ConfirmModal extends React.Component<Props, State> {
                         {this.props.checkboxInFooter && checkbox}
                         {cancelButton}
                         {!this.props.hideConfirm && (
-                            <button
+                            <Button
                                 type='button'
-                                className={this.props.confirmButtonClass}
+                                emphasis='primary'
+                                destructive={this.props.confirmButtonClass?.includes('btn-danger') || false}
                                 onClick={this.handleConfirm}
                                 id='confirmModalButton'
                                 autoFocus={true}
                             >
                                 {this.props.confirmButtonText}
-                            </button>
+                            </Button>
                         )}
                     </div>
                 </div>
