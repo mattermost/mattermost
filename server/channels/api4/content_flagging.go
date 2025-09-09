@@ -91,6 +91,12 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var flagRequest model.FlagContentRequest
+	if err := json.NewDecoder(r.Body).Decode(&flagRequest); err != nil {
+		c.SetInvalidParamWithErr("flagPost", err)
+		return
+	}
+
 	postId := c.Params.PostId
 	userId := c.AppContext.Session().UserId
 
@@ -109,12 +115,6 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	enabled := app.ContentFlaggingEnabledForTeam(c.App.Config(), channel.TeamId)
 	if !enabled {
 		c.Err = model.NewAppError("flagPost", "api.content_flagging.error.not_available_on_team", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	var flagRequest model.FlagContentRequest
-	if err := json.NewDecoder(r.Body).Decode(&flagRequest); err != nil {
-		c.SetInvalidParamWithErr("flagPost", err)
 		return
 	}
 
