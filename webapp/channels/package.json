@@ -20,6 +20,7 @@
     "@tanstack/react-table": "8.10.7",
     "@tippyjs/react": "4.2.6",
     "@types/color-hash": "1.0.2",
+    "@types/react-is": "18.3.1",
     "@types/turndown": "5.0.5",
     "bootstrap": "3.4.1",
     "buffer": "6.0.3",
