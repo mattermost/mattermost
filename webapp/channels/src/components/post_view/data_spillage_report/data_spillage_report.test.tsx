@@ -294,6 +294,8 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
 
     beforeEach(() => {
         jest.resetAllMocks();
+
+        // Mock all hooks before any component rendering
         mockedUseUser.mockImplementation((userId: string) => {
             if (userId === reportingUser.id) {
                 return reportingUser;
@@ -305,11 +307,12 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
         mockedUsePost.mockReturnValue(null);
         mockUseChannel.mockReturnValue(reportedPostChannel);
 
-        mockGetPost.mockReturnValue({type: 'MOCK_ACTION', data: reportedPost});
+        // Mock the action to return a resolved promise instead of dispatching
+        mockGetPost.mockResolvedValue({type: 'MOCK_ACTION', data: reportedPost});
+
         useContentFlaggingFields.mockReturnValue(contentFlaggingFields);
         usePostContentFlaggingValues.mockReturnValue(postContentFlaggingValues);
         mockedClient4.getFlaggedPost = jest.fn().mockResolvedValue(reportedPost);
-        usePostContentFlaggingValues.mockReturnValue(postContentFlaggingValues);
     });
 
     it('should render selected fields when not in RHS', async () => {
