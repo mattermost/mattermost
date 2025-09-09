@@ -12,7 +12,7 @@ describe('Reducers.Typing', () => {
 
         state = typingReducer(
             state,
-            {type: undefined},
+            {type: 'testinit'},
         );
         expect(state).toEqual({});
     });

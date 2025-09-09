@@ -12,7 +12,7 @@ describe('reducers.entities.admin', () => {
     describe('pluginStatuses', () => {
         it('initial state', () => {
             const state = {};
-            const action = {type: undefined};
+            const action = {type: 'testinit'};
             const expectedState = {};
 
             const actualState = reducer({pluginStatuses: state} as ReducerState, action);
@@ -601,7 +601,7 @@ describe('reducers.entities.admin', () => {
     describe('ldapGroups', () => {
         it('initial state', () => {
             const state = {};
-            const action = {type: undefined};
+            const action = {type: 'testinit'};
             const expectedState = {};
 
             const actualState = reducer({ldapGroups: state} as ReducerState, action);
@@ -867,7 +867,7 @@ describe('reducers.entities.admin', () => {
     describe('Data Retention', () => {
         it('initial state', () => {
             const state = {};
-            const action = {type: undefined};
+            const action = {type: 'testinit'};
             const expectedState = {};
 
             const actualState = reducer({dataRetentionCustomPolicies: state} as ReducerState, action);
