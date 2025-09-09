@@ -5755,7 +5755,6 @@ func createConcurrentReplies(rctx request.CTX, ss store.Store, rootPostId, chann
 		}(i)
 	}
 
-	// Wait for all goroutines to complete
 	wg.Wait()
 	close(errorsChan)
 	close(postsChan)
@@ -5795,18 +5794,16 @@ func testConcurrentReplies(t *testing.T, rctx request.CTX, ss store.Store) {
 		savedRootPost, err := ss.Post().Save(rctx, rootPost)
 		require.NoError(t, err)
 
-		// Execute: Create concurrent replies
+		// Create concurrent replies
 		numConcurrentReplies := 10
 		savedPosts, errorList := createConcurrentReplies(rctx, ss, savedRootPost.Id, channel.Id, numConcurrentReplies)
 
-		// Assert: No errors should occur during concurrent reply creation
 		assert.Empty(t, errorList, "No errors should occur during concurrent reply creation. Errors: %v", errorList)
 		assert.Equal(t, numConcurrentReplies, len(savedPosts), "All concurrent replies should be saved successfully")
 	})
 
-	// Test 2: Thread metadata updates properly after concurrent replies
 	t.Run("Thread metadata updates correctly after concurrent replies", func(t *testing.T) {
-		// Setup: Create a team, channel and root post
+		// Setup a team, channel and root post
 		teamID := model.NewId()
 		channel, err := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      teamID,
@@ -5824,12 +5821,11 @@ func testConcurrentReplies(t *testing.T, rctx request.CTX, ss store.Store) {
 		savedRootPost, err := ss.Post().Save(rctx, rootPost)
 		require.NoError(t, err)
 
-		// Execute: Create concurrent replies
+		// Create concurrent replies
 		numConcurrentReplies := 8
 		savedPosts, errorList := createConcurrentReplies(rctx, ss, savedRootPost.Id, channel.Id, numConcurrentReplies)
 		require.Empty(t, errorList, "Setup should succeed without errors")
 
-		// Assert: Thread metadata should be correctly updated
 		thread, err := ss.Thread().Get(savedRootPost.Id)
 		require.NoError(t, err)
 
@@ -5867,9 +5863,8 @@ func testConcurrentReplies(t *testing.T, rctx request.CTX, ss store.Store) {
 			"Thread LastReplyAt should match the most recent reply's CreateAt")
 	})
 
-	// Test 3: Database persistence - saved posts are retrievable from database
 	t.Run("Concurrent replies are properly persisted in database", func(t *testing.T) {
-		// Setup: Create a team, channel and root post
+		// Setup a team, channel and root post
 		teamID := model.NewId()
 		channel, err := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      teamID,
@@ -5887,12 +5882,11 @@ func testConcurrentReplies(t *testing.T, rctx request.CTX, ss store.Store) {
 		savedRootPost, err := ss.Post().Save(rctx, rootPost)
 		require.NoError(t, err)
 
-		// Execute: Create concurrent replies
+		// Create concurrent replies
 		numConcurrentReplies := 6
 		savedPosts, errorList := createConcurrentReplies(rctx, ss, savedRootPost.Id, channel.Id, numConcurrentReplies)
 		require.Empty(t, errorList, "Setup should succeed without errors")
 
-		// Assert: All posts should be retrievable from database
 		for _, post := range savedPosts {
 			retrievedPost, err := ss.Post().GetSingle(rctx, post.Id, false)
 			assert.NoError(t, err, "Should be able to retrieve saved post %s", post.Id)
