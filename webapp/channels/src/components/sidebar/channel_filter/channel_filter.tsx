@@ -6,8 +6,6 @@ import React from 'react';
 import {defineMessages, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import WithTooltip from 'components/with_tooltip';
 import {ShortcutKeys} from 'components/with_tooltip/tooltip_shortcut';
 
@@ -63,12 +61,6 @@ export class ChannelFilter extends React.PureComponent<Props> {
 
     toggleUnreadFilter = () => {
         const {unreadFilterEnabled} = this.props;
-
-        if (unreadFilterEnabled) {
-            trackEvent('ui', 'ui_sidebar_unread_filter_disabled');
-        } else {
-            trackEvent('ui', 'ui_sidebar_unread_filter_enabled');
-        }
 
         this.props.actions.setUnreadFilterEnabled(!unreadFilterEnabled);
     };

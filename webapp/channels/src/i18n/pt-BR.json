@@ -4379,7 +4379,6 @@
   "user.settings.advance.onForAllMessages": "Ativado para todas as mensagens",
   "user.settings.advance.onForCode": "Ativado somente para block de código começado com ```",
   "user.settings.advance.performance.disableClientPlugins": "Desativar plug-ins do lado do cliente",
-  "user.settings.advance.performance.disableTelemetry": "Desabilitar eventos de telemetria enviados do cliente",
   "user.settings.advance.performance.disableTypingMessages": "Desative as mensagens 'O usuário está digitando...'",
   "user.settings.advance.performance.info1": "Você pode habilitar essas configurações temporariamente para ajudar a isolar problemas de desempenho durante a depuração. Não é recomendável deixar essas configurações ativadas por um longo período de tempo, pois elas podem afetar negativamente a experiência do usuário.",
   "user.settings.advance.performance.info2": "A página pode precisar ser atualizada antes que essas configurações entrem em vigor.",

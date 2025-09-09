@@ -16,8 +16,6 @@ import type {Team} from '@mattermost/types/teams';
 
 import {General} from 'mattermost-redux/constants';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import {makeAsyncComponent} from 'components/async_load';
 import Scrollbars from 'components/common/scrollbars';
 import SidebarCategory from 'components/sidebar/sidebar_category';
@@ -414,10 +412,8 @@ export class SidebarList extends React.PureComponent<Props, State> {
         if (result.reason === 'DROP' && result.destination) {
             if (result.type === 'SIDEBAR_CHANNEL') {
                 this.props.actions.moveChannelsInSidebar(result.destination.droppableId, result.destination.index, result.draggableId);
-                trackEvent('ui', 'ui_sidebar_dragdrop_dropped_channel');
             } else if (result.type === 'SIDEBAR_CATEGORY') {
                 this.props.actions.moveCategory(this.props.currentTeam!.id, result.draggableId, result.destination.index);
-                trackEvent('ui', 'ui_sidebar_dragdrop_dropped_category');
             }
         }
 

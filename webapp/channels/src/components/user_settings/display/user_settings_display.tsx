@@ -14,8 +14,6 @@ import type {UserProfile, UserTimezone} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import ThemeSetting from 'components/user_settings/display/user_settings_theme';
@@ -192,17 +190,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         }
     }
 
-    trackChangeIfNecessary(preference: PreferenceType, oldValue: any): void {
-        const props = {
-            field: 'display.' + preference.name,
-            value: preference.value,
-        };
-
-        if (preference.value !== oldValue) {
-            trackEvent('settings', 'user_settings_update', props);
-        }
-    }
-
     submitLastActive = () => {
         const {user, actions} = this.props;
         const {lastActiveDisplay} = this.state;
@@ -318,8 +305,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             oneClickReactionsOnPostsPreference,
             colorizeUsernamesPreference,
         ];
-
-        this.trackChangeIfNecessary(collapsedReplyThreadsPreference, this.props.collapsedReplyThreads);
 
         await this.props.actions.savePreferences(userId, preferences);
 
