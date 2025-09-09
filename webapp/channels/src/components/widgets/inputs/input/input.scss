@@ -28,9 +28,9 @@
         padding: 0;
         border: 0;
         border-radius: 4px;
+        background-color: transparent;
         box-shadow: none;
         color: var(--center-channel-color);
-        background-color: transparent;
         font-size: 14px;
         line-height: 20px;
         outline: 0;
@@ -144,8 +144,8 @@
         box-sizing: border-box;
         padding: 0 1px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        background-color: var(--center-channel-bg);
         border-radius: 4px;
+        background-color: var(--center-channel-bg);
         color: rgba(var(--secondary-blue-rgb), 0.4);
 
         &:hover {

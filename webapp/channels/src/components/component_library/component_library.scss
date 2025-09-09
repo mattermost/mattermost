@@ -83,8 +83,8 @@
             transition: background-color 0.15s ease;
             
             &:hover {
-                color: rgba(var(--center-channel-color-rgb), 0.90);
                 background-color: rgba(var(--center-channel-color-rgb), 0.04);
+                color: rgba(var(--center-channel-color-rgb), 0.90);
             }
             
             &--active {

@@ -129,16 +129,16 @@
     }
 
     &--secondary {
-        border: 1px solid var(--button-bg);
+        border: 1px solid var(--link-color);
         background-color: transparent;
-        color: var(--button-bg);
+        color: var(--link-color);
         
         &:hover:not(:disabled) {
-            background-color: rgba(var(--button-bg-rgb), 0.08);
+            background-color: rgba(var(--link-color-rgb), 0.08);
         }
         
         &:active:not(:disabled) {
-            background-color: rgba(var(--button-bg-rgb), 0.16);
+            background-color: rgba(var(--link-color-rgb), 0.16);
         }
         
         &:disabled {
@@ -162,15 +162,15 @@
     }
 
     &--tertiary {
-        background-color: rgba(var(--button-bg-rgb), 0.08);
-        color: var(--button-bg);
+        background-color: rgba(var(--link-color-rgb), 0.08);
+        color: var(--link-color);
         
         &:hover:not(:disabled) {
-            background-color: rgba(var(--button-bg-rgb), 0.12);
+            background-color: rgba(var(--link-color-rgb), 0.12);
         }
         
         &:active:not(:disabled) {
-            background-color: rgba(var(--button-bg-rgb), 0.16);
+            background-color: rgba(var(--link-color-rgb), 0.16);
         }
         
         &:disabled {
@@ -195,15 +195,15 @@
 
     &--quaternary {
         background-color: transparent;
-        color: var(--button-bg);
+        color: var(--link-color);
         
         &:hover:not(:disabled) {
-            background-color: rgba(var(--button-bg-rgb), 0.08);
-            color: rgba(var(--button-bg-rgb), 0.88);
+            background-color: rgba(var(--link-color-rgb), 0.08);
+            color: rgba(var(--link-color-rgb), 0.88);
         }
         
         &:active:not(:disabled) {
-            background-color: rgba(var(--button-bg-rgb), 0.16);
+            background-color: rgba(var(--link-color-rgb), 0.16);
             color: var(--button-bg);
         }
         
@@ -243,7 +243,7 @@
         }
         
         &:active:not(:disabled) {
-            color: var(--button-bg);
+            color: var(--link-color);
         }
         
         &:disabled {

@@ -272,9 +272,11 @@ const ButtonComponentLibrary = () => {
                     </div>
 
                     {/* Interactive Example (Right) */}
-                    <div className={classNames('cl__live-component-panel', {
-                        'cl__live-component-panel--inverted': inverted,
-                    })}>
+                    <div
+                        className={classNames('cl__live-component-panel', {
+                            'cl__live-component-panel--inverted': inverted,
+                        })}
+                    >
                         {interactiveButton}
                     </div>
                 </div>
