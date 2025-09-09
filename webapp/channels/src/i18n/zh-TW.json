@@ -5249,7 +5249,6 @@
   "user.settings.advance.onForAllMessages": "對所有訊息",
   "user.settings.advance.onForCode": "只對以 ``` 開始的程式碼區塊",
   "user.settings.advance.performance.disableClientPlugins": "停用用戶端擴充程式",
-  "user.settings.advance.performance.disableTelemetry": "停用從用戶端發送的遙測事件",
   "user.settings.advance.performance.disableTypingMessages": "停用「使用者正在打字…」訊息",
   "user.settings.advance.performance.info1": "您可以暫時啟用這些設定，以幫助在偵錯時隔離效能問題。我們不建議長時間啟用它們，因為這可能會對您的體驗產生負面影響。",
   "user.settings.advance.performance.info2": "您可能需要重新整理才能使這些設定生效。",
