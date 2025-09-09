@@ -1504,7 +1504,7 @@ func (api *PluginAPI) DeleteGroupConstrainedMemberships() *model.AppError {
 
 func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
 	if field == nil {
-		return nil, fmt.Errorf("property field cannot be nil")
+		return nil, fmt.Errorf("invalid input: property field parameter is required")
 	}
 
 	return api.app.PropertyService().CreatePropertyField(field)
