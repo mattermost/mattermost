@@ -5,7 +5,7 @@
 
 // Using CSS variables from theme provider - no hardcoded colors needed
 
-// Base button styles
+// Base button styles with nested variants
 .Button {
     display: inline-flex;
     max-width: fit-content;
@@ -27,7 +27,6 @@
         text-decoration: none;
     }
     
-    
     &:focus {
         box-shadow: 0 0 0 2px var(--sidebar-text-active-border);
     }
@@ -39,86 +38,55 @@
     &:focus-visible {
         box-shadow: 0 0 0 2px var(--sidebar-text-active-border);
     }
-}
 
-// Size variants
-.Button--xs {
-    padding: 4px 10px;
-    font-size: 12px;
-    gap: 4px; // Proportional gap for x-small buttons
-    line-height: 16px;
-    
-}
-
-.Button--sm {
-    padding: 8px 16px;
-    font-size: 12px;
-    gap: 5px; // Proportional gap for small buttons
-    line-height: 16px;
-    
-}
-
-.Button--md {
-    padding: 10px 20px;
-    font-size: 14px;
-    gap: 6px; // Proportional gap for medium buttons
-    line-height: 20px;
-}
-
-.Button--lg {
-    padding: 12px 24px;
-    font-size: 16px;
-    gap: 8px; // Proportional gap for large buttons
-    line-height: 24px;
-    
-}
-
-// Full width variant
-.Button--full-width {
-    width: 100%;
-    max-width: none;
-}
-
-// Fixed width variant
-.Button--fixed-width {
-    max-width: none;
-    flex-shrink: 0;
-}
-
-// Emphasis variants
-.Button--primary {
-    background-color: var(--button-bg);
-    color: var(--button-color);
-    
-    &:hover:not(:disabled) {
-        // Modern browsers with color-mix support
-        background-color: color-mix(in srgb, var(--button-bg) 88%, black 12%);
-        // Fallback for older browsers
-        background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08));
-        background-image: none;
+    // Size variants
+    &--xs {
+        padding: 4px 10px;
+        font-size: 12px;
+        gap: 4px; // Proportional gap for x-small buttons
+        line-height: 16px;
     }
-    
-    &:active:not(:disabled) {
-        // Modern browsers with color-mix support
-        background-color: color-mix(in srgb, var(--button-bg) 80%, black 20%);
-        // Fallback for older browsers  
-        background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16));
-        background-image: none;
+
+    &--sm {
+        padding: 8px 16px;
+        font-size: 12px;
+        gap: 5px; // Proportional gap for small buttons
+        line-height: 16px;
     }
-    
-    &:disabled {
-        background-color: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.32);
+
+    &--md {
+        padding: 10px 20px;
+        font-size: 14px;
+        gap: 6px; // Proportional gap for medium buttons
+        line-height: 20px;
     }
-    
-    // Destructive variant
-    &.Button--destructive {
-        background-color: var(--error-text);
+
+    &--lg {
+        padding: 12px 24px;
+        font-size: 16px;
+        gap: 8px; // Proportional gap for large buttons
+        line-height: 24px;
+    }
+
+    // Width variants
+    &--full-width {
+        width: 100%;
+        max-width: none;
+    }
+
+    &--fixed-width {
+        max-width: none;
+        flex-shrink: 0;
+    }
+
+    // Emphasis variants
+    &--primary {
+        background-color: var(--button-bg);
         color: var(--button-color);
         
         &:hover:not(:disabled) {
             // Modern browsers with color-mix support
-            background-color: color-mix(in srgb, var(--error-text) 88%, black 12%);
+            background-color: color-mix(in srgb, var(--button-bg) 88%, black 12%);
             // Fallback for older browsers
             background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08));
             background-image: none;
@@ -126,221 +94,435 @@
         
         &:active:not(:disabled) {
             // Modern browsers with color-mix support
-            background-color: color-mix(in srgb, var(--error-text) 80%, black 20%);
-            // Fallback for older browsers
+            background-color: color-mix(in srgb, var(--button-bg) 80%, black 20%);
+            // Fallback for older browsers  
             background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16));
             background-image: none;
         }
+        
+        &:disabled {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.32);
+        }
+        
+        // Destructive variant
+        &.Button--destructive {
+            background-color: var(--error-text);
+            color: var(--button-color);
+            
+            &:hover:not(:disabled) {
+                // Modern browsers with color-mix support
+                background-color: color-mix(in srgb, var(--error-text) 88%, black 12%);
+                // Fallback for older browsers
+                background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08));
+                background-image: none;
+            }
+            
+            &:active:not(:disabled) {
+                // Modern browsers with color-mix support
+                background-color: color-mix(in srgb, var(--error-text) 80%, black 20%);
+                // Fallback for older browsers
+                background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16));
+                background-image: none;
+            }
+        }
     }
-}
 
-.Button--secondary {
-    border: 1px solid var(--button-bg);
-    background-color: transparent;
-    color: var(--button-bg);
-    
-    &:hover:not(:disabled) {
-        background-color: rgba(var(--button-bg-rgb), 0.08);
-    }
-    
-    &:active:not(:disabled) {
-        background-color: rgba(var(--button-bg-rgb), 0.16);
-    }
-    
-    &:disabled {
-        border-color: rgba(var(--center-channel-color-rgb), 0.32);
-        color: rgba(var(--center-channel-color-rgb), 0.32);
-    }
-    
-    // Destructive variant
-    &.Button--destructive {
-        border-color: var(--error-text);
-        color: var(--error-text);
-        
-        &:hover:not(:disabled) {
-            background-color: rgba(var(--error-text-color-rgb), 0.08);
-        }
-        
-        &:active:not(:disabled) {
-            background-color: rgba(var(--error-text-color-rgb), 0.16);
-        }
-    }
-}
-
-.Button--tertiary {
-    background-color: rgba(var(--button-bg-rgb), 0.08);
-    color: var(--button-bg);
-    
-    &:hover:not(:disabled) {
-        background-color: rgba(var(--button-bg-rgb), 0.12);
-    }
-    
-    &:active:not(:disabled) {
-        background-color: rgba(var(--button-bg-rgb), 0.16);
-    }
-    
-    &:disabled {
-        background-color: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.32);
-    }
-    
-    // Destructive variant
-    &.Button--destructive {
-        background-color: rgba(var(--error-text-color-rgb), 0.08);
-        color: var(--error-text);
-        
-        &:hover:not(:disabled) {
-            background-color: rgba(var(--error-text-color-rgb), 0.12);
-        }
-        
-        &:active:not(:disabled) {
-            background-color: rgba(var(--error-text-color-rgb), 0.16);
-        }
-    }
-}
-
-.Button--quaternary {
-    background-color: transparent;
-    color: var(--button-bg);
-    
-    &:hover:not(:disabled) {
-        background-color: rgba(var(--button-bg-rgb), 0.08);
-        color: rgba(var(--button-bg-rgb), 0.88);
-    }
-    
-    &:active:not(:disabled) {
-        background-color: rgba(var(--button-bg-rgb), 0.16);
+    &--secondary {
+        border: 1px solid var(--button-bg);
+        background-color: transparent;
         color: var(--button-bg);
-    }
-    
-    &:disabled {
-        color: rgba(var(--center-channel-color-rgb), 0.32);
-    }
-    
-    // Destructive variant
-    &.Button--destructive {
-        color: var(--error-text);
         
         &:hover:not(:disabled) {
+            background-color: rgba(var(--button-bg-rgb), 0.08);
+        }
+        
+        &:active:not(:disabled) {
+            background-color: rgba(var(--button-bg-rgb), 0.16);
+        }
+        
+        &:disabled {
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+            color: rgba(var(--center-channel-color-rgb), 0.32);
+        }
+        
+        // Destructive variant
+        &.Button--destructive {
+            border-color: var(--error-text);
+            color: var(--error-text);
+            
+            &:hover:not(:disabled) {
+                background-color: rgba(var(--error-text-color-rgb), 0.08);
+            }
+            
+            &:active:not(:disabled) {
+                background-color: rgba(var(--error-text-color-rgb), 0.16);
+            }
+        }
+    }
+
+    &--tertiary {
+        background-color: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--button-bg);
+        
+        &:hover:not(:disabled) {
+            background-color: rgba(var(--button-bg-rgb), 0.12);
+        }
+        
+        &:active:not(:disabled) {
+            background-color: rgba(var(--button-bg-rgb), 0.16);
+        }
+        
+        &:disabled {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.32);
+        }
+        
+        // Destructive variant
+        &.Button--destructive {
             background-color: rgba(var(--error-text-color-rgb), 0.08);
             color: var(--error-text);
-        }
-        
-        &:active:not(:disabled) {
-            background-color: rgba(var(--error-text-color-rgb), 0.16);
-            color: var(--error-text);
-        }
-    }
-}
-
-.Button--link {
-    height: auto;
-    padding: 0;
-    background-color: transparent;
-    color: var(--link-color);
-    text-decoration: none;
-    
-    &:hover:not(:disabled) {
-        color: color-mix(in srgb, var(--link-color) 92%, black 8%);
-
-        .Button__label {
-            text-decoration: underline;
+            
+            &:hover:not(:disabled) {
+                background-color: rgba(var(--error-text-color-rgb), 0.12);
+            }
+            
+            &:active:not(:disabled) {
+                background-color: rgba(var(--error-text-color-rgb), 0.16);
+            }
         }
     }
-    
-    &:active:not(:disabled) {
+
+    &--quaternary {
+        background-color: transparent;
         color: var(--button-bg);
-    }
-    
-    &:disabled {
-        color: rgba(var(--center-channel-color-rgb), 0.32);
-    }
-    
-    // Destructive variant
-    &.Button--destructive {
-        color: var(--error-text);
         
         &:hover:not(:disabled) {
-            color: color-mix(in srgb, var(--error-text) 92%, black 8%);
+            background-color: rgba(var(--button-bg-rgb), 0.08);
+            color: rgba(var(--button-bg-rgb), 0.88);
         }
         
         &:active:not(:disabled) {
+            background-color: rgba(var(--button-bg-rgb), 0.16);
+            color: var(--button-bg);
+        }
+        
+        &:disabled {
+            color: rgba(var(--center-channel-color-rgb), 0.32);
+        }
+        
+        // Destructive variant
+        &.Button--destructive {
             color: var(--error-text);
+            
+            &:hover:not(:disabled) {
+                background-color: rgba(var(--error-text-color-rgb), 0.08);
+                color: var(--error-text);
+            }
+            
+            &:active:not(:disabled) {
+                background-color: rgba(var(--error-text-color-rgb), 0.16);
+                color: var(--error-text);
+            }
         }
     }
-}
 
-// Inverted style overrides (for dark backgrounds)
-.Button--primary.Button--inverted {
-    background-color: var(--button-color);
-    color: var(--button-bg);
-    
-    &:hover:not(:disabled) {
-        background-color: color-mix(in srgb, var(--button-color) 92%, var(--button-bg) 8%);
-    }
-    
-    &:active:not(:disabled) {
-        background-color: color-mix(in srgb, var(--button-color) 84%, var(--button-bg) 16%);
-    }
-    
-}
+    &--link {
+        height: auto;
+        padding: 0;
+        background-color: transparent;
+        color: var(--link-color);
+        text-decoration: none;
+        
+        &:hover:not(:disabled) {
+            color: color-mix(in srgb, var(--link-color) 92%, black 8%);
 
-.Button--secondary.Button--inverted {
-    border: 1px solid var(--button-color);
-    background-color: transparent;
-    color: var(--button-color);
-    
-    &:hover:not(:disabled) {
-        background-color: rgba(var(--button-color-rgb), 0.08);
+            .Button__label {
+                text-decoration: underline;
+            }
+        }
+        
+        &:active:not(:disabled) {
+            color: var(--button-bg);
+        }
+        
+        &:disabled {
+            color: rgba(var(--center-channel-color-rgb), 0.32);
+        }
+        
+        // Destructive variant
+        &.Button--destructive {
+            color: var(--error-text);
+            
+            &:hover:not(:disabled) {
+                color: color-mix(in srgb, var(--error-text) 92%, black 8%);
+            }
+            
+            &:active:not(:disabled) {
+                color: var(--error-text);
+            }
+        }
     }
-    
-    &:active:not(:disabled) {
-        background-color: rgba(var(--button-color-rgb), 0.16);
-    }
-    
-}
 
-.Button--tertiary.Button--inverted {
-    background-color: rgba(var(--button-color-rgb), 0.08);
-    color: var(--button-color);
-    
-    &:hover:not(:disabled) {
-        background-color: rgba(var(--button-color-rgb), 0.12);
+    // Inverted style overrides (for dark backgrounds)
+    &--primary.Button--inverted {
+        background-color: var(--button-color);
+        color: var(--button-bg);
+        
+        &:hover:not(:disabled) {
+            background-color: color-mix(in srgb, var(--button-color) 92%, var(--button-bg) 8%);
+        }
+        
+        &:active:not(:disabled) {
+            background-color: color-mix(in srgb, var(--button-color) 84%, var(--button-bg) 16%);
+        }
     }
-    
-    &:active:not(:disabled) {
-        background-color: rgba(var(--button-color-rgb), 0.16);
-    }
-    
-}
 
-.Button--quaternary.Button--inverted {
-    background-color: transparent;
-    color: rgba(var(--button-color-rgb), 0.75);
-    
-    &:hover:not(:disabled) {
-        background-color: rgba(var(--button-color-rgb), 0.08);
-        color: rgba(var(--button-color-rgb), 0.88);
-    }
-    
-    &:active:not(:disabled) {
-        background-color: rgba(var(--button-color-rgb), 0.16);
+    &--secondary.Button--inverted {
+        border: 1px solid var(--button-color);
+        background-color: transparent;
         color: var(--button-color);
+        
+        &:hover:not(:disabled) {
+            background-color: rgba(var(--button-color-rgb), 0.08);
+        }
+        
+        &:active:not(:disabled) {
+            background-color: rgba(var(--button-color-rgb), 0.16);
+        }
     }
-    
-}
 
-.Button--link.Button--inverted {
-    color: var(--button-color);
-    
-    &:hover:not(:disabled) {
+    &--tertiary.Button--inverted {
+        background-color: rgba(var(--button-color-rgb), 0.08);
+        color: var(--button-color);
+        
+        &:hover:not(:disabled) {
+            background-color: rgba(var(--button-color-rgb), 0.12);
+        }
+        
+        &:active:not(:disabled) {
+            background-color: rgba(var(--button-color-rgb), 0.16);
+        }
+    }
+
+    &--quaternary.Button--inverted {
+        background-color: transparent;
         color: rgba(var(--button-color-rgb), 0.75);
+        
+        &:hover:not(:disabled) {
+            background-color: rgba(var(--button-color-rgb), 0.08);
+            color: rgba(var(--button-color-rgb), 0.88);
+        }
+        
+        &:active:not(:disabled) {
+            background-color: rgba(var(--button-color-rgb), 0.16);
+            color: var(--button-color);
+        }
     }
-    
-    &:active:not(:disabled) {
+
+    &--link.Button--inverted {
         color: var(--button-color);
+        
+        &:hover:not(:disabled) {
+            color: rgba(var(--button-color-rgb), 0.75);
+        }
+        
+        &:active:not(:disabled) {
+            color: var(--button-color);
+        }
     }
-    
+
+    // Loading spinner base styles
+    &__loading {
+        line-height: 0;
+    }
+
+    &__spinner {
+        display: inline-block;
+        border-radius: 50%;
+        animation: spin 750ms linear infinite;
+        background: conic-gradient(rgba(var(--center-channel-color-rgb), 0), rgba(var(--center-channel-color-rgb), 0.48));
+
+        // Spinner size modifiers
+        &--xs { 
+            width: 12px; 
+            height: 12px;
+            mask-image: radial-gradient(
+                farthest-side,
+                transparent calc(100% - 1.5px),
+                #fff calc(100% - 1px)
+            );
+        }
+
+        &--sm { 
+            width: 14px; 
+            height: 14px;
+            mask-image: radial-gradient(
+                farthest-side,
+                transparent calc(100% - 1.5px),
+                #fff calc(100% - 1px)
+            );
+        }
+
+        &--md { 
+            width: 16px; 
+            height: 16px;
+            mask-image: radial-gradient(
+                farthest-side,
+                transparent calc(100% - 2px),
+                #fff calc(100% - 1.5px)
+            );
+        }
+
+        &--lg { 
+            width: 20px; 
+            height: 20px;
+            mask-image: radial-gradient(
+                farthest-side,
+                transparent calc(100% - 2.5px),
+                #fff calc(100% - 2px)
+            );
+        }
+
+        // Inverted spinner color override
+        &--inverted {
+            background: conic-gradient(rgba(var(--button-color-rgb), 0), rgba(var(--button-color-rgb), 0.48));
+        }
+    }
+
+    // Icon containers - standardized based on Figma design system
+    &__icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 0;
+
+        // Icon size modifiers
+        &--xs {
+            width: 12px;
+            height: 12px;
+        }
+
+        &--sm {
+            width: 14px;
+            height: 14px;
+        }
+
+        &--md {
+            width: 16px;
+            height: 16px;
+        }
+
+        &--lg {
+            width: 20px;
+            height: 20px;
+        }
+
+        // Icon position modifiers
+        &--before.Button__icon--xs {
+            margin-left: -2px;
+        }
+
+        &--after.Button__icon--xs {
+            margin-right: -2px;
+        }
+
+        &--before.Button__icon--sm {
+            margin-left: -3px;
+        }
+
+        &--after.Button__icon--sm {
+            margin-right: -3px;
+        }
+
+        &--before.Button__icon--md {
+            margin-left: -4px;
+        }
+
+        &--after.Button__icon--md {
+            margin-right: -4px;
+        }
+
+        &--before.Button__icon--lg {
+            margin-left: -6px;
+        }
+
+        &--after.Button__icon--lg {
+            margin-right: -6px;
+        }
+    }
+
+    // Label
+    &__label {
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+    // Disabled state overrides - placed after all other styles for natural cascade precedence
+    &:disabled {
+        background-image: none; // Remove any gradient overlays
+        cursor: not-allowed;
+        opacity: 1; // Override any global disabled opacity
+        
+        // Regular (non-inverted) disabled - override destructive styles
+        &.Button--destructive {
+            // Primary, Secondary, Tertiary destructive disabled
+            &.Button--primary,
+            &.Button--tertiary {
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                color: rgba(var(--center-channel-color-rgb), 0.32);
+            }
+
+            &.Button--secondary {
+                border-color: rgba(var(--center-channel-color-rgb), 0.32);
+                color: rgba(var(--center-channel-color-rgb), 0.32);
+            }
+            
+            // Quaternary, Link destructive disabled
+            &.Button--quaternary,
+            &.Button--link {
+                border-color: transparent;
+                background-color: transparent;
+                color: rgba(var(--center-channel-color-rgb), 0.32);
+            }
+            
+            &.Button--link {
+                text-decoration: none;
+            }
+        }
+        
+        // Inverted disabled styles - override all previous states
+        &.Button--inverted {
+            &.Button--primary {
+                border-color: rgba(var(--button-color-rgb), 0.08);
+                background-color: rgba(var(--button-color-rgb), 0.08);
+                color: rgba(var(--button-color-rgb), 0.32);
+            }
+            
+            &.Button--secondary {
+                border-color: rgba(var(--button-color-rgb), 0.32);
+                background-color: transparent;
+                color: rgba(var(--button-color-rgb), 0.32);
+            }
+            
+            &.Button--tertiary {
+                border-color: transparent;
+                background-color: rgba(var(--button-color-rgb), 0.08);
+                color: rgba(var(--button-color-rgb), 0.32);
+            }
+            
+            &.Button--quaternary,
+            &.Button--link {
+                border-color: transparent;
+                background-color: transparent;
+                color: rgba(var(--button-color-rgb), 0.32);
+            }
+            
+            &.Button--link {
+                text-decoration: none;
+            }
+        }
+    }
 }
 
 // Spinner animation (global)
@@ -350,197 +532,5 @@
     }
     100% {
         transform: rotate(360deg);
-    }
-}
-
-// Loading spinner base styles
-.Button__loading {
-    line-height: 0;
-}
-
-.Button__spinner {
-    display: inline-block;
-    border-radius: 50%;
-    animation: spin 750ms linear infinite;
-    background: conic-gradient(rgba(var(--center-channel-color-rgb), 0), rgba(var(--center-channel-color-rgb), 0.48));
-}
-
-// Spinner size modifiers
-.Button__spinner--xs { 
-    width: 12px; 
-    height: 12px;
-    mask-image: radial-gradient(
-        farthest-side,
-        transparent calc(100% - 1.5px),
-        #fff calc(100% - 1px)
-    );
-}
-
-.Button__spinner--sm { 
-    width: 14px; 
-    height: 14px;
-    mask-image: radial-gradient(
-        farthest-side,
-        transparent calc(100% - 1.5px),
-        #fff calc(100% - 1px)
-    );
-}
-
-.Button__spinner--md { 
-    width: 16px; 
-    height: 16px;
-    mask-image: radial-gradient(
-        farthest-side,
-        transparent calc(100% - 2px),
-        #fff calc(100% - 1.5px)
-    );
-}
-
-.Button__spinner--lg { 
-    width: 20px; 
-    height: 20px;
-    mask-image: radial-gradient(
-        farthest-side,
-        transparent calc(100% - 2.5px),
-        #fff calc(100% - 2px)
-    );
-}
-
-// Inverted spinner color override
-.Button__spinner--inverted {
-    background: conic-gradient(rgba(var(--button-color-rgb), 0), rgba(var(--button-color-rgb), 0.48));
-}
-
-// Icon containers - standardized based on Figma design system
-.Button__icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 0;
-}
-
-// Icon size modifiers
-.Button__icon--xs {
-    width: 12px;
-    height: 12px;
-}
-
-.Button__icon--sm {
-    width: 14px;
-    height: 14px;
-}
-
-.Button__icon--md {
-    width: 16px;
-    height: 16px;
-}
-
-.Button__icon--lg {
-    width: 20px;
-    height: 20px;
-}
-
-// Icon position modifiers
-.Button__icon--before.Button__icon--xs {
-    margin-left: -2px;
-}
-
-.Button__icon--after.Button__icon--xs {
-    margin-right: -2px;
-}
-
-.Button__icon--before.Button__icon--sm {
-    margin-left: -3px;
-}
-
-.Button__icon--after.Button__icon--sm {
-    margin-right: -3px;
-}
-
-.Button__icon--before.Button__icon--md {
-    margin-left: -4px;
-}
-
-.Button__icon--after.Button__icon--md {
-    margin-right: -4px;
-}
-
-.Button__icon--before.Button__icon--lg {
-    margin-left: -6px;
-}
-
-.Button__icon--after.Button__icon--lg {
-    margin-right: -6px;
-}
-
-// Label
-.Button__label {
-    display: inline-block;
-    white-space: nowrap;
-}
-
-// Disabled state overrides - placed after all other styles for natural cascade precedence
-.Button:disabled {
-    background-image: none; // Remove any gradient overlays
-    cursor: not-allowed;
-    opacity: 1; // Override any global disabled opacity
-    
-    // Regular (non-inverted) disabled - override destructive styles
-    &.Button--destructive {
-        // Primary, Secondary, Tertiary destructive disabled
-        &.Button--primary,
-        &.Button--tertiary {
-            background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.32);
-        }
-
-        &.Button--secondary {
-            border-color: rgba(var(--center-channel-color-rgb), 0.32);
-            color: rgba(var(--center-channel-color-rgb), 0.32);
-        }
-        
-        // Quaternary, Link destructive disabled
-        &.Button--quaternary,
-        &.Button--link {
-            border-color: transparent;
-            background-color: transparent;
-            color: rgba(var(--center-channel-color-rgb), 0.32);
-        }
-        
-        &.Button--link {
-            text-decoration: none;
-        }
-    }
-    
-    // Inverted disabled styles - override all previous states
-    &.Button--inverted {
-        &.Button--primary {
-            border-color: rgba(var(--button-color-rgb), 0.08);
-            background-color: rgba(var(--button-color-rgb), 0.08);
-            color: rgba(var(--button-color-rgb), 0.32);
-        }
-        
-        &.Button--secondary {
-            border-color: rgba(var(--button-color-rgb), 0.32);
-            background-color: transparent;
-            color: rgba(var(--button-color-rgb), 0.32);
-        }
-        
-        &.Button--tertiary {
-            border-color: transparent;
-            background-color: rgba(var(--button-color-rgb), 0.08);
-            color: rgba(var(--button-color-rgb), 0.32);
-        }
-        
-        &.Button--quaternary,
-        &.Button--link {
-            border-color: transparent;
-            background-color: transparent;
-            color: rgba(var(--button-color-rgb), 0.32);
-        }
-        
-        &.Button--link {
-            text-decoration: none;
-        }
     }
 }

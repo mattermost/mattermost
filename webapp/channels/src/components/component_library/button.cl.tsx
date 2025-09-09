@@ -280,7 +280,7 @@ const ButtonComponentLibrary = () => {
                 </div>
             </div>
 
-            <div className='cl_text-content-block'>
+            <div className='cl__text-content-block'>
                 <h3>{'Sizes'}</h3>
                 <p>
                     {'Buttons come in four sizes: x-small, small, medium, and large. The Medium Button size is used as the default button size for the web application, while the Large Button size is used as the default for mobile.'}
@@ -299,7 +299,7 @@ const ButtonComponentLibrary = () => {
                 ))}
             </div>
 
-            <div className='cl_text-content-block'>
+            <div className='cl__text-content-block'>
                 <h3>{'Emphasis'}</h3>
                 <p>
                     <strong>{'Primary Buttons:'}</strong> {'used to highlight the strongest call to action on a page. They should only appear once per screen. In a group of Buttons, Primary Buttons should be paired with Tertiary Buttons.'}
@@ -330,7 +330,7 @@ const ButtonComponentLibrary = () => {
                 ))}
             </div>
 
-            <div className='cl_text-content-block'>
+            <div className='cl__text-content-block'>
                 <h3>{'Width Variations'}</h3>
                 <p>
                     {'By default, buttons are constrained to the width of their content. However, there are times when you may want to use a button that takes up the full width of its container or set a fixed width.'}
@@ -349,7 +349,7 @@ const ButtonComponentLibrary = () => {
                 >{'Fixed Width'}</Button>
             </div>
 
-            <div className='cl_text-content-block'>
+            <div className='cl__text-content-block'>
                 <h3>{'States'}</h3>
                 <p>
                     <strong>{'Disabled Buttons:'}</strong> {'not clickable with a grayed out appearance.'}
@@ -374,7 +374,7 @@ const ButtonComponentLibrary = () => {
                 ))}
             </div>
 
-            <div className='cl_text-content-block'>
+            <div className='cl__text-content-block'>
                 <h3>{'Inverted Styles'}</h3>
                 <p>
                     {'When buttons appear on a background with insufficient contrast (e.g. the sidebar) the inverted styles should be used.'}
@@ -394,7 +394,7 @@ const ButtonComponentLibrary = () => {
                 ))}
             </div>
 
-            <div className='cl_text-content-block'>
+            <div className='cl__text-content-block'>
                 <h3>{'Icon Variations'}</h3>
                 <p>
                     {'Buttons can have leading or trailing icons.'}

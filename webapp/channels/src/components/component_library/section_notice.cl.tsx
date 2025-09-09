@@ -205,7 +205,7 @@ const SectionNoticeComponentLibrary = () => {
                 </div>
             </div>
 
-            <div className='cl_text-content-block'>
+            <div className='cl__text-content-block'>
                 <h3>{'Types'}</h3>
                 <p>
                     {'Section notices come in six types: info, success, danger, welcome, warning, and hint.'}
@@ -223,7 +223,7 @@ const SectionNoticeComponentLibrary = () => {
                 ))}
             </div>
 
-            <div className='cl_text-content-block'>
+            <div className='cl__text-content-block'>
                 <h3>{'Dismiss Option'}</h3>
                 <p>
                     {'Section notices can either be dismissable or not.'}
@@ -246,7 +246,7 @@ const SectionNoticeComponentLibrary = () => {
                 />
             </div>
 
-            <div className='cl_text-content-block'>
+            <div className='cl__text-content-block'>
                 <h3>{'Button Options'}</h3>
                 <p>
                     {'Section notices can have primary, secondary, tertiary, and link buttons. No more than 2 buttons per notice. Typically we use primary and tertiary buttons together.'}
@@ -282,7 +282,7 @@ const SectionNoticeComponentLibrary = () => {
                 />
             </div>
 
-            <div className='cl_text-content-block'>
+            <div className='cl__text-content-block'>
                 <h3>{'Text Variations'}</h3>
                 <p>
                     {'Section notices can have short text, long text, and no text.'}
