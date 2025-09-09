@@ -122,7 +122,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               disabled={false}
               inputSize="large"
               name="email"
-              onBlur={[Function]}
               onChange={[Function]}
               placeholder="Email address"
               type="text"
@@ -141,7 +140,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               disabled={false}
               inputSize="large"
               name="name"
-              onBlur={[Function]}
               onChange={[Function]}
               placeholder="Choose a Username"
               type="text"
@@ -155,7 +153,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               error=""
               info="Must be 5-72 characters long."
               inputSize="large"
-              onBlur={[Function]}
               onChange={[Function]}
               value=""
             />
@@ -291,7 +288,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               disabled={false}
               inputSize="large"
               name="email"
-              onBlur={[Function]}
               onChange={[Function]}
               placeholder="Email address"
               type="text"
@@ -310,7 +306,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               disabled={false}
               inputSize="large"
               name="name"
-              onBlur={[Function]}
               onChange={[Function]}
               placeholder="Choose a Username"
               type="text"
@@ -324,7 +319,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               error=""
               info="Must be 5-72 characters long."
               inputSize="large"
-              onBlur={[Function]}
               onChange={[Function]}
               value=""
             />

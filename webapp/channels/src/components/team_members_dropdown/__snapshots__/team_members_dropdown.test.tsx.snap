@@ -1,198 +1,235 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/team_members_dropdown should match snapshot for a bot with group-constrained team 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className=""
->
-  <button
-    aria-expanded="true"
-    className="dropdown-toggle theme color--link style--none"
-    id="teamMembersDropdown_bot"
-    type="button"
+<Fragment>
+  <Menu
+    anchorOrigin={
+      Object {
+        "horizontal": "right",
+        "vertical": "bottom",
+      }
+    }
+    menu={
+      Object {
+        "aria-label": "Change the role of a team member",
+        "id": "teamMembersDropdown_bot_menu",
+      }
+    }
+    menuButton={
+      Object {
+        "children": <React.Fragment>
+          <span>
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Team Admin"
+              id="team_members_dropdown.teamAdmin"
+            />
+             
+          </span>
+          <DropdownIcon />
+        </React.Fragment>,
+        "class": "dropdown-toggle theme color--link style--none",
+        "id": "teamMembersDropdown_bot",
+      }
+    }
+    transformOrigin={
+      Object {
+        "horizontal": "right",
+        "vertical": "top",
+      }
+    }
   >
-    <span>
-      <MemoizedFormattedMessage
-        defaultMessage="Team Admin"
-        id="team_members_dropdown.teamAdmin"
-      />
-       
-    </span>
-    <DropdownIcon />
-  </button>
-  <div>
-    <Menu
-      ariaLabel="Change the role of a team member"
-      openLeft={true}
-      openUp={false}
-    >
-      <MenuItemAction
-        id="removeFromTeam"
-        onClick={[Function]}
-        show={true}
-        text={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Remove from Team"
-            id="team_members_dropdown.leave_team"
-          />
-        }
-      />
-      <MenuItemAction
-        onClick={[Function]}
-        show={true}
-        text={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Make Team Member"
-            id="team_members_dropdown.makeMember"
-          />
-        }
-      />
-    </Menu>
-  </div>
-</MenuWrapper>
+    <MenuItem
+      id="removeFromTeam"
+      labels={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Remove from Team"
+          id="team_members_dropdown.leave_team"
+        />
+      }
+      onClick={[Function]}
+    />
+    <MenuItem
+      labels={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Make Team Member"
+          id="team_members_dropdown.makeMember"
+        />
+      }
+      onClick={[Function]}
+    />
+  </Menu>
+</Fragment>
 `;
 
 exports[`components/team_members_dropdown should match snapshot for team_members_dropdown 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className=""
->
-  <button
-    aria-expanded="true"
-    className="dropdown-toggle theme color--link style--none"
-    id="teamMembersDropdown_username2"
-    type="button"
+<Fragment>
+  <Menu
+    anchorOrigin={
+      Object {
+        "horizontal": "right",
+        "vertical": "bottom",
+      }
+    }
+    menu={
+      Object {
+        "aria-label": "Change the role of a team member",
+        "id": "teamMembersDropdown_username2_menu",
+      }
+    }
+    menuButton={
+      Object {
+        "children": <React.Fragment>
+          <span>
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Team Admin"
+              id="team_members_dropdown.teamAdmin"
+            />
+             
+          </span>
+          <DropdownIcon />
+        </React.Fragment>,
+        "class": "dropdown-toggle theme color--link style--none",
+        "id": "teamMembersDropdown_username2",
+      }
+    }
+    transformOrigin={
+      Object {
+        "horizontal": "right",
+        "vertical": "top",
+      }
+    }
   >
-    <span>
-      <MemoizedFormattedMessage
-        defaultMessage="Team Admin"
-        id="team_members_dropdown.teamAdmin"
-      />
-       
-    </span>
-    <DropdownIcon />
-  </button>
-  <div>
-    <Menu
-      ariaLabel="Change the role of a team member"
-      openLeft={true}
-      openUp={false}
-    >
-      <MenuItemAction
-        id="removeFromTeam"
-        onClick={[Function]}
-        show={true}
-        text={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Remove from Team"
-            id="team_members_dropdown.leave_team"
-          />
-        }
-      />
-      <MenuItemAction
-        onClick={[Function]}
-        show={true}
-        text={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Make Team Member"
-            id="team_members_dropdown.makeMember"
-          />
-        }
-      />
-    </Menu>
-  </div>
-</MenuWrapper>
+    <MenuItem
+      id="removeFromTeam"
+      labels={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Remove from Team"
+          id="team_members_dropdown.leave_team"
+        />
+      }
+      onClick={[Function]}
+    />
+    <MenuItem
+      labels={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Make Team Member"
+          id="team_members_dropdown.makeMember"
+        />
+      }
+      onClick={[Function]}
+    />
+  </Menu>
+</Fragment>
 `;
 
 exports[`components/team_members_dropdown should match snapshot opening dropdown upwards 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className=""
->
-  <button
-    aria-expanded="true"
-    className="dropdown-toggle theme color--link style--none"
-    id="teamMembersDropdown_username2"
-    type="button"
+<Fragment>
+  <Menu
+    anchorOrigin={
+      Object {
+        "horizontal": "right",
+        "vertical": "top",
+      }
+    }
+    menu={
+      Object {
+        "aria-label": "Change the role of a team member",
+        "id": "teamMembersDropdown_username2_menu",
+      }
+    }
+    menuButton={
+      Object {
+        "children": <React.Fragment>
+          <span>
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Team Admin"
+              id="team_members_dropdown.teamAdmin"
+            />
+             
+          </span>
+          <DropdownIcon />
+        </React.Fragment>,
+        "class": "dropdown-toggle theme color--link style--none",
+        "id": "teamMembersDropdown_username2",
+      }
+    }
+    transformOrigin={
+      Object {
+        "horizontal": "right",
+        "vertical": "bottom",
+      }
+    }
   >
-    <span>
-      <MemoizedFormattedMessage
-        defaultMessage="Team Admin"
-        id="team_members_dropdown.teamAdmin"
-      />
-       
-    </span>
-    <DropdownIcon />
-  </button>
-  <div>
-    <Menu
-      ariaLabel="Change the role of a team member"
-      openLeft={true}
-      openUp={true}
-    >
-      <MenuItemAction
-        id="removeFromTeam"
-        onClick={[Function]}
-        show={true}
-        text={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Remove from Team"
-            id="team_members_dropdown.leave_team"
-          />
-        }
-      />
-      <MenuItemAction
-        onClick={[Function]}
-        show={true}
-        text={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Make Team Member"
-            id="team_members_dropdown.makeMember"
-          />
-        }
-      />
-    </Menu>
-  </div>
-</MenuWrapper>
+    <MenuItem
+      id="removeFromTeam"
+      labels={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Remove from Team"
+          id="team_members_dropdown.leave_team"
+        />
+      }
+      onClick={[Function]}
+    />
+    <MenuItem
+      labels={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Make Team Member"
+          id="team_members_dropdown.makeMember"
+        />
+      }
+      onClick={[Function]}
+    />
+  </Menu>
+</Fragment>
 `;
 
 exports[`components/team_members_dropdown should match snapshot with group-constrained team 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className=""
->
-  <button
-    aria-expanded="true"
-    className="dropdown-toggle theme color--link style--none"
-    id="teamMembersDropdown_username2"
-    type="button"
+<Fragment>
+  <Menu
+    anchorOrigin={
+      Object {
+        "horizontal": "right",
+        "vertical": "bottom",
+      }
+    }
+    menu={
+      Object {
+        "aria-label": "Change the role of a team member",
+        "id": "teamMembersDropdown_username2_menu",
+      }
+    }
+    menuButton={
+      Object {
+        "children": <React.Fragment>
+          <span>
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Team Admin"
+              id="team_members_dropdown.teamAdmin"
+            />
+             
+          </span>
+          <DropdownIcon />
+        </React.Fragment>,
+        "class": "dropdown-toggle theme color--link style--none",
+        "id": "teamMembersDropdown_username2",
+      }
+    }
+    transformOrigin={
+      Object {
+        "horizontal": "right",
+        "vertical": "top",
+      }
+    }
   >
-    <span>
-      <MemoizedFormattedMessage
-        defaultMessage="Team Admin"
-        id="team_members_dropdown.teamAdmin"
-      />
-       
-    </span>
-    <DropdownIcon />
-  </button>
-  <div>
-    <Menu
-      ariaLabel="Change the role of a team member"
-      openLeft={true}
-      openUp={false}
-    >
-      <MenuItemAction
-        onClick={[Function]}
-        show={true}
-        text={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Make Team Member"
-            id="team_members_dropdown.makeMember"
-          />
-        }
-      />
-    </Menu>
-  </div>
-</MenuWrapper>
+    <MenuItem
+      labels={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Make Team Member"
+          id="team_members_dropdown.makeMember"
+        />
+      }
+      onClick={[Function]}
+    />
+  </Menu>
+</Fragment>
 `;

@@ -57,7 +57,6 @@ const Preferences = {
 
     CATEGORY_PERFORMANCE_DEBUGGING: 'performance_debugging',
     NAME_DISABLE_CLIENT_PLUGINS: 'disable_client_plugins',
-    NAME_DISABLE_TELEMETRY: 'disable_telemetry',
     NAME_DISABLE_TYPING_MESSAGES: 'disable_typing_messages',
 
     UNREAD_SCROLL_POSITION: 'unread_scroll_position',
