@@ -252,7 +252,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		})
 		code := model.NewToken(model.TokenTypeSaml, extra)
 		if err := c.App.Srv().Store().Token().Save(code); err != nil {
-			handleError(model.NewAppError("completeSaml", "api.user.authorize_oauth_user.internal_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err))
+			handleError(model.NewAppError("completeSaml", "app.recover.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err))
 			return
 		}
 
