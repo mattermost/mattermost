@@ -102,7 +102,6 @@ describe('PostPreviewPropertyRenderer', () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
         mockedUsePost.mockReturnValue(null);
         mockedClient4.getFlaggedPost.mockResolvedValue(mockPost);
     });
