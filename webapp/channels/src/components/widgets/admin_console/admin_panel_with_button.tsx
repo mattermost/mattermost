@@ -10,7 +10,7 @@ import AdminPanel from './admin_panel';
 
 type Props = {
     children?: React.ReactNode;
-    className: string;
+    className?: string;
     id?: string;
     title: MessageDescriptor;
     subtitle: MessageDescriptor;
