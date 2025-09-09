@@ -221,7 +221,7 @@ func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// ✅ SECURE: Check specific channel permission
+		// SECURE: Check specific channel permission
 		hasChannelPermission := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
 		if !hasChannelPermission {
 			c.SetPermissionError(model.PermissionManageChannelAccessRules)
@@ -275,7 +275,7 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// ✅ SECURE: Check specific channel permission
+		// SECURE: Check specific channel permission
 		hasChannelPermission := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
 		if !hasChannelPermission {
 			c.SetPermissionError(model.PermissionManageChannelAccessRules)
@@ -591,7 +591,7 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// ✅ SECURE: Check specific channel permission
+		// SECURE: Check specific channel permission
 		hasChannelPermission := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
 		if !hasChannelPermission {
 			c.SetPermissionError(model.PermissionManageChannelAccessRules)
@@ -667,7 +667,7 @@ func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// ✅ SECURE: Check specific channel permission
+		// SECURE: Check specific channel permission
 		hasChannelPermission := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
 		if !hasChannelPermission {
 			c.SetPermissionError(model.PermissionManageChannelAccessRules)

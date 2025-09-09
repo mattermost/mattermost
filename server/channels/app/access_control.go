@@ -356,16 +356,15 @@ func (a *App) ValidateChannelAccessControlPermission(rctx request.CTX, userID, c
 
 // ValidateAccessControlPolicyPermission validates if a user has permission to manage a specific existing access control policy
 func (a *App) ValidateAccessControlPolicyPermission(rctx request.CTX, userID, policyID string) *model.AppError {
-	return a.ValidateAccessControlPolicyPermissionWithMode(rctx, userID, policyID, false)
+	return a.ValidateAccessControlPolicyPermissionWithOptions(rctx, userID, policyID, ValidateAccessControlPolicyPermissionOptions{})
 }
 
-// ValidateAccessControlPolicyPermissionWithMode validates access control policy permissions with read-only mode option
-func (a *App) ValidateAccessControlPolicyPermissionWithMode(rctx request.CTX, userID, policyID string, isReadOnly bool) *model.AppError {
-	return a.ValidateAccessControlPolicyPermissionWithChannelContext(rctx, userID, policyID, isReadOnly, "")
+type ValidateAccessControlPolicyPermissionOptions struct {
+	isReadOnly bool
+	channelID  string
 }
 
-// ValidateAccessControlPolicyPermissionWithChannelContext validates access control policy permissions with channel context
-func (a *App) ValidateAccessControlPolicyPermissionWithChannelContext(rctx request.CTX, userID, policyID string, isReadOnly bool, channelID string) *model.AppError {
+func (a *App) ValidateAccessControlPolicyPermissionWithOptions(rctx request.CTX, userID, policyID string, opts ValidateAccessControlPolicyPermissionOptions) *model.AppError {
 	// System admins can manage any policy
 	if a.HasPermissionTo(userID, model.PermissionManageSystem) {
 		return nil
@@ -378,26 +377,41 @@ func (a *App) ValidateAccessControlPolicyPermissionWithChannelContext(rctx reque
 	}
 
 	// For read-only operations, allow access to system policies if they're applied to the specific channel
-	if isReadOnly && policy.Type != model.AccessControlPolicyTypeChannel && channelID != "" {
+	if opts.isReadOnly && policy.Type != model.AccessControlPolicyTypeChannel && opts.channelID != "" {
 		// Check if user has access to the channel
-		if !a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionReadChannel) {
-			return model.NewAppError("ValidateAccessControlPolicyPermissionWithChannelContext", "app.pap.access_control.insufficient_permissions", nil, "user_id="+userID+" channel_id="+channelID, http.StatusForbidden)
+		if !a.HasPermissionToChannel(rctx, userID, opts.channelID, model.PermissionReadChannel) {
+			return model.NewAppError("ValidateAccessControlPolicyPermissionWithOptions", "app.pap.access_control.insufficient_permissions", nil, "user_id="+userID+" channel_id="+opts.channelID, http.StatusForbidden)
 		}
 
 		// Check if this system policy is applied to the specific channel
-		if a.isSystemPolicyAppliedToChannel(rctx, policyID, channelID) {
+		if a.isSystemPolicyAppliedToChannel(rctx, policyID, opts.channelID) {
 			return nil // Allow read-only access
 		}
-		return model.NewAppError("ValidateAccessControlPolicyPermissionWithChannelContext", "app.pap.access_control.insufficient_permissions", nil, "user_id="+userID+" policy_type="+policy.Type+" channel_id="+channelID, http.StatusForbidden)
+		return model.NewAppError("ValidateAccessControlPolicyPermissionWithOptions", "app.pap.access_control.insufficient_permissions", nil, "user_id="+userID+" policy_type="+policy.Type+" channel_id="+opts.channelID, http.StatusForbidden)
 	}
 
 	// Non-system admins can only manage channel-type policies (for non-read-only operations)
 	if policy.Type != model.AccessControlPolicyTypeChannel {
-		return model.NewAppError("ValidateAccessControlPolicyPermissionWithChannelContext", "app.pap.access_control.insufficient_permissions", nil, "user_id="+userID+" policy_type="+policy.Type, http.StatusForbidden)
+		return model.NewAppError("ValidateAccessControlPolicyPermissionWithOptions", "app.pap.access_control.insufficient_permissions", nil, "user_id="+userID+" policy_type="+policy.Type, http.StatusForbidden)
 	}
 
 	// For channel-type policies, validate channel-specific permission (policy ID equals channel ID)
 	return a.ValidateChannelAccessControlPermission(rctx, userID, policyID)
+}
+
+// ValidateAccessControlPolicyPermissionWithMode validates access control policy permissions with read-only mode option
+func (a *App) ValidateAccessControlPolicyPermissionWithMode(rctx request.CTX, userID, policyID string, isReadOnly bool) *model.AppError {
+	return a.ValidateAccessControlPolicyPermissionWithOptions(rctx, userID, policyID, ValidateAccessControlPolicyPermissionOptions{
+		isReadOnly: isReadOnly,
+	})
+}
+
+// ValidateAccessControlPolicyPermissionWithChannelContext validates access control policy permissions with channel context
+func (a *App) ValidateAccessControlPolicyPermissionWithChannelContext(rctx request.CTX, userID, policyID string, isReadOnly bool, channelID string) *model.AppError {
+	return a.ValidateAccessControlPolicyPermissionWithOptions(rctx, userID, policyID, ValidateAccessControlPolicyPermissionOptions{
+		isReadOnly: isReadOnly,
+		channelID:  channelID,
+	})
 }
 
 // isSystemPolicyAppliedToChannel checks if a system policy is applied to a specific channel

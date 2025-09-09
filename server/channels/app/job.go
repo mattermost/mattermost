@@ -129,7 +129,7 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		// For channel admins, check if they have permission for the specific channel/policy
 		channelID := a.getChannelIDFromJobData(job.Data)
 		if channelID != "" {
-			// ✅ SECURE: Check specific channel permission
+			// SECURE: Check specific channel permission
 			hasChannelPermission := a.HasPermissionToChannel(request.EmptyContext(a.Srv().Log()), session.UserId, channelID, model.PermissionManageChannelAccessRules)
 			if hasChannelPermission {
 				return true, model.PermissionManageChannelAccessRules
