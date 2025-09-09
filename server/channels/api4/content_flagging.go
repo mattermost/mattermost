@@ -319,60 +319,13 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func removeFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
-	requireContentFlaggingEnabled(c)
+	actionRequest, userId, post := keepRemoveFlaggedPostChecks(c, r)
 	if c.Err != nil {
+		c.Err.Where = "removeFlaggedPost"
 		return
 	}
 
-	c.RequirePostId()
-	if c.Err != nil {
-		return
-	}
-
-	var actionRequest model.FlagContentActionRequest
-	if err := json.NewDecoder(r.Body).Decode(&actionRequest); err != nil {
-		c.SetInvalidParamWithErr("removeFlaggedPost", err)
-		return
-	}
-
-	commentRequired := c.App.Config().ContentFlaggingSettings.AdditionalSettings.ReviewerCommentRequired
-	if err := actionRequest.IsValid(*commentRequired); err != nil {
-		c.Err = err
-		return
-	}
-
-	postId := c.Params.PostId
-	userId := c.AppContext.Session().UserId
-
-	post, appErr := c.App.GetSinglePost(c.AppContext, postId, true)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if post == nil {
-		c.Err = model.NewAppError("removeFlaggedPost", "app.post.get.app_error", nil, "", http.StatusNotFound)
-		return
-	}
-
-	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	isReviewer, appErr := c.App.IsUserTeamContentReviewer(userId, channel.TeamId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !isReviewer {
-		c.Err = model.NewAppError("removeFlaggedPost", "api.content_flagging.error.reviewer_only", nil, "", http.StatusForbidden)
-		return
-	}
-
-	if appErr := c.App.PermanentDeleteFlaggedPost(c.AppContext, &actionRequest, userId, post); appErr != nil {
+	if appErr := c.App.PermanentDeleteFlaggedPost(c.AppContext, actionRequest, userId, post); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -381,26 +334,41 @@ func removeFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func keepFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	actionRequest, userId, post := keepRemoveFlaggedPostChecks(c, r)
+	if c.Err != nil {
+		c.Err.Where = "keepFlaggedPost"
+		return
+	}
+
+	if appErr := c.App.KeepFlaggedPost(c.AppContext, actionRequest, userId, post); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	writeOKResponse(w)
+}
+
+func keepRemoveFlaggedPostChecks(c *Context, r *http.Request) (*model.FlagContentActionRequest, string, *model.Post) {
 	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
-		return
+		return nil, "", nil
 	}
 
 	c.RequirePostId()
 	if c.Err != nil {
-		return
+		return nil, "", nil
 	}
 
 	var actionRequest model.FlagContentActionRequest
 	if err := json.NewDecoder(r.Body).Decode(&actionRequest); err != nil {
-		c.SetInvalidParamWithErr("keepFlaggedPost", err)
-		return
+		c.SetInvalidParamWithErr("", err)
+		return nil, "", nil
 	}
 
 	commentRequired := c.App.Config().ContentFlaggingSettings.AdditionalSettings.ReviewerCommentRequired
 	if err := actionRequest.IsValid(*commentRequired); err != nil {
 		c.Err = err
-		return
+		return nil, "", nil
 	}
 
 	postId := c.Params.PostId
@@ -409,35 +377,30 @@ func keepFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	post, appErr := c.App.GetSinglePost(c.AppContext, postId, true)
 	if appErr != nil {
 		c.Err = appErr
-		return
+		return nil, "", nil
 	}
 
 	if post == nil {
-		c.Err = model.NewAppError("keepFlaggedPost", "app.post.get.app_error", nil, "", http.StatusNotFound)
-		return
+		c.Err = model.NewAppError("", "app.post.get.app_error", nil, "", http.StatusNotFound)
+		return nil, "", nil
 	}
 
 	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
-		return
+		return nil, "", nil
 	}
 
 	isReviewer, appErr := c.App.IsUserTeamContentReviewer(userId, channel.TeamId)
 	if appErr != nil {
 		c.Err = appErr
-		return
+		return nil, "", nil
 	}
 
 	if !isReviewer {
-		c.Err = model.NewAppError("keepFlaggedPost", "api.content_flagging.error.reviewer_only", nil, "", http.StatusForbidden)
-		return
+		c.Err = model.NewAppError("", "api.content_flagging.error.reviewer_only", nil, "", http.StatusForbidden)
+		return nil, "", nil
 	}
 
-	if appErr := c.App.KeepFlaggedPost(c.AppContext, &actionRequest, userId, post); appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	writeOKResponse(w)
+	return &actionRequest, userId, post
 }
