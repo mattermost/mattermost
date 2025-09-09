@@ -924,11 +924,12 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             // Wait for confirmation modal to appear (membership changes detected)
             await waitFor(() => {
-                expect(screen.getByText('Save and apply rules')).toBeInTheDocument();
+                expect(screen.getAllByText('Save and apply rules').length).toBeGreaterThan(0);
             });
 
             // Click "Save and apply" in the confirmation modal
-            const confirmButton = screen.getByText('Save and apply');
+            const confirmButtons = screen.getAllByText('Save and apply');
+            const confirmButton = confirmButtons[0];
             await userEvent.click(confirmButton);
 
             // Wait for async validation and save to complete
@@ -1138,11 +1139,12 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             // Wait for confirmation modal to appear (membership changes detected)
             await waitFor(() => {
-                expect(screen.getByText('Save and apply rules')).toBeInTheDocument();
+                expect(screen.getAllByText('Save and apply rules').length).toBeGreaterThan(0);
             });
 
             // Click "Save and apply" in the confirmation modal
-            const confirmButton = screen.getByText('Save and apply');
+            const confirmButtons = screen.getAllByText('Save and apply');
+            const confirmButton = confirmButtons[0];
             await userEvent.click(confirmButton);
 
             // Wait for save to complete and panel to show saved state

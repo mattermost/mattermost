@@ -428,7 +428,7 @@ function ChannelSettingsAccessRulesTab({
         }
     }, [channel.id, channel.display_name, expression, autoSyncMembers, systemPolicies, actions, formatMessage, isEmptyRulesState]);
 
-    // Handle save action
+    // Handle save action se queda
     const handleSave = useCallback(async (): Promise<'saved' | 'error' | 'confirmation_required'> => {
         try {
             // For empty rules state, auto-sync should be disabled - no validation needed
@@ -717,6 +717,27 @@ function ChannelSettingsAccessRulesTab({
                 hideCancel={true}
                 confirmButtonClass='btn btn-primary'
                 isStacked={true}
+            />
+
+            {/* Confirmation modal for membership changes */}
+            <ChannelAccessRulesConfirmModal
+                show={showConfirmModal}
+                onHide={() => {
+                    setShowConfirmModal(false);
+                    setUsersToAdd([]);
+                    setUsersToRemove([]);
+
+                    // Clear any error state when canceling the modal
+                    if (saveChangesPanelState === 'error') {
+                        setSaveChangesPanelState(undefined);
+                    }
+                }}
+                onConfirm={handleConfirmSave}
+                channelName={channel.display_name}
+                usersToAdd={usersToAdd}
+                usersToRemove={usersToRemove}
+                isProcessing={isProcessingSave}
+                autoSyncEnabled={autoSyncMembers}
             />
 
             {/* Confirmation modal for membership changes */}
