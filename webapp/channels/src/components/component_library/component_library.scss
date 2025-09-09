@@ -1,4 +1,6 @@
-.clWrapper {
+.cl {
+    --cl-max-width: 740px;
+
     display: flex;
     width: auto;
     padding: 48px;
@@ -13,71 +15,322 @@
     label {
         margin: 0;
     }
+}
 
-    .clLiveComponentWrapper,
-    .clComponentVariants {
-        background: var(--center-channel-bg);
-        color: var(--center-channel-color);
-        border-radius: var(--radius-m);
-        margin-bottom: 24px;
-        box-shadow: var(--elevation-1);
+// Sidebar layout styles
+.cl--sidebar-layout {
+    flex-direction: row;
+    gap: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+.cl__sidebar {
+    flex: 0 0 240px;
+    color: var(--center-channel-color);
+    background-color: rgba(var(--center-channel-bg-rgb), 0.64);
+    border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    padding: 24px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    overflow-y: auto;
+}
+
+.cl__sidebar-section {
+    padding: 0 12px;
+}
+
+.cl__sidebar-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    line-height: 20px;
+    font-weight: 600;
+    font-family: 'Open Sans', sans-serif;
+    letter-spacing: 0.01em;
+    padding: 0 12px;
+    margin: 0 0 12px 0;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+}
+
+.cl__theme-selector {
+    .DropdownInput.Input_container {
+        margin-top: 0;
     }
-
-    .clLiveComponentWrapper {      
-        .clInteractiveSection {
-            display: flex;
-            flex-direction: row;
-            gap: 32px;
-            padding: 32px;
     
-            .clControlsPanel {
-                flex: 0 0 300px;
-                min-width: 300px;
-                border-radius: var(--radius-s);
-                
-                h2:first-child {
-                    margin-top: 0;
-                }
+    .theme-selector-dropdown .Input_wrapper {
+        width: 100%;
+    }
+}
 
-                .clInputs {
-                    gap: 20px;
+.cl__component-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
 
-                    .DropdownInput.Input_container {
-                        margin-top: 0;
-                    }
-
-                    .mm-modal-generic-section-item__fieldset-checkbox-ctr {
-                        margin-bottom: 0;
-
-                        label {
-                            font-weight: 500;
-                        }
-                    }
-                }
-            }
+.cl__component-nav-item {
+    appearance: none;
+    background: none;
+    border: none;
+    padding: 8px 16px;
+    text-align: left;
+    font-size: 14px;
+    line-height: 20px;
+    font-family: 'Open Sans', sans-serif;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    cursor: pointer;
+    border-radius: var(--radius-s);
+    transition: background-color 0.15s ease;
+    
+    &:hover {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+    
+    &--active {
+        background-color: var(--button-bg);
+        color: var(--button-color);
+        font-weight: 600;
         
-            .clLiveComponentPanel {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                min-height: 200px;
-                padding: 24px;
-                background: var(--center-channel-bg);
-                border-radius: 4px;
-                border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-                box-shadow: var(--elevation-4);
-
-                &.clSidebarBackground {
-                    background: var(--sidebar-bg);
-                    color: var(--sidebar-text);
-                }   
-            }
+        &:hover {
+            background-color: var(--button-bg);
         }
     }
+}
 
-    select {
+.cl__main-content {
+    flex: 1;
+    padding: 48px;
+    overflow-y: auto;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+    .cl--sidebar-layout {
+        flex-direction: column;
+        min-height: auto;
+    }
+    
+    .cl__sidebar {
+        flex: 0 0 auto;
+        border-right: none;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        padding: 16px 0;
+        gap: 24px;
+        
+        .cl__sidebar-section {
+            padding: 0 16px;
+        }
+        
+        .cl__component-nav {
+            flex-direction: row;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .cl__component-nav-item {
+            margin: 0 4px;
+            padding: 8px 12px;
+            flex: 0 0 auto;
+        }
+    }
+    
+    .cl__main-content {
+        padding: 24px 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .cl__theme-selector {
+        .theme-selector-dropdown .Input_wrapper {
+            width: 100%;
+            min-width: auto;
+        }
+    }
+    
+    .cl__component-nav-item {
+        font-size: 13px;
+        padding: 6px 10px;
+    }
+}
+
+.cl__intro-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: var(--cl-max-width);
+    margin: 0 auto 32px auto;
+
+    .cl__intro-title {
+        margin: 0;
+    }
+
+    .cl__description {
+        font-size: 18px;
+        line-height: 26px;
+        font-weight: 500;
+        font-family: 'Open Sans', sans-serif;
+        color: var(--center-channel-color-64);
+        margin: 0;
+    }
+
+    .cl__intro-subtitle {
+        font-size: 14px;
+        line-height: 14px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        margin: 0;
+    }
+}
+
+.cl_text-content-block {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: var(--cl-max-width);
+    margin: 0 auto 0 auto;
+    font-size: 16px;
+    line-height: 24px;
+    padding-top: 32px;
+    width: 100%;
+
+    h3 {
+        margin: 0;
+        font-weight: 600;
+    }
+
+    p {
+        margin: 0;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+}
+
+// BEM Elements - Structural components
+.cl__live-component-wrapper,
+.cl__component-variants {
+    background: var(--center-channel-bg);
+    color: var(--center-channel-color);
+    border-radius: var(--radius-m);
+    box-shadow: var(--elevation-1);
+}
+
+.cl__interactive-section {
+    display: flex;
+    flex-direction: row;
+    gap: 32px;
+    padding: 32px;
+}
+
+.cl__controls-panel {
+    flex: 0 0 300px;
+    min-width: 300px;
+    border-radius: var(--radius-s);
+    
+    :first-child {
+        margin-top: 0;
+    }
+}
+
+.cl__live-component-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    padding: 24px;
+    background: var(--center-channel-bg);
+    border-radius: 4px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    box-shadow: var(--elevation-4);
+}
+
+.cl__live-component-panel--sidebar {
+    background: var(--sidebar-bg);
+    color: var(--center-channel-color);
+}
+
+// Input and form elements
+.cl__inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.cl__inputs--controls {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.cl__inputs--top {
+    display: flex;
+    flex-direction: row;
+    gap: 32px;
+}
+
+.cl__input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.cl__input-wrapper--radio {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cl__input-wrapper--controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+// Style overrides for nested components within inputs
+.cl__controls-panel {
+    .DropdownInput.Input_container {
+        margin-top: 0;
+    }
+
+    .mm-modal-generic-section-item__fieldset-checkbox-ctr {
+        margin-bottom: 0;
+
+        label {
+            font-weight: 500;
+        }
+    }
+}
+
+.cl__input-wrapper {
+    label {
+        width: auto;
+    }
+
+    .DropdownInput.Input_container {
+        margin-top: 0;
+    }
+
+    .component-selector-dropdown .Input_wrapper {
+        width: 180px;
+    }
+
+    .theme-selector-dropdown .Input_wrapper {
+        width: 150px;
+    }
+}
+
+.cl__input-wrapper--radio {
+    label {
+        width: auto;
+        font-weight: 500;
+    }
+}
+
+// Form controls
+.cl select {
         font: inherit;
         position: relative;
         display: flex;
@@ -144,8 +397,8 @@
             }
         }
     }
-    
-    input[type="radio"] {
+
+.cl input[type="radio"] {
         appearance: none;
         width: 16px;
         height: 16px;
@@ -177,245 +430,223 @@
         }
     }
 
-    .clInputs {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
+// Component content wrapper
+.cl__component-wrapper {   
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+        
+    table {
+        width: 100%;
+        border-collapse: collapse;
 
-    .clTopInputs {
-        display: flex;
-        flex-direction: row;
-        gap: 32px;
+        tr {
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
 
-        .clInputWrapper {
-            gap: 12px;
-
-            label {
-                width: auto;
-            }
-
-            .DropdownInput.Input_container {
-                margin-top: 0;
-            }
-
-            .component-selector-dropdown .Input_wrapper {
+            td:first-child {
                 width: 180px;
             }
+        }
 
-            .theme-selector-dropdown .Input_wrapper {
-                width: 150px;
-            }
+        thead tr {
+            border-bottom: solid 2px rgba(var(--center-channel-color-rgb), 0.16);
+        }
+
+        th, td {
+            padding: 16px 16px 16px 0;
+            text-align: left;
         }
     }
-    
-    .clInputWrapper {
-        display: flex;
-        align-items: center;
-        gap: 24px;
-    
-        &.clRadioWrapper {
-            gap: 8px;
 
-            label {
-                width: auto;
-                font-weight: 500;
-            }
+    .cl__controls-panel, 
+    .cl__section-header {
+        h2 {
+            font-size: 25px;
+            line-height: 30px;
+            font-weight: 600;
+            font-family: Metropolis, sans-serif;
+            margin-bottom: 24px;
+        }
+
+        h3 {
+            font-size: 20px;
+            line-height: 24px;
+            font-weight: 600;
+            font-family: Metropolis, sans-serif;
+            margin-bottom: 16px;
+        }
+
+        h4 {
+            font-size: 16px;
+            line-height: 20px;
+            font-weight: 600;
+            font-family: Metropolis, sans-serif;
+            margin-bottom: 12px;
+        }
+
+        h5 {
+            font-size: 14px;
+            line-height: 20px;
+            font-weight: 600;
+            font-family: 'Open Sans', sans-serif;
+            margin-bottom: 8px;
         }
     }
-    
-    .clComponentWrapper {    
-        table {
-            width: 100%;
-            border-collapse: collapse;
-    
-            tr {
-                border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-    
-                td:first-child {
-                    width: 180px;
-                }
-            }
-    
-            thead tr {
-                border-bottom: solid 2px rgba(var(--center-channel-color-rgb), 0.16);
-            }
-    
-            th, td {
-                padding: 16px 16px 16px 0;
-                text-align: left;
-            }
-        }
+}
 
-        .clControlsPanel, 
-        .clSection-header,
-        .clVariantsHeader {
-            h2 {
-                font-size: 25px;
-                line-height: 30px;
-                font-weight: 600;
-                font-family: Metropolis, sans-serif;
-                margin-bottom: 24px;
-            }
+// Component variants display
+.cl__component-variants {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    border-radius: var(--radius-m);
+    overflow: hidden;
+}
 
-            h3 {
-                font-size: 20px;
-                line-height: 24px;
-                font-weight: 600;
-                font-family: Metropolis, sans-serif;
-                margin-bottom: 16px;
-            }
+.cl__variants-row {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: center;
+    max-width: var(--cl-max-width);
+    margin: 0 auto;
+    padding: 32px;
+    background: var(--center-channel-bg);
+    border-radius: var(--radius-m);
+    box-shadow: var(--elevation-1);
 
-            h4 {
-                font-size: 16px;
-                line-height: 20px;
-                font-weight: 600;
-                font-family: Metropolis, sans-serif;
-                margin-bottom: 12px;
-            }
-
-            h5 {
-                font-size: 14px;
-                line-height: 20px;
-                font-weight: 600;
-                font-family: 'Open Sans', sans-serif;
-                margin-bottom: 8px;
-            }
-        }
-    
-        .clComponentVariants {
-            display: flex;
-            flex-direction: column;
-            flex-wrap: wrap;
-            border-radius: var(--radius-m);
-            overflow: hidden;
-
-            &:has(.clVariantsHeader:hover) {
-                outline: solid 1px rgba(var(--center-channel-color-rgb), 0.08);
-                box-shadow: var(--elevation-2);
-            }
-
-            .clVariantsHeader {
-                display: flex;
-                position: relative;
-                align-items: center;
-                justify-content: space-between;
-                cursor: pointer;
-                border-radius: var(--radius-s);
-                transition: background-color 0.15s ease;
-                padding: 12px 12px 12px 36px;
-                width: 100%;
-                border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-
-                h2 {
-                    margin: 0;
-                    flex: 1;
-                    font-size: 14px;
-                    line-height: 20px;
-                    font-weight: 600;
-                    font-family: 'Open Sans', sans-serif;
-                }
-
-                .icon {
-                    font-size: 18px;
-                    color: var(--center-channel-color-64);
-                    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                    position: absolute;
-                    left:12px;
-                    top: 12px;
-
-                    &.clVariantsHeader--expanded {
-                        transform: rotate(90deg);
-                    }
-                }
-            }
-
-            .clVariantsContent {
-                overflow: hidden;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                display: flex;
-                flex-direction: column;
-                gap: 48px;
-                padding: 32px;
-                width: 100%;
-                
-                &--collapsed {
-                    max-height: 0;
-                    opacity: 0;
-                    transform: translateY(-8px);
-                    padding: 0 32px;
-                }
-                
-                &--expanded {
-                    opacity: 1;
-                    transform: translateY(0);
-                    padding: 32px;
-                }
-
-                .clSection {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 8px;
-
-                    &__inverted {
-                        gap: 48px;
-
-                        .clSection {
-                            gap: 8px;
-                        }
-                    }
-
-                    &-header {
-                        display: flex;
-                        flex-direction: column;
-                        gap: 12px;
-        
-                        h3, h4 {
-                            margin: 0;
-                        }
-                    }
-            
-                    &-content {
-                        display: flex;
-                        flex-direction: column;
-                        gap: 32px;
-                    }
-                    
-                    .clVariantsWrapper {
-                        display: flex;
-                        flex-direction: column;
-                        gap: 12px;
-                    }
-        
-                    &__inverted {
-                        background-color: var(--sidebar-bg);
-                        color: var(--sidebar-text);
-                        padding: 32px;
-                        border-radius: var(--radius-m);
-
-                        table {
-    
-                            thead tr {
-                                border-bottom: solid 2px rgba(var(--sidebar-text-rgb), 0.16);
-                            }
-                    
-                            tr {
-                                border-bottom: 1px solid rgba(var(--sidebar-text-rgb), 0.08);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    .clCenterBackground {
-        background: var(--center-channel-bg);
-        color: var(--center-channel-color);
-    }
-    
-    .clSidebarBackground {
+    &--inverted {
         background: var(--sidebar-bg);
         color: var(--sidebar-text);
     }
+}
+
+.cl__component-variants:has(.cl__variants-header:hover) {
+    outline: solid 1px rgba(var(--center-channel-color-rgb), 0.08);
+    box-shadow: var(--elevation-2);
+}
+
+.cl__variants-header {
+    display: flex;
+    position: relative;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    border-radius: var(--radius-s);
+    transition: background-color 0.15s ease;
+    padding: 12px 12px 12px 36px;
+    width: 100%;
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+}
+
+.cl__variants-header h2 {
+    margin: 0;
+    flex: 1;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+    font-family: 'Open Sans', sans-serif;
+}
+
+.cl__variants-header .icon {
+    font-size: 18px;
+    color: var(--center-channel-color-64);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: absolute;
+    left: 12px;
+    top: 12px;
+}
+
+.cl__variants-header .icon--expanded {
+    transform: rotate(90deg);
+}
+
+.cl__variants-content {
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+    padding: 32px;
+    width: 100%;
+}
+
+.cl__variants-content--collapsed {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-8px);
+    padding: 0 32px;
+}
+
+.cl__variants-content--expanded {
+    opacity: 1;
+    transform: translateY(0);
+    padding: 32px;
+}
+
+// Section components
+.cl__section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.cl__section--inverted {
+    gap: 48px;
+}
+
+.cl__section--inverted-wrapper .cl__section {
+    gap: 8px;
+}
+
+.cl__section-header {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.cl__section-header h3,
+.cl__section-header h4 {
+    margin: 0;
+}
+
+.cl__section-content {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.cl__variants-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.cl__section--inverted {
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    padding: 32px;
+    border-radius: var(--radius-m);
+}
+
+.cl__section--inverted table thead tr {
+    border-bottom: solid 2px rgba(var(--sidebar-text-rgb), 0.16);
+}
+
+.cl__section--inverted table tr {
+    border-bottom: 1px solid rgba(var(--sidebar-text-rgb), 0.08);
+}
+
+// Theme modifier classes
+.cl__background--center {
+    background: var(--center-channel-bg);
+    color: var(--center-channel-color);
+}
+
+.cl__background--sidebar {
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
 }

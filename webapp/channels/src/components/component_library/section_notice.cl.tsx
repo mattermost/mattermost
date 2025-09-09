@@ -22,13 +22,7 @@ const sectionTypeValues = ['info', 'success', 'danger', 'welcome', 'warning', 'h
 // Helper function to format type names consistently with select menu
 const formatTypeLabel = (type: string) => type.charAt(0).toUpperCase() + type.slice(1);
 
-type Props = {
-    backgroundClass: string;
-};
-
-const SectionNoticeComponentLibrary = ({
-    backgroundClass,
-}: Props) => {
+const SectionNoticeComponentLibrary = () => {
     // Interactive Controls State
     const [title, setTitle] = useState('Section Notice Title');
     const [text, setText] = useState('This is some descriptive text for the section notice.');
@@ -187,12 +181,12 @@ const SectionNoticeComponentLibrary = ({
     return (
         <>
             {/* Interactive Testing Section */}
-            <div className={classNames('clLiveComponentWrapper')}>
-                <div className='clInteractiveSection'>
+            <div className={classNames('cl__live-component-wrapper')}>
+                <div className='cl__interactive-section'>
                     {/* Controls Panel (Left) */}
-                    <div className='clControlsPanel'>
+                    <div className='cl__controls-panel'>
                         <h2>Section Notice</h2>
-                        <div className='clInputs'>
+                        <div className='cl__inputs--controls'>
                             {titleInput}
                             {textInput}
                             {typeSelect}
@@ -205,16 +199,16 @@ const SectionNoticeComponentLibrary = ({
                     </div>
 
                     {/* Interactive Example (Right) */}
-                    <div className={classNames('clLiveComponentPanel', backgroundClass)}>
+                    <div className={classNames('cl__live-component-panel')}>
                         {interactiveSectionNotice}
                     </div>
                 </div>
             </div>
 
             {/* Comprehensive Variants */}
-            <div className={`clComponentVariants ${backgroundClass || ''}`}>
+            <div className={`cl__component-variants`}>
                 <div 
-                    className="clVariantsHeader" 
+                    className="cl__variants-header" 
                     onClick={toggleVariantsExpanded}
                     role="button"
                     tabIndex={0}
@@ -226,16 +220,16 @@ const SectionNoticeComponentLibrary = ({
                     }}
                 >
                     <h2>All variants</h2>
-                    <i className={`icon icon-chevron-right ${variantsExpanded ? 'clVariantsHeader--expanded' : ''}`} />
+                    <i className={`icon icon-chevron-right ${variantsExpanded ? 'cl__variants-header--expanded' : ''}`} />
                 </div>
 
-                <div className={`clVariantsContent ${variantsExpanded ? 'clVariantsContent--expanded' : 'clVariantsContent--collapsed'}`}>
+                <div className={`cl__variants-content ${variantsExpanded ? 'cl__variants-content--expanded' : 'cl__variants-content--collapsed'}`}>
                     {/* MATRIX 1: ALL TYPES × BASIC CONTENT */}
-                    <div className={'clSection'}>
-                        <div className='clSection-header'>
+                    <div className={'cl__section'}>
+                        <div className='cl__section-header'>
                             <h3>All Types - Basic (6 combinations)</h3>
                         </div>
-                        <div className='clSection-content'>
+                        <div className='cl__section-content'>
                             <table>
                                 <thead>
                                     <tr>
@@ -262,11 +256,11 @@ const SectionNoticeComponentLibrary = ({
                     </div>
 
                     {/* MATRIX 2: ALL TYPES × DISMISS STATES */}
-                    <div className={'clSection'}>
-                        <div className='clSection-header'>
+                    <div className={'cl__section'}>
+                        <div className='cl__section-header'>
                             <h3>Types × Dismiss States (12 combinations)</h3>
                         </div>
-                        <div className='clSection-content'>
+                        <div className='cl__section-content'>
                             <table>
                                 <thead>
                                     <tr>
@@ -303,12 +297,12 @@ const SectionNoticeComponentLibrary = ({
                     </div>
 
                     {/* MATRIX 3: SELECTED TYPES × BUTTON COMBINATIONS */}
-                    <div className={'clSection'}>
-                        <div className='clSection-header'>
+                    <div className={'cl__section'}>
+                        <div className='cl__section-header'>
                             <h3>Selected Types × Button Combinations</h3>
                         </div>
-                        <div className='clSection-content'>
-                            <div className='clVariantsWrapper'>
+                        <div className='cl__section-content'>
+                            <div className='cl__variants-wrapper'>
                                 <SectionNotice 
                                     type="info"
                                     title="Primary Button Only"
@@ -337,12 +331,12 @@ const SectionNoticeComponentLibrary = ({
                     </div>
 
                     {/* MATRIX 4: TEXT VARIATIONS */}
-                    <div className={'clSection'}>
-                        <div className='clSection-header'>
+                    <div className={'cl__section'}>
+                        <div className='cl__section-header'>
                             <h3>Text Variations (Selected types)</h3>
                         </div>
-                        <div className='clSection-content'>
-                            <div className='clVariantsWrapper'>
+                        <div className='cl__section-content'>
+                            <div className='cl__variants-wrapper'>
                                 <SectionNotice 
                                     type="info"
                                     title="Short Text"
@@ -362,12 +356,12 @@ const SectionNoticeComponentLibrary = ({
                     </div>
 
                     {/* MATRIX 5: BUTTON STATES */}
-                    <div className={'clSection'}>
-                        <div className='clSection-header'>
+                    <div className={'cl__section'}>
+                        <div className='cl__section-header'>
                             <h3>Button States - Loading & Disabled</h3>
                         </div>
-                        <div className='clSection-content'>
-                            <div className='clVariantsWrapper'>
+                        <div className='cl__section-content'>
+                            <div className='cl__variants-wrapper'>
                                 <SectionNotice 
                                     type="info"
                                     title="Normal Buttons"
@@ -394,12 +388,12 @@ const SectionNoticeComponentLibrary = ({
                     </div>
 
                     {/* MATRIX 6: BUTTON ICONS */}
-                    <div className={'clSection'}>
-                        <div className='clSection-header'>
+                    <div className={'cl__section'}>
+                        <div className='cl__section-header'>
                             <h3>Button Icons</h3>
                         </div>
-                        <div className='clSection-content'>
-                            <div className='clVariantsWrapper'>
+                        <div className='cl__section-content'>
+                            <div className='cl__variants-wrapper'>
                                 <SectionNotice 
                                     type="info"
                                     title="Leading Icons"
@@ -427,12 +421,12 @@ const SectionNoticeComponentLibrary = ({
                     </div>
 
                     {/* MATRIX 7: COMPLEX COMBINATIONS */}
-                    <div className={'clSection'}>
-                        <div className='clSection-header'>
+                    <div className={'cl__section'}>
+                        <div className='cl__section-header'>
                             <h3>Complex Real-World Examples</h3>
                         </div>
-                        <div className='clSection-content'>
-                            <div className='clVariantsWrapper'>
+                        <div className='cl__section-content'>
+                            <div className='cl__variants-wrapper'>
                                 <SectionNotice 
                                     type="danger"
                                     title="Error with Actions"

@@ -38,6 +38,9 @@ export interface ButtonProps {
     
     /** Whether the button should take full width of its container */
     fullWidth?: boolean;
+    
+    /** Fixed width for the button (e.g., "200px", "10rem") */
+    width?: string;
 }
 
 type ButtonHTMLProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof ButtonProps>;
@@ -58,6 +61,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
             iconBefore,
             iconAfter,
             fullWidth = false,
+            width,
             className,
             disabled,
             ...htmlProps
@@ -84,9 +88,22 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
                 ref={ref}
                 className={buttonClasses}
                 disabled={isDisabled}
+                style={width ? { width, ...htmlProps.style } : htmlProps.style}
                 {...htmlProps}
             >
-                {iconBefore && (
+                {loading && (
+                    <span className="Button__loading">
+                        <i className={classNames(
+                            'Button__spinner',
+                            `Button__spinner--${size}`,
+                            {
+                                'Button__spinner--inverted': inverted,
+                            }
+                        )} />
+                    </span>
+                )}
+                
+                {iconBefore && !loading && (
                     <span className={classNames(
                         'Button__icon',
                         `Button__icon--${size}`,
@@ -99,18 +116,6 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
                 {children && (
                     <span className="Button__label">
                         {children}
-                    </span>
-                )}
-                
-                {loading && (
-                    <span className="Button__loading">
-                        <i className={classNames(
-                            'Button__spinner',
-                            `Button__spinner--${size}`,
-                            {
-                                'Button__spinner--inverted': inverted,
-                            }
-                        )} />
                     </span>
                 )}
                 

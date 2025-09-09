@@ -91,33 +91,44 @@ const ComponentLibrary = () => {
 
     const SelectedComponent = componentMap[selectedComponent];
     return (
-        <div className={'clWrapper'}>
-            <div className={'clTopInputs'}>
-                <div className={'clInputWrapper'}>
-                    <DropdownInput
-                        className='component-selector-dropdown'
-                        name='component'
-                        placeholder='Component'
-                        value={componentOptions.find(option => option.value === selectedComponent)}
-                        options={componentOptions}
-                        onChange={onSelectComponent}
-                    />
+        <div className={'cl cl--sidebar-layout'}>
+            <div className={'cl__sidebar'}>
+                <div className={'cl__sidebar-section'}>
+                    <div className={'cl__theme-selector'}>
+                        <DropdownInput
+                            className='theme-selector-dropdown'
+                            name='theme'
+                            placeholder='Theme'
+                            value={themeOptions.find(option => option.value === selectedTheme)}
+                            options={themeOptions}
+                            onChange={onSelectTheme}
+                        />
+                    </div>
                 </div>
-                <div className={'clInputWrapper'}>
-                    <DropdownInput
-                        className='theme-selector-dropdown'
-                        name='theme'
-                        placeholder='Theme'
-                        value={themeOptions.find(option => option.value === selectedTheme)}
-                        options={themeOptions}
-                        onChange={onSelectTheme}
-                    />
+                
+                <div className={'cl__sidebar-section'}>
+                    <h3 className={'cl__sidebar-title'}>Components</h3>
+                    <nav className={'cl__component-nav'}>
+                        {Object.keys(componentMap).map((componentName) => (
+                            <button
+                                key={componentName}
+                                className={`cl__component-nav-item ${selectedComponent === componentName ? 'cl__component-nav-item--active' : ''}`}
+                                onClick={() => {
+                                    setSelectedComponent(componentName as ComponentName);
+                                    setStoredValue(STORAGE_KEYS.SELECTED_COMPONENT, componentName as ComponentName);
+                                }}
+                            >
+                                {componentName}
+                            </button>
+                        ))}
+                    </nav>
                 </div>
             </div>
-            <div className={'clComponentWrapper'}>
-                <SelectedComponent
-                    backgroundClass="clCenterBackground"
-                />
+            
+            <div className={'cl__main-content'}>
+                <div className={'cl__component-wrapper'}>
+                    <SelectedComponent />
+                </div>
             </div>
         </div>
     );
