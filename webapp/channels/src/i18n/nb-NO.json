@@ -4736,7 +4736,6 @@
   "user.settings.advance.on": "På",
   "user.settings.advance.onForAllMessages": "På for alle meldinger",
   "user.settings.advance.performance.disableClientPlugins": "Deaktiver plugin-moduler på klientsiden",
-  "user.settings.advance.performance.disableTelemetry": "Deaktiver telemetrihendelser som sendes fra klienten",
   "user.settings.advance.performance.disableTypingMessages": "Deaktiver \"Brukeren skriver ...\"-meldinger",
   "user.settings.advance.performance.noneEnabled": "Ingen innstillinger aktivert",
   "user.settings.advance.performance.title": "Ytelsesfeilsøking",

@@ -148,7 +148,7 @@ func TestGetPostPropertyValues(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotNil(t, propertyValues)
-		require.Len(t, propertyValues, 5)
+		require.Len(t, *propertyValues, 5)
 	})
 }
 
