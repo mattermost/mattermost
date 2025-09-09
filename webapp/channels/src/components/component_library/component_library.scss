@@ -231,6 +231,16 @@
     :first-child {
         margin-top: 0;
     }
+
+    .cl__width-options {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+
+        .cl__input-wrapper {
+            flex: 1;
+        }
+    }
 }
 
 .cl__live-component-panel {

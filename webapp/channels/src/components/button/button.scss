@@ -82,6 +82,12 @@
     max-width: none;
 }
 
+// Fixed width variant
+.Button--fixed-width {
+    max-width: none;
+    flex-shrink: 0;
+}
+
 // Emphasis variants
 .Button--primary {
     background-color: var(--button-bg);

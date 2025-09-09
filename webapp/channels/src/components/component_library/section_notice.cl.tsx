@@ -180,12 +180,22 @@ const SectionNoticeComponentLibrary = () => {
 
     return (
         <>
+            <div className='cl__intro'>
+                <div className='cl__intro-content'>
+                    <p className='cl__intro-subtitle'>Component</p>
+                    <h1 className='cl__intro-title'>Section Notice</h1>
+                    <p className='cl__description'>
+                        A Section Notice is used to alert users to a particular area of the screen. It can be used to highlight important information, signify a change in state, or alert users when a problem occurs.
+                    </p>
+                </div>
+            </div>
+
             {/* Interactive Testing Section */}
             <div className={classNames('cl__live-component-wrapper')}>
                 <div className='cl__interactive-section'>
                     {/* Controls Panel (Left) */}
                     <div className='cl__controls-panel'>
-                        <h2>Section Notice</h2>
+                        <h3>Component controls</h3>
                         <div className='cl__inputs--controls'>
                             {titleInput}
                             {textInput}

@@ -78,6 +78,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
                 'Button--destructive': destructive,
                 'Button--loading': loading,
                 'Button--full-width': fullWidth,
+                'Button--fixed-width': width,
                 'Button--inverted': inverted,
             },
             className,

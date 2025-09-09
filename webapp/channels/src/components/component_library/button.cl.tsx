@@ -31,7 +31,8 @@ const ButtonComponentLibrary = () => {
     const [disabled, setDisabled] = useState(false);
     const [loading, setLoading] = useState(false);
     const [destructive, setDestructive] = useState(false);
-    const [fullWidth, setFullWidth] = useState(false);
+    const [widthOption, setWidthOption] = useState<'default' | 'fixed-width' | 'full-width'>('default');
+    const [widthValue, setWidthValue] = useState(200);
     const [inverted, setInverted] = useState(false);
     const [showIconBefore, setShowIconBefore] = useState(false);
     const [showIconAfter, setShowIconAfter] = useState(false);
@@ -46,7 +47,7 @@ const ButtonComponentLibrary = () => {
 
     // Control Components
     const buttonTextInput = (
-        <div className='clInputWrapper'>
+        <div className='cl__input-wrapper'>
             <Input
                 name='buttonText'
                 label='Button Text'
@@ -62,7 +63,7 @@ const ButtonComponentLibrary = () => {
     }));
 
     const emphasisSelect = (
-        <div className='clInputWrapper'>
+        <div className='cl__input-wrapper'>
             <DropdownInput
                 name='emphasis'
                 placeholder='Emphasis'
@@ -79,7 +80,7 @@ const ButtonComponentLibrary = () => {
     }));
 
     const sizeSelect = (
-        <div className='clInputWrapper'>
+        <div className='cl__input-wrapper'>
             <DropdownInput
                 name='size'
                 placeholder='Size'
@@ -91,7 +92,7 @@ const ButtonComponentLibrary = () => {
     );
 
     const disabledCheckbox = (
-        <div className='clInputWrapper'>
+        <div className='cl__input-wrapper'>
             <CheckboxSettingItem
                 inputFieldData={{ name: 'disabled', dataTestId: 'disabled' }}
                 inputFieldValue={disabled}
@@ -102,7 +103,7 @@ const ButtonComponentLibrary = () => {
     );
 
     const loadingCheckbox = (
-        <div className='clInputWrapper'>
+        <div className='cl__input-wrapper'>
             <CheckboxSettingItem
                 inputFieldData={{ name: 'loading', dataTestId: 'loading' }}
                 inputFieldValue={loading}
@@ -113,7 +114,7 @@ const ButtonComponentLibrary = () => {
     );
 
     const destructiveCheckbox = (
-        <div className='clInputWrapper'>
+        <div className='cl__input-wrapper'>
             <CheckboxSettingItem
                 inputFieldData={{ name: 'destructive', dataTestId: 'destructive' }}
                 inputFieldValue={destructive}
@@ -123,19 +124,40 @@ const ButtonComponentLibrary = () => {
         </div>
     );
 
-    const fullWidthCheckbox = (
-        <div className='clInputWrapper'>
-            <CheckboxSettingItem
-                inputFieldData={{ name: 'fullWidth', dataTestId: 'fullWidth' }}
-                inputFieldValue={fullWidth}
-                inputFieldTitle='Full Width'
-                handleChange={setFullWidth}
+    const widthOptions = [
+        { label: 'Default', value: 'default' },
+        { label: 'Fixed Width', value: 'fixed-width' },
+        { label: 'Full Width', value: 'full-width' },
+    ];
+
+    const widthOptionSelect = (
+        <div className='cl__input-wrapper'>
+            <DropdownInput
+                name='widthOption'
+                placeholder='Width Option'
+                value={widthOptions.find(option => option.value === widthOption)}
+                options={widthOptions}
+                onChange={(option: any) => setWidthOption(option.value)}
             />
         </div>
     );
 
+    const widthValueInput = widthOption === 'fixed-width' ? (
+        <div className='cl__input-wrapper'>
+            <Input
+                name='widthValue'
+                label='Width (px)'
+                type='number'
+                value={widthValue.toString()}
+                onChange={(e) => setWidthValue(parseInt(e.target.value) || 200)}
+                min={50}
+                max={800}
+            />
+        </div>
+    ) : null;
+
     const invertedCheckbox = (
-        <div className='clInputWrapper'>
+        <div className='cl__input-wrapper'>
             <CheckboxSettingItem
                 inputFieldData={{ name: 'inverted', dataTestId: 'inverted' }}
                 inputFieldValue={inverted}
@@ -146,7 +168,7 @@ const ButtonComponentLibrary = () => {
     );
 
     const iconBeforeCheckbox = (
-        <div className='clInputWrapper'>
+        <div className='cl__input-wrapper'>
             <CheckboxSettingItem
                 inputFieldData={{ name: 'showIconBefore', dataTestId: 'showIconBefore' }}
                 inputFieldValue={showIconBefore}
@@ -157,7 +179,7 @@ const ButtonComponentLibrary = () => {
     );
 
     const iconAfterCheckbox = (
-        <div className='clInputWrapper'>
+        <div className='cl__input-wrapper'>
             <CheckboxSettingItem
                 inputFieldData={{ name: 'showIconAfter', dataTestId: 'showIconAfter' }}
                 inputFieldValue={showIconAfter}
@@ -175,7 +197,8 @@ const ButtonComponentLibrary = () => {
             disabled: disabled,
             loading: loading,
             destructive: destructive,
-            fullWidth: fullWidth,
+            ...(widthOption === 'full-width' ? { fullWidth: true } : {}),
+            ...(widthOption === 'fixed-width' ? { width: `${widthValue}px` } : {}),
             inverted: inverted,
             ...(showIconBefore ? {iconBefore: <i className="icon icon-plus"/>} : {}),
             ...(showIconAfter ? {iconAfter: <i className="icon icon-chevron-right"/>} : {}),
@@ -187,7 +210,7 @@ const ButtonComponentLibrary = () => {
                 {buttonText}
             </Button>
         );
-    }, [buttonText, emphasis, size, disabled, loading, destructive, fullWidth, inverted, showIconBefore, showIconAfter]);
+    }, [buttonText, emphasis, size, disabled, loading, destructive, widthOption, widthValue, inverted, showIconBefore, showIconAfter]);
 
     // Static variant definitions for comprehensive view
     const emphases = ['primary', 'secondary', 'tertiary', 'quaternary', 'link'] as const;
@@ -216,6 +239,7 @@ const ButtonComponentLibrary = () => {
                     </p>
                 </div>
             </div>
+            
             {/* Interactive Testing Section */}
             <div className={classNames('cl__live-component-wrapper')}>
                 <div className='cl__interactive-section'>
@@ -226,10 +250,13 @@ const ButtonComponentLibrary = () => {
                             {buttonTextInput}
                             {emphasisSelect}
                             {sizeSelect}
+                            <div className="cl__width-options">
+                                {widthOptionSelect}
+                                {widthValueInput}
+                            </div>
                             {disabledCheckbox}
                             {loadingCheckbox}
                             {destructiveCheckbox}
-                            {fullWidthCheckbox}
                             {invertedCheckbox}
                             {iconBeforeCheckbox}
                             {iconAfterCheckbox}
