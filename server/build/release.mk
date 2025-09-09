@@ -26,12 +26,12 @@ ifeq ($(FIPS_ENABLED),true)
 	@echo Skipping Build Linux arm64 for FIPS
 else
 	@echo Build Linux arm64
-	ifeq ($(BUILDER_GOOS_GOARCH),"linux_arm64")
-		env GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./...
-	else
-		mkdir -p $(GOBIN)/linux_arm64
-		env GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN)/linux_arm64 $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./...
-	endif
+ifeq ($(BUILDER_GOOS_GOARCH),"linux_arm64")
+	env GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./...
+else
+	mkdir -p $(GOBIN)/linux_arm64
+	env GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN)/linux_arm64 $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./...
+endif
 endif
 
 build-osx:
@@ -71,12 +71,12 @@ ifeq ($(FIPS_ENABLED),true)
 	@echo Skipping Build Linux arm64 for FIPS
 else
 	@echo Build CMD Linux arm64
-	ifeq ($(BUILDER_GOOS_GOARCH),"linux_arm64")
-		env GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
-	else
-		mkdir -p $(GOBIN)/linux_arm64
-		env GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN)/linux_arm64 $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
-	endif
+ifeq ($(BUILDER_GOOS_GOARCH),"linux_arm64")
+	env GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
+else
+	mkdir -p $(GOBIN)/linux_arm64
+	env GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN)/linux_arm64 $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
+endif
 endif
 
 build-cmd-osx:
