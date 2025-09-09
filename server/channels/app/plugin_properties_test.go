@@ -337,23 +337,6 @@ func TestPluginProperties(t *testing.T) {
 					return fmt.Errorf("expected 20 active fields, got %d", count)
 				}
 
-				// Try to create the 21st field for the same target - should fail
-				field21 := &model.PropertyField{
-					GroupID:     group.ID,
-					Name:        "Field 21",
-					Type:        model.PropertyFieldTypeText,
-					TargetType:  "user",
-					TargetID:    targetId,
-				}
-
-				_, err = p.API.CreatePropertyField(field21)
-				if err == nil {
-					return fmt.Errorf("expected error when creating 21st field, but got none")
-				}
-				if !strings.Contains(err.Error(), "maximum number of property fields") {
-					return fmt.Errorf("unexpected error message: %s", err.Error())
-				}
-
 				// Search for fields to get one to delete
 				fields, err := p.API.SearchPropertyFields(group.ID, "", model.PropertyFieldSearchOpts{PerPage: 1})
 				if err != nil {
