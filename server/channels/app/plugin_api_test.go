@@ -2896,43 +2896,6 @@ func TestPluginServeHTTPCompatibility(t *testing.T) {
 func TestPluginAPICreatePropertyFieldLimit(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	t.Run("should enforce 20 property field limit per group", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-		api := th.SetupPluginAPI()
-
-		// Create 20 property fields successfully
-		groupID := model.NewId()
-		for i := 1; i <= 20; i++ {
-			field := &model.PropertyField{
-				GroupID:  groupID,
-				Name:     fmt.Sprintf("field_%d", i),
-				Type:     model.PropertyFieldTypeText,
-				CreateAt: model.GetMillis(),
-				UpdateAt: model.GetMillis(),
-			}
-
-			created, err := api.CreatePropertyField(field)
-			require.NoError(t, err)
-			assert.Equal(t, field.Name, created.Name)
-			assert.Equal(t, field.GroupID, created.GroupID)
-		}
-
-		// 21st field should fail with limit error
-		field21 := &model.PropertyField{
-			GroupID:  groupID,
-			Name:     "field_21",
-			Type:     model.PropertyFieldTypeText,
-			CreateAt: model.GetMillis(),
-			UpdateAt: model.GetMillis(),
-		}
-
-		created, err := api.CreatePropertyField(field21)
-		require.Error(t, err)
-		assert.Nil(t, created)
-		assert.Contains(t, err.Error(), "maximum number of property fields (20) reached")
-	})
-
 	t.Run("should allow creation after deleting fields", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()

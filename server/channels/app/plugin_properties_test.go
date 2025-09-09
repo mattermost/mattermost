@@ -288,14 +288,13 @@ func TestPluginProperties(t *testing.T) {
 		require.Nil(t, appErr)
 	})
 
-	t.Run("test property field limit enforcement", func(t *testing.T) {
+	t.Run("test property field counting", func(t *testing.T) {
 		groupName := model.NewId()
 		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
 			package main
 
 			import (
 				"fmt"
-				"strings"
 				"github.com/mattermost/mattermost/server/public/plugin"
 				"github.com/mattermost/mattermost/server/public/model"
 			)
