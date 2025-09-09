@@ -8353,7 +8353,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Vous ne pouvez pas acquitter dans un canal archivé."
+    "translation": "Vous ne pouvez pas enregistrer une confirmation dans un canal archivé."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
@@ -8818,5 +8818,9 @@
   {
     "id": "api.plugin.upload.file_too_large.app_error",
     "translation": "La taille du plugin envoyé excède la limite. Cette limite peut être changée dans la console système via Stockage de fichiers > Taille maximale de fichier"
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Échec de l’ajout du certificat."
   }
 ]

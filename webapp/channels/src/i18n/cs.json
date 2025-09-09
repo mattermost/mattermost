@@ -5723,7 +5723,6 @@
   "user.settings.advance.onForAllMessages": "Zapnuto pro všechny zprávy",
   "user.settings.advance.onForCode": "Zapnuto pouze pro kódy začínající ```",
   "user.settings.advance.performance.disableClientPlugins": "Vypnout klientní pluginy",
-  "user.settings.advance.performance.disableTelemetry": "Vypnout odesílání telemetrických událostí z klienta",
   "user.settings.advance.performance.disableTypingMessages": "Vypnout zprávy \"Uživatel píše...\"",
   "user.settings.advance.performance.info1": "Tyto nastavení můžete dočasně povolit, abyste mohli izolovat problémy s výkonem během ladění. Nedoporučujeme tyto nastavení ponechávat povolená po delší dobu, protože by to mohlo negativně ovlivnit vaši uživatelskou zkušenost.",
   "user.settings.advance.performance.info2": "Před tím, než budou tyto nastavení aktivní, musíte stránku znovu načíst.",
