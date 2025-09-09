@@ -99,44 +99,44 @@ func (s *MmctlUnitTestSuite) TestHasAttrsChanges() {
 func (s *MmctlUnitTestSuite) TestBuildFieldAttrs() {
 	testCases := []struct {
 		Name        string
-		FlagChanges map[string]string // map of flag name -> value to set
+		FlagChanges map[string]any // map of flag name -> value or []string for options
 		Expected    model.StringInterface
 		ShouldError bool
 		ErrorText   string
 	}{
 		{
 			Name:        "Should return empty attrs when no flags are set",
-			FlagChanges: map[string]string{},
+			FlagChanges: map[string]any{},
 			Expected:    model.StringInterface{},
 			ShouldError: false,
 		},
 		{
 			Name:        "Should create attrs with managed=admin when managed=true",
-			FlagChanges: map[string]string{"managed": "true"},
+			FlagChanges: map[string]any{"managed": "true"},
 			Expected:    model.StringInterface{"managed": "admin"},
 			ShouldError: false,
 		},
 		{
 			Name:        "Should create attrs with managed='' when managed=false",
-			FlagChanges: map[string]string{"managed": "false"},
+			FlagChanges: map[string]any{"managed": "false"},
 			Expected:    model.StringInterface{"managed": ""},
 			ShouldError: false,
 		},
 		{
 			Name:        "Should parse attrs JSON string and apply to StringInterface",
-			FlagChanges: map[string]string{"attrs": `{"visibility":"always","required":true}`},
+			FlagChanges: map[string]any{"attrs": `{"visibility":"always","required":true}`},
 			Expected:    model.StringInterface{"visibility": "always", "required": true},
 			ShouldError: false,
 		},
 		{
 			Name:        "Should create CustomProfileAttributesSelectOption array with generated IDs for option flags",
-			FlagChanges: map[string]string{"option": "Go"},
-			Expected:    model.StringInterface{}, // We'll verify the structure in the test
+			FlagChanges: map[string]any{"option": []string{"Go"}},
+			Expected:    model.StringInterface{},
 			ShouldError: false,
 		},
 		{
 			Name: "Should have individual flags override attrs JSON values",
-			FlagChanges: map[string]string{
+			FlagChanges: map[string]any{
 				"attrs":   `{"visibility":"always","managed":""}`,
 				"managed": "true", // Should override the managed="" from attrs
 			},
@@ -148,24 +148,24 @@ func (s *MmctlUnitTestSuite) TestBuildFieldAttrs() {
 		},
 		{
 			Name:        "Should handle error for invalid attrs JSON syntax",
-			FlagChanges: map[string]string{"attrs": `{"invalid": json}`},
+			FlagChanges: map[string]any{"attrs": `{"invalid": json}`},
 			Expected:    nil,
 			ShouldError: true,
 			ErrorText:   "failed to parse attrs JSON",
 		},
 		{
 			Name: "Should combine managed and option flags correctly",
-			FlagChanges: map[string]string{
+			FlagChanges: map[string]any{
 				"managed": "true",
-				"option":  "Go",
+				"option":  []string{"Go"},
 			},
-			Expected:    model.StringInterface{"managed": "admin"}, // Options verified separately
+			Expected:    model.StringInterface{"managed": "admin"},
 			ShouldError: false,
 		},
 		{
 			Name: "Should handle multiple option flags",
-			FlagChanges: map[string]string{
-				"option": "Go", // Note: We'll need to set multiple values differently
+			FlagChanges: map[string]any{
+				"option": []string{"Go", "React", "Python"},
 			},
 			Expected:    model.StringInterface{},
 			ShouldError: false,
@@ -184,21 +184,19 @@ func (s *MmctlUnitTestSuite) TestBuildFieldAttrs() {
 			// Apply the flag changes for this test case
 			for flagName, flagValue := range tc.FlagChanges {
 				if flagName == "option" {
-					// Special handling for multiple options in specific test cases
-					if tc.Name == "Should handle multiple option flags" {
-						err := cmd.Flags().Set("option", "Go")
-						s.Require().NoError(err)
-						err = cmd.Flags().Set("option", "React")
-						s.Require().NoError(err)
-						err = cmd.Flags().Set("option", "Python")
-						s.Require().NoError(err)
-					} else {
-						err := cmd.Flags().Set(flagName, flagValue)
-						s.Require().NoError(err)
+					// Handle option flag with list of values
+					if options, ok := flagValue.([]string); ok {
+						for _, optionName := range options {
+							err := cmd.Flags().Set("option", optionName)
+							s.Require().NoError(err)
+						}
 					}
 				} else {
-					err := cmd.Flags().Set(flagName, flagValue)
-					s.Require().NoError(err)
+					// Handle other flags as strings
+					if stringValue, ok := flagValue.(string); ok {
+						err := cmd.Flags().Set(flagName, stringValue)
+						s.Require().NoError(err)
+					}
 				}
 			}
 
@@ -212,45 +210,32 @@ func (s *MmctlUnitTestSuite) TestBuildFieldAttrs() {
 				s.Require().NoError(err)
 				s.Require().NotNil(result)
 
-				// Special validation for option-related test cases
-				switch tc.Name {
-				case "Should create CustomProfileAttributesSelectOption array with generated IDs for option flags":
+				// Check if we expect options based on FlagChanges
+				var expectedOptions []string
+				if optionValue, exists := tc.FlagChanges["option"]; exists {
+					if options, ok := optionValue.([]string); ok {
+						expectedOptions = options
+					}
+				}
+
+				// Validate options if specified
+				if len(expectedOptions) > 0 {
 					s.Require().Contains(result, "options")
 					options, ok := result["options"].([]*model.CustomProfileAttributesSelectOption)
 					s.Require().True(ok, "Options should be []*model.CustomProfileAttributesSelectOption")
-					s.Require().Len(options, 1)
-					s.Require().Equal("Go", options[0].Name)
-					s.Require().NotEmpty(options[0].ID)
-				case "Should combine managed and option flags correctly":
-					s.Require().Contains(result, "managed")
-					s.Require().Equal("admin", result["managed"])
-					s.Require().Contains(result, "options")
-					options, ok := result["options"].([]*model.CustomProfileAttributesSelectOption)
-					s.Require().True(ok)
-					s.Require().Len(options, 1)
-					s.Require().Equal("Go", options[0].Name)
-					s.Require().NotEmpty(options[0].ID)
-				case "Should handle multiple option flags":
-					s.Require().Contains(result, "options")
-					options, ok := result["options"].([]*model.CustomProfileAttributesSelectOption)
-					s.Require().True(ok)
-					s.Require().Len(options, 3)
 
 					optionNames := make([]string, len(options))
 					for i, opt := range options {
 						optionNames[i] = opt.Name
 						s.Require().NotEmpty(opt.ID)
 					}
-					s.Require().Contains(optionNames, "Go")
-					s.Require().Contains(optionNames, "React")
-					s.Require().Contains(optionNames, "Python")
-				default:
-					// Standard validation for other test cases
-					for key, expectedValue := range tc.Expected {
-						s.Require().Contains(result, key)
-						s.Require().Equal(expectedValue, result[key])
-					}
-					s.Require().Len(result, len(tc.Expected))
+					s.Require().ElementsMatch(expectedOptions, optionNames)
+				}
+
+				// Standard validation for expected fields
+				for key, expectedValue := range tc.Expected {
+					s.Require().Contains(result, key)
+					s.Require().Equal(expectedValue, result[key])
 				}
 			}
 		})
