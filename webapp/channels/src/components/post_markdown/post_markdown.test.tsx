@@ -21,6 +21,10 @@ jest.mock('components/properties_card_view/propertyValueRenderer/post_preview_pr
 });
 jest.mock('mattermost-redux/client');
 
+jest.mock('components/remove_flagged_message_confirmation_modal/remove_flagged_message_confirmation_modal', () => {
+    return jest.fn(() => <div data-testid='keep-remove-flagged-message-confirmation-modal'>{'KeepRemoveFlaggedMessageConfirmationModal Mock'}</div>);
+});
+
 const mockedClient4 = jest.mocked(Client4);
 
 describe('components/PostMarkdown', () => {

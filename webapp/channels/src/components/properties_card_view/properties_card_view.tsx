@@ -48,6 +48,10 @@ const fieldNameMessages = defineMessages({
         id: 'property_card.field.post_preview.label',
         defaultMessage: 'Message',
     },
+    post_id: {
+        id: 'property_card.field.post_od.label',
+        defaultMessage: 'Post ID',
+    },
     reviewer: {
         id: 'property_card.field.reviewer_user_id.label',
         defaultMessage: 'Reviewer',
@@ -91,9 +95,10 @@ type Props = {
     mode?: 'short' | 'full';
     actionsRow?: React.ReactNode;
     metadata?: PropertiesCardViewMetadata;
+    footer?: React.ReactNode;
 }
 
-export default function PropertiesCardView({title, propertyFields, fieldOrder, shortModeFieldOrder, propertyValues, mode, actionsRow, metadata}: Props) {
+export default function PropertiesCardView({title, propertyFields, fieldOrder, shortModeFieldOrder, propertyValues, mode, actionsRow, metadata, footer}: Props) {
     const orderedRows = useMemo<OrderedRow[]>(() => {
         const hasRequiredData =
             Object.keys(propertyFields).length > 0 &&
@@ -177,6 +182,8 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
                         </div>
                     </div>
                 }
+
+                {footer}
             </div>
         </div>
     );

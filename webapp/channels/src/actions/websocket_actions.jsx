@@ -22,6 +22,7 @@ import {
     HostedCustomerTypes,
     ChannelBookmarkTypes,
     ScheduledPostTypes,
+    ContentFlaggingTypes,
 } from 'mattermost-redux/action_types';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
@@ -644,6 +645,9 @@ export function handleEvent(msg) {
         break;
     case SocketEvents.CPA_FIELD_DELETED:
         dispatch(handleCustomAttributesDeleted(msg));
+        break;
+    case SocketEvents.CONTENT_FLAGGING_REPORT_VALUE_CHANGED:
+        dispatch(handleContentFlaggingReportValueChanged(msg));
         break;
     default:
     }
@@ -1961,5 +1965,12 @@ export function handleCustomAttributesDeleted(msg) {
     return {
         type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_DELETED,
         data: msg.data.field_id,
+    };
+}
+
+export function handleContentFlaggingReportValueChanged(msg) {
+    return {
+        type: ContentFlaggingTypes.CONTENT_FLAGGING_REPORT_VALUE_UPDATED,
+        data: msg.data,
     };
 }

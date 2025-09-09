@@ -44,3 +44,19 @@ func (f *FlagContentRequest) IsValid(commentRequired bool, validReasons []string
 
 	return nil
 }
+
+type FlagContentActionRequest struct {
+	Comment string `json:"comment,omitempty"`
+}
+
+func (f *FlagContentActionRequest) IsValid(commentRequired bool) *AppError {
+	if commentRequired && f.Comment == "" {
+		return NewAppError("FlagContentActionRequest.IsValid", "api.content_flagging.error.comment_required", nil, "", http.StatusBadRequest)
+	}
+
+	if utf8.RuneCountInString(f.Comment) > commentMaxRunes {
+		return NewAppError("FlagContentActionRequest.IsValid", "api.content_flagging.error.comment_too_long", map[string]any{"MaxLength": commentMaxRunes}, "", http.StatusBadRequest)
+	}
+
+	return nil
+}

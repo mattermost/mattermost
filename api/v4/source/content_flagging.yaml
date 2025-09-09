@@ -186,7 +186,8 @@
               description: The flagged post is fetched correctlky
               content:
                   application/json:
-                  $ref: "#/components/schemas/Post"
+                    schema:
+                      $ref: "#/components/schemas/Post"
             '403':
               description: Forbidden - User does not have permission to access this post, or is not a reviewer of the post's team.
             '404':
@@ -195,3 +196,65 @@
               description: Internal server error.
             '501':
               description: Feature is disabled either via config or an Enterprise Advanced license is not available.
+  /api/v4/content_flagging/post/{post_id}/remove:
+    put:
+        summary: Remove a flagged post
+        description: |
+            Permanently removes a flagged post and all it's associated contents from the system. This action is typically performed by content reviewers after they have reviewed the flagged content. This action is irreversible.
+            The user must be a content reviewer of the team to which the post belongs to.
+            An enterprise advanced license is required.
+        tags:
+            - Content Flagging
+        parameters:
+            - in: path
+              name: post_id
+              required: true
+              schema:
+                  type: string
+              description: The ID of the post to be removed
+        responses:
+            '200':
+              description: Post removed successfully
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/StatusOK"
+            '403':
+              description: Forbidden - User does not have permission to remove this post.
+            '404':
+              description: Post not found or feature is disabled via the feature flag.
+            '500':
+              description: Internal server error.
+            '501':
+              description: Feature is disabled either via config or an Enterprise Advanced license is not available.
+  /api/v4/content_flagging/post/{post_id}/keep:
+    put:
+      summary: Keep a flagged post
+      description: |
+        Marks a flagged post as reviewed and keeps it in the system without any changes. This action is typically performed by content reviewers after they have reviewed the flagged content and determined that it does not violate any guidelines.
+        The user must be a content reviewer of the team to which the post belongs to.
+        An enterprise advanced license is required.
+      tags:
+        - Content Flagging
+      parameters:
+        - in: path
+          name: post_id
+          required: true
+          schema:
+            type: string
+          description: The ID of the post to be kept
+      responses:
+        '200':
+          description: Post marked to be kept successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        '403':
+          description: Forbidden - User does not have permission to keep this post.
+        '404':
+          description: Post not found or feature is disabled via the feature flag.
+        '500':
+          description: Internal server error.
+        '501':
+          description: Feature is disabled either via config or an Enterprise Advanced license is not available.
