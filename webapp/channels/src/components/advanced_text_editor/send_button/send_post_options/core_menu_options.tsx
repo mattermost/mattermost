@@ -85,7 +85,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
         extraProps.trailingElements = teammateTimeDisplay;
     }
 
-    const tomorrowClickHandler = useCallback((e) => handleOnSelect(e, tomorrow9amTime), [handleOnSelect, tomorrow9amTime]);
+    const tomorrowClickHandler = useCallback((e: React.UIEvent) => handleOnSelect(e, tomorrow9amTime), [handleOnSelect, tomorrow9amTime]);
 
     const optionTomorrow = (
         <Menu.Item
@@ -105,7 +105,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
         />
     );
 
-    const nextMondayClickHandler = useCallback((e) => handleOnSelect(e, nextMonday), [handleOnSelect, nextMonday]);
+    const nextMondayClickHandler = useCallback((e: React.UIEvent) => handleOnSelect(e, nextMonday), [handleOnSelect, nextMonday]);
 
     const optionNextMonday = (
         <Menu.Item

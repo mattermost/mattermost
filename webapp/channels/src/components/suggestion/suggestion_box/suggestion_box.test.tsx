@@ -27,7 +27,7 @@ function TestWrapper(props: React.ComponentPropsWithoutRef<typeof SuggestionBox>
     // eslint-disable-next-line react/prop-types
     const [value, setValue] = useState(props.value);
 
-    const handleChange = useCallback((e) => setValue(e.target.value), []);
+    const handleChange = useCallback((e: React.InputEvent) => setValue((e.target as HTMLInputElement).value), []);
 
     return (
         <SuggestionBox

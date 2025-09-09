@@ -66,7 +66,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions}: 
 
     const connectionId = useSelector(getConnectionId);
 
-    const openRestorePostModal = useCallback((e) => {
+    const openRestorePostModal = useCallback((e: React.MouseEvent) => {
         // this prevents history item from
         // collapsing and closing when clicking on restore button
         e.stopPropagation();

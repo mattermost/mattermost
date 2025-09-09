@@ -63,7 +63,7 @@ function ThreadFooter({
 
     const participantIds = useMemo(() => (participants || []).map(({id}) => id).reverse(), [participants]);
 
-    const handleReply = useCallback((e) => {
+    const handleReply = useCallback((e: React.MouseEvent) => {
         if (replyClick) {
             replyClick(e);
             return;
@@ -73,7 +73,7 @@ function ThreadFooter({
         dispatch(selectPost({id: threadId, channel_id: channelId} as Post));
     }, [replyClick, threadId, channelId]);
 
-    const handleFollowing = useCallback((e) => {
+    const handleFollowing = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         dispatch(setThreadFollow(currentUserId, currentTeamId, threadId, !isFollowing));
     }, [isFollowing]);

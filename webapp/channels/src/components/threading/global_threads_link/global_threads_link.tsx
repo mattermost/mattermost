@@ -63,7 +63,7 @@ const GlobalThreadsLink = () => {
     const rhsOpen = useSelector(getIsRhsOpen);
     const rhsState = useSelector(getRhsState);
     const showTutorialTrigger = isFeatureEnabled && crtTutorialTrigger === Constants.CrtTutorialTriggerSteps.START && !appHaveOpenModal && Boolean(counts) && counts.total >= 1;
-    const openThreads = useCallback((e) => {
+    const openThreads = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
 
         performance.mark(Mark.GlobalThreadsLinkClicked);

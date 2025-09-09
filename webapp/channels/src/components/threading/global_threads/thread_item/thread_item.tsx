@@ -166,7 +166,7 @@ function ThreadItem({
         goToInChannel(threadId);
     }, [goToInChannel, threadId]);
 
-    const handleFormattedTextClick = useCallback((e) => {
+    const handleFormattedTextClick = useCallback((e: React.UIEvent) => {
         // If the event is a keyboard event, check if the key is 'Enter' or ' '.
         if ('key' in e) {
             if (e.key !== 'Enter' && e.key !== ' ') {

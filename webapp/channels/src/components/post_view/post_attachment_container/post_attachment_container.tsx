@@ -60,15 +60,16 @@ const PostAttachmentContainer = (props: Props) => {
     const post = useSelector((state: GlobalState) => getPost(state, params?.postId ?? ''));
     const crtEnabled = useSelector(isCollapsedThreadsEnabled);
 
-    const handleOnClick = useCallback((e) => {
-        const {tagName} = e.target;
+    const handleOnClick = useCallback((e: React.MouseEvent) => {
+        const target = e.target as HTMLDivElement;
+        const {tagName} = target;
         e.stopPropagation();
         const elements = ['A', 'IMG', 'BUTTON', 'I'];
-        const targetClassName = getElementClassName(e.target);
+        const targetClassName = getElementClassName(target);
 
         if (
             !elements.includes(tagName) &&
-                e.target.getAttribute('role') !== 'button' &&
+                target.getAttribute('role') !== 'button' &&
                 targetClassName !== `attachment attachment--${className}`
         ) {
             const classNames = [
@@ -82,7 +83,7 @@ const PostAttachmentContainer = (props: Props) => {
                 dispatch(focusPost(params.postId, link, currentUserId, {skipRedirectReplyPermalink: true}));
                 return;
             }
-            if (!classNames.some((className) => targetClassName.includes(className)) && e.target.id !== 'image-name-text') {
+            if (!classNames.some((className) => targetClassName.includes(className)) && target.id !== 'image-name-text') {
                 history.push(link);
             }
         }
