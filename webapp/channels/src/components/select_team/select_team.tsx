@@ -10,6 +10,7 @@ import type {CloudUsage} from '@mattermost/types/cloud';
 import type {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
@@ -35,9 +36,9 @@ const TEAM_MEMBERSHIP_DENIAL_ERROR_ID = 'api.team.add_members.user_denied';
 const MATTERMOST_ACADEMY_TEAM_TRAINING_LINK = 'https://mattermost.com/pl/mattermost-academy-team-training';
 
 type Actions = {
-    getTeams: (page?: number, perPage?: number, includeTotalCount?: boolean) => any;
-    loadRolesIfNeeded: (roles: Iterable<string>) => any;
-    addUserToTeam: (teamId: string, userId?: string) => any;
+    getTeams: (page?: number, perPage?: number, includeTotalCount?: boolean) => Promise<ActionResult<unknown>>;
+    loadRolesIfNeeded: (roles: Iterable<string>) => void;
+    addUserToTeam: (teamId: string, userId: string) => Promise<ActionResult<unknown>>;
 }
 
 type Props = {
