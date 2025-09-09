@@ -4181,7 +4181,6 @@
   "user.settings.advance.onForAllMessages": "Encendido para todos los mensajes",
   "user.settings.advance.onForCode": "Encendido sólo para bloques de código que comienzan con ```",
   "user.settings.advance.performance.disableClientPlugins": "Deshabilita Complementos del lado del Cliente",
-  "user.settings.advance.performance.disableTelemetry": "Deshabilita eventos de telemetría enviados desde el cliente",
   "user.settings.advance.performance.disableTypingMessages": "Deshabilita mensajes \"El usuario está escribiendo...\"",
   "user.settings.advance.performance.info1": "Puedes habilitar estos ajustes de forma temporal para así ayudar a aislar los problemas de rendimiento mientras estás depurando. No recomendamos dejar estos ajustes habilitados por un período prolongado de tiempo, ya que puede afectar negativamente tu experiencia de usuario.",
   "user.settings.advance.performance.info2": "Necesitas refrescar la página antes que estos ajustes tengan efecto.",
