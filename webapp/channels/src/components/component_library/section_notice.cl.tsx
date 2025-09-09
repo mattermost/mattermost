@@ -4,18 +4,14 @@
 /* eslint-disable no-alert */
 
 import classNames from 'classnames';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 
+import DropdownInput from 'components/dropdown_input';
 import SectionNotice from 'components/section_notice';
 import Input from 'components/widgets/inputs/input/input';
-import DropdownInput from 'components/dropdown_input';
 import CheckboxSettingItem from 'components/widgets/modals/components/checkbox_setting_item';
 
-import {buildComponent} from './utils';
-
 import './component_library.scss';
-
-const propPossibilities = {};
 
 const sectionTypeValues = ['info', 'success', 'danger', 'welcome', 'warning', 'hint'];
 
@@ -34,12 +30,6 @@ const SectionNoticeComponentLibrary = () => {
     const [showLinkButton, setShowLinkButton] = useState(false);
 
     // Variants Panel State
-    const [variantsExpanded, setVariantsExpanded] = useState(false);
-
-    // Toggle function for variants panel
-    const toggleVariantsExpanded = useCallback(() => {
-        setVariantsExpanded(prev => !prev);
-    }, []);
 
     // Control Components
     const titleInput = (
@@ -66,9 +56,9 @@ const SectionNoticeComponentLibrary = () => {
         </div>
     );
 
-    const sectionTypeOptions = sectionTypeValues.map(value => ({
+    const sectionTypeOptions = sectionTypeValues.map((value) => ({
         label: formatTypeLabel(value),
-        value: value,
+        value,
     }));
 
     const typeSelect = (
@@ -76,7 +66,7 @@ const SectionNoticeComponentLibrary = () => {
             <DropdownInput
                 name='type'
                 placeholder='Section Type'
-                value={sectionTypeOptions.find(option => option.value === sectionType)}
+                value={sectionTypeOptions.find((option) => option.value === sectionType)}
                 options={sectionTypeOptions}
                 onChange={(option: any) => setSectionType(option.value)}
             />
@@ -86,7 +76,7 @@ const SectionNoticeComponentLibrary = () => {
     const dismissableCheckbox = (
         <div className='clInputWrapper'>
             <CheckboxSettingItem
-                inputFieldData={{ name: 'isDismissable', dataTestId: 'isDismissable' }}
+                inputFieldData={{name: 'isDismissable', dataTestId: 'isDismissable'}}
                 inputFieldValue={dismissable}
                 inputFieldTitle='Is Dismissable'
                 handleChange={setDismissable}
@@ -97,7 +87,7 @@ const SectionNoticeComponentLibrary = () => {
     const primaryButtonCheckbox = (
         <div className='clInputWrapper'>
             <CheckboxSettingItem
-                inputFieldData={{ name: 'showPrimaryButton', dataTestId: 'showPrimaryButton' }}
+                inputFieldData={{name: 'showPrimaryButton', dataTestId: 'showPrimaryButton'}}
                 inputFieldValue={showPrimaryButton}
                 inputFieldTitle='Show Primary Button'
                 handleChange={setShowPrimaryButton}
@@ -108,7 +98,7 @@ const SectionNoticeComponentLibrary = () => {
     const secondaryButtonCheckbox = (
         <div className='clInputWrapper'>
             <CheckboxSettingItem
-                inputFieldData={{ name: 'showSecondaryButton', dataTestId: 'showSecondaryButton' }}
+                inputFieldData={{name: 'showSecondaryButton', dataTestId: 'showSecondaryButton'}}
                 inputFieldValue={showSecondaryButton}
                 inputFieldTitle='Show Secondary Button'
                 handleChange={setShowSecondaryButton}
@@ -119,7 +109,7 @@ const SectionNoticeComponentLibrary = () => {
     const tertiaryButtonCheckbox = (
         <div className='clInputWrapper'>
             <CheckboxSettingItem
-                inputFieldData={{ name: 'showTertiaryButton', dataTestId: 'showTertiaryButton' }}
+                inputFieldData={{name: 'showTertiaryButton', dataTestId: 'showTertiaryButton'}}
                 inputFieldValue={showTertiaryButton}
                 inputFieldTitle='Show Tertiary Button'
                 handleChange={setShowTertiaryButton}
@@ -130,7 +120,7 @@ const SectionNoticeComponentLibrary = () => {
     const linkButtonCheckbox = (
         <div className='clInputWrapper'>
             <CheckboxSettingItem
-                inputFieldData={{ name: 'showLinkButton', dataTestId: 'showLinkButton' }}
+                inputFieldData={{name: 'showLinkButton', dataTestId: 'showLinkButton'}}
                 inputFieldValue={showLinkButton}
                 inputFieldTitle='Show Link Button'
                 handleChange={setShowLinkButton}
@@ -141,7 +131,7 @@ const SectionNoticeComponentLibrary = () => {
     // Build interactive section notice
     const interactiveSectionNotice = useMemo(() => {
         const allProps = {
-            title: title,
+            title,
             text: text || undefined,
             type: sectionType,
             isDismissable: dismissable,
@@ -172,7 +162,7 @@ const SectionNoticeComponentLibrary = () => {
             } : {}),
         };
 
-        return <SectionNotice {...allProps} />;
+        return <SectionNotice {...allProps}/>;
     }, [title, text, sectionType, dismissable, showPrimaryButton, showSecondaryButton, showTertiaryButton, showLinkButton]);
 
     // Static variant definitions for comprehensive view
@@ -182,10 +172,10 @@ const SectionNoticeComponentLibrary = () => {
         <>
             <div className='cl__intro'>
                 <div className='cl__intro-content'>
-                    <p className='cl__intro-subtitle'>Component</p>
-                    <h1 className='cl__intro-title'>Section Notice</h1>
+                    <p className='cl__intro-subtitle'>{'Component'}</p>
+                    <h1 className='cl__intro-title'>{'Section Notice'}</h1>
                     <p className='cl__description'>
-                        A Section Notice is used to alert users to a particular area of the screen. It can be used to highlight important information, signify a change in state, or alert users when a problem occurs.
+                        {'A Section Notice is used to alert users to a particular area of the screen. It can be used to highlight important information, signify a change in state, or alert users when a problem occurs.'}
                     </p>
                 </div>
             </div>
@@ -195,7 +185,7 @@ const SectionNoticeComponentLibrary = () => {
                 <div className='cl__interactive-section'>
                     {/* Controls Panel (Left) */}
                     <div className='cl__controls-panel'>
-                        <h3>Component controls</h3>
+                        <h3 className='cl__controls-panel-title'>{'Component controls'}</h3>
                         <div className='cl__inputs--controls'>
                             {titleInput}
                             {textInput}
@@ -215,258 +205,105 @@ const SectionNoticeComponentLibrary = () => {
                 </div>
             </div>
 
-            {/* Comprehensive Variants */}
-            <div className={`cl__component-variants`}>
-                <div 
-                    className="cl__variants-header" 
-                    onClick={toggleVariantsExpanded}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            toggleVariantsExpanded();
-                        }
-                    }}
-                >
-                    <h2>All variants</h2>
-                    <i className={`icon icon-chevron-right ${variantsExpanded ? 'cl__variants-header--expanded' : ''}`} />
-                </div>
+            <div className='cl_text-content-block'>
+                <h3>{'Types'}</h3>
+                <p>
+                    {'Section notices come in six types: info, success, danger, welcome, warning, and hint.'}
+                </p>
+            </div>
 
-                <div className={`cl__variants-content ${variantsExpanded ? 'cl__variants-content--expanded' : 'cl__variants-content--collapsed'}`}>
-                    {/* MATRIX 1: ALL TYPES × BASIC CONTENT */}
-                    <div className={'cl__section'}>
-                        <div className='cl__section-header'>
-                            <h3>All Types - Basic (6 combinations)</h3>
-                        </div>
-                        <div className='cl__section-content'>
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Type</th>
-                                        <th>Example</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {types.map((type) => (
-                                        <tr key={type}>
-                                            <td>{formatTypeLabel(type)}</td>
-                                            <td>
-                                                <SectionNotice 
-                                                    type={type} 
-                                                    title={`${formatTypeLabel(type)} Notice`}
-                                                    text={`This is a ${type} section notice.`}
-                                                />
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+            <div className='cl__variants-stack'>
+                {types.map((type) => (
+                    <SectionNotice
+                        key={type}
+                        type={type}
+                        title={`${formatTypeLabel(type)} Notice`}
+                        text={`This is a ${type} section notice.`}
+                    />
+                ))}
+            </div>
 
-                    {/* MATRIX 2: ALL TYPES × DISMISS STATES */}
-                    <div className={'cl__section'}>
-                        <div className='cl__section-header'>
-                            <h3>Types × Dismiss States (12 combinations)</h3>
-                        </div>
-                        <div className='cl__section-content'>
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Type</th>
-                                        <th>Not Dismissable</th>
-                                        <th>Dismissable</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {types.map((type) => (
-                                        <tr key={type}>
-                                            <td>{formatTypeLabel(type)}</td>
-                                            <td>
-                                                <SectionNotice 
-                                                    type={type}
-                                                    title={`${formatTypeLabel(type)} Notice`}
-                                                    text="This notice cannot be dismissed"
-                                                />
-                                            </td>
-                                            <td>
-                                                <SectionNotice 
-                                                    type={type}
-                                                    title={`${formatTypeLabel(type)} Notice`}
-                                                    text="This notice can be dismissed"
-                                                    isDismissable={true}
-                                                    onDismissClick={() => window.alert('Dismissed!')}
-                                                />
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+            <div className='cl_text-content-block'>
+                <h3>{'Dismiss Option'}</h3>
+                <p>
+                    {'Section notices can either be dismissable or not.'}
+                </p>
+            </div>
 
-                    {/* MATRIX 3: SELECTED TYPES × BUTTON COMBINATIONS */}
-                    <div className={'cl__section'}>
-                        <div className='cl__section-header'>
-                            <h3>Selected Types × Button Combinations</h3>
-                        </div>
-                        <div className='cl__section-content'>
-                            <div className='cl__variants-wrapper'>
-                                <SectionNotice 
-                                    type="info"
-                                    title="Primary Button Only"
-                                    text="Section notice with primary action"
-                                    primaryButton={{ onClick: () => window.alert('Primary!'), text: 'Primary Action' }}
-                                />
-                                <SectionNotice 
-                                    type="success"
-                                    title="Multiple Buttons"
-                                    text="Section notice with multiple action buttons"
-                                    primaryButton={{ onClick: () => window.alert('Primary!'), text: 'Continue' }}
-                                    secondaryButton={{ onClick: () => window.alert('Secondary!'), text: 'Cancel' }}
-                                    linkButton={{ onClick: () => window.alert('Link!'), text: 'Learn More' }}
-                                />
-                                <SectionNotice 
-                                    type="danger"
-                                    title="All Button Types"
-                                    text="Section notice showing all available button types"
-                                    primaryButton={{ onClick: () => window.alert('Primary!'), text: 'Primary' }}
-                                    secondaryButton={{ onClick: () => window.alert('Secondary!'), text: 'Secondary' }}
-                                    tertiaryButton={{ onClick: () => window.alert('Tertiary!'), text: 'Tertiary' }}
-                                    linkButton={{ onClick: () => window.alert('Link!'), text: 'Link' }}
-                                />
-                            </div>
-                        </div>
-                    </div>
+            <div className='cl__variants-stack'>
+                <SectionNotice
+                    type='info'
+                    title='Dismissable Notice'
+                    text='This notice can be dismissed'
+                    isDismissable={true}
+                    onDismissClick={() => window.alert('Dismissed!')}
+                />
+                <SectionNotice
+                    type='info'
+                    title='Not Dismissable Notice'
+                    text='This notice cannot be dismissed'
+                    isDismissable={false}
+                />
+            </div>
 
-                    {/* MATRIX 4: TEXT VARIATIONS */}
-                    <div className={'cl__section'}>
-                        <div className='cl__section-header'>
-                            <h3>Text Variations (Selected types)</h3>
-                        </div>
-                        <div className='cl__section-content'>
-                            <div className='cl__variants-wrapper'>
-                                <SectionNotice 
-                                    type="info"
-                                    title="Short Text"
-                                    text="Brief notice."
-                                />
-                                <SectionNotice 
-                                    type="warning"
-                                    title="Long Text"
-                                    text="This is a much longer section notice text that demonstrates how the component handles multiple lines of content and wrapping behavior within the notice container. It shows proper text flow and spacing."
-                                />
-                                <SectionNotice 
-                                    type="success"
-                                    title="No Text"
-                                />
-                            </div>
-                        </div>
-                    </div>
+            <div className='cl_text-content-block'>
+                <h3>{'Button Options'}</h3>
+                <p>
+                    {'Section notices can have primary, secondary, tertiary, and link buttons. No more than 2 buttons per notice. Typically we use primary and tertiary buttons together.'}
+                </p>
+            </div>
+            <div className='cl__variants-stack'>
+                <SectionNotice
+                    type='info'
+                    title='Primary Button Only'
+                    text='Section notice with primary action'
+                    primaryButton={{onClick: () => window.alert('Primary!'), text: 'Primary Action'}}
+                />
+                <SectionNotice
+                    type='info'
+                    title='Primary and Secondary'
+                    text='Section notice with primary and secondary actions'
+                    primaryButton={{onClick: () => window.alert('Primary!'), text: 'Continue'}}
+                    secondaryButton={{onClick: () => window.alert('Secondary!'), text: 'Cancel'}}
+                />
+                <SectionNotice
+                    type='info'
+                    title='Primary and Tertiary'
+                    text='Section notice with primary and tertiary actions'
+                    primaryButton={{onClick: () => window.alert('Primary!'), text: 'Save'}}
+                    tertiaryButton={{onClick: () => window.alert('Tertiary!'), text: 'Skip'}}
+                />
+                <SectionNotice
+                    type='info'
+                    title='Tertiary and Link'
+                    text='Section notice with tertiary and link actions'
+                    tertiaryButton={{onClick: () => window.alert('Tertiary!'), text: 'Dismiss'}}
+                    linkButton={{onClick: () => window.alert('Link!'), text: 'Learn More'}}
+                />
+            </div>
 
-                    {/* MATRIX 5: BUTTON STATES */}
-                    <div className={'cl__section'}>
-                        <div className='cl__section-header'>
-                            <h3>Button States - Loading & Disabled</h3>
-                        </div>
-                        <div className='cl__section-content'>
-                            <div className='cl__variants-wrapper'>
-                                <SectionNotice 
-                                    type="info"
-                                    title="Normal Buttons"
-                                    text="All button types in normal state"
-                                    primaryButton={{ onClick: () => window.alert('Primary!'), text: 'Primary' }}
-                                    secondaryButton={{ onClick: () => window.alert('Secondary!'), text: 'Secondary' }}
-                                />
-                                <SectionNotice 
-                                    type="info"
-                                    title="Loading Buttons"
-                                    text="Buttons in loading state"
-                                    primaryButton={{ onClick: () => window.alert('Primary!'), text: 'Primary', loading: true }}
-                                    secondaryButton={{ onClick: () => window.alert('Secondary!'), text: 'Secondary', loading: true }}
-                                />
-                                <SectionNotice 
-                                    type="info"
-                                    title="Disabled Buttons"
-                                    text="Buttons in disabled state"
-                                    primaryButton={{ onClick: () => window.alert('Primary!'), text: 'Primary', disabled: true }}
-                                    secondaryButton={{ onClick: () => window.alert('Secondary!'), text: 'Secondary', disabled: true }}
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* MATRIX 6: BUTTON ICONS */}
-                    <div className={'cl__section'}>
-                        <div className='cl__section-header'>
-                            <h3>Button Icons</h3>
-                        </div>
-                        <div className='cl__section-content'>
-                            <div className='cl__variants-wrapper'>
-                                <SectionNotice 
-                                    type="info"
-                                    title="Leading Icons"
-                                    text="Buttons with leading icons"
-                                    primaryButton={{ onClick: () => window.alert('Primary!'), text: 'Save', leadingIcon: 'icon-content-save' }}
-                                    secondaryButton={{ onClick: () => window.alert('Secondary!'), text: 'Cancel', leadingIcon: 'icon-close' }}
-                                />
-                                <SectionNotice 
-                                    type="success"
-                                    title="Trailing Icons"
-                                    text="Buttons with trailing icons"
-                                    primaryButton={{ onClick: () => window.alert('Primary!'), text: 'Continue', trailingIcon: 'icon-arrow-right' }}
-                                    linkButton={{ onClick: () => window.alert('Link!'), text: 'Learn More', trailingIcon: 'icon-open-in-new' }}
-                                />
-                                <SectionNotice 
-                                    type="warning"
-                                    title="Mixed Icons"
-                                    text="Buttons with different icon configurations"
-                                    primaryButton={{ onClick: () => window.alert('Primary!'), text: 'Download', leadingIcon: 'icon-download' }}
-                                    secondaryButton={{ onClick: () => window.alert('Secondary!'), text: 'Share', trailingIcon: 'icon-share-variant' }}
-                                    linkButton={{ onClick: () => window.alert('Link!'), text: 'Help', leadingIcon: 'icon-help-circle' }}
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* MATRIX 7: COMPLEX COMBINATIONS */}
-                    <div className={'cl__section'}>
-                        <div className='cl__section-header'>
-                            <h3>Complex Real-World Examples</h3>
-                        </div>
-                        <div className='cl__section-content'>
-                            <div className='cl__variants-wrapper'>
-                                <SectionNotice 
-                                    type="danger"
-                                    title="Error with Actions"
-                                    text="This is a dismissable error notice with multiple action buttons and mixed states."
-                                    isDismissable={true}
-                                    onDismissClick={() => window.alert('Dismissed!')}
-                                    primaryButton={{ onClick: () => window.alert('Retry!'), text: 'Retry', leadingIcon: 'icon-refresh' }}
-                                    secondaryButton={{ onClick: () => window.alert('Cancel!'), text: 'Cancel' }}
-                                    linkButton={{ onClick: () => window.alert('Help!'), text: 'Get Help', trailingIcon: 'icon-open-in-new' }}
-                                />
-                                <SectionNotice 
-                                    type="welcome"
-                                    title="Welcome Message"
-                                    text="Welcome to the platform! Get started by exploring these options."
-                                    primaryButton={{ onClick: () => window.alert('Start!'), text: 'Get Started', trailingIcon: 'icon-arrow-right' }}
-                                    secondaryButton={{ onClick: () => window.alert('Tour!'), text: 'Take Tour' }}
-                                    tertiaryButton={{ onClick: () => window.alert('Skip!'), text: 'Skip for now' }}
-                                />
-                                <SectionNotice 
-                                    type="hint"
-                                    title="Pro Tip"
-                                    text="You can customize your experience by adjusting these settings."
-                                    isDismissable={true}
-                                    onDismissClick={() => window.alert('Dismissed!')}
-                                    linkButton={{ onClick: () => window.alert('Settings!'), text: 'Open Settings' }}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div className='cl_text-content-block'>
+                <h3>{'Text Variations'}</h3>
+                <p>
+                    {'Section notices can have short text, long text, and no text.'}
+                </p>
+            </div>
+            <div className='cl__variants-stack'>
+                <SectionNotice
+                    type='info'
+                    title='Short Text'
+                    text='This is a short section notice.'
+                />
+                <SectionNotice
+                    type='info'
+                    title='Long Text'
+                    text='This is a long section notice. It can have multiple lines of text and will wrap to the next line if it exceeds the width of the container.'
+                />
+                <SectionNotice
+                    type='info'
+                    title='Title only'
+                    text={undefined}
+                />
             </div>
         </>
     );

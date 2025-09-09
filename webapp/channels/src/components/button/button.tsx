@@ -9,36 +9,38 @@ import './button.scss';
 
 export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg';
 export type ButtonEmphasis = 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'link';
+
 // Removed ButtonStyle type - now using inverted boolean prop
 
 export interface ButtonProps {
+
     /** Button content */
     children?: ReactNode;
-    
+
     /** Size variant of the button */
     size?: ButtonSize;
-    
+
     /** Emphasis level of the button */
     emphasis?: ButtonEmphasis;
-    
+
     /** Visual style variant - inverted for dark backgrounds */
     inverted?: boolean;
-    
+
     /** Whether the button represents a destructive action */
     destructive?: boolean;
-    
+
     /** Loading state - shows spinner and disables interaction */
     loading?: boolean;
-    
+
     /** Icon to display before the button text */
     iconBefore?: ReactNode;
-    
+
     /** Icon to display after the button text */
     iconAfter?: ReactNode;
-    
+
     /** Whether the button should take full width of its container */
     fullWidth?: boolean;
-    
+
     /** Fixed width for the button (e.g., "200px", "10rem") */
     width?: string;
 }
@@ -69,7 +71,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
         ref,
     ) => {
         const isDisabled = disabled || loading;
-        
+
         const buttonClasses = classNames(
             'Button',
             `Button--${size}`,
@@ -89,43 +91,49 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
                 ref={ref}
                 className={buttonClasses}
                 disabled={isDisabled}
-                style={width ? { width, ...htmlProps.style } : htmlProps.style}
+                style={width ? {width, ...htmlProps.style} : htmlProps.style}
                 {...htmlProps}
             >
                 {loading && (
-                    <span className="Button__loading">
-                        <i className={classNames(
-                            'Button__spinner',
-                            `Button__spinner--${size}`,
-                            {
-                                'Button__spinner--inverted': inverted,
-                            }
-                        )} />
+                    <span className='Button__loading'>
+                        <i
+                            className={classNames(
+                                'Button__spinner',
+                                `Button__spinner--${size}`,
+                                {
+                                    'Button__spinner--inverted': inverted,
+                                },
+                            )}
+                        />
                     </span>
                 )}
-                
+
                 {iconBefore && !loading && (
-                    <span className={classNames(
-                        'Button__icon',
-                        `Button__icon--${size}`,
-                        'Button__icon--before'
-                    )}>
+                    <span
+                        className={classNames(
+                            'Button__icon',
+                            `Button__icon--${size}`,
+                            'Button__icon--before',
+                        )}
+                    >
                         {iconBefore}
                     </span>
                 )}
-                
+
                 {children && (
-                    <span className="Button__label">
+                    <span className='Button__label'>
                         {children}
                     </span>
                 )}
-                
+
                 {iconAfter && !loading && (
-                    <span className={classNames(
-                        'Button__icon',
-                        `Button__icon--${size}`,
-                        'Button__icon--after'
-                    )}>
+                    <span
+                        className={classNames(
+                            'Button__icon',
+                            `Button__icon--${size}`,
+                            'Button__icon--after',
+                        )}
+                    >
                         {iconAfter}
                     </span>
                 )}

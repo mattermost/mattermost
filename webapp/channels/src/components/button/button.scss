@@ -8,28 +8,25 @@
 // Base button styles
 .Button {
     display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    border: none;
-    border-radius: var(--radius-s);
-    font-family: 'Open Sans', sans-serif;
-    font-weight: 600;
-    font-style: normal;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.15s ease-out;
-    outline: none;
     max-width: fit-content;
     max-height: fit-content;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: var(--radius-s);
+    cursor: pointer;
+    font-family: 'Open Sans', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    gap: 6px;
+    outline: none;
+    text-decoration: none;
+    transition: all 0.15s ease-out;
     
     &:hover {
         text-decoration: none;
     }
     
-    &:disabled {
-        cursor: not-allowed;
-    }
     
     &:focus {
         box-shadow: 0 0 0 2px var(--sidebar-text-active-border);
@@ -48,31 +45,31 @@
 .Button--xs {
     padding: 4px 10px;
     font-size: 12px;
-    line-height: 16px;
     gap: 4px; // Proportional gap for x-small buttons
+    line-height: 16px;
     
 }
 
 .Button--sm {
     padding: 8px 16px;
     font-size: 12px;
-    line-height: 16px;
     gap: 5px; // Proportional gap for small buttons
+    line-height: 16px;
     
 }
 
 .Button--md {
     padding: 10px 20px;
     font-size: 14px;
-    line-height: 20px;
     gap: 6px; // Proportional gap for medium buttons
+    line-height: 20px;
 }
 
 .Button--lg {
     padding: 12px 24px;
     font-size: 16px;
-    line-height: 24px;
     gap: 8px; // Proportional gap for large buttons
+    line-height: 24px;
     
 }
 
@@ -94,18 +91,18 @@
     color: var(--button-color);
     
     &:hover:not(:disabled) {
-        // Fallback for older browsers
-        background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08));
         // Modern browsers with color-mix support
         background-color: color-mix(in srgb, var(--button-bg) 88%, black 12%);
+        // Fallback for older browsers
+        background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08));
         background-image: none;
     }
     
     &:active:not(:disabled) {
-        // Fallback for older browsers  
-        background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16));
         // Modern browsers with color-mix support
         background-color: color-mix(in srgb, var(--button-bg) 80%, black 20%);
+        // Fallback for older browsers  
+        background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16));
         background-image: none;
     }
     
@@ -120,26 +117,26 @@
         color: var(--button-color);
         
         &:hover:not(:disabled) {
-            // Fallback for older browsers
-            background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08));
             // Modern browsers with color-mix support
             background-color: color-mix(in srgb, var(--error-text) 88%, black 12%);
+            // Fallback for older browsers
+            background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08));
             background-image: none;
         }
         
         &:active:not(:disabled) {
-            // Fallback for older browsers
-            background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16));
             // Modern browsers with color-mix support
             background-color: color-mix(in srgb, var(--error-text) 80%, black 20%);
+            // Fallback for older browsers
+            background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16));
             background-image: none;
         }
     }
 }
 
 .Button--secondary {
-    background-color: transparent;
     border: 1px solid var(--button-bg);
+    background-color: transparent;
     color: var(--button-bg);
     
     &:hover:not(:disabled) {
@@ -225,21 +222,21 @@
         color: var(--error-text);
         
         &:hover:not(:disabled) {
-            color: var(--error-text);
             background-color: rgba(var(--error-text-color-rgb), 0.08);
+            color: var(--error-text);
         }
         
         &:active:not(:disabled) {
-            color: var(--error-text);
             background-color: rgba(var(--error-text-color-rgb), 0.16);
+            color: var(--error-text);
         }
     }
 }
 
 .Button--link {
-    background-color: transparent;
-    padding: 0;
     height: auto;
+    padding: 0;
+    background-color: transparent;
     color: var(--link-color);
     text-decoration: none;
     
@@ -289,8 +286,8 @@
 }
 
 .Button--secondary.Button--inverted {
-    background-color: transparent;
     border: 1px solid var(--button-color);
+    background-color: transparent;
     color: var(--button-color);
     
     &:hover:not(:disabled) {
@@ -364,8 +361,8 @@
 .Button__spinner {
     display: inline-block;
     border-radius: 50%;
-    background: conic-gradient(rgba(var(--center-channel-color-rgb), 0), rgba(var(--center-channel-color-rgb), 0.48));
     animation: spin 750ms linear infinite;
+    background: conic-gradient(rgba(var(--center-channel-color-rgb), 0), rgba(var(--center-channel-color-rgb), 0.48));
 }
 
 // Spinner size modifiers
@@ -484,9 +481,9 @@
 
 // Disabled state overrides - placed after all other styles for natural cascade precedence
 .Button:disabled {
+    background-image: none; // Remove any gradient overlays
     cursor: not-allowed;
     opacity: 1; // Override any global disabled opacity
-    background-image: none; // Remove any gradient overlays
     
     // Regular (non-inverted) disabled - override destructive styles
     &.Button--destructive {
@@ -505,8 +502,8 @@
         // Quaternary, Link destructive disabled
         &.Button--quaternary,
         &.Button--link {
-            background-color: transparent;
             border-color: transparent;
+            background-color: transparent;
             color: rgba(var(--center-channel-color-rgb), 0.32);
         }
         
@@ -518,27 +515,27 @@
     // Inverted disabled styles - override all previous states
     &.Button--inverted {
         &.Button--primary {
-            background-color: rgba(var(--button-color-rgb), 0.08);
             border-color: rgba(var(--button-color-rgb), 0.08);
+            background-color: rgba(var(--button-color-rgb), 0.08);
             color: rgba(var(--button-color-rgb), 0.32);
         }
         
         &.Button--secondary {
-            background-color: transparent;
             border-color: rgba(var(--button-color-rgb), 0.32);
+            background-color: transparent;
             color: rgba(var(--button-color-rgb), 0.32);
         }
         
         &.Button--tertiary {
-            background-color: rgba(var(--button-color-rgb), 0.08);
             border-color: transparent;
+            background-color: rgba(var(--button-color-rgb), 0.08);
             color: rgba(var(--button-color-rgb), 0.32);
         }
         
         &.Button--quaternary,
         &.Button--link {
-            background-color: transparent;
             border-color: transparent;
+            background-color: transparent;
             color: rgba(var(--button-color-rgb), 0.32);
         }
         
