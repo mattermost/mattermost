@@ -11,7 +11,7 @@ const RESIZE_DEBOUNCE_TIME = 200; // in ms
 
 const listItemSizeObserver = ListItemSizeObserver.getInstance();
 
-interface Props {
+export interface Props {
     item: ReactNode;
     itemId: string;
     index: number;

@@ -27,7 +27,7 @@ export default function SelectPropertyRenderer({field, value}: Props) {
                 color,
             }}
         >
-            {value.value}
+            {value.value as string}
         </div>
     );
 }
