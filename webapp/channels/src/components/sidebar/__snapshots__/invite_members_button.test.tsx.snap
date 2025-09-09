@@ -13,9 +13,7 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
     }
   }
 >
-  <InviteMembersButton
-    isAdmin={false}
-  >
+  <InviteMembersButton>
     <Memo(TeamPermissionGate)
       permissions={
         Array [
@@ -47,7 +45,6 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
           }
           id="inviteMembersButton"
           modalId="invitation"
-          onClick={[Function]}
         >
           <button
             aria-label="Invite Members"
