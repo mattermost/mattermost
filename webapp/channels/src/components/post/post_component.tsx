@@ -16,8 +16,6 @@ import {
     isMeMessage as checkIsMeMessage,
     isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import AutoHeightSwitcher, {AutoHeightSlots} from 'components/common/auto_height_switcher';
 import EditPost from 'components/edit_post';
 import FileAttachmentListContainer from 'components/file_attachment_list';
@@ -351,7 +349,6 @@ function PostComponent(props: Props) {
             props.location === Locations.CENTER &&
             !props.isPostBeingEdited
         ) {
-            trackEvent('crt', 'clicked_to_reply');
             props.actions.selectPost(post);
         }
 
