@@ -213,6 +213,17 @@ describe('findFirstAvailableAttributeFromList', () => {
         expect(result?.name).toBe('user_managed_attribute');
     });
 
+    test('returns first attribute that is admin-managed', () => {
+        const attributes = [
+            createMockAttribute('invalid attribute'), // Has spaces
+            createMockAttribute('unsafe_attribute'), // Not synced or admin-managed
+            createMockAttribute('admin_managed_attribute', {managed: 'admin'}), // Admin-managed
+        ];
+
+        const result = findFirstAvailableAttributeFromList(attributes, false);
+        expect(result?.name).toBe('admin_managed_attribute');
+    });
+
     test('skips attributes with spaces even when synced', () => {
         const attributes = [
             createMockAttribute('synced attribute', {ldap: 'ldap_field'}), // Has spaces but synced
