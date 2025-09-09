@@ -17,7 +17,7 @@ import {TestHelper} from 'utils/test_helper';
 import ThreadList, {ThreadFilter} from './thread_list';
 import VirtualizedThreadList from './virtualized_thread_list';
 
-import Button from '../../common/button';
+import Button from '../../common/thread_button';
 
 jest.mock('mattermost-redux/actions/threads');
 jest.mock('actions/views/modals');

@@ -43,7 +43,7 @@
     }
 }
 
-.Button {
+.ThreadButton {
     position: relative;
     padding: 4px 10px;
     border-radius: 4px;
@@ -66,7 +66,7 @@
     &.allowTextOverflow {
         min-width: 4rem;
 
-        .Button_label {
+        .ThreadButton_label {
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -81,7 +81,7 @@
         opacity: 32%;
     }
 
-    &.Button___transparent {
+    &.ThreadButton___transparent {
         border: none;
         background: transparent;
 
@@ -95,10 +95,10 @@
         );
     }
 
-    &.Button___large {
+    &.ThreadButton___large {
         font-size: 14px;
 
-        &.Button___icon {
+        &.ThreadButton___icon {
             width: 32px;
             height: 32px;
             padding: 7px 0;
@@ -107,7 +107,7 @@
         }
     }
 
-    .Button_label {
+    .ThreadButton_label {
         display: inline-block;
         max-width: 100%;
 
@@ -116,11 +116,11 @@
         }
     }
 
-    .Button_prepended {
+    .ThreadButton_prepended {
         margin-right: 0.4em;
     }
 
-    .Button_appended {
+    .ThreadButton_appended {
         margin-left: 0.4em;
     }
 
@@ -140,9 +140,9 @@
     margin-left: var(--button-separator-gap, 0);
 }
 
-.separated:not(.Button),
+.separated:not(.ThreadButton),
 .separated:not(:hover):not(.is-active) {
-    + .separated:not(.Button),
+    + .separated:not(.ThreadButton),
     + .separated:not(:hover):not(.is-active) {
         position: relative;
 

@@ -32,7 +32,7 @@ import type {GlobalState} from 'types/store';
 import VirtualizedThreadList from './virtualized_thread_list';
 
 import Button from '../../common/button';
-import {useThreadRouting} from '../../hooks';
+import {useThreadRou../../common/thread_buttonooks';
 import MarkAllThreadsAsReadModal from '../mark_all_threads_as_read_modal';
 import type {MarkAllThreadsAsReadModalProps} from '../mark_all_threads_as_read_modal';
 

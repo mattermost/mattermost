@@ -6,7 +6,7 @@ import React, {memo} from 'react';
 import type {ComponentProps} from 'react';
 import {useIntl} from 'react-intl';
 
-import Button from '../button';
+import Button from '../thread_button';
 
 type Props = {
     isFollowing: boolean | null | undefined;
