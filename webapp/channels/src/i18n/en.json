@@ -3691,7 +3691,6 @@
   "channel_settings.access_rules.confirm_modal.saving": "Saving...",
   "channel_settings.access_rules.confirm_modal.title": "Save and apply rules",
   "channel_settings.access_rules.confirm_modal.view_users": "View users",
-  "channel_settings.access_rules.description": "Select attributes and values that users must match in addition to access this channel. All selected attributes are required.",
   "channel_settings.access_rules.error.back_to_editing": "Back to editing",
   "channel_settings.access_rules.error.no_current_user": "Cannot validate access rules: current user not found",
   "channel_settings.access_rules.error.self_exclusion_message": "You cannot set this rule because it would remove you from the channel. Please update the access rules to make sure you satisfy them and they don't cause any unintended issues.",

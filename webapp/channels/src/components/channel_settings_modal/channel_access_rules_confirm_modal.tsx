@@ -44,6 +44,8 @@ function ChannelAccessRulesConfirmModal({
     const [activeTab, setActiveTab] = useState<'allowed' | 'restricted'>('allowed');
     const [allowedUsers, setAllowedUsers] = useState<UserProfile[]>([]);
     const [restrictedUsers, setRestrictedUsers] = useState<UserProfile[]>([]);
+    const [filteredAllowedUsers, setFilteredAllowedUsers] = useState<UserProfile[]>([]);
+    const [filteredRestrictedUsers, setFilteredRestrictedUsers] = useState<UserProfile[]>([]);
 
     // Load user profiles when modal opens or user list is shown
     useEffect(() => {
@@ -58,6 +60,7 @@ function ChannelAccessRulesConfirmModal({
             const result = await dispatch(getProfilesByIds(usersToAdd) as any) as ActionResult<UserProfile[]>;
             if (result?.data) {
                 setAllowedUsers(result.data);
+                setFilteredAllowedUsers(result.data);
             }
         }
 
@@ -66,6 +69,7 @@ function ChannelAccessRulesConfirmModal({
             const result = await dispatch(getProfilesByIds(usersToRemove) as any) as ActionResult<UserProfile[]>;
             if (result?.data) {
                 setRestrictedUsers(result.data);
+                setFilteredRestrictedUsers(result.data);
             }
         }
     }, [usersToAdd, usersToRemove, dispatch]);
@@ -82,12 +86,42 @@ function ChannelAccessRulesConfirmModal({
         setActiveTab(tab);
     };
 
+    const handleSearch = (searchTerm: string) => {
+        if (searchTerm === '') {
+            // Reset to original data when search is empty
+            setFilteredAllowedUsers(allowedUsers);
+            setFilteredRestrictedUsers(restrictedUsers);
+        } else {
+            // Filter allowed users
+            const filteredAllowed = allowedUsers.filter((user) => {
+                return user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    user.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    user.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    user.nickname?.toLowerCase().includes(searchTerm.toLowerCase());
+            });
+            setFilteredAllowedUsers(filteredAllowed);
+
+            // Filter restricted users
+            const filteredRestricted = restrictedUsers.filter((user) => {
+                return user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    user.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    user.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    user.nickname?.toLowerCase().includes(searchTerm.toLowerCase());
+            });
+            setFilteredRestrictedUsers(filteredRestricted);
+        }
+    };
+
     const handleClose = () => {
         // Reset state when closing
         setShowUserList(false);
         setActiveTab('allowed');
         setAllowedUsers([]);
         setRestrictedUsers([]);
+        setFilteredAllowedUsers([]);
+        setFilteredRestrictedUsers([]);
         onHide();
     };
 
@@ -107,8 +141,49 @@ function ChannelAccessRulesConfirmModal({
 
     const modalSubtitle = channelName;
 
-    const currentUsers = activeTab === 'allowed' ? allowedUsers : restrictedUsers;
+    const currentUsers = activeTab === 'allowed' ? filteredAllowedUsers : filteredRestrictedUsers;
     const totalCount = activeTab === 'allowed' ? usersToAdd.length : usersToRemove.length;
+
+    // Common buttons component
+    const renderButtons = (leftButton: React.ReactNode) => (
+        <div className='ChannelAccessRulesConfirmModal__buttons'>
+            <div className='ChannelAccessRulesConfirmModal__buttons__left'>
+                {leftButton}
+            </div>
+            <div className='ChannelAccessRulesConfirmModal__buttons__right'>
+                <button
+                    className='btn btn-tertiary'
+                    onClick={handleClose}
+                    disabled={isProcessing}
+                >
+                    <FormattedMessage
+                        id='channel_settings.access_rules.confirm_modal.cancel'
+                        defaultMessage='Cancel'
+                    />
+                </button>
+                <button
+                    className='btn btn-danger'
+                    onClick={onConfirm}
+                    disabled={isProcessing}
+                >
+                    {isProcessing ? (
+                        <>
+                            <span className='icon icon-loading icon-spin'/>
+                            <FormattedMessage
+                                id='channel_settings.access_rules.confirm_modal.saving'
+                                defaultMessage='Saving...'
+                            />
+                        </>
+                    ) : (
+                        <FormattedMessage
+                            id={autoSyncEnabled ? 'channel_settings.access_rules.confirm_modal.save_and_apply' : 'channel_settings.access_rules.confirm_modal.save'}
+                            defaultMessage={autoSyncEnabled ? 'Save and apply' : 'Save'}
+                        />
+                    )}
+                </button>
+            </div>
+        </div>
+    );
 
     return (
         <GenericModal
@@ -127,6 +202,17 @@ function ChannelAccessRulesConfirmModal({
 
                 // Detailed user list view
                 <div className='ChannelAccessRulesConfirmModal__details'>
+                    <div className='ChannelAccessRulesConfirmModal__message'>
+                        <FormattedMessage
+                            id='channel_settings.access_rules.confirm_modal.message'
+                            defaultMessage='Applying these access rules will add <strong>{addCount, number} {addCount, plural, one {user} other {users}}</strong> to the channel and remove <strong>{removeCount, number} current channel {removeCount, plural, one {member} other {members}}</strong>.'
+                            values={{
+                                addCount: usersToAdd.length,
+                                removeCount: usersToRemove.length,
+                                strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
+                            }}
+                        />
+                    </div>
                     <div className='ChannelAccessRulesConfirmModal__tabs'>
                         <button
                             className={`ChannelAccessRulesConfirmModal__tab ${activeTab === 'allowed' ? 'active' : ''}`}
@@ -159,7 +245,7 @@ function ChannelAccessRulesConfirmModal({
                                 actionUserProps={{}}
                                 focusOnMount={false}
                                 nextPage={() => {}}
-                                search={() => {}}
+                                search={handleSearch}
                             />
                         ) : (
                             <div className='ChannelAccessRulesConfirmModal__noResults'>
@@ -171,7 +257,7 @@ function ChannelAccessRulesConfirmModal({
                         )}
                     </div>
 
-                    <div className='ChannelAccessRulesConfirmModal__buttons'>
+                    {renderButtons(
                         <button
                             className='btn btn-tertiary'
                             onClick={handleHideUsers}
@@ -181,38 +267,8 @@ function ChannelAccessRulesConfirmModal({
                                 id='channel_settings.access_rules.confirm_modal.hide_users'
                                 defaultMessage='Hide users'
                             />
-                        </button>
-                        <button
-                            className='btn btn-tertiary'
-                            onClick={handleClose}
-                            disabled={isProcessing}
-                        >
-                            <FormattedMessage
-                                id='channel_settings.access_rules.confirm_modal.cancel'
-                                defaultMessage='Cancel'
-                            />
-                        </button>
-                        <button
-                            className='btn btn-primary'
-                            onClick={onConfirm}
-                            disabled={isProcessing}
-                        >
-                            {isProcessing ? (
-                                <>
-                                    <span className='icon icon-loading icon-spin'/>
-                                    <FormattedMessage
-                                        id='channel_settings.access_rules.confirm_modal.saving'
-                                        defaultMessage='Saving...'
-                                    />
-                                </>
-                            ) : (
-                                <FormattedMessage
-                                    id={autoSyncEnabled ? 'channel_settings.access_rules.confirm_modal.save_and_apply' : 'channel_settings.access_rules.confirm_modal.save'}
-                                    defaultMessage={autoSyncEnabled ? 'Save and apply' : 'Save'}
-                                />
-                            )}
-                        </button>
-                    </div>
+                        </button>,
+                    )}
                 </div>
             ) : (
 
@@ -235,7 +291,7 @@ function ChannelAccessRulesConfirmModal({
                             defaultMessage='Are you sure you want to save and apply the access rules?'
                         />
                     </div>
-                    <div className='ChannelAccessRulesConfirmModal__buttons'>
+                    {renderButtons(
                         <button
                             className='btn btn-tertiary'
                             onClick={handleViewUsers}
@@ -245,38 +301,8 @@ function ChannelAccessRulesConfirmModal({
                                 id='channel_settings.access_rules.confirm_modal.view_users'
                                 defaultMessage='View users'
                             />
-                        </button>
-                        <button
-                            className='btn btn-tertiary'
-                            onClick={handleClose}
-                            disabled={isProcessing}
-                        >
-                            <FormattedMessage
-                                id='channel_settings.access_rules.confirm_modal.cancel'
-                                defaultMessage='Cancel'
-                            />
-                        </button>
-                        <button
-                            className='btn btn-primary'
-                            onClick={onConfirm}
-                            disabled={isProcessing}
-                        >
-                            {isProcessing ? (
-                                <>
-                                    <span className='icon icon-loading icon-spin'/>
-                                    <FormattedMessage
-                                        id='channel_settings.access_rules.confirm_modal.saving'
-                                        defaultMessage='Saving...'
-                                    />
-                                </>
-                            ) : (
-                                <FormattedMessage
-                                    id={autoSyncEnabled ? 'channel_settings.access_rules.confirm_modal.save_and_apply' : 'channel_settings.access_rules.confirm_modal.save'}
-                                    defaultMessage={autoSyncEnabled ? 'Save and apply' : 'Save'}
-                                />
-                            )}
-                        </button>
-                    </div>
+                        </button>,
+                    )}
                 </div>
             )}
         </GenericModal>

@@ -568,42 +568,12 @@ function ChannelSettingsAccessRulesTab({
                 </div>
             )}
 
-            <p className='ChannelSettingsModal__accessRulesDescription'>
-                {formatMessage({
-                    id: 'channel_settings.access_rules.description',
-                    defaultMessage: 'Select attributes and values that users must match in addition to access this channel. All selected attributes are required.',
-                })}
-            </p>
+            {/* Divider between access rules and auto-sync */}
+            <hr className='ChannelSettingsModal__divider'/>
 
             {/* Auto-sync members toggle */}
             <div className='ChannelSettingsModal__autoSyncSection'>
-                <label
-                    className='ChannelSettingsModal__autoSyncLabel'
-                    title={(() => {
-                        if (isEmptyRulesState) {
-                            return formatMessage({
-                                id: 'channel_settings.access_rules.auto_sync_disabled_empty_state',
-                                defaultMessage: 'Auto-add is disabled because no access rules are defined',
-                            });
-                        }
-
-                        // Show "forced by parent" when system policies force auto-sync (regardless of channel rules)
-                        if (systemPolicyForcesAutoSync) {
-                            return formatMessage({
-                                id: 'channel_settings.access_rules.auto_sync_forced_by_parent',
-                                defaultMessage: 'Auto-add is enabled by system policy and cannot be disabled',
-                            });
-                        }
-
-                        if (!expression.trim()) {
-                            return formatMessage({
-                                id: 'channel_settings.access_rules.auto_sync_requires_expression',
-                                defaultMessage: 'Define access rules to enable auto-add members',
-                            });
-                        }
-                        return undefined;
-                    })()}
-                >
+                <div className='ChannelSettingsModal__autoSyncCheckboxContainer'>
                     <input
                         type='checkbox'
                         className='ChannelSettingsModal__autoSyncCheckbox'
@@ -613,13 +583,42 @@ function ChannelSettingsAccessRulesTab({
                         id='autoSyncMembersCheckbox'
                         name='autoSyncMembers'
                     />
-                    <span className={`ChannelSettingsModal__autoSyncText ${(isEmptyRulesState || !expression.trim() || (systemPolicyForcesAutoSync && autoSyncMembers)) ? 'disabled' : ''}`}>
-                        {formatMessage({
-                            id: 'channel_settings.access_rules.auto_sync',
-                            defaultMessage: 'Auto-add members based on access rules',
-                        })}
-                    </span>
-                </label>
+                    <label
+                        htmlFor='autoSyncMembersCheckbox'
+                        className='ChannelSettingsModal__autoSyncLabel'
+                        title={(() => {
+                            if (isEmptyRulesState) {
+                                return formatMessage({
+                                    id: 'channel_settings.access_rules.auto_sync_disabled_empty_state',
+                                    defaultMessage: 'Auto-add is disabled because no access rules are defined',
+                                });
+                            }
+
+                            // Show "forced by parent" when system policies force auto-sync (regardless of channel rules)
+                            if (systemPolicyForcesAutoSync) {
+                                return formatMessage({
+                                    id: 'channel_settings.access_rules.auto_sync_forced_by_parent',
+                                    defaultMessage: 'Auto-add is enabled by system policy and cannot be disabled',
+                                });
+                            }
+
+                            if (!expression.trim()) {
+                                return formatMessage({
+                                    id: 'channel_settings.access_rules.auto_sync_requires_expression',
+                                    defaultMessage: 'Define access rules to enable auto-add members',
+                                });
+                            }
+                            return undefined;
+                        })()}
+                    >
+                        <span className={`ChannelSettingsModal__autoSyncText ${(isEmptyRulesState || !expression.trim() || (systemPolicyForcesAutoSync && autoSyncMembers)) ? 'disabled' : ''}`}>
+                            {formatMessage({
+                                id: 'channel_settings.access_rules.auto_sync',
+                                defaultMessage: 'Auto-add members based on access rules',
+                            })}
+                        </span>
+                    </label>
+                </div>
                 <p className='ChannelSettingsModal__autoSyncDescription'>
                     {(() => {
                         // Check for empty state first (no channel rules AND no system policies)

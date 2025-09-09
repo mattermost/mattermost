@@ -210,15 +210,6 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         expect(screen.getByText('Select user attributes and values as rules to restrict channel membership')).toBeInTheDocument();
     });
 
-    test('should render access rules description', () => {
-        renderWithContext(
-            <ChannelSettingsAccessRulesTab {...baseProps}/>,
-            initialState,
-        );
-
-        expect(screen.getByText('Select attributes and values that users must match in addition to access this channel. All selected attributes are required.')).toBeInTheDocument();
-    });
-
     test('should render with main container class', () => {
         renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
@@ -438,15 +429,6 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         expect(console.warn).toHaveBeenCalledWith('Failed to parse expression in table editor');
     });
 
-    test('should render description text', () => {
-        renderWithContext(
-            <ChannelSettingsAccessRulesTab {...baseProps}/>,
-            initialState,
-        );
-
-        expect(document.querySelector('.ChannelSettingsModal__accessRulesDescription')).toBeInTheDocument();
-    });
-
     describe('Auto-sync members toggle', () => {
         test('should render auto-sync checkbox', () => {
             renderWithContext(
@@ -566,7 +548,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 initialState,
             );
 
-            const label = screen.getByRole('checkbox').closest('label');
+            const label = document.querySelector('label[for="autoSyncMembersCheckbox"]');
             expect(label).toHaveAttribute('title', 'Auto-add is enabled by system policy and cannot be disabled');
         });
 
@@ -692,7 +674,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             expect(screen.getByText('Auto-add is disabled because no access rules are defined. Channel will use standard Mattermost access controls.')).toBeInTheDocument();
 
             // Should have empty state tooltip
-            const label = checkbox.closest('label');
+            const label = document.querySelector('label[for="autoSyncMembersCheckbox"]');
             expect(label).toHaveAttribute('title', 'Auto-add is disabled because no access rules are defined');
         });
 

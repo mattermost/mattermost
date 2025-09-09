@@ -6,8 +6,34 @@
         padding: 0;
     }
 
-    &__summary {
-        padding: 24px;
+    .filter-controls {
+        border: none !important;
+    }
+
+    .more-modal__details {
+        display: flex;
+
+        .more-modal__description {
+            display: flex;
+            align-items: center;
+        }
+    }
+
+    .GenericModal__header__text_container {
+        display: flex;
+        gap: 12px;
+        .GenericModal__header {
+            display: flex;
+            align-items: center;
+        }
+        .modal-subheading-container {
+            padding-left: 12px;
+            border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        }
+    }
+
+    &__summary{
+        padding: 32px;
     }
 
     &__message {
@@ -32,11 +58,18 @@
         display: flex;
         height: 500px;
         flex-direction: column;
+        .ChannelAccessRulesConfirmModal__buttons {
+            margin: 0 32px;
+        }
+
+        .ChannelAccessRulesConfirmModal__message {
+            padding: 16px 32px 0;
+        }
     }
 
     &__tabs {
         display: flex;
-        padding: 0 24px;
+        padding: 0 32px;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     }
 
@@ -75,47 +108,65 @@
         }
     }
 
+    &__search {
+        padding: 16px 32px 0;
+        
+        .form-control {
+            width: 100%;
+        }
+    }
+
     &__userList {
         flex: 1;
-        padding: 16px 24px 0;
+        padding: 16px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
         overflow-y: auto;
+    }
 
-        .more-modal__list {
-            margin: 0;
+    &__users {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    &__user {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        transition: background-color 0.15s ease;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.04);
         }
+    }
 
-        // Add spacing for the search input that comes from SearchableUserList
-        .user-list__search,
-        .more-modal__search {
-            margin-bottom: 16px;
-        }
+    &__userInfo {
+        min-width: 0;
+        flex: 1;
+    }
 
-        // Style the search input container
-        .search-bar__container {
-            margin-bottom: 16px;
-        }
+    &__userName {
+        margin-bottom: 2px;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+    }
 
-        .more-modal__row {
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    &__userDetails {
+        display: flex;
+        align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        gap: 8px;
+    }
 
-            &:last-child {
-                border-bottom: none;
-            }
-        }
-
-        .more-modal__details {
-            display: flex;
-            align-items: center;
-        }
-
-        .more-modal__name {
+    &__userEmail {
+        &::before {
             margin-right: 8px;
-            font-weight: 600;
-        }
-
-        .more-modal__description {
-            color: rgba(var(--center-channel-color-rgb), 0.64);
+            content: '•';
         }
     }
 
@@ -130,55 +181,21 @@
 
     &__buttons {
         display: flex;
-        justify-content: flex-end;
-        padding: 16px 24px;
-        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 0;
         gap: 8px;
 
-        .btn {
-            min-width: 80px;
-            height: 32px;
-            padding: 0 16px;
-            border-radius: 4px;
-            font-size: 14px;
-            font-weight: 600;
-
-            &.btn-tertiary {
-                border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-                background: var(--center-channel-bg);
-                color: var(--link-color);
-
-                &:hover:not(:disabled) {
-                    border-color: rgba(var(--center-channel-color-rgb), 0.24);
-                    background: rgba(var(--center-channel-color-rgb), 0.04);
-                }
-
-                &:disabled {
-                    cursor: not-allowed;
-                    opacity: 0.5;
-                }
-            }
-
-            &.btn-primary {
-                border: 1px solid var(--error-text);
-                background: var(--error-text);
-                color: var(--button-color);
-
-                &:hover:not(:disabled) {
-                    border-color: var(--error-text-hover, #d24b4e);
-                    background: var(--error-text-hover, #d24b4e);
-                }
-
-                &:disabled {
-                    cursor: not-allowed;
-                    opacity: 0.5;
-                }
-
-                .icon-loading {
-                    margin-right: 4px;
-                }
-            }
+        &__left {
+            display: flex;
+            gap: 8px;
         }
+
+        &__right {
+            display: flex;
+            gap: 8px;
+        }
+
     }
 
     // Responsive adjustments
@@ -191,13 +208,26 @@
             padding: 0 16px;
         }
 
+        &__details .ChannelAccessRulesConfirmModal__message {
+            padding: 16px 16px 0;
+        }
+
+        &__search {
+            padding: 16px 16px 0;
+        }
+
         &__userList {
-            padding: 0 16px;
+            padding: 16px 16px 0;
         }
 
         &__buttons {
-            flex-wrap: wrap;
+            flex-direction: column;
             padding: 12px 16px;
+            gap: 12px;
+
+            &__left, &__right {
+                justify-content: center;
+            }
 
             .btn {
                 min-width: 0;
