@@ -1139,5 +1139,144 @@ func TestValidateExpressionAgainstRequester(t *testing.T) {
 		require.False(t, matches)
 		require.Equal(t, "ValidateExpressionAgainstRequester", appErr.Where)
 		require.Contains(t, appErr.Message, "Could not check expression")
+
+	})
+}
+
+func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	rctx := request.TestContext(t)
+	channelID := model.NewId()
+	systemPolicyID := model.NewId()
+	t.Run("should return false when channel has no policy", func(t *testing.T) {
+		// Mock access control service to return error (no policy)
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControl
+
+		mockAccessControl.On("GetPolicy", mock.AnythingOfType("*request.Context"), channelID).Return(nil, model.NewAppError("GetPolicy", "not.found", nil, "", http.StatusNotFound))
+
+		result := th.App.isSystemPolicyAppliedToChannel(rctx, systemPolicyID, channelID)
+		assert.False(t, result)
+	})
+
+	t.Run("should return false when channel policy has no imports", func(t *testing.T) {
+		// Mock access control service to return policy without imports
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControl
+
+		channelPolicy := &model.AccessControlPolicy{
+			ID:      channelID,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Version: model.AccessControlPolicyVersionV0_2,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"*"}, Expression: "true"},
+			},
+			Imports: nil, // No imports
+		}
+
+		mockAccessControl.On("GetPolicy", mock.AnythingOfType("*request.Context"), channelID).Return(channelPolicy, nil)
+
+		result := th.App.isSystemPolicyAppliedToChannel(rctx, systemPolicyID, channelID)
+		assert.False(t, result)
+	})
+
+	t.Run("should return false when channel policy has empty imports", func(t *testing.T) {
+		// Mock access control service to return policy with empty imports
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControl
+
+		channelPolicy := &model.AccessControlPolicy{
+			ID:      channelID,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Version: model.AccessControlPolicyVersionV0_2,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"*"}, Expression: "true"},
+			},
+			Imports: []string{}, // Empty imports
+		}
+
+		mockAccessControl.On("GetPolicy", mock.AnythingOfType("*request.Context"), channelID).Return(channelPolicy, nil)
+
+		result := th.App.isSystemPolicyAppliedToChannel(rctx, systemPolicyID, channelID)
+		assert.False(t, result)
+	})
+
+	t.Run("should return false when system policy is not in imports", func(t *testing.T) {
+		// Mock access control service to return policy with different imports
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControl
+
+		otherPolicyID := model.NewId()
+		channelPolicy := &model.AccessControlPolicy{
+			ID:      channelID,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Version: model.AccessControlPolicyVersionV0_2,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"*"}, Expression: "true"},
+			},
+			Imports: []string{otherPolicyID}, // Different policy ID
+		}
+
+		mockAccessControl.On("GetPolicy", mock.AnythingOfType("*request.Context"), channelID).Return(channelPolicy, nil)
+
+		result := th.App.isSystemPolicyAppliedToChannel(rctx, systemPolicyID, channelID)
+		assert.False(t, result)
+	})
+
+	t.Run("should return true when system policy is in imports", func(t *testing.T) {
+		// Mock access control service to return policy with the system policy in imports
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControl
+
+		channelPolicy := &model.AccessControlPolicy{
+			ID:      channelID,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Version: model.AccessControlPolicyVersionV0_2,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"*"}, Expression: "true"},
+			},
+			Imports: []string{systemPolicyID}, // Contains the system policy
+		}
+
+		mockAccessControl.On("GetPolicy", mock.AnythingOfType("*request.Context"), channelID).Return(channelPolicy, nil)
+
+		result := th.App.isSystemPolicyAppliedToChannel(rctx, systemPolicyID, channelID)
+		assert.True(t, result)
+	})
+
+	t.Run("should return true when system policy is one of multiple imports", func(t *testing.T) {
+		// Mock access control service to return policy with multiple imports including our system policy
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControl
+
+		otherPolicyID1 := model.NewId()
+		otherPolicyID2 := model.NewId()
+		channelPolicy := &model.AccessControlPolicy{
+			ID:      channelID,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Version: model.AccessControlPolicyVersionV0_2,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"*"}, Expression: "true"},
+			},
+			Imports: []string{otherPolicyID1, systemPolicyID, otherPolicyID2}, // Contains the system policy among others
+		}
+
+		mockAccessControl.On("GetPolicy", mock.AnythingOfType("*request.Context"), channelID).Return(channelPolicy, nil)
+
+		result := th.App.isSystemPolicyAppliedToChannel(rctx, systemPolicyID, channelID)
+		assert.True(t, result)
+	})
+
+	t.Run("should return false on service error", func(t *testing.T) {
+		// Mock access control service to return an error
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControl
+
+		mockAccessControl.On("GetPolicy", mock.AnythingOfType("*request.Context"), channelID).Return(nil, model.NewAppError("GetPolicy", "service.error", nil, "", http.StatusInternalServerError))
+
+		result := th.App.isSystemPolicyAppliedToChannel(rctx, systemPolicyID, channelID)
+		assert.False(t, result)
 	})
 }
