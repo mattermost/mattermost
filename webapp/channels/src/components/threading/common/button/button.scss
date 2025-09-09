@@ -77,6 +77,10 @@
         text-decoration: none;
     }
 
+    &:disabled {
+        opacity: 32%;
+    }
+
     &.Button___transparent {
         border: none;
         background: transparent;
