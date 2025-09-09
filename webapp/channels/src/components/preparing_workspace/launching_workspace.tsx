@@ -35,14 +35,6 @@ export const LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX = 1001;
 function LaunchingWorkspace(props: Props) {
     const [hasEntered, setHasEntered] = useState(false);
     const dispatch = useDispatch();
-    useEffect(() => {
-        // This component is showed in both the preparing workspace route as an outro (!fullscreen)
-        // and in the main webapp as an intro (fullscreen)
-        // We only want to track the page view once
-        if (!props.fullscreen && props.show) {
-            props.onPageView();
-        }
-    }, [props.show, props.fullscreen]);
 
     useEffect(() => {
         if (hasEntered) {
