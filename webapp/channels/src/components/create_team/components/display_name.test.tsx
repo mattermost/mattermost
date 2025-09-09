@@ -19,9 +19,6 @@ describe('/components/create_team/components/display_name', () => {
             team: {name: 'test-team', display_name: 'test-team'},
             wizard: 'display_name',
         },
-        actions: {
-            trackEvent: jest.fn(),
-        },
     };
 
     test('should match snapshot', () => {

@@ -2580,7 +2580,12 @@ func TestCountMentionsFromPost(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		// Create an Entry license with post history limits
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+		license.Limits = &model.LicenseLimits{
+			PostHistory: 10000, // Set some post history limit to enable filtering
+		}
+		th.App.Srv().SetLicense(license)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2

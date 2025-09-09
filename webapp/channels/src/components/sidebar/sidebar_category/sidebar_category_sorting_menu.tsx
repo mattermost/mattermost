@@ -25,8 +25,6 @@ import {Preferences} from 'mattermost-redux/constants';
 import {getVisibleDmGmLimit} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import * as Menu from 'components/menu';
 
 import Constants from 'utils/constants';
@@ -49,7 +47,6 @@ const SidebarCategorySortingMenu = ({
 
     function handleSortDirectMessages(sorting: CategorySorting) {
         dispatch(setCategorySorting(category.id, sorting));
-        trackEvent('ui', `ui_sidebar_sort_dm_${sorting}`);
     }
 
     let sortDirectMessagesIcon = <ClockOutlineIcon size={18}/>;
