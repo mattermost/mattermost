@@ -1113,7 +1113,7 @@ func TestHandlerMfaAndTermsOfServiceMatrix(t *testing.T) {
 	require.Nil(t, appErr)
 
 	web := New(th.Server)
-	
+
 	handlerFunc := func(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}
@@ -1145,9 +1145,7 @@ func TestHandlerMfaAndTermsOfServiceMatrix(t *testing.T) {
 	t.Run("Only ToS required - user missing ToS should get ToS error", func(t *testing.T) {
 		// Ensure user hasn't accepted ToS
 		err := th.App.Srv().Store().UserTermsOfService().Delete(session.UserId, tos.Id)
-		if err != nil {
-			// It's okay if it doesn't exist
-		}
+		_ = err // It's okay if it doesn't exist
 		delete(session.Props, model.SessionPropTermsOfServiceId)
 
 		handler := Handler{
@@ -1166,7 +1164,7 @@ func TestHandlerMfaAndTermsOfServiceMatrix(t *testing.T) {
 		handler.ServeHTTP(response, request)
 
 		assert.Equal(t, http.StatusForbidden, response.Code)
-		
+
 		var errorResp model.AppError
 		err = json.NewDecoder(response.Body).Decode(&errorResp)
 		require.NoError(t, err)
@@ -1176,9 +1174,7 @@ func TestHandlerMfaAndTermsOfServiceMatrix(t *testing.T) {
 	t.Run("Both required - MFA check should happen before ToS check", func(t *testing.T) {
 		// Ensure user hasn't accepted ToS (so both MFA and ToS are missing)
 		err := th.App.Srv().Store().UserTermsOfService().Delete(session.UserId, tos.Id)
-		if err != nil {
-			// It's okay if it doesn't exist
-		}
+		_ = err // It's okay if it doesn't exist
 		delete(session.Props, model.SessionPropTermsOfServiceId)
 
 		handler := Handler{
@@ -1231,7 +1227,7 @@ func TestHandlerMfaAndTermsOfServiceMatrix(t *testing.T) {
 
 		// Should still fail with MFA error since user hasn't completed MFA
 		assert.Equal(t, http.StatusForbidden, response.Code)
-		
+
 		var errorResp model.AppError
 		decodeErr := json.NewDecoder(response.Body).Decode(&errorResp)
 		require.NoError(t, decodeErr)
