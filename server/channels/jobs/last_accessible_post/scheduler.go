@@ -12,7 +12,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 )
 
-const schedFreq = 1 * time.Minute
+const schedFreq = 30 * time.Minute
 
 func MakeScheduler(jobServer *jobs.JobServer, license *model.License) *jobs.PeriodicScheduler {
 	isEnabled := func(cfg *model.Config) bool {
