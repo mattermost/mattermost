@@ -146,7 +146,7 @@ func (api *API) APISessionRequiredMfa(h handlerFunc, opts ...APIHandlerOption) h
 		RequireSession:     true,
 		TrustRequester:     false,
 		RequireMfa:         false,
-		SkipTermsOfService: false,
+		SkipTermsOfService: true,
 		IsStatic:           false,
 		IsLocal:            false,
 	}

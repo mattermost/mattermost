@@ -327,14 +327,14 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.SessionRequired()
 	}
 
+	if c.Err == nil && h.RequireMfa {
+		c.MfaRequired()
+	}
+
 	if c.Err == nil && h.RequireSession && !h.SkipTermsOfService {
 		if appErr := c.TermsOfServiceRequired(r); appErr != nil {
 			c.Err = appErr
 		}
-	}
-
-	if c.Err == nil && h.RequireMfa {
-		c.MfaRequired()
 	}
 
 	if c.Err == nil && h.DisableWhenBusy && c.App.Srv().Platform().Busy.IsBusy() {
