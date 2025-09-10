@@ -36,7 +36,7 @@ interface TableEditorProps {
 
 // Finds the first available (non-disabled) attribute from a list of user attributes.
 // An attribute is considered available if it doesn't have spaces in its name (CEL incompatible)
-// and is considered "safe" (synced from LDAP/SAML OR enableUserManagedAttributes is true).
+// and is considered "safe" (synced from LDAP/SAML, admin-managed, OR enableUserManagedAttributes is true).
 export const findFirstAvailableAttributeFromList = (
     userAttributes: UserPropertyField[],
     enableUserManagedAttributes: boolean,
@@ -44,7 +44,8 @@ export const findFirstAvailableAttributeFromList = (
     return userAttributes.find((attr) => {
         const hasSpaces = attr.name.includes(' ');
         const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
-        const allowed = isSynced || enableUserManagedAttributes;
+        const isAdminManaged = attr.attrs?.managed === 'admin';
+        const allowed = isSynced || isAdminManaged || enableUserManagedAttributes;
         return !hasSpaces && allowed;
     });
 };
@@ -132,7 +133,7 @@ function TableEditor({
             }
             onParseError(err.message);
         });
-    }, [value, onValidate, onParseError]);
+    }, [value]);
 
     // Converts the internal rows state back into a CEL expression string
     // and calls the onChange and onValidate props.

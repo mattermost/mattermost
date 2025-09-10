@@ -12,7 +12,6 @@ import type {Team} from '@mattermost/types/teams';
 import {Permissions} from 'mattermost-redux/constants';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import AnnouncementBar from 'components/announcement_bar';
 import BackButton from 'components/common/back_button';
@@ -92,7 +91,6 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
     }
 
     componentDidMount() {
-        trackEvent('signup', 'signup_select_team', {userId: this.props.currentUserId});
         this.fetchMoreTeams();
         if (this.props.currentUserRoles !== undefined) {
             this.props.actions.loadRolesIfNeeded(this.props.currentUserRoles.split(' '));
@@ -160,7 +158,6 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
 
     handleLogoutClick = (e: MouseEvent): void => {
         e.preventDefault();
-        trackEvent('select_team', 'click_logout');
         emitUserLoggedOutEvent('/login');
     };
 
@@ -333,7 +330,6 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                     <Link
                         id='createNewTeamLink'
                         to='/create_team'
-                        onClick={() => trackEvent('select_team', 'click_create_team')}
                         className='signup-team-login'
                     >
                         <FormattedMessage
@@ -353,7 +349,6 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                         <Link
                             to='/admin_console'
                             className='signup-team-login'
-                            onClick={() => trackEvent('select_team', 'click_system_console')}
                         >
                             <FormattedMessage
                                 id='signup_team_system_console'

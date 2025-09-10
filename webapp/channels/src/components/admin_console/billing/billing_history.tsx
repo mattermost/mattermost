@@ -8,8 +8,6 @@ import {useDispatch, useSelector} from 'react-redux';
 import {getInvoices} from 'mattermost-redux/actions/cloud';
 import {getCloudErrors, getCloudInvoices, isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 
-import {pageVisited, trackEvent} from 'actions/telemetry_actions';
-
 import CloudFetchError from 'components/cloud_fetch_error';
 import EmptyBillingHistorySvg from 'components/common/svg_images_components/empty_billing_history_svg';
 import ExternalLink from 'components/external_link';
@@ -50,7 +48,6 @@ export const NoBillingHistorySection = (props: NoBillingHistorySectionProps) => 
             location='billing_history'
             href={props.selfHosted ? HostedCustomerLinks.SELF_HOSTED_BILLING : CloudLinks.BILLING_DOCS}
             className='BillingHistory__noHistory-link'
-            onClick={() => trackEvent('cloud_admin', 'click_billing_history', {screen: 'billing'})}
         >
             <FormattedMessage
                 id='admin.billing.history.seeHowBillingWorks'
@@ -66,9 +63,6 @@ const BillingHistory = () => {
     const invoices = useSelector(getCloudInvoices);
     const {invoices: invoicesError} = useSelector(getCloudErrors);
 
-    useEffect(() => {
-        pageVisited('cloud_admin', 'pageview_billing_history');
-    }, []);
     useEffect(() => {
         dispatch(getInvoices());
     }, [isCloud]);

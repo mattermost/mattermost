@@ -1580,14 +1580,6 @@
     "translation": "vaša licenca ne podpira skupin ldap"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Poskušali ste uporabiti poskusno funkcijo ClientSideCertEnable brez veljavne licence podjetja"
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Poskušali ste se prijaviti z eksperimentalno funkcijo ClientSideCert, ne da bi zagotovili veljaven certifikat"
-  },
-  {
     "id": "api.user.login.blank_pwd.app_error",
     "translation": "Polje za vnos gesla ne sme biti prazno"
   },
@@ -3473,10 +3465,6 @@
   {
     "id": "api.context.404.app_error",
     "translation": "Strani ni mogoče najti."
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Nov format konfiguracije klienta še ni podprt. Nastavi format=old v poizvedbi."
   },
   {
     "id": "api.command_shrug.name",
