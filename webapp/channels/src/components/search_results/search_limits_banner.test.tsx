@@ -173,7 +173,7 @@ describe('components/select_results/SearchLimitsBanner', () => {
         const wrapper = mountWithIntl(<Provider store={store}><SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/></Provider>);
 
         expect(wrapper.find('#messages_search_limits_banner').exists()).toEqual(true);
-        expect(wrapper.text()).toContain('View plans');
+        expect(wrapper.text()).toContain('paid plans');
     });
 
     test('should display correct banner message format for messages search', () => {
@@ -227,9 +227,8 @@ describe('components/select_results/SearchLimitsBanner', () => {
         const wrapper = mountWithIntl(<Provider store={store}><SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/></Provider>);
 
         const bannerText = wrapper.text();
-        expect(bannerText).toContain('Some older messages were not shown');
-        expect(bannerText).toContain('10,000 messages');
-        expect(bannerText).toContain('View plans');
+        expect(bannerText).toContain('Limited history is displayed');
+        expect(bannerText).toContain('Full access to message history is included in');
     });
 
     test('should render CTA link correctly when banner is shown', () => {
@@ -286,7 +285,7 @@ describe('components/select_results/SearchLimitsBanner', () => {
 
         // Verify the banner is shown and contains the CTA link
         expect(wrapper.find('#messages_search_limits_banner').exists()).toEqual(true);
-        expect(wrapper.text()).toContain('View plans');
+        expect(wrapper.text()).toContain('paid plans');
 
         // Find the CTA link
         const ctaLink = wrapper.find('a');

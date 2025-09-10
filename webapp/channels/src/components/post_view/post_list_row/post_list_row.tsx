@@ -120,10 +120,7 @@ export default class PostListRow extends React.PureComponent<PostListRowProps> {
 
         if (this.props.exceededLimitChannelId) {
             return (
-                <CenterMessageLock
-                    channelId={this.props.exceededLimitChannelId}
-                    firstInaccessiblePostTime={this.props.firstInaccessiblePostTime}
-                />
+                <CenterMessageLock/>
             );
         }
 

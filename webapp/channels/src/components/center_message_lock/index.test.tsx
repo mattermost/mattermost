@@ -83,68 +83,23 @@ const exceededLimitsStateNoAccessiblePosts = {
 };
 
 describe('CenterMessageLock', () => {
-    it('returns null if limits not loaded', () => {
-        renderWithContext(
-            <CenterMessageLock channelId={'channelId'}/>,
-            initialState,
-        );
-        expect(screen.queryByText('Unlock messages prior to')).not.toBeInTheDocument();
-    });
-
     it('shows message when limits are exceeded', () => {
         renderWithContext(
-            <CenterMessageLock channelId={'channelId'}/>,
+            <CenterMessageLock/>,
             exceededLimitsState,
         );
-        screen.getByText('Unlock messages prior to', {exact: false});
-        screen.getByText('Review our plan options and pricing.');
+        screen.getByText('Limited history is displayed', {exact: false});
+        screen.getByText('Full access to message history is included in');
     });
 
     it('pricing link is clickable', () => {
         renderWithContext(
-            <CenterMessageLock channelId={'channelId'}/>,
+            <CenterMessageLock/>,
             exceededLimitsState,
         );
-        const pricingLink = screen.getByText('Review our plan options and pricing.');
+        const pricingLink = screen.getByText('paid plans');
         expect(pricingLink.tagName).toBe('A');
         expect(pricingLink).toHaveAttribute('href', '#');
         expect(pricingLink).toBeVisible();
-    });
-
-    it('Filtered messages over one year old display year', () => {
-        renderWithContext(
-            <CenterMessageLock channelId={'channelId'}/>,
-            exceededLimitsState,
-        );
-        screen.getByText('January 1, 1970', {exact: false});
-    });
-
-    it('New filtered messages do not show year', () => {
-        const state = JSON.parse(JSON.stringify(exceededLimitsState));
-        const now = new Date();
-        const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const expectedDate = firstOfMonth.toLocaleString('en', {month: 'long', day: 'numeric'});
-
-        state.entities.posts.posts.c.create_at = Date.parse(firstOfMonth.toUTCString());
-        renderWithContext(
-            <CenterMessageLock channelId={'channelId'}/>,
-            state,
-        );
-        screen.getByText(expectedDate, {exact: false});
-    });
-
-    it('when there are no messages, uses day after day of most recently archived post', () => {
-        const now = Date.now();
-        const secondOfMonth = new Date(now + (1000 * 60 * 60 * 24));
-        const expectedDate = secondOfMonth.toLocaleString('en', {month: 'long', day: 'numeric'});
-
-        renderWithContext(
-            <CenterMessageLock
-                channelId={'channelId'}
-                firstInaccessiblePostTime={now}
-            />,
-            exceededLimitsStateNoAccessiblePosts,
-        );
-        screen.getByText(expectedDate, {exact: false});
     });
 });
