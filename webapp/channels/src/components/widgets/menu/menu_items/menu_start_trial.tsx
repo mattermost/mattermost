@@ -67,9 +67,7 @@ const MenuStartTrial = (props: Props): JSX.Element | null => {
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
                                 location='menu_start_trial.entry-link'
-
-                                //TODO: Replace with the correct link
-                                href={LicenseLinks.UNSUPPORTED}
+                                href={LicenseLinks.ENTRY_LIMITS_INFO}
                             >
                                 {msg}
                             </ExternalLink>
