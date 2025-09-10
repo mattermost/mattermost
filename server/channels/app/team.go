@@ -1523,7 +1523,7 @@ func (a *App) InviteGuestsToChannelsGracefully(rctx request.CTX, teamID string, 
 		return nil, err
 	}
 
-	var inviteListWithErrors []*model.EmailInviteWithError
+var inviteListWithErrors []*model.EmailInviteWithError
 var goodEmails []string
 var invalidEmails []string // collect all invalid emails for count
 

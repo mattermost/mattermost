@@ -3258,12 +3258,14 @@
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "Email invitations are disabled."
   },
-  
-  {
-  "id": "api.team.invite_members.invalid_email.app_error",
-  "translation": "The following email {count, plural, one {address does not belong} other {addresses do not belong}} to an accepted domain: {{.Addresses}}. Please contact your System Administrator for details."
-}
-,
+{
+  "id": "api.team.invite_members.invalid_email.app_error_single",
+  "translation": "The following email address does not belong to an accepted domain: {{.Address}}. Please contact your System Administrator for details."
+},
+{
+  "id": "api.team.invite_members.invalid_email.app_error_plural",
+  "translation": "The following email addresses do not belong to an accepted domain: {{.Addresses}}. Please contact your System Administrator for details."
+},
   {
     "id": "api.team.invite_members.no_one.app_error",
     "translation": "No one to invite."
