@@ -1,4 +1,4 @@
-FROM cgr.dev/mattermost.com/glibc-openssl-fips:15-dev@sha256:87f0f3e5c681dfa91fbb6b96c90b4a54c5ab0233e1e9c71835788d624cb60307
+FROM cgr.dev/mattermost.com/glibc-openssl-fips:15-dev@sha256:9223f9245fb026a3c255ce9b7028a069fe11432aa7710713a331eaa36f44851c
 
 # Setting bash as our shell, and enabling pipefail option
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
