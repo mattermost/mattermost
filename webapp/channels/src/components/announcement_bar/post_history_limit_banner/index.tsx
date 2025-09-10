@@ -6,6 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
 import {getPostHistoryLimitBannerPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
@@ -15,16 +16,17 @@ import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
 import {Preferences, AnnouncementBarTypes} from 'utils/constants';
 
-import type {GlobalState} from 'types/store';
-
 import './post_history_limit_banner.scss';
+
+const ONE_DAY_MS = 1000 * 60 * 60 * 24;
 
 const PostHistoryLimitBanner = () => {
     const {openPricingModal} = useOpenPricingModal();
     const dispatch = useDispatch();
 
-    const currentUser = useSelector((state: GlobalState) => getCurrentUser(state));
+    const currentUser = useSelector(getCurrentUser);
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
+    const userLocale = useSelector(getCurrentUserLocale);
 
     const [serverLimits, limitsLoaded] = useGetServerLimits();
 
@@ -41,11 +43,11 @@ const PostHistoryLimitBanner = () => {
             user_id: currentUser.id,
             value: Date.now().toString(), // Store current timestamp
         }]));
-    }, []);
+    }, [currentUser.id]);
 
     const handleUpgradeClick = useCallback((e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
-        openPricingModal({trackingLocation: 'post_history_limit_banner'});
+        openPricingModal();
     }, []);
 
     const showBanner = useMemo(() => {
@@ -62,8 +64,6 @@ const PostHistoryLimitBanner = () => {
             return false;
         }
 
-        const preferenceName = 'post_history_limit_banner';
-
         // Get dismissal timestamp from preferences
         const dismissalPreference = postHistoryLimitPreferences.find(
             (pref) => pref.name === preferenceName,
@@ -76,7 +76,7 @@ const PostHistoryLimitBanner = () => {
         }
 
         //Check if it's time to show again after grace period
-        const daysSinceDismissal = (Date.now() - dismissalTimestamp) / (1000 * 60 * 60 * 24);
+        const daysSinceDismissal = (Date.now() - dismissalTimestamp) / ONE_DAY_MS;
         const threshold = isAdmin ? 7 : 30; // 7 days for admins, 30 for users
 
         return daysSinceDismissal >= threshold;
@@ -94,7 +94,7 @@ const PostHistoryLimitBanner = () => {
 
     // Format the cutoff date
     const cutoffDate = new Date(lastAccessiblePostTime);
-    const formattedDate = cutoffDate.toLocaleDateString('en-US', {
+    const formattedDate = cutoffDate.toLocaleDateString(userLocale, {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
