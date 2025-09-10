@@ -6508,7 +6508,6 @@
   "workspace_limits.modals.view_plan_options": "View plan options",
   "workspace_limits.modals.view_plans": "View plans",
   "workspace_limits.search_limit.banner_text": "Full access to message history is included in <a>paid plans</a>",
-  "workspace_limits.search_limit.view_plans": "View plans",
   "workspace_limits.teams_limit_reached.tool_tip": "You've reached the team limit for your current plan. Consider upgrading to unarchive this team or archive your other teams",
   "workspace_limits.teams_limit_reached.upgrade_to_unarchive": "Upgrade to Unarchive",
   "workspace_limits.teams_limit_reached.view_upgrade_options": "View upgrade options",

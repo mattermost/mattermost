@@ -68,20 +68,6 @@ const exceededLimitsState = {
     },
 };
 
-const exceededLimitsStateNoAccessiblePosts = {
-    ...exceededLimitsState,
-    entities: {
-        ...exceededLimitsState.entities,
-        posts: {
-            postsInChannel: {
-                channelId: [
-                ],
-            },
-            posts: {},
-        },
-    },
-};
-
 describe('CenterMessageLock', () => {
     it('shows message when limits are exceeded', () => {
         renderWithContext(
