@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -1770,4 +1771,134 @@ func TestExportDeactivatedUserDMs(t *testing.T) {
 		"Non-threaded reply from deactivated user should be imported")
 	require.True(t, foundThreadedReplyInImport,
 		"Threaded reply from deactivated user should be imported")
+}
+
+func TestBulkExportUsersOnly(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Use the existing test data from InitBasic
+	// th.BasicTeam, th.BasicChannel, th.BasicUser, th.BasicUser2, th.SystemAdminUser are available
+
+	// Create some posts (these should NOT be exported in users-only mode)
+	post1, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "Test post 1",
+	}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+	require.NotNil(t, post1)
+
+	// Create user preferences
+	preferences := model.Preferences{
+		{
+			UserId:   th.BasicUser.Id,
+			Category: model.PreferenceCategoryTheme,
+			Name:     "",
+			Value:    `{"type":"custom"}`,
+		},
+	}
+	appErr = th.App.UpdatePreferences(th.Context, th.BasicUser.Id, preferences)
+	require.Nil(t, appErr)
+
+	// Export with UsersOnly option
+	var b bytes.Buffer
+	opts := model.BulkExportOpts{
+		UsersOnly: true,
+	}
+	appErr = th.App.BulkExport(th.Context, &b, "", nil, opts)
+	require.Nil(t, appErr)
+
+	// Validate the export file and verify import works
+	exportData := b.String()
+	require.NotEmpty(t, exportData, "Export should not be empty")
+
+	// Create a new team to import the users into
+	importTeam := th.CreateTeam()
+	
+	// Try to bulk import the exported data to validate it
+	appErr = th.App.BulkImport(th.Context, strings.NewReader(exportData), false, 5)
+	require.Nil(t, appErr, "Users-only export should be valid for import")
+
+	// Parse the export and verify only users were exported
+	scanner := bufio.NewScanner(strings.NewReader(exportData))
+	hasUsers := false
+	hasTeams := false
+	hasPosts := false
+	hasChannels := false
+	userCount := 0
+
+	for scanner.Scan() {
+		var line imports.LineImportData
+		err := json.Unmarshal(scanner.Bytes(), &line)
+		require.NoError(t, err)
+
+		switch line.Type {
+		case "user":
+			hasUsers = true
+			userCount++
+			// Verify user data is present
+			require.NotNil(t, line.User)
+			require.NotEmpty(t, line.User.Username)
+			require.NotEmpty(t, line.User.Email)
+		case "team":
+			hasTeams = true
+		case "channel":
+			hasChannels = true
+		case "post":
+			hasPosts = true
+		}
+	}
+
+	// Verify that only users were exported
+	require.True(t, hasUsers, "Export should contain users")
+	require.False(t, hasTeams, "Export should NOT contain teams in users-only mode")
+	require.False(t, hasChannels, "Export should NOT contain channels in users-only mode")
+	require.False(t, hasPosts, "Export should NOT contain posts in users-only mode")
+
+	// Verify we have the correct number of users (including system users)
+	require.GreaterOrEqual(t, userCount, 3, "Should have at least 3 users exported")
+}
+
+func TestBulkExportUsersOnlyWithProfilePictures(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Use existing user from InitBasic and set up profile picture flag
+	user := th.BasicUser
+	user.LastPictureUpdate = model.GetMillis()
+	_, appErr := th.App.UpdateUser(th.Context, user, false)
+	require.Nil(t, appErr)
+
+	// Create export directory
+	dir, err := os.MkdirTemp("", "export_test")
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
+
+	// Export with UsersOnly and IncludeProfilePictures options
+	exportFile, err := os.Create(filepath.Join(dir, "users_export.zip"))
+	require.NoError(t, err)
+	defer exportFile.Close()
+
+	opts := model.BulkExportOpts{
+		UsersOnly:              true,
+		IncludeProfilePictures: true,
+		CreateArchive:          true,
+	}
+
+	appErr = th.App.BulkExport(th.Context, exportFile, dir, nil, opts)
+	require.Nil(t, appErr)
+
+	// Verify the export file was created and is valid
+	stat, err := exportFile.Stat()
+	require.NoError(t, err)
+	require.Greater(t, stat.Size(), int64(0), "Export file should not be empty")
+
+	// Close the file so we can read it
+	exportFile.Close()
+
+	// Try to validate the export by reading it back
+	exportContent, err := os.ReadFile(filepath.Join(dir, "users_export.zip"))
+	require.NoError(t, err)
+	require.NotEmpty(t, exportContent, "Export content should not be empty")
 }

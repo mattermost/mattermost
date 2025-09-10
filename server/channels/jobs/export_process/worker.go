@@ -33,6 +33,11 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			CreateArchive: true,
 		}
 
+		usersOnly, ok := job.Data["users_only"]
+		if ok && usersOnly == "true" {
+			opts.UsersOnly = true
+		}
+
 		includeAttachments, ok := job.Data["include_attachments"]
 		if ok && includeAttachments == "true" {
 			opts.IncludeAttachments = true
