@@ -67,6 +67,7 @@ const ActionButton = ({
             onClick={handleActionClick}
             className='btn btn-sm'
             hexColor={hexColor}
+            title={action.tooltip}
         >
             <LoadingWrapper
                 loading={actionExecuting}

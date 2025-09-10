@@ -1,13 +1,53 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {parseISO, isValid} from 'date-fns';
+
 import type {DialogElement} from '@mattermost/types/integrations';
+
+// Validation patterns for exact storage format matching
+const DATE_FORMAT_PATTERN = /^\d{4}-\d{2}-\d{2}$/; // YYYY-MM-DD
+const DATETIME_FORMAT_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/; // YYYY-MM-DDTHH:mm:ssZ
 
 type DialogError = {
     id: string;
     defaultMessage: string;
     values?: any;
 };
+
+/**
+ * Validates date/datetime field values for format and range constraints
+ */
+function validateDateTimeValue(value: string, elem: DialogElement): DialogError | null {
+    // Use parseISO for consistent validation with stringToMoment
+    const parsedDate = parseISO(value);
+    if (!isValid(parsedDate)) {
+        return {
+            id: 'interactive_dialog.error.bad_format',
+            defaultMessage: 'Invalid date format',
+        };
+    }
+
+    // Validate format matches expected storage format
+    const isDateField = elem.type === 'date';
+    if (isDateField) {
+        // Date fields must be exactly YYYY-MM-DD
+        if (!DATE_FORMAT_PATTERN.test(value)) {
+            return {
+                id: 'interactive_dialog.error.bad_format',
+                defaultMessage: 'Date field must be in YYYY-MM-DD format',
+            };
+        }
+    } else if (!DATETIME_FORMAT_PATTERN.test(value)) {
+        // DateTime fields must match exact format we output: YYYY-MM-DDTHH:mm:ssZ
+        return {
+            id: 'interactive_dialog.error.bad_format',
+            defaultMessage: 'DateTime field must be in YYYY-MM-DDTHH:mm:ssZ format',
+        };
+    }
+    return null;
+}
+
 export function checkDialogElementForError(elem: DialogElement, value: any): DialogError | undefined | null {
     // Check if value is empty (handles arrays for multiselect)
     let isEmpty;
@@ -72,6 +112,15 @@ export function checkDialogElementForError(elem: DialogElement, value: any): Dia
                 defaultMessage: 'Must be a valid option',
             };
         }
+    } else if (type === 'date' || type === 'datetime') {
+        // Validate date/datetime format and range constraints
+        if (value && typeof value === 'string') {
+            const validationError = validateDateTimeValue(value, elem);
+            if (validationError) {
+                return validationError;
+            }
+        }
+        return null;
     }
 
     return null;
