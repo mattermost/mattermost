@@ -21,7 +21,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["TeammateNameDisplay"] = *c.TeamSettings.TeammateNameDisplay
 	props["LockTeammateNameDisplay"] = strconv.FormatBool(*c.TeamSettings.LockTeammateNameDisplay)
 	props["ExperimentalPrimaryTeam"] = *c.TeamSettings.ExperimentalPrimaryTeam
-	props["ExperimentalViewArchivedChannels"] = strconv.FormatBool(*c.TeamSettings.ExperimentalViewArchivedChannels)
 	props["EnableJoinLeaveMessageByDefault"] = strconv.FormatBool(*c.TeamSettings.EnableJoinLeaveMessageByDefault)
 
 	props["EnableBotAccountCreation"] = strconv.FormatBool(*c.ServiceSettings.EnableBotAccountCreation)
@@ -154,6 +153,10 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["YoutubeReferrerPolicy"] = strconv.FormatBool(*c.ExperimentalSettings.YoutubeReferrerPolicy)
 	props["UniqueEmojiReactionLimitPerPost"] = strconv.FormatInt(int64(*c.ServiceSettings.UniqueEmojiReactionLimitPerPost), 10)
 
+	props["EnableAttributeBasedAccessControl"] = strconv.FormatBool(*c.AccessControlSettings.EnableAttributeBasedAccessControl)
+	props["EnableChannelScopeAccessControl"] = strconv.FormatBool(*c.AccessControlSettings.EnableChannelScopeAccessControl)
+	props["EnableUserManagedAttributes"] = strconv.FormatBool(*c.AccessControlSettings.EnableUserManagedAttributes)
+
 	props["WranglerPermittedWranglerRoles"] = strings.Join(c.WranglerSettings.PermittedWranglerRoles, ",")
 	props["WranglerAllowedEmailDomain"] = strings.Join(c.WranglerSettings.AllowedEmailDomain, ",")
 	props["WranglerMoveThreadMaxCount"] = strconv.FormatInt(*c.WranglerSettings.MoveThreadMaxCount, 10)
@@ -184,11 +187,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["SamlLastNameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.LastNameAttribute != "")
 			props["SamlNicknameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.NicknameAttribute != "")
 			props["SamlPositionAttributeSet"] = strconv.FormatBool(*c.SamlSettings.PositionAttribute != "")
-		}
-
-		if *license.Features.FutureFeatures {
-			props["ExperimentalClientSideCertEnable"] = strconv.FormatBool(*c.ExperimentalSettings.ClientSideCertEnable)
-			props["ExperimentalClientSideCertCheck"] = *c.ExperimentalSettings.ClientSideCertCheck
 		}
 
 		if *license.Features.Cluster {

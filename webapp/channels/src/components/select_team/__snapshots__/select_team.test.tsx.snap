@@ -63,16 +63,38 @@ exports[`components/select_team/SelectTeam should match snapshot 1`] = `
           styleClass="signup-team-all"
           totalItems={15}
         >
-          <div
-            className="signup-team-dir-err"
-          >
-            <div>
-              <MemoizedFormattedMessage
-                defaultMessage="No teams are available to join. Please create a new team or ask your administrator for an invite."
-                id="signup_team.no_open_teams_canCreate"
-              />
-            </div>
-          </div>
+          <Memo(SelectTeamItem)
+            canJoinPrivateTeams={false}
+            canJoinPublicTeams={true}
+            key="team_team-a"
+            loading={false}
+            onTeamClick={[Function]}
+            team={
+              Object {
+                "allow_open_invite": true,
+                "delete_at": 0,
+                "display_name": "Team A",
+                "id": "team_id_1",
+                "name": "team-a",
+              }
+            }
+          />
+          <Memo(SelectTeamItem)
+            canJoinPrivateTeams={false}
+            canJoinPublicTeams={true}
+            key="team_b-team"
+            loading={false}
+            onTeamClick={[Function]}
+            team={
+              Object {
+                "allow_open_invite": true,
+                "delete_at": 0,
+                "display_name": "B Team",
+                "id": "team_id_2",
+                "name": "b-team",
+              }
+            }
+          />
         </InfiniteScroll>
       </div>
       <Memo(SystemPermissionGate)
@@ -93,7 +115,6 @@ exports[`components/select_team/SelectTeam should match snapshot 1`] = `
           <Link
             className="signup-team-login"
             id="createNewTeamLink"
-            onClick={[Function]}
             to="/create_team"
           >
             <MemoizedFormattedMessage
@@ -115,7 +136,6 @@ exports[`components/select_team/SelectTeam should match snapshot 1`] = `
         >
           <Link
             className="signup-team-login"
-            onClick={[Function]}
             to="/admin_console"
           >
             <MemoizedFormattedMessage
@@ -193,16 +213,38 @@ exports[`components/select_team/SelectTeam should match snapshot, on create team
           styleClass="signup-team-all"
           totalItems={15}
         >
-          <div
-            className="signup-team-dir-err"
-          >
-            <div>
-              <MemoizedFormattedMessage
-                defaultMessage="No teams are available to join. Please ask your administrator for an invite."
-                id="signup_team.no_open_teams"
-              />
-            </div>
-          </div>
+          <Memo(SelectTeamItem)
+            canJoinPrivateTeams={false}
+            canJoinPublicTeams={true}
+            key="team_team-a"
+            loading={false}
+            onTeamClick={[Function]}
+            team={
+              Object {
+                "allow_open_invite": true,
+                "delete_at": 0,
+                "display_name": "Team A",
+                "id": "team_id_1",
+                "name": "team-a",
+              }
+            }
+          />
+          <Memo(SelectTeamItem)
+            canJoinPrivateTeams={false}
+            canJoinPublicTeams={true}
+            key="team_b-team"
+            loading={false}
+            onTeamClick={[Function]}
+            team={
+              Object {
+                "allow_open_invite": true,
+                "delete_at": 0,
+                "display_name": "B Team",
+                "id": "team_id_2",
+                "name": "b-team",
+              }
+            }
+          />
         </InfiniteScroll>
       </div>
       <Memo(SystemPermissionGate)
@@ -217,7 +259,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on create team
         >
           <Link
             className="signup-team-login"
-            onClick={[Function]}
             to="/admin_console"
           >
             <MemoizedFormattedMessage
@@ -284,7 +325,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on error 1`] =
           <Link
             className="signup-team-login"
             id="createNewTeamLink"
-            onClick={[Function]}
             to="/create_team"
           >
             <MemoizedFormattedMessage
@@ -306,7 +346,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on error 1`] =
         >
           <Link
             className="signup-team-login"
-            onClick={[Function]}
             to="/admin_console"
           >
             <MemoizedFormattedMessage
@@ -360,7 +399,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on loading 1`]
           <Link
             className="signup-team-login"
             id="createNewTeamLink"
-            onClick={[Function]}
             to="/create_team"
           >
             <MemoizedFormattedMessage
@@ -382,7 +420,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on loading 1`]
         >
           <Link
             className="signup-team-login"
-            onClick={[Function]}
             to="/admin_console"
           >
             <MemoizedFormattedMessage
@@ -511,7 +548,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
           <Link
             className="signup-team-login"
             id="createNewTeamLink"
-            onClick={[Function]}
             to="/create_team"
           >
             <MemoizedFormattedMessage
@@ -533,7 +569,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
         >
           <Link
             className="signup-team-login"
-            onClick={[Function]}
             to="/admin_console"
           >
             <MemoizedFormattedMessage
@@ -602,7 +637,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
           <Link
             className="signup-team-login"
             id="createNewTeamLink"
-            onClick={[Function]}
             to="/create_team"
           >
             <MemoizedFormattedMessage
@@ -624,7 +658,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
         >
           <Link
             className="signup-team-login"
-            onClick={[Function]}
             to="/admin_console"
           >
             <MemoizedFormattedMessage
@@ -732,7 +765,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
           <Link
             className="signup-team-login"
             id="createNewTeamLink"
-            onClick={[Function]}
             to="/create_team"
           >
             <MemoizedFormattedMessage
@@ -754,7 +786,6 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
         >
           <Link
             className="signup-team-login"
-            onClick={[Function]}
             to="/admin_console"
           >
             <MemoizedFormattedMessage

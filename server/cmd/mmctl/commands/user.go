@@ -89,23 +89,6 @@ var SendPasswordResetEmailCmd = &cobra.Command{
 	RunE:    withClient(sendPasswordResetEmailCmdF),
 }
 
-var UpdateUserEmailCmd = &cobra.Command{
-	Use:     "email [user] [new email]",
-	Short:   "Change email of the user",
-	Long:    "Change the email address associated with a user.",
-	Example: "  user email testuser user@example.com",
-	RunE:    withClient(updateUserEmailCmdF),
-}
-
-var UpdateUsernameCmd = &cobra.Command{
-	Use:     "username [user] [new username]",
-	Short:   "Change username of the user",
-	Long:    "Change username of the user.",
-	Example: "  user username testuser newusername",
-	Args:    cobra.ExactArgs(2),
-	RunE:    withClient(updateUsernameCmdF),
-}
-
 var ChangePasswordUserCmd = &cobra.Command{
 	Use:   "change-password <user>",
 	Short: "Changes a user's password",
@@ -136,6 +119,42 @@ var ResetUserMfaCmd = &cobra.Command{
 If MFA enforcement is enabled, the user will be forced to re-enable MFA as soon as they log in.`,
 	Example: "  user resetmfa user@example.com",
 	RunE:    withClient(resetUserMfaCmdF),
+}
+
+var UserEditCmd = &cobra.Command{
+	Use:   "edit",
+	Short: "Edit user properties",
+	Long:  "Edit user properties like username, email, or authdata.",
+}
+
+var UserEditUsernameCmd = &cobra.Command{
+	Use:               "username [user] [new username]",
+	Short:             "Edit user's username",
+	Long:              "Edit a user's username.",
+	Example:           "user edit username user@example.com newusername",
+	Args:              cobra.ExactArgs(2),
+	ValidArgsFunction: validateArgsWithClient(userEditCompletionF),
+	RunE:              withClient(userEditUsernameCmdF),
+}
+
+var UserEditEmailCmd = &cobra.Command{
+	Use:               "email [user] [new email]",
+	Short:             "Edit user's email",
+	Long:              "Edit a user's email address.",
+	Example:           "user edit email user@example.com newemail@example.com",
+	Args:              cobra.ExactArgs(2),
+	ValidArgsFunction: validateArgsWithClient(userEditCompletionF),
+	RunE:              withClient(userEditEmailCmdF),
+}
+
+var UserEditAuthdataCmd = &cobra.Command{
+	Use:               "authdata [user] [new authdata]",
+	Short:             "Edit user's authdata",
+	Long:              "Edit a user's authentication data. Use empty string to clear authdata.",
+	Example:           `user edit authdata user@example.com newid123`,
+	Args:              cobra.ExactArgs(2),
+	ValidArgsFunction: validateArgsWithClient(userEditCompletionF),
+	RunE:              withClient(userEditAuthdataCmdF),
 }
 
 var DeleteUsersCmd = &cobra.Command{
@@ -403,10 +422,9 @@ Global Flags:
 		UserCreateCmd,
 		UserInviteCmd,
 		SendPasswordResetEmailCmd,
-		UpdateUserEmailCmd,
-		UpdateUsernameCmd,
 		ChangePasswordUserCmd,
 		ResetUserMfaCmd,
+		UserEditCmd,
 		DeleteUsersCmd,
 		DeleteAllUsersCmd,
 		SearchUserCmd,
@@ -423,6 +441,11 @@ Global Flags:
 		PreferenceGetCmd,
 		PreferenceUpdateCmd,
 		PreferenceDeleteCmd,
+	)
+	UserEditCmd.AddCommand(
+		UserEditUsernameCmd,
+		UserEditEmailCmd,
+		UserEditAuthdataCmd,
 	)
 
 	RootCmd.AddCommand(UserCmd)
@@ -596,62 +619,6 @@ func sendPasswordResetEmailCmdF(c client.Client, cmd *cobra.Command, args []stri
 	}
 
 	return result.ErrorOrNil()
-}
-
-func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	printer.SetSingle(true)
-
-	if len(args) != 2 {
-		return errors.New("expected two arguments. See help text for details")
-	}
-
-	newEmail := args[1]
-
-	if !model.IsValidEmail(newEmail) {
-		return errors.New("invalid email: '" + newEmail + "'")
-	}
-
-	user, err := getUserFromArg(c, args[0])
-	if err != nil {
-		return err
-	}
-
-	user.Email = newEmail
-
-	ruser, _, err := c.UpdateUser(context.TODO(), user)
-	if err != nil {
-		return errors.New(err.Error())
-	}
-
-	printer.PrintT("User {{.Username}} updated successfully", ruser)
-
-	return nil
-}
-
-func updateUsernameCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	printer.SetSingle(true)
-
-	newUsername := args[1]
-
-	if !model.IsValidUsername(newUsername) {
-		return errors.New("invalid username: '" + newUsername + "'")
-	}
-
-	user := getUserFromUserArg(c, args[0])
-	if user == nil {
-		return errors.New("unable to find user '" + args[0] + "'")
-	}
-
-	user.Username = newUsername
-
-	ruser, _, err := c.UpdateUser(context.TODO(), user)
-	if err != nil {
-		return errors.New(err.Error())
-	}
-
-	printer.PrintT("User {{.Username}} updated successfully", ruser)
-
-	return nil
 }
 
 func changePasswordUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -1119,6 +1086,91 @@ func demoteUserToGuestCmdF(c client.Client, _ *cobra.Command, userArgs []string)
 	}
 
 	return errs.ErrorOrNil()
+}
+
+func userEditCompletionF(ctx context.Context, c client.Client, cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	if len(args) >= 1 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+	return fetchAndComplete(
+		func(ctx context.Context, c client.Client, page, perPage int) ([]*model.User, *model.Response, error) {
+			return c.GetUsers(ctx, page, perPage, "")
+		},
+		func(u *model.User) []string { return []string{u.Id, u.Username, u.Email} },
+	)(ctx, c, cmd, args, toComplete)
+}
+
+func userEditCmdF(c client.Client, _ *cobra.Command, args []string, fieldName string) error {
+	printer.SetSingle(true)
+
+	userArg := args[0]
+	newValue := args[1]
+
+	user, err := getUserFromArg(c, userArg)
+	if err != nil {
+		return err
+	}
+
+	// Update the appropriate field based on fieldName
+	switch fieldName {
+	case "username":
+		if !model.IsValidUsername(newValue) {
+			return fmt.Errorf("invalid username: '%s'", newValue)
+		}
+		user.Username = newValue
+
+		ruser, _, err := c.UpdateUser(context.TODO(), user)
+		if err != nil {
+			return fmt.Errorf("failed to update user %s: %w", fieldName, err)
+		}
+		printer.PrintT("User {{.Username}} username updated successfully", ruser)
+
+	case "email":
+		if !model.IsValidEmail(newValue) {
+			return fmt.Errorf("invalid email: '%s'", newValue)
+		}
+		user.Email = newValue
+
+		ruser, _, err := c.UpdateUser(context.TODO(), user)
+		if err != nil {
+			return fmt.Errorf("failed to update user %s: %w", fieldName, err)
+		}
+		printer.PrintT("User {{.Username}} email updated successfully", ruser)
+
+	case "authdata":
+		if newValue == "" {
+			return fmt.Errorf("cannot clear authdata as the user is using %s to log in", user.AuthService)
+		}
+		if len(newValue) > model.UserAuthDataMaxLength {
+			return fmt.Errorf("authdata too long. Maximum length is %d characters", model.UserAuthDataMaxLength)
+		}
+
+		_, _, err := c.UpdateUserAuth(context.TODO(), user.Id, &model.UserAuth{
+			AuthData:    &newValue,
+			AuthService: user.AuthService,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to update user %s: %w", fieldName, err)
+		}
+
+		printer.PrintT("User {{.Username}} authdata updated successfully", user)
+	default:
+		return fmt.Errorf("unsupported field: %s", fieldName)
+	}
+
+	return nil
+}
+
+func userEditUsernameCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	return userEditCmdF(c, cmd, args, "username")
+}
+
+func userEditEmailCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	return userEditCmdF(c, cmd, args, "email")
+}
+
+func userEditAuthdataCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	return userEditCmdF(c, cmd, args, "authdata")
 }
 
 type ByPreference model.Preferences

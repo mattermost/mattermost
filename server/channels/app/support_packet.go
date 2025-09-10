@@ -260,10 +260,6 @@ func (a *App) getSupportPacketJobList(rctx request.CTX) (*model.FileData, error)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post aggregation jobs"))
 	}
-	jobs.BlevePostIndexingJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeBlevePostIndexing, 0, numberOfJobsRuns)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting bleve post indexing jobs"))
-	}
 	jobs.MigrationJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeMigrations, 0, numberOfJobsRuns)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting migration jobs"))
@@ -360,7 +356,7 @@ func (a *App) getPluginsFile(_ request.CTX) (*model.FileData, error) {
 }
 
 func (a *App) getSupportPacketMetadata(_ request.CTX) (*model.FileData, error) {
-	metadata, err := model.GeneratePacketMetadata(model.SupportPacketType, a.TelemetryId(), a.License(), nil)
+	metadata, err := model.GeneratePacketMetadata(model.SupportPacketType, a.ServerId(), a.License(), nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate Packet metadata")
 	}

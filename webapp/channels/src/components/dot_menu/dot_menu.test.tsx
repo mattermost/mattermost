@@ -1,22 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {fireEvent, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import type {PostType} from '@mattermost/types/posts';
+import type {ChannelType} from '@mattermost/types/channels';
+import type {Post, PostType} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {Locations} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
 import DotMenu from './dot_menu';
-import type {DotMenuClass} from './dot_menu';
 
-jest.mock('./utils');
+import DotMenuRoot from './index';
 
 describe('components/dot_menu/DotMenu', () => {
     const latestPost = {
@@ -26,10 +27,41 @@ describe('components/dot_menu/DotMenu', () => {
         channel_id: 'other_gm_channel',
         create_at: Date.now(),
     };
+
+    const post1 = {
+        id: 'post_id_1',
+        user_id: 'current_user_id',
+        message: 'test msg',
+        channel_id: 'channel_id_1',
+        create_at: Date.now(),
+        type: '',
+    } as Post;
+
+    const dmPost = {
+        id: 'dm_post_id_1',
+        user_id: 'current_user_id',
+        message: 'DM message',
+        channel_id: 'dm_channel',
+        create_at: Date.now(),
+        type: '',
+    } as Post;
+
+    const gmPost = {
+        id: 'gm_post_id_1',
+        user_id: 'current_user_id',
+        message: 'GM message',
+        channel_id: 'gm_channel',
+        create_at: Date.now(),
+        type: '',
+    } as Post;
+
     const initialState: DeepPartial<GlobalState> = {
         entities: {
             general: {
-                config: {},
+                config: {
+                    FeatureFlagContentFlagging: 'true',
+                    ContentFlaggingEnabled: 'true',
+                },
             },
             channels: {
                 myMembers: {
@@ -51,6 +83,27 @@ describe('components/dot_menu/DotMenu', () => {
                     direct_other_user: {
                         id: 'direct_other_user',
                         name: 'current_user_id__other_user',
+                    },
+                    channel_id_1: {
+                        id: 'channel_id_1',
+                        name: 'channel_1',
+                        display_name: 'Channel 1',
+                        type: 'O' as ChannelType,
+                        team_id: 'currentTeamId',
+                    },
+                    dm_channel: {
+                        id: 'dm_channel_id_1',
+                        name: 'dm_channel',
+                        display_name: 'DM Channel',
+                        type: 'D' as ChannelType,
+                        team_id: '',
+                    },
+                    gm_channel: {
+                        id: 'gm_channel_id_1',
+                        name: 'gm_channel',
+                        display_name: 'GM Channel',
+                        type: 'G' as ChannelType,
+                        team_id: '',
                     },
                 },
                 messageCounts: {
@@ -88,10 +141,16 @@ describe('components/dot_menu/DotMenu', () => {
                         type: 'O',
                     },
                 },
+                contentFlaggingStatus: {
+                    currentTeamId: true,
+                },
             },
             posts: {
                 posts: {
                     [latestPost.id]: latestPost,
+                    post_id_1: post1,
+                    dm_post_id_1: dmPost,
+                    gm_post_id_1: gmPost,
                 },
                 postsInChannel: {
                     other_gm_channel: [
@@ -149,65 +208,79 @@ describe('components/dot_menu/DotMenu', () => {
         canMove: true,
     };
 
-    test('should match snapshot, on Center', () => {
+    test('should show edit menu, on Center', async () => {
         const props = {
             ...baseProps,
             canEdit: true,
         };
-        const wrapper = shallowWithIntl(
+        renderWithContext(
             <DotMenu {...props}/>,
+            initialState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
+        expect(button).toBeInTheDocument();
+        expect(button).toHaveAttribute('aria-label', 'more');
 
-        const instance = wrapper.instance();
-        const setStateMock = jest.fn();
-        instance.setState = setStateMock;
-        (wrapper.instance() as DotMenuClass).handleEditDisable();
-        expect(setStateMock).toBeCalledWith({canEdit: false});
+        await userEvent.click(button);
+
+        // Check that edit menu item is present when canEdit is true
+        expect(screen.getByTestId(`edit_post_${baseProps.post.id}`)).toBeInTheDocument();
     });
 
-    test('should match snapshot, canDelete', () => {
+    test('should show delete menu, canDelete', async () => {
         const props = {
             ...baseProps,
             canEdit: true,
             canDelete: true,
         };
-        const wrapper = renderWithContext(
+        renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
+        await userEvent.click(button);
+
+        // Check that delete menu item is present when canDelete is true
+        expect(screen.getByTestId(`delete_post_${baseProps.post.id}`)).toBeInTheDocument();
     });
 
-    test('should match snapshot, can move', () => {
+    test('should show move thread menu, can move', async () => {
         const props = {
             ...baseProps,
             canMove: true,
         };
-        const wrapper = renderWithContext(
+        renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
+        await userEvent.click(button);
+
+        // Check that move thread menu item is present when canMove is true
+        expect(screen.getByText('Move Thread')).toBeInTheDocument();
     });
 
-    test('should match snapshot, cannot move', () => {
+    test('should not show move thread menu when canMove is false, cannot move', async () => {
         const props = {
             ...baseProps,
             canMove: false,
         };
-        const wrapper = renderWithContext(
+        renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
+        await userEvent.click(button);
+
+        // Check that move thread menu item is not present when canMove is false
+        expect(screen.queryByText('Move Thread')).not.toBeInTheDocument();
     });
 
-    test('should show mark as unread when channel is not archived', () => {
+    test('should show mark as unread when channel is not archived', async () => {
         const props = {
             ...baseProps,
             location: Locations.CENTER,
@@ -217,12 +290,12 @@ describe('components/dot_menu/DotMenu', () => {
             initialState,
         );
         const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
-        fireEvent.click(button);
+        await userEvent.click(button);
         const menuItem = screen.getByTestId(`unread_post_${baseProps.post.id}`);
         expect(menuItem).toBeVisible();
     });
 
-    test('should not show mark as unread when channel is archived', () => {
+    test('should not show mark as unread when channel is archived', async () => {
         const props = {
             ...baseProps,
             channelIsArchived: true,
@@ -232,12 +305,12 @@ describe('components/dot_menu/DotMenu', () => {
             initialState,
         );
         const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
-        fireEvent.click(button);
+        await userEvent.click(button);
         const menuItem = screen.queryByTestId(`unread_post_${baseProps.post.id}`);
         expect(menuItem).toBeNull();
     });
 
-    test('should not show mark as unread in search', () => {
+    test('should not show mark as unread in search', async () => {
         const props = {
             ...baseProps,
             location: Locations.SEARCH,
@@ -247,7 +320,7 @@ describe('components/dot_menu/DotMenu', () => {
             initialState,
         );
         const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
-        fireEvent.click(button);
+        await userEvent.click(button);
         const menuItem = screen.queryByTestId(`unread_post_${baseProps.post.id}`);
         expect(menuItem).toBeNull();
     });
@@ -257,7 +330,7 @@ describe('components/dot_menu/DotMenu', () => {
             [true, {location: Locations.RHS_ROOT, isCollapsedThreadsEnabled: true}],
             [true, {location: Locations.RHS_COMMENT, isCollapsedThreadsEnabled: true}],
             [true, {location: Locations.CENTER, isCollapsedThreadsEnabled: true}],
-        ])('follow message/thread menu item should be shown only in RHS and center channel when CRT is enabled', (showing, caseProps) => {
+        ])('follow message/thread menu item should be shown only in RHS and center channel when CRT is enabled', async (showing, caseProps) => {
             const props = {
                 ...baseProps,
                 ...caseProps,
@@ -267,7 +340,7 @@ describe('components/dot_menu/DotMenu', () => {
                 initialState,
             );
             const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
-            fireEvent.click(button);
+            await userEvent.click(button);
             const menuItem = screen.getByTestId(`follow_post_thread_${baseProps.post.id}`);
             expect(menuItem).toBeVisible();
         });
@@ -278,7 +351,7 @@ describe('components/dot_menu/DotMenu', () => {
             [false, {location: Locations.CENTER, isCollapsedThreadsEnabled: false}],
             [false, {location: Locations.SEARCH, isCollapsedThreadsEnabled: true}],
             [false, {location: Locations.NO_WHERE, isCollapsedThreadsEnabled: true}],
-        ])('follow message/thread menu item should be shown only in RHS and center channel when CRT is enabled', (showing, caseProps) => {
+        ])('follow message/thread menu item should be shown only in RHS and center channel when CRT is enabled', async (showing, caseProps) => {
             const props = {
                 ...baseProps,
                 ...caseProps,
@@ -288,7 +361,7 @@ describe('components/dot_menu/DotMenu', () => {
                 initialState,
             );
             const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
-            fireEvent.click(button);
+            await userEvent.click(button);
             const menuItem = screen.queryByTestId(`follow_post_thread_${baseProps.post.id}`);
             expect(menuItem).toBeNull();
         });
@@ -298,7 +371,7 @@ describe('components/dot_menu/DotMenu', () => {
             ['Unfollow message', {isFollowingThread: true, threadReplyCount: 0}],
             ['Follow thread', {isFollowingThread: false, threadReplyCount: 1}],
             ['Unfollow thread', {isFollowingThread: true, threadReplyCount: 1}],
-        ])('should show correct text', (text, caseProps) => {
+        ])('should show correct text', async (text, caseProps) => {
             const props = {
                 ...baseProps,
                 ...caseProps,
@@ -309,10 +382,61 @@ describe('components/dot_menu/DotMenu', () => {
                 initialState,
             );
             const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
-            fireEvent.click(button);
+            await userEvent.click(button);
             const menuItem = screen.getByTestId(`follow_post_thread_${baseProps.post.id}`);
             expect(menuItem).toBeVisible();
             expect(menuItem).toHaveTextContent(text);
         });
+    });
+
+    test('should show flag post menu option when allowed', () => {
+        const props = {
+            ...baseProps,
+            post: post1,
+        };
+        renderWithContext(
+            <DotMenuRoot {...props}/>,
+            initialState,
+        );
+
+        const button = screen.getByTestId(`PostDotMenu-Button-${post1.id}`);
+        fireEvent.click(button);
+
+        const flagPostOption = screen.getByTestId(`flag_post_${post1.id}`);
+        expect(flagPostOption).toBeVisible();
+    });
+
+    test('should not show flag post menu option for DM channel even when enabled', () => {
+        const props = {
+            ...baseProps,
+            post: dmPost,
+        };
+        renderWithContext(
+            <DotMenuRoot {...props}/>,
+            initialState,
+        );
+
+        const button = screen.getByTestId(`PostDotMenu-Button-${dmPost.id}`);
+        fireEvent.click(button);
+
+        const flagPostOption = screen.queryByTestId(`flag_post_${dmPost.id}`);
+        expect(flagPostOption).toBeNull();
+    });
+
+    test('should not show flag post menu option for GM channel even when enabled', () => {
+        const props = {
+            ...baseProps,
+            post: gmPost,
+        };
+        renderWithContext(
+            <DotMenuRoot {...props}/>,
+            initialState,
+        );
+
+        const button = screen.getByTestId(`PostDotMenu-Button-${gmPost.id}`);
+        fireEvent.click(button);
+
+        const flagPostOption = screen.queryByTestId(`flag_post_${gmPost.id}`);
+        expect(flagPostOption).toBeNull();
     });
 });

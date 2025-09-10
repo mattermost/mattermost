@@ -224,9 +224,6 @@ const (
 	ElasticsearchSettingsESBackend                          = "elasticsearch"
 	ElasticsearchSettingsOSBackend                          = "opensearch"
 
-	BleveSettingsDefaultIndexDir  = ""
-	BleveSettingsDefaultBatchSize = 10000
-
 	DataRetentionSettingsDefaultMessageRetentionDays           = 365
 	DataRetentionSettingsDefaultMessageRetentionHours          = 0
 	DataRetentionSettingsDefaultFileRetentionDays              = 365
@@ -258,9 +255,6 @@ const (
 	GlobalrelayCustomerTypeA9     = "A9"
 	GlobalrelayCustomerTypeA10    = "A10"
 	GlobalrelayCustomerTypeCustom = "CUSTOM"
-
-	ClientSideCertCheckPrimaryAuth   = "primary"
-	ClientSideCertCheckSecondaryAuth = "secondary"
 
 	ImageProxyTypeLocal     = "local"
 	ImageProxyTypeAtmosCamo = "atmos/camo"
@@ -422,7 +416,7 @@ type ServiceSettings struct {
 	EnableAPIPostDeletion                             *bool
 	EnableDesktopLandingPage                          *bool
 	ExperimentalEnableHardenedMode                    *bool `access:"experimental_features"`
-	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	StrictCSRFEnforcement                             *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableEmailInvitations                            *bool `access:"authentication_signup"`
 	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations_bot_accounts"`
 	EnableBotAccountCreation                          *bool `access:"integrations_bot_accounts"`
@@ -855,8 +849,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ExperimentalEnableHardenedMode = NewPointer(false)
 	}
 
-	if s.ExperimentalStrictCSRFEnforcement == nil {
-		s.ExperimentalStrictCSRFEnforcement = NewPointer(false)
+	if s.StrictCSRFEnforcement == nil {
+		s.StrictCSRFEnforcement = NewPointer(true)
 	}
 
 	if s.DisableBotsWhenOwnerIsDeactivated == nil {
@@ -1166,28 +1160,24 @@ func (s *MetricsSettings) isValid() *AppError {
 }
 
 type ExperimentalSettings struct {
-	ClientSideCertEnable                                  *bool   `access:"experimental_features,cloud_restrictable"`
-	ClientSideCertCheck                                   *string `access:"experimental_features,cloud_restrictable"`
-	LinkMetadataTimeoutMilliseconds                       *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	RestrictSystemAdmin                                   *bool   `access:"*_read,write_restrictable"`
-	EnableSharedChannels                                  *bool   `access:"experimental_features"` // Deprecated: use `ConnectedWorkspacesSettings.EnableSharedChannels`
-	EnableRemoteClusterService                            *bool   `access:"experimental_features"` // Deprecated: use `ConnectedWorkspacesSettings.EnableRemoteClusterService`
-	DisableAppBar                                         *bool   `access:"experimental_features"`
-	DisableRefetchingOnBrowserFocus                       *bool   `access:"experimental_features"`
-	DelayChannelAutocomplete                              *bool   `access:"experimental_features"`
-	DisableWakeUpReconnectHandler                         *bool   `access:"experimental_features"`
-	UsersStatusAndProfileFetchingPollIntervalMilliseconds *int64  `access:"experimental_features"`
-	YoutubeReferrerPolicy                                 *bool   `access:"experimental_features"`
-	ExperimentalChannelCategorySorting                    *bool   `access:"experimental_features"`
+	// Deprecated: This field is no longer in use, server will fail to start if enabled.
+	ClientSideCertEnable                                  *bool  `access:"experimental_features,cloud_restrictable"`
+	LinkMetadataTimeoutMilliseconds                       *int64 `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	RestrictSystemAdmin                                   *bool  `access:"*_read,write_restrictable"`
+	EnableSharedChannels                                  *bool  `access:"experimental_features"` // Deprecated: use `ConnectedWorkspacesSettings.EnableSharedChannels`
+	EnableRemoteClusterService                            *bool  `access:"experimental_features"` // Deprecated: use `ConnectedWorkspacesSettings.EnableRemoteClusterService`
+	DisableAppBar                                         *bool  `access:"experimental_features"`
+	DisableRefetchingOnBrowserFocus                       *bool  `access:"experimental_features"`
+	DelayChannelAutocomplete                              *bool  `access:"experimental_features"`
+	DisableWakeUpReconnectHandler                         *bool  `access:"experimental_features"`
+	UsersStatusAndProfileFetchingPollIntervalMilliseconds *int64 `access:"experimental_features"`
+	YoutubeReferrerPolicy                                 *bool  `access:"experimental_features"`
+	ExperimentalChannelCategorySorting                    *bool  `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
 	if s.ClientSideCertEnable == nil {
 		s.ClientSideCertEnable = NewPointer(false)
-	}
-
-	if s.ClientSideCertCheck == nil {
-		s.ClientSideCertCheck = NewPointer(ClientSideCertCheckSecondaryAuth)
 	}
 
 	if s.LinkMetadataTimeoutMilliseconds == nil {
@@ -1415,11 +1405,11 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.MaxIdleConns == nil {
-		s.MaxIdleConns = NewPointer(20)
+		s.MaxIdleConns = NewPointer(50)
 	}
 
 	if s.MaxOpenConns == nil {
-		s.MaxOpenConns = NewPointer(300)
+		s.MaxOpenConns = NewPointer(100)
 	}
 
 	if s.ConnMaxLifetimeMilliseconds == nil {
@@ -1466,7 +1456,6 @@ type LogSettings struct {
 	FileLocation           *string         `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	EnableWebhookDebugging *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	EnableDiagnostics      *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
-	VerboseDiagnostics     *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableSentry           *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	AdvancedLoggingJSON    json.RawMessage `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	MaxFieldSize           *int            `access:"environment_logging,write_restrictable,cloud_restrictable"`
@@ -1524,10 +1513,6 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.EnableDiagnostics == nil {
 		s.EnableDiagnostics = NewPointer(true)
-	}
-
-	if s.VerboseDiagnostics == nil {
-		s.VerboseDiagnostics = NewPointer(false)
 	}
 
 	if s.EnableSentry == nil {
@@ -1653,65 +1638,6 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 
 // GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
 func (s *ExperimentalAuditSettings) GetAdvancedLoggingConfig() []byte {
-	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
-		return s.AdvancedLoggingJSON
-	}
-
-	return []byte("{}")
-}
-
-type NotificationLogSettings struct {
-	EnableConsole       *bool           `access:"write_restrictable,cloud_restrictable"`
-	ConsoleLevel        *string         `access:"write_restrictable,cloud_restrictable"`
-	ConsoleJson         *bool           `access:"write_restrictable,cloud_restrictable"`
-	EnableColor         *bool           `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	EnableFile          *bool           `access:"write_restrictable,cloud_restrictable"`
-	FileLevel           *string         `access:"write_restrictable,cloud_restrictable"`
-	FileJson            *bool           `access:"write_restrictable,cloud_restrictable"`
-	FileLocation        *string         `access:"write_restrictable,cloud_restrictable"`
-	AdvancedLoggingJSON json.RawMessage `access:"write_restrictable,cloud_restrictable"`
-}
-
-func (s *NotificationLogSettings) SetDefaults() {
-	if s.EnableConsole == nil {
-		s.EnableConsole = NewPointer(true)
-	}
-
-	if s.ConsoleLevel == nil {
-		s.ConsoleLevel = NewPointer("DEBUG")
-	}
-
-	if s.EnableFile == nil {
-		s.EnableFile = NewPointer(true)
-	}
-
-	if s.FileLevel == nil {
-		s.FileLevel = NewPointer("INFO")
-	}
-
-	if s.FileLocation == nil {
-		s.FileLocation = NewPointer("")
-	}
-
-	if s.ConsoleJson == nil {
-		s.ConsoleJson = NewPointer(true)
-	}
-
-	if s.EnableColor == nil {
-		s.EnableColor = NewPointer(false)
-	}
-
-	if s.FileJson == nil {
-		s.FileJson = NewPointer(true)
-	}
-
-	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
-		s.AdvancedLoggingJSON = []byte("{}")
-	}
-}
-
-// GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
-func (s *NotificationLogSettings) GetAdvancedLoggingConfig() []byte {
 	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
 		return s.AdvancedLoggingJSON
 	}
@@ -2398,16 +2324,17 @@ type TeamSettings struct {
 	RestrictDirectMessage           *string `access:"site_users_and_teams"`
 	EnableLastActiveTime            *bool   `access:"site_users_and_teams"`
 	// In seconds.
-	UserStatusAwayTimeout               *int64   `access:"experimental_features"`
-	MaxChannelsPerTeam                  *int64   `access:"site_users_and_teams"`
-	MaxNotificationsPerChannel          *int64   `access:"environment_push_notification_server"`
-	EnableConfirmNotificationsToChannel *bool    `access:"site_notifications"`
-	TeammateNameDisplay                 *string  `access:"site_users_and_teams"`
-	ExperimentalViewArchivedChannels    *bool    `access:"experimental_features,site_users_and_teams"`
-	ExperimentalEnableAutomaticReplies  *bool    `access:"experimental_features"`
-	LockTeammateNameDisplay             *bool    `access:"site_users_and_teams"`
-	ExperimentalPrimaryTeam             *string  `access:"experimental_features"`
-	ExperimentalDefaultChannels         []string `access:"experimental_features"`
+	UserStatusAwayTimeout               *int64  `access:"experimental_features"`
+	MaxChannelsPerTeam                  *int64  `access:"site_users_and_teams"`
+	MaxNotificationsPerChannel          *int64  `access:"environment_push_notification_server"`
+	EnableConfirmNotificationsToChannel *bool   `access:"site_notifications"`
+	TeammateNameDisplay                 *string `access:"site_users_and_teams"`
+	// Deprecated: This field is no longer in use, and should always be true.
+	ExperimentalViewArchivedChannels   *bool    `access:"experimental_features,site_users_and_teams"`
+	ExperimentalEnableAutomaticReplies *bool    `access:"experimental_features"`
+	LockTeammateNameDisplay            *bool    `access:"site_users_and_teams"`
+	ExperimentalPrimaryTeam            *string  `access:"experimental_features"`
+	ExperimentalDefaultChannels        []string `access:"experimental_features"`
 }
 
 func (s *TeamSettings) SetDefaults() {
@@ -3146,37 +3073,6 @@ func (s *ElasticsearchSettings) SetDefaults() {
 	}
 }
 
-type BleveSettings struct {
-	IndexDir                      *string `access:"experimental_bleve"` // telemetry: none
-	EnableIndexing                *bool   `access:"experimental_bleve"`
-	EnableSearching               *bool   `access:"experimental_bleve"`
-	EnableAutocomplete            *bool   `access:"experimental_bleve"`
-	BulkIndexingTimeWindowSeconds *int    `json:",omitempty"` // telemetry: none
-	BatchSize                     *int    `access:"experimental_bleve"`
-}
-
-func (bs *BleveSettings) SetDefaults() {
-	if bs.IndexDir == nil {
-		bs.IndexDir = NewPointer(BleveSettingsDefaultIndexDir)
-	}
-
-	if bs.EnableIndexing == nil {
-		bs.EnableIndexing = NewPointer(false)
-	}
-
-	if bs.EnableSearching == nil {
-		bs.EnableSearching = NewPointer(false)
-	}
-
-	if bs.EnableAutocomplete == nil {
-		bs.EnableAutocomplete = NewPointer(false)
-	}
-
-	if bs.BatchSize == nil {
-		bs.BatchSize = NewPointer(BleveSettingsDefaultBatchSize)
-	}
-}
-
 type DataRetentionSettings struct {
 	EnableMessageDeletion          *bool   `access:"compliance_data_retention_policy"`
 	EnableFileDeletion             *bool   `access:"compliance_data_retention_policy"`
@@ -3867,7 +3763,6 @@ type Config struct {
 	SqlSettings                 SqlSettings
 	LogSettings                 LogSettings
 	ExperimentalAuditSettings   ExperimentalAuditSettings
-	NotificationLogSettings     NotificationLogSettings
 	PasswordSettings            PasswordSettings
 	FileSettings                FileSettings
 	EmailSettings               EmailSettings
@@ -3891,7 +3786,6 @@ type Config struct {
 	ExperimentalSettings        ExperimentalSettings
 	AnalyticsSettings           AnalyticsSettings
 	ElasticsearchSettings       ElasticsearchSettings
-	BleveSettings               BleveSettings
 	DataRetentionSettings       DataRetentionSettings
 	MessageExportSettings       MessageExportSettings
 	JobSettings                 JobSettings
@@ -4003,13 +3897,11 @@ func (o *Config) SetDefaults() {
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()
 	o.ElasticsearchSettings.SetDefaults()
-	o.BleveSettings.SetDefaults()
 	o.NativeAppSettings.SetDefaults()
 	o.DataRetentionSettings.SetDefaults()
 	o.RateLimitSettings.SetDefaults()
 	o.LogSettings.SetDefaults()
 	o.ExperimentalAuditSettings.SetDefaults()
-	o.NotificationLogSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
 	o.DisplaySettings.SetDefaults()
@@ -4090,10 +3982,6 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.ElasticsearchSettings.isValid(); appErr != nil {
-		return appErr
-	}
-
-	if appErr := o.BleveSettings.isValid(); appErr != nil {
 		return appErr
 	}
 
@@ -4189,10 +4077,18 @@ func (s *TeamSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sitename_length.app_error", map[string]any{"MaxLength": SitenameMaxLength}, "", http.StatusBadRequest)
 	}
 
+	if !*s.ExperimentalViewArchivedChannels {
+		return NewAppError("Config.IsValid", "model.config.is_valid.experimental_view_archived_channels.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	return nil
 }
 
 func (s *ExperimentalSettings) isValid() *AppError {
+	if *s.ClientSideCertEnable {
+		return NewAppError("Config.IsValid", "model.config.is_valid.client_side_cert_enable.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *s.LinkMetadataTimeoutMilliseconds <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.link_metadata_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -4650,27 +4546,6 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 		if !strings.HasPrefix(*s.IndexPrefix, *s.GlobalSearchPrefix) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error", map[string]any{"IndexPrefix": *s.IndexPrefix, "GlobalSearchPrefix": *s.GlobalSearchPrefix}, "", http.StatusBadRequest)
 		}
-	}
-
-	return nil
-}
-
-func (bs *BleveSettings) isValid() *AppError {
-	if *bs.EnableIndexing {
-		if *bs.IndexDir == "" {
-			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.filename.app_error", nil, "", http.StatusBadRequest)
-		}
-	} else {
-		if *bs.EnableSearching {
-			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.enable_searching.app_error", nil, "", http.StatusBadRequest)
-		}
-		if *bs.EnableAutocomplete {
-			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.enable_autocomplete.app_error", nil, "", http.StatusBadRequest)
-		}
-	}
-	minBatchSize := 1
-	if *bs.BatchSize < minBatchSize {
-		return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error", map[string]any{"BatchSize": minBatchSize}, "", http.StatusBadRequest)
 	}
 
 	return nil

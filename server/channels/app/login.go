@@ -26,23 +26,6 @@ import (
 
 const cwsTokenEnv = "CWS_CLOUD_TOKEN"
 
-func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
-	pem := r.Header.Get("X-SSL-Client-Cert")                // mapped to $ssl_client_cert from nginx
-	subject := r.Header.Get("X-SSL-Client-Cert-Subject-DN") // mapped to $ssl_client_s_dn from nginx
-	email := ""
-
-	if subject != "" {
-		for v := range strings.SplitSeq(subject, "/") {
-			kv := strings.Split(v, "=")
-			if len(kv) == 2 && kv[0] == "emailAddress" {
-				email = kv[1]
-			}
-		}
-	}
-
-	return pem, subject, email
-}
-
 func (a *App) AuthenticateUserForLogin(c request.CTX, id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
 	// Do statistics
 	defer func() {
@@ -98,18 +81,6 @@ func (a *App) AuthenticateUserForLogin(c request.CTX, id, loginId, password, mfa
 		}
 		return nil, model.NewAppError("AuthenticateUserForLogin",
 			"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	// If client side cert is enable and it's checking as a primary source
-	// then trust the proxy and cert that the correct user is supplied and allow
-	// them access
-	if *a.Config().ExperimentalSettings.ClientSideCertEnable && *a.Config().ExperimentalSettings.ClientSideCertCheck == model.ClientSideCertCheckPrimaryAuth {
-		// Unless the user is a bot.
-		if err = checkUserNotBot(user); err != nil {
-			return nil, err
-		}
-
-		return user, nil
 	}
 
 	// and then authenticate them

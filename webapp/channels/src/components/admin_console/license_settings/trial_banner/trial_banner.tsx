@@ -12,7 +12,6 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import AlertBanner from 'components/alert_banner';
 import withOpenStartTrialFormModal from 'components/common/hocs/cloud/with_open_start_trial_form_modal';
-import type {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
 import ExternalLink from 'components/external_link';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
@@ -31,13 +30,14 @@ interface TrialBannerProps {
     handleUpgrade: () => Promise<void>;
     upgradeError: string | null;
     restartError: string | null;
-    openTrialForm?: (telemetryProps?: TelemetryProps) => void;
+    openTrialForm?: () => void;
 
     handleRestart: () => Promise<void>;
 
     openEEModal: () => void;
 
     restarting: boolean;
+    upgradeDisabled: boolean;
 }
 
 export const EmbargoedEntityTrialError = () => {
@@ -81,6 +81,7 @@ const TrialBanner = ({
     restarting,
     openEEModal,
     openTrialForm,
+    upgradeDisabled,
 }: TrialBannerProps) => {
     let trialButton;
     let upgradeTermsMessage;
@@ -130,7 +131,7 @@ const TrialBanner = ({
 
     const handleRequestLicense = () => {
         if (openTrialForm) {
-            openTrialForm({trackingLocation: 'license_settings.trial_banner'});
+            openTrialForm();
         }
     };
 
@@ -266,6 +267,37 @@ const TrialBanner = ({
             </>
         );
         upgradeTermsMessage = null;
+    } else if (upgradeDisabled) {
+        content = (
+            <>
+                <FormattedMessage
+                    id='admin.license.upgrade-and-trial-request.title'
+                    defaultMessage='Upgrade to the Enterprise Edition to unlock a free 30-day trial of Mattermost Enterprise Advanced—our most powerful plan. No credit card required, no obligation to buy. '
+                />
+            </>
+        );
+        upgradeTermsMessage = (
+            <div className='upgrade-error unsupported'>
+                <div className='form-group has-error'>
+                    <div className='as-bs-label control-label'>
+                        <FormattedMessage
+                            id='admin.trial_banner.upgrade_unsupported'
+                            defaultMessage='Quick upgrade is only supported on Linux systems with x86-64 architecture. <link>Learn how to upgrade manually.</link>'
+                            values={{
+                                link: (msg: React.ReactNode) => (
+                                    <ExternalLink
+                                        location='trial_banner'
+                                        href={LicenseLinks.UNSUPPORTED_UPGRADE_LINK}
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                            }}
+                        />
+                    </div>
+                </div>
+            </div>
+        );
     } else {
         gettingTrialErrorMsg = null;
         trialButton = (

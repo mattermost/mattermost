@@ -150,6 +150,7 @@ var config = {
     plugins: [
         new webpack.ProvidePlugin({
             process: 'process/browser.js',
+            Buffer: ['buffer', 'Buffer'],
         }),
         new MiniCssExtractPlugin({
             filename: '[name].[contenthash].css',
@@ -303,7 +304,7 @@ var config = {
 };
 
 function generateCSP() {
-    let csp = 'script-src \'self\' cdn.rudderlabs.com/ js.stripe.com/v3';
+    let csp = 'script-src \'self\' js.stripe.com/v3';
 
     if (DEV) {
         // Development source maps require eval

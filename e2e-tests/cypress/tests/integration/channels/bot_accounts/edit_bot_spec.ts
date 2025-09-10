@@ -11,6 +11,7 @@
 // Group: @channels @bot_accounts
 
 import {Team} from '@mattermost/types/teams';
+
 import * as MESSAGES from '../../../fixtures/messages';
 import {getRandomId} from '../../../utils';
 

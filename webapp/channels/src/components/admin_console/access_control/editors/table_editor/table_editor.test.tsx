@@ -15,6 +15,7 @@ describe('parseExpression', () => {
                     operator: '==',
                     value: 'Engineering',
                     value_type: 0,
+                    attribute_type: 'text',
                 },
             ],
         };
@@ -24,6 +25,7 @@ describe('parseExpression', () => {
                 attribute: 'department',
                 operator: 'is',
                 values: ['Engineering'],
+                attribute_type: 'text',
             },
         ]);
     });
@@ -36,6 +38,7 @@ describe('parseExpression', () => {
                     operator: 'in',
                     value: ['US', 'CA'],
                     value_type: 0,
+                    attribute_type: 'text',
                 },
             ],
         };
@@ -45,6 +48,7 @@ describe('parseExpression', () => {
                 attribute: 'location',
                 operator: 'in',
                 values: ['US', 'CA'],
+                attribute_type: 'text',
             },
         ]);
     });
@@ -57,6 +61,7 @@ describe('parseExpression', () => {
                     operator: '!=',
                     value: 'guest',
                     value_type: 0,
+                    attribute_type: 'text',
                 },
             ],
         };
@@ -66,6 +71,7 @@ describe('parseExpression', () => {
                 attribute: 'role',
                 operator: 'is not',
                 values: ['guest'],
+                attribute_type: 'text',
             },
         ]);
     });
@@ -78,6 +84,7 @@ describe('parseExpression', () => {
                     operator: 'startsWith',
                     value: 'admin',
                     value_type: 0,
+                    attribute_type: 'text',
                 },
             ],
         };
@@ -87,6 +94,7 @@ describe('parseExpression', () => {
                 attribute: 'email',
                 operator: 'starts with',
                 values: ['admin'],
+                attribute_type: 'text',
             },
         ]);
     });
@@ -99,12 +107,14 @@ describe('parseExpression', () => {
                     operator: 'startsWith',
                     value: 'admin',
                     value_type: 0,
+                    attribute_type: 'text',
                 },
                 {
                     attribute: 'user.attributes.department',
                     operator: '==',
                     value: 'Engineering',
                     value_type: 0,
+                    attribute_type: 'text',
                 },
             ],
         };
@@ -114,11 +124,13 @@ describe('parseExpression', () => {
                 attribute: 'email',
                 operator: 'starts with',
                 values: ['admin'],
+                attribute_type: 'text',
             },
             {
                 attribute: 'department',
                 operator: 'is',
                 values: ['Engineering'],
+                attribute_type: 'text',
             },
         ]);
     });
@@ -131,6 +143,7 @@ describe('parseExpression', () => {
                     operator: 'unknownOp',
                     value: 'foo',
                     value_type: 0,
+                    attribute_type: 'text',
                 },
             ],
         };
@@ -140,8 +153,15 @@ describe('parseExpression', () => {
                 attribute: 'department',
                 operator: 'is',
                 values: ['foo'],
+                attribute_type: 'text',
             },
         ]);
+    });
+
+    test('handles empty or null AST', () => {
+        expect(parseExpression(null as any)).toEqual([]);
+        expect(parseExpression(undefined as any)).toEqual([]);
+        expect(parseExpression({conditions: []})).toEqual([]);
     });
 });
 
@@ -191,6 +211,17 @@ describe('findFirstAvailableAttributeFromList', () => {
 
         const result = findFirstAvailableAttributeFromList(attributes, true);
         expect(result?.name).toBe('user_managed_attribute');
+    });
+
+    test('returns first attribute that is admin-managed', () => {
+        const attributes = [
+            createMockAttribute('invalid attribute'), // Has spaces
+            createMockAttribute('unsafe_attribute'), // Not synced or admin-managed
+            createMockAttribute('admin_managed_attribute', {managed: 'admin'}), // Admin-managed
+        ];
+
+        const result = findFirstAvailableAttributeFromList(attributes, false);
+        expect(result?.name).toBe('admin_managed_attribute');
     });
 
     test('skips attributes with spaces even when synced', () => {

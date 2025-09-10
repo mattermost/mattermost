@@ -35,8 +35,7 @@ func TestConfigDefaults(t *testing.T) {
 			if v.Type().Kind() == reflect.Ptr {
 				// Ignoring these 2 settings.
 				// TODO: remove them completely in v8.0.
-				if name == "config.BleveSettings.BulkIndexingTimeWindowSeconds" ||
-					name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" ||
+				if name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" ||
 					name == "config.ClusterSettings.EnableExperimentalGossipEncryption" {
 					return
 				}
