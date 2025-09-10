@@ -4,11 +4,14 @@
 import React, {useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {ContentFlaggingNotificationSettings} from '@mattermost/types/config';
+import type {
+    ContentFlaggingNotificationSettings,
+    ContentFlaggingReviewerSetting,
+} from "@mattermost/types/config";
 import type {ContentFlaggingEvent, NotificationTarget} from '@mattermost/types/content_flagging';
 
 import CheckboxSetting from 'components/admin_console/checkbox_setting';
-import type {SystemConsoleCustomSettingsComponentProps} from 'components/admin_console/schema_admin_settings';
+import type { SystemConsoleCustomSettingChangeHandler, SystemConsoleCustomSettingsComponentProps} from 'components/admin_console/schema_admin_settings';
 import {
     AdminSection,
     SectionContent,
@@ -17,7 +20,13 @@ import {
 
 import '../content_flagging_section_base.scss';
 
-export default function ContentFlaggingNotificationSettingsSection({id, value, onChange}: SystemConsoleCustomSettingsComponentProps) {
+type Props = {
+    id: string;
+    onChange: SystemConsoleCustomSettingChangeHandler;
+    value: ContentFlaggingNotificationSettings;
+}
+
+export default function ContentFlaggingNotificationSettingsSection({id, value, onChange}: Props) {
     const [notificationSettings, setNotificationSettings] = useState<ContentFlaggingNotificationSettings>(value as ContentFlaggingNotificationSettings);
 
     const handleChange = useCallback((inputId: string, value: boolean) => {

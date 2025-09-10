@@ -119,6 +119,7 @@ import TeamDetails from './team_channel_settings/team/details';
 import type {AdminDefinition as AdminDefinitionType} from './types';
 import ValidationResult from './validation';
 import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
+import ContentFlaggingSettings from "components/admin_console/content_flagging/content_flagging_settings";
 
 // Re-export for backward compatibility
 export {it};
@@ -3270,29 +3271,30 @@ const AdminDefinition: AdminDefinitionType = {
                 restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
                 schema: {
                     id: 'ContentFlaggingSettings',
-                    name: defineMessage({id: 'admin.contentFlagging.title', defaultMessage: 'Content Flagging'}),
-                    settings: [
-                        {
-                            type: 'bool',
-                            key: 'ContentFlaggingSettings.EnableContentFlagging',
-                            label: defineMessage({id: 'admin.contentFlagging.enableTitle', defaultMessage: 'Enable Content Flagging'}),
-                        },
-                        {
-                            type: 'custom',
-                            key: 'ContentFlaggingSettings.ReviewerSettings',
-                            component: ContentFlaggingContentReviewers,
-                        },
-                        {
-                            type: 'custom',
-                            key: 'ContentFlaggingSettings.NotificationSettings',
-                            component: ContentFlaggingNotificationSettingsSection,
-                        },
-                        {
-                            type: 'custom',
-                            key: 'ContentFlaggingSettings.AdditionalSettings',
-                            component: ContentFlaggingAdditionalSettingsSection,
-                        },
-                    ],
+                    component: ContentFlaggingSettings,
+                    // name: defineMessage({id: 'admin.contentFlagging.title', defaultMessage: 'Content Flagging'}),
+                    // settings: [
+                    //     {
+                    //         type: 'bool',
+                    //         key: 'ContentFlaggingSettings.EnableContentFlagging',
+                    //         label: defineMessage({id: 'admin.contentFlagging.enableTitle', defaultMessage: 'Enable Content Flagging'}),
+                    //     },
+                    //     {
+                    //         type: 'custom',
+                    //         key: 'ContentFlaggingSettings.ReviewerSettings',
+                    //         component: ContentFlaggingContentReviewers,
+                    //     },
+                    //     {
+                    //         type: 'custom',
+                    //         key: 'ContentFlaggingSettings.NotificationSettings',
+                    //         component: ContentFlaggingNotificationSettingsSection,
+                    //     },
+                    //     {
+                    //         type: 'custom',
+                    //         key: 'ContentFlaggingSettings.AdditionalSettings',
+                    //         component: ContentFlaggingAdditionalSettingsSection,
+                    //     },
+                    // ],
                 },
             },
             wrangler: {
