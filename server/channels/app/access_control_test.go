@@ -1139,7 +1139,6 @@ func TestValidateExpressionAgainstRequester(t *testing.T) {
 		require.False(t, matches)
 		require.Equal(t, "ValidateExpressionAgainstRequester", appErr.Where)
 		require.Contains(t, appErr.Message, "Could not check expression")
-
 	})
 }
 
