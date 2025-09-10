@@ -20,7 +20,7 @@
 
 .FeatureDiscovery_copyWrapper,
 .FeatureDiscovery_imageWrapper {
-    padding: 20px;
+    padding: 20px 0 20px 20px; 
     grid-template-columns: repeat(2, 1fr);
 }
 
