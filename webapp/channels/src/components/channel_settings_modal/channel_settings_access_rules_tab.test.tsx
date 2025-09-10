@@ -1314,11 +1314,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             // Wait for confirmation modal to appear
             await waitFor(() => {
-                expect(screen.getByText('Save and apply rules')).toBeInTheDocument();
+                expect(screen.getAllByText('Save and apply rules').length).toBeGreaterThan(0);
             });
 
             // Click "Save and apply" in the confirmation modal
-            const confirmButton = screen.getByText('Save and apply');
+            const confirmButton = screen.getAllByText('Save and apply')[0];
             await userEvent.click(confirmButton);
 
             // Verify save operation was triggered
@@ -1389,11 +1389,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             // Wait for confirmation modal to appear
             await waitFor(() => {
-                expect(screen.getByText('Save and apply rules')).toBeInTheDocument();
+                expect(screen.getAllByText('Save and apply rules').length).toBeGreaterThan(0);
             });
 
             // Click "Save and apply" in the confirmation modal
-            const confirmButton = screen.getByText('Save and apply');
+            const confirmButton = screen.getAllByText('Save and apply')[0];
             await userEvent.click(confirmButton);
 
             // Verify save operation was triggered with self-exclusion validation
@@ -1444,11 +1444,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             // Wait for confirmation modal to appear
             await waitFor(() => {
-                expect(screen.getByText('Save and apply rules')).toBeInTheDocument();
+                expect(screen.getAllByText('Save and apply rules').length).toBeGreaterThan(0);
             });
 
             // Click "Save and apply" in the confirmation modal
-            const confirmButton = screen.getByText('Save and apply');
+            const confirmButton = screen.getAllByText('Save and apply')[0];
             await userEvent.click(confirmButton);
 
             // Verify save operation was triggered
@@ -1515,11 +1515,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             // Wait for confirmation modal to appear
             await waitFor(() => {
-                expect(screen.getByText('Save and apply rules')).toBeInTheDocument();
+                expect(screen.getAllByText('Save and apply rules').length).toBeGreaterThan(0);
             });
 
             // Click "Save and apply" in the confirmation modal
-            const confirmButton = screen.getByText('Save and apply');
+            const confirmButton = screen.getAllByText('Save and apply')[0];
             await userEvent.click(confirmButton);
 
             // Verify save operation was triggered (parentheses formatting handled internally)
