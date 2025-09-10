@@ -24,13 +24,13 @@ const (
 	SamlIdpCertificateName    = "saml-idp.crt"
 )
 
-func (a *App) GetSamlMetadata(c request.CTX) (string, *model.AppError) {
+func (a *App) GetSamlMetadata(rctx request.CTX) (string, *model.AppError) {
 	if a.Saml() == nil {
 		err := model.NewAppError("GetSamlMetadata", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return "", err
 	}
 
-	result, err := a.Saml().GetMetadata(c)
+	result, err := a.Saml().GetMetadata(rctx)
 	if err != nil {
 		return "", model.NewAppError("GetSamlMetadata", "api.admin.saml.metadata.app_error", nil, "", err.StatusCode).Wrap(err)
 	}
