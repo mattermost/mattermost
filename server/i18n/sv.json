@@ -4384,14 +4384,6 @@
     "translation": "Gäståtkomst har inaktiverats"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Försök att använda experimentfunktionen ClientSideCertEnable utan en giltig enterpriselicens."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Försökte logga in med den experimentella funktionaliteten ClientSideCert med ett ogiltigt certifikat."
-  },
-  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Bot-inloggning är inte tillåten."
   },
@@ -5789,10 +5781,6 @@
   {
     "id": "api.config.get_config.restricted_merge.app_error",
     "translation": "Misslyckades att sammanfoga givna konfigurationer."
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Ny format för klient konfigurationen stöds ännu inte. Var vänlig och specificera format=old i sök-strängen."
   },
   {
     "id": "api.command_shrug.name",
@@ -10730,5 +10718,69 @@
   {
     "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
     "translation": "Meddelanden om nya flaggade inlägg kan inte inaktiveras för granskare."
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "Du har inte behörighet att hantera denna åtkomstkontrollpolicy."
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "Kanalen är grupp-begränsad och kan inte omfattas av policy för åtkomstkontroll."
+  },
+  {
+    "id": "app.pap.access_control.channel_not_private",
+    "translation": "Policyer för åtkomstkontroll kan endast tillämpas på privata kanaler."
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "Delade kanaler kan inte omfattas av en policy för åtkomstkontroll."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "Du har inte behörighet att hantera åtkomstkontroll för denna kanal."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "Du har inte behörighet att hantera denna åtkomstkontrollpolicy."
+  },
+  {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "Föräldern är redan importerad."
+  },
+  {
+    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
+    "translation": "Att dölja arkiverade kanaler stöds inte längre. Gör dessa kanaler privata och ta bort medlemmar istället."
+  },
+  {
+    "id": "api.not_implemented",
+    "translation": "Denna funktion är inte implementerad."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
+    "translation": "Det går inte att uppdatera värdet i ett administratörshanterat attributfält för anpassad profil"
+  },
+  {
+    "id": "app.lookup_interactive_dialog.decode_json_error",
+    "translation": "Ett fel uppstod vid avkodning av JSON-svar från en interaktiv dialog."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.json_error",
+    "translation": "Ett fel uppstod vid bearbetning av JSON-svar från en interaktiv dialog."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.read_body_error",
+    "translation": "Ett fel uppstod vid inläsning av svarsdelen från en interaktiv dialog."
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "Misslyckades att skapa en Elasticsearch bulk-processor"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+    "translation": "Misslyckades att skapa en Elasticsearch synk bulk-processor"
+  },
+  {
+    "id": "model.config.is_valid.client_side_cert_enable.app_error",
+    "translation": "Certifikat-baserad autentisering har tagits bort. Inaktivera ClientSideCertEnable för att fortsätta."
   }
 ]

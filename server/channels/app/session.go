@@ -53,7 +53,7 @@ func (a *App) CreateSession(rctx request.CTX, session *model.Session) (*model.Se
 
 func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 	apiKey := os.Getenv("MM_CLOUD_API_KEY")
-	if apiKey != "" && apiKey == token {
+	if apiKey != "" && subtle.ConstantTimeCompare([]byte(apiKey), []byte(token)) == 1 {
 		// Need a bare-bones session object for later checks
 		session := &model.Session{
 			Token:   token,

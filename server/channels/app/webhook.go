@@ -29,6 +29,7 @@ const (
 	TriggerwordsStartsWith = 1
 
 	MaxIntegrationResponseSize = 1024 * 1024 // Posts can be <100KB at most, so this is likely more than enough
+	MaxDialogResponseSize      = 1024 * 1024 // 1MB limit for dialog responses to prevent OOM attacks
 )
 
 var linkWithTextRegex = regexp.MustCompile(`<([^\n<\|>]+)\|([^\|\n>]+)>`)

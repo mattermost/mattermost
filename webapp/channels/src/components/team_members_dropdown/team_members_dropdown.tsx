@@ -13,9 +13,8 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isGuest, isAdmin, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
 import ConfirmModal from 'components/confirm_modal';
+import * as Menu from 'components/menu';
 import DropdownIcon from 'components/widgets/icons/fa_dropdown_icon';
-import Menu from 'components/widgets/menu/menu';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {getHistory} from 'utils/browser_history';
 
@@ -250,10 +249,10 @@ class TeamMembersDropdown extends React.PureComponent<Props, State> {
         }
 
         const menuRemove = (
-            <Menu.ItemAction
+            <Menu.Item
                 id='removeFromTeam'
                 onClick={this.handleRemoveFromTeam}
-                text={
+                labels={
                     <FormattedMessage
                         id='team_members_dropdown.leave_team'
                         defaultMessage='Remove from Team'
@@ -262,9 +261,9 @@ class TeamMembersDropdown extends React.PureComponent<Props, State> {
             />
         );
         const menuMakeAdmin = (
-            <Menu.ItemAction
+            <Menu.Item
                 onClick={this.handleMakeAdmin}
-                text={
+                labels={
                     <FormattedMessage
                         id='team_members_dropdown.makeAdmin'
                         defaultMessage='Make Team Admin'
@@ -273,9 +272,9 @@ class TeamMembersDropdown extends React.PureComponent<Props, State> {
             />
         );
         const menuMakeMember = (
-            <Menu.ItemAction
+            <Menu.Item
                 onClick={this.handleMakeMember}
-                text={
+                labels={
                     <FormattedMessage
                         id='team_members_dropdown.makeMember'
                         defaultMessage='Make Team Member'
@@ -284,30 +283,38 @@ class TeamMembersDropdown extends React.PureComponent<Props, State> {
             />
         );
         return (
-            <MenuWrapper>
-                <button
-                    id={`teamMembersDropdown_${user.username}`}
-                    className='dropdown-toggle theme color--link style--none'
-                    type='button'
-                    aria-expanded='true'
+            <>
+                <Menu.Container
+                    menuButton={{
+                        id: `teamMembersDropdown_${user.username}`,
+                        class: 'dropdown-toggle theme color--link style--none',
+                        children: (
+                            <>
+                                <span>{currentRoles} </span>
+                                <DropdownIcon/>
+                            </>
+                        ),
+                    }}
+                    menu={{
+                        id: `teamMembersDropdown_${user.username}_menu`,
+                        'aria-label': intl.formatMessage({id: 'team_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of a team member'}),
+                    }}
+                    anchorOrigin={{
+                        vertical: openUp ? 'top' : 'bottom',
+                        horizontal: 'right',
+                    }}
+                    transformOrigin={{
+                        vertical: openUp ? 'bottom' : 'top',
+                        horizontal: 'right',
+                    }}
                 >
-                    <span>{currentRoles} </span>
-                    <DropdownIcon/>
-                </button>
-                <div>
-                    <Menu
-                        openLeft={true}
-                        openUp={openUp}
-                        ariaLabel={intl.formatMessage({id: 'team_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of a team member'})}
-                    >
-                        {canRemoveFromTeam ? menuRemove : null}
-                        {showMakeAdmin ? menuMakeAdmin : null}
-                        {showMakeMember ? menuMakeMember : null}
-                    </Menu>
-                    {makeDemoteModal}
-                    {serverError}
-                </div>
-            </MenuWrapper>
+                    {canRemoveFromTeam ? menuRemove : null}
+                    {showMakeAdmin ? menuMakeAdmin : null}
+                    {showMakeMember ? menuMakeMember : null}
+                </Menu.Container>
+                {makeDemoteModal}
+                {serverError}
+            </>
         );
     }
 }

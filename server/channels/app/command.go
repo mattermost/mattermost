@@ -460,6 +460,7 @@ func (a *App) tryExecuteCustomCommand(rctx request.CTX, args *model.CommandArgs,
 	p.Set("text", message)
 
 	p.Set("trigger_id", args.TriggerId)
+	p.Set("root_id", args.RootId)
 
 	userMentionMap := a.MentionsToTeamMembers(rctx, message, team.Id)
 	maps.Copy(p, userMentionMap.ToURLValues())
