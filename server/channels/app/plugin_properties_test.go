@@ -310,7 +310,7 @@ func TestPluginProperties(t *testing.T) {
 					return fmt.Errorf("failed to register property group: %w", err)
 				}
 
-				// Create 20 property fields successfully for the same target
+				// Create multiple property fields for the same target
 				targetId := model.NewId()
 				for i := 1; i <= 20; i++ {
 					field := &model.PropertyField{
@@ -333,7 +333,7 @@ func TestPluginProperties(t *testing.T) {
 					return fmt.Errorf("failed to count property fields: %w", err)
 				}
 				if count != 20 {
-					return fmt.Errorf("expected 20 active fields, got %d", count)
+					return fmt.Errorf("expected 20 active fields (test creates 20), got %d", count)
 				}
 
 				// Search for fields to get one to delete
@@ -366,7 +366,7 @@ func TestPluginProperties(t *testing.T) {
 					return fmt.Errorf("failed to count all property fields: %w", err)
 				}
 				if totalCount != 20 {
-					return fmt.Errorf("expected 20 total fields including deleted, got %d", totalCount)
+					return fmt.Errorf("expected 20 total fields including deleted (test created 20), got %d", totalCount)
 				}
 
 				// Now creating a new field for the same target should work again
@@ -389,7 +389,7 @@ func TestPluginProperties(t *testing.T) {
 					return fmt.Errorf("failed to count property fields after new creation: %w", err)
 				}
 				if count != 20 {
-					return fmt.Errorf("expected 20 active fields after new creation, got %d", count)
+					return fmt.Errorf("expected 20 active fields after new creation (19 + 1), got %d", count)
 				}
 
 				// Test that we can create fields for a different target

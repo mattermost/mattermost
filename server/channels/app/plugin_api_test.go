@@ -2893,7 +2893,7 @@ func TestPluginServeHTTPCompatibility(t *testing.T) {
 	}
 }
 
-func TestPluginAPICreatePropertyFieldLimit(t *testing.T) {
+func TestPluginAPICreatePropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	t.Run("should allow creation after deleting fields", func(t *testing.T) {
@@ -2936,7 +2936,7 @@ func TestPluginAPICreatePropertyFieldLimit(t *testing.T) {
 		assert.Equal(t, newField.Name, created.Name)
 	})
 
-	t.Run("should not count deleted fields toward limit", func(t *testing.T) {
+	t.Run("should not count deleted fields", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		api := th.SetupPluginAPI()
@@ -2960,7 +2960,7 @@ func TestPluginAPICreatePropertyFieldLimit(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		// Should still be able to create 20 active fields
+		// Should be able to create multiple active fields
 		for i := 1; i <= 20; i++ {
 			field := &model.PropertyField{
 				GroupID:  groupID,
@@ -2999,6 +2999,7 @@ func TestPluginAPICreatePropertyFieldLimit(t *testing.T) {
 		created, err = api.CreatePropertyField(nil)
 		require.Error(t, err) // Should fail when given nil input
 		assert.Nil(t, created)
+		assert.Contains(t, err.Error(), "invalid input: property field parameter is required")
 	})
 }
 
