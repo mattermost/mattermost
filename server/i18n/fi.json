@@ -3617,10 +3617,6 @@
     "translation": "Sivua ei löytynyt."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Asiakkaan konfiguroinnin uutta muotoa ei tueta vielä. Määritä format=old pyynnössä."
-  },
-  {
     "id": "api.command_shrug.name",
     "translation": "olankohtautus"
   },
@@ -3799,14 +3795,6 @@
   {
     "id": "api.user.login.guest_accounts.license.error",
     "translation": "Lisenssisi ei tue vierailijatilejä"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Yritettiin käyttää kokeellista ClientSideCertEnable-ominaisuutta ilman voimassa olevaa yrityslisenssiä."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Yritettiin kirjautua sisään kokeellisella ClientSideCert-ominaisuuden avulla antamatta kelvollista varmennetta."
   },
   {
     "id": "api.user.login.blank_pwd.app_error",

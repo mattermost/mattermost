@@ -13,8 +13,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-func (a *App) RestorePostVersion(c request.CTX, userID, postID, restoreVersionID string) (*model.Post, *model.AppError) {
-	toRestorePostVersion, err := a.Srv().Store().Post().GetSingle(c, restoreVersionID, true)
+func (a *App) RestorePostVersion(rctx request.CTX, userID, postID, restoreVersionID string) (*model.Post, *model.AppError) {
+	toRestorePostVersion, err := a.Srv().Store().Post().GetSingle(rctx, restoreVersionID, true)
 	if err != nil {
 		var statusCode int
 		var notFoundErr *store.ErrNotFound
@@ -54,5 +54,5 @@ func (a *App) RestorePostVersion(c request.CTX, userID, postID, restoreVersionID
 		IsRestorePost: true,
 	}
 
-	return a.PatchPost(c, postID, postPatch, patchPostOptions)
+	return a.PatchPost(rctx, postID, postPatch, patchPostOptions)
 }

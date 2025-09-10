@@ -4670,14 +4670,6 @@
     "translation": "Профилите за гости са забранени"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Опит за използване на експерименталната функция ClientSideCertEnable без валиден корпоративен лиценз."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Опитахте да влезете с помощта на експерименталната функция ClientSideCert, без да предоставите валиден сертификат."
-  },
-  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Влизането на бот е забранено."
   },
@@ -5239,10 +5231,6 @@
   {
     "id": "api.config.get_config.restricted_merge.app_error",
     "translation": "Неуспешно обединяване на зададената конфигурация."
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Новия формат за клиентската конфигурация все още не се поддържа. Моля, посочете format = old в низа на заявката."
   },
   {
     "id": "api.command_shrug.name",

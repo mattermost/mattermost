@@ -20,7 +20,7 @@ import (
 )
 
 func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) []model.FileData {
-	functions := map[string]func(c request.CTX) (*model.FileData, error){
+	functions := map[string]func(rctx request.CTX) (*model.FileData, error){
 		"metadata":    a.getSupportPacketMetadata,
 		"stats":       a.getSupportPacketStats,
 		"jobs":        a.getSupportPacketJobList,
@@ -356,7 +356,7 @@ func (a *App) getPluginsFile(_ request.CTX) (*model.FileData, error) {
 }
 
 func (a *App) getSupportPacketMetadata(_ request.CTX) (*model.FileData, error) {
-	metadata, err := model.GeneratePacketMetadata(model.SupportPacketType, a.TelemetryId(), a.License(), nil)
+	metadata, err := model.GeneratePacketMetadata(model.SupportPacketType, a.ServerId(), a.License(), nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate Packet metadata")
 	}

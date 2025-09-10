@@ -6301,3 +6301,87 @@ func TestViewChannelWithoutCollapsedThreads(t *testing.T) {
 	require.NoError(t, err)
 	require.Zero(t, threads.TotalUnreadMentions)
 }
+
+func TestChannelMemberSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	client := th.Client
+	user := th.BasicUser
+	user2 := th.BasicUser2
+	channel := th.CreatePublicChannel()
+
+	// Add second user to channel
+	_, _, err := client.AddChannelMember(context.Background(), channel.Id, user2.Id)
+	require.NoError(t, err)
+
+	t.Run("getChannelMembers sanitizes LastViewedAt and LastUpdateAt for other users", func(t *testing.T) {
+		members, _, err := client.GetChannelMembers(context.Background(), channel.Id, 0, 60, "")
+		require.NoError(t, err)
+
+		for _, member := range members {
+			if member.UserId == user.Id {
+				// Current user should see their own timestamps
+				assert.NotEqual(t, int64(-1), member.LastViewedAt, "Current user should see their LastViewedAt")
+				assert.NotEqual(t, int64(-1), member.LastUpdateAt, "Current user should see their LastUpdateAt")
+			} else {
+				// Other users' timestamps should be sanitized
+				assert.Equal(t, int64(-1), member.LastViewedAt, "Other users' LastViewedAt should be sanitized")
+				assert.Equal(t, int64(-1), member.LastUpdateAt, "Other users' LastUpdateAt should be sanitized")
+			}
+		}
+	})
+
+	t.Run("getChannelMember sanitizes LastViewedAt and LastUpdateAt for other users", func(t *testing.T) {
+		// Get other user's membership data
+		member, _, err := client.GetChannelMember(context.Background(), channel.Id, user2.Id, "")
+		require.NoError(t, err)
+
+		// Should be sanitized since it's not the current user
+		assert.Equal(t, int64(-1), member.LastViewedAt, "Other user's LastViewedAt should be sanitized")
+		assert.Equal(t, int64(-1), member.LastUpdateAt, "Other user's LastUpdateAt should be sanitized")
+
+		// Get current user's membership data
+		currentMember, _, err := client.GetChannelMember(context.Background(), channel.Id, user.Id, "")
+		require.NoError(t, err)
+
+		// Should not be sanitized since it's the current user
+		assert.NotEqual(t, int64(-1), currentMember.LastViewedAt, "Current user should see their LastViewedAt")
+		assert.NotEqual(t, int64(-1), currentMember.LastUpdateAt, "Current user should see their LastUpdateAt")
+	})
+
+	t.Run("getChannelMembersByIds sanitizes data appropriately", func(t *testing.T) {
+		userIds := []string{user.Id, user2.Id}
+		members, _, err := client.GetChannelMembersByIds(context.Background(), channel.Id, userIds)
+		require.NoError(t, err)
+		require.Len(t, members, 2)
+
+		for _, member := range members {
+			if member.UserId == user.Id {
+				// Current user should see their own timestamps
+				assert.NotEqual(t, int64(-1), member.LastViewedAt, "Current user should see their LastViewedAt")
+				assert.NotEqual(t, int64(-1), member.LastUpdateAt, "Current user should see their LastUpdateAt")
+			} else {
+				// Other users' timestamps should be sanitized
+				assert.Equal(t, int64(-1), member.LastViewedAt, "Other users' LastViewedAt should be sanitized")
+				assert.Equal(t, int64(-1), member.LastUpdateAt, "Other users' LastUpdateAt should be sanitized")
+			}
+		}
+	})
+
+	t.Run("addChannelMember sanitizes returned member data", func(t *testing.T) {
+		newUser := th.CreateUser()
+		th.LinkUserToTeam(newUser, th.BasicTeam)
+
+		// Add new user and check returned member data
+		returnedMember, _, err := client.AddChannelMember(context.Background(), channel.Id, newUser.Id)
+		require.NoError(t, err)
+
+		// The returned member should be sanitized since it's not the current user
+		assert.Equal(t, int64(-1), returnedMember.LastViewedAt, "Returned member LastViewedAt should be sanitized")
+		assert.Equal(t, int64(-1), returnedMember.LastUpdateAt, "Returned member LastUpdateAt should be sanitized")
+		assert.Equal(t, newUser.Id, returnedMember.UserId, "UserId should be preserved")
+		assert.Equal(t, channel.Id, returnedMember.ChannelId, "ChannelId should be preserved")
+	})
+}
