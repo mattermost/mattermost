@@ -35,9 +35,9 @@ func (_m *NotificationInterface) CheckLicense() *model.AppError {
 	return r0
 }
 
-// GetNotificationMessage provides a mock function with given fields: c, ack, userID
-func (_m *NotificationInterface) GetNotificationMessage(c request.CTX, ack *model.PushNotificationAck, userID string) (*model.PushNotification, *model.AppError) {
-	ret := _m.Called(c, ack, userID)
+// GetNotificationMessage provides a mock function with given fields: rctx, ack, userID
+func (_m *NotificationInterface) GetNotificationMessage(rctx request.CTX, ack *model.PushNotificationAck, userID string) (*model.PushNotification, *model.AppError) {
+	ret := _m.Called(rctx, ack, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetNotificationMessage")
@@ -46,10 +46,10 @@ func (_m *NotificationInterface) GetNotificationMessage(c request.CTX, ack *mode
 	var r0 *model.PushNotification
 	var r1 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.PushNotificationAck, string) (*model.PushNotification, *model.AppError)); ok {
-		return rf(c, ack, userID)
+		return rf(rctx, ack, userID)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.PushNotificationAck, string) *model.PushNotification); ok {
-		r0 = rf(c, ack, userID)
+		r0 = rf(rctx, ack, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PushNotification)
@@ -57,7 +57,7 @@ func (_m *NotificationInterface) GetNotificationMessage(c request.CTX, ack *mode
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, *model.PushNotificationAck, string) *model.AppError); ok {
-		r1 = rf(c, ack, userID)
+		r1 = rf(rctx, ack, userID)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

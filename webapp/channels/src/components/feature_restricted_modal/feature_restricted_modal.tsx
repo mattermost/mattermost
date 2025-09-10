@@ -89,10 +89,10 @@ const FeatureRestrictedModal = ({
 
     const handleViewPlansClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         if (isSystemAdmin && !isAirGapped) {
-            openPricingModal({trackingLocation: 'feature_restricted_modal'});
+            openPricingModal();
             dismissAction();
         } else if (!isSystemAdmin) {
-            notifyAdmin(e, 'feature_restricted_modal');
+            notifyAdmin(e);
         }
     };
 
@@ -131,7 +131,6 @@ const FeatureRestrictedModal = ({
     const trialBtn = (
         <StartTrialBtn
             onClick={dismissAction}
-            telemetryId='start_self_hosted_trial_after_team_creation_restricted'
             btnClass='btn btn-primary'
             renderAsButton={true}
         />

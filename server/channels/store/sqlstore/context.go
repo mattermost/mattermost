@@ -19,8 +19,8 @@ func WithMaster(ctx context.Context) context.Context {
 }
 
 // RequestContextWithMaster adds the context value that master DB should be selected for this request.
-func RequestContextWithMaster(c request.CTX) request.CTX {
-	return store.RequestContextWithMaster(c)
+func RequestContextWithMaster(rctx request.CTX) request.CTX {
+	return store.RequestContextWithMaster(rctx)
 }
 
 // HasMaster is a helper function to check whether master DB should be selected or not.
