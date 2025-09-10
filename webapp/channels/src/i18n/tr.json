@@ -5476,7 +5476,6 @@
   "user.settings.advance.onForAllMessages": "Tüm iletiler için açık",
   "user.settings.advance.onForCode": "Yalnızca ``` ile başlayan kod blokları için açık",
   "user.settings.advance.performance.disableClientPlugins": "İstemci tarafı uygulama ekleri kullanımdan kaldırılsın",
-  "user.settings.advance.performance.disableTelemetry": "İstemciden uzaktan algılama verileri gönderilmesin",
   "user.settings.advance.performance.disableTypingMessages": "\"Kullanıcı yazıyor...\" iletisi görüntülenmesin",
   "user.settings.advance.performance.info1": "Hata ayıklama sırasında başarım sorunlarını bulmaya yardımcı olması için bu ayarları geçici olarak açabilirsiniz. Kullanıcı deneyiminizi olumsuz etkileyebileceğinden, bu ayarları uzun süre açık bırakmanızı önermiyoruz.",
   "user.settings.advance.performance.info2": "Bu ayarların etkili olması için sayfayı yenilemeniz gerekebilir.",

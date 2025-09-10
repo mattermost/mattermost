@@ -353,4 +353,53 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 		require.NotNil(t, policies)
 		require.Len(t, policies, 0)
 	})
+
+	t.Run("GetAll by IDs", func(t *testing.T) {
+		// Test searching by specific IDs
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			IDs:   []string{parentPolicy.ID, resourcePolicy.ID},
+			Limit: 10,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, policies)
+		require.Len(t, policies, 2)
+
+		// Verify we got the correct policies
+		foundIDs := make([]string, len(policies))
+		for i, p := range policies {
+			foundIDs[i] = p.ID
+		}
+		require.Contains(t, foundIDs, parentPolicy.ID)
+		require.Contains(t, foundIDs, resourcePolicy.ID)
+
+		// Test searching by single ID
+		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			IDs:   []string{parentPolicy.ID},
+			Limit: 10,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, policies)
+		require.Len(t, policies, 1)
+		require.Equal(t, parentPolicy.ID, policies[0].ID)
+
+		// Test searching by non-existent IDs
+		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			IDs:   []string{model.NewId(), model.NewId()},
+			Limit: 10,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, policies)
+		require.Len(t, policies, 0)
+
+		// Test combining IDs with Type filter
+		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			IDs:   []string{parentPolicy.ID, resourcePolicy.ID},
+			Type:  model.AccessControlPolicyTypeParent,
+			Limit: 10,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, policies)
+		require.Len(t, policies, 1)
+		require.Equal(t, parentPolicy.ID, policies[0].ID)
+	})
 }
