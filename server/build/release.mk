@@ -1,4 +1,3 @@
-# Define FIPS_SUFFIX for naming the packages.
 dist: | check-style test package
 
 build-linux: build-linux-amd64 build-linux-arm64
