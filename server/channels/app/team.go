@@ -1523,76 +1523,90 @@ func (a *App) InviteGuestsToChannelsGracefully(rctx request.CTX, teamID string, 
 		return nil, err
 	}
 
-var inviteListWithErrors []*model.EmailInviteWithError
-var goodEmails []string
-var invalidEmails []string // collect all invalid emails for count
+    var inviteListWithErrors []*model.EmailInviteWithError
+    var goodEmails []string
+    var invalidEmails []string
 
-for _, email := range guestsInvite.Emails {
-	invite := &model.EmailInviteWithError{
-		Email: email,
-		Error: nil,
-	}
+    // First collect good and invalid emails
+    for _, email := range guestsInvite.Emails {
+        invite := &model.EmailInviteWithError{
+            Email: email,
+            Error: nil,
+        }
 
-	if !users.CheckEmailDomain(email, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
-		invalidEmails = append(invalidEmails, email) // collect invalid emails
-	} else {
-		goodEmails = append(goodEmails, email)
-	}
+        if !users.CheckEmailDomain(email, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
+            invalidEmails = append(invalidEmails, email)
+        } else {
+            goodEmails = append(goodEmails, email)
+        }
 
-	inviteListWithErrors = append(inviteListWithErrors, invite)
-}
+        inviteListWithErrors = append(inviteListWithErrors, invite)
+    }
 
-// Assign errors with count for pluralization
-for _, invite := range inviteListWithErrors {
-	for _, invalid := range invalidEmails {
-		if invite.Email == invalid {
-			invite.Error = model.NewAppError(
-				"InviteGuestsToChannelsGracefully",
-				"api.team.invite_members.invalid_email.app_error",
-				map[string]any{
-					"Addresses": strings.Join(invalidEmails, ", "), // display all invalid emails
-					"count":     len(invalidEmails),               // pass count for pluralization
-				},
-				"",
-				http.StatusBadRequest,
-			)
-			break
-		}
-	}
-}
+    // Now assign errors based on count
+    if len(invalidEmails) > 0 {
+        var errorID string
+        var params map[string]any
 
+        if len(invalidEmails) == 1 {
+            errorID = "api.team.invite_members.invalid_email.app_error_single"
+            params = map[string]any{
+                "Address": invalidEmails[0],
+            }
+        } else {
+            errorID = "api.team.invite_members.invalid_email.app_error_plural"
+            params = map[string]any{
+                "Addresses": strings.Join(invalidEmails, ", "),
+            }
+        }
 
-	if len(goodEmails) > 0 {
-		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-		senderProfileImage, _, err := a.GetProfileImage(user)
-		if err != nil {
-			rctx.Logger().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(err))
-		}
+        for _, invite := range inviteListWithErrors {
+            for _, invalid := range invalidEmails {
+                if invite.Email == invalid {
+                    invite.Error = model.NewAppError(
+                        "InviteGuestsToChannelsGracefully",
+                        errorID,
+                        params,
+                        "",
+                        http.StatusBadRequest,
+                    )
+                    break
+                }
+            }
+        }
+    }
 
-		eErr := a.Srv().EmailService.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, goodEmails, a.GetSiteURL(), guestsInvite.Message, true, user.IsSystemAdmin(), a.UserIsFirstAdmin(rctx, user))
-		if eErr != nil {
-			switch {
-			case errors.Is(eErr, email.SendMailError):
-				for i := range inviteListWithErrors {
-					if inviteListWithErrors[i].Error == nil {
-						if *a.Config().EmailSettings.SMTPServer == model.EmailSMTPDefaultServer && *a.Config().EmailSettings.SMTPPort == model.EmailSMTPDefaultPort {
-							inviteListWithErrors[i].Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.unable_to_send_email_with_defaults.app_error", nil, "", http.StatusInternalServerError)
-						} else {
-							inviteListWithErrors[i].Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.unable_to_send_email.app_error", nil, "", http.StatusInternalServerError)
-						}
-					}
-				}
-			case errors.Is(eErr, email.NoRateLimiterError):
-				return nil, model.NewAppError("SendInviteEmails", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s", user.Id, team.Id), http.StatusInternalServerError)
-			case errors.Is(eErr, email.SetupRateLimiterError):
-				return nil, model.NewAppError("SendInviteEmails", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", user.Id, team.Id, eErr), http.StatusInternalServerError)
-			default:
-				return nil, model.NewAppError("SendInviteEmails", "app.email.rate_limit_exceeded.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", user.Id, team.Id, eErr), http.StatusRequestEntityTooLarge)
-			}
-		}
-	}
+    if len(goodEmails) > 0 {
+        nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
+        senderProfileImage, _, err := a.GetProfileImage(user)
+        if err != nil {
+            rctx.Logger().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(err))
+        }
 
-	return inviteListWithErrors, nil
+        eErr := a.Srv().EmailService.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, goodEmails, a.GetSiteURL(), guestsInvite.Message, true, user.IsSystemAdmin(), a.UserIsFirstAdmin(rctx, user))
+        if eErr != nil {
+            switch {
+            case errors.Is(eErr, email.SendMailError):
+                for i := range inviteListWithErrors {
+                    if inviteListWithErrors[i].Error == nil {
+                        if *a.Config().EmailSettings.SMTPServer == model.EmailSMTPDefaultServer && *a.Config().EmailSettings.SMTPPort == model.EmailSMTPDefaultPort {
+                            inviteListWithErrors[i].Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.unable_to_send_email_with_defaults.app_error", nil, "", http.StatusInternalServerError)
+                        } else {
+                            inviteListWithErrors[i].Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.unable_to_send_email.app_error", nil, "", http.StatusInternalServerError)
+                        }
+                    }
+                }
+            case errors.Is(eErr, email.NoRateLimiterError):
+                return nil, model.NewAppError("SendInviteEmails", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s", user.Id, team.Id), http.StatusInternalServerError)
+            case errors.Is(eErr, email.SetupRateLimiterError):
+                return nil, model.NewAppError("SendInviteEmails", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", user.Id, team.Id, eErr), http.StatusInternalServerError)
+            default:
+                return nil, model.NewAppError("SendInviteEmails", "app.email.rate_limit_exceeded.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", user.Id, team.Id, eErr), http.StatusRequestEntityTooLarge)
+            }
+        }
+    }
+
+    return inviteListWithErrors, nil
 }
 
 func (a *App) InviteNewUsersToTeam(rctx request.CTX, emailList []string, teamID, senderId string) *model.AppError {
