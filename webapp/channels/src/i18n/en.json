@@ -6495,7 +6495,7 @@
   "workspace_limits.menu_limit.warn.messages_history": "You’re getting closer to the free {limit} message limit. <a>{callToAction}</a>",
   "workspace_limits.message_history": "Message history",
   "workspace_limits.message_history.locked.description.admin": "Full access to message history is included in <a>paid plans</a>",
-  "workspace_limits.message_history.locked.title.admin": "Limted history is displayed",
+  "workspace_limits.message_history.locked.title.admin": "Limited history is displayed",
   "workspace_limits.message_history.short": "Messages",
   "workspace_limits.message_history.short.usage": "{actual} / {limit}",
   "workspace_limits.message_history.usage": "{actual} of {limit} messages ({percent}%)",

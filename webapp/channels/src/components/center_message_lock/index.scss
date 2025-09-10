@@ -6,12 +6,20 @@
     padding: 16px;
     border: 1px rgba(var(--center-channel-color-rgb), 0.08) solid;
     border-radius: 4px;
-    margin: 0 24px 13px;
+    margin: 0 16px 16px;
+    gap: 12px;
     background-color: rgba(var(--center-channel-color-rgb), 0.04);
 
     &__left {
         align-self: flex-start;
-        padding: 0 12px;
+        padding: 0;
+    }
+    &__right {
+        margin-top: -2px;
+    }
+    
+    &__description {
+        color: rgba(var(--center-channel-color-rgb), 0.75);
     }
 
     &__icon {
