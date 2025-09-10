@@ -119,7 +119,7 @@ func (a *App) CommandsForTeam(teamID string) []*model.Command {
 
 // tryExecutePluginCommand attempts to run a command provided by a plugin based on the given arguments. If no such
 // command can be found, returns nil for all arguments.
-func (a *App) tryExecutePluginCommand(c request.CTX, args *model.CommandArgs) (*model.Command, *model.CommandResponse, *model.AppError) {
+func (a *App) tryExecutePluginCommand(rctx request.CTX, args *model.CommandArgs) (*model.Command, *model.CommandResponse, *model.AppError) {
 	parts := strings.Split(args.Command, " ")
 	trigger := parts[0][1:]
 	trigger = strings.ToLower(trigger)
@@ -152,15 +152,15 @@ func (a *App) tryExecutePluginCommand(c request.CTX, args *model.CommandArgs) (*
 		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command.error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	for username, userID := range a.MentionsToTeamMembers(c, args.Command, args.TeamId) {
+	for username, userID := range a.MentionsToTeamMembers(rctx, args.Command, args.TeamId) {
 		args.AddUserMention(username, userID)
 	}
 
-	for channelName, channelID := range a.MentionsToPublicChannels(c, args.Command, args.TeamId) {
+	for channelName, channelID := range a.MentionsToPublicChannels(rctx, args.Command, args.TeamId) {
 		args.AddChannelMention(channelName, channelID)
 	}
 
-	response, appErr := pluginHooks.ExecuteCommand(pluginContext(c), args)
+	response, appErr := pluginHooks.ExecuteCommand(pluginContext(rctx), args)
 
 	// Checking if plugin crashed after running the command
 	if err := pluginsEnvironment.PerformHealthCheck(matched.PluginId); err != nil {
@@ -170,7 +170,7 @@ func (a *App) tryExecutePluginCommand(c request.CTX, args *model.CommandArgs) (*
 	// This is a response from the plugin, which may set an incorrect status code;
 	// e.g setting a status code of 0 will crash the server. So we always bucket everything under 500.
 	if appErr != nil && (appErr.StatusCode < 100 || appErr.StatusCode > 999) {
-		c.Logger().Warn("Invalid status code returned from plugin. Converting to internal server error.", mlog.String("plugin_id", matched.PluginId), mlog.Int("status_code", appErr.StatusCode))
+		rctx.Logger().Warn("Invalid status code returned from plugin. Converting to internal server error.", mlog.String("plugin_id", matched.PluginId), mlog.Int("status_code", appErr.StatusCode))
 		appErr.StatusCode = http.StatusInternalServerError
 	}
 

@@ -29,20 +29,20 @@ const (
 	statusUpdateAfterLines       = 8192
 )
 
-func stopOnError(c request.CTX, err imports.LineImportWorkerError) bool {
+func stopOnError(rctx request.CTX, err imports.LineImportWorkerError) bool {
 	switch err.Error.Id {
 	case "api.file.upload_file.large_image.app_error":
-		c.Logger().Warn("Large image import error", mlog.Err(err.Error))
+		rctx.Logger().Warn("Large image import error", mlog.Err(err.Error))
 		return false
 	case "app.import.validate_direct_channel_import_data.members_too_few.error", "app.import.validate_direct_channel_import_data.members_too_many.error":
-		c.Logger().Warn("Invalid direct channel import data", mlog.Err(err.Error))
+		rctx.Logger().Warn("Invalid direct channel import data", mlog.Err(err.Error))
 		return false
 	default:
 		return true
 	}
 }
 
-func processAttachmentPaths(c request.CTX, files *[]imports.AttachmentImportData, basePath string, filesMap map[string]*zip.File) error {
+func processAttachmentPaths(rctx request.CTX, files *[]imports.AttachmentImportData, basePath string, filesMap map[string]*zip.File) error {
 	if files == nil {
 		return nil
 	}
@@ -74,20 +74,20 @@ func processAttachmentPaths(c request.CTX, files *[]imports.AttachmentImportData
 	return errors.Join(errs...)
 }
 
-func processAttachments(c request.CTX, line *imports.LineImportData, basePath string, filesMap map[string]*zip.File) error {
+func processAttachments(rctx request.CTX, line *imports.LineImportData, basePath string, filesMap map[string]*zip.File) error {
 	var ok bool
 	switch line.Type {
 	case "post", "direct_post":
 		var replies []imports.ReplyImportData
 		if line.Type == "direct_post" {
-			if err := processAttachmentPaths(c, line.DirectPost.Attachments, basePath, filesMap); err != nil {
+			if err := processAttachmentPaths(rctx, line.DirectPost.Attachments, basePath, filesMap); err != nil {
 				return err
 			}
 			if line.DirectPost.Replies != nil {
 				replies = *line.DirectPost.Replies
 			}
 		} else {
-			if err := processAttachmentPaths(c, line.Post.Attachments, basePath, filesMap); err != nil {
+			if err := processAttachmentPaths(rctx, line.Post.Attachments, basePath, filesMap); err != nil {
 				return err
 			}
 			if line.Post.Replies != nil {
@@ -95,7 +95,7 @@ func processAttachments(c request.CTX, line *imports.LineImportData, basePath st
 			}
 		}
 		for _, reply := range replies {
-			if err := processAttachmentPaths(c, reply.Attachments, basePath, filesMap); err != nil {
+			if err := processAttachmentPaths(rctx, reply.Attachments, basePath, filesMap); err != nil {
 				return err
 			}
 		}
@@ -146,14 +146,14 @@ func processAttachments(c request.CTX, line *imports.LineImportData, basePath st
 	return nil
 }
 
-func (a *App) bulkImportWorker(c request.CTX, dryRun, extractContent bool, wg *sync.WaitGroup, lines <-chan imports.LineImportWorkerData, errors chan<- imports.LineImportWorkerError) {
+func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent bool, wg *sync.WaitGroup, lines <-chan imports.LineImportWorkerData, errors chan<- imports.LineImportWorkerError) {
 	workerID := model.NewId()
 	processedLines := uint64(0)
 
-	c.Logger().Info("Started new bulk import worker", mlog.String("bulk_import_worker_id", workerID))
+	rctx.Logger().Info("Started new bulk import worker", mlog.String("bulk_import_worker_id", workerID))
 	defer func() {
 		wg.Done()
-		c.Logger().Info("Bulk import worker finished", mlog.String("bulk_import_worker_id", workerID), mlog.Uint("processed_lines", processedLines))
+		rctx.Logger().Info("Bulk import worker finished", mlog.String("bulk_import_worker_id", workerID), mlog.Uint("processed_lines", processedLines))
 	}()
 
 	postLines := []imports.LineImportWorkerData{}
@@ -166,7 +166,7 @@ func (a *App) bulkImportWorker(c request.CTX, dryRun, extractContent bool, wg *s
 				errors <- imports.LineImportWorkerError{Error: model.NewAppError("BulkImport", "app.import.import_line.null_post.error", nil, "", http.StatusBadRequest), LineNumber: line.LineNumber}
 			}
 			if len(postLines) >= importMultiplePostsThreshold {
-				if errLine, err := a.importMultiplePostLines(c, postLines, dryRun, extractContent); err != nil {
+				if errLine, err := a.importMultiplePostLines(rctx, postLines, dryRun, extractContent); err != nil {
 					errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 				}
 				postLines = []imports.LineImportWorkerData{}
@@ -177,48 +177,48 @@ func (a *App) bulkImportWorker(c request.CTX, dryRun, extractContent bool, wg *s
 				errors <- imports.LineImportWorkerError{Error: model.NewAppError("BulkImport", "app.import.import_line.null_direct_post.error", nil, "", http.StatusBadRequest), LineNumber: line.LineNumber}
 			}
 			if len(directPostLines) >= importMultiplePostsThreshold {
-				if errLine, err := a.importMultipleDirectPostLines(c, directPostLines, dryRun, extractContent); err != nil {
+				if errLine, err := a.importMultipleDirectPostLines(rctx, directPostLines, dryRun, extractContent); err != nil {
 					errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 				}
 				directPostLines = []imports.LineImportWorkerData{}
 			}
 		default:
-			if err := a.importLine(c, line.LineImportData, dryRun); err != nil {
+			if err := a.importLine(rctx, line.LineImportData, dryRun); err != nil {
 				errors <- imports.LineImportWorkerError{Error: err, LineNumber: line.LineNumber}
 			}
 		}
 
 		processedLines++
 		if processedLines%statusUpdateAfterLines == 0 {
-			c.Logger().Info("Worker progress", mlog.String("bulk_import_worker_id", workerID), mlog.Uint("processed_lines", processedLines))
+			rctx.Logger().Info("Worker progress", mlog.String("bulk_import_worker_id", workerID), mlog.Uint("processed_lines", processedLines))
 		}
 	}
 
 	if len(postLines) > 0 {
-		if errLine, err := a.importMultiplePostLines(c, postLines, dryRun, extractContent); err != nil {
+		if errLine, err := a.importMultiplePostLines(rctx, postLines, dryRun, extractContent); err != nil {
 			errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 		}
 	}
 	if len(directPostLines) > 0 {
-		if errLine, err := a.importMultipleDirectPostLines(c, directPostLines, dryRun, extractContent); err != nil {
+		if errLine, err := a.importMultipleDirectPostLines(rctx, directPostLines, dryRun, extractContent); err != nil {
 			errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 		}
 	}
 }
 
-func (a *App) BulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (int, *model.AppError) {
-	return a.bulkImport(c, jsonlReader, attachmentsReader, dryRun, true, workers, "")
+func (a *App) BulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (int, *model.AppError) {
+	return a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, true, workers, "")
 }
 
-func (a *App) BulkImportWithPath(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (int, *model.AppError) {
-	return a.bulkImport(c, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath)
+func (a *App) BulkImportWithPath(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (int, *model.AppError) {
+	return a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath)
 }
 
 // bulkImport will extract attachments from attachmentsReader if it is
 // not nil. If it is nil, it will look for attachments on the
 // filesystem in the locations specified by the JSONL file according
 // to the older behavior
-func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (int, *model.AppError) {
+func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (int, *model.AppError) {
 	scanner := bufio.NewScanner(jsonlReader)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, maxScanTokenSize)
@@ -244,7 +244,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 	for scanner.Scan() {
 		lineNumber++
 		if lineNumber%statusUpdateAfterLines == 0 {
-			c.Logger().Info("Reader progress", mlog.Int("processed_lines", lineNumber))
+			rctx.Logger().Info("Reader progress", mlog.Int("processed_lines", lineNumber))
 		}
 
 		var line imports.LineImportData
@@ -252,8 +252,8 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 			return lineNumber, model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
-		if err := processAttachments(c, &line, importPath, attachedFiles); err != nil {
-			c.Logger().Warn("Error while processing import attachments. Objects might be broken.", mlog.Err(err))
+		if err := processAttachments(rctx, &line, importPath, attachedFiles); err != nil {
+			rctx.Logger().Warn("Error while processing import attachments. Objects might be broken.", mlog.Err(err))
 		}
 
 		if lineNumber == 1 {
@@ -272,7 +272,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 		if line.Type != lastLineType {
 			// Only clear the worker queue if is not the first data entry
 			if lineNumber != 2 {
-				c.Logger().Info(
+				rctx.Logger().Info(
 					"Finished parsing segment, waiting for workers to finish",
 					mlog.String("old_segment", lastLineType),
 					mlog.String("new_segment", line.Type),
@@ -285,13 +285,13 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 				// Check no errors occurred while waiting for the queue to empty.
 				if len(errorsChan) != 0 {
 					err := <-errorsChan
-					if stopOnError(c, err) {
+					if stopOnError(rctx, err) {
 						return err.LineNumber, err.Error
 					}
 				}
 			}
 
-			c.Logger().Info(
+			rctx.Logger().Info(
 				"Starting workers for new segment",
 				mlog.String("old_segment", lastLineType),
 				mlog.String("new_segment", line.Type),
@@ -303,14 +303,14 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 			linesChan = make(chan imports.LineImportWorkerData, workers)
 			for range workers {
 				wg.Add(1)
-				go a.bulkImportWorker(c, dryRun, extractContent, &wg, linesChan, errorsChan)
+				go a.bulkImportWorker(rctx, dryRun, extractContent, &wg, linesChan, errorsChan)
 			}
 		}
 
 		select {
 		case linesChan <- imports.LineImportWorkerData{LineImportData: line, LineNumber: lineNumber}:
 		case err := <-errorsChan:
-			if stopOnError(c, err) {
+			if stopOnError(rctx, err) {
 				close(linesChan)
 				wg.Wait()
 				return err.LineNumber, err.Error
@@ -327,7 +327,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 	// Check no errors occurred while waiting for the queue to empty.
 	if len(errorsChan) != 0 {
 		err := <-errorsChan
-		if stopOnError(c, err) {
+		if stopOnError(rctx, err) {
 			return err.LineNumber, err.Error
 		}
 	}
@@ -347,48 +347,48 @@ func processImportDataFileVersionLine(line imports.LineImportData) (int, *model.
 	return *line.Version, nil
 }
 
-func (a *App) importLine(c request.CTX, line imports.LineImportData, dryRun bool) *model.AppError {
+func (a *App) importLine(rctx request.CTX, line imports.LineImportData, dryRun bool) *model.AppError {
 	switch {
 	case line.Type == "role":
 		if line.Role == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_role.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importRole(c, line.Role, dryRun)
+		return a.importRole(rctx, line.Role, dryRun)
 	case line.Type == "scheme":
 		if line.Scheme == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_scheme.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importScheme(c, line.Scheme, dryRun)
+		return a.importScheme(rctx, line.Scheme, dryRun)
 	case line.Type == "team":
 		if line.Team == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_team.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importTeam(c, line.Team, dryRun)
+		return a.importTeam(rctx, line.Team, dryRun)
 	case line.Type == "channel":
 		if line.Channel == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_channel.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importChannel(c, line.Channel, dryRun)
+		return a.importChannel(rctx, line.Channel, dryRun)
 	case line.Type == "user":
 		if line.User == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_user.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importUser(c, line.User, dryRun)
+		return a.importUser(rctx, line.User, dryRun)
 	case line.Type == "bot":
 		if line.Bot == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_bot.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importBot(c, line.Bot, dryRun)
+		return a.importBot(rctx, line.Bot, dryRun)
 	case line.Type == "direct_channel":
 		if line.DirectChannel == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_direct_channel.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importDirectChannel(c, line.DirectChannel, dryRun)
+		return a.importDirectChannel(rctx, line.DirectChannel, dryRun)
 	case line.Type == "emoji":
 		if line.Emoji == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_emoji.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importEmoji(c, line.Emoji, dryRun)
+		return a.importEmoji(rctx, line.Emoji, dryRun)
 	default:
 		return model.NewAppError("BulkImport", "app.import.import_line.unknown_line_type.error", map[string]any{"Type": line.Type}, "", http.StatusBadRequest)
 	}

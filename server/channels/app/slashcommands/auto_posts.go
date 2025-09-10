@@ -51,7 +51,7 @@ func NewAutoPostCreator(a *app.App, channelid, userid string) *AutoPostCreator {
 	}
 }
 
-func (cfg *AutoPostCreator) UploadTestFile(c request.CTX) ([]string, error) {
+func (cfg *AutoPostCreator) UploadTestFile(rctx request.CTX) ([]string, error) {
 	filename := cfg.ImageFilenames[utils.RandIntFromRange(utils.Range{Begin: 0, End: len(cfg.ImageFilenames) - 1})]
 
 	path, _ := fileutils.FindDir("tests")
@@ -67,7 +67,7 @@ func (cfg *AutoPostCreator) UploadTestFile(c request.CTX) ([]string, error) {
 		return nil, err
 	}
 
-	fileResp, err2 := cfg.a.UploadFile(c, data.Bytes(), cfg.channelid, filename)
+	fileResp, err2 := cfg.a.UploadFile(rctx, data.Bytes(), cfg.channelid, filename)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -75,15 +75,15 @@ func (cfg *AutoPostCreator) UploadTestFile(c request.CTX) ([]string, error) {
 	return []string{fileResp.Id}, nil
 }
 
-func (cfg *AutoPostCreator) CreateRandomPost(c request.CTX) (*model.Post, error) {
-	return cfg.CreateRandomPostNested(c, "")
+func (cfg *AutoPostCreator) CreateRandomPost(rctx request.CTX) (*model.Post, error) {
+	return cfg.CreateRandomPostNested(rctx, "")
 }
 
-func (cfg *AutoPostCreator) CreateRandomPostNested(c request.CTX, rootID string) (*model.Post, error) {
+func (cfg *AutoPostCreator) CreateRandomPostNested(rctx request.CTX, rootID string) (*model.Post, error) {
 	var fileIDs []string
 	if cfg.HasImage {
 		var err error
-		fileIDs, err = cfg.UploadTestFile(c)
+		fileIDs, err = cfg.UploadTestFile(rctx)
 		if err != nil {
 			return nil, err
 		}
@@ -114,7 +114,7 @@ func (cfg *AutoPostCreator) CreateRandomPostNested(c request.CTX, rootID string)
 			post.UserId = cfg.UsersToPostFrom[i]
 		}
 	}
-	rpost, err := cfg.a.CreatePostMissingChannel(c, post, true, true)
+	rpost, err := cfg.a.CreatePostMissingChannel(rctx, post, true, true)
 	if err != nil {
 		return nil, err
 	}
