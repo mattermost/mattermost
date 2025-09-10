@@ -60,6 +60,10 @@ func TestIncomingWebhook(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
+		resp, err = http.Post(url, "application/json", strings.NewReader("{\"text\":\"this is a test with root_id\", \"root_id\": \"" + th.BasicPost.Id + "\"}"))
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
 		text := `this is a \"test\"
 	that contains a newline and a tab`
 		resp, err = http.Post(url, "application/json", strings.NewReader("{\"text\":\""+text+"\"}"))
