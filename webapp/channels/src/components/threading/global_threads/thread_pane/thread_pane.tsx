@@ -18,7 +18,7 @@ import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 
-import Button from '../../common/thread_button';
+import ThreadButton from '../../common/thread_button';
 import FollowButton from '../../common/follow_button';
 import {useThreadRouting} from '../../hooks';
 import ThreadMenu from '../thread_menu';
@@ -83,12 +83,12 @@ const ThreadPane = ({
                 className='ThreadPane___header'
                 heading={(
                     <>
-                        <Button
-                            className='Button___icon Button___large back'
+                        <ThreadButton
+                            className='ThreadButton___icon ThreadButton___large back'
                             onClick={selectHandler}
                         >
                             <i className='icon icon-arrow-back-ios'/>
-                        </Button>
+                        </ThreadButton>
                         <h3>
                             <span className='separated'>
                                 {formatMessage({
@@ -96,13 +96,13 @@ const ThreadPane = ({
                                     defaultMessage: 'Thread',
                                 })}
                             </span>
-                            <Button
+                            <ThreadButton
                                 className='separated'
                                 allowTextOverflow={true}
                                 onClick={goToInChannelHandler}
                             >
                                 {channel?.display_name}
-                            </Button>
+                            </ThreadButton>
                         </h3>
                     </>
                 )}
@@ -125,9 +125,9 @@ const ThreadPane = ({
                                     defaultMessage: 'More Actions',
                                 })}
                             >
-                                <Button className='Button___icon Button___large'>
+                                <ThreadButton className='ThreadButton___icon Thread Button___large'>
                                     <DotsVerticalIcon size={18}/>
-                                </Button>
+                                </ThreadButton>
                             </WithTooltip>
                         </ThreadMenu>
                     </>
