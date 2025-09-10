@@ -25,12 +25,10 @@ RUN apk add \
   tzdata
 
 # Set mattermost group/user and download Mattermost
-COPY $MM_PACKAGE /tmp/mattermost.tgz
 RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins \
   && addgroup -g ${PGID} mattermost \
   && adduser -D -u ${PUID} -G mattermost -g "" -s /bin/bash -h /mattermost mattermost \
-  && tar -xvz -f /tmp/mattermost.tgz \
-  && rm /tmp/mattermost.tgz \
+  && curl -L $MM_PACKAGE | tar -xvz \
   && chown -R mattermost:mattermost /mattermost /mattermost/data /mattermost/plugins /mattermost/client/plugins
 
 # We should refrain from running as privileged user
