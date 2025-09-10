@@ -54,10 +54,10 @@ jobs:
         id: build
         run: |
           if [[ ${{ inputs.fips-enabled }} == 'true' ]]; then
-            echo "IMAGE=mattermost/mattermost-build-server-fips:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
+            echo "BUILD_IMAGE=mattermost/mattermost-build-server-fips:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
             echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}-fips" >> "${GITHUB_OUTPUT}"
           else
-            echo "IMAGE=mattermostdevelopment/mattermost-build-server:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
+            echo "BUILD_IMAGE=mattermostdevelopment/mattermost-build-server:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
             echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}" >> "${GITHUB_OUTPUT}"
           fi
 
@@ -78,7 +78,7 @@ jobs:
 
       - name: Run Tests
         env:
-          BUILD_IMAGE: ${{ steps.build.outputs.IMAGE }}
+          BUILD_IMAGE: ${{ steps.build.outputs.BUILD_IMAGE }}
         run: |
           if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true ]]; then
             export RACE_MODE="-race"
