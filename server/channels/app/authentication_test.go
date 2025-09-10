@@ -474,7 +474,7 @@ func TestCheckUserPassword(t *testing.T) {
 
 	t.Run("successful migration from PBKDF2 with old parameter to new parameter", func(t *testing.T) {
 		// Create a PBKDF2 hasher with work factor = 10000 instead of the default 60000
-		oldParamPBKDF2, err := hashers.NewPBKDF2(hashers.PBKDF2SHA256, 10000, 32)
+		oldParamPBKDF2, err := hashers.NewPBKDF2(10000, 32)
 		require.NoError(t, err)
 
 		pwdOldParamPBKDF2, err := oldParamPBKDF2.Hash(pwd)

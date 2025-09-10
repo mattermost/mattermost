@@ -19,7 +19,7 @@ func TestPBKDF2Hash(t *testing.T) {
 	workFactor := 600000
 	keyLength := 32
 
-	hasher, err := NewPBKDF2(PBKDF2SHA256, workFactor, keyLength)
+	hasher, err := NewPBKDF2(workFactor, keyLength)
 	require.NoError(t, err)
 
 	str, err := hasher.Hash(password)

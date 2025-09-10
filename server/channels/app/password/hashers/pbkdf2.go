@@ -6,13 +6,10 @@ package hashers
 import (
 	"crypto/pbkdf2"
 	"crypto/rand"
-	"crypto/sha1"
 	"crypto/sha256"
-	"crypto/sha512"
 	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
-	"hash"
 	"io"
 	"strconv"
 	"strings"
@@ -20,25 +17,14 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/password/phcparser"
 )
 
-// PseudoRandomFunction is the type of any string specifying a pseudo-random
-// function used as the internal hashing algorithm for the [PBKDF2] hasher.
-type PseudoRandomFunction string
-
 const (
-	// PBKDF2SHA1 specifies the [crypto/sha1] pseudo-random function.
-	PBKDF2SHA1 PseudoRandomFunction = "SHA1"
-	// PBKDF2SHA1 specifies the [crypto/sha256] pseudo-random function, which is the one used in [DefaultPBKDF2].
-	PBKDF2SHA256 PseudoRandomFunction = "SHA256"
-	// PBKDF2SHA1 specifies the [crypto/sha512] pseudo-random function.
-	PBKDF2SHA512 PseudoRandomFunction = "SHA512"
-
 	// PBKDF2FunctionId is the name of the PBKDF2 hasher.
 	PBKDF2FunctionId string = "pbkdf2"
 )
 
 const (
 	// Default parameter values
-	defaultPRF        = PBKDF2SHA256
+	defaultPRFName    = "SHA256"
 	defaultWorkFactor = 600000
 	defaultKeyLength  = 32
 
@@ -46,17 +32,21 @@ const (
 	saltLenBytes = 16
 )
 
+var (
+	defaultPRF = sha256.New
+)
+
 // PBKDF2 implements the [PasswordHasher] interface using [crypto/pbkdf2] as the
 // hashing method.
 //
 // It is parametrized by:
-//   - Internal hashing function: a pseudo-random function used as the internal
-//     hashing method. It can be [PBKDF2SHA1], [PBKDF2SHA256] or [PBKDF2SHA512].
 //   - The work factor: the number of iterations performed during hashing. The
 //     larger this number, the longer and more costly the hashing process. OWASP
 //     has some recommendations on what number to use here:
 //     https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#pbkdf2
 //   - The key length: the desired length, in bytes, of the resulting hash.
+//
+// The internal hashing function is always set to SHA256.
 //
 // Its PHC string is of the form:
 //
@@ -69,7 +59,6 @@ const (
 //   - <salt> is the base64-encoded salt.
 //   - <hash> is the base64-encoded hash.
 type PBKDF2 struct {
-	hashFunc   PseudoRandomFunction
 	workFactor int
 	keyLength  int
 
@@ -82,7 +71,7 @@ type PBKDF2 struct {
 //   - Work factor: 600,000
 //   - Key length: 32 bytes
 func DefaultPBKDF2() PBKDF2 {
-	hasher, err := NewPBKDF2(defaultPRF, defaultWorkFactor, defaultKeyLength)
+	hasher, err := NewPBKDF2(defaultWorkFactor, defaultKeyLength)
 	if err != nil {
 		panic("DefaultPBKDF2 implementation is incorrect")
 	}
@@ -90,14 +79,7 @@ func DefaultPBKDF2() PBKDF2 {
 }
 
 // NewPBKDF2 returns a [PBKDF2] initialized with the provided parameters
-func NewPBKDF2(hashFunc PseudoRandomFunction, workFactor int, keyLength int) (PBKDF2, error) {
-	switch hashFunc {
-	case PBKDF2SHA1, PBKDF2SHA256, PBKDF2SHA512:
-		break
-	default:
-		return PBKDF2{}, fmt.Errorf("invalid hash function parameter 'f=%s'", hashFunc)
-	}
-
+func NewPBKDF2(workFactor int, keyLength int) (PBKDF2, error) {
 	if workFactor <= 0 {
 		return PBKDF2{}, fmt.Errorf("work factor must be strictly positive")
 	}
@@ -116,7 +98,7 @@ func NewPBKDF2(hashFunc PseudoRandomFunction, workFactor int, keyLength int) (PB
 
 	// Then, the parameters
 	phcHeader.WriteString("$f=")
-	phcHeader.WriteString(string(hashFunc))
+	phcHeader.WriteString(defaultPRFName)
 	phcHeader.WriteString(",w=")
 	phcHeader.WriteString(strconv.Itoa(workFactor))
 	phcHeader.WriteString(",l=")
@@ -126,7 +108,6 @@ func NewPBKDF2(hashFunc PseudoRandomFunction, workFactor int, keyLength int) (PB
 	phcHeader.WriteRune('$')
 
 	return PBKDF2{
-		hashFunc:   hashFunc,
 		workFactor: workFactor,
 		keyLength:  keyLength,
 		phcHeader:  phcHeader.String(),
@@ -136,8 +117,6 @@ func NewPBKDF2(hashFunc PseudoRandomFunction, workFactor int, keyLength int) (PB
 // NewPBKDF2FromPHC returns a [PBKDF2] that conforms to the provided parsed PHC,
 // using the same parameters (if valid) present there.
 func NewPBKDF2FromPHC(phc phcparser.PHC) (PBKDF2, error) {
-	hashFunc := PseudoRandomFunction(phc.Params["f"])
-
 	workFactor, err := strconv.Atoi(phc.Params["w"])
 	if err != nil {
 		return PBKDF2{}, fmt.Errorf("invalid work factor parameter 'w=%s'", phc.Params["w"])
@@ -148,29 +127,13 @@ func NewPBKDF2FromPHC(phc phcparser.PHC) (PBKDF2, error) {
 		return PBKDF2{}, fmt.Errorf("invalid key length parameter 'l=%s'", phc.Params["l"])
 	}
 
-	return NewPBKDF2(hashFunc, workFactor, keyLength)
-}
-
-// getFunction returns the [hash.Hash] function specified by the
-// [PseudoRandomFunction] parameter.
-func getFunction(prf PseudoRandomFunction) func() hash.Hash {
-	switch prf {
-	case PBKDF2SHA1:
-		return sha1.New
-	case PBKDF2SHA256:
-		return sha256.New
-	case PBKDF2SHA512:
-		return sha512.New
-	}
-
-	// Default to SHA256
-	return sha256.New
+	return NewPBKDF2(workFactor, keyLength)
 }
 
 // hashWithSalt calls crypto/pbkdf2.Key with the provided salt and the stored
 // parameters.
 func (p PBKDF2) hashWithSalt(password string, salt []byte) (string, error) {
-	hash, err := pbkdf2.Key(getFunction(p.hashFunc), password, salt, p.workFactor, p.keyLength)
+	hash, err := pbkdf2.Key(defaultPRF, password, salt, p.workFactor, p.keyLength)
 	if err != nil {
 		return "", fmt.Errorf("failed hashing the password: %w", err)
 	}
@@ -263,7 +226,7 @@ func (p PBKDF2) CompareHashAndPassword(hash phcparser.PHC, password string) erro
 func (p PBKDF2) IsPHCValid(phc phcparser.PHC) bool {
 	return phc.Id == PBKDF2FunctionId &&
 		len(phc.Params) == 3 &&
-		phc.Params["f"] == string(p.hashFunc) &&
+		phc.Params["f"] == defaultPRFName &&
 		phc.Params["w"] == strconv.Itoa(p.workFactor) &&
 		phc.Params["l"] == strconv.Itoa(p.keyLength)
 }

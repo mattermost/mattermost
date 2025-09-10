@@ -39,7 +39,6 @@ func TestGetHasherFromPHCString(t *testing.T) {
 			testName: "valid, non-default PBKDF2",
 			input:    "$pbkdf2$f=SHA256,w=10000,l=10$5Zq8TvET7nMrXof49Rp4Sw$d0Mx8467kv+3ylbGrkyu4jTd8O8SP51k4s1RuWb9S/o",
 			expectedHasher: PBKDF2{
-				hashFunc:   PBKDF2SHA256,
 				workFactor: 10000,
 				keyLength:  10,
 				phcHeader:  "$pbkdf2$f=SHA256,w=10000,l=10$",
@@ -79,7 +78,6 @@ func TestGetHasherFromPHCString(t *testing.T) {
 			testName: "valid PBKDF2 with invalid parameters",
 			input:    "$pbkdf2$f=SHA256,w=-50,l=0$5Zq8TvET7nMrXof49Rp4Sw$d0Mx8467kv+3ylbGrkyu4jTd8O8SP51k4s1RuWb9S/o",
 			expectedHasher: PBKDF2{
-				hashFunc:   PBKDF2SHA256,
 				workFactor: 10000,
 				keyLength:  10,
 				phcHeader:  "$pbkdf2$f=SHA256,w=10000,l=10$",
@@ -104,7 +102,7 @@ func TestGetHasherFromPHCString(t *testing.T) {
 }
 
 func TestIsLatestHasher(t *testing.T) {
-	pbkdf2WithOtherParams, err := NewPBKDF2(PBKDF2SHA1, 10000, 16)
+	pbkdf2WithOtherParams, err := NewPBKDF2(10000, 16)
 	require.NoError(t, err)
 
 	testCases := []struct {
