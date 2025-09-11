@@ -118,10 +118,20 @@ function TableEditor({
     // Effect to parse the incoming CEL expression string (value prop)
     // and update the internal rows state. Handles errors during parsing.
     useEffect(() => {
+        // Skip parsing if no expression to avoid unnecessary API calls
+        if (!value || value.trim() === '') {
+            setRows([]);
+            return;
+        }
+
         actions.getVisualAST(value).then((result) => {
             if (result.error) {
                 setRows([]);
-                onParseError(result.error.message);
+
+                // Only call onParseError for actual parsing errors, not permission errors
+                if (!result.error.message?.includes('403') && !result.error.message?.includes('Forbidden')) {
+                    onParseError(result.error.message);
+                }
                 return;
             }
 
@@ -131,7 +141,11 @@ function TableEditor({
             if (onValidate) {
                 onValidate(false);
             }
-            onParseError(err.message);
+
+            // Only call onParseError for actual parsing errors, not permission errors
+            if (!err.message?.includes('403') && !err.message?.includes('Forbidden')) {
+                onParseError(err.message);
+            }
         });
     }, [value]);
 
@@ -196,12 +210,15 @@ function TableEditor({
     // Row Manipulation Handlers
     const addRow = useCallback(() => {
         if (userAttributes.length === 0) {
-            return; // Do not add a row if no attributes are available
+            // Show a helpful message instead of silently failing
+            onParseError('No user attributes available. Please ensure ABAC is properly configured and you have the necessary permissions.');
+            return;
         }
 
         const firstAvailableAttribute = findFirstAvailableAttribute();
         if (!firstAvailableAttribute) {
-            return; // Do not add a row if no attributes are available
+            onParseError('No available user attributes found for rule creation.');
+            return;
         }
 
         setRows((currentRows) => {
