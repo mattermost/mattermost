@@ -24,10 +24,11 @@ import {
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
+import {LicenseSkus} from 'utils/constants';
 import {useCurrentProductId, useProducts, isChannels} from 'utils/products';
 
 import ProductBranding from './product_branding';
-import ProductBrandingTeamEdition from './product_branding_team_edition';
+import ProductBrandingFreeEdition from './product_branding_team_edition';
 import ProductMenuItem from './product_menu_item';
 import ProductMenuList from './product_menu_list';
 
@@ -113,6 +114,8 @@ const ProductMenu = (): JSX.Element => {
         );
     });
 
+    const isFreeEdition = license.IsLicensed === 'false' || license.SkuShortName === LicenseSkus.Entry;
+
     return (
         <div ref={menuRef}>
             <MenuWrapper
@@ -132,8 +135,11 @@ const ProductMenu = (): JSX.Element => {
                             size={20}
                             color='rgba(var(--sidebar-text-rgb), 0.56)'
                         />
-                        {license.IsLicensed === 'false' && <ProductBrandingTeamEdition/>}
-                        {license.IsLicensed === 'true' && <ProductBranding/>}
+                        {isFreeEdition ? (
+                            <ProductBrandingFreeEdition/>
+                        ) : (
+                            <ProductBranding/>
+                        )}
                     </ProductMenuButton>
                 </ProductMenuContainer>
                 <Menu
