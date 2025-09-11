@@ -78,6 +78,7 @@ else
 	BUILD_TYPE_NAME = team
 endif
 
+FIPS_ENABLED ?= false
 ifeq ($(FIPS_ENABLED),true)
 	BUILD_TYPE_NAME := $(BUILD_TYPE_NAME)-fips
 endif
@@ -111,7 +112,6 @@ GOFLAGS ?= $(GOFLAGS:)
 export GOBIN ?= $(PWD)/bin
 GO ?= go
 
-FIPS_ENABLED ?= false
 ifeq ($(FIPS_ENABLED),true)
 	BUILD_TAGS += requirefips
 endif
