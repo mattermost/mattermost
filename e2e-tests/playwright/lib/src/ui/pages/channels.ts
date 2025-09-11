@@ -137,6 +137,12 @@ export default class ChannelsPage {
         return this.settingsModal;
     }
 
+    async openSettings() {
+        await this.globalHeader.openSettings();
+        await this.settingsModal.toBeVisible();
+        return this.settingsModal;
+    }
+
     async newChannel(name: string, channelType: string) {
         await this.page.locator('#browseOrAddChannelMenuButton').click();
         await this.page.locator('#createNewChannelMenuItem').click();

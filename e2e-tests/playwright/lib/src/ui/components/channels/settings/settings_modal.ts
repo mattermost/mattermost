@@ -39,6 +39,10 @@ export default class SettingsModal {
         await expect(this.container).toBeVisible();
     }
 
+    getContainerId() {
+        return this.container.getAttribute('id');
+    }
+
     async openNotificationsTab() {
         await expect(this.notificationsSettingsTab).toBeVisible();
         await this.notificationsSettingsTab.click();
