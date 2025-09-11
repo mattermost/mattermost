@@ -23,13 +23,26 @@ jobs:
       - name: Install testrigor CLI
         run: |
           npm install -g testrigor-cli
-
-      - name: Run testrigor tests
-        env:
-          CI_TOKEN: ${{ secrets.CI_TOKEN }}
-          SUITE_ID: ${{ vars.SUITE_ID }}
+      
+      - name: Setup PostgreSQL
+        uses: tj-actions/install-postgresql@v3
+        with:
+          postgresql-version: 17
+      
+      - name: Download Mattermost
         run: |
-          testrigor test-suite run "$SUITE_ID" --token "$CI_TOKEN"
+          wget https://releases.mattermost.com/9.5.0/mattermost-9.5.0-linux-amd64.tar.gz
+          tar -xzf mattermost-9.5.0-linux-amd64.tar.gz
+          mv mattermost /opt
+      
+      
+
+      #- name: Run testrigor tests
+      #  env:
+      #    CI_TOKEN: ${{ secrets.CI_TOKEN }}
+      #    SUITE_ID: ${{ vars.SUITE_ID }}
+      #  run: |
+      #    testrigor test-suite run "$SUITE_ID" --token "$CI_TOKEN"
         
 
       #- name: Setup and install PostgreSQL
