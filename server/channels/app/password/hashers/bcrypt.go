@@ -50,7 +50,7 @@ func NewBCrypt() BCrypt {
 
 // Hash is a wrapper over golang.org/x/crypto/bcrypt.GenerateFromPassword, with
 // two main differences:
-//   - If the password is too long, it returns [ErrPsaswordTooLong] instead of
+//   - If the password is too long, it returns [ErrPasswordTooLong] instead of
 //     bcrypt.ErrPasswordTooLong, in order to comply with the rest of the hashers
 //     in this package.
 //   - It returns a string instead of a byte slice, so that [BCrypt] implements
