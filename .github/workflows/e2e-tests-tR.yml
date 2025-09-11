@@ -32,9 +32,9 @@ jobs:
       - name: Configure database
         run: |
           locale-gen en_US.UTF-8
-          psql -c CREATE DATABASE mattermost WITH ENCODING 'UTF8' LC_COLLATE='en_US.UTF-8' LC_CTYPE='en_US.UTF-8' TEMPLATE=template0;
-          psql -c CREATE USER mmuser WITH PASSWORD 'mmuser-password';
-          psql -c GRANT ALL PRIVILEGES ON DATABASE mattermost to mmuser;
+          psql -c 'CREATE DATABASE mattermost WITH ENCODING 'UTF8' LC_COLLATE='en_US.UTF-8' LC_CTYPE='en_US.UTF-8' TEMPLATE=template0;'
+          psql -c 'CREATE USER mmuser WITH PASSWORD 'mmuser-password';'
+          psql -c 'GRANT ALL PRIVILEGES ON DATABASE mattermost to mmuser;'
           
       - name: Download Mattermost
         run: |
