@@ -147,19 +147,19 @@ type TeamStore interface {
 	SaveMember(rctx request.CTX, member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error)
 	UpdateMember(rctx request.CTX, member *model.TeamMember) (*model.TeamMember, error)
 	UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, error)
-	GetMember(c request.CTX, teamID string, userID string) (*model.TeamMember, error)
+	GetMember(rctx request.CTX, teamID string, userID string) (*model.TeamMember, error)
 	GetMembers(teamID string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, error)
 	GetMembersByIds(teamID string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, error)
 	GetTotalMemberCount(teamID string, restrictions *model.ViewUsersRestrictions) (int64, error)
 	GetActiveMemberCount(teamID string, restrictions *model.ViewUsersRestrictions) (int64, error)
-	GetTeamsForUser(c request.CTX, userID, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, error)
+	GetTeamsForUser(rctx request.CTX, userID, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, error)
 	GetTeamsForUserWithPagination(userID string, page, perPage int) ([]*model.TeamMember, error)
 	GetChannelUnreadsForAllTeams(excludeTeamID, userID string) ([]*model.ChannelUnread, error)
 	GetChannelUnreadsForTeam(teamID, userID string) ([]*model.ChannelUnread, error)
 	RemoveMember(rctx request.CTX, teamID string, userID string) error
 	RemoveMembers(rctx request.CTX, teamID string, userIds []string) error
 	RemoveAllMembersByTeam(teamID string) error
-	RemoveAllMembersByUser(ctx request.CTX, userID string) error
+	RemoveAllMembersByUser(rctx request.CTX, userID string) error
 	UpdateLastTeamIconUpdate(teamID string, curTime int64) error
 	GetTeamsByScheme(schemeID string, offset int, limit int) ([]*model.Team, error)
 	MigrateTeamMembers(fromTeamID string, fromUserID string) (map[string]string, error)
@@ -190,9 +190,9 @@ type TeamStore interface {
 
 type ChannelStore interface {
 	Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, channelOptions ...model.ChannelOption) (*model.Channel, error)
-	CreateDirectChannel(ctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error)
-	SaveDirectChannel(ctx request.CTX, channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error)
-	Update(ctx request.CTX, channel *model.Channel) (*model.Channel, error)
+	CreateDirectChannel(rctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error)
+	SaveDirectChannel(rctx request.CTX, channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error)
+	Update(rctx request.CTX, channel *model.Channel) (*model.Channel, error)
 	UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamID string) error
 	ClearSidebarOnTeamLeave(userID, teamID string) error
 	Get(id string, allowFromCache bool) (*model.Channel, error)
@@ -202,7 +202,7 @@ type ChannelStore interface {
 	Delete(channelID string, timestamp int64) error
 	Restore(channelID string, timestamp int64) error
 	SetDeleteAt(channelID string, deleteAt int64, updateAt int64) error
-	PermanentDelete(ctx request.CTX, channelID string) error
+	PermanentDelete(rctx request.CTX, channelID string) error
 	PermanentDeleteByTeam(teamID string) error
 	GetByName(teamID string, name string, allowFromCache bool) (*model.Channel, error)
 	GetByNames(teamID string, names []string, allowFromCache bool) ([]*model.Channel, error)
@@ -227,7 +227,7 @@ type ChannelStore interface {
 	GetForPost(postID string) (*model.Channel, error)
 	SaveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error)
 	SaveMember(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error)
-	UpdateMember(ctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error)
+	UpdateMember(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error)
 	UpdateMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error)
 	// UpdateMemberNotifyProps patches the notifyProps field with the given props map.
 	// It replaces existing fields and creates new ones which don't exist.
@@ -237,7 +237,7 @@ type ChannelStore interface {
 	GetMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error)
 	GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error)
 	GetChannelMembersTimezones(channelID string) ([]model.StringMap, error)
-	GetAllChannelMembersForUser(ctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
+	GetAllChannelMembersForUser(rctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
 	GetChannelsMemberCount(channelIDs []string) (map[string]int64, error)
 	InvalidateAllChannelMembersForUser(userID string)
 	GetAllChannelMembersNotifyPropsForChannel(channelID string, allowFromCache bool) (map[string]model.StringMap, error)
@@ -253,10 +253,10 @@ type ChannelStore interface {
 	InvalidateGuestCount(channelID string)
 	GetGuestCount(channelID string, allowFromCache bool) (int64, error)
 	GetPinnedPosts(channelID string) (*model.PostList, error)
-	RemoveMember(ctx request.CTX, channelID string, userID string) error
-	RemoveMembers(ctx request.CTX, channelID string, userIds []string) error
-	PermanentDeleteMembersByUser(ctx request.CTX, userID string) error
-	PermanentDeleteMembersByChannel(ctx request.CTX, channelID string) error
+	RemoveMember(rctx request.CTX, channelID string, userID string) error
+	RemoveMembers(rctx request.CTX, channelID string, userIds []string) error
+	PermanentDeleteMembersByUser(rctx request.CTX, userID string) error
+	PermanentDeleteMembersByChannel(rctx request.CTX, channelID string) error
 	UpdateLastViewedAt(channelIds []string, userID string) (map[string]int64, error)
 	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot, urgentMentionCount int, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error)
 	CountPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, int, error)
@@ -289,7 +289,7 @@ type ChannelStore interface {
 	MigrateChannelMembers(fromChannelID string, fromUserID string) (map[string]string, error)
 	ResetAllChannelSchemes() error
 	ClearAllCustomRoleAssignments() error
-	CreateInitialSidebarCategories(c request.CTX, userID string, teamID string) (*model.OrderedSidebarCategories, error)
+	CreateInitialSidebarCategories(rctx request.CTX, userID string, teamID string) (*model.OrderedSidebarCategories, error)
 	GetSidebarCategoriesForTeamForUser(userID, teamID string) (*model.OrderedSidebarCategories, error)
 	GetSidebarCategories(userID string, teamID string) (*model.OrderedSidebarCategories, error)
 	GetSidebarCategory(categoryID string) (*model.SidebarCategoryWithChannels, error)
@@ -304,7 +304,7 @@ type ChannelStore interface {
 	GetAllChannelsForExportAfter(limit int, afterID string) ([]*model.ChannelForExport, error)
 	GetAllDirectChannelsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectChannelForExport, error)
 	GetChannelMembersForExport(userID string, teamID string, includeArchivedChannel bool) ([]*model.ChannelMemberForExport, error)
-	RemoveAllDeactivatedMembers(ctx request.CTX, channelID string) error
+	RemoveAllDeactivatedMembers(rctx request.CTX, channelID string) error
 	GetChannelsBatchForIndexing(startTime int64, startChannelID string, limit int) ([]*model.Channel, error)
 	UserBelongsToChannels(userID string, channelIds []string) (bool, error)
 
@@ -519,10 +519,10 @@ type BotStore interface {
 }
 
 type SessionStore interface {
-	Get(c request.CTX, sessionIDOrToken string) (*model.Session, error)
-	Save(c request.CTX, session *model.Session) (*model.Session, error)
-	GetSessions(c request.CTX, userID string) ([]*model.Session, error)
-	GetLRUSessions(c request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error)
+	Get(rctx request.CTX, sessionIDOrToken string) (*model.Session, error)
+	Save(rctx request.CTX, session *model.Session) (*model.Session, error)
+	GetSessions(rctx request.CTX, userID string) ([]*model.Session, error)
+	GetLRUSessions(rctx request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error)
 	GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error)
 	GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error)
 	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
@@ -572,7 +572,7 @@ type ComplianceStore interface {
 	Get(id string) (*model.Compliance, error)
 	GetAll(offset, limit int) (model.Compliances, error)
 	ComplianceExport(compliance *model.Compliance, cursor model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, model.ComplianceExportCursor, error)
-	MessageExport(c request.CTX, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error)
+	MessageExport(rctx request.CTX, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error)
 }
 
 type OAuthStore interface {
@@ -600,11 +600,11 @@ type OAuthStore interface {
 }
 
 type OutgoingOAuthConnectionStore interface {
-	SaveConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error)
-	UpdateConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error)
-	GetConnection(c request.CTX, id string) (*model.OutgoingOAuthConnection, error)
-	GetConnections(c request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error)
-	DeleteConnection(c request.CTX, id string) error
+	SaveConnection(rctx request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error)
+	UpdateConnection(rctx request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error)
+	GetConnection(rctx request.CTX, id string) (*model.OutgoingOAuthConnection, error)
+	GetConnections(rctx request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error)
+	DeleteConnection(rctx request.CTX, id string) error
 }
 
 type SystemStore interface {
@@ -685,7 +685,7 @@ type PreferenceStore interface {
 
 type LicenseStore interface {
 	Save(license *model.LicenseRecord) error
-	Get(c request.CTX, id string) (*model.LicenseRecord, error)
+	Get(rctx request.CTX, id string) (*model.LicenseRecord, error)
 	GetAll() ([]*model.LicenseRecord, error)
 }
 
@@ -708,9 +708,9 @@ type DesktopTokensStore interface {
 
 type EmojiStore interface {
 	Save(emoji *model.Emoji) (*model.Emoji, error)
-	Get(c request.CTX, id string, allowFromCache bool) (*model.Emoji, error)
-	GetByName(c request.CTX, name string, allowFromCache bool) (*model.Emoji, error)
-	GetMultipleByName(c request.CTX, names []string) ([]*model.Emoji, error)
+	Get(rctx request.CTX, id string, allowFromCache bool) (*model.Emoji, error)
+	GetByName(rctx request.CTX, name string, allowFromCache bool) (*model.Emoji, error)
+	GetMultipleByName(rctx request.CTX, names []string) ([]*model.Emoji, error)
 	GetList(offset, limit int, sort string) ([]*model.Emoji, error)
 	Delete(emoji *model.Emoji, timestamp int64) error
 	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error)
@@ -728,7 +728,7 @@ type StatusStore interface {
 }
 
 type FileInfoStore interface {
-	Save(ctx request.CTX, info *model.FileInfo) (*model.FileInfo, error)
+	Save(rctx request.CTX, info *model.FileInfo) (*model.FileInfo, error)
 	Upsert(rctx request.CTX, info *model.FileInfo) (*model.FileInfo, error)
 	Get(id string) (*model.FileInfo, error)
 	GetFromMaster(id string) (*model.FileInfo, error)
@@ -738,16 +738,16 @@ type FileInfoStore interface {
 	GetForUser(userID string) ([]*model.FileInfo, error)
 	GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error)
 	InvalidateFileInfosForPostCache(postID string, deleted bool)
-	AttachToPost(c request.CTX, fileID string, postID string, channelID, creatorID string) error
-	DeleteForPost(c request.CTX, postID string) (string, error)
+	AttachToPost(rctx request.CTX, fileID string, postID string, channelID, creatorID string) error
+	DeleteForPost(rctx request.CTX, postID string) (string, error)
 	DeleteForPostByIds(rctx request.CTX, postId string, fileIDs []string) error
 	RestoreForPostByIds(rctx request.CTX, postId string, fileIDs []string) error
 	PermanentDeleteForPost(rctx request.CTX, postID string) error
-	PermanentDelete(c request.CTX, fileID string) error
-	PermanentDeleteBatch(ctx request.CTX, endTime int64, limit int64) (int64, error)
-	PermanentDeleteByUser(ctx request.CTX, userID string) (int64, error)
-	SetContent(ctx request.CTX, fileID, content string) error
-	Search(ctx request.CTX, paramsList []*model.SearchParams, userID, teamID string, page, perPage int) (*model.FileInfoList, error)
+	PermanentDelete(rctx request.CTX, fileID string) error
+	PermanentDeleteBatch(rctx request.CTX, endTime int64, limit int64) (int64, error)
+	PermanentDeleteByUser(rctx request.CTX, userID string) (int64, error)
+	SetContent(rctx request.CTX, fileID, content string) error
+	Search(rctx request.CTX, paramsList []*model.SearchParams, userID, teamID string, page, perPage int) (*model.FileInfoList, error)
 	CountAll() (int64, error)
 	GetFilesBatchForIndexing(startTime int64, startFileID string, includeDeleted bool, limit int) ([]*model.FileForIndexing, error)
 	ClearCaches()
@@ -761,7 +761,7 @@ type FileInfoStore interface {
 type UploadSessionStore interface {
 	Save(session *model.UploadSession) (*model.UploadSession, error)
 	Update(session *model.UploadSession) error
-	Get(c request.CTX, id string) (*model.UploadSession, error)
+	Get(rctx request.CTX, id string) (*model.UploadSession, error)
 	GetForUser(userID string) ([]*model.UploadSession, error)
 	Delete(id string) error
 }
@@ -790,13 +790,13 @@ type JobStore interface {
 	UpdateOptimistically(job *model.Job, currentStatus string) (bool, error)
 	UpdateStatus(id string, status string) (*model.Job, error)
 	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (*model.Job, error)
-	Get(c request.CTX, id string) (*model.Job, error)
-	GetAllByType(c request.CTX, jobType string) ([]*model.Job, error)
-	GetAllByTypeAndStatus(c request.CTX, jobType string, status string) ([]*model.Job, error)
-	GetAllByTypePage(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, error)
-	GetAllByTypesPage(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, error)
-	GetAllByStatus(c request.CTX, status string) ([]*model.Job, error)
-	GetAllByTypesAndStatusesPage(c request.CTX, jobType []string, status []string, offset int, limit int) ([]*model.Job, error)
+	Get(rctx request.CTX, id string) (*model.Job, error)
+	GetAllByType(rctx request.CTX, jobType string) ([]*model.Job, error)
+	GetAllByTypeAndStatus(rctx request.CTX, jobType string, status string) ([]*model.Job, error)
+	GetAllByTypePage(rctx request.CTX, jobType string, offset int, limit int) ([]*model.Job, error)
+	GetAllByTypesPage(rctx request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, error)
+	GetAllByStatus(rctx request.CTX, status string) ([]*model.Job, error)
+	GetAllByTypesAndStatusesPage(rctx request.CTX, jobType []string, status []string, offset int, limit int) ([]*model.Job, error)
 	GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, error)
 	GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error)
 	GetCountByStatusAndType(status string, jobType string) (int64, error)
@@ -1126,10 +1126,10 @@ type PropertyValueStore interface {
 }
 
 type AccessControlPolicyStore interface {
-	Save(c request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error)
-	Delete(c request.CTX, id string) error
-	SetActiveStatus(c request.CTX, id string, active bool) (*model.AccessControlPolicy, error)
-	Get(c request.CTX, id string) (*model.AccessControlPolicy, error)
+	Save(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error)
+	Delete(rctx request.CTX, id string) error
+	SetActiveStatus(rctx request.CTX, id string, active bool) (*model.AccessControlPolicy, error)
+	Get(rctx request.CTX, id string) (*model.AccessControlPolicy, error)
 	SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error)
 }
 
