@@ -28,12 +28,29 @@ jobs:
         uses: tj-actions/install-postgresql@v3
         with:
           postgresql-version: 17
-      
+
+      - name: Configure database
+        run: |
+          psql -c CREATE DATABASE mattermost WITH ENCODING 'UTF8' LC_COLLATE='en_US.UTF-8' LC_CTYPE='en_US.UTF-8' TEMPLATE=template0;
+          psql -c CREATE USER mmuser WITH PASSWORD 'mmuser-password';
+          psql -c GRANT ALL PRIVILEGES ON DATABASE mattermost to mmuser;
+          
       - name: Download Mattermost
         run: |
-          wget https://releases.mattermost.com/9.5.0/mattermost-9.5.0-linux-amd64.tar.gz
-          tar -xzf mattermost-9.5.0-linux-amd64.tar.gz
+          wget https://releases.mattermost.com/10.11.2/mattermost-10.11.2-linux-amd64.tar.gz
+          tar -xvzf mattermost*.gz
           mv mattermost /opt
+      
+      - name: Set up Mattermost
+        run: |
+          mkdir /opt/mattermost/data
+          useradd --system --user-group mattermost
+          chown -R mattermost:mattermost /opt/mattermost
+          chmod -R g+w /opt/mattermost
+          touch /lib/systemd/system/mattermost.service
+          systemctl daemon-reload
+      
+      #- name: 
       
       
 
