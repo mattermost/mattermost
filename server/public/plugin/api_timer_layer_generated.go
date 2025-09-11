@@ -1534,9 +1534,9 @@ func (api *apiTimerLayer) DeletePropertyField(groupID, fieldID string) error {
 	return _returnsA
 }
 
-func (api *apiTimerLayer) SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+func (api *apiTimerLayer) SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.SearchPropertyFields(groupID, targetID, opts)
+	_returnsA, _returnsB := api.apiImpl.SearchPropertyFields(groupID, opts)
 	api.recordTime(startTime, "SearchPropertyFields", _returnsB == nil)
 	return _returnsA, _returnsB
 }
@@ -1583,9 +1583,9 @@ func (api *apiTimerLayer) DeletePropertyValue(groupID, valueID string) error {
 	return _returnsA
 }
 
-func (api *apiTimerLayer) SearchPropertyValues(groupID, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+func (api *apiTimerLayer) SearchPropertyValues(groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.SearchPropertyValues(groupID, targetID, opts)
+	_returnsA, _returnsB := api.apiImpl.SearchPropertyValues(groupID, opts)
 	api.recordTime(startTime, "SearchPropertyValues", _returnsB == nil)
 	return _returnsA, _returnsB
 }
