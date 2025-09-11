@@ -24,6 +24,7 @@ type ChannelAccessRulesConfirmModalProps = {
     usersToRemove: string[];
     isProcessing?: boolean;
     autoSyncEnabled?: boolean;
+    isStacked?: boolean;
 };
 
 const USERS_PER_PAGE = 50;
@@ -37,6 +38,7 @@ function ChannelAccessRulesConfirmModal({
     usersToRemove,
     isProcessing = false,
     autoSyncEnabled = false,
+    isStacked = false,
 }: ChannelAccessRulesConfirmModalProps) {
     const dispatch = useDispatch();
 
@@ -196,7 +198,7 @@ function ChannelAccessRulesConfirmModal({
             modalHeaderText={modalTitle}
             modalSubheaderText={modalSubtitle}
             bodyPadding={false}
-            isStacked={true}
+            isStacked={isStacked}
         >
             {showUserList ? (
 

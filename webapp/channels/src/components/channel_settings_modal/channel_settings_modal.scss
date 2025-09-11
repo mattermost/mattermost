@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 .ChannelSettingsModal {
-    min-width: 920px;
+    width: 920px !important;
 
     &__infoTabTitle {
         margin-bottom: 4px;
@@ -202,6 +202,15 @@
         .modal-content,
         .GenericModal__wrapper {
             max-height: 85vh !important;
+        }
+    }
+
+    // SaveChangesPanel styling for wider modal
+    .SaveChangesPanel {
+        width: calc(70%);
+
+        @media screen and (max-width: 768px) {
+            width: calc(75%);
         }
     }
 }

@@ -711,6 +711,7 @@ function ChannelSettingsAccessRulesTab({
                     />
                 }
                 onConfirm={() => setShowSelfExclusionModal(false)}
+                onCancel={() => setShowSelfExclusionModal(false)}
                 hideCancel={true}
                 confirmButtonClass='btn btn-primary'
                 isStacked={true}
@@ -735,27 +736,7 @@ function ChannelSettingsAccessRulesTab({
                 usersToRemove={usersToRemove}
                 isProcessing={isProcessingSave}
                 autoSyncEnabled={autoSyncMembers}
-            />
-
-            {/* Confirmation modal for membership changes */}
-            <ChannelAccessRulesConfirmModal
-                show={showConfirmModal}
-                onHide={() => {
-                    setShowConfirmModal(false);
-                    setUsersToAdd([]);
-                    setUsersToRemove([]);
-
-                    // Clear any error state when canceling the modal
-                    if (saveChangesPanelState === 'error') {
-                        setSaveChangesPanelState(undefined);
-                    }
-                }}
-                onConfirm={handleConfirmSave}
-                channelName={channel.display_name}
-                usersToAdd={usersToAdd}
-                usersToRemove={usersToRemove}
-                isProcessing={isProcessingSave}
-                autoSyncEnabled={autoSyncMembers}
+                isStacked={true}
             />
         </div>
     );
