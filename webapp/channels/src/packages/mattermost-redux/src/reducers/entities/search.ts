@@ -3,12 +3,14 @@
 
 import {combineReducers} from 'redux';
 
-import type {Post} from '@mattermost/types/posts';
+import type {Post, PostsState} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
+import type {SearchState} from '@mattermost/types/search';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {FileTypes, PostTypes, PreferenceTypes, SearchTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Preferences} from 'mattermost-redux/constants';
+import type {EntitiesState} from 'mattermost-redux/reducers/entities/index';
 
 function results(state: string[] = [], action: MMReduxAction) {
     switch (action.type) {
@@ -73,6 +75,73 @@ function fileResults(state: string[] = [], action: MMReduxAction) {
     case UserTypes.LOGOUT_SUCCESS:
         return [];
 
+    default:
+        return state;
+    }
+}
+
+function handleFileRemovalFromPost(searchState: SearchState, action: MMReduxAction, postsState: PostsState) {
+    const updatedPost: Post = action.data;
+    const {posts} = postsState;
+
+    if (posts[updatedPost.id] && posts[updatedPost.id]?.file_ids) {
+        const oldPostFileIds = new Set(posts[updatedPost.id].file_ids);
+        const updatedPostFileIds = new Set(updatedPost.file_ids);
+        const getDeletedFiles = (oldPostFileIds: Set<string>, updatedPostFileIds: Set<string>) => {
+            const deletedFileIds = new Set();
+            for (const fileId of oldPostFileIds) {
+                if (!updatedPostFileIds.has(fileId)) {
+                    deletedFileIds.add(fileId);
+                }
+            }
+            return deletedFileIds;
+        }
+
+        // using this function instead of set.prototype.difference because the latest version of node (25)
+        // doesn't support it. Testing errors with message that difference is not a function
+        const deletedFileIds = getDeletedFiles(oldPostFileIds, updatedPostFileIds);
+        const updatedFileResults = searchState.fileResults.filter((fileId) => !deletedFileIds.has(fileId));
+
+        return {
+            ...searchState,
+            fileResults: updatedFileResults,
+        };
+    }
+
+    return searchState;
+}
+
+function handleDeletePost(searchState: SearchState, action: MMReduxAction, postsState: PostsState) {
+    const updatedPost: Post = action.data;
+    const {posts} = postsState;
+
+    if (posts[updatedPost.id] && posts[updatedPost.id]?.file_ids) {
+        const updatedPostFileIds = new Set(updatedPost.file_ids);
+        const updatedFileResults = searchState.fileResults.filter((fileId) => !updatedPostFileIds.has(fileId));
+
+        return {
+            ...searchState,
+            fileResults: updatedFileResults,
+        };
+    }
+
+    return searchState;
+}
+
+export function fileRemovalFromSearchResults(state: EntitiesState, action: MMReduxAction): EntitiesState {
+    switch (action.type) {
+    case PostTypes.RECEIVED_POST: {
+        return {
+            ...state,
+            search: handleFileRemovalFromPost(state.search, action, state.posts),
+        };
+    }
+    case PostTypes.POST_DELETED: {
+        return {
+            ...state,
+            search: handleDeletePost(state.search, action, state.posts),
+        };
+    }
     default:
         return state;
     }
