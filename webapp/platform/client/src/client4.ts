@@ -4606,6 +4606,13 @@ export default class Client4 {
         );
     };
 
+    createAccessControlSyncJob = (jobData: {policy_id: string}) => {
+        return this.doFetch<any>(
+            `${this.getBaseRoute()}/access_control_policies/sync_job`,
+            {method: 'post', body: JSON.stringify(jobData)},
+        );
+    };
+
     getChannelAccessControlAttributes = (channelId: string) => {
         return this.doFetch<AccessControlAttributes>(
             `${this.getChannelRoute(channelId)}/access_control/attributes`,

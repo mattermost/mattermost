@@ -26,6 +26,8 @@ func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/autocomplete/fields", api.APISessionRequired(getFieldsAutocomplete)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/visual_ast", api.APISessionRequired(convertToVisualAST)).Methods(http.MethodPost)
 
+	api.BaseRoutes.AccessControlPolicies.Handle("/sync_job", api.APISessionRequired(createAccessControlSyncJob)).Methods(http.MethodPost)
+
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(getAccessControlPolicy)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(deleteAccessControlPolicy)).Methods(http.MethodDelete)
 	api.BaseRoutes.AccessControlPolicy.Handle("/activate", api.APISessionRequired(updateActiveStatus)).Methods(http.MethodGet)
@@ -774,6 +776,52 @@ func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func createAccessControlSyncJob(c *Context, w http.ResponseWriter, r *http.Request) {
+	var jobData map[string]string
+	if jsonErr := json.NewDecoder(r.Body).Decode(&jobData); jsonErr != nil {
+		c.SetInvalidParamWithErr("job_data", jsonErr)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateJob, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "job_type", model.JobTypeAccessControlSync)
+	model.AddEventParameterToAuditRec(auditRec, "job_data", jobData)
+
+	// Create a job object for permission checking
+	job := &model.Job{
+		Type: model.JobTypeAccessControlSync,
+		Data: jobData,
+	}
+
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), job)
+	if permissionRequired == nil {
+		c.Err = model.NewAppError("createAccessControlSyncJob", "api.job.unable_to_create_job.incorrect_job_type", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if !hasPermission {
+		c.SetPermissionError(permissionRequired)
+		return
+	}
+
+	// Use the new method that handles deduplication
+	rjob, err := c.App.CreateAccessControlSyncJob(c.AppContext, jobData)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(rjob)
+	auditRec.AddEventObjectType("job")
+
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(rjob); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

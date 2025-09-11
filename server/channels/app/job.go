@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -75,6 +76,43 @@ func (a *App) GetJobsByTypesAndStatuses(c request.CTX, jobTypes []string, status
 
 func (a *App) CreateJob(c request.CTX, job *model.Job) (*model.Job, *model.AppError) {
 	return a.Srv().Jobs.CreateJob(c, job.Type, job.Data)
+}
+
+func (a *App) CreateAccessControlSyncJob(c request.CTX, jobData map[string]string) (*model.Job, *model.AppError) {
+	// Get the policy_id (channel ID) from job data to scope the deduplication
+	policyID, exists := jobData["policy_id"]
+	if !exists || policyID == "" {
+		return nil, model.NewAppError("CreateAccessControlSyncJob", "app.job.create_access_control_sync.missing_policy_id", nil, "", http.StatusBadRequest)
+	}
+
+	// Find existing pending or in-progress jobs for this specific policy/channel
+	existingJobs, err := a.Srv().Store().Job().GetByTypeAndData(c, model.JobTypeAccessControlSync, map[string]string{
+		"policy_id": policyID,
+	})
+	if err != nil {
+		return nil, model.NewAppError("CreateAccessControlSyncJob", "app.job.get_existing_jobs.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Cancel any existing pending or in-progress jobs for this policy
+	for _, job := range existingJobs {
+		if job.Status == model.JobStatusPending || job.Status == model.JobStatusInProgress {
+			c.Logger().Info("Canceling existing access control sync job before creating new one",
+				mlog.String("job_id", job.Id),
+				mlog.String("policy_id", policyID),
+				mlog.String("status", job.Status))
+
+			if appErr := a.CancelJob(c, job.Id); appErr != nil {
+				c.Logger().Warn("Failed to cancel existing access control sync job",
+					mlog.String("job_id", job.Id),
+					mlog.String("policy_id", policyID),
+					mlog.Err(appErr))
+				// Continue anyway - we'll create the new job
+			}
+		}
+	}
+
+	// Create the new job
+	return a.Srv().Jobs.CreateJob(c, model.JobTypeAccessControlSync, jobData)
 }
 
 func (a *App) CancelJob(c request.CTX, jobId string) *model.AppError {

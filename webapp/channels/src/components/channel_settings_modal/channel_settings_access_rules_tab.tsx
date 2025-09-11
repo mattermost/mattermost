@@ -6,7 +6,6 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
-import type {JobTypeBase} from '@mattermost/types/jobs';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
@@ -19,7 +18,6 @@ import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/m
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
-import {JobTypes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -388,13 +386,9 @@ function ChannelSettingsAccessRulesTab({
             // Step 3: If auto-sync is enabled, create a job to immediately sync channel membership
             if (autoSyncMembers && expression.trim()) {
                 try {
-                    const job: JobTypeBase & { data: {policy_id: string} } = {
-                        type: JobTypes.ACCESS_CONTROL_SYNC,
-                        data: {
-                            policy_id: channel.id, // Sync only this specific channel policy
-                        },
-                    };
-                    await actions.createJob(job);
+                    await actions.createAccessControlSyncJob({
+                        policy_id: channel.id, // Sync only this specific channel policy
+                    });
                 } catch (jobError) {
                     // Log job creation error but don't fail the save operation
                     // eslint-disable-next-line no-console

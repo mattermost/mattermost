@@ -387,6 +387,35 @@ func (jss SqlJobStore) GetCountByStatusAndType(status string, jobType string) (i
 	return count, nil
 }
 
+func (jss SqlJobStore) GetByTypeAndData(c request.CTX, jobType string, data map[string]string) ([]*model.Job, error) {
+	query := jss.jobQuery.Where(sq.Eq{"Type": jobType})
+
+	// Add JSON data filtering for each key-value pair
+	for key, value := range data {
+		if jss.DriverName() == model.DatabaseDriverPostgres {
+			// PostgreSQL JSON query
+			query = query.Where(sq.Expr("Data->? = ?", key, fmt.Sprintf(`"%s"`, value)))
+		} else {
+			// MySQL JSON query
+			query = query.Where(sq.Expr("JSON_EXTRACT(Data, ?) = ?", fmt.Sprintf("$.%s", key), value))
+		}
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_by_type_and_data_tosql")
+	}
+
+	var jobs []*model.Job
+	if err := jss.GetReplica().Select(&jobs, queryString, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get Jobs by type and data")
+	}
+
+	// Jobs are already properly unmarshaled by the SQL driver
+
+	return jobs, nil
+}
+
 func (jss SqlJobStore) Delete(id string) (string, error) {
 	query, args, err := jss.getQueryBuilder().
 		Delete("Jobs").

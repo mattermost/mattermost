@@ -800,6 +800,7 @@ type JobStore interface {
 	GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, error)
 	GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error)
 	GetCountByStatusAndType(status string, jobType string) (int64, error)
+	GetByTypeAndData(c request.CTX, jobType string, data map[string]string) ([]*model.Job, error)
 	Delete(id string) (string, error)
 	Cleanup(expiryTime int64, batchSize int) error
 }
