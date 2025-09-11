@@ -1460,7 +1460,7 @@ type API interface {
 	// CountPropertyFieldsForTarget counts property fields for a specific target.
 	//
 	// @tag PropertyField
-	// Minimum server version: 10.10
+	// Minimum server version: 11.0
 	CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
 
 	// CreatePropertyValue creates a new property value.
