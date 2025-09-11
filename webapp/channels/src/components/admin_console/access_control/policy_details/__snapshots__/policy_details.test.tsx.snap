@@ -98,6 +98,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             actions={
               Object {
                 "createJob": [MockFunction],
+                "deleteChannelPolicy": [MockFunction],
                 "getAccessControlFields": [MockFunction],
                 "getChannelMembers": [MockFunction],
                 "getChannelPolicy": [MockFunction],
@@ -309,6 +310,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             actions={
               Object {
                 "createJob": [MockFunction],
+                "deleteChannelPolicy": [MockFunction],
                 "getAccessControlFields": [MockFunction],
                 "getChannelMembers": [MockFunction],
                 "getChannelPolicy": [MockFunction],
