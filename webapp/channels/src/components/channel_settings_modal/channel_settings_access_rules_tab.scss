@@ -1,0 +1,101 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ChannelSettingsModal {
+    &__accessRulesTab {
+        display: flex;
+        max-height: 100%;
+        flex: 1;
+        flex-direction: column;
+        padding-bottom: 60px;
+        overflow-y: auto;
+    }
+
+    &__systemPolicies {
+        margin-bottom: 20px;
+    }
+
+    &__accessRulesHeader {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 24px;
+        gap: 8px;
+    }
+
+    &__accessRulesTitle {
+        margin: 0;
+        color: var(--center-channel-color);
+        font-family: Metropolis, sans-serif;
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 28px;
+    }
+
+    &__accessRulesSubtitle {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+    }
+
+    &__accessRulesDescription {
+        margin: 24px 0 0 0;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+    }
+
+    &__autoSyncSection {
+        margin: 32px 0 24px 0;
+    }
+
+    &__autoSyncLabel {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 8px;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    &__autoSyncCheckbox {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.65);
+        margin-top: 2px;
+        margin-right: 12px;
+        cursor: pointer;
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+    }
+
+    &__autoSyncText {
+        margin-left: 12px;
+        color: var(--center-channel-color);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+
+        &.disabled {
+            color: rgba(var(--center-channel-color-rgb), 0.5);
+            cursor: not-allowed;
+        }
+    }
+
+    &__autoSyncDescription {
+        margin: 0 0 0 30px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+    }
+}

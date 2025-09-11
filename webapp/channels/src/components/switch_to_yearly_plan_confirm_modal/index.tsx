@@ -7,13 +7,12 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
 import Svg from 'components/common/svg_images_components/woman_credit_card_and_laptop_svg';
 
-import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -39,10 +38,6 @@ const SwitchToYearlyPlanConfirmModal: React.FC<Props> = (props: Props): JSX.Elem
     };
 
     const handleClose = () => {
-        trackEvent(
-            TELEMETRY_CATEGORIES.CLOUD_ADMIN,
-            'confirm_switch_to_annual_click_close_modal',
-        );
         dispatch(closeModal(ModalIdentifiers.CONFIRM_SWITCH_TO_YEARLY));
     };
 

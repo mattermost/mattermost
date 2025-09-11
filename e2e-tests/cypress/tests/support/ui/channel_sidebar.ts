@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {ChainableT} from 'tests/types';
+
 import {getRandomId} from '../../utils';
 
 /**

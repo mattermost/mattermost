@@ -33,9 +33,9 @@ func (_m *EmojiStore) Delete(emoji *model.Emoji, timestamp int64) error {
 	return r0
 }
 
-// Get provides a mock function with given fields: c, id, allowFromCache
-func (_m *EmojiStore) Get(c request.CTX, id string, allowFromCache bool) (*model.Emoji, error) {
-	ret := _m.Called(c, id, allowFromCache)
+// Get provides a mock function with given fields: rctx, id, allowFromCache
+func (_m *EmojiStore) Get(rctx request.CTX, id string, allowFromCache bool) (*model.Emoji, error) {
+	ret := _m.Called(rctx, id, allowFromCache)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
@@ -44,10 +44,10 @@ func (_m *EmojiStore) Get(c request.CTX, id string, allowFromCache bool) (*model
 	var r0 *model.Emoji
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) (*model.Emoji, error)); ok {
-		return rf(c, id, allowFromCache)
+		return rf(rctx, id, allowFromCache)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) *model.Emoji); ok {
-		r0 = rf(c, id, allowFromCache)
+		r0 = rf(rctx, id, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Emoji)
@@ -55,7 +55,7 @@ func (_m *EmojiStore) Get(c request.CTX, id string, allowFromCache bool) (*model
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string, bool) error); ok {
-		r1 = rf(c, id, allowFromCache)
+		r1 = rf(rctx, id, allowFromCache)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -63,9 +63,9 @@ func (_m *EmojiStore) Get(c request.CTX, id string, allowFromCache bool) (*model
 	return r0, r1
 }
 
-// GetByName provides a mock function with given fields: c, name, allowFromCache
-func (_m *EmojiStore) GetByName(c request.CTX, name string, allowFromCache bool) (*model.Emoji, error) {
-	ret := _m.Called(c, name, allowFromCache)
+// GetByName provides a mock function with given fields: rctx, name, allowFromCache
+func (_m *EmojiStore) GetByName(rctx request.CTX, name string, allowFromCache bool) (*model.Emoji, error) {
+	ret := _m.Called(rctx, name, allowFromCache)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetByName")
@@ -74,10 +74,10 @@ func (_m *EmojiStore) GetByName(c request.CTX, name string, allowFromCache bool)
 	var r0 *model.Emoji
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) (*model.Emoji, error)); ok {
-		return rf(c, name, allowFromCache)
+		return rf(rctx, name, allowFromCache)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) *model.Emoji); ok {
-		r0 = rf(c, name, allowFromCache)
+		r0 = rf(rctx, name, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Emoji)
@@ -85,7 +85,7 @@ func (_m *EmojiStore) GetByName(c request.CTX, name string, allowFromCache bool)
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string, bool) error); ok {
-		r1 = rf(c, name, allowFromCache)
+		r1 = rf(rctx, name, allowFromCache)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -123,9 +123,9 @@ func (_m *EmojiStore) GetList(offset int, limit int, sort string) ([]*model.Emoj
 	return r0, r1
 }
 
-// GetMultipleByName provides a mock function with given fields: c, names
-func (_m *EmojiStore) GetMultipleByName(c request.CTX, names []string) ([]*model.Emoji, error) {
-	ret := _m.Called(c, names)
+// GetMultipleByName provides a mock function with given fields: rctx, names
+func (_m *EmojiStore) GetMultipleByName(rctx request.CTX, names []string) ([]*model.Emoji, error) {
+	ret := _m.Called(rctx, names)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetMultipleByName")
@@ -134,10 +134,10 @@ func (_m *EmojiStore) GetMultipleByName(c request.CTX, names []string) ([]*model
 	var r0 []*model.Emoji
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, []string) ([]*model.Emoji, error)); ok {
-		return rf(c, names)
+		return rf(rctx, names)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, []string) []*model.Emoji); ok {
-		r0 = rf(c, names)
+		r0 = rf(rctx, names)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Emoji)
@@ -145,7 +145,7 @@ func (_m *EmojiStore) GetMultipleByName(c request.CTX, names []string) ([]*model
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, []string) error); ok {
-		r1 = rf(c, names)
+		r1 = rf(rctx, names)
 	} else {
 		r1 = ret.Error(1)
 	}

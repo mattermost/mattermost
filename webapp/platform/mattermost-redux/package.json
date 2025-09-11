@@ -1,6 +1,6 @@
 {
   "name": "mattermost-redux",
-  "version": "10.6.0",
+  "version": "10.12.0",
   "description": "Common code (API client, Redux stores, logic, utility functions) for building a Mattermost client",
   "keywords": [
     "mattermost"
@@ -39,8 +39,8 @@
     "directory": "webapp/platform/mattermost-redux"
   },
   "dependencies": {
-    "@mattermost/client": "10.6.0",
-    "@mattermost/types": "10.6.0",
+    "@mattermost/client": "10.12.0",
+    "@mattermost/types": "10.12.0",
     "@redux-devtools/extension": "^3.2.3",
     "lodash": "^4.17.21",
     "moment-timezone": "^0.5.38",

@@ -1164,10 +1164,6 @@
     "translation": "Памер пакета масавага індэксавання Elasticsearch павінен быць не менш за {{.BatchSize}}."
   },
   {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Памер пакета масавага індэксавання Bleve павінен быць не менш за {{.BatchSize}}."
-  },
-  {
     "id": "app.channel.get_file_count.app_error",
     "translation": "Не атрымалася атрымаць колькасць файлаў для канала"
   },
@@ -1258,14 +1254,6 @@
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Колькасць атрыманых ID паведамленняў перавышае максімальны памер {{.MaxLength}}"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Не ўдаецца атрымаць карыстальнікаў для архіўнага канала"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Не ўдаецца атрымаць паведамленні для архіўнага канала"
   },
   {
     "id": "app.session.extend_session_expiry.app_error",
@@ -1502,10 +1490,6 @@
   {
     "id": "sharedchannel.cannot_deliver_post",
     "translation": "Адно ці некалькі паведамленняў не могуць быць дастаўлены на выдалены сайт {{.Remote}}, бо ён у афлайне. Паведамленні будуць дастаўлены, калі сайт будзе анлайн."
-  },
-  {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Памылка ачысткі індэксаў Bleve: рухавічок адключаны"
   },
   {
     "id": "plugin_api.send_mail.missing_to",
@@ -2390,18 +2374,6 @@
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Немагчыма ўключыць пакетную апрацоўку пошты пры ўключанай кластарызацыі."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Параметр Bleve IndexingDir павінен быць усталяваны, калі для параметра Bleve EnableIndexing усталявана значэнне true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Параметр Bleve EnableIndexing павінен мець значэнне true, калі для Bleve EnableSearching устаноўлена значэнне true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Параметр Bleve EnableIndexing павінен мець значэнне true, калі для Bleve EnableAutocomplete устаноўлена значэнне true"
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
@@ -3468,10 +3440,6 @@
     "translation": "Не ўдалося атрымаць паведамленні для канала."
   },
   {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Немагчыма атрымаць пакет паведамленняў для індэксацыі."
-  },
-  {
     "id": "app.post.get_posts_around.get.app_error",
     "translation": "Не ўдалося атрымаць паведамленні для канала."
   },
@@ -3490,10 +3458,6 @@
   {
     "id": "app.post.get_flagged_posts.app_error",
     "translation": "Не ўдалося атрымаць адзначаныя сцягам паведамленні."
-  },
-  {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "Не ўдалося атрымаць пакет файлаў для індэксацыі."
   },
   {
     "id": "app.post.get_direct_posts.app_error",
@@ -4528,170 +4492,6 @@
     "translation": "Памылка праверкі абмежаванняў выявы. Дазвол занадта высокае."
   },
   {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Не ўдалося закрыць індэкс карыстальніка."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Не ўдалося закрыць індэкс паведамлення."
-  },
-  {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Не ўдалося закрыць індэкс файлаў."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Не ўдалося закрыць індэкс канала."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Пошук карыстальнікаў не ўдалося завяршыць."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Пошук карыстальнікаў не ўдалося завяршыць."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Пошук карыстальнікаў не ўдалося завяршыць."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Пошук паведамленняў не ўдалося завяршыць."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "Пошук файлаў не завяршыўся."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Пошук каналаў не ўдалося завяршыць."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Не ўдалося ачысціць індэксы карыстальнікаў."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Не ўдалося ачысціць індэксы паведамленняў."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Не атрымалася ачысціць азначнікі файлаў."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Не ўдалося ачысціць індэксы канала."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Спроба праіндэксаваць новы пакет, калі ўсе элементы ўжо былі завершаны."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Работніку індэксавання Bleve не ўдалося прааналізаваць час пачатку."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Работніку індэксавання Bleve не ўдалося прааналізаваць час заканчэння."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "Самы стары аб'ект (карыстальнік, канал або паведамленне) не можа быць выняты з базы дадзеных."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Не атрымалася запусціць заданне індэксавання Bleve: рухавік неактыўны."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Не ўдалося праіндэксаваць пакет карыстальнікаў."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Не ўдалося праіндэксаваць пакет паведамленняў."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Не атрымалася праіндэксаваць пакет файлаў."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Не ўдалося праіндэксаваць пакет каналаў."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Не ўдалося праіндэксаваць карыстальніка."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Не ўдалося праіндэксаваць паведамленне."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "Не атрымалася праіндэксаваць файл."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Не ўдалося праіндэксаваць канал."
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Не атрымалася выдаліць паведамленні карыстальніка"
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Не атрымалася выдаліць прыстасаваныя файлы."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Не атрымалася выдаліць карыстальніка."
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Не атрымалася выдаліць файлы паведамленняў."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Не атрымалася выдаліць допіс."
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Не ўдалося выдаліць файлы."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Не ўдалося выдаліць файл."
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Не атрымалася выдаліць паведамленні канала"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Не атрымалася выдаліць канал."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Памылка пры стварэнні азначніка карыстачоў bleve."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Памылка пры стварэнні азначніка паведамленняў bleve."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Памылка пры стварэнні азначніка bleve-файла."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Памылка пры стварэнні азначніка канала bleve."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve ужо запушчаны."
-  },
-  {
     "id": "app.webhooks.update_outgoing.app_error",
     "translation": "Не ўдалося абнавіць вэбхук."
   },
@@ -5266,14 +5066,6 @@
   {
     "id": "api.user.login.guest_accounts.disabled.error",
     "translation": "Гасцявыя ўліковыя запісы адключаныя"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Спроба выкарыстання эксперыментальнай магчымасці ClientSideCert без сапраўднай карпаратыўнай ліцэнзіі."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Спроба ўвайсці з выкарыстаннем эксперыментальнай магчымасці ClientSideCert без прадастаўлення сапраўднага сертыфіката."
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
@@ -6522,10 +6314,6 @@
   {
     "id": "app.channel.get_channels_by_ids.app_error",
     "translation": "Немагчыма атрымаць каналы па ідэнтыфікатарах."
-  },
-  {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Немагчыма атрымаць пакет каналаў для індэксацыі."
   },
   {
     "id": "app.channel.get_channels.not_found.app_error",
@@ -8042,10 +7830,6 @@
   {
     "id": "api.config.get_config.restricted_merge.app_error",
     "translation": "Памылка аб'яднання з дадзенай канфігурацыяй."
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Новы фармат канфігурацыі кліента пакуль не падтрымліваецца. Калі ласка, укажыце format=old у радку запыту."
   },
   {
     "id": "api.command_shrug.desc",

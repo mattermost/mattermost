@@ -17,15 +17,30 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-const EmojisPermissionsMigrationKey = "EmojisPermissionsMigrationComplete"
-const GuestRolesCreationMigrationKey = "GuestRolesCreationMigrationComplete"
-const SystemConsoleRolesCreationMigrationKey = "SystemConsoleRolesCreationMigrationComplete"
-const CustomGroupAdminRoleCreationMigrationKey = "CustomGroupAdminRoleCreationMigrationComplete"
-const ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
-const PlaybookRolesCreationMigrationKey = "PlaybookRolesCreationMigrationComplete"
-const FirstAdminSetupCompleteKey = model.SystemFirstAdminSetupComplete
-const remainingSchemaMigrationsKey = "RemainingSchemaMigrations"
-const postPriorityConfigDefaultTrueMigrationKey = "PostPriorityConfigDefaultTrueMigrationComplete"
+const (
+	EmojisPermissionsMigrationKey                  = "EmojisPermissionsMigrationComplete"
+	GuestRolesCreationMigrationKey                 = "GuestRolesCreationMigrationComplete"
+	SystemConsoleRolesCreationMigrationKey         = "SystemConsoleRolesCreationMigrationComplete"
+	CustomGroupAdminRoleCreationMigrationKey       = "CustomGroupAdminRoleCreationMigrationComplete"
+	ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
+	PlaybookRolesCreationMigrationKey              = "PlaybookRolesCreationMigrationComplete"
+	FirstAdminSetupCompleteKey                     = model.SystemFirstAdminSetupComplete
+	remainingSchemaMigrationsKey                   = "RemainingSchemaMigrations"
+	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
+	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
+	contentFlaggingMigrationVersion                = "v1"
+
+	contentFlaggingPropertyNameFlaggedPostId    = "flagged_post_id"
+	contentFlaggingPropertyNameStatus           = "status"
+	contentFlaggingPropertyNameReportingUserID  = "reporting_user_id"
+	contentFlaggingPropertyNameReportingReason  = "reporting_reason"
+	contentFlaggingPropertyNameReportingComment = "reporting_comment"
+	contentFlaggingPropertyNameReportingTime    = "reporting_time"
+	contentFlaggingPropertyNameReviewerUserID   = "reviewer_user_id"
+	contentFlaggingPropertyNameActorUserID      = "actor_user_id"
+	contentFlaggingPropertyNameActorComment     = "actor_comment"
+	contentFlaggingPropertyNameActionTime       = "action_time"
+)
 
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() error {
@@ -582,7 +597,126 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 	return nil
 }
 
-func (s *Server) doCloudS3PathMigrations(c request.CTX) error {
+func (s *Server) doSetupContentFlaggingProperties() error {
+	// This migration is designed in a way to allow adding more properties in the future.
+	// When a new property needs to be added, add it to the expectedPropertiesMap map and
+	// update the contentFlaggingMigrationVersion to a new value..
+
+	// If the migration is already marked as completed, don't do it again.
+	var nfErr *store.ErrNotFound
+	data, err := s.Store().System().GetByName(contentFlaggingSetupDoneKey)
+	if err != nil && !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
+	}
+
+	if data != nil && data.Value == contentFlaggingMigrationVersion {
+		return nil
+	}
+
+	// RegisterPropertyGroup is idempotent, so no need to check if group is already registered
+	group, err := s.propertyService.RegisterPropertyGroup(model.ContentFlaggingGroupName)
+	if err != nil {
+		return fmt.Errorf("failed to register Content Flagging group: %w", err)
+	}
+
+	// Using page size of 100 and not iterating through all pages because the
+	// number of fields are static and defined here and not expected to be more than 100 for now.
+	existingProperties, appErr := s.propertyService.SearchPropertyFields(group.ID, "", model.PropertyFieldSearchOpts{PerPage: 100})
+	if appErr != nil {
+		return fmt.Errorf("failed to search for existing content flagging properties: %w", appErr)
+	}
+
+	existingPropertiesMap := map[string]*model.PropertyField{}
+	for _, property := range existingProperties {
+		existingPropertiesMap[property.Name] = property
+	}
+
+	expectedPropertiesMap := map[string]*model.PropertyField{
+		contentFlaggingPropertyNameFlaggedPostId: {
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyNameFlaggedPostId,
+			Type:    model.PropertyFieldTypeText,
+		},
+		contentFlaggingPropertyNameStatus: {
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyNameStatus,
+			Type:    model.PropertyFieldTypeSelect,
+		},
+		contentFlaggingPropertyNameReportingUserID: {
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyNameReportingUserID,
+			Type:    model.PropertyFieldTypeUser,
+		},
+		contentFlaggingPropertyNameReportingReason: {
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyNameReportingReason,
+			Type:    model.PropertyFieldTypeSelect,
+		},
+		contentFlaggingPropertyNameReportingComment: {
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyNameReportingComment,
+			Type:    model.PropertyFieldTypeText,
+		},
+		contentFlaggingPropertyNameReportingTime: {
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyNameReportingTime,
+			Type:    model.PropertyFieldTypeText,
+		},
+		contentFlaggingPropertyNameReviewerUserID: {
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyNameReviewerUserID,
+			Type:    model.PropertyFieldTypeUser,
+		},
+		contentFlaggingPropertyNameActorUserID: {
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyNameActorUserID,
+			Type:    model.PropertyFieldTypeUser,
+		},
+		contentFlaggingPropertyNameActorComment: {
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyNameActorComment,
+			Type:    model.PropertyFieldTypeText,
+		},
+		contentFlaggingPropertyNameActionTime: {
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyNameActionTime,
+			Type:    model.PropertyFieldTypeText,
+		},
+	}
+
+	var propertiesToUpdate []*model.PropertyField
+	var propertiesToCreate []*model.PropertyField
+
+	for name, expectedProperty := range expectedPropertiesMap {
+		if _, exists := existingPropertiesMap[name]; exists {
+			property := existingPropertiesMap[name]
+			property.Type = expectedProperty.Type
+			propertiesToUpdate = append(propertiesToUpdate, property)
+		} else {
+			propertiesToCreate = append(propertiesToCreate, expectedProperty)
+		}
+	}
+
+	for _, property := range propertiesToCreate {
+		if _, err := s.propertyService.CreatePropertyField(property); err != nil {
+			return fmt.Errorf("failed to create content flagging property: %q, error: %w", property.Name, err)
+		}
+	}
+
+	if len(propertiesToUpdate) > 0 {
+		if _, err := s.propertyService.UpdatePropertyFields(group.ID, propertiesToUpdate); err != nil {
+			return fmt.Errorf("failed to update content flagging property fields: %w", err)
+		}
+	}
+
+	if err := s.Store().System().SaveOrUpdate(&model.System{Name: contentFlaggingSetupDoneKey, Value: contentFlaggingMigrationVersion}); err != nil {
+		return fmt.Errorf("failed to save content flagging setup done flag in system store %w", err)
+	}
+
+	return nil
+}
+
+func (s *Server) doCloudS3PathMigrations(rctx request.CTX) error {
 	// This migration is only applicable for cloud environments
 	if os.Getenv("MM_CLOUD_FILESTORE_BIFROST") == "" {
 		return nil
@@ -595,7 +729,7 @@ func (s *Server) doCloudS3PathMigrations(c request.CTX) error {
 
 	// If there is a job already pending, no need to schedule again.
 	// This is possible if the pod was rolled over.
-	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeS3PathMigration, model.JobStatusPending)
+	jobs, err := s.Store().Job().GetAllByTypeAndStatus(rctx, model.JobTypeS3PathMigration, model.JobStatusPending)
 	if err != nil {
 		return fmt.Errorf("failed to get jobs by type and status: %w", err)
 	}
@@ -603,20 +737,20 @@ func (s *Server) doCloudS3PathMigrations(c request.CTX) error {
 		return nil
 	}
 
-	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeS3PathMigration, nil); appErr != nil {
+	if _, appErr := s.Jobs.CreateJobOnce(rctx, model.JobTypeS3PathMigration, nil); appErr != nil {
 		return fmt.Errorf("failed to start job for migrating s3 file paths: %w", appErr)
 	}
 
 	return nil
 }
 
-func (s *Server) doDeleteEmptyDraftsMigration(c request.CTX) error {
+func (s *Server) doDeleteEmptyDraftsMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store().System().GetByName(model.MigrationKeyDeleteEmptyDrafts); err == nil {
 		return nil
 	}
 
-	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeDeleteEmptyDraftsMigration, model.JobStatusPending)
+	jobs, err := s.Store().Job().GetAllByTypeAndStatus(rctx, model.JobTypeDeleteEmptyDraftsMigration, model.JobStatusPending)
 	if err != nil {
 		return fmt.Errorf("failed to get jobs by type and status: %w", err)
 	}
@@ -624,20 +758,20 @@ func (s *Server) doDeleteEmptyDraftsMigration(c request.CTX) error {
 		return nil
 	}
 
-	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeDeleteEmptyDraftsMigration, nil); appErr != nil {
+	if _, appErr := s.Jobs.CreateJobOnce(rctx, model.JobTypeDeleteEmptyDraftsMigration, nil); appErr != nil {
 		return fmt.Errorf("failed to start job for deleting empty drafts: %w", appErr)
 	}
 
 	return nil
 }
 
-func (s *Server) doDeleteOrphanDraftsMigration(c request.CTX) error {
+func (s *Server) doDeleteOrphanDraftsMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store().System().GetByName(model.MigrationKeyDeleteOrphanDrafts); err == nil {
 		return nil
 	}
 
-	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeDeleteOrphanDraftsMigration, model.JobStatusPending)
+	jobs, err := s.Store().Job().GetAllByTypeAndStatus(rctx, model.JobTypeDeleteOrphanDraftsMigration, model.JobStatusPending)
 	if err != nil {
 		return fmt.Errorf("failed to get jobs by type and status: %w", err)
 	}
@@ -645,20 +779,20 @@ func (s *Server) doDeleteOrphanDraftsMigration(c request.CTX) error {
 		return nil
 	}
 
-	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeDeleteOrphanDraftsMigration, nil); appErr != nil {
+	if _, appErr := s.Jobs.CreateJobOnce(rctx, model.JobTypeDeleteOrphanDraftsMigration, nil); appErr != nil {
 		return fmt.Errorf("failed to start job for deleting orphan drafts: %w", appErr)
 	}
 
 	return nil
 }
 
-func (s *Server) doDeleteDmsPreferencesMigration(c request.CTX) error {
+func (s *Server) doDeleteDmsPreferencesMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store().System().GetByName(model.MigrationKeyDeleteDmsPreferences); err == nil {
 		return nil
 	}
 
-	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeDeleteDmsPreferencesMigration, model.JobStatusPending)
+	jobs, err := s.Store().Job().GetAllByTypeAndStatus(rctx, model.JobTypeDeleteDmsPreferencesMigration, model.JobStatusPending)
 	if err != nil {
 		return fmt.Errorf("failed to get jobs by type and status: %w", err)
 	}
@@ -666,7 +800,7 @@ func (s *Server) doDeleteDmsPreferencesMigration(c request.CTX) error {
 		return nil
 	}
 
-	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeDeleteDmsPreferencesMigration, nil); appErr != nil {
+	if _, appErr := s.Jobs.CreateJobOnce(rctx, model.JobTypeDeleteDmsPreferencesMigration, nil); appErr != nil {
 		return fmt.Errorf("failed to start job for deleting dm preferences: %w", appErr)
 	}
 
@@ -695,6 +829,7 @@ func (s *Server) doAppMigrations() {
 		{"First Admin Setup Complete Migration", s.doFirstAdminSetupCompleteMigration},
 		{"Remaining Schema Migrations", s.doRemainingSchemaMigrations},
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
+		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
 	}
 
 	for i := range m1 {
@@ -718,9 +853,9 @@ func (s *Server) doAppMigrations() {
 		{"Delete Invalid Dms Preferences Migration", s.doDeleteDmsPreferencesMigration},
 	}
 
-	c := request.EmptyContext(s.Log())
+	rctx := request.EmptyContext(s.Log())
 	for i := range m2 {
-		err := m2[i].handler(c)
+		err := m2[i].handler(rctx)
 		if err != nil {
 			mlog.Fatal("Failed to run app migration",
 				mlog.String("migration", m2[i].name),

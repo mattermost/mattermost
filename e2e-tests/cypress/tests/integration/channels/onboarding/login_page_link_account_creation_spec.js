@@ -100,7 +100,7 @@ describe('Onboarding', () => {
         cy.url().should('include', `/${testTeam.name}/channels/town-square`);
     });
 
-    // eslint-disable-next-line no-shadow
+
     function getEmail(username, email) {
         cy.getRecentEmail({username, email}).then((data) => {
             // * Verify that the email subject is correct

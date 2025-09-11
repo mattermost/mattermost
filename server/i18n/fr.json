@@ -924,10 +924,6 @@
     "translation": "haussement"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Le nouveau format pour la configuration du client n'est pas encore supporté. Veuillez spécifier format=old dans la chaîne de requête (query string)"
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Désolé, impossible de trouver cette page."
   },
@@ -2078,14 +2074,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Bot login is forbidden"
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Tentative de connexion à l'aide de la fonctionnalité expérimentale ClientSideCert sans avoir fourni un certificat valide"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Tentative d'utilisation la fonctionnalité expérimentale ClientSideCertEnable sans avoir défini une licence entreprise valide"
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -4664,10 +4652,6 @@
     "translation": "Téléchargez la dernière version du navigateur Google Chrome"
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Erreur lors de la purge des index Bleve : l'enfin est désactivé."
-  },
-  {
     "id": "plugin_api.bot_cant_create_bot",
     "translation": "L'utilisateur de bot ne peut pas créer un autre utilisateur de bot."
   },
@@ -4776,18 +4760,6 @@
     "translation": "Le paramètre IndexingEnabled d'Elasticsearch doit être activé lorsque la propriété AutocompleteEnabled d'Elasticsearch est activée."
   },
   {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Le paramètre IndexingEnabled d'Elasticsearch doit être activé lorsque la propriété SearchEnabled d'Elasticsearch est activée."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Le paramètre IndexingEnabled d'Elasticsearch doit être activé lorsque la propriété SearchEnabled d'Elasticsearch est activée."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Le paramètre IndexingEnabled d'Elasticsearch doit être activé lorsque la propriété AutocompleteEnabled d'Elasticsearch est activée."
-  },
-  {
     "id": "model.command.is_valid.autocomplete_data.app_error",
     "translation": "Invalid AutocompleteData"
   },
@@ -4886,118 +4858,6 @@
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "Impossible de créer un modèle Elasticsearch pour les canaux"
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Failed to close user index."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Failed to close post index."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Failed to close channel index."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "La recherche a échoué"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "La recherche a échoué"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "La recherche a échoué"
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "La recherche a échoué"
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "La recherche a échoué"
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Failed to purge user indexes."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Failed to purge post indexes."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Failed to purge channel indexes."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Essai d'indexation d'un nouveau lot alors que toutes les entités ont terminé."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Le système d’agrégation Elasticsearch n'a pas pu interpréter l'heure de début"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Le système d’agrégation Elasticsearch n'a pas pu interpréter l'heure de fin"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Impossible de lancer le job d'indexation Bleve : l'engin est inactif."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Failed to index user batch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Failed to index post batch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Failed to index channel batch."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Impossible d'indexer l'utilisateur"
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Impossible d'indexer le message"
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Impossible d'indexer le canal"
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Impossible de supprimer l'utilisateur"
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Impossible de supprimer le message"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Impossible de supprimer le canal"
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Error creating the bleve user index."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Error creating the bleve post index."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Error creating the bleve channel index."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve is already started."
   },
   {
     "id": "app.user_terms_of_service.save.app_error",
@@ -5844,14 +5704,6 @@
     "translation": "Impossible de supprimer le message"
   },
   {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Impossible de supprimer le message"
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Impossible de supprimer le message"
-  },
-  {
     "id": "app.scheme.delete.app_error",
     "translation": "Impossible de supprimer le schéma de permissions."
   },
@@ -6224,10 +6076,6 @@
     "translation": "Impossible de récupérer les membres du canal."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Impossible de récupérer le lot de canaux à indexer."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Impossible de récupérer les canaux pour le schéma de permissions spécifié."
   },
@@ -6258,10 +6106,6 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "Impossible de récupérer les messages pour le canal spécifié"
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Impossible de récupérer le lot de messages à indexer."
   },
   {
     "id": "app.post.get_posts.app_error",
@@ -7130,10 +6974,6 @@
   {
     "id": "app.post.search.app_error",
     "translation": "Une erreur s'est produite lors de la recherche de messages"
-  },
-  {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "Impossible de récupérer le lot de fichiers à indexer."
   },
   {
     "id": "app.notification.footer.title",
@@ -8128,14 +7968,6 @@
     "translation": "Impossible d'obtenir le nombre de fichiers du canal"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Impossible de retrouver les utilisateurs pour un canal archivé"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Impossible de retrouver les messages pour un canal archivé"
-  },
-  {
     "id": "api.templates.invite_team_and_channels_subject",
     "translation": "[{{ .SiteName}}] {{ .SenderName }} vous a invité à rejoindre {{ .ChannelsLen }} canaux de l'équipe {{ .TeamDisplayName }}"
   },
@@ -8208,10 +8040,6 @@
     "translation": " "
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": " "
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Déjà notifié à l'administrateur"
   },
@@ -8248,18 +8076,6 @@
     "translation": " "
   },
   {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": " "
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": " "
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": " "
-  },
-  {
     "id": "model.session.is_valid.roles_limit.app_error",
     "translation": " "
   },
@@ -8273,10 +8089,6 @@
   },
   {
     "id": "app.valid_password_generic.app_error",
-    "translation": " "
-  },
-  {
-    "id": "bleveengine.stop_file_index.error",
     "translation": " "
   },
   {
@@ -8384,18 +8196,6 @@
     "translation": " "
   },
   {
-    "id": "bleveengine.create_file_index.error",
-    "translation": " "
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": " "
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": " "
-  },
-  {
     "id": "sharedchannel.cannot_deliver_post",
     "translation": " "
   },
@@ -8404,19 +8204,11 @@
     "translation": " "
   },
   {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.user.update_threads_read_for_user.app_error",
     "translation": " "
   },
   {
     "id": "brand.save_brand_image.check_image_limits.app_error",
-    "translation": " "
-  },
-  {
-    "id": "bleveengine.delete_file.error",
     "translation": " "
   },
   {
@@ -8469,10 +8261,6 @@
   },
   {
     "id": "import_process.worker.do_job.open_file",
-    "translation": " "
-  },
-  {
-    "id": "bleveengine.search_files.error",
     "translation": " "
   },
   {
@@ -8548,10 +8336,6 @@
     "translation": " "
   },
   {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": " "
-  },
-  {
     "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
     "translation": " "
   },
@@ -8569,7 +8353,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Vous ne pouvez pas acquitter dans un canal archivé."
+    "translation": "Vous ne pouvez pas enregistrer une confirmation dans un canal archivé."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
@@ -9034,5 +8818,9 @@
   {
     "id": "api.plugin.upload.file_too_large.app_error",
     "translation": "La taille du plugin envoyé excède la limite. Cette limite peut être changée dans la console système via Stockage de fichiers > Taille maximale de fichier"
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Échec de l’ajout du certificat."
   }
 ]

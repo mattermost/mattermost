@@ -1244,10 +1244,6 @@
     "translation": "یک یا چند پست به سایت راه دور {{.Remote}} تحویل داده نشد زیرا آفلاین است. پست(ها) زمانی که سایت آنلاین باشد تحویل داده می شود."
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "خطا در پاکسازی شاخص های Bleve: موتور غیرفعال است"
-  },
-  {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "آدرس TO موجود نیست."
   },
@@ -2224,18 +2220,6 @@
     "translation": "هنگام فعال کردن خوشه بندی ، امکان فعال سازی دسته ای ایمیل وجود ندارد."
   },
   {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Bleve IndexingDir باید تنظیم شود وقتی Bleve EnableIndexing روی true تنظیم شود"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "وقتی Bleve EnableSearching روی true تنظیم شد ، باید تنظیمات Indexing روی true باشد"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "وقتی Bleve EnableAutocomplete روی true تنظیم می شود باید تنظیمات Indexing روی true باشد"
-  },
-  {
     "id": "app.import.validate_reaction_import_data.create_at_missing.error",
     "translation": "ویژگی مورد نیاز واکنش وجود ندارد: Creat_at."
   },
@@ -2912,14 +2896,6 @@
     "translation": "حساب های مهمان غیرفعال شده است"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "تلاش برای استفاده از ویژگی آزمایشی ClientSideCertEnable بدون مجوز معتبر شرکت."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "سعی در ورود به سیستم با استفاده از ویژگی آزمایشی ClientSideCert بدون ارائه گواهی معتبر است."
-  },
-  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "ورود بات ممنوع است."
   },
@@ -3238,162 +3214,6 @@
   {
     "id": "brand.save_brand_image.check_image_limits.app_error",
     "translation": "بررسی محدودیت های تصویر ناموفق بود. رزولوشن خیلی بالاست"
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "ایندکس کاربر بسته نشد."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "ایندکس پست بسته نشد."
-  },
-  {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "فهرست فایل بسته نشد."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "ایندکس کانال بسته نشد."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "جستجوی کاربر کامل نشد."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "جستجوی کاربر کامل نشد."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "جستجوی کاربر کامل نشد."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "جستجوی پست کامل نشد."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "جستجوی فایل کامل نشد."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "جستجوی کانال کامل نشد."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "ایندکس های کاربرپاک نشدند."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "ایندکس های پست پاک نشدند."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "فهرست‌های فایل پاک نشد."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "ایندکس های کانال پاک نشدند."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "سعی می شود وقتی تمام موجودیت ها تکمیل شد ، یک دسته جدید را ایندکس سازی کنید."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "کارگر ایندکس سازی Bleve در تجزیه زمان شروع موفق نشد.."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "کارگر ایندکس سازی Bleve در تجزیه زمان پایان موفق نشد."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "قدیمی ترین موجودیت (کاربر، کانال یا پست) را نمی توان از پایگاه داده بازیابی کرد."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "ایندکس Bleve اجرا نشد: موتور غیرفعال است."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "ایندکس دسته ای کاربرانجام نشد."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "ایندکس دسته ای پست انجام نشد."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "فهرست بندی دسته ای فایل انجام نشد."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "ایندکس دسته ای کانال انجام نشد."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "ایندکس کاربرانجام نشد."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "ایندکس پست انجام نشد."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "فهرست کردن فایل انجام نشد."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "ایندکس کانال انجام نشد."
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "پست های کاربر حذف نشد"
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "فایل های پست حذف نشد."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "کاربر حذف نشد."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "پست حذف نشد."
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "فایل ها حذف نشدند."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "فایل حذف نشد."
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "پست های کانال حذف نشد"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "کانال حذف نشد."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "خطا در ایجاد ایندکس کاربر bleve."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "خطا در ایجاد ایندکس پست bleve."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "خطا در ایجاد ایندکس کانال bleve."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve قبلاً شروع شده است."
   },
   {
     "id": "app.webhooks.update_outgoing.app_error",
@@ -3844,10 +3664,6 @@
     "translation": "دریافت پست های کانال امکان پذیر نیست."
   },
   {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "دریافت دسته ای از پست ها برای ایندکس سازی امکان پذیر نیست."
-  },
-  {
     "id": "app.post.get_posts_around.get.app_error",
     "translation": "دریافت پست های کانال امکان پذیر نیست."
   },
@@ -3866,10 +3682,6 @@
   {
     "id": "app.post.get_flagged_posts.app_error",
     "translation": "دریافت پست های پرچم دار امکان پذیر نیست."
-  },
-  {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "نمی توان دسته ای از فایل ها را برای نمایه سازی دریافت کرد."
   },
   {
     "id": "app.post.get_direct_posts.app_error",
@@ -5196,10 +5008,6 @@
     "translation": "دریافت کانال توسط شناسه امکان پذیر نیست."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "دریافت دسته کانالها برای ایندکس سازی امکان پذیر نیست."
-  },
-  {
     "id": "app.channel.get_channels.not_found.app_error",
     "translation": "هیچ کانال پیدا نشد."
   },
@@ -5406,14 +5214,6 @@
   {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "اتصال وب سوکت به روز نشد."
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "نمی توان کاربران را برای یک کانال بایگانی شده بازیابی کرد"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "نمی توان پست های یک کانال بایگانی شده را بازیابی کرد"
   },
   {
     "id": "api.user.verify_email.token_parse.error",
@@ -6839,10 +6639,6 @@
   {
     "id": "api.config.get_config.restricted_merge.app_error",
     "translation": "پیکربندی داده شده ادغام نشد."
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "قالب جدید برای پیکربندی سرویس گیرنده هنوز پشتیبانی نمی شود. لطفا format=old را در رشته جستجو مشخص کنید."
   },
   {
     "id": "api.command_shrug.name",

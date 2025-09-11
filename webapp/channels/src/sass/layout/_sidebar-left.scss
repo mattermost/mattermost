@@ -4,25 +4,6 @@
 $sidebarHeightTransitionDuration: 0.18s;
 $sidebarOpacityAnimationDuration: 0.15s;
 
-#TeamSidebar {
-    z-index: 13;
-    display: flex;
-    width: 64px;
-    height: 100%;
-    flex-direction: column;
-    background-color: var(--sidebar-header-bg);
-    text-align: center;
-
-    .TeamSidebarWrapper {
-        position: relative;
-        overflow: hidden;
-        height: 100%;
-        flex: 1 1 auto;
-        background-color: rgba(0, 0, 0, 0.2);
-        -webkit-overflow-scrolling: touch;
-    }
-}
-
 #SidebarContainer {
     position: relative;
     z-index: 16;
@@ -31,8 +12,10 @@ $sidebarOpacityAnimationDuration: 0.15s;
     min-width: 240px;
     max-width: 240px;
     height: 100%;
+    min-height: 0;
     flex-direction: column;
     background-color: var(--sidebar-bg);
+    overflow-x: visible;
 
     @media screen and (min-width: 769px) {
         width: var(--overrideLhsWidth, 264px);
@@ -486,32 +469,11 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
     .SidebarNavContainer {
         position: relative;
-        flex: 1 1 auto;
-
-        .scrollbar--view {
-            z-index: unset !important;
-            margin-top: 8px;
-        }
-
-        .scrollbar--view ~ div {
-            z-index: 2;
-
-            div {
-                z-index: 2;
-            }
-        }
-
-        .scrollbar--verticalTrack {
-            top: 2px;
-            right: 2px;
-            bottom: 2px;
-            border-radius: 3px;
-            pointer-events: none;
-        }
-
-        .scrollbar--vertical {
-            pointer-events: all;
-        }
+        display: flex;
+        overflow: clip;
+        min-height: 0;
+        flex: 1;
+        flex-direction: column;
     }
 
     .SidebarCategory_newLabel {
@@ -1305,32 +1267,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         +.inner-wrap #app-content {
             margin-left: 305px;
         }
-    }
-}
-
-/* context menu shown when right-clicking on a channel in the LHS when using the desktop app */
-.react-contextmenu--visible {
-    z-index: 100;
-    padding: 2px 0;
-    border: 1px solid #c6c6c6;
-    border-radius: 5px;
-    background: #f0f0f0;
-    color: black;
-    cursor: pointer;
-}
-
-.react-contextmenu-item {
-    padding: 0 22px;
-    margin: 1px 0;
-
-    &:hover {
-        background: #489dfe;
-        color: variables.$white;
-    }
-
-    &:focus,
-    span {
-        outline: none;
     }
 }
 

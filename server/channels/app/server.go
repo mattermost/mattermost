@@ -338,12 +338,12 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 	s.htmlTemplateWatcher = htmlTemplateWatcher
 
-	s.telemetryService, err = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.platform.SearchEngine, s.Log(), *s.Config().LogSettings.VerboseDiagnostics)
+	s.telemetryService, err = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.Log())
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to initialize telemetry service")
 	}
 
-	s.platform.SetTelemetryId(s.TelemetryId()) // TODO: move this into platform once telemetry service moved to platform.
+	s.platform.SetTelemetryId(s.ServerId()) // TODO: move this into platform once telemetry service moved to platform.
 
 	emailService, err := email.NewService(email.ServiceConfig{
 		ConfigFn:           s.platform.Config,
@@ -484,17 +484,6 @@ func (s *Server) runJobs() {
 	})
 	s.Go(func() {
 		runSecurityJob(s)
-	})
-	s.Go(func() {
-		firstRun, appErr := s.getFirstServerRunTimestamp()
-		if appErr != nil {
-			mlog.Warn("Fetching time of first server run failed. Setting to 'now'.")
-			if err := s.ensureFirstServerRunTimestamp(); err != nil {
-				mlog.Error("Failed to set first server run timestamp to current time", mlog.Err(err))
-			}
-			firstRun = utils.MillisFromTime(time.Now())
-		}
-		s.telemetryService.RunTelemetryJob(firstRun)
 	})
 	s.Go(func() {
 		runSessionCleanupJob(s)
@@ -644,11 +633,7 @@ func (s *Server) Shutdown() {
 	s.RemoveLicenseListener(s.loggerLicenseListenerId)
 	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
 
-	err := s.telemetryService.Shutdown()
-	if err != nil {
-		s.Log().Warn("Unable to cleanly shutdown telemetry client", mlog.Err(err))
-	}
-
+	var err error
 	s.serviceMux.RLock()
 	if s.sharedChannelService != nil {
 		if err = s.sharedChannelService.Shutdown(); err != nil {
@@ -722,9 +707,6 @@ func (s *Server) Shutdown() {
 	// shutdown main and notification loggers which will flush any remaining log records.
 	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer timeoutCancel()
-	if err = s.NotificationsLog().ShutdownWithTimeout(timeoutCtx); err != nil {
-		fmt.Fprintf(os.Stderr, "Error shutting down notification logger: %v", err)
-	}
 	if err = s.Log().ShutdownWithTimeout(timeoutCtx); err != nil {
 		fmt.Fprintf(os.Stderr, "Error shutting down main logger: %v", err)
 	}
@@ -1364,7 +1346,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	if license.IsCloud() {
+	if license.IsCloud() || license.IsMattermostEntry() {
 		return
 	}
 
@@ -1548,7 +1530,7 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeResendInvitationEmail,
-		resend_invitation_email.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store(), s.telemetryService),
+		resend_invitation_email.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store()),
 		nil,
 	)
 
@@ -1626,11 +1608,12 @@ func (s *Server) initJobs() {
 	s.platform.Jobs = s.Jobs
 }
 
-func (s *Server) TelemetryId() string {
-	if s.telemetryService == nil {
+func (s *Server) ServerId() string {
+	props, err := s.Store().System().Get()
+	if err != nil {
 		return ""
 	}
-	return s.telemetryService.TelemetryID
+	return props[model.SystemServerId]
 }
 
 func (s *Server) HTTPService() httpservice.HTTPService {
@@ -1831,8 +1814,4 @@ func (s *Server) Platform() *platform.PlatformService {
 
 func (s *Server) Log() *mlog.Logger {
 	return s.platform.Logger()
-}
-
-func (s *Server) NotificationsLog() *mlog.Logger {
-	return s.platform.NotificationsLogger()
 }

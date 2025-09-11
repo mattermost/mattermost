@@ -204,10 +204,6 @@
     "translation": "Bot:en finns inte."
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Fel vid rensning av Bleve-index: Funktionen är inaktiverad"
-  },
-  {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "Saknar till-adress."
   },
@@ -385,7 +381,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Ogiltigt driver name för SQL-databas. Måste vara 'mysql' eller 'postgres'."
+    "translation": "Ogiltigt drivrutinsnamn för SQL-databas. Måste vara 'postgres'."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -686,18 +682,6 @@
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Kan inte aktivera massbearbetning av e-post när klusterfunktionen är aktiverad."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Inställningen för Bleve IndexingDir måste sättas till aktiv när Bleve EnableIndexing är satt till aktiv"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Inställningen för Bleve EnableIndexing måste sättas till aktiv när Bleve EnableSearching är satt till aktiv"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Inställningen för Bleve EnableIndexing måste sättas till aktiv när Bleve EnableAutocomplete är satt till aktiv"
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
@@ -1084,130 +1068,6 @@
     "translation": "Kunde inte avkoda bilddatat."
   },
   {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Kunde inte stänga användarindex."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Kunde inte stänga inläggsindex."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Kunde inte stänga kanalindex."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Användarsök slutfördes felaktigt."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Användarsök slutfördes felaktigt."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Användarsök slutfördes felaktigt."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Meddelandesök slutfördes felaktigt."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Kanalsök slutfördes felaktigt."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Kunde inte rensa användarindex."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Kunde inte rensa inläggsindex."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Kunde inte rensa kanal-index."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Försöker indexera en ny batch när alla objekt är klara."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Bleve:s indexeringsjobb kunde inte tolka starttiden."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Bleve:s indexeringsjobb kunde inte tolka sluttiden."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "Det äldsta objektet (användare, kanal eller meddelande) kunde inte hämtas från databasen."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Kunde inte köra Bleve indexering: Funktionen är inaktiv."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Kunde inte indexera användarsamlingen."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Kunde inte indexera inläggssamlingen."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Kunde inte indexera kanalsamlingen."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Misslyckades att indexera användaren."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Misslyckades att indexera meddelandet."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Misslyckades att indexera kanalen."
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Misslyckades att radera användarens meddelande"
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Misslyckades att radera användaren."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Misslyckades att radera meddelandet."
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Misslyckades att radera kanalens meddelande"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Misslyckades att radera kanalen."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Fel vid skapande av Bleve användarindex."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Fel vi skapande av Bleve inläggsindex."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Fel vid skapande av Bleve kanal-index."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve är redan startad."
-  },
-  {
     "id": "app.webhooks.update_outgoing.app_error",
     "translation": "Kunde inte uppdatera webhooken."
   },
@@ -1489,7 +1349,7 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Ogiltig användare, auth-data måste anges med auth typ."
+    "translation": "Ogiltig användare: Auth-data kan endast användas om användaren använder en extern autentiseringstjänst, annat än mejl/lösenord."
   },
   {
     "id": "model.user.is_valid.auth_data_pwd.app_error",
@@ -3904,10 +3764,6 @@
     "translation": "Kunde inte hämta kanalerna utifrån ID:n."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Kunde inte ta fram batch av kanaler för indexering."
-  },
-  {
     "id": "app.channel.get_channels.not_found.app_error",
     "translation": "Inga kanaler hittades."
   },
@@ -4046,10 +3902,6 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "Kunde inte ta fram kanalens meddelanden."
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Kunde inte ta fram batchen av meddelanden för indexering."
   },
   {
     "id": "app.post.get_posts_around.get.app_error",
@@ -4530,14 +4382,6 @@
   {
     "id": "api.user.login.guest_accounts.disabled.error",
     "translation": "Gäståtkomst har inaktiverats"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Försök att använda experimentfunktionen ClientSideCertEnable utan en giltig enterpriselicens."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Försökte logga in med den experimentella funktionaliteten ClientSideCert med ett ogiltigt certifikat."
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
@@ -5939,10 +5783,6 @@
     "translation": "Misslyckades att sammanfoga givna konfigurationer."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Ny format för klient konfigurationen stöds ännu inte. Var vänlig och specificera format=old i sök-strängen."
-  },
-  {
     "id": "api.command_shrug.name",
     "translation": "rycka på axlarna"
   },
@@ -7271,42 +7111,6 @@
     "translation": "Misslyckades att skapa {{.Backend}}-mall för filer"
   },
   {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Misslyckades att stänga filindexeringen."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "Misslyckades slutföra filsökningen."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Misslyckades att indexera batchen med filer."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "Misslyckades att indexera filen."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Misslyckades att radera användarens filer."
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Misslyckades att radera meddelandets filer."
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Misslyckades att radera filen."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Misslyckades att radera filen."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Fel då Bleve-index skulle skapas."
-  },
-  {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
     "translation": "Jobbet du försöker ladda ner stöds inte för tillfället"
   },
@@ -7453,14 +7257,6 @@
   {
     "id": "api.custom_status.disabled",
     "translation": "Anpassad statusvisning har avaktiverats. Kontakta din systemadministratör för mer information."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Misslyckades att rensa filindex."
-  },
-  {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "Det gick inte att hämta batchen av filer att indexera."
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
@@ -8342,16 +8138,8 @@
     "translation": "Påminnelse"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Det går inte att hämta användare från en arkiverad kanal"
-  },
-  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Antalet mottagna inläggs-ID:n har överskridit den maximala storleken {{.MaxLength}}"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Det går inte att hämta inlägg från en arkiverad kanal"
   },
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
@@ -8408,10 +8196,6 @@
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
     "translation": "Search Bulk Indexing Batch Size måste vara minst {{.BatchSize}}."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Bleve Bulk Indexing Batch Size måste vara minst {{.BatchSize}}."
   },
   {
     "id": "model.channel.is_valid.1_or_more.app_error",
@@ -9726,10 +9510,6 @@
     "translation": "Autokomplettering av kanaler kan inte aktiveras eftersom indexschemat för kanaler är föråldrat. Vi rekommenderar att du omindexerar ditt kanalindex. Se Mattermost changelog för mer information"
   },
   {
-    "id": "bleveengine.purge_list.not_implemented",
-    "translation": "Funktionen för listrensning är inte tillgänglig för Bleve."
-  },
-  {
     "id": "ent.elasticsearch.purge_index.delete_failed",
     "translation": "Misslyckades med att ta bort ett Elasticsearch-index"
   },
@@ -10388,10 +10168,6 @@
     "translation": "Kunde inte uppdatera sorteringsordningen av bokmärken i kanalen."
   },
   {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Det går inte att hämta bokmärken för en arkiverad kanal"
-  },
-  {
     "id": "app.file_info.get_count.app_error",
     "translation": "Kunde inte räkna alla filer."
   },
@@ -10870,5 +10646,141 @@
   {
     "id": "api.team.invite_guests.policy_enforced_channel.app_error",
     "translation": "Det går inte att bjuda in gästanvändare till den här kanalen eftersom den har åtkomstbegränsningar baserade på användarattribut."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Ogiltig uppdatering av kanalmedlem: En kanalmedlem har alltid ett användarschema."
+  },
+  {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "Funktionen för flaggning av innehåll är inaktiverad."
+  },
+  {
+    "id": "api.content_flagging.error.license",
+    "translation": "Din licens stöder inte funktionen för flaggning av innehåll."
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "Ogiltig uppdatering av teammedlem: En teammedlem har alltid ett användarschema."
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Misslyckades med att ladda upp filen. Uppladdningskanalen delas inte med den andra servern."
+  },
+  {
+    "id": "app.cloud.preview_modal_bucket_url_not_configured",
+    "translation": "URL:en för förhandsgranskning är inte konfigurerad"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "Misslyckades med att hämta fönsterdata för förhandsgranskning"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_parse_error",
+    "translation": "Misslyckades med att analysera fönsterdata för förhandsgranskning"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.thread_follower.error",
+    "translation": "Misslyckades med att validera data om trådföljare för direktinlägg."
+  },
+  {
+    "id": "app.import.validate_post_import_data.thread_follower.error",
+    "translation": "Misslyckades med att validera data om trådföljare för inlägg."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.empty.error",
+    "translation": "Importera följardata tom."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.user_missing.error",
+    "translation": "Saknar nödvändig följaregenskap: användare."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
+    "translation": "Gemensamma granskare eller ytterligare granskare måste anges när \"Samma granskare för alla team\" är aktiverat."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.reasons_not_set.app_error",
+    "translation": "Skälet för flaggning kan inte vara tomt."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
+    "translation": "Teamgranskare eller ytterligare granskare måste anges när du ställer in \"Aktiverad\" för ett team."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_event",
+    "translation": "Ogiltig flaggningshändelse angiven."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_target",
+    "translation": "Ogiltigt mål för flaggningshändelse angivet."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
+    "translation": "Meddelanden om nya flaggade inlägg kan inte inaktiveras för granskare."
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "Du har inte behörighet att hantera denna åtkomstkontrollpolicy."
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "Kanalen är grupp-begränsad och kan inte omfattas av policy för åtkomstkontroll."
+  },
+  {
+    "id": "app.pap.access_control.channel_not_private",
+    "translation": "Policyer för åtkomstkontroll kan endast tillämpas på privata kanaler."
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "Delade kanaler kan inte omfattas av en policy för åtkomstkontroll."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "Du har inte behörighet att hantera åtkomstkontroll för denna kanal."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "Du har inte behörighet att hantera denna åtkomstkontrollpolicy."
+  },
+  {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "Föräldern är redan importerad."
+  },
+  {
+    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
+    "translation": "Att dölja arkiverade kanaler stöds inte längre. Gör dessa kanaler privata och ta bort medlemmar istället."
+  },
+  {
+    "id": "api.not_implemented",
+    "translation": "Denna funktion är inte implementerad."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
+    "translation": "Det går inte att uppdatera värdet i ett administratörshanterat attributfält för anpassad profil"
+  },
+  {
+    "id": "app.lookup_interactive_dialog.decode_json_error",
+    "translation": "Ett fel uppstod vid avkodning av JSON-svar från en interaktiv dialog."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.json_error",
+    "translation": "Ett fel uppstod vid bearbetning av JSON-svar från en interaktiv dialog."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.read_body_error",
+    "translation": "Ett fel uppstod vid inläsning av svarsdelen från en interaktiv dialog."
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "Misslyckades att skapa en Elasticsearch bulk-processor"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+    "translation": "Misslyckades att skapa en Elasticsearch synk bulk-processor"
+  },
+  {
+    "id": "model.config.is_valid.client_side_cert_enable.app_error",
+    "translation": "Certifikat-baserad autentisering har tagits bort. Inaktivera ClientSideCertEnable för att fortsätta."
   }
 ]

@@ -14,15 +14,16 @@ import ContentFlaggingContentReviewers from './content_reviewers';
 
 // Mock the UserMultiSelector component
 jest.mock('../../content_flagging/user_multiselector/user_multiselector', () => ({
-    UserMultiSelector: ({id, initialValue, onChange}: {id: string; initialValue: string[]; onChange: (userIds: string[]) => void}) => (
+    __esModule: true,
+    UserSelector: ({id, multiSelectInitialValue, multiSelectOnChange}: {id: string; multiSelectInitialValue: string[]; multiSelectOnChange: (userIds: string[]) => void}) => (
         <div data-testid={`user-multi-selector-${id}`}>
             <button
-                onClick={() => onChange(['user1', 'user2'])}
+                onClick={() => multiSelectOnChange(['user1', 'user2'])}
                 data-testid={`${id}-change-users`}
             >
                 {'Change Users'}
             </button>
-            <span data-testid={`${id}-initial-value`}>{initialValue.join(',')}</span>
+            <span data-testid={`${id}-initial-value`}>{multiSelectInitialValue.join(',')}</span>
         </div>
     ),
 }));
