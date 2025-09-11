@@ -1503,6 +1503,10 @@ func (api *PluginAPI) DeleteGroupConstrainedMemberships() *model.AppError {
 }
 
 func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
+	if field == nil {
+		return nil, fmt.Errorf("invalid input: property field parameter is required")
+	}
+
 	return api.app.PropertyService().CreatePropertyField(field)
 }
 
@@ -1524,6 +1528,20 @@ func (api *PluginAPI) DeletePropertyField(groupID, fieldID string) error {
 
 func (api *PluginAPI) SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
 	return api.app.PropertyService().SearchPropertyFields(groupID, opts)
+}
+
+func (api *PluginAPI) CountPropertyFields(groupID string, includeDeleted bool) (int64, error) {
+	if includeDeleted {
+		return api.app.PropertyService().CountAllPropertyFieldsForGroup(groupID)
+	}
+	return api.app.PropertyService().CountActivePropertyFieldsForGroup(groupID)
+}
+
+func (api *PluginAPI) CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
+	if includeDeleted {
+		return api.app.PropertyService().CountAllPropertyFieldsForTarget(groupID, targetType, targetID)
+	}
+	return api.app.PropertyService().CountActivePropertyFieldsForTarget(groupID, targetType, targetID)
 }
 
 func (api *PluginAPI) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {

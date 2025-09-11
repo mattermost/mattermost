@@ -1541,6 +1541,20 @@ func (api *apiTimerLayer) SearchPropertyFields(groupID string, opts model.Proper
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) CountPropertyFields(groupID string, includeDeleted bool) (int64, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CountPropertyFields(groupID, includeDeleted)
+	api.recordTime(startTime, "CountPropertyFields", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CountPropertyFieldsForTarget(groupID, targetType, targetID, includeDeleted)
+	api.recordTime(startTime, "CountPropertyFieldsForTarget", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.CreatePropertyValue(value)

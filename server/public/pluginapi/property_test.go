@@ -173,6 +173,82 @@ func TestPropertyFieldAPI(t *testing.T) {
 		assert.Equal(t, fields, result)
 		api.AssertExpectations(t)
 	})
+
+	t.Run("CountPropertyFields", func(t *testing.T) {
+		// Setup
+		api := &plugintest.API{}
+
+		// Mock the API call for active fields only
+		api.On("CountPropertyFields", "group1", false).Return(int64(5), nil)
+
+		// Create the client
+		client := NewClient(api, nil)
+
+		// Call the method
+		result, err := client.Property.CountPropertyFields("group1", false)
+
+		// Verify the results
+		require.NoError(t, err)
+		assert.Equal(t, int64(5), result)
+		api.AssertExpectations(t)
+	})
+
+	t.Run("CountPropertyFields with deleted", func(t *testing.T) {
+		// Setup
+		api := &plugintest.API{}
+
+		// Mock the API call for all fields including deleted
+		api.On("CountPropertyFields", "group1", true).Return(int64(8), nil)
+
+		// Create the client
+		client := NewClient(api, nil)
+
+		// Call the method
+		result, err := client.Property.CountPropertyFields("group1", true)
+
+		// Verify the results
+		require.NoError(t, err)
+		assert.Equal(t, int64(8), result)
+		api.AssertExpectations(t)
+	})
+
+	t.Run("CountPropertyFieldsForTarget", func(t *testing.T) {
+		// Setup
+		api := &plugintest.API{}
+
+		// Mock the API call for active fields for a specific target
+		api.On("CountPropertyFieldsForTarget", "group1", "user", "target123", false).Return(int64(3), nil)
+
+		// Create the client
+		client := NewClient(api, nil)
+
+		// Call the method
+		result, err := client.Property.CountPropertyFieldsForTarget("group1", "user", "target123", false)
+
+		// Verify the results
+		require.NoError(t, err)
+		assert.Equal(t, int64(3), result)
+		api.AssertExpectations(t)
+	})
+
+	t.Run("CountPropertyFieldsForTarget with deleted", func(t *testing.T) {
+		// Setup
+		api := &plugintest.API{}
+
+		// Mock the API call for all fields including deleted for a specific target
+		api.On("CountPropertyFieldsForTarget", "group1", "user", "target123", true).Return(int64(5), nil)
+
+		// Create the client
+		client := NewClient(api, nil)
+
+		// Call the method
+		result, err := client.Property.CountPropertyFieldsForTarget("group1", "user", "target123", true)
+
+		// Verify the results
+		require.NoError(t, err)
+		assert.Equal(t, int64(5), result)
+		api.AssertExpectations(t)
+	})
 }
 
 func TestPropertyValueAPI(t *testing.T) {
