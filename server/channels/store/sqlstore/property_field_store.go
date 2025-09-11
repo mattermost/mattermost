@@ -153,8 +153,8 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSea
 		builder = builder.Where(sq.Eq{"TargetType": opts.TargetType})
 	}
 
-	if opts.TargetID != "" {
-		builder = builder.Where(sq.Eq{"TargetID": opts.TargetID})
+	if len(opts.TargetIDs) > 0 {
+		builder = builder.Where(sq.Eq{"TargetID": opts.TargetIDs})
 	}
 
 	fields := []*model.PropertyField{}

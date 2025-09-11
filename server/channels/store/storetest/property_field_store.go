@@ -847,8 +847,8 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		{
 			name: "filter by target_id",
 			opts: model.PropertyFieldSearchOpts{
-				TargetID: targetID,
-				PerPage:  10,
+				TargetIDs: []string{targetID},
+				PerPage:   10,
 			},
 			expectedIDs: []string{field1.ID, field2.ID},
 		},

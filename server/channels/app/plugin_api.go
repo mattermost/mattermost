@@ -1522,8 +1522,8 @@ func (api *PluginAPI) DeletePropertyField(groupID, fieldID string) error {
 	return api.app.PropertyService().DeletePropertyField(groupID, fieldID)
 }
 
-func (api *PluginAPI) SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	return api.app.PropertyService().SearchPropertyFields(groupID, targetID, opts)
+func (api *PluginAPI) SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+	return api.app.PropertyService().SearchPropertyFields(groupID, opts)
 }
 
 func (api *PluginAPI) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
@@ -1550,8 +1550,8 @@ func (api *PluginAPI) DeletePropertyValue(groupID, valueID string) error {
 	return api.app.PropertyService().DeletePropertyValue(groupID, valueID)
 }
 
-func (api *PluginAPI) SearchPropertyValues(groupID, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
-	return api.app.PropertyService().SearchPropertyValues(groupID, targetID, opts)
+func (api *PluginAPI) SearchPropertyValues(groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+	return api.app.PropertyService().SearchPropertyValues(groupID, opts)
 }
 
 func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {

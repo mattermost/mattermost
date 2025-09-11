@@ -811,17 +811,17 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 		{
 			name: "filter by target_id",
 			opts: model.PropertyValueSearchOpts{
-				TargetID: targetID,
-				PerPage:  10,
+				TargetIDs: []string{targetID},
+				PerPage:   10,
 			},
 			expectedIDs: []string{value1.ID, value2.ID},
 		},
 		{
 			name: "filter by group_id and target_id",
 			opts: model.PropertyValueSearchOpts{
-				GroupID:  groupID,
-				TargetID: targetID,
-				PerPage:  10,
+				GroupID:   groupID,
+				TargetIDs: []string{targetID},
+				PerPage:   10,
 			},
 			expectedIDs: []string{value1.ID, value2.ID},
 		},
