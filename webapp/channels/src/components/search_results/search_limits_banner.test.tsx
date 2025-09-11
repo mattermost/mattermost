@@ -67,6 +67,11 @@ describe('components/select_results/SearchLimitsBanner', () => {
                 },
                 usage,
             },
+            views: {
+                rhs: {
+                    rhsState: null, // No RHS state
+                },
+            },
         };
         const store = mockStore(state);
         const wrapper = mountWithIntl(<Provider store={store}><SearchLimitsBanner searchType='messages'/></Provider>);
@@ -114,6 +119,11 @@ describe('components/select_results/SearchLimitsBanner', () => {
                         posts: 1, // Indicate that search is truncated
                         files: 0,
                     },
+                },
+            },
+            views: {
+                rhs: {
+                    rhsState: 'search', // RHS showing search results
                 },
             },
         };
@@ -165,6 +175,11 @@ describe('components/select_results/SearchLimitsBanner', () => {
                         posts: 1, // Indicate that search is truncated
                         files: 0,
                     },
+                },
+            },
+            views: {
+                rhs: {
+                    rhsState: 'search', // RHS showing search results
                 },
             },
         };
@@ -219,6 +234,11 @@ describe('components/select_results/SearchLimitsBanner', () => {
                         posts: 1, // Indicate that search is truncated
                         files: 0,
                     },
+                },
+            },
+            views: {
+                rhs: {
+                    rhsState: 'search', // RHS showing search results
                 },
             },
         };
@@ -278,6 +298,11 @@ describe('components/select_results/SearchLimitsBanner', () => {
                     },
                 },
             },
+            views: {
+                rhs: {
+                    rhsState: 'search', // RHS showing search results
+                },
+            },
         };
 
         const store = mockStore(state);
@@ -290,5 +315,64 @@ describe('components/select_results/SearchLimitsBanner', () => {
         // Find the CTA link
         const ctaLink = wrapper.find('a');
         expect(ctaLink).toHaveLength(1);
+    });
+
+    test('should NOT show banner when RHS is showing pinned posts even with truncated search results', () => {
+        const aboveMessagesLimitUsage = JSON.parse(JSON.stringify(usage));
+        aboveMessagesLimitUsage.messages.history = 15000; // above limit of 10K
+
+        const state = {
+            entities: {
+                general: {
+                    license: {
+                        IsLicensed: 'true',
+                        Cloud: 'true',
+                    },
+                },
+                users: {
+                    currentUserId: 'uid',
+                    profiles: {
+                        uid: {},
+                    },
+                },
+                cloud: {
+                    subscription: {
+                        is_free_trial: 'true',
+                        product_id: 'prod_1', // free
+                    },
+                    limits,
+                },
+                limits: {
+                    serverLimits: {
+                        postHistoryLimit: 10000,
+                    },
+                },
+                usage: aboveMessagesLimitUsage,
+                search: {
+                    results: [],
+                    flagged: [],
+                    isSearchingTerm: false,
+                    isSearchGettingMore: false,
+                    matches: {},
+                    recent: {},
+                    current: {},
+                    truncationInfo: {
+                        posts: 1, // Search is truncated, but...
+                        files: 0,
+                    },
+                },
+            },
+            views: {
+                rhs: {
+                    rhsState: 'pin', // RHS showing pinned posts, not search results
+                },
+            },
+        };
+
+        const store = mockStore(state);
+        const wrapper = mountWithIntl(<Provider store={store}><SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/></Provider>);
+
+        // Banner should NOT show because RHS is showing pinned posts, not search results
+        expect(wrapper.find('#messages_search_limits_banner').exists()).toEqual(false);
     });
 });
