@@ -31,6 +31,7 @@ jobs:
 
       - name: Configure database
         run: |
+          systemctl start postgresql
           sudo locale-gen en_US.UTF-8
           psql -c 'CREATE DATABASE mattermost WITH ENCODING 'UTF8' LC_COLLATE='en_US.UTF-8' LC_CTYPE='en_US.UTF-8' TEMPLATE=template0;'
           psql -c 'CREATE USER mmuser WITH PASSWORD 'mmuser-password';'
