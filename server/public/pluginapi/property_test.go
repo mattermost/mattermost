@@ -143,7 +143,8 @@ func TestPropertyFieldAPI(t *testing.T) {
 
 		// Mock the API call
 		opts := model.PropertyFieldSearchOpts{
-			PerPage: 10,
+			PerPage:   10,
+			TargetIDs: []string{"target1"},
 		}
 		fields := []*model.PropertyField{
 			{
@@ -159,13 +160,13 @@ func TestPropertyFieldAPI(t *testing.T) {
 				Type:    model.PropertyFieldTypeSelect,
 			},
 		}
-		api.On("SearchPropertyFields", "group1", "target1", opts).Return(fields, nil)
+		api.On("SearchPropertyFields", "group1", opts).Return(fields, nil)
 
 		// Create the client
 		client := NewClient(api, nil)
 
 		// Call the method
-		result, err := client.Property.SearchPropertyFields("group1", "target1", opts)
+		result, err := client.Property.SearchPropertyFields("group1", opts)
 
 		// Verify the results
 		require.NoError(t, err)
@@ -420,7 +421,8 @@ func TestPropertyValueAPI(t *testing.T) {
 
 		// Mock the API call
 		opts := model.PropertyValueSearchOpts{
-			PerPage: 10,
+			PerPage:   10,
+			TargetIDs: []string{"target1"},
 		}
 		values := []*model.PropertyValue{
 			{
@@ -440,13 +442,13 @@ func TestPropertyValueAPI(t *testing.T) {
 				Value:      json.RawMessage(`"Test Value 2"`),
 			},
 		}
-		api.On("SearchPropertyValues", "group1", "target1", opts).Return(values, nil)
+		api.On("SearchPropertyValues", "group1", opts).Return(values, nil)
 
 		// Create the client
 		client := NewClient(api, nil)
 
 		// Call the method
-		result, err := client.Property.SearchPropertyValues("group1", "target1", opts)
+		result, err := client.Property.SearchPropertyValues("group1", opts)
 
 		// Verify the results
 		require.NoError(t, err)

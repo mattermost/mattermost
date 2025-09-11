@@ -1448,8 +1448,8 @@ type API interface {
 	// SearchPropertyFields searches for property fields with filtering options.
 	//
 	// @tag PropertyField
-	// Minimum server version: 10.10
-	SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
+	// Minimum server version: 11.0
+	SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
 
 	// CountPropertyFields counts property fields for a group.
 	//
@@ -1502,8 +1502,8 @@ type API interface {
 	// SearchPropertyValues searches for property values with filtering options.
 	//
 	// @tag PropertyValue
-	// Minimum server version: 10.10
-	SearchPropertyValues(groupID, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
+	// Minimum server version: 11.0
+	SearchPropertyValues(groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
 
 	// RegisterPropertyGroup registers a new property group.
 	//

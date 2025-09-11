@@ -621,7 +621,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 
 	// Using page size of 100 and not iterating through all pages because the
 	// number of fields are static and defined here and not expected to be more than 100 for now.
-	existingProperties, appErr := s.propertyService.SearchPropertyFields(group.ID, "", model.PropertyFieldSearchOpts{PerPage: 100})
+	existingProperties, appErr := s.propertyService.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 	if appErr != nil {
 		return fmt.Errorf("failed to search for existing content flagging properties: %w", appErr)
 	}

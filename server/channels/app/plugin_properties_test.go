@@ -71,7 +71,7 @@ func TestPluginProperties(t *testing.T) {
 				}
 
 				// Search for fields
-				fields, err := p.API.SearchPropertyFields(group.ID, "", model.PropertyFieldSearchOpts{PerPage: 50})
+				fields, err := p.API.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{PerPage: 50})
 				if err != nil {
 					return fmt.Errorf("failed to search property fields: %w", err)
 				}
@@ -86,7 +86,7 @@ func TestPluginProperties(t *testing.T) {
 				}
 
 				// Verify deletion
-				fields, err = p.API.SearchPropertyFields(group.ID, "", model.PropertyFieldSearchOpts{PerPage: 50})
+				fields, err = p.API.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{PerPage: 50})
 				if err != nil {
 					return fmt.Errorf("failed to search property fields after deletion: %w", err)
 				}
@@ -199,7 +199,7 @@ func TestPluginProperties(t *testing.T) {
 				}
 
 				// Search for values
-				values, err := p.API.SearchPropertyValues(group.ID, targetId, model.PropertyValueSearchOpts{PerPage: 50})
+				values, err := p.API.SearchPropertyValues(group.ID, model.PropertyValueSearchOpts{TargetIDs: []string{targetId}, PerPage: 50})
 				if err != nil {
 					return fmt.Errorf("failed to search property values: %w", err)
 				}
@@ -214,7 +214,7 @@ func TestPluginProperties(t *testing.T) {
 				}
 
 				// Verify deletion
-				values, err = p.API.SearchPropertyValues(group.ID, targetId, model.PropertyValueSearchOpts{PerPage: 50})
+				values, err = p.API.SearchPropertyValues(group.ID, model.PropertyValueSearchOpts{TargetIDs: []string{targetId}, PerPage: 50})
 				if err != nil {
 					return fmt.Errorf("failed to search property values after deletion: %w", err)
 				}
@@ -337,7 +337,7 @@ func TestPluginProperties(t *testing.T) {
 				}
 
 				// Search for fields to get one to delete
-				fields, err := p.API.SearchPropertyFields(group.ID, "", model.PropertyFieldSearchOpts{PerPage: 1})
+				fields, err := p.API.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{PerPage: 1})
 				if err != nil {
 					return fmt.Errorf("failed to search property fields: %w", err)
 				}
