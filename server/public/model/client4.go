@@ -639,7 +639,7 @@ func (c *Client4) accessControlPolicyRoute(policyID string) string {
 }
 
 func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
+	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/server", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
