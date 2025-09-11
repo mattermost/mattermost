@@ -178,7 +178,7 @@ func (p PropertyFieldSearchCursor) IsValid() error {
 type PropertyFieldSearchOpts struct {
 	GroupID        string
 	TargetType     string
-	TargetID       string
+	TargetIDs      []string
 	IncludeDeleted bool
 	Cursor         PropertyFieldSearchCursor
 	PerPage        int
