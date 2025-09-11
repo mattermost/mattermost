@@ -46,12 +46,12 @@ jobs:
       
       - name: Set up Mattermost
         run: |
-          mkdir /opt/mattermost/data
-          useradd --system --user-group mattermost
-          chown -R mattermost:mattermost /opt/mattermost
-          chmod -R g+w /opt/mattermost
-          touch /lib/systemd/system/mattermost.service
-          systemctl daemon-reload
+          sudo mkdir /opt/mattermost/data
+          sudo useradd --system --user-group mattermost
+          sudo chown -R mattermost:mattermost /opt/mattermost
+          sudo chmod -R g+w /opt/mattermost
+          sudo touch /lib/systemd/system/mattermost.service
+          sudo systemctl daemon-reload
       
       #- name: 
       
