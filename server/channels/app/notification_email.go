@@ -22,7 +22,7 @@ import (
 )
 
 func (a *App) buildEmailNotification(
-	ctx request.CTX,
+	rctx request.CTX,
 	notification *PostNotification,
 	user *model.User,
 	team *model.Team,
@@ -38,7 +38,7 @@ func (a *App) buildEmailNotification(
 	if data, err := a.Srv().Store().Preference().Get(
 		user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime,
 	); err != nil {
-		ctx.Logger().Debug("Failed to retrieve user military time preference, defaulting to false",
+		rctx.Logger().Debug("Failed to retrieve user military time preference, defaulting to false",
 			mlog.String("user_id", user.Id), mlog.Err(err))
 		useMilitaryTime = false
 	} else {
@@ -81,7 +81,7 @@ func (a *App) buildEmailNotification(
 		subtitle = translateFunc("app.notification.body.mention.subTitle", map[string]any{"SenderName": senderName, "ChannelName": channelName})
 	}
 
-	if a.IsCRTEnabledForUser(ctx, user.Id) && post.RootId != "" {
+	if a.IsCRTEnabledForUser(rctx, user.Id) && post.RootId != "" {
 		title = translateFunc("app.notification.body.thread.title", map[string]any{"SenderName": senderName})
 		if channel.Type == model.ChannelTypeDirect {
 			subtitle = translateFunc("app.notification.body.thread_dm.subTitle", map[string]any{"SenderName": senderName})
@@ -124,7 +124,7 @@ func (a *App) buildEmailNotification(
 		IsDirectMessage: channel.Type == model.ChannelTypeDirect,
 		IsGroupMessage:  channel.Type == model.ChannelTypeGroup,
 		IsThreadReply:   post.RootId != "",
-		IsCRTEnabled:    a.IsCRTEnabledForUser(ctx, user.Id),
+		IsCRTEnabled:    a.IsCRTEnabledForUser(rctx, user.Id),
 		UseMilitaryTime: useMilitaryTime,
 
 		// Customizable content fields
@@ -141,7 +141,7 @@ func (a *App) buildEmailNotification(
 	}
 }
 
-func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotification, user *model.User, team *model.Team, senderProfileImage []byte) (*model.EmailNotification, error) {
+func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotification, user *model.User, team *model.Team, senderProfileImage []byte) (*model.EmailNotification, error) {
 	channel := notification.Channel
 	post := notification.Post
 
@@ -170,7 +170,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 	}
 
 	// Create EmailNotification object for plugin customization
-	emailNotification := a.buildEmailNotification(c, notification, user, team)
+	emailNotification := a.buildEmailNotification(rctx, notification, user, team)
 
 	// Call plugin hook to allow customization of emailNotification
 	rejectionReason := ""
@@ -178,7 +178,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 		var replacementContent *model.EmailNotificationContent
 		replacementContent, rejectionReason = hooks.EmailNotificationWillBeSent(emailNotification)
 		if rejectionReason != "" {
-			c.Logger().Info("Email notification cancelled by plugin.",
+			rctx.Logger().Info("Email notification cancelled by plugin.",
 				mlog.String("rejection_reason", rejectionReason),
 				mlog.String("plugin_id", manifest.Id),
 				mlog.String("plugin_name", manifest.Name))
@@ -193,7 +193,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 	if rejectionReason != "" {
 		// Email notification rejected by plugin
 		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeEmail, model.NotificationReasonRejectedByPlugin, model.NotificationNoPlatform)
-		c.Logger().LogM(mlog.MlvlNotificationDebug, "Email notification rejected by plugin",
+		rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Email notification rejected by plugin",
 			mlog.String("type", model.NotificationTypeEmail),
 			mlog.String("status", model.NotificationStatusNotSent),
 			mlog.String("reason", model.NotificationReasonRejectedByPlugin),
@@ -234,7 +234,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 	}
 
 	// Build email body using EmailNotification data
-	var bodyText, err = a.getNotificationEmailBodyFromEmailNotification(c, user, emailNotification, post, senderPhoto)
+	var bodyText, err = a.getNotificationEmailBodyFromEmailNotification(rctx, user, emailNotification, post, senderPhoto)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to render the email notification template")
 	}
@@ -256,7 +256,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 
 	a.Srv().Go(func() {
 		if nErr := a.Srv().EmailService.SendMailWithEmbeddedFiles(user.Email, html.UnescapeString(emailNotification.Subject), bodyText, embeddedFiles, messageID, inReplyTo, references, "Notification"); nErr != nil {
-			c.Logger().Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
+			rctx.Logger().Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
 		}
 	})
 
@@ -344,7 +344,7 @@ func (a *App) GetMessageForNotification(post *model.Post, teamName, siteUrl stri
 	return a.Srv().EmailService.GetMessageForNotification(post, teamName, siteUrl, translateFunc)
 }
 
-func (a *App) getNotificationEmailBodyFromEmailNotification(c request.CTX, recipient *model.User, emailNotification *model.EmailNotification, post *model.Post, senderPhoto string) (string, error) {
+func (a *App) getNotificationEmailBodyFromEmailNotification(rctx request.CTX, recipient *model.User, emailNotification *model.EmailNotification, post *model.Post, senderPhoto string) (string, error) {
 	translateFunc := i18n.GetUserTranslations(recipient.Locale)
 
 	pData := postData{
