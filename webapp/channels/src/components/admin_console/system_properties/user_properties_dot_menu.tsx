@@ -5,12 +5,13 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, PencilOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
 import type {FieldVisibility, UserPropertyField} from '@mattermost/types/properties';
 
 import {openModal} from 'actions/views/modals';
 
 import * as Menu from 'components/menu';
+import Toggle from 'components/toggle';
 
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -139,6 +140,18 @@ const DotMenu = ({
         updateField({...field, attrs: {...field.attrs, visibility}});
     };
 
+    const handleEditableByUsersToggle = () => {
+        const newAttrs = {...field.attrs};
+
+        if (field.attrs.managed === 'admin') {
+            Reflect.deleteProperty(newAttrs, 'managed');
+        } else {
+            newAttrs.managed = 'admin';
+        }
+
+        updateField({...field, attrs: newAttrs});
+    };
+
     let selectedVisibilityLabel;
 
     if (field.attrs.visibility === 'always') {
@@ -259,6 +272,29 @@ const DotMenu = ({
                     )}
                 />
             </Menu.SubMenu>
+            <Menu.Item
+                id={`${menuId}_editable-by-users`}
+                role='menuitemcheckbox'
+                aria-checked={field.attrs.managed !== 'admin'}
+                onClick={handleEditableByUsersToggle}
+                leadingElement={<PencilOutlineIcon size={18}/>}
+                labels={(
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.dotmenu.editable_by_users.label'
+                        defaultMessage='Editable by users'
+                    />
+                )}
+                trailingElements={(
+                    <Toggle
+                        size='btn-sm'
+                        disabled={false}
+                        onToggle={handleEditableByUsersToggle}
+                        toggled={field.attrs.managed !== 'admin'}
+                        toggleClassName='btn-toggle-primary'
+                        tabIndex={-1}
+                    />
+                )}
+            />
             {field.create_at !== 0 && ([
                 <Menu.Item
                     key={`${menuId}_link_ad-ldap`}
