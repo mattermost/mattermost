@@ -27,7 +27,6 @@ import {
     uploadPrivateSamlCertificate,
     uploadPublicSamlCertificate,
 } from 'actions/admin_actions';
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import ContentFlaggingAdditionalSettingsSection from 'components/admin_console/content_flagging/additional_settings/additional_settings';
 import ContentFlaggingContentReviewers from 'components/admin_console/content_flagging/content_reviewers/content_reviewers';
@@ -75,6 +74,7 @@ import {
     ComplianceExportFeatureDiscovery,
     CustomTermsOfServiceFeatureDiscovery,
     DataRetentionFeatureDiscovery,
+    GitLabFeatureDiscovery,
     GroupsFeatureDiscovery,
     GuestAccessFeatureDiscovery,
     LDAPFeatureDiscovery,
@@ -1936,10 +1936,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     </ExternalLink>
                                 ),
                             },
-                            onConfigSave: (displayVal, previousVal) => {
-                                if (previousVal && previousVal !== displayVal) {
-                                    trackEvent('ui', 'diagnostics_disabled');
-                                }
+                            onConfigSave: (displayVal) => {
                                 return displayVal;
                             },
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.LOGGING)),
@@ -4213,112 +4210,6 @@ const AdminDefinition: AdminDefinitionType = {
                 },
                 restrictedIndicator: getRestrictedIndicator(true),
             },
-            gitlab: {
-                url: 'authentication/gitlab',
-                title: defineMessage({id: 'admin.sidebar.gitlab', defaultMessage: 'GitLab'}),
-                isHidden: it.any(
-                    it.licensed,
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
-                ),
-                schema: {
-                    id: 'GitLabSettings',
-                    name: defineMessage({id: 'admin.authentication.gitlab', defaultMessage: 'GitLab'}),
-                    onConfigLoad: (config) => {
-                        const newState: { 'GitLabSettings.Url'?: string } = {};
-                        newState['GitLabSettings.Url'] = config.GitLabSettings?.UserAPIEndpoint?.replace('/api/v4/user', '');
-                        return newState;
-                    },
-                    onConfigSave: (config) => {
-                        const newConfig = {...config};
-                        newConfig.GitLabSettings.UserAPIEndpoint = config.GitLabSettings.Url.replace(/\/$/, '') + '/api/v4/user';
-                        return newConfig;
-                    },
-                    settings: [
-                        {
-                            type: 'bool',
-                            key: 'GitLabSettings.Enable',
-                            label: defineMessage({id: 'admin.gitlab.enableTitle', defaultMessage: 'Enable authentication with GitLab: '}),
-                            help_text: defineMessage({id: 'admin.gitlab.enableDescription', defaultMessage: 'When true, Mattermost allows team creation and account signup using GitLab OAuth.{lineBreak} {lineBreak}1. Log in to your GitLab account and go to Profile Settings -> Applications.{lineBreak}2. Enter Redirect URIs "<loginUrlChunk>your-mattermost-url</loginUrlChunk>" (example: http://localhost:8065/login/gitlab/complete) and "<signupUrlChunk>your-mattermost-url</signupUrlChunk>".\n3. Then use "Application Secret Key" and "Application ID" fields from GitLab to complete the options below.\n4. Complete the Endpoint URLs below.'}),
-                            help_text_values: {
-                                lineBreak: '\n',
-                                loginUrlChunk: (chunk: string) => `<${chunk}>/login/gitlab/complete"`,
-                                signupUrlChunk: (chunk: string) => `<${chunk}>/signup/gitlab/complete"`,
-                            },
-                            help_text_markdown: true,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'GitLabSettings.Id',
-                            label: defineMessage({id: 'admin.gitlab.clientIdTitle', defaultMessage: 'Application ID:'}),
-                            help_text: defineMessage({id: 'admin.gitlab.clientIdDescription', defaultMessage: 'Obtain this value via the instructions above for logging into GitLab.'}),
-                            placeholder: defineMessage({id: 'admin.gitlab.clientIdExample', defaultMessage: 'E.g.: "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
-                                it.stateIsFalse('GitLabSettings.Enable'),
-                            ),
-                        },
-                        {
-                            type: 'text',
-                            key: 'GitLabSettings.Secret',
-                            label: defineMessage({id: 'admin.gitlab.clientSecretTitle', defaultMessage: 'Application Secret Key:'}),
-                            help_text: defineMessage({id: 'admin.gitlab.clientSecretDescription', defaultMessage: 'Obtain this value via the instructions above for logging into GitLab.'}),
-                            placeholder: defineMessage({id: 'admin.gitlab.clientSecretExample', defaultMessage: 'E.g.: "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
-                                it.stateIsFalse('GitLabSettings.Enable'),
-                            ),
-                        },
-                        {
-                            type: 'text',
-                            key: 'GitLabSettings.Url',
-                            label: defineMessage({id: 'admin.gitlab.siteUrl', defaultMessage: 'GitLab Site URL:'}),
-                            help_text: defineMessage({id: 'admin.gitlab.siteUrlDescription', defaultMessage: 'Enter the URL of your GitLab instance, e.g. https://example.com:3000. If your GitLab instance is not set up with SSL, start the URL with http:// instead of https://.'}),
-                            placeholder: defineMessage({id: 'admin.gitlab.siteUrlExample', defaultMessage: 'E.g.: https://'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
-                                it.stateIsFalse('GitLabSettings.Enable'),
-                            ),
-                        },
-                        {
-                            type: 'text',
-                            key: 'GitLabSettings.UserAPIEndpoint',
-                            label: defineMessage({id: 'admin.gitlab.userTitle', defaultMessage: 'User API Endpoint:'}),
-                            dynamic_value: (value, config, state) => {
-                                if (state['GitLabSettings.Url']) {
-                                    return state['GitLabSettings.Url'].replace(/\/$/, '') + '/api/v4/user';
-                                }
-                                return '';
-                            },
-                            isDisabled: true,
-                        },
-                        {
-                            type: 'text',
-                            key: 'GitLabSettings.AuthEndpoint',
-                            label: defineMessage({id: 'admin.gitlab.authTitle', defaultMessage: 'Auth Endpoint:'}),
-                            dynamic_value: (value, config, state) => {
-                                if (state['GitLabSettings.Url']) {
-                                    return state['GitLabSettings.Url'].replace(/\/$/, '') + '/oauth/authorize';
-                                }
-                                return '';
-                            },
-                            isDisabled: true,
-                        },
-                        {
-                            type: 'text',
-                            key: 'GitLabSettings.TokenEndpoint',
-                            label: defineMessage({id: 'admin.gitlab.tokenTitle', defaultMessage: 'Token Endpoint:'}),
-                            dynamic_value: (value, config, state) => {
-                                if (state['GitLabSettings.Url']) {
-                                    return state['GitLabSettings.Url'].replace(/\/$/, '') + '/oauth/token';
-                                }
-                                return '';
-                            },
-                            isDisabled: true,
-                        },
-                    ],
-                },
-            },
             oauth: {
                 url: 'authentication/oauth',
                 title: defineMessage({id: 'admin.sidebar.oauth', defaultMessage: 'OAuth 2.0'}),
@@ -5007,6 +4898,28 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'custom',
                             component: OpenIDFeatureDiscovery,
                             key: 'OpenIDFeatureDiscovery',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(true),
+            },
+            gitlab_feature_discovery: {
+                url: 'authentication/gitlab',
+                isDiscovery: true,
+                title: defineMessage({id: 'admin.sidebar.gitlab', defaultMessage: 'GitLab'}),
+                isHidden: it.any(
+                    it.licensedForFeature('OpenId'),
+                    it.not(it.enterpriseReady),
+                ),
+                schema: {
+                    id: 'GitLabSettings',
+                    name: defineMessage({id: 'admin.authentication.gitlab', defaultMessage: 'GitLab'}),
+                    settings: [
+                        {
+                            type: 'custom',
+                            component: GitLabFeatureDiscovery,
+                            key: 'GitLabFeatureDiscovery',
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
                         },
                     ],

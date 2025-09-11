@@ -21,7 +21,6 @@ import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {addUserToTeamFromInvite} from 'actions/team_actions';
-import {trackEvent} from 'actions/telemetry_actions';
 import {login} from 'actions/views/login';
 import LocalStorageStore from 'stores/local_storage_store';
 
@@ -411,9 +410,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             id: 'login.noAccount',
             defaultMessage: 'Don\'t have an account?',
         });
-        const handleClick = () => {
-            trackEvent('signup', 'click_login_no_account');
-        };
         if (showSignup) {
             return (
                 <AlternateLinkLayout
@@ -428,7 +424,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 className='login-body-alternate-link'
                 alternateLinkPath={'/access_problem'}
                 alternateLinkLabel={linkLabel}
-                onClick={handleClick}
             />
         );
     }, [showSignup]);

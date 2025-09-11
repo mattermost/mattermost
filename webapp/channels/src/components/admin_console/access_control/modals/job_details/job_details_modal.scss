@@ -2,7 +2,7 @@
     .modal-header{
         padding: 16px 64px 4px 32px;
     }
-    
+
     .filtered-user-list {
         height: 440px;
         cursor: pointer;
@@ -22,14 +22,14 @@
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        
+
         &.status-success { background-color: var(--online-indicator); }
         &.status-error { background-color: var(--error-text); }
         &.status-in-progress { background-color: var(--away-indicator); }
         &.status-pending { background-color: var(--offline-indicator); }
     }
 
-    .filter-row--full {
+    .filter-row {
         position: relative;
         padding: 0 32px;
 
@@ -73,7 +73,7 @@
 
     .changes-cell {
         text-align: center;
-                        
+
         .changes-summary {
             .added {
                 color: var(--online-indicator);

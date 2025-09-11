@@ -133,7 +133,7 @@ export const PlanDetailsTopElements = ({
 
     const viewPlansButton = isAirGapped ? null : (
         <button
-            onClick={() => openPricingModal({trackingLocation: 'billing_plan_details_view_plans'})}
+            onClick={openPricingModal}
             className='btn btn-secondary PlanDetails__viewPlansButton'
         >
             {formatMessage({
