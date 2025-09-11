@@ -118,6 +118,25 @@ func (s *SqlPropertyFieldStore) CountForGroup(groupID string, includeDeleted boo
 	return count, nil
 }
 
+func (s *SqlPropertyFieldStore) CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
+	var count int64
+	builder := s.getQueryBuilder().
+		Select("COUNT(id)").
+		From("PropertyFields").
+		Where(sq.Eq{"GroupID": groupID}).
+		Where(sq.Eq{"TargetType": targetType}).
+		Where(sq.Eq{"TargetID": targetID})
+
+	if !includeDeleted {
+		builder = builder.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	if err := s.GetReplica().GetBuilder(&count, builder); err != nil {
+		return int64(0), errors.Wrap(err, "failed to count property fields for target")
+	}
+	return count, nil
+}
+
 func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
 	if err := opts.Cursor.IsValid(); err != nil {
 		return nil, fmt.Errorf("cursor is invalid: %w", err)

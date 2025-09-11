@@ -52,6 +52,20 @@ func (p *PropertyService) SearchPropertyFields(groupID, targetID string, opts mo
 	return p.api.SearchPropertyFields(groupID, targetID, opts)
 }
 
+// CountPropertyFields counts property fields for a group.
+//
+// Minimum server version: 11.0
+func (p *PropertyService) CountPropertyFields(groupID string, includeDeleted bool) (int64, error) {
+	return p.api.CountPropertyFields(groupID, includeDeleted)
+}
+
+// CountPropertyFieldsForTarget counts property fields for a specific target.
+//
+// Minimum server version: 11.0
+func (p *PropertyService) CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
+	return p.api.CountPropertyFieldsForTarget(groupID, targetType, targetID, includeDeleted)
+}
+
 // CreatePropertyValue creates a new property value.
 //
 // Minimum server version: 10.10
