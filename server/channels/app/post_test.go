@@ -22,7 +22,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
-	eMocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
 )
@@ -2581,7 +2580,12 @@ func TestCountMentionsFromPost(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		// Create an Entry license with post history limits
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+		license.Limits = &model.LicenseLimits{
+			PostHistory: 10000, // Set some post history limit to enable filtering
+		}
+		th.App.Srv().SetLicense(license)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
@@ -3484,14 +3488,39 @@ func TestGetLastAccessiblePostTime(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
+	// Setup store mocks needed for GetServerLimits
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
+	mockUserStore := storemocks.UserStore{}
+	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
+	mockStore.On("User").Return(&mockUserStore)
+
+	// Test with no license - should return 0
 	r, err := th.App.GetLastAccessiblePostTime()
 	assert.Nil(t, err)
 	assert.Equal(t, int64(0), r)
 
-	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+	// Test with Entry license but no limits configured - should return 0
+	entryLicenseNoLimits := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+	entryLicenseNoLimits.Limits = nil // No limits configured
+	th.App.Srv().SetLicense(entryLicenseNoLimits)
+	r, err = th.App.GetLastAccessiblePostTime()
+	assert.Nil(t, err)
+	assert.Equal(t, int64(0), r, "Entry license with no limits should return 0")
 
-	mockStore := th.App.Srv().Store().(*storemocks.Store)
+	// Test with Entry license with zero post history limit - should return 0
+	entryLicenseZeroLimit := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+	entryLicenseZeroLimit.Limits = &model.LicenseLimits{PostHistory: 0} // Zero limit
+	th.App.Srv().SetLicense(entryLicenseZeroLimit)
+	r, err = th.App.GetLastAccessiblePostTime()
+	assert.Nil(t, err)
+	assert.Equal(t, int64(0), r, "Entry license with zero post history limit should return 0")
 
+	// Test with Entry license that has post history limits
+	entryLicenseWithLimits := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+	entryLicenseWithLimits.Limits = &model.LicenseLimits{PostHistory: 1000} // Actual limit
+	th.App.Srv().SetLicense(entryLicenseWithLimits)
+
+	// Test case 1: No system value found (ErrNotFound) - should return 0
 	mockSystemStore := storemocks.SystemStore{}
 	mockStore.On("System").Return(&mockSystemStore)
 	mockSystemStore.On("GetByName", mock.Anything).Return(nil, store.NewErrNotFound("", ""))
@@ -3499,41 +3528,36 @@ func TestGetLastAccessiblePostTime(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, int64(0), r)
 
+	// Test case 2: Database error - should return error
 	mockSystemStore = storemocks.SystemStore{}
 	mockStore.On("System").Return(&mockSystemStore)
-	mockSystemStore.On("GetByName", mock.Anything).Return(nil, errors.New("test"))
+	mockSystemStore.On("GetByName", mock.Anything).Return(nil, errors.New("database error"))
 	_, err = th.App.GetLastAccessiblePostTime()
 	assert.NotNil(t, err)
 
+	// Test case 3: Valid system value found - should return parsed timestamp
 	mockSystemStore = storemocks.SystemStore{}
 	mockStore.On("System").Return(&mockSystemStore)
-	mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemLastAccessiblePostTime, Value: "10"}, nil)
+	mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemLastAccessiblePostTime, Value: "1234567890"}, nil)
 	r, err = th.App.GetLastAccessiblePostTime()
 	assert.Nil(t, err)
-	assert.Equal(t, int64(10), r)
+	assert.Equal(t, int64(1234567890), r)
 }
 
 func TestComputeLastAccessiblePostTime(t *testing.T) {
 	mainHelper.Parallel(t)
-	t.Run("Updates the time, if cloud limit is applicable", func(t *testing.T) {
+	t.Run("Updates the time, if Entry license limit is applicable", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-		cloud := &eMocks.CloudInterface{}
-		th.App.Srv().Cloud = cloud
-
-		// cloud-starter, limit is applicable
-		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
-			Messages: &model.MessagesLimits{
-				History: model.NewPointer(1),
-			},
-		}, nil)
+		// Set Entry license with post history limit of 100 messages
+		entryLicensePostsLimit := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+		entryLicensePostsLimit.Limits = &model.LicenseLimits{PostHistory: 100}
+		th.App.Srv().SetLicense(entryLicensePostsLimit)
 
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockPostStore := storemocks.PostStore{}
-		mockPostStore.On("GetNthRecentPostTime", mock.Anything).Return(int64(1), nil)
+		mockPostStore.On("GetNthRecentPostTime", int64(100)).Return(int64(1234567890), nil)
 		mockSystemStore := storemocks.SystemStore{}
 		mockSystemStore.On("SaveOrUpdate", mock.Anything).Return(nil)
 		mockStore.On("Post").Return(&mockPostStore)
@@ -3542,32 +3566,35 @@ func TestComputeLastAccessiblePostTime(t *testing.T) {
 		err := th.App.ComputeLastAccessiblePostTime()
 		assert.NoError(t, err)
 
-		mockSystemStore.AssertCalled(t, "SaveOrUpdate", mock.Anything)
+		// Verify that the system value was saved with the calculated timestamp
+		mockSystemStore.AssertCalled(t, "SaveOrUpdate", &model.System{
+			Name:  model.SystemLastAccessiblePostTime,
+			Value: "1234567890",
+		})
 	})
 
-	t.Run("Remove the time if cloud limit is NOT applicable", func(t *testing.T) {
+	t.Run("Remove the time if license limit is NOT applicable", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-		cloud := &eMocks.CloudInterface{}
-		th.App.Srv().Cloud = cloud
-
-		// enterprise, limit is NOT applicable
-		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(nil, nil)
+		// Set license without post history limits (using test license without limits)
+		license := model.NewTestLicense()
+		license.Limits = nil // No limits
+		th.App.Srv().SetLicense(license)
 
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockSystemStore := storemocks.SystemStore{}
-		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemLastAccessiblePostTime, Value: "10"}, nil)
-		mockSystemStore.On("PermanentDeleteByName", mock.Anything).Return(nil, nil)
+		mockSystemStore.On("GetByName", model.SystemLastAccessiblePostTime).Return(&model.System{Name: model.SystemLastAccessiblePostTime, Value: "1234567890"}, nil)
+		mockSystemStore.On("PermanentDeleteByName", model.SystemLastAccessiblePostTime).Return(nil, nil)
 		mockStore.On("System").Return(&mockSystemStore)
 
 		err := th.App.ComputeLastAccessiblePostTime()
 		assert.NoError(t, err)
 
+		// Verify that SaveOrUpdate was not called (no new timestamp calculated)
 		mockSystemStore.AssertNotCalled(t, "SaveOrUpdate", mock.Anything)
-		mockSystemStore.AssertCalled(t, "PermanentDeleteByName", mock.Anything)
+		// Verify that the previous value was deleted
+		mockSystemStore.AssertCalled(t, "PermanentDeleteByName", model.SystemLastAccessiblePostTime)
 	})
 }
 
