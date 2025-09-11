@@ -653,7 +653,7 @@
   "admin.cluster.OverrideHostnameDesc": "The default value of '<blank>' will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.",
   "admin.cluster.OverrideHostnameEx": "E.g.: \"app-server-01\"",
   "admin.cluster.should_not_change": "WARNING: These settings may not sync with the other servers in the cluster. High Availability inter-node communication will not start until you modify the config.json to be identical on all servers and restart Mattermost. Please see the <link>documentation</link> on how to add or remove a server from the cluster. If you are accessing the System Console through a load balancer and experiencing issues, please see the Troubleshooting Guide in our <link>documentation</link>.",
-  "admin.cluster.status_table.config_hash": "Config File MD5",
+  "admin.cluster.status_table.config_hash": "Config File Hash",
   "admin.cluster.status_table.hostname": "Hostname",
   "admin.cluster.status_table.reload": " Reload Cluster Status",
   "admin.cluster.status_table.schema_version": "DB Schema Version",
