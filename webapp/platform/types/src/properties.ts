@@ -64,6 +64,7 @@ export type UserPropertyField = PropertyField & {
         options?: PropertyFieldOption[];
         ldap?: string;
         saml?: string;
+        managed?: string;
     };
 };
 
