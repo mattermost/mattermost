@@ -271,6 +271,36 @@ func (_m *JobStore) GetAllByTypesPage(c request.CTX, jobTypes []string, offset i
 	return r0, r1
 }
 
+// GetByTypeAndData provides a mock function with given fields: c, jobType, data
+func (_m *JobStore) GetByTypeAndData(c request.CTX, jobType string, data map[string]string) ([]*model.Job, error) {
+	ret := _m.Called(c, jobType, data)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByTypeAndData")
+	}
+
+	var r0 []*model.Job
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, map[string]string) ([]*model.Job, error)); ok {
+		return rf(c, jobType, data)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, map[string]string) []*model.Job); ok {
+		r0 = rf(c, jobType, data)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Job)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, map[string]string) error); ok {
+		r1 = rf(c, jobType, data)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetCountByStatusAndType provides a mock function with given fields: status, jobType
 func (_m *JobStore) GetCountByStatusAndType(status string, jobType string) (int64, error) {
 	ret := _m.Called(status, jobType)

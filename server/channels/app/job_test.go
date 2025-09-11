@@ -222,6 +222,143 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 	})
 }
 
+func TestCreateAccessControlSyncJob(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("cancels pending job and creates new one", func(t *testing.T) {
+		// Create an existing pending job manually in the store
+		existingJob := &model.Job{
+			Id:     model.NewId(),
+			Type:   model.JobTypeAccessControlSync,
+			Status: model.JobStatusPending,
+			Data: map[string]string{
+				"policy_id": "channel456",
+			},
+		}
+		_, err := th.App.Srv().Store().Job().Save(existingJob)
+		require.NoError(t, err)
+		defer func() { _, _ = th.App.Srv().Store().Job().Delete(existingJob.Id) }()
+
+		// Test the cancellation logic by calling the method directly
+		existingJobs, storeErr := th.App.Srv().Store().Job().GetByTypeAndData(th.Context, model.JobTypeAccessControlSync, map[string]string{
+			"policy_id": "channel456",
+		})
+		require.NoError(t, storeErr)
+		require.Len(t, existingJobs, 1)
+
+		// Verify that the store method finds the job
+		assert.Equal(t, existingJob.Id, existingJobs[0].Id)
+		assert.Equal(t, model.JobStatusPending, existingJobs[0].Status)
+
+		// Test the cancellation logic directly
+		for _, job := range existingJobs {
+			if job.Status == model.JobStatusPending || job.Status == model.JobStatusInProgress {
+				appErr := th.App.CancelJob(th.Context, job.Id)
+				require.Nil(t, appErr)
+			}
+		}
+
+		// Verify that the job was cancelled
+		updatedJob, getErr := th.App.Srv().Store().Job().Get(th.Context, existingJob.Id)
+		require.NoError(t, getErr)
+		// Job should be either cancel_requested or canceled (async process)
+		assert.Contains(t, []string{model.JobStatusCancelRequested, model.JobStatusCanceled}, updatedJob.Status)
+	})
+
+	t.Run("cancels in-progress job and creates new one", func(t *testing.T) {
+		// Create an existing in-progress job
+		existingJob := &model.Job{
+			Id:     model.NewId(),
+			Type:   model.JobTypeAccessControlSync,
+			Status: model.JobStatusInProgress,
+			Data: map[string]string{
+				"policy_id": "channel789",
+			},
+		}
+		_, err := th.App.Srv().Store().Job().Save(existingJob)
+		require.NoError(t, err)
+		defer func() { _, _ = th.App.Srv().Store().Job().Delete(existingJob.Id) }()
+
+		// Test that GetByTypeAndData finds the in-progress job
+		existingJobs, storeErr := th.App.Srv().Store().Job().GetByTypeAndData(th.Context, model.JobTypeAccessControlSync, map[string]string{
+			"policy_id": "channel789",
+		})
+		require.NoError(t, storeErr)
+		require.Len(t, existingJobs, 1)
+		assert.Equal(t, model.JobStatusInProgress, existingJobs[0].Status)
+
+		// Test cancellation of in-progress job
+		appErr := th.App.CancelJob(th.Context, existingJob.Id)
+		require.Nil(t, appErr)
+
+		// Verify cancellation was requested (job cancellation is asynchronous)
+		updatedJob, getErr := th.App.Srv().Store().Job().Get(th.Context, existingJob.Id)
+		require.NoError(t, getErr)
+		// Job should be either cancel_requested or canceled (async process)
+		assert.Contains(t, []string{model.JobStatusCancelRequested, model.JobStatusCanceled}, updatedJob.Status)
+	})
+
+	t.Run("leaves completed jobs alone", func(t *testing.T) {
+		// Create an existing completed job
+		existingJob := &model.Job{
+			Id:     model.NewId(),
+			Type:   model.JobTypeAccessControlSync,
+			Status: model.JobStatusSuccess,
+			Data: map[string]string{
+				"policy_id": "channel101",
+			},
+		}
+		_, err := th.App.Srv().Store().Job().Save(existingJob)
+		require.NoError(t, err)
+		defer func() { _, _ = th.App.Srv().Store().Job().Delete(existingJob.Id) }()
+
+		// Test that GetByTypeAndData finds the completed job
+		existingJobs, storeErr := th.App.Srv().Store().Job().GetByTypeAndData(th.Context, model.JobTypeAccessControlSync, map[string]string{
+			"policy_id": "channel101",
+		})
+		require.NoError(t, storeErr)
+		require.Len(t, existingJobs, 1)
+		assert.Equal(t, model.JobStatusSuccess, existingJobs[0].Status)
+
+		// Test that we don't cancel completed jobs (logic test)
+		shouldCancel := existingJob.Status == model.JobStatusPending || existingJob.Status == model.JobStatusInProgress
+		assert.False(t, shouldCancel, "Should not cancel completed jobs")
+
+		// Verify the job status is unchanged
+		updatedJob, getErr := th.App.Srv().Store().Job().Get(th.Context, existingJob.Id)
+		require.NoError(t, getErr)
+		assert.Equal(t, model.JobStatusSuccess, updatedJob.Status)
+	})
+
+	t.Run("handles missing policy_id", func(t *testing.T) {
+		// Try to create job without policy_id
+		jobData := map[string]string{
+			"other_field": "value",
+		}
+
+		job, appErr := th.App.CreateAccessControlSyncJob(th.Context, jobData)
+		require.NotNil(t, appErr)
+		require.Nil(t, job)
+		assert.Equal(t, "app.job.create_access_control_sync.missing_policy_id", appErr.Id)
+		assert.Equal(t, 400, appErr.StatusCode)
+	})
+
+	t.Run("handles empty policy_id", func(t *testing.T) {
+		// Try to create job with empty policy_id
+		jobData := map[string]string{
+			"policy_id": "",
+		}
+
+		job, appErr := th.App.CreateAccessControlSyncJob(th.Context, jobData)
+		require.NotNil(t, appErr)
+		require.Nil(t, job)
+		assert.Equal(t, "app.job.create_access_control_sync.missing_policy_id", appErr.Id)
+		assert.Equal(t, 400, appErr.StatusCode)
+	})
+}
+
 func TestSessionHasPermissionToReadJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)

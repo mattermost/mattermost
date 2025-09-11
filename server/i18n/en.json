@@ -6107,6 +6107,10 @@
     "translation": "insert error"
   },
   {
+    "id": "app.job.create_access_control_sync.missing_policy_id",
+    "translation": "Policy ID is required for access control sync job."
+  },
+  {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
   },
@@ -6129,6 +6133,10 @@
   {
     "id": "app.job.get_count_by_status_and_type.app_error",
     "translation": "Unable to get the job count by status and type."
+  },
+  {
+    "id": "app.job.get_existing_jobs.error",
+    "translation": "Unable to get existing jobs."
   },
   {
     "id": "app.job.get_newest_job_by_status_and_type.app_error",
