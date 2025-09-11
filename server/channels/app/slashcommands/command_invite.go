@@ -48,27 +48,27 @@ func (*InviteProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comma
 	}
 }
 
-func (i *InviteProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (i *InviteProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	return &model.CommandResponse{
-		Text:         i.doCommand(a, c, args, message),
+		Text:         i.doCommand(a, rctx, args, message),
 		ResponseType: model.CommandResponseTypeEphemeral,
 	}
 }
 
-func (i *InviteProvider) doCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) string {
+func (i *InviteProvider) doCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) string {
 	if message == "" {
 		return args.T("api.command_invite.missing_message.app_error")
 	}
 
 	resps := &[]string{}
 
-	targetUsers, targetChannels, resp := i.parseMessage(a, c, args, resps, message)
+	targetUsers, targetChannels, resp := i.parseMessage(a, rctx, args, resps, message)
 	if resp != "" {
 		return resp
 	}
 
 	// Verify that the inviter has permissions to invite users to the every channel.
-	targetChannels = i.checkPermissions(a, c, args, resps, targetUsers[0], targetChannels)
+	targetChannels = i.checkPermissions(a, rctx, args, resps, targetUsers[0], targetChannels)
 
 	// track errors returned for various users.
 	differentChannels := make(map[string][]string)
@@ -80,7 +80,7 @@ func (i *InviteProvider) doCommand(a *app.App, c request.CTX, args *model.Comman
 	for _, targetChannel := range targetChannels {
 		var targetTeamDisplay string
 		for _, targetUser := range targetUsers {
-			userError := i.addUserToChannel(a, c, args, targetUser, targetChannel)
+			userError := i.addUserToChannel(a, rctx, args, targetUser, targetChannel)
 			if userError == NoError {
 				if args.ChannelId != targetChannel.Id {
 					differentChannels[targetChannel.Name] = append(differentChannels[targetChannel.Name], targetUser.Username)
@@ -204,7 +204,7 @@ func (i *InviteProvider) getUsersFromMentionName(a *app.App, mentionName string)
 	return members, group
 }
 
-func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.CommandArgs, resps *[]string, message string) ([]*model.User, []*model.Channel, string) {
+func (i *InviteProvider) parseMessage(a *app.App, rctx request.CTX, args *model.CommandArgs, resps *[]string, message string) ([]*model.User, []*model.Channel, string) {
 	splitMessage := strings.Split(message, " ")
 
 	targetUsers := make([]*model.User, 0, 1)
@@ -227,7 +227,7 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 			targetUsers = append(targetUsers, users...)
 		} else {
 			targetChannelName := strings.TrimPrefix(msg, "~")
-			channelToJoin, err := a.GetChannelByName(c, targetChannelName, args.TeamId, false)
+			channelToJoin, err := a.GetChannelByName(rctx, targetChannelName, args.TeamId, false)
 			if err != nil {
 				*resps = append(*resps, args.T("api.command_invite.channel.error", map[string]any{
 					"Channel": targetChannelName,
@@ -250,7 +250,7 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 			return nil, nil, strings.Join(*resps, "\n")
 		}
 
-		channelToJoin, err := a.GetChannel(c, args.ChannelId)
+		channelToJoin, err := a.GetChannel(rctx, args.ChannelId)
 		if err != nil {
 			return nil, nil, args.T("api.command_invite.channel.app_error")
 		}
@@ -260,13 +260,13 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 	return targetUsers, targetChannels, ""
 }
 
-func (i *InviteProvider) checkPermissions(a *app.App, c request.CTX, args *model.CommandArgs, resps *[]string, targetUser *model.User, targetChannels []*model.Channel) []*model.Channel {
+func (i *InviteProvider) checkPermissions(a *app.App, rctx request.CTX, args *model.CommandArgs, resps *[]string, targetUser *model.User, targetChannels []*model.Channel) []*model.Channel {
 	var err *model.AppError
 	validChannels := make([]*model.Channel, 0, len(targetChannels))
 	for _, targetChannel := range targetChannels {
 		switch targetChannel.Type {
 		case model.ChannelTypeOpen:
-			if !a.HasPermissionToChannel(c, args.UserId, targetChannel.Id, model.PermissionManagePublicChannelMembers) {
+			if !a.HasPermissionToChannel(rctx, args.UserId, targetChannel.Id, model.PermissionManagePublicChannelMembers) {
 				*resps = append(*resps, args.T("api.command_invite.permission.app_error", map[string]any{
 					"User":    targetUser.Username,
 					"Channel": targetChannel.Name,
@@ -274,8 +274,8 @@ func (i *InviteProvider) checkPermissions(a *app.App, c request.CTX, args *model
 				continue
 			}
 		case model.ChannelTypePrivate:
-			if !a.HasPermissionToChannel(c, args.UserId, targetChannel.Id, model.PermissionManagePrivateChannelMembers) {
-				if _, err = a.GetChannelMember(c, targetChannel.Id, args.UserId); err == nil {
+			if !a.HasPermissionToChannel(rctx, args.UserId, targetChannel.Id, model.PermissionManagePrivateChannelMembers) {
+				if _, err = a.GetChannelMember(rctx, targetChannel.Id, args.UserId); err == nil {
 					// User doing the inviting is a member of the channel.
 					*resps = append(*resps, args.T("api.command_invite.permission.app_error", map[string]any{
 						"User":    targetUser.Username,
@@ -298,21 +298,21 @@ func (i *InviteProvider) checkPermissions(a *app.App, c request.CTX, args *model
 	return validChannels
 }
 
-func (i *InviteProvider) addUserToChannel(a *app.App, c request.CTX, args *model.CommandArgs, userProfile *model.User, channelToJoin *model.Channel) UserError {
+func (i *InviteProvider) addUserToChannel(a *app.App, rctx request.CTX, args *model.CommandArgs, userProfile *model.User, channelToJoin *model.Channel) UserError {
 	// Check if user is already in the channel
-	_, err := a.GetChannelMember(c, channelToJoin.Id, userProfile.Id)
+	_, err := a.GetChannelMember(rctx, channelToJoin.Id, userProfile.Id)
 	if err == nil {
 		return UserInChannel
 	}
 
-	if _, err = a.AddChannelMember(c, userProfile.Id, channelToJoin, app.ChannelMemberOpts{UserRequestorID: args.UserId}); err != nil {
+	if _, err = a.AddChannelMember(rctx, userProfile.Id, channelToJoin, app.ChannelMemberOpts{UserRequestorID: args.UserId}); err != nil {
 		if err.Id == "api.channel.add_members.user_denied" {
 			return IsConstrained
 		} else if err.Id == "app.team.get_member.missing.app_error" ||
 			err.Id == "api.channel.add_user.to.channel.failed.deleted.app_error" {
 			return UserNotInTeam
 		}
-		c.Logger().Warn("addUserToChannel had unexpected error.", mlog.String("UserId", userProfile.Id), mlog.Err(err))
+		rctx.Logger().Warn("addUserToChannel had unexpected error.", mlog.String("UserId", userProfile.Id), mlog.Err(err))
 		return Unknown
 	}
 

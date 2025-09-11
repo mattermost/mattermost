@@ -301,7 +301,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 	return append(channelPosts, directMessagePosts...), cursor, nil
 }
 
-func (s SqlComplianceStore) MessageExport(c request.CTX, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
+func (s SqlComplianceStore) MessageExport(rctx request.CTX, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
 	caseStmt, caseArgs, caseErr := sq.Case().
 		When(
 			sq.Eq{"Channels.Type": model.ChannelTypeDirect},
@@ -361,7 +361,7 @@ func (s SqlComplianceStore) MessageExport(c request.CTX, cursor model.MessageExp
 	}
 
 	cposts := []*model.MessageExport{}
-	if err := s.GetReplica().SelectBuilderCtx(c.Context(), &cposts, builder); err != nil {
+	if err := s.GetReplica().SelectBuilderCtx(rctx.Context(), &cposts, builder); err != nil {
 		return nil, cursor, errors.Wrap(err, "unable to export messages")
 	}
 	if len(cposts) > 0 {
