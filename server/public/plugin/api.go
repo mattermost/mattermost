@@ -1454,7 +1454,7 @@ type API interface {
 	// CountPropertyFields counts property fields for a group.
 	//
 	// @tag PropertyField
-	// Minimum server version: 10.10
+	// Minimum server version: 11.0
 	CountPropertyFields(groupID string, includeDeleted bool) (int64, error)
 
 	// CountPropertyFieldsForTarget counts property fields for a specific target.
