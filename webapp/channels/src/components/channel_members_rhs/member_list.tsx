@@ -17,6 +17,7 @@ export interface ChannelMember {
     membership?: ChannelMembership;
     status?: string;
     displayName: string;
+    remoteDisplayName?: string;
 }
 
 export enum ListItemType {
@@ -37,6 +38,7 @@ export interface Props {
     isNextPageLoading: boolean;
     searchTerms: string;
     openDirectMessage: (user: UserProfile) => void;
+    fetchRemoteClusterInfo: (remoteId: string, forceRefresh?: boolean) => void;
     loadMore: () => void;
 }
 
@@ -48,6 +50,7 @@ const MemberList = ({
     searchTerms,
     editing,
     openDirectMessage,
+    fetchRemoteClusterInfo,
     loadMore,
 }: Props) => {
     const infiniteLoaderRef = useRef<InfiniteLoader | null>(null);
@@ -106,7 +109,7 @@ const MemberList = ({
                             totalUsers={members.filter((l) => l.type === ListItemType.Member).length}
                             member={member}
                             editing={editing}
-                            actions={{openDirectMessage}}
+                            actions={{openDirectMessage, fetchRemoteClusterInfo}}
                         />
                     </div>
                 );

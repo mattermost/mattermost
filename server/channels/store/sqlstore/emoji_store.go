@@ -52,19 +52,19 @@ func (es SqlEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
 	return emoji, nil
 }
 
-func (es SqlEmojiStore) Get(c request.CTX, id string, allowFromCache bool) (*model.Emoji, error) {
-	return es.getBy(c, "Id", id)
+func (es SqlEmojiStore) Get(rctx request.CTX, id string, allowFromCache bool) (*model.Emoji, error) {
+	return es.getBy(rctx, "Id", id)
 }
 
-func (es SqlEmojiStore) GetByName(c request.CTX, name string, allowFromCache bool) (*model.Emoji, error) {
-	return es.getBy(c, "Name", name)
+func (es SqlEmojiStore) GetByName(rctx request.CTX, name string, allowFromCache bool) (*model.Emoji, error) {
+	return es.getBy(rctx, "Name", name)
 }
 
-func (es SqlEmojiStore) GetMultipleByName(c request.CTX, names []string) ([]*model.Emoji, error) {
+func (es SqlEmojiStore) GetMultipleByName(rctx request.CTX, names []string) ([]*model.Emoji, error) {
 	query := es.emojiSelectQuery.Where(sq.Eq{"Name": names})
 
 	emojis := []*model.Emoji{}
-	if err := es.DBXFromContext(c.Context()).SelectBuilder(&emojis, query); err != nil {
+	if err := es.DBXFromContext(rctx.Context()).SelectBuilder(&emojis, query); err != nil {
 		return nil, errors.Wrapf(err, "error getting emojis by names %v", names)
 	}
 
@@ -128,12 +128,12 @@ func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*mode
 }
 
 // getBy returns one active (not deleted) emoji, found by any one column (what/key).
-func (es SqlEmojiStore) getBy(c request.CTX, what, key string) (*model.Emoji, error) {
+func (es SqlEmojiStore) getBy(rctx request.CTX, what, key string) (*model.Emoji, error) {
 	var emoji model.Emoji
 
 	query := es.emojiSelectQuery.Where(sq.Eq{what: key})
 
-	err := es.DBXFromContext(c.Context()).GetBuilder(&emoji, query)
+	err := es.DBXFromContext(rctx.Context()).GetBuilder(&emoji, query)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Emoji", fmt.Sprintf("%s=%s", what, key))

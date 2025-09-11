@@ -15,9 +15,9 @@ type AccessControlPolicyStore struct {
 	mock.Mock
 }
 
-// Delete provides a mock function with given fields: c, id
-func (_m *AccessControlPolicyStore) Delete(c request.CTX, id string) error {
-	ret := _m.Called(c, id)
+// Delete provides a mock function with given fields: rctx, id
+func (_m *AccessControlPolicyStore) Delete(rctx request.CTX, id string) error {
+	ret := _m.Called(rctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Delete")
@@ -25,7 +25,7 @@ func (_m *AccessControlPolicyStore) Delete(c request.CTX, id string) error {
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
-		r0 = rf(c, id)
+		r0 = rf(rctx, id)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -33,9 +33,9 @@ func (_m *AccessControlPolicyStore) Delete(c request.CTX, id string) error {
 	return r0
 }
 
-// Get provides a mock function with given fields: c, id
-func (_m *AccessControlPolicyStore) Get(c request.CTX, id string) (*model.AccessControlPolicy, error) {
-	ret := _m.Called(c, id)
+// Get provides a mock function with given fields: rctx, id
+func (_m *AccessControlPolicyStore) Get(rctx request.CTX, id string) (*model.AccessControlPolicy, error) {
+	ret := _m.Called(rctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
@@ -44,10 +44,10 @@ func (_m *AccessControlPolicyStore) Get(c request.CTX, id string) (*model.Access
 	var r0 *model.AccessControlPolicy
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.AccessControlPolicy, error)); ok {
-		return rf(c, id)
+		return rf(rctx, id)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.AccessControlPolicy); ok {
-		r0 = rf(c, id)
+		r0 = rf(rctx, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AccessControlPolicy)
@@ -55,7 +55,7 @@ func (_m *AccessControlPolicyStore) Get(c request.CTX, id string) (*model.Access
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
-		r1 = rf(c, id)
+		r1 = rf(rctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -63,9 +63,9 @@ func (_m *AccessControlPolicyStore) Get(c request.CTX, id string) (*model.Access
 	return r0, r1
 }
 
-// Save provides a mock function with given fields: c, policy
-func (_m *AccessControlPolicyStore) Save(c request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error) {
-	ret := _m.Called(c, policy)
+// Save provides a mock function with given fields: rctx, policy
+func (_m *AccessControlPolicyStore) Save(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error) {
+	ret := _m.Called(rctx, policy)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Save")
@@ -74,10 +74,10 @@ func (_m *AccessControlPolicyStore) Save(c request.CTX, policy *model.AccessCont
 	var r0 *model.AccessControlPolicy
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.AccessControlPolicy) (*model.AccessControlPolicy, error)); ok {
-		return rf(c, policy)
+		return rf(rctx, policy)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.AccessControlPolicy) *model.AccessControlPolicy); ok {
-		r0 = rf(c, policy)
+		r0 = rf(rctx, policy)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AccessControlPolicy)
@@ -85,7 +85,7 @@ func (_m *AccessControlPolicyStore) Save(c request.CTX, policy *model.AccessCont
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, *model.AccessControlPolicy) error); ok {
-		r1 = rf(c, policy)
+		r1 = rf(rctx, policy)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -130,9 +130,9 @@ func (_m *AccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts model.
 	return r0, r1, r2
 }
 
-// SetActiveStatus provides a mock function with given fields: c, id, active
-func (_m *AccessControlPolicyStore) SetActiveStatus(c request.CTX, id string, active bool) (*model.AccessControlPolicy, error) {
-	ret := _m.Called(c, id, active)
+// SetActiveStatus provides a mock function with given fields: rctx, id, active
+func (_m *AccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id string, active bool) (*model.AccessControlPolicy, error) {
+	ret := _m.Called(rctx, id, active)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SetActiveStatus")
@@ -141,10 +141,10 @@ func (_m *AccessControlPolicyStore) SetActiveStatus(c request.CTX, id string, ac
 	var r0 *model.AccessControlPolicy
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) (*model.AccessControlPolicy, error)); ok {
-		return rf(c, id, active)
+		return rf(rctx, id, active)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) *model.AccessControlPolicy); ok {
-		r0 = rf(c, id, active)
+		r0 = rf(rctx, id, active)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AccessControlPolicy)
@@ -152,7 +152,7 @@ func (_m *AccessControlPolicyStore) SetActiveStatus(c request.CTX, id string, ac
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string, bool) error); ok {
-		r1 = rf(c, id, active)
+		r1 = rf(rctx, id, active)
 	} else {
 		r1 = ret.Error(1)
 	}

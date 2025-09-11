@@ -17,7 +17,8 @@ func MakeWorker(jobServer *jobs.JobServer, license *model.License, app AppIface)
 	const workerName = "LastAccessiblePost"
 
 	isEnabled := func(_ *model.Config) bool {
-		return license != nil && license.Features != nil && *license.Features.Cloud
+		// Enable for any license with post history limits (i.e. Entry SKU)
+		return license != nil && license.Limits != nil && license.Limits.PostHistory > 0
 	}
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
 		defer jobServer.HandleJobPanic(logger, job)

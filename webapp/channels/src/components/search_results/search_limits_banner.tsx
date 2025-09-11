@@ -2,145 +2,51 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
-import styled from 'styled-components';
 
-import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {isAdmin} from 'mattermost-redux/utils/user_utils';
+import type {GlobalState} from '@mattermost/types/store';
 
-import useGetLimits from 'components/common/hooks/useGetLimits';
-import useGetUsage from 'components/common/hooks/useGetUsage';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import {isSearchTruncated} from 'mattermost-redux/selectors/entities/search';
 
-import {DataSearchTypes} from 'utils/constants';
-import {asGBString} from 'utils/limits';
+import {getRhsState} from 'selectors/rhs';
 
-const StyledDiv = styled.div`
-width: 100%;
-`;
+import CenterMessageLock from 'components/center_message_lock';
+import useGetServerLimits from 'components/common/hooks/useGetServerLimits';
 
-const StyledA = styled.a`
-color: var(--button-bg) !important;
-`;
+import {DataSearchTypes, RHSStates} from 'utils/constants';
 
-const InnerDiv = styled.div`
-display: flex;
-gap: 8px;
-border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-border-radius: 4px;
-background-color: rgba(var(--center-channel-color-rgb), 0.04);
-padding: 10px;
-margin: 10px;
-color: rgba(var(--center-channel-color-rgb), 0.75);
-font-weight: 400;
-font-size: 11px;
-line-height: 16px;
-letter-spacing: 0.02em;
-`;
+import './search_limits_banner.scss';
 
 type Props = {
     searchType: string;
 }
 
 function SearchLimitsBanner(props: Props) {
-    const {formatMessage, formatNumber} = useIntl();
-    const {openPricingModal, isAirGapped} = useOpenPricingModal();
-    const usage = useGetUsage();
-    const [cloudLimits] = useGetLimits();
-    const isAdminUser = isAdmin(useSelector(getCurrentUser).roles);
-    const isCloud = useSelector(isCurrentLicenseCloud);
+    const [serverLimits] = useGetServerLimits();
 
-    if (!isCloud) {
-        return null;
-    }
-
-    const currentFileStorageUsage = usage.files.totalStorage;
-    const fileStorageLimit = cloudLimits?.files?.total_storage;
-    const currentMessagesUsage = usage.messages.history;
-    const messagesLimit = cloudLimits?.messages?.history;
-
-    let ctaAction = formatMessage({
-        id: 'workspace_limits.search_limit.view_plans',
-        defaultMessage: 'View plans',
+    // Check if current search results were actually truncated
+    const searchTruncated = useSelector((state: GlobalState) => {
+        const searchType = props.searchType === DataSearchTypes.FILES_SEARCH_TYPE ? 'files' : 'posts';
+        return isSearchTruncated(state, searchType);
     });
 
-    if (isAdminUser) {
-        ctaAction = formatMessage({
-            id: 'workspace_limits.search_limit.upgrade_now',
-            defaultMessage: 'Upgrade now',
-        });
-    }
+    // Check if RHS is currently showing search results
+    const rhsState = useSelector(getRhsState);
+    const isShowingSearchResults = rhsState === RHSStates.SEARCH;
 
-    const renderBanner = (bannerText: React.ReactNode, id: string) => {
-        return (<StyledDiv id={id}>
-            <InnerDiv>
-                <i className='icon-eye-off-outline'/>
-                <span>{bannerText}</span>
-            </InnerDiv>
-        </StyledDiv>);
-    };
-
-    switch (props.searchType) {
-    case DataSearchTypes.FILES_SEARCH_TYPE: {
-        if ((fileStorageLimit === undefined) || !(currentFileStorageUsage > fileStorageLimit)) {
-            return null;
-        }
-        const filesBannerMessage = isAirGapped ?
-            formatMessage({
-                id: 'workspace_limits.search_files_limit.banner_text_airgapped',
-                defaultMessage: 'Some older files may not be shown because your workspace has met its file storage limit of {storage}.',
-            }, {
-                storage: asGBString(fileStorageLimit, formatNumber),
-            }) :
-            formatMessage({
-                id: 'workspace_limits.search_files_limit.banner_text',
-                defaultMessage: 'Some older files may not be shown because your workspace has met its file storage limit of {storage}. <a>{ctaAction}</a>',
-            }, {
-                ctaAction,
-                storage: asGBString(fileStorageLimit, formatNumber),
-                a: (chunks: React.ReactNode | React.ReactNodeArray) => (
-                    <StyledA
-                        onClick={() => openPricingModal()}
-                    >
-                        {chunks}
-                    </StyledA>
-                ),
-            });
-        return renderBanner(filesBannerMessage, `${DataSearchTypes.FILES_SEARCH_TYPE}_search_limits_banner`);
-    }
-
-    case DataSearchTypes.MESSAGES_SEARCH_TYPE: {
-        if ((messagesLimit === undefined) || !(currentMessagesUsage > messagesLimit)) {
-            return null;
-        }
-        const messagesBannerMessage = isAirGapped ?
-            formatMessage({
-                id: 'workspace_limits.search_message_limit.banner_text_airgapped',
-                defaultMessage: 'Some older messages may not be shown because your workspace has over {messages} messages.',
-            }, {
-                messages: formatNumber(messagesLimit),
-            }) :
-            formatMessage({
-                id: 'workspace_limits.search_message_limit.banner_text',
-                defaultMessage: 'Some older messages may not be shown because your workspace has over {messages} messages. <a>{ctaAction}</a>',
-            }, {
-                ctaAction,
-                messages: formatNumber(messagesLimit),
-                a: (chunks: React.ReactNode | React.ReactNodeArray) => (
-                    <StyledA
-                        onClick={() => openPricingModal()}
-                    >
-                        {chunks}
-                    </StyledA>
-                ),
-            });
-        return renderBanner(messagesBannerMessage, `${DataSearchTypes.MESSAGES_SEARCH_TYPE}_search_limits_banner`);
-    }
-    default:
+    // Only show banner if search results were actually truncated AND currently showing search results
+    if (!searchTruncated || !serverLimits?.postHistoryLimit || !isShowingSearchResults) {
         return null;
     }
+
+    return (
+        <div
+            id={`${props.searchType}_search_limits_banner`}
+            className='SearchLimitsBanner__wrapper'
+        >
+            <CenterMessageLock/>
+        </div>
+    );
 }
 
 export default SearchLimitsBanner;
