@@ -337,7 +337,7 @@ func TestPluginProperties(t *testing.T) {
 				}
 
 				// Search for fields to get one to delete
-				fields, err := p.API.SearchPropertyFields(group.ID, "", model.PropertyFieldSearchOpts{PerPage: 1})
+				fields, err := p.API.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{PerPage: 1})
 				if err != nil {
 					return fmt.Errorf("failed to search property fields: %w", err)
 				}
