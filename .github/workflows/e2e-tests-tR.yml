@@ -11,6 +11,20 @@ on:
 jobs:
   e2e-tests-tR:
     runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: mattermost
+          POSTGRES_USER: mmuser
+          POSTGRES_PASSWORD: mmuser-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U mmuser"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
     steps:
       - uses: actions/checkout@v4
 
@@ -23,11 +37,6 @@ jobs:
       - name: Install testrigor CLI
         run: |
           npm install -g testrigor-cli
-      
-      - name: Setup PostgreSQL
-        uses: tj-actions/install-postgresql@v3
-        with:
-          postgresql-version: 17
 
       - name: Configure database
         run: |
