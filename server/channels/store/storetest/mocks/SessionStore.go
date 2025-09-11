@@ -61,9 +61,9 @@ func (_m *SessionStore) Cleanup(expiryTime int64, batchSize int64) error {
 	return r0
 }
 
-// Get provides a mock function with given fields: c, sessionIDOrToken
-func (_m *SessionStore) Get(c request.CTX, sessionIDOrToken string) (*model.Session, error) {
-	ret := _m.Called(c, sessionIDOrToken)
+// Get provides a mock function with given fields: rctx, sessionIDOrToken
+func (_m *SessionStore) Get(rctx request.CTX, sessionIDOrToken string) (*model.Session, error) {
+	ret := _m.Called(rctx, sessionIDOrToken)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
@@ -72,10 +72,10 @@ func (_m *SessionStore) Get(c request.CTX, sessionIDOrToken string) (*model.Sess
 	var r0 *model.Session
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.Session, error)); ok {
-		return rf(c, sessionIDOrToken)
+		return rf(rctx, sessionIDOrToken)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.Session); ok {
-		r0 = rf(c, sessionIDOrToken)
+		r0 = rf(rctx, sessionIDOrToken)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Session)
@@ -83,7 +83,7 @@ func (_m *SessionStore) Get(c request.CTX, sessionIDOrToken string) (*model.Sess
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
-		r1 = rf(c, sessionIDOrToken)
+		r1 = rf(rctx, sessionIDOrToken)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -91,9 +91,9 @@ func (_m *SessionStore) Get(c request.CTX, sessionIDOrToken string) (*model.Sess
 	return r0, r1
 }
 
-// GetLRUSessions provides a mock function with given fields: c, userID, limit, offset
-func (_m *SessionStore) GetLRUSessions(c request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error) {
-	ret := _m.Called(c, userID, limit, offset)
+// GetLRUSessions provides a mock function with given fields: rctx, userID, limit, offset
+func (_m *SessionStore) GetLRUSessions(rctx request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error) {
+	ret := _m.Called(rctx, userID, limit, offset)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetLRUSessions")
@@ -102,10 +102,10 @@ func (_m *SessionStore) GetLRUSessions(c request.CTX, userID string, limit uint6
 	var r0 []*model.Session
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string, uint64, uint64) ([]*model.Session, error)); ok {
-		return rf(c, userID, limit, offset)
+		return rf(rctx, userID, limit, offset)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, uint64, uint64) []*model.Session); ok {
-		r0 = rf(c, userID, limit, offset)
+		r0 = rf(rctx, userID, limit, offset)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Session)
@@ -113,7 +113,7 @@ func (_m *SessionStore) GetLRUSessions(c request.CTX, userID string, limit uint6
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string, uint64, uint64) error); ok {
-		r1 = rf(c, userID, limit, offset)
+		r1 = rf(rctx, userID, limit, offset)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -151,9 +151,9 @@ func (_m *SessionStore) GetMobileSessionMetadata() ([]*model.MobileSessionMetada
 	return r0, r1
 }
 
-// GetSessions provides a mock function with given fields: c, userID
-func (_m *SessionStore) GetSessions(c request.CTX, userID string) ([]*model.Session, error) {
-	ret := _m.Called(c, userID)
+// GetSessions provides a mock function with given fields: rctx, userID
+func (_m *SessionStore) GetSessions(rctx request.CTX, userID string) ([]*model.Session, error) {
+	ret := _m.Called(rctx, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSessions")
@@ -162,10 +162,10 @@ func (_m *SessionStore) GetSessions(c request.CTX, userID string) ([]*model.Sess
 	var r0 []*model.Session
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string) ([]*model.Session, error)); ok {
-		return rf(c, userID)
+		return rf(rctx, userID)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string) []*model.Session); ok {
-		r0 = rf(c, userID)
+		r0 = rf(rctx, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Session)
@@ -173,7 +173,7 @@ func (_m *SessionStore) GetSessions(c request.CTX, userID string) ([]*model.Sess
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
-		r1 = rf(c, userID)
+		r1 = rf(rctx, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -295,9 +295,9 @@ func (_m *SessionStore) RemoveAllSessions() error {
 	return r0
 }
 
-// Save provides a mock function with given fields: c, session
-func (_m *SessionStore) Save(c request.CTX, session *model.Session) (*model.Session, error) {
-	ret := _m.Called(c, session)
+// Save provides a mock function with given fields: rctx, session
+func (_m *SessionStore) Save(rctx request.CTX, session *model.Session) (*model.Session, error) {
+	ret := _m.Called(rctx, session)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Save")
@@ -306,10 +306,10 @@ func (_m *SessionStore) Save(c request.CTX, session *model.Session) (*model.Sess
 	var r0 *model.Session
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Session) (*model.Session, error)); ok {
-		return rf(c, session)
+		return rf(rctx, session)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Session) *model.Session); ok {
-		r0 = rf(c, session)
+		r0 = rf(rctx, session)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Session)
@@ -317,7 +317,7 @@ func (_m *SessionStore) Save(c request.CTX, session *model.Session) (*model.Sess
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, *model.Session) error); ok {
-		r1 = rf(c, session)
+		r1 = rf(rctx, session)
 	} else {
 		r1 = ret.Error(1)
 	}
