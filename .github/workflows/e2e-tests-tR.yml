@@ -37,24 +37,28 @@ jobs:
       - name: Install testrigor CLI
         run: |
           npm install -g testrigor-cli
-          
-      - name: Download Mattermost
-        run: |
-          wget https://releases.mattermost.com/10.11.2/mattermost-10.11.2-linux-amd64.tar.gz
-          tar -xvzf mattermost*.gz
-          mv mattermost /opt
       
-      - name: Set up Mattermost
+      - name: Set up Mattermost image
         run: |
-          sudo mkdir /opt/mattermost/data
-          sudo useradd --system --user-group mattermost
-          sudo chown -R mattermost:mattermost /opt/mattermost
-          sudo chmod -R g+w /opt/mattermost
-          sudo touch /lib/systemd/system/mattermost.service
-          sudo systemctl daemon-reload
+          docker compose -f docker-compose.yml -f docker-compose.without-nginx.yml up -d      
           curl -l localhost:8065
       
-      #- name: 
+      #- name: Download Mattermost
+      #  run: |
+      #    wget https://releases.mattermost.com/10.11.2/mattermost-10.11.2-linux-amd64.tar.gz
+      #    tar -xvzf mattermost*.gz
+      #    mv mattermost /opt
+      
+      #- name: Set up Mattermost
+      #  run: |
+      #    sudo mkdir /opt/mattermost/data
+      #    sudo useradd --system --user-group mattermost
+      #    sudo chown -R mattermost:mattermost /opt/mattermost
+      #    sudo chmod -R g+w /opt/mattermost
+      #    sudo touch /lib/systemd/system/mattermost.service
+      #    sudo systemctl daemon-reload
+      #    sudo systemctl
+      
       
       
 
