@@ -1,0 +1,6 @@
+log in user "test_user"
+send message "Test Message"
+log out
+log in user "test_admin"
+check that page contains "Test Message"
+delete message "Test Message"

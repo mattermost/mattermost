@@ -1,0 +1,17 @@
+log in user "test_user"
+hover over "Off-Topic"
+click "Channel options"
+click "Leave Channel"
+check that page does not contain "Off-topic" below "Channels"
+log out
+log in user "test_admin"
+hover over "Off-Topic"
+click "Channel options"
+click "Add members"
+click "Search for people"
+type "test_"
+click "test_user" within context of "more-modal__options"
+click button "Add"
+log out
+log in user "test_user"
+check that page contains "Off-Topic" below "Channels"

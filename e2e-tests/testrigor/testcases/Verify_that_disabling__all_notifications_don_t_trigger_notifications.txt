@@ -1,0 +1,23 @@
+log in user "test_admin"
+click "Settings"
+click "Keywords that trigger notifications"
+enter "0" into 2nd checkbox
+click exactly "Save"
+click "Close"
+log out
+log in user "test_user"
+click "Off-topic"
+click "Write to"
+type "@all"
+click "@all" within context of "suggestion-list"
+enter enter
+log out
+log in user "test_admin"
+check that page does not contain "unreadMentions" on the right of "Off-topic"
+click "Off-topic"
+check that page contains "@all"
+delete message "@all"
+click "Settings"
+click "Keywords that trigger notifications"
+enter "1" into 2nd checkbox
+click exactly "Save"

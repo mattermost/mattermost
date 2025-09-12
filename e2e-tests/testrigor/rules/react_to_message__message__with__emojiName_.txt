@@ -1,0 +1,5 @@
+hover over saved value "message"
+click "Add reaction"
+enter saved value "emojiName"
+enter enter
+check that page contains saved value "emojiName" below saved value "message"

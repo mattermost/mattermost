@@ -1,0 +1,3 @@
+click "Profile" on the right of "Recent mentions"
+click "Log out"
+check that page contains "Log in to your account"

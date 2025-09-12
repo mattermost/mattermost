@@ -1,0 +1,9 @@
+log in user "test_admin"
+send message "Reaction message"
+log out
+log in user "test_user"
+react to message "Reaction message" with "grinning"
+log out
+log in user "test_admin"
+check that page contains "grinning" below "Reaction message"
+delete message "Reaction message"

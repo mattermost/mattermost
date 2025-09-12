@@ -1,0 +1,14 @@
+login
+click "Profile" on the right of "View Plans"
+click "user profile image" within the context of "menu"
+check that page contains "Full Name" below text "Profile Settings"
+check that page contains "Username" below text "Profile Settings"
+check that page contains "Nickname" below text "Profile Settings"
+check that page contains "Position" below text "Profile Settings"
+check that page contains "Email" below text "Profile Settings"
+check that page contains "Profile Picture" below text "Profile Settings"
+click button "Profile Settings"
+enter arrow down
+check that page contains text "Security Settings"
+check that page contains "Password"
+check that page contains "OAuth 2.0 Applications"

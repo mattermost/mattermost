@@ -1,0 +1,4 @@
+enter saved value "userName" into "Email"
+enter "test1234" into "Password"
+click button "Log in"
+check that page contains "Channels"

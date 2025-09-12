@@ -1,0 +1,4 @@
+hover over saved value "message"
+click button "More"
+click "Delete"
+click "Delete"

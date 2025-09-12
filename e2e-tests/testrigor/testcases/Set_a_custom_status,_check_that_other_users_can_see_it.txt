@@ -1,0 +1,16 @@
+log in user "test_admin"
+click "avatar" on the right of "Recent Mentions"
+click "Set custom status"
+click "In a meeting"
+click "Set Status"
+log out
+log in user "test_user"
+click "sidebarTeamMenu"
+click "View members"
+hover over "calendar" on the right of "@test_admin"
+check that page contains "In a meeting"
+click "Close"
+log out
+log in user "test_admin"
+click "avatar" on the right of "Recent Mentions"
+click button on the right of "In a meeting"

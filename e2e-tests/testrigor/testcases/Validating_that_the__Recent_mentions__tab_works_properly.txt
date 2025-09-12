@@ -1,0 +1,11 @@
+log in user "test_user"
+click "Write to"
+type "Hi @"
+click "@test_admin" using OCR
+enter enter
+log out
+log in user "test_admin"
+click "Recent mentions"
+check that "Recent Mentions complimentary region" contains "Hi @test_admin"
+click "Recent mentions"
+delete message "Hi @test_admin"
