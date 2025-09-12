@@ -9,6 +9,7 @@ package mocks
 
 import (
 	context "context"
+	json "encoding/json"
 	io "io"
 	http "net/http"
 	reflect "reflect"
@@ -182,6 +183,22 @@ func (mr *MockClientMockRecorder) CreateBot(arg0, arg1 interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBot", reflect.TypeOf((*MockClient)(nil).CreateBot), arg0, arg1)
 }
 
+// CreateCPAField mocks base method.
+func (m *MockClient) CreateCPAField(arg0 context.Context, arg1 *model.PropertyField) (*model.PropertyField, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateCPAField", arg0, arg1)
+	ret0, _ := ret[0].(*model.PropertyField)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// CreateCPAField indicates an expected call of CreateCPAField.
+func (mr *MockClientMockRecorder) CreateCPAField(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCPAField", reflect.TypeOf((*MockClient)(nil).CreateCPAField), arg0, arg1)
+}
+
 // CreateChannel mocks base method.
 func (m *MockClient) CreateChannel(arg0 context.Context, arg1 *model.Channel) (*model.Channel, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -340,6 +357,21 @@ func (m *MockClient) CreateUserAccessToken(arg0 context.Context, arg1, arg2 stri
 func (mr *MockClientMockRecorder) CreateUserAccessToken(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUserAccessToken", reflect.TypeOf((*MockClient)(nil).CreateUserAccessToken), arg0, arg1, arg2)
+}
+
+// DeleteCPAField mocks base method.
+func (m *MockClient) DeleteCPAField(arg0 context.Context, arg1 string) (*model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteCPAField", arg0, arg1)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteCPAField indicates an expected call of DeleteCPAField.
+func (mr *MockClientMockRecorder) DeleteCPAField(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCPAField", reflect.TypeOf((*MockClient)(nil).DeleteCPAField), arg0, arg1)
 }
 
 // DeleteChannel mocks base method.
@@ -1563,6 +1595,38 @@ func (mr *MockClientMockRecorder) InviteUsersToTeam(arg0, arg1, arg2 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InviteUsersToTeam", reflect.TypeOf((*MockClient)(nil).InviteUsersToTeam), arg0, arg1, arg2)
 }
 
+// ListCPAFields mocks base method.
+func (m *MockClient) ListCPAFields(arg0 context.Context) ([]*model.PropertyField, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListCPAFields", arg0)
+	ret0, _ := ret[0].([]*model.PropertyField)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// ListCPAFields indicates an expected call of ListCPAFields.
+func (mr *MockClientMockRecorder) ListCPAFields(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCPAFields", reflect.TypeOf((*MockClient)(nil).ListCPAFields), arg0)
+}
+
+// ListCPAValues mocks base method.
+func (m *MockClient) ListCPAValues(arg0 context.Context, arg1 string) (map[string]json.RawMessage, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListCPAValues", arg0, arg1)
+	ret0, _ := ret[0].(map[string]json.RawMessage)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// ListCPAValues indicates an expected call of ListCPAValues.
+func (mr *MockClientMockRecorder) ListCPAValues(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCPAValues", reflect.TypeOf((*MockClient)(nil).ListCPAValues), arg0, arg1)
+}
+
 // ListCommands mocks base method.
 func (m *MockClient) ListCommands(arg0 context.Context, arg1 string, arg2 bool) ([]*model.Command, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -1716,6 +1780,38 @@ func (m *MockClient) PatchBot(arg0 context.Context, arg1 string, arg2 *model.Bot
 func (mr *MockClientMockRecorder) PatchBot(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchBot", reflect.TypeOf((*MockClient)(nil).PatchBot), arg0, arg1, arg2)
+}
+
+// PatchCPAField mocks base method.
+func (m *MockClient) PatchCPAField(arg0 context.Context, arg1 string, arg2 *model.PropertyFieldPatch) (*model.PropertyField, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PatchCPAField", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.PropertyField)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// PatchCPAField indicates an expected call of PatchCPAField.
+func (mr *MockClientMockRecorder) PatchCPAField(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchCPAField", reflect.TypeOf((*MockClient)(nil).PatchCPAField), arg0, arg1, arg2)
+}
+
+// PatchCPAValues mocks base method.
+func (m *MockClient) PatchCPAValues(arg0 context.Context, arg1 map[string]json.RawMessage) (map[string]json.RawMessage, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PatchCPAValues", arg0, arg1)
+	ret0, _ := ret[0].(map[string]json.RawMessage)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// PatchCPAValues indicates an expected call of PatchCPAValues.
+func (mr *MockClientMockRecorder) PatchCPAValues(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchCPAValues", reflect.TypeOf((*MockClient)(nil).PatchCPAValues), arg0, arg1)
 }
 
 // PatchChannel mocks base method.

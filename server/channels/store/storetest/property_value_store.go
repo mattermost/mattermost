@@ -622,8 +622,8 @@ func testUpsertPropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 
 		// Verify the invalid value was not inserted
 		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
-			TargetID: invalidValue.TargetID,
-			PerPage:  10,
+			TargetIDs: []string{invalidValue.TargetID},
+			PerPage:   10,
 		})
 		require.NoError(t, err)
 		require.Empty(t, results)
@@ -811,17 +811,17 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 		{
 			name: "filter by target_id",
 			opts: model.PropertyValueSearchOpts{
-				TargetID: targetID,
-				PerPage:  10,
+				TargetIDs: []string{targetID},
+				PerPage:   10,
 			},
 			expectedIDs: []string{value1.ID, value2.ID},
 		},
 		{
 			name: "filter by group_id and target_id",
 			opts: model.PropertyValueSearchOpts{
-				GroupID:  groupID,
-				TargetID: targetID,
-				PerPage:  10,
+				GroupID:   groupID,
+				TargetIDs: []string{targetID},
+				PerPage:   10,
 			},
 			expectedIDs: []string{value1.ID, value2.ID},
 		},
@@ -861,6 +861,23 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 				PerPage: 1,
 			},
 			expectedIDs: []string{value2.ID},
+		},
+		{
+			name: "filter by multiple target_ids",
+			opts: model.PropertyValueSearchOpts{
+				TargetIDs: []string{targetID, value4.TargetID},
+				PerPage:   10,
+			},
+			expectedIDs: []string{value1.ID, value2.ID},
+		},
+		{
+			name: "filter by multiple target_ids with group filter",
+			opts: model.PropertyValueSearchOpts{
+				GroupID:   groupID,
+				TargetIDs: []string{targetID, value4.TargetID},
+				PerPage:   10,
+			},
+			expectedIDs: []string{value1.ID, value2.ID},
 		},
 	}
 
