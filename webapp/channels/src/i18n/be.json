@@ -3861,7 +3861,6 @@
   "user.settings.advance.onForAllMessages": "Укл для ўсіх паведамленняў",
   "user.settings.advance.onForCode": "Укл толькі для блокаў кода, якія пачынаюцца з ```",
   "user.settings.advance.performance.disableClientPlugins": "Адключыць убудовы на баку кліента",
-  "user.settings.advance.performance.disableTelemetry": "Адключыць падзеі тэлеметрыі, адпраўленыя з кліента",
   "user.settings.advance.performance.disableTypingMessages": "Адключыць паведамленні «Карыстальнік набірае...».",
   "user.settings.advance.performance.info1": "Вы можаце часова ўключыць гэтыя налады, каб дапамагчы ізаляваць праблемы з прадукцыйнасцю падчас адладкі. Мы не рэкамендуем пакідаць гэтыя налады ўключанымі на працяглы перыяд часу, паколькі яны могуць негатыўна паўплываць на ваш карыстацкі досвед.",
   "user.settings.advance.performance.info2": "Магчыма, вам спатрэбіцца абнавіць старонку, перш чым гэтыя налады ўступяць у сілу.",

@@ -621,7 +621,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 
 	// Using page size of 100 and not iterating through all pages because the
 	// number of fields are static and defined here and not expected to be more than 100 for now.
-	existingProperties, appErr := s.propertyService.SearchPropertyFields(group.ID, "", model.PropertyFieldSearchOpts{PerPage: 100})
+	existingProperties, appErr := s.propertyService.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 	if appErr != nil {
 		return fmt.Errorf("failed to search for existing content flagging properties: %w", appErr)
 	}
@@ -716,7 +716,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	return nil
 }
 
-func (s *Server) doCloudS3PathMigrations(c request.CTX) error {
+func (s *Server) doCloudS3PathMigrations(rctx request.CTX) error {
 	// This migration is only applicable for cloud environments
 	if os.Getenv("MM_CLOUD_FILESTORE_BIFROST") == "" {
 		return nil
@@ -729,7 +729,7 @@ func (s *Server) doCloudS3PathMigrations(c request.CTX) error {
 
 	// If there is a job already pending, no need to schedule again.
 	// This is possible if the pod was rolled over.
-	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeS3PathMigration, model.JobStatusPending)
+	jobs, err := s.Store().Job().GetAllByTypeAndStatus(rctx, model.JobTypeS3PathMigration, model.JobStatusPending)
 	if err != nil {
 		return fmt.Errorf("failed to get jobs by type and status: %w", err)
 	}
@@ -737,20 +737,20 @@ func (s *Server) doCloudS3PathMigrations(c request.CTX) error {
 		return nil
 	}
 
-	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeS3PathMigration, nil); appErr != nil {
+	if _, appErr := s.Jobs.CreateJobOnce(rctx, model.JobTypeS3PathMigration, nil); appErr != nil {
 		return fmt.Errorf("failed to start job for migrating s3 file paths: %w", appErr)
 	}
 
 	return nil
 }
 
-func (s *Server) doDeleteEmptyDraftsMigration(c request.CTX) error {
+func (s *Server) doDeleteEmptyDraftsMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store().System().GetByName(model.MigrationKeyDeleteEmptyDrafts); err == nil {
 		return nil
 	}
 
-	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeDeleteEmptyDraftsMigration, model.JobStatusPending)
+	jobs, err := s.Store().Job().GetAllByTypeAndStatus(rctx, model.JobTypeDeleteEmptyDraftsMigration, model.JobStatusPending)
 	if err != nil {
 		return fmt.Errorf("failed to get jobs by type and status: %w", err)
 	}
@@ -758,20 +758,20 @@ func (s *Server) doDeleteEmptyDraftsMigration(c request.CTX) error {
 		return nil
 	}
 
-	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeDeleteEmptyDraftsMigration, nil); appErr != nil {
+	if _, appErr := s.Jobs.CreateJobOnce(rctx, model.JobTypeDeleteEmptyDraftsMigration, nil); appErr != nil {
 		return fmt.Errorf("failed to start job for deleting empty drafts: %w", appErr)
 	}
 
 	return nil
 }
 
-func (s *Server) doDeleteOrphanDraftsMigration(c request.CTX) error {
+func (s *Server) doDeleteOrphanDraftsMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store().System().GetByName(model.MigrationKeyDeleteOrphanDrafts); err == nil {
 		return nil
 	}
 
-	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeDeleteOrphanDraftsMigration, model.JobStatusPending)
+	jobs, err := s.Store().Job().GetAllByTypeAndStatus(rctx, model.JobTypeDeleteOrphanDraftsMigration, model.JobStatusPending)
 	if err != nil {
 		return fmt.Errorf("failed to get jobs by type and status: %w", err)
 	}
@@ -779,20 +779,20 @@ func (s *Server) doDeleteOrphanDraftsMigration(c request.CTX) error {
 		return nil
 	}
 
-	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeDeleteOrphanDraftsMigration, nil); appErr != nil {
+	if _, appErr := s.Jobs.CreateJobOnce(rctx, model.JobTypeDeleteOrphanDraftsMigration, nil); appErr != nil {
 		return fmt.Errorf("failed to start job for deleting orphan drafts: %w", appErr)
 	}
 
 	return nil
 }
 
-func (s *Server) doDeleteDmsPreferencesMigration(c request.CTX) error {
+func (s *Server) doDeleteDmsPreferencesMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store().System().GetByName(model.MigrationKeyDeleteDmsPreferences); err == nil {
 		return nil
 	}
 
-	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeDeleteDmsPreferencesMigration, model.JobStatusPending)
+	jobs, err := s.Store().Job().GetAllByTypeAndStatus(rctx, model.JobTypeDeleteDmsPreferencesMigration, model.JobStatusPending)
 	if err != nil {
 		return fmt.Errorf("failed to get jobs by type and status: %w", err)
 	}
@@ -800,7 +800,7 @@ func (s *Server) doDeleteDmsPreferencesMigration(c request.CTX) error {
 		return nil
 	}
 
-	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeDeleteDmsPreferencesMigration, nil); appErr != nil {
+	if _, appErr := s.Jobs.CreateJobOnce(rctx, model.JobTypeDeleteDmsPreferencesMigration, nil); appErr != nil {
 		return fmt.Errorf("failed to start job for deleting dm preferences: %w", appErr)
 	}
 
@@ -853,9 +853,9 @@ func (s *Server) doAppMigrations() {
 		{"Delete Invalid Dms Preferences Migration", s.doDeleteDmsPreferencesMigration},
 	}
 
-	c := request.EmptyContext(s.Log())
+	rctx := request.EmptyContext(s.Log())
 	for i := range m2 {
-		err := m2[i].handler(c)
+		err := m2[i].handler(rctx)
 		if err != nil {
 			mlog.Fatal("Failed to run app migration",
 				mlog.String("migration", m2[i].name),

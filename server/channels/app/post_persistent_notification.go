@@ -18,7 +18,7 @@ import (
 
 // ResolvePersistentNotification stops the persistent notifications, if a loggedInUserID(except the post owner) reacts, reply or ack on the post.
 // Post-owner can only delete the original post to stop the notifications.
-func (a *App) ResolvePersistentNotification(c request.CTX, post *model.Post, loggedInUserID string) *model.AppError {
+func (a *App) ResolvePersistentNotification(rctx request.CTX, post *model.Post, loggedInUserID string) *model.AppError {
 	// Ignore the post owner's actions to their own post
 	if loggedInUserID == post.UserId {
 		return nil
@@ -79,7 +79,7 @@ func (a *App) ResolvePersistentNotification(c request.CTX, post *model.Post, log
 }
 
 // DeletePersistentNotification stops the persistent notifications.
-func (a *App) DeletePersistentNotification(c request.CTX, post *model.Post) *model.AppError {
+func (a *App) DeletePersistentNotification(rctx request.CTX, post *model.Post) *model.AppError {
 	if !a.IsPersistentNotificationsEnabled() {
 		return nil
 	}

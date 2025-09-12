@@ -5534,7 +5534,6 @@
   "user.settings.advance.onForAllMessages": "Увімкнено для всіх повідомлень",
   "user.settings.advance.onForCode": "Увімкнено лише для блоків коду, що починаються з ```",
   "user.settings.advance.performance.disableClientPlugins": "Вимкнути клієнтські плагіни",
-  "user.settings.advance.performance.disableTelemetry": "Вимкнути події телеметрії, надіслані клієнтом",
   "user.settings.advance.performance.disableTypingMessages": "Вимкнути повідомлення «Користувач друкує...»",
   "user.settings.advance.performance.info1": "Ви можете тимчасово увімкнути ці параметри, щоб ізолювати проблеми з продуктивністю під час налагодження. Ми не рекомендуємо залишати ці налаштування увімкненими на тривалий період часу, оскільки вони можуть негативно вплинути на роботу користувача.",
   "user.settings.advance.performance.info2": "Можливо Вам знадобится оновити сторінку, перш ніж ці налаштування почнуть діяти.",
