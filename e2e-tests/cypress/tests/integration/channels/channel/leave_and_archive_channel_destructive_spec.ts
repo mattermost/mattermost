@@ -37,7 +37,7 @@ describe('Leave and Archive channel actions display as destructive', () => {
         cy.findByText('View Info').should('be.visible');
 
         // * Move to... menu option should be visible
-        cy.findByText('Move to...').should('be.visible').trigger('mouseover');
+        cy.findByText('Move to...').should('be.visible').realHover();
 
         // * Favorites Sub-menu option should be visible
         cy.findByText('Favorites').should('be.visible');
@@ -45,8 +45,8 @@ describe('Leave and Archive channel actions display as destructive', () => {
         // * New Category Sub-menu option should be visible
         cy.findByText('New Category').should('be.visible');
 
-        // * Move to... close menu option
-        cy.findByText('Move to...').should('be.visible').trigger('mouseout');
+        // # Move off of the Move to... menu option
+        cy.findByText('View Info').realHover();
 
         // * Notification Preferences menu option should be visible
         cy.get('#channelNotificationPreferences').should('be.visible');
@@ -61,10 +61,13 @@ describe('Leave and Archive channel actions display as destructive', () => {
         cy.findByText('Channel Settings').should('be.visible');
 
         // * Archive Channel menu option should be visible and have a background-color (destructive)
-        cy.get('#channelArchiveChannel').should('be.visible').focus().should('have.css', 'background-color', 'rgb(210, 75, 78)');
+        cy.get('#channelArchiveChannel').focus();
+        cy.get('#channelArchiveChannel').should('have.css', 'background-color', 'rgb(210, 75, 78)');
 
         // // * Leave Channel menu option should be visible and hav a background-color (destructive)
-        cy.get('#channelLeaveChannel').should('be.visible').focus().should('have.css', 'background-color', 'rgb(210, 75, 78)');
+        cy.get('#channelLeaveChannel').should('be.visible');
+        cy.get('#channelLeaveChannel').focus();
+        cy.get('#channelLeaveChannel').should('have.css', 'background-color', 'rgb(210, 75, 78)');
     });
 
     it('MM-T4943_2 Leave channel actions display as destructive in the Edit Channel Menu ', () => {

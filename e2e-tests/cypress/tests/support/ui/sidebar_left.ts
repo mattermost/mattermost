@@ -119,9 +119,11 @@ Cypress.Commands.add('uiGetSidebarThreadsButton', uiGetSidebarThreadsButton);
 Cypress.Commands.add('uiGetChannelSidebarMenu', (channelName, isChannelId = false) => {
     cy.uiGetLHS().within(() => {
         if (isChannelId) {
-            cy.get(`#sidebarItem_${channelName}`).should('be.visible').find('button').should('exist').click({force: true});
+            cy.get(`#sidebarItem_${channelName}`).should('be.visible').realHover();
+            cy.get(`#sidebarItem_${channelName}`).find('button').should('exist').click();
         } else {
-            cy.findByText(channelName).should('be.visible').parents('a').find('button').should('exist').click({force: true});
+            cy.findByText(channelName).should('be.visible').realHover();
+            cy.findByText(channelName).parents('a').find('button').should('exist').click();
         }
     });
 
