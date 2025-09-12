@@ -385,8 +385,9 @@ function ChannelSettingsAccessRulesTab({
                 // Don't fail the entire save operation for this, but log it
             }
 
-            // Step 3: If auto-sync is enabled, create a job to immediately sync channel membership
-            if (autoSyncMembers && expression.trim()) {
+            // Step 3: Create a job to immediately sync channel membership when rules exist
+            // This ensures both user removal (always) and addition (conditional) happen immediately
+            if (expression.trim()) {
                 try {
                     const job: JobTypeBase & { data: {policy_id: string} } = {
                         type: JobTypes.ACCESS_CONTROL_SYNC,

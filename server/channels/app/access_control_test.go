@@ -853,7 +853,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 			"QueryUsersForExpression",
 			rctx,
 			expression,
-			model.SubjectSearchOptions{Limit: 1000},
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
 		).Return([]*model.User{th.BasicUser}, int64(1), nil) // Admin matches
 
 		// Mock the actual search results
@@ -888,7 +888,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 			"QueryUsersForExpression",
 			rctx,
 			expression,
-			model.SubjectSearchOptions{Limit: 1000},
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
 		).Return([]*model.User{}, int64(0), nil) // Admin doesn't match
 
 		// Call the function
@@ -914,7 +914,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 			"QueryUsersForExpression",
 			rctx,
 			expression,
-			model.SubjectSearchOptions{Limit: 1000},
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
 		).Return([]*model.User{th.BasicUser}, int64(1), nil) // Admin matches
 
 		// Mock the actual search results
@@ -950,7 +950,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 			"QueryUsersForExpression",
 			rctx,
 			expression,
-			model.SubjectSearchOptions{Limit: 1000},
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
 		).Return([]*model.User{}, int64(0), nil) // Admin doesn't match full expression
 
 		// Call the function
@@ -976,7 +976,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 			"QueryUsersForExpression",
 			rctx,
 			expression,
-			model.SubjectSearchOptions{Limit: 1000},
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
 		).Return([]*model.User{th.BasicUser}, int64(1), nil) // Admin matches
 
 		// Mock the actual search results
@@ -1011,7 +1011,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 			"QueryUsersForExpression",
 			rctx,
 			expression,
-			model.SubjectSearchOptions{Limit: 1000},
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
 		).Return([]*model.User{}, int64(0), model.NewAppError("TestExpressionWithChannelContext", "app.access_control.query.app_error", nil, "validation error", http.StatusInternalServerError))
 
 		// Call the function
