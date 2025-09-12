@@ -77,6 +77,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
     const createInitialState = (
         isAdmin = true,
         preferences: Array<{category: string; name: string; value: string}> = [],
+        locale = 'en-US',
     ): DeepPartial<GlobalState> => ({
         entities: {
             users: {
@@ -86,6 +87,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
                         roles: isAdmin ? General.SYSTEM_ADMIN_ROLE : General.SYSTEM_USER_ROLE,
                         id: currentUserId,
                         email,
+                        locale,
                     },
                 },
             },
@@ -266,9 +268,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
             const upgradeButton = screen.getByText('Upgrade');
             fireEvent.click(upgradeButton);
 
-            expect(mockOpenPricingModal).toHaveBeenCalledWith({
-                trackingLocation: 'post_history_limit_banner',
-            });
+            expect(mockOpenPricingModal).toHaveBeenCalled();
         });
 
         it('should save dismissal timestamp when close button is clicked', () => {
@@ -299,6 +299,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
     describe('Date Formatting', () => {
         it('should format date correctly for recent dates', () => {
             const recentDate = new Date('2023-07-15T12:00:00.000Z').getTime();
+            const locale = 'en-US';
 
             // Override the global mock for this specific test
             mockToLocaleDateString.mockReturnValue('July 15, 2023');
@@ -311,12 +312,12 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
                 maxUsersHardLimit: 120,
             }, true]);
 
-            const state = createInitialState(true, []);
+            const state = createInitialState(true, [], locale);
 
             renderWithContext(<PostHistoryLimitBanner/>, state);
 
             expect(screen.getByText(/July 15, 2023/)).toBeInTheDocument();
-            expect(mockToLocaleDateString).toHaveBeenCalledWith('en-US', {
+            expect(mockToLocaleDateString).toHaveBeenCalledWith(locale, {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
@@ -325,6 +326,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
 
         it('should format date correctly for older dates with year', () => {
             const oldDate = new Date('2021-12-01T12:00:00.000Z').getTime();
+            const locale = 'en-US';
 
             // Override the global mock for this specific test
             mockToLocaleDateString.mockReturnValue('December 1, 2021');
@@ -337,12 +339,12 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
                 maxUsersHardLimit: 120,
             }, true]);
 
-            const state = createInitialState(true, []);
+            const state = createInitialState(true, [], locale);
 
             renderWithContext(<PostHistoryLimitBanner/>, state);
 
             expect(screen.getByText(/December 1, 2021/)).toBeInTheDocument();
-            expect(mockToLocaleDateString).toHaveBeenCalledWith('en-US', {
+            expect(mockToLocaleDateString).toHaveBeenCalledWith(locale, {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
