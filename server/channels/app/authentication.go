@@ -12,6 +12,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"
@@ -61,6 +62,61 @@ func (a *App) IsPasswordValid(rctx request.CTX, password string) *model.AppError
 	return nil
 }
 
+func (a *App) checkUserPassword(user *model.User, password string, invalidateCache bool) *model.AppError {
+	if user.Password == "" || password == "" {
+		return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
+	}
+
+	// Get the hasher and parsed PHC
+	hasher, phc, err := hashers.GetHasherFromPHCString(user.Password)
+	if err != nil {
+		return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid_hash.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
+	}
+
+	// Compare the password using the hasher that generated it
+	err = hasher.CompareHashAndPassword(phc, password)
+	if err != nil && errors.Is(err, hashers.ErrMismatchedHashAndPassword) {
+		// Increment the number of failed password attempts in case of
+		// mismatched hash and password
+		if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
+			return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+		}
+
+		if invalidateCache {
+			a.InvalidateCacheForUser(user.Id)
+		}
+
+		return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized).Wrap(err)
+	} else if err != nil {
+		return model.NewAppError("checkUserPassword", "app.valid_password_generic.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Migrate the password if needed
+	if !hashers.IsLatestHasher(hasher) {
+		return a.migratePassword(user, password)
+	}
+
+	return nil
+}
+
+// migratePassword updates the database with the user's password hashed with the
+// latest hashing method. It assumes that the password has been already validated.
+func (a *App) migratePassword(user *model.User, password string) *model.AppError {
+	// Compute the new hash with the latest hashing method
+	newHash, err := hashers.Hash(password)
+	if err != nil {
+		return model.NewAppError("migratePassword", "app.user.check_user_password.failed_migration", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Update the password
+	if err := a.Srv().Store().User().UpdatePassword(user.Id, newHash); err != nil {
+		return model.NewAppError("migratePassword", "app.user.check_user_password.failed_update", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	a.InvalidateCacheForUser(user.Id)
+
+	return nil
+}
+
 func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, password string, mfaToken string) *model.AppError {
 	// MM-37585
 	// Use locks to avoid concurrently checking AND updating the failed login attempts.
@@ -81,18 +137,8 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, passw
 		return err
 	}
 
-	if err := users.CheckUserPassword(user, password); err != nil {
-		if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
-			return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
-		}
-
-		var invErr *users.ErrInvalidPassword
-		switch {
-		case errors.As(err, &invErr):
-			return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized).Wrap(err)
-		default:
-			return model.NewAppError("checkUserPassword", "app.valid_password_generic.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+	if err := a.checkUserPassword(user, password, false); err != nil {
+		return err
 	}
 
 	if err := a.CheckUserMfa(rctx, user, mfaToken); err != nil {
@@ -124,20 +170,8 @@ func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password s
 		return err
 	}
 
-	if err := users.CheckUserPassword(user, password); err != nil {
-		if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
-			return model.NewAppError("DoubleCheckPassword", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
-		}
-
-		a.InvalidateCacheForUser(user.Id)
-
-		var invErr *users.ErrInvalidPassword
-		switch {
-		case errors.As(err, &invErr):
-			return model.NewAppError("DoubleCheckPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized).Wrap(err)
-		default:
-			return model.NewAppError("DoubleCheckPassword", "app.valid_password_generic.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+	if err := a.checkUserPassword(user, password, true); err != nil {
+		return err
 	}
 
 	if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {

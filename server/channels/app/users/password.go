@@ -4,29 +4,10 @@
 package users
 
 import (
-	"errors"
 	"strings"
-
-	"golang.org/x/crypto/bcrypt"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
-
-func CheckUserPassword(user *model.User, password string) error {
-	if err := ComparePassword(user.Password, password); err != nil {
-		return NewErrInvalidPassword("")
-	}
-
-	return nil
-}
-
-func ComparePassword(hash string, password string) error {
-	if password == "" || hash == "" {
-		return errors.New("empty password or hash")
-	}
-
-	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-}
 
 func (us *UserService) isPasswordValid(password string) error {
 	return IsPasswordValidWithSettings(password, &us.config().PasswordSettings)
