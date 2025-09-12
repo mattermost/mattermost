@@ -22,6 +22,7 @@ func (api *API) InitAccessControlPolicy() {
 
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/check", api.APISessionRequired(checkExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/test", api.APISessionRequired(testExpression)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/validate_requester", api.APISessionRequired(validateExpressionAgainstRequester)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/autocomplete/fields", api.APISessionRequired(getFieldsAutocomplete)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/visual_ast", api.APISessionRequired(convertToVisualAST)).Methods(http.MethodPost)
 
@@ -283,13 +284,26 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	users, count, appErr := c.App.TestExpression(c.AppContext, checkExpressionRequest.Expression, model.SubjectSearchOptions{
+	var users []*model.User
+	var count int64
+	var appErr *model.AppError
+
+	searchOpts := model.SubjectSearchOptions{
 		Term:  checkExpressionRequest.Term,
 		Limit: checkExpressionRequest.Limit,
 		Cursor: model.SubjectCursor{
 			TargetID: checkExpressionRequest.After,
 		},
-	})
+	}
+
+	if hasSystemPermission {
+		// SYSTEM ADMIN: Can see ALL users (no restrictions)
+		users, count, appErr = c.App.TestExpression(c.AppContext, checkExpressionRequest.Expression, searchOpts)
+	} else {
+		// CHANNEL ADMIN: Only see users matching expressions with attributes they possess
+		users, count, appErr = c.App.TestExpressionWithChannelContext(c.AppContext, checkExpressionRequest.Expression, searchOpts)
+	}
+
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -307,6 +321,66 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func validateExpressionAgainstRequester(c *Context, w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		Expression string `json:"expression"`
+		ChannelId  string `json:"channelId,omitempty"`
+	}
+
+	if jsonErr := json.NewDecoder(r.Body).Decode(&request); jsonErr != nil {
+		c.SetInvalidParamWithErr("request", jsonErr)
+		return
+	}
+
+	// Get channelId from request body (required for channel-specific permission check)
+	channelId := request.ChannelId
+	if channelId != "" && !model.IsValidId(channelId) {
+		c.SetInvalidParam("channelId")
+		return
+	}
+
+	// Check permissions: system admin OR channel-specific permission
+	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	if !hasSystemPermission {
+		// For channel admins, channelId is required
+		if channelId == "" {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
+
+		// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
+		if !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
+			c.Err = model.NewAppError("validateExpressionAgainstRequester", "api.not_implemented", nil, "", http.StatusNotImplemented)
+			return
+		}
+
+		// SECURE: Check specific channel permission
+		hasChannelPermission := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+		if !hasChannelPermission {
+			c.SetPermissionError(model.PermissionManageChannelAccessRules)
+			return
+		}
+	}
+
+	// Direct validation against requester
+	matches, appErr := c.App.ValidateExpressionAgainstRequester(c.AppContext, request.Expression, c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	response := struct {
+		RequesterMatches bool `json:"requester_matches"`
+	}{
+		RequesterMatches: matches,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -394,6 +468,16 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+
+	// Return success response
+	response := map[string]any{
+		"status": "OK",
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -618,7 +702,11 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ac, appErr := c.App.GetAccessControlFieldsAutocomplete(c.AppContext, after, limit)
+	var ac []*model.PropertyField
+	var appErr *model.AppError
+
+	ac, appErr = c.App.GetAccessControlFieldsAutocomplete(c.AppContext, after, limit)
+
 	if appErr != nil {
 		c.Err = appErr
 		return

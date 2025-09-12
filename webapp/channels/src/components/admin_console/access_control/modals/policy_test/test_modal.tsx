@@ -82,7 +82,7 @@ function TestResultsModal({
 
     return (
         <Modal
-            dialogClassName='a11y__modal more-modal'
+            dialogClassName='a11y__modal more-modal TestResultsModal'
             show={true}
             onHide={onExited}
             role='none'

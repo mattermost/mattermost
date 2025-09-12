@@ -827,6 +827,321 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 	})
 }
 
+func TestTestExpressionWithChannelContext(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Create test session with user
+	session := model.Session{
+		UserId: th.BasicUser.Id,
+		Id:     model.NewId(),
+	}
+
+	// Setup test context with session
+	rctx := request.TestContext(t).WithSession(&session)
+
+	t.Run("should allow channel admin to test expression they match", func(t *testing.T) {
+		// Setup mock access control service
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControlService
+
+		expression := "user.attributes.department == 'engineering'"
+		opts := model.SubjectSearchOptions{Limit: 50}
+
+		// Mock that admin matches the expression (for validation)
+		mockAccessControlService.On(
+			"QueryUsersForExpression",
+			rctx,
+			expression,
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
+		).Return([]*model.User{th.BasicUser}, int64(1), nil) // Admin matches
+
+		// Mock the actual search results
+		expectedUsers := []*model.User{th.BasicUser, th.BasicUser2}
+		expectedCount := int64(2)
+		mockAccessControlService.On(
+			"QueryUsersForExpression",
+			rctx,
+			expression,
+			opts,
+		).Return(expectedUsers, expectedCount, nil)
+
+		// Call the function
+		users, count, appErr := th.App.TestExpressionWithChannelContext(rctx, expression, opts)
+
+		require.Nil(t, appErr)
+		require.Equal(t, expectedUsers, users)
+		require.Equal(t, expectedCount, count)
+		mockAccessControlService.AssertExpectations(t)
+	})
+
+	t.Run("should deny channel admin testing expression they don't match", func(t *testing.T) {
+		// Setup mock access control service
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControlService
+
+		expression := "user.attributes.department == 'sales'"
+		opts := model.SubjectSearchOptions{Limit: 50}
+
+		// Mock that admin does NOT match the expression (for validation)
+		mockAccessControlService.On(
+			"QueryUsersForExpression",
+			rctx,
+			expression,
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
+		).Return([]*model.User{}, int64(0), nil) // Admin doesn't match
+
+		// Call the function
+		users, count, appErr := th.App.TestExpressionWithChannelContext(rctx, expression, opts)
+
+		require.Nil(t, appErr)
+		require.Empty(t, users) // Should return empty results
+		require.Equal(t, int64(0), count)
+		mockAccessControlService.AssertExpectations(t)
+	})
+
+	t.Run("should handle complex expression with multiple attributes", func(t *testing.T) {
+		// Setup mock access control service
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControlService
+
+		// Complex expression with multiple conditions
+		expression := "user.attributes.department == 'engineering' && user.attributes.team == 'backend'"
+		opts := model.SubjectSearchOptions{Limit: 50}
+
+		// Mock that admin matches the expression (for validation)
+		mockAccessControlService.On(
+			"QueryUsersForExpression",
+			rctx,
+			expression,
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
+		).Return([]*model.User{th.BasicUser}, int64(1), nil) // Admin matches
+
+		// Mock the actual search results
+		expectedUsers := []*model.User{th.BasicUser, th.BasicUser2}
+		expectedCount := int64(2)
+		mockAccessControlService.On(
+			"QueryUsersForExpression",
+			rctx,
+			expression,
+			opts,
+		).Return(expectedUsers, expectedCount, nil)
+
+		// Call the function
+		users, count, appErr := th.App.TestExpressionWithChannelContext(rctx, expression, opts)
+
+		require.Nil(t, appErr)
+		require.Equal(t, expectedUsers, users)
+		require.Equal(t, expectedCount, count)
+		mockAccessControlService.AssertExpectations(t)
+	})
+
+	t.Run("should deny when admin partially matches expression", func(t *testing.T) {
+		// Setup mock access control service
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControlService
+
+		// Expression that admin only partially matches (has department but not team)
+		expression := "user.attributes.department == 'engineering' && user.attributes.team == 'frontend'"
+		opts := model.SubjectSearchOptions{Limit: 50}
+
+		// Mock that admin does NOT match the full expression (for validation)
+		mockAccessControlService.On(
+			"QueryUsersForExpression",
+			rctx,
+			expression,
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
+		).Return([]*model.User{}, int64(0), nil) // Admin doesn't match full expression
+
+		// Call the function
+		users, count, appErr := th.App.TestExpressionWithChannelContext(rctx, expression, opts)
+
+		require.Nil(t, appErr)
+		require.Empty(t, users) // Should return empty results
+		require.Equal(t, int64(0), count)
+		mockAccessControlService.AssertExpectations(t)
+	})
+
+	t.Run("should allow expressions with different operators", func(t *testing.T) {
+		// Setup mock access control service
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControlService
+
+		// Expression with != operator
+		expression := "user.attributes.department != 'sales'"
+		opts := model.SubjectSearchOptions{Limit: 50}
+
+		// Mock that admin matches the expression (admin has department='engineering')
+		mockAccessControlService.On(
+			"QueryUsersForExpression",
+			rctx,
+			expression,
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
+		).Return([]*model.User{th.BasicUser}, int64(1), nil) // Admin matches
+
+		// Mock the actual search results
+		expectedUsers := []*model.User{th.BasicUser, th.BasicUser2}
+		expectedCount := int64(2)
+		mockAccessControlService.On(
+			"QueryUsersForExpression",
+			rctx,
+			expression,
+			opts,
+		).Return(expectedUsers, expectedCount, nil)
+
+		// Call the function
+		users, count, appErr := th.App.TestExpressionWithChannelContext(rctx, expression, opts)
+
+		require.Nil(t, appErr)
+		require.Equal(t, expectedUsers, users)
+		require.Equal(t, expectedCount, count)
+		mockAccessControlService.AssertExpectations(t)
+	})
+
+	t.Run("should handle error in validation step", func(t *testing.T) {
+		// Setup mock access control service
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControlService
+
+		expression := "user.attributes.department == 'engineering'"
+		opts := model.SubjectSearchOptions{Limit: 50}
+
+		// Mock that validation step fails
+		mockAccessControlService.On(
+			"QueryUsersForExpression",
+			rctx,
+			expression,
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
+		).Return([]*model.User{}, int64(0), model.NewAppError("TestExpressionWithChannelContext", "app.access_control.query.app_error", nil, "validation error", http.StatusInternalServerError))
+
+		// Call the function
+		_, _, appErr := th.App.TestExpressionWithChannelContext(rctx, expression, opts)
+
+		require.NotNil(t, appErr)
+		require.Equal(t, "TestExpressionWithChannelContext", appErr.Where)
+		mockAccessControlService.AssertExpectations(t)
+	})
+}
+
+func TestValidateExpressionAgainstRequester(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	rctx := request.TestContext(t)
+
+	t.Run("should return true when requester matches expression", func(t *testing.T) {
+		// Setup mock access control service
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControlService
+
+		expression := "user.attributes.team == 'engineering'"
+		requesterID := th.BasicUser.Id
+
+		// Mock that the requester is found in the results (optimized query)
+		mockUsers := []*model.User{th.BasicUser}
+		mockAccessControlService.On(
+			"QueryUsersForExpression",
+			rctx,
+			expression,
+			model.SubjectSearchOptions{SubjectID: requesterID, Limit: 1},
+		).Return(mockUsers, int64(1), nil)
+
+		// Call the function
+		matches, appErr := th.App.ValidateExpressionAgainstRequester(rctx, expression, requesterID)
+
+		require.Nil(t, appErr)
+		require.True(t, matches)
+		mockAccessControlService.AssertExpectations(t)
+	})
+
+	t.Run("should return false when requester does not match expression", func(t *testing.T) {
+		// Setup mock access control service
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControlService
+
+		expression := "user.attributes.team == 'engineering'"
+		requesterID := th.BasicUser.Id
+
+		// Mock that the requester is NOT found in the results (optimized query)
+		mockUsers := []*model.User{} // Empty results - requester doesn't match
+		mockAccessControlService.On(
+			"QueryUsersForExpression",
+			rctx,
+			expression,
+			model.SubjectSearchOptions{SubjectID: requesterID, Limit: 1},
+		).Return(mockUsers, int64(0), nil)
+
+		// Call the function
+		matches, appErr := th.App.ValidateExpressionAgainstRequester(rctx, expression, requesterID)
+
+		require.Nil(t, appErr)
+		require.False(t, matches)
+		mockAccessControlService.AssertExpectations(t)
+	})
+
+	t.Run("should return false when no users match expression", func(t *testing.T) {
+		// Setup mock access control service
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControlService
+
+		expression := "user.attributes.team == 'nonexistent'"
+		requesterID := th.BasicUser.Id
+
+		// Mock that no users match the expression (optimized query)
+		mockUsers := []*model.User{}
+		mockAccessControlService.On(
+			"QueryUsersForExpression",
+			rctx,
+			expression,
+			model.SubjectSearchOptions{SubjectID: requesterID, Limit: 1},
+		).Return(mockUsers, int64(0), nil)
+
+		// Call the function
+		matches, appErr := th.App.ValidateExpressionAgainstRequester(rctx, expression, requesterID)
+
+		require.Nil(t, appErr)
+		require.False(t, matches)
+		mockAccessControlService.AssertExpectations(t)
+	})
+
+	t.Run("should handle access control service error", func(t *testing.T) {
+		// Setup mock access control service
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControlService
+
+		expression := "invalid expression"
+		requesterID := th.BasicUser.Id
+
+		// Mock that the service returns an error (optimized query)
+		mockAccessControlService.On(
+			"QueryUsersForExpression",
+			rctx,
+			expression,
+			model.SubjectSearchOptions{SubjectID: requesterID, Limit: 1},
+		).Return([]*model.User{}, int64(0), model.NewAppError("ValidateExpressionAgainstRequester", "app.access_control.validate_requester.app_error", nil, "expression parsing error", http.StatusInternalServerError))
+
+		// Call the function
+		matches, appErr := th.App.ValidateExpressionAgainstRequester(rctx, expression, requesterID)
+
+		require.NotNil(t, appErr)
+		require.False(t, matches)
+		require.Equal(t, "ValidateExpressionAgainstRequester", appErr.Where)
+		require.Contains(t, appErr.DetailedError, "expression parsing error")
+		mockAccessControlService.AssertExpectations(t)
+	})
+
+	t.Run("should handle missing access control service", func(t *testing.T) {
+		th.App.Srv().ch.AccessControl = nil
+
+		matches, appErr := th.App.ValidateExpressionAgainstRequester(rctx, "true", th.BasicUser.Id)
+
+		require.NotNil(t, appErr)
+		require.False(t, matches)
+		require.Equal(t, "ValidateExpressionAgainstRequester", appErr.Where)
+		require.Contains(t, appErr.Message, "Could not check expression")
+	})
+}
+
 func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -834,7 +1149,6 @@ func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
 	rctx := request.TestContext(t)
 	channelID := model.NewId()
 	systemPolicyID := model.NewId()
-
 	t.Run("should return false when channel has no policy", func(t *testing.T) {
 		// Mock access control service to return error (no policy)
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
