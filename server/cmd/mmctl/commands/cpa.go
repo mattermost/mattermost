@@ -15,7 +15,7 @@ import (
 var CPACmd = &cobra.Command{
 	Use:   "cpa",
 	Short: "Management of Custom Profile Attributes",
-	Long:  "Management of Custom Profile Attributes (CPA) fields.",
+	Long:  "Management of Custom Profile Attributes (CPA) fields and values.",
 }
 
 var CPAFieldCmd = &cobra.Command{
@@ -24,9 +24,16 @@ var CPAFieldCmd = &cobra.Command{
 	Long:  "Create, list, edit, and delete Custom Profile Attribute fields.",
 }
 
+var CPAValueCmd = &cobra.Command{
+	Use:   "value",
+	Short: "Management of CPA values",
+	Long:  "List, set, and delete Custom Profile Attribute values for users.",
+}
+
 func init() {
 	CPACmd.AddCommand(
 		CPAFieldCmd,
+		CPAValueCmd,
 	)
 
 	RootCmd.AddCommand(CPACmd)

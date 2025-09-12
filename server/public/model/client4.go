@@ -611,7 +611,7 @@ func (c *Client4) customProfileAttributesRoute() string {
 }
 
 func (c *Client4) userCustomProfileAttributesRoute(userID string) string {
-	return fmt.Sprintf("%s/%s", c.userRoute(userID), c.customProfileAttributesRoute())
+	return fmt.Sprintf("%s/custom_profile_attributes", c.userRoute(userID))
 }
 
 func (c *Client4) customProfileAttributeFieldsRoute() string {
@@ -9665,6 +9665,26 @@ func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]json.Raw
 	var patchedValues map[string]json.RawMessage
 	if err := json.NewDecoder(r.Body).Decode(&patchedValues); err != nil {
 		return nil, nil, NewAppError("PatchCPAValues", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return patchedValues, BuildResponse(r), nil
+}
+
+func (c *Client4) PatchCPAValuesForUser(ctx context.Context, userID string, values map[string]json.RawMessage) (map[string]json.RawMessage, *Response, error) {
+	buf, err := json.Marshal(values)
+	if err != nil {
+		return nil, nil, NewAppError("PatchCPAValuesForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPatchBytes(ctx, c.userCustomProfileAttributesRoute(userID), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var patchedValues map[string]json.RawMessage
+	if err := json.NewDecoder(r.Body).Decode(&patchedValues); err != nil {
+		return nil, nil, NewAppError("PatchCPAValuesForUser", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return patchedValues, BuildResponse(r), nil
