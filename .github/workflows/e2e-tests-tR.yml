@@ -41,7 +41,13 @@ jobs:
       - name: Set up Mattermost image
         run: |
           docker run --name mattermost-preview -d --publish 8065:8065 --publish 8443:8443 mattermost/mattermost-preview
-          curl -l localhost:8065
+
+      - name: Run testrigor tests
+        env:
+          CI_TOKEN: ${{ secrets.CI_TOKEN }}
+          SUITE_ID: ${{ vars.SUITE_ID }}
+        run: |
+          testrigor test-suite run "$SUITE_ID" --token "$CI_TOKEN" --test-cases-path mattermost/e2e-tests/testrigor/**/*.txt --localhost --url http://localhost:8065
       
       #- name: Download Mattermost
       #  run: |
