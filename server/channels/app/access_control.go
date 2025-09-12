@@ -496,8 +496,9 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 	})
 	if appErr != nil {
 		return false, appErr
+	} else if len(users) == 1 && users[0].Id == requesterID {
+		return true, nil
+	} else {
+		return false, nil
 	}
-
-	// If any user is returned, the requester matches the expression
-	return len(users) > 0, nil
 }
