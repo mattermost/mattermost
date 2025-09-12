@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useMemo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
@@ -43,7 +43,7 @@ const PostHistoryLimitBanner = () => {
             user_id: currentUser.id,
             value: Date.now().toString(), // Store current timestamp
         }]));
-    }, [currentUser.id]);
+    }, [currentUser?.id]);
 
     const handleUpgradeClick = useCallback((e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
@@ -111,10 +111,10 @@ const PostHistoryLimitBanner = () => {
         />
     );
 
-    const upgradeButtonText = {
+    const upgradeButtonText = defineMessage({
         id: 'workspace_limits.post_history_banner.upgrade_button',
         defaultMessage: 'Upgrade',
-    };
+    });
 
     return (
         <AnnouncementBar
