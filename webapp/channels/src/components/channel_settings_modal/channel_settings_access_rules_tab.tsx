@@ -259,21 +259,18 @@ function ChannelSettingsAccessRulesTab({
         }
 
         if (!currentUser?.id) {
+            setFormError(formatMessage({
+                id: 'channel_settings.access_rules.error.no_current_user',
+                defaultMessage: 'Cannot validate access rules: current user not found',
+            }));
             return false;
         }
 
         try {
-            const result = await actions.searchUsers(testExpression, '', '', 1000);
-            if (!result.data || !result.data.users || result.data.users.length === 0) {
-                // No users match the expression (including current user)
-                setShowSelfExclusionModal(true);
-                return false;
-            }
+            // use backend endpoint for direct validation
+            const result = await actions.validateExpressionAgainstRequester(testExpression);
 
-            // Check if current user matches using efficient single iteration
-            const currentUserMatches = result.data.users.some((u) => u.id === currentUser.id);
-            if (!currentUserMatches) {
-                // Current user would be excluded
+            if (!result.data?.requester_matches) {
                 setShowSelfExclusionModal(true);
                 return false;
             }
@@ -290,7 +287,7 @@ function ChannelSettingsAccessRulesTab({
             return false;
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentUser]);
+    }, [currentUser?.id]);
 
     // Calculate membership changes
     const calculateMembershipChanges = useCallback(async (channelExpression: string): Promise<{toAdd: string[]; toRemove: string[]}> => {
@@ -388,13 +385,14 @@ function ChannelSettingsAccessRulesTab({
                 // Don't fail the entire save operation for this, but log it
             }
 
-            // Step 3: If auto-sync is enabled, create a job to immediately sync channel membership
-            if (autoSyncMembers && expression.trim()) {
+            // Step 3: Create a job to immediately sync channel membership when rules exist
+            // This ensures both user removal (always) and addition (conditional) happen immediately
+            if (expression.trim()) {
                 try {
-                    const job: JobTypeBase & { data: {parent_id: string} } = {
+                    const job: JobTypeBase & { data: {policy_id: string} } = {
                         type: JobTypes.ACCESS_CONTROL_SYNC,
                         data: {
-                            parent_id: channel.id, // Sync only this specific channel policy
+                            policy_id: channel.id, // Sync only this specific channel policy
                         },
                     };
                     await actions.createJob(job);
@@ -564,48 +562,19 @@ function ChannelSettingsAccessRulesTab({
                         onValidate={() => setFormError('')}
                         userAttributes={userAttributes}
                         onParseError={handleParseError}
+                        channelId={channel.id}
                         actions={actions}
                         enableUserManagedAttributes={accessControlSettings?.EnableUserManagedAttributes || false}
                     />
                 </div>
             )}
 
-            <p className='ChannelSettingsModal__accessRulesDescription'>
-                {formatMessage({
-                    id: 'channel_settings.access_rules.description',
-                    defaultMessage: 'Select attributes and values that users must match in addition to access this channel. All selected attributes are required.',
-                })}
-            </p>
+            {/* Divider between access rules and auto-sync */}
+            <hr className='ChannelSettingsModal__divider'/>
 
             {/* Auto-sync members toggle */}
             <div className='ChannelSettingsModal__autoSyncSection'>
-                <label
-                    className='ChannelSettingsModal__autoSyncLabel'
-                    title={(() => {
-                        if (isEmptyRulesState) {
-                            return formatMessage({
-                                id: 'channel_settings.access_rules.auto_sync_disabled_empty_state',
-                                defaultMessage: 'Auto-add is disabled because no access rules are defined',
-                            });
-                        }
-
-                        // Show "forced by parent" when system policies force auto-sync (regardless of channel rules)
-                        if (systemPolicyForcesAutoSync) {
-                            return formatMessage({
-                                id: 'channel_settings.access_rules.auto_sync_forced_by_parent',
-                                defaultMessage: 'Auto-add is enabled by system policy and cannot be disabled',
-                            });
-                        }
-
-                        if (!expression.trim()) {
-                            return formatMessage({
-                                id: 'channel_settings.access_rules.auto_sync_requires_expression',
-                                defaultMessage: 'Define access rules to enable auto-add members',
-                            });
-                        }
-                        return undefined;
-                    })()}
-                >
+                <div className='ChannelSettingsModal__autoSyncCheckboxContainer'>
                     <input
                         type='checkbox'
                         className='ChannelSettingsModal__autoSyncCheckbox'
@@ -615,13 +584,42 @@ function ChannelSettingsAccessRulesTab({
                         id='autoSyncMembersCheckbox'
                         name='autoSyncMembers'
                     />
-                    <span className={`ChannelSettingsModal__autoSyncText ${(isEmptyRulesState || !expression.trim() || (systemPolicyForcesAutoSync && autoSyncMembers)) ? 'disabled' : ''}`}>
-                        {formatMessage({
-                            id: 'channel_settings.access_rules.auto_sync',
-                            defaultMessage: 'Auto-add members based on access rules',
-                        })}
-                    </span>
-                </label>
+                    <label
+                        htmlFor='autoSyncMembersCheckbox'
+                        className='ChannelSettingsModal__autoSyncLabel'
+                        title={(() => {
+                            if (isEmptyRulesState) {
+                                return formatMessage({
+                                    id: 'channel_settings.access_rules.auto_sync_disabled_empty_state',
+                                    defaultMessage: 'Auto-add is disabled because no access rules are defined',
+                                });
+                            }
+
+                            // Show "forced by parent" when system policies force auto-sync (regardless of channel rules)
+                            if (systemPolicyForcesAutoSync) {
+                                return formatMessage({
+                                    id: 'channel_settings.access_rules.auto_sync_forced_by_parent',
+                                    defaultMessage: 'Auto-add is enabled by system policy and cannot be disabled',
+                                });
+                            }
+
+                            if (!expression.trim()) {
+                                return formatMessage({
+                                    id: 'channel_settings.access_rules.auto_sync_requires_expression',
+                                    defaultMessage: 'Define access rules to enable auto-add members',
+                                });
+                            }
+                            return undefined;
+                        })()}
+                    >
+                        <span className={`ChannelSettingsModal__autoSyncText ${(isEmptyRulesState || !expression.trim() || (systemPolicyForcesAutoSync && autoSyncMembers)) ? 'disabled' : ''}`}>
+                            {formatMessage({
+                                id: 'channel_settings.access_rules.auto_sync',
+                                defaultMessage: 'Auto-add members based on access rules',
+                            })}
+                        </span>
+                    </label>
+                </div>
                 <p className='ChannelSettingsModal__autoSyncDescription'>
                     {(() => {
                         // Check for empty state first (no channel rules AND no system policies)
@@ -714,6 +712,7 @@ function ChannelSettingsAccessRulesTab({
                     />
                 }
                 onConfirm={() => setShowSelfExclusionModal(false)}
+                onCancel={() => setShowSelfExclusionModal(false)}
                 hideCancel={true}
                 confirmButtonClass='btn btn-primary'
                 isStacked={true}
@@ -738,27 +737,7 @@ function ChannelSettingsAccessRulesTab({
                 usersToRemove={usersToRemove}
                 isProcessing={isProcessingSave}
                 autoSyncEnabled={autoSyncMembers}
-            />
-
-            {/* Confirmation modal for membership changes */}
-            <ChannelAccessRulesConfirmModal
-                show={showConfirmModal}
-                onHide={() => {
-                    setShowConfirmModal(false);
-                    setUsersToAdd([]);
-                    setUsersToRemove([]);
-
-                    // Clear any error state when canceling the modal
-                    if (saveChangesPanelState === 'error') {
-                        setSaveChangesPanelState(undefined);
-                    }
-                }}
-                onConfirm={handleConfirmSave}
-                channelName={channel.display_name}
-                usersToAdd={usersToAdd}
-                usersToRemove={usersToRemove}
-                isProcessing={isProcessingSave}
-                autoSyncEnabled={autoSyncMembers}
+                isStacked={true}
             />
         </div>
     );

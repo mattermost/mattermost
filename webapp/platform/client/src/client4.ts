@@ -4594,6 +4594,18 @@ export default class Client4 {
         );
     };
 
+    validateExpressionAgainstRequester = (expression: string, channelId?: string) => {
+        const requestBody: {expression: string; channelId?: string} = {expression};
+        if (channelId !== undefined) {
+            requestBody.channelId = channelId;
+        }
+
+        return this.doFetch<{requester_matches: boolean}>(
+            `${this.getBaseRoute()}/access_control_policies/cel/validate_requester`,
+            {method: 'post', body: JSON.stringify(requestBody)},
+        );
+    };
+
     getChannelAccessControlAttributes = (channelId: string) => {
         return this.doFetch<AccessControlAttributes>(
             `${this.getChannelRoute(channelId)}/access_control/attributes`,

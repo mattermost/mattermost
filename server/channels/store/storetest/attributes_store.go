@@ -33,6 +33,7 @@ var (
 func TestAttributesStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("RefreshAndGet", func(t *testing.T) { testAttributesStoreRefresh(t, rctx, ss) })
 	t.Run("SearchUsers", func(t *testing.T) { testAttributesStoreSearchUsers(t, rctx, ss, s) })
+	t.Run("SearchUsersBySubjectID", func(t *testing.T) { testAttributesStoreSearchUsersBySubjectID(t, rctx, ss, s) })
 	t.Run("GetChannelMembersToRemove", func(t *testing.T) { testAttributesStoreGetChannelMembersToRemove(t, rctx, ss, s) })
 }
 
@@ -390,5 +391,61 @@ func testAttributesStoreGetChannelMembersToRemove(t *testing.T, rctx request.CTX
 		})
 		require.NoError(t, err, "couldn't get channel members to remove")
 		require.Len(t, members, 2, "expected 2 channel member to remove")
+	})
+}
+
+func testAttributesStoreSearchUsersBySubjectID(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	users, _, cleanup := createTestUsers(t, rctx, ss)
+	t.Cleanup(cleanup)
+	require.Len(t, users, 3, "expected 3 users")
+
+	err := ss.Attributes().RefreshAttributes()
+	require.NoError(t, err, "couldn't refresh attributes")
+
+	t.Run("Search users by specific SubjectID", func(t *testing.T) {
+		// Test searching for the first user by their ID
+		subjects, count, err := ss.Attributes().SearchUsers(rctx, model.SubjectSearchOptions{
+			SubjectID: users[0].Id,
+		})
+		require.NoError(t, err, "couldn't search users by SubjectID")
+		require.Len(t, subjects, 1, "expected 1 user")
+		require.Equal(t, int64(1), count, "expected count 1")
+		require.Equal(t, users[0].Id, subjects[0].Id, "expected the specific user")
+	})
+
+	t.Run("Search users by non-existent SubjectID", func(t *testing.T) {
+		// Test with a non-existent user ID
+		nonExistentID := model.NewId()
+		subjects, count, err := ss.Attributes().SearchUsers(rctx, model.SubjectSearchOptions{
+			SubjectID: nonExistentID,
+		})
+		require.NoError(t, err, "couldn't search users by non-existent SubjectID")
+		require.Len(t, subjects, 0, "expected 0 users for non-existent ID")
+		require.Equal(t, int64(0), count, "expected count 0 for non-existent ID")
+	})
+
+	t.Run("Search users by SubjectID with query filter", func(t *testing.T) {
+		// Test combining SubjectID with a query filter
+		subjects, count, err := ss.Attributes().SearchUsers(rctx, model.SubjectSearchOptions{
+			SubjectID: users[0].Id,
+			Query:     "Attributes ->> '" + testPropertyA + "' = $1::text",
+			Args:      []any{testPropertyValueA1},
+		})
+		require.NoError(t, err, "couldn't search users by SubjectID with query")
+		require.Len(t, subjects, 1, "expected 1 user matching both SubjectID and query")
+		require.Equal(t, int64(1), count, "expected count 1")
+		require.Equal(t, users[0].Id, subjects[0].Id, "expected the specific user")
+	})
+
+	t.Run("Search users by SubjectID with non-matching query filter", func(t *testing.T) {
+		// Test SubjectID with a query that doesn't match that user
+		subjects, count, err := ss.Attributes().SearchUsers(rctx, model.SubjectSearchOptions{
+			SubjectID: users[0].Id,
+			Query:     "Attributes ->> '" + testPropertyA + "' = $1::text",
+			Args:      []any{"non_matching_value"},
+		})
+		require.NoError(t, err, "couldn't search users by SubjectID with non-matching query")
+		require.Len(t, subjects, 0, "expected 0 users when query doesn't match SubjectID")
+		require.Equal(t, int64(0), count, "expected count 0")
 	})
 }
