@@ -60,8 +60,18 @@ export function useStackedModal(
     const originalBackdropOpacityRef = useRef<string | null>(null);
 
     useLayoutEffect(() => {
-        // If this is not a stacked modal or not open, do nothing
-        if (!isStacked || !isOpen) {
+        // If this is not a stacked modal, do nothing
+        if (!isStacked) {
+            return;
+        }
+
+        // If modal is closed, reset state and do cleanup
+        if (!isOpen) {
+            setShouldRenderBackdrop(false);
+            setZIndexes({
+                modal: BASE_MODAL_Z_INDEX,
+                backdrop: BASE_BACKDROP_Z_INDEX,
+            });
             return;
         }
 
