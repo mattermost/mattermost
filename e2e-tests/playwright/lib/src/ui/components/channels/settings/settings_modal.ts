@@ -4,35 +4,35 @@
 import {Locator, expect} from '@playwright/test';
 
 import DisplaySettings from './display_settings';
-import NotificationsSettings from './notification_settings';
-
-import ConfigurationSettings from '@/ui/components/channels/settings/configuration_settings';
+import NotificationsSettings from './notifications_settings';
 
 export default class SettingsModal {
     readonly container: Locator;
 
-    readonly notificationsSettingsTab;
-    readonly configurationSettingsTab;
+    readonly closeButton;
+
+    readonly notificationsTab;
+    readonly displayTab;
+    readonly sidebarTab;
+    readonly advancedTab;
 
     readonly notificationsSettings;
-    readonly configurationSettings;
-
-    readonly displaySettingsTab;
     readonly displaySettings;
 
     constructor(container: Locator) {
         this.container = container;
 
-        this.notificationsSettingsTab = container.locator('#notificationsButton');
-        this.configurationSettingsTab = container.locator('#configurationButton');
+        this.closeButton = container.getByRole('button', {name: 'Close'});
 
-        this.notificationsSettings = new NotificationsSettings(container.locator('#notificationsSettings'));
-        this.configurationSettings = new ConfigurationSettings(
-            container.locator('.ChannelSettingsModal__configurationTab'),
+        this.notificationsTab = container.getByRole('tab', {name: 'notifications'});
+        this.displayTab = container.getByRole('tab', {name: 'display'});
+        this.sidebarTab = container.getByRole('tab', {name: 'sidebar'});
+        this.advancedTab = container.getByRole('tab', {name: 'advanced'});
+
+        this.notificationsSettings = new NotificationsSettings(
+            container.getByRole('tabpanel', {name: 'notifications'}),
         );
-
-        this.displaySettingsTab = container.locator('#displayButton');
-        this.displaySettings = new DisplaySettings(container.locator('#displaySettings'));
+        this.displaySettings = new DisplaySettings(container.getByRole('tabpanel', {name: 'display'}));
     }
 
     async toBeVisible() {
@@ -44,8 +44,8 @@ export default class SettingsModal {
     }
 
     async openNotificationsTab() {
-        await expect(this.notificationsSettingsTab).toBeVisible();
-        await this.notificationsSettingsTab.click();
+        await expect(this.notificationsTab).toBeVisible();
+        await this.notificationsTab.click();
 
         await this.notificationsSettings.toBeVisible();
 
@@ -53,32 +53,17 @@ export default class SettingsModal {
     }
 
     async openDisplayTab() {
-        await expect(this.displaySettingsTab).toBeVisible();
-        await this.displaySettingsTab.click();
+        await expect(this.displayTab).toBeVisible();
+        await this.displayTab.click();
 
         await this.displaySettings.toBeVisible();
 
         return this.displaySettings;
     }
 
-    async closeModal() {
+    async close() {
         await this.container.getByLabel('Close').click();
 
         await expect(this.container).not.toBeVisible();
-    }
-
-    async openConfigurationTab(): Promise<ConfigurationSettings> {
-        await expect(this.configurationSettingsTab).toBeVisible();
-        await this.configurationSettingsTab.click();
-
-        await this.configurationSettings.toBeVisible();
-
-        return this.configurationSettings;
-    }
-
-    async close() {
-        const closeButton = this.container.locator('button.close');
-        await expect(closeButton).toBeVisible();
-        await closeButton.click();
     }
 }

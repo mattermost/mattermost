@@ -4,8 +4,7 @@
 import {expect, Page} from '@playwright/test';
 import {waitUntil} from 'async-wait-until';
 
-import {ChannelsPost, components} from '@/ui/components';
-import SettingsModal from '@/ui/components/channels/settings/settings_modal';
+import {ChannelsPost, ChannelSettingsModal, SettingsModal, components} from '@/ui/components';
 import {duration} from '@/util';
 export default class ChannelsPage {
     readonly channels = 'Channels';
@@ -23,10 +22,12 @@ export default class ChannelsPage {
     readonly userProfilePopover;
     readonly messagePriority;
 
-    readonly findChannelsModal;
+    readonly channelSettingsModal;
     readonly deletePostModal;
-    readonly settingsModal;
+    readonly findChannelsModal;
     readonly profileModal;
+    readonly settingsModal;
+
     readonly postContainer;
     readonly postDotMenu;
     readonly postReminderMenu;
@@ -49,10 +50,11 @@ export default class ChannelsPage {
         this.userAccountMenuButton = page.getByRole('button', {name: "User's account menu"});
 
         // Modals
-        this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
+        this.channelSettingsModal = new ChannelSettingsModal(page.getByRole('dialog', {name: 'Channel Settings'}));
         this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
-        this.settingsModal = new components.SettingsModal(page.getByRole('dialog', {name: 'Settings'}));
+        this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
         this.profileModal = new components.ProfileModal(page.getByRole('dialog', {name: 'Profile'}));
+        this.settingsModal = new components.SettingsModal(page.getByRole('dialog', {name: 'Settings'}));
 
         // Menus
         this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
@@ -129,15 +131,15 @@ export default class ChannelsPage {
         return {rootPost, sidebarRight, lastPost};
     }
 
-    async openChannelSettings(): Promise<SettingsModal> {
+    async openChannelSettings(): Promise<ChannelSettingsModal> {
         await this.centerView.header.openChannelMenu();
         await this.page.locator('#channelSettings[role="menuitem"]').click();
-        await this.settingsModal.toBeVisible();
+        await this.channelSettingsModal.toBeVisible();
 
-        return this.settingsModal;
+        return this.channelSettingsModal;
     }
 
-    async openSettings() {
+    async openSettings(): Promise<SettingsModal> {
         await this.globalHeader.openSettings();
         await this.settingsModal.toBeVisible();
         return this.settingsModal;

@@ -12,6 +12,7 @@ export default class GlobalHeader {
     readonly accountMenuButton;
     readonly productSwitchMenu;
     readonly recentMentionsButton;
+    readonly savedMessagesButton;
     readonly settingsButton;
     readonly searchBox;
 
@@ -22,6 +23,7 @@ export default class GlobalHeader {
         this.accountMenuButton = container.getByRole('button', {name: "'s account menu"});
         this.productSwitchMenu = container.getByRole('button', {name: 'Product switch menu'});
         this.recentMentionsButton = container.getByRole('button', {name: 'Recent mentions'});
+        this.savedMessagesButton = container.getByRole('button', {name: 'Saved messages'});
         this.settingsButton = container.getByRole('button', {name: 'Settings'});
         this.searchBox = container.locator('#searchFormContainer');
     }

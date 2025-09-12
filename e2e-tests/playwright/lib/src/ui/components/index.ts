@@ -8,6 +8,7 @@ import ChannelsPost from './channels/post';
 import ChannelsCenterView from './channels/center_view';
 import ChannelsSidebarLeft from './channels/sidebar_left';
 import ChannelsSidebarRight from './channels/sidebar_right';
+import ChannelSettingsModal from './channels/channel_settings/channel_settings_modal';
 import DeletePostModal from './channels/delete_post_modal';
 import FindChannelsModal from './channels/find_channels_modal';
 import SettingsModal from './channels/settings/settings_modal';
@@ -56,6 +57,7 @@ const components = {
     ChannelsPostCreate,
     ChannelsPostEdit,
     ChannelsPost,
+    ChannelSettingsModal,
     DraftPost,
     FindChannelsModal,
     DeletePostModal,
@@ -103,6 +105,7 @@ export {
     ChannelsPostCreate,
     ChannelsPostEdit,
     ChannelsPost,
+    ChannelSettingsModal,
     DraftPost,
     FindChannelsModal,
     DeletePostModal,
