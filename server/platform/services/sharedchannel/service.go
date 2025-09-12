@@ -408,3 +408,81 @@ func (scs *Service) HandleChannelNotSharedErrorForTesting(msg *model.SyncMsg, rc
 func (scs *Service) TransformMentionsOnReceiveForTesting(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionTransforms map[string]string) {
 	scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionTransforms)
 }
+
+// postDebugMessage posts a debug message to the TownSquare channel for shared channel sync debugging
+func (scs *Service) postDebugMessage(channelId, message string) {
+	// Get the shared channel to find its creator
+	sharedChannel, err := scs.server.GetStore().SharedChannel().Get(channelId)
+	if err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Failed to get shared channel for debug message",
+			mlog.String("channel_id", channelId),
+			mlog.Err(err),
+		)
+		return
+	}
+
+	// Get the channel to find its team
+	channel, err := scs.server.GetStore().Channel().Get(channelId, true)
+	if err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Failed to get channel for debug message",
+			mlog.String("channel_id", channelId),
+			mlog.Err(err),
+		)
+		return
+	}
+
+	// Find TownSquare channel for the team
+	var townSquareChannel *model.Channel
+	if channel.TeamId != "" {
+		// Try to get the TownSquare channel for this team
+		townSquareChannel, err = scs.server.GetStore().Channel().GetByName(channel.TeamId, model.DefaultChannelName, true)
+		if err != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Failed to find TownSquare channel for debug message",
+				mlog.String("channel_id", channelId),
+				mlog.String("team_id", channel.TeamId),
+				mlog.Err(err),
+			)
+			return
+		}
+	} else {
+		// For DM/GM channels, find the first team's TownSquare
+		team, teamErr := scs.server.GetStore().Team().GetAll()
+		if teamErr != nil || len(team) == 0 {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Failed to find any team for debug message",
+				mlog.String("channel_id", channelId),
+				mlog.Err(teamErr),
+			)
+			return
+		}
+
+		townSquareChannel, err = scs.server.GetStore().Channel().GetByName(team[0].Id, model.DefaultChannelName, true)
+		if err != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Failed to find default TownSquare channel for debug message",
+				mlog.String("channel_id", channelId),
+				mlog.String("team_id", team[0].Id),
+				mlog.Err(err),
+			)
+			return
+		}
+	}
+
+	// Create the debug post
+	debugMessage := fmt.Sprintf("[SharedChannel:%s] %s", channelId, message)
+	post := &model.Post{
+		UserId:    sharedChannel.CreatorId,
+		ChannelId: townSquareChannel.Id,
+		Message:   debugMessage,
+		Type:      model.PostTypeSystemGeneric,
+	}
+
+	logger := scs.server.Log()
+	_, appErr := scs.app.CreatePost(request.EmptyContext(logger), post, townSquareChannel, model.CreatePostFlags{})
+	if appErr != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Failed to post debug message to TownSquare",
+			mlog.String("channel_id", channelId),
+			mlog.String("town_square_id", townSquareChannel.Id),
+			mlog.String("message", message),
+			mlog.Err(appErr),
+		)
+	}
+}
