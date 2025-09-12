@@ -32,6 +32,10 @@ RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins \
 RUN mkdir -p /mattermost/.postgresql \
   && chmod 700 /mattermost/.postgresql
 
+# Create /var/tmp directory needed for local socket files
+RUN mkdir -p /var/tmp \
+  && chmod 755 /var/tmp
+
 # Final stage using FIPS runtime image
 FROM cgr.dev/mattermost.com/glibc-openssl-fips:15@sha256:7947eecc0d82fa3bc661aaca039bcd86d55fdf3ee581c8ecdef1b3c6f63fa83a
 
@@ -65,6 +69,9 @@ COPY --from=builder --chown=2000:2000 /mattermost /mattermost
 # Copy group and passwd files including mattermost user
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
+
+# Copy /var/tmp directory needed for local socket files
+COPY --from=builder /var/tmp /var/tmp
 
 # We should refrain from running as privileged user
 USER mattermost
