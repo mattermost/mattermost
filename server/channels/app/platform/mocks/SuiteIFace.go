@@ -66,6 +66,26 @@ func (_m *SuiteIFace) HasPermissionToReadChannel(rctx request.CTX, userID string
 	return r0
 }
 
+// MFARequired provides a mock function with given fields: c
+func (_m *SuiteIFace) MFARequired(rctx request.CTX) *model.AppError {
+	ret := _m.Called(rctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MFARequired")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX) *model.AppError); ok {
+		r0 = rf(rctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // RolesGrantPermission provides a mock function with given fields: roleNames, permissionId
 func (_m *SuiteIFace) RolesGrantPermission(roleNames []string, permissionId string) bool {
 	ret := _m.Called(roleNames, permissionId)
