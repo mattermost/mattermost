@@ -383,8 +383,9 @@ function ChannelSettingsAccessRulesTab({
                 // Don't fail the entire save operation for this, but log it
             }
 
-            // Step 3: If auto-sync is enabled, create a job to immediately sync channel membership
-            if (autoSyncMembers && expression.trim()) {
+            // Step 3: Create a job to immediately sync channel membership when rules exist
+            // This ensures both user removal (always) and addition (conditional) happen immediately
+            if (expression.trim()) {
                 try {
                     await actions.createAccessControlSyncJob({
                         policy_id: channel.id, // Sync only this specific channel policy
@@ -705,6 +706,7 @@ function ChannelSettingsAccessRulesTab({
                     />
                 }
                 onConfirm={() => setShowSelfExclusionModal(false)}
+                onCancel={() => setShowSelfExclusionModal(false)}
                 hideCancel={true}
                 confirmButtonClass='btn btn-primary'
                 isStacked={true}
@@ -729,27 +731,7 @@ function ChannelSettingsAccessRulesTab({
                 usersToRemove={usersToRemove}
                 isProcessing={isProcessingSave}
                 autoSyncEnabled={autoSyncMembers}
-            />
-
-            {/* Confirmation modal for membership changes */}
-            <ChannelAccessRulesConfirmModal
-                show={showConfirmModal}
-                onHide={() => {
-                    setShowConfirmModal(false);
-                    setUsersToAdd([]);
-                    setUsersToRemove([]);
-
-                    // Clear any error state when canceling the modal
-                    if (saveChangesPanelState === 'error') {
-                        setSaveChangesPanelState(undefined);
-                    }
-                }}
-                onConfirm={handleConfirmSave}
-                channelName={channel.display_name}
-                usersToAdd={usersToAdd}
-                usersToRemove={usersToRemove}
-                isProcessing={isProcessingSave}
-                autoSyncEnabled={autoSyncMembers}
+                isStacked={true}
             />
         </div>
     );

@@ -489,20 +489,16 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 		return false, model.NewAppError("ValidateExpressionAgainstRequester", "app.pap.check_expression.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
-	// Search for users matching the expression with a reasonable limit
+	// Search only for the specific requester user ID
 	users, _, appErr := acs.QueryUsersForExpression(rctx, expression, model.SubjectSearchOptions{
-		Limit: 1000, // Large enough to find the requester if they match
+		SubjectID: requesterID, // Only check this specific user
+		Limit:     1,           // Maximum 1 result expected
 	})
 	if appErr != nil {
 		return false, appErr
 	}
-
-	// Check if the requester is in the results
-	for _, user := range users {
-		if user.Id == requesterID {
-			return true, nil
-		}
+	if len(users) == 1 && users[0].Id == requesterID {
+		return true, nil
 	}
-
 	return false, nil
 }

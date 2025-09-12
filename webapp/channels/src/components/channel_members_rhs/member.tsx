@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -29,11 +29,19 @@ interface Props {
     editing: boolean;
     actions: {
         openDirectMessage: (user: UserProfile) => void;
+        fetchRemoteClusterInfo: (remoteId: string, forceRefresh?: boolean) => void;
     };
 }
 
 const Member = ({channel, member, index, totalUsers, editing, actions}: Props) => {
     const {formatMessage} = useIntl();
+
+    // Fetch remote info when component mounts for remote users
+    useEffect(() => {
+        if (member.user.remote_id && !member.remoteDisplayName) {
+            actions.fetchRemoteClusterInfo(member.user.remote_id);
+        }
+    }, [member.user.remote_id, member.remoteDisplayName, actions.fetchRemoteClusterInfo]);
 
     const userProfileSrc = Client4.getProfilePictureUrl(member.user.id, member.user.last_picture_update);
 
@@ -68,6 +76,7 @@ const Member = ({channel, member, index, totalUsers, editing, actions}: Props) =
                             <span className='channel-members-rhs__shared-icon'>
                                 <SharedChannelIndicator
                                     withTooltip={true}
+                                    remoteNames={member.remoteDisplayName ? [member.remoteDisplayName] : undefined}
                                 />
                             </span>
                         )}

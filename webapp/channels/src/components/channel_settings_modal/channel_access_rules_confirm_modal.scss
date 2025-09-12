@@ -33,7 +33,7 @@
     }
 
     &__summary{
-        padding: 32px;
+        padding: 0px 32px;
     }
 
     &__message {
@@ -63,7 +63,7 @@
         }
 
         .ChannelAccessRulesConfirmModal__message {
-            padding: 16px 32px 0;
+            padding: 0 32px;
         }
     }
 
@@ -121,6 +121,10 @@
         padding: 16px;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
         overflow-y: auto;
+
+        .member-count {
+            padding: 8px 0;
+        }
     }
 
     &__users {
@@ -183,7 +187,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 16px 0;
+        padding: 24px 0;
         gap: 8px;
 
         &__left {

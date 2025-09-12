@@ -5,6 +5,7 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 
@@ -165,4 +166,14 @@ type Client interface {
 	DeletePreferences(ctx context.Context, userId string, preferences model.Preferences) (*model.Response, error)
 	PermanentDeletePost(ctx context.Context, postID string) (*model.Response, error)
 	DeletePost(ctx context.Context, postId string) (*model.Response, error)
+
+	// CPA Field Management
+	ListCPAFields(ctx context.Context) ([]*model.PropertyField, *model.Response, error)
+	CreateCPAField(ctx context.Context, field *model.PropertyField) (*model.PropertyField, *model.Response, error)
+	PatchCPAField(ctx context.Context, fieldID string, patch *model.PropertyFieldPatch) (*model.PropertyField, *model.Response, error)
+	DeleteCPAField(ctx context.Context, fieldID string) (*model.Response, error)
+
+	// CPA Value Management
+	ListCPAValues(ctx context.Context, userID string) (map[string]json.RawMessage, *model.Response, error)
+	PatchCPAValues(ctx context.Context, values map[string]json.RawMessage) (map[string]json.RawMessage, *model.Response, error)
 }

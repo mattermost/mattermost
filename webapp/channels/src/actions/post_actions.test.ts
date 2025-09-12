@@ -428,7 +428,9 @@ describe('Actions.Posts', () => {
             {terms: '', type: 'UPDATE_RHS_SEARCH_RESULTS_TERMS'},
             {searchType: '', type: 'UPDATE_RHS_SEARCH_RESULTS_TYPE'},
             {isGettingMore: false, type: 'SEARCH_POSTS_REQUEST'},
+            {data: {firstInaccessiblePostTime: 0, searchType: 'posts'}, type: 'RECEIVED_SEARCH_TRUNCATION_INFO'},
             {isGettingMore: false, type: 'SEARCH_FILES_REQUEST'},
+            {data: {firstInaccessiblePostTime: 0, searchType: 'files'}, type: 'RECEIVED_SEARCH_TRUNCATION_INFO'},
         ]);
     });
 

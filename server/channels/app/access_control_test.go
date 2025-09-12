@@ -853,7 +853,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 			"QueryUsersForExpression",
 			rctx,
 			expression,
-			model.SubjectSearchOptions{Limit: 1000},
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
 		).Return([]*model.User{th.BasicUser}, int64(1), nil) // Admin matches
 
 		// Mock the actual search results
@@ -888,7 +888,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 			"QueryUsersForExpression",
 			rctx,
 			expression,
-			model.SubjectSearchOptions{Limit: 1000},
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
 		).Return([]*model.User{}, int64(0), nil) // Admin doesn't match
 
 		// Call the function
@@ -914,7 +914,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 			"QueryUsersForExpression",
 			rctx,
 			expression,
-			model.SubjectSearchOptions{Limit: 1000},
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
 		).Return([]*model.User{th.BasicUser}, int64(1), nil) // Admin matches
 
 		// Mock the actual search results
@@ -950,7 +950,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 			"QueryUsersForExpression",
 			rctx,
 			expression,
-			model.SubjectSearchOptions{Limit: 1000},
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
 		).Return([]*model.User{}, int64(0), nil) // Admin doesn't match full expression
 
 		// Call the function
@@ -976,7 +976,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 			"QueryUsersForExpression",
 			rctx,
 			expression,
-			model.SubjectSearchOptions{Limit: 1000},
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
 		).Return([]*model.User{th.BasicUser}, int64(1), nil) // Admin matches
 
 		// Mock the actual search results
@@ -1011,7 +1011,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 			"QueryUsersForExpression",
 			rctx,
 			expression,
-			model.SubjectSearchOptions{Limit: 1000},
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
 		).Return([]*model.User{}, int64(0), model.NewAppError("TestExpressionWithChannelContext", "app.access_control.query.app_error", nil, "validation error", http.StatusInternalServerError))
 
 		// Call the function
@@ -1037,14 +1037,14 @@ func TestValidateExpressionAgainstRequester(t *testing.T) {
 		expression := "user.attributes.team == 'engineering'"
 		requesterID := th.BasicUser.Id
 
-		// Mock that the requester is found in the results
-		mockUsers := []*model.User{th.BasicUser, th.BasicUser2}
+		// Mock that the requester is found in the results (optimized query)
+		mockUsers := []*model.User{th.BasicUser}
 		mockAccessControlService.On(
 			"QueryUsersForExpression",
 			rctx,
 			expression,
-			model.SubjectSearchOptions{Limit: 1000},
-		).Return(mockUsers, int64(2), nil)
+			model.SubjectSearchOptions{SubjectID: requesterID, Limit: 1},
+		).Return(mockUsers, int64(1), nil)
 
 		// Call the function
 		matches, appErr := th.App.ValidateExpressionAgainstRequester(rctx, expression, requesterID)
@@ -1062,14 +1062,14 @@ func TestValidateExpressionAgainstRequester(t *testing.T) {
 		expression := "user.attributes.team == 'engineering'"
 		requesterID := th.BasicUser.Id
 
-		// Mock that the requester is NOT found in the results
-		mockUsers := []*model.User{th.BasicUser2} // Different user
+		// Mock that the requester is NOT found in the results (optimized query)
+		mockUsers := []*model.User{} // Empty results - requester doesn't match
 		mockAccessControlService.On(
 			"QueryUsersForExpression",
 			rctx,
 			expression,
-			model.SubjectSearchOptions{Limit: 1000},
-		).Return(mockUsers, int64(1), nil)
+			model.SubjectSearchOptions{SubjectID: requesterID, Limit: 1},
+		).Return(mockUsers, int64(0), nil)
 
 		// Call the function
 		matches, appErr := th.App.ValidateExpressionAgainstRequester(rctx, expression, requesterID)
@@ -1087,13 +1087,13 @@ func TestValidateExpressionAgainstRequester(t *testing.T) {
 		expression := "user.attributes.team == 'nonexistent'"
 		requesterID := th.BasicUser.Id
 
-		// Mock that no users match the expression
+		// Mock that no users match the expression (optimized query)
 		mockUsers := []*model.User{}
 		mockAccessControlService.On(
 			"QueryUsersForExpression",
 			rctx,
 			expression,
-			model.SubjectSearchOptions{Limit: 1000},
+			model.SubjectSearchOptions{SubjectID: requesterID, Limit: 1},
 		).Return(mockUsers, int64(0), nil)
 
 		// Call the function
@@ -1112,12 +1112,12 @@ func TestValidateExpressionAgainstRequester(t *testing.T) {
 		expression := "invalid expression"
 		requesterID := th.BasicUser.Id
 
-		// Mock that the service returns an error
+		// Mock that the service returns an error (optimized query)
 		mockAccessControlService.On(
 			"QueryUsersForExpression",
 			rctx,
 			expression,
-			model.SubjectSearchOptions{Limit: 1000},
+			model.SubjectSearchOptions{SubjectID: requesterID, Limit: 1},
 		).Return([]*model.User{}, int64(0), model.NewAppError("ValidateExpressionAgainstRequester", "app.access_control.validate_requester.app_error", nil, "expression parsing error", http.StatusInternalServerError))
 
 		// Call the function
