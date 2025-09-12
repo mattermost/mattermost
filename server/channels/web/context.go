@@ -152,6 +152,7 @@ func (c *Context) TermsOfServiceRequired(r *http.Request) *model.AppError {
 
 	// Check license feature - bypass ToS enforcement if no license or feature not enabled
 	if license := c.App.Channels().License(); license == nil ||
+		license.Features.CustomTermsOfService == nil ||
 		!*license.Features.CustomTermsOfService {
 		return nil
 	}
