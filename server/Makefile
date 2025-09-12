@@ -169,10 +169,13 @@ PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.2.1
 
 # Overwrite the definition of PLUGIN_PACKAGES with the list of FIPS-ready plugins
+# Note that the '+' in the file name is encoded as %2B for the URL we use to
+# download the package from to work. This will no longer be needed when we unify
+# the way we pre-package FIPS and non-FIPS plugins.
 ifeq ($(FIPS_ENABLED),true)
-	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.4.1+d973eca-fips
-	PLUGIN_PACKAGES += mattermost-plugin-agents-v1.3.1+97c8140-fips
-	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.6+d687268-fips
+	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.4.1%2Bd973eca-fips
+	PLUGIN_PACKAGES += mattermost-plugin-agents-v1.3.1%2B6e1b6eb-fips
+	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.6%2B2b0e66a-fips
 endif
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
