@@ -1814,6 +1814,22 @@ func (mr *MockClientMockRecorder) PatchCPAValues(arg0, arg1 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchCPAValues", reflect.TypeOf((*MockClient)(nil).PatchCPAValues), arg0, arg1)
 }
 
+// PatchCPAValuesForUser mocks base method.
+func (m *MockClient) PatchCPAValuesForUser(arg0 context.Context, arg1 string, arg2 map[string]json.RawMessage) (map[string]json.RawMessage, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PatchCPAValuesForUser", arg0, arg1, arg2)
+	ret0, _ := ret[0].(map[string]json.RawMessage)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// PatchCPAValuesForUser indicates an expected call of PatchCPAValuesForUser.
+func (mr *MockClientMockRecorder) PatchCPAValuesForUser(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchCPAValuesForUser", reflect.TypeOf((*MockClient)(nil).PatchCPAValuesForUser), arg0, arg1, arg2)
+}
+
 // PatchChannel mocks base method.
 func (m *MockClient) PatchChannel(arg0 context.Context, arg1 string, arg2 *model.ChannelPatch) (*model.Channel, *model.Response, error) {
 	m.ctrl.T.Helper()

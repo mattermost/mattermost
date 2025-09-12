@@ -1,22 +1,34 @@
-.. _mmctl_cpa:
+.. _mmctl_cpa_value_list:
 
-mmctl cpa
----------
+mmctl cpa value list
+--------------------
 
-Management of Custom Profile Attributes
+List CPA values for a user
 
 Synopsis
 ~~~~~~~~
 
 
-Management of Custom Profile Attributes (CPA) fields and values.
+List all Custom Profile Attribute values for a specific user.
+
+::
+
+  mmctl cpa value list [user] [flags]
+
+Examples
+~~~~~~~~
+
+::
+
+    cpa value list john.doe@company.com
+    cpa value list johndoe
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for cpa
+  -h, --help   help for list
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,7 +48,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl cpa field <mmctl_cpa_field.rst>`_ 	 - Management of CPA fields
 * `mmctl cpa value <mmctl_cpa_value.rst>`_ 	 - Management of CPA values
 
