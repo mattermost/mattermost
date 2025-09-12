@@ -1,8 +1,0 @@
-check that page contains "Log in to your account"
-click "Don't have an account?"
-enter string with parameters "${userName}@testing.com" into "Email address"
-enter stored value "userName" into "Choose a username"
-enter "test1234" into "Password"
-click button "Create Account"
-check that page contains "Mattermost"
-click "signup"

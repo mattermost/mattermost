@@ -1,5 +1,5 @@
-login
-click "Profile" on the right of "View Plans"
+log in user "test_admin"
+click "Profile" on the right of "Setting"
 click "user profile image" within the context of "menu"
 check that page contains "Full Name" below text "Profile Settings"
 check that page contains "Username" below text "Profile Settings"

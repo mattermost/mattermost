@@ -1,11 +1,11 @@
-login user "test_admin"
+log in user "test_admin"
 click "Town Square"
 hover over "add to favorites"
 click "Add a channel header"
 enter "Test header" into "Edit the Channel"
 click "Save"
 log out
-log in user "test_admin"
+log in user "test_user"
 click "Town Square"
 check that page contains "Test header" on the right of "add to favorites"
 log out

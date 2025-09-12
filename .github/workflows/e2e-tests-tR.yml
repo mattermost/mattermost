@@ -47,41 +47,4 @@ jobs:
           CI_TOKEN: ${{ secrets.CI_TOKEN }}
           SUITE_ID: ${{ vars.SUITE_ID }}
         run: |
-          testrigor test-suite run "$SUITE_ID" --token "$CI_TOKEN" --test-cases-path e2e-tests/testrigor/setup-testcases/**/*.txt --localhost --url http://localhost:8065
-      
-      #- name: Download Mattermost
-      #  run: |
-      #    wget https://releases.mattermost.com/10.11.2/mattermost-10.11.2-linux-amd64.tar.gz
-      #    tar -xvzf mattermost*.gz
-      #    mv mattermost /opt
-      
-      #- name: Set up Mattermost
-      #  run: |
-      #    sudo mkdir /opt/mattermost/data
-      #    sudo useradd --system --user-group mattermost
-      #    sudo chown -R mattermost:mattermost /opt/mattermost
-      #    sudo chmod -R g+w /opt/mattermost
-      #    sudo touch /lib/systemd/system/mattermost.service
-      #    sudo systemctl daemon-reload
-      #    sudo systemctl
-      
-      
-      
-
-      #- name: Run testrigor tests
-      #  env:
-      #    CI_TOKEN: ${{ secrets.CI_TOKEN }}
-      #    SUITE_ID: ${{ vars.SUITE_ID }}
-      #  run: |
-      #    testrigor test-suite run "$SUITE_ID" --token "$CI_TOKEN"
-        
-
-      #- name: Setup and install PostgreSQL
-      #  run: | 
-      #    sudo apt install postgresql
-      #    locale-gen en_US.UTF-8
-      #    sudo -u postgres psql
-      #    CREATE DATABASE mattermost WITH ENCODING 'UTF8' LC_COLLATE='en_US.UTF-8' LC_CTYPE='en_US.UTF-8' TEMPLATE=template0;
-      #    CREATE USER mmuser WITH PASSWORD 'mmuser-password';
-      #    GRANT ALL PRIVILEGES ON DATABASE mattermost to mmuser;
-
+          testrigor test-suite run "$SUITE_ID" --token "$CI_TOKEN" --test-cases-path e2e-tests/testrigor/testcases/**/*.txt --localhost --url http://localhost:8065
