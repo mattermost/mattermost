@@ -9,9 +9,11 @@
     }
 
     th {
-        padding: 12px;
+        padding: 8px 12px;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         background: rgba(var(--center-channel-color-rgb), 0.04);
+        color: var(--center-channel-color-72);
+        font-size: 12px;
         font-weight: 600;
         text-align: left;
     }
