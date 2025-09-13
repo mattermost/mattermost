@@ -12,7 +12,7 @@ jobs:
   analysis:
     name: Scorecard analysis
     if: github.repository_owner == 'mattermost'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       # Needed to upload the results to code-scanning dashboard.
       security-events: write
