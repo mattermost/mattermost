@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {memo, useMemo} from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
@@ -45,15 +45,19 @@ const columns: Column[] = [
     },
 ];
 
-export default class SystemRoles extends React.PureComponent<Props> {
-    render() {
-        const {roles} = this.props;
-        const roleNames = ['system_admin', 'system_manager', 'system_user_manager', 'system_custom_group_admin', 'system_read_only_admin'];
-        const rows: Row[] = [];
+const roleNames = ['system_admin', 'system_manager', 'system_user_manager', 'system_custom_group_admin', 'system_read_only_admin'];
+
+const noop = () => {};
+
+const SystemRoles = ({roles}: Props) => {
+    const rows: Row[] = useMemo(() => {
+        const roleRows: Row[] = [];
+
         roleNames.forEach((name) => {
             const role = roles[name];
+
             if (role) {
-                rows.push({
+                roleRows.push({
                     cells: {
                         role: <FormattedMessage {...rolesStrings[role.name].name}/>,
                         description: <FormattedMessage {...rolesStrings[role.name].description}/>,
@@ -77,37 +81,41 @@ export default class SystemRoles extends React.PureComponent<Props> {
             }
         });
 
-        return (
-            <div className='wrapper--fixed'>
-                <AdminHeader>
-                    <FormattedMessage
-                        id='admin.permissions.systemRoles'
-                        defaultMessage='Delegated Granular Administration'
-                    />
-                </AdminHeader>
-                <div className='admin-console__wrapper'>
-                    <div className='admin-console__content'>
-                        <AdminPanel
-                            id='SystemRoles'
-                            title={defineMessage({id: 'admin.permissions.systemRolesBannerTitle', defaultMessage: 'Admin Roles'})}
-                            subtitle={defineMessage({id: 'admin.permissions.systemRolesBannerText', defaultMessage: 'Manage different levels of access to the system console.'})}
-                        >
-                            <div className='SystemRoles'>
-                                <DataGrid
-                                    rows={rows}
-                                    columns={columns}
-                                    page={1}
-                                    startCount={0}
-                                    endCount={rows.length}
-                                    loading={false}
-                                    nextPage={() => {}}
-                                    previousPage={() => {}}
-                                />
-                            </div>
-                        </AdminPanel>
-                    </div>
+        return roleRows;
+    }, [roles]);
+
+    return (
+        <div className='wrapper--fixed'>
+            <AdminHeader>
+                <FormattedMessage
+                    id='admin.permissions.systemRoles'
+                    defaultMessage='Delegated Granular Administration'
+                />
+            </AdminHeader>
+            <div className='admin-console__wrapper'>
+                <div className='admin-console__content'>
+                    <AdminPanel
+                        id='SystemRoles'
+                        title={defineMessage({id: 'admin.permissions.systemRolesBannerTitle', defaultMessage: 'Admin Roles'})}
+                        subtitle={defineMessage({id: 'admin.permissions.systemRolesBannerText', defaultMessage: 'Manage different levels of access to the system console.'})}
+                    >
+                        <div className='SystemRoles'>
+                            <DataGrid
+                                rows={rows}
+                                columns={columns}
+                                page={1}
+                                startCount={0}
+                                endCount={rows.length}
+                                loading={false}
+                                nextPage={noop}
+                                previousPage={noop}
+                            />
+                        </div>
+                    </AdminPanel>
                 </div>
             </div>
-        );
-    }
-}
+        </div>
+    );
+};
+
+export default memo(SystemRoles);
