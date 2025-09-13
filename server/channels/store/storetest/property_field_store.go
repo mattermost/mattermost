@@ -790,10 +790,12 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		TargetType: "test_type",
 	}
 
+	targetID2 := model.NewId()
 	field4 := &model.PropertyField{
 		GroupID:    groupID,
 		Name:       "Field 4",
 		Type:       model.PropertyFieldTypeText,
+		TargetID:   targetID2,
 		TargetType: "test_type",
 	}
 
@@ -847,8 +849,8 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		{
 			name: "filter by target_id",
 			opts: model.PropertyFieldSearchOpts{
-				TargetID: targetID,
-				PerPage:  10,
+				TargetIDs: []string{targetID},
+				PerPage:   10,
 			},
 			expectedIDs: []string{field1.ID, field2.ID},
 		},
@@ -873,6 +875,32 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 				IncludeDeleted: true,
 			},
 			expectedIDs: []string{field4.ID},
+		},
+		{
+			name: "filter by multiple target_ids",
+			opts: model.PropertyFieldSearchOpts{
+				TargetIDs: []string{targetID, targetID2},
+				PerPage:   10,
+			},
+			expectedIDs: []string{field1.ID, field2.ID},
+		},
+		{
+			name: "filter by multiple target_ids including deleted",
+			opts: model.PropertyFieldSearchOpts{
+				TargetIDs:      []string{targetID, targetID2},
+				IncludeDeleted: true,
+				PerPage:        10,
+			},
+			expectedIDs: []string{field1.ID, field2.ID, field4.ID},
+		},
+		{
+			name: "filter by multiple target_ids with group filter",
+			opts: model.PropertyFieldSearchOpts{
+				GroupID:   groupID,
+				TargetIDs: []string{targetID, targetID2},
+				PerPage:   10,
+			},
+			expectedIDs: []string{field1.ID, field2.ID},
 		},
 	}
 

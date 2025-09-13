@@ -62,9 +62,9 @@ export function useChannelSystemPolicies(channel: Channel | null): UseChannelSys
 
                 // If the channel policy has imports (parent policies), fetch them
                 if (channelPolicy && channelPolicy.imports && channelPolicy.imports.length > 0) {
-                    // Fetch all parent policies in parallel
+                    // Fetch all parent policies in parallel with channel context
                     const parentPromises = channelPolicy.imports.map((parentId) =>
-                        dispatch(getAccessControlPolicy(parentId) as unknown as ActionFunc),
+                        dispatch(getAccessControlPolicy(parentId, channel.id) as unknown as ActionFunc),
                     );
 
                     const parentResults = await Promise.all(parentPromises);

@@ -5865,7 +5865,6 @@
   "user.settings.advance.onForAllMessages": "På för alla meddelanden",
   "user.settings.advance.onForCode": "På, endast för kodblock som börjar med ```",
   "user.settings.advance.performance.disableClientPlugins": "Inaktivera plugins på klientsidan",
-  "user.settings.advance.performance.disableTelemetry": "Inaktivera telemetrihändelser som skickas från klientsidan",
   "user.settings.advance.performance.disableTypingMessages": "Inaktivera \"Användaren skriver...\" meddelanden",
   "user.settings.advance.performance.info1": "Du kan aktivera dessa inställningar tillfälligt för att hjälpa till att isolera prestandaproblem under felsökning. Vi rekommenderar inte att du låter dessa inställningar vara aktiverade under en längre tid eftersom de kan påverka användarupplevelsen negativt.",
   "user.settings.advance.performance.info2": "Du kan behöva uppdatera sidan innan inställningarna aktiveras.",

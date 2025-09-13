@@ -73,6 +73,7 @@ interface CELEditorProps {
     onValidate?: (isValid: boolean) => void;
     placeholder?: string;
     className?: string;
+    channelId?: string;
     userAttributes: Array<{
         attribute: string;
         values: string[];
@@ -87,6 +88,7 @@ function CELEditor({
     onValidate,
     placeholder = 'user.attributes.<attribute> == <value>',
     className = '',
+    channelId,
     userAttributes,
 }: CELEditorProps): JSX.Element {
     const [editorState, setEditorState] = useState({
@@ -146,7 +148,7 @@ function CELEditor({
         setEditorState((prev) => ({...prev, isValidating: true, isWaitingForValidation: false}));
 
         try {
-            const errors = await Client4.checkAccessControlExpression(expression);
+            const errors = await Client4.checkAccessControlExpression(expression, channelId);
             const isValid = errors.length === 0;
             setEditorState((prev) => ({
                 ...prev,
@@ -381,7 +383,7 @@ function CELEditor({
                     actions={{
                         openModal: () => {},
                         searchUsers: (term: string, after: string, limit: number) => {
-                            return searchUsersForExpression(editorState.expression, term, after, limit);
+                            return searchUsersForExpression(editorState.expression, term, after, limit, channelId);
                         },
                     }}
                 />

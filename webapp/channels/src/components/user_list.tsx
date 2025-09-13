@@ -91,7 +91,7 @@ export default class UserList extends React.PureComponent <Props> {
             content = (
                 <div
                     key='no-users-found'
-                    className='more-modal__placeholder-row'
+                    className='more-modal__placeholder-row no-users-found'
                     data-testid='noUsersFound'
                 >
                     <p>

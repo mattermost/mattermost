@@ -19,17 +19,14 @@ exports[`components/channel_settings_modal/ChannelSettingsAccessRulesTab should 
         Select user attributes and values as rules to restrict channel membership
       </p>
     </div>
-    <p
-      class="ChannelSettingsModal__accessRulesDescription"
-    >
-      Select attributes and values that users must match in addition to access this channel. All selected attributes are required.
-    </p>
+    <hr
+      class="ChannelSettingsModal__divider"
+    />
     <div
       class="ChannelSettingsModal__autoSyncSection"
     >
-      <label
-        class="ChannelSettingsModal__autoSyncLabel"
-        title="Define access rules to enable auto-add members"
+      <div
+        class="ChannelSettingsModal__autoSyncCheckboxContainer"
       >
         <input
           class="ChannelSettingsModal__autoSyncCheckbox"
@@ -38,16 +35,22 @@ exports[`components/channel_settings_modal/ChannelSettingsAccessRulesTab should 
           name="autoSyncMembers"
           type="checkbox"
         />
-        <span
-          class="ChannelSettingsModal__autoSyncText disabled"
+        <label
+          class="ChannelSettingsModal__autoSyncLabel"
+          for="autoSyncMembersCheckbox"
+          title="Auto-add is disabled because no access rules are defined"
         >
-          Auto-add members based on access rules
-        </span>
-      </label>
+          <span
+            class="ChannelSettingsModal__autoSyncText disabled"
+          >
+            Auto-add members based on access rules
+          </span>
+        </label>
+      </div>
       <p
         class="ChannelSettingsModal__autoSyncDescription"
       >
-        Define access rules above to enable automatic member synchronization.
+        Auto-add is disabled because no access rules are defined. Channel will use standard Mattermost access controls.
       </p>
     </div>
   </div>

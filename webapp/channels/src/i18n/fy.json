@@ -4119,7 +4119,6 @@
   "user.settings.advance.onForAllMessages": "Aan voor alle berichten",
   "user.settings.advance.onForCode": "Alleen voor codeblokken die beginnen met ```",
   "user.settings.advance.performance.disableClientPlugins": "Clientside plugins uitschakelen",
-  "user.settings.advance.performance.disableTelemetry": "Schakel telemetrie events verzonden van de client uit",
   "user.settings.advance.performance.disableTypingMessages": "Schakel 'Gebruiker is aan het typen...' berichten uit",
   "user.settings.advance.performance.info1": "Je kan deze instellingen tijdelijk inschakelen om tijdens het debuggen prestatieproblemen te helpen isoleren. We raden je niet aan deze instellingen gedurende langere tijd ingeschakeld te laten, aangezien ze een negatieve invloed kunnen hebben op jouw gebruikerservaring.",
   "user.settings.advance.performance.info2": "Het kan zijn dat je de pagina moet vernieuwen voordat deze instellingen van kracht worden.",

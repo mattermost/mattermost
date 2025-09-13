@@ -92,7 +92,7 @@ func (p PropertyValueSearchCursor) IsValid() error {
 type PropertyValueSearchOpts struct {
 	GroupID        string
 	TargetType     string
-	TargetID       string
+	TargetIDs      []string
 	FieldID        string
 	IncludeDeleted bool
 	Cursor         PropertyValueSearchCursor

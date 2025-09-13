@@ -4364,7 +4364,6 @@
   "user.settings.advance.onForAllMessages": "Įjungta visoms žinutėms",
   "user.settings.advance.onForCode": "Įjungta tik kodo blokams, prasidedantiems raide ```",
   "user.settings.advance.performance.disableClientPlugins": "Išjungti kliento pusės papildinius",
-  "user.settings.advance.performance.disableTelemetry": "Išjungti iš kliento siunčiamus telemetrijos įvykius",
   "user.settings.advance.performance.disableTypingMessages": "Išjunkite pranešimus „Naudotojas rašo...“.",
   "user.settings.advance.performance.info1": "Galite laikinai įjungti šiuos nustatymus, kad padėtumėte atskirti našumo problemas derinant. Nerekomenduojame palikti šių nustatymų įjungtų ilgesniam laikui, nes jie gali neigiamai paveikti naudotojo patirtį.",
   "user.settings.advance.performance.info2": "Kad įsigaliotų šie nustatymai, gali tekti atnaujinti puslapį.",

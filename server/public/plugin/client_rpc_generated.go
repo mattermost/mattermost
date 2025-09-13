@@ -7359,8 +7359,7 @@ func (s *apiRPCServer) DeletePropertyField(args *Z_DeletePropertyFieldArgs, retu
 
 type Z_SearchPropertyFieldsArgs struct {
 	A string
-	B string
-	C model.PropertyFieldSearchOpts
+	B model.PropertyFieldSearchOpts
 }
 
 type Z_SearchPropertyFieldsReturns struct {
@@ -7368,8 +7367,8 @@ type Z_SearchPropertyFieldsReturns struct {
 	B error
 }
 
-func (g *apiRPCClient) SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	_args := &Z_SearchPropertyFieldsArgs{groupID, targetID, opts}
+func (g *apiRPCClient) SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+	_args := &Z_SearchPropertyFieldsArgs{groupID, opts}
 	_returns := &Z_SearchPropertyFieldsReturns{}
 	if err := g.client.Call("Plugin.SearchPropertyFields", _args, _returns); err != nil {
 		log.Printf("RPC call to SearchPropertyFields API failed: %s", err.Error())
@@ -7379,12 +7378,76 @@ func (g *apiRPCClient) SearchPropertyFields(groupID, targetID string, opts model
 
 func (s *apiRPCServer) SearchPropertyFields(args *Z_SearchPropertyFieldsArgs, returns *Z_SearchPropertyFieldsReturns) error {
 	if hook, ok := s.impl.(interface {
-		SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
+		SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
 	}); ok {
-		returns.A, returns.B = hook.SearchPropertyFields(args.A, args.B, args.C)
+		returns.A, returns.B = hook.SearchPropertyFields(args.A, args.B)
 		returns.B = encodableError(returns.B)
 	} else {
 		return encodableError(fmt.Errorf("API SearchPropertyFields called but not implemented."))
+	}
+	return nil
+}
+
+type Z_CountPropertyFieldsArgs struct {
+	A string
+	B bool
+}
+
+type Z_CountPropertyFieldsReturns struct {
+	A int64
+	B error
+}
+
+func (g *apiRPCClient) CountPropertyFields(groupID string, includeDeleted bool) (int64, error) {
+	_args := &Z_CountPropertyFieldsArgs{groupID, includeDeleted}
+	_returns := &Z_CountPropertyFieldsReturns{}
+	if err := g.client.Call("Plugin.CountPropertyFields", _args, _returns); err != nil {
+		log.Printf("RPC call to CountPropertyFields API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CountPropertyFields(args *Z_CountPropertyFieldsArgs, returns *Z_CountPropertyFieldsReturns) error {
+	if hook, ok := s.impl.(interface {
+		CountPropertyFields(groupID string, includeDeleted bool) (int64, error)
+	}); ok {
+		returns.A, returns.B = hook.CountPropertyFields(args.A, args.B)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API CountPropertyFields called but not implemented."))
+	}
+	return nil
+}
+
+type Z_CountPropertyFieldsForTargetArgs struct {
+	A string
+	B string
+	C string
+	D bool
+}
+
+type Z_CountPropertyFieldsForTargetReturns struct {
+	A int64
+	B error
+}
+
+func (g *apiRPCClient) CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
+	_args := &Z_CountPropertyFieldsForTargetArgs{groupID, targetType, targetID, includeDeleted}
+	_returns := &Z_CountPropertyFieldsForTargetReturns{}
+	if err := g.client.Call("Plugin.CountPropertyFieldsForTarget", _args, _returns); err != nil {
+		log.Printf("RPC call to CountPropertyFieldsForTarget API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CountPropertyFieldsForTarget(args *Z_CountPropertyFieldsForTargetArgs, returns *Z_CountPropertyFieldsForTargetReturns) error {
+	if hook, ok := s.impl.(interface {
+		CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
+	}); ok {
+		returns.A, returns.B = hook.CountPropertyFieldsForTarget(args.A, args.B, args.C, args.D)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API CountPropertyFieldsForTarget called but not implemented."))
 	}
 	return nil
 }
@@ -7574,8 +7637,7 @@ func (s *apiRPCServer) DeletePropertyValue(args *Z_DeletePropertyValueArgs, retu
 
 type Z_SearchPropertyValuesArgs struct {
 	A string
-	B string
-	C model.PropertyValueSearchOpts
+	B model.PropertyValueSearchOpts
 }
 
 type Z_SearchPropertyValuesReturns struct {
@@ -7583,8 +7645,8 @@ type Z_SearchPropertyValuesReturns struct {
 	B error
 }
 
-func (g *apiRPCClient) SearchPropertyValues(groupID, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
-	_args := &Z_SearchPropertyValuesArgs{groupID, targetID, opts}
+func (g *apiRPCClient) SearchPropertyValues(groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+	_args := &Z_SearchPropertyValuesArgs{groupID, opts}
 	_returns := &Z_SearchPropertyValuesReturns{}
 	if err := g.client.Call("Plugin.SearchPropertyValues", _args, _returns); err != nil {
 		log.Printf("RPC call to SearchPropertyValues API failed: %s", err.Error())
@@ -7594,9 +7656,9 @@ func (g *apiRPCClient) SearchPropertyValues(groupID, targetID string, opts model
 
 func (s *apiRPCServer) SearchPropertyValues(args *Z_SearchPropertyValuesArgs, returns *Z_SearchPropertyValuesReturns) error {
 	if hook, ok := s.impl.(interface {
-		SearchPropertyValues(groupID, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
+		SearchPropertyValues(groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
 	}); ok {
-		returns.A, returns.B = hook.SearchPropertyValues(args.A, args.B, args.C)
+		returns.A, returns.B = hook.SearchPropertyValues(args.A, args.B)
 		returns.B = encodableError(returns.B)
 	} else {
 		return encodableError(fmt.Errorf("API SearchPropertyValues called but not implemented."))

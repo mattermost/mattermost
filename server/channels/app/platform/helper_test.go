@@ -57,12 +57,16 @@ func (ms *mockSuite) GetSession(token string) (*model.Session, *model.AppError) 
 	return &model.Session{}, nil
 }
 func (ms *mockSuite) RolesGrantPermission(roleNames []string, permissionId string) bool { return true }
-func (ms *mockSuite) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
+func (ms *mockSuite) UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
 	return true, nil
 }
 
-func (ms *mockSuite) HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool {
+func (ms *mockSuite) HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) bool {
 	return true
+}
+
+func (ms *mockSuite) MFARequired(rctx request.CTX) *model.AppError {
+	return nil
 }
 
 func setupDBStore(tb testing.TB) (store.Store, *model.SqlSettings) {

@@ -40,15 +40,15 @@ func (*CustomStatusProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model
 	}
 }
 
-func (*CustomStatusProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*CustomStatusProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !*a.Config().TeamSettings.EnableCustomUserStatuses {
 		return nil
 	}
 
 	message = strings.TrimSpace(message)
 	if message == CmdCustomStatusClear {
-		if err := a.RemoveCustomStatus(c, args.UserId); err != nil {
-			c.Logger().Debug(err.Error())
+		if err := a.RemoveCustomStatus(rctx, args.UserId); err != nil {
+			rctx.Logger().Debug(err.Error())
 			return &model.CommandResponse{Text: args.T("api.command_custom_status.clear.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 
@@ -60,8 +60,8 @@ func (*CustomStatusProvider) DoCommand(a *app.App, c request.CTX, args *model.Co
 
 	customStatus := GetCustomStatus(message)
 	customStatus.PreSave()
-	if err := a.SetCustomStatus(c, args.UserId, customStatus); err != nil {
-		c.Logger().Debug(err.Error())
+	if err := a.SetCustomStatus(rctx, args.UserId, customStatus); err != nil {
+		rctx.Logger().Debug(err.Error())
 		return &model.CommandResponse{Text: args.T("api.command_custom_status.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 

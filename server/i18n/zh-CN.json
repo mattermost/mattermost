@@ -3815,7 +3815,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "SQL 设置中的驱动名无效。必须为‘mysql’或‘postgres’。"
+    "translation": "SQL 设置中的驱动名称无效。必须为 'postgres'。"
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
@@ -4831,7 +4831,7 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "无效的用户，认证数据必须设置认证类型。"
+    "translation": "无效用户：只有当用户使用外部认证服务（而非邮箱/密码）进行身份验证时，才能设置认证数据。"
   },
   {
     "id": "model.user.is_valid.first_name.app_error",
@@ -10700,5 +10700,77 @@
   {
     "id": "app.import.validate_direct_post_import_data.thread_follower.error",
     "translation": "验证直接消息对话关注者数据失败。"
+  },
+  {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "内容标记功能已被禁用。"
+  },
+  {
+    "id": "api.content_flagging.error.license",
+    "translation": "您的许可证不支持内容标记功能。"
+  },
+  {
+    "id": "api.not_implemented",
+    "translation": "此功能尚未实现。"
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "您没有权限管理此访问控制策略。"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
+    "translation": "无法更新由管理员管理的自定义个人资料属性字段的值"
+  },
+  {
+    "id": "app.lookup_interactive_dialog.decode_json_error",
+    "translation": "解码来自交互式对话框查找的 JSON 响应时发生错误。"
+  },
+  {
+    "id": "app.lookup_interactive_dialog.json_error",
+    "translation": "处理来自交互式对话框查找的 JSON 响应时发生错误。"
+  },
+  {
+    "id": "app.lookup_interactive_dialog.read_body_error",
+    "translation": "读取来自交互式对话框查找的响应内容时发生错误。"
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "该频道受群组限制，无法应用访问控制策略。"
+  },
+  {
+    "id": "app.pap.access_control.channel_not_private",
+    "translation": "访问控制策略只能应用于私有频道。"
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "共享频道无法应用访问控制策略。"
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "你没有权限管理此频道的访问控制。"
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "你没有权限管理此访问控制策略。"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "创建 Elasticsearch 批量处理器失败"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+    "translation": "创建 Elasticsearch 同步批量处理器失败"
+  },
+  {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "该父项已被导入。"
+  },
+  {
+    "id": "model.config.is_valid.client_side_cert_enable.app_error",
+    "translation": "基于证书的身份验证已被移除。请禁用 ClientSideCertEnable 以继续操作。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
+    "translation": "不再支持隐藏已归档的频道。请将这些频道设为私有并移除成员。"
   }
 ]
