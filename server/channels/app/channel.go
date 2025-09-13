@@ -164,6 +164,11 @@ func (a *App) CreateChannelWithUser(rctx request.CTX, channel *model.Channel, us
 		return nil, model.NewAppError("CreateChannelWithUser", "app.channel.create_channel.no_team_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	_, err := a.GetTeam(channel.TeamId)
+	if err != nil {
+		return nil, err
+	}
+
 	// Get total number of channels on current team
 	count, err := a.GetNumberOfChannelsOnTeam(rctx, channel.TeamId)
 	if err != nil {
@@ -3326,15 +3331,9 @@ func (a *App) MoveChannel(rctx request.CTX, team *model.Team, channel *model.Cha
 	}
 
 	// keep instance of the previous team
-	previousTeam, nErr := a.Srv().Store().Team().Get(channel.TeamId)
+	previousTeam, nErr := a.GetTeam(channel.TeamId)
 	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(nErr, &nfErr):
-			return model.NewAppError("MoveChannel", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
-		default:
-			return model.NewAppError("MoveChannel", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
-		}
+		return nErr
 	}
 
 	if nErr := a.Srv().Store().Channel().UpdateSidebarChannelCategoryOnMove(channel, team.Id); nErr != nil {
