@@ -18,6 +18,10 @@ export default class NotificationsSettings {
         await expect(this.container).toBeVisible();
     }
 
+    async getContainerId() {
+        return 'notificationsSettings';
+    }
+
     async expandSection(section: NotificationSettingsSection) {
         if (section === 'keysWithHighlight') {
             await this.container.getByText('Keywords That Get Highlighted (without notifications)').click();

@@ -3,12 +3,15 @@
 
 import {Locator, expect} from '@playwright/test';
 
+import AdvancedSettings from './advanced_settings';
 import DisplaySettings from './display_settings';
 import NotificationsSettings from './notifications_settings';
+import SidebarSettings from './sidebar_settings';
 
 export default class SettingsModal {
     readonly container: Locator;
 
+    readonly content;
     readonly closeButton;
 
     readonly notificationsTab;
@@ -18,10 +21,13 @@ export default class SettingsModal {
 
     readonly notificationsSettings;
     readonly displaySettings;
+    readonly sidebarSettings;
+    readonly advancedSettings;
 
     constructor(container: Locator) {
         this.container = container;
 
+        this.content = container.locator('.modal-content');
         this.closeButton = container.getByRole('button', {name: 'Close'});
 
         this.notificationsTab = container.getByRole('tab', {name: 'notifications'});
@@ -33,6 +39,8 @@ export default class SettingsModal {
             container.getByRole('tabpanel', {name: 'notifications'}),
         );
         this.displaySettings = new DisplaySettings(container.getByRole('tabpanel', {name: 'display'}));
+        this.sidebarSettings = new SidebarSettings(container.getByRole('tabpanel', {name: 'sidebar'}));
+        this.advancedSettings = new AdvancedSettings(container.getByRole('tabpanel', {name: 'advanced'}));
     }
 
     async toBeVisible() {
@@ -59,6 +67,24 @@ export default class SettingsModal {
         await this.displaySettings.toBeVisible();
 
         return this.displaySettings;
+    }
+
+    async openSidebarTab() {
+        await expect(this.sidebarTab).toBeVisible();
+        await this.sidebarTab.click();
+
+        await this.sidebarSettings.toBeVisible();
+
+        return this.sidebarSettings;
+    }
+
+    async openAdvancedTab() {
+        await expect(this.advancedTab).toBeVisible();
+        await this.advancedTab.click();
+
+        await this.advancedSettings.toBeVisible();
+
+        return this.advancedSettings;
     }
 
     async close() {
