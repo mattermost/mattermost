@@ -18,7 +18,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {selectPost} from 'actions/views/rhs';
 
-import Button from 'components/threading/common/button';
+import ThreadButton from 'components/threading/common/thread_button';
 import FollowButton from 'components/threading/common/follow_button';
 import {THREADING_TIME} from 'components/threading/common/options';
 import Timestamp from 'components/timestamp';
@@ -113,7 +113,7 @@ function ThreadFooter({
             ) : null}
 
             {thread.reply_count > 0 && (
-                <Button
+                <ThreadButton
                     onClick={handleReply}
                     className='ReplyButton separated'
                     prepend={
@@ -127,7 +127,7 @@ function ThreadFooter({
                         defaultMessage='{totalReplies, plural, =0 {Reply} =1 {# reply} other {# replies}}'
                         values={{totalReplies}}
                     />
-                </Button>
+                </ThreadButton>
             )}
 
             <FollowButton

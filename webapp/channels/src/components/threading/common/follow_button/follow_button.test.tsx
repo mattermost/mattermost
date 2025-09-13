@@ -7,7 +7,7 @@ import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 import FollowButton from './follow_button';
 
-import Button from '../button';
+import Button from '../thread_button';
 
 describe('components/threading/common/follow_button', () => {
     test('should say follow', () => {
