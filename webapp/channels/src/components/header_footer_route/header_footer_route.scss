@@ -28,11 +28,3 @@
         overflow-y: auto;
     }
 }
-
-body {
-    &.announcement-bar--fixed {
-        .header-footer-route-container {
-            padding-top: variables.$announcement-bar-height;
-        }
-    }
-}
