@@ -29,11 +29,22 @@ func (ps *PropertyService) CountActivePropertyFieldsForGroup(groupID string) (in
 	return ps.fieldStore.CountForGroup(groupID, false)
 }
 
-func (ps *PropertyService) SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	// groupID and targetID are part of the search method signature to
+func (ps *PropertyService) CountAllPropertyFieldsForGroup(groupID string) (int64, error) {
+	return ps.fieldStore.CountForGroup(groupID, true)
+}
+
+func (ps *PropertyService) CountActivePropertyFieldsForTarget(groupID, targetType, targetID string) (int64, error) {
+	return ps.fieldStore.CountForTarget(groupID, targetType, targetID, false)
+}
+
+func (ps *PropertyService) CountAllPropertyFieldsForTarget(groupID, targetType, targetID string) (int64, error) {
+	return ps.fieldStore.CountForTarget(groupID, targetType, targetID, true)
+}
+
+func (ps *PropertyService) SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+	// groupID is part of the search method signature to
 	// incentivize the use of the database indexes in searches
 	opts.GroupID = groupID
-	opts.TargetID = targetID
 
 	return ps.fieldStore.SearchPropertyFields(opts)
 }
