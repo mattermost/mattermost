@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ComponentProps} from 'react';
 import React, {useCallback, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
@@ -89,7 +88,7 @@ const CreateModalNameInput = ({
         setEmoji('');
     };
 
-    const handleInputChange: ComponentProps<typeof Input>['onChange'] = useCallback((e) => {
+    const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setDisplayName(e.currentTarget.value);
     }, []);
 

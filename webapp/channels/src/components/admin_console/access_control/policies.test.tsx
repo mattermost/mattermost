@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React from 'react';
-import {act} from 'react-dom/test-utils';
+import React, {act} from 'react';
 
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 

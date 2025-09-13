@@ -62,7 +62,7 @@ describe('components/integrations/AddIncomingWebhook', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should have called createIncomingHook', () => {
+    test('should have called createIncomingHook', async () => {
         const hook = TestHelper.getIncomingWebhookMock({
             channel_id: 'current_channel_id',
             display_name: 'display_name',
@@ -76,13 +76,13 @@ describe('components/integrations/AddIncomingWebhook', () => {
         });
         const wrapper = renderWithContext(<AddIncomingWebhook {...props}/>, initialState as GlobalState);
 
-        userEvent.selectOptions(wrapper.getByRole('combobox'), [hook.channel_id]);
-        userEvent.type(wrapper.getByLabelText('Title'), hook.display_name);
-        userEvent.type(wrapper.getByLabelText('Description'), hook.description);
-        userEvent.type(wrapper.getByLabelText('Username'), hook.username);
-        userEvent.type(wrapper.getByLabelText('Profile Picture'), hook.icon_url);
+        await userEvent.selectOptions(wrapper.getByRole('combobox'), [hook.channel_id]);
+        await userEvent.type(wrapper.getByLabelText('Title'), hook.display_name);
+        await userEvent.type(wrapper.getByLabelText('Description'), hook.description);
+        await userEvent.type(wrapper.getByLabelText('Username'), hook.username);
+        await userEvent.type(wrapper.getByLabelText('Profile Picture'), hook.icon_url);
 
-        userEvent.click(wrapper.getByText('Save'));
+        await userEvent.click(wrapper.getByText('Save'));
 
         expect(createIncomingHook).toHaveBeenCalledTimes(1);
         const calledWith = createIncomingHook.mock.calls[0][0];

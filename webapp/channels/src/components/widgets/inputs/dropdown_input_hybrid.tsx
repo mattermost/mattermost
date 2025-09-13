@@ -17,7 +17,7 @@ type OptionType = {
     value: string;
 }
 
-type Props<T extends OptionType> = Omit<SelectProps<T>, 'onChange' | 'onInputChange' | 'isMulti'> & {
+type Props<T extends OptionType> = Omit<SelectProps<T>, 'onChange' | 'onInputChange' | 'isMulti' | 'placeholder'> & {
     value: T;
     legend?: string | MessageDescriptor;
     error?: string;
@@ -230,7 +230,7 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
                 >
                     <ReactSelect<T, false>
                         id={`DropdownInput_${name}`}
-                        placeholder={focused ? '' : placeholder}
+                        placeholder={focused ? '' : formatAsString(intl.formatMessage, placeholder)}
                         components={{
                             IndicatorsContainer,
                             Option,

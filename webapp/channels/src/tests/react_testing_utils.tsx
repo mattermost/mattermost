@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render} from '@testing-library/react';
-import {renderHook} from '@testing-library/react-hooks';
+import {render, renderHook} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type {History} from 'history';
 import {createBrowserHistory} from 'history';
-import React from 'react';
+import React, {act} from 'react';
 import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
 import {Router} from 'react-router-dom';
@@ -190,3 +189,12 @@ const Providers = ({children, store, history, options}: RenderStateProps) => {
         </Provider>
     );
 };
+
+/**
+ * A helper to use when an Enzyme test needs to wait for async code to run in a component before generating a snapshot.
+ *
+ * This should only be used in those cases.
+ */
+export function waitForEnzymeSnapshot() {
+    return act(async () => {});
+}

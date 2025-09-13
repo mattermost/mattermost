@@ -26,7 +26,7 @@ const CRTUnreadTutorialTip = () => {
                     defaultMessage: 'You can switch to <b>Unreads</b> to show only threads that are unread.',
                 },
                 {
-                    b: (value: string) => <b>{value}</b>,
+                    b: (value) => <b>{value}</b>,
                 })
             }
         </p>

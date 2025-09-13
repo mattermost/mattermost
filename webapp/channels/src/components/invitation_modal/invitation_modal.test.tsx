@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {act} from 'react';
 import type {IntlShape} from 'react-intl';
 import {Provider} from 'react-redux';
 
@@ -130,9 +130,12 @@ describe('InvitationModal', () => {
                 <InvitationModal {...props}/>
             </Provider>,
         );
-        wrapper.find(InvitationModal).at(0).setState({view: View.RESULT});
 
-        wrapper.update();
+        act(() => {
+            wrapper.find(InvitationModal).at(0).setState({view: View.RESULT});
+            wrapper.update();
+        });
+
         expect(wrapper.find(ResultView).length).toBe(1);
     });
 
@@ -182,11 +185,13 @@ describe('InvitationModal', () => {
         const instance = wrapper.find(InvitationModal).instance() as InvitationModal;
 
         // Set invite type to GUEST
-        instance.setState({
-            invite: {
-                ...instance.state.invite,
-                inviteType: 'GUEST',
-            },
+        act(() => {
+            instance.setState({
+                invite: {
+                    ...instance.state.invite,
+                    inviteType: 'GUEST',
+                },
+            });
         });
 
         // Call channelsLoader with empty search term
@@ -197,11 +202,13 @@ describe('InvitationModal', () => {
         expect(guestChannels[0].id).toBe('regular-channel');
 
         // Set invite type to MEMBER
-        instance.setState({
-            invite: {
-                ...instance.state.invite,
-                inviteType: 'MEMBER',
-            },
+        act(() => {
+            instance.setState({
+                invite: {
+                    ...instance.state.invite,
+                    inviteType: 'MEMBER',
+                },
+            });
         });
 
         // Call channelsLoader with empty search term
@@ -211,11 +218,13 @@ describe('InvitationModal', () => {
         expect(memberChannels.length).toBe(2);
 
         // Test with search term
-        instance.setState({
-            invite: {
-                ...instance.state.invite,
-                inviteType: 'GUEST',
-            },
+        act(() => {
+            instance.setState({
+                invite: {
+                    ...instance.state.invite,
+                    inviteType: 'GUEST',
+                },
+            });
         });
 
         // Call channelsLoader with search term that matches both channels

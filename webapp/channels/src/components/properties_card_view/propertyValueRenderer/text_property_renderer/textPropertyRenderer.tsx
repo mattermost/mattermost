@@ -15,7 +15,7 @@ export default function TextPropertyRenderer({value}: Props) {
             className='TextProperty'
             data-testid='text-property'
         >
-            {value.value}
+            {value.value as string}
         </span>
     );
 }

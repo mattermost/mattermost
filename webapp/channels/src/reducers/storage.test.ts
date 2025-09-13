@@ -66,7 +66,7 @@ describe('Reducers.Storage', () => {
                     prefix_key2: {value: 2, timestamp: now},
                     not_prefix_key: {value: 3, timestamp: now},
                 },
-            } as unknown as ReducerState, {type: undefined});
+            } as unknown as ReducerState, {type: 'testinit'});
 
             const nextState = storageReducer(state, {
                 type: StorageTypes.ACTION_ON_GLOBAL_ITEMS_WITH_PREFIX,
@@ -91,7 +91,7 @@ describe('Reducers.Storage', () => {
                     prefix_key2: {value: 2, timestamp: now},
                     not_prefix_key: {value: 3, timestamp: now},
                 },
-            } as unknown as ReducerState, {type: undefined});
+            } as unknown as ReducerState, {type: 'testinit'});
 
             const nextState = storageReducer(state, {
                 type: StorageTypes.ACTION_ON_GLOBAL_ITEMS_WITH_PREFIX,

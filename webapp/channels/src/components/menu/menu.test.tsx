@@ -10,6 +10,7 @@ import {
     renderWithContext,
     screen,
     userEvent,
+    waitFor,
     waitForElementToBeRemoved,
 } from 'tests/react_testing_utils';
 
@@ -27,12 +28,12 @@ describe('menu click handlers', () => {
         expect(screen.queryByText('A Modal')).not.toBeInTheDocument();
 
         // Click to open the menu
-        userEvent.click(screen.getByLabelText('menu with modal button'));
+        await userEvent.click(screen.getByLabelText('menu with modal button'));
 
         expect(screen.getByText('Open modal')).toBeInTheDocument();
 
         // Click to open the modal
-        userEvent.click(screen.getByText('Open modal'));
+        await userEvent.click(screen.getByText('Open modal'));
 
         // Wait for the menu to close before the modal will be opened
         await waitForElementToBeRemoved(() => screen.queryByText('Open modal'));
@@ -41,6 +42,8 @@ describe('menu click handlers', () => {
     });
 
     for (const enterOrSpace of ['enter', 'space']) {
+        const key = enterOrSpace === 'space' ? ' ' : '{enter}';
+
         test(`should be able to open a React Bootstrap modal with the keyboard using the ${enterOrSpace} key`, async () => {
             renderWithContext(
                 <MenuWithModal/>,
@@ -52,22 +55,22 @@ describe('menu click handlers', () => {
             expect(document.body).toHaveFocus();
 
             // Tab to select the menu button
-            userEvent.tab();
+            await userEvent.tab();
 
             expect(screen.getByLabelText('menu with modal button')).toHaveFocus();
 
             // Press the key to open the menu
-            userEvent.keyboard('{' + enterOrSpace + '}');
+            await userEvent.keyboard(key);
 
             expect(screen.getByText('Open modal')).toBeInTheDocument();
 
             // Press the down arrow twice to select the menu item we want
-            userEvent.keyboard('{arrowdown}{arrowdown}');
+            await userEvent.keyboard('{arrowdown}{arrowdown}');
 
             expect(screen.getByText('Open modal').closest('li')).toHaveFocus();
 
             // Press the key to open the modal
-            userEvent.keyboard('{' + enterOrSpace + '}');
+            await userEvent.keyboard(key);
 
             // Wait for the menu to close before the modal will be opened
             await waitForElementToBeRemoved(() => screen.queryByText('Open modal'));
@@ -86,27 +89,31 @@ describe('menu click handlers', () => {
         expect(screen.queryByText('A Modal')).not.toBeInTheDocument();
 
         // Click to open the menu
-        userEvent.click(screen.getByLabelText('menu with modal button'));
+        await userEvent.click(screen.getByLabelText('menu with modal button'));
 
         expect(screen.getByText('Open submenu')).toBeInTheDocument();
         expect(screen.queryByText('Open model from submenu')).not.toBeInTheDocument();
 
         // Hover to open the submenu
-        userEvent.hover(screen.getByText('Open submenu'));
+        await userEvent.hover(screen.getByText('Open submenu'));
 
         expect(screen.getByText('Open modal from submenu')).toBeInTheDocument();
 
         // Click to open the modal
-        userEvent.click(screen.getByText('Open modal from submenu'));
+        await userEvent.click(screen.getByText('Open modal from submenu'));
 
         // Wait for the menu and submenu to close before the modal will be opened
-        await waitForElementToBeRemoved(() => screen.queryByText('Open modal from submenu'));
-        await waitForElementToBeRemoved(() => screen.queryByText('Open submenu'));
+        await waitFor(() => {
+            expect(screen.queryByText('Open modal from submenu')).not.toBeInTheDocument();
+            expect(screen.queryByText('Open submenu')).not.toBeInTheDocument();
+        });
 
         expect(screen.getByText('A Modal')).toBeInTheDocument();
     });
 
     for (const enterOrSpace of ['enter', 'space']) {
+        const key = enterOrSpace === 'space' ? ' ' : '{enter}';
+
         test(`should be able to open a React Bootstrap modal with the keyboard using the ${enterOrSpace} key`, async () => {
             renderWithContext(
                 <MenuWithSubMenuModal/>,
@@ -119,33 +126,33 @@ describe('menu click handlers', () => {
             expect(document.body).toHaveFocus();
 
             // Tab to select the menu button
-            userEvent.tab();
+            await userEvent.tab();
 
             expect(screen.getByLabelText('menu with modal button')).toHaveFocus();
 
             // Press the key to open the menu
-            userEvent.keyboard('{' + enterOrSpace + '}');
+            await userEvent.keyboard(key);
 
             expect(screen.getByText('Open submenu')).toBeInTheDocument();
             expect(screen.queryByText('Open model from submenu')).not.toBeInTheDocument();
 
             // Press the down arrow to select the submenu item
-            userEvent.keyboard('{arrowdown}');
+            await userEvent.keyboard('{arrowdown}');
 
             expect(screen.getByText('Open submenu').closest('li')).toHaveFocus();
 
             // Press the right arrow to open the submenu
-            userEvent.keyboard('{arrowright}');
+            await userEvent.keyboard('{arrowright}');
 
             expect(screen.getByText('Open modal from submenu')).toBeInTheDocument();
 
             // Press the down arrow once to focus first submenu item and then twice more to select the one we want
-            userEvent.keyboard('{arrowdown}{arrowdown}');
+            await userEvent.keyboard('{arrowdown}{arrowdown}');
 
             expect(screen.getByText('Open modal from submenu').closest('li')).toHaveFocus();
 
             // Press the key to open the modal
-            userEvent.keyboard('{' + enterOrSpace + '}');
+            await userEvent.keyboard(key);
 
             // Wait for the menu and submenu to close before the modal will be opened
             await waitForElementToBeRemoved(() => screen.queryByText('Open submenu'));

@@ -54,7 +54,7 @@ function CloudInvoicePreview(props: Props) {
                     <FormattedMessage
                         id='cloud.invoice_pdf_preview.download'
                         values={{
-                            downloadLink: (msg: string) => (
+                            downloadLink: (msg) => (
                                 <ExternalLink
                                     href={props.url || ''}
                                     location='cloud_invoice_preview'
