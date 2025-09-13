@@ -154,7 +154,7 @@ describe('components/AnnouncementBar', () => {
 
             // Update props to simulate count change
             const newProps = {...props, announcementBarCount: 2};
-            wrapper.setProps(newProps);
+            wrapper.setProps(newProps as any);
 
             expect(setPropertySpy).toHaveBeenCalledWith('--announcement-bar-count', '2');
             expect(addClassSpy).toHaveBeenCalledWith('announcement-bar--fixed');
