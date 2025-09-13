@@ -3,7 +3,10 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-test('Theme settings should be keyboard accessible', async ({axe, pw}) => {
+/**
+ * @objective Verify that theme settings modal is fully keyboard accessible and meets accessibility standards
+ */
+test('Theme settings should be keyboard accessible', {tag: '@accessibility'}, async ({axe, pw}) => {
     const {user} = await pw.initSetup();
 
     // # Log in as a user in new browser context
