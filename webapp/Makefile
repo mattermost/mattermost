@@ -71,7 +71,7 @@ dist: node_modules ## Builds all web app packages
 
 node_modules: package.json $(wildcard package-lock.json)
 	@echo Getting dependencies using npm
-
+	
 ifeq ($(CI),false)
 	CPPFLAGS="$(CPPFLAGS)" npm install
 else
