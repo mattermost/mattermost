@@ -1,4 +1,10 @@
 {
+  "user.settings.custom_theme.primaryColor": "Primary Color",
+  "user.settings.custom_theme.primaryColorHelp": "Select a primary color to auto-generate your theme. The system will create a harmonized color palette based on your selection.",
+  "user.settings.custom_theme.colorSwatches": "Color Presets:",
+  "user.settings.custom_theme.themeMode": "Theme Mode:",
+  "user.settings.custom_theme.lightMode": "Light",
+  "user.settings.custom_theme.darkMode": "Dark",
   "about.buildnumber": "Build Number:",
   "about.cloudEdition": "Cloud",
   "about.copyright": "Copyright 2015 - {currentYear} Mattermost, Inc. All rights reserved",
