@@ -159,3 +159,16 @@ export function getVisualAST(expression: string, channelId?: string) {
         params: [expression, channelId],
     });
 }
+
+export function validateExpressionAgainstRequester(expression: string, channelId?: string): ActionFuncAsync<{requester_matches: boolean}> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.validateExpressionAgainstRequester(expression, channelId);
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            return {error};
+        }
+        return {data};
+    };
+}
