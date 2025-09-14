@@ -116,4 +116,126 @@ describe('components/AnnouncementBar', () => {
 
         expect(wrapper).toMatchSnapshot();
     });
+
+    describe('announcement bar count and CSS management', () => {
+        let setPropertySpy: jest.SpyInstance;
+        let removePropertySpy: jest.SpyInstance;
+        let addClassSpy: jest.SpyInstance;
+        let removeClassSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            // Mock DOM methods
+            setPropertySpy = jest.spyOn(document.documentElement.style, 'setProperty');
+            removePropertySpy = jest.spyOn(document.documentElement.style, 'removeProperty');
+            addClassSpy = jest.spyOn(document.body.classList, 'add');
+            removeClassSpy = jest.spyOn(document.body.classList, 'remove');
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        test('should set CSS custom property and add class on mount', () => {
+            const props = {...baseProps, announcementBarCount: 0};
+            shallow<AnnouncementBar>(<AnnouncementBar {...props}/>);
+
+            expect(setPropertySpy).toHaveBeenCalledWith('--announcement-bar-count', '1');
+            expect(addClassSpy).toHaveBeenCalledWith('announcement-bar--fixed');
+            expect(props.actions.incrementAnnouncementBarCount).toHaveBeenCalled();
+        });
+
+        test('should update CSS custom property when announcement bar count changes', () => {
+            const props = {...baseProps, announcementBarCount: 1};
+            const wrapper = shallow<AnnouncementBar>(<AnnouncementBar {...props}/>);
+
+            // Reset spies after mount
+            setPropertySpy.mockClear();
+            addClassSpy.mockClear();
+
+            // Update props to simulate count change
+            const newProps = {...props, announcementBarCount: 2};
+            wrapper.setProps(newProps as any);
+
+            expect(setPropertySpy).toHaveBeenCalledWith('--announcement-bar-count', '2');
+            expect(addClassSpy).toHaveBeenCalledWith('announcement-bar--fixed');
+        });
+
+        test('should remove class and custom property when count reaches 0', () => {
+            const props = {...baseProps, announcementBarCount: 1};
+            const wrapper = shallow<AnnouncementBar>(<AnnouncementBar {...props}/>);
+
+            // Reset spies after mount
+            setPropertySpy.mockClear();
+            removeClassSpy.mockClear();
+
+            // Update props to simulate count reaching 0
+            const newProps = {...props, announcementBarCount: 0};
+            wrapper.setProps(newProps as any);
+
+            expect(removeClassSpy).toHaveBeenCalledWith('announcement-bar--fixed');
+        });
+
+        test('should maintain class when count is greater than 0', () => {
+            const props = {...baseProps, announcementBarCount: 2};
+            const wrapper = shallow<AnnouncementBar>(<AnnouncementBar {...props}/>);
+
+            // Reset spies after mount
+            setPropertySpy.mockClear();
+            addClassSpy.mockClear();
+            removeClassSpy.mockClear();
+
+            // Update props to simulate count change from 2 to 1
+            const newProps = {...props, announcementBarCount: 1};
+            wrapper.setProps(newProps as any);
+
+            expect(setPropertySpy).toHaveBeenCalledWith('--announcement-bar-count', '1');
+            expect(addClassSpy).toHaveBeenCalledWith('announcement-bar--fixed');
+            expect(removeClassSpy).not.toHaveBeenCalled();
+        });
+
+        test('should properly clean up on unmount when last bar', () => {
+            const props = {...baseProps, announcementBarCount: 1};
+            const wrapper = shallow<AnnouncementBar>(<AnnouncementBar {...props}/>);
+
+            // Reset spies after mount
+            removeClassSpy.mockClear();
+            removePropertySpy.mockClear();
+
+            wrapper.unmount();
+
+            expect(props.actions.decrementAnnouncementBarCount).toHaveBeenCalled();
+            expect(removeClassSpy).toHaveBeenCalledWith('announcement-bar--fixed');
+            expect(removePropertySpy).toHaveBeenCalledWith('--announcement-bar-count');
+        });
+
+        test('should update count but maintain class on unmount when other bars remain', () => {
+            const props = {...baseProps, announcementBarCount: 2};
+            const wrapper = shallow<AnnouncementBar>(<AnnouncementBar {...props}/>);
+
+            // Reset spies after mount
+            setPropertySpy.mockClear();
+            removeClassSpy.mockClear();
+            removePropertySpy.mockClear();
+
+            wrapper.unmount();
+
+            expect(props.actions.decrementAnnouncementBarCount).toHaveBeenCalled();
+            expect(setPropertySpy).toHaveBeenCalledWith('--announcement-bar-count', '1');
+            expect(removeClassSpy).not.toHaveBeenCalled();
+            expect(removePropertySpy).not.toHaveBeenCalled();
+        });
+
+        test('should handle undefined announcement bar count gracefully', () => {
+            const props = {...baseProps, announcementBarCount: undefined};
+            const wrapper = shallow<AnnouncementBar>(<AnnouncementBar {...props}/>);
+
+            expect(setPropertySpy).toHaveBeenCalledWith('--announcement-bar-count', '1');
+            expect(addClassSpy).toHaveBeenCalledWith('announcement-bar--fixed');
+
+            wrapper.unmount();
+
+            expect(removeClassSpy).toHaveBeenCalledWith('announcement-bar--fixed');
+            expect(removePropertySpy).toHaveBeenCalledWith('--announcement-bar-count');
+        });
+    });
 });
