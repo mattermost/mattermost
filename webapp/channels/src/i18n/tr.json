@@ -3536,7 +3536,7 @@
   "commercial_support.title": "Kurumsal destek",
   "commercial_support_modal.description": "Sorun yaşıyorsanız, <a>bir destek kaydı açın</a>. Sorun gidermeye yardımcı olması için, Mattermost ortamınız hakkında ayrıntılı bilgiler bulunan Destek Paketini indirmeniz önerilir.",
   "commercial_support_modal.download_contents": "İndireceğiniz Destek Paketi içeriğini seçin",
-  "commercial_support_modal.warning.banner": "Destek Paketini indirmeden önce, <strong>Günlükler dosyaya eklensin</strong> seçeneğini <strong> true</strong> olarak ayarlayın ve <strong>Dosya günlük düzeyini</strong> <a>buradan</a> <strong> DEBUG</strong> olarak ayarlayın.",
+  "commercial_support_modal.warning.banner": "Destek paketini indirmeden önce, <strong>Günlükler dosyaya eklensin</strong> seçeneğini <strong> true</strong> olarak ayarlayın ve <strong>Dosya günlüğü düzeyini</strong>  <strong>DEBUG</strong> olarak <a>buradan</a> ayarlayın.",
   "confirm_modal.cancel": "İptal",
   "confirm_reset_failed_attempts_modal.cancel": "Hayır",
   "confirm_reset_failed_attempts_modal.create": "Evet",
