@@ -121,6 +121,18 @@
     background-color: #3d3c40;
 }
 
+.announcement-bar-warning {
+    background-color: var(--yellow-400);
+    color: var(--neutral-900);
+    .announcement-bar__text {
+        .btn.btn-tertiary.btn-xs.btn-inverted {
+            border-color: var(--neutral-900);
+            
+            color: var(--neutral-900);
+        }
+    }
+}
+
 .announcement-bar__link {
     margin-left: 4px;
 }
