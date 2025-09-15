@@ -16,7 +16,19 @@ import InteractiveDialog from './interactive_dialog';
 function mapStateToProps(state: GlobalState) {
     const data = state.entities.integrations.dialog;
     if (!data || !data.dialog) {
-        return {};
+        return {
+            url: '',
+            callbackId: undefined,
+            elements: undefined,
+            title: '',
+            introductionText: undefined,
+            iconUrl: undefined,
+            submitLabel: undefined,
+            notifyOnCancel: undefined,
+            state: undefined,
+            sourceUrl: undefined, // NEW: Default to undefined when no dialog data
+            emojiMap: getEmojiMap(state),
+        };
     }
 
     return {
@@ -29,6 +41,7 @@ function mapStateToProps(state: GlobalState) {
         submitLabel: data.dialog.submit_label,
         notifyOnCancel: data.dialog.notify_on_cancel,
         state: data.dialog.state,
+        sourceUrl: data.dialog.source_url, // NEW: Pass source_url for form refresh functionality
         emojiMap: getEmojiMap(state),
     };
 }
