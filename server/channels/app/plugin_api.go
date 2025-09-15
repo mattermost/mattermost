@@ -29,11 +29,11 @@ type PluginAPI struct {
 	manifest *model.Manifest
 }
 
-func NewPluginAPI(a *App, c request.CTX, manifest *model.Manifest) *PluginAPI {
+func NewPluginAPI(a *App, rctx request.CTX, manifest *model.Manifest) *PluginAPI {
 	return &PluginAPI{
 		id:       manifest.Id,
 		manifest: manifest,
-		ctx:      c,
+		ctx:      rctx,
 		app:      a,
 		logger:   a.Log().Sugar(mlog.String("plugin_id", manifest.Id)),
 	}
@@ -1503,6 +1503,10 @@ func (api *PluginAPI) DeleteGroupConstrainedMemberships() *model.AppError {
 }
 
 func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
+	if field == nil {
+		return nil, fmt.Errorf("invalid input: property field parameter is required")
+	}
+
 	return api.app.PropertyService().CreatePropertyField(field)
 }
 
@@ -1522,8 +1526,22 @@ func (api *PluginAPI) DeletePropertyField(groupID, fieldID string) error {
 	return api.app.PropertyService().DeletePropertyField(groupID, fieldID)
 }
 
-func (api *PluginAPI) SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	return api.app.PropertyService().SearchPropertyFields(groupID, targetID, opts)
+func (api *PluginAPI) SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+	return api.app.PropertyService().SearchPropertyFields(groupID, opts)
+}
+
+func (api *PluginAPI) CountPropertyFields(groupID string, includeDeleted bool) (int64, error) {
+	if includeDeleted {
+		return api.app.PropertyService().CountAllPropertyFieldsForGroup(groupID)
+	}
+	return api.app.PropertyService().CountActivePropertyFieldsForGroup(groupID)
+}
+
+func (api *PluginAPI) CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
+	if includeDeleted {
+		return api.app.PropertyService().CountAllPropertyFieldsForTarget(groupID, targetType, targetID)
+	}
+	return api.app.PropertyService().CountActivePropertyFieldsForTarget(groupID, targetType, targetID)
 }
 
 func (api *PluginAPI) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
@@ -1550,8 +1568,8 @@ func (api *PluginAPI) DeletePropertyValue(groupID, valueID string) error {
 	return api.app.PropertyService().DeletePropertyValue(groupID, valueID)
 }
 
-func (api *PluginAPI) SearchPropertyValues(groupID, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
-	return api.app.PropertyService().SearchPropertyValues(groupID, targetID, opts)
+func (api *PluginAPI) SearchPropertyValues(groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+	return api.app.PropertyService().SearchPropertyValues(groupID, opts)
 }
 
 func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {
