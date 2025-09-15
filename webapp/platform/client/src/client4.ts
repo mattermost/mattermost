@@ -4613,7 +4613,6 @@ export default class Client4 {
         );
     };
 
-
     getChannelAccessControlAttributes = (channelId: string) => {
         return this.doFetch<AccessControlAttributes>(
             `${this.getChannelRoute(channelId)}/access_control/attributes`,
