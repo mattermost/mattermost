@@ -6438,6 +6438,7 @@
   "userGuideHelp.trainingResources": "Training resources",
   "users_limits_announcement_bar.copyText": "User limits exceeded. Contact administrator with: {ErrorCode}",
   "users_limits_announcement_bar.ctaText": "Learn More",
+  "users_limits_announcement_bar.warning.copyText": "This workspace is approaching the user limit ({activeUserCount}/{maxUsersHardLimit} users).",
   "userSettings.adminMode.admin_mode_badge": "Admin Mode",
   "userSettings.adminMode.modal_header": "Manage {userDisplayName}'s Settings",
   "userSettingsModal.pluginPreferences.header": "PLUGIN PREFERENCES",
