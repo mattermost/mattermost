@@ -6,6 +6,9 @@
 
         .modal-title {
             margin-left: 16px;
+            display: flex;
+            gap: 4px;
+            align-items: center;
 
             i,
             svg {
