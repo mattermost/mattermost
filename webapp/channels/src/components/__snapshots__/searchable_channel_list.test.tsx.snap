@@ -5,7 +5,7 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
   className="filtered-user-list"
 >
   <div
-    className="filter-row filter-row--full"
+    className="filter-row"
   >
     <span
       aria-hidden="true"

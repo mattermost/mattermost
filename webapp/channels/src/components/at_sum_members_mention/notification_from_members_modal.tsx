@@ -11,6 +11,7 @@ import {GenericModal} from '@mattermost/components';
 import type {ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {fetchRemoteClusterInfo} from 'mattermost-redux/actions/shared_channels';
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
@@ -103,6 +104,10 @@ function NotificationFromMembersModal(props: Props) {
         history.push(teamUrl + '/messages/@' + user.username);
     }, [openDirectChannelToUserId, history, teamUrl]);
 
+    const handleFetchRemoteClusterInfo = useCallback((remoteId: string, forceRefresh?: boolean) => {
+        dispatch(fetchRemoteClusterInfo(remoteId, forceRefresh));
+    }, [dispatch]);
+
     const handleOnClose = () => {
         dispatch(closeModal(ModalIdentifiers.SUM_OF_MEMBERS_MODAL));
     };
@@ -144,6 +149,7 @@ function NotificationFromMembersModal(props: Props) {
                     searchTerms={''}
                     editing={false}
                     openDirectMessage={openDirectMessage}
+                    fetchRemoteClusterInfo={handleFetchRemoteClusterInfo}
                     loadMore={loadMore}
                     hasNextPage={false}
                     isNextPageLoading={false}

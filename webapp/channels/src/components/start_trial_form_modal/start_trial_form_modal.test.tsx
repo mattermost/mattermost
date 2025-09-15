@@ -6,8 +6,6 @@ import {BrowserRouter} from 'react-router-dom';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import {
     renderWithContext,
     screen,
@@ -18,14 +16,6 @@ import {ModalIdentifiers} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 import StartTrialFormModal from '.';
-
-jest.mock('actions/telemetry_actions.jsx', () => {
-    const original = jest.requireActual('actions/telemetry_actions.jsx');
-    return {
-        ...original,
-        trackEvent: jest.fn(),
-    };
-});
 
 describe('components/start_trial_form_modal/start_trial_form_modal', () => {
     const state: DeepPartial<GlobalState> = {
@@ -85,7 +75,7 @@ describe('components/start_trial_form_modal/start_trial_form_modal', () => {
         expect(wrapper!).toMatchSnapshot();
     });
 
-    test('should pre-fill email, fire trackEvent', () => {
+    test('should pre-fill email', () => {
         waitFor(() => {
             renderWithContext(
                 <BrowserRouter>
@@ -95,7 +85,6 @@ describe('components/start_trial_form_modal/start_trial_form_modal', () => {
             );
         });
         expect(screen.getByDisplayValue('test@mattermost.com')).toBeInTheDocument();
-        expect(trackEvent).toHaveBeenCalled();
     });
 
     test('Start trial button should be disabled on load', () => {

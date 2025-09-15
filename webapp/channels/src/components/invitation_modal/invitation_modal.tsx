@@ -14,8 +14,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import {focusElement} from 'utils/a11y_utils';
 
 import {InviteType} from './invite_as';
@@ -82,7 +80,6 @@ export type Props = {
     channelToInvite?: Channel;
     initialValue?: string;
     inviteAsGuest?: boolean;
-    roleForTrackFlow: {started_by_role: string};
     focusOriginElement?: string;
 }
 
@@ -181,10 +178,6 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
             return;
         }
         const inviteAs = this.state.invite.inviteType;
-        if (inviteAs === InviteType.MEMBER && this.props.isCloud) {
-            trackEvent('cloud_invite_users', 'click_send_invitations', {num_invitations: this.state.invite.usersEmails.length, ...this.props.roleForTrackFlow});
-        }
-        trackEvent('invite_users', 'click_invite', this.props.roleForTrackFlow);
 
         const users: UserProfile[] = [];
         const emails: string[] = [];

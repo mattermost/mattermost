@@ -15,7 +15,6 @@ import {SearchTypes} from 'mattermost-redux/action_types';
 import * as SearchActions from 'mattermost-redux/actions/search';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {
     updateRhsState,
     selectPostFromRightHandSideSearch,
@@ -82,10 +81,6 @@ jest.mock('mattermost-redux/actions/search', () => ({
     clearSearch: (...args: any) => ({type: 'MOCK_CLEAR_SEARCH', args}),
     getFlaggedPosts: jest.fn(),
     getPinnedPosts: jest.fn(),
-}));
-
-jest.mock('actions/telemetry_actions.jsx', () => ({
-    trackEvent: jest.fn(),
 }));
 
 describe('rhs view actions', () => {
@@ -494,17 +489,6 @@ describe('rhs view actions', () => {
             ]));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
-        });
-
-        test('it calls trackEvent correctly', () => {
-            (trackEvent as jest.Mock).mockClear();
-
-            store.dispatch(showMentions());
-
-            expect(trackEvent).toHaveBeenCalledTimes(1);
-
-            expect((trackEvent as jest.Mock).mock.calls[0][0]).toEqual('api');
-            expect((trackEvent as jest.Mock).mock.calls[0][1]).toEqual('api_posts_search_mention');
         });
     });
 
