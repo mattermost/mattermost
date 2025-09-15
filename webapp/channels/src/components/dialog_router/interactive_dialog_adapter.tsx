@@ -41,7 +41,7 @@ interface Props extends WrappedComponentProps {
     // Dialog behavior
     url?: string;
     callbackId?: string;
-    state?: string; // Dialog state for multiform step tracking
+    state?: string;
     notifyOnCancel?: boolean;
     onExited?: () => void;
 

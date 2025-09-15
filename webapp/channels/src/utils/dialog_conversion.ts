@@ -39,7 +39,7 @@ export type ValidationError = {
     code: ValidationErrorCode;
 };
 
-// Server dialog response structure (snake_case format from server)
+// Server dialog response structure
 type ServerDialogResponse = {
     elements?: DialogElement[];
     title?: string;
@@ -52,7 +52,7 @@ type ServerDialogResponse = {
     state?: string;
 };
 
-// Transformed dialog props structure (camelCase format for components)
+// Transformed dialog props structure
 type TransformedDialogProps = {
     elements?: DialogElement[];
     title: string;
@@ -70,7 +70,6 @@ export type ConversionOptions = {
     // Enhanced mode enables stricter validation and error handling
     // When false: Legacy mode with minimal validation (backwards compatible)
     // When true: Enhanced mode with full validation and blocking errors
-    // Note: Legacy mode is maintained for backward compatibility with existing dialogs
     enhanced: boolean;
 };
 
@@ -498,7 +497,7 @@ export function convertDialogToAppForm(
         submit: {
             path: '/submit',
             expand: {},
-            state: dialogState || undefined, // Include dialog state in submit call
+            state: dialogState || undefined,
         },
         fields: convertedFields,
     };
@@ -507,9 +506,9 @@ export function convertDialogToAppForm(
     const hasRefreshFields = convertedFields.some((field) => field.refresh === true);
     if ((sourceUrl && sourceUrl.trim()) || hasRefreshFields) {
         form.source = {
-            path: sourceUrl || '/refresh', // Default path for refresh if no sourceUrl
+            path: sourceUrl || '/refresh',
             expand: {},
-            state: dialogState || undefined, // Include dialog state in source call
+            state: dialogState || undefined,
         };
     }
 
