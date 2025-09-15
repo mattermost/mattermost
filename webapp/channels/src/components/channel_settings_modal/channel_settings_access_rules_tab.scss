@@ -18,8 +18,24 @@
     &__accessRulesHeader {
         display: flex;
         flex-direction: column;
-        margin-bottom: 24px;
+        margin-bottom: 16px;
         gap: 8px;
+    }
+
+    &__accessRulesEditor {
+        .table-editor__cell {
+            button {
+                color: var(--center-channel-color) !important;
+                &:hover{
+                    background-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
+                }
+            }
+        }
+
+        .editor__help-text {
+            width: 75%;
+            color: rgba(var(--center-channel-color-rgb), 0.56) !important;
+        }
     }
 
     &__accessRulesTitle {
@@ -35,40 +51,73 @@
         margin: 0;
         color: rgba(var(--center-channel-color-rgb), 0.72);
         font-family: 'Open Sans', sans-serif;
-        font-size: 14px;
+        font-size: 12px;
         font-weight: 400;
         line-height: 20px;
     }
 
-    &__accessRulesDescription {
-        margin: 24px 0 0 0;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
-        font-family: 'Open Sans', sans-serif;
-        font-size: 14px;
-        font-weight: 400;
-        line-height: 20px;
+    &__divider {
+        border: none;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        margin: 24px 0;
     }
 
-    &__autoSyncSection {
-        margin: 32px 0 24px 0;
+    &__autoSyncCheckboxContainer {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+        gap: 8px;
     }
 
     &__autoSyncLabel {
         display: flex;
-        align-items: flex-start;
-        margin-bottom: 8px;
+        align-items: center;
+        margin: 0;
         cursor: pointer;
         user-select: none;
     }
 
     &__autoSyncCheckbox {
-        width: 18px;
-        height: 18px;
+
+        // Use standard checkbox styling from base_setting_item.scss
+        display: grid;
+        width: 1.6rem;
+        height: 1.6rem;
         flex-shrink: 0;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.65);
-        margin-top: 2px;
-        margin-right: 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: 3px;
+        margin: 0;
+        -webkit-appearance: none;
+        appearance: none;
+        background-color: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.24);
         cursor: pointer;
+        font: inherit;
+        place-content: center;
+        -webkit-transition: background-color 200ms ease-out;
+        -moz-transition: background-color 200ms ease-out;
+        -o-transition: background-color 200ms ease-out;
+        transition: background-color 200ms ease-out;
+
+        &::before {
+            width: 10px;
+            height: 10px;
+            background: var(--button-color);
+            clip-path: polygon(0% 57%, 32% 88%, 100%  20%, 88% 8%, 32% 64%, 12% 45%);
+            content: '';
+            transform: scale(0);
+            transform-origin: center center;
+            transition: 200ms transform ease-in-out;
+        }
+
+        &:checked::before {
+            transform: scale(1);
+        }
+
+        &:checked {
+            border-color: var(--button-bg);
+            background: var(--button-bg);
+        }
 
         &:disabled {
             cursor: not-allowed;
@@ -77,7 +126,6 @@
     }
 
     &__autoSyncText {
-        margin-left: 12px;
         color: var(--center-channel-color);
         font-family: 'Open Sans', sans-serif;
         font-size: 14px;
@@ -91,11 +139,11 @@
     }
 
     &__autoSyncDescription {
-        margin: 0 0 0 30px;
+        margin: 0 0 0 24px;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         font-family: 'Open Sans', sans-serif;
-        font-size: 14px;
+        font-size: 12px;
         font-weight: 400;
-        line-height: 20px;
+        line-height: 16px;
     }
 }

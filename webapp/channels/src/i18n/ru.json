@@ -5112,7 +5112,6 @@
   "user.settings.advance.onForAllMessages": "Вкл для всех сообщений",
   "user.settings.advance.onForCode": "Вкл только для блоков кода, начинающихся с ```",
   "user.settings.advance.performance.disableClientPlugins": "Отключить клиентские плагины",
-  "user.settings.advance.performance.disableTelemetry": "Отключить события телеметрии, отправляемые клиентом",
   "user.settings.advance.performance.disableTypingMessages": "Отключить сообщения «Пользователь печатает...»",
   "user.settings.advance.performance.info1": "Вы можете временно включить эти параметры, чтобы изолировать проблемы с производительностью во время отладки. Мы не рекомендуем оставлять эти настройки включенными на длительный период времени, так как они могут негативно повлиять на ваш пользовательский опыт.",
   "user.settings.advance.performance.info2": "Возможно, вам придется обновить страницу, прежде чем эти настройки вступят в силу.",

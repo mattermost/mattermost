@@ -163,15 +163,15 @@ func (ch *Channels) syncPluginsActiveState() {
 	}
 }
 
-func (a *App) NewPluginAPI(c request.CTX, manifest *model.Manifest) plugin.API {
-	return NewPluginAPI(a, c, manifest)
+func (a *App) NewPluginAPI(rctx request.CTX, manifest *model.Manifest) plugin.API {
+	return NewPluginAPI(a, rctx, manifest)
 }
 
-func (a *App) InitPlugins(c request.CTX, pluginDir, webappPluginDir string) {
-	a.ch.initPlugins(c, pluginDir, webappPluginDir)
+func (a *App) InitPlugins(rctx request.CTX, pluginDir, webappPluginDir string) {
+	a.ch.initPlugins(rctx, pluginDir, webappPluginDir)
 }
 
-func (ch *Channels) initPlugins(c request.CTX, pluginDir, webappPluginDir string) {
+func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir string) {
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
 	defer func() {
 		ch.srv.Platform().SetPluginsEnvironment(ch)
@@ -201,7 +201,7 @@ func (ch *Channels) initPlugins(c request.CTX, pluginDir, webappPluginDir string
 	}
 
 	newAPIFunc := func(manifest *model.Manifest) plugin.API {
-		return New(ServerConnector(ch)).NewPluginAPI(c, manifest)
+		return New(ServerConnector(ch)).NewPluginAPI(rctx, manifest)
 	}
 
 	env, err := plugin.NewEnvironment(
