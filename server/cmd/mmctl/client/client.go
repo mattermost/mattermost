@@ -5,6 +5,7 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 
@@ -93,7 +94,7 @@ type Client interface {
 	DeleteCommand(ctx context.Context, commandID string) (*model.Response, error)
 	GetConfig(ctx context.Context) (*model.Config, *model.Response, error)
 	GetConfigWithOptions(ctx context.Context, options model.GetConfigOptions) (map[string]any, *model.Response, error)
-	GetOldClientConfig(ctx context.Context, etag string) (map[string]string, *model.Response, error)
+	GetClientConfig(ctx context.Context, etag string) (map[string]string, *model.Response, error)
 	UpdateConfig(context.Context, *model.Config) (*model.Config, *model.Response, error)
 	PatchConfig(context.Context, *model.Config) (*model.Config, *model.Response, error)
 	ReloadConfig(ctx context.Context) (*model.Response, error)
@@ -165,4 +166,11 @@ type Client interface {
 	DeletePreferences(ctx context.Context, userId string, preferences model.Preferences) (*model.Response, error)
 	PermanentDeletePost(ctx context.Context, postID string) (*model.Response, error)
 	DeletePost(ctx context.Context, postId string) (*model.Response, error)
+	ListCPAFields(ctx context.Context) ([]*model.PropertyField, *model.Response, error)
+	CreateCPAField(ctx context.Context, field *model.PropertyField) (*model.PropertyField, *model.Response, error)
+	PatchCPAField(ctx context.Context, fieldID string, patch *model.PropertyFieldPatch) (*model.PropertyField, *model.Response, error)
+	DeleteCPAField(ctx context.Context, fieldID string) (*model.Response, error)
+	ListCPAValues(ctx context.Context, userID string) (map[string]json.RawMessage, *model.Response, error)
+	PatchCPAValues(ctx context.Context, values map[string]json.RawMessage) (map[string]json.RawMessage, *model.Response, error)
+	PatchCPAValuesForUser(ctx context.Context, userID string, values map[string]json.RawMessage) (map[string]json.RawMessage, *model.Response, error)
 }

@@ -5388,11 +5388,11 @@ func testChannelStoreGetMemberForPost(t *testing.T, rctx request.CTX, ss store.S
 	})
 	require.NoError(t, nErr)
 
-	r1, err := ss.Channel().GetMemberForPost(p1.Id, m1.UserId, false)
+	r1, err := ss.Channel().GetMemberForPost(p1.Id, m1.UserId)
 	require.NoError(t, err, err)
 	require.Equal(t, channelMemberToJSON(t, m1), channelMemberToJSON(t, r1), "invalid returned channel member")
 
-	_, err = ss.Channel().GetMemberForPost(p1.Id, model.NewId(), false)
+	_, err = ss.Channel().GetMemberForPost(p1.Id, model.NewId())
 	require.Error(t, err, "shouldn't have returned a member")
 }
 
@@ -7095,7 +7095,7 @@ func testChannelStoreSearchGroupChannels(t *testing.T, rctx request.CTX, ss stor
 	// Make gc3 policy enforced
 	_, err = ss.AccessControlPolicy().Save(rctx, &model.AccessControlPolicy{
 		ID:      gc3.Id,
-		Version: model.AccessControlPolicyVersionV0_1,
+		Version: model.AccessControlPolicyVersionV0_2,
 		Type:    model.AccessControlPolicyTypeChannel,
 		Rules: []model.AccessControlPolicyRule{
 			{

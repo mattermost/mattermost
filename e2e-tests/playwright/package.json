@@ -27,21 +27,21 @@
     "@mattermost/client": "file:../../webapp/platform/client",
     "@mattermost/playwright-lib": "*",
     "@mattermost/types": "file:../../webapp/platform/types",
-    "@playwright/test": "1.54.1",
+    "@playwright/test": "1.55.0",
     "cross-env": "10.0.0",
     "dayjs": "1.11.13",
     "luxon": "3.7.1",
-    "zod": "4.0.10"
+    "zod": "4.1.3"
   },
   "devDependencies": {
     "@types/luxon": "3.6.2",
-    "@typescript-eslint/eslint-plugin": "8.38.0",
-    "eslint": "9.32.0",
+    "@typescript-eslint/eslint-plugin": "8.41.0",
+    "eslint": "9.34.0",
     "eslint-import-resolver-typescript": "4.4.4",
     "eslint-plugin-header": "3.1.1",
     "eslint-plugin-import": "2.32.0",
     "glob": "11.0.3",
     "prettier": "3.6.2",
-    "typescript": "5.8.3"
+    "typescript": "5.9.2"
   }
 }

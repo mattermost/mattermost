@@ -40,6 +40,7 @@ import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
 import {setServerVersion, getClientConfig, getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup as fetchGroup} from 'mattermost-redux/actions/groups';
+import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {
     getCustomEmojiForReaction,
     getPosts,
@@ -89,7 +90,6 @@ import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selec
 import {
     getTeamIdByChannelId,
     getMyTeams,
-    getCurrentRelativeTeamUrl,
     getCurrentTeamId,
     getCurrentTeamUrl,
     getTeam,
@@ -1263,25 +1263,11 @@ function handleChannelCreatedEvent(msg) {
 }
 
 function handleChannelDeletedEvent(msg) {
-    const state = getState();
-    const config = getConfig(state);
-    const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
-    if (getCurrentChannelId(state) === msg.data.channel_id && !viewArchivedChannels) {
-        const teamUrl = getCurrentRelativeTeamUrl(state);
-        const currentTeamId = getCurrentTeamId(state);
-        const redirectChannel = getRedirectChannelNameForTeam(state, currentTeamId);
-        getHistory().push(teamUrl + '/channels/' + redirectChannel);
-    }
-
-    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_DELETED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, deleteAt: msg.data.delete_at, viewArchivedChannels}});
+    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_DELETED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, deleteAt: msg.data.delete_at, viewArchivedChannels: true}});
 }
 
 function handleChannelUnarchivedEvent(msg) {
-    const state = getState();
-    const config = getConfig(state);
-    const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
-
-    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_UNARCHIVED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, viewArchivedChannels}});
+    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_UNARCHIVED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, viewArchivedChannels: true}});
 }
 
 function handlePreferenceChangedEvent(msg) {
@@ -1422,6 +1408,9 @@ function handleConfigChanged(msg) {
 
 function handleLicenseChanged(msg) {
     store.dispatch({type: GeneralTypes.CLIENT_LICENSE_RECEIVED, data: msg.data.license});
+
+    // Refresh server limits when license changes since limits may have changed
+    dispatch(getServerLimits());
 }
 
 function handlePluginStatusesChangedEvent(msg) {

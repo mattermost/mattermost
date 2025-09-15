@@ -920,10 +920,6 @@
     "translation": "umeri"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Noul format pentru configurare client nu supported încă. Vă rugăm să specificaţi formatul = vechi în şirul de interogare."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Ne pare rau, nu am putut găsi pagina."
   },
@@ -2074,14 +2070,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Conectarea la bot este interzisă."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "A încercat să faceţi sign in utilizând caracteristica experimentale ClientSideCert fără a furniza un certificat valabil."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Încercaţi să utilizaţi caracteristica experimentale ClientSideCertEnable fara licenta valida enterprise."
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -4660,10 +4648,6 @@
     "translation": "Obțineți cel mai recent browser Chrome"
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Eroare la eliminarea indexurilor Bleve: motorul este dezactivat"
-  },
-  {
     "id": "plugin_api.bot_cant_create_bot",
     "translation": "Utilizatorul Bot nu poate crea utilizator de bot."
   },
@@ -4772,18 +4756,6 @@
     "translation": "Setarea Elasticsearch EnableIndexing trebuie să fie setată la true când Elasticsearch EnableAutocomplete este setat pe true"
   },
   {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Setarea Bleve EnableIndexing trebuie să fie setată la true atunci când este setată Bleve IndexingDir"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Setarea Bleve EnableIndexing trebuie să fie setată pe true când Bleve EnableSearching este setată pe true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Setarea Bleve EnableIndexing trebuie să fie setată pe true când Bleve EnableAutocomplete este setată pe true"
-  },
-  {
     "id": "model.command.is_valid.autocomplete_data.app_error",
     "translation": "AutocompleteData invalid"
   },
@@ -4882,122 +4854,6 @@
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "Nu s-a creat șablonul Elasticsearch pentru canale"
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Eroare la închiderea indexului utilizatorului."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Eroare la închiderea indexului postării."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Eroare la închiderea indexului canalului."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Căutarea utilizatorului nu a reușit."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Căutarea utilizatorului nu a reușit."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Căutarea utilizatorului nu a reușit."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Căutarea postării nu a fost finalizată."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Căutarea pe canal nu a finalizat."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Nu a reușit să elimine indexurile utilizatorilor."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Nu a reușit să elimine indexurile postării."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Eroare la purjarea indexurilor canalului."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Încercați să indexați un lot nou când toate entitățile sunt finalizate."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Lucrătorul de indexare Bleve nu a reușit să analizeze ora de început."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Lucrătorul de indexare Bleve nu a reușit să analizeze ora de sfârșit."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "Cea mai veche entitate (utilizator, canal sau postare) nu a putut fi recuperată din baza de date."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Nu a reușit să execute jobul de index Bleve: motorul este inactiv."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Eroare la indexarea lotului de utilizator."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Eroare la indexarea lotului post."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Eroare la indexarea lotului de canale."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Eroare la indexarea utilizatorului."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Eroare la indexarea postării."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Eroare la indexarea canalului."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Nu a reușit ștergerea utilizatorului."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Nu a reușit să ștergi postarea."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Nu a reușit să ștergi canalul."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Eroare la crearea indexului utilizatorului."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Eroare la crearea indexului bleve post."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Eroare la crearea indexului canalului bleve."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve a început deja."
   },
   {
     "id": "app.user_terms_of_service.save.app_error",
@@ -5674,14 +5530,6 @@
   {
     "id": "ent.cluster.json_encode.error",
     "translation": "A apărut o eroare la trimiterea cererii JSON"
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Ștergerea postărilor utilizatorilor nu a reușit"
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Ștergerea postărilor canalului nu a reușit"
   },
   {
     "id": "app.scheme.delete.app_error",
@@ -6688,10 +6536,6 @@
     "translation": "Imposibil de obținut membrii canalului."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Imposibilitatea de a obține loturile de canale pentru indexare."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Nu se pot obține canalele pentru schema furnizată."
   },
@@ -6722,10 +6566,6 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "Nu se pot obține postările pentru canal."
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Imposibil de obținut lotul de postări pentru indexare."
   },
   {
     "id": "app.post.get_posts.app_error",
@@ -7240,10 +7080,6 @@
     "translation": "Eroare la recuperarea punctului final din Documentul de descoperire."
   },
   {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Ștergerea fișierelor de postare nu a reușit."
-  },
-  {
     "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
     "translation": "Decodarea rezultatelor căutării nu a reușit"
   },
@@ -7274,38 +7110,6 @@
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
     "translation": "Nu s-a putut crea șablonul Elasticsearch pentru fișiere"
-  },
-  {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Nu s-a putut închide indexul fișierului."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "Căutarea fișierelor nu s-a finalizat."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Nu s-a reușit indexarea lotului de fișiere."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "Nu s-a putut indexa fișierul."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Ștergerea fișierelor utilizator nu a reușit."
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Ștergerea fișierelor nu a reușit."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Ștergerea fișierului nu a reușit."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Eroare la crearea indexului de fișier bleve."
   },
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
@@ -7421,14 +7225,6 @@
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
-    "translation": "Imposibil de obținut lotul de fișiere pentru indexare."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Eliminarea indexurilor fișierelor nu a reușit."
-  },
-  {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
     "translation": "Imposibil de obținut lotul de fișiere pentru indexare."
   },
   {

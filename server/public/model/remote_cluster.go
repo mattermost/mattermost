@@ -7,6 +7,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/md5"
+	"crypto/pbkdf2"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base32"
@@ -18,7 +19,6 @@ import (
 	"regexp"
 	"strings"
 
-	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/crypto/scrypt"
 )
 
@@ -406,7 +406,10 @@ func (rci *RemoteClusterInvite) Encrypt(password string) ([]byte, error) {
 	var key []byte
 	if rci.Version >= 3 {
 		// Use PBKDF2 for version 3 and above
-		key = pbkdf2.Key([]byte(password), salt, 600000, 32, sha256.New)
+		key, err = pbkdf2.Key(sha256.New, password, salt, 600000, 32)
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		// Use scrypt for older versions
 		key, err = scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)
@@ -461,7 +464,10 @@ func (rci *RemoteClusterInvite) tryDecrypt(encrypted []byte, password string, sa
 
 	if usePBKDF2 {
 		// Use PBKDF2 for version 3 and above
-		key = pbkdf2.Key([]byte(password), salt, 600000, 32, sha256.New)
+		key, err = pbkdf2.Key(sha256.New, password, salt, 600000, 32)
+		if err != nil {
+			return err
+		}
 	} else {
 		// Use scrypt for older versions
 		key, err = scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)

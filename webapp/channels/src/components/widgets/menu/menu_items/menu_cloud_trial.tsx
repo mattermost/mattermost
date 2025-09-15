@@ -71,7 +71,7 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
             <h5 className='MenuCloudTrial__free-trial__content-title'>
                 <FormattedMessage
                     id='menu.cloudFree.enterpriseTrialTitle'
-                    defaultMessage='Enterprise Trial'
+                    defaultMessage='Enterprise Advanced Trial'
                 />
             </h5>
             <div className='MenuCloudTrial__free-trial__content-section'>
@@ -87,7 +87,7 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
                             openModalLink: (msg: string) => (
                                 <a
                                     className='open-trial-benefits-modal style-link'
-                                    onClick={isAdmin ? openTrialBenefitsModal : () => openPricingModal({trackingLocation: 'menu_cloud_trial'})}
+                                    onClick={isAdmin ? openTrialBenefitsModal : () => openPricingModal()}
                                 >
                                     {msg}
                                 </a>
@@ -109,7 +109,7 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
                     openModalLink: (msg: string) => (
                         <a
                             className='open-see-plans-modal style-link'
-                            onClick={() => openPricingModal({trackingLocation: 'menu_cloud_trial'})}
+                            onClick={() => openPricingModal()}
                         >
                             {msg}
                         </a>

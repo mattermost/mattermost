@@ -166,7 +166,7 @@ export type DialogSubmission = {
     channel_id: string;
     team_id: string;
     submission: {
-        [x: string]: string;
+        [x: string]: string | string[];
     };
     cancelled: boolean;
 };
@@ -183,6 +183,8 @@ export type DialogElement = {
     min_length: number;
     max_length: number;
     data_source: string;
+    data_source_url?: string;
+    multiselect?: boolean;
     options: Array<{
         text: string;
         value: any;

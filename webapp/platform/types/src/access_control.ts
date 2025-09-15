@@ -67,6 +67,7 @@ export type AccessControlVisualASTNode = {
     operator: string;
     value: any;
     value_type: number;
+    attribute_type: string;
 }
 
 /**

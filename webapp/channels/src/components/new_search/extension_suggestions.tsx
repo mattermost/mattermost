@@ -103,7 +103,7 @@ const messages: Record<string, MessageDescriptor> =
 const SearchFileExtensionSuggestion = React.forwardRef<
 HTMLDivElement,
 SuggestionProps<ExtensionItem>
->(({item, onClick, matchedPretext, isSelection}, ref) => {
+>(({id, item, onClick, matchedPretext, isSelection}, ref) => {
     const intl = useIntl();
 
     const optionClicked = useCallback(() => {
@@ -132,6 +132,7 @@ SuggestionProps<ExtensionItem>
     return (
         <SearchFileExtensionSuggestionContainer
             ref={ref}
+            id={id}
             className={classNames({selected: isSelection})}
             onClick={optionClicked}
             onKeyDown={handleKeyDown}

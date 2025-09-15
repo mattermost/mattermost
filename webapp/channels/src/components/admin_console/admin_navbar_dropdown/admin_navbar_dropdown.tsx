@@ -8,7 +8,6 @@ import type {IntlShape} from 'react-intl';
 import type {Team} from '@mattermost/types/teams';
 
 import * as GlobalActions from 'actions/global_actions';
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import AboutBuildModal from 'components/about_build_modal';
 import CommercialSupportModal from 'components/commercial_support_modal';
@@ -79,7 +78,6 @@ class AdminNavbarDropdown extends React.PureComponent<Props> {
 
         let commercialSupport = (
             <Menu.ItemExternalLink
-                onClick={() => trackEvent('admin', 'click_administrators_support')}
                 url='https://mattermost.com/support/'
                 text={formatMessage({id: 'admin.nav.commercialSupport', defaultMessage: 'Commercial Support'})}
             />
@@ -108,18 +106,15 @@ class AdminNavbarDropdown extends React.PureComponent<Props> {
                 </Menu.Group>
                 <Menu.Group>
                     <Menu.ItemExternalLink
-                        onClick={() => trackEvent('admin', 'click_administrators_guide')}
                         url={adminGuideLink}
                         text={formatMessage({id: 'admin.nav.administratorsGuide', defaultMessage: 'Administrator Guide'})}
                     />
                     <Menu.ItemExternalLink
-                        onClick={() => trackEvent('admin', 'click_administrators_forum')}
                         url={'https://forum.mattermost.com/t/how-to-use-the-troubleshooting-forum/150'}
                         text={formatMessage({id: 'admin.nav.troubleshootingForum', defaultMessage: 'Troubleshooting Forum'})}
                     />
                     {commercialSupport}
                     <Menu.ItemToggleModalRedux
-                        onClick={() => trackEvent('admin', 'click_administrators_about')}
                         modalId={ModalIdentifiers.ABOUT}
                         dialogType={AboutBuildModal}
                         text={formatMessage({id: 'navbar_dropdown.about', defaultMessage: 'About {appTitle}'}, {appTitle: siteName || 'Mattermost'})}

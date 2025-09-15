@@ -4,8 +4,6 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
 export interface Props {
@@ -19,7 +17,6 @@ const ContactUsButton: React.FC<Props> = (props: Props) => {
 
     const handleContactUsLinkClick = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
-        trackEvent('admin', props.eventID || 'in_trial_contact_sales');
         openContactSales();
     };
 

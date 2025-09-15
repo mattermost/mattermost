@@ -109,6 +109,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
               restartError={null}
               restarting={false}
               setClickNormalUpgradeBtn={[Function]}
+              upgradeDisabled={false}
               upgradeError={null}
               upgradingPercentage={100}
             />
@@ -229,6 +230,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
               restartError={null}
               restarting={false}
               setClickNormalUpgradeBtn={[Function]}
+              upgradeDisabled={false}
               upgradeError={null}
               upgradingPercentage={42}
             />
@@ -1245,6 +1247,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           openEEModal={[Function]}
           restartError={null}
           restarting={false}
+          upgradeDisabled={false}
           upgradeError={null}
           upgradingPercentage={0}
         />
@@ -1366,6 +1369,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           openEEModal={[Function]}
           restartError={null}
           restarting={false}
+          upgradeDisabled={false}
           upgradeError={null}
           upgradingPercentage={0}
         />
@@ -1557,6 +1561,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               restartError={null}
               restarting={false}
               setClickNormalUpgradeBtn={[Function]}
+              upgradeDisabled={false}
               upgradeError={null}
               upgradingPercentage={0}
             />
@@ -1607,6 +1612,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           openEEModal={[Function]}
           restartError={null}
           restarting={false}
+          upgradeDisabled={false}
           upgradeError={null}
           upgradingPercentage={0}
         />
@@ -1668,6 +1674,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
               restartError={null}
               restarting={false}
               setClickNormalUpgradeBtn={[Function]}
+              upgradeDisabled={false}
               upgradeError={null}
               upgradingPercentage={0}
             />

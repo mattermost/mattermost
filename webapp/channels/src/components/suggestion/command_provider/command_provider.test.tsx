@@ -20,6 +20,7 @@ describe('CommandSuggestion', () => {
     };
 
     const baseProps = {
+        id: 'test-suggestion',
         item: suggestion,
         isSelection: true,
         term: '/',

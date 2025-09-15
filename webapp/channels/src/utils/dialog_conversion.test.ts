@@ -182,6 +182,7 @@ describe('dialog_conversion', () => {
         it('should map select fields with data_source correctly', () => {
             expect(getFieldType({type: DialogElementTypes.SELECT, data_source: 'users'} as DialogElement)).toBe('user');
             expect(getFieldType({type: DialogElementTypes.SELECT, data_source: 'channels'} as DialogElement)).toBe('channel');
+            expect(getFieldType({type: DialogElementTypes.SELECT, data_source: 'dynamic'} as DialogElement)).toBe('dynamic_select');
         });
 
         it('should return null for unknown types', () => {
@@ -194,6 +195,112 @@ describe('dialog_conversion', () => {
             expect(getDefaultValue({default: null} as unknown as DialogElement)).toBeNull();
             expect(getDefaultValue({default: undefined} as unknown as DialogElement)).toBeNull();
             expect(getDefaultValue({} as unknown as DialogElement)).toBeNull();
+        });
+
+        it('should handle multiselect defaults with comma-separated values', () => {
+            const element = {
+                type: 'select',
+                multiselect: true,
+                default: 'option1,option2',
+                options: [
+                    {text: 'Option 1', value: 'option1'},
+                    {text: 'Option 2', value: 'option2'},
+                    {text: 'Option 3', value: 'option3'},
+                ],
+            } as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toEqual([
+                {label: 'Option 1', value: 'option1'},
+                {label: 'Option 2', value: 'option2'},
+            ]);
+        });
+
+        it('should handle multiselect defaults with spaced comma-separated values', () => {
+            const element = {
+                type: 'select',
+                multiselect: true,
+                default: 'option1, option2, option3',
+                options: [
+                    {text: 'Option 1', value: 'option1'},
+                    {text: 'Option 2', value: 'option2'},
+                    {text: 'Option 3', value: 'option3'},
+                ],
+            } as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toEqual([
+                {label: 'Option 1', value: 'option1'},
+                {label: 'Option 2', value: 'option2'},
+                {label: 'Option 3', value: 'option3'},
+            ]);
+        });
+
+        it('should handle multiselect defaults with array input', () => {
+            const element = {
+                type: 'select',
+                multiselect: true,
+                default: ['option1', 'option3'],
+                options: [
+                    {text: 'Option 1', value: 'option1'},
+                    {text: 'Option 2', value: 'option2'},
+                    {text: 'Option 3', value: 'option3'},
+                ],
+            } as unknown as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toEqual([
+                {label: 'Option 1', value: 'option1'},
+                {label: 'Option 3', value: 'option3'},
+            ]);
+        });
+
+        it('should handle multiselect defaults with invalid options gracefully', () => {
+            const element = {
+                type: 'select',
+                multiselect: true,
+                default: 'option1,invalid_option,option2',
+                options: [
+                    {text: 'Option 1', value: 'option1'},
+                    {text: 'Option 2', value: 'option2'},
+                ],
+            } as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toEqual([
+                {label: 'Option 1', value: 'option1'},
+                {label: 'Option 2', value: 'option2'},
+            ]);
+        });
+
+        it('should return null for multiselect with no valid defaults', () => {
+            const element = {
+                type: 'select',
+                multiselect: true,
+                default: 'invalid1,invalid2',
+                options: [
+                    {text: 'Option 1', value: 'option1'},
+                    {text: 'Option 2', value: 'option2'},
+                ],
+            } as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toBeNull();
+        });
+
+        it('should return null for multiselect with empty default', () => {
+            const element = {
+                type: 'select',
+                multiselect: true,
+                default: '',
+                options: [
+                    {text: 'Option 1', value: 'option1'},
+                    {text: 'Option 2', value: 'option2'},
+                ],
+            } as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toBeNull();
         });
 
         it('should handle boolean defaults', () => {
@@ -256,6 +363,31 @@ describe('dialog_conversion', () => {
                 label: 'Option 1',
                 value: 'option1',
             });
+        });
+
+        it('should handle dynamic select defaults', () => {
+            const element = {
+                type: 'select',
+                data_source: 'dynamic',
+                default: 'preset_value',
+            } as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toEqual({
+                label: 'preset_value',
+                value: 'preset_value',
+            });
+        });
+
+        it('should handle empty default for dynamic select', () => {
+            const element = {
+                type: 'select',
+                data_source: 'dynamic',
+                default: '',
+            } as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toBeNull();
         });
     });
 
@@ -528,6 +660,42 @@ describe('dialog_conversion', () => {
             expect(form.fields?.[4].type).toBe('radio');
         });
 
+        it('should convert multiselect field correctly', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'multiselect_field',
+                    type: 'select',
+                    display_name: 'Multiselect Field',
+                    optional: false,
+                    multiselect: true,
+                    default: 'opt1,opt3',
+                    options: [
+                        {text: 'Option 1', value: 'opt1'},
+                        {text: 'Option 2', value: 'opt2'},
+                        {text: 'Option 3', value: 'opt3'},
+                    ],
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields).toHaveLength(1);
+            expect(form.fields?.[0].type).toBe('static_select');
+            expect(form.fields?.[0].multiselect).toBe(true);
+            expect(form.fields?.[0].value).toEqual([
+                {label: 'Option 1', value: 'opt1'},
+                {label: 'Option 3', value: 'opt3'},
+            ]);
+        });
+
         it('should handle unknown field types gracefully in legacy mode', () => {
             const elements: DialogElement[] = [
                 {
@@ -560,6 +728,59 @@ describe('dialog_conversion', () => {
             expect(form.fields?.[0].type).toBe('text'); // Converted to text as fallback
             expect(form.fields?.[0].description).toBe('This field could not be converted properly');
             expect(form.fields?.[1].name).toBe('valid_field');
+        });
+
+        it('should convert dynamic select element with data_source_url', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'dynamic_field',
+                    type: 'select',
+                    display_name: 'Dynamic Field',
+                    data_source: 'dynamic',
+                    data_source_url: '/plugins/myplugin/lookup',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields).toHaveLength(1);
+            expect(form.fields?.[0].type).toBe('dynamic_select');
+            expect(form.fields?.[0].lookup?.path).toBe('/plugins/myplugin/lookup');
+        });
+
+        it('should convert dynamic select element without data_source_url', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'dynamic_field',
+                    type: 'select',
+                    display_name: 'Dynamic Field',
+                    data_source: 'dynamic',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields).toHaveLength(1);
+            expect(form.fields?.[0].type).toBe('dynamic_select');
+            expect(form.fields?.[0].lookup?.path).toBe('');
         });
     });
 
@@ -621,6 +842,140 @@ describe('dialog_conversion', () => {
             expect(errors).toHaveLength(0);
             expect(submission).toEqual({
                 select_field: 'opt1',
+            });
+        });
+
+        it('should handle multiselect field values', () => {
+            const values = {
+                multiselect_field: [
+                    {label: 'Option 1', value: 'opt1'},
+                    {label: 'Option 3', value: 'opt3'},
+                ],
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'multiselect_field',
+                    type: 'select',
+                    display_name: 'Multiselect Field',
+                    optional: false,
+                    multiselect: true,
+                    options: [
+                        {text: 'Option 1', value: 'opt1'},
+                        {text: 'Option 2', value: 'opt2'},
+                        {text: 'Option 3', value: 'opt3'},
+                    ],
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({
+                multiselect_field: ['opt1', 'opt3'],
+            });
+        });
+
+        it('should validate multiselect field options in enhanced mode', () => {
+            const values = {
+                multiselect_field: [
+                    {label: 'Option 1', value: 'opt1'},
+                    {label: 'Invalid Option', value: 'invalid'},
+                ],
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'multiselect_field',
+                    type: 'select',
+                    display_name: 'Multiselect Field',
+                    optional: false,
+                    multiselect: true,
+                    options: [
+                        {text: 'Option 1', value: 'opt1'},
+                        {text: 'Option 2', value: 'opt2'},
+                    ],
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                enhancedOptions,
+            );
+
+            expect(errors).toHaveLength(1);
+            expect(errors[0].field).toBe('multiselect_field');
+            expect(errors[0].code).toBe(ValidationErrorCode.INVALID_FORMAT);
+            expect(errors[0].message).toContain('Selected value not found in options: invalid');
+            expect(submission).toEqual({
+                multiselect_field: ['opt1'],
+            });
+        });
+
+        it('should handle multiselect field without options validation', () => {
+            const values = {
+                multiselect_field: [
+                    {label: 'User 1', value: 'user1'},
+                    {label: 'User 2', value: 'user2'},
+                ],
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'multiselect_field',
+                    type: 'select',
+                    display_name: 'Multiselect Field',
+                    optional: false,
+                    multiselect: true,
+                    data_source: 'users',
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({
+                multiselect_field: ['user1', 'user2'],
+            });
+        });
+
+        it('should handle empty multiselect values', () => {
+            const values = {
+                multiselect_field: [],
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'multiselect_field',
+                    type: 'select',
+                    display_name: 'Multiselect Field',
+                    optional: true,
+                    multiselect: true,
+                    options: [
+                        {text: 'Option 1', value: 'opt1'},
+                        {text: 'Option 2', value: 'opt2'},
+                    ],
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({
+                multiselect_field: [],
             });
         });
 

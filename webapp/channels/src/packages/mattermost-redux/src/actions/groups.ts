@@ -302,6 +302,27 @@ export function getGroupsByUserId(userID: string) {
     });
 }
 
+export function getGroupsByNames(names: string[]): ActionFuncAsync<Group[]> {
+    return async (dispatch, getState) => {
+        let groups;
+
+        try {
+            groups = await Client4.getGroupsByNames(names);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({
+            type: GroupTypes.RECEIVED_GROUPS,
+            data: groups,
+        });
+
+        return {data: groups};
+    };
+}
+
 export function getGroupsByUserIdPaginated(opts: GetGroupsForUserParams) {
     return bindClientFunc({
         clientFunc: async (opts) => {

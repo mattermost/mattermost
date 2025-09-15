@@ -169,9 +169,7 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                         {button()}
                         {restoreDisabled && !isAirGapped &&
                             <button
-                                onClick={() => {
-                                    openPricingModal({trackingLocation: 'team_profile_view_upgrade_options'});
-                                }}
+                                onClick={openPricingModal}
                                 type='button'
                                 className={
                                     classNames(
