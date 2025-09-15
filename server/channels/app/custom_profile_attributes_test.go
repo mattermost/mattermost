@@ -588,7 +588,7 @@ func TestDeleteCPAField(t *testing.T) {
 	t.Run("should correctly delete the field", func(t *testing.T) {
 		// check that we have the associated values to the field prior deletion
 		opts := model.PropertyValueSearchOpts{PerPage: 10, FieldID: createdField.ID}
-		values, err := th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, "", opts)
+		values, err := th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, opts)
 		require.NoError(t, err)
 		require.Len(t, values, 3)
 
@@ -601,12 +601,12 @@ func TestDeleteCPAField(t *testing.T) {
 		require.NotZero(t, fetchedField.DeleteAt)
 
 		// ensure that the associated fields have been marked as deleted too
-		values, err = th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, "", opts)
+		values, err = th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, opts)
 		require.NoError(t, err)
 		require.Len(t, values, 0)
 
 		opts.IncludeDeleted = true
-		values, err = th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, "", opts)
+		values, err = th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, opts)
 		require.NoError(t, err)
 		require.Len(t, values, 3)
 		for _, value := range values {

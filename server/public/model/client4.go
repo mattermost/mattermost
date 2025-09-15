@@ -611,7 +611,7 @@ func (c *Client4) customProfileAttributesRoute() string {
 }
 
 func (c *Client4) userCustomProfileAttributesRoute(userID string) string {
-	return fmt.Sprintf("%s/%s", c.userRoute(userID), c.customProfileAttributesRoute())
+	return fmt.Sprintf("%s/custom_profile_attributes", c.userRoute(userID))
 }
 
 func (c *Client4) customProfileAttributeFieldsRoute() string {
@@ -639,7 +639,7 @@ func (c *Client4) accessControlPolicyRoute(policyID string) string {
 }
 
 func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
+	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/server", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -9670,6 +9670,26 @@ func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]json.Raw
 	return patchedValues, BuildResponse(r), nil
 }
 
+func (c *Client4) PatchCPAValuesForUser(ctx context.Context, userID string, values map[string]json.RawMessage) (map[string]json.RawMessage, *Response, error) {
+	buf, err := json.Marshal(values)
+	if err != nil {
+		return nil, nil, NewAppError("PatchCPAValuesForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPatchBytes(ctx, c.userCustomProfileAttributesRoute(userID), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var patchedValues map[string]json.RawMessage
+	if err := json.NewDecoder(r.Body).Decode(&patchedValues); err != nil {
+		return nil, nil, NewAppError("PatchCPAValuesForUser", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return patchedValues, BuildResponse(r), nil
+}
+
 // Access Control Policies Section
 
 // CreateAccessControlPolicy creates a new access control policy.
@@ -9718,11 +9738,15 @@ func (c *Client4) DeleteAccessControlPolicy(ctx context.Context, id string) (*Re
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) CheckExpression(ctx context.Context, expression string) ([]CELExpressionError, *Response, error) {
+func (c *Client4) CheckExpression(ctx context.Context, expression string, channelId ...string) ([]CELExpressionError, *Response, error) {
 	checkExpressionRequest := struct {
 		Expression string `json:"expression"`
+		ChannelId  string `json:"channelId,omitempty"`
 	}{
 		Expression: expression,
+	}
+	if len(channelId) > 0 && channelId[0] != "" {
+		checkExpressionRequest.ChannelId = channelId[0]
 	}
 	b, err := json.Marshal(checkExpressionRequest)
 	if err != nil {
