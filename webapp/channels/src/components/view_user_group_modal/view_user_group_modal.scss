@@ -7,9 +7,10 @@
         .modal-title {
             margin-left: 16px;
 
-            i {
+            i,
+            svg {
                 margin-left: 5px;
-                color: rgba(var(--center-channel-color-rgb), 0.56);
+                color: rgba(var(--center-channel-color-rgb), 0.64);
             }
         }
 

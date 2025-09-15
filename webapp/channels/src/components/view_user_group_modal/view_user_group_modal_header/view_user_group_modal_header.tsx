@@ -92,7 +92,7 @@ const ViewUserGroupModalHeader = ({
                     {group.display_name}
                     {
                         group.delete_at > 0 &&
-                        <ArchiveOutlineIcon size={16}/>
+                        <ArchiveOutlineIcon size={18}/>
                     }
                 </Modal.Title>
             );
