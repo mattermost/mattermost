@@ -485,7 +485,6 @@ export type LogSettings = {
     FileLocation: string;
     EnableWebhookDebugging: boolean;
     EnableDiagnostics: boolean;
-    VerboseDiagnostics: boolean;
     EnableSentry: boolean;
     AdvancedLoggingJSON: Record<string, any>;
     MaxFieldSize: number;

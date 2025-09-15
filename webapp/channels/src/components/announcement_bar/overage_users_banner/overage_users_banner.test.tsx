@@ -8,8 +8,6 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {General} from 'mattermost-redux/constants';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import {OverActiveUserLimits, Preferences, SelfHostedProducts, StatTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
@@ -30,10 +28,6 @@ jest.mock('mattermost-redux/actions/preferences', () => ({
 
 jest.mock('mattermost-redux/actions/cloud', () => ({
     getLicenseSelfServeStatus: jest.fn(),
-}));
-
-jest.mock('actions/telemetry_actions', () => ({
-    trackEvent: jest.fn(),
 }));
 
 const seatsPurchased = 40;
@@ -229,11 +223,6 @@ describe('components/overage_users_banner', () => {
         // only the email is encoded and other params are empty. See logic for useOpenSalesLink hook
         const salesLinkWithEncodedParams = 'https://mattermost.com/contact-sales/?qk=&qp=&qw=&qx=dGVzdEBtYXR0ZXJtb3N0LmNvbQ==&utm_source=mattermost&utm_medium=in-product';
         expect(windowSpy).toBeCalledWith(salesLinkWithEncodedParams, '_blank');
-        expect(trackEvent).toBeCalledTimes(1);
-        expect(trackEvent).toBeCalledWith('insights', 'click_true_up_error', {
-            cta: 'Contact Sales',
-            banner: 'global banner',
-        });
     });
 
     it('should render the banner because we are over 5% and we have preferences from one old banner', () => {
@@ -331,10 +320,5 @@ describe('components/overage_users_banner', () => {
         // only the email is encoded and other params are empty. See logic for useOpenSalesLink hook
         const salesLinkWithEncodedParams = 'https://mattermost.com/contact-sales/?qk=&qp=&qw=&qx=dGVzdEBtYXR0ZXJtb3N0LmNvbQ==&utm_source=mattermost&utm_medium=in-product';
         expect(windowSpy).toBeCalledWith(salesLinkWithEncodedParams, '_blank');
-        expect(trackEvent).toBeCalledTimes(1);
-        expect(trackEvent).toBeCalledWith('insights', 'click_true_up_error', {
-            cta: 'Contact Sales',
-            banner: 'global banner',
-        });
     });
 });

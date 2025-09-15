@@ -164,7 +164,7 @@ const UserListRow = ({user, status, extraInfo = [], actions = [], actionProps, a
                     id={userCountEmail}
                     className={emailStyle}
                 >
-                    {emailProp}
+                    <span>{emailProp}</span>
                 </div>
                 {extraInfo}
             </div>
