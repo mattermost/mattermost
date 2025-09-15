@@ -5,10 +5,10 @@
         padding-bottom: 0;
 
         .modal-title {
-            margin-left: 16px;
             display: flex;
-            gap: 4px;
             align-items: center;
+            margin-left: 16px;
+            gap: 4px;
 
             i,
             svg {
@@ -82,10 +82,10 @@
                     
                     padding: 0 32px;
                     margin: 12px 0 8px 0;
+                    font-family: inherit;
                     font-size: inherit;
                     font-weight: 600;
                     line-height: inherit;
-                    font-family: inherit;
                 }
 
                 .group-member-row {

@@ -256,10 +256,10 @@
                     .group-display-name,
                     .group-name {
                         display: flex;
-                        align-items: center;
-                        gap: 8px;
                         overflow: hidden;
                         max-width: 200px;
+                        align-items: center;
+                        gap: 8px;
                         text-overflow: ellipsis;
                         white-space: nowrap;
 
