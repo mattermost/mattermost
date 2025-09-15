@@ -150,6 +150,7 @@ export const Preferences = {
     CONFIGURATION_BANNERS: 'configuration_banners',
     NOTIFY_ADMIN_REVOKE_DOWNGRADED_WORKSPACE: 'admin_revoke_downgraded_instance',
     OVERAGE_USERS_BANNER: ReduxPreferences.CATEGORY_OVERAGE_USERS_BANNER,
+    POST_HISTORY_LIMIT_BANNER: ReduxPreferences.CATEGORY_POST_HISTORY_LIMIT_BANNER,
     TO_CLOUD_YEARLY_PLAN_NUDGE: 'to_cloud_yearly_plan_nudge',
     TO_PAID_PLAN_NUDGE: 'to_paid_plan_nudge',
     CLOUD_ANNUAL_RENEWAL_BANNER: 'cloud_annual_renewal_banner',
@@ -1166,6 +1167,7 @@ export const DeveloperLinks = {
 
 export const LicenseLinks = {
     CONTACT_SALES: 'https://mattermost.com/contact-sales/',
+    ENTRY_LIMITS_INFO: 'https://mattermost.com/pl/entry',
     TRIAL_INFO_LINK: 'https://mattermost.com/trial',
     EMBARGOED_COUNTRIES: 'https://mattermost.com/pl/limitations-for-embargoed-countries',
     SOFTWARE_SERVICES_LICENSE_AGREEMENT: 'https://mattermost.com/pl/software-and-services-license-agreement',
