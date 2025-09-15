@@ -1837,7 +1837,7 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() (err error) {
 
 			var newRoles []string
 
-			for _, role := range strings.Fields(user.Roles) {
+			for role := range strings.FieldsSeq(user.Roles) {
 				for name := range builtInRoles {
 					if name == role {
 						newRoles = append(newRoles, role)

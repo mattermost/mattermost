@@ -1123,7 +1123,7 @@ func TestShouldSendPushNotifications(t *testing.T) {
 
 		status := &model.Status{UserId: user.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: post.ChannelId}
 
-		result := th.App.ShouldSendPushNotification(user, channelNotifyProps, false, status, post, false)
+		result := th.App.ShouldSendPushNotification(th.Context, user, channelNotifyProps, false, status, post, false)
 		assert.True(t, result)
 	})
 
@@ -1137,7 +1137,7 @@ func TestShouldSendPushNotifications(t *testing.T) {
 
 		status := &model.Status{UserId: user.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: post.ChannelId}
 
-		result := th.App.ShouldSendPushNotification(user, channelNotifyProps, false, status, post, false)
+		result := th.App.ShouldSendPushNotification(th.Context, user, channelNotifyProps, false, status, post, false)
 		assert.False(t, result)
 	})
 }
@@ -1277,6 +1277,7 @@ func TestClearPushNotificationSync(t *testing.T) {
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: model.NewId()}, nil)
 
 	mockSessionStore := mocks.SessionStore{}
 	mockSessionStore.On("GetSessionsWithActiveDeviceIds", mock.AnythingOfType("string")).Return([]*model.Session{sess1, sess2}, nil)
@@ -1354,6 +1355,7 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: model.NewId()}, nil)
 
 	mockSessionStore := mocks.SessionStore{}
 	mockSessionStore.On("GetSessionsWithActiveDeviceIds", mock.AnythingOfType("string")).Return([]*model.Session{sess1, sess2}, nil)
@@ -1396,9 +1398,9 @@ func TestSendTestPushNotification(t *testing.T) {
 	})
 
 	// Per mock definition, first time will send remove, second time will send OK
-	result := th.App.SendTestPushNotification("platform:id")
+	result := th.App.SendTestPushNotification(th.Context, "platform:id")
 	assert.Equal(t, "false", result)
-	result = th.App.SendTestPushNotification("platform:id")
+	result = th.App.SendTestPushNotification(th.Context, "platform:id")
 	assert.Equal(t, "true", result)
 
 	// Server side verification.
@@ -1442,7 +1444,7 @@ func TestSendAckToPushProxy(t *testing.T) {
 		Id:               "testid",
 		NotificationType: model.PushTypeMessage,
 	}
-	err := th.App.SendAckToPushProxy(ack)
+	err := th.App.SendAckToPushProxy(th.Context, ack)
 	require.NoError(t, err)
 	// Server side verification.
 	// We verify that 1 request has been sent, and also check the message contents.
@@ -1468,7 +1470,7 @@ func TestAllPushNotifications(t *testing.T) {
 		session *model.Session
 	}
 	var testData []userSession
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		u := th.CreateUser()
 		sess, err := th.App.CreateSession(th.Context, &model.Session{
 			UserId:    u.Id,
@@ -1676,6 +1678,7 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: model.NewId()}, nil)
 
 	mockSessionStore := mocks.SessionStore{}
 	mockPreferenceStore := mocks.PreferenceStore{}
@@ -1693,7 +1696,7 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 		session *model.Session
 	}
 	var testData []userSession
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		id := model.NewId()
 		u := &model.User{
 			Id:            id,
@@ -1727,7 +1730,6 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
 		*cfg.LogSettings.EnableConsole = false
-		*cfg.NotificationLogSettings.EnableConsole = false
 	})
 
 	ch := &model.Channel{
@@ -1737,12 +1739,11 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 		Name:     "testch",
 	}
 
-	b.ResetTimer()
 	// We have an inner loop which ranges the testdata slice
 	// and we just repeat that.
 	then := time.Now()
 	cnt := 0
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		cnt++
 		var wg sync.WaitGroup
 		for j, data := range testData {
@@ -1783,6 +1784,5 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 		wg.Wait()
 	}
 	b.Logf("throughput: %f reqs/s", float64(len(testData)*cnt)/time.Since(then).Seconds())
-	b.StopTimer()
 	time.Sleep(2 * time.Second)
 }

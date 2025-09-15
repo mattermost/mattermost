@@ -1335,8 +1335,6 @@ components:
           type: string
         SyncIntervalMinutes:
           type: integer
-        ReAddRemovedMembers:
-          type: boolean
         SkipCertificateVerification:
           type: boolean
         PublicCertificateFile:
@@ -3955,6 +3953,37 @@ components:
           $ref: "#/components/schemas/AllowedIPRange"
         state:
           description: The current state of the installation
+          type: string
+    MessageDescriptor:
+      type: object
+      properties:
+        id:
+          description: The i18n message ID
+          type: string
+        defaultMessage:
+          description: The default message text
+          type: string
+        values:
+          description: Optional values for message interpolation
+          type: object
+          additionalProperties: true
+    PreviewModalContentData:
+      type: object
+      properties:
+        skuLabel:
+          $ref: "#/components/schemas/MessageDescriptor"
+        title:
+          $ref: "#/components/schemas/MessageDescriptor"
+        subtitle:
+          $ref: "#/components/schemas/MessageDescriptor"
+        videoUrl:
+          description: URL of the video content
+          type: string
+        videoPoster:
+          description: URL of the video poster/thumbnail image
+          type: string
+        useCase:
+          description: The use case category for this content
           type: string
     ServerLimits:
       type: object

@@ -151,6 +151,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PermissionOrderBookmarkPrivateChannel.Id,
 			model.PermissionManagePublicChannelBanner.Id,
 			model.PermissionManagePrivateChannelBanner.Id,
+			model.PermissionManageChannelAccessRules.Id,
 		},
 		"team_user": {
 			model.PermissionListTeamChannels.Id,
@@ -196,6 +197,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PermissionOrderBookmarkPrivateChannel.Id,
 			model.PermissionManagePublicChannelBanner.Id,
 			model.PermissionManagePrivateChannelBanner.Id,
+			model.PermissionManageChannelAccessRules.Id,
 		},
 		"system_user": {
 			model.PermissionListPublicTeams.Id,

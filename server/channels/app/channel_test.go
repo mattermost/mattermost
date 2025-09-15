@@ -1484,7 +1484,7 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 	require.NotNil(t, offTopic)
 	expectedChannels = append(expectedChannels, offTopic)
 
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		channel := model.Channel{
 			DisplayName: fmt.Sprintf("Public %v", i),
 			Name:        fmt.Sprintf("public_%v", i),
@@ -1521,7 +1521,7 @@ func TestGetPrivateChannelsForTeam(t *testing.T) {
 	defer th.TearDown()
 
 	var expectedChannels []*model.Channel
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		channel := model.Channel{
 			DisplayName: fmt.Sprintf("Private %v", i),
 			Name:        fmt.Sprintf("private_%v", i),
@@ -2441,7 +2441,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 
 		wg := sync.WaitGroup{}
 		wg.Add(20)
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			go func() {
 				_, appErr := th.App.PatchChannelModerationsForChannel(th.Context, channel.DeepCopy(), addCreatePosts)
 				require.Nil(t, appErr)
@@ -2450,7 +2450,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				wg.Done()
 			}()
 		}
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			go func() {
 				_, appErr := th.App.PatchChannelModerationsForChannel(th.Context, channel.DeepCopy(), addCreatePosts)
 				require.Nil(t, appErr)
@@ -2506,7 +2506,7 @@ func TestClearChannelMembersCache(t *testing.T) {
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockChannelStore := mocks.ChannelStore{}
 	cms := model.ChannelMembers{}
-	for i := 0; i < 200; i++ {
+	for range 200 {
 		cms = append(cms, model.ChannelMember{
 			ChannelId: "1",
 		})
@@ -2539,7 +2539,7 @@ func TestGetMemberCountsByGroup(t *testing.T) {
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockChannelStore := mocks.ChannelStore{}
 	cmc := []*model.ChannelMemberCountByGroup{}
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		cmc = append(cmc, &model.ChannelMemberCountByGroup{
 			GroupId:                     model.NewId(),
 			ChannelMemberCount:          int64(i),
@@ -3197,7 +3197,7 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 
 	t.Run("should return an error when trying to update too many users at once", func(t *testing.T) {
 		identifiers := make([]*model.ChannelMemberIdentifier, 201)
-		for i := 0; i < len(identifiers); i++ {
+		for i := range identifiers {
 			identifiers[i] = &model.ChannelMemberIdentifier{UserId: "fakeuser", ChannelId: "fakechannel"}
 		}
 

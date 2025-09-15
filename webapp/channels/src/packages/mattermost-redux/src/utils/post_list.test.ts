@@ -18,6 +18,7 @@ import {
     getPostIdsForCombinedUserActivityPost,
     isCombinedUserActivityPost,
     isDateLine,
+    makeAddDateSeparatorsForSearchResults,
     makeCombineUserActivityPosts,
     makeFilterPostsAndAddSeparators,
     makeGenerateCombinedPost,
@@ -238,6 +239,199 @@ describe('makeFilterPostsAndAddSeparators', () => {
             '1000',
             'date-' + (today.getTime() + 1000),
         ]);
+    });
+});
+
+describe('makeAddDateSeparatorsForSearchResults', () => {
+    it('should add date separators for posts on different days', () => {
+        const addDateSeparatorsForSearchResults = makeAddDateSeparatorsForSearchResults();
+        const time = Date.now();
+        const today = new Date(time);
+        const yesterday = new Date(time - (24 * 60 * 60 * 1000));
+        const dayBeforeYesterday = new Date(time - (2 * 24 * 60 * 60 * 1000));
+
+        const posts = [
+            TestHelper.getPostMock({id: 'post1', create_at: today.getTime()}),
+            TestHelper.getPostMock({id: 'post2', create_at: yesterday.getTime()}),
+            TestHelper.getPostMock({id: 'post3', create_at: dayBeforeYesterday.getTime()}),
+        ];
+        const state = {
+            entities: {
+                users: {
+                    currentUserId: '1234',
+                    profiles: {
+                        1234: {id: '1234', username: 'user'},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const result = addDateSeparatorsForSearchResults(state, posts);
+
+        expect(result).toHaveLength(6);
+        expect(result[0]).toBe('date-' + today.getTime());
+        expect(result[1]).toBe(posts[0]);
+        expect(result[2]).toBe('date-' + yesterday.getTime());
+        expect(result[3]).toBe(posts[1]);
+        expect(result[4]).toBe('date-' + dayBeforeYesterday.getTime());
+        expect(result[5]).toBe(posts[2]);
+    });
+
+    it('should not add date separators for posts on the same day', () => {
+        const addDateSeparatorsForSearchResults = makeAddDateSeparatorsForSearchResults();
+        const time = Date.now();
+        const today = new Date(time);
+
+        const posts = [
+            TestHelper.getPostMock({id: 'post1', create_at: today.getTime()}),
+            TestHelper.getPostMock({id: 'post2', create_at: today.getTime() + 1000}),
+            TestHelper.getPostMock({id: 'post3', create_at: today.getTime() + 2000}),
+        ];
+        const state = {
+            entities: {
+                users: {
+                    currentUserId: '1234',
+                    profiles: {
+                        1234: {id: '1234', username: 'user'},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const result = addDateSeparatorsForSearchResults(state, posts);
+
+        expect(result).toHaveLength(4);
+        expect(result[0]).toBe('date-' + today.getTime());
+        expect(result[1]).toBe(posts[0]);
+        expect(result[2]).toBe(posts[1]);
+        expect(result[3]).toBe(posts[2]);
+    });
+
+    it('should handle timezone conversion correctly', () => {
+        const addDateSeparatorsForSearchResults = makeAddDateSeparatorsForSearchResults();
+
+        const todayTimestamp = 1704067200000;
+        const todayTimestampInAmericaNewYork = 1704049200000;
+
+        const posts = [
+            TestHelper.getPostMock({id: 'post1', create_at: todayTimestampInAmericaNewYork}),
+            TestHelper.getPostMock({id: 'post2', create_at: todayTimestamp}),
+        ];
+        const state = {
+            entities: {
+                users: {
+                    currentUserId: '1234',
+                    profiles: {
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'America/New_York'}},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const result = addDateSeparatorsForSearchResults(state, posts);
+
+        expect(result).toHaveLength(3);
+        expect(result[0]).toBe('date-1704031200000');
+        expect(result[1]).toBe(posts[0]);
+        expect(result[2]).toBe(posts[1]);
+    });
+
+    it('should handle posts with no timezone information', () => {
+        const addDateSeparatorsForSearchResults = makeAddDateSeparatorsForSearchResults();
+        const time = Date.now();
+        const today = new Date(time);
+        const yesterday = new Date(time - (24 * 60 * 60 * 1000));
+
+        const posts = [
+            TestHelper.getPostMock({id: 'post1', create_at: today.getTime()}),
+            TestHelper.getPostMock({id: 'post2', create_at: yesterday.getTime()}),
+        ];
+        const state = {
+            entities: {
+                users: {
+                    currentUserId: '1234',
+                    profiles: {
+                        1234: {id: '1234', username: 'user'},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const result = addDateSeparatorsForSearchResults(state, posts);
+
+        expect(result).toHaveLength(4);
+        expect(result[0]).toBe('date-' + today.getTime());
+        expect(result[1]).toBe(posts[0]);
+        expect(result[2]).toBe('date-' + yesterday.getTime());
+        expect(result[3]).toBe(posts[1]);
+    });
+
+    it('should handle single post correctly', () => {
+        const addDateSeparatorsForSearchResults = makeAddDateSeparatorsForSearchResults();
+        const time = Date.now();
+        const today = new Date(time);
+
+        const posts = [
+            TestHelper.getPostMock({id: 'post1', create_at: today.getTime()}),
+        ];
+        const state = {
+            entities: {
+                users: {
+                    currentUserId: '1234',
+                    profiles: {
+                        1234: {id: '1234', username: 'user'},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const result = addDateSeparatorsForSearchResults(state, posts);
+
+        expect(result).toHaveLength(2);
+        expect(result[0]).toBe('date-' + today.getTime());
+        expect(result[1]).toBe(posts[0]);
+    });
+
+    it('should handle posts spanning multiple days correctly', () => {
+        const addDateSeparatorsForSearchResults = makeAddDateSeparatorsForSearchResults();
+        const time = Date.now();
+        const today = new Date(time);
+        const yesterday = new Date(time - (24 * 60 * 60 * 1000));
+        const dayBeforeYesterday = new Date(time - (2 * 24 * 60 * 60 * 1000));
+        const threeDaysAgo = new Date(time - (3 * 24 * 60 * 60 * 1000));
+
+        const posts = [
+            TestHelper.getPostMock({id: 'post1', create_at: today.getTime()}),
+            TestHelper.getPostMock({id: 'post2', create_at: today.getTime() + 1000}),
+            TestHelper.getPostMock({id: 'post3', create_at: yesterday.getTime()}),
+            TestHelper.getPostMock({id: 'post4', create_at: yesterday.getTime() + 1000}),
+            TestHelper.getPostMock({id: 'post5', create_at: dayBeforeYesterday.getTime()}),
+            TestHelper.getPostMock({id: 'post6', create_at: threeDaysAgo.getTime()}),
+        ];
+        const state = {
+            entities: {
+                users: {
+                    currentUserId: '1234',
+                    profiles: {
+                        1234: {id: '1234', username: 'user'},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const result = addDateSeparatorsForSearchResults(state, posts);
+
+        expect(result).toHaveLength(10);
+        expect(result[0]).toBe('date-' + today.getTime());
+        expect(result[1]).toBe(posts[0]);
+        expect(result[2]).toBe(posts[1]);
+        expect(result[3]).toBe('date-' + yesterday.getTime());
+        expect(result[4]).toBe(posts[2]);
+        expect(result[5]).toBe(posts[3]);
+        expect(result[6]).toBe('date-' + dayBeforeYesterday.getTime());
+        expect(result[7]).toBe(posts[4]);
+        expect(result[8]).toBe('date-' + threeDaysAgo.getTime());
+        expect(result[9]).toBe(posts[5]);
     });
 });
 

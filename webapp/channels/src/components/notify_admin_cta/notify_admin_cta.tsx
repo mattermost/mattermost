@@ -33,13 +33,12 @@ type HookProps = {
 }
 
 type Props = HookProps & {
-    callerInfo: string;
     notifyRequestData: NotifyAdminRequest;
 }
 
 type ValueOf<T> = T[keyof T]
 
-export function useNotifyAdmin<T = HTMLAnchorElement | HTMLButtonElement>(props: HookProps, reqData: NotifyAdminRequest): [React.ReactNode, (e: React.MouseEvent<T, MouseEvent>, callerInfo: string) => void, ValueOf<typeof NotifyStatus>] {
+export function useNotifyAdmin<T = HTMLAnchorElement | HTMLButtonElement>(props: HookProps, reqData: NotifyAdminRequest): [React.ReactNode, (e: React.MouseEvent<T, MouseEvent>) => void, ValueOf<typeof NotifyStatus>] {
     const {btnText: btnFormaText, notifyAdmin, notifyStatus} = useGetNotifyAdmin({});
     const {formatMessage} = useIntl();
 
@@ -56,17 +55,10 @@ export function useNotifyAdmin<T = HTMLAnchorElement | HTMLButtonElement>(props:
         }
     };
 
-    const notifyFunc = async (e: React.MouseEvent<T, MouseEvent>, callerInfo: string) => {
+    const notifyFunc = async (e: React.MouseEvent<T, MouseEvent>) => {
         e.preventDefault();
         e.stopPropagation();
         notifyAdmin({
-            trackingArgs: {
-                category: 'pricing',
-                event: 'click_notify_admin_cta',
-                props: {
-                    callerInfo,
-                },
-            },
             requestData: reqData,
         });
     };
@@ -88,7 +80,7 @@ function NotifyAdminCTA(props: Props) {
                 <span>
                     <Button
                         id='notify_admin_cta'
-                        onClick={(e) => notify(e, props.callerInfo)}
+                        onClick={(e) => notify(e)}
                         disabled={status === NotifyStatus.AlreadyComplete}
                         notified={status === NotifyStatus.Success}
                     >
@@ -100,7 +92,7 @@ function NotifyAdminCTA(props: Props) {
                     {title}
                     <Button
                         id='notify_admin_cta'
-                        onClick={(e) => notify(e, props.callerInfo)}
+                        onClick={(e) => notify(e)}
                         disabled={status === NotifyStatus.AlreadyComplete}
                         notified={status === NotifyStatus.Success}
                     >

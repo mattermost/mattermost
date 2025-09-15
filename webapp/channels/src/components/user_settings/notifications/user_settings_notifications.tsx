@@ -15,10 +15,6 @@ import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
 import type {PreferencesType} from '@mattermost/types/preferences';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
-import {TrackPassiveKeywordsFeature, TrackPassiveKeywordsEvent} from 'mattermost-redux/constants/telemetry';
-
-import {trackFeatureEvent} from 'actions/telemetry_actions.jsx';
-
 import ExternalLink from 'components/external_link';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
@@ -301,9 +297,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             });
         }
         data.highlight_keys = highlightKeys.join(',');
-        if (this.props.user.notify_props?.highlight_keys !== data.highlight_keys && data.highlight_keys.length > 0) {
-            trackFeatureEvent(TrackPassiveKeywordsFeature, TrackPassiveKeywordsEvent);
-        }
 
         this.setState({isSaving: true});
         stopTryNotificationRing();

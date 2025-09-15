@@ -178,7 +178,7 @@ func (p PropertyFieldSearchCursor) IsValid() error {
 type PropertyFieldSearchOpts struct {
 	GroupID        string
 	TargetType     string
-	TargetID       string
+	TargetIDs      []string
 	IncludeDeleted bool
 	Cursor         PropertyFieldSearchCursor
 	PerPage        int
@@ -312,4 +312,22 @@ func (p *PluginPropertyOption) SetValue(key, value string) {
 		p.Data = make(map[string]string)
 	}
 	p.Data[key] = value
+}
+
+// MarshalJSON implements custom JSON marshaling to avoid wrapping in "data"
+func (p *PluginPropertyOption) MarshalJSON() ([]byte, error) {
+	if p.Data == nil {
+		return json.Marshal(map[string]string{})
+	}
+	return json.Marshal(p.Data)
+}
+
+// UnmarshalJSON implements custom JSON unmarshaling to handle unwrapped JSON
+func (p *PluginPropertyOption) UnmarshalJSON(data []byte) error {
+	var result map[string]string
+	if err := json.Unmarshal(data, &result); err != nil {
+		return err
+	}
+	p.Data = result
+	return nil
 }

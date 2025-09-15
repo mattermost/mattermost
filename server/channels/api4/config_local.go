@@ -25,7 +25,7 @@ func (api *API) InitConfigLocal() {
 }
 
 func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("localGetConfig", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalGetConfig, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	filterMasked, _ := strconv.ParseBool(r.URL.Query().Get("remove_masked"))
 	filterDefaults, _ := strconv.ParseBool(r.URL.Query().Get("remove_defaults"))
@@ -57,18 +57,12 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("localUpdateConfig", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalUpdateConfig, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	cfg.SetDefaults()
 
 	appCfg := c.App.Config()
-
-	// Do not allow plugin uploads to be toggled through the API
-	cfg.PluginSettings.EnableUploads = appCfg.PluginSettings.EnableUploads
-
-	// Do not allow certificates to be changed through the API
-	cfg.PluginSettings.SignaturePublicKeyFiles = appCfg.PluginSettings.SignaturePublicKeyFiles
 
 	c.App.HandleMessageExportConfig(cfg, appCfg)
 
@@ -110,7 +104,7 @@ func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("localPatchConfig", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalPatchConfig, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	appCfg := c.App.Config()
@@ -171,7 +165,7 @@ func localMigrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("migrateConfig", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventMigrateConfig, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -190,20 +184,8 @@ func localMigrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localGetClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("localGetClientConfig", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalGetClientConfig, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-
-	format := r.URL.Query().Get("format")
-
-	if format == "" {
-		c.Err = model.NewAppError("getClientConfig", "api.config.client.old_format.app_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if format != "old" {
-		c.SetInvalidParam("format")
-		return
-	}
 
 	auditRec.Success()
 

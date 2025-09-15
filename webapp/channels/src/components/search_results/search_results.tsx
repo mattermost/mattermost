@@ -3,7 +3,6 @@
 
 import classNames from 'classnames';
 import React, {useEffect, useRef, useState} from 'react';
-import Scrollbars from 'react-custom-scrollbars';
 import {useIntl, FormattedMessage, defineMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -12,12 +11,15 @@ import type {Post} from '@mattermost/types/posts';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {isDateLine, getDateForDateLine} from 'mattermost-redux/utils/post_list';
 
 import {getFilesDropdownPluginMenuItems} from 'selectors/plugins';
 
+import Scrollbars from 'components/common/scrollbars';
 import FileSearchResultItem from 'components/file_search_results';
 import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
+import DateSeparator from 'components/post_view/date_separator';
 import SearchHint from 'components/search_hint/search_hint';
 import SearchResultsHeader from 'components/search_results_header';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
@@ -35,34 +37,6 @@ import './search_results.scss';
 
 const GET_MORE_BUFFER = 30;
 
-const renderView = (props: Record<string, unknown>): JSX.Element => (
-    <div
-        {...props}
-        className='scrollbar--view'
-    />
-);
-
-const renderThumbHorizontal = (props: Record<string, unknown>): JSX.Element => (
-    <div
-        {...props}
-        className='scrollbar--horizontal scrollbar--thumb--RHS'
-    />
-);
-
-const renderThumbVertical = (props: Record<string, unknown>): JSX.Element => (
-    <div
-        {...props}
-        className='scrollbar--vertical scrollbar--thumb--RHS'
-    />
-);
-
-const renderTrackVertical = (props: Record<string, unknown>): JSX.Element => (
-    <div
-        {...props}
-        className='scrollbar--vertical--RHS'
-    />
-);
-
 interface NoResultsProps {
     variant: NoResultsVariant;
     titleValues?: Record<string, React.ReactNode>;
@@ -77,7 +51,7 @@ const defaultProps: Partial<Props> = {
 };
 
 const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
-    const scrollbars = useRef<Scrollbars|null>(null);
+    const scrollbars = useRef<HTMLDivElement>(null);
     const [searchType, setSearchType] = useState<string>(props.searchType);
     const filesDropdownPluginMenuItems = useSelector(getFilesDropdownPluginMenuItems);
     const config = useSelector(getConfig);
@@ -88,7 +62,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             props.setSearchFilterType('all');
         }
         setSearchType(props.searchType);
-        scrollbars.current?.scrollToTop();
+        scrollbars.current?.scrollTo({top: 0});
     }, [props.searchTerms]);
 
     useEffect(() => {
@@ -114,9 +88,9 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
 
     const handleScroll = (): void => {
         if (!props.isFlaggedPosts && !props.isPinnedPosts && !props.isSearchingTerm && !props.isSearchGettingMore && !props.isChannelFiles) {
-            const scrollHeight = scrollbars.current?.getScrollHeight() || 0;
-            const scrollTop = scrollbars.current?.getScrollTop() || 0;
-            const clientHeight = scrollbars.current?.getClientHeight() || 0;
+            const scrollHeight = scrollbars.current?.scrollHeight || 0;
+            const scrollTop = scrollbars.current?.scrollTop || 0;
+            const clientHeight = scrollbars.current?.clientHeight || 0;
             if ((scrollTop + clientHeight + GET_MORE_BUFFER) >= scrollHeight) {
                 if (searchType === DataSearchTypes.FILES_SEARCH_TYPE) {
                     loadMoreFiles();
@@ -215,7 +189,6 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             })}</strong>};
 
         sortedResults = [...results];
-        sortedResults.sort((postA: Post|FileSearchResultItemType, postB: Post|FileSearchResultItemType) => postB.create_at - postA.create_at);
 
         titleDescriptor = defineMessage({
             id: 'search_header.pinnedMessages',
@@ -322,13 +295,24 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             sortedResults = fileResults;
         }
 
-        contentItems = sortedResults.map((item: Post|FileSearchResultItemType, index: number) => {
+        contentItems = sortedResults.map((item: string|Post|FileSearchResultItemType, index: number) => {
             if (searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE && !props.isChannelFiles) {
+                if (typeof item === 'string' && isDateLine(item)) {
+                    const date = getDateForDateLine(item);
+                    return (
+                        <DateSeparator
+                            key={date}
+                            date={date}
+                        />
+                    );
+                }
+
+                const post = item as Post;
                 return (
                     <PostSearchResultsItem
-                        key={item.id}
-                        post={item as Post}
-                        matches={props.matches[item.id]}
+                        key={post.id}
+                        post={post}
+                        matches={props.matches[post.id]}
                         searchTerm={searchTerms}
                         isFlaggedPosts={props.isFlaggedPosts}
                         isMentionSearch={props.isMentionSearch}
@@ -339,8 +323,8 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             }
             return (
                 <FileSearchResultItem
-                    key={item.id}
-                    channelId={item.channel_id}
+                    key={(item as FileSearchResultItemType).id}
+                    channelId={(item as FileSearchResultItemType).channel_id}
                     fileInfo={item as FileSearchResultItemType}
                     teamName={props.currentTeamName}
                     pluginMenuItems={filesDropdownPluginMenuItems}
@@ -399,13 +383,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             <SearchLimitsBanner searchType={searchType}/>
             <Scrollbars
                 ref={scrollbars}
-                autoHide={true}
-                autoHideTimeout={500}
-                autoHideDuration={500}
-                renderTrackVertical={renderTrackVertical}
-                renderThumbHorizontal={renderThumbHorizontal}
-                renderThumbVertical={renderThumbVertical}
-                renderView={renderView}
+                color='--center-channel-color-rgb'
                 onScroll={handleScroll}
             >
                 <div

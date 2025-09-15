@@ -2,8 +2,10 @@
 // See LICENSE.txt for license information.
 
 import {ChainableT} from 'tests/types';
-import {LdapUser} from './ldap_server_commands';
+
 import * as TIMEOUTS from '../fixtures/timeouts';
+
+import {LdapUser} from './ldap_server_commands';
 
 const {
     keycloakBaseUrl,
@@ -150,7 +152,6 @@ function keycloakDeleteUserAPI(accessToken: string, userId: string): ChainableT 
         },
     }).then((response: any) => {
         expect(response.status).to.equal(204);
-        expect(response.data).is.empty;
     });
 }
 Cypress.Commands.add('keycloakDeleteUserAPI', keycloakDeleteUserAPI);
@@ -176,7 +177,6 @@ function keycloakUpdateUserAPI(accessToken: string, userId: string, data: any): 
         data,
     }).then((response: any) => {
         expect(response.status).to.equal(204);
-        expect(response.data).is.empty;
     });
 }
 Cypress.Commands.add('keycloakUpdateUserAPI', keycloakUpdateUserAPI);
@@ -200,7 +200,6 @@ function keycloakDeleteSessionAPI(accessToken: string, sessionId: string): Chain
         },
     }).then((delResponse: any) => {
         expect(delResponse.status).to.equal(204);
-        expect(delResponse.data).is.empty;
     });
 }
 

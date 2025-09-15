@@ -920,10 +920,6 @@
     "translation": "alzatadispalle"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Il nuovo formato per la configurazione del client non è ancora supportato. Specificare format=old nella query."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Spiacente, impossibile trovare la pagina."
   },
@@ -2074,14 +2070,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Il login dei bot non è permesso."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Tentativo di eseguire il login utilizzando la funzione sperimentale ClientSideCert senza fornire un valido certificato."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Tentativo di utilizzare la funzione sperimentale ClientSideCertEnable senza una licenza enterprise valida."
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -4616,10 +4604,6 @@
     "translation": "User AuthService e AuthData sono mutualmente inclusivi."
   },
   {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Impossibile impostare il plugin come gestito dall'archivio file."
-  },
-  {
     "id": "app.plugin.invalid_version.app_error",
     "translation": "La versione del plugin non può essere interpretata."
   },
@@ -4708,94 +4692,6 @@
     "translation": "Impossibile salvare i termini di servizio."
   },
   {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Errore durante la creazione dell'indice canale bleve."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Errore durante la creazione dell'indice pubblicazione bleve."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Errore durante la creazione dell'indice utente bleve."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Impossibile indicizzare le pubblicazioni in batch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Impossibile indicizzare gli utenti in batch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Il lavoro di indicizzazione di Bleve non è riuscito a calcolare l'ora d'inizio."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Tentativo di indicizzare un nuovo gruppo quando tutti gli elementi erano completati."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Errore cancellazione indici canale."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Errore cancellazione indici pubblicazione."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Errore cancellazione indici utente."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Errore chiusura indice canale."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Errore chiusura indice pubblicazioni."
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Errore chiusura indice utente."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Errore durante la cancellazione del canale."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Errore durante la cancellazione dell'utente."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Errore durante l'indicizzazione del canale."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Impossibile indicizzare la pubblicazione."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Errore durante l'indicizzazione dell'utente."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "La ricerca non è stata completata."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "La ricerca non è stata completata."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "La ricerca non è stata completata."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "La ricerca non è stata completata."
-  },
-  {
     "id": "ent.cluster.json_encode.error",
     "translation": "Errore durante lo smistamento della richiesta JSON"
   },
@@ -4866,10 +4762,6 @@
   {
     "id": "groups.unsupported_syncable_type",
     "translation": "Tipo sincronizzabile non supportato '{{.Value}}'."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "L'impostazioneBleve IndexingDir deve essere abilitata quando l'impostazione Bleve EnableIndexing è abilitata"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
@@ -5176,30 +5068,6 @@
     "translation": "Impossibile eliminare i termini di servizio utente."
   },
   {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve è già in esecuzione."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Impossibile cancellare la pubblicazione."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Impossibile indicizzare i canali in batch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Errore esecuzione lavoro indicizzazione Bleve: il motore non è attivo."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Il lavoro di indicizzazione di Bleve non è riuscito a calcolare l'ora di fine."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "La ricerca non è stata completata."
-  },
-  {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "Errore durante la creazione del template Elasticsearch per i canali"
   },
@@ -5234,10 +5102,6 @@
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
     "translation": "Dati autocompletamento non validi"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "L'impostazione Bleve IndexingEnabled deve essere abilitata quando l'impostazione Bleve SearchEnabled è abilitata"
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
@@ -5284,10 +5148,6 @@
     "translation": "Impossibile recuperare gli utenti, criteri di ordinamento non validi."
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Errore cancellazione indici Bleve: il motore non è attivo"
-  },
-  {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Ottieni l'ultima versione del browser Chrome"
   },
@@ -5298,10 +5158,6 @@
   {
     "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
     "translation": "Scarica l'app Mattermost oppure utilizza un browser supportato per un'esperienza migliore."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "L'impostazione Bleve IndexingEnabled deve essere abilitata quando l'impostazione Bleve AutocompleteEnabled è abilitata"
   },
   {
     "id": "api.license.request-trial.bad-request",
@@ -5733,14 +5589,6 @@
   },
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
-    "translation": "Impossibile cancellare le pubblicazioni del canale"
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Impossibile cancellare le pubblicazioni dell'utente"
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
     "translation": "Impossibile cancellare le pubblicazioni del canale"
   },
   {
@@ -6360,10 +6208,6 @@
     "translation": "Impossibile recuperare le pubblicazioni del canale"
   },
   {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Impossibile trovare la coda delle pubblicazioni da indicizzare"
-  },
-  {
     "id": "app.post.get_posts.app_error",
     "translation": "Limite di paginazione superato"
   },
@@ -6688,10 +6532,6 @@
     "translation": "Impossibile ottenere i membri del canale"
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Impossibile trovare il gruppo di canali da indicizzare"
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Impossibile elencare i canali per lo schema fornito"
   },
@@ -6792,10 +6632,6 @@
     "translation": " "
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": " "
-  },
-  {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": " "
   },
@@ -6805,10 +6641,6 @@
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
-    "translation": " "
-  },
-  {
-    "id": "bleveengine.index_file.error",
     "translation": " "
   },
   {
@@ -7068,10 +6900,6 @@
     "translation": " "
   },
   {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.context.remote_id_missing.app_error",
     "translation": " "
   },
@@ -7213,10 +7041,6 @@
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.unable_to_read_file_from_backend",
     "translation": " "
   },
   {
@@ -7524,10 +7348,6 @@
     "translation": " "
   },
   {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": " "
-  },
-  {
     "id": "api.custom_groups.license_error",
     "translation": " "
   },
@@ -7545,10 +7365,6 @@
   },
   {
     "id": "app.user.update.finding.app_error",
-    "translation": " "
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
     "translation": " "
   },
   {
@@ -7576,15 +7392,7 @@
     "translation": " "
   },
   {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": " "
-  },
-  {
     "id": "app.user.verify_email.app_error",
-    "translation": " "
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
     "translation": " "
   },
   {
@@ -7788,10 +7596,6 @@
     "translation": " "
   },
   {
-    "id": "bleveengine.delete_file.error",
-    "translation": " "
-  },
-  {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
     "translation": " "
   },
@@ -7976,10 +7780,6 @@
     "translation": " "
   },
   {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.user.update_user_auth.invalid_request",
     "translation": " "
   },
@@ -8077,10 +7877,6 @@
   },
   {
     "id": "app.user.update_thread_read_for_user.app_error",
-    "translation": " "
-  },
-  {
-    "id": "bleveengine.search_files.error",
     "translation": " "
   },
   {
@@ -8244,14 +8040,6 @@
     "translation": " "
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": " "
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": " "
   },
@@ -8273,10 +8061,6 @@
   },
   {
     "id": "api.templates.invite_body.title.reminder",
-    "translation": " "
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
     "translation": " "
   },
   {
@@ -8325,10 +8109,6 @@
   },
   {
     "id": "api.command_remote.permission_required",
-    "translation": " "
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
     "translation": " "
   },
   {
@@ -8425,10 +8205,6 @@
   },
   {
     "id": "ent.elasticsearch.index_file.error",
-    "translation": " "
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
     "translation": " "
   },
   {

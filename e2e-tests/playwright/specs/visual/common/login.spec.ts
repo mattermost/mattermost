@@ -24,7 +24,7 @@ test(
         // # Get license information and prepare test args
         const testArgs = {page, browserName, viewport};
         const license = await adminClient.getClientLicenseOld();
-        const editionSuffix = license.IsLicensed === 'true' ? '' : 'free edition';
+        const editionSuffix = license.IsLicensed === 'true' ? '' : 'team edition';
 
         // * Verify login page appears as expected
         await pw.matchSnapshot({...testInfo, title: `${testInfo.title} ${editionSuffix}`}, testArgs);

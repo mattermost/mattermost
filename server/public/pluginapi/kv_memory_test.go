@@ -135,8 +135,7 @@ func TestMemoryStoreSet(t *testing.T) {
 		store := pluginapi.MemoryStore{}
 		var wg sync.WaitGroup
 		const n = 100
-		for i := 0; i < n; i++ {
-			i := i
+		for i := range n {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
@@ -148,7 +147,7 @@ func TestMemoryStoreSet(t *testing.T) {
 
 		wg.Wait()
 
-		for i := 0; i < n; i++ {
+		for i := range n {
 			var out []byte
 			err := store.Get(fmt.Sprintf("k_%d", i), &out)
 			assert.NoError(t, err, "i=%d", i)
@@ -189,8 +188,7 @@ func TestMemoryStoreSetAtomicWithRetries(t *testing.T) {
 		store := pluginapi.MemoryStore{}
 		var wg sync.WaitGroup
 		const n = 10
-		for i := 0; i < n; i++ {
-			i := i
+		for i := range n {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
@@ -219,7 +217,7 @@ func TestMemoryStoreListKeys(t *testing.T) {
 
 	t.Run("zero count", func(t *testing.T) {
 		store := pluginapi.MemoryStore{}
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			ok, err := store.Set(fmt.Sprintf("k_%d", i), "foo")
 			require.NoError(t, err)
 			require.True(t, ok)
@@ -231,7 +229,7 @@ func TestMemoryStoreListKeys(t *testing.T) {
 
 	t.Run("negative count", func(t *testing.T) {
 		store := pluginapi.MemoryStore{}
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			ok, err := store.Set(fmt.Sprintf("k_%d", i), "foo")
 			require.NoError(t, err)
 			require.True(t, ok)
@@ -243,7 +241,7 @@ func TestMemoryStoreListKeys(t *testing.T) {
 
 	t.Run("negative page", func(t *testing.T) {
 		store := pluginapi.MemoryStore{}
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			ok, err := store.Set(fmt.Sprintf("k_%d", i), "foo")
 			require.NoError(t, err)
 			require.True(t, ok)
@@ -255,7 +253,7 @@ func TestMemoryStoreListKeys(t *testing.T) {
 
 	t.Run("single page", func(t *testing.T) {
 		store := pluginapi.MemoryStore{}
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			ok, err := store.Set(fmt.Sprintf("k_%d", i), "foo")
 			require.NoError(t, err)
 			require.True(t, ok)
@@ -267,7 +265,7 @@ func TestMemoryStoreListKeys(t *testing.T) {
 
 	t.Run("multiple pages", func(t *testing.T) {
 		store := pluginapi.MemoryStore{}
-		for i := 0; i < 7; i++ {
+		for i := range 7 {
 			ok, err := store.Set(fmt.Sprintf("k_%d", i), "foo")
 			require.NoError(t, err)
 			require.True(t, ok)
@@ -315,7 +313,7 @@ func TestMemoryStoreListKeys(t *testing.T) {
 
 			return i%2 == 0, nil
 		}
-		for i := 0; i < 7; i++ {
+		for i := range 7 {
 			ok, err := store.Set(fmt.Sprintf("k_%d", i), "foo")
 			require.NoError(t, err)
 			require.True(t, ok)
@@ -343,7 +341,7 @@ func TestMemoryStoreListKeys(t *testing.T) {
 
 	t.Run("with expired entries", func(t *testing.T) {
 		store := pluginapi.MemoryStore{}
-		for i := 0; i < 7; i++ {
+		for i := range 7 {
 			var opt pluginapi.KVSetOption
 			if i%2 == 1 {
 				opt = pluginapi.SetExpiry(1 * time.Second)

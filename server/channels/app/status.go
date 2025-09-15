@@ -81,14 +81,14 @@ func (a *App) UpdateDNDStatusOfUsers() {
 	}
 }
 
-func (a *App) SetCustomStatus(c request.CTX, userID string, cs *model.CustomStatus) *model.AppError {
+func (a *App) SetCustomStatus(rctx request.CTX, userID string, cs *model.CustomStatus) *model.AppError {
 	if cs == nil || (cs.Emoji == "" && cs.Text == "") {
 		return model.NewAppError("SetCustomStatus", "api.custom_status.set_custom_statuses.update.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Ensure the emoji exists before saving the custom status even if it's deleted afterwards
 	if cs.Emoji != "" {
-		if err := a.confirmEmojiExists(c, cs.Emoji); err != nil {
+		if err := a.confirmEmojiExists(rctx, cs.Emoji); err != nil {
 			return model.NewAppError("SetCustomStatus", "api.custom_status.set_custom_statuses.emoji_not_found", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
@@ -99,28 +99,28 @@ func (a *App) SetCustomStatus(c request.CTX, userID string, cs *model.CustomStat
 	}
 
 	if err := user.SetCustomStatus(cs); err != nil {
-		c.Logger().Error("Failed to set custom status", mlog.String("userID", userID), mlog.Err(err))
+		rctx.Logger().Error("Failed to set custom status", mlog.String("userID", userID), mlog.Err(err))
 	}
-	_, updateErr := a.UpdateUser(c, user, true)
+	_, updateErr := a.UpdateUser(rctx, user, true)
 	if updateErr != nil {
 		return updateErr
 	}
 
-	if err = a.addRecentCustomStatus(c, userID, cs); err != nil {
-		c.Logger().Error("Can't add recent custom status for", mlog.String("userID", userID), mlog.Err(err))
+	if err = a.addRecentCustomStatus(rctx, userID, cs); err != nil {
+		rctx.Logger().Error("Can't add recent custom status for", mlog.String("userID", userID), mlog.Err(err))
 	}
 
 	return nil
 }
 
-func (a *App) RemoveCustomStatus(c request.CTX, userID string) *model.AppError {
+func (a *App) RemoveCustomStatus(rctx request.CTX, userID string) *model.AppError {
 	user, err := a.GetUser(userID)
 	if err != nil {
 		return err
 	}
 
 	user.ClearCustomStatus()
-	_, updateErr := a.UpdateUser(c, user, true)
+	_, updateErr := a.UpdateUser(rctx, user, true)
 	if updateErr != nil {
 		return updateErr
 	}
@@ -137,10 +137,10 @@ func (a *App) GetCustomStatus(userID string) (*model.CustomStatus, *model.AppErr
 	return user.GetCustomStatus(), nil
 }
 
-func (a *App) addRecentCustomStatus(c request.CTX, userID string, status *model.CustomStatus) *model.AppError {
+func (a *App) addRecentCustomStatus(rctx request.CTX, userID string, status *model.CustomStatus) *model.AppError {
 	var newRCS model.RecentCustomStatuses
 
-	pref, appErr := a.GetPreferenceByCategoryAndNameForUser(c, userID, model.PreferenceCategoryCustomStatus, model.PreferenceNameRecentCustomStatuses)
+	pref, appErr := a.GetPreferenceByCategoryAndNameForUser(rctx, userID, model.PreferenceCategoryCustomStatus, model.PreferenceNameRecentCustomStatuses)
 	if appErr != nil || pref.Value == "" {
 		newRCS = model.RecentCustomStatuses{*status}
 	} else {
@@ -161,15 +161,15 @@ func (a *App) addRecentCustomStatus(c request.CTX, userID string, status *model.
 		Name:     model.PreferenceNameRecentCustomStatuses,
 		Value:    string(newRCSJSON),
 	}
-	if appErr := a.UpdatePreferences(c, userID, model.Preferences{*pref}); appErr != nil {
+	if appErr := a.UpdatePreferences(rctx, userID, model.Preferences{*pref}); appErr != nil {
 		return appErr
 	}
 
 	return nil
 }
 
-func (a *App) RemoveRecentCustomStatus(c request.CTX, userID string, status *model.CustomStatus) *model.AppError {
-	pref, appErr := a.GetPreferenceByCategoryAndNameForUser(c, userID, model.PreferenceCategoryCustomStatus, model.PreferenceNameRecentCustomStatuses)
+func (a *App) RemoveRecentCustomStatus(rctx request.CTX, userID string, status *model.CustomStatus) *model.AppError {
+	pref, appErr := a.GetPreferenceByCategoryAndNameForUser(rctx, userID, model.PreferenceCategoryCustomStatus, model.PreferenceNameRecentCustomStatuses)
 	if appErr != nil {
 		return appErr
 	}
@@ -201,7 +201,7 @@ func (a *App) RemoveRecentCustomStatus(c request.CTX, userID string, status *mod
 		return model.NewAppError("RemoveRecentCustomStatus", "api.marshal_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	pref.Value = string(newRCSJSON)
-	if appErr := a.UpdatePreferences(c, userID, model.Preferences{*pref}); appErr != nil {
+	if appErr := a.UpdatePreferences(rctx, userID, model.Preferences{*pref}); appErr != nil {
 		return appErr
 	}
 

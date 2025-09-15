@@ -140,7 +140,7 @@ func TestReviewerSettings_IsValid(t *testing.T) {
 		require.Nil(t, err)
 	})
 
-	t.Run("should be valid when common reviewers enabled with additional reviewers", func(t *testing.T) {
+	t.Run("should be valid when common reviewers enabled with Additional Reviewers", func(t *testing.T) {
 		settings := &ReviewerSettings{
 			CommonReviewers:         NewPointer(true),
 			CommonReviewerIds:       &[]string{},
@@ -204,7 +204,7 @@ func TestReviewerSettings_IsValid(t *testing.T) {
 		require.Equal(t, "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error", err.Id)
 	})
 
-	t.Run("should be valid when team reviewers enabled but no reviewer IDs with additional reviewers", func(t *testing.T) {
+	t.Run("should be valid when team reviewers enabled but no reviewer IDs with Additional Reviewers", func(t *testing.T) {
 		settings := &ReviewerSettings{
 			CommonReviewers:   NewPointer(false),
 			CommonReviewerIds: &[]string{},

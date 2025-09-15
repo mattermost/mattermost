@@ -35,7 +35,7 @@ func listImports(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func deleteImport(c *Context, w http.ResponseWriter, r *http.Request) {
 	importName := c.Params.ImportName
-	auditRec := c.MakeAuditRecord("deleteImport", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteImport, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("import_name", importName)
 

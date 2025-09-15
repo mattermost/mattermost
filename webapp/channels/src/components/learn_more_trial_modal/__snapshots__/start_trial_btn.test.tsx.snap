@@ -35,7 +35,6 @@ exports[`components/learn_more_trial_modal/start_trial_btn should match snapshot
   <StartTrialBtn
     message="Start trial"
     onClick={[MockFunction]}
-    telemetryId="test_telemetry_id"
   />
 </ContextProvider>
 `;

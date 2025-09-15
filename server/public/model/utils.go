@@ -11,11 +11,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"net"
 	"net/mail"
 	"net/url"
 	"os"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -78,13 +80,7 @@ func (sa StringArray) Remove(input string) StringArray {
 }
 
 func (sa StringArray) Contains(input string) bool {
-	for index := range sa {
-		if sa[index] == input {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(sa, input)
 }
 func (sa StringArray) Equals(input StringArray) bool {
 	if len(sa) != len(input) {
@@ -453,9 +449,7 @@ func GetEndOfDayMillis(thisTime time.Time, timeZoneOffset int) int64 {
 
 func CopyStringMap(originalMap map[string]string) map[string]string {
 	copyMap := make(map[string]string, len(originalMap))
-	for k, v := range originalMap {
-		copyMap[k] = v
-	}
+	maps.Copy(copyMap, originalMap)
 	return copyMap
 }
 

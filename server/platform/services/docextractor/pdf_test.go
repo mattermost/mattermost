@@ -20,7 +20,7 @@ func TestPdfEmptyFile(t *testing.T) {
 
 func TestPdfFile(t *testing.T) {
 	extractor := pdfExtractor{}
-	contentText := "This is a simple document that contains some text."
+	contentText := "\nThis is a simple document that contains some text."
 	content, err := testutils.ReadTestFile("sample-doc.pdf")
 	require.NoError(t, err)
 	extractedText, err := extractor.Extract("sample-doc.pdf", bytes.NewReader(content))

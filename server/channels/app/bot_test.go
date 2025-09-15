@@ -671,7 +671,7 @@ func TestDisableUserBots(t *testing.T) {
 		}
 	}()
 
-	for i := 0; i < 46; i++ {
+	for i := range 46 {
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    fmt.Sprintf("username%v", i),
 			Description: "a bot",
@@ -777,7 +777,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 
 	// create bots owned by user (equal to numBotsToPrint)
 	var bot *model.Bot
-	for i := 0; i < numBotsToPrint; i++ {
+	for i := range numBotsToPrint {
 		bot, err = th.App.CreateBot(th.Context, &model.Bot{
 			Username:    fmt.Sprintf("bot%v", i),
 			Description: "a bot",

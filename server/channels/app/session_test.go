@@ -417,7 +417,7 @@ func TestSessionsLimit(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	for i := 0; i < maxSessionsLimit; i++ {
+	for range maxSessionsLimit {
 		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
 		require.Nil(t, err)
 		sessions = append(sessions, session)
@@ -434,7 +434,7 @@ func TestSessionsLimit(t *testing.T) {
 	}
 
 	// Now add 10 more.
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
 		require.Nil(t, err, "should not have an error creating user sessions")
 

@@ -16,7 +16,6 @@ describe('components/MarketplaceItemApp', () => {
             homepageUrl: 'http://example.com',
             installed: false,
             installing: false,
-            trackEvent: jest.fn(() => {}),
             actions: {
                 installApp: jest.fn(async () => Promise.resolve(true)),
                 closeMarketplaceModal: jest.fn(() => {}),
@@ -159,7 +158,7 @@ describe('components/MarketplaceItemApp', () => {
             expect(wrapper).toMatchSnapshot();
         });
 
-        describe('install should trigger track event and close modal', () => {
+        test('install should trigger app installation', () => {
             const props = {
                 ...baseProps,
                 isDefaultMarketplace: true,
@@ -170,9 +169,6 @@ describe('components/MarketplaceItemApp', () => {
             );
 
             wrapper.instance().onInstall();
-            expect(props.trackEvent).toBeCalledWith('plugins', 'ui_marketplace_install_app', {
-                app_id: 'id',
-            });
             expect(props.actions.installApp).toHaveBeenCalledWith('id');
         });
     });
