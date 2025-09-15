@@ -472,38 +472,40 @@ function ChannelSettingsAccessRulesTab({
         }
     }, [expression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState]);
 
-    // Debouncing refs
-    const saveChangesTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const confirmSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    // Prevent duplicate saves with immediate response
+    const saveInProgressRef = useRef(false);
 
-    // Handle confirmation modal confirm
+    // Handle confirmation modal confirm - immediate response, no debounce
     const handleConfirmSave = useCallback(async () => {
-        // Clear any existing timeout
-        if (confirmSaveTimeoutRef.current) {
-            clearTimeout(confirmSaveTimeoutRef.current);
+        // Prevent duplicate clicks - immediate response
+        if (saveInProgressRef.current) {
+            return;
         }
 
-        // Debounce the actual save operation
-        confirmSaveTimeoutRef.current = setTimeout(async () => {
+        saveInProgressRef.current = true;
+
+        try {
             const success = await performSave();
             if (success) {
                 setSaveChangesPanelState('saved');
             } else {
                 setSaveChangesPanelState('error');
             }
-            confirmSaveTimeoutRef.current = null;
-        }, 300);
+        } finally {
+            saveInProgressRef.current = false;
+        }
     }, [performSave]);
 
-    // Handle save changes panel actions
+    // Handle save changes panel actions - immediate response, no debounce
     const handleSaveChanges = useCallback(async () => {
-        // Clear any existing timeout
-        if (saveChangesTimeoutRef.current) {
-            clearTimeout(saveChangesTimeoutRef.current);
+        // Prevent duplicate clicks - immediate response
+        if (saveInProgressRef.current) {
+            return;
         }
 
-        // Debounce the actual save operation
-        saveChangesTimeoutRef.current = setTimeout(async () => {
+        saveInProgressRef.current = true;
+
+        try {
             const result = await handleSave();
 
             if (result === 'saved') {
@@ -513,8 +515,9 @@ function ChannelSettingsAccessRulesTab({
             }
 
             // If result is 'confirmation_required', do nothing to the panel state
-            saveChangesTimeoutRef.current = null;
-        }, 300);
+        } finally {
+            saveInProgressRef.current = false;
+        }
     }, [handleSave]);
 
     const handleCancel = useCallback(() => {
@@ -529,18 +532,6 @@ function ChannelSettingsAccessRulesTab({
 
     const handleClose = useCallback(() => {
         setSaveChangesPanelState(undefined);
-    }, []);
-
-    // Cleanup timeouts on unmount
-    useEffect(() => {
-        return () => {
-            if (saveChangesTimeoutRef.current) {
-                clearTimeout(saveChangesTimeoutRef.current);
-            }
-            if (confirmSaveTimeoutRef.current) {
-                clearTimeout(confirmSaveTimeoutRef.current);
-            }
-        };
     }, []);
 
     // Calculate if there are errors

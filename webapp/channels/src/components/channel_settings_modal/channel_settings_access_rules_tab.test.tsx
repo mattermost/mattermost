@@ -943,7 +943,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             });
         });
 
-        test('should debounce save button clicks', async () => {
+        test('should prevent duplicate save button clicks', async () => {
             // Ensure the searchUsers mock returns current user for validation to pass
             mockActions.searchUsers.mockResolvedValue({
                 data: {
@@ -977,7 +977,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             const saveButton = screen.getByText('Save');
 
-            // Clear mock calls before testing debouncing
+            // Clear mock calls before testing duplicate prevention
             mockActions.saveChannelPolicy.mockClear();
 
             // Click save button multiple times rapidly
@@ -985,10 +985,12 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             await userEvent.click(saveButton);
             await userEvent.click(saveButton);
 
-            // Wait for debounce timeout (300ms) plus a small buffer
-            await waitFor(() => new Promise((resolve) => setTimeout(resolve, 350)));
+            // Wait for async operations to complete
+            await waitFor(() => {
+                expect(mockActions.saveChannelPolicy).toHaveBeenCalled();
+            });
 
-            // Should only have been called once due to debouncing
+            // Should only have been called once due to duplicate prevention
             expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1);
         });
 
