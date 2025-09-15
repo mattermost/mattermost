@@ -4320,7 +4320,6 @@
   "user.settings.advance.onForAllMessages": "Bật cho tất cả thư",
   "user.settings.advance.onForCode": "Chỉ bật cho các khối mã bắt đầu bằng` ``",
   "user.settings.advance.performance.disableClientPlugins": "Vô hiệu hóa Plugin phía máy khách",
-  "user.settings.advance.performance.disableTelemetry": "Tắt các sự kiện đo từ xa được gửi từ máy khách",
   "user.settings.advance.performance.disableTypingMessages": "Tắt thông báo \"Người dùng đang gõ...\"",
   "user.settings.advance.performance.info1": "Bạn có thể tạm thời bật các cài đặt này để giúp cách ly các vấn đề về hiệu suất trong khi gỡ lỗi. Chúng tôi khuyên bạn không nên bật các cài đặt này trong một khoảng thời gian dài vì chúng có thể tác động tiêu cực đến trải nghiệm người dùng của bạn.",
   "user.settings.advance.performance.info2": "Bạn có thể cần làm mới trang trước khi các cài đặt này có hiệu lực.",
