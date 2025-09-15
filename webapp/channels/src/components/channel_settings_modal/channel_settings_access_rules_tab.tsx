@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useCallback, useMemo} from 'react';
+import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -472,27 +472,49 @@ function ChannelSettingsAccessRulesTab({
         }
     }, [expression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState]);
 
+    // Debouncing refs
+    const saveChangesTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const confirmSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
     // Handle confirmation modal confirm
     const handleConfirmSave = useCallback(async () => {
-        const success = await performSave();
-        if (success) {
-            setSaveChangesPanelState('saved');
-        } else {
-            setSaveChangesPanelState('error');
+        // Clear any existing timeout
+        if (confirmSaveTimeoutRef.current) {
+            clearTimeout(confirmSaveTimeoutRef.current);
         }
+
+        // Debounce the actual save operation
+        confirmSaveTimeoutRef.current = setTimeout(async () => {
+            const success = await performSave();
+            if (success) {
+                setSaveChangesPanelState('saved');
+            } else {
+                setSaveChangesPanelState('error');
+            }
+            confirmSaveTimeoutRef.current = null;
+        }, 300);
     }, [performSave]);
 
     // Handle save changes panel actions
     const handleSaveChanges = useCallback(async () => {
-        const result = await handleSave();
-
-        if (result === 'saved') {
-            setSaveChangesPanelState('saved');
-        } else if (result === 'error') {
-            setSaveChangesPanelState('error');
+        // Clear any existing timeout
+        if (saveChangesTimeoutRef.current) {
+            clearTimeout(saveChangesTimeoutRef.current);
         }
 
-        // If result is 'confirmation_required', do nothing to the panel state
+        // Debounce the actual save operation
+        saveChangesTimeoutRef.current = setTimeout(async () => {
+            const result = await handleSave();
+
+            if (result === 'saved') {
+                setSaveChangesPanelState('saved');
+            } else if (result === 'error') {
+                setSaveChangesPanelState('error');
+            }
+
+            // If result is 'confirmation_required', do nothing to the panel state
+            saveChangesTimeoutRef.current = null;
+        }, 300);
     }, [handleSave]);
 
     const handleCancel = useCallback(() => {
@@ -507,6 +529,18 @@ function ChannelSettingsAccessRulesTab({
 
     const handleClose = useCallback(() => {
         setSaveChangesPanelState(undefined);
+    }, []);
+
+    // Cleanup timeouts on unmount
+    useEffect(() => {
+        return () => {
+            if (saveChangesTimeoutRef.current) {
+                clearTimeout(saveChangesTimeoutRef.current);
+            }
+            if (confirmSaveTimeoutRef.current) {
+                clearTimeout(confirmSaveTimeoutRef.current);
+            }
+        };
     }, []);
 
     // Calculate if there are errors

@@ -392,13 +392,8 @@ func (jss SqlJobStore) GetByTypeAndData(c request.CTX, jobType string, data map[
 
 	// Add JSON data filtering for each key-value pair
 	for key, value := range data {
-		if jss.DriverName() == model.DatabaseDriverPostgres {
-			// PostgreSQL JSON query
-			query = query.Where(sq.Expr("Data->? = ?", key, fmt.Sprintf(`"%s"`, value)))
-		} else {
-			// MySQL JSON query
-			query = query.Where(sq.Expr("JSON_EXTRACT(Data, ?) = ?", fmt.Sprintf("$.%s", key), value))
-		}
+		// PostgreSQL JSON query
+		query = query.Where(sq.Expr("Data->? = ?", key, fmt.Sprintf(`"%s"`, value)))
 	}
 
 	queryString, args, err := query.ToSql()

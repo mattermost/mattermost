@@ -26,7 +26,7 @@ func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/autocomplete/fields", api.APISessionRequired(getFieldsAutocomplete)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/visual_ast", api.APISessionRequired(convertToVisualAST)).Methods(http.MethodPost)
 
-	api.BaseRoutes.AccessControlPolicies.Handle("/sync_job", api.APISessionRequired(createAccessControlSyncJob)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/sync_job", api.RateLimitedHandler(api.APISessionRequired(createAccessControlSyncJob), model.RateLimitSettings{PerSec: model.NewPointer(5), MaxBurst: model.NewPointer(2), VaryByUser: model.NewPointer(true)})).Methods(http.MethodPost)
 
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(getAccessControlPolicy)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(deleteAccessControlPolicy)).Methods(http.MethodDelete)

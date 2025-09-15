@@ -943,6 +943,55 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             });
         });
 
+        test('should debounce save button clicks', async () => {
+            // Ensure the searchUsers mock returns current user for validation to pass
+            mockActions.searchUsers.mockResolvedValue({
+                data: {
+                    users: [{
+                        id: 'current_user_id',
+                        username: 'testuser',
+                        first_name: 'Test',
+                        last_name: 'User',
+                    }],
+                },
+            });
+            mockActions.getChannelMembers.mockResolvedValue({data: []});
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Change expression to trigger unsaved state
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('user.attributes.department == "Engineering"');
+
+            // Wait for save button to appear
+            await waitFor(() => {
+                expect(screen.getByText('Save')).toBeInTheDocument();
+            });
+
+            const saveButton = screen.getByText('Save');
+
+            // Clear mock calls before testing debouncing
+            mockActions.saveChannelPolicy.mockClear();
+
+            // Click save button multiple times rapidly
+            await userEvent.click(saveButton);
+            await userEvent.click(saveButton);
+            await userEvent.click(saveButton);
+
+            // Wait for debounce timeout (300ms) plus a small buffer
+            await waitFor(() => new Promise((resolve) => setTimeout(resolve, 350)));
+
+            // Should only have been called once due to debouncing
+            expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1);
+        });
+
         test('should reset changes when Reset button is clicked', async () => {
             renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,

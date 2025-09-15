@@ -873,3 +873,46 @@ func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 }
+
+func TestCreateAccessControlSyncJob_RateLimit(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
+	th := Setup(t).InitBasic()
+	t.Cleanup(func() {
+		th.TearDown()
+		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
+	})
+
+	// Enable license for access control  
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.True(t, ok, "SetLicense should return true")
+
+	t.Run("should rate limit sync job endpoint", func(t *testing.T) {
+		// Test data for sync job - use minimal data
+		jobData := map[string]string{}
+
+		// Make rapid requests to test rate limiting
+		// The endpoint is configured with 5/sec, burst=2, per-user
+		rateLimitedCount := 0
+		successOrExpectedErrorCount := 0
+
+		// Make 5 rapid requests to trigger rate limiting
+		for i := 0; i < 5; i++ {
+			_, resp, _ := th.SystemAdminClient.CreateAccessControlSyncJob(context.Background(), jobData)
+			
+			if resp.StatusCode == 429 {
+				// 429 = rate limited (what we're testing for)
+				rateLimitedCount++
+			} else if resp.StatusCode == 201 || resp.StatusCode == 400 || resp.StatusCode == 501 {
+				// 201 = success, 400 = bad request, 501 = not implemented (enterprise feature)
+				// All are acceptable as they indicate the request reached the handler
+				successOrExpectedErrorCount++
+			}
+		}
+
+		// We should see at least some rate limiting when making rapid requests
+		// Due to timing, we expect most requests to be either rate limited or reach the handler
+		totalProcessed := rateLimitedCount + successOrExpectedErrorCount
+		require.Equal(t, 5, totalProcessed, "All requests should be processed")
+		require.Greater(t, rateLimitedCount, 0, "Expected at least one request to be rate limited due to rapid requests")
+	})
+}
