@@ -321,11 +321,11 @@ NextPart:
 			return nil
 		}
 
-		channel, err := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
-		if err != nil {
+		channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+		if appErr != nil {
 			c.Err = model.NewAppError("uploadFileMultipart",
 				"api.file.upload_file.get_channel.app_error",
-				nil, err.Error(), http.StatusBadRequest)
+				nil, appErr.Error(), http.StatusBadRequest)
 			return nil
 		}
 

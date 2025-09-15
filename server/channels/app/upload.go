@@ -145,7 +145,7 @@ func (a *App) CreateUploadSession(rctx request.CTX, us *model.UploadSession) (*m
 			return nil, model.NewAppError("CreateUploadSession", "app.upload.create.cannot_upload_to_deleted_channel.app_error",
 				map[string]any{"channelId": us.ChannelId}, "", http.StatusBadRequest)
 		}
-		restrictDM, err := a.CheckIfChannelIsRestrictedDM(c, channel)
+		restrictDM, err := a.CheckIfChannelIsRestrictedDM(rctx, channel)
 		if err != nil {
 			return nil, err
 		}

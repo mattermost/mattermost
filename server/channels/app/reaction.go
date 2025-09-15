@@ -49,7 +49,7 @@ func (a *App) SaveReactionForPost(rctx request.CTX, reaction *model.Reaction) (*
 		return nil, err
 	}
 
-	restrictDM, appErr := a.CheckIfChannelIsRestrictedDM(c, channel)
+	restrictDM, appErr := a.CheckIfChannelIsRestrictedDM(rctx, channel)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -152,7 +152,7 @@ func (a *App) DeleteReactionForPost(rctx request.CTX, reaction *model.Reaction) 
 		return err
 	}
 
-	restrictDM, appErr := a.CheckIfChannelIsRestrictedDM(c, channel)
+	restrictDM, appErr := a.CheckIfChannelIsRestrictedDM(rctx, channel)
 	if appErr != nil {
 		return err
 	}

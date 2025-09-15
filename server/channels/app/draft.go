@@ -51,7 +51,7 @@ func (a *App) UpsertDraft(rctx request.CTX, draft *model.Draft, connectionID str
 		return nil, err
 	}
 
-	restrictDM, err := a.CheckIfChannelIsRestrictedDM(c, channel)
+	restrictDM, err := a.CheckIfChannelIsRestrictedDM(rctx, channel)
 	if err != nil {
 		return nil, err
 	}
