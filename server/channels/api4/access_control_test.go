@@ -882,7 +882,7 @@ func TestCreateAccessControlSyncJob_RateLimit(t *testing.T) {
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
 	})
 
-	// Enable license for access control  
+	// Enable license for access control
 	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	require.True(t, ok, "SetLicense should return true")
 
