@@ -13,5 +13,6 @@ func (api *API) InitCustomProfileAttributesLocal() {
 		api.BaseRoutes.CustomProfileAttributesField.Handle("", api.APILocal(deleteCPAField)).Methods(http.MethodDelete)
 		api.BaseRoutes.User.Handle("/custom_profile_attributes", api.APISessionRequired(listCPAValues)).Methods(http.MethodGet)
 		api.BaseRoutes.CustomProfileAttributesValues.Handle("", api.APISessionRequired(patchCPAValues)).Methods(http.MethodPatch)
+		api.BaseRoutes.User.Handle("/custom_profile_attributes", api.APISessionRequired(patchCPAValuesForUser)).Methods(http.MethodPatch)
 	}
 }
