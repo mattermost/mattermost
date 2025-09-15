@@ -18,12 +18,6 @@ describe('Archived channels', () => {
     let otherUser;
 
     before(() => {
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
-
         // # Login as test user and visit created channel
         cy.apiInitSetup().then(({team, user}) => {
             testUser = user;

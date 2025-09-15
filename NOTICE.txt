@@ -1063,21 +1063,6 @@ For more information on this, and how to apply and follow the GNU AGPL, see
 
 ---
 
-## @mattermost/compass-components
-
-This product contains '@mattermost/compass-components' by Mattermost.
-
-components aligning to the compass design system
-
-* HOMEPAGE:
-  * https://github.com/mattermost/compass-components#readme
-
-* LICENSE: MIT
-
-
-
----
-
 ## @mattermost/compass-icons
 
 This product contains '@mattermost/compass-icons' by Mattermost.
@@ -2969,28 +2954,6 @@ AWS SDK for the Go programming language.
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-
-
----
-
-## axios
-
-This product contains 'axios' by Matt Zabriskie.
-
-Promise based HTTP client for the browser and node.js
-
-* HOMEPAGE:
-  * https://axios-http.com
-
-* LICENSE: MIT
-
-# Copyright (c) 2014-present Matt Zabriskie & Collaborators
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 ---
@@ -9986,77 +9949,6 @@ SOFTWARE.
 
 ---
 
-## react-contextmenu
-
-This product contains 'react-contextmenu' by Vivek Kumar Bansal.
-
-Context Menu implemented in React
-
-* HOMEPAGE:
-  * https://github.com/vkbansal/react-contextmenu
-
-* LICENSE: MIT
-
-The MIT License (MIT)
-
-Copyright (c) 2015 Vivek Kumar Bansal
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
----
-
-## react-custom-scrollbars
-
-This product contains 'react-custom-scrollbars' by Malte Wessel.
-
-React scrollbars component
-
-* HOMEPAGE:
-  * https://github.com/malte-wessel/react-custom-scrollbars
-
-* LICENSE: MIT
-
-The MIT License (MIT)
-
-Copyright (c) 2015 react-custom-scrollbars
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
----
-
 ## react-day-picker
 
 This product contains 'react-day-picker' by Giampaolo Bellavite.
@@ -10950,57 +10842,6 @@ THE SOFTWARE.
 
 ---
 
-## rudder-sdk-js
-
-This product contains 'rudder-sdk-js' by RudderStack.
-
-RudderStack Javascript SDK
-
-* HOMEPAGE:
-  * https://github.com/rudderlabs/rudder-sdk-js/blob/main/packages/analytics-v1.1/README.md
-
-* LICENSE: MIT
-
-MIT License
-
-Copyright (c) 2021 RudderStack
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
----
-
-## rudderlabs/analytics-go
-
-This product contains 'rudderlabs/analytics-go' by RudderStack.
-
-RudderStack is an open-source, warehouse-first Customer Data Pipeline and Segment-alternative. It collects and routes clickstream data and builds your customer data lake on your data warehouse.
-
-* HOMEPAGE:
-  * https://rudderstack.com
-
-* LICENSE: MIT License
-
-
-
----
-
 ## semver
 
 This product contains 'semver' by GitHub Inc..
@@ -11056,6 +10897,41 @@ Determine if an array or object is equivalent with another, *not* recursively
   * https://github.com/hughsk/shallow-equals
 
 * LICENSE: MIT
+
+---
+
+## simplebar-react
+
+This product contains 'simplebar-react' by Adrien Denat.
+
+React component for SimpleBar
+
+* HOMEPAGE:
+  * https://grsmto.github.io/simplebar/
+
+* LICENSE: MIT
+
+The MIT License (MIT)
+
+Copyright (c) 2015 Jonathan Nicol
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 ---
 

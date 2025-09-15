@@ -922,10 +922,6 @@
     "translation": "ophalen"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Nieuw formaat voor de client configuratie is nog niet ondersteund. Gebruik format=old in de query."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Sorry, we kunnen de pagina niet vinden."
   },
@@ -2073,14 +2069,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Het is verboden voor Bots om in te loggen."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Er is geprobeerd aan te melden met de experimentele functie ClientSideCert zonder een geldig certificaat te verstrekken."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Er is geprobeerd om de experimentele functie te gebruiken ClientSideCert zonder een geldig Enterprise-licentie."
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -8150,14 +8138,6 @@
     "translation": "Het is niet gelukt om de aangepaste status bij te werken. Voeg een emoji of een aangepaste tekststatus of beide toe."
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Kan geen berichten ophalen voor een gearchiveerd kanaal"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Kan geen berichten ophalen voor een gearchiveerd kanaal"
-  },
-  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Het aantal ontvangen Post ID's heeft de maximumgrootte van {{.MaxLength}} overschreden"
   },
@@ -10204,10 +10184,6 @@
     "translation": "Het bijwerken van de sorteervolgorde van de kanaalbladwijzers is mislukt."
   },
   {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Kan geen bladwijzers ophalen voor een gearchiveerd kanaal"
-  },
-  {
     "id": "app.file_info.get_count.app_error",
     "translation": "Het is niet gelukt om alle bestanden te tellen."
   },
@@ -10754,5 +10730,69 @@
   {
     "id": "api.content_flagging.error.license",
     "translation": "Je licentie ondersteunt het markeren van inhoud niet."
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "Je hebt geen rechten om dit toegangscontrolebeleid te beheren."
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "Kanaal is groepsgebonden en kan geen toegangscontrolebeleid hebben."
+  },
+  {
+    "id": "app.pap.access_control.channel_not_private",
+    "translation": "Beleid voor toegangscontrole kan alleen worden toegepast op privékanalen."
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "Op gedeelde kanalen kan geen toegangscontrolebeleid worden toegepast."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "Je hebt geen toestemming om de toegangscontrole voor dit kanaal te beheren."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "Je hebt geen rechten om dit toegangscontrolebeleid te beheren."
+  },
+  {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "Het bovenliggend beleid is al geïmporteerd."
+  },
+  {
+    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
+    "translation": "Het verbergen van gearchiveerde kanalen wordt niet langer ondersteund. Maak deze kanalen privé en verwijder in plaats daarvan leden."
+  },
+  {
+    "id": "api.not_implemented",
+    "translation": "Deze functie is niet geïmplementeerd."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
+    "translation": "Kan waarde voor een door de beheerder beheerd aangepast profielattribuutveld niet bijwerken"
+  },
+  {
+    "id": "app.lookup_interactive_dialog.decode_json_error",
+    "translation": "Er is een fout opgetreden bij het decoderen van de JSON respons van het interactief dialoogvenster voor opzoeken."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.json_error",
+    "translation": "Er is een fout opgetreden bij het verwerken van het JSON antwoord van het interactief opzoeken van een dialoogvenster."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.read_body_error",
+    "translation": "Er is een fout opgetreden bij het lezen van de respons bij het opzoeken van het interactief dialoogvenster ."
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "Aanmaken van Elasticsearch-bulkprocessor is mislukt"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+    "translation": "Aanmaken van Elasticsearch-bulkprocessor is mislukt"
+  },
+  {
+    "id": "model.config.is_valid.client_side_cert_enable.app_error",
+    "translation": "Certificaat-gebaseerde authenticatie is verwijderd. Schakel ClientSideCertEnable uit om verder te gaan."
   }
 ]

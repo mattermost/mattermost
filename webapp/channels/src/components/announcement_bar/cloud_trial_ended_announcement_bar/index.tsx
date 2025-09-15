@@ -106,7 +106,7 @@ const CloudTrialEndAnnouncementBar: React.FC = () => {
         <AnnouncementBar
             type={AnnouncementBarTypes.CRITICAL}
             showCloseButton={true}
-            onButtonClick={() => openPricingModal({trackingLocation: 'cloud_trial_ended_announcement_bar'})}
+            onButtonClick={() => openPricingModal()}
             modalButtonText={messages.moreDetails}
             message={<FormattedMessage {...messages.downgraded}/>}
             showLinkAsButton={true}

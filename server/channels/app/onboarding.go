@@ -14,7 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) markAdminOnboardingComplete(c request.CTX) *model.AppError {
+func (a *App) markAdminOnboardingComplete(rctx request.CTX) *model.AppError {
 	firstAdminCompleteSetupObj := model.System{
 		Name:  model.SystemFirstAdminSetupComplete,
 		Value: "true",
@@ -27,11 +27,11 @@ func (a *App) markAdminOnboardingComplete(c request.CTX) *model.AppError {
 	return nil
 }
 
-func (a *App) CompleteOnboarding(c request.CTX, request *model.CompleteOnboardingRequest) *model.AppError {
+func (a *App) CompleteOnboarding(rctx request.CTX, request *model.CompleteOnboardingRequest) *model.AppError {
 	isCloud := a.Srv().License() != nil && *a.Srv().License().Features.Cloud
 
 	if !isCloud && request.Organization == "" {
-		c.Logger().Error("No organization name provided for self hosted onboarding")
+		rctx.Logger().Error("No organization name provided for self hosted onboarding")
 		return model.NewAppError("CompleteOnboarding", "api.error_no_organization_name_provided_for_self_hosted_onboarding", nil, "", http.StatusBadRequest)
 	}
 
@@ -41,16 +41,16 @@ func (a *App) CompleteOnboarding(c request.CTX, request *model.CompleteOnboardin
 			Value: request.Organization,
 		})
 		if err != nil {
-			c.Logger().Error("failed to save organization name", mlog.Err(err))
+			rctx.Logger().Error("failed to save organization name", mlog.Err(err))
 		}
 	}
 
 	pluginsEnvironment := a.Channels().GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
-		return a.markAdminOnboardingComplete(c)
+		return a.markAdminOnboardingComplete(rctx)
 	}
 
-	pluginContext := pluginContext(c)
+	pluginContext := pluginContext(rctx)
 
 	for _, pluginID := range request.InstallPlugins {
 		go func(id string) {
@@ -59,32 +59,32 @@ func (a *App) CompleteOnboarding(c request.CTX, request *model.CompleteOnboardin
 			}
 			_, appErr := a.Channels().InstallMarketplacePlugin(installRequest)
 			if appErr != nil {
-				c.Logger().Error("Failed to install plugin for onboarding", mlog.String("id", id), mlog.Err(appErr))
+				rctx.Logger().Error("Failed to install plugin for onboarding", mlog.String("id", id), mlog.Err(appErr))
 				return
 			}
 
 			appErr = a.EnablePlugin(id)
 			if appErr != nil {
-				c.Logger().Error("Failed to enable plugin for onboarding", mlog.String("id", id), mlog.Err(appErr))
+				rctx.Logger().Error("Failed to enable plugin for onboarding", mlog.String("id", id), mlog.Err(appErr))
 				return
 			}
 
 			hooks, err := a.ch.HooksForPlugin(id)
 			if err != nil {
-				c.Logger().Warn("Getting hooks for plugin failed", mlog.String("plugin_id", id), mlog.Err(err))
+				rctx.Logger().Warn("Getting hooks for plugin failed", mlog.String("plugin_id", id), mlog.Err(err))
 				return
 			}
 
 			event := model.OnInstallEvent{
-				UserId: c.Session().UserId,
+				UserId: rctx.Session().UserId,
 			}
 			if err = hooks.OnInstall(pluginContext, event); err != nil {
-				c.Logger().Error("Plugin OnInstall hook failed", mlog.String("plugin_id", id), mlog.Err(err))
+				rctx.Logger().Error("Plugin OnInstall hook failed", mlog.String("plugin_id", id), mlog.Err(err))
 			}
 		}(pluginID)
 	}
 
-	return a.markAdminOnboardingComplete(c)
+	return a.markAdminOnboardingComplete(rctx)
 }
 
 func (a *App) GetOnboarding() (*model.System, *model.AppError) {

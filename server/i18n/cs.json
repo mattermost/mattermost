@@ -2524,14 +2524,6 @@
     "translation": "Účty typu host jsou vypnuté"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Pokus o použití experimentální funkce ClientSideCertEnable bez platné licence Enterprise."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Pokusili jste se přihlásit pomocí experimentální funkce ClientSideCert bez poskytnutí platného certifikátu."
-  },
-  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Přihlášení robota je zakázáno."
   },
@@ -3858,10 +3850,6 @@
   {
     "id": "api.config.update_config.restricted_merge.app_error",
     "translation": "Nepodařilo se sloučit danou konfiguraci."
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Nový formát klientské konfigurace ještě není podporován. Doplňte do dotazu: format=old."
   },
   {
     "id": "api.command_shrug.name",
@@ -7660,10 +7648,6 @@
     "translation": "Profilový obrázek musí být nastaven prostřednictvím poskytovatele přihlášení uživatele."
   },
   {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Nelze načíst příspěvky pro archivovaný kanál"
-  },
-  {
     "id": "app.acknowledgement.getforpost.get.app_error",
     "translation": "Nelze získat potvrzení pro příspěvek."
   },
@@ -7690,10 +7674,6 @@
   {
     "id": "app.channel.count_urgent_posts_since.app_error",
     "translation": "Nelze spočítat naléhavé příspěvky od daného data."
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Nelze načíst uživatele pro archivovaný kanál"
   },
   {
     "id": "api4.plugin.reattachPlugin.invalid_request",
@@ -10194,10 +10174,6 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
     "translation": "Nepodařilo se aktualizovat pořadí záložek kanálu."
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Nelze načíst záložky pro archivovaný kanál"
   },
   {
     "id": "app.file_info.get_count.app_error",

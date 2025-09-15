@@ -924,10 +924,6 @@
     "translation": "npi"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Nuevo formato para la configuración del cliente no es compatible todavía. Por favor utiliza format=old en la cadena de consulta."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Lo sentimos, pero no pudimos encontrar la página."
   },
@@ -2078,14 +2074,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "El inicio de sesión con un Bot está prohibido."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Se ha intentado ingresar usando la característica experimental \"ClientSideCert\" sin proveer de un certificado válido."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Se ha intentado utilizar la característica experimental \"ClientSideCert\" sin una licencia empresarial válida."
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -8142,14 +8130,6 @@
   {
     "id": "app.role.get_all.app_error",
     "translation": "No se pudo obtener todos los roles."
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "No se pueden recuperar los usuarios de un canal archivado"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "No se pueden recuperar los mensajes de un canal archivado"
   },
   {
     "id": "api.templates.invite_body.title.reminder",

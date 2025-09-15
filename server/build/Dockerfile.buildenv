@@ -1,5 +1,17 @@
 FROM golang:1.24.5-bullseye@sha256:62ba6b19de03e891f7fa1001326bd48411f2626ff35e7ba5b9d890711ce581d9
+ARG NODE_VERSION=20.11.1
 
-RUN apt-get update && apt-get install -y make git apt-transport-https ca-certificates curl software-properties-common build-essential zip xmlsec1 jq pgloader
+RUN apt-get update && apt-get install -y make git apt-transport-https ca-certificates curl software-properties-common build-essential zip xmlsec1 jq pgloader gnupg
+
+# Download and install node via nvm
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+RUN bash -c "source /root/.nvm/nvm.sh && nvm install $NODE_VERSION && nvm use $NODE_VERSION && nvm alias default $NODE_VERSION"
+
+# Make node and npm globally available
+ENV PATH="/root/.nvm/versions/node/v$NODE_VERSION/bin:$PATH"
 
 RUN git config --global --add safe.directory /mattermost
+
+# Remove any existing entrypoint, and use bash as the default command
+ENTRYPOINT []
+CMD ["bash"]

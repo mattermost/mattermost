@@ -920,10 +920,6 @@
     "translation": "shrug"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "クライアントの設定で新しい形式がまだサポートされていません。クエリー文字列に format=old を指定してください。"
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "申し訳ありません。ページが見付かりません。"
   },
@@ -2068,14 +2064,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Bot login is forbidden。"
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "有効な証明書が無い状態で、実験的な機能である ClientSideCert でのサインインを試みました。"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "有効なエンタープライズライセンスが無い状態で、実験的な機能である ClientSideCertEnable の使用を試みています。"
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -8138,14 +8126,6 @@
     "translation": "全てのロールを取得できませんでした。"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "アーカイブされたチャンネルのユーザーを取得できません"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "アーカイブされたチャンネルの投稿を取得できません"
-  },
-  {
     "id": "api.templates.invite_body.title.reminder",
     "translation": "リマインダー"
   },
@@ -10182,10 +10162,6 @@
     "translation": "チャンネルブックマークのソート順を更新できませんでした。"
   },
   {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "アーカイブされたチャンネルのブックマークを取得できませんでした"
-  },
-  {
     "id": "app.file_info.get_count.app_error",
     "translation": "全ファイル数を取得できませんでした。"
   },
@@ -10724,5 +10700,77 @@
   {
     "id": "api.command_share.service_inactive",
     "translation": "チャンネル共有サービスが有効ですが、アクティブではありません。"
+  },
+  {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "コンテントフラグ機能が無効です。"
+  },
+  {
+    "id": "api.content_flagging.error.license",
+    "translation": "あなたのライセンスはコンテントフラグをサポートしていません。"
+  },
+  {
+    "id": "api.not_implemented",
+    "translation": "この機能は実装されていません。"
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "あなたにはこのアクセス制御ポリシーを管理する権限がありません。"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
+    "translation": "管理者が管理するカスタムプロフィール属性フィールドの値は更新できません"
+  },
+  {
+    "id": "app.lookup_interactive_dialog.decode_json_error",
+    "translation": "インタラクティブダイアログのlookupからJSONレスポンスをデコードする際にエラーが発生しました。"
+  },
+  {
+    "id": "app.lookup_interactive_dialog.json_error",
+    "translation": "インタラクティブダイアログのlookupからJSONレスポンスを処理する際にエラーが発生しました。"
+  },
+  {
+    "id": "app.lookup_interactive_dialog.read_body_error",
+    "translation": "インタラクティブダイアログのlookupからレスポンスボディを読み込む際にエラーが発生しました。"
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "チャンネルはグループによって制限されており、アクセス制御ポリシーを適用できません。"
+  },
+  {
+    "id": "app.pap.access_control.channel_not_private",
+    "translation": "アクセス制御ポリシーは非公開チャンネルに対してのみ適用できます。"
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "共有チャンネルにはアクセス制御ポリシーを適用できません。"
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "このチャンネルのアクセス制御を管理する権限がありません。"
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "このアクセス制御ポリシーを管理する権限がありません。"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "Elasticsearch bulk processorを作成できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+    "translation": "Elasticsearch sync bulk processorを作成できませんでした"
+  },
+  {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "親はすでにインポートされています。"
+  },
+  {
+    "id": "model.config.is_valid.client_side_cert_enable.app_error",
+    "translation": "証明書ベースの認証が削除されました。継続するにはClientSideCertEnableを無効にしてください。"
+  },
+  {
+    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
+    "translation": "アーカイブ済みチャンネルを非表示にする機能はサポートされていません。これらのチャンネルを非公開にするか、メンバーを削除してください。"
   }
 ]
