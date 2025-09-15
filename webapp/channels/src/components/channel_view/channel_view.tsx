@@ -100,6 +100,11 @@ export default class ChannelView extends React.PureComponent<Props, State> {
         if (prevProps.channelId !== this.props.channelId && this.props.enableWebSocketEventScope) {
             WebSocketClient.updateActiveChannel(this.props.channelId);
         }
+
+        // If we're restricting direct messages and the value is not yet set, fetch it
+        if (this.props.canRestrictDirectMessage && this.props.restrictDirectMessage === undefined) {
+            this.props.fetchIsRestrictedDM(this.props.channelId);
+        }
     }
 
     render() {

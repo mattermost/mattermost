@@ -932,13 +932,22 @@ func (a *App) RestoreChannel(rctx request.CTX, channel *model.Channel, userID st
 }
 
 func (a *App) PatchChannel(rctx request.CTX, channel *model.Channel, patch *model.ChannelPatch, userID string) (*model.Channel, *model.AppError) {
+	restrictDM, err := a.CheckIfChannelIsRestrictedDM(rctx, channel)
+	if err != nil {
+		return nil, err
+	}
+	if restrictDM {
+		err := model.NewAppError("PatchChannel", "api.channel.patch_update_channel.restricted_dm.app_error", nil, "", http.StatusBadRequest)
+		return nil, err
+	}
+
 	oldChannelDisplayName := channel.DisplayName
 	oldChannelHeader := channel.Header
 	oldChannelPurpose := channel.Purpose
 
 	channel.Patch(patch)
 	a.handleChannelCategoryName(channel)
-	channel, err := a.UpdateChannel(rctx, channel)
+	channel, err = a.UpdateChannel(rctx, channel)
 	if err != nil {
 		return nil, err
 	}
