@@ -1481,6 +1481,12 @@ func getChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Sanitize members for current user
+	currentUserId := c.AppContext.Session().UserId
+	for i := range members {
+		members[i].SanitizeForCurrentUser(currentUserId)
+	}
+
 	if err := json.NewEncoder(w).Encode(members); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -1534,6 +1540,12 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	// Sanitize members for current user
+	currentUserId := c.AppContext.Session().UserId
+	for i := range members {
+		members[i].SanitizeForCurrentUser(currentUserId)
+	}
+
 	if err := json.NewEncoder(w).Encode(members); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -1556,6 +1568,9 @@ func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	// Sanitize member for current user
+	member.SanitizeForCurrentUser(c.AppContext.Session().UserId)
 
 	if err := json.NewEncoder(w).Encode(member); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -1582,6 +1597,12 @@ func getChannelMembersForTeamForUser(c *Context, w http.ResponseWriter, r *http.
 	if err != nil {
 		c.Err = err
 		return
+	}
+
+	// Sanitize members for current user
+	currentUserId := c.AppContext.Session().UserId
+	for i := range members {
+		members[i].SanitizeForCurrentUser(currentUserId)
 	}
 
 	if err := json.NewEncoder(w).Encode(members); err != nil {
@@ -1968,6 +1989,12 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	if lastError != nil && len(newChannelMembers) == 0 {
 		c.Err = lastError
 		return
+	}
+
+	// Sanitize the returned members
+	currentUserId := c.AppContext.Session().UserId
+	for i := range newChannelMembers {
+		newChannelMembers[i].SanitizeForCurrentUser(currentUserId)
 	}
 
 	w.WriteHeader(http.StatusCreated)
