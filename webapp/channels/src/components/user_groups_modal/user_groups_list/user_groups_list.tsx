@@ -7,7 +7,7 @@ import type {ListChildComponentProps} from 'react-window';
 import {VariableSizeList} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 
-import {AccountMultipleOutlineIcon, ArchiveOutlineIcon, ArrowUpIcon} from '@mattermost/compass-icons/components';
+import {AccountMultipleOutlineIcon, ArchiveOutlineIcon, RestoreIcon} from '@mattermost/compass-icons/components';
 import type {Group, GroupPermissions} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -211,7 +211,7 @@ const UserGroupsList = (props: Props) => {
                                             defaultMessage='Restore Group'
                                         />
                                     }
-                                    leadingElement={<ArrowUpIcon size={18}/>}
+                                    leadingElement={<RestoreIcon size={18}/>}
                                 />
                             )}
                         </Menu.Container>

@@ -78,11 +78,14 @@
                     background-clip: padding-box;
                 }
 
-                h2.group-member-count {
+                .group-member-count {
+                    
                     padding: 0 32px;
-                    margin: 16px 0;
-                    font-size: 16px;
-                    line-height: 24px;
+                    margin: 12px 0 8px 0;
+                    font-size: inherit;
+                    font-weight: 600;
+                    line-height: inherit;
+                    font-family: inherit;
                 }
 
                 .group-member-row {
