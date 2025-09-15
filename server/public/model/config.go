@@ -1456,7 +1456,6 @@ type LogSettings struct {
 	FileLocation           *string         `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	EnableWebhookDebugging *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	EnableDiagnostics      *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
-	VerboseDiagnostics     *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableSentry           *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	AdvancedLoggingJSON    json.RawMessage `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	MaxFieldSize           *int            `access:"environment_logging,write_restrictable,cloud_restrictable"`
@@ -1514,10 +1513,6 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.EnableDiagnostics == nil {
 		s.EnableDiagnostics = NewPointer(true)
-	}
-
-	if s.VerboseDiagnostics == nil {
-		s.VerboseDiagnostics = NewPointer(false)
 	}
 
 	if s.EnableSentry == nil {
@@ -3627,7 +3622,7 @@ func (s *ImageProxySettings) SetDefaults() {
 // ImportSettings defines configuration settings for file imports.
 type ImportSettings struct {
 	// The directory where to store the imported files.
-	Directory *string
+	Directory *string `access:"cloud_restrictable"`
 	// The number of days to retain the imported files before deleting them.
 	RetentionDays *int
 }
@@ -3658,7 +3653,7 @@ func (s *ImportSettings) SetDefaults() {
 // ExportSettings defines configuration settings for file exports.
 type ExportSettings struct {
 	// The directory where to store the exported files.
-	Directory *string // telemetry: none
+	Directory *string `access:"cloud_restrictable"` // telemetry: none
 	// The number of days to retain the exported files before deleting them.
 	RetentionDays *int
 }

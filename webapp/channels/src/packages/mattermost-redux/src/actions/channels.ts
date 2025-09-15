@@ -551,8 +551,6 @@ export function leaveChannel(channelId: string): ActionFuncAsync {
         const channel = channels[channelId];
         const member = myMembers[channelId];
 
-        Client4.trackEvent('action', 'action_channels_leave', {channel_id: channelId});
-
         dispatch({
             type: ChannelTypes.LEAVE_CHANNEL,
             data: {
@@ -614,8 +612,6 @@ export function joinChannel(userId: string, teamId: string, channelId: string, c
             dispatch(logError(error));
             return {error};
         }
-
-        Client4.trackEvent('action', 'action_channels_join', {channel_id: channelId});
 
         dispatch(batchActions([
             {
@@ -1014,8 +1010,6 @@ export function addChannelMember(channelId: string, userId: string, postRootId =
             return {error};
         }
 
-        Client4.trackEvent('action', 'action_channels_add_member', {channel_id: channelId});
-
         const membersInChannel = getState().entities.channels.membersInChannel[channelId];
         if (!(membersInChannel && userId in membersInChannel)) {
             dispatch(batchActions([
@@ -1054,8 +1048,6 @@ export function addChannelMembers(channelId: string, userIds: string[], postRoot
             return {error};
         }
 
-        Client4.trackEvent('action', 'action_channels_add_member', {channel_id: channelId});
-
         const ids = channelMembers.map((member) => ({id: member.user_id}));
         dispatch(batchActions([
             {
@@ -1086,8 +1078,6 @@ export function removeChannelMember(channelId: string, userId: string): ActionFu
             dispatch(logError(error));
             return {error};
         }
-
-        Client4.trackEvent('action', 'action_channels_remove_member', {channel_id: channelId});
 
         dispatch(batchActions([
             {
@@ -1310,8 +1300,6 @@ export function favoriteChannel(channelId: string): ActionFuncAsync {
         const channel = getChannelSelector(state, channelId);
         const category = getCategoryInTeamByType(state, channel?.team_id || getCurrentTeamId(state), CategoryTypes.FAVORITES);
 
-        Client4.trackEvent('action', 'action_channels_favorite');
-
         if (!category) {
             return {data: false};
         }
@@ -1334,8 +1322,6 @@ export function unfavoriteChannel(channelId: string): ActionFuncAsync {
             channel.team_id || getCurrentTeamId(state),
             channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL ? CategoryTypes.DIRECT_MESSAGES : CategoryTypes.CHANNELS,
         );
-
-        Client4.trackEvent('action', 'action_channels_unfavorite');
 
         if (!category) {
             return {data: false};

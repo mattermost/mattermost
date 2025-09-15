@@ -78,6 +78,11 @@ else
 	BUILD_TYPE_NAME = team
 endif
 
+FIPS_ENABLED ?= false
+ifeq ($(FIPS_ENABLED),true)
+	BUILD_TYPE_NAME := $(BUILD_TYPE_NAME)-fips
+endif
+
 # Clean up the old means of importing enterprise source, if it exists
 ifneq ($(wildcard channels/imports/imports.go),)
 	IGNORE := $(shell rm -f channels/imports/imports.go)
@@ -106,6 +111,11 @@ GOFLAGS ?= $(GOFLAGS:)
 # for processes spawned from the Makefile
 export GOBIN ?= $(PWD)/bin
 GO ?= go
+
+ifeq ($(FIPS_ENABLED),true)
+	BUILD_TAGS += requirefips
+endif
+
 DELVE ?= dlv
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildNumber=$(BUILD_NUMBER)"
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildDate=$(BUILD_DATE)"
@@ -146,17 +156,27 @@ PLUGIN_PACKAGES += mattermost-plugin-calls-v1.10.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.10.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.3.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.4.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.4.1
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
-PLUGIN_PACKAGES += mattermost-plugin-agents-v1.2.4
-PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.5
+PLUGIN_PACKAGES += mattermost-plugin-agents-v1.3.1
+PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.6
 PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.2.1
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.3.4
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.2.0
 PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.2.1
+
+# Overwrite the definition of PLUGIN_PACKAGES with the list of FIPS-ready plugins
+# Note that the '+' in the file name is encoded as %2B for the URL we use to
+# download the package from to work. This will no longer be needed when we unify
+# the way we pre-package FIPS and non-FIPS plugins.
+ifeq ($(FIPS_ENABLED),true)
+	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.4.1%2Bd973eca-fips
+	PLUGIN_PACKAGES += mattermost-plugin-agents-v1.3.1%2B6e1b6eb-fips
+	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.6%2B2b0e66a-fips
+endif
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
@@ -209,9 +229,6 @@ ifneq ($(DOCKER_SERVICES_OVERRIDE),true)
     ifeq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
       TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) openldap
     endif
-    ifeq (,$(findstring elasticsearch,$(ENABLED_DOCKER_SERVICES)))
-      TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) elasticsearch
-	endif
   endif
   ENABLED_DOCKER_SERVICES:=$(ENABLED_DOCKER_SERVICES) $(TEMP_DOCKER_SERVICES)
 endif
@@ -327,9 +344,6 @@ cache-mocks:
 	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
 	$(GOBIN)/mockery --config platform/services/cache/.mockery.yaml
 
-telemetry-mocks: ## Creates mock files.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
-	$(GOBIN)/mockery --config platform/services/telemetry/.mockery.yaml
 
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./channels/store
@@ -382,7 +396,7 @@ mmctl-mocks: ## Creates mocks for mmctl
 pluginapi: ## Generates api and hooks glue code for plugins
 	cd ./public && $(GO) generate $(GOFLAGS) ./plugin
 
-mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks mocks-public cache-mocks
+mocks: store-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks mocks-public cache-mocks
 
 layers: store-layers pluginapi
 
@@ -436,9 +450,9 @@ test-server-race: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server-race: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server-race: test-server-pre
 ifeq ($(IS_CI),true)
-	GOMAXPROCS=4 $(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
+	GOMAXPROCS=4 $(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=2h
 else
-	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
+	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=2h
 endif
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
@@ -760,13 +774,11 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 vet: ## Run mattermost go vet specific checks
-	## Note that it is pinned to a specific commit, rather than a branch. This is to prevent
-	## having to backport the fix to multiple release branches for any new change.
-	$(GO) install github.com/mattermost/mattermost-govet/v2@8e4d46e3fad88497dbfe073788a87e75bbae717c
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -license -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go,utils_serial_gen.go ./...
- ifeq ($(BUILD_ENTERPRISE_READY),true)
+	$(GO) install github.com/mattermost/mattermost-govet/v2@7d8db289e508999dfcac47b97c9490a0fec12d66
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -requestCtxNaming -license -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go,utils_serial_gen.go ./...
+ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -requestCtxNaming -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
   endif
 endif
 
@@ -774,7 +786,7 @@ vet-api: export GO := $(GO)
 vet-api: export GOBIN := $(GOBIN)
 vet-api: export ROOT := $(ROOT)
 vet-api: ## Run mattermost go vet to verify api4 documentation, currently not passing
-	$(GO) install github.com/mattermost/mattermost-govet/v2@8e4d46e3fad88497dbfe073788a87e75bbae717c
+	$(GO) install github.com/mattermost/mattermost-govet/v2@7d8db289e508999dfcac47b97c9490a0fec12d66
 	make -C ../api build
 	./scripts/vet-api-check.sh
 

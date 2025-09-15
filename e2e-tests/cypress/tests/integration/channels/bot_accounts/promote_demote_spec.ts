@@ -51,7 +51,7 @@ describe('Managing bots in Teams and Channels', () => {
             cy.get(`#teamMembersDropdown_${bot.username}`).as('memberDropdown').should('contain.text', 'Member').click();
 
             // # Promote bot to team admin
-            cy.findByTestId('userListItemActions').find('button').contains('Make Team Admin').click();
+            cy.get('li').contains('Make Team Admin').click();
 
             // * Verify bot was promoted
             cy.get('@memberDropdown').should('contain.text', 'Team Admin');
