@@ -896,7 +896,7 @@ func TestCreateAccessControlSyncJob_RateLimit(t *testing.T) {
 		successOrExpectedErrorCount := 0
 
 		// Make 5 rapid requests to trigger rate limiting
-		for i := 0; i < 5; i++ {
+		for range 5 {
 			_, resp, _ := th.SystemAdminClient.CreateAccessControlSyncJob(context.Background(), jobData)
 
 			if resp.StatusCode == 429 {
