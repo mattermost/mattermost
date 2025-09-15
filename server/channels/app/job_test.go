@@ -153,7 +153,7 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 			Id:   model.NewId(),
 			Type: model.JobTypeAccessControlSync,
 			Data: model.StringMap{
-				"parent_id": privateChannel.Id, // Channel admin jobs have parent_id = channelID
+				"policy_id": privateChannel.Id, // Channel admin jobs have policy_id = channelID
 			},
 		}
 
@@ -189,7 +189,7 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 			Id:   model.NewId(),
 			Type: model.JobTypeAccessControlSync,
 			Data: model.StringMap{
-				"parent_id": otherChannel.Id,
+				"policy_id": otherChannel.Id,
 			},
 		}
 
@@ -211,7 +211,7 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 			Id:   model.NewId(),
 			Type: model.JobTypeAccessControlSync,
 			Data: model.StringMap{
-				"parent_id": privateChannel.Id,
+				"policy_id": privateChannel.Id,
 			},
 		}
 

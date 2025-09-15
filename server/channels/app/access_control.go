@@ -445,3 +445,60 @@ func (a *App) ValidateChannelAccessControlPolicyCreation(rctx request.CTX, userI
 	// For channel-type policies, validate channel-specific permission (policy ID equals channel ID)
 	return a.ValidateChannelAccessControlPermission(rctx, userID, policy.ID)
 }
+
+// TestExpressionWithChannelContext tests expressions for channel admins with attribute validation
+// Channel admins can only see users that match expressions they themselves would match
+func (a *App) TestExpressionWithChannelContext(rctx request.CTX, expression string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError) {
+	// Get the current user (channel admin)
+	session := rctx.Session()
+	if session == nil {
+		return nil, 0, model.NewAppError("TestExpressionWithChannelContext", "api.context.session_expired.app_error", nil, "", http.StatusUnauthorized)
+	}
+
+	currentUserID := session.UserId
+
+	// SECURITY: First check if the channel admin themselves matches this expression
+	// If they don't match, they shouldn't be able to see users who do
+	adminMatches, appErr := a.ValidateExpressionAgainstRequester(rctx, expression, currentUserID)
+	if appErr != nil {
+		return nil, 0, appErr
+	}
+
+	if !adminMatches {
+		// Channel admin doesn't match the expression, so return empty results
+		return []*model.User{}, 0, nil
+	}
+
+	// If the channel admin matches the expression, run it against all users
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil, 0, model.NewAppError("TestExpressionWithChannelContext", "app.pap.check_expression.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	return a.TestExpression(rctx, expression, opts)
+}
+
+// ValidateExpressionAgainstRequester validates an expression directly against a specific user
+func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression string, requesterID string) (bool, *model.AppError) {
+	// Self-exclusion validation should work with any attribute
+	// Channel admins should be able to validate any expression they're testing
+
+	// Use access control service to evaluate expression
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return false, model.NewAppError("ValidateExpressionAgainstRequester", "app.pap.check_expression.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	// Search only for the specific requester user ID
+	users, _, appErr := acs.QueryUsersForExpression(rctx, expression, model.SubjectSearchOptions{
+		SubjectID: requesterID, // Only check this specific user
+		Limit:     1,           // Maximum 1 result expected
+	})
+	if appErr != nil {
+		return false, appErr
+	}
+	if len(users) == 1 && users[0].Id == requesterID {
+		return true, nil
+	}
+	return false, nil
+}
