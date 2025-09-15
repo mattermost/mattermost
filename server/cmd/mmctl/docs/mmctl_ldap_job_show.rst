@@ -20,7 +20,7 @@ Examples
 
 ::
 
-   import ldap show f3d68qkkm7n8xgsfxwuo498rah
+  mmctl ldap show f3d68qkkm7n8xgsfxwuo498rah
 
 Options
 ~~~~~~~

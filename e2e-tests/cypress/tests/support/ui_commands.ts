@@ -4,9 +4,8 @@
 import localforage from 'localforage';
 
 import * as TIMEOUTS from '../fixtures/timeouts';
-import {isMac} from '../utils';
-
 import {ChainableT} from '../types';
+import {isMac} from '../utils';
 
 // ***********************************************************
 // Read more: https://on.cypress.io/custom-commands
@@ -237,7 +236,7 @@ function uiGotoDirectMessageWithUser(user: User) {
     cy.findByRole('dialog', {name: 'Direct Messages'}).should('be.visible').wait(TIMEOUTS.ONE_SEC);
 
     // # Type username
-    cy.findByRole('textbox', {name: 'Search for people'}).click({force: true}).
+    cy.findByRole('combobox', {name: 'Search for people'}).click({force: true}).
         type(user.username, {force: true}).wait(TIMEOUTS.ONE_SEC);
 
     // * Expect user count in the list to be 1
@@ -393,8 +392,8 @@ function getCurrentTeamURL(siteURL: string): ChainableT<string> {
 Cypress.Commands.add('getCurrentTeamURL', getCurrentTeamURL);
 
 function leaveTeam() {
-    // # Open team menu and click "Leave Team"
-    cy.uiOpenTeamMenu('Leave Team');
+    // # Open team menu and click "Leave team"
+    cy.uiOpenTeamMenu('Leave team');
 
     // * Check that the "leave team modal" opened up
     cy.get('#leaveTeamModal').should('be.visible');
@@ -462,13 +461,48 @@ function getCurrentChannelId(): ChainableT<string> {
 Cypress.Commands.add('getCurrentChannelId', getCurrentChannelId);
 
 function updateChannelHeader(text: string) {
-    cy.get('#channelHeaderDropdownIcon').
+    // # Open channel header dropdown
+    cy.get('#channelHeaderDropdownButton').click();
+
+    // # Click on Channel Settings
+    cy.findByText('Channel Settings').should('be.visible').click();
+
+    // * Verify Channel Settings modal opens
+    cy.get('.ChannelSettingsModal').should('be.visible');
+
+    // # Edit channel header in the modal
+    cy.get('#channel_settings_header_textbox').
+        should('be.visible').
+        clear().
+        type(text);
+
+    // # Save changes
+    cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
+
+    // * Verify changes are saved
+    cy.get('.SaveChangesPanel').should('contain', 'Settings saved');
+
+    // # Close the modal
+    cy.get('.GenericModal .modal-header button[aria-label="Close"]').click();
+
+    // * Verify modal is closed
+    cy.get('.ChannelSettingsModal').should('not.exist');
+
+    // Wait for UI to stabilize
+    cy.wait(TIMEOUTS.HALF_SEC);
+}
+
+Cypress.Commands.add('updateChannelHeader', updateChannelHeader);
+
+function updateDMGMChannelHeader(text: string) {
+    cy.get('#channelHeaderTitle').
         should('be.visible').
         click();
-    cy.get('.Menu__content').
-        should('be.visible').
-        find('#channelEditHeader').
-        click();
+    cy.get('#channelHeaderDropdownMenu').
+        should('be.visible');
+
+    // * Channel Settings menu option should be visible
+    cy.findByText('Edit Header').click();
     cy.get('#edit_textbox').
         clear().
         type(text).
@@ -476,7 +510,7 @@ function updateChannelHeader(text: string) {
         wait(TIMEOUTS.HALF_SEC);
 }
 
-Cypress.Commands.add('updateChannelHeader', updateChannelHeader);
+Cypress.Commands.add('updateDMGMChannelHeader', updateDMGMChannelHeader);
 
 function checkRunLDAPSync(): ChainableT<any> {
     return cy.apiGetLDAPSync().then((response) => {
@@ -786,6 +820,12 @@ declare global {
              * @param {String} text - Text to set the header to
              */
             updateChannelHeader(text: string): ChainableT<void>;
+
+            /**
+             * Update DM or GM channel header
+             * @param {String} text - Text to set the header to
+             */
+            updateDMGMChannelHeader(text: string): ChainableT<void>;
 
             /**
              * Navigate to system console-PluginManagement from profile settings

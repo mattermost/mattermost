@@ -23,7 +23,7 @@ func (s *MmctlE2ETestSuite) TestListChannelsCmdF() {
 
 	var assertChannelNames = func(want []string, lines []any) {
 		var got []string
-		for i := 0; i < len(lines); i++ {
+		for i := range lines {
 			got = append(got, lines[i].(*model.Channel).Name)
 		}
 

@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -37,13 +38,13 @@ type testHelper struct {
 }
 
 // Setup creates an instance of testHelper.
-func Setup(t testing.TB) *testHelper {
+func Setup(tb testing.TB) *testHelper {
 	dir, err := testlib.SetupTestResources()
 	if err != nil {
 		panic("failed to create temporary directory: " + err.Error())
 	}
 
-	api4TestHelper := api4.Setup(t)
+	api4TestHelper := api4.Setup(tb)
 
 	testHelper := &testHelper{
 		TestHelper:     api4TestHelper,
@@ -59,13 +60,13 @@ func Setup(t testing.TB) *testHelper {
 }
 
 // Setup creates an instance of testHelper.
-func SetupWithStoreMock(t testing.TB) *testHelper {
+func SetupWithStoreMock(tb testing.TB) *testHelper {
 	dir, err := testlib.SetupTestResources()
 	if err != nil {
 		panic("failed to create temporary directory: " + err.Error())
 	}
 
-	api4TestHelper := api4.SetupWithStoreMock(t)
+	api4TestHelper := api4.SetupWithStoreMock(tb)
 	systemStore := mocks.SystemStore{}
 	systemStore.On("Get").Return(make(model.StringMap), nil)
 	licenseStore := mocks.LicenseStore{}
@@ -159,11 +160,8 @@ func (h *testHelper) execArgs(t *testing.T, args []string) []string {
 	// Unless the test passes a `--config` of its own, create a temporary one from the default
 	// configuration with the current test database applied.
 	hasConfig := h.disableAutoConfig
-	for _, arg := range args {
-		if arg == "--config" {
-			hasConfig = true
-			break
-		}
+	if slices.Contains(args, "--config") {
+		hasConfig = true
 	}
 
 	if !hasConfig {

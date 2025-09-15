@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import Scrollbars from 'react-custom-scrollbars';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
@@ -10,6 +9,7 @@ import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
+import Scrollbars from 'components/common/scrollbars';
 import QuickInput from 'components/quick_input';
 import UserList from 'components/user_list';
 
@@ -57,24 +57,6 @@ type Props = {
     rowComponentType?: React.ComponentType<any>;
 }
 
-const renderView = (props: Record<string, unknown>): JSX.Element => (
-    <div
-        {...props}
-        className='scrollbar--view'
-    />
-);
-
-const renderThumbHorizontal = (): JSX.Element => (
-    <div/>
-);
-
-const renderThumbVertical = (props: Record<string, unknown>): JSX.Element => (
-    <div
-        {...props}
-        className='scrollbar--vertical'
-    />
-);
-
 type State = {
     nextDisabled: boolean;
 };
@@ -101,7 +83,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
     };
 
     private nextTimeoutId: NodeJS.Timeout;
-    private scrollbarsRef: React.RefObject<Scrollbars>;
+    private scrollbarsRef: React.RefObject<HTMLDivElement>;
     private filterRef: React.RefObject<HTMLInputElement>;
 
     constructor(props: Props) {
@@ -118,7 +100,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
     }
 
     public scrollToTop = (): void => {
-        this.scrollbarsRef.current?.scrollToTop();
+        this.scrollbarsRef.current?.scrollTo({top: 0});
     };
 
     componentDidMount() {
@@ -319,15 +301,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                     </div>
                 </div>
                 <div className='more-modal__list'>
-                    <Scrollbars
-                        ref={this.scrollbarsRef}
-                        autoHide={true}
-                        autoHideTimeout={500}
-                        autoHideDuration={500}
-                        renderThumbHorizontal={renderThumbHorizontal}
-                        renderThumbVertical={renderThumbVertical}
-                        renderView={renderView}
-                    >
+                    <Scrollbars ref={this.scrollbarsRef}>
                         <UserList
                             users={usersToDisplay}
                             extraInfo={this.props.extraInfo}

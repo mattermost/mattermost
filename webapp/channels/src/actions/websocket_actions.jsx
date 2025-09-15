@@ -34,11 +34,13 @@ import {
     getChannelMemberCountsByGroup,
     fetchAllMyChannelMembers,
     fetchAllMyTeamsChannels,
+    fetchChannelsAndMembers,
 } from 'mattermost-redux/actions/channels';
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
 import {setServerVersion, getClientConfig, getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup as fetchGroup} from 'mattermost-redux/actions/groups';
+import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {
     getCustomEmojiForReaction,
     getPosts,
@@ -88,7 +90,6 @@ import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selec
 import {
     getTeamIdByChannelId,
     getMyTeams,
-    getCurrentRelativeTeamUrl,
     getCurrentTeamId,
     getCurrentTeamUrl,
     getTeam,
@@ -119,7 +120,7 @@ import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
-import InteractiveDialog from 'components/interactive_dialog';
+import DialogRouter from 'components/dialog_router';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 
 import WebSocketClient from 'client/web_websocket_client';
@@ -847,9 +848,11 @@ async function handlePostDeleteEvent(msg) {
             }
         } else {
             const res = await dispatch(getPostThread(post.root_id));
-            const {order, posts} = res.data;
-            const rootPost = posts[order[0]];
-            dispatch(receivedPost(rootPost));
+            if (res.data) {
+                const {order, posts} = res.data;
+                const rootPost = posts[order[0]];
+                dispatch(receivedPost(rootPost));
+            }
         }
     }
 
@@ -880,6 +883,7 @@ async function handleTeamAddedEvent(msg) {
     await dispatch(TeamActions.getMyTeamMembers());
     const state = getState();
     await dispatch(TeamActions.getMyTeamUnreads(isCollapsedThreadsEnabled(state)));
+    await dispatch(fetchChannelsAndMembers(msg.data.team_id));
     const license = getLicense(state);
     if (license.Cloud === 'true') {
         dispatch(getTeamsUsage());
@@ -1268,25 +1272,11 @@ function handleChannelCreatedEvent(msg) {
 }
 
 function handleChannelDeletedEvent(msg) {
-    const state = getState();
-    const config = getConfig(state);
-    const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
-    if (getCurrentChannelId(state) === msg.data.channel_id && !viewArchivedChannels) {
-        const teamUrl = getCurrentRelativeTeamUrl(state);
-        const currentTeamId = getCurrentTeamId(state);
-        const redirectChannel = getRedirectChannelNameForTeam(state, currentTeamId);
-        getHistory().push(teamUrl + '/channels/' + redirectChannel);
-    }
-
-    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_DELETED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, deleteAt: msg.data.delete_at, viewArchivedChannels}});
+    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_DELETED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, deleteAt: msg.data.delete_at, viewArchivedChannels: true}});
 }
 
 function handleChannelUnarchivedEvent(msg) {
-    const state = getState();
-    const config = getConfig(state);
-    const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
-
-    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_UNARCHIVED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, viewArchivedChannels}});
+    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_UNARCHIVED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, viewArchivedChannels: true}});
 }
 
 function handlePreferenceChangedEvent(msg) {
@@ -1427,6 +1417,9 @@ function handleConfigChanged(msg) {
 
 function handleLicenseChanged(msg) {
     store.dispatch({type: GeneralTypes.CLIENT_LICENSE_RECEIVED, data: msg.data.license});
+
+    // Refresh server limits when license changes since limits may have changed
+    dispatch(getServerLimits());
 }
 
 function handlePluginStatusesChangedEvent(msg) {
@@ -1445,7 +1438,7 @@ function handleOpenDialogEvent(msg) {
         return;
     }
 
-    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: InteractiveDialog}));
+    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: DialogRouter}));
 }
 
 function handleGroupUpdatedEvent(msg) {
@@ -1458,30 +1451,39 @@ function handleGroupUpdatedEvent(msg) {
     );
 }
 
+function handleMyGroupUpdate(groupMember) {
+    dispatch(batchActions([
+        {
+            type: GroupTypes.ADD_MY_GROUP,
+            id: groupMember.group_id,
+        },
+        {
+            type: GroupTypes.RECEIVED_MEMBER_TO_ADD_TO_GROUP,
+            data: groupMember,
+            id: groupMember.group_id,
+        },
+        {
+            type: UserTypes.RECEIVED_PROFILES_FOR_GROUP,
+            data: [groupMember],
+            id: groupMember.group_id,
+        },
+    ]));
+}
+
 export function handleGroupAddedMemberEvent(msg) {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
         const currentUserId = getCurrentUserId(state);
-        const groupInfo = JSON.parse(msg.data.group_member);
+        const groupMember = JSON.parse(msg.data.group_member);
 
-        if (currentUserId === groupInfo.user_id) {
-            const group = getGroup(state, groupInfo.group_id);
+        if (currentUserId === groupMember.user_id) {
+            const group = getGroup(state, groupMember.group_id);
             if (group) {
-                dispatch(
-                    {
-                        type: GroupTypes.ADD_MY_GROUP,
-                        id: groupInfo.group_id,
-                    },
-                );
+                handleMyGroupUpdate(groupMember);
             } else {
-                const {error} = await doDispatch(fetchGroup(groupInfo.group_id, true));
+                const {error} = await doDispatch(fetchGroup(groupMember.group_id, true));
                 if (!error) {
-                    dispatch(
-                        {
-                            type: GroupTypes.ADD_MY_GROUP,
-                            id: groupInfo.group_id,
-                        },
-                    );
+                    handleMyGroupUpdate(groupMember);
                 }
             }
         }
@@ -1495,13 +1497,23 @@ function handleGroupDeletedMemberEvent(msg) {
         const data = JSON.parse(msg.data.group_member);
 
         if (currentUserId === data.user_id) {
-            dispatch(
+            dispatch(batchActions([
                 {
                     type: GroupTypes.REMOVE_MY_GROUP,
                     data,
                     id: data.group_id,
                 },
-            );
+                {
+                    type: UserTypes.RECEIVED_PROFILES_LIST_TO_REMOVE_FROM_GROUP,
+                    data: [data],
+                    id: data.group_id,
+                },
+                {
+                    type: GroupTypes.RECEIVED_MEMBER_TO_REMOVE_FROM_GROUP,
+                    data,
+                    id: data.group_id,
+                },
+            ]));
         }
     };
 }
@@ -1938,9 +1950,23 @@ export function handleCustomAttributesCreated(msg) {
 }
 
 export function handleCustomAttributesUpdated(msg) {
-    return {
-        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
-        data: msg.data.field,
+    return (dispatch) => {
+        const {field, delete_values: deleteValues} = msg.data;
+
+        // Check if server indicates values should be deleted
+        if (deleteValues) {
+            // Clear values for the field when type changes
+            dispatch({
+                type: UserTypes.CLEAR_CPA_VALUES,
+                data: {fieldId: field.id},
+            });
+        }
+
+        // Update the field
+        dispatch({
+            type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
+            data: field,
+        });
     };
 }
 

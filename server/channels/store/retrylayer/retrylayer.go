@@ -10,7 +10,6 @@ import (
 	"context"
 	timepkg "time"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
 
@@ -19,10 +18,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-const mySQLDeadlockCode = uint16(1213)
-
 type RetryLayer struct {
 	store.Store
+	AccessControlPolicyStore        store.AccessControlPolicyStore
+	AttributesStore                 store.AttributesStore
 	AuditStore                      store.AuditStore
 	BotStore                        store.BotStore
 	ChannelStore                    store.ChannelStore
@@ -72,6 +71,14 @@ type RetryLayer struct {
 	UserAccessTokenStore            store.UserAccessTokenStore
 	UserTermsOfServiceStore         store.UserTermsOfServiceStore
 	WebhookStore                    store.WebhookStore
+}
+
+func (s *RetryLayer) AccessControlPolicy() store.AccessControlPolicyStore {
+	return s.AccessControlPolicyStore
+}
+
+func (s *RetryLayer) Attributes() store.AttributesStore {
+	return s.AttributesStore
 }
 
 func (s *RetryLayer) Audit() store.AuditStore {
@@ -268,6 +275,16 @@ func (s *RetryLayer) UserTermsOfService() store.UserTermsOfServiceStore {
 
 func (s *RetryLayer) Webhook() store.WebhookStore {
 	return s.WebhookStore
+}
+
+type RetryLayerAccessControlPolicyStore struct {
+	store.AccessControlPolicyStore
+	Root *RetryLayer
+}
+
+type RetryLayerAttributesStore struct {
+	store.AttributesStore
+	Root *RetryLayer
 }
 
 type RetryLayerAuditStore struct {
@@ -517,18 +534,202 @@ type RetryLayerWebhookStore struct {
 
 func isRepeatableError(err error) bool {
 	var pqErr *pq.Error
-	var mysqlErr *mysql.MySQLError
 	switch {
 	case errors.As(errors.Cause(err), &pqErr):
 		if pqErr.Code == "40001" || pqErr.Code == "40P01" {
 			return true
 		}
-	case errors.As(errors.Cause(err), &mysqlErr):
-		if mysqlErr.Number == mySQLDeadlockCode {
-			return true
-		}
 	}
 	return false
+}
+
+func (s *RetryLayerAccessControlPolicyStore) Delete(rctx request.CTX, id string) error {
+
+	tries := 0
+	for {
+		err := s.AccessControlPolicyStore.Delete(rctx, id)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAccessControlPolicyStore) Get(rctx request.CTX, id string) (*model.AccessControlPolicy, error) {
+
+	tries := 0
+	for {
+		result, err := s.AccessControlPolicyStore.Get(rctx, id)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAccessControlPolicyStore) Save(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error) {
+
+	tries := 0
+	for {
+		result, err := s.AccessControlPolicyStore.Save(rctx, policy)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error) {
+
+	tries := 0
+	for {
+		result, resultVar1, err := s.AccessControlPolicyStore.SearchPolicies(rctx, opts)
+		if err == nil {
+			return result, resultVar1, nil
+		}
+		if !isRepeatableError(err) {
+			return result, resultVar1, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, resultVar1, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id string, active bool) (*model.AccessControlPolicy, error) {
+
+	tries := 0
+	for {
+		result, err := s.AccessControlPolicyStore.SetActiveStatus(rctx, id, active)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
+
+	tries := 0
+	for {
+		result, err := s.AttributesStore.GetChannelMembersToRemove(rctx, channelID, opts)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAttributesStore) GetSubject(rctx request.CTX, ID string, groupID string) (*model.Subject, error) {
+
+	tries := 0
+	for {
+		result, err := s.AttributesStore.GetSubject(rctx, ID, groupID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAttributesStore) RefreshAttributes() error {
+
+	tries := 0
+	for {
+		err := s.AttributesStore.RefreshAttributes()
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error) {
+
+	tries := 0
+	for {
+		result, resultVar1, err := s.AttributesStore.SearchUsers(rctx, opts)
+		if err == nil {
+			return result, resultVar1, nil
+		}
+		if !isRepeatableError(err) {
+			return result, resultVar1, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, resultVar1, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
 }
 
 func (s *RetryLayerAuditStore) Get(userID string, offset int, limit int) (model.Audits, error) {
@@ -963,11 +1164,11 @@ func (s *RetryLayerChannelStore) CountUrgentPostsAfter(channelID string, timesta
 
 }
 
-func (s *RetryLayerChannelStore) CreateDirectChannel(ctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
+func (s *RetryLayerChannelStore) CreateDirectChannel(rctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.CreateDirectChannel(ctx, userID, otherUserID, channelOptions...)
+		result, err := s.ChannelStore.CreateDirectChannel(rctx, userID, otherUserID, channelOptions...)
 		if err == nil {
 			return result, nil
 		}
@@ -984,11 +1185,11 @@ func (s *RetryLayerChannelStore) CreateDirectChannel(ctx request.CTX, userID *mo
 
 }
 
-func (s *RetryLayerChannelStore) CreateInitialSidebarCategories(c request.CTX, userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
+func (s *RetryLayerChannelStore) CreateInitialSidebarCategories(rctx request.CTX, userID string, teamID string) (*model.OrderedSidebarCategories, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.CreateInitialSidebarCategories(c, userID, opts)
+		result, err := s.ChannelStore.CreateInitialSidebarCategories(rctx, userID, teamID)
 		if err == nil {
 			return result, nil
 		}
@@ -1173,11 +1374,11 @@ func (s *RetryLayerChannelStore) GetAllChannelMemberIdsByChannelId(id string) ([
 
 }
 
-func (s *RetryLayerChannelStore) GetAllChannelMembersForUser(ctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
+func (s *RetryLayerChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetAllChannelMembersForUser(ctx, userID, allowFromCache, includeDeleted)
+		result, err := s.ChannelStore.GetAllChannelMembersForUser(rctx, userID, allowFromCache, includeDeleted)
 		if err == nil {
 			return result, nil
 		}
@@ -1830,11 +2031,11 @@ func (s *RetryLayerChannelStore) GetMemberCountsByGroup(ctx context.Context, cha
 
 }
 
-func (s *RetryLayerChannelStore) GetMemberForPost(postID string, userID string, includeArchivedChannels bool) (*model.ChannelMember, error) {
+func (s *RetryLayerChannelStore) GetMemberForPost(postID string, userID string) (*model.ChannelMember, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetMemberForPost(postID, userID, includeArchivedChannels)
+		result, err := s.ChannelStore.GetMemberForPost(postID, userID)
 		if err == nil {
 			return result, nil
 		}
@@ -1872,11 +2073,11 @@ func (s *RetryLayerChannelStore) GetMemberLastViewedAt(ctx context.Context, chan
 
 }
 
-func (s *RetryLayerChannelStore) GetMembers(channelID string, offset int, limit int) (model.ChannelMembers, error) {
+func (s *RetryLayerChannelStore) GetMembers(opts model.ChannelMembersGetOptions) (model.ChannelMembers, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetMembers(channelID, offset, limit)
+		result, err := s.ChannelStore.GetMembers(opts)
 		if err == nil {
 			return result, nil
 		}
@@ -1940,6 +2141,27 @@ func (s *RetryLayerChannelStore) GetMembersForUser(teamID string, userID string)
 	tries := 0
 	for {
 		result, err := s.ChannelStore.GetMembersForUser(teamID, userID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelStore) GetMembersForUserWithCursorPagination(userId string, perPage int, fromChanneID string) (model.ChannelMembersWithTeamData, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetMembersForUserWithCursorPagination(userId, perPage, fromChanneID)
 		if err == nil {
 			return result, nil
 		}
@@ -2124,11 +2346,11 @@ func (s *RetryLayerChannelStore) GetPublicChannelsForTeam(teamID string, offset 
 
 }
 
-func (s *RetryLayerChannelStore) GetSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
+func (s *RetryLayerChannelStore) GetSidebarCategories(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetSidebarCategories(userID, opts)
+		result, err := s.ChannelStore.GetSidebarCategories(userID, teamID)
 		if err == nil {
 			return result, nil
 		}
@@ -2250,11 +2472,11 @@ func (s *RetryLayerChannelStore) GetTeamForChannel(channelID string) (*model.Tea
 
 }
 
-func (s *RetryLayerChannelStore) GetTeamMembersForChannel(channelID string) ([]string, error) {
+func (s *RetryLayerChannelStore) GetTeamMembersForChannel(rctx request.CTX, channelID string) ([]string, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetTeamMembersForChannel(channelID)
+		result, err := s.ChannelStore.GetTeamMembersForChannel(rctx, channelID)
 		if err == nil {
 			return result, nil
 		}
@@ -2439,11 +2661,11 @@ func (s *RetryLayerChannelStore) PatchMultipleMembersNotifyProps(members []*mode
 
 }
 
-func (s *RetryLayerChannelStore) PermanentDelete(ctx request.CTX, channelID string) error {
+func (s *RetryLayerChannelStore) PermanentDelete(rctx request.CTX, channelID string) error {
 
 	tries := 0
 	for {
-		err := s.ChannelStore.PermanentDelete(ctx, channelID)
+		err := s.ChannelStore.PermanentDelete(rctx, channelID)
 		if err == nil {
 			return nil
 		}
@@ -2481,11 +2703,11 @@ func (s *RetryLayerChannelStore) PermanentDeleteByTeam(teamID string) error {
 
 }
 
-func (s *RetryLayerChannelStore) PermanentDeleteMembersByChannel(ctx request.CTX, channelID string) error {
+func (s *RetryLayerChannelStore) PermanentDeleteMembersByChannel(rctx request.CTX, channelID string) error {
 
 	tries := 0
 	for {
-		err := s.ChannelStore.PermanentDeleteMembersByChannel(ctx, channelID)
+		err := s.ChannelStore.PermanentDeleteMembersByChannel(rctx, channelID)
 		if err == nil {
 			return nil
 		}
@@ -2502,11 +2724,11 @@ func (s *RetryLayerChannelStore) PermanentDeleteMembersByChannel(ctx request.CTX
 
 }
 
-func (s *RetryLayerChannelStore) PermanentDeleteMembersByUser(ctx request.CTX, userID string) error {
+func (s *RetryLayerChannelStore) PermanentDeleteMembersByUser(rctx request.CTX, userID string) error {
 
 	tries := 0
 	for {
-		err := s.ChannelStore.PermanentDeleteMembersByUser(ctx, userID)
+		err := s.ChannelStore.PermanentDeleteMembersByUser(rctx, userID)
 		if err == nil {
 			return nil
 		}
@@ -2523,11 +2745,11 @@ func (s *RetryLayerChannelStore) PermanentDeleteMembersByUser(ctx request.CTX, u
 
 }
 
-func (s *RetryLayerChannelStore) RemoveAllDeactivatedMembers(ctx request.CTX, channelID string) error {
+func (s *RetryLayerChannelStore) RemoveAllDeactivatedMembers(rctx request.CTX, channelID string) error {
 
 	tries := 0
 	for {
-		err := s.ChannelStore.RemoveAllDeactivatedMembers(ctx, channelID)
+		err := s.ChannelStore.RemoveAllDeactivatedMembers(rctx, channelID)
 		if err == nil {
 			return nil
 		}
@@ -2544,11 +2766,11 @@ func (s *RetryLayerChannelStore) RemoveAllDeactivatedMembers(ctx request.CTX, ch
 
 }
 
-func (s *RetryLayerChannelStore) RemoveMember(ctx request.CTX, channelID string, userID string) error {
+func (s *RetryLayerChannelStore) RemoveMember(rctx request.CTX, channelID string, userID string) error {
 
 	tries := 0
 	for {
-		err := s.ChannelStore.RemoveMember(ctx, channelID, userID)
+		err := s.ChannelStore.RemoveMember(rctx, channelID, userID)
 		if err == nil {
 			return nil
 		}
@@ -2565,11 +2787,11 @@ func (s *RetryLayerChannelStore) RemoveMember(ctx request.CTX, channelID string,
 
 }
 
-func (s *RetryLayerChannelStore) RemoveMembers(ctx request.CTX, channelID string, userIds []string) error {
+func (s *RetryLayerChannelStore) RemoveMembers(rctx request.CTX, channelID string, userIds []string) error {
 
 	tries := 0
 	for {
-		err := s.ChannelStore.RemoveMembers(ctx, channelID, userIds)
+		err := s.ChannelStore.RemoveMembers(rctx, channelID, userIds)
 		if err == nil {
 			return nil
 		}
@@ -2628,11 +2850,11 @@ func (s *RetryLayerChannelStore) Restore(channelID string, timestamp int64) erro
 
 }
 
-func (s *RetryLayerChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
+func (s *RetryLayerChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.Save(rctx, channel, maxChannelsPerTeam)
+		result, err := s.ChannelStore.Save(rctx, channel, maxChannelsPerTeam, channelOptions...)
 		if err == nil {
 			return result, nil
 		}
@@ -2649,11 +2871,11 @@ func (s *RetryLayerChannelStore) Save(rctx request.CTX, channel *model.Channel, 
 
 }
 
-func (s *RetryLayerChannelStore) SaveDirectChannel(ctx request.CTX, channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
+func (s *RetryLayerChannelStore) SaveDirectChannel(rctx request.CTX, channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.SaveDirectChannel(ctx, channel, member1, member2)
+		result, err := s.ChannelStore.SaveDirectChannel(rctx, channel, member1, member2)
 		if err == nil {
 			return result, nil
 		}
@@ -2880,11 +3102,11 @@ func (s *RetryLayerChannelStore) SetShared(channelID string, shared bool) error 
 
 }
 
-func (s *RetryLayerChannelStore) Update(ctx request.CTX, channel *model.Channel) (*model.Channel, error) {
+func (s *RetryLayerChannelStore) Update(rctx request.CTX, channel *model.Channel) (*model.Channel, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.Update(ctx, channel)
+		result, err := s.ChannelStore.Update(rctx, channel)
 		if err == nil {
 			return result, nil
 		}
@@ -2943,11 +3165,11 @@ func (s *RetryLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, 
 
 }
 
-func (s *RetryLayerChannelStore) UpdateMember(ctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {
+func (s *RetryLayerChannelStore) UpdateMember(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.UpdateMember(ctx, member)
+		result, err := s.ChannelStore.UpdateMember(rctx, member)
 		if err == nil {
 			return result, nil
 		}
@@ -3426,11 +3648,11 @@ func (s *RetryLayerChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64
 
 }
 
-func (s *RetryLayerChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(now int64, globalPolicyEndTime int64, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+func (s *RetryLayerChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.ChannelMemberHistoryStore.PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit, cursor)
+		result, resultVar1, err := s.ChannelMemberHistoryStore.PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs, cursor)
 		if err == nil {
 			return result, resultVar1, nil
 		}
@@ -3894,11 +4116,11 @@ func (s *RetryLayerComplianceStore) GetAll(offset int, limit int) (model.Complia
 
 }
 
-func (s *RetryLayerComplianceStore) MessageExport(c request.CTX, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
+func (s *RetryLayerComplianceStore) MessageExport(rctx request.CTX, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.ComplianceStore.MessageExport(c, cursor, limit)
+		result, resultVar1, err := s.ComplianceStore.MessageExport(rctx, cursor, limit)
 		if err == nil {
 			return result, resultVar1, nil
 		}
@@ -4209,6 +4431,27 @@ func (s *RetryLayerDraftStore) GetLastCreateAtAndUserIdValuesForEmptyDraftsMigra
 
 }
 
+func (s *RetryLayerDraftStore) PermanentDeleteByUser(userId string) error {
+
+	tries := 0
+	for {
+		err := s.DraftStore.PermanentDeleteByUser(userId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 
 	tries := 0
@@ -4251,11 +4494,11 @@ func (s *RetryLayerEmojiStore) Delete(emoji *model.Emoji, timestamp int64) error
 
 }
 
-func (s *RetryLayerEmojiStore) Get(c request.CTX, id string, allowFromCache bool) (*model.Emoji, error) {
+func (s *RetryLayerEmojiStore) Get(rctx request.CTX, id string, allowFromCache bool) (*model.Emoji, error) {
 
 	tries := 0
 	for {
-		result, err := s.EmojiStore.Get(c, id, allowFromCache)
+		result, err := s.EmojiStore.Get(rctx, id, allowFromCache)
 		if err == nil {
 			return result, nil
 		}
@@ -4272,11 +4515,11 @@ func (s *RetryLayerEmojiStore) Get(c request.CTX, id string, allowFromCache bool
 
 }
 
-func (s *RetryLayerEmojiStore) GetByName(c request.CTX, name string, allowFromCache bool) (*model.Emoji, error) {
+func (s *RetryLayerEmojiStore) GetByName(rctx request.CTX, name string, allowFromCache bool) (*model.Emoji, error) {
 
 	tries := 0
 	for {
-		result, err := s.EmojiStore.GetByName(c, name, allowFromCache)
+		result, err := s.EmojiStore.GetByName(rctx, name, allowFromCache)
 		if err == nil {
 			return result, nil
 		}
@@ -4314,11 +4557,11 @@ func (s *RetryLayerEmojiStore) GetList(offset int, limit int, sort string) ([]*m
 
 }
 
-func (s *RetryLayerEmojiStore) GetMultipleByName(c request.CTX, names []string) ([]*model.Emoji, error) {
+func (s *RetryLayerEmojiStore) GetMultipleByName(rctx request.CTX, names []string) ([]*model.Emoji, error) {
 
 	tries := 0
 	for {
-		result, err := s.EmojiStore.GetMultipleByName(c, names)
+		result, err := s.EmojiStore.GetMultipleByName(rctx, names)
 		if err == nil {
 			return result, nil
 		}
@@ -4377,11 +4620,11 @@ func (s *RetryLayerEmojiStore) Search(name string, prefixOnly bool, limit int) (
 
 }
 
-func (s *RetryLayerFileInfoStore) AttachToPost(c request.CTX, fileID string, postID string, channelID string, creatorID string) error {
+func (s *RetryLayerFileInfoStore) AttachToPost(rctx request.CTX, fileID string, postID string, channelID string, creatorID string) error {
 
 	tries := 0
 	for {
-		err := s.FileInfoStore.AttachToPost(c, fileID, postID, channelID, creatorID)
+		err := s.FileInfoStore.AttachToPost(rctx, fileID, postID, channelID, creatorID)
 		if err == nil {
 			return nil
 		}
@@ -4425,11 +4668,11 @@ func (s *RetryLayerFileInfoStore) CountAll() (int64, error) {
 
 }
 
-func (s *RetryLayerFileInfoStore) DeleteForPost(c request.CTX, postID string) (string, error) {
+func (s *RetryLayerFileInfoStore) DeleteForPost(rctx request.CTX, postID string) (string, error) {
 
 	tries := 0
 	for {
-		result, err := s.FileInfoStore.DeleteForPost(c, postID)
+		result, err := s.FileInfoStore.DeleteForPost(rctx, postID)
 		if err == nil {
 			return result, nil
 		}
@@ -4683,11 +4926,11 @@ func (s *RetryLayerFileInfoStore) InvalidateFileInfosForPostCache(postID string,
 
 }
 
-func (s *RetryLayerFileInfoStore) PermanentDelete(c request.CTX, fileID string) error {
+func (s *RetryLayerFileInfoStore) PermanentDelete(rctx request.CTX, fileID string) error {
 
 	tries := 0
 	for {
-		err := s.FileInfoStore.PermanentDelete(c, fileID)
+		err := s.FileInfoStore.PermanentDelete(rctx, fileID)
 		if err == nil {
 			return nil
 		}
@@ -4704,11 +4947,11 @@ func (s *RetryLayerFileInfoStore) PermanentDelete(c request.CTX, fileID string) 
 
 }
 
-func (s *RetryLayerFileInfoStore) PermanentDeleteBatch(ctx request.CTX, endTime int64, limit int64) (int64, error) {
+func (s *RetryLayerFileInfoStore) PermanentDeleteBatch(rctx request.CTX, endTime int64, limit int64) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.FileInfoStore.PermanentDeleteBatch(ctx, endTime, limit)
+		result, err := s.FileInfoStore.PermanentDeleteBatch(rctx, endTime, limit)
 		if err == nil {
 			return result, nil
 		}
@@ -4725,11 +4968,11 @@ func (s *RetryLayerFileInfoStore) PermanentDeleteBatch(ctx request.CTX, endTime 
 
 }
 
-func (s *RetryLayerFileInfoStore) PermanentDeleteByUser(ctx request.CTX, userID string) (int64, error) {
+func (s *RetryLayerFileInfoStore) PermanentDeleteByUser(rctx request.CTX, userID string) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.FileInfoStore.PermanentDeleteByUser(ctx, userID)
+		result, err := s.FileInfoStore.PermanentDeleteByUser(rctx, userID)
 		if err == nil {
 			return result, nil
 		}
@@ -4809,11 +5052,11 @@ func (s *RetryLayerFileInfoStore) RestoreForPostByIds(rctx request.CTX, postId s
 
 }
 
-func (s *RetryLayerFileInfoStore) Save(ctx request.CTX, info *model.FileInfo) (*model.FileInfo, error) {
+func (s *RetryLayerFileInfoStore) Save(rctx request.CTX, info *model.FileInfo) (*model.FileInfo, error) {
 
 	tries := 0
 	for {
-		result, err := s.FileInfoStore.Save(ctx, info)
+		result, err := s.FileInfoStore.Save(rctx, info)
 		if err == nil {
 			return result, nil
 		}
@@ -4830,11 +5073,11 @@ func (s *RetryLayerFileInfoStore) Save(ctx request.CTX, info *model.FileInfo) (*
 
 }
 
-func (s *RetryLayerFileInfoStore) Search(ctx request.CTX, paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.FileInfoList, error) {
+func (s *RetryLayerFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.FileInfoList, error) {
 
 	tries := 0
 	for {
-		result, err := s.FileInfoStore.Search(ctx, paramsList, userID, teamID, page, perPage)
+		result, err := s.FileInfoStore.Search(rctx, paramsList, userID, teamID, page, perPage)
 		if err == nil {
 			return result, nil
 		}
@@ -4851,11 +5094,11 @@ func (s *RetryLayerFileInfoStore) Search(ctx request.CTX, paramsList []*model.Se
 
 }
 
-func (s *RetryLayerFileInfoStore) SetContent(ctx request.CTX, fileID string, content string) error {
+func (s *RetryLayerFileInfoStore) SetContent(rctx request.CTX, fileID string, content string) error {
 
 	tries := 0
 	for {
-		err := s.FileInfoStore.SetContent(ctx, fileID, content)
+		err := s.FileInfoStore.SetContent(rctx, fileID, content)
 		if err == nil {
 			return nil
 		}
@@ -4935,11 +5178,11 @@ func (s *RetryLayerGroupStore) ChannelMembersMinusGroupMembers(channelID string,
 
 }
 
-func (s *RetryLayerGroupStore) ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, error) {
+func (s *RetryLayerGroupStore) ChannelMembersToAdd(since int64, channelID *string, reAddRemovedMembers bool) ([]*model.UserChannelIDPair, error) {
 
 	tries := 0
 	for {
-		result, err := s.GroupStore.ChannelMembersToAdd(since, channelID, includeRemovedMembers)
+		result, err := s.GroupStore.ChannelMembersToAdd(since, channelID, reAddRemovedMembers)
 		if err == nil {
 			return result, nil
 		}
@@ -5355,6 +5598,27 @@ func (s *RetryLayerGroupStore) GetByName(name string, opts model.GroupSearchOpts
 
 }
 
+func (s *RetryLayerGroupStore) GetByNames(names []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
+
+	tries := 0
+	for {
+		result, err := s.GroupStore.GetByNames(names, viewRestrictions)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, error) {
 
 	tries := 0
@@ -5376,11 +5640,11 @@ func (s *RetryLayerGroupStore) GetByRemoteID(remoteID string, groupSource model.
 
 }
 
-func (s *RetryLayerGroupStore) GetByUser(userID string) ([]*model.Group, error) {
+func (s *RetryLayerGroupStore) GetByUser(userID string, opts model.GroupSearchOpts) ([]*model.Group, error) {
 
 	tries := 0
 	for {
-		result, err := s.GroupStore.GetByUser(userID)
+		result, err := s.GroupStore.GetByUser(userID, opts)
 		if err == nil {
 			return result, nil
 		}
@@ -5901,11 +6165,11 @@ func (s *RetryLayerGroupStore) TeamMembersMinusGroupMembers(teamID string, group
 
 }
 
-func (s *RetryLayerGroupStore) TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, error) {
+func (s *RetryLayerGroupStore) TeamMembersToAdd(since int64, teamID *string, reAddRemovedMembers bool) ([]*model.UserTeamIDPair, error) {
 
 	tries := 0
 	for {
-		result, err := s.GroupStore.TeamMembersToAdd(since, teamID, includeRemovedMembers)
+		result, err := s.GroupStore.TeamMembersToAdd(since, teamID, reAddRemovedMembers)
 		if err == nil {
 			return result, nil
 		}
@@ -6069,11 +6333,11 @@ func (s *RetryLayerJobStore) Delete(id string) (string, error) {
 
 }
 
-func (s *RetryLayerJobStore) Get(c request.CTX, id string) (*model.Job, error) {
+func (s *RetryLayerJobStore) Get(rctx request.CTX, id string) (*model.Job, error) {
 
 	tries := 0
 	for {
-		result, err := s.JobStore.Get(c, id)
+		result, err := s.JobStore.Get(rctx, id)
 		if err == nil {
 			return result, nil
 		}
@@ -6090,11 +6354,11 @@ func (s *RetryLayerJobStore) Get(c request.CTX, id string) (*model.Job, error) {
 
 }
 
-func (s *RetryLayerJobStore) GetAllByStatus(c request.CTX, status string) ([]*model.Job, error) {
+func (s *RetryLayerJobStore) GetAllByStatus(rctx request.CTX, status string) ([]*model.Job, error) {
 
 	tries := 0
 	for {
-		result, err := s.JobStore.GetAllByStatus(c, status)
+		result, err := s.JobStore.GetAllByStatus(rctx, status)
 		if err == nil {
 			return result, nil
 		}
@@ -6111,11 +6375,11 @@ func (s *RetryLayerJobStore) GetAllByStatus(c request.CTX, status string) ([]*mo
 
 }
 
-func (s *RetryLayerJobStore) GetAllByType(c request.CTX, jobType string) ([]*model.Job, error) {
+func (s *RetryLayerJobStore) GetAllByType(rctx request.CTX, jobType string) ([]*model.Job, error) {
 
 	tries := 0
 	for {
-		result, err := s.JobStore.GetAllByType(c, jobType)
+		result, err := s.JobStore.GetAllByType(rctx, jobType)
 		if err == nil {
 			return result, nil
 		}
@@ -6132,11 +6396,11 @@ func (s *RetryLayerJobStore) GetAllByType(c request.CTX, jobType string) ([]*mod
 
 }
 
-func (s *RetryLayerJobStore) GetAllByTypeAndStatus(c request.CTX, jobType string, status string) ([]*model.Job, error) {
+func (s *RetryLayerJobStore) GetAllByTypeAndStatus(rctx request.CTX, jobType string, status string) ([]*model.Job, error) {
 
 	tries := 0
 	for {
-		result, err := s.JobStore.GetAllByTypeAndStatus(c, jobType, status)
+		result, err := s.JobStore.GetAllByTypeAndStatus(rctx, jobType, status)
 		if err == nil {
 			return result, nil
 		}
@@ -6153,11 +6417,11 @@ func (s *RetryLayerJobStore) GetAllByTypeAndStatus(c request.CTX, jobType string
 
 }
 
-func (s *RetryLayerJobStore) GetAllByTypeAndStatusPage(c request.CTX, jobType []string, status string, offset int, limit int) ([]*model.Job, error) {
+func (s *RetryLayerJobStore) GetAllByTypePage(rctx request.CTX, jobType string, offset int, limit int) ([]*model.Job, error) {
 
 	tries := 0
 	for {
-		result, err := s.JobStore.GetAllByTypeAndStatusPage(c, jobType, status, offset, limit)
+		result, err := s.JobStore.GetAllByTypePage(rctx, jobType, offset, limit)
 		if err == nil {
 			return result, nil
 		}
@@ -6174,11 +6438,11 @@ func (s *RetryLayerJobStore) GetAllByTypeAndStatusPage(c request.CTX, jobType []
 
 }
 
-func (s *RetryLayerJobStore) GetAllByTypePage(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, error) {
+func (s *RetryLayerJobStore) GetAllByTypesAndStatusesPage(rctx request.CTX, jobType []string, status []string, offset int, limit int) ([]*model.Job, error) {
 
 	tries := 0
 	for {
-		result, err := s.JobStore.GetAllByTypePage(c, jobType, offset, limit)
+		result, err := s.JobStore.GetAllByTypesAndStatusesPage(rctx, jobType, status, offset, limit)
 		if err == nil {
 			return result, nil
 		}
@@ -6195,11 +6459,11 @@ func (s *RetryLayerJobStore) GetAllByTypePage(c request.CTX, jobType string, off
 
 }
 
-func (s *RetryLayerJobStore) GetAllByTypesPage(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, error) {
+func (s *RetryLayerJobStore) GetAllByTypesPage(rctx request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, error) {
 
 	tries := 0
 	for {
-		result, err := s.JobStore.GetAllByTypesPage(c, jobTypes, offset, limit)
+		result, err := s.JobStore.GetAllByTypesPage(rctx, jobTypes, offset, limit)
 		if err == nil {
 			return result, nil
 		}
@@ -6363,7 +6627,7 @@ func (s *RetryLayerJobStore) UpdateStatus(id string, status string) (*model.Job,
 
 }
 
-func (s *RetryLayerJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error) {
+func (s *RetryLayerJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (*model.Job, error) {
 
 	tries := 0
 	for {
@@ -6384,11 +6648,11 @@ func (s *RetryLayerJobStore) UpdateStatusOptimistically(id string, currentStatus
 
 }
 
-func (s *RetryLayerLicenseStore) Get(c request.CTX, id string) (*model.LicenseRecord, error) {
+func (s *RetryLayerLicenseStore) Get(rctx request.CTX, id string) (*model.LicenseRecord, error) {
 
 	tries := 0
 	for {
-		result, err := s.LicenseStore.Get(c, id)
+		result, err := s.LicenseStore.Get(rctx, id)
 		if err == nil {
 			return result, nil
 		}
@@ -7035,11 +7299,11 @@ func (s *RetryLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, 
 
 }
 
-func (s *RetryLayerOutgoingOAuthConnectionStore) DeleteConnection(c request.CTX, id string) error {
+func (s *RetryLayerOutgoingOAuthConnectionStore) DeleteConnection(rctx request.CTX, id string) error {
 
 	tries := 0
 	for {
-		err := s.OutgoingOAuthConnectionStore.DeleteConnection(c, id)
+		err := s.OutgoingOAuthConnectionStore.DeleteConnection(rctx, id)
 		if err == nil {
 			return nil
 		}
@@ -7056,11 +7320,11 @@ func (s *RetryLayerOutgoingOAuthConnectionStore) DeleteConnection(c request.CTX,
 
 }
 
-func (s *RetryLayerOutgoingOAuthConnectionStore) GetConnection(c request.CTX, id string) (*model.OutgoingOAuthConnection, error) {
+func (s *RetryLayerOutgoingOAuthConnectionStore) GetConnection(rctx request.CTX, id string) (*model.OutgoingOAuthConnection, error) {
 
 	tries := 0
 	for {
-		result, err := s.OutgoingOAuthConnectionStore.GetConnection(c, id)
+		result, err := s.OutgoingOAuthConnectionStore.GetConnection(rctx, id)
 		if err == nil {
 			return result, nil
 		}
@@ -7077,11 +7341,11 @@ func (s *RetryLayerOutgoingOAuthConnectionStore) GetConnection(c request.CTX, id
 
 }
 
-func (s *RetryLayerOutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error) {
+func (s *RetryLayerOutgoingOAuthConnectionStore) GetConnections(rctx request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error) {
 
 	tries := 0
 	for {
-		result, err := s.OutgoingOAuthConnectionStore.GetConnections(c, filters)
+		result, err := s.OutgoingOAuthConnectionStore.GetConnections(rctx, filters)
 		if err == nil {
 			return result, nil
 		}
@@ -7098,11 +7362,11 @@ func (s *RetryLayerOutgoingOAuthConnectionStore) GetConnections(c request.CTX, f
 
 }
 
-func (s *RetryLayerOutgoingOAuthConnectionStore) SaveConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error) {
+func (s *RetryLayerOutgoingOAuthConnectionStore) SaveConnection(rctx request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error) {
 
 	tries := 0
 	for {
-		result, err := s.OutgoingOAuthConnectionStore.SaveConnection(c, conn)
+		result, err := s.OutgoingOAuthConnectionStore.SaveConnection(rctx, conn)
 		if err == nil {
 			return result, nil
 		}
@@ -7119,11 +7383,11 @@ func (s *RetryLayerOutgoingOAuthConnectionStore) SaveConnection(c request.CTX, c
 
 }
 
-func (s *RetryLayerOutgoingOAuthConnectionStore) UpdateConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error) {
+func (s *RetryLayerOutgoingOAuthConnectionStore) UpdateConnection(rctx request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error) {
 
 	tries := 0
 	for {
-		result, err := s.OutgoingOAuthConnectionStore.UpdateConnection(c, conn)
+		result, err := s.OutgoingOAuthConnectionStore.UpdateConnection(rctx, conn)
 		if err == nil {
 			return result, nil
 		}
@@ -8046,11 +8310,11 @@ func (s *RetryLayerPostStore) Overwrite(rctx request.CTX, post *model.Post) (*mo
 
 }
 
-func (s *RetryLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, error) {
+func (s *RetryLayerPostStore) OverwriteMultiple(rctx request.CTX, posts []*model.Post) ([]*model.Post, int, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.PostStore.OverwriteMultiple(posts)
+		result, resultVar1, err := s.PostStore.OverwriteMultiple(rctx, posts)
 		if err == nil {
 			return result, resultVar1, nil
 		}
@@ -8109,11 +8373,11 @@ func (s *RetryLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (
 
 }
 
-func (s *RetryLayerPostStore) PermanentDeleteBatchForRetentionPolicies(now int64, globalPolicyEndTime int64, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+func (s *RetryLayerPostStore) PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.PostStore.PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit, cursor)
+		result, resultVar1, err := s.PostStore.PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs, cursor)
 		if err == nil {
 			return result, resultVar1, nil
 		}
@@ -8214,11 +8478,11 @@ func (s *RetryLayerPostStore) Save(rctx request.CTX, post *model.Post) (*model.P
 
 }
 
-func (s *RetryLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, error) {
+func (s *RetryLayerPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*model.Post, int, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.PostStore.SaveMultiple(posts)
+		result, resultVar1, err := s.PostStore.SaveMultiple(rctx, posts)
 		if err == nil {
 			return result, resultVar1, nil
 		}
@@ -8319,6 +8583,48 @@ func (s *RetryLayerPostStore) Update(rctx request.CTX, newPost *model.Post, oldP
 
 }
 
+func (s *RetryLayerPostAcknowledgementStore) BatchDelete(acknowledgements []*model.PostAcknowledgement) error {
+
+	tries := 0
+	for {
+		err := s.PostAcknowledgementStore.BatchDelete(acknowledgements)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostAcknowledgementStore) BatchSave(acknowledgements []*model.PostAcknowledgement) ([]*model.PostAcknowledgement, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostAcknowledgementStore.BatchSave(acknowledgements)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostAcknowledgementStore) Delete(acknowledgement *model.PostAcknowledgement) error {
 
 	tries := 0
@@ -8382,6 +8688,27 @@ func (s *RetryLayerPostAcknowledgementStore) GetForPost(postID string) ([]*model
 
 }
 
+func (s *RetryLayerPostAcknowledgementStore) GetForPostSince(postID string, since int64, excludeRemoteID string, inclDeleted bool) ([]*model.PostAcknowledgement, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostAcknowledgementStore.GetForPostSince(postID, since, excludeRemoteID, inclDeleted)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error) {
 
 	tries := 0
@@ -8403,11 +8730,32 @@ func (s *RetryLayerPostAcknowledgementStore) GetForPosts(postIds []string) ([]*m
 
 }
 
-func (s *RetryLayerPostAcknowledgementStore) Save(postID string, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
+func (s *RetryLayerPostAcknowledgementStore) GetSingle(userID string, postID string, remoteID string) (*model.PostAcknowledgement, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostAcknowledgementStore.Save(postID, userID, acknowledgedAt)
+		result, err := s.PostAcknowledgementStore.GetSingle(userID, postID, remoteID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostAcknowledgementStore) SaveWithModel(acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostAcknowledgementStore.SaveWithModel(acknowledgement)
 		if err == nil {
 			return result, nil
 		}
@@ -8571,6 +8919,27 @@ func (s *RetryLayerPostPersistentNotificationStore) UpdateLastActivity(postIds [
 
 }
 
+func (s *RetryLayerPostPriorityStore) Delete(postID string) error {
+
+	tries := 0
+	for {
+		err := s.PostPriorityStore.Delete(postID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostPriorityStore) GetForPost(postID string) (*model.PostPriority, error) {
 
 	tries := 0
@@ -8597,6 +8966,27 @@ func (s *RetryLayerPostPriorityStore) GetForPosts(ids []string) ([]*model.PostPr
 	tries := 0
 	for {
 		result, err := s.PostPriorityStore.GetForPosts(ids)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostPriorityStore) Save(priority *model.PostPriority) (*model.PostPriority, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostPriorityStore.Save(priority)
 		if err == nil {
 			return result, nil
 		}
@@ -8991,11 +9381,11 @@ func (s *RetryLayerPropertyFieldStore) Create(field *model.PropertyField) (*mode
 
 }
 
-func (s *RetryLayerPropertyFieldStore) Delete(id string) error {
+func (s *RetryLayerPropertyFieldStore) Delete(groupID string, id string) error {
 
 	tries := 0
 	for {
-		err := s.PropertyFieldStore.Delete(id)
+		err := s.PropertyFieldStore.Delete(groupID, id)
 		if err == nil {
 			return nil
 		}
@@ -9012,11 +9402,11 @@ func (s *RetryLayerPropertyFieldStore) Delete(id string) error {
 
 }
 
-func (s *RetryLayerPropertyFieldStore) Get(id string) (*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) Get(groupID string, id string) (*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.Get(id)
+		result, err := s.PropertyFieldStore.Get(groupID, id)
 		if err == nil {
 			return result, nil
 		}
@@ -9033,11 +9423,32 @@ func (s *RetryLayerPropertyFieldStore) Get(id string) (*model.PropertyField, err
 
 }
 
-func (s *RetryLayerPropertyFieldStore) GetMany(ids []string) ([]*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) GetFieldByName(groupID string, targetID string, name string) (*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.GetMany(ids)
+		result, err := s.PropertyFieldStore.GetFieldByName(groupID, targetID, name)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyFieldStore) GetMany(groupID string, ids []string) ([]*model.PropertyField, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.GetMany(groupID, ids)
 		if err == nil {
 			return result, nil
 		}
@@ -9075,11 +9486,11 @@ func (s *RetryLayerPropertyFieldStore) SearchPropertyFields(opts model.PropertyF
 
 }
 
-func (s *RetryLayerPropertyFieldStore) Update(fields []*model.PropertyField) ([]*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) Update(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.Update(fields)
+		result, err := s.PropertyFieldStore.Update(groupID, fields)
 		if err == nil {
 			return result, nil
 		}
@@ -9159,11 +9570,11 @@ func (s *RetryLayerPropertyValueStore) Create(value *model.PropertyValue) (*mode
 
 }
 
-func (s *RetryLayerPropertyValueStore) Delete(id string) error {
+func (s *RetryLayerPropertyValueStore) Delete(groupID string, id string) error {
 
 	tries := 0
 	for {
-		err := s.PropertyValueStore.Delete(id)
+		err := s.PropertyValueStore.Delete(groupID, id)
 		if err == nil {
 			return nil
 		}
@@ -9180,11 +9591,11 @@ func (s *RetryLayerPropertyValueStore) Delete(id string) error {
 
 }
 
-func (s *RetryLayerPropertyValueStore) DeleteForField(id string) error {
+func (s *RetryLayerPropertyValueStore) DeleteForField(groupID string, fieldID string) error {
 
 	tries := 0
 	for {
-		err := s.PropertyValueStore.DeleteForField(id)
+		err := s.PropertyValueStore.DeleteForField(groupID, fieldID)
 		if err == nil {
 			return nil
 		}
@@ -9201,11 +9612,32 @@ func (s *RetryLayerPropertyValueStore) DeleteForField(id string) error {
 
 }
 
-func (s *RetryLayerPropertyValueStore) Get(id string) (*model.PropertyValue, error) {
+func (s *RetryLayerPropertyValueStore) DeleteForTarget(groupID string, targetType string, targetID string) error {
 
 	tries := 0
 	for {
-		result, err := s.PropertyValueStore.Get(id)
+		err := s.PropertyValueStore.DeleteForTarget(groupID, targetType, targetID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyValueStore) Get(groupID string, id string) (*model.PropertyValue, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyValueStore.Get(groupID, id)
 		if err == nil {
 			return result, nil
 		}
@@ -9222,11 +9654,11 @@ func (s *RetryLayerPropertyValueStore) Get(id string) (*model.PropertyValue, err
 
 }
 
-func (s *RetryLayerPropertyValueStore) GetMany(ids []string) ([]*model.PropertyValue, error) {
+func (s *RetryLayerPropertyValueStore) GetMany(groupID string, ids []string) ([]*model.PropertyValue, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyValueStore.GetMany(ids)
+		result, err := s.PropertyValueStore.GetMany(groupID, ids)
 		if err == nil {
 			return result, nil
 		}
@@ -9264,11 +9696,11 @@ func (s *RetryLayerPropertyValueStore) SearchPropertyValues(opts model.PropertyV
 
 }
 
-func (s *RetryLayerPropertyValueStore) Update(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+func (s *RetryLayerPropertyValueStore) Update(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyValueStore.Update(values)
+		result, err := s.PropertyValueStore.Update(groupID, values)
 		if err == nil {
 			return result, nil
 		}
@@ -9699,6 +10131,27 @@ func (s *RetryLayerRemoteClusterStore) Update(rc *model.RemoteCluster) (*model.R
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRemoteClusterStore) UpdateLastGlobalUserSyncAt(remoteID string, syncAt int64) error {
+
+	tries := 0
+	for {
+		err := s.RemoteClusterStore.UpdateLastGlobalUserSyncAt(remoteID, syncAt)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -10740,11 +11193,11 @@ func (s *RetryLayerSessionStore) Cleanup(expiryTime int64, batchSize int64) erro
 
 }
 
-func (s *RetryLayerSessionStore) Get(c request.CTX, sessionIDOrToken string) (*model.Session, error) {
+func (s *RetryLayerSessionStore) Get(rctx request.CTX, sessionIDOrToken string) (*model.Session, error) {
 
 	tries := 0
 	for {
-		result, err := s.SessionStore.Get(c, sessionIDOrToken)
+		result, err := s.SessionStore.Get(rctx, sessionIDOrToken)
 		if err == nil {
 			return result, nil
 		}
@@ -10761,11 +11214,11 @@ func (s *RetryLayerSessionStore) Get(c request.CTX, sessionIDOrToken string) (*m
 
 }
 
-func (s *RetryLayerSessionStore) GetLRUSessions(c request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error) {
+func (s *RetryLayerSessionStore) GetLRUSessions(rctx request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error) {
 
 	tries := 0
 	for {
-		result, err := s.SessionStore.GetLRUSessions(c, userID, limit, offset)
+		result, err := s.SessionStore.GetLRUSessions(rctx, userID, limit, offset)
 		if err == nil {
 			return result, nil
 		}
@@ -10803,11 +11256,11 @@ func (s *RetryLayerSessionStore) GetMobileSessionMetadata() ([]*model.MobileSess
 
 }
 
-func (s *RetryLayerSessionStore) GetSessions(c request.CTX, userID string) ([]*model.Session, error) {
+func (s *RetryLayerSessionStore) GetSessions(rctx request.CTX, userID string) ([]*model.Session, error) {
 
 	tries := 0
 	for {
-		result, err := s.SessionStore.GetSessions(c, userID)
+		result, err := s.SessionStore.GetSessions(rctx, userID)
 		if err == nil {
 			return result, nil
 		}
@@ -10929,11 +11382,11 @@ func (s *RetryLayerSessionStore) RemoveAllSessions() error {
 
 }
 
-func (s *RetryLayerSessionStore) Save(c request.CTX, session *model.Session) (*model.Session, error) {
+func (s *RetryLayerSessionStore) Save(rctx request.CTX, session *model.Session) (*model.Session, error) {
 
 	tries := 0
 	for {
-		result, err := s.SessionStore.Save(c, session)
+		result, err := s.SessionStore.Save(rctx, session)
 		if err == nil {
 			return result, nil
 		}
@@ -11328,6 +11781,27 @@ func (s *RetryLayerSharedChannelStore) GetSingleUser(userID string, channelID st
 
 }
 
+func (s *RetryLayerSharedChannelStore) GetUserChanges(userID string, channelID string, afterTime int64) ([]*model.SharedChannelUser, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelStore.GetUserChanges(userID, channelID, afterTime)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error) {
 
 	tries := 0
@@ -11580,6 +12054,48 @@ func (s *RetryLayerSharedChannelStore) UpdateRemoteCursor(id string, cursor mode
 
 }
 
+func (s *RetryLayerSharedChannelStore) UpdateRemoteMembershipCursor(id string, syncTime int64) error {
+
+	tries := 0
+	for {
+		err := s.SharedChannelStore.UpdateRemoteMembershipCursor(id, syncTime)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerSharedChannelStore) UpdateUserLastMembershipSyncAt(userID string, channelID string, remoteID string, syncTime int64) error {
+
+	tries := 0
+	for {
+		err := s.SharedChannelStore.UpdateUserLastMembershipSyncAt(userID, channelID, remoteID, syncTime)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error {
 
 	tries := 0
@@ -11711,6 +12227,27 @@ func (s *RetryLayerStatusStore) SaveOrUpdate(status *model.Status) error {
 	tries := 0
 	for {
 		err := s.StatusStore.SaveOrUpdate(status)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerStatusStore) SaveOrUpdateMany(statuses map[string]*model.Status) error {
+
+	tries := 0
+	for {
+		err := s.StatusStore.SaveOrUpdateMany(statuses)
 		if err == nil {
 			return nil
 		}
@@ -12321,11 +12858,11 @@ func (s *RetryLayerTeamStore) GetMany(ids []string) ([]*model.Team, error) {
 
 }
 
-func (s *RetryLayerTeamStore) GetMember(c request.CTX, teamID string, userID string) (*model.TeamMember, error) {
+func (s *RetryLayerTeamStore) GetMember(rctx request.CTX, teamID string, userID string) (*model.TeamMember, error) {
 
 	tries := 0
 	for {
-		result, err := s.TeamStore.GetMember(c, teamID, userID)
+		result, err := s.TeamStore.GetMember(rctx, teamID, userID)
 		if err == nil {
 			return result, nil
 		}
@@ -12447,11 +12984,11 @@ func (s *RetryLayerTeamStore) GetTeamsByUserId(userID string) ([]*model.Team, er
 
 }
 
-func (s *RetryLayerTeamStore) GetTeamsForUser(c request.CTX, userID string, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, error) {
+func (s *RetryLayerTeamStore) GetTeamsForUser(rctx request.CTX, userID string, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, error) {
 
 	tries := 0
 	for {
-		result, err := s.TeamStore.GetTeamsForUser(c, userID, excludeTeamID, includeDeleted)
+		result, err := s.TeamStore.GetTeamsForUser(rctx, userID, excludeTeamID, includeDeleted)
 		if err == nil {
 			return result, nil
 		}
@@ -12621,11 +13158,11 @@ func (s *RetryLayerTeamStore) RemoveAllMembersByTeam(teamID string) error {
 
 }
 
-func (s *RetryLayerTeamStore) RemoveAllMembersByUser(ctx request.CTX, userID string) error {
+func (s *RetryLayerTeamStore) RemoveAllMembersByUser(rctx request.CTX, userID string) error {
 
 	tries := 0
 	for {
-		err := s.TeamStore.RemoveAllMembersByUser(ctx, userID)
+		err := s.TeamStore.RemoveAllMembersByUser(rctx, userID)
 		if err == nil {
 			return nil
 		}
@@ -13503,11 +14040,11 @@ func (s *RetryLayerThreadStore) MarkAsRead(userID string, threadID string, times
 
 }
 
-func (s *RetryLayerThreadStore) PermanentDeleteBatchForRetentionPolicies(now int64, globalPolicyEndTime int64, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+func (s *RetryLayerThreadStore) PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.ThreadStore.PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit, cursor)
+		result, resultVar1, err := s.ThreadStore.PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs, cursor)
 		if err == nil {
 			return result, resultVar1, nil
 		}
@@ -13524,11 +14061,11 @@ func (s *RetryLayerThreadStore) PermanentDeleteBatchForRetentionPolicies(now int
 
 }
 
-func (s *RetryLayerThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now int64, globalPolicyEndTime int64, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+func (s *RetryLayerThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.ThreadStore.PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now, globalPolicyEndTime, limit, cursor)
+		result, resultVar1, err := s.ThreadStore.PermanentDeleteBatchThreadMembershipsForRetentionPolicies(retentionPolicyBatchConfigs, cursor)
 		if err == nil {
 			return result, resultVar1, nil
 		}
@@ -13740,11 +14277,11 @@ func (s *RetryLayerUploadSessionStore) Delete(id string) error {
 
 }
 
-func (s *RetryLayerUploadSessionStore) Get(c request.CTX, id string) (*model.UploadSession, error) {
+func (s *RetryLayerUploadSessionStore) Get(rctx request.CTX, id string) (*model.UploadSession, error) {
 
 	tries := 0
 	for {
-		result, err := s.UploadSessionStore.Get(c, id)
+		result, err := s.UploadSessionStore.Get(rctx, id)
 		if err == nil {
 			return result, nil
 		}
@@ -16313,6 +16850,8 @@ func New(childStore store.Store) *RetryLayer {
 		Store: childStore,
 	}
 
+	newStore.AccessControlPolicyStore = &RetryLayerAccessControlPolicyStore{AccessControlPolicyStore: childStore.AccessControlPolicy(), Root: &newStore}
+	newStore.AttributesStore = &RetryLayerAttributesStore{AttributesStore: childStore.Attributes(), Root: &newStore}
 	newStore.AuditStore = &RetryLayerAuditStore{AuditStore: childStore.Audit(), Root: &newStore}
 	newStore.BotStore = &RetryLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &RetryLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}

@@ -12,6 +12,7 @@
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
+
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 describe('Verify Accessibility Support in Modals & Dialogs', () => {
@@ -47,7 +48,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
         verifyUserMenuModal('Profile');
 
         // * Verify the accessibility support in Team Settings Dialog
-        verifyMainMenuModal('Team Settings');
+        verifyMainMenuModal('Team settings');
 
         // * Verify the accessibility support in Manage Members Dialog
         verifyMainMenuModal('Manage Members', `${testTeam.display_name} Members`);
@@ -71,8 +72,8 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
         cy.visit(`/${testTeam.name}/channels/off-topic`);
 
         // # Open Channel Members Dialog
-        cy.get('#channelHeaderDropdownIcon').click();
-        cy.findByText('Manage Members').click().wait(TIMEOUTS.FIVE_SEC);
+        cy.get('#channelHeaderTitle').click();
+        cy.findByText('Manage members').click().wait(TIMEOUTS.FIVE_SEC);
 
         // * Verify the accessibility support in Manage Members Dialog
         cy.findByRole('dialog', {name: 'Off-Topic Members'}).within(() => {
@@ -118,7 +119,7 @@ function verifyMainMenuModal(menuItem: string, modalName?: string) {
 }
 
 function verifyChannelMenuModal(menuItem: string, modalName?: string) {
-    cy.get('#channelHeaderDropdownIcon').click();
+    cy.get('#channelHeaderTitle').click();
     verifyModal(menuItem, modalName);
 }
 

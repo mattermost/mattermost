@@ -26,7 +26,6 @@ const getStatusColors = (theme: Theme) => {
 const markdownOptions = {
     mentionHighlight: false,
     markdown: false,
-    autolinkedUrlSchemes: [],
 };
 
 type Props = {
@@ -57,6 +56,8 @@ const ActionButton = ({
             (action.style.match('^#(?:[0-9a-fA-F]{3}){1,2}$') && action.style);
     }
 
+    const name = action.name || action.id || '';
+
     return (
         <ActionBtn
             data-action-id={action.id}
@@ -72,7 +73,7 @@ const ActionButton = ({
                 text={actionExecutingMessage}
             >
                 <Markdown
-                    message={action.name}
+                    message={name}
                     options={markdownOptions}
                 />
             </LoadingWrapper>

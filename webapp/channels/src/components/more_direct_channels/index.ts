@@ -13,6 +13,7 @@ import {
     getProfilesInTeam,
     getTotalUsersStats,
     searchProfiles,
+    canUserDirectMessage,
 } from 'mattermost-redux/actions/users';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -103,6 +104,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             searchProfiles,
             searchGroupChannels,
             setModalSearchTerm,
+            canUserDirectMessage,
         }, dispatch),
     };
 }

@@ -8,7 +8,7 @@ import {Link} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {mark, trackEvent} from 'actions/telemetry_actions';
+import {mark} from 'actions/telemetry_actions';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
@@ -63,6 +63,7 @@ type Props = WrappedComponentProps & {
     rhsState?: RhsState;
     rhsOpen?: boolean;
     isSharedChannel?: boolean;
+    remoteNames: string[];
 
     actions: {
         markMostRecentPostInChannelAsUnread: (channelId: string) => void;
@@ -71,6 +72,7 @@ type Props = WrappedComponentProps & {
         multiSelectChannelAdd: (channelId: string) => void;
         unsetEditingPost: () => void;
         closeRightHandSide: () => void;
+        fetchChannelRemotes: (channelId: string) => void;
     };
 };
 
@@ -95,11 +97,22 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
 
     componentDidMount(): void {
         this.enableToolTipIfNeeded();
+
+        if (this.props.isSharedChannel && this.props.channel?.id && this.props.remoteNames.length === 0) {
+            this.props.actions.fetchChannelRemotes(this.props.channel.id);
+        }
     }
 
     componentDidUpdate(prevProps: Props): void {
         if (prevProps.label !== this.props.label) {
             this.enableToolTipIfNeeded();
+        }
+
+        if (this.props.isSharedChannel &&
+            (prevProps.channel?.id !== this.props.channel?.id || prevProps.channel?.team_id !== this.props.channel?.team_id) &&
+            this.props.remoteNames.length === 0 &&
+            this.props.channel?.id) {
+            this.props.actions.fetchChannelRemotes(this.props.channel.id);
         }
     }
 
@@ -138,10 +151,6 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
         if (this.props.rhsOpen && this.props.rhsState === RHSStates.EDIT_HISTORY) {
             this.props.actions.closeRightHandSide();
         }
-
-        setTimeout(() => {
-            trackEvent('ui', 'ui_channel_selected_v2');
-        }, 0);
     };
 
     handleSelectChannel = (event: React.MouseEvent<HTMLAnchorElement>): void => {
@@ -227,6 +236,7 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
             <SharedChannelIndicator
                 className='icon'
                 withTooltip={true}
+                remoteNames={this.props.remoteNames}
             />
         ) : null;
 

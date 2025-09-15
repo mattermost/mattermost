@@ -18,7 +18,6 @@ exports[`components/post_view/embedded_bindings/embedded_binding should match sn
           message="some text"
           options={
             Object {
-              "autolinkedUrlSchemes": Array [],
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
                 "options": Object {},
@@ -80,7 +79,6 @@ exports[`components/post_view/embedded_bindings/embedded_binding should match sn
           message="some text"
           options={
             Object {
-              "autolinkedUrlSchemes": Array [],
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
                 "options": Object {},
@@ -142,7 +140,6 @@ exports[`components/post_view/embedded_bindings/embedded_binding should match sn
           message="some text"
           options={
             Object {
-              "autolinkedUrlSchemes": Array [],
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
                 "options": Object {},
@@ -204,7 +201,6 @@ exports[`components/post_view/embedded_bindings/embedded_binding should match sn
           message="some text"
           options={
             Object {
-              "autolinkedUrlSchemes": Array [],
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
                 "options": Object {},

@@ -38,10 +38,10 @@ type registeredPlugin struct {
 
 // PrepackagedPlugin is a plugin prepackaged with the server and found on startup.
 type PrepackagedPlugin struct {
-	Path      string
-	IconData  string
-	Manifest  *model.Manifest
-	Signature []byte
+	Path          string
+	IconData      string
+	Manifest      *model.Manifest
+	SignaturePath string
 }
 
 // Environment represents the execution environment of active plugins.

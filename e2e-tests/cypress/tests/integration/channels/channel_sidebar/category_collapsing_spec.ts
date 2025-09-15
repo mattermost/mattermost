@@ -105,7 +105,7 @@ describe('Channel sidebar', () => {
 
         // Wait for state to settle
         // This is necessary since we have no observable way of finding out when the state actually settles so that it persists on reload
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
+
         cy.wait(TIMEOUTS.FIVE_SEC);
 
         // # Reload the page and wait
@@ -122,7 +122,7 @@ describe('Channel sidebar', () => {
         cy.get('.SidebarChannelGroupHeader:contains(CHANNELS) i').should('not.have.class', 'icon-rotate-minus-90');
 
         // Wait for state to settle
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
+
         cy.wait(TIMEOUTS.FIVE_SEC);
 
         // # Reload the page and wait

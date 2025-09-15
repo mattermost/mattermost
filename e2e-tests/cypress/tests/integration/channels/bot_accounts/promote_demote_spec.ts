@@ -11,6 +11,7 @@
 // Group: @channels @bot_accounts
 
 import {Team} from '@mattermost/types/teams';
+
 import {createBotPatch} from '../../../support/api/bots';
 
 describe('Managing bots in Teams and Channels', () => {
@@ -37,7 +38,7 @@ describe('Managing bots in Teams and Channels', () => {
             await client.addToTeam(team.id, bot.user_id);
 
             // # Open team menu and click 'Manage Members'
-            cy.uiOpenTeamMenu('Manage Members');
+            cy.uiOpenTeamMenu('Manage members');
 
             // # Find bot
             cy.get('.more-modal__list').find('.more-modal__row').its('length').should('be.gt', 0);
@@ -50,7 +51,7 @@ describe('Managing bots in Teams and Channels', () => {
             cy.get(`#teamMembersDropdown_${bot.username}`).as('memberDropdown').should('contain.text', 'Member').click();
 
             // # Promote bot to team admin
-            cy.findByTestId('userListItemActions').find('button').contains('Make Team Admin').click();
+            cy.get('li').contains('Make Team Admin').click();
 
             // * Verify bot was promoted
             cy.get('@memberDropdown').should('contain.text', 'Team Admin');

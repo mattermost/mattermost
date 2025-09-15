@@ -158,6 +158,16 @@ const useKeyHandler = (
             }
         }
 
+        if ((Keyboard.isKeyPressed(e, KeyCodes.PAGE_UP) || Keyboard.isKeyPressed(e, KeyCodes.PAGE_DOWN))) {
+            // Moving the focus to the post list will cause the post list to scroll as if it already had focus
+            // before the key was pressed
+            if (location === Locations.CENTER) {
+                document.getElementById('postListScrollContainer')?.focus();
+            } else if (location === Locations.RHS_COMMENT) {
+                document.getElementById('threadViewerScrollContainer')?.focus();
+            }
+        }
+
         // listen for line break key combo and insert new line character
         if (Utils.isUnhandledLineBreakKeyCombo(e)) {
             handleDraftChange({
@@ -173,9 +183,9 @@ const useKeyHandler = (
         }
 
         if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE)) {
-            onCancel?.();
             textboxRef.current?.blur();
             if (isInEditMode) {
+                onCancel?.();
                 dispatch(unsetEditingPost());
             }
         }
@@ -354,19 +364,21 @@ const useKeyHandler = (
         toggleAdvanceTextEditor,
         toggleEmojiPicker,
         toggleShowPreview,
+        isInEditMode,
+        location,
     ]);
 
     // Register paste events
     useEffect(() => {
         function onPaste(event: ClipboardEvent) {
-            pasteHandler(event, location, draft.message, isNonFormattedPaste.current, caretPosition);
+            pasteHandler(event, location, draft.message, isNonFormattedPaste.current, caretPosition, isInEditMode);
         }
 
         document.addEventListener('paste', onPaste);
         return () => {
             document.removeEventListener('paste', onPaste);
         };
-    }, [location, draft.message, caretPosition]);
+    }, [location, draft.message, caretPosition, isInEditMode]);
 
     const reactToLastMessage = useCallback((e: KeyboardEvent) => {
         e.preventDefault();

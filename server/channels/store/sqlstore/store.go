@@ -6,7 +6,6 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
-	dbsql "database/sql"
 	"fmt"
 	"path"
 	"strconv"
@@ -19,7 +18,6 @@ import (
 
 	sq "github.com/mattermost/squirrel"
 
-	"github.com/go-sql-driver/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -38,25 +36,20 @@ type migrationDirection string
 type Option func(s *SqlStore) error
 
 const (
-	IndexTypeFullText                 = "full_text"
-	IndexTypeFullTextFunc             = "full_text_func"
-	IndexTypeDefault                  = "default"
-	PGDupTableErrorCode               = "42P07"      // see https://github.com/lib/pq/blob/master/error.go#L268
-	MySQLDupTableErrorCode            = uint16(1050) // see https://dev.mysql.com/doc/mysql-errors/5.7/en/server-error-reference.html#error_er_table_exists_error
-	PGForeignKeyViolationErrorCode    = "23503"
-	MySQLForeignKeyViolationErrorCode = 1452
-	PGDuplicateObjectErrorCode        = "42710"
-	MySQLDuplicateObjectErrorCode     = 1022
-	DBPingAttempts                    = 5
-	DBReplicaPingAttempts             = 2
+	IndexTypeFullText              = "full_text"
+	IndexTypeFullTextFunc          = "full_text_func"
+	IndexTypeDefault               = "default"
+	PGDupTableErrorCode            = "42P07" // see https://github.com/lib/pq/blob/master/error.go#L268
+	PGForeignKeyViolationErrorCode = "23503"
+	PGDuplicateObjectErrorCode     = "42710"
+	DBPingAttempts                 = 5
+	DBReplicaPingAttempts          = 2
 	// This is a numerical version string by postgres. The format is
 	// 2 characters for major, minor, and patch version prior to 10.
 	// After 10, it's major and minor only.
 	// 10.1 would be 100001.
 	// 9.6.3 would be 90603.
 	minimumRequiredPostgresVersion = 130000
-	// major*1000 + minor*100 + patch
-	minimumRequiredMySQLVersion = 8000
 
 	migrationsDirectionUp   migrationDirection = "up"
 	migrationsDirectionDown migrationDirection = "down"
@@ -65,8 +58,6 @@ const (
 
 	RemoteClusterSiteURLUniqueIndex = "remote_clusters_site_url_unique"
 )
-
-var tablesToCheckForCollation = []string{"incomingwebhooks", "preferences", "users", "uploadsessions", "channels", "publicchannels"}
 
 type SqlStoreStores struct {
 	team                       store.TeamStore
@@ -118,6 +109,8 @@ type SqlStoreStores struct {
 	propertyGroup              store.PropertyGroupStore
 	propertyField              store.PropertyFieldStore
 	propertyValue              store.PropertyValueStore
+	accessControlPolicy        store.AccessControlPolicyStore
+	Attributes                 store.AttributesStore
 }
 
 type SqlStore struct {
@@ -132,7 +125,7 @@ type SqlStore struct {
 
 	searchReplicaXs []*atomic.Pointer[sqlxDBWrapper]
 
-	replicaLagHandles []*dbsql.DB
+	replicaLagHandles []*sql.DB
 	stores            SqlStoreStores
 	settings          *model.SqlSettings
 	lockedToMaster    bool
@@ -145,6 +138,7 @@ type SqlStore struct {
 	isBinaryParam             bool
 	pgDefaultTextSearchConfig string
 	skipMigrations            bool
+	disableMorphLogging       bool
 
 	quitMonitor chan struct{}
 	wgMonitor   *sync.WaitGroup
@@ -153,6 +147,13 @@ type SqlStore struct {
 func SkipMigrations() Option {
 	return func(s *SqlStore) error {
 		s.skipMigrations = true
+		return nil
+	}
+}
+
+func DisableMorphLogging() Option {
+	return func(s *SqlStore) error {
+		s.disableMorphLogging = true
 		return nil
 	}
 }
@@ -192,13 +193,8 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 		return nil, errors.Wrap(err, "error while checking DB version")
 	}
 
-	err = store.ensureDatabaseCollation()
-	if err != nil {
-		return nil, errors.Wrap(err, "error while checking DB collation")
-	}
-
 	if !store.skipMigrations {
-		err = store.migrate(migrationsDirectionUp, false)
+		err = store.migrate(migrationsDirectionUp, false, !store.disableMorphLogging)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to apply database migrations")
 		}
@@ -263,6 +259,8 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.propertyGroup = newPropertyGroupStore(store)
 	store.stores.propertyField = newPropertyFieldStore(store)
 	store.stores.propertyValue = newPropertyValueStore(store)
+	store.stores.accessControlPolicy = newSqlAccessControlPolicyStore(store, metrics)
+	store.stores.Attributes = newSqlAttributesStore(store, metrics)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -281,20 +279,8 @@ func (ss *SqlStore) Logger() mlog.LoggerIFace {
 	return ss.logger
 }
 
-func noOpMapper(s string) string { return s }
-
 func (ss *SqlStore) initConnection() error {
 	dataSource := *ss.settings.DataSource
-	if ss.DriverName() == model.DatabaseDriverMysql {
-		// TODO: We ignore the readTimeout datasource parameter for MySQL since QueryTimeout
-		// covers that already. Ideally we'd like to do this only for the upgrade
-		// step. To be reviewed in MM-35789.
-		var err error
-		dataSource, err = sqlUtils.ResetReadTimeout(dataSource)
-		if err != nil {
-			return errors.Wrap(err, "failed to reset read timeout from datasource")
-		}
-	}
 
 	handle, err := sqlUtils.SetupConnection(ss.Logger(), "master", dataSource, ss.settings, DBPingAttempts)
 	if err != nil {
@@ -303,9 +289,6 @@ func (ss *SqlStore) initConnection() error {
 	ss.masterX = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 		time.Duration(*ss.settings.QueryTimeout)*time.Second,
 		*ss.settings.Trace)
-	if ss.DriverName() == model.DatabaseDriverMysql {
-		ss.masterX.MapperFunc(noOpMapper)
-	}
 	if ss.metrics != nil {
 		ss.metrics.RegisterDBCollector(ss.masterX.DB.DB, "master")
 	}
@@ -341,16 +324,17 @@ func (ss *SqlStore) initConnection() error {
 	}
 
 	if len(ss.settings.ReplicaLagSettings) > 0 {
-		ss.replicaLagHandles = make([]*dbsql.DB, len(ss.settings.ReplicaLagSettings))
+		ss.replicaLagHandles = make([]*sql.DB, 0, len(ss.settings.ReplicaLagSettings))
 		for i, src := range ss.settings.ReplicaLagSettings {
 			if src.DataSource == nil {
 				continue
 			}
-			ss.replicaLagHandles[i], err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings, DBReplicaPingAttempts)
+			replicaLagHandle, err := sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings, DBReplicaPingAttempts)
 			if err != nil {
 				mlog.Warn("Failed to setup replica lag handle. Skipping..", mlog.String("db", fmt.Sprintf(replicaLagPrefix+"-%d", i)), mlog.Err(err))
 				continue
 			}
+			ss.replicaLagHandles = append(ss.replicaLagHandles, replicaLagHandle)
 		}
 	}
 	return nil
@@ -417,8 +401,6 @@ func (ss *SqlStore) GetDbVersion(numerical bool) (string, error) {
 		} else {
 			sqlVersion = `SHOW server_version`
 		}
-	} else if ss.DriverName() == model.DatabaseDriverMysql {
-		sqlVersion = `SELECT version()`
 	} else {
 		return "", errors.New("Not supported driver")
 	}
@@ -440,9 +422,6 @@ func (ss *SqlStore) SetMasterX(db *sql.DB) {
 	ss.masterX = newSqlxDBWrapper(sqlx.NewDb(db, ss.DriverName()),
 		time.Duration(*ss.settings.QueryTimeout)*time.Second,
 		*ss.settings.Trace)
-	if ss.DriverName() == model.DatabaseDriverMysql {
-		ss.masterX.MapperFunc(noOpMapper)
-	}
 }
 
 func (ss *SqlStore) GetInternalMasterDB() *sql.DB {
@@ -522,13 +501,10 @@ func (ss *SqlStore) monitorReplicas() {
 	}
 }
 
-func (ss *SqlStore) setDB(replica *atomic.Pointer[sqlxDBWrapper], handle *dbsql.DB, name string) {
+func (ss *SqlStore) setDB(replica *atomic.Pointer[sqlxDBWrapper], handle *sql.DB, name string) {
 	replica.Store(newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 		time.Duration(*ss.settings.QueryTimeout)*time.Second,
 		*ss.settings.Trace))
-	if ss.DriverName() == model.DatabaseDriverMysql {
-		replica.Load().MapperFunc(noOpMapper)
-	}
 	if ss.metrics != nil {
 		ss.metrics.RegisterDBCollector(replica.Load().DB.DB, name)
 	}
@@ -630,187 +606,9 @@ func (ss *SqlStore) MarkSystemRanUnitTests() {
 	}
 }
 
-func (ss *SqlStore) DoesTableExist(tableName string) bool {
-	if ss.DriverName() == model.DatabaseDriverPostgres {
-		var count int64
-		err := ss.GetMaster().Get(&count,
-			`SELECT count(relname) FROM pg_class WHERE relname=$1`,
-			strings.ToLower(tableName),
-		)
-
-		if err != nil {
-			mlog.Fatal("Failed to check if table exists", mlog.Err(err))
-		}
-
-		return count > 0
-	} else if ss.DriverName() == model.DatabaseDriverMysql {
-		var count int64
-		err := ss.GetMaster().Get(&count,
-			`SELECT
-		    COUNT(0) AS table_exists
-			FROM
-			    information_schema.TABLES
-			WHERE
-			    TABLE_SCHEMA = DATABASE()
-			        AND TABLE_NAME = ?
-		    `,
-			tableName,
-		)
-
-		if err != nil {
-			mlog.Fatal("Failed to check if table exists", mlog.Err(err))
-		}
-
-		return count > 0
-	}
-	mlog.Fatal("Failed to check if column exists because of missing driver")
-	return false
-}
-
-func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
-	if ss.DriverName() == model.DatabaseDriverPostgres {
-		var count int64
-		err := ss.GetMaster().Get(&count,
-			`SELECT COUNT(0)
-			FROM   pg_attribute
-			WHERE  attrelid = $1::regclass
-			AND    attname = $2
-			AND    NOT attisdropped`,
-			strings.ToLower(tableName),
-			strings.ToLower(columnName),
-		)
-
-		if err != nil {
-			if err.Error() == "pq: relation \""+strings.ToLower(tableName)+"\" does not exist" {
-				return false
-			}
-
-			mlog.Fatal("Failed to check if column exists", mlog.Err(err))
-		}
-
-		return count > 0
-	} else if ss.DriverName() == model.DatabaseDriverMysql {
-		var count int64
-		err := ss.GetMaster().Get(&count,
-			`SELECT
-		    COUNT(0) AS column_exists
-		FROM
-		    information_schema.COLUMNS
-		WHERE
-		    TABLE_SCHEMA = DATABASE()
-		        AND TABLE_NAME = ?
-		        AND COLUMN_NAME = ?`,
-			tableName,
-			columnName,
-		)
-
-		if err != nil {
-			mlog.Fatal("Failed to check if column exists", mlog.Err(err))
-		}
-
-		return count > 0
-	}
-	mlog.Fatal("Failed to check if column exists because of missing driver")
-	return false
-}
-
-func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
-	if ss.DriverName() == model.DatabaseDriverPostgres {
-		var count int64
-		err := ss.GetMaster().Get(&count, `
-			SELECT
-				COUNT(0)
-			FROM
-				pg_trigger
-			WHERE
-				tgname = $1
-		`, triggerName)
-
-		if err != nil {
-			mlog.Fatal("Failed to check if trigger exists", mlog.Err(err))
-		}
-
-		return count > 0
-	} else if ss.DriverName() == model.DatabaseDriverMysql {
-		var count int64
-		err := ss.GetMaster().Get(&count, `
-			SELECT
-				COUNT(0)
-			FROM
-				information_schema.triggers
-			WHERE
-				trigger_schema = DATABASE()
-			AND	trigger_name = ?
-		`, triggerName)
-
-		if err != nil {
-			mlog.Fatal("Failed to check if trigger exists", mlog.Err(err))
-		}
-
-		return count > 0
-	}
-	mlog.Fatal("Failed to check if column exists because of missing driver")
-	return false
-}
-
-func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string, mySqlColType string, postgresColType string, defaultValue string) bool {
-	if ss.DoesColumnExist(tableName, columnName) {
-		return false
-	}
-
-	if ss.DriverName() == model.DatabaseDriverPostgres {
-		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
-		if err != nil {
-			mlog.Fatal("Failed to create column", mlog.Err(err))
-		}
-
-		return true
-	} else if ss.DriverName() == model.DatabaseDriverMysql {
-		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
-		if err != nil {
-			mlog.Fatal("Failed to create column", mlog.Err(err))
-		}
-
-		return true
-	}
-	mlog.Fatal("Failed to create column because of missing driver")
-	return false
-}
-
-func (ss *SqlStore) RemoveTableIfExists(tableName string) bool {
-	if !ss.DoesTableExist(tableName) {
-		return false
-	}
-
-	_, err := ss.GetMaster().ExecNoTimeout("DROP TABLE " + tableName)
-	if err != nil {
-		mlog.Fatal("Failed to drop table", mlog.Err(err))
-	}
-
-	return true
-}
-
-func IsConstraintAlreadyExistsError(err error) bool {
-	switch dbErr := err.(type) {
-	case *pq.Error:
-		if dbErr.Code == PGDuplicateObjectErrorCode {
-			return true
-		}
-	case *mysql.MySQLError:
-		if dbErr.Number == MySQLDuplicateObjectErrorCode {
-			return true
-		}
-	}
-	return false
-}
-
 func IsUniqueConstraintError(err error, indexName []string) bool {
 	unique := false
 	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
-		unique = true
-	}
-
-	if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
 		unique = true
 	}
 
@@ -1078,29 +876,27 @@ func (ss *SqlStore) PropertyValue() store.PropertyValueStore {
 	return ss.stores.propertyValue
 }
 
+func (ss *SqlStore) AccessControlPolicy() store.AccessControlPolicyStore {
+	return ss.stores.accessControlPolicy
+}
+
+func (ss *SqlStore) Attributes() store.AttributesStore {
+	return ss.stores.Attributes
+}
+
 func (ss *SqlStore) DropAllTables() {
-	if ss.DriverName() == model.DatabaseDriverPostgres {
-		ss.masterX.Exec(`DO
-			$func$
-			BEGIN
-			   EXECUTE
-			   (SELECT 'TRUNCATE TABLE ' || string_agg(oid::regclass::text, ', ') || ' CASCADE'
-			    FROM   pg_class
-			    WHERE  relkind = 'r'  -- only tables
-			    AND    relnamespace = 'public'::regnamespace
-				AND NOT relname = 'db_migrations'
-			   );
-			END
-			$func$;`)
-	} else {
-		tables := []string{}
-		ss.masterX.Select(&tables, `show tables`)
-		for _, t := range tables {
-			if t != "db_migrations" {
-				ss.masterX.Exec(`TRUNCATE TABLE ` + t)
-			}
-		}
-	}
+	ss.masterX.Exec(`DO
+		$func$
+		BEGIN
+		   EXECUTE
+		   (SELECT 'TRUNCATE TABLE ' || string_agg(oid::regclass::text, ', ') || ' CASCADE'
+		    FROM   pg_class
+		    WHERE  relkind = 'r'  -- only tables
+		    AND    relnamespace = 'public'::regnamespace
+			AND NOT relname = 'db_migrations'
+		   );
+		END
+		$func$;`)
 }
 
 func (ss *SqlStore) getQueryBuilder() sq.StatementBuilderType {
@@ -1108,10 +904,7 @@ func (ss *SqlStore) getQueryBuilder() sq.StatementBuilderType {
 }
 
 func (ss *SqlStore) getQueryPlaceholder() sq.PlaceholderFormat {
-	if ss.DriverName() == model.DatabaseDriverPostgres {
-		return sq.Dollar
-	}
-	return sq.Question
+	return sq.Dollar
 }
 
 // getSubQueryBuilder is necessary to generate the SQL query and args to pass to sub-queries because squirrel does not support WHERE clause in sub-queries.
@@ -1160,14 +953,8 @@ func convertMySQLFullTextColumnsToPostgres(columnNames string) string {
 // tables in the database.
 func IsDuplicate(err error) bool {
 	var pqErr *pq.Error
-	var mysqlErr *mysql.MySQLError
-	switch {
-	case errors.As(errors.Cause(err), &pqErr):
+	if errors.As(errors.Cause(err), &pqErr) {
 		if pqErr.Code == PGDupTableErrorCode {
-			return true
-		}
-	case errors.As(errors.Cause(err), &mysqlErr):
-		if mysqlErr.Number == MySQLDupTableErrorCode {
 			return true
 		}
 	}
@@ -1187,106 +974,22 @@ func (ss *SqlStore) ensureMinimumDBVersion(ver string) (bool, error) {
 		if intVer < minimumRequiredPostgresVersion {
 			return false, fmt.Errorf("minimum Postgres version requirements not met. Found: %s, Wanted: %s", versionString(intVer, *ss.settings.DriverName), versionString(minimumRequiredPostgresVersion, *ss.settings.DriverName))
 		}
-	case model.DatabaseDriverMysql:
-		// Usually a version string is of the form 5.6.49-log, 10.4.5-MariaDB etc.
-		if strings.Contains(strings.ToLower(ver), "maria") {
-			mlog.Warn("MariaDB detected. You are using an unsupported database. Please consider using MySQL or Postgres.")
-			return true, nil
-		}
-		parts := strings.Split(ver, "-")
-		if len(parts) < 1 {
-			return false, fmt.Errorf("cannot parse MySQL DB version: %s", ver)
-		}
-		// Get the major and minor versions.
-		versions := strings.Split(parts[0], ".")
-		if len(versions) < 3 {
-			return false, fmt.Errorf("cannot parse MySQL DB version: %s", ver)
-		}
-		majorVer, err2 := strconv.Atoi(versions[0])
-		if err2 != nil {
-			return false, fmt.Errorf("cannot parse MySQL DB version: %w", err2)
-		}
-		minorVer, err2 := strconv.Atoi(versions[1])
-		if err2 != nil {
-			return false, fmt.Errorf("cannot parse MySQL DB version: %w", err2)
-		}
-		patchVer, err2 := strconv.Atoi(versions[2])
-		if err2 != nil {
-			return false, fmt.Errorf("cannot parse MySQL DB version: %w", err2)
-		}
-		intVer := majorVer*1000 + minorVer*100 + patchVer
-		if intVer < minimumRequiredMySQLVersion {
-			return false, fmt.Errorf("Minimum MySQL version requirements not met. Found: %s, Wanted: %s", versionString(intVer, *ss.settings.DriverName), versionString(minimumRequiredMySQLVersion, *ss.settings.DriverName))
-		}
 	}
 	return true, nil
 }
 
-func (ss *SqlStore) ensureDatabaseCollation() error {
-	if *ss.settings.DriverName != model.DatabaseDriverMysql {
-		return nil
-	}
-
-	var connCollation struct {
-		Variable_name string
-		Value         string
-	}
-	if err := ss.GetMaster().Get(&connCollation, "SHOW VARIABLES LIKE 'collation_connection'"); err != nil {
-		return errors.Wrap(err, "unable to select variables")
-	}
-
-	// we compare table collation with the connection collation value so that we can
-	// catch collation mismatches for tables we have a migration for.
-	for _, tableName := range tablesToCheckForCollation {
-		// we check if table exists because this code runs before the migrations applied
-		// which means if there is a fresh db, we may fail on selecting the table_collation
-		var exists int
-		if err := ss.GetMaster().Get(&exists, "SELECT count(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND LOWER(table_name) = ?", tableName); err != nil {
-			return errors.Wrap(err, fmt.Sprintf("unable to check if table exists for collation check: %q", tableName))
-		} else if exists == 0 {
-			continue
-		}
-
-		var tableCollation string
-		if err := ss.GetMaster().Get(&tableCollation, "SELECT table_collation FROM information_schema.tables WHERE table_schema = DATABASE() AND LOWER(table_name) = ?", tableName); err != nil {
-			return errors.Wrap(err, fmt.Sprintf("unable to get table collation: %q", tableName))
-		}
-
-		if tableCollation != connCollation.Value {
-			mlog.Warn("Table collation mismatch", mlog.String("table_name", tableName), mlog.String("connection_collation", connCollation.Value), mlog.String("table_collation", tableCollation))
-		}
-	}
-
-	return nil
-}
-
-// versionString converts an integer representation of a DB version
+// versionString converts an integer representation of a Postgres DB version
 // to a pretty-printed string.
 // Postgres doesn't follow three-part version numbers from 10.0 onwards:
 // https://www.postgresql.org/docs/13/libpq-status.html#LIBPQ-PQSERVERVERSION.
-// For MySQL, we consider a major*1000 + minor*100 + patch format.
 func versionString(v int, driver string) string {
-	switch driver {
-	case model.DatabaseDriverPostgres:
-		minor := v % 10000
-		major := v / 10000
-		return strconv.Itoa(major) + "." + strconv.Itoa(minor)
-	case model.DatabaseDriverMysql:
-		minor := v % 1000
-		major := v / 1000
-		patch := minor % 100
-		minor = minor / 100
-		return strconv.Itoa(major) + "." + strconv.Itoa(minor) + "." + strconv.Itoa(patch)
-	}
-	return ""
+	minor := v % 10000
+	major := v / 10000
+	return strconv.Itoa(major) + "." + strconv.Itoa(minor)
 }
 
 func (ss *SqlStore) toReserveCase(str string) string {
-	if ss.DriverName() == model.DatabaseDriverPostgres {
-		return fmt.Sprintf("%q", str)
-	}
-
-	return fmt.Sprintf("`%s`", strings.Title(str))
+	return fmt.Sprintf("%q", str)
 }
 
 func (ss *SqlStore) GetLocalSchemaVersion() (int, error) {
@@ -1338,36 +1041,17 @@ func (ss *SqlStore) determineMaxColumnSize(tableName, columnName string) (int, e
 	var columnSizeBytes int32
 	ss.getQueryPlaceholder()
 
-	if ss.DriverName() == model.DatabaseDriverPostgres {
-		if err := ss.GetReplica().Get(&columnSizeBytes, `
-			SELECT
-				COALESCE(character_maximum_length, 0)
-			FROM
-				information_schema.columns
-			WHERE
-				lower(table_name) = lower($1)
-			AND	lower(column_name) = lower($2)
-		`, tableName, columnName); err != nil {
-			mlog.Warn("Unable to determine the maximum supported column size for Postgres", mlog.Err(err))
-			return 0, err
-		}
-	} else if ss.DriverName() == model.DatabaseDriverMysql {
-		if err := ss.GetReplica().Get(&columnSizeBytes, `
-			SELECT
-				COALESCE(CHARACTER_MAXIMUM_LENGTH, 0)
-			FROM
-				INFORMATION_SCHEMA.COLUMNS
-			WHERE
-				table_schema = DATABASE()
-			AND	lower(table_name) = lower(?)
-			AND	lower(column_name) = lower(?)
-			LIMIT 0, 1
-		`, tableName, columnName); err != nil {
-			mlog.Warn("Unable to determine the maximum supported column size for MySQL", mlog.Err(err))
-			return 0, err
-		}
-	} else {
-		mlog.Warn("No implementation found to determine the maximum supported column size")
+	if err := ss.GetReplica().Get(&columnSizeBytes, `
+		SELECT
+			COALESCE(character_maximum_length, 0)
+		FROM
+			information_schema.columns
+		WHERE
+			lower(table_name) = lower($1)
+		AND	lower(column_name) = lower($2)
+	`, tableName, columnName); err != nil {
+		mlog.Warn("Unable to determine the maximum supported column size for Postgres", mlog.Err(err))
+		return 0, err
 	}
 
 	// Assume a worst-case representation of four bytes per rune.

@@ -103,22 +103,41 @@ const messages: Record<string, MessageDescriptor> =
 const SearchFileExtensionSuggestion = React.forwardRef<
 HTMLDivElement,
 SuggestionProps<ExtensionItem>
->(({item, onClick, matchedPretext, isSelection}, ref) => {
+>(({id, item, onClick, matchedPretext, isSelection}, ref) => {
     const intl = useIntl();
 
     const optionClicked = useCallback(() => {
         onClick(item.value, matchedPretext);
     }, [onClick, item.value, matchedPretext]);
 
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            optionClicked();
+        }
+    }, [optionClicked]);
+
     const labelName = messages[item.type] ?
         intl.formatMessage(messages[item.type]) :
         item.type;
 
+    const ariaLabel = intl.formatMessage({
+        id: 'search_file_extension_suggestion.aria_label',
+        defaultMessage: '{fileType} (.{extension})',
+    }, {
+        fileType: labelName,
+        extension: item.value,
+    });
+
     return (
         <SearchFileExtensionSuggestionContainer
             ref={ref}
+            id={id}
             className={classNames({selected: isSelection})}
             onClick={optionClicked}
+            onKeyDown={handleKeyDown}
+            role='option'
+            aria-label={ariaLabel}
         >
             <div className={classNames('file-icon', getCompassIconClassName(item.type))}/>
             {labelName}

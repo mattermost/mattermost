@@ -93,7 +93,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		o4.UserId = model.NewId()
 		o4.Message = NewTestID()
 
-		newPosts, errIdx, err3 := ss.Post().SaveMultiple([]*model.Post{&o2, &o3, &o4})
+		newPosts, errIdx, err3 := ss.Post().SaveMultiple(rctx, []*model.Post{&o2, &o3, &o4})
 
 		opts := model.GetPostsOptions{
 			SkipFetchThreads: true,
@@ -135,7 +135,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		o5.RootId = newPosts[0].Id
 		o5.Message = NewTestID()
 
-		_, _, err = ss.Post().SaveMultiple([]*model.Post{&o5})
+		_, _, err = ss.Post().SaveMultiple(rctx, []*model.Post{&o5})
 		require.NoError(t, err, "couldn't save item")
 
 		thread, err = ss.Thread().Get(newPosts[0].Id)
@@ -185,7 +185,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		replyPost.Message = NewTestID()
 		replyPost.RootId = rootPost.RootId
 
-		newPosts, _, err := ss.Post().SaveMultiple([]*model.Post{&rootPost, &replyPost})
+		newPosts, _, err := ss.Post().SaveMultiple(rctx, []*model.Post{&rootPost, &replyPost})
 		require.NoError(t, err)
 
 		thread1, err := ss.Thread().Get(newPosts[0].RootId)
@@ -207,7 +207,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		replyPost3.Message = NewTestID()
 		replyPost3.RootId = rootPost.Id
 
-		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
+		_, _, err = ss.Post().SaveMultiple(rctx, []*model.Post{&replyPost2, &replyPost3})
 		require.NoError(t, err)
 
 		rrootPost2, err := ss.Post().GetSingle(rctx, rootPost.Id, false)
@@ -295,7 +295,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		rootPost.UserId = model.NewId()
 		rootPost.Message = NewTestID()
 
-		newPosts1, _, err := ss.Post().SaveMultiple([]*model.Post{&rootPost})
+		newPosts1, _, err := ss.Post().SaveMultiple(rctx, []*model.Post{&rootPost})
 		require.NoError(t, err)
 
 		replyPost := model.Post{}
@@ -304,7 +304,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		replyPost.Message = NewTestID()
 		replyPost.RootId = newPosts1[0].Id
 
-		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost})
+		_, _, err = ss.Post().SaveMultiple(rctx, []*model.Post{&replyPost})
 		require.NoError(t, err)
 
 		thread1, err := ss.Thread().Get(newPosts1[0].Id)
@@ -530,7 +530,11 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, rctx 
 	require.NoError(t, err)
 
 	nowMillis := thread.LastReplyAt + *channelPolicy.PostDurationDays*model.DayInMilliseconds + 1
-	_, _, err = ss.Thread().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, limit, model.RetentionPolicyCursor{})
+	_, _, err = ss.Thread().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+		Now:                 nowMillis,
+		GlobalPolicyEndTime: 0,
+		Limit:               limit,
+	}, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 	thread, err = ss.Thread().Get(post.Id)
 	assert.NoError(t, err)
@@ -552,7 +556,11 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, rctx 
 	require.NoError(t, err)
 
 	nowMillis = thread.LastReplyAt + *teamPolicy.PostDurationDays*model.DayInMilliseconds + 1
-	_, _, err = ss.Thread().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, limit, model.RetentionPolicyCursor{})
+	_, _, err = ss.Thread().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+		Now:                 nowMillis,
+		GlobalPolicyEndTime: 0,
+		Limit:               limit,
+	}, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 	_, err = ss.Thread().Get(post.Id)
 	require.NoError(t, err, "channel policy should have overridden team policy")
@@ -560,7 +568,11 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, rctx 
 	// Delete channel policy and re-run team policy
 	err = ss.RetentionPolicy().Delete(channelPolicy.ID)
 	require.NoError(t, err)
-	_, _, err = ss.Thread().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, limit, model.RetentionPolicyCursor{})
+	_, _, err = ss.Thread().PermanentDeleteBatchForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+		Now:                 nowMillis,
+		GlobalPolicyEndTime: 0,
+		Limit:               limit,
+	}, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 	thread, err = ss.Thread().Get(post.Id)
 	assert.NoError(t, err)
@@ -617,7 +629,11 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	require.NoError(t, err)
 
 	nowMillis := threadMembership.LastUpdated + *channelPolicy.PostDurationDays*model.DayInMilliseconds + 1
-	_, _, err = ss.Thread().PermanentDeleteBatchThreadMembershipsForRetentionPolicies(nowMillis, 0, limit, model.RetentionPolicyCursor{})
+	_, _, err = ss.Thread().PermanentDeleteBatchThreadMembershipsForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+		Now:                 nowMillis,
+		GlobalPolicyEndTime: 0,
+		Limit:               limit,
+	}, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 	_, err = ss.Thread().GetMembershipForUser(userID, post.Id)
 	require.Error(t, err, "thread membership should have been deleted by channel policy")
@@ -636,7 +652,11 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	require.NoError(t, err)
 
 	nowMillis = threadMembership.LastUpdated + *teamPolicy.PostDurationDays*model.DayInMilliseconds + 1
-	_, _, err = ss.Thread().PermanentDeleteBatchThreadMembershipsForRetentionPolicies(nowMillis, 0, limit, model.RetentionPolicyCursor{})
+	_, _, err = ss.Thread().PermanentDeleteBatchThreadMembershipsForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+		Now:                 nowMillis,
+		GlobalPolicyEndTime: 0,
+		Limit:               limit,
+	}, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 	_, err = ss.Thread().GetMembershipForUser(userID, post.Id)
 	require.NoError(t, err, "channel policy should have overridden team policy")
@@ -644,7 +664,11 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	// Delete channel policy and re-run team policy
 	err = ss.RetentionPolicy().Delete(channelPolicy.ID)
 	require.NoError(t, err)
-	_, _, err = ss.Thread().PermanentDeleteBatchThreadMembershipsForRetentionPolicies(nowMillis, 0, limit, model.RetentionPolicyCursor{})
+	_, _, err = ss.Thread().PermanentDeleteBatchThreadMembershipsForRetentionPolicies(model.RetentionPolicyBatchConfigs{
+		Now:                 nowMillis,
+		GlobalPolicyEndTime: 0,
+		Limit:               limit,
+	}, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 	_, err = ss.Thread().GetMembershipForUser(userID, post.Id)
 	require.Error(t, err, "thread membership should have been deleted by team policy")

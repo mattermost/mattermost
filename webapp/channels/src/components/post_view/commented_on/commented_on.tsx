@@ -1,50 +1,70 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React, {memo, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
-import type {Post} from '@mattermost/types/posts';
-import type {UserProfile as UserProfileType} from '@mattermost/types/users';
 
+import {ensureString} from 'mattermost-redux/utils/post_utils';
+
+import {usePost} from 'components/common/hooks/usePost';
+import {useUser} from 'components/common/hooks/useUser';
 import CommentedOnFilesMessage from 'components/post_view/commented_on_files_message';
 import UserProfile from 'components/user_profile';
 
 import {stripMarkdown} from 'utils/markdown';
+import {isFromWebhook} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
 type Props = {
-    enablePostUsernameOverride?: boolean;
-    parentPostUser?: UserProfileType;
     onCommentClick?: React.EventHandler<React.MouseEvent>;
-    post: Post;
+    rootId: string;
+    enablePostUsernameOverride?: boolean;
 };
 
-function CommentedOn({post, parentPostUser, onCommentClick}: Props) {
-    const makeCommentedOnMessage = () => {
-        let message: React.ReactNode = '';
-        if (post.message) {
-            message = Utils.replaceHtmlEntities(post.message);
-        } else if (post.file_ids && post.file_ids.length > 0) {
-            message = (
-                <CommentedOnFilesMessage parentPostId={post.id}/>
-            );
-        } else if (isMessageAttachmentArray(post.props?.attachments) && post.props.attachments.length > 0) {
-            const attachment = post.props.attachments[0];
-            const webhookMessage = attachment.pretext || attachment.title || attachment.text || attachment.fallback || '';
-            message = Utils.replaceHtmlEntities(webhookMessage);
+function CommentedOn({onCommentClick, rootId, enablePostUsernameOverride}: Props) {
+    const rootPost = usePost(rootId);
+    const rootPostUser = useUser(rootPost?.user_id ?? '');
+
+    const rootPostOverriddenUsername = useMemo((): string => {
+        if (!rootPost) {
+            return '';
         }
 
-        return message;
-    };
+        const rootPostIsFromWebhook = isFromWebhook(rootPost);
+        if (!rootPostIsFromWebhook) {
+            return '';
+        }
 
-    const message = makeCommentedOnMessage();
-    const parentPostUserId = parentPostUser?.id ?? '';
+        const propOverrideName = ensureString(rootPost?.props.override_username);
+        return (propOverrideName && enablePostUsernameOverride ? propOverrideName : '');
+    }, [enablePostUsernameOverride, rootPost]);
+
+    let message: React.ReactNode = '';
+    if (!rootPost) {
+        message = (
+            <FormattedMessage
+                id='post_body.commentedOn.loadingMessage'
+                defaultMessage='Loading…'
+            />
+        );
+    } else if (rootPost.message) {
+        message = Utils.replaceHtmlEntities(rootPost.message);
+    } else if (rootPost.file_ids && rootPost.file_ids.length > 0) {
+        message = (
+            <CommentedOnFilesMessage parentPostId={rootPost.id}/>
+        );
+    } else if (isMessageAttachmentArray(rootPost.props?.attachments) && rootPost.props.attachments.length > 0) {
+        const attachment = rootPost.props.attachments[0];
+        const webhookMessage = attachment.pretext || attachment.title || attachment.text || attachment.fallback || '';
+        message = Utils.replaceHtmlEntities(webhookMessage);
+    }
 
     const parentUserProfile = (
         <UserProfile
-            userId={parentPostUserId}
+            userId={rootPostUser?.id ?? ''}
+            overwriteName={rootPostOverriddenUsername}
         />
     );
 

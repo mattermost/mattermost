@@ -10,6 +10,7 @@
 // Group: @channels @enterprise @ldap
 
 import {UserProfile} from '@mattermost/types/users';
+
 import ldapUsers from '../../../../fixtures/ldap_users.json';
 import {getRandomId} from '../../../../utils';
 

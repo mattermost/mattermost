@@ -67,8 +67,12 @@ const CopyButton = styled(Button)`
     }
 
     &.success {
-        background: var(--denim-status-online);
+        background: var(--online-indicator);
         color: var(--button-color);
+
+        & i {
+            color: var(--button-color);
+        }
     }
 `;
 

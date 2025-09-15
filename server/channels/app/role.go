@@ -290,13 +290,7 @@ func removeRoles(rolesToRemove []string, roles string) string {
 	newRoles := make([]string, 0)
 
 	for _, role := range roleList {
-		shouldRemove := false
-		for _, roleToRemove := range rolesToRemove {
-			if role == roleToRemove {
-				shouldRemove = true
-				break
-			}
-		}
+		shouldRemove := slices.Contains(rolesToRemove, role)
 		if !shouldRemove {
 			newRoles = append(newRoles, role)
 		}

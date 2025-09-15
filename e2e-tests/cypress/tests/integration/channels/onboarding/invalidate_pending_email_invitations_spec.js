@@ -13,7 +13,6 @@
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 import {getAdminAccount} from '../../../support/env';
 import {getRandomId} from '../../../utils';
-
 import {inviteUserByEmail, verifyEmailInviteAndVisitLink, signupAndVerifyTutorial} from '../team_settings/helpers';
 
 describe('Onboarding', () => {
@@ -64,7 +63,7 @@ describe('Onboarding', () => {
         cy.reload();
 
         // # Open the 'Invite People' modal
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Wait half a second to ensure that the modal has been fully loaded
         cy.wait(TIMEOUTS.HALF_SEC);

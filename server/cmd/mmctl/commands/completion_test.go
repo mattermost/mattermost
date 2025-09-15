@@ -35,7 +35,7 @@ func TestFetchAndComplete(t *testing.T) {
 
 	listNames := func(n int) []string {
 		ret := []string{}
-		for i := 0; i < n; i++ {
+		for i := range n {
 			ret = append(ret, fmt.Sprintf("name_%d", i))
 		}
 		return ret
@@ -137,7 +137,7 @@ func TestFetchAndComplete(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			comp, directive := fetchAndComplete[user](tc.fetcher, tc.matcher)(context.Background(), nil, nil, nil, tc.toComplete)
+			comp, directive := fetchAndComplete(tc.fetcher, tc.matcher)(context.Background(), nil, nil, nil, tc.toComplete)
 			assert.Equal(t, tc.ExpectedCompletion, comp, name)
 
 			expectedDirective := cobra.ShellCompDirectiveNoFileComp

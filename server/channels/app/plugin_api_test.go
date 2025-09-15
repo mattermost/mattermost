@@ -70,7 +70,7 @@ func setDefaultPluginConfig(th *TestHelper, pluginID string) {
 	})
 }
 
-func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests []string, pluginIDs []string, asMain bool, app *App, c request.CTX) string {
+func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests []string, pluginIDs []string, asMain bool, app *App, rctx request.CTX) string {
 	pluginDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -90,7 +90,7 @@ func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests
 	})
 
 	newPluginAPI := func(manifest *model.Manifest) plugin.API {
-		return app.NewPluginAPI(c, manifest)
+		return app.NewPluginAPI(rctx, manifest)
 	}
 
 	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, app.Log(), nil)
@@ -126,14 +126,15 @@ func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests
 	return pluginDir
 }
 
-func setupPluginAPITest(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c request.CTX) string {
+func setupPluginAPITest(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, rctx request.CTX) string {
 	asMain := pluginID != "test_db_driver"
 	return setupMultiPluginAPITest(t,
 		[]string{pluginCode}, []string{pluginManifest}, []string{pluginID},
-		asMain, app, c)
+		asMain, app, rctx)
 }
 
 func TestPublicFilesPathConfiguration(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -164,6 +165,7 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 }
 
 func TestPluginAPIGetUserPreference(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("should return preferences when called", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -211,6 +213,7 @@ func TestPluginAPIGetUserPreference(t *testing.T) {
 }
 
 func TestPluginAPIGetUserPreferences(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -244,6 +247,7 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 }
 
 func TestPluginAPIDeleteUserPreferences(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -305,6 +309,7 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 }
 
 func TestPluginAPIUpdateUserPreferences(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -356,6 +361,7 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 }
 
 func TestPluginAPIGetUsers(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).DeleteBots()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -455,6 +461,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 }
 
 func TestPluginAPIGetUsersByIds(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).DeleteBots()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -519,6 +526,7 @@ func TestPluginAPIGetUsersByIds(t *testing.T) {
 }
 
 func TestPluginAPIGetUsersInTeam(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -647,6 +655,7 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 }
 
 func TestPluginAPIUserCustomStatus(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -703,6 +712,7 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 }
 
 func TestPluginAPIGetFile(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -731,6 +741,7 @@ func TestPluginAPIGetFile(t *testing.T) {
 }
 
 func TestPluginAPIGetFileInfos(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -828,6 +839,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 }
 
 func TestPluginAPISavePluginConfig(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -871,6 +883,7 @@ func TestPluginAPISavePluginConfig(t *testing.T) {
 }
 
 func TestPluginAPILoadPluginConfiguration(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -904,6 +917,7 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 }
 
 func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -941,6 +955,7 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 }
 
 func TestPluginAPIGetPlugins(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -977,7 +992,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
 		utils.CompileGo(t, pluginCode, backend)
 
-		err := os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(fmt.Sprintf(`{"id": "%s", "server": {"executable": "backend.exe"}}`, pluginID)), 0600)
+		err := os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), fmt.Appendf(nil, `{"id": "%s", "server": {"executable": "backend.exe"}}`, pluginID), 0600)
 		require.NoError(t, err)
 		manifest, activated, reterr := env.Activate(pluginID)
 
@@ -1000,6 +1015,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 }
 
 func TestPluginAPIInstallPlugin(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1036,12 +1052,13 @@ func TestPluginAPIInstallPlugin(t *testing.T) {
 }
 
 func TestInstallPlugin(t *testing.T) {
+	mainHelper.Parallel(t)
 	// TODO(ilgooz): remove this setup func to use existent setupPluginAPITest().
 	// following setupTest() func is a modified version of setupPluginAPITest().
 	// we need a modified version of setupPluginAPITest() because it wasn't possible to use it directly here
 	// since it removes plugin dirs right after it returns, does not update App configs with the plugin
 	// dirs and this behavior tends to break this test as a result.
-	setupTest := func(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c request.CTX) (func(), string) {
+	setupTest := func(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, rctx request.CTX) (func(), string) {
 		pluginDir, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
 		webappPluginDir, err := os.MkdirTemp("", "")
@@ -1053,7 +1070,7 @@ func TestInstallPlugin(t *testing.T) {
 		})
 
 		newPluginAPI := func(manifest *model.Manifest) plugin.API {
-			return app.NewPluginAPI(c, manifest)
+			return app.NewPluginAPI(rctx, manifest)
 		}
 
 		env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, app.Log(), nil)
@@ -1162,6 +1179,7 @@ func TestInstallPlugin(t *testing.T) {
 }
 
 func TestPluginAPIGetTeamIcon(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1177,7 +1195,7 @@ func TestPluginAPIGetTeamIcon(t *testing.T) {
 	fileReader := bytes.NewReader(dataBytes)
 
 	// Set the Team Icon
-	appErr := th.App.SetTeamIconFromFile(th.BasicTeam, fileReader)
+	appErr := th.App.SetTeamIconFromFile(th.Context, th.BasicTeam, fileReader)
 	require.Nil(t, appErr)
 
 	// Get the team icon to check
@@ -1193,6 +1211,7 @@ func TestPluginAPIGetTeamIcon(t *testing.T) {
 }
 
 func TestPluginAPISetTeamIcon(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1223,6 +1242,7 @@ func TestPluginAPISetTeamIcon(t *testing.T) {
 }
 
 func TestPluginAPIRemoveTeamIcon(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1239,7 +1259,7 @@ func TestPluginAPIRemoveTeamIcon(t *testing.T) {
 	fileReader := bytes.NewReader(dataBytes)
 
 	// Set the Team Icon
-	err := th.App.SetTeamIconFromFile(th.BasicTeam, fileReader)
+	err := th.App.SetTeamIconFromFile(th.Context, th.BasicTeam, fileReader)
 	require.Nil(t, err)
 	err = api.RemoveTeamIcon(th.BasicTeam.Id)
 	require.Nil(t, err)
@@ -1278,6 +1298,7 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 // 5. Successfully running test should return nil, "OK". Any other returned string is considered and error
 
 func TestBasicAPIPlugins(t *testing.T) {
+	mainHelper.Parallel(t)
 	defaultSchema := getDefaultPluginSettingsSchema()
 	testFolder := filepath.Join(server.GetPackagePath(), "channels", "app", "plugin_api_tests")
 	dirs, err := os.ReadDir(testFolder)
@@ -1286,6 +1307,8 @@ func TestBasicAPIPlugins(t *testing.T) {
 		d := dir.Name()
 		if dir.IsDir() && !strings.HasPrefix(d, "manual.") {
 			t.Run(d, func(t *testing.T) {
+				mainHelper.Parallel(t)
+
 				mainPath := filepath.Join(testFolder, d, "main.go")
 				_, err := os.Stat(mainPath)
 				require.NoError(t, err, "Cannot find plugin main file at %v", mainPath)
@@ -1300,6 +1323,7 @@ func TestBasicAPIPlugins(t *testing.T) {
 }
 
 func TestPluginAPIKVCompareAndSet(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1396,6 +1420,7 @@ func TestPluginAPIKVCompareAndSet(t *testing.T) {
 }
 
 func TestPluginAPIKVCompareAndDelete(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1448,6 +1473,7 @@ func TestPluginAPIKVCompareAndDelete(t *testing.T) {
 }
 
 func TestPluginCreateBot(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1469,6 +1495,7 @@ func TestPluginCreateBot(t *testing.T) {
 }
 
 func TestPluginCreatePostWithUploadedFile(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1505,6 +1532,7 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 }
 
 func TestPluginCreatePostAddsFromPluginProp(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1520,10 +1548,11 @@ func TestPluginCreatePostAddsFromPluginProp(t *testing.T) {
 
 	actualPost, err := api.GetPost(post.Id)
 	require.Nil(t, err)
-	assert.Equal(t, "true", actualPost.GetProp("from_plugin"))
+	assert.Equal(t, "true", actualPost.GetProp(model.PostPropsFromPlugin))
 }
 
 func TestPluginAPIGetConfig(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1561,6 +1590,7 @@ func TestPluginAPIGetConfig(t *testing.T) {
 }
 
 func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1598,6 +1628,7 @@ func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
 }
 
 func TestPluginAddUserToChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1610,11 +1641,13 @@ func TestPluginAddUserToChannel(t *testing.T) {
 }
 
 func TestInterpluginPluginHTTP(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
 	setupMultiPluginAPITest(t,
-		[]string{`
+		[]string{
+			`
 		package main
 
 		import (
@@ -1739,6 +1772,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 }
 
 func TestAPIMetrics(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1759,8 +1793,7 @@ func TestAPIMetrics(t *testing.T) {
 
 		pluginID := model.NewId()
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
-		code :=
-			`
+		code := `
 	package main
 
 	import (
@@ -1821,6 +1854,7 @@ func TestAPIMetrics(t *testing.T) {
 }
 
 func TestPluginAPIGetPostsForChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	require := require.New(t)
 
 	th := Setup(t).InitBasic()
@@ -1864,6 +1898,7 @@ func TestPluginAPIGetPostsForChannel(t *testing.T) {
 }
 
 func TestPluginHTTPConnHijack(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1894,6 +1929,23 @@ func TestPluginHTTPConnHijack(t *testing.T) {
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.Equal(t, "OK", string(body))
+}
+
+func makePluginHTTPRequest(t *testing.T, pluginID string, port int, token string) string {
+	t.Helper()
+	client := &http.Client{}
+	reqURL := fmt.Sprintf("http://localhost:%d/plugins/%s", port, pluginID)
+	req, err := http.NewRequest("GET", reqURL, nil)
+	require.NoError(t, err)
+	req.Header.Set(model.HeaderAuth, model.HeaderToken+" "+token)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	return string(body)
 }
 
 func TestPluginMFAEnforcement(t *testing.T) {
@@ -1942,22 +1994,6 @@ func TestPluginMFAEnforcement(t *testing.T) {
 	})
 	require.Nil(t, appErr)
 
-	client := &http.Client{}
-	makeRequest := func() string {
-		reqURL := fmt.Sprintf("http://localhost:%d/plugins/%s", th.Server.ListenAddr.Port, pluginID)
-		req, err := http.NewRequest("GET", reqURL, nil)
-		require.NoError(t, err)
-		req.Header.Set(model.HeaderAuth, model.HeaderToken+" "+session.Token)
-
-		resp, err := client.Do(req)
-		require.NoError(t, err)
-		defer resp.Body.Close()
-
-		body, err := io.ReadAll(resp.Body)
-		require.NoError(t, err)
-		return string(body)
-	}
-
 	t.Run("MFA not enforced", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableMultifactorAuthentication = true
@@ -1965,7 +2001,7 @@ func TestPluginMFAEnforcement(t *testing.T) {
 		})
 
 		// Should return user ID since MFA is not enforced
-		userID := makeRequest()
+		userID := makePluginHTTPRequest(t, pluginID, th.Server.ListenAddr.Port, session.Token)
 		assert.Equal(t, user.Id, userID)
 	})
 
@@ -1976,12 +2012,13 @@ func TestPluginMFAEnforcement(t *testing.T) {
 		})
 
 		// Should return empty string since MFA is enforced but not active
-		userID := makeRequest()
+		userID := makePluginHTTPRequest(t, pluginID, th.Server.ListenAddr.Port, session.Token)
 		assert.Empty(t, userID)
 	})
 }
 
 func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -2010,7 +2047,7 @@ func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
 	resp := <-wsc.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk)
 
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		wsc.SendMessage("custom_action", map[string]any{"value": i})
 		var resp *model.WebSocketResponse
 		select {
@@ -2043,7 +2080,7 @@ func (*MockSlashCommandProvider) GetCommand(a *App, T i18n.TranslateFunc) *model
 	}
 }
 
-func (mscp *MockSlashCommandProvider) DoCommand(a *App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (mscp *MockSlashCommandProvider) DoCommand(a *App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	mscp.Args = args
 	mscp.Message = message
 	return &model.CommandResponse{
@@ -2053,6 +2090,7 @@ func (mscp *MockSlashCommandProvider) DoCommand(a *App, c request.CTX, args *mod
 }
 
 func TestPluginExecuteSlashCommand(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -2078,6 +2116,7 @@ func TestPluginExecuteSlashCommand(t *testing.T) {
 }
 
 func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -2125,6 +2164,7 @@ func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 }
 
 func TestPluginAPICreateCommandAndListCommands(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -2163,6 +2203,7 @@ func TestPluginAPICreateCommandAndListCommands(t *testing.T) {
 }
 
 func TestPluginAPIUpdateCommand(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -2221,6 +2262,7 @@ func TestPluginAPIIsEnterpriseReady(t *testing.T) {
 }
 
 func TestPluginUploadsAPI(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2320,6 +2362,7 @@ func TestPluginUploadsAPI(t *testing.T) {
 var configurationWillBeSavedHookTemplate string
 
 func TestConfigurationWillBeSavedHook(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2421,6 +2464,7 @@ func TestConfigurationWillBeSavedHook(t *testing.T) {
 }
 
 func TestSendPushNotification(t *testing.T) {
+	mainHelper.Parallel(t)
 	if testing.Short() {
 		t.Skip("skipping TestSendPushNotification test in short mode")
 	}
@@ -2435,7 +2479,7 @@ func TestSendPushNotification(t *testing.T) {
 		session *model.Session
 	}
 	var userSessions []userSession
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		u := th.CreateUser()
 		sess, err := th.App.CreateSession(th.Context, &model.Session{
 			UserId:    u.Id,
@@ -2518,6 +2562,7 @@ func TestSendPushNotification(t *testing.T) {
 }
 
 func TestPluginServeMetrics(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t, StartMetrics)
 	defer th.TearDown()
 
@@ -2576,6 +2621,7 @@ func TestPluginServeMetrics(t *testing.T) {
 }
 
 func TestPluginGetChannelsForTeamForUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2679,6 +2725,7 @@ func TestPluginGetChannelsForTeamForUser(t *testing.T) {
 }
 
 func TestPluginPatchChannelMembersNotifications(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("should be able to set fields for multiple members", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -2804,5 +2851,257 @@ func TestPluginPatchChannelMembersNotifications(t *testing.T) {
 		require.Nil(t, err)
 
 		assert.Equal(t, "", updated.NotifyProps["test_field"])
+	})
+}
+
+func TestPluginServeHTTPCompatibility(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	pluginCode := `
+	package main
+
+	import (
+		"net/http"
+		"github.com/mattermost/mattermost/server/public/plugin"
+	)
+
+	type MyPlugin struct {
+		plugin.MattermostPlugin
+	}
+
+	func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("plugin response"))
+	}
+
+	func main() {
+		plugin.ClientMain(&MyPlugin{})
+	}
+	`
+
+	for goVersion := range strings.FieldsSeq(os.Getenv("GO_COMPATIBILITY_TEST_VERSIONS")) {
+		t.Run(goVersion, func(t *testing.T) {
+			tearDown, ids, errs := SetAppEnvironmentWithPluginsGoVersion(t, []string{pluginCode}, th.App, th.NewPluginAPI, goVersion)
+			defer tearDown()
+			require.NoError(t, errs[0])
+			require.Len(t, ids, 1)
+			pluginID := ids[0]
+
+			res := makePluginHTTPRequest(t, pluginID, th.Server.ListenAddr.Port, "")
+			assert.Equal(t, "plugin response", res)
+		})
+	}
+}
+
+func TestPluginAPICreatePropertyField(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("should allow creation after deleting fields", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		api := th.SetupPluginAPI()
+
+		// Create 20 property fields
+		groupID := model.NewId()
+		var createdFields []*model.PropertyField
+		for i := 1; i <= 20; i++ {
+			field := &model.PropertyField{
+				GroupID:  groupID,
+				Name:     fmt.Sprintf("field_%d", i),
+				Type:     model.PropertyFieldTypeText,
+				CreateAt: model.GetMillis(),
+				UpdateAt: model.GetMillis(),
+			}
+
+			created, err := api.CreatePropertyField(field)
+			require.NoError(t, err)
+			createdFields = append(createdFields, created)
+		}
+
+		// Delete one field
+		err := api.DeletePropertyField(groupID, createdFields[0].ID)
+		require.NoError(t, err)
+
+		// Should now be able to create another field
+		newField := &model.PropertyField{
+			GroupID:  groupID,
+			Name:     "new_field",
+			Type:     model.PropertyFieldTypeText,
+			CreateAt: model.GetMillis(),
+			UpdateAt: model.GetMillis(),
+		}
+
+		created, err := api.CreatePropertyField(newField)
+		require.NoError(t, err)
+		assert.Equal(t, newField.Name, created.Name)
+	})
+
+	t.Run("should not count deleted fields", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		api := th.SetupPluginAPI()
+
+		groupID := model.NewId()
+
+		// Create and delete 5 fields
+		for i := 1; i <= 5; i++ {
+			field := &model.PropertyField{
+				GroupID:  groupID,
+				Name:     fmt.Sprintf("deleted_field_%d", i),
+				Type:     model.PropertyFieldTypeText,
+				CreateAt: model.GetMillis(),
+				UpdateAt: model.GetMillis(),
+			}
+
+			created, err := api.CreatePropertyField(field)
+			require.NoError(t, err)
+
+			err = api.DeletePropertyField(groupID, created.ID)
+			require.NoError(t, err)
+		}
+
+		// Should be able to create multiple active fields
+		for i := 1; i <= 20; i++ {
+			field := &model.PropertyField{
+				GroupID:  groupID,
+				Name:     fmt.Sprintf("active_field_%d", i),
+				Type:     model.PropertyFieldTypeText,
+				CreateAt: model.GetMillis(),
+				UpdateAt: model.GetMillis(),
+			}
+
+			created, err := api.CreatePropertyField(field)
+			require.NoError(t, err)
+			assert.Equal(t, field.Name, created.Name)
+		}
+	})
+
+	t.Run("should reject empty or invalid group ID", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		api := th.SetupPluginAPI()
+
+		// Test with empty group ID - should fail validation
+		field := &model.PropertyField{
+			GroupID:  "",
+			Name:     "test_field",
+			Type:     model.PropertyFieldTypeText,
+			CreateAt: model.GetMillis(),
+			UpdateAt: model.GetMillis(),
+		}
+
+		created, err := api.CreatePropertyField(field)
+		require.Error(t, err) // Should fail due to invalid GroupID
+		assert.Nil(t, created)
+		assert.Contains(t, err.Error(), "group_id")
+
+		// Test with nil field - should fail gracefully
+		created, err = api.CreatePropertyField(nil)
+		require.Error(t, err) // Should fail when given nil input
+		assert.Nil(t, created)
+		assert.Contains(t, err.Error(), "invalid input: property field parameter is required")
+	})
+}
+
+func TestPluginAPICountPropertyFields(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("should count active property fields only", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		api := th.SetupPluginAPI()
+
+		groupID := model.NewId()
+
+		// Create 5 fields
+		var createdFields []*model.PropertyField
+		for i := 1; i <= 5; i++ {
+			field := &model.PropertyField{
+				GroupID:  groupID,
+				Name:     fmt.Sprintf("field_%d", i),
+				Type:     model.PropertyFieldTypeText,
+				CreateAt: model.GetMillis(),
+				UpdateAt: model.GetMillis(),
+			}
+
+			created, err := api.CreatePropertyField(field)
+			require.NoError(t, err)
+			createdFields = append(createdFields, created)
+		}
+
+		// Count active fields
+		count, err := api.CountPropertyFields(groupID, false)
+		require.NoError(t, err)
+		assert.Equal(t, int64(5), count)
+
+		// Delete 2 fields
+		err = api.DeletePropertyField(groupID, createdFields[0].ID)
+		require.NoError(t, err)
+		err = api.DeletePropertyField(groupID, createdFields[1].ID)
+		require.NoError(t, err)
+
+		// Count should now be 3
+		count, err = api.CountPropertyFields(groupID, false)
+		require.NoError(t, err)
+		assert.Equal(t, int64(3), count)
+	})
+
+	t.Run("should count all property fields including deleted", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		api := th.SetupPluginAPI()
+
+		groupID := model.NewId()
+
+		// Create 5 fields
+		var createdFields []*model.PropertyField
+		for i := 1; i <= 5; i++ {
+			field := &model.PropertyField{
+				GroupID:  groupID,
+				Name:     fmt.Sprintf("field_%d", i),
+				Type:     model.PropertyFieldTypeText,
+				CreateAt: model.GetMillis(),
+				UpdateAt: model.GetMillis(),
+			}
+
+			created, err := api.CreatePropertyField(field)
+			require.NoError(t, err)
+			createdFields = append(createdFields, created)
+		}
+
+		// Count all fields
+		count, err := api.CountPropertyFields(groupID, true)
+		require.NoError(t, err)
+		assert.Equal(t, int64(5), count)
+
+		// Delete 2 fields
+		err = api.DeletePropertyField(groupID, createdFields[0].ID)
+		require.NoError(t, err)
+		err = api.DeletePropertyField(groupID, createdFields[1].ID)
+		require.NoError(t, err)
+
+		// Count all should still be 5
+		count, err = api.CountPropertyFields(groupID, true)
+		require.NoError(t, err)
+		assert.Equal(t, int64(5), count)
+
+		// Count active should be 3
+		count, err = api.CountPropertyFields(groupID, false)
+		require.NoError(t, err)
+		assert.Equal(t, int64(3), count)
+	})
+
+	t.Run("should return 0 for empty group", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		api := th.SetupPluginAPI()
+
+		count, err := api.CountPropertyFields("non-existent-group", false)
+		require.NoError(t, err)
+		assert.Equal(t, int64(0), count)
+
+		count, err = api.CountPropertyFields("non-existent-group", true)
+		require.NoError(t, err)
+		assert.Equal(t, int64(0), count)
 	})
 }

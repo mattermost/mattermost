@@ -3,7 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import type {getOptionValue} from 'react-select/src/builtins';
+import type {GetOptionValue} from 'react-select';
 
 import LoadingScreen from 'components/loading_screen';
 
@@ -13,7 +13,7 @@ import {cmdOrCtrlPressed} from 'utils/keyboard';
 import type {Value} from './multiselect';
 
 export type Props<T extends Value> = {
-    ariaLabelRenderer: getOptionValue<T>;
+    ariaLabelRenderer: GetOptionValue<T>;
     loading?: boolean;
     onAdd: (value: T) => void;
     onPageChange?: (newPage: number, currentPage: number) => void;
@@ -216,6 +216,17 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
                     <div
                         className='sr-only'
                         aria-live='polite'
+                        role='status'
+                    >
+                        <FormattedMessage
+                            id='multiselect.list.resultsAvailable'
+                            defaultMessage='{count, plural, one {# result found} other {# results found}} for your search.'
+                            values={{count: options.length}}
+                        />
+                    </div>
+                    <div
+                        className='sr-only'
+                        aria-live='polite'
                         aria-atomic='true'
                     >
                         {ariaLabel}
@@ -225,7 +236,6 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
                         id='multiSelectList'
                         className='more-modal__options'
                         role='presentation'
-                        aria-hidden={true}
                     >
                         {optionControls}
                     </div>

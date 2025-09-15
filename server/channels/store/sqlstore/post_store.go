@@ -21,13 +21,13 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/channels/store/searchlayer"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 // Regex to get quoted strings
 var quotedStringsRegex = regexp.MustCompile(`("[^"]*")`)
+var wildCardRegex = regexp.MustCompile(`\*($| )`)
 
 type SqlPostStore struct {
 	*SqlStore
@@ -146,7 +146,7 @@ func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 	}
 }
 
-func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, error) {
+func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*model.Post, int, error) {
 	channelNewPosts := make(map[string]int)
 	channelNewRootPosts := make(map[string]int)
 	maxDateNewPosts := make(map[string]int64)
@@ -159,9 +159,11 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 		}
 		post.PreSave()
 		maxPostSize := s.GetMaxPostSize()
+
 		if err := post.IsValid(maxPostSize); err != nil {
 			return nil, idx, err
 		}
+		post.ValidateProps(rctx.Logger())
 
 		if currentChannelCount, ok := channelNewPosts[post.ChannelId]; !ok {
 			if post.IsJoinLeaveMessage() {
@@ -292,7 +294,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 }
 
 func (s *SqlPostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, error) {
-	posts, _, err := s.SaveMultiple([]*model.Post{post})
+	posts, _, err := s.SaveMultiple(rctx, []*model.Post{post})
 	if err != nil {
 		return nil, err
 	}
@@ -355,6 +357,7 @@ func (s *SqlPostStore) Update(rctx request.CTX, newPost *model.Post, oldPost *mo
 	if err := newPost.IsValid(maxPostSize); err != nil {
 		return nil, err
 	}
+	newPost.ValidateProps(rctx.Logger())
 
 	if _, err := s.GetMaster().NamedExec(`UPDATE Posts
 		SET CreateAt=:CreateAt,
@@ -408,14 +411,16 @@ func (s *SqlPostStore) Update(rctx request.CTX, newPost *model.Post, oldPost *mo
 	return newPost, nil
 }
 
-func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) (_ []*model.Post, _ int, err error) {
+func (s *SqlPostStore) OverwriteMultiple(rctx request.CTX, posts []*model.Post) (_ []*model.Post, _ int, err error) {
 	updateAt := model.GetMillis()
 	maxPostSize := s.GetMaxPostSize()
 	for idx, post := range posts {
 		post.UpdateAt = updateAt
+
 		if appErr := post.IsValid(maxPostSize); appErr != nil {
 			return nil, idx, appErr
 		}
+		post.ValidateProps(rctx.Logger())
 	}
 
 	tx, err := s.GetMaster().Beginx()
@@ -463,7 +468,7 @@ func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) (_ []*model.Post, 
 }
 
 func (s *SqlPostStore) Overwrite(rctx request.CTX, post *model.Post) (*model.Post, error) {
-	posts, _, err := s.OverwriteMultiple([]*model.Post{post})
+	posts, _, err := s.OverwriteMultiple(rctx, []*model.Post{post})
 	if err != nil {
 		return nil, err
 	}
@@ -621,36 +626,50 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 		}
 	}
 	if sort != "" {
-		query = query.OrderBy("CreateAt " + sort + ", Id " + sort)
+		if opts.UpdatesOnly {
+			query = query.OrderBy("UpdateAt " + sort + ", Id " + sort)
+		} else {
+			query = query.OrderBy("CreateAt " + sort + ", Id " + sort)
+		}
 	}
 
 	if opts.FromCreateAt != 0 {
+		var direction sq.Sqlizer
+		var pagination sq.Sqlizer
+
 		if opts.Direction == "down" {
-			direction := sq.Gt{"Posts.CreateAt": opts.FromCreateAt}
-			if opts.FromPost != "" {
-				query = query.Where(sq.Or{
-					direction,
-					sq.And{
-						sq.Eq{"Posts.CreateAt": opts.FromCreateAt},
-						sq.Gt{"Posts.Id": opts.FromPost},
-					},
-				})
-			} else {
-				query = query.Where(direction)
-			}
+			direction = sq.Gt{"Posts.CreateAt": opts.FromCreateAt}
+			pagination = sq.Gt{"Posts.Id": opts.FromPost}
 		} else {
-			direction := sq.Lt{"Posts.CreateAt": opts.FromCreateAt}
-			if opts.FromPost != "" {
-				query = query.Where(sq.Or{
-					direction,
-					sq.And{
-						sq.Eq{"Posts.CreateAt": opts.FromCreateAt},
-						sq.Lt{"Posts.Id": opts.FromPost},
-					},
-				})
-			} else {
-				query = query.Where(direction)
-			}
+			direction = sq.Lt{"Posts.CreateAt": opts.FromCreateAt}
+			pagination = sq.Lt{"Posts.Id": opts.FromPost}
+		}
+
+		if opts.FromPost != "" {
+			query = query.Where(sq.Or{
+				direction,
+				sq.And{
+					sq.Eq{"Posts.CreateAt": opts.FromCreateAt},
+					pagination,
+				},
+			})
+		} else {
+			query = query.Where(direction)
+		}
+	}
+
+	if opts.FromUpdateAt != 0 && opts.Direction == "down" {
+		direction := sq.Gt{"Posts.UpdateAt": opts.FromUpdateAt}
+		if opts.FromPost != "" {
+			query = query.Where(sq.Or{
+				direction,
+				sq.And{
+					sq.Eq{"Posts.UpdateAt": opts.FromUpdateAt},
+					sq.Gt{"Posts.Id": opts.FromPost},
+				},
+			})
+		} else {
+			query = query.Where(direction)
 		}
 	}
 
@@ -724,39 +743,26 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 		}
 
 		var query sq.SelectBuilder
-		if s.DriverName() == model.DatabaseDriverMysql {
-			query = s.getQueryBuilder().
-				Select("p.*, (SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount").
-				From("Posts p").
+		query = s.getQueryBuilder().
+			Select("p.*, replycount.num as ReplyCount").
+			PrefixExpr(s.getQueryBuilder().
+				Select().
+				Prefix("WITH replycount as (").
+				Columns("count(*) as num").
+				From("posts").
 				Where(sq.And{
-					sq.Or{
-						sq.Eq{"p.Id": rootId},
-						sq.Eq{"p.RootId": rootId},
-					},
-					sq.Eq{"p.DeleteAt": 0},
-				})
-		} else {
-			query = s.getQueryBuilder().
-				Select("p.*, replycount.num as ReplyCount").
-				PrefixExpr(s.getQueryBuilder().
-					Select().
-					Prefix("WITH replycount as (").
-					Columns("count(*) as num").
-					From("posts").
-					Where(sq.And{
-						sq.Eq{"RootId": rootId},
-						sq.Eq{"DeleteAt": 0},
-					}).Suffix(")"),
-				).
-				From("Posts p, replycount").
-				Where(sq.And{
-					sq.Or{
-						sq.Eq{"p.Id": rootId},
-						sq.Eq{"p.RootId": rootId},
-					},
-					sq.Eq{"p.DeleteAt": 0},
-				})
-		}
+					sq.Eq{"RootId": rootId},
+					sq.Eq{"DeleteAt": 0},
+				}).Suffix(")"),
+			).
+			From("Posts p, replycount").
+			Where(sq.And{
+				sq.Or{
+					sq.Eq{"p.Id": rootId},
+					sq.Eq{"p.RootId": rootId},
+				},
+				sq.Eq{"p.DeleteAt": 0},
+			})
 
 		var sort string
 		if opts.Direction != "" {
@@ -767,7 +773,11 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 			}
 		}
 		if sort != "" {
-			query = query.OrderBy("CreateAt " + sort + ", Id " + sort)
+			if opts.UpdatesOnly {
+				query = query.OrderBy("UpdateAt " + sort + ", Id " + sort)
+			} else {
+				query = query.OrderBy("CreateAt " + sort + ", Id " + sort)
+			}
 		}
 
 		if opts.FromCreateAt != 0 {
@@ -791,6 +801,36 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 						direction,
 						sq.And{
 							sq.Eq{"p.CreateAt": opts.FromCreateAt},
+							sq.Lt{"p.Id": opts.FromPost},
+						},
+					})
+				} else {
+					query = query.Where(direction)
+				}
+			}
+		}
+
+		if opts.FromUpdateAt != 0 {
+			if opts.Direction == "down" {
+				direction := sq.Gt{"p.UpdateAt": opts.FromUpdateAt}
+				if opts.FromPost != "" {
+					query = query.Where(sq.Or{
+						direction,
+						sq.And{
+							sq.Eq{"p.UpdateAt": opts.FromUpdateAt},
+							sq.Gt{"p.Id": opts.FromPost},
+						},
+					})
+				} else {
+					query = query.Where(direction)
+				}
+			} else {
+				direction := sq.Lt{"p.UpdateAt": opts.FromUpdateAt}
+				if opts.FromPost != "" {
+					query = query.Where(sq.Or{
+						direction,
+						sq.And{
+							sq.Eq{"p.UpdateAt": opts.FromUpdateAt},
 							sq.Lt{"p.Id": opts.FromPost},
 						},
 					})
@@ -924,24 +964,11 @@ func (s *SqlPostStore) Delete(rctx request.CTX, postID string, time int64, delet
 		return errors.Wrapf(err, "failed to delete Post with id=%s", postID)
 	}
 
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		_, err = transaction.Exec(`UPDATE Posts
+	_, err = transaction.Exec(`UPDATE Posts
 			SET DeleteAt = $1,
 				UpdateAt = $1,
 				Props = jsonb_set(Props, $2, $3)
 			WHERE Id = $4 OR RootId = $4`, time, jsonKeyPath(model.PostPropsDeleteBy), jsonStringVal(deleteByID), postID)
-	} else {
-		// We use ORDER BY clause for MySQL
-		// to trigger filesort optimization in the index_merge.
-		// Without it, MySQL does a temporary sort.
-		// See: https://dev.mysql.com/doc/refman/8.0/en/order-by-optimization.html#order-by-filesort.
-		_, err = transaction.Exec(`UPDATE Posts
-			SET DeleteAt = ?,
-			UpdateAt = ?,
-			Props = JSON_SET(Props, ?, ?)
-			Where Id = ? OR RootId = ?
-			ORDER BY Id`, time, time, "$."+model.PostPropsDeleteBy, deleteByID, postID, postID)
-	}
 
 	if err != nil {
 		return errors.Wrap(err, "failed to update Posts")
@@ -1351,52 +1378,19 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	var query string
 	var params []any
 
-	// union of IDs and then join to get full posts is faster in mysql
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query = `SELECT *` + replyCountQuery1 + ` FROM Posts p1 JOIN (
-			(SELECT
-              Id
-			  FROM
-				  Posts p2
-			  WHERE
-				  (UpdateAt > ?
-					  AND ChannelId = ?)
-				  LIMIT 1000)
-			  UNION
-				  (SELECT
-					  Id
-				  FROM
-					  Posts p3
-				  WHERE
-					  Id
-				  IN
-					  (SELECT * FROM (SELECT
-						  RootId
-					  FROM
-						  Posts
-					  WHERE
-						  UpdateAt > ?
-							  AND ChannelId = ?
-					  LIMIT 1000) temp_tab))
-			) j ON p1.Id = j.Id
-          ORDER BY CreateAt ` + order
+	query = `WITH cte AS (SELECT
+	       *
+	FROM
+	       Posts
+	WHERE
+	       UpdateAt > ? AND ChannelId = ?
+	       LIMIT 1000)
+	(SELECT *` + replyCountQuery2 + ` FROM cte)
+	UNION
+	(SELECT *` + replyCountQuery1 + ` FROM Posts p1 WHERE id in (SELECT rootid FROM cte))
+	ORDER BY CreateAt ` + order
 
-		params = []any{options.Time, options.ChannelId, options.Time, options.ChannelId}
-	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		query = `WITH cte AS (SELECT
-		       *
-		FROM
-		       Posts
-		WHERE
-		       UpdateAt > ? AND ChannelId = ?
-		       LIMIT 1000)
-		(SELECT *` + replyCountQuery2 + ` FROM cte)
-		UNION
-		(SELECT *` + replyCountQuery1 + ` FROM Posts p1 WHERE id in (SELECT rootid FROM cte))
-		ORDER BY CreateAt ` + order
-
-		params = []any{options.Time, options.ChannelId}
-	}
+	params = []any{options.Time, options.ChannelId}
 	err := s.GetReplica().Select(&posts, query, params...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
@@ -1471,6 +1465,14 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 		query = query.Where(sq.NotEq{"COALESCE(Posts.RemoteId,'')": options.ExcludeRemoteId})
 	}
 
+	if options.ExcludeChannelMetadataSystemPosts {
+		query = query.Where(sq.NotEq{"Posts.Type": []string{
+			model.PostTypeHeaderChange,
+			model.PostTypeDisplaynameChange,
+			model.PostTypePurposeChange,
+		}})
+	}
+
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, cursor, errors.Wrap(err, "getpostssinceforsync_tosql")
@@ -1541,13 +1543,6 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		direction = ">"
 		sort = "ASC"
 	}
-	table := "Posts p"
-	// We force MySQL to use the right index to prevent it from accidentally
-	// using the index_merge_intersection optimization.
-	// See MM-27575.
-	if s.DriverName() == model.DatabaseDriverMysql {
-		table += " USE INDEX(idx_posts_channel_id_delete_at_create_at)"
-	}
 	columns := []string{"p.*"}
 	if options.CollapsedThreads {
 		columns = append(columns,
@@ -1576,7 +1571,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	} else {
 		query = query.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
 	}
-	query = query.From(table).
+	query = query.From("Posts p").
 		Where(conditions).
 		// Adding ChannelId and DeleteAt order columns
 		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
@@ -1664,14 +1659,6 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 		sort = "ASC"
 	}
 
-	table := "Posts"
-	// We force MySQL to use the right index to prevent it from accidentally
-	// using the index_merge_intersection optimization.
-	// See MM-27575.
-	if s.DriverName() == model.DatabaseDriverMysql {
-		table += " USE INDEX(idx_posts_channel_id_delete_at_create_at)"
-	}
-
 	conditions := sq.And{
 		direction,
 		sq.Eq{"Posts.ChannelId": channelId},
@@ -1682,7 +1669,7 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 	}
 	query := s.getQueryBuilder().
 		Select("Id").
-		From(table).
+		From("Posts").
 		Where(conditions).
 		// Adding ChannelId and DeleteAt order columns
 		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
@@ -1706,13 +1693,6 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 }
 
 func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64, collapsedThreads bool) (*model.Post, error) {
-	table := "Posts"
-	// We force MySQL to use the right index to prevent it from accidentally
-	// using the index_merge_intersection optimization.
-	// See MM-27575.
-	if s.DriverName() == model.DatabaseDriverMysql {
-		table += " USE INDEX(idx_posts_channel_id_delete_at_create_at)"
-	}
 	conditions := sq.And{
 		sq.Gt{"Posts.CreateAt": time},
 		sq.Eq{"Posts.ChannelId": channelId},
@@ -1723,7 +1703,7 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64, collapsedT
 	}
 	query := s.getQueryBuilder().
 		Select("*").
-		From(table).
+		From("Posts").
 		Where(conditions).
 		// Adding ChannelId and DeleteAt order columns
 		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
@@ -2017,11 +1997,18 @@ func (s *SqlPostStore) buildSearchPostFilterClause(teamID string, fromUsers []st
 	}
 
 	// Sub-query builder.
-	sb := s.getSubQueryBuilder().Select("Id").From("Users, TeamMembers").Where(
-		sq.And{
-			sq.Eq{"TeamMembers.TeamId": teamID},
-			sq.Expr("Users.Id = TeamMembers.UserId"),
-		})
+	sb := s.getSubQueryBuilder().Select("Id")
+	if teamID == "" {
+		// Cross-team search: don't filter by team membership
+		sb = sb.From("Users")
+	} else {
+		// Team-scoped search: filter by team membership
+		sb = sb.From("Users, TeamMembers").Where(
+			sq.And{
+				sq.Eq{"TeamMembers.TeamId": teamID},
+				sq.Expr("Users.Id = TeamMembers.UserId"),
+			})
+	}
 	sb = s.buildSearchUserFilterClause(fromUsers, false, userByUsername, sb)
 	sb = s.buildSearchUserFilterClause(excludedUsers, true, userByUsername, sb)
 	subQuery, subQueryArgs, err := sb.ToSql()
@@ -2072,7 +2059,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	searchType := "Message"
 	if params.IsHashtag {
 		searchType = "Hashtags"
-		for _, term := range strings.Split(terms, " ") {
+		for term := range strings.SplitSeq(terms, " ") {
 			termMap[strings.ToUpper(term)] = true
 		}
 	}
@@ -2086,14 +2073,12 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 	if terms == "" && excludedTerms == "" {
 		// we've already confirmed that we have a channel or user to search for
-	} else if s.DriverName() == model.DatabaseDriverPostgres {
+	} else {
 		// Parse text for wildcards
-		var wildcard *regexp.Regexp
-		if wildcard, err = regexp.Compile(`\*($| )`); err == nil {
-			terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
-			excludedTerms = wildcard.ReplaceAllLiteralString(excludedTerms, ":* ")
-		}
+		terms = wildCardRegex.ReplaceAllLiteralString(terms, ":* ")
+		excludedTerms = wildCardRegex.ReplaceAllLiteralString(excludedTerms, ":* ")
 
+		simpleSearch := false
 		// Replace spaces with to_tsquery symbols
 		replaceSpaces := func(input string, excludedInput bool) string {
 			if input == "" {
@@ -2105,6 +2090,11 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 			// Replace spaces within quoted strings with '<->'
 			input = quotedStringsRegex.ReplaceAllStringFunc(input, func(match string) string {
+				// If the whole search term is a quoted string,
+				// we don't want to do stemming.
+				if input == match {
+					simpleSearch = true
+				}
 				return strings.Replace(match, " ", "<->", -1)
 			})
 
@@ -2124,43 +2114,13 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			tsQueryClause += " &!(" + excludedClause + ")"
 		}
 
-		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", s.pgDefaultTextSearchConfig, searchType)
+		textSearchCfg := s.pgDefaultTextSearchConfig
+		if simpleSearch {
+			textSearchCfg = "simple"
+		}
+
+		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", textSearchCfg, searchType)
 		baseQuery = baseQuery.Where(searchClause, tsQueryClause)
-	} else if s.DriverName() == model.DatabaseDriverMysql {
-		if searchType == "Message" {
-			terms, err = removeMysqlStopWordsFromTerms(terms)
-			if err != nil {
-				return nil, errors.Wrap(err, "failed to remove Mysql stop-words from terms")
-			}
-
-			if terms == "" {
-				return list, nil
-			}
-		}
-
-		excludeClause := ""
-		if excludedTerms != "" {
-			excludeClause = " -(" + excludedTerms + ")"
-		}
-
-		var termsClause string
-		if params.OrTerms {
-			termsClause = terms + excludeClause
-		} else {
-			splitTerms := []string{}
-			for _, t := range strings.Fields(terms) {
-				splitTerms = append(splitTerms, "+"+t)
-			}
-			termsClause = strings.Join(splitTerms, " ") + excludeClause
-		}
-
-		searchClause := fmt.Sprintf("MATCH (%s) AGAINST (? IN BOOLEAN MODE)", searchType)
-
-		if params.IsHashtag {
-			termsClause = "\"" + termsClause + "\""
-		}
-
-		baseQuery = baseQuery.Where(searchClause, termsClause)
 	}
 
 	inQuery := s.getSubQueryBuilder().Select("Id").
@@ -2200,7 +2160,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		for _, p := range posts {
 			if searchType == "Hashtags" {
 				exactMatch := false
-				for _, tag := range strings.Split(p.Hashtags, " ") {
+				for tag := range strings.SplitSeq(p.Hashtags, " ") {
 					if termMap[strings.ToUpper(tag)] {
 						exactMatch = true
 						break
@@ -2216,25 +2176,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	}
 	list.MakeNonNil()
 	return list, nil
-}
-
-func removeMysqlStopWordsFromTerms(terms string) (string, error) {
-	stopWords := make([]string, len(searchlayer.MySQLStopWords))
-	copy(stopWords, searchlayer.MySQLStopWords)
-	re, err := regexp.Compile(fmt.Sprintf(`^(%s)$`, strings.Join(stopWords, "|")))
-	if err != nil {
-		return "", err
-	}
-
-	newTerms := make([]string, 0)
-	separatedTerms := strings.Fields(terms)
-	for _, term := range separatedTerms {
-		term = strings.TrimSpace(term)
-		if term = re.ReplaceAllString(term, ""); term != "" {
-			newTerms = append(newTerms, term)
-		}
-	}
-	return strings.Join(newTerms, " "), nil
 }
 
 // TODO: convert to squirrel HW
@@ -2552,35 +2493,14 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID str
 	posts := []*model.PostForIndexing{}
 
 	var err error
-	// In order to use an index scan for both MySQL and Postgres, we need to
-	// diverge the implementation of the query, specifically in the WHERE
-	// condition: for MySQL, we need to do
-	//     (CreateAt > ?) OR (CreateAt = ? AND Id > ?)
-	// while for Postgres we need
+	// In order to use an index scan, we need to do
 	//     (CreateAt, Id) > (?, ?)
 	// The wrong choice for any of the two databases makes the query go from
 	// milliseconds to dozens of seconds.
 	// More information in: https://github.com/mattermost/mattermost/pull/26517
 	// and https://community.mattermost.com/core/pl/ui5dz96shinetb8nq83myggbma
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query := `SELECT
-				Posts.*, Channels.TeamId
-			FROM Posts USE INDEX(idx_posts_create_at_id)
-			LEFT JOIN
-				Channels
-			ON
-				Posts.ChannelId = Channels.Id
-			WHERE
-				Posts.CreateAt > ?
-				OR
-				(Posts.CreateAt = ? AND Posts.Id > ?)
-			ORDER BY
-				Posts.CreateAt ASC, Posts.Id ASC
-			LIMIT
-				?`
-		err = s.GetSearchReplicaX().Select(&posts, query, startTime, startTime, startPostID, limit)
-	} else {
-		query := `SELECT
+
+	query := `SELECT
 				Posts.*, Channels.TeamId
 			FROM Posts
 			LEFT JOIN
@@ -2593,8 +2513,7 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID str
 				Posts.CreateAt ASC, Posts.Id ASC
 			LIMIT
 				?`
-		err = s.GetSearchReplicaX().Select(&posts, query, startTime, startPostID, limit)
-	}
+	err = s.GetSearchReplicaX().Select(&posts, query, startTime, startPostID, limit)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
@@ -2604,19 +2523,30 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID str
 // PermanentDeleteBatchForRetentionPolicies deletes a batch of records which are affected by
 // the global or a granular retention policy.
 // See `genericPermanentDeleteBatchForRetentionPolicies` for details.
-func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 	builder := s.getQueryBuilder().
 		Select("Posts.Id").
 		From("Posts")
+
+	if retentionPolicyBatchConfigs.PreservePinnedPosts {
+		builder = builder.Where(sq.Or{
+			sq.Eq{"Posts.IsPinned": false},
+			sq.And{
+				sq.Eq{"Posts.IsPinned": true},
+				sq.Gt{"Posts.DeleteAt": 0},
+			},
+		})
+	}
+
 	return genericPermanentDeleteBatchForRetentionPolicies(RetentionPolicyBatchDeletionInfo{
 		BaseBuilder:         builder,
 		Table:               "Posts",
 		TimeColumn:          "CreateAt",
 		PrimaryKeys:         []string{"Id"},
 		ChannelIDTable:      "Posts",
-		NowMillis:           now,
-		GlobalPolicyEndTime: globalPolicyEndTime,
-		Limit:               limit,
+		NowMillis:           retentionPolicyBatchConfigs.Now,
+		GlobalPolicyEndTime: retentionPolicyBatchConfigs.GlobalPolicyEndTime,
+		Limit:               retentionPolicyBatchConfigs.Limit,
 		StoreDeletedIds:     true,
 	}, s.SqlStore, cursor)
 }
@@ -2672,32 +2602,12 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 		`); err != nil {
 			mlog.Warn("Unable to determine the maximum supported post size", mlog.Err(err))
 		}
-	} else if s.DriverName() == model.DatabaseDriverMysql {
-		// The Post.Message column in MySQL has historically been TEXT, with a maximum
-		// limit of 65535.
-		if err := s.GetReplica().Get(&maxPostSizeBytes, `
-			SELECT
-				COALESCE(CHARACTER_MAXIMUM_LENGTH, 0)
-			FROM
-				INFORMATION_SCHEMA.COLUMNS
-			WHERE
-				table_schema = DATABASE()
-			AND	table_name = 'Posts'
-			AND	column_name = 'Message'
-			LIMIT 0, 1
-		`); err != nil {
-			mlog.Warn("Unable to determine the maximum supported post size", mlog.Err(err))
-		}
 	} else {
 		mlog.Error("No implementation found to determine the maximum supported post size")
 	}
 
 	// Assume a worst-case representation of four bytes per rune.
-	maxPostSize := int(maxPostSizeBytes) / 4
-
-	if maxPostSize < model.PostMessageMaxRunesV2 {
-		maxPostSize = model.PostMessageMaxRunesV2
-	}
+	maxPostSize := max(int(maxPostSizeBytes)/4, model.PostMessageMaxRunesV2)
 
 	mlog.Info("Post.Message has size restrictions", mlog.Int("max_characters", maxPostSize), mlog.Int("max_bytes", maxPostSizeBytes))
 
@@ -2745,9 +2655,6 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, inclu
 		}
 
 		aggFn := "COALESCE(json_agg(u1.username) FILTER (WHERE u1.username IS NOT NULL), '[]')"
-		if s.DriverName() == model.DatabaseDriverMysql {
-			aggFn = "IF (COUNT(u1.Username) = 0, JSON_ARRAY(), JSON_ARRAYAGG(u1.Username))"
-		}
 		result := []*model.PostForExport{}
 
 		builder := s.getQueryBuilder().
@@ -2785,9 +2692,6 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, inclu
 
 func (s *SqlPostStore) GetRepliesForExport(rootId string) ([]*model.ReplyForExport, error) {
 	aggFn := "COALESCE(json_agg(u1.username) FILTER (WHERE u1.username IS NOT NULL), '[]')"
-	if s.DriverName() == model.DatabaseDriverMysql {
-		aggFn = "IF (COUNT(u1.Username) = 0, JSON_ARRAY(), JSON_ARRAYAGG(u1.Username))"
-	}
 	result := []*model.ReplyForExport{}
 
 	qb := s.getQueryBuilder().Select(fmt.Sprintf("Posts.*, u2.Username as Username, %s as FlaggedBy", aggFn)).
@@ -2814,9 +2718,6 @@ func (s *SqlPostStore) GetRepliesForExport(rootId string) ([]*model.ReplyForExpo
 
 func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId string, includeArchivedChannels bool) ([]*model.DirectPostForExport, error) {
 	aggFn := "COALESCE(json_agg(u1.username) FILTER (WHERE u1.username IS NOT NULL), '[]')"
-	if s.DriverName() == model.DatabaseDriverMysql {
-		aggFn = "IF (COUNT(u1.Username) = 0, JSON_ARRAY(), JSON_ARRAYAGG(u1.Username))"
-	}
 	result := []*model.DirectPostForExport{}
 
 	query := s.getQueryBuilder().
@@ -3292,13 +3193,8 @@ func (s *SqlPostStore) SetPostReminder(reminder *model.PostReminder) error {
 	query := s.getQueryBuilder().
 		Insert("PostReminders").
 		Columns("PostId", "UserId", "TargetTime").
-		Values(reminder.PostId, reminder.UserId, reminder.TargetTime)
-
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE TargetTime = ?", reminder.TargetTime))
-	} else {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (postid, userid) DO UPDATE SET TargetTime = ?", reminder.TargetTime))
-	}
+		Values(reminder.PostId, reminder.UserId, reminder.TargetTime).
+		SuffixExpr(sq.Expr("ON CONFLICT (postid, userid) DO UPDATE SET TargetTime = ?", reminder.TargetTime))
 
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -3324,7 +3220,7 @@ func (s *SqlPostStore) GetPostReminders(now int64) (_ []*model.PostReminder, err
 
 	err = transaction.Select(&reminders, `SELECT PostId, UserId
 		FROM PostReminders
-		WHERE TargetTime < ?`, now)
+		WHERE TargetTime <= ?`, now)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, errors.Wrap(err, "failed to get post reminders")
 	}
@@ -3334,10 +3230,11 @@ func (s *SqlPostStore) GetPostReminders(now int64) (_ []*model.PostReminder, err
 		return reminders, nil
 	}
 
+	// TODO: https://mattermost.atlassian.net/browse/MM-63368
 	// Postgres supports RETURNING * in a DELETE statement, but MySQL doesn't.
 	// So we are stuck with 2 queries. Not taking separate paths for Postgres
 	// and MySQL for simplicity.
-	_, err = transaction.Exec(`DELETE from PostReminders WHERE TargetTime < ?`, now)
+	_, err = transaction.Exec(`DELETE from PostReminders WHERE TargetTime <= ?`, now)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to delete post reminders")
 	}

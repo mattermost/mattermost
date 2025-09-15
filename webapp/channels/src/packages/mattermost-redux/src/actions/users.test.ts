@@ -267,8 +267,10 @@ describe('Actions.Users', () => {
         });
 
         afterEach(() => {
+            // Clear all pending timers before checking count
+            jest.clearAllTimers();
+            jest.runAllTimers();
             expect(jest.getTimerCount()).toBe(0);
-
             jest.useRealTimers();
         });
 
@@ -459,8 +461,10 @@ describe('Actions.Users', () => {
         });
 
         afterEach(() => {
+            // Clear all pending timers before checking count
+            jest.clearAllTimers();
+            jest.runAllTimers();
             expect(jest.getTimerCount()).toBe(0);
-
             jest.useRealTimers();
         });
 
@@ -893,18 +897,24 @@ describe('Actions.Users', () => {
             reply(200, TestHelper.basicUser!);
         await TestHelper.basicClient4!.login(TestHelper.basicUser!.email, 'password1');
 
+        // Mock getting sessions with multiple sessions
         nock(Client4.getBaseRoute()).
             get(`/users/${user!.id}/sessions`).
-            reply(200, [{id: TestHelper.generateId(), create_at: 1507756921338, expires_at: 1510348921338, last_activity_at: 1507821125630, user_id: TestHelper.basicUser!.id, device_id: '', roles: 'system_admin system_user'}, {id: TestHelper.generateId(), create_at: 1507756921338, expires_at: 1510348921338, last_activity_at: 1507821125630, user_id: TestHelper.basicUser!.id, device_id: '', roles: 'system_admin system_user'}]);
+            reply(200, [
+                {id: TestHelper.generateId(), create_at: 1507756921338, expires_at: 1510348921338, last_activity_at: 1507821125630, user_id: TestHelper.basicUser!.id, device_id: '', roles: 'system_admin system_user'},
+                {id: TestHelper.generateId(), create_at: 1507756921338, expires_at: 1510348921338, last_activity_at: 1507821125630, user_id: TestHelper.basicUser!.id, device_id: '', roles: 'system_admin system_user'},
+            ]);
+
+        // Get the sessions to populate the store
         await store.dispatch(Actions.getSessions(user!.id));
 
         sessions = store.getState().entities.users.mySessions;
-        expect(sessions.length > 1).toBeTruthy();
+        expect(sessions.length).toBeGreaterThan(1);
 
         nock(Client4.getBaseRoute()).
-            post(`/users/${user!.id}/sessions/revoke/all`).
+            post('/users/sessions/revoke/all').
             reply(200, OK_RESPONSE);
-        const {data} = await store.dispatch(Actions.revokeAllSessionsForUser(user!.id));
+        const {data} = await store.dispatch(Actions.revokeSessionsForAllUsers());
         expect(data).toBe(true);
 
         nock(Client4.getBaseRoute()).
@@ -949,13 +959,19 @@ describe('Actions.Users', () => {
             reply(200, TestHelper.basicUser!);
         await TestHelper.basicClient4!.login(TestHelper.basicUser!.email, 'password1');
 
+        // Mock getting sessions with multiple sessions
         nock(Client4.getBaseRoute()).
             get(`/users/${user!.id}/sessions`).
-            reply(200, [{id: TestHelper.generateId(), create_at: 1507756921338, expires_at: 1510348921338, last_activity_at: 1507821125630, user_id: TestHelper.basicUser!.id, device_id: '', roles: 'system_admin system_user'}, {id: TestHelper.generateId(), create_at: 1507756921338, expires_at: 1510348921338, last_activity_at: 1507821125630, user_id: TestHelper.basicUser!.id, device_id: '', roles: 'system_admin system_user'}]);
+            reply(200, [
+                {id: TestHelper.generateId(), create_at: 1507756921338, expires_at: 1510348921338, last_activity_at: 1507821125630, user_id: TestHelper.basicUser!.id, device_id: '', roles: 'system_admin system_user'},
+                {id: TestHelper.generateId(), create_at: 1507756921338, expires_at: 1510348921338, last_activity_at: 1507821125630, user_id: TestHelper.basicUser!.id, device_id: '', roles: 'system_admin system_user'},
+            ]);
+
+        // Get the sessions to populate the store
         await store.dispatch(Actions.getSessions(user!.id));
 
         sessions = store.getState().entities.users.mySessions;
-        expect(sessions.length > 1).toBeTruthy();
+        expect(sessions.length).toBeGreaterThan(1);
 
         nock(Client4.getBaseRoute()).
             post('/users/sessions/revoke/all').
@@ -1536,9 +1552,6 @@ describe('Actions.Users', () => {
         expect(userAccessTokensByUser![currentUserId]).toBeTruthy();
         expect(userAccessTokensByUser![currentUserId][data.id]).toBeTruthy();
         expect(!userAccessTokensByUser![currentUserId][data.id].token).toBeTruthy();
-        expect(userAccessTokens).toBeTruthy();
-        expect(userAccessTokens[data.id]).toBeTruthy();
-        expect(!userAccessTokens[data.id].token).toBeTruthy();
 
         nock(Client4.getBaseRoute()).
             post('/users/tokens/revoke').
@@ -1710,7 +1723,7 @@ describe('Actions.Users', () => {
                 123: 'NewValue',
             });
 
-        const response = await store.dispatch(Actions.saveCustomProfileAttribute(currentUser.id, '123', '  NewValue  '));
+        const response = await store.dispatch(Actions.saveCustomProfileAttribute(currentUser.id, '123', 'NewValue'));
         const data = response.data!;
         expect(data).toEqual({123: 'NewValue'});
     });

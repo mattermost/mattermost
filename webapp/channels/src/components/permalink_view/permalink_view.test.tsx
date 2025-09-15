@@ -23,6 +23,7 @@ import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
+import {joinPrivateChannelPrompt} from 'utils/channel_utils';
 import {ErrorPageTypes} from 'utils/constants';
 
 jest.mock('actions/channel_actions', () => ({
@@ -461,6 +462,57 @@ describe('components/PermalinkView', () => {
                     expect(testStore.getActions()).toEqual([]);
                 });
 
+                test('should not prompt team admin before redirect to public channel link', async () => {
+                    const testState = {
+                        ...initialState,
+                        entities: {
+                            ...initialState.entities,
+                            users: {
+                                ...initialState.entities.users,
+                                profiles: {
+                                    ...initialState.entities.users.profiles,
+                                    current_user_id: {
+                                        roles: 'system_user',
+                                    },
+                                },
+                            },
+                            teams: {
+                                ...initialState.entities.teams,
+                                myMembers: {
+                                    current_team_id: {
+                                        scheme_user: true,
+                                        scheme_admin: true,
+                                    },
+                                },
+                            },
+                        },
+                    };
+                    const postId = 'postid1';
+                    nockInfoForPost(postId);
+
+                    const testStore = await mockStore(testState);
+                    await testStore.dispatch(focusPost(postId, undefined, baseProps.currentUserId));
+
+                    expect(getPostThread).toHaveBeenCalledWith(postId);
+                    expect(testStore.getActions()).toEqual([
+                        {
+                            type: 'MOCK_GET_POST_THREAD',
+                            data: {
+                                posts: {
+                                    replypostid1: {id: 'replypostid1', message: 'some message', channel_id: 'channelid1', root_id: postId},
+                                    postid1: {id: postId, message: 'some message', channel_id: 'channelid1'},
+                                },
+                                order: [postId, 'replypostid1'],
+                            },
+                        },
+                        {type: 'MOCK_SELECT_CHANNEL', args: ['channelid1']},
+                        {type: 'RECEIVED_FOCUSED_POST', channelId: 'channelid1', data: postId},
+                        {type: 'MOCK_LOAD_CHANNELS_FOR_CURRENT_USER'},
+                        {type: 'MOCK_GET_CHANNEL_STATS', args: ['channelid1']},
+                    ]);
+                    expect(getHistory().replace).toHaveBeenCalledWith('/currentteam/channels/channel1/postid1');
+                });
+
                 test('should allow redirect to private channel link if prompt response true', async () => {
                     const testState = {
                         ...initialState,
@@ -492,13 +544,7 @@ describe('components/PermalinkView', () => {
                         },
                     };
 
-                    jest.mock('utils/channel_utils', () => ({
-                        joinPrivateChannelPrompt: jest.fn(() => {
-                            return async () => {
-                                return {data: {join: true}};
-                            };
-                        }),
-                    }));
+                    jest.mocked(joinPrivateChannelPrompt).mockReturnValueOnce(async () => ({data: {join: true}}));
 
                     const postId = 'privatepostid1';
                     nockInfoForPrivatePost(postId);

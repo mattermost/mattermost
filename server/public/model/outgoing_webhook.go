@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -30,8 +31,8 @@ type OutgoingWebhook struct {
 	IconURL      string      `json:"icon_url"`
 }
 
-func (o *OutgoingWebhook) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *OutgoingWebhook) Auditable() map[string]any {
+	return map[string]any{
 		"id":            o.Id,
 		"create_at":     o.CreateAt,
 		"update_at":     o.UpdateAt,
@@ -130,10 +131,8 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 	}
 
 	if len(o.TriggerWords) != 0 {
-		for _, triggerWord := range o.TriggerWords {
-			if triggerWord == "" {
-				return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.trigger_words.app_error", nil, "", http.StatusBadRequest)
-			}
+		if slices.Contains(o.TriggerWords, "") {
+			return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.trigger_words.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
@@ -196,13 +195,7 @@ func (o *OutgoingWebhook) TriggerWordExactMatch(word string) bool {
 		return false
 	}
 
-	for _, trigger := range o.TriggerWords {
-		if trigger == word {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(o.TriggerWords, word)
 }
 
 func (o *OutgoingWebhook) TriggerWordStartsWith(word string) bool {

@@ -39,6 +39,7 @@ export type UserProfile = {
     delete_at: number;
     username: string;
     password: string;
+    auth_data?: string;
     auth_service: string;
     email: string;
     nickname: string;
@@ -60,7 +61,8 @@ export type UserProfile = {
     terms_of_service_create_at: number;
     remote_id?: string;
     status?: string;
-    custom_profile_attributes?: Record<string, string>;
+    custom_profile_attributes?: Record<string, string | string[]>;
+    failed_attempts?: number;
 };
 
 export type UserProfileWithLastViewAt = UserProfile & {
@@ -100,6 +102,11 @@ export type UserStatus = {
     manual?: boolean;
     last_activity_at?: number;
     active_channel?: string;
+
+    /**
+     * The time when a user's timed DND status will expire. Unlike other timestamps in the app, this is in seconds
+     * instead of milliseconds.
+     */
     dnd_end_time?: number;
 };
 

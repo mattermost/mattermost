@@ -4,6 +4,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
+import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import type TextboxClass from 'components/textbox/textbox';
 
 import type {GlobalState} from 'types/store';
@@ -13,8 +14,10 @@ const usePluginItems = (
     draft: PostDraft,
     textboxRef: React.RefObject<TextboxClass>,
     handleDraftChange: (draft: PostDraft) => void,
+    channelId?: string,
 ) => {
     const postEditorActions = useSelector((state: GlobalState) => state.plugins.components.PostEditorAction);
+    const pluginItemsVisible = usePluginVisibilityInSharedChannel(channelId);
 
     const getSelectedText = useCallback(() => {
         const input = textboxRef.current?.getInputBox();
@@ -34,21 +37,27 @@ const usePluginItems = (
         // Missing setting the state eventually?
     }, [handleDraftChange, draft]);
 
-    const items = useMemo(() => postEditorActions?.map((item) => {
-        if (!item.component) {
-            return null;
+    const items = useMemo(() => {
+        if (!pluginItemsVisible) {
+            return [];
         }
 
-        const Component = item.component as any;
-        return (
-            <Component
-                key={item.id}
-                draft={draft}
-                getSelectedText={getSelectedText}
-                updateText={updateText}
-            />
-        );
-    }), [postEditorActions, draft, getSelectedText, updateText]);
+        return postEditorActions?.map((item) => {
+            if (!item.component) {
+                return null;
+            }
+
+            const Component = item.component as any;
+            return (
+                <Component
+                    key={item.id}
+                    draft={draft}
+                    getSelectedText={getSelectedText}
+                    updateText={updateText}
+                />
+            );
+        });
+    }, [postEditorActions, draft, getSelectedText, updateText, pluginItemsVisible]);
 
     return items;
 };

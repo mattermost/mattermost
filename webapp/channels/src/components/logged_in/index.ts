@@ -6,14 +6,16 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {updateApproximateViewTime} from 'mattermost-redux/actions/channels';
+import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {autoUpdateTimezone} from 'mattermost-redux/actions/timezone';
 import {getChannel, getCurrentChannelId, isManuallyUnread} from 'mattermost-redux/selectors/entities/channels';
-import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getLicense, getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser, shouldShowTermsOfService} from 'mattermost-redux/selectors/entities/users';
 
 import {getChannelURL} from 'selectors/urls';
 
 import {getHistory} from 'utils/browser_history';
+import {isEnterpriseLicense} from 'utils/license_utils';
 import {checkIfMFARequired} from 'utils/route';
 import {isPermalinkURL} from 'utils/url';
 
@@ -27,7 +29,7 @@ type Props = {
     };
 };
 
-function mapStateToProps(state: GlobalState, ownProps: Props) {
+export function mapStateToProps(state: GlobalState, ownProps: Props) {
     const license = getLicense(state);
     const config = getConfig(state);
     const showTermsOfService = shouldShowTermsOfService(state);
@@ -39,6 +41,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
         isCurrentChannelManuallyUnread: isManuallyUnread(state, currentChannelId),
         mfaRequired: checkIfMFARequired(getCurrentUser(state), license, config, ownProps.match.url),
         showTermsOfService,
+        customProfileAttributesEnabled: isEnterpriseLicense(license) && getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true',
     };
 }
 
@@ -63,6 +66,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             autoUpdateTimezone,
             getChannelURLAction,
             updateApproximateViewTime,
+            getCustomProfileAttributeFields,
         }, dispatch),
     };
 }

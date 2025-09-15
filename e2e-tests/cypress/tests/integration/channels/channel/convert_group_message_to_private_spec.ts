@@ -60,6 +60,7 @@ describe('Group Message Conversion To Private Channel', () => {
 
         // Open the GM conversion dialog
         cy.get('#channelHeaderDropdownButton').click();
+        cy.findByRole('menuitem', {name: 'Settings'}).trigger('mouseover');
         cy.findByText('Convert to Private Channel').click();
 
         // the dialog has a animation, so we're waiting for it to finish
@@ -67,7 +68,7 @@ describe('Group Message Conversion To Private Channel', () => {
         cy.get('.GenericModal__button.delete.disabled').wait(2000);
 
         // Open the team dropdown and select a team
-        cy.findByText('Select Team').click();
+        cy.findByText('Select Team').click({force: true});
         cy.findByText(testTeam2.display_name).click();
 
         // Enter the new channel name and confirm
@@ -102,6 +103,7 @@ describe('Group Message Conversion To Private Channel', () => {
                     // Open the GM
                     cy.visit(`/${testTeam1.name}/messages/${gm2.name}`);
                     cy.get('#channelHeaderDropdownButton').click();
+                    cy.findByRole('menuitem', {name: 'Settings'}).trigger('mouseover');
                     cy.findByText('Convert to Private Channel').click();
                     cy.get('.GenericModal__button.delete.disabled').wait(2000);
 
@@ -127,7 +129,6 @@ describe('Group Message Conversion To Private Channel', () => {
 
             cy.apiCreateTeam('gmconversionteam3', 'GM Conversion Team 3').then(({team}) => {
                 testTeam3 = team;
-                console.log(testTeam3);
 
                 const teamMembers = [{
                     team_id: testTeam3.id,
@@ -141,6 +142,7 @@ describe('Group Message Conversion To Private Channel', () => {
                         // Open the GM
                         cy.visit(`/${testTeam1.name}/messages/${gm3.name}`);
                         cy.get('#channelHeaderDropdownButton').click();
+                        cy.findByRole('menuitem', {name: 'Settings'}).trigger('mouseover');
                         cy.findByText('Convert to Private Channel').click();
                         cy.findByText('Unable to convert to a channel because group members are part of different teams').wait(2000);
                     });
@@ -152,8 +154,6 @@ describe('Group Message Conversion To Private Channel', () => {
     it('websocket event should update channel category correctly when in channel', () => {
         cy.apiCreateGroupChannel([testUser1.id, testUser2.id, testUser3.id]).then(({channel}) => {
             gm = channel;
-
-            console.log(gm.name);
 
             // Open the GM
             cy.visit(`/${testTeam1.name}/messages/${gm.name}`);

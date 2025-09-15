@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessages} from 'react-intl';
+import {defineMessage} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';
 
@@ -24,12 +24,9 @@ export const MIN_EMOTICON_LENGTH = 2;
 export const EMOJI_CATEGORY_SUGGESTION_BLOCKLIST = ['skintone'];
 
 type EmojiItem = {
-    name: string;
     emoji: Emoji;
-    type: string;
+    name: string;
 }
-
-const suggestionTypeEmoji = 'emoji';
 
 const EmoticonSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<EmojiItem>>((props, ref) => {
     const text = props.term;
@@ -42,10 +39,9 @@ const EmoticonSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Emoji
         >
             <div className='pull-left emoticon-suggestion__image-container'>
                 <img
-                    alt={text}
                     className='emoticon-suggestion__image'
                     src={getEmojiImageUrl(emoji)}
-                    title={text}
+                    alt=''
                 />
             </div>
             <div className='pull-left'>
@@ -133,7 +129,7 @@ export default class EmoticonProvider extends Provider {
 
                         // if the emoji has skin, only add those that match with the user selected skin.
                         if (emojiMatchesSkin(emoji, skintone)) {
-                            matchedArray.push({name: alias, emoji, type: suggestionTypeEmoji});
+                            matchedArray.push({name: alias, emoji});
                         }
                         break;
                     }
@@ -147,7 +143,7 @@ export default class EmoticonProvider extends Provider {
 
                 const matchedArray = recentEmojis.includes(name) ? recentMatched : matched;
 
-                matchedArray.push({name, emoji, type: suggestionTypeEmoji});
+                matchedArray.push({name, emoji});
             }
         }
 
@@ -172,16 +168,13 @@ export default class EmoticonProvider extends Provider {
         // Required to get past the dispatch during dispatch error
         resultsCallback({
             matchedPretext: text,
-            terms,
-            items,
-            component: EmoticonSuggestion,
+            groups: [{
+                key: 'emojis',
+                label: defineMessage({id: 'suggestion.emoji', defaultMessage: 'Emoji'}),
+                terms,
+                items,
+                component: EmoticonSuggestion,
+            }],
         });
     }
 }
-
-defineMessages({
-    emojisDivider: {
-        id: 'suggestion.emoji',
-        defaultMessage: 'Emoji',
-    },
-});

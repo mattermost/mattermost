@@ -15,7 +15,6 @@ const (
 	JobTypeCLIMessageExport              = "cli_message_export"
 	JobTypeElasticsearchPostIndexing     = "elasticsearch_post_indexing"
 	JobTypeElasticsearchPostAggregation  = "elasticsearch_post_aggregation"
-	JobTypeBlevePostIndexing             = "bleve_post_indexing"
 	JobTypeLdapSync                      = "ldap_sync"
 	JobTypeMigrations                    = "migrations"
 	JobTypePlugins                       = "plugins"
@@ -44,6 +43,7 @@ const (
 	JobTypeExportUsersToCSV              = "export_users_to_csv"
 	JobTypeDeleteDmsPreferencesMigration = "delete_dms_preferences_migration"
 	JobTypeMobileSessionMetadata         = "mobile_session_metadata"
+	JobTypeAccessControlSync             = "access_control_sync"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -59,7 +59,6 @@ var AllJobTypes = [...]string{
 	JobTypeMessageExport,
 	JobTypeElasticsearchPostIndexing,
 	JobTypeElasticsearchPostAggregation,
-	JobTypeBlevePostIndexing,
 	JobTypeLdapSync,
 	JobTypeMigrations,
 	JobTypePlugins,
@@ -91,8 +90,8 @@ type Job struct {
 	Data           StringMap `json:"data"`
 }
 
-func (j *Job) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (j *Job) Auditable() map[string]any {
+	return map[string]any{
 		"id":               j.Id,
 		"type":             j.Type,
 		"priority":         j.Priority,
@@ -129,7 +128,7 @@ func (j *Job) MarshalYAML() (any, error) {
 	}, nil
 }
 
-func (j *Job) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (j *Job) UnmarshalYAML(unmarshal func(any) error) error {
 	out := struct {
 		Id             string    `yaml:"id"`
 		Type           string    `yaml:"type"`

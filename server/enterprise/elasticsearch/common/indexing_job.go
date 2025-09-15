@@ -219,12 +219,12 @@ func (worker *IndexerWorker) DoJob(job *model.Job) {
 	logger.Debug("Worker: Received a new candidate job.")
 	defer worker.jobServer.HandleJobPanic(logger, job)
 
-	claimed, appErr := worker.jobServer.ClaimJob(job)
+	var appErr *model.AppError
+	job, appErr = worker.jobServer.ClaimJob(job)
 	if appErr != nil {
 		logger.Warn("Worker: Error occurred while trying to claim job", mlog.Err(appErr))
 		return
-	}
-	if !claimed {
+	} else if job == nil {
 		return
 	}
 
@@ -569,7 +569,8 @@ func BulkIndexChannels(config *model.Config,
 			}
 		}
 
-		teamMemberIDs, err := store.Channel().GetTeamMembersForChannel(channel.Id)
+		rctx := request.EmptyContext(logger)
+		teamMemberIDs, err := store.Channel().GetTeamMembersForChannel(rctx, channel.Id)
 		if err != nil {
 			return nil, model.NewAppError("IndexerWorker.BulkIndexChannels", "ent.elasticsearch.getAllTeamMembers.error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}

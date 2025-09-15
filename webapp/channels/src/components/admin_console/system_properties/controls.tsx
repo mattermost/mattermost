@@ -11,7 +11,7 @@ export const SectionHeading = styled.h3`
     }
 `;
 
-export const SectionHeader = styled.header.attrs({className: 'header'})<{$borderless?: boolean}>`
+export const SectionHeader = styled.div.attrs({className: 'header'})<{$borderless?: boolean}>`
     &&& {
         padding: 24px 32px;
         ${({$borderless}) => !$borderless && css`
@@ -43,15 +43,26 @@ export const AdminWrapper = (props: {children: ReactNode}) => {
     );
 };
 
-export const FieldInput = styled.input.attrs({className: 'form-control secure-connections-input'})<{$deleted?: boolean; $strong?: boolean; $borderless?: boolean}>`
-    font-weight: normal;
-
-    ${({$borderless}) => $borderless && css`
-        && {
+export const BorderlessInput = styled.input.attrs({className: 'Input form-control'})<{$deleted?: boolean; $strong?: boolean}>`
+    && {
+        height: 40px;
+        border-color: transparent;
+        border-top: 0;
+        background: none;
+        box-shadow: none;
+        &:hover,
+        &:focus {
             border-color: transparent;
             box-shadow: none;
         }
-    `};
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.04)
+        }
+        &:focus {
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
+    }
 
     ${({$deleted}) => $deleted && css`
         && {

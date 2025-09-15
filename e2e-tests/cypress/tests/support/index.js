@@ -5,15 +5,15 @@
 // Read more at: https://on.cypress.io/configuration
 // ***********************************************************
 
-/* eslint-disable no-loop-func */
+
 
 import dayjs from 'dayjs';
 import localforage from 'localforage';
-
 import '@testing-library/cypress/add-commands';
 import 'cypress-file-upload';
 import 'cypress-wait-until';
 import 'cypress-plugin-tab';
+import 'cypress-real-events';
 import addContext from 'mochawesome/addContext';
 
 import './api';
@@ -36,7 +36,6 @@ import './task_commands';
 import './ui';
 import './ui_commands'; // soon to deprecate
 import {DEFAULT_TEAM} from './constants';
-
 import {getDefaultConfig} from './api/system';
 
 Cypress.dayjs = dayjs;
@@ -195,12 +194,12 @@ function sysadminSetup(user) {
         cy.externalRequest({user, method: 'put', path: 'config', data: getDefaultConfig(), failOnStatusCode: false});
     }
 
+    // # Reset config to default
+    cy.apiUpdateConfig();
+
     if (!user.email_verified) {
         cy.apiVerifyUserEmailById(user.id);
     }
-
-    // # Reset config to default
-    cy.apiUpdateConfig();
 
     // # Reset admin preference, online status and locale
     resetUserPreference(user.id);
@@ -265,5 +264,4 @@ function resetUserPreference(userId) {
     cy.apiSaveSkipStepsPreference(userId, 'true');
     cy.apiSaveStartTrialModal(userId, 'true');
     cy.apiSaveUnreadScrollPositionPreference(userId, 'start_from_left_off');
-    cy.apiSaveDraftsTourTipPreference(userId, 'true');
 }

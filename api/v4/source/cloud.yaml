@@ -384,4 +384,35 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
+  /api/v4/cloud/preview/modal_data:
+    get:
+      tags:
+        - cloud
+      summary: Get cloud preview modal data
+      description: >
+        Retrieves modal content data from the configured S3 bucket for displaying cloud product preview modals.
+
+        ##### Permissions
+
+        Must be authenticated.
+        Must be in a Cloud Preview environment.
+
+        __Minimum server version__: 10.0
+        __Note:__ This is intended for internal use and is subject to change.
+      operationId: GetPreviewModalData
+      responses:
+        "200":
+          description: Preview modal data returned successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PreviewModalContentData"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
