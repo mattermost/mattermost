@@ -5394,7 +5394,6 @@ func TestViewChannelWithoutCollapsedThreads(t *testing.T) {
 }
 
 func TestChannelMemberSanitization(t *testing.T) {
-	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
