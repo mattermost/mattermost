@@ -78,6 +78,7 @@ const Preferences = {
     HIDE_MYSQL_STATS_NOTIFICATION: 'hide_mysql_stats_notifcation',
 
     CATEGORY_OVERAGE_USERS_BANNER: 'overage_users_banner',
+    CATEGORY_POST_HISTORY_LIMIT_BANNER: 'post_history_limit_banner',
 
     CATEGORY_THEME: 'theme',
     THEMES: {
