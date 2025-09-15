@@ -78,6 +78,11 @@ else
 	BUILD_TYPE_NAME = team
 endif
 
+FIPS_ENABLED ?= false
+ifeq ($(FIPS_ENABLED),true)
+	BUILD_TYPE_NAME := $(BUILD_TYPE_NAME)-fips
+endif
+
 # Clean up the old means of importing enterprise source, if it exists
 ifneq ($(wildcard channels/imports/imports.go),)
 	IGNORE := $(shell rm -f channels/imports/imports.go)
@@ -106,6 +111,11 @@ GOFLAGS ?= $(GOFLAGS:)
 # for processes spawned from the Makefile
 export GOBIN ?= $(PWD)/bin
 GO ?= go
+
+ifeq ($(FIPS_ENABLED),true)
+	BUILD_TAGS += requirefips
+endif
+
 DELVE ?= dlv
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildNumber=$(BUILD_NUMBER)"
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildDate=$(BUILD_DATE)"
@@ -157,6 +167,16 @@ PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.3.4
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.2.0
 PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.2.1
+
+# Overwrite the definition of PLUGIN_PACKAGES with the list of FIPS-ready plugins
+# Note that the '+' in the file name is encoded as %2B for the URL we use to
+# download the package from to work. This will no longer be needed when we unify
+# the way we pre-package FIPS and non-FIPS plugins.
+ifeq ($(FIPS_ENABLED),true)
+	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.4.1%2Bd973eca-fips
+	PLUGIN_PACKAGES += mattermost-plugin-agents-v1.3.1%2B6e1b6eb-fips
+	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.6%2B2b0e66a-fips
+endif
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
@@ -754,11 +774,9 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 vet: ## Run mattermost go vet specific checks
-	## Note that it is pinned to a specific commit, rather than a branch. This is to prevent
-	## having to backport the fix to multiple release branches for any new change.
 	$(GO) install github.com/mattermost/mattermost-govet/v2@7d8db289e508999dfcac47b97c9490a0fec12d66
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -requestCtxNaming -license -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go,utils_serial_gen.go ./...
- ifeq ($(BUILD_ENTERPRISE_READY),true)
+ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -requestCtxNaming -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
   endif
