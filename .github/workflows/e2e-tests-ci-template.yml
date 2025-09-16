@@ -105,7 +105,7 @@ on:
 
 jobs:
   update-initial-status:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@main
         env:
@@ -118,7 +118,7 @@ jobs:
           status: pending
 
   cypress-check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
       - update-initial-status
     defaults:
@@ -149,7 +149,7 @@ jobs:
           npm run check
 
   playwright-check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
       - update-initial-status
     defaults:
@@ -186,7 +186,7 @@ jobs:
           npm run check
 
   shell-check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
       - update-initial-status
     defaults:
@@ -204,7 +204,7 @@ jobs:
         run: make check-shell
 
   generate-build-variables:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
       - update-initial-status
     defaults:
@@ -230,7 +230,7 @@ jobs:
           echo "node-cache-dependency-path=e2e-tests/${TEST}/package-lock.json" >> $GITHUB_OUTPUT
 
   generate-test-cycle:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
       - generate-build-variables
     defaults:
@@ -284,8 +284,8 @@ jobs:
         # - For MacOS: works on developer machines, but uses too many resources to be able to run on Github Actions
         # - for Windows: cannot currently run on Github Actions, since the runners do not support running linux containers, at the moment
         #
-        #os: [ubuntu-latest, windows-2022, macos-12-xl]
-        os: [ubuntu-latest]
+        #os: [ubuntu-24.04, windows-2022, macos-12-xl]
+        os: [ubuntu-24.04]
         worker_index: ${{ fromJSON(needs.generate-build-variables.outputs.workers) }} # https://docs.github.com/en/actions/learn-github-actions/expressions#example-returning-a-json-object
     runs-on: "${{ matrix.os }}"
     timeout-minutes: 120
@@ -376,7 +376,7 @@ jobs:
           retention-days: 1
 
   report:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
       - test
       - generate-build-variables
@@ -527,7 +527,7 @@ jobs:
           [ "${{ steps.calculate-results.outputs.failed }}" = "0" ]
 
   update-failure-final-status:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: failure() || cancelled()
     needs:
       - generate-test-cycle
@@ -550,7 +550,7 @@ jobs:
 
 
   update-success-final-status:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: success()
     needs:
       - generate-test-cycle
