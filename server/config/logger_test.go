@@ -210,13 +210,12 @@ func TestLoggerOutputWithUTC(t *testing.T) {
 		require.NotEmpty(t, timestampStr, "Timestamp should not be empty")
 
 		// Parse the timestamp using UTC format (no timezone)
-		loggedTime, err := time.Parse("2006-01-02 15:04:05.000", timestampStr)
+		loggedTime, err := time.Parse("2006-01-02 15:04:05.000 Z07:00", timestampStr)
 		require.NoErrorf(t, err, "Could not parse timestamp %s: %v", timestampStr, err)
 
-		// Verify timestamp format - should be exactly 23 characters without timezone
-		assert.Len(t, timestampStr, 23, "UTC timestamp should be exactly 23 characters: 'YYYY-MM-DD HH:MM:SS.mmm'")
-		assert.NotRegexp(t, `[+-]\d{2}:\d{2}$`, timestampStr, "UTC timestamp should not end with timezone offset")
-		assert.False(t, strings.HasSuffix(timestampStr, "Z"), "UTC timestamp should not end with Z suffix")
+		// Verify timestamp format - should be exactly 25 characters
+		assert.Len(t, timestampStr, 25, "UTC timestamp should be exactly 25 characters: 'YYYY-MM-DD HH:MM:SS.mmm Z'")
+		assert.True(t, strings.HasSuffix(timestampStr, "Z"), "UTC timestamp should not end with Z suffix")
 
 		// Verify the logged time is within reasonable bounds (allowing 2 second buffer for test execution)
 		beforeLogUTC := beforeLog.UTC()
@@ -274,7 +273,7 @@ func TestLoggerOutputWithUTC(t *testing.T) {
 		// Format: "info  [2025-09-04 09:34:53.675] test message caller=\"...\""
 
 		// Use regex to extract the timestamp from within square brackets
-		timestampRegex := `\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})\]`
+		timestampRegex := `\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} Z)\]`
 		matches := regexp.MustCompile(timestampRegex).FindStringSubmatch(logOutput)
 		require.Len(t, matches, 2, "Should find timestamp in brackets in log output: %q", logOutput)
 
@@ -282,13 +281,12 @@ func TestLoggerOutputWithUTC(t *testing.T) {
 		require.NotEmpty(t, timestampStr, "Timestamp should not be empty")
 
 		// Parse the timestamp using UTC format (no timezone)
-		loggedTime, err := time.Parse("2006-01-02 15:04:05.000", timestampStr)
+		loggedTime, err := time.Parse("2006-01-02 15:04:05.000 Z07:00", timestampStr)
 		require.NoErrorf(t, err, "Could not parse timestamp %s: %v", timestampStr, err)
 
-		// Verify timestamp format - should be exactly 23 characters without timezone
-		assert.Len(t, timestampStr, 23, "UTC timestamp should be exactly 23 characters: 'YYYY-MM-DD HH:MM:SS.mmm'")
-		assert.NotRegexp(t, `[+-]\d{2}:\d{2}$`, timestampStr, "UTC timestamp should not end with timezone offset")
-		assert.False(t, strings.HasSuffix(timestampStr, "Z"), "UTC timestamp should not end with Z suffix")
+		// Verify timestamp format - should be exactly 25 characters
+		assert.Len(t, timestampStr, 25, "UTC timestamp should be exactly 25 characters: 'YYYY-MM-DD HH:MM:SS.mmm Z'")
+		assert.True(t, strings.HasSuffix(timestampStr, "Z"), "UTC timestamp should not end with Z suffix")
 
 		// Verify the logged time is within reasonable bounds
 		beforeLogUTC := beforeLog.UTC()
@@ -354,13 +352,12 @@ func TestLoggerOutputWithUTC(t *testing.T) {
 		require.NotEmpty(t, timestampStr, "Timestamp should not be empty")
 
 		// Parse the timestamp using UTC format (no timezone)
-		loggedTime, err := time.Parse("2006-01-02 15:04:05.000", timestampStr)
+		loggedTime, err := time.Parse("2006-01-02 15:04:05.000 Z07:00", timestampStr)
 		require.NoErrorf(t, err, "Could not parse audit timestamp %s: %v", timestampStr, err)
 
-		// Verify timestamp format - should be exactly 23 characters without timezone
-		assert.Len(t, timestampStr, 23, "UTC audit timestamp should be exactly 23 characters: 'YYYY-MM-DD HH:MM:SS.mmm'")
-		assert.NotRegexp(t, `[+-]\d{2}:\d{2}$`, timestampStr, "UTC audit timestamp should not end with timezone offset")
-		assert.False(t, strings.HasSuffix(timestampStr, "Z"), "UTC audit timestamp should not end with Z suffix")
+		// Verify timestamp format - should be exactly 25 characters without timezone
+		assert.Len(t, timestampStr, 25, "UTC timestamp should be exactly 25 characters: 'YYYY-MM-DD HH:MM:SS.mmm Z'")
+		assert.True(t, strings.HasSuffix(timestampStr, "Z"), "UTC audit timestamp should not end with Z suffix")
 
 		// Verify the logged time is within reasonable bounds
 		beforeLogUTC := beforeLog.UTC()
