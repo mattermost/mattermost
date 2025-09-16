@@ -3113,17 +3113,6 @@ func (a *App) SearchChannels(rctx request.CTX, teamID string, term string) (mode
 	return channelList, nil
 }
 
-func (a *App) SearchArchivedChannels(rctx request.CTX, teamID string, term string, userID string) (model.ChannelList, *model.AppError) {
-	term = strings.TrimSpace(term)
-
-	channelList, err := a.Srv().Store().Channel().SearchArchivedInTeam(teamID, term, userID)
-	if err != nil {
-		return nil, model.NewAppError("SearchArchivedChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return channelList, nil
-}
-
 func (a *App) SearchChannelsForUser(rctx request.CTX, userID, teamID, term string) (model.ChannelList, *model.AppError) {
 	includeDeleted := true
 
