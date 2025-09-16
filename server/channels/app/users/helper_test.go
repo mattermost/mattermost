@@ -69,6 +69,18 @@ func setupTestHelper(s store.Store, _ bool, tb testing.TB) *TestHelper {
 	require.NoError(tb, err)
 
 	buffer := &bytes.Buffer{}
+
+	tb.Cleanup(func() {
+		err := configStore.Close()
+		require.NoError(tb, err)
+
+		s.Close()
+
+		if tempWorkspace != "" {
+			os.RemoveAll(tempWorkspace)
+		}
+	})
+
 	return &TestHelper{
 		service: &UserService{
 			store:        s.User(),
@@ -131,14 +143,4 @@ func (th *TestHelper) CreateUserOrGuest(tb testing.TB, guest bool) *model.User {
 	}
 
 	return user
-}
-
-func (th *TestHelper) TearDown() {
-	th.configStore.Close()
-
-	th.dbStore.Close()
-
-	if th.workspace != "" {
-		os.RemoveAll(th.workspace)
-	}
 }
