@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor} from '@testing-library/react';
+import {screen, waitFor, fireEvent, act} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
@@ -72,6 +72,7 @@ jest.mock('mattermost-redux/selectors/entities/roles', () => ({
 // Mock the feature flag selector for ABAC rules (always enabled as per user request)
 jest.mock('selectors/general', () => ({
     isChannelAdminManageABACControlEnabled: jest.fn().mockReturnValue(true),
+    getBasePath: jest.fn().mockReturnValue(''),
 }));
 
 // Mock the child components to simplify testing
@@ -440,7 +441,19 @@ describe('ChannelSettingsModal', () => {
     });
 
     describe('preventClose functionality', () => {
-        it('should use preventClose prop when there are unsaved changes', async () => {
+        it('should pass preventClose prop to GenericModal based on unsaved changes state', async () => {
+            // Mock the InfoTab to simulate unsaved changes
+            const MockInfoTabWithChanges = jest.fn().mockImplementation(({setAreThereUnsavedChanges}) => {
+                // Simulate unsaved changes by calling the setter immediately
+                React.useEffect(() => {
+                    setAreThereUnsavedChanges?.(true);
+                }, [setAreThereUnsavedChanges]);
+
+                return <div data-testid='info-tab-with-changes'>{'Info Tab with unsaved changes'}</div>;
+            });
+
+            jest.doMock('./channel_settings_info_tab', () => MockInfoTabWithChanges);
+
             renderWithContext(<ChannelSettingsModal {...baseProps}/>);
 
             // Wait for the modal to load
@@ -448,9 +461,47 @@ describe('ChannelSettingsModal', () => {
                 expect(screen.getByRole('dialog')).toBeInTheDocument();
             });
 
-            // The modal should pass preventClose prop to GenericModal when there are unsaved changes
             const modal = screen.getByRole('dialog');
+
+            // Try to close the modal - it should prevent closing due to unsaved changes
+            const closeButton = screen.getByLabelText(/close/i);
+            act(() => {
+                fireEvent.click(closeButton);
+            });
+
+            // Modal should still be visible (not closed due to unsaved changes)
             expect(modal).toBeInTheDocument();
+            expect(modal).toBeVisible();
+
+            // Restore the original mock
+            jest.doMock('./channel_settings_info_tab', () => {
+                return function MockInfoTab(): JSX.Element {
+                    return <div data-testid='info-tab'>{'Info Tab Content'}</div>;
+                };
+            });
+        });
+
+        it('should allow modal close when no unsaved changes', async () => {
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+            // Wait for the modal to load
+            await waitFor(() => {
+                expect(screen.getByRole('dialog')).toBeInTheDocument();
+            });
+
+            // Try to close the modal without making any changes
+            const closeButton = screen.getByLabelText(/close/i);
+
+            // This should not throw any errors and should trigger the close flow
+            expect(() => {
+                act(() => {
+                    fireEvent.click(closeButton);
+                });
+            }).not.toThrow();
+
+            await waitFor(() => {
+                expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+            });
         });
     });
 });
