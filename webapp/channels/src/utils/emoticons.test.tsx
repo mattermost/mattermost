@@ -7,7 +7,7 @@ describe('Emoticons', () => {
     describe('handleEmoticons', () => {
         // test emoticon patterns
         const emoticonPatterns = {
-            slightly_smiling_face: [':)', ':-)'],
+            slightly_smiling_face: [':)', ':-)', '(:', '(-:'],
             wink: [';)', ';-)'],
             open_mouth: [':o'],
             scream: [':-o'],
