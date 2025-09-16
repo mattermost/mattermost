@@ -27,8 +27,7 @@ import {
 import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
 import {getTeamByName as getTeamByNameAction} from 'mattermost-redux/actions/teams';
 import {Client4} from 'mattermost-redux/client';
-import {Preferences, General} from 'mattermost-redux/constants';
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {Preferences} from 'mattermost-redux/constants';
 import {
     getChannel,
     getChannelsNameMapInTeam,
@@ -42,9 +41,9 @@ import {
     getTeamMemberships,
     isTeamSameWithCurrentTeam,
 } from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {blendColors, changeOpacity} from 'mattermost-redux/utils/theme_utils';
-import {displayUsername, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
+import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {searchForTerm} from 'actions/post_actions';
 import {addUserToTeam} from 'actions/team_actions';
@@ -1586,47 +1585,6 @@ export function numberToFixedDynamic(num: number, places: number): string {
     return str.slice(0, indexToExclude);
 }
 
-const TrackFlowRoles: Record<string, string> = {
-    fa: Constants.FIRST_ADMIN_ROLE,
-    sa: General.SYSTEM_ADMIN_ROLE,
-    su: General.SYSTEM_USER_ROLE,
-};
-
-export function getTrackFlowRole(state: GlobalState) {
-    let trackFlowRole = 'su';
-
-    if (isFirstAdmin(state)) {
-        trackFlowRole = 'fa';
-    } else if (isSystemAdmin(getCurrentUser(state).roles)) {
-        trackFlowRole = 'sa';
-    }
-
-    return trackFlowRole;
-}
-
-export const getRoleForTrackFlow = createSelector(
-    'getRoleForTrackFlow',
-    getTrackFlowRole,
-    (trackFlowRole) => {
-        const startedByRole = TrackFlowRoles[trackFlowRole];
-
-        return {started_by_role: startedByRole};
-    },
-);
-
-export function getSbr() {
-    const params = new URLSearchParams(window.location.search);
-    const sbr = params.get('sbr') ?? '';
-    return sbr;
-}
-
-export function getRoleFromTrackFlow() {
-    const sbr = getSbr();
-    const startedByRole = TrackFlowRoles[sbr] ?? '';
-
-    return {started_by_role: startedByRole};
-}
-
 export function getDatePickerLocalesForDateFns(locale: string, loadedLocales: Record<string, Locale>) {
     if (locale && locale !== 'en' && !loadedLocales[locale]) {
         try {
@@ -1639,32 +1597,6 @@ export function getDatePickerLocalesForDateFns(locale: string, loadedLocales: Re
     }
 
     return loadedLocales;
-}
-
-export function getMediumFromTrackFlow() {
-    const params = new URLSearchParams(window.location.search);
-    const source = params.get('md') ?? '';
-
-    return {source};
-}
-
-const TrackFlowSources: Record<string, string> = {
-    wd: 'webapp-desktop',
-    wm: 'webapp-mobile',
-    d: 'desktop-app',
-};
-
-function getTrackFlowSource() {
-    if (UserAgent.isMobile()) {
-        return TrackFlowSources.wm;
-    } else if (UserAgent.isDesktopApp()) {
-        return TrackFlowSources.d;
-    }
-    return TrackFlowSources.wd;
-}
-
-export function getSourceForTrackFlow() {
-    return {source: getTrackFlowSource()};
 }
 
 export function a11yFocus(element: HTMLElement | null | undefined, keyboardOnly = true) {

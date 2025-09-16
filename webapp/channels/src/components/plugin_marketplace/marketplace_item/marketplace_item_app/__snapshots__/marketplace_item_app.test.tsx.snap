@@ -37,7 +37,6 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render 1`] = `
     installed={false}
     installing={false}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={null}
     versionLabel={null}
   />
@@ -70,7 +69,6 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render installed a
     installed={true}
     installing={false}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={null}
     versionLabel={null}
   />
@@ -115,7 +113,6 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with empty 
     installing={false}
     labels={Array []}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={null}
     versionLabel={null}
   />
@@ -161,7 +158,6 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with icon 1
     installed={false}
     installing={false}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={null}
     versionLabel={null}
   />
@@ -204,7 +200,6 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with no hom
     installed={false}
     installing={false}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={null}
     versionLabel={null}
   />
@@ -247,7 +242,6 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with no plu
     installed={false}
     installing={false}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={null}
     versionLabel={null}
   />
@@ -300,7 +294,6 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with one la
       ]
     }
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={null}
     versionLabel={null}
   />
@@ -345,7 +338,6 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with server
     installed={false}
     installing={false}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={null}
     versionLabel={null}
   />
@@ -403,7 +395,6 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with two la
       ]
     }
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={null}
     versionLabel={null}
   />
@@ -448,7 +439,6 @@ exports[`components/MarketplaceItemApp MarketplaceItem when installing 1`] = `
     installing={false}
     isInstalling={true}
     name="name"
-    trackEvent={[MockFunction]}
     updateDetails={null}
     versionLabel={null}
   />
