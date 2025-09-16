@@ -1322,15 +1322,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "Kanalda {{.Users}} taneden fazla kullanıcı bulunduğundan @all seçeneği kapatıldı."
+    "translation": "{{.Users}} üzerinde kullanıcısı bulunan kanallar için @all bildirim seçeneği kapatıldı. Ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "Kanalda {{.Users}} taneden fazla kullanıcı bulunduğundan @channel seçeneği kapatıldı."
+    "translation": "{{.Users}} üzerinde kullanıcısı bulunan kanallarda @channel bildirim seçeneği kapatıldı. Ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "Kanalda {{.Users}} taneden fazla kullanıcı bulunduğundan @here seçeneği kapatıldı."
+    "translation": "{{.Users}} üzerinde kullanıcısı bulunan kanallarda @here bildirim seçeneği kapatıldı. Ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -3820,7 +3820,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Sürücü adı SQL ayarı geçersiz. 'mysql' ya da 'postgres' olmalıdır."
+    "translation": "Sürücü adı SQL ayarı geçersiz. 'postgres' olmalıdır."
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
@@ -4808,7 +4808,7 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Geçersiz. Kullanıcı adı, kimlik doğrulama verileri kimlik doğrulama türü ile birlikte ayarlanmalıdır."
+    "translation": "Kullanıcı geçersiz. Kimlik doğrulama verileri yalnızca, kullanıcı kimliğini doğrulamak için e-posta/parola yerine bir dış kimlik doğrulama hizmeti kullanıyorsa ayarlanmalıdır."
   },
   {
     "id": "model.user.is_valid.create_at.app_error",
@@ -5512,11 +5512,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Sürüm 134+"
+    "translation": "Sürüm 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Sürüm 134+"
+    "translation": "Sürüm 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -9479,7 +9479,7 @@
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Kullanıcı etkinleştirilemedi. Sunucu güvenli kullanıcı sayısı sınırını aşıyor. Yöneticiniz ile görüşün: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Kullanıcı etkinleştirilemedi. Sunucu güvenli kullanıcı sayısı sınırını aşıyor. ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "model.channel_bookmark.is_valid.link_file.app_error",
@@ -10406,5 +10406,21 @@
   {
     "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} değeri IndexPrefix {{.IndexPrefix}} değerinin bir ön eki olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "Denetim günlükleri için En fazla dosya yaşı değeri eksi olamaz."
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "Kanal alma sınırı geçersiz."
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "Alan alma sınırı geçersiz."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "Kullanıcının kanala katılmak için gerekli öznitelikleri yok."
   }
 ]
