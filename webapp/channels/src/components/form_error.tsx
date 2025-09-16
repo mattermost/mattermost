@@ -3,8 +3,8 @@
 
 import React from 'react';
 
-const TYPE_MODAL = 'modal';
-const TYPE_BACKSTAGE = 'backstage';
+export const TYPE_MODAL = 'modal';
+export const TYPE_BACKSTAGE = 'backstage';
 
 // accepts either a single error or an array of errors
 type Props = {

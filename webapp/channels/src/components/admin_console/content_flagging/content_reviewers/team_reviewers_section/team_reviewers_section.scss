@@ -1,0 +1,112 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.TeamReviewers {
+    width: 100%;
+    border: 1px solid var(--center-channel-color-16);
+    border-radius: 8px;
+    margin-top: 24px;
+
+    > .DataGrid {
+        padding: 0;
+        background: none;
+
+        .DataGrid_search {
+            height: unset;
+            padding: 16px;
+            background: none;
+
+            .DataGrid_searchBar {
+                margin-left: 0;
+            }
+
+            .TeamReviewers__disable-all, .TeamReviewers__disable-all > button {
+                display: flex;
+                align-items: center;
+                margin-left: auto;
+                background: none;
+                text-decoration: none !important;
+            }
+        }
+
+        .DataGrid_rows .DataGrid_row:nth-child(odd) {
+            background: none;
+        }
+
+        .DataGrid_row {
+            display: flex;
+            padding: 8px 16px;
+            gap: 32px;
+
+            .TeamReviewers__team {
+                display: flex;
+                overflow: hidden;
+                align-items: center;
+                gap: 8px;
+                text-overflow: ellipsis;
+
+                .TeamReviewers__team-name {
+                    overflow: hidden;
+                    flex: 1;
+                    text-overflow: ellipsis;
+                }
+            }
+
+            .TeamIcon {
+                background: var(--center-channel-color-08);
+            }
+
+            .DataGrid_cell {
+                display: flex;
+                align-items: center !important;
+                margin: 0;
+
+                .user-multiselector__control {
+                    margin-block: 2px;
+                }
+
+                &:has(.UserMultiSelector) {
+                    overflow: unset;
+                }
+            }
+        }
+
+        .DataGrid_header {
+            background: var(--center-channel-color-04);
+            gap: 32px;
+            padding-inline: 18px;
+
+            > .DataGrid_cell {
+                padding-left: 0;
+                color: var(--center-channel-color-72);
+                font-size: 12px;
+            }
+        }
+
+        .DataGrid_cell {
+            &:nth-child(1) {
+                max-width: 230px;
+            }
+
+            &:nth-child(2) {
+                max-width: 446px;
+            }
+
+            &:nth-child(3) {
+                max-width: 44px;
+            }
+        }
+
+        .DataGrid_footer {
+            width: 100%;
+            padding: 8px 16px;
+            background: none;
+
+            > .DataGrid_cell {
+                margin-left: auto;
+            }
+        }
+    }
+}
+
+

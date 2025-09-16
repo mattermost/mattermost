@@ -17,6 +17,7 @@ import (
 )
 
 func TestGetAllRoles(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -39,6 +40,7 @@ func TestGetAllRoles(t *testing.T) {
 }
 
 func TestGetRole(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -81,6 +83,7 @@ func TestGetRole(t *testing.T) {
 }
 
 func TestGetRoleByName(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -123,6 +126,7 @@ func TestGetRoleByName(t *testing.T) {
 }
 
 func TestGetRolesByNames(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -204,7 +208,7 @@ func TestGetRolesByNames(t *testing.T) {
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		// too many roles should error with bad request
 		roles := []string{}
-		for i := 0; i < GetRolesByNamesMax+10; i++ {
+		for i := range GetRolesByNamesMax + 10 {
 			roles = append(roles, fmt.Sprintf("role1.Name%v", i))
 		}
 
@@ -215,6 +219,7 @@ func TestGetRolesByNames(t *testing.T) {
 }
 
 func TestPatchRole(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 

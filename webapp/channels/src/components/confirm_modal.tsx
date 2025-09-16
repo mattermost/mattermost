@@ -84,10 +84,21 @@ type Props = {
     hideCancel?: boolean;
 
     /*
+     * Set to hide the confirm button
+     */
+    hideConfirm?: boolean;
+
+    /*
      * The element that triggered the modal
      */
     focusOriginElement?: string;
 
+    /**
+     * Whether this modal is stacked on top of another modal.
+     * When true, the modal will not render its own backdrop and will
+     * adjust the z-index of the parent modal's backdrop.
+     */
+    isStacked?: boolean;
 };
 
 type State = {
@@ -191,6 +202,7 @@ export default class ConfirmModal extends React.Component<Props, State> {
                 ariaLabelledby='confirmModalLabel'
                 compassDesign={true}
                 modalHeaderText={this.props.title}
+                isStacked={this.props.isStacked}
             >
                 <div
                     data-testid={this.props.id}
@@ -205,15 +217,17 @@ export default class ConfirmModal extends React.Component<Props, State> {
                     <div className='ConfirmModal__footer'>
                         {this.props.checkboxInFooter && checkbox}
                         {cancelButton}
-                        <button
-                            type='button'
-                            className={this.props.confirmButtonClass}
-                            onClick={this.handleConfirm}
-                            id='confirmModalButton'
-                            autoFocus={true}
-                        >
-                            {this.props.confirmButtonText}
-                        </button>
+                        {!this.props.hideConfirm && (
+                            <button
+                                type='button'
+                                className={this.props.confirmButtonClass}
+                                onClick={this.handleConfirm}
+                                id='confirmModalButton'
+                                autoFocus={true}
+                            >
+                                {this.props.confirmButtonText}
+                            </button>
+                        )}
                     </div>
                 </div>
             </GenericModal>

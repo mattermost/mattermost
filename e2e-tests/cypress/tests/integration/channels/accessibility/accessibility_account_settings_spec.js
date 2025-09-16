@@ -50,6 +50,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
             {key: 'click_to_reply', label: 'Click to open threads', type: 'radio'},
             {key: 'channel_display_mode', label: 'Channel Display', type: 'radio'},
             {key: 'one_click_reactions_enabled', label: 'Quick reactions on messages', type: 'radio'},
+            {key: 'renderEmoticonsAsEmoji', label: 'Render emoticons as emojis', type: 'radio'},
             {key: 'languages', label: 'Language', type: 'dropdown'},
         ],
         sidebar: [
@@ -88,14 +89,12 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
     });
 
     it('MM-T1465_1 Verify Label & Tab behavior in section links', () => {
-        // * Verify tab selection and keyboard navigation in Account settings modal
+        // * Verify aria-label and tab support in section of Account settings modal
         cy.uiOpenProfileModal('Profile Settings');
         cy.findByRole('tab', {name: 'profile settings'}).should('be.visible').focus().should('be.focused');
         ['profile settings', 'security'].forEach((text) => {
-            // * Verify each tab is correctly selected and supports navigating to the next tab with arrow keys
-            cy.findByRole('tab', {name: text}).
-                should('have.attr', 'aria-selected', 'true').
-                type('{downarrow}');
+            // * Verify aria-label on each tab and it supports navigating to the next tab with arrow keys
+            cy.focused().should('have.attr', 'aria-label', text).type('{downarrow}');
         });
         cy.uiClose();
 
@@ -103,10 +102,8 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         cy.uiOpenSettingsModal();
         cy.findByRole('tab', {name: 'notifications'}).should('be.visible').focus().should('be.focused');
         ['notifications', 'display', 'sidebar', 'advanced'].forEach((text) => {
-            // * Verify each tab is correctly selected and supports navigating to the next tab with arrow keys
-            cy.findByRole('tab', {name: text}).
-                should('have.attr', 'aria-selected', 'true').
-                type('{downarrow}');
+            // * Verify aria-label on each tab and it supports navigating to the next tab with arrow keys
+            cy.focused().should('have.attr', 'aria-label', text).type('{downarrow}');
         });
     });
 

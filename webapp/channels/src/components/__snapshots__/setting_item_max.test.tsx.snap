@@ -26,6 +26,9 @@ exports[`components/SettingItemMax should match snapshot 1`] = `
         className="setting-list-item"
       >
         <hr />
+        <div
+          role="alert"
+        />
         <SaveButton
           disabled={false}
           onClick={[Function]}
@@ -74,15 +77,8 @@ exports[`components/SettingItemMax should match snapshot, on clientError 1`] = `
       >
         <hr />
         <div
-          className="form-group"
-        >
-          <label
-            className="col-sm-12 has-error"
-            id="clientError"
-          >
-            clientError
-          </label>
-        </div>
+          role="alert"
+        />
         <SaveButton
           disabled={false}
           onClick={[Function]}
@@ -131,14 +127,33 @@ exports[`components/SettingItemMax should match snapshot, on serverError 1`] = `
       >
         <hr />
         <div
-          className="form-group"
+          role="alert"
         >
-          <label
-            className="col-sm-12 has-error"
-            id="serverError"
+          <div
+            className="form-group"
           >
-            serverError
-          </label>
+            <label
+              className="col-sm-12 has-error"
+            >
+              <i
+                className="icon icon-alert-circle-outline"
+                role="presentation"
+              />
+              <span
+                className="sr-only"
+              >
+                <MemoizedFormattedMessage
+                  defaultMessage="Error"
+                  id="setting_item_max.error"
+                />
+              </span>
+              <span
+                id="serverError"
+              >
+                serverError
+              </span>
+            </label>
+          </div>
         </div>
         <SaveButton
           disabled={false}
@@ -187,6 +202,9 @@ exports[`components/SettingItemMax should match snapshot, with new saveTextButto
         className="setting-list-item"
       >
         <hr />
+        <div
+          role="alert"
+        />
         <SaveButton
           defaultMessage="CustomText"
           disabled={false}
@@ -235,6 +253,9 @@ exports[`components/SettingItemMax should match snapshot, without submit 1`] = `
         className="setting-list-item"
       >
         <hr />
+        <div
+          role="alert"
+        />
         <button
           className="btn btn-tertiary"
           id="cancelSetting"

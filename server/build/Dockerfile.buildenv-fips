@@ -1,0 +1,17 @@
+FROM cgr.dev/mattermost.com/go-msft-fips:1.24.5-dev@sha256:d7b2872c129277c01447903b7fde7a186fe211b59613172a7e40a3cc0dc5f126
+ARG NODE_VERSION=20.11.1
+
+RUN apk add curl ca-certificates mailcap unrtf wv poppler-utils tzdata gpg xmlsec
+
+# Download and install node via nvm
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+RUN bash -c "source /root/.nvm/nvm.sh && nvm install $NODE_VERSION && nvm use $NODE_VERSION && nvm alias default $NODE_VERSION"
+
+# Make node and npm globally available
+ENV PATH="/root/.nvm/versions/node/v$NODE_VERSION/bin:$PATH"
+
+RUN git config --global --add safe.directory /mattermost
+
+# Remove any existing entrypoint, and use bash as the default command
+ENTRYPOINT []
+CMD ["bash"]

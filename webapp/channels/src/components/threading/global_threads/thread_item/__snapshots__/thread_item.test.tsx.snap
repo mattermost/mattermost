@@ -12,7 +12,9 @@ exports[`components/threading/global_threads/thread_item should report total num
     role="link"
     tabIndex={0}
   >
-    <header>
+    <div
+      className="thread-item-header"
+    >
       <div
         className="ThreadItem__author"
       >
@@ -40,7 +42,7 @@ exports[`components/threading/global_threads/thread_item should report total num
         }
         useTime={false}
       />
-    </header>
+    </div>
     <div
       className="menu-anchor alt-visible"
     >
@@ -126,7 +128,6 @@ exports[`components/threading/global_threads/thread_item should report total num
         id="threading.threadItem.timestamp"
       />
       <MockTimestamp
-        className="alt-hidden"
         day="numeric"
         units={
           Array [
@@ -156,7 +157,9 @@ exports[`components/threading/global_threads/thread_item should report unread me
     role="link"
     tabIndex={0}
   >
-    <header>
+    <div
+      className="thread-item-header"
+    >
       <div
         className="indicator"
       >
@@ -193,7 +196,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
         }
         useTime={false}
       />
-    </header>
+    </div>
     <div
       className="menu-anchor alt-visible"
     >
@@ -279,7 +282,6 @@ exports[`components/threading/global_threads/thread_item should report unread me
         id="threading.threadItem.timestamp"
       />
       <MockTimestamp
-        className="alt-hidden"
         day="numeric"
         units={
           Array [
@@ -309,7 +311,9 @@ exports[`components/threading/global_threads/thread_item should report unread me
     role="link"
     tabIndex={0}
   >
-    <header>
+    <div
+      className="thread-item-header"
+    >
       <div
         className="indicator"
       >
@@ -344,7 +348,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
         }
         useTime={false}
       />
-    </header>
+    </div>
     <div
       className="menu-anchor alt-visible"
     >
@@ -430,7 +434,6 @@ exports[`components/threading/global_threads/thread_item should report unread me
         id="threading.threadItem.timestamp"
       />
       <MockTimestamp
-        className="alt-hidden"
         day="numeric"
         units={
           Array [

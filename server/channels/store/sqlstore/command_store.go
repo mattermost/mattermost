@@ -126,15 +126,9 @@ func (s SqlCommandStore) GetByTeam(teamId string) ([]*model.Command, error) {
 
 func (s SqlCommandStore) GetByTrigger(teamId string, trigger string) (*model.Command, error) {
 	var command model.Command
-	var triggerStr string
-	if s.DriverName() == "mysql" {
-		triggerStr = "`Trigger`"
-	} else {
-		triggerStr = "\"trigger\""
-	}
 
 	query, args, err := s.commandsQuery.
-		Where(sq.Eq{"TeamId": teamId, "DeleteAt": 0, triggerStr: trigger}).ToSql()
+		Where(sq.Eq{"TeamId": teamId, "DeleteAt": 0, "\"trigger\"": trigger}).ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "commands_tosql")
 	}

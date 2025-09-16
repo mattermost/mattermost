@@ -45,13 +45,11 @@ describe('Search', () => {
         // # Verify that the cleared search text does not appear on the search box
         cy.uiGetSearchContainer().should('be.visible').click();
         cy.uiGetSearchBox().should('be.empty');
-        cy.uiGetSearchContainer().should('be.visible').click();
-        cy.uiGetSearchContainer().type('{esc}');
+        cy.uiGetSearchBox().type('{esc}');
 
         // # Verify that the Search term input box is still cleared and search term does not reappear when RHS opens
         cy.uiGetSearchContainer().should('be.visible').click();
         cy.uiGetSearchBox().and('be.empty');
-        cy.uiGetSearchContainer().should('be.visible').click();
-        cy.uiGetSearchContainer().type('{esc}');
+        cy.uiGetSearchBox().type('{esc}');
     });
 });

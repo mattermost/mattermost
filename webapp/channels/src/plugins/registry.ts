@@ -299,14 +299,20 @@ export default class PluginRegistry {
         'button',
         'dropdownButton',
         'action',
+        'icon',
+        'dropdownText',
     ], ({
         button,
         dropdownButton,
         action,
+        icon,
+        dropdownText,
     }: {
         button: ReactResolvable;
         dropdownButton: ReactResolvable;
         action: CallButtonAction['action'];
+        icon: ReactResolvable;
+        dropdownText: ReactResolvable;
     }) => {
         const id = generateId();
 
@@ -315,7 +321,8 @@ export default class PluginRegistry {
             pluginId: this.id,
             button: resolveReactElement(button),
             dropdownButton: resolveReactElement(dropdownButton),
-            icon: null, // Needed to satisfy types for MobileChannelHeaderButton
+            icon: resolveReactElement(icon),
+            dropdownText: resolveReactElement(dropdownText),
             action,
         };
 

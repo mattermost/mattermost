@@ -53,7 +53,36 @@
                 type:
                   type: string
                 attrs:
-                  type: string
+                  type: object
+                  properties:
+                    visibility:
+                      type: string
+                      description: "Visibility of the attribute"
+                      enum: ["hidden", "when_set", "always"]
+                      default: "when_set"
+                    sort_order:
+                      type: number
+                      description: "Sort order for displaying this attribute"
+                    options:
+                      type: array
+                      description: "Options for select/multiselect fields"
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          color:
+                            type: string
+                    value_type:
+                      type: string
+                      description: "Type of text value"
+                      enum: ["email", "url", "phone"]
+                    ldap:
+                      type: string
+                      description: "LDAP attribute for syncing"
+                    saml:
+                      type: string
+                      description: "SAML attribute for syncing"
       responses:
         "201":
           description: Custom Profile Attribute field creation successful
@@ -106,7 +135,38 @@
                 type:
                   type: string
                 attrs:
-                  type: string
+                  type: object
+                  properties:
+                    visibility:
+                      type: string
+                      description: "Visibility of the attribute"
+                      enum: ["hidden", "when_set", "always"]
+                      default: "when_set"
+                    sort_order:
+                      type: number
+                      description: "Sort order for displaying this attribute"
+                    options:
+                      type: array
+                      description: "Options for select/multiselect fields"
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          name:
+                            type: string
+                          color:
+                            type: string
+                    value_type:
+                      type: string
+                      description: "Type of text value"
+                      enum: ["email", "url", "phone"]
+                    ldap:
+                      type: string
+                      description: "LDAP attribute for syncing"
+                    saml:
+                      type: string
+                      description: "SAML attribute for syncing"
       responses:
         "200":
           description: Custom Profile Attribute field patch successful
@@ -190,7 +250,7 @@
                     type: string
                   value:
                     oneOf:
-                      - type: string 
+                      - type: string
                       - type: array
                         items:
                           type: string
@@ -289,6 +349,65 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+    patch:
+      tags:
+        - custom profile attributes
+      summary: Update custom profile attribute values for a user
+      description: |
+        Update Custom Profile Attribute field values for a specific user.
 
+        _This endpoint is experimental._
 
+        __Minimum server version__: 11
 
+        ##### Permissions
+        Must have permission to edit the user. Users can only edit their own CPA values unless they are system administrators.
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Custom Profile Attribute values that are to be updated
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  value:
+                    oneOf:
+                      - type: string
+                      - type: array
+                        items:
+                          type: string
+      responses:
+        '200':
+          description: Custom profile attribute values updated successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    value:
+                      oneOf:
+                        - type: string
+                        - type: array
+                          items:
+                            type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'

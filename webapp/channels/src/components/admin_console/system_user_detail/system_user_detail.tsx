@@ -147,7 +147,9 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         } catch (err) {
             console.error('SystemUserDetails-handleActivateUser', err); // eslint-disable-line no-console
 
-            this.setState({error: this.props.intl.formatMessage({id: 'admin.user_item.userActivateFailed', defaultMessage: 'Failed to activate user'})});
+            // Show the actual server error message instead of generic message
+            const errorMessage = (err as Error).message || this.props.intl.formatMessage({id: 'admin.user_item.userActivateFailed', defaultMessage: 'Failed to activate user'});
+            this.setState({error: errorMessage});
         }
     };
 
@@ -166,7 +168,9 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         } catch (err) {
             console.error('SystemUserDetails-handleDeactivateMember', err); // eslint-disable-line no-console
 
-            this.setState({error: this.props.intl.formatMessage({id: 'admin.user_item.userDeactivateFailed', defaultMessage: 'Failed to deactivate user'})});
+            // Show the actual server error message instead of generic message
+            const errorMessage = (err as Error).message || this.props.intl.formatMessage({id: 'admin.user_item.userDeactivateFailed', defaultMessage: 'Failed to deactivate user'});
+            this.setState({error: errorMessage});
         }
 
         this.toggleCloseModalDeactivateMember();
@@ -363,7 +367,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             isLoading={this.state.isLoading}
                             body={
                                 <>
-                                    <span>{this.state?.user?.position ?? ''}</span>
+                                    <span>{this.state.user?.position ?? ''}</span>
                                     <label>
                                         <FormattedMessage
                                             id='admin.userManagement.userDetail.email'
@@ -384,7 +388,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                             defaultMessage='Username'
                                         />
                                         <AtIcon/>
-                                        <span>{this.state?.user?.username}</span>
+                                        <span>{this.state.user?.username}</span>
                                     </label>
                                     <label>
                                         <FormattedMessage
@@ -394,6 +398,16 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                         <SheidOutlineIcon/>
                                         <span>{getUserAuthenticationTextField(this.props.intl, this.props.mfaEnabled, this.state.user)}</span>
                                     </label>
+                                    {Boolean(this.state.user?.auth_data && this.state.user?.auth_service) && (
+                                        <label>
+                                            <FormattedMessage
+                                                id='admin.userManagement.userDetail.authData'
+                                                defaultMessage='Auth Data'
+                                            />
+                                            <SheidOutlineIcon/>
+                                            <span>{this.state.user?.auth_data}</span>
+                                        </label>
+                                    )}
                                 </>
                             }
                             footer={

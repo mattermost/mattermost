@@ -34,11 +34,7 @@ func (s *SqlPropertyGroupStore) Register(name string) (*model.PropertyGroup, err
 		Columns("ID", "Name").
 		Values(group.ID, group.Name)
 
-	if s.DriverName() == model.DatabaseDriverMysql {
-		builder = builder.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Name=Name"))
-	} else {
-		builder = builder.SuffixExpr(sq.Expr("ON CONFLICT (Name) DO NOTHING"))
-	}
+	builder = builder.SuffixExpr(sq.Expr("ON CONFLICT (Name) DO NOTHING"))
 
 	r, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {

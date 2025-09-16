@@ -63,12 +63,12 @@ func (a *App) GetAuditsPage(rctx request.CTX, userID string, page int, perPage i
 }
 
 // LogAuditRec logs an audit record using default LvlAuditCLI.
-func (a *App) LogAuditRec(rctx request.CTX, rec *audit.Record, err error) {
+func (a *App) LogAuditRec(rctx request.CTX, rec *model.AuditRecord, err error) {
 	a.LogAuditRecWithLevel(rctx, rec, mlog.LvlAuditCLI, err)
 }
 
 // LogAuditRecWithLevel logs an audit record using specified Level.
-func (a *App) LogAuditRecWithLevel(rctx request.CTX, rec *audit.Record, level mlog.Level, err error) {
+func (a *App) LogAuditRecWithLevel(rctx request.CTX, rec *model.AuditRecord, level mlog.Level, err error) {
 	if rec == nil {
 		return
 	}
@@ -84,28 +84,28 @@ func (a *App) LogAuditRecWithLevel(rctx request.CTX, rec *audit.Record, level ml
 }
 
 // MakeAuditRecord creates a audit record pre-populated with defaults.
-func (a *App) MakeAuditRecord(rctx request.CTX, event string, initialStatus string) *audit.Record {
+func (a *App) MakeAuditRecord(rctx request.CTX, event string, initialStatus string) *model.AuditRecord {
 	var userID string
 	user, err := user.Current()
 	if err == nil {
 		userID = fmt.Sprintf("%s:%s", user.Uid, user.Username)
 	}
 
-	rec := &audit.Record{
+	rec := &model.AuditRecord{
 		EventName: event,
 		Status:    initialStatus,
 		Meta: map[string]any{
-			audit.KeyAPIPath:   "",
-			audit.KeyClusterID: a.GetClusterId(),
+			model.AuditKeyAPIPath:   "",
+			model.AuditKeyClusterID: a.GetClusterId(),
 		},
-		Actor: audit.EventActor{
+		Actor: model.AuditEventActor{
 			UserId:        userID,
 			SessionId:     "",
 			Client:        fmt.Sprintf("server %s-%s", model.BuildNumber, model.BuildHash),
 			IpAddress:     "",
 			XForwardedFor: "",
 		},
-		EventData: audit.EventData{
+		EventData: model.AuditEventData{
 			Parameters:  map[string]any{},
 			PriorState:  map[string]any{},
 			ResultState: map[string]any{},

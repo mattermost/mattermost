@@ -217,7 +217,7 @@ func (ps *PlatformService) SaveAndBroadcastStatus(status *model.Status) {
 	ps.AddStatusCache(status)
 
 	if err := ps.Store.Status().SaveOrUpdate(status); err != nil {
-		mlog.Warn("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
+		ps.Log().Warn("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
 	}
 
 	ps.BroadcastStatus(status)
@@ -285,12 +285,12 @@ func (ps *PlatformService) UpdateLastActivityAtIfNeeded(session model.Session) {
 	}
 
 	if err := ps.Store.Session().UpdateLastActivityAt(session.Id, now); err != nil {
-		mlog.Warn("Failed to update LastActivityAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
+		ps.Log().Warn("Failed to update LastActivityAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
 	}
 
 	session.LastActivityAt = now
 	if err := ps.AddSessionToCache(&session); err != nil {
-		mlog.Warn("Failed to add session to cache", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
+		ps.Log().Warn("Failed to add session to cache", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
 	}
 }
 
@@ -352,21 +352,123 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 	}
 }
 
-func (ps *PlatformService) SetStatusOffline(userID string, manual bool) {
+func (ps *PlatformService) SetStatusOffline(userID string, manual bool, force bool) {
 	if !*ps.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
 
 	status, err := ps.GetStatus(userID)
-	if err == nil && status.Manual && !manual {
+	if err != nil {
+		ps.Log().Warn("Error getting status. Setting it to offline forcefully.", mlog.String("user_id", userID), mlog.Err(err))
+	} else if !force && status.Manual && !manual {
 		return // manually set status always overrides non-manual one
 	}
+	ps._setStatusOfflineAndNotify(userID, manual)
+}
 
-	status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
-
+func (ps *PlatformService) _setStatusOfflineAndNotify(userID string, manual bool) {
+	status := &model.Status{UserId: userID, Status: model.StatusOffline, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 	ps.SaveAndBroadcastStatus(status)
 	if ps.sharedChannelService != nil {
 		ps.sharedChannelService.NotifyUserStatusChanged(status)
+	}
+}
+
+// QueueSetStatusOffline queues a status update to set a user offline
+// instead of directly updating it for better performance during high load
+func (ps *PlatformService) QueueSetStatusOffline(userID string, manual bool) {
+	if !*ps.Config().ServiceSettings.EnableUserStatuses {
+		return
+	}
+
+	status, err := ps.GetStatus(userID)
+	if err != nil {
+		ps.Log().Warn("Error getting status. Setting it to offline forcefully.", mlog.String("user_id", userID), mlog.Err(err))
+	} else if status.Manual && !manual {
+		// Force will be false here, so no need to add another variable.
+		return // manually set status always overrides non-manual one
+	}
+
+	status = &model.Status{
+		UserId:         userID,
+		Status:         model.StatusOffline,
+		Manual:         manual,
+		LastActivityAt: model.GetMillis(),
+		ActiveChannel:  "",
+	}
+
+	select {
+	case ps.statusUpdateChan <- status:
+		// Successfully queued
+	default:
+		// Channel is full, fall back to direct update
+		ps.Log().Warn("Status update channel is full. Falling back to direct update")
+		ps._setStatusOfflineAndNotify(userID, manual)
+	}
+}
+
+const (
+	statusUpdateBufferSize     = sendQueueSize // We use the webConn sendQueue size as a reference point for the buffer size.
+	statusUpdateFlushThreshold = statusUpdateBufferSize / 8
+	statusUpdateBatchInterval  = 500 * time.Millisecond // Max time to wait before processing
+)
+
+// processStatusUpdates processes status updates in batches for better performance
+// This runs as a goroutine and continuously monitors the statusUpdateChan
+func (ps *PlatformService) processStatusUpdates() {
+	defer close(ps.statusUpdateDoneSignal)
+
+	statusBatch := make(map[string]*model.Status)
+	ticker := time.NewTicker(statusUpdateBatchInterval)
+	defer ticker.Stop()
+
+	flush := func(broadcast bool) {
+		if len(statusBatch) == 0 {
+			return
+		}
+
+		// Add each status to cache.
+		for _, status := range statusBatch {
+			ps.AddStatusCache(status)
+		}
+
+		// Process statuses in batch
+		if err := ps.Store.Status().SaveOrUpdateMany(statusBatch); err != nil {
+			ps.logger.Warn("Failed to save multiple statuses", mlog.Err(err))
+		}
+
+		// Broadcast each status only if hub is still running
+		if broadcast {
+			for _, status := range statusBatch {
+				ps.BroadcastStatus(status)
+				if ps.sharedChannelService != nil {
+					ps.sharedChannelService.NotifyUserStatusChanged(status)
+				}
+			}
+		}
+
+		clear(statusBatch)
+	}
+
+	for {
+		select {
+		case status := <-ps.statusUpdateChan:
+			// In case of duplicates, we override the last entry
+			statusBatch[status.UserId] = status
+
+			if len(statusBatch) >= statusUpdateFlushThreshold {
+				ps.logger.Debug("Flushing statuses because the current buffer exceeded the flush threshold.", mlog.Int("current_buffer", len(statusBatch)), mlog.Int("flush_threshold", statusUpdateFlushThreshold))
+				flush(true)
+			}
+		case <-ticker.C:
+			flush(true)
+		case <-ps.statusUpdateExitSignal:
+			// Process any remaining statuses before shutting down
+			// Skip broadcast since hub is already stopped
+			ps.logger.Debug("Exit signal received. Flushing any remaining statuses.")
+			flush(false)
+			return
+		}
 	}
 }
 

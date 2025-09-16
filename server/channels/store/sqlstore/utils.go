@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net/url"
 	"strconv"
 	"strings"
@@ -101,32 +102,6 @@ func isQuotedWord(s string) bool {
 	return s[0] == '"' && s[len(s)-1] == '"'
 }
 
-// constructMySQLJSONArgs returns the arg list to pass to a query along with
-// the string of placeholders which is needed to be to the JSON_SET function.
-// Use this function in this way:
-// UPDATE Table
-// SET Col = JSON_SET(Col, `+argString+`)
-// WHERE Id=?`, args...)
-// after appending the Id param to the args slice.
-func constructMySQLJSONArgs(props map[string]string) ([]any, string) {
-	if len(props) == 0 {
-		return nil, ""
-	}
-
-	// Unpack the keys and values to pass to MySQL.
-	args := make([]any, 0, len(props))
-	for k, v := range props {
-		args = append(args, "$."+k, v)
-	}
-
-	// We calculate the number of ? to set in the query string.
-	argString := strings.Repeat("?, ", len(props)*2)
-	// Strip off the trailing comma.
-	argString = strings.TrimSuffix(argString, ", ")
-
-	return args, argString
-}
-
 func constructArrayArgs(ids []string) (string, []any) {
 	var placeholder strings.Builder
 	values := make([]any, 0, len(ids))
@@ -156,7 +131,7 @@ func wrapBinaryParamStringMap(ok bool, props model.StringMap) model.StringMap {
 type morphWriter struct{}
 
 func (l *morphWriter) Write(in []byte) (int, error) {
-	mlog.Debug(string(in))
+	mlog.Debug(strings.TrimSpace(string(in)))
 	return len(in), nil
 }
 
@@ -184,16 +159,8 @@ func trimInput(input string) string {
 	return input
 }
 
-// Adds backtiks to the column name for MySQL, this is required if
-// the column name is a reserved keyword.
-//
-//	`ColumnName` -  MySQL
-//	ColumnName   -  Postgres
+// Returns the column name for PostgreSQL.
 func quoteColumnName(driver string, columnName string) string {
-	if driver == model.DatabaseDriverMysql {
-		return fmt.Sprintf("`%s`", columnName)
-	}
-
 	return columnName
 }
 
@@ -202,9 +169,7 @@ func scanRowsIntoMap[K comparable, V any](rows *sql.Rows, scanner func(rows *sql
 	results := make(map[K]V, len(defaults))
 
 	// Initialize with default values if provided
-	for k, v := range defaults {
-		results[k] = v
-	}
+	maps.Copy(results, defaults)
 
 	for rows.Next() {
 		key, value, err := scanner(rows)

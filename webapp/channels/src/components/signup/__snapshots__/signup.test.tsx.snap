@@ -36,11 +36,11 @@ exports[`components/signup/Signup should match snapshot for all signup options e
         <div
           className="signup-body-card-content"
         >
-          <p
+          <h2
             className="signup-body-card-title"
           >
             Create your account with one of the following:
-          </p>
+          </h2>
           <div
             className="signup-body-card-form-login-options column"
           >
@@ -106,11 +106,11 @@ exports[`components/signup/Signup should match snapshot for all signup options e
         <div
           className="signup-body-card-content"
         >
-          <p
+          <h2
             className="signup-body-card-title"
           >
             Create your account
-          </p>
+          </h2>
           <form
             className="signup-body-card-form"
           >
@@ -122,7 +122,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               disabled={false}
               inputSize="large"
               name="email"
-              onBlur={[Function]}
               onChange={[Function]}
               placeholder="Email address"
               type="text"
@@ -141,7 +140,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               disabled={false}
               inputSize="large"
               name="name"
-              onBlur={[Function]}
               onChange={[Function]}
               placeholder="Choose a Username"
               type="text"
@@ -155,7 +153,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               error=""
               info="Must be 5-72 characters long."
               inputSize="large"
-              onBlur={[Function]}
               onChange={[Function]}
               value=""
             />
@@ -275,11 +272,11 @@ exports[`components/signup/Signup should match snapshot for all signup options e
         <div
           className="signup-body-card-content"
         >
-          <p
+          <h2
             className="signup-body-card-title"
           >
             Create your account
-          </p>
+          </h2>
           <form
             className="signup-body-card-form"
           >
@@ -291,7 +288,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               disabled={false}
               inputSize="large"
               name="email"
-              onBlur={[Function]}
               onChange={[Function]}
               placeholder="Email address"
               type="text"
@@ -310,7 +306,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               disabled={false}
               inputSize="large"
               name="name"
-              onBlur={[Function]}
               onChange={[Function]}
               placeholder="Choose a Username"
               type="text"
@@ -324,7 +319,6 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               error=""
               info="Must be 5-72 characters long."
               inputSize="large"
-              onBlur={[Function]}
               onChange={[Function]}
               value=""
             />

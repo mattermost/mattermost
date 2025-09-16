@@ -11,7 +11,7 @@ import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, Use
 
 import {UserTypes, AdminTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
-import {setServerVersion, getClientConfig, getLicenseConfig, getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
+import {setServerVersion, getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
 import {bindClientFunc, forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {getMyPreferences} from 'mattermost-redux/actions/preferences';
@@ -20,7 +20,7 @@ import {getMyTeams, getMyTeamMembers, getMyTeamUnreads} from 'mattermost-redux/a
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getServerVersion, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUser as selectUser, getUsers, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
@@ -80,10 +80,6 @@ export function loadMe(): ActionFuncAsync<boolean> {
                 dispatch(getMyTeams()),
                 dispatch(getMyTeamMembers()),
             ]);
-
-            if (getFeatureFlagValue(getState(), 'CustomProfileAttributes') === 'true') {
-                dispatch(getCustomProfileAttributeFields());
-            }
 
             const isCollapsedThreads = isCollapsedThreadsEnabled(getState());
             await dispatch(getMyTeamUnreads(isCollapsedThreads));
@@ -432,12 +428,12 @@ export function getProfilesInGroupChannels(channelsIds: string[]): ActionFuncAsy
     };
 }
 
-export function getProfilesNotInChannel(teamId: string, channelId: string, groupConstrained: boolean, page: number, perPage: number = General.PROFILE_CHUNK_SIZE): ActionFuncAsync<UserProfile[]> {
+export function getProfilesNotInChannel(teamId: string, channelId: string, groupConstrained: boolean, page: number, perPage: number = General.PROFILE_CHUNK_SIZE, cursorId = ''): ActionFuncAsync<UserProfile[]> {
     return async (dispatch, getState) => {
         let profiles;
 
         try {
-            profiles = await Client4.getProfilesNotInChannel(teamId, channelId, groupConstrained, page, perPage);
+            profiles = await Client4.getProfilesNotInChannel(teamId, channelId, groupConstrained, page, perPage, cursorId);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -644,6 +640,19 @@ export function getUserByEmail(email: string) {
             email,
         ],
     });
+}
+
+export function canUserDirectMessage(userId: string, otherUserId: string): ActionFuncAsync<{can_dm: boolean}> {
+    return async (dispatch, getState) => {
+        try {
+            const result = await Client4.canUserDirectMessage(userId, otherUserId);
+            return {data: result};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
 }
 
 export function getStatusesByIds(userIds: Array<UserProfile['id']>): ActionFuncAsync<UserStatus[]> {

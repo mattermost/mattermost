@@ -425,7 +425,6 @@ exports[`components/post_view/MessageAttachment should match snapshot when the a
           options={
             Object {
               "atMentions": false,
-              "autolinkedUrlSchemes": Array [],
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
                 "options": Object {},
@@ -471,7 +470,6 @@ exports[`components/post_view/MessageAttachment should match snapshot when the a
           options={
             Object {
               "atMentions": false,
-              "autolinkedUrlSchemes": Array [],
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
                 "options": Object {},
@@ -517,7 +515,6 @@ exports[`components/post_view/MessageAttachment should match snapshot when the a
           options={
             Object {
               "atMentions": false,
-              "autolinkedUrlSchemes": Array [],
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
                 "options": Object {},
@@ -563,7 +560,6 @@ exports[`components/post_view/MessageAttachment should match snapshot when the f
           options={
             Object {
               "atMentions": false,
-              "autolinkedUrlSchemes": Array [],
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
                 "options": Object {},

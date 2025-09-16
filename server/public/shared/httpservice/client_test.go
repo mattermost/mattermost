@@ -60,13 +60,13 @@ func TestHTTPClient(t *testing.T) {
 	t.Run("checks", func(t *testing.T) {
 		allowHost := func(_ string) bool { return true }
 		rejectHost := func(_ string) bool { return false }
-		allowIP := func(_ net.IP) bool { return true }
-		rejectIP := func(_ net.IP) bool { return false }
+		allowIP := func(_ net.IP) error { return nil }
+		rejectIP := func(_ net.IP) error { return fmt.Errorf("IP not allowed") }
 
 		testCases := []struct {
 			description     string
 			allowHost       func(string) bool
-			allowIP         func(net.IP) bool
+			allowIP         func(net.IP) error
 			expectedAllowed bool
 		}{
 			{"allow with no checks", nil, nil, true},
@@ -88,7 +88,7 @@ func TestHTTPClient(t *testing.T) {
 					require.NoError(t, err)
 				} else {
 					require.IsType(t, &url.Error{}, err)
-					require.Equal(t, ErrAddressForbidden, err.(*url.Error).Err)
+					require.Contains(t, err.(*url.Error).Err.Error(), "address forbidden")
 				}
 			})
 		}
@@ -156,7 +156,12 @@ func TestDialContextFilter(t *testing.T) {
 		filter := dialContextFilter(func(ctx context.Context, network, addr string) (net.Conn, error) {
 			didDial = true
 			return nil, nil
-		}, func(host string) bool { return host == "10.0.0.1" }, func(ip net.IP) bool { return !IsReservedIP(ip) })
+		}, func(host string) bool { return host == "10.0.0.1" }, func(ip net.IP) error {
+			if IsReservedIP(ip) {
+				return fmt.Errorf("IP %s is reserved", ip)
+			}
+			return nil
+		})
 		_, err := filter(context.Background(), "", tc.Addr)
 
 		if tc.IsValid {
@@ -164,7 +169,7 @@ func TestDialContextFilter(t *testing.T) {
 			require.True(t, didDial)
 		} else {
 			require.Error(t, err)
-			require.Equal(t, err, ErrAddressForbidden)
+			require.Contains(t, err.Error(), "address forbidden")
 			require.False(t, didDial)
 		}
 	}
@@ -226,8 +231,9 @@ func TestIsOwnIP(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, _ := IsOwnIP(tt.ip)
-			assert.Equalf(t, tt.want, got, "IsOwnIP() = %v, want %v for IP %s", got, tt.want, tt.ip.String())
+			got, err := IsOwnIP(tt.ip)
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

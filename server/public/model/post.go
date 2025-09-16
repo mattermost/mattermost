@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"regexp"
 	"sort"
@@ -386,10 +387,11 @@ func (c GetPostsSinceForSyncCursor) IsEmpty() bool {
 }
 
 type GetPostsSinceForSyncOptions struct {
-	ChannelId       string
-	ExcludeRemoteId string
-	IncludeDeleted  bool
-	SinceCreateAt   bool // determines whether the cursor will be based on CreateAt or UpdateAt
+	ChannelId                         string
+	ExcludeRemoteId                   string
+	IncludeDeleted                    bool
+	SinceCreateAt                     bool // determines whether the cursor will be based on CreateAt or UpdateAt
+	ExcludeChannelMetadataSystemPosts bool // if true, exclude channel metadata system posts (header, display name, purpose changes)
 }
 
 type GetPostsOptions struct {
@@ -627,9 +629,7 @@ func (o *Post) DelProp(key string) {
 	o.propsMu.Lock()
 	defer o.propsMu.Unlock()
 	propsCopy := make(map[string]any, len(o.Props)-1)
-	for k, v := range o.Props {
-		propsCopy[k] = v
-	}
+	maps.Copy(propsCopy, o.Props)
 	delete(propsCopy, key)
 	o.Props = propsCopy
 }
@@ -638,9 +638,7 @@ func (o *Post) AddProp(key string, value any) {
 	o.propsMu.Lock()
 	defer o.propsMu.Unlock()
 	propsCopy := make(map[string]any, len(o.Props)+1)
-	for k, v := range o.Props {
-		propsCopy[k] = v
-	}
+	maps.Copy(propsCopy, o.Props)
 	propsCopy[key] = value
 	o.Props = propsCopy
 }

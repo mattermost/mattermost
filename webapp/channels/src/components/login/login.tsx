@@ -21,7 +21,6 @@ import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {addUserToTeamFromInvite} from 'actions/team_actions';
-import {trackEvent} from 'actions/telemetry_actions';
 import {login} from 'actions/views/login';
 import LocalStorageStore from 'stores/local_storage_store';
 
@@ -48,6 +47,7 @@ import PasswordInput from 'components/widgets/inputs/password_input/password_inp
 
 import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
+import {isEmbedded} from 'utils/embed';
 import {t} from 'utils/i18n';
 import {showNotification} from 'utils/notifications';
 import {isDesktopApp} from 'utils/user_agent';
@@ -164,7 +164,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 icon: <LoginGitlabIcon/>,
                 label: GitLabButtonText || formatMessage({id: 'login.gitlab', defaultMessage: 'GitLab'}),
                 style: {color: GitLabButtonColor, borderColor: GitLabButtonColor},
-                onClick: desktopExternalAuth(url),
+                onClick: handleExternalAuth(url, 'gitlab'),
             });
         }
 
@@ -175,7 +175,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 url,
                 icon: <LoginGoogleIcon/>,
                 label: formatMessage({id: 'login.google', defaultMessage: 'Google'}),
-                onClick: desktopExternalAuth(url),
+                onClick: handleExternalAuth(url, 'google'),
             });
         }
 
@@ -186,7 +186,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 url,
                 icon: <EntraIdIcon/>,
                 label: formatMessage({id: 'login.office365', defaultMessage: 'Entra ID'}),
-                onClick: desktopExternalAuth(url),
+                onClick: handleExternalAuth(url, 'office365'),
             });
         }
 
@@ -198,7 +198,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 icon: <LoginOpenIDIcon/>,
                 label: OpenIdButtonText || formatMessage({id: 'login.openid', defaultMessage: 'Open ID'}),
                 style: {color: OpenIdButtonColor, borderColor: OpenIdButtonColor},
-                onClick: desktopExternalAuth(url),
+                onClick: handleExternalAuth(url, 'openid'),
             });
         }
 
@@ -209,20 +209,67 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 url,
                 icon: <LockIcon/>,
                 label: SamlLoginButtonText || formatMessage({id: 'login.saml', defaultMessage: 'SAML'}),
-                onClick: desktopExternalAuth(url),
+                onClick: handleExternalAuth(url, 'saml'),
             });
         }
 
         return externalLoginOptions;
     };
 
-    const desktopExternalAuth = (href: string) => {
+    const handleExternalAuth = (href: string, provider: string) => {
         return (event: React.MouseEvent) => {
+            // If the user is running the desktop app, we need to redirect them to the desktop login page
             if (isDesktopApp()) {
                 event.preventDefault();
 
                 setDesktopLoginLink(href);
                 history.push(`/login/desktop${search}`);
+            }
+
+            // If the user is running the app in an embedded view, we need send the parent window a message
+            // to continue the login process if the parent frame answers a message to confirm that is going to
+            // take care for the authentication process.
+            if (isEmbedded()) {
+                event.preventDefault();
+
+                // Create a promise that will resolve if the parent window responds
+                const messagePromise = new Promise<boolean>((resolve) => {
+                    // Set up a one-time event listener for the response
+                    const messageHandler = (event: MessageEvent) => {
+                        // Right now we are embedding from a plugin so let's just check the origin is the same as this server origin.
+                        if (event.origin !== window.location.origin) {
+                            return;
+                        }
+
+                        if (event.data && event.data.type === 'mattermost_external_auth_login' && event.data.ack === true) {
+                            window.removeEventListener('message', messageHandler);
+                            resolve(true);
+                        }
+                    };
+
+                    window.addEventListener('message', messageHandler);
+
+                    // Wait for at least one second for a response from the parent.
+                    setTimeout(() => {
+                        window.removeEventListener('message', messageHandler);
+                        resolve(false);
+                    }, 1000);
+                });
+
+                // Notify the parent
+                window.parent.postMessage({
+                    type: 'mattermost_external_auth_login',
+                    provider,
+                    href,
+                }, window.location.origin);
+
+                // Wait for response or timeout, following with the usual authentication flow
+                messagePromise.then((received) => {
+                    if (!received) {
+                        // If the parent didn't respond, navigate to the href directly
+                        history.push(href);
+                    }
+                });
             }
         };
     };
@@ -363,9 +410,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             id: 'login.noAccount',
             defaultMessage: 'Don\'t have an account?',
         });
-        const handleClick = () => {
-            trackEvent('signup', 'click_login_no_account');
-        };
         if (showSignup) {
             return (
                 <AlternateLinkLayout
@@ -380,7 +424,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 className='login-body-alternate-link'
                 alternateLinkPath={'/access_problem'}
                 alternateLinkLabel={linkLabel}
-                onClick={handleClick}
             />
         );
     }, [showSignup]);
@@ -398,11 +441,11 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     useEffect(() => {
         if (onCustomizeHeader) {
             onCustomizeHeader({
-                onBackButtonClick: showMfa ? handleHeaderBackButtonOnClick : undefined,
+                onBackButtonClick: (showMfa || desktopLoginLink) ? handleHeaderBackButtonOnClick : undefined,
                 alternateLink: isMobileView ? getAlternateLink() : undefined,
             });
         }
-    }, [onCustomizeHeader, search, showMfa, isMobileView, getAlternateLink]);
+    }, [onCustomizeHeader, search, showMfa, desktopLoginLink, isMobileView, getAlternateLink]);
 
     useEffect(() => {
         // We don't want to redirect outside of this route if we're doing Desktop App auth
@@ -792,15 +835,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             );
         }
 
-        if (!enableBaseLogin && !enableExternalSignup) {
-            return (
-                <ColumnLayout
-                    title={formatMessage({id: 'login.noMethods.title', defaultMessage: 'This server doesn’t have any sign-in methods enabled'})}
-                    message={formatMessage({id: 'login.noMethods.subtitle', defaultMessage: 'Please contact your System Administrator to resolve this.'})}
-                />
-            );
-        }
-
+        // Handle redirect before checking configs. This is to support the Pre-Authentication header flow.
         if (desktopLoginLink || query.get('server_token')) {
             return (
                 <Route
@@ -811,6 +846,15 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                             onLogin={postSubmit}
                         />
                     )}
+                />
+            );
+        }
+
+        if (!enableBaseLogin && !enableExternalSignup) {
+            return (
+                <ColumnLayout
+                    title={formatMessage({id: 'login.noMethods.title', defaultMessage: 'This server doesn’t have any sign-in methods enabled'})}
+                    message={formatMessage({id: 'login.noMethods.subtitle', defaultMessage: 'Please contact your System Administrator to resolve this.'})}
                 />
             );
         }

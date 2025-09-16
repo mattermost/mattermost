@@ -32,6 +32,7 @@ const values = {
     CONVERT_PRIVATE_CHANNEL_TO_PUBLIC: 'convert_private_channel_to_public',
     MANAGE_PUBLIC_CHANNEL_BANNER: 'manage_public_channel_banner',
     MANAGE_PRIVATE_CHANNEL_BANNER: 'manage_private_channel_banner',
+    MANAGE_CHANNEL_ACCESS_RULES: 'manage_channel_access_rules',
     DELETE_PRIVATE_CHANNEL: 'delete_private_channel',
     EDIT_OTHER_USERS: 'edit_other_users',
     READ_CHANNEL: 'read_channel',

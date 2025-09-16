@@ -47,7 +47,7 @@ func (c *SearchChannelStore) indexChannel(rctx request.CTX, channel *model.Chann
 		}
 	}
 
-	teamMemberIDs, err = c.GetTeamMembersForChannel(channel.Id)
+	teamMemberIDs, err = c.GetTeamMembersForChannel(rctx, channel.Id)
 	if err != nil {
 		rctx.Logger().Warn("Encountered error while indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 		return
@@ -66,8 +66,32 @@ func (c *SearchChannelStore) indexChannel(rctx request.CTX, channel *model.Chann
 	}
 }
 
-func (c *SearchChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannels int64) (*model.Channel, error) {
-	newChannel, err := c.ChannelStore.Save(rctx, channel, maxChannels)
+func (c *SearchChannelStore) bulkIndexChannels(rctx request.CTX, channels []*model.Channel, teamMemberIDs []string) {
+	// Util function to get userIDs, only for private channels
+	getUserIDsForPrivateChannel := func(channel *model.Channel) ([]string, error) {
+		if channel.Type != model.ChannelTypePrivate {
+			return []string{}, nil
+		}
+		return c.GetAllChannelMemberIdsByChannelId(channel.Id)
+	}
+
+	for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
+		if !engine.IsIndexingEnabled() {
+			continue
+		}
+
+		runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
+			appErr := engineCopy.SyncBulkIndexChannels(rctx, channels, getUserIDsForPrivateChannel, teamMemberIDs)
+			if appErr != nil {
+				rctx.Logger().Error("Failed to synchronously bulk-index channels.", mlog.String("search_engine", engineCopy.GetName()), mlog.Err(appErr))
+				return
+			}
+		})
+	}
+}
+
+func (c *SearchChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannels int64, channelOptions ...model.ChannelOption) (*model.Channel, error) {
+	newChannel, err := c.ChannelStore.Save(rctx, channel, maxChannels, channelOptions...)
 	if err == nil {
 		c.indexChannel(rctx, newChannel)
 	}

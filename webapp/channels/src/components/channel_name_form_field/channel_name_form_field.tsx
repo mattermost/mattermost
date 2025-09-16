@@ -30,6 +30,7 @@ export type Props = {
     team?: Team;
     urlError?: string;
     readOnly?: boolean;
+    isEditingExistingChannel?: boolean;
 }
 
 import './channel_name_form_field.scss';
@@ -40,7 +41,7 @@ function validateDisplayName(intl: IntlShape, displayNameParam: string) {
     const displayName = displayNameParam.trim();
 
     if (displayName.length < Constants.MIN_CHANNELNAME_LENGTH) {
-        errors.push(intl.formatMessage({id: 'channel_modal.name.longer', defaultMessage: 'Channel names must have at least 2 characters.'}));
+        errors.push(intl.formatMessage({id: 'channel_modal.name.longer', defaultMessage: 'Channel names must have at least 1 character.'}));
     }
 
     if (displayName.length > Constants.MAX_CHANNELNAME_LENGTH) {
@@ -101,8 +102,8 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         displayName.current = updatedDisplayName;
         props.onDisplayNameChange(updatedDisplayName);
 
-        if (!urlModified.current) {
-            // if URL isn't explicitly modified, it's derived from the display name
+        if (!urlModified.current && !props.isEditingExistingChannel) {
+            // Only auto-generate URL for new channels, not when editing existing ones
             const cleanURL = cleanUpUrlable(updatedDisplayName);
             setURL(cleanURL);
             setURLError('');

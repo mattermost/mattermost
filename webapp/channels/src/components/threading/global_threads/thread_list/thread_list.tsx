@@ -14,7 +14,6 @@ import {getThreadsForCurrentTeam, markAllThreadsInTeamRead} from 'mattermost-red
 import {getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {closeModal, openModal} from 'actions/views/modals';
 import {getIsMobileView} from 'selectors/views/browser';
 
@@ -130,14 +129,6 @@ const ThreadList = ({
         };
     }, [handleKeyDown]);
 
-    const handleSetFilter = useCallback((filter: ThreadFilter) => {
-        if (filter === ThreadFilter.unread) {
-            trackEvent('crt', 'filter_threads_by_unread');
-        }
-
-        setFilter(filter);
-    }, [setFilter]);
-
     const handleLoadMoreItems = useCallback(async (startIndex) => {
         setLoading(true);
         let before = data[startIndex - 1];
@@ -155,7 +146,6 @@ const ThreadList = ({
     }, [currentTeamId, data, unread, selectedThreadId]);
 
     const handleAllMarkedRead = useCallback(() => {
-        trackEvent('crt', 'mark_all_threads_read');
         dispatch(markAllThreadsInTeamRead(currentUserId, currentTeamId));
         if (currentFilter === ThreadFilter.unread) {
             clear();
@@ -186,7 +176,7 @@ const ThreadList = ({
 
     const {tabListProps, tabProps} = useTabs<ThreadFilter>({
         activeTab: currentFilter,
-        setActiveTab: handleSetFilter,
+        setActiveTab: setFilter,
         tabs: [
             {
                 id: 'threads-list-filter-none',

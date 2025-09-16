@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ReactNode} from 'react';
-import React from 'react';
+import React, {useEffect} from 'react';
 
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
@@ -11,7 +11,7 @@ import SharedUserIndicator from 'components/shared_user_indicator';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
-import {imageURLForUser} from 'utils/utils';
+import {imageURLForUser, getUsername} from 'utils/utils';
 
 import {generateColor} from './utils';
 
@@ -31,10 +31,18 @@ export default function UserProfile({
     userId,
     channelId,
     overwriteIcon,
+    remoteNames,
+    actions,
 }: Props) {
+    // Fetch remote info when component mounts for remote users
+    useEffect(() => {
+        if (user?.remote_id && (!remoteNames || remoteNames.length === 0)) {
+            actions.fetchRemoteClusterInfo(user.remote_id);
+        }
+    }, [user?.remote_id, remoteNames, actions]);
     let name: ReactNode;
     if (user && displayUsername) {
-        name = `@${(user.username)}`;
+        name = `@${(getUsername(user))}`;
     } else {
         name = overwriteName || displayName || '...';
     }
@@ -88,6 +96,7 @@ export default function UserProfile({
             <SharedUserIndicator
                 className='shared-user-icon'
                 withTooltip={true}
+                remoteNames={remoteNames}
             />
             }
             {(user && user.is_bot) && <BotTag/>}

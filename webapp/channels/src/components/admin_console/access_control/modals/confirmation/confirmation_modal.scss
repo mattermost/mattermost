@@ -1,0 +1,70 @@
+.PolicyConfirmationModal {
+    .modal-body {
+        .enforce-toggle {
+            margin-top: 20px;
+            
+            .enforce-checkbox-label {
+                display: flex;
+                align-items: center;
+                color: #3d3c40;
+                cursor: pointer;
+                
+                input[type="checkbox"] {
+                    margin-right: 8px;
+                    cursor: pointer;
+                }
+            }
+        }
+
+        .confirmation {
+            margin-top: 20px;
+            color: #3d3c40;
+            font-weight: 600;
+        }
+    }
+
+    .modal-footer {
+        .btn-cancel {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            margin-right: 10px;
+            background: #f2f4f8;
+            color: #3d3c40;
+            font-size: 14px;
+            font-weight: 600;
+
+            &:hover {
+                background: #e8eaed;
+            }
+        }
+
+        .btn-apply {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            background: #C74A4A;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+
+            &:hover {
+                background: #b73535;
+            }
+        }
+        
+        .btn-save {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            background: #166de0;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+
+            &:hover {
+                background: #0f5fc0;
+            }
+        }
+    }
+}

@@ -23,23 +23,7 @@ exports[`components/AdminSidebar Plugins should filter plugins 1`] = `
       value="autolink"
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -103,23 +87,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -129,231 +97,6 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
         <ul
           className="nav nav-pills nav-stacked"
         >
-          <AdminSidebarCategory
-            definitionKey="user_management"
-            icon={
-              <AccountMultipleOutlineIcon
-                color="currentColor"
-                size={16}
-              />
-            }
-            key="user_management"
-            parentLink="/admin_console"
-            sectionClass=""
-            title={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="User Management"
-                id="admin.sidebar.userManagement"
-              />
-            }
-          >
-            <AdminSidebarSection
-              definitionKey="user_management.groups_feature_discovery"
-              key="user_management.groups_feature_discovery"
-              name="user_management/groups"
-              restrictedIndicator={
-                <RestrictedIndicator
-                  blocked={true}
-                  minimumPlanRequiredForFeature="enterprise"
-                  tooltipMessageBlocked={
-                    Object {
-                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
-                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
-                    }
-                  }
-                  useModal={false}
-                />
-              }
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Groups"
-                  id="admin.sidebar.groups"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="user_management.system_roles_feature_discovery"
-              key="user_management.system_roles_feature_discovery"
-              name="user_management/system_roles"
-              restrictedIndicator={
-                <RestrictedIndicator
-                  blocked={true}
-                  minimumPlanRequiredForFeature="enterprise"
-                  tooltipMessageBlocked={
-                    Object {
-                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
-                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
-                    }
-                  }
-                  useModal={false}
-                />
-              }
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Delegated Granular Administration"
-                  id="admin.sidebar.systemRoles"
-                />
-              }
-            />
-          </AdminSidebarCategory>
-          <AdminSidebarCategory
-            definitionKey="site"
-            icon={
-              <CogOutlineIcon
-                color="currentColor"
-                size={16}
-              />
-            }
-            key="site"
-            parentLink="/admin_console"
-            sectionClass=""
-            title={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Site Configuration"
-                id="admin.sidebar.site"
-              />
-            }
-          >
-            <AdminSidebarSection
-              definitionKey="site.announcement_banner_feature_discovery"
-              key="site.announcement_banner_feature_discovery"
-              name="site_config/announcement_banner"
-              restrictedIndicator={
-                <RestrictedIndicator
-                  blocked={true}
-                  minimumPlanRequiredForFeature="professional"
-                  tooltipMessageBlocked={
-                    Object {
-                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
-                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
-                    }
-                  }
-                  useModal={false}
-                />
-              }
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="System-wide Notifications"
-                  id="admin.sidebar.announcement"
-                />
-              }
-            />
-          </AdminSidebarCategory>
-          <AdminSidebarCategory
-            definitionKey="authentication"
-            icon={
-              <ShieldOutlineIcon
-                color="currentColor"
-                size={16}
-              />
-            }
-            key="authentication"
-            parentLink="/admin_console"
-            sectionClass=""
-            title={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Authentication"
-                id="admin.sidebar.authentication"
-              />
-            }
-          >
-            <AdminSidebarSection
-              definitionKey="authentication.ldap_feature_discovery"
-              key="authentication.ldap_feature_discovery"
-              name="authentication/ldap"
-              restrictedIndicator={
-                <RestrictedIndicator
-                  blocked={true}
-                  minimumPlanRequiredForFeature="professional"
-                  tooltipMessageBlocked={
-                    Object {
-                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
-                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
-                    }
-                  }
-                  useModal={false}
-                />
-              }
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="AD/LDAP"
-                  id="admin.sidebar.ldap"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="authentication.saml_feature_discovery"
-              key="authentication.saml_feature_discovery"
-              name="authentication/saml"
-              restrictedIndicator={
-                <RestrictedIndicator
-                  blocked={true}
-                  minimumPlanRequiredForFeature="professional"
-                  tooltipMessageBlocked={
-                    Object {
-                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
-                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
-                    }
-                  }
-                  useModal={false}
-                />
-              }
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="SAML 2.0"
-                  id="admin.sidebar.saml"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="authentication.openid_feature_discovery"
-              key="authentication.openid_feature_discovery"
-              name="authentication/openid"
-              restrictedIndicator={
-                <RestrictedIndicator
-                  blocked={true}
-                  minimumPlanRequiredForFeature="professional"
-                  tooltipMessageBlocked={
-                    Object {
-                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
-                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
-                    }
-                  }
-                  useModal={false}
-                />
-              }
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="OpenID Connect"
-                  id="admin.sidebar.openid"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="authentication.guest_access_feature_discovery"
-              key="authentication.guest_access_feature_discovery"
-              name="authentication/guest_access"
-              restrictedIndicator={
-                <RestrictedIndicator
-                  blocked={true}
-                  minimumPlanRequiredForFeature="professional"
-                  tooltipMessageBlocked={
-                    Object {
-                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
-                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
-                    }
-                  }
-                  useModal={false}
-                />
-              }
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Guest Access"
-                  id="admin.sidebar.guest_access"
-                />
-              }
-            />
-          </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="plugins"
             icon={
@@ -389,97 +132,6 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
               title="Autolink"
             />
           </AdminSidebarCategory>
-          <AdminSidebarCategory
-            definitionKey="compliance"
-            icon={
-              <FormatListBulletedIcon
-                color="currentColor"
-                size={16}
-              />
-            }
-            key="compliance"
-            parentLink="/admin_console"
-            sectionClass=""
-            title={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Compliance"
-                id="admin.sidebar.compliance"
-              />
-            }
-          >
-            <AdminSidebarSection
-              definitionKey="compliance.data_retention_feature_discovery"
-              key="compliance.data_retention_feature_discovery"
-              name="compliance/data_retention"
-              restrictedIndicator={
-                <RestrictedIndicator
-                  blocked={true}
-                  minimumPlanRequiredForFeature="enterprise"
-                  tooltipMessageBlocked={
-                    Object {
-                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
-                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
-                    }
-                  }
-                  useModal={false}
-                />
-              }
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Data Retention Policy"
-                  id="admin.sidebar.dataRetentionPolicy"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="compliance.compliance_export_feature_discovery"
-              key="compliance.compliance_export_feature_discovery"
-              name="compliance/export"
-              restrictedIndicator={
-                <RestrictedIndicator
-                  blocked={true}
-                  minimumPlanRequiredForFeature="enterprise"
-                  tooltipMessageBlocked={
-                    Object {
-                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
-                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
-                    }
-                  }
-                  useModal={false}
-                />
-              }
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Compliance Export"
-                  id="admin.sidebar.complianceExport"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="compliance.custom_terms_of_service_feature_discovery"
-              key="compliance.custom_terms_of_service_feature_discovery"
-              name="compliance/custom_terms_of_service"
-              restrictedIndicator={
-                <RestrictedIndicator
-                  blocked={true}
-                  minimumPlanRequiredForFeature="enterprise"
-                  tooltipMessageBlocked={
-                    Object {
-                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
-                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
-                    }
-                  }
-                  useModal={false}
-                />
-              }
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Custom Terms of Service"
-                  id="admin.sidebar.customTermsOfService"
-                />
-              }
-            />
-          </AdminSidebarCategory>
         </ul>
       </SearchKeywordMarking>
     </div>
@@ -510,23 +162,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -1012,17 +648,6 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                 />
               }
             />
-            <AdminSidebarSection
-              definitionKey="authentication.gitlab"
-              key="authentication.gitlab"
-              name="authentication/gitlab"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="GitLab"
-                  id="admin.sidebar.gitlab"
-                />
-              }
-            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="plugins"
@@ -1170,17 +795,6 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
                 />
               }
             />
@@ -1215,23 +829,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -1498,6 +1096,60 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
             />
           </AdminSidebarCategory>
           <AdminSidebarCategory
+            definitionKey="system_attributes"
+            icon={
+              <TableLargeIcon
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="system_attributes"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="System Attributes"
+                id="admin.sidebar.systemAttributes"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="system_attributes.system_properties"
+              key="system_attributes.system_properties"
+              name="system_attributes/user_attributes"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="User Attributes"
+                  id="admin.sidebar.user_attributes"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="system_attributes.attribute_based_access_control_feature_discovery"
+              key="system_attributes.attribute_based_access_control_feature_discovery"
+              name="system_attributes/attribute_based_access_control"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="advanced"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute-Based Access"
+                  id="admin.sidebar.attributeBasedAccessControl"
+                />
+              }
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
             definitionKey="environment"
             icon={
               <ServerVariantIcon
@@ -1674,17 +1326,6 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Customization"
                   id="admin.sidebar.customization"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="site.system_properties"
-              key="site.system_properties"
-              name="site_config/system_properties"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="System Properties"
-                  id="admin.sidebar.system_properties"
                 />
               }
             />
@@ -1945,6 +1586,30 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
               }
             />
             <AdminSidebarSection
+              definitionKey="authentication.gitlab_feature_discovery"
+              key="authentication.gitlab_feature_discovery"
+              name="authentication/gitlab"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="GitLab"
+                  id="admin.sidebar.gitlab"
+                />
+              }
+            />
+            <AdminSidebarSection
               definitionKey="authentication.guest_access_feature_discovery"
               key="authentication.guest_access_feature_discovery"
               name="authentication/guest_access"
@@ -2145,6 +1810,17 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
               }
             />
             <AdminSidebarSection
+              definitionKey="compliance.audit_logging"
+              key="compliance.audit_logging"
+              name="compliance/audit_logging"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Audit Logging"
+                  id="admin.sidebar.audit_logging_experimental"
+                />
+              }
+            />
+            <AdminSidebarSection
               definitionKey="compliance.custom_terms_of_service_feature_discovery"
               key="compliance.custom_terms_of_service_feature_discovery"
               name="compliance/custom_terms_of_service"
@@ -2206,28 +1882,6 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="experimental.audit_logging"
-              key="experimental.audit_logging"
-              name="experimental/audit_logging"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Audit Logging"
-                  id="admin.sidebar.audit_logging_experimental"
                 />
               }
             />
@@ -2262,23 +1916,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -2545,6 +2183,47 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
             />
           </AdminSidebarCategory>
           <AdminSidebarCategory
+            definitionKey="system_attributes"
+            icon={
+              <TableLargeIcon
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="system_attributes"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="System Attributes"
+                id="admin.sidebar.systemAttributes"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="system_attributes.system_properties"
+              key="system_attributes.system_properties"
+              name="system_attributes/user_attributes"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="User Attributes"
+                  id="admin.sidebar.user_attributes"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="system_attributes.attribute_based_access_control"
+              key="system_attributes.attribute_based_access_control"
+              name="system_attributes/attribute_based_access_control"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Attribute-Based Access"
+                  id="admin.sidebar.attributeBasedAccessControl"
+                />
+              }
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
             definitionKey="environment"
             icon={
               <ServerVariantIcon
@@ -2721,17 +2400,6 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Customization"
                   id="admin.sidebar.customization"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="site.system_properties"
-              key="site.system_properties"
-              name="site_config/system_properties"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="System Properties"
-                  id="admin.sidebar.system_properties"
                 />
               }
             />
@@ -2992,6 +2660,30 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
               }
             />
             <AdminSidebarSection
+              definitionKey="authentication.gitlab_feature_discovery"
+              key="authentication.gitlab_feature_discovery"
+              name="authentication/gitlab"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="GitLab"
+                  id="admin.sidebar.gitlab"
+                />
+              }
+            />
+            <AdminSidebarSection
               definitionKey="authentication.guest_access_feature_discovery"
               key="authentication.guest_access_feature_discovery"
               name="authentication/guest_access"
@@ -3192,6 +2884,17 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
               }
             />
             <AdminSidebarSection
+              definitionKey="compliance.audit_logging"
+              key="compliance.audit_logging"
+              name="compliance/audit_logging"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Audit Logging"
+                  id="admin.sidebar.audit_logging_experimental"
+                />
+              }
+            />
+            <AdminSidebarSection
               definitionKey="compliance.custom_terms_of_service_feature_discovery"
               key="compliance.custom_terms_of_service_feature_discovery"
               name="compliance/custom_terms_of_service"
@@ -3256,28 +2959,6 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 />
               }
             />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="experimental.audit_logging"
-              key="experimental.audit_logging"
-              name="experimental/audit_logging"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Audit Logging"
-                  id="admin.sidebar.audit_logging_experimental"
-                />
-              }
-            />
           </AdminSidebarCategory>
         </ul>
       </SearchKeywordMarking>
@@ -3309,23 +2990,7 @@ exports[`components/AdminSidebar should match snapshot with license with profess
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -3991,6 +3656,30 @@ exports[`components/AdminSidebar should match snapshot with license with profess
               }
             />
             <AdminSidebarSection
+              definitionKey="authentication.gitlab_feature_discovery"
+              key="authentication.gitlab_feature_discovery"
+              name="authentication/gitlab"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="GitLab"
+                  id="admin.sidebar.gitlab"
+                />
+              }
+            />
+            <AdminSidebarSection
               definitionKey="authentication.guest_access_feature_discovery"
               key="authentication.guest_access_feature_discovery"
               name="authentication/guest_access"
@@ -4255,17 +3944,6 @@ exports[`components/AdminSidebar should match snapshot with license with profess
                 />
               }
             />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
-                />
-              }
-            />
           </AdminSidebarCategory>
         </ul>
       </SearchKeywordMarking>
@@ -4297,23 +3975,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -4799,17 +4461,6 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                 />
               }
             />
-            <AdminSidebarSection
-              definitionKey="authentication.gitlab"
-              key="authentication.gitlab"
-              name="authentication/gitlab"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="GitLab"
-                  id="admin.sidebar.gitlab"
-                />
-              }
-            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="plugins"
@@ -4960,17 +4611,6 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                 />
               }
             />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
-                />
-              }
-            />
           </AdminSidebarCategory>
         </ul>
       </SearchKeywordMarking>
@@ -5002,23 +4642,7 @@ exports[`components/AdminSidebar should match snapshot, no access 1`] = `
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -5057,23 +4681,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -5559,17 +5167,6 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                 />
               }
             />
-            <AdminSidebarSection
-              definitionKey="authentication.gitlab"
-              key="authentication.gitlab"
-              name="authentication/gitlab"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="GitLab"
-                  id="admin.sidebar.gitlab"
-                />
-              }
-            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="plugins"
@@ -5717,17 +5314,6 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
                 />
               }
             />
@@ -5762,23 +5348,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -6264,17 +5834,6 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                 />
               }
             />
-            <AdminSidebarSection
-              definitionKey="authentication.gitlab"
-              key="authentication.gitlab"
-              name="authentication/gitlab"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="GitLab"
-                  id="admin.sidebar.gitlab"
-                />
-              }
-            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="plugins"
@@ -6425,17 +5984,6 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                 />
               }
             />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
-                />
-              }
-            />
           </AdminSidebarCategory>
         </ul>
       </SearchKeywordMarking>
@@ -6467,23 +6015,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -7327,17 +6859,6 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
                 />
               }
             />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
-                />
-              }
-            />
           </AdminSidebarCategory>
         </ul>
       </SearchKeywordMarking>
@@ -7369,23 +6890,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
       value=""
     />
   </div>
-  <Scrollbars
-    autoHeight={false}
-    autoHeightMax={200}
-    autoHeightMin={0}
-    autoHide={true}
-    autoHideDuration={500}
-    autoHideTimeout={500}
-    hideTracksWhenNotNeeded={false}
-    renderThumbHorizontal={[Function]}
-    renderThumbVertical={[Function]}
-    renderTrackHorizontal={[Function]}
-    renderTrackVertical={[Function]}
-    renderView={[Function]}
-    tagName="div"
-    thumbMinSize={30}
-    universal={false}
-  >
+  <Scrollbars>
     <div
       className="nav-pills__container"
     >
@@ -8051,6 +7556,30 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               }
             />
             <AdminSidebarSection
+              definitionKey="authentication.gitlab_feature_discovery"
+              key="authentication.gitlab_feature_discovery"
+              name="authentication/gitlab"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="GitLab"
+                  id="admin.sidebar.gitlab"
+                />
+              }
+            />
+            <AdminSidebarSection
               definitionKey="authentication.guest_access_feature_discovery"
               key="authentication.guest_access_feature_discovery"
               name="authentication/guest_access"
@@ -8312,17 +7841,6 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
                 />
               }
             />

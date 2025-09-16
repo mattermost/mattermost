@@ -26,15 +26,14 @@ exports[`/components/create_team/components/display_name should match snapshot 1
         <div
           className="col-sm-9"
         >
-          <input
-            aria-describedby="teamNameInputError"
+          <ForwardRef
             autoFocus={true}
-            className="form-control"
             id="teamNameInput"
-            maxLength={128}
+            maxLength={64}
+            minLength={2}
+            name="teamNameInput"
             onChange={[Function]}
-            onFocus={[Function]}
-            placeholder=""
+            required={true}
             spellCheck="false"
             type="text"
             value="test-team"
@@ -50,6 +49,7 @@ exports[`/components/create_team/components/display_name should match snapshot 1
     </div>
     <button
       className="btn btn-primary mt-8"
+      disabled={false}
       id="teamNameNextButton"
       onClick={[Function]}
       type="submit"
