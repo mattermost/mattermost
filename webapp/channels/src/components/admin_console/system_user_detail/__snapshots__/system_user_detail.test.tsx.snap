@@ -232,7 +232,9 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
         </span>
       </button>
       <div
+        aria-live="polite"
         class="error-message"
+        role="alert"
       />
     </div>
   </div>
@@ -471,7 +473,9 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
         </span>
       </button>
       <div
+        aria-live="polite"
         class="error-message"
+        role="alert"
       />
     </div>
   </div>
@@ -710,7 +714,9 @@ exports[`SystemUserDetail should not show manage user settings button when user 
         </span>
       </button>
       <div
+        aria-live="polite"
         class="error-message"
+        role="alert"
       />
     </div>
   </div>
@@ -955,7 +961,9 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
         </span>
       </button>
       <div
+        aria-live="polite"
         class="error-message"
+        role="alert"
       />
     </div>
   </div>
@@ -1194,7 +1202,9 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
         </span>
       </button>
       <div
+        aria-live="polite"
         class="error-message"
+        role="alert"
       />
     </div>
   </div>
@@ -1436,7 +1446,9 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
         </span>
       </button>
       <div
+        aria-live="polite"
         class="error-message"
+        role="alert"
       />
     </div>
   </div>
