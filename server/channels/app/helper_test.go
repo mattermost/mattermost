@@ -438,15 +438,15 @@ func WithCreateAt(v int64) ChannelOption {
 	}
 }
 
-func (th *TestHelper) CreateChannel(c request.CTX, team *model.Team, options ...ChannelOption) *model.Channel {
-	return th.createChannel(c, team, model.ChannelTypeOpen, options...)
+func (th *TestHelper) CreateChannel(rctx request.CTX, team *model.Team, options ...ChannelOption) *model.Channel {
+	return th.createChannel(rctx, team, model.ChannelTypeOpen, options...)
 }
 
-func (th *TestHelper) CreatePrivateChannel(c request.CTX, team *model.Team, options ...ChannelOption) *model.Channel {
-	return th.createChannel(c, team, model.ChannelTypePrivate, options...)
+func (th *TestHelper) CreatePrivateChannel(rctx request.CTX, team *model.Team, options ...ChannelOption) *model.Channel {
+	return th.createChannel(rctx, team, model.ChannelTypePrivate, options...)
 }
 
-func (th *TestHelper) createChannel(c request.CTX, team *model.Team, channelType model.ChannelType, options ...ChannelOption) *model.Channel {
+func (th *TestHelper) createChannel(rctx request.CTX, team *model.Team, channelType model.ChannelType, options ...ChannelOption) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
@@ -468,7 +468,7 @@ func (th *TestHelper) createChannel(c request.CTX, team *model.Team, channelType
 
 	if channel.IsShared() {
 		id := model.NewId()
-		_, err := th.App.ShareChannel(c, &model.SharedChannel{
+		_, err := th.App.ShareChannel(rctx, &model.SharedChannel{
 			ChannelId:        channel.Id,
 			TeamId:           channel.TeamId,
 			Home:             false,
@@ -494,10 +494,10 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	return channel
 }
 
-func (th *TestHelper) CreateGroupChannel(c request.CTX, user1 *model.User, user2 *model.User) *model.Channel {
+func (th *TestHelper) CreateGroupChannel(rctx request.CTX, user1 *model.User, user2 *model.User) *model.Channel {
 	var err *model.AppError
 	var channel *model.Channel
-	if channel, err = th.App.CreateGroupChannel(c, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id); err != nil {
+	if channel, err = th.App.CreateGroupChannel(rctx, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id); err != nil {
 		panic(err)
 	}
 	return channel

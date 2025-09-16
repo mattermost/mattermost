@@ -924,10 +924,6 @@
     "translation": "wzruszenie ramionami"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Nowy format konfiguracji klienta nie jest jeszcze wspierany. Proszę podać format=old w ciągu znaków zapytania."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Przepraszamy, nie odnaleziono strony."
   },
@@ -1329,15 +1325,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all zostało zablokowane ponieważ kanał ma więcej niż {{.Users}} użytkowników."
+    "translation": "Powiadomienia @all są wyłączone w Kanałach z więcej niż {{.Users}} użytkownikami. Skontaktuj się z administratorem systemu, aby uzyskać więcej informacji."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel zostało zablokowane ponieważ kanał ma więcej niż {{.Users}} użytkowników."
+    "translation": "Powiadomienia @channel są wyłączone w Kanałach z więcej niż {{.Users}} użytkownikami. Skontaktuj się z administratorem systemu, aby uzyskać więcej informacji."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here zostało zablokowane ponieważ kanał ma więcej niż {{.Users}} użytkowników."
+    "translation": "Powiadomienia @here są wyłączone w Kanałach z więcej niż {{.Users}} użytkownikami. Skontaktuj się z administratorem systemu, aby uzyskać więcej informacji."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -2078,14 +2074,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Bot login is forbidden."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Próbowano zalogować się przy użyciu eksperymentalnej funkcji ClientSideCert bez podania ważnego certyfikatu."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Próba użycia eksperymentalnej funkcji ClientSideCertEnable bez ważnej licencji enterprise."
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -3837,7 +3825,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Nieprawidłowa nazwa sterownika SQL. Dozwolone są 'mysql' oraz 'postgres'."
+    "translation": "Nieprawidłowa nazwa sterownika dla ustawień SQL. Musi być \"postgres\"."
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
@@ -4605,11 +4593,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 134+"
+    "translation": "Wersja 138+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 134+"
+    "translation": "Wersja 138+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -4664,10 +4652,6 @@
     "translation": "Pobierz najnowszą wersję Chrome"
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Error purging Bleve indexes: engine is disabled"
-  },
-  {
     "id": "plugin_api.bot_cant_create_bot",
     "translation": "Konto bota nie może utworzyć innego bota."
   },
@@ -4713,7 +4697,7 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Nieprawidłowy użytkownik, dane autoryzacji muszą być ustawione razem z typem autoryzacji."
+    "translation": "Nieprawidłowy użytkownik: Dane uwierzytelniania można ustawić tylko wtedy, gdy użytkownik używa do uwierzytelniania zewnętrznej usługi uwierzytelniania, a nie adresu e-mail/hasła."
   },
   {
     "id": "model.user.is_valid.auth_data_pwd.app_error",
@@ -4774,18 +4758,6 @@
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
     "translation": "{{.EnableIndexing}} ustawienie musi mieć wartość właczone, gdy {{.Autocomplete}} ma wartość włączone"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Ustawienie Bleve IndexingEnabled musi być ustawione na wartość true, gdy Bleve SearchEnabled ma wartość true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Ustawienie Bleve IndexingEnabled musi być ustawione na wartość true, gdy Bleve SearchEnabled ma wartość true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Ustawienie Bleve IndexingEnabled musi być włączone, gdy Bleve AutocompleteEnabled jest włączone"
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
@@ -4886,118 +4858,6 @@
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "Nie udało się utworzyć szablonu {{.Backend}} dla kanałów"
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Failed to close user index."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Failed to close post index."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Failed to close channel index."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Wyszukiwanie nie powiodło się."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Wyszukiwanie nie powiodło się."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Wyszukiwanie nie powiodło się."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Wyszukiwanie nie powiodło się."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Wyszukiwanie nie powiodło się."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Failed to purge user indexes."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Failed to purge post indexes."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Failed to purge channel indexes."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Próbuje za indeksować nową serię, jeśli wszystkie wystąpienia zostaną zakończone."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Pracownik indeksujący Bleve nie przeanalizował czasu rozpoczęcia."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Pracownik indeksujący Bleve nie przeanalizował czasu zakończenia."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Failed to run Bleve index job: engine is inactive."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Failed to index user batch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Failed to index post batch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Failed to index channel batch."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Nie udało się zaindeksować użytkownika."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Nie udało się zindeksować wiadomości."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Nie udało się zaindeksować kanału."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Nie udało się usunąć użytkownika."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Nie udało się usunąć wiadomości."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Nie udało się usunąć kanału."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Error creating the bleve user index."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Error creating the bleve post index."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Error creating the bleve channel index."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve is already started."
   },
   {
     "id": "app.user_terms_of_service.save.app_error",
@@ -5860,14 +5720,6 @@
     "translation": "Nie udało się usunąć wiadomości"
   },
   {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Nie udało się usunąć wiadomości"
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Nie udało się usunąć wiadomości"
-  },
-  {
     "id": "app.scheme.delete.app_error",
     "translation": "Nie można usunąć schematu."
   },
@@ -6232,10 +6084,6 @@
     "translation": "Nie można uzyskać członków kanału."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Nie można uzyskać wielu kanałów do indeksowania."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Nie można pobrać kanałów dla podanego schematu."
   },
@@ -6266,10 +6114,6 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "Nie można uzyskać wpisów do kanału."
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Nie można uzyskać wielu wpisów do indeksowania."
   },
   {
     "id": "app.post.get_posts.app_error",
@@ -7560,10 +7404,6 @@
     "translation": "Nie udało się zorganizować."
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Błąd odczytu pliku z zaplecza"
-  },
-  {
     "id": "api.templates.welcome_body.subTitle1",
     "translation": "Dziękujemy za dołączenie do "
   },
@@ -7856,50 +7696,6 @@
     "translation": "Kontrola rozmiaru obrazu nie powiodła się. Rozdzielczość jest zbyt wysoka."
   },
   {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Nie udało się zamknąć indeksu plików."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "Nie udało się zakończyć wyszukiwania plików."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Nie udało się oczyścić indeksów plików."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "Najstarszy element (użytkownik, kanał lub post) nie mógł zostać pobrany z bazy danych."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Nie udało się zindeksować partii plików."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "Nie udało się zindeksować pliku."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Nie udało się usunąć plików użytkownika."
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Nie udało się usunąć plików w postach."
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Nie udało się usunąć plików."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Nie udało się usunąć pliku."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Błąd tworzenia indeksu pliku bleve."
-  },
-  {
     "id": "app.valid_password_generic.app_error",
     "translation": "Hasło jest nieprawidłowe"
   },
@@ -8156,10 +7952,6 @@
     "translation": "Nie udało się zorganizować."
   },
   {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "Nie można uzyskać plików do indeksowania."
-  },
-  {
     "id": "app.notification.footer.title",
     "translation": "Chcesz zmienić ustawienia powiadomień?"
   },
@@ -8348,14 +8140,6 @@
     "translation": "Nie można wydłużyć sesji"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Nie można pobrać użytkowników dla zarchiwizowanego kanału"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Nie można pobrać postów dla zarchiwizowanego kanału"
-  },
-  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Liczba identyfikatorów postów osiągnęła maksymalny rozmiar {{.MaxLength}}"
   },
@@ -8430,10 +8214,6 @@
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
     "translation": "Rozmiar partii indeksowania zbiorczego wyszukiwania musi wynosić co najmniej {{.BatchSize}}."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Bleve Bulk Indexing Batch Size musi wynosić co najmniej {{.BatchSize}}."
   },
   {
     "id": "app.prepackged-plugin.invalid_version.app_error",
@@ -9732,10 +9512,6 @@
     "translation": "Nie można włączyć autouzupełniania kanałów, ponieważ schemat indeksu kanałów jest nieaktualny. Zaleca się regenerację indeksu kanałów. Zobacz dziennik zmian Mattermost, aby uzyskać więcej informacji"
   },
   {
-    "id": "bleveengine.purge_list.not_implemented",
-    "translation": "Funkcja listy czyszczenia nie jest dostępna dla Bleve."
-  },
-  {
     "id": "ent.elasticsearch.purge_index.delete_failed",
     "translation": "Nie udało się usunąć indeksu wyszukiwania"
   },
@@ -9761,7 +9537,7 @@
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
-    "translation": "Nie można aktywować użytkownika. Serwer przekroczył limit bezpiecznych użytkowników. Skontaktuj się z administratorem: ERROR_SAFETY_LIMITS_EXCEEDED."
+    "translation": "Nie można aktywować użytkownika. Serwer przekroczył limit bezpiecznego użytkownika. ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "api.user.create_user.user_limits.exceeded",
@@ -10388,10 +10164,6 @@
     "translation": "Nie udało się zaktualizować kolejności sortowania zakładki kanału."
   },
   {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Nie można pobrać zakładek dla zarchiwizowanego kanału"
-  },
-  {
     "id": "app.file_info.get_count.app_error",
     "translation": "Nie udało się uzyskać liczby wszystkich plików."
   },
@@ -10552,10 +10324,6 @@
     "translation": "Pusta wartość atrybutu LDAP"
   },
   {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "Błędy patchowania wartości CPA"
-  },
-  {
     "id": "ent.saml.cpa_field_mapping.list_error",
     "translation": "Nie udało się pobrać pól CPA"
   },
@@ -10566,10 +10334,6 @@
   {
     "id": "web.incoming_webhook.parse_multipart.app_error",
     "translation": "Nie udało się przeanalizować wieloczęściowego formularza dla webhooka {{.hook_id}}."
-  },
-  {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "Błędy aktualizacji wartości CPA"
   },
   {
     "id": "web.incoming_webhook.parse_form.app_error",
@@ -10672,14 +10436,6 @@
     "translation": "Ścieżka do obrazu profilu użytkownika jest nieprawidłowa: \"{{.Path}}\""
   },
   {
-    "id": "api.license.request-trial.mysql.app_error",
-    "translation": "Licencje próbne nie są obsługiwane dla baz danych MySQL. Aby uzyskać dostęp do funkcji testowych, użyj PostgreSQL."
-  },
-  {
-    "id": "api.license.add_license.mysql.app_error",
-    "translation": "Ta licencja nie obsługuje MySQL."
-  },
-  {
     "id": "api.access_control_policy.get_channels.limit.app_error",
     "translation": "Limit Pobierz Kanały nie jest ważny."
   },
@@ -10726,5 +10482,309 @@
   {
     "id": "app.group.delete_invalid_syncable_memberships.error",
     "translation": "Nie można usunąć nieprawidłowych członkostw synchronizowanych grup."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Nieprawidłowa aktualizacja członka kanału: Członek kanału zawsze ma schemat użytkownika."
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Nieprawidłowy typ testu: {{.TestType}}"
+  },
+  {
+    "id": "api.command_share.service_inactive",
+    "translation": "Usługa Udostępnij Kanały jest włączona, ale nieaktywna."
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "Nieprawidłowa aktualizacja członka zespołu: Członek zespołu zawsze ma schemat użytkownika."
+  },
+  {
+    "id": "app.pap.delete_policy.app_error",
+    "translation": "Nie można usunąć polityki kontroli dostępu."
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Przesyłanie pliku nie powiodło się. Kanał przesyłania nie jest udostępniany zdalnie."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.user_missing.error",
+    "translation": "Brakująca wymagana właściwość użytkownika: user."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.empty.error",
+    "translation": "Zaimportuj puste dane obserwujących."
+  },
+  {
+    "id": "app.pap.get_access_control_auto_complete.app_error",
+    "translation": "Nie można uzyskać automatycznego zakończenia kontroli dostępu."
+  },
+  {
+    "id": "app.pap.get_all_access_control_policies.app_error",
+    "translation": "Nie można uzyskać polityki kontroli dostępu."
+  },
+  {
+    "id": "app.cloud.preview_modal_bucket_url_not_configured",
+    "translation": "Adres URL zasobnika podglądu nie jest skonfigurowany"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "Nie udało się pobrać danych modalnych podglądu"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_parse_error",
+    "translation": "Nie udało się przeanalizować danych modalnych podglądu"
+  },
+  {
+    "id": "app.import.validate_post_import_data.thread_follower.error",
+    "translation": "Nie udało się zweryfikować danych obserwujących wątek."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.thread_follower.error",
+    "translation": "Nie udało się zweryfikować danych bezpośredniego obserwatora wątku."
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Nie możesz usunąć potwierdzenia braku postu"
+  },
+  {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Nie można utworzyć użytkownika. Serwer przekracza maksymalną liczbę licencjonowanych użytkowników. Skontaktuj się z administratorem: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "Nie udało się zapisać partii obiektów potwierdzenia"
+  },
+  {
+    "id": "app.pap.expression_to_visual_ast.app_error",
+    "translation": "Nie można wygenerować wizualnego AST z wyrażenia."
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Zdalny import klastrów jest niedozwolony"
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Usługa kontroli dostępu niedostępna. Nie można filtrować użytkowników dla kanału obsługującego ABAC."
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Nie możesz zaprosić użytkowników-gości do tego kanału, ponieważ ma on ograniczenia dostępu oparte na atrybutach użytkownika."
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Nie możesz zapisać potwierdzenia brakującego postu"
+  },
+  {
+    "id": "app.pap.delete_access_control_policy.app_error",
+    "translation": "Nie można usunąć polityki kontroli dostępu."
+  },
+  {
+    "id": "ent.access_control.job_data_conversion.app_error",
+    "translation": "Nie udało się wyodrębnić danych z poprzedniego zadania."
+  },
+  {
+    "id": "model.access_policy.inherit.version.app_error",
+    "translation": "Nie można odziedziczyć polityki kontroli dostępu."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
+    "translation": "Kolor banera Kanału musi być prawidłowym kolorem szesnastkowym (np. #FF0000 lub #F00)"
+  },
+  {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "Wiodący lub końcowy biały znak wykryty dla {{.Setting}}. Znaleziono \"{{.Value}}\"."
+  },
+  {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "Nie można aktywować użytkownika. Serwer przekroczył limit licencjonowanych użytkowników. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "Test połączenia LDAP nie powiódł się. Serwer: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Błąd: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "Maksymalna konfiguracja kopii zapasowych plików logów audytu nie może być ujemna."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "Maksymalna kolejka plików konfiguracji logów audytu musi być większa od zera."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "Nieprawidłowy identyfikator kanału."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
+    "translation": "Wspólni recenzenci lub dodatkowi recenzenci muszą być ustawieni, gdy włączona jest opcja \"Ci sami recenzenci dla wszystkich zespołów\"."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.reasons_not_set.app_error",
+    "translation": "Powody oflagowania nie mogą być puste."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
+    "translation": "Recenzenci zespołu lub dodatkowi recenzenci muszą być ustawieni podczas ustawiania opcji \"Włączone\" dla zespołu."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "Maksymalny wiek pliku konfiguracji dzienników audytu nie może być ujemny."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "Maksymalny rozmiar pliku konfiguracji logów audytu musi być większy od zera."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "Nazwa pliku nie może być katalogiem."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "Gdy rejestrowanie plików audytu jest włączone, należy podać nazwę pliku."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_target",
+    "translation": "Określono nieprawidłowy cel zdarzenia flagowania."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_event",
+    "translation": "Określono nieprawidłowe zdarzenie flagowania."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
+    "translation": "Powiadomienia o nowych oflagowanych postach nie mogą być wyłączone dla recenzentów."
+  },
+  {
+    "id": "app.pap.get_channel_access_control_attributes.app_error",
+    "translation": "Nie udało się uzyskać Atrybutów dla Kanału."
+  },
+  {
+    "id": "app.pap.get_channel_members_to_remove.app_error",
+    "translation": "Nie udało się usunąć członków kanału."
+  },
+  {
+    "id": "app.pap.init.app_error",
+    "translation": "Nie można zainicjować usługi kontroli dostępu."
+  },
+  {
+    "id": "app.pap.get_policy.app_error",
+    "translation": "Nie można pobrać polityki kontroli dostępu."
+  },
+  {
+    "id": "app.pap.get_policy_attributes.app_error",
+    "translation": "Nie można uzyskać Atrybutów dla Polityki."
+  },
+  {
+    "id": "app.pap.search_access_control_policies.app_error",
+    "translation": "Nie można znaleźć polityki kontroli dostępu."
+  },
+  {
+    "id": "app.pap.normalize_policy.app_error",
+    "translation": "Nie można znormalizować wyrażenia polityki."
+  },
+  {
+    "id": "app.pap.query_expression.app_error",
+    "translation": "Nie można wykonać zapytania dla wyrażenia."
+  },
+  {
+    "id": "app.pap.save_policy.app_error",
+    "translation": "Nie można zapisać polityki kontroli dostępu."
+  },
+  {
+    "id": "app.pdp.access_evaluation.app_error",
+    "translation": "Nie powiodła się ocena polityki kontroli dostępu."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
+    "translation": "Nie można usunąć polityki kontroli dostępu z Kanałów."
+  },
+  {
+    "id": "app.pap.update_access_control_policy_active.app_error",
+    "translation": "Nie można zmienić aktywnego statusu polityki kontroli dostępu."
+  },
+  {
+    "id": "app.pap.is_ready.app_error",
+    "translation": "Usługa kontroli dostępu nie jest gotowa."
+  },
+  {
+    "id": "app.pap.missing_attribute.app_error",
+    "translation": "W wyrażeniu brakuje atrybutu."
+  },
+  {
+    "id": "ent.access_control.sync_job.app_error",
+    "translation": "Nie udało się uruchomić zadania synchronizacji kontroli dostępu."
+  },
+  {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "Funkcja oznaczania treści jest wyłączona."
+  },
+  {
+    "id": "api.content_flagging.error.license",
+    "translation": "Twoja licencja nie obsługuje flagowania treści."
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "Nie masz uprawnień do zarządzania tą polityką kontroli dostępu."
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "Kanały są ograniczone do grup i nie mogą mieć zastosowanych polityk kontroli dostępu."
+  },
+  {
+    "id": "app.pap.access_control.channel_not_private",
+    "translation": "Polityki kontroli dostępu mogą być stosowane tylko do kanałów prywatnych."
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "Kanały udostępnione nie mogą mieć zastosowanej polityki kontroli dostępu."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "Nie masz uprawnień do zarządzania kontrolą dostępu dla tego Kanału."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "Nie masz uprawnień do zarządzania tą polityką kontroli dostępu."
+  },
+  {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "Nadrzędne jest już zaimportowane."
+  },
+  {
+    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
+    "translation": "Ukrywanie archiwizowanych kanałów nie jest już obsługiwane. Zamiast tego ustaw te kanały jako prywatne i usuń ich członków."
+  },
+  {
+    "id": "api.not_implemented",
+    "translation": "Ta funkcja nie została zaimplementowana."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
+    "translation": "Nie można zaktualizować wartości pola Atrybut profilu niestandardowego zarządzanego przez administratora"
+  },
+  {
+    "id": "app.lookup_interactive_dialog.decode_json_error",
+    "translation": "Napotkano błąd dekodowania odpowiedzi JSON z interaktywnego wyszukiwania okna dialogowego."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.json_error",
+    "translation": "Napotkano błąd przetwarzania odpowiedzi JSON z interaktywnego wyszukiwania okna dialogowego."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.read_body_error",
+    "translation": "Napotkano błąd odczytu treści odpowiedzi z interaktywnego okna dialogowego."
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "Nie udało się utworzyć procesora zbiorczego Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+    "translation": "Nie udało się utworzyć masowego procesora synchronizacji Elasticsearch"
+  },
+  {
+    "id": "model.config.is_valid.client_side_cert_enable.app_error",
+    "translation": "Uwierzytelnianie oparte na certyfikatach zostało usunięte. Wyłącz ClientSideCertEnable, aby kontynuować."
   }
 ]

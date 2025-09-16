@@ -122,7 +122,6 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("SearchMore", func(t *testing.T) { testChannelStoreSearchMore(t, rctx, ss) })
 	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, rctx, ss) })
 	t.Run("Autocomplete", func(t *testing.T) { testAutocomplete(t, rctx, ss, s) })
-	t.Run("SearchArchivedInTeam", func(t *testing.T) { testChannelStoreSearchArchivedInTeam(t, rctx, ss, s) })
 	t.Run("SearchForUserInTeam", func(t *testing.T) { testChannelStoreSearchForUserInTeam(t, rctx, ss) })
 	t.Run("SearchAllChannels", func(t *testing.T) { testChannelStoreSearchAllChannels(t, rctx, ss) })
 	t.Run("GetMembersByIds", func(t *testing.T) { testChannelStoreGetMembersByIds(t, rctx, ss) })
@@ -5387,11 +5386,11 @@ func testChannelStoreGetMemberForPost(t *testing.T, rctx request.CTX, ss store.S
 	})
 	require.NoError(t, nErr)
 
-	r1, err := ss.Channel().GetMemberForPost(p1.Id, m1.UserId, false)
+	r1, err := ss.Channel().GetMemberForPost(p1.Id, m1.UserId)
 	require.NoError(t, err, err)
 	require.Equal(t, channelMemberToJSON(t, m1), channelMemberToJSON(t, r1), "invalid returned channel member")
 
-	_, err = ss.Channel().GetMemberForPost(p1.Id, model.NewId(), false)
+	_, err = ss.Channel().GetMemberForPost(p1.Id, model.NewId())
 	require.Error(t, err, "shouldn't have returned a member")
 }
 
@@ -6008,47 +6007,6 @@ func (s ByChannelDisplayName) Less(i, j int) bool {
 	}
 
 	return s[i].Id < s[j].Id
-}
-
-func testChannelStoreSearchArchivedInTeam(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
-	teamID := model.NewId()
-	userID := model.NewId()
-	o1 := model.Channel{}
-	o1.TeamId = teamID
-	o1.DisplayName = "Channel1"
-	o1.Name = NewTestID()
-	o1.Type = model.ChannelTypeOpen
-	_, nErr := ss.Channel().Save(rctx, &o1, -1)
-	require.NoError(t, nErr)
-	o1.DeleteAt = model.GetMillis()
-	o1.UpdateAt = o1.DeleteAt
-	nErr = ss.Channel().Delete(o1.Id, o1.DeleteAt)
-	require.NoError(t, nErr)
-
-	t.Run("empty result", func(t *testing.T) {
-		list, err := ss.Channel().SearchArchivedInTeam(teamID, "term", userID)
-		require.NoError(t, err)
-		require.NotNil(t, list)
-		require.Empty(t, list)
-	})
-
-	t.Run("error", func(t *testing.T) {
-		// trigger a SQL error
-		s.GetMaster().Exec("ALTER TABLE Channels RENAME TO Channels_renamed")
-		defer s.GetMaster().Exec("ALTER TABLE Channels_renamed RENAME TO Channels")
-
-		list, err := ss.Channel().SearchArchivedInTeam(teamID, "term", userID)
-		require.Error(t, err)
-		require.Nil(t, list)
-	})
-
-	t.Run("find term", func(t *testing.T) {
-		list, err := ss.Channel().SearchArchivedInTeam(teamID, "Channel", userID)
-		require.NoError(t, err)
-		require.NotNil(t, list)
-		require.Equal(t, len(list), 1)
-		require.Equal(t, "Channel1", list[0].DisplayName)
-	})
 }
 
 func testChannelStoreSearchInTeam(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -7094,7 +7052,7 @@ func testChannelStoreSearchGroupChannels(t *testing.T, rctx request.CTX, ss stor
 	// Make gc3 policy enforced
 	_, err = ss.AccessControlPolicy().Save(rctx, &model.AccessControlPolicy{
 		ID:      gc3.Id,
-		Version: model.AccessControlPolicyVersionV0_1,
+		Version: model.AccessControlPolicyVersionV0_2,
 		Type:    model.AccessControlPolicyTypeChannel,
 		Rules: []model.AccessControlPolicyRule{
 			{

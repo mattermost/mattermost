@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import debounce from 'lodash/debounce';
 import React, {useState, useEffect, useRef} from 'react';
 import type {ChangeEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
@@ -12,8 +11,6 @@ import type {Team} from '@mattermost/types/teams';
 
 import {getTeams} from 'mattermost-redux/actions/teams';
 import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
-
-import {trackEvent} from 'actions/telemetry_actions';
 
 import OrganizationSVG from 'components/common/svg_images_components/organization-building_svg';
 import QuickInput from 'components/quick_input';
@@ -40,10 +37,6 @@ type Props = PreparingWorkspacePageProps & {
     setInviteId: (inviteId: string) => void;
 }
 
-const reportValidationError = debounce((error: string) => {
-    trackEvent('first_admin_setup', 'admin_onboarding_organization_submit_fail', {error});
-}, 700, {leading: false});
-
 const Organization = (props: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -52,8 +45,6 @@ const Organization = (props: Props) => {
     const inputRef = useRef<HTMLInputElement>();
     const validation = teamNameToUrl(props.organization || '');
     const teamApiError = useRef<typeof TeamApiError | null>(null);
-
-    useEffect(props.onPageView, []);
 
     const teams = useSelector(getActiveTeamsList);
     useEffect(() => {
@@ -122,11 +113,6 @@ const Organization = (props: Props) => {
             createTeamFromOrgName();
         } else if (!validation.error && thereIsAlreadyATeam) {
             updateTeamNameFromOrgName();
-        }
-
-        if (validation.error || teamApiError.current) {
-            reportValidationError(validation.error ? validation.error : teamApiError.current! as string);
-            return;
         }
         props.next?.();
     };

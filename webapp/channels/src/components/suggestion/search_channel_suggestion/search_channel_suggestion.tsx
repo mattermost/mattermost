@@ -7,6 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 
+import usePrefixedIds from 'components/common/hooks/usePrefixedIds';
 import BotTag from 'components/widgets/tag/bot_tag';
 import Avatar from 'components/widgets/users/avatar';
 
@@ -20,6 +21,7 @@ function itemToName(item: Channel, currentUserId: string): {icon: React.ReactEle
     if (item.type === Constants.DM_CHANNEL) {
         const profilePicture = (
             <Avatar
+                alt=''
                 url={imageURLForUser(getUserIdFromChannelName(currentUserId, item.name))}
                 size='sm'
             />
@@ -76,8 +78,18 @@ type Props = SuggestionProps<Channel> & {
     teammateIsBot: boolean;
 }
 
-const SearchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>((props, ref) => {
-    const {item, teammateIsBot, currentUserId} = props;
+const SearchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
+    id,
+    item,
+    teammateIsBot,
+    currentUserId,
+    ...otherProps
+}, ref) => {
+    const ids = usePrefixedIds(id, {
+        name: null,
+        channelType: null,
+        botTag: null,
+    });
 
     const nameObject = itemToName(item, currentUserId);
     if (!nameObject) {
@@ -91,16 +103,23 @@ const SearchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>((props, r
     return (
         <SuggestionContainer
             ref={ref}
-            {...props}
+            id={id}
+            item={item}
+            {...otherProps}
+            aria-labelledby={ids.name}
+            aria-describedby={ids.botTag}
         >
             {icon}
             <div className='suggestion-list__ellipsis'>
-                <span className='suggestion-list__main'>
+                <span
+                    id={ids.name}
+                    className='suggestion-list__main'
+                >
                     {name}
                 </span>
                 {description}
             </div>
-            {tag}
+            {tag && <span id={ids.botTag}>{tag}</span>}
         </SuggestionContainer>
     );
 });

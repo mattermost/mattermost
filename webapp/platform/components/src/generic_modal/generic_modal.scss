@@ -51,8 +51,21 @@
             border: var(--border-default);
             border-radius: 4px;
 
+            &.form-control--lg {
+                height: 48px;
+                font-size: 16px;
+                padding-left: 16px;
+                padding-right: 16px;
+
+                & + .input-clear {
+                    top: 17px;
+                    right: 16px;
+                }
+            }
+
             &:focus {
                 border-color: var(--button-bg);
+                box-shadow: 0 0 0 1px var(--button-bg);
             }
 
             &.has-error {

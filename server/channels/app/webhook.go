@@ -29,11 +29,12 @@ const (
 	TriggerwordsStartsWith = 1
 
 	MaxIntegrationResponseSize = 1024 * 1024 // Posts can be <100KB at most, so this is likely more than enough
+	MaxDialogResponseSize      = 1024 * 1024 // 1MB limit for dialog responses to prevent OOM attacks
 )
 
 var linkWithTextRegex = regexp.MustCompile(`<([^\n<\|>]+)\|([^\|\n>]+)>`)
 
-func (a *App) handleWebhookEvents(c request.CTX, post *model.Post, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
+func (a *App) handleWebhookEvents(rctx request.CTX, post *model.Post, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil
 	}
@@ -89,7 +90,7 @@ func (a *App) handleWebhookEvents(c request.CTX, post *model.Post, team *model.T
 			TriggerWord: triggerWord,
 			FileIds:     strings.Join(post.FileIds, ","),
 		}
-		a.TriggerWebhook(c, payload, hook, post, channel)
+		a.TriggerWebhook(rctx, payload, hook, post, channel)
 	}
 
 	return nil
@@ -304,7 +305,7 @@ func splitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 	return splits, nil
 }
 
-func (a *App) CreateWebhookPost(c request.CTX, userID string, channel *model.Channel, text, overrideUsername, overrideIconURL, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string, priority *model.PostPriority) (*model.Post, *model.AppError) {
+func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.Channel, text, overrideUsername, overrideIconURL, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string, priority *model.PostPriority) (*model.Post, *model.AppError) {
 	// parse links into Markdown format
 	text = linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 
@@ -370,7 +371,7 @@ func (a *App) CreateWebhookPost(c request.CTX, userID string, channel *model.Cha
 	}
 
 	for _, split := range splits {
-		if _, err = a.CreatePost(c, split, channel, model.CreatePostFlags{}); err != nil {
+		if _, err = a.CreatePost(rctx, split, channel, model.CreatePostFlags{}); err != nil {
 			return nil, model.NewAppError("CreateWebhookPost", "api.post.create_webhook_post.creating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
@@ -584,13 +585,13 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 	return webhook, nil
 }
 
-func (a *App) UpdateOutgoingWebhook(c request.CTX, oldHook, updatedHook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
+func (a *App) UpdateOutgoingWebhook(rctx request.CTX, oldHook, updatedHook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("UpdateOutgoingWebhook", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	if updatedHook.ChannelId != "" {
-		channel, err := a.GetChannel(c, updatedHook.ChannelId)
+		channel, err := a.GetChannel(rctx, updatedHook.ChannelId)
 		if err != nil {
 			return nil, err
 		}
@@ -888,7 +889,7 @@ func (a *App) CreateCommandWebhook(commandID string, args *model.CommandArgs) (*
 	return savedHook, nil
 }
 
-func (a *App) HandleCommandWebhook(c request.CTX, hookID string, response *model.CommandResponse) *model.AppError {
+func (a *App) HandleCommandWebhook(rctx request.CTX, hookID string, response *model.CommandResponse) *model.AppError {
 	if response == nil {
 		return model.NewAppError("HandleCommandWebhook", "app.command_webhook.handle_command_webhook.parse", nil, "", http.StatusBadRequest)
 	}
@@ -932,6 +933,6 @@ func (a *App) HandleCommandWebhook(c request.CTX, hookID string, response *model
 		}
 	}
 
-	_, err := a.HandleCommandResponse(c, cmd, args, response, false)
+	_, err := a.HandleCommandResponse(rctx, cmd, args, response, false)
 	return err
 }

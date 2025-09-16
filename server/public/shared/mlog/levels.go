@@ -50,6 +50,13 @@ var (
 	LvlSharedChannelServiceWarn             = Level{ID: 202, Name: "SharedChannelServiceWarn"}
 	LvlSharedChannelServiceMessagesInbound  = Level{ID: 203, Name: "SharedChannelServiceMsgInbound"}
 	LvlSharedChannelServiceMessagesOutbound = Level{ID: 204, Name: "SharedChannelServiceMsgOutbound"}
+
+	// used by Notification Service
+	LvlNotificationError = Level{ID: 300, Name: "NotificationError"}
+	LvlNotificationWarn  = Level{ID: 301, Name: "NotificationWarn"}
+	LvlNotificationInfo  = Level{ID: 302, Name: "NotificationInfo"}
+	LvlNotificationDebug = Level{ID: 303, Name: "NotificationDebug"}
+	LvlNotificationTrace = Level{ID: 304, Name: "NotificationTrace"}
 )
 
 // Combinations for LogM (log multi).
@@ -60,4 +67,10 @@ var (
 	MlvlLDAPWarn  = []Level{LvlWarn, LvlLDAPWarn}
 	MlvlLDAPInfo  = []Level{LvlInfo, LvlLDAPInfo}
 	MlvlLDAPDebug = []Level{LvlDebug, LvlLDAPDebug}
+
+	MlvlNotificationError = []Level{LvlError, LvlNotificationError}
+	MlvlNotificationWarn  = []Level{LvlWarn, LvlNotificationWarn}
+	MlvlNotificationInfo  = []Level{LvlInfo, LvlNotificationInfo}
+	MlvlNotificationDebug = []Level{LvlDebug, LvlNotificationDebug}
+	MlvlNotificationTrace = []Level{LvlTrace, LvlNotificationTrace}
 )

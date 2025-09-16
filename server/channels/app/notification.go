@@ -19,12 +19,11 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
 func (a *App) canSendPushNotifications() bool {
 	if !*a.Config().EmailSettings.SendPushNotifications {
-		a.NotificationsLog().Debug("Push notifications are disabled - server config",
+		a.Log().LogM(mlog.MlvlNotificationDebug, "Push notifications are disabled - server config",
 			mlog.String("status", model.NotificationStatusNotSent),
 			mlog.String("reason", "push_disabled"),
 		)
@@ -33,7 +32,7 @@ func (a *App) canSendPushNotifications() bool {
 
 	pushServer := *a.Config().EmailSettings.PushNotificationServer
 	if license := a.Srv().License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
-		a.NotificationsLog().Warn("Push notifications are disabled - license missing",
+		a.Log().LogM(mlog.MlvlNotificationWarn, "Push notifications are disabled - license missing",
 			mlog.String("status", model.NotificationStatusNotSent),
 			mlog.String("reason", "push_disabled_license"),
 		)
@@ -99,7 +98,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	pResult := <-pchan
 	if pResult.NErr != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
-		a.NotificationsLog().Error("Error fetching profiles",
+		rctx.Logger().LogM(mlog.MlvlNotificationError, "Error fetching profiles",
 			mlog.String("sender_id", sender.Id),
 			mlog.String("post_id", post.Id),
 			mlog.String("status", model.NotificationStatusError),
@@ -113,7 +112,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	cmnResult := <-cmnchan
 	if cmnResult.NErr != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
-		a.NotificationsLog().Error("Error fetching notify props",
+		rctx.Logger().LogM(mlog.MlvlNotificationError, "Error fetching notify props",
 			mlog.String("sender_id", sender.Id),
 			mlog.String("post_id", post.Id),
 			mlog.String("status", model.NotificationStatusError),
@@ -129,7 +128,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		tResult := <-tchan
 		if tResult.NErr != nil {
 			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
-			a.NotificationsLog().Error("Error fetching thread followers",
+			rctx.Logger().LogM(mlog.MlvlNotificationError, "Error fetching thread followers",
 				mlog.String("sender_id", sender.Id),
 				mlog.String("post_id", post.Id),
 				mlog.String("status", model.NotificationStatusError),
@@ -148,7 +147,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		gResult := <-gchan
 		if gResult.NErr != nil {
 			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
-			a.NotificationsLog().Error("Error fetching group mentions",
+			rctx.Logger().LogM(mlog.MlvlNotificationError, "Error fetching group mentions",
 				mlog.String("sender_id", sender.Id),
 				mlog.String("post_id", post.Id),
 				mlog.String("status", model.NotificationStatusError),
@@ -160,7 +159,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		groups = gResult.Data
 	}
 
-	a.NotificationsLog().Trace("Successfully fetched all profiles",
+	rctx.Logger().LogM(mlog.MlvlNotificationTrace, "Successfully fetched all profiles",
 		mlog.String("sender_id", sender.Id),
 		mlog.String("post_id", post.Id),
 	)
@@ -175,7 +174,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 			anyUsersMentionedByGroup, err := a.insertGroupMentions(sender.Id, group, channel, profileMap, mentions)
 			if err != nil {
 				a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
-				a.NotificationsLog().Error("Failed to populate group mentions",
+				rctx.Logger().LogM(mlog.MlvlNotificationError, "Failed to populate group mentions",
 					mlog.String("sender_id", sender.Id),
 					mlog.String("post_id", post.Id),
 					mlog.String("status", model.NotificationStatusError),
@@ -193,7 +192,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		go func() {
 			_, err := a.sendOutOfChannelMentions(rctx, sender, post, channel, mentions.OtherPotentialMentions)
 			if err != nil {
-				a.NotificationsLog().Warn("Failed to send warning for out of channel mentions",
+				rctx.Logger().LogM(mlog.MlvlNotificationWarn, "Failed to send warning for out of channel mentions",
 					mlog.String("sender_id", sender.Id),
 					mlog.String("post_id", post.Id),
 					mlog.String("status", model.NotificationStatusError),
@@ -333,7 +332,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		)
 	}
 
-	a.NotificationsLog().Trace("Finished processing mentions",
+	rctx.Logger().LogM(mlog.MlvlNotificationTrace, "Finished processing mentions",
 		mlog.String("sender_id", sender.Id),
 		mlog.String("post_id", post.Id),
 	)
@@ -375,7 +374,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	}
 
 	if *a.Config().EmailSettings.SendEmailNotifications {
-		a.NotificationsLog().Trace("Begin sending email notifications",
+		rctx.Logger().LogM(mlog.MlvlNotificationTrace, "Begin sending email notifications",
 			mlog.String("type", model.NotificationTypeEmail),
 			mlog.String("sender_id", sender.Id),
 			mlog.String("post_id", post.Id),
@@ -386,7 +385,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		for _, id := range emailRecipients {
 			if profileMap[id] == nil {
 				a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeEmail, model.NotificationReasonMissingProfile, model.NotificationNoPlatform)
-				a.NotificationsLog().Error("Missing profile",
+				rctx.Logger().LogM(mlog.MlvlNotificationError, "Missing profile",
 					mlog.String("type", model.NotificationTypeEmail),
 					mlog.String("post_id", post.Id),
 					mlog.String("status", model.NotificationStatusNotSent),
@@ -400,7 +399,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 			// If email verification is required and user email is not verified don't send email.
 			if *a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
 				a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeEmail, model.NotificationReasonEmailNotVerified, model.NotificationNoPlatform)
-				a.NotificationsLog().Debug("Email not verified",
+				rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Email not verified",
 					mlog.String("type", model.NotificationTypeEmail),
 					mlog.String("post_id", post.Id),
 					mlog.String("status", model.NotificationStatusNotSent),
@@ -417,21 +416,23 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 				if err != nil {
 					rctx.Logger().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
 				}
-				if err := a.sendNotificationEmail(rctx, notification, profileMap[id], team, senderProfileImage); err != nil {
-					a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeEmail, model.NotificationReasonEmailSendError, model.NotificationNoPlatform)
-					a.NotificationsLog().Error("Error sending email notification",
-						mlog.String("type", model.NotificationTypeEmail),
-						mlog.String("post_id", post.Id),
-						mlog.String("status", model.NotificationStatusError),
-						mlog.String("reason", model.NotificationReasonEmailSendError),
-						mlog.String("sender_id", sender.Id),
-						mlog.String("receiver_id", id),
-						mlog.Err(err),
-					)
-					rctx.Logger().Warn("Unable to send notification email.", mlog.Err(err))
-				}
+				a.Srv().Go(func() {
+					if _, err := a.sendNotificationEmail(rctx, notification, profileMap[id], team, senderProfileImage); err != nil {
+						a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeEmail, model.NotificationReasonEmailSendError, model.NotificationNoPlatform)
+						rctx.Logger().LogM(mlog.MlvlNotificationError, "Error sending email notification",
+							mlog.String("type", model.NotificationTypeEmail),
+							mlog.String("post_id", post.Id),
+							mlog.String("status", model.NotificationStatusError),
+							mlog.String("reason", model.NotificationReasonEmailSendError),
+							mlog.String("sender_id", sender.Id),
+							mlog.String("receiver_id", id),
+							mlog.Err(err),
+						)
+						rctx.Logger().Warn("Unable to send notification email.", mlog.Err(err))
+					}
+				})
 			} else {
-				a.NotificationsLog().Debug("Email disallowed by user",
+				rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Email disallowed by user",
 					mlog.String("type", model.NotificationTypeEmail),
 					mlog.String("post_id", post.Id),
 					mlog.String("status", model.NotificationStatusNotSent),
@@ -442,7 +443,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 			}
 		}
 
-		a.NotificationsLog().Trace("Finished sending email notifications",
+		rctx.Logger().LogM(mlog.MlvlNotificationTrace, "Finished sending email notifications",
 			mlog.String("type", model.NotificationTypeEmail),
 			mlog.String("sender_id", sender.Id),
 			mlog.String("post_id", post.Id),
@@ -452,7 +453,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	// Check for channel-wide mentions in channels that have too many members for those to work
 	if int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
 		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeAll, model.NotificationReasonTooManyUsersInChannel, model.NotificationNoPlatform)
-		a.NotificationsLog().Debug("Too many users to notify - will send ephemeral message",
+		rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Too many users to notify - will send ephemeral message",
 			mlog.String("sender_id", sender.Id),
 			mlog.String("post_id", post.Id),
 			mlog.String("status", model.NotificationStatusNotSent),
@@ -499,7 +500,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	}
 
 	if a.canSendPushNotifications() {
-		a.NotificationsLog().Trace("Begin sending push notifications",
+		rctx.Logger().LogM(mlog.MlvlNotificationTrace, "Begin sending push notifications",
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("sender_id", sender.Id),
 			mlog.String("post_id", post.Id),
@@ -508,7 +509,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		for _, id := range mentionedUsersList {
 			if profileMap[id] == nil {
 				a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonMissingProfile, model.NotificationNoPlatform)
-				a.NotificationsLog().Error("Missing profile",
+				rctx.Logger().LogM(mlog.MlvlNotificationError, "Missing profile",
 					mlog.String("type", model.NotificationTypePush),
 					mlog.String("post_id", post.Id),
 					mlog.String("status", model.NotificationStatusNotSent),
@@ -520,7 +521,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 			}
 
 			if notificationsForCRT.Push.Contains(id) {
-				a.NotificationsLog().Trace("Skipped direct push notification - will send as CRT notification",
+				rctx.Logger().LogM(mlog.MlvlNotificationTrace, "Skipped direct push notification - will send as CRT notification",
 					mlog.String("type", model.NotificationTypePush),
 					mlog.String("post_id", post.Id),
 					mlog.String("status", model.NotificationStatusNotSent),
@@ -537,7 +538,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 			isExplicitlyMentioned := mentions.Mentions[id] > GMMention
 			isGM := channel.Type == model.ChannelTypeGroup
-			if a.ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], isExplicitlyMentioned, status, post, isGM) {
+			if a.ShouldSendPushNotification(rctx, profileMap[id], channelMemberNotifyPropsMap[id], isExplicitlyMentioned, status, post, isGM) {
 				mentionType := mentions.Mentions[id]
 
 				replyToThreadType := ""
@@ -560,7 +561,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		for _, id := range allActivityPushUserIds {
 			if profileMap[id] == nil {
 				a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonMissingProfile, model.NotificationNoPlatform)
-				a.NotificationsLog().Error("Missing profile",
+				rctx.Logger().LogM(mlog.MlvlNotificationError, "Missing profile",
 					mlog.String("type", model.NotificationTypePush),
 					mlog.String("post_id", post.Id),
 					mlog.String("status", model.NotificationStatusError),
@@ -572,7 +573,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 			}
 
 			if notificationsForCRT.Push.Contains(id) {
-				a.NotificationsLog().Trace("Skipped direct push notification - will send as CRT notification",
+				rctx.Logger().LogM(mlog.MlvlNotificationTrace, "Skipped direct push notification - will send as CRT notification",
 					mlog.String("type", model.NotificationTypePush),
 					mlog.String("post_id", post.Id),
 					mlog.String("status", model.NotificationStatusNotSent),
@@ -589,7 +590,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 				}
 
 				isGM := channel.Type == model.ChannelTypeGroup
-				if a.ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], false, status, post, isGM) {
+				if a.ShouldSendPushNotification(rctx, profileMap[id], channelMemberNotifyPropsMap[id], false, status, post, isGM) {
 					a.sendPushNotification(
 						notification,
 						profileMap[id],
@@ -604,7 +605,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		for _, id := range notificationsForCRT.Push {
 			if profileMap[id] == nil {
 				a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonMissingProfile, model.NotificationNoPlatform)
-				a.NotificationsLog().Error("Missing profile",
+				rctx.Logger().LogM(mlog.MlvlNotificationError, "Missing profile",
 					mlog.String("type", model.NotificationTypePush),
 					mlog.String("post_id", post.Id),
 					mlog.String("status", model.NotificationStatusError),
@@ -631,7 +632,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 				)
 			} else {
 				a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, statusReason, model.NotificationNoPlatform)
-				a.NotificationsLog().Debug("Notification not sent - status",
+				rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Notification not sent - status",
 					mlog.String("type", model.NotificationTypePush),
 					mlog.String("post_id", post.Id),
 					mlog.String("status", model.NotificationStatusNotSent),
@@ -644,14 +645,14 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 			}
 		}
 
-		a.NotificationsLog().Trace("Finished sending push notifications",
+		rctx.Logger().LogM(mlog.MlvlNotificationTrace, "Finished sending push notifications",
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("sender_id", sender.Id),
 			mlog.String("post_id", post.Id),
 		)
 	}
 
-	a.NotificationsLog().Trace("Begin sending websocket notifications",
+	rctx.Logger().LogM(mlog.MlvlNotificationTrace, "Begin sending websocket notifications",
 		mlog.String("type", model.NotificationTypeWebsocket),
 		mlog.String("sender_id", sender.Id),
 		mlog.String("post_id", post.Id),
@@ -707,7 +708,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	appErr := a.publishWebsocketEventForPost(rctx, post, message)
 	if appErr != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform)
-		a.NotificationsLog().Error("Couldn't send websocket notification for permalink post",
+		rctx.Logger().LogM(mlog.MlvlNotificationError, "Couldn't send websocket notification for permalink post",
 			mlog.String("type", model.NotificationTypeWebsocket),
 			mlog.String("post_id", post.Id),
 			mlog.String("status", model.NotificationStatusError),
@@ -728,7 +729,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 				// Their own post goes through this and they get "notified", which we don't need to count as an error if they can't
 				if uid != post.UserId {
 					a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonMissingProfile, model.NotificationNoPlatform)
-					a.NotificationsLog().Error("Missing profile",
+					rctx.Logger().LogM(mlog.MlvlNotificationError, "Missing profile",
 						mlog.String("type", model.NotificationTypeWebsocket),
 						mlog.String("post_id", post.Id),
 						mlog.String("status", model.NotificationStatusError),
@@ -746,7 +747,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 					tm, err := a.Srv().Store().Thread().GetMembershipForUser(uid, post.RootId)
 					if err != nil {
 						a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform)
-						a.NotificationsLog().Error("Missing thread membership",
+						rctx.Logger().LogM(mlog.MlvlNotificationError, "Missing thread membership",
 							mlog.String("type", model.NotificationTypeWebsocket),
 							mlog.String("post_id", post.Id),
 							mlog.String("status", model.NotificationStatusError),
@@ -759,7 +760,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 					}
 					if tm == nil {
 						a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeWebsocket, model.NotificationReasonMissingThreadMembership, model.NotificationNoPlatform)
-						a.NotificationsLog().Warn("Missing thread membership",
+						rctx.Logger().LogM(mlog.MlvlNotificationWarn, "Missing thread membership",
 							mlog.String("type", model.NotificationTypeWebsocket),
 							mlog.String("post_id", post.Id),
 							mlog.String("status", model.NotificationStatusNotSent),
@@ -774,7 +775,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 				userThread, err := a.Srv().Store().Thread().GetThreadForUser(rctx, threadMembership, true, a.IsPostPriorityEnabled())
 				if err != nil {
 					a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform)
-					a.NotificationsLog().Error("Missing thread",
+					rctx.Logger().LogM(mlog.MlvlNotificationError, "Missing thread",
 						mlog.String("type", model.NotificationTypeWebsocket),
 						mlog.String("post_id", post.Id),
 						mlog.String("status", model.NotificationStatusError),
@@ -808,7 +809,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 						_, err = a.Srv().Store().Thread().MaintainMembership(uid, post.RootId, opts)
 						if err != nil {
 							a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform)
-							a.NotificationsLog().Error("Failed to update thread membership",
+							rctx.Logger().LogM(mlog.MlvlNotificationError, "Failed to update thread membership",
 								mlog.String("type", model.NotificationTypeWebsocket),
 								mlog.String("post_id", post.Id),
 								mlog.String("status", model.NotificationStatusError),
@@ -828,7 +829,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 					sanitizedPost, err := a.SanitizePostMetadataForUser(rctx, userThread.Post, uid)
 					if err != nil {
 						a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonParseError, model.NotificationNoPlatform)
-						a.NotificationsLog().Error("Failed to sanitize metadata",
+						rctx.Logger().LogM(mlog.MlvlNotificationError, "Failed to sanitize metadata",
 							mlog.String("type", model.NotificationTypeWebsocket),
 							mlog.String("post_id", post.Id),
 							mlog.String("status", model.NotificationStatusError),
@@ -855,39 +856,12 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		}
 	}
 
-	a.NotificationsLog().Trace("Finish sending websocket notifications",
+	a.Log().LogM(mlog.MlvlNotificationTrace, "Finish sending websocket notifications",
 		mlog.String("type", model.NotificationTypeWebsocket),
 		mlog.String("sender_id", sender.Id),
 		mlog.String("post_id", post.Id),
 	)
 
-	for id, reason := range mentions.Mentions {
-		user, ok := profileMap[id]
-		if !ok {
-			continue
-		}
-		if user.IsGuest() {
-			if reason == KeywordMention {
-				a.Srv().telemetryService.SendTelemetryForFeature(
-					telemetry.TrackGuestFeature,
-					"post_mentioned_guest",
-					map[string]any{telemetry.TrackPropertyUser: user.Id, telemetry.TrackPropertyPostAuthor: sender.Id},
-				)
-			} else if reason == DMMention {
-				a.Srv().telemetryService.SendTelemetryForFeature(
-					telemetry.TrackGuestFeature,
-					"direct_message_to_guest",
-					map[string]any{telemetry.TrackPropertyUser: user.Id, telemetry.TrackPropertyPostAuthor: sender.Id},
-				)
-			}
-		}
-		if user.IsRemote() {
-			a.Srv().telemetryService.SendTelemetryForFeature(telemetry.TrackSharedChannelsFeature, "mentioned_remote_user", map[string]any{telemetry.TrackPropertyUser: user.Id, telemetry.TrackPropertyPostAuthor: sender.Id})
-		}
-	}
-	for groupId := range mentions.GroupMentions {
-		a.Srv().telemetryService.SendTelemetryForFeature(telemetry.TrackGroupsFeature, "post_mentioned_custom_group", map[string]any{telemetry.TrackPropertyUser: sender.Id, telemetry.TrackPropertyGroup: groupId, "group_size": groups[groupId].MemberCount})
-	}
 	return mentionedUsersList, nil
 }
 
@@ -1032,7 +1006,7 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 	return nil
 }
 
-func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, channel *model.Channel, profileMap map[string]*model.User, groups map[string]*model.Group, channelMemberNotifyPropsMap map[string]model.StringMap, parentPostList *model.PostList) (*MentionResults, MentionKeywords) {
+func (a *App) getExplicitMentionsAndKeywords(rctx request.CTX, post *model.Post, channel *model.Channel, profileMap map[string]*model.User, groups map[string]*model.Group, channelMemberNotifyPropsMap map[string]model.StringMap, parentPostList *model.PostList) (*MentionResults, MentionKeywords) {
 	mentions := &MentionResults{}
 	var allowChannelMentions bool
 	var keywords MentionKeywords
@@ -1063,7 +1037,7 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 			}
 		}
 	} else {
-		allowChannelMentions = a.allowChannelMentions(c, post, len(profileMap))
+		allowChannelMentions = a.allowChannelMentions(rctx, post, len(profileMap))
 		keywords = a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap, groups)
 
 		mentions = getExplicitMentions(post, keywords)
@@ -1104,7 +1078,7 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 				if threadPost.Id == parentPostList.Order[0] && threadPost.IsFromOAuthBot() {
 					continue
 				}
-				if a.IsCRTEnabledForUser(c, profile.Id) {
+				if a.IsCRTEnabledForUser(rctx, profile.Id) {
 					continue
 				}
 				if profile.NotifyProps[model.CommentsNotifyProp] == model.CommentsNotifyAny || (profile.NotifyProps[model.CommentsNotifyProp] == model.CommentsNotifyRoot && threadPost.Id == parentPostList.Order[0]) {
@@ -1127,7 +1101,7 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 	return mentions, keywords
 }
 
-func (a *App) userAllowsEmail(c request.CTX, user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {
+func (a *App) userAllowsEmail(rctx request.CTX, user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {
 	// if user is a bot account or remote, then we do not send email
 	if user.IsBot || user.IsRemote() {
 		return false
@@ -1136,7 +1110,7 @@ func (a *App) userAllowsEmail(c request.CTX, user *model.User, channelMemberNoti
 	userAllowsEmails := user.NotifyProps[model.EmailNotifyProp] != "false"
 
 	// if CRT is ON for user and the post is a reply disregard the channelEmail setting
-	if channelEmail, ok := channelMemberNotificationProps[model.EmailNotifyProp]; ok && !(a.IsCRTEnabledForUser(c, user.Id) && post.RootId != "") {
+	if channelEmail, ok := channelMemberNotificationProps[model.EmailNotifyProp]; ok && !(a.IsCRTEnabledForUser(rctx, user.Id) && post.RootId != "") {
 		if channelEmail != model.ChannelNotifyDefault {
 			userAllowsEmails = channelEmail != "false"
 		}
@@ -1145,7 +1119,7 @@ func (a *App) userAllowsEmail(c request.CTX, user *model.User, channelMemberNoti
 	// Remove the user as recipient when the user has muted the channel.
 	if channelMuted, ok := channelMemberNotificationProps[model.MarkUnreadNotifyProp]; ok {
 		if channelMuted == model.ChannelMarkUnreadMention {
-			c.Logger().Debug("Channel muted for user", mlog.String("user_id", user.Id), mlog.String("channel_mute", channelMuted))
+			rctx.Logger().Debug("Channel muted for user", mlog.String("user_id", user.Id), mlog.String("channel_mute", channelMuted))
 			userAllowsEmails = false
 		}
 	}
@@ -1168,7 +1142,7 @@ func (a *App) userAllowsEmail(c request.CTX, user *model.User, channelMemberNoti
 	return userAllowsEmails && emailNotificationsAllowedForStatus && user.DeleteAt == 0 && !autoResponderRelated
 }
 
-func (a *App) sendNoUsersNotifiedByGroupInChannel(c request.CTX, sender *model.User, post *model.Post, channel *model.Channel, group *model.Group) {
+func (a *App) sendNoUsersNotifiedByGroupInChannel(rctx request.CTX, sender *model.User, post *model.Post, channel *model.Channel, group *model.Group) {
 	T := i18n.GetUserTranslations(sender.Locale)
 	ephemeralPost := &model.Post{
 		UserId:    sender.Id,
@@ -1176,13 +1150,13 @@ func (a *App) sendNoUsersNotifiedByGroupInChannel(c request.CTX, sender *model.U
 		ChannelId: channel.Id,
 		Message:   T("api.post.check_for_out_of_channel_group_users.message.none", model.StringInterface{"GroupName": group.Name}),
 	}
-	a.SendEphemeralPost(c, post.UserId, ephemeralPost)
+	a.SendEphemeralPost(rctx, post.UserId, ephemeralPost)
 }
 
 // sendOutOfChannelMentions sends an ephemeral post to the sender of a post if any of the given potential mentions
 // are outside of the post's channel. Returns whether or not an ephemeral post was sent.
-func (a *App) sendOutOfChannelMentions(c request.CTX, sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) (bool, error) {
-	outOfTeamUsers, outOfChannelUsers, outOfGroupsUsers, err := a.filterOutOfChannelMentions(c, sender, post, channel, potentialMentions)
+func (a *App) sendOutOfChannelMentions(rctx request.CTX, sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) (bool, error) {
+	outOfTeamUsers, outOfChannelUsers, outOfGroupsUsers, err := a.filterOutOfChannelMentions(rctx, sender, post, channel, potentialMentions)
 	if err != nil {
 		return false, err
 	}
@@ -1192,18 +1166,18 @@ func (a *App) sendOutOfChannelMentions(c request.CTX, sender *model.User, post *
 	}
 
 	if len(outOfChannelUsers) != 0 || len(outOfGroupsUsers) != 0 {
-		a.SendEphemeralPost(c, post.UserId, makeOutOfChannelMentionPost(sender, post, outOfChannelUsers, outOfGroupsUsers))
+		a.SendEphemeralPost(rctx, post.UserId, makeOutOfChannelMentionPost(sender, post, outOfChannelUsers, outOfGroupsUsers))
 	}
 	if len(outOfTeamUsers) != 0 {
-		a.SendEphemeralPost(c, post.UserId, makeOutOfTeamMentionPost(sender, post, outOfTeamUsers))
+		a.SendEphemeralPost(rctx, post.UserId, makeOutOfTeamMentionPost(sender, post, outOfTeamUsers))
 	}
 	return true, nil
 }
 
-func (a *App) FilterUsersByVisible(c request.CTX, viewer *model.User, otherUsers []*model.User) ([]*model.User, *model.AppError) {
+func (a *App) FilterUsersByVisible(rctx request.CTX, viewer *model.User, otherUsers []*model.User) ([]*model.User, *model.AppError) {
 	result := []*model.User{}
 	for _, user := range otherUsers {
-		canSee, err := a.UserCanSeeOtherUser(c, viewer.Id, user.Id)
+		canSee, err := a.UserCanSeeOtherUser(rctx, viewer.Id, user.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -1450,8 +1424,8 @@ func getMentionsEnabledFields(post *model.Post) model.StringArray {
 }
 
 // allowChannelMentions returns whether or not the channel mentions are allowed for the given post.
-func (a *App) allowChannelMentions(c request.CTX, post *model.Post, numProfiles int) bool {
-	if !a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseChannelMentions) {
+func (a *App) allowChannelMentions(rctx request.CTX, post *model.Post, numProfiles int) bool {
+	if !a.HasPermissionToChannel(rctx, post.UserId, post.ChannelId, model.PermissionUseChannelMentions) {
 		return false
 	}
 
@@ -1467,12 +1441,12 @@ func (a *App) allowChannelMentions(c request.CTX, post *model.Post, numProfiles 
 }
 
 // allowGroupMentions returns whether or not the group mentions are allowed for the given post.
-func (a *App) allowGroupMentions(c request.CTX, post *model.Post) bool {
+func (a *App) allowGroupMentions(rctx request.CTX, post *model.Post) bool {
 	if !model.MinimumProfessionalLicense(a.Srv().License()) {
 		return false
 	}
 
-	if !a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseGroupMentions) {
+	if !a.HasPermissionToChannel(rctx, post.UserId, post.ChannelId, model.PermissionUseGroupMentions) {
 		return false
 	}
 
@@ -1586,13 +1560,6 @@ func (a *App) insertGroupMentions(senderID string, group *model.Group, channel *
 	potentialGroupMembersMentioned := []string{}
 	for _, user := range outOfChannelGroupMembers {
 		potentialGroupMembersMentioned = append(potentialGroupMembersMentioned, user.Username)
-	}
-	if len(potentialGroupMembersMentioned) != 0 {
-		a.Srv().telemetryService.SendTelemetryForFeature(
-			telemetry.TrackGroupsFeature,
-			"invite_group_to_channel__post",
-			map[string]any{telemetry.TrackPropertyUser: senderID, telemetry.TrackPropertyGroup: group.Id},
-		)
 	}
 	if mentions.OtherPotentialMentions == nil {
 		mentions.OtherPotentialMentions = potentialGroupMembersMentioned

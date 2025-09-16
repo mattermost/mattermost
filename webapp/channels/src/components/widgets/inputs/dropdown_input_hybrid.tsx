@@ -57,9 +57,9 @@ const baseStyles = {
         ...provided,
         zIndex: 99999999,
     }),
-} satisfies StylesConfig<OptionType, boolean>;
+} satisfies StylesConfig<OptionType, false>;
 
-const IndicatorsContainer = <T extends OptionType>(props: IndicatorsContainerProps<T>) => (
+const IndicatorsContainer = <T extends OptionType>(props: IndicatorsContainerProps<T, false>) => (
     <div className='DropdownInput__indicatorsContainer'>
         <components.IndicatorsContainer {...props}>
             <i className='icon icon-chevron-down'/>
@@ -67,7 +67,7 @@ const IndicatorsContainer = <T extends OptionType>(props: IndicatorsContainerPro
     </div>
 );
 
-const Control = <T extends OptionType>(props: ControlProps<T>) => (
+const Control = <T extends OptionType>(props: ControlProps<T, false>) => (
     <div className='DropdownInput__controlContainer'>
         <components.Control {...props}/>
     </div>
@@ -138,7 +138,7 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
                 width: containerRef.current ? `${containerRef.current.offsetWidth}px` : '0px',
                 left: inputRef.current ? `-${inputRef.current.offsetWidth}px` : '0px',
             }),
-        } satisfies StylesConfig<OptionType, boolean> : {});
+        } satisfies StylesConfig<OptionType, false> : {});
 
     const onInputBlur = () => setInputFocused(false);
 
@@ -228,7 +228,7 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
                         width: showInput ? `${width}px` : '100%',
                     }}
                 >
-                    <ReactSelect<T>
+                    <ReactSelect<T, false>
                         id={`DropdownInput_${name}`}
                         placeholder={focused ? '' : placeholder}
                         components={{
