@@ -287,13 +287,8 @@ func (c *Client4) channelByNameRoute(channelName, teamId string) string {
 	return fmt.Sprintf(c.teamRoute(teamId)+"/channels/name/%v", channelName)
 }
 
-func (c *Client4) channelsForTeamForUserRoute(teamId, userId string, includeDeleted bool) string {
-	route := c.userRoute(userId) + c.teamRoute(teamId) + "/channels"
-	if includeDeleted {
-		query := fmt.Sprintf("?include_deleted=%v", includeDeleted)
-		return route + query
-	}
-	return route
+func (c *Client4) channelsForTeamForUserRoute(teamId, userId string) string {
+	return c.userRoute(userId) + c.teamRoute(teamId) + "/channels"
 }
 
 func (c *Client4) channelByNameForTeamNameRoute(channelName, teamName string) string {
@@ -918,8 +913,9 @@ func (c *Client4) CreateUserWithToken(ctx context.Context, user *User, tokenId s
 		return nil, nil, errors.New("token ID is required")
 	}
 
-	query := "?t=" + tokenId
-	r, err := c.DoAPIPostJSON(ctx, c.usersRoute()+query, user)
+	values := url.Values{}
+	values.Set("t", tokenId)
+	r, err := c.DoAPIPostJSON(ctx, c.usersRoute()+"?"+values.Encode(), user)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -933,8 +929,9 @@ func (c *Client4) CreateUserWithInviteId(ctx context.Context, user *User, invite
 		return nil, nil, errors.New("invite ID is required")
 	}
 
-	query := "?iid=" + url.QueryEscape(inviteId)
-	r, err := c.DoAPIPostJSON(ctx, c.usersRoute()+query, user)
+	values := url.Values{}
+	values.Set("iid", inviteId)
+	r, err := c.DoAPIPostJSON(ctx, c.usersRoute()+"?"+values.Encode(), user)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -984,8 +981,11 @@ func (c *Client4) GetUserByEmail(ctx context.Context, email, etag string) (*User
 
 // AutocompleteUsersInTeam returns the users on a team based on search term.
 func (c *Client4) AutocompleteUsersInTeam(ctx context.Context, teamId string, username string, limit int, etag string) (*UserAutocomplete, *Response, error) {
-	query := fmt.Sprintf("?in_team=%v&name=%v&limit=%d", teamId, username, limit)
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/autocomplete"+query, etag)
+	values := url.Values{}
+	values.Set("in_team", teamId)
+	values.Set("name", username)
+	values.Set("limit", strconv.Itoa(limit))
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/autocomplete?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -995,8 +995,12 @@ func (c *Client4) AutocompleteUsersInTeam(ctx context.Context, teamId string, us
 
 // AutocompleteUsersInChannel returns the users in a channel based on search term.
 func (c *Client4) AutocompleteUsersInChannel(ctx context.Context, teamId string, channelId string, username string, limit int, etag string) (*UserAutocomplete, *Response, error) {
-	query := fmt.Sprintf("?in_team=%v&in_channel=%v&name=%v&limit=%d", teamId, channelId, username, limit)
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/autocomplete"+query, etag)
+	values := url.Values{}
+	values.Set("in_team", teamId)
+	values.Set("in_channel", channelId)
+	values.Set("name", username)
+	values.Set("limit", strconv.Itoa(limit))
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/autocomplete?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1006,8 +1010,10 @@ func (c *Client4) AutocompleteUsersInChannel(ctx context.Context, teamId string,
 
 // AutocompleteUsers returns the users in the system based on search term.
 func (c *Client4) AutocompleteUsers(ctx context.Context, username string, limit int, etag string) (*UserAutocomplete, *Response, error) {
-	query := fmt.Sprintf("?name=%v&limit=%d", username, limit)
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/autocomplete"+query, etag)
+	values := url.Values{}
+	values.Set("name", username)
+	values.Set("limit", strconv.Itoa(limit))
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/autocomplete?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1037,8 +1043,10 @@ func (c *Client4) GetProfileImage(ctx context.Context, userId, etag string) ([]b
 
 // GetUsers returns a page of users on the system. Page counting starts at 0.
 func (c *Client4) GetUsers(ctx context.Context, page int, perPage int, etag string) ([]*User, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1048,8 +1056,10 @@ func (c *Client4) GetUsers(ctx context.Context, page int, perPage int, etag stri
 
 // GetUsersWithCustomQueryParameters returns a page of users on the system. Page counting starts at 0.
 func (c *Client4) GetUsersWithCustomQueryParameters(ctx context.Context, page int, perPage int, queryParameters, etag string) ([]*User, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v&%v", page, perPage, queryParameters)
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"?"+values.Encode()+"&"+queryParameters, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1059,8 +1069,11 @@ func (c *Client4) GetUsersWithCustomQueryParameters(ctx context.Context, page in
 
 // GetUsersInTeam returns a page of users on a team. Page counting starts at 0.
 func (c *Client4) GetUsersInTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*User, *Response, error) {
-	query := fmt.Sprintf("?in_team=%v&page=%v&per_page=%v", teamId, page, perPage)
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
+	values := url.Values{}
+	values.Set("in_team", teamId)
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1070,8 +1083,12 @@ func (c *Client4) GetUsersInTeam(ctx context.Context, teamId string, page int, p
 
 // GetNewUsersInTeam returns a page of users on a team. Page counting starts at 0.
 func (c *Client4) GetNewUsersInTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*User, *Response, error) {
-	query := fmt.Sprintf("?sort=create_at&in_team=%v&page=%v&per_page=%v", teamId, page, perPage)
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
+	values := url.Values{}
+	values.Set("sort", "create_at")
+	values.Set("in_team", teamId)
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1081,8 +1098,12 @@ func (c *Client4) GetNewUsersInTeam(ctx context.Context, teamId string, page int
 
 // GetRecentlyActiveUsersInTeam returns a page of users on a team. Page counting starts at 0.
 func (c *Client4) GetRecentlyActiveUsersInTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*User, *Response, error) {
-	query := fmt.Sprintf("?sort=last_activity_at&in_team=%v&page=%v&per_page=%v", teamId, page, perPage)
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
+	values := url.Values{}
+	values.Set("sort", "last_activity_at")
+	values.Set("in_team", teamId)
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1092,8 +1113,12 @@ func (c *Client4) GetRecentlyActiveUsersInTeam(ctx context.Context, teamId strin
 
 // GetActiveUsersInTeam returns a page of users on a team. Page counting starts at 0.
 func (c *Client4) GetActiveUsersInTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*User, *Response, error) {
-	query := fmt.Sprintf("?active=true&in_team=%v&page=%v&per_page=%v", teamId, page, perPage)
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
+	values := url.Values{}
+	values.Set("active", "true")
+	values.Set("in_team", teamId)
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1103,8 +1128,11 @@ func (c *Client4) GetActiveUsersInTeam(ctx context.Context, teamId string, page 
 
 // GetUsersNotInTeam returns a page of users who are not in a team. Page counting starts at 0.
 func (c *Client4) GetUsersNotInTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*User, *Response, error) {
-	query := fmt.Sprintf("?not_in_team=%v&page=%v&per_page=%v", teamId, page, perPage)
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
+	values := url.Values{}
+	values.Set("not_in_team", teamId)
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1114,8 +1142,11 @@ func (c *Client4) GetUsersNotInTeam(ctx context.Context, teamId string, page int
 
 // GetUsersInChannel returns a page of users in a channel. Page counting starts at 0.
 func (c *Client4) GetUsersInChannel(ctx context.Context, channelId string, page int, perPage int, etag string) ([]*User, *Response, error) {
-	query := fmt.Sprintf("?in_channel=%v&page=%v&per_page=%v", channelId, page, perPage)
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
+	values := url.Values{}
+	values.Set("in_channel", channelId)
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1125,8 +1156,12 @@ func (c *Client4) GetUsersInChannel(ctx context.Context, channelId string, page 
 
 // GetUsersInChannelByStatus returns a page of users in a channel. Page counting starts at 0. Sorted by Status
 func (c *Client4) GetUsersInChannelByStatus(ctx context.Context, channelId string, page int, perPage int, etag string) ([]*User, *Response, error) {
-	query := fmt.Sprintf("?in_channel=%v&page=%v&per_page=%v&sort=status", channelId, page, perPage)
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
+	values := url.Values{}
+	values.Set("in_channel", channelId)
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	values.Set("sort", "status")
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1148,11 +1183,15 @@ func (c *Client4) GetUsersNotInChannel(ctx context.Context, teamId, channelId st
 
 // GetUsersNotInChannelWithOptionsStruct returns a page of users not in a channel using the options struct.
 func (c *Client4) GetUsersNotInChannelWithOptions(ctx context.Context, channelId string, options *GetUsersNotInChannelOptions) ([]*User, *Response, error) {
-	query := fmt.Sprintf("?in_team=%v&not_in_channel=%v&page=%v&per_page=%v", options.TeamID, channelId, options.Page, options.Limit)
-	if options.CursorID != "" {
-		query += fmt.Sprintf("&cursor_id=%v", options.CursorID)
+	values := url.Values{}
+	values.Set("in_team", options.TeamID)
+	values.Set("not_in_channel", channelId)
+	values.Set("page", strconv.Itoa(options.Page))
+	values.Set("per_page", strconv.Itoa(options.Limit))
+	if options != nil && options.CursorID != "" {
+		values.Set("cursor_id", options.CursorID)
 	}
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, options.Etag)
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"?"+values.Encode(), options.Etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1162,8 +1201,11 @@ func (c *Client4) GetUsersNotInChannelWithOptions(ctx context.Context, channelId
 
 // GetUsersWithoutTeam returns a page of users on the system that aren't on any teams. Page counting starts at 0.
 func (c *Client4) GetUsersWithoutTeam(ctx context.Context, page int, perPage int, etag string) ([]*User, *Response, error) {
-	query := fmt.Sprintf("?without_team=1&page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
+	values := url.Values{}
+	values.Set("without_team", "1")
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1173,8 +1215,11 @@ func (c *Client4) GetUsersWithoutTeam(ctx context.Context, page int, perPage int
 
 // GetUsersInGroup returns a page of users in a group. Page counting starts at 0.
 func (c *Client4) GetUsersInGroup(ctx context.Context, groupID string, page int, perPage int, etag string) ([]*User, *Response, error) {
-	query := fmt.Sprintf("?in_group=%v&page=%v&per_page=%v", groupID, page, perPage)
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
+	values := url.Values{}
+	values.Set("in_group", groupID)
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1184,8 +1229,12 @@ func (c *Client4) GetUsersInGroup(ctx context.Context, groupID string, page int,
 
 // GetUsersInGroup returns a page of users in a group. Page counting starts at 0.
 func (c *Client4) GetUsersInGroupByDisplayName(ctx context.Context, groupID string, page int, perPage int, etag string) ([]*User, *Response, error) {
-	query := fmt.Sprintf("?sort=display_name&in_group=%v&page=%v&per_page=%v", groupID, page, perPage)
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
+	values := url.Values{}
+	values.Set("sort", "display_name")
+	values.Set("in_group", groupID)
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1520,17 +1569,12 @@ func (c *Client4) AttachDeviceProps(ctx context.Context, newProps map[string]str
 // An optional team ID can be set to exclude that team from the results.
 // An optional boolean can be set to include collapsed thread unreads. Must be authenticated.
 func (c *Client4) GetTeamsUnreadForUser(ctx context.Context, userId, teamIdToExclude string, includeCollapsedThreads bool) ([]*TeamUnread, *Response, error) {
-	query := url.Values{}
-
+	values := url.Values{}
 	if teamIdToExclude != "" {
-		query.Set("exclude_team", teamIdToExclude)
+		values.Set("exclude_team", teamIdToExclude)
 	}
-
-	if includeCollapsedThreads {
-		query.Set("include_collapsed_threads", "true")
-	}
-
-	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/teams/unread?"+query.Encode(), "")
+	values.Set("include_collapsed_threads", c.boolString(includeCollapsedThreads))
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/teams/unread?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1540,8 +1584,10 @@ func (c *Client4) GetTeamsUnreadForUser(ctx context.Context, userId, teamIdToExc
 
 // GetUserAudits returns a list of audit based on the provided user id string.
 func (c *Client4) GetUserAudits(ctx context.Context, userId string, page int, perPage int, etag string) (Audits, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/audits"+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/audits?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1637,8 +1683,10 @@ func (c *Client4) CreateUserAccessToken(ctx context.Context, userId, description
 // and the user_id in the system. The actual token will not be returned. Must have
 // the 'manage_system' permission.
 func (c *Client4) GetUserAccessTokens(ctx context.Context, page int, perPage int) ([]*UserAccessToken, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.userAccessTokensRoute()+query, "")
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.userAccessTokensRoute()+"?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1664,8 +1712,10 @@ func (c *Client4) GetUserAccessToken(ctx context.Context, tokenId string) (*User
 // the 'read_user_access_token' permission and if getting for another user, must have the
 // 'edit_other_users' permission.
 func (c *Client4) GetUserAccessTokensForUser(ctx context.Context, userId string, page, perPage int) ([]*UserAccessToken, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/tokens"+query, "")
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/tokens?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1813,8 +1863,10 @@ func (c *Client4) GetBotIncludeDeleted(ctx context.Context, userId string, etag 
 
 // GetBots fetches the given page of bots, excluding deleted.
 func (c *Client4) GetBots(ctx context.Context, page, perPage int, etag string) ([]*Bot, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.botsRoute()+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.botsRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1824,8 +1876,11 @@ func (c *Client4) GetBots(ctx context.Context, page, perPage int, etag string) (
 
 // GetBotsIncludeDeleted fetches the given page of bots, including deleted.
 func (c *Client4) GetBotsIncludeDeleted(ctx context.Context, page, perPage int, etag string) ([]*Bot, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v&include_deleted="+c.boolString(true), page, perPage)
-	r, err := c.DoAPIGet(ctx, c.botsRoute()+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	values.Set("include_deleted", c.boolString(true))
+	r, err := c.DoAPIGet(ctx, c.botsRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1835,8 +1890,11 @@ func (c *Client4) GetBotsIncludeDeleted(ctx context.Context, page, perPage int, 
 
 // GetBotsOrphaned fetches the given page of bots, only including orphaned bots.
 func (c *Client4) GetBotsOrphaned(ctx context.Context, page, perPage int, etag string) ([]*Bot, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v&only_orphaned="+c.boolString(true), page, perPage)
-	r, err := c.DoAPIGet(ctx, c.botsRoute()+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	values.Set("only_orphaned", c.boolString(true))
+	r, err := c.DoAPIGet(ctx, c.botsRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1898,8 +1956,10 @@ func (c *Client4) GetTeam(ctx context.Context, teamId, etag string) (*Team, *Res
 
 // GetAllTeams returns all teams based on permissions.
 func (c *Client4) GetAllTeams(ctx context.Context, etag string, page int, perPage int) ([]*Team, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.teamsRoute()+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.teamsRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1909,8 +1969,11 @@ func (c *Client4) GetAllTeams(ctx context.Context, etag string, page int, perPag
 
 // GetAllTeamsWithTotalCount returns all teams based on permissions.
 func (c *Client4) GetAllTeamsWithTotalCount(ctx context.Context, etag string, page int, perPage int) ([]*Team, int64, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v&include_total_count="+c.boolString(true), page, perPage)
-	r, err := c.DoAPIGet(ctx, c.teamsRoute()+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	values.Set("include_total_count", c.boolString(true))
+	r, err := c.DoAPIGet(ctx, c.teamsRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, 0, BuildResponse(r), err
 	}
@@ -1925,8 +1988,11 @@ func (c *Client4) GetAllTeamsWithTotalCount(ctx context.Context, etag string, pa
 // GetAllTeamsExcludePolicyConstrained returns all teams which are not part of a data retention policy.
 // Must be a system administrator.
 func (c *Client4) GetAllTeamsExcludePolicyConstrained(ctx context.Context, etag string, page int, perPage int) ([]*Team, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v&exclude_policy_constrained=%v", page, perPage, true)
-	r, err := c.DoAPIGet(ctx, c.teamsRoute()+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	values.Set("exclude_policy_constrained", c.boolString(true))
+	r, err := c.DoAPIGet(ctx, c.teamsRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2101,8 +2167,10 @@ func (c *Client4) UpdateTeamPrivacy(ctx context.Context, teamId string, privacy 
 
 // GetTeamMembers returns team members based on the provided team id string.
 func (c *Client4) GetTeamMembers(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*TeamMember, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.teamMembersRoute(teamId)+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.teamMembersRoute(teamId)+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2113,8 +2181,12 @@ func (c *Client4) GetTeamMembers(ctx context.Context, teamId string, page int, p
 // GetTeamMembersWithoutDeletedUsers returns team members based on the provided team id string. Additional parameters of sort and exclude_deleted_users accepted as well
 // Could not add it to above function due to it be a breaking change.
 func (c *Client4) GetTeamMembersSortAndWithoutDeletedUsers(ctx context.Context, teamId string, page int, perPage int, sort string, excludeDeletedUsers bool, etag string) ([]*TeamMember, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v&sort=%v&exclude_deleted_users=%v", page, perPage, sort, excludeDeletedUsers)
-	r, err := c.DoAPIGet(ctx, c.teamMembersRoute(teamId)+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	values.Set("sort", sort)
+	values.Set("exclude_deleted_users", c.boolString(excludeDeletedUsers))
+	r, err := c.DoAPIGet(ctx, c.teamMembersRoute(teamId)+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2157,17 +2229,10 @@ func (c *Client4) AddTeamMember(ctx context.Context, teamId, userId string) (*Te
 // AddTeamMemberFromInvite adds a user to a team and return a team member using an invite id
 // or an invite token/data pair.
 func (c *Client4) AddTeamMemberFromInvite(ctx context.Context, token, inviteId string) (*TeamMember, *Response, error) {
-	var query string
-
-	if inviteId != "" {
-		query += fmt.Sprintf("?invite_id=%v", inviteId)
-	}
-
-	if token != "" {
-		query += fmt.Sprintf("?token=%v", token)
-	}
-
-	r, err := c.DoAPIPost(ctx, c.teamsRoute()+"/members/invite"+query, "")
+	values := url.Values{}
+	values.Set("invite_id", inviteId)
+	values.Set("token", token)
+	r, err := c.DoAPIPost(ctx, c.teamsRoute()+"/members/invite"+"?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2443,9 +2508,12 @@ func (c *Client4) GetAllChannelsExcludePolicyConstrained(ctx context.Context, pa
 }
 
 func (c *Client4) getAllChannels(ctx context.Context, page int, perPage int, etag string, opts ChannelSearchOpts) (ChannelListWithTeamData, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v&include_deleted=%v&exclude_policy_constrained=%v",
-		page, perPage, opts.IncludeDeleted, opts.ExcludePolicyConstrained)
-	r, err := c.DoAPIGet(ctx, c.channelsRoute()+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	values.Set("include_deleted", c.boolString(opts.IncludeDeleted))
+	values.Set("exclude_policy_constrained", c.boolString(opts.ExcludePolicyConstrained))
+	r, err := c.DoAPIGet(ctx, c.channelsRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2455,8 +2523,11 @@ func (c *Client4) getAllChannels(ctx context.Context, page int, perPage int, eta
 
 // GetAllChannelsWithCount get all the channels including the total count. Must be a system administrator.
 func (c *Client4) GetAllChannelsWithCount(ctx context.Context, page int, perPage int, etag string) (ChannelListWithTeamData, int64, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v&include_total_count="+c.boolString(true), page, perPage)
-	r, err := c.DoAPIGet(ctx, c.channelsRoute()+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	values.Set("include_total_count", c.boolString(true))
+	r, err := c.DoAPIGet(ctx, c.channelsRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, 0, BuildResponse(r), err
 	}
@@ -2554,7 +2625,9 @@ func (c *Client4) GetChannel(ctx context.Context, channelId, etag string) (*Chan
 
 // GetChannelStats returns statistics for a channel.
 func (c *Client4) GetChannelStats(ctx context.Context, channelId string, etag string, excludeFilesCount bool) (*ChannelStats, *Response, error) {
-	route := c.channelRoute(channelId) + fmt.Sprintf("/stats?exclude_files_count=%v", excludeFilesCount)
+	values := url.Values{}
+	values.Set("exclude_files_count", c.boolString(excludeFilesCount))
+	route := c.channelRoute(channelId) + "/stats?" + values.Encode()
 	r, err := c.DoAPIGet(ctx, route, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -2596,8 +2669,10 @@ func (c *Client4) GetPinnedPosts(ctx context.Context, channelId string, etag str
 
 // GetPrivateChannelsForTeam returns a list of private channels based on the provided team id string.
 func (c *Client4) GetPrivateChannelsForTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*Channel, *Response, error) {
-	query := fmt.Sprintf("/private?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.channelsForTeamRoute(teamId)+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.channelsForTeamRoute(teamId)+"/private?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2607,8 +2682,10 @@ func (c *Client4) GetPrivateChannelsForTeam(ctx context.Context, teamId string, 
 
 // GetPublicChannelsForTeam returns a list of public channels based on the provided team id string.
 func (c *Client4) GetPublicChannelsForTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*Channel, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.channelsForTeamRoute(teamId)+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.channelsForTeamRoute(teamId)+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2618,8 +2695,10 @@ func (c *Client4) GetPublicChannelsForTeam(ctx context.Context, teamId string, p
 
 // GetDeletedChannelsForTeam returns a list of public channels based on the provided team id string.
 func (c *Client4) GetDeletedChannelsForTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*Channel, *Response, error) {
-	query := fmt.Sprintf("/deleted?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.channelsForTeamRoute(teamId)+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.channelsForTeamRoute(teamId)+"/deleted?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2639,7 +2718,9 @@ func (c *Client4) GetPublicChannelsByIdsForTeam(ctx context.Context, teamId stri
 
 // GetChannelsForTeamForUser returns a list channels of on a team for a user.
 func (c *Client4) GetChannelsForTeamForUser(ctx context.Context, teamId, userId string, includeDeleted bool, etag string) ([]*Channel, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.channelsForTeamForUserRoute(teamId, userId, includeDeleted), etag)
+	values := url.Values{}
+	values.Set("include_deleted", c.boolString(includeDeleted))
+	r, err := c.DoAPIGet(ctx, c.channelsForTeamForUserRoute(teamId, userId)+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2649,8 +2730,10 @@ func (c *Client4) GetChannelsForTeamForUser(ctx context.Context, teamId, userId 
 
 // GetChannelsForTeamAndUserWithLastDeleteAt returns a list channels of a team for a user, additionally filtered with lastDeleteAt. This does not have any effect if includeDeleted is set to false.
 func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(ctx context.Context, teamId, userId string, includeDeleted bool, lastDeleteAt int, etag string) ([]*Channel, *Response, error) {
-	route := c.userRoute(userId) + c.teamRoute(teamId) + "/channels"
-	route += fmt.Sprintf("?include_deleted=%v&last_delete_at=%d", includeDeleted, lastDeleteAt)
+	values := url.Values{}
+	values.Set("include_deleted", c.boolString(includeDeleted))
+	values.Set("last_delete_at", strconv.Itoa(lastDeleteAt))
+	route := c.userRoute(userId) + c.teamRoute(teamId) + "/channels?" + values.Encode()
 	r, err := c.DoAPIGet(ctx, route, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -2661,8 +2744,9 @@ func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(ctx context.Context,
 
 // GetChannelsForUserWithLastDeleteAt returns a list channels for a user, additionally filtered with lastDeleteAt.
 func (c *Client4) GetChannelsForUserWithLastDeleteAt(ctx context.Context, userID string, lastDeleteAt int) ([]*Channel, *Response, error) {
-	route := c.userRoute(userID) + "/channels"
-	route += fmt.Sprintf("?last_delete_at=%d", lastDeleteAt)
+	values := url.Values{}
+	values.Set("last_delete_at", strconv.Itoa(lastDeleteAt))
+	route := c.userRoute(userID) + "/channels?" + values.Encode()
 	r, err := c.DoAPIGet(ctx, route, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -2810,8 +2894,10 @@ func (c *Client4) GetChannelByNameForTeamNameIncludeDeleted(ctx context.Context,
 
 // GetChannelMembers gets a page of channel members specific to a channel.
 func (c *Client4) GetChannelMembers(ctx context.Context, channelId string, page, perPage int, etag string) (ChannelMembers, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.channelMembersRoute(channelId)+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.channelMembersRoute(channelId)+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2821,8 +2907,10 @@ func (c *Client4) GetChannelMembers(ctx context.Context, channelId string, page,
 
 // GetChannelMembersWithTeamData gets a page of all channel members for a user.
 func (c *Client4) GetChannelMembersWithTeamData(ctx context.Context, userID string, page, perPage int) (ChannelMembersWithTeamData, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.userRoute(userID)+"/channel_members"+query, "")
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.userRoute(userID)+"/channel_members?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3002,8 +3090,9 @@ func (c *Client4) RemoveUserFromChannel(ctx context.Context, channelId, userId s
 
 // AutocompleteChannelsForTeam will return an ordered list of channels autocomplete suggestions.
 func (c *Client4) AutocompleteChannelsForTeam(ctx context.Context, teamId, name string) (ChannelList, *Response, error) {
-	query := fmt.Sprintf("?name=%v", name)
-	r, err := c.DoAPIGet(ctx, c.channelsForTeamRoute(teamId)+"/autocomplete"+query, "")
+	values := url.Values{}
+	values.Set("name", name)
+	r, err := c.DoAPIGet(ctx, c.channelsForTeamRoute(teamId)+"/autocomplete?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3013,8 +3102,9 @@ func (c *Client4) AutocompleteChannelsForTeam(ctx context.Context, teamId, name 
 
 // AutocompleteChannelsForTeamForSearch will return an ordered list of your channels autocomplete suggestions.
 func (c *Client4) AutocompleteChannelsForTeamForSearch(ctx context.Context, teamId, name string) (ChannelList, *Response, error) {
-	query := fmt.Sprintf("?name=%v", name)
-	r, err := c.DoAPIGet(ctx, c.channelsForTeamRoute(teamId)+"/search_autocomplete"+query, "")
+	values := url.Values{}
+	values.Set("name", name)
+	r, err := c.DoAPIGet(ctx, c.channelsForTeamRoute(teamId)+"/search_autocomplete?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3149,11 +3239,9 @@ func (c *Client4) PermanentDeletePost(ctx context.Context, postId string) (*Resp
 
 // GetPostThread gets a post with all the other posts in the same thread.
 func (c *Client4) GetPostThread(ctx context.Context, postId string, etag string, collapsedThreads bool) (*PostList, *Response, error) {
-	url := c.postRoute(postId) + "/thread"
-	if collapsedThreads {
-		url += "?collapsedThreads=true"
-	}
-	r, err := c.DoAPIGet(ctx, url, etag)
+	values := url.Values{}
+	values.Set("collapsedThreads", c.boolString(collapsedThreads))
+	r, err := c.DoAPIGet(ctx, c.postRoute(postId)+"/thread?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3205,15 +3293,12 @@ func (c *Client4) GetPostThreadWithOpts(ctx context.Context, postID string, etag
 
 // GetPostsForChannel gets a page of posts with an array for ordering for a channel.
 func (c *Client4) GetPostsForChannel(ctx context.Context, channelId string, page, perPage int, etag string, collapsedThreads bool, includeDeleted bool) (*PostList, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	if collapsedThreads {
-		query += "&collapsedThreads=true"
-	}
-
-	if includeDeleted {
-		query += "&include_deleted=true"
-	}
-	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/posts"+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	values.Set("collapsedThreads", c.boolString(collapsedThreads))
+	values.Set("include_deleted", c.boolString(includeDeleted))
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/posts?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3247,8 +3332,10 @@ func (c *Client4) GetEditHistoryForPost(ctx context.Context, postId string) ([]*
 
 // GetFlaggedPostsForUser returns flagged posts of a user based on user id string.
 func (c *Client4) GetFlaggedPostsForUser(ctx context.Context, userId string, page int, perPage int) (*PostList, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/posts/flagged"+query, "")
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/posts/flagged?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3262,8 +3349,11 @@ func (c *Client4) GetFlaggedPostsForUserInTeam(ctx context.Context, userId strin
 		return nil, nil, errors.New("teamId is invalid")
 	}
 
-	query := fmt.Sprintf("?team_id=%v&page=%v&per_page=%v", teamId, page, perPage)
-	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/posts/flagged"+query, "")
+	values := url.Values{}
+	values.Set("team_id", teamId)
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/posts/flagged?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3277,8 +3367,11 @@ func (c *Client4) GetFlaggedPostsForUserInChannel(ctx context.Context, userId st
 		return nil, nil, errors.New("channelId is invalid")
 	}
 
-	query := fmt.Sprintf("?channel_id=%v&page=%v&per_page=%v", channelId, page, perPage)
-	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/posts/flagged"+query, "")
+	values := url.Values{}
+	values.Set("channel_id", channelId)
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/posts/flagged?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3288,11 +3381,10 @@ func (c *Client4) GetFlaggedPostsForUserInChannel(ctx context.Context, userId st
 
 // GetPostsSince gets posts created after a specified time as Unix time in milliseconds.
 func (c *Client4) GetPostsSince(ctx context.Context, channelId string, time int64, collapsedThreads bool) (*PostList, *Response, error) {
-	query := fmt.Sprintf("?since=%v", time)
-	if collapsedThreads {
-		query += "&collapsedThreads=true"
-	}
-	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/posts"+query, "")
+	values := url.Values{}
+	values.Set("since", strconv.FormatInt(time, 10))
+	values.Set("collapsedThreads", c.boolString(collapsedThreads))
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/posts?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3302,14 +3394,13 @@ func (c *Client4) GetPostsSince(ctx context.Context, channelId string, time int6
 
 // GetPostsAfter gets a page of posts that were posted after the post provided.
 func (c *Client4) GetPostsAfter(ctx context.Context, channelId, postId string, page, perPage int, etag string, collapsedThreads bool, includeDeleted bool) (*PostList, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v&after=%v", page, perPage, postId)
-	if collapsedThreads {
-		query += "&collapsedThreads=true"
-	}
-	if includeDeleted {
-		query += "&include_deleted=true"
-	}
-	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/posts"+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	values.Set("after", postId)
+	values.Set("collapsedThreads", c.boolString(collapsedThreads))
+	values.Set("include_deleted", c.boolString(includeDeleted))
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/posts?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3319,14 +3410,13 @@ func (c *Client4) GetPostsAfter(ctx context.Context, channelId, postId string, p
 
 // GetPostsBefore gets a page of posts that were posted before the post provided.
 func (c *Client4) GetPostsBefore(ctx context.Context, channelId, postId string, page, perPage int, etag string, collapsedThreads bool, includeDeleted bool) (*PostList, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v&before=%v", page, perPage, postId)
-	if collapsedThreads {
-		query += "&collapsedThreads=true"
-	}
-	if includeDeleted {
-		query += "&include_deleted=true"
-	}
-	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/posts"+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	values.Set("before", postId)
+	values.Set("collapsedThreads", c.boolString(collapsedThreads))
+	values.Set("include_deleted", c.boolString(includeDeleted))
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/posts?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3346,11 +3436,11 @@ func (c *Client4) MoveThread(ctx context.Context, postId string, params *MoveThr
 
 // GetPostsAroundLastUnread gets a list of posts around last unread post by a user in a channel.
 func (c *Client4) GetPostsAroundLastUnread(ctx context.Context, userId, channelId string, limitBefore, limitAfter int, collapsedThreads bool) (*PostList, *Response, error) {
-	query := fmt.Sprintf("?limit_before=%v&limit_after=%v", limitBefore, limitAfter)
-	if collapsedThreads {
-		query += "&collapsedThreads=true"
-	}
-	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+c.channelRoute(channelId)+"/posts/unread"+query, "")
+	values := url.Values{}
+	values.Set("limit_before", strconv.Itoa(limitBefore))
+	values.Set("limit_after", strconv.Itoa(limitAfter))
+	values.Set("collapsedThreads", c.boolString(collapsedThreads))
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+c.channelRoute(channelId)+"/posts/unread?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3368,10 +3458,9 @@ func (c *Client4) CreateScheduledPost(ctx context.Context, scheduledPost *Schedu
 }
 
 func (c *Client4) GetUserScheduledPosts(ctx context.Context, teamId string, includeDirectChannels bool) (map[string][]*ScheduledPost, *Response, error) {
-	query := url.Values{}
-	query.Set("includeDirectChannels", fmt.Sprintf("%t", includeDirectChannels))
-
-	r, err := c.DoAPIGet(ctx, c.postsRoute()+"/scheduled/team/"+teamId+"?"+query.Encode(), "")
+	values := url.Values{}
+	values.Set("includeDirectChannels", fmt.Sprintf("%t", includeDirectChannels))
+	r, err := c.DoAPIGet(ctx, c.postsRoute()+"/scheduled/team/"+teamId+"?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3595,7 +3684,10 @@ func (c *Client4) UploadFile(ctx context.Context, data []byte, channelId string,
 // UploadFileAsRequestBody will upload a file to a channel as the body of a request, to be later attached
 // to a post. This method is functionally equivalent to Client4.UploadFile.
 func (c *Client4) UploadFileAsRequestBody(ctx context.Context, data []byte, channelId string, filename string) (*FileUploadResponse, *Response, error) {
-	return c.DoUploadFile(ctx, c.filesRoute()+fmt.Sprintf("?channel_id=%v&filename=%v", url.QueryEscape(channelId), url.QueryEscape(filename)), data, http.DetectContentType(data))
+	values := url.Values{}
+	values.Set("channel_id", channelId)
+	values.Set("filename", filename)
+	return c.DoUploadFile(ctx, c.filesRoute()+"?"+values.Encode(), data, http.DetectContentType(data))
 }
 
 // GetFile gets the bytes for a file by id.
@@ -3610,7 +3702,9 @@ func (c *Client4) GetFile(ctx context.Context, fileId string) ([]byte, *Response
 
 // DownloadFile gets the bytes for a file by id, optionally adding headers to force the browser to download it.
 func (c *Client4) DownloadFile(ctx context.Context, fileId string, download bool) ([]byte, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.fileRoute(fileId)+fmt.Sprintf("?download=%v", download), "")
+	values := url.Values{}
+	values.Set("download", c.boolString(download))
+	r, err := c.DoAPIGet(ctx, c.fileRoute(fileId)+"?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3630,7 +3724,9 @@ func (c *Client4) GetFileThumbnail(ctx context.Context, fileId string) ([]byte, 
 
 // DownloadFileThumbnail gets the bytes for a file by id, optionally adding headers to force the browser to download it.
 func (c *Client4) DownloadFileThumbnail(ctx context.Context, fileId string, download bool) ([]byte, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.fileRoute(fileId)+fmt.Sprintf("/thumbnail?download=%v", download), "")
+	values := url.Values{}
+	values.Set("download", c.boolString(download))
+	r, err := c.DoAPIGet(ctx, c.fileRoute(fileId)+"/thumbnail?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3664,7 +3760,9 @@ func (c *Client4) GetFilePreview(ctx context.Context, fileId string) ([]byte, *R
 
 // DownloadFilePreview gets the bytes for a file by id.
 func (c *Client4) DownloadFilePreview(ctx context.Context, fileId string, download bool) ([]byte, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.fileRoute(fileId)+fmt.Sprintf("/preview?download=%v", download), "")
+	values := url.Values{}
+	values.Set("download", c.boolString(download))
+	r, err := c.DoAPIGet(ctx, c.fileRoute(fileId)+"/preview?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3996,8 +4094,10 @@ func (c *Client4) GetLicenseLoadMetric(ctx context.Context) (map[string]int, *Re
 // and defaults to "standard". The "teamId" argument is optional and will limit results
 // to a specific team.
 func (c *Client4) GetAnalyticsOld(ctx context.Context, name, teamId string) (AnalyticsRows, *Response, error) {
-	query := fmt.Sprintf("?name=%v&team_id=%v", name, teamId)
-	r, err := c.DoAPIGet(ctx, c.analyticsRoute()+"/old"+query, "")
+	values := url.Values{}
+	values.Set("name", name)
+	values.Set("team_id", teamId)
+	r, err := c.DoAPIGet(ctx, c.analyticsRoute()+"/old?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4029,8 +4129,10 @@ func (c *Client4) UpdateIncomingWebhook(ctx context.Context, hook *IncomingWebho
 
 // GetIncomingWebhooks returns a page of incoming webhooks on the system. Page counting starts at 0.
 func (c *Client4) GetIncomingWebhooks(ctx context.Context, page int, perPage int, etag string) ([]*IncomingWebhook, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.incomingWebhooksRoute()+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.incomingWebhooksRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4040,8 +4142,11 @@ func (c *Client4) GetIncomingWebhooks(ctx context.Context, page int, perPage int
 
 // GetIncomingWebhooksWithCount returns a page of incoming webhooks on the system including the total count. Page counting starts at 0.
 func (c *Client4) GetIncomingWebhooksWithCount(ctx context.Context, page int, perPage int, etag string) (*IncomingWebhooksWithCount, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v&include_total_count="+c.boolString(true), page, perPage)
-	r, err := c.DoAPIGet(ctx, c.incomingWebhooksRoute()+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	values.Set("include_total_count", c.boolString(true))
+	r, err := c.DoAPIGet(ctx, c.incomingWebhooksRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4051,8 +4156,11 @@ func (c *Client4) GetIncomingWebhooksWithCount(ctx context.Context, page int, pe
 
 // GetIncomingWebhooksForTeam returns a page of incoming webhooks for a team. Page counting starts at 0.
 func (c *Client4) GetIncomingWebhooksForTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*IncomingWebhook, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v&team_id=%v", page, perPage, teamId)
-	r, err := c.DoAPIGet(ctx, c.incomingWebhooksRoute()+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	values.Set("team_id", teamId)
+	r, err := c.DoAPIGet(ctx, c.incomingWebhooksRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4102,8 +4210,10 @@ func (c *Client4) UpdateOutgoingWebhook(ctx context.Context, hook *OutgoingWebho
 
 // GetOutgoingWebhooks returns a page of outgoing webhooks on the system. Page counting starts at 0.
 func (c *Client4) GetOutgoingWebhooks(ctx context.Context, page int, perPage int, etag string) ([]*OutgoingWebhook, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.outgoingWebhooksRoute()+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.outgoingWebhooksRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4123,8 +4233,11 @@ func (c *Client4) GetOutgoingWebhook(ctx context.Context, hookId string) (*Outgo
 
 // GetOutgoingWebhooksForChannel returns a page of outgoing webhooks for a channel. Page counting starts at 0.
 func (c *Client4) GetOutgoingWebhooksForChannel(ctx context.Context, channelId string, page int, perPage int, etag string) ([]*OutgoingWebhook, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v&channel_id=%v", page, perPage, channelId)
-	r, err := c.DoAPIGet(ctx, c.outgoingWebhooksRoute()+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	values.Set("channel_id", channelId)
+	r, err := c.DoAPIGet(ctx, c.outgoingWebhooksRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4134,8 +4247,11 @@ func (c *Client4) GetOutgoingWebhooksForChannel(ctx context.Context, channelId s
 
 // GetOutgoingWebhooksForTeam returns a page of outgoing webhooks for a team. Page counting starts at 0.
 func (c *Client4) GetOutgoingWebhooksForTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*OutgoingWebhook, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v&team_id=%v", page, perPage, teamId)
-	r, err := c.DoAPIGet(ctx, c.outgoingWebhooksRoute()+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	values.Set("team_id", teamId)
+	r, err := c.DoAPIGet(ctx, c.outgoingWebhooksRoute()+"?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4377,8 +4493,10 @@ func (c *Client4) CreateComplianceReport(ctx context.Context, report *Compliance
 
 // GetComplianceReports returns list of compliance reports.
 func (c *Client4) GetComplianceReports(ctx context.Context, page, perPage int) (Compliances, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.complianceReportsRoute()+query, "")
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.complianceReportsRoute()+"?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4514,10 +4632,15 @@ func (c *Client4) GetGroupsByNames(ctx context.Context, names []string) ([]*Grou
 
 // GetGroupsByChannel retrieves the Mattermost Groups associated with a given channel
 func (c *Client4) GetGroupsByChannel(ctx context.Context, channelId string, opts GroupSearchOpts) ([]*GroupWithSchemeAdmin, int, *Response, error) {
-	path := fmt.Sprintf("%s/groups?q=%v&include_member_count=%v&filter_allow_reference=%v", c.channelRoute(channelId), opts.Q, opts.IncludeMemberCount, opts.FilterAllowReference)
+	values := url.Values{}
+	values.Set("q", opts.Q)
+	values.Set("include_member_count", c.boolString(opts.IncludeMemberCount))
+	values.Set("filter_allow_reference", c.boolString(opts.FilterAllowReference))
 	if opts.PageOpts != nil {
-		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
+		values.Set("page", strconv.Itoa(opts.PageOpts.Page))
+		values.Set("per_page", strconv.Itoa(opts.PageOpts.PerPage))
 	}
+	path := c.channelRoute(channelId) + "/groups?" + values.Encode()
 	r, err := c.DoAPIGet(ctx, path, "")
 	if err != nil {
 		return nil, 0, BuildResponse(r), err
@@ -4537,10 +4660,16 @@ func (c *Client4) GetGroupsByChannel(ctx context.Context, channelId string, opts
 
 // GetGroupsByTeam retrieves the Mattermost Groups associated with a given team
 func (c *Client4) GetGroupsByTeam(ctx context.Context, teamId string, opts GroupSearchOpts) ([]*GroupWithSchemeAdmin, int, *Response, error) {
-	path := fmt.Sprintf("%s/groups?q=%v&include_member_count=%v&filter_allow_reference=%v", c.teamRoute(teamId), opts.Q, opts.IncludeMemberCount, opts.FilterAllowReference)
+	values := url.Values{}
+	values.Set("q", opts.Q)
+	values.Set("include_member_count", c.boolString(opts.IncludeMemberCount))
+	values.Set("filter_allow_reference", c.boolString(opts.FilterAllowReference))
 	if opts.PageOpts != nil {
-		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
+		values.Set("page", strconv.Itoa(opts.PageOpts.Page))
+		values.Set("per_page", strconv.Itoa(opts.PageOpts.PerPage))
 	}
+	path := c.teamRoute(teamId) + "/groups?" + values.Encode()
+
 	r, err := c.DoAPIGet(ctx, path, "")
 	if err != nil {
 		return nil, 0, BuildResponse(r), err
@@ -4560,10 +4689,14 @@ func (c *Client4) GetGroupsByTeam(ctx context.Context, teamId string, opts Group
 
 // GetGroupsAssociatedToChannelsByTeam retrieves the Mattermost Groups associated with channels in a given team
 func (c *Client4) GetGroupsAssociatedToChannelsByTeam(ctx context.Context, teamId string, opts GroupSearchOpts) (map[string][]*GroupWithSchemeAdmin, *Response, error) {
-	path := fmt.Sprintf("%s/groups_by_channels?q=%v&filter_allow_reference=%v", c.teamRoute(teamId), opts.Q, opts.FilterAllowReference)
+	values := url.Values{}
+	values.Set("q", opts.Q)
+	values.Set("filter_allow_reference", c.boolString(opts.FilterAllowReference))
 	if opts.PageOpts != nil {
-		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
+		values.Set("page", strconv.Itoa(opts.PageOpts.Page))
+		values.Set("per_page", strconv.Itoa(opts.PageOpts.PerPage))
 	}
+	path := c.teamRoute(teamId) + "/groups_by_channels?" + values.Encode()
 	r, err := c.DoAPIGet(ctx, path, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -4700,8 +4833,10 @@ func (c *Client4) DeleteLdapPrivateCertificate(ctx context.Context) (*Response, 
 
 // GetAudits returns a list of audits for the whole system.
 func (c *Client4) GetAudits(ctx context.Context, page int, perPage int, etag string) (Audits, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, "/audits"+query, etag)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, "/audits?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4765,8 +4900,10 @@ func (c *Client4) UploadBrandImage(ctx context.Context, data []byte) (*Response,
 
 // GetLogs page of logs as a string array.
 func (c *Client4) GetLogs(ctx context.Context, page, perPage int) ([]string, *Response, error) {
-	query := fmt.Sprintf("?page=%v&logs_per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, "/logs"+query, "")
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("logs_per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, "/logs?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4819,8 +4956,10 @@ func (c *Client4) UpdateOAuthApp(ctx context.Context, app *OAuthApp) (*OAuthApp,
 
 // GetOAuthApps gets a page of registered OAuth 2.0 client applications with Mattermost acting as an OAuth 2.0 service provider.
 func (c *Client4) GetOAuthApps(ctx context.Context, page, perPage int) ([]*OAuthApp, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.oAuthAppsRoute()+query, "")
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.oAuthAppsRoute()+"?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4870,8 +5009,10 @@ func (c *Client4) RegenerateOAuthAppSecret(ctx context.Context, appId string) (*
 
 // GetAuthorizedOAuthAppsForUser gets a page of OAuth 2.0 client applications the user has authorized to use access their account.
 func (c *Client4) GetAuthorizedOAuthAppsForUser(ctx context.Context, userId string, page, perPage int) ([]*OAuthApp, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/oauth/apps/authorized"+query, "")
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+"/oauth/apps/authorized?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5041,8 +5182,10 @@ func (c *Client4) GetDataRetentionPoliciesCount(ctx context.Context) (int64, *Re
 
 // GetDataRetentionPolicies will get the current granular data retention policies' details.
 func (c *Client4) GetDataRetentionPolicies(ctx context.Context, page, perPage int) (*RetentionPolicyWithTeamAndChannelCountsList, *Response, error) {
-	query := fmt.Sprintf("?page=%d&per_page=%d", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.dataRetentionRoute()+"/policies"+query, "")
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.dataRetentionRoute()+"/policies?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5084,8 +5227,10 @@ func (c *Client4) PatchDataRetentionPolicy(ctx context.Context, patch *Retention
 
 // GetTeamsForRetentionPolicy will get the teams to which the specified policy is currently applied.
 func (c *Client4) GetTeamsForRetentionPolicy(ctx context.Context, policyID string, page, perPage int) (*TeamsWithCount, *Response, error) {
-	query := fmt.Sprintf("?page=%d&per_page=%d", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.dataRetentionPolicyRoute(policyID)+"/teams"+query, "")
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.dataRetentionPolicyRoute(policyID)+"/teams?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5125,8 +5270,10 @@ func (c *Client4) RemoveTeamsFromRetentionPolicy(ctx context.Context, policyID s
 
 // GetChannelsForRetentionPolicy will get the channels to which the specified policy is currently applied.
 func (c *Client4) GetChannelsForRetentionPolicy(ctx context.Context, policyID string, page, perPage int) (*ChannelsWithCount, *Response, error) {
-	query := fmt.Sprintf("?page=%d&per_page=%d", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.dataRetentionPolicyRoute(policyID)+"/channels"+query, "")
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.dataRetentionPolicyRoute(policyID)+"/channels?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5258,8 +5405,10 @@ func (c *Client4) DeleteCommand(ctx context.Context, commandId string) (*Respons
 
 // ListCommands will retrieve a list of commands available in the team.
 func (c *Client4) ListCommands(ctx context.Context, teamId string, customOnly bool) ([]*Command, *Response, error) {
-	query := fmt.Sprintf("?team_id=%v&custom_only=%v", teamId, customOnly)
-	r, err := c.DoAPIGet(ctx, c.commandsRoute()+query, "")
+	values := url.Values{}
+	values.Set("team_id", teamId)
+	values.Set("custom_only", c.boolString(customOnly))
+	r, err := c.DoAPIGet(ctx, c.commandsRoute()+"?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5269,8 +5418,9 @@ func (c *Client4) ListCommands(ctx context.Context, teamId string, customOnly bo
 
 // ListCommandAutocompleteSuggestions will retrieve a list of suggestions for a userInput.
 func (c *Client4) ListCommandAutocompleteSuggestions(ctx context.Context, userInput, teamId string) ([]AutocompleteSuggestion, *Response, error) {
-	query := fmt.Sprintf("/commands/autocomplete_suggestions?user_input=%v", userInput)
-	r, err := c.DoAPIGet(ctx, c.teamRoute(teamId)+query, "")
+	values := url.Values{}
+	values.Set("user_input", userInput)
+	r, err := c.DoAPIGet(ctx, c.teamRoute(teamId)+"/commands/autocomplete_suggestions?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5462,8 +5612,10 @@ func (c *Client4) CreateEmoji(ctx context.Context, emoji *Emoji, image []byte, f
 
 // GetEmojiList returns a page of custom emoji on the system.
 func (c *Client4) GetEmojiList(ctx context.Context, page, perPage int) ([]*Emoji, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.emojisRoute()+query, "")
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.emojisRoute()+"?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5474,8 +5626,11 @@ func (c *Client4) GetEmojiList(ctx context.Context, page, perPage int) ([]*Emoji
 // GetSortedEmojiList returns a page of custom emoji on the system sorted based on the sort
 // parameter, blank for no sorting and "name" to sort by emoji names.
 func (c *Client4) GetSortedEmojiList(ctx context.Context, page, perPage int, sort string) ([]*Emoji, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v&sort=%v", page, perPage, sort)
-	r, err := c.DoAPIGet(ctx, c.emojisRoute()+query, "")
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	values.Set("sort", sort)
+	r, err := c.DoAPIGet(ctx, c.emojisRoute()+"?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5545,8 +5700,9 @@ func (c *Client4) SearchEmoji(ctx context.Context, search *EmojiSearch) ([]*Emoj
 
 // AutocompleteEmoji returns a list of emoji starting with or matching name.
 func (c *Client4) AutocompleteEmoji(ctx context.Context, name string, etag string) ([]*Emoji, *Response, error) {
-	query := fmt.Sprintf("?name=%v", name)
-	r, err := c.DoAPIGet(ctx, c.emojisRoute()+"/autocomplete"+query, "")
+	values := url.Values{}
+	values.Set("name", name)
+	r, err := c.DoAPIGet(ctx, c.emojisRoute()+"/autocomplete?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5622,7 +5778,12 @@ func (c *Client4) GetJob(ctx context.Context, id string) (*Job, *Response, error
 
 // GetJobs gets all jobs, sorted with the job that was created most recently first.
 func (c *Client4) GetJobs(ctx context.Context, jobType string, status string, page int, perPage int) ([]*Job, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.jobsRoute()+fmt.Sprintf("?page=%v&per_page=%v&job_type=%v&status=%v", page, perPage, jobType, status), "")
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	values.Set("job_type", jobType)
+	values.Set("status", status)
+	r, err := c.DoAPIGet(ctx, c.jobsRoute()+"?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5632,7 +5793,10 @@ func (c *Client4) GetJobs(ctx context.Context, jobType string, status string, pa
 
 // GetJobsByType gets all jobs of a given type, sorted with the job that was created most recently first.
 func (c *Client4) GetJobsByType(ctx context.Context, jobType string, page int, perPage int) ([]*Job, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.jobsRoute()+fmt.Sprintf("/type/%v?page=%v&per_page=%v", jobType, page, perPage), "")
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.jobsRoute()+"/type/"+jobType+"?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5760,7 +5924,11 @@ func (c *Client4) GetScheme(ctx context.Context, id string) (*Scheme, *Response,
 
 // GetSchemes ets all schemes, sorted with the most recently created first, optionally filtered by scope.
 func (c *Client4) GetSchemes(ctx context.Context, scope string, page int, perPage int) ([]*Scheme, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.schemesRoute()+fmt.Sprintf("?scope=%v&page=%v&per_page=%v", scope, page, perPage), "")
+	values := url.Values{}
+	values.Set("scope", scope)
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.schemesRoute()+"?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5790,7 +5958,10 @@ func (c *Client4) PatchScheme(ctx context.Context, id string, patch *SchemePatch
 
 // GetTeamsForScheme gets the teams using this scheme, sorted alphabetically by display name.
 func (c *Client4) GetTeamsForScheme(ctx context.Context, schemeId string, page int, perPage int) ([]*Team, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.schemeRoute(schemeId)+fmt.Sprintf("/teams?page=%v&per_page=%v", page, perPage), "")
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.schemeRoute(schemeId)+"/teams?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5800,7 +5971,10 @@ func (c *Client4) GetTeamsForScheme(ctx context.Context, schemeId string, page i
 
 // GetChannelsForScheme gets the channels using this scheme, sorted alphabetically by display name.
 func (c *Client4) GetChannelsForScheme(ctx context.Context, schemeId string, page int, perPage int) (ChannelList, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.schemeRoute(schemeId)+fmt.Sprintf("/channels?page=%v&per_page=%v", page, perPage), "")
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.schemeRoute(schemeId)+"/channels?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5852,9 +6026,10 @@ func (c *Client4) uploadPlugin(ctx context.Context, file io.Reader, force bool) 
 }
 
 func (c *Client4) InstallPluginFromURL(ctx context.Context, downloadURL string, force bool) (*Manifest, *Response, error) {
-	forceStr := c.boolString(force)
-
-	url := fmt.Sprintf("%s?plugin_download_url=%s&force=%s", c.pluginsRoute()+"/install_from_url", url.QueryEscape(downloadURL), forceStr)
+	values := url.Values{}
+	values.Set("plugin_download_url", downloadURL)
+	values.Set("force", c.boolString(force))
+	url := c.pluginsRoute() + "/install_from_url?" + values.Encode()
 	r, err := c.DoAPIPost(ctx, url, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -6008,7 +6183,9 @@ func (c *Client4) UpdateTeamScheme(ctx context.Context, teamId, schemeId string)
 
 // GetRedirectLocation retrieves the value of the 'Location' header of an HTTP response for a given URL.
 func (c *Client4) GetRedirectLocation(ctx context.Context, urlParam, etag string) (string, *Response, error) {
-	url := fmt.Sprintf("%s?url=%s", c.redirectLocationRoute(), url.QueryEscape(urlParam))
+	values := url.Values{}
+	values.Set("url", urlParam)
+	url := c.redirectLocationRoute() + "?" + values.Encode()
 	r, err := c.DoAPIGet(ctx, url, etag)
 	if err != nil {
 		return "", BuildResponse(r), err
@@ -6023,7 +6200,9 @@ func (c *Client4) GetRedirectLocation(ctx context.Context, urlParam, etag string
 
 // SetServerBusy will mark the server as busy, which disables non-critical services for `secs` seconds.
 func (c *Client4) SetServerBusy(ctx context.Context, secs int) (*Response, error) {
-	url := fmt.Sprintf("%s?seconds=%d", c.serverBusyRoute(), secs)
+	values := url.Values{}
+	values.Set("seconds", strconv.Itoa(secs))
+	url := c.serverBusyRoute() + "?" + values.Encode()
 	r, err := c.DoAPIPost(ctx, url, "")
 	if err != nil {
 		return BuildResponse(r), err
@@ -6220,8 +6399,11 @@ func (c *Client4) PatchGroupSyncable(ctx context.Context, groupID, syncableID st
 
 func (c *Client4) TeamMembersMinusGroupMembers(ctx context.Context, teamID string, groupIDs []string, page, perPage int, etag string) ([]*UserWithGroups, int64, *Response, error) {
 	groupIDStr := strings.Join(groupIDs, ",")
-	query := fmt.Sprintf("?group_ids=%s&page=%d&per_page=%d", groupIDStr, page, perPage)
-	r, err := c.DoAPIGet(ctx, c.teamRoute(teamID)+"/members_minus_group_members"+query, etag)
+	values := url.Values{}
+	values.Set("group_ids", groupIDStr)
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.teamRoute(teamID)+"/members_minus_group_members?"+values.Encode(), etag)
 	if err != nil {
 		return nil, 0, BuildResponse(r), err
 	}
@@ -6236,8 +6418,11 @@ func (c *Client4) TeamMembersMinusGroupMembers(ctx context.Context, teamID strin
 
 func (c *Client4) ChannelMembersMinusGroupMembers(ctx context.Context, channelID string, groupIDs []string, page, perPage int, etag string) ([]*UserWithGroups, int64, *Response, error) {
 	groupIDStr := strings.Join(groupIDs, ",")
-	query := fmt.Sprintf("?group_ids=%s&page=%d&per_page=%d", groupIDStr, page, perPage)
-	r, err := c.DoAPIGet(ctx, c.channelRoute(channelID)+"/members_minus_group_members"+query, etag)
+	values := url.Values{}
+	values.Set("group_ids", groupIDStr)
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelID)+"/members_minus_group_members?"+values.Encode(), etag)
 	if err != nil {
 		return nil, 0, BuildResponse(r), err
 	}
@@ -6296,7 +6481,9 @@ func (c *Client4) PublishUserTyping(ctx context.Context, userID string, typingRe
 }
 
 func (c *Client4) GetChannelMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool, etag string) ([]*ChannelMemberCountByGroup, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.channelRoute(channelID)+"/member_counts_by_group?include_timezones="+strconv.FormatBool(includeTimezones), etag)
+	values := url.Values{}
+	values.Set("include_timezones", c.boolString(includeTimezones))
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelID)+"/member_counts_by_group?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6429,7 +6616,12 @@ func (c *Client4) CheckIntegrity(ctx context.Context) ([]IntegrityCheckResult, *
 }
 
 func (c *Client4) GetNotices(ctx context.Context, lastViewed int64, teamId string, client NoticeClientType, clientVersion, locale, etag string) (NoticeMessages, *Response, error) {
-	url := fmt.Sprintf("/system/notices/%s?lastViewed=%d&client=%s&clientVersion=%s&locale=%s", teamId, lastViewed, client, clientVersion, locale)
+	values := url.Values{}
+	values.Set("lastViewed", strconv.FormatInt(lastViewed, 10))
+	values.Set("client", string(client))
+	values.Set("clientVersion", clientVersion)
+	values.Set("locale", locale)
+	url := "/system/notices/" + teamId + "?" + values.Encode()
 	r, err := c.DoAPIGet(ctx, url, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -6855,7 +7047,10 @@ func (c *Client4) UpdateThreadFollowForUser(ctx context.Context, userId, teamId,
 }
 
 func (c *Client4) GetAllSharedChannels(ctx context.Context, teamID string, page, perPage int) ([]*SharedChannel, *Response, error) {
-	url := fmt.Sprintf("%s/%s?page=%d&per_page=%d", c.sharedChannelsRoute(), teamID, page, perPage)
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	url := c.sharedChannelsRoute() + "/" + teamID + "?" + values.Encode()
 	r, err := c.DoAPIGet(ctx, url, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -7050,8 +7245,10 @@ func (c *Client4) GetAncillaryPermissions(ctx context.Context, subsectionPermiss
 }
 
 func (c *Client4) GetUsersWithInvalidEmails(ctx context.Context, page, perPage int) ([]*User, *Response, error) {
-	query := fmt.Sprintf("/invalid_emails?page=%v&per_page=%v", page, perPage)
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, "")
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/invalid_emails?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7188,8 +7385,9 @@ func (c *Client4) DeleteChannelBookmark(ctx context.Context, channelId, bookmark
 }
 
 func (c *Client4) ListChannelBookmarksForChannel(ctx context.Context, channelId string, since int64) ([]*ChannelBookmarkWithFileInfo, *Response, error) {
-	query := fmt.Sprintf("?bookmarks_since=%v", since)
-	r, err := c.DoAPIGet(ctx, c.bookmarksRoute(channelId)+query, "")
+	values := url.Values{}
+	values.Set("bookmarks_since", strconv.FormatInt(since, 10))
+	r, err := c.DoAPIGet(ctx, c.bookmarksRoute(channelId)+"?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7224,8 +7422,7 @@ func (c *Client4) GetFilteredUsersStats(ctx context.Context, options *UserCountO
 		v.Set("team_roles", strings.Join(options.TeamRoles, ","))
 	}
 
-	query := v.Encode()
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/stats/filtered?"+query, "")
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/stats/filtered?"+v.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7391,7 +7588,10 @@ func (c *Client4) UnassignAccessControlPolicies(ctx context.Context, policyID st
 }
 
 func (c *Client4) GetChannelsForAccessControlPolicy(ctx context.Context, policyID string, after string, limit int) (*ChannelsWithCount, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.accessControlPolicyRoute(policyID)+"/resources/channels?after="+after+"&limit="+strconv.Itoa(limit), "")
+	values := url.Values{}
+	values.Set("after", after)
+	values.Set("limit", strconv.Itoa(limit))
+	r, err := c.DoAPIGet(ctx, c.accessControlPolicyRoute(policyID)+"/resources/channels?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
