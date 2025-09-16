@@ -11,6 +11,7 @@ import {
     LinkVariantIcon,
     PaperclipIcon,
     BookmarkOutlineIcon,
+    SlashForwardIcon,
 } from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
@@ -29,7 +30,7 @@ type Props = {
 const ChannelBookmarksSubmenu = (props: Props) => {
     const {formatMessage} = useIntl();
 
-    const {handleCreateLink, handleCreateFile} = useBookmarkAddActions(props.channel.id);
+    const {handleCreateLink, handleCreateFile, handleCreateCommand} = useBookmarkAddActions(props.channel.id);
     const canAdd = useChannelBookmarkPermission(props.channel.id, 'add');
     const canUploadFiles = useCanUploadFiles();
 
@@ -81,6 +82,17 @@ const ChannelBookmarksSubmenu = (props: Props) => {
                     onClick={() => handleCreateFile()}
                 />
             )}
+            <Menu.Item
+                id={`channel-menu-${props.channel.id}-bookmarks-command`}
+                leadingElement={<SlashForwardIcon size={18}/>}
+                labels={(
+                    <FormattedMessage
+                        id='channel_menu.bookmarks.addCommand'
+                        defaultMessage='Add a command'
+                    />
+                )}
+                onClick={() => handleCreateCommand()}
+            />
         </Menu.SubMenu>
     );
 };

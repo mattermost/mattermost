@@ -15,6 +15,7 @@ import type {Post} from '@mattermost/types/posts';
 import {getFile} from 'mattermost-redux/selectors/entities/files';
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
+import {executeCommand} from 'actions/command';
 import {openModal} from 'actions/views/modals';
 
 import ExternalLink from 'components/external_link';
@@ -34,7 +35,15 @@ const useBookmarkLink = (bookmark: ChannelBookmark) => {
     const fileInfo: FileInfo | undefined = useSelector((state: GlobalState) => (bookmark?.file_id && getFile(state, bookmark.file_id)) || undefined);
 
     const open = () => {
-        linkRef.current?.click();
+        if (bookmark.type === 'command' && bookmark.command) {
+            dispatch(executeCommand(bookmark.command, {
+                channel_id: bookmark.channel_id,
+                team_id: '',
+                root_id: '',
+            }));
+        } else {
+            linkRef.current?.click();
+        }
     };
 
     const handleOpenFile = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -81,6 +90,27 @@ const useBookmarkLink = (bookmark: ChannelBookmark) => {
                 onClick={handleOpenFile}
                 ref={linkRef}
                 isFile={true}
+            >
+                {icon}
+                <Label>{bookmark.display_name}</Label>
+            </DynamicLink>
+        );
+    } else if (bookmark.type === 'command' && bookmark.command) {
+        const handleCommandClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+            e.preventDefault();
+            dispatch(executeCommand(bookmark.command!, {
+                channel_id: bookmark.channel_id,
+                team_id: '',
+                root_id: '',
+            }));
+        };
+
+        link = (
+            <DynamicLink
+                href='#'
+                onClick={handleCommandClick}
+                ref={linkRef}
+                isFile={false}
             >
                 {icon}
                 <Label>{bookmark.display_name}</Label>
