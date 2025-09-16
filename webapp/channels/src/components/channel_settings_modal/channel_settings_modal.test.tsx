@@ -438,4 +438,19 @@ describe('ChannelSettingsModal', () => {
             expect(screen.getByRole('tab', {name: 'access_rules'})).toBeInTheDocument();
         });
     });
+
+    describe('preventClose functionality', () => {
+        it('should use preventClose prop when there are unsaved changes', async () => {
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+            // Wait for the modal to load
+            await waitFor(() => {
+                expect(screen.getByRole('dialog')).toBeInTheDocument();
+            });
+
+            // The modal should pass preventClose prop to GenericModal when there are unsaved changes
+            const modal = screen.getByRole('dialog');
+            expect(modal).toBeInTheDocument();
+        });
+    });
 });

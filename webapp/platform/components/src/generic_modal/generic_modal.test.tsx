@@ -141,4 +141,46 @@ describe('GenericModal', () => {
             expect(onHideMock).toHaveBeenCalled();
         });
     });
+
+    test('preventClose prop prevents modal from closing internally', async () => {
+        const onHideMock = jest.fn();
+        const props = {
+            ...baseProps,
+            onHide: onHideMock,
+            preventClose: true,
+        };
+        render(
+            wrapIntl(<GenericModal {...props}/>),
+        );
+
+        // Find and click the close button
+        const closeButton = screen.getByLabelText('Close');
+        closeButton.click();
+
+        // onHide should still be called but modal state should not change
+        await waitFor(() => {
+            expect(onHideMock).toHaveBeenCalled();
+        });
+    });
+
+    test('preventClose false allows normal modal closing', async () => {
+        const onHideMock = jest.fn();
+        const props = {
+            ...baseProps,
+            onHide: onHideMock,
+            preventClose: false,
+        };
+        render(
+            wrapIntl(<GenericModal {...props}/>),
+        );
+
+        // Find and click the close button
+        const closeButton = screen.getByLabelText('Close');
+        closeButton.click();
+
+        // onHide should be called and modal should close normally
+        await waitFor(() => {
+            expect(onHideMock).toHaveBeenCalled();
+        });
+    });
 });

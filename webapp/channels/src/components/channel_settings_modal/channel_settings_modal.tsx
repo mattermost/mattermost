@@ -124,7 +124,16 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     };
 
     const handleHide = () => {
-        handleHideConfirm();
+        // Prevent modal closing if there are unsaved changes
+        if (areThereUnsavedChanges) {
+            // Show error message in SaveChangesPanel
+            setShowTabSwitchError(true);
+            setTimeout(() => {
+                setShowTabSwitchError(false);
+            }, SHOW_PANEL_ERROR_STATE_TAB_SWITCH_TIMEOUT);
+        } else {
+            handleHideConfirm();
+        }
     };
 
     const handleHideConfirm = () => {
@@ -265,6 +274,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
             className='ChannelSettingsModal settings-modal'
             show={show}
             onHide={handleHide}
+            preventClose={areThereUnsavedChanges}
             onExited={handleExited}
             compassDesign={true}
             modalHeaderText={modalTitle}

@@ -12,6 +12,8 @@ import {focusElement} from 'utils/a11y_utils';
 
 const SettingsSidebar = React.lazy(() => import('components/settings_sidebar'));
 
+const SHOW_PANEL_ERROR_STATE_TAB_SWITCH_TIMEOUT = 3000;
+
 type Props = {
     onExited: () => void;
     canInviteUsers: boolean;
@@ -36,7 +38,17 @@ const TeamSettingsModal = ({onExited, canInviteUsers, focusOriginElement}: Props
         setHasChangeTabError(false);
     }, [hasChanges]);
 
-    const handleHide = useCallback(() => setShow(false), []);
+    const handleHide = useCallback(() => {
+        // Prevent modal closing if there are unsaved changes
+        if (hasChanges) {
+            setHasChangeTabError(true);
+            setTimeout(() => {
+                setHasChangeTabError(false);
+            }, SHOW_PANEL_ERROR_STATE_TAB_SWITCH_TIMEOUT);
+        } else {
+            setShow(false);
+        }
+    }, [hasChanges]);
 
     const handleClose = useCallback(() => {
         if (focusOriginElement) {
