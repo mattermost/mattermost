@@ -624,7 +624,7 @@ func (c *Client4) customProfileAttributesRoute() string {
 }
 
 func (c *Client4) userCustomProfileAttributesRoute(userID string) string {
-	return fmt.Sprintf("%s/%s", c.userRoute(userID), c.customProfileAttributesRoute())
+	return fmt.Sprintf("%s/custom_profile_attributes", c.userRoute(userID))
 }
 
 func (c *Client4) customProfileAttributeFieldsRoute() string {
@@ -1184,11 +1184,11 @@ func (c *Client4) GetUsersNotInChannel(ctx context.Context, teamId, channelId st
 // GetUsersNotInChannelWithOptionsStruct returns a page of users not in a channel using the options struct.
 func (c *Client4) GetUsersNotInChannelWithOptions(ctx context.Context, channelId string, options *GetUsersNotInChannelOptions) ([]*User, *Response, error) {
 	values := url.Values{}
-	values.Set("in_team", options.TeamID)
-	values.Set("not_in_channel", channelId)
-	values.Set("page", strconv.Itoa(options.Page))
-	values.Set("per_page", strconv.Itoa(options.Limit))
-	if options != nil && options.CursorID != "" {
+	if options != nil {
+		values.Set("in_team", options.TeamID)
+		values.Set("not_in_channel", channelId)
+		values.Set("page", strconv.Itoa(options.Page))
+		values.Set("per_page", strconv.Itoa(options.Limit))
 		values.Set("cursor_id", options.CursorID)
 	}
 	r, err := c.DoAPIGet(ctx, c.usersRoute()+"?"+values.Encode(), options.Etag)
@@ -3871,7 +3871,7 @@ func (c *Client4) GetPingWithOptions(ctx context.Context, options SystemPingOpti
 }
 
 func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
+	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/server", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7494,6 +7494,15 @@ func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]json.Raw
 	return DecodeJSONFromResponse[map[string]json.RawMessage](r)
 }
 
+func (c *Client4) PatchCPAValuesForUser(ctx context.Context, userID string, values map[string]json.RawMessage) (map[string]json.RawMessage, *Response, error) {
+	r, err := c.DoAPIPatchJSON(ctx, c.userCustomProfileAttributesRoute(userID), values)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[map[string]json.RawMessage](r)
+}
+
 // Access Control Policies Section
 
 // CreateAccessControlPolicy creates a new access control policy.
@@ -7525,11 +7534,15 @@ func (c *Client4) DeleteAccessControlPolicy(ctx context.Context, id string) (*Re
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) CheckExpression(ctx context.Context, expression string) ([]CELExpressionError, *Response, error) {
+func (c *Client4) CheckExpression(ctx context.Context, expression string, channelId ...string) ([]CELExpressionError, *Response, error) {
 	checkExpressionRequest := struct {
 		Expression string `json:"expression"`
+		ChannelId  string `json:"channelId,omitempty"`
 	}{
 		Expression: expression,
+	}
+	if len(channelId) > 0 && channelId[0] != "" {
+		checkExpressionRequest.ChannelId = channelId[0]
 	}
 	r, err := c.DoAPIPostJSON(ctx, c.celRoute()+"/check", checkExpressionRequest)
 	if err != nil {
