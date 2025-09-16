@@ -4906,7 +4906,7 @@ func (c *Client4) DeauthorizeOAuthApp(ctx context.Context, appId string) (*Respo
 	if err != nil {
 		return nil, err
 	}
-	// The request doesn't go to the /api/v4 subpath, so we can't use the usuall helper methods
+	// The request doesn't go to the /api/v4 subpath, so we can't use the usual helper methods
 	r, err := c.doAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/deauthorize", buf, "")
 	if err != nil {
 		return BuildResponse(r), err
