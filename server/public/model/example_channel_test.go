@@ -251,22 +251,6 @@ func ExampleClient4_SearchChannels() {
 	fmt.Printf("Found %d channels on team %s matching term '%s'\n", len(channels), teamId, searchTerm)
 }
 
-func ExampleClient4_SearchArchivedChannels() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
-	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
-
-	teamId := "team_id"
-	searchTerm := "search"
-	channels, _, err := client.SearchArchivedChannels(context.Background(), teamId, &model.ChannelSearch{
-		Term: searchTerm,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Printf("Found %d archived channels on team %s matching term '%s'\n", len(channels), teamId, searchTerm)
-}
-
 func ExampleClient4_GetChannelByName() {
 	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
