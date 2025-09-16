@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import ReactDOM from 'react-dom/client';
+import ReactDOM from 'react-dom';
 
 import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
 
@@ -53,8 +53,10 @@ function preRenderSetup(onPreRenderSetupReady: () => void) {
 }
 
 function renderReactRootComponent() {
-    const root = ReactDOM.createRoot(document.getElementById('root')!);
-    root.render(<App/>);
+    // We're using React 18, but we're using the deprecated way of starting React because ReactDOM.createRoot enables
+    // new features such as automatic batching which breaks some components. This will need to be changed in the future
+    // because this method of starting the app will be removed in React 19.
+    ReactDOM.render(<App/>, document.getElementById('root')!);
 }
 
 /**
