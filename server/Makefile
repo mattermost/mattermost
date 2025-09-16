@@ -161,7 +161,7 @@ PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
 PLUGIN_PACKAGES += mattermost-plugin-agents-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.6
-PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.2.1
+PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.2.2
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.3.4
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.2.0
@@ -221,6 +221,13 @@ ifeq ($(ARM_BASED_MAC),true)
   DOCKER_COMPOSE_OVERRIDE := -f docker-compose.makefile.m1.yml $(DOCKER_COMPOSE_OVERRIDE)
 endif
 
+# Support for pgvector postgres image
+MM_USE_PGVECTOR ?= false
+ifeq ($(MM_USE_PGVECTOR),true)
+  $(info Using pgvector/pgvector image for PostgreSQL)
+  DOCKER_COMPOSE_OVERRIDE := -f docker-compose.pgvector.yml $(DOCKER_COMPOSE_OVERRIDE)
+endif
+
 ifneq ($(DOCKER_SERVICES_OVERRIDE),true)
   ifeq (,$(findstring minio,$(ENABLED_DOCKER_SERVICES)))
     TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) minio
@@ -240,6 +247,9 @@ else ifeq ($(MM_NO_DOCKER),true)
 	@echo No Docker Enabled: skipping docker start
 else
 	@echo Starting docker containers
+ifeq ($(MM_USE_PGVECTOR),true)
+	@echo Using pgvector PostgreSQL image
+endif
 
 	docker compose rm start_dependencies
 	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker compose -f docker-compose.makefile.yml -f /dev/stdin $(DOCKER_COMPOSE_OVERRIDE) run -T --rm start_dependencies
@@ -577,9 +587,15 @@ build-templates: ## Compile all mjml email templates
 
 run-server: setup-go-work prepackaged-binaries validate-go-version start-docker client ## Starts the server.
 	@echo Running mattermost for development
+ifeq ($(MM_USE_PGVECTOR),true)
+	@echo With pgvector PostgreSQL support enabled
+endif
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
 	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' -tags '$(BUILD_TAGS)' $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
+
+run-server-pgvector: ## Starts the server with pgvector PostgreSQL image.
+	@MM_USE_PGVECTOR=true $(MAKE) run-server
 
 debug-server: start-docker ## Compile and start server using delve.
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
@@ -635,6 +651,9 @@ run-client-fullmap: client ## Legacy alias to run-client
 
 run: run-server run-client ## Runs the server and webapp.
 
+run-pgvector: ## Runs the server and webapp with pgvector PostgreSQL image.
+	@MM_USE_PGVECTOR=true $(MAKE) run
+
 run-fullmap: run-server run-client ## Legacy alias to run
 
 stop-server: ## Stops the server.
@@ -664,6 +683,9 @@ stop: stop-server stop-client stop-docker ## Stops server, client and the docker
 restart: restart-server restart-client ## Restarts the server and webapp.
 
 restart-server: | stop-server run-server ## Restarts the mattermost server to pick up development change.
+
+restart-server-pgvector: ## Restarts the server with pgvector PostgreSQL image.
+	@MM_USE_PGVECTOR=true $(MAKE) restart-server
 
 restart-haserver:
 	@echo Restarting mattermost in an HA topology
