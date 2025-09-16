@@ -93,16 +93,16 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         this.setState({isLoading: true});
 
         try {
-            const {data, error} = await this.props.getUser(userId) as ActionResult<UserProfile, ServerError>;
+            const {data, error} = await this.props.getUser(userId);
             if (data) {
                 this.setState({
                     user: data,
-                    emailField: data.email, // Set emailField to the email of the user for editing purposes
-                    usernameField: data.username, // Set usernameField to the username of the user for editing purposes
-                    authDataField: data.auth_data || '', // Set authDataField to the auth_data of the user for editing purposes
+                    emailField: data.email,
+                    usernameField: data.username,
+                    authDataField: data.auth_data || '',
                     isLoading: false,
-                    emailError: null, // Clear any previous errors
-                    usernameError: null, // Clear any previous errors
+                    emailError: null,
+                    usernameError: null,
                 });
             } else {
                 throw new Error(error ? error.message : 'Unknown error');
@@ -127,9 +127,11 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
     handleTeamsLoaded = (teams: TeamMembership[]) => {
         const teamIds = teams.map((team) => team.team_id);
-        this.setState({teams});
-        this.setState({teamIds});
-        this.setState({refreshTeams: false});
+        this.setState({
+            teams,
+            teamIds,
+            refreshTeams: false,
+        });
     };
 
     handleAddUserToTeams = (teams: Team[]) => {
@@ -152,7 +154,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         }
 
         try {
-            const {error} = await this.props.updateUserActive(this.state.user.id, true) as ActionResult<boolean, ServerError>;
+            const {error} = await this.props.updateUserActive(this.state.user.id, true);
             if (error) {
                 throw new Error(error.message);
             }
@@ -162,7 +164,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             console.error('SystemUserDetails-handleActivateUser', err); // eslint-disable-line no-console
 
             // Show the actual server error message instead of generic message
-            const errorMessage = (err as Error).message || this.props.intl.formatMessage({id: 'admin.user_item.userActivateFailed', defaultMessage: 'Failed to activate user'});
+            const errorMessage = err instanceof Error ? err.message : this.props.intl.formatMessage({id: 'admin.user_item.userActivateFailed', defaultMessage: 'Failed to activate user'});
             this.setState({error: errorMessage});
         }
     };
@@ -173,7 +175,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         }
 
         try {
-            const {error} = await this.props.updateUserActive(this.state.user.id, false) as ActionResult<boolean, ServerError>;
+            const {error} = await this.props.updateUserActive(this.state.user.id, false);
             if (error) {
                 throw new Error(error.message);
             }
@@ -183,7 +185,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             console.error('SystemUserDetails-handleDeactivateMember', err); // eslint-disable-line no-console
 
             // Show the actual server error message instead of generic message
-            const errorMessage = (err as Error).message || this.props.intl.formatMessage({id: 'admin.user_item.userDeactivateFailed', defaultMessage: 'Failed to deactivate user'});
+            const errorMessage = err instanceof Error ? err.message : this.props.intl.formatMessage({id: 'admin.user_item.userDeactivateFailed', defaultMessage: 'Failed to deactivate user'});
             this.setState({error: errorMessage});
         }
 
@@ -196,7 +198,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         }
 
         try {
-            const {error} = await this.props.updateUserMfa(this.state.user.id, false) as ActionResult<boolean, ServerError>;
+            const {error} = await this.props.updateUserMfa(this.state.user.id, false);
             if (error) {
                 throw new Error(error.message);
             }
@@ -207,6 +209,22 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
             this.setState({error: this.props.intl.formatMessage({id: 'admin.user_item.userMFARemoveFailed', defaultMessage: 'Failed to remove user\'s MFA'})});
         }
+    };
+
+    private hasUnsavedChanges = (emailValue?: string, usernameValue?: string, authDataValue?: string): boolean => {
+        if (!this.state.user) {
+            return false;
+        }
+
+        const emailToCheck = emailValue !== undefined ? emailValue : this.state.emailField;
+        const usernameToCheck = usernameValue !== undefined ? usernameValue : this.state.usernameField;
+        const authDataToCheck = authDataValue !== undefined ? authDataValue : this.state.authDataField;
+
+        const didEmailChanged = !this.state.user.auth_service && emailToCheck !== this.state.user.email;
+        const didUsernameChanged = !this.state.user.auth_service && usernameToCheck !== this.state.user.username;
+        const didAuthDataChanged = authDataToCheck !== (this.state.user.auth_data || '');
+
+        return didEmailChanged || didUsernameChanged || didAuthDataChanged;
     };
 
     handleEmailChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -222,10 +240,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             emailError = this.props.intl.formatMessage({id: 'admin.user_item.invalidEmail', defaultMessage: 'Invalid email address'});
         }
 
-        const didEmailChanged = value !== this.state.user.email;
-        const didUsernameChanged = !this.state.user.auth_service && this.state.usernameField !== this.state.user.username;
-        const didAuthDataChanged = this.state.authDataField !== (this.state.user.auth_data || '');
-        const hasChanges = didEmailChanged || didUsernameChanged || didAuthDataChanged;
+        const hasChanges = this.hasUnsavedChanges(value);
 
         this.setState({
             emailField: value,
@@ -249,10 +264,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             usernameError = this.props.intl.formatMessage({id: 'admin.user_item.invalidUsername', defaultMessage: 'Username cannot be empty'});
         }
 
-        const didEmailChanged = !this.state.user.auth_service && this.state.emailField !== this.state.user.email;
-        const didUsernameChanged = value !== this.state.user.username;
-        const didAuthDataChanged = this.state.authDataField !== (this.state.user.auth_data || '');
-        const hasChanges = didEmailChanged || didUsernameChanged || didAuthDataChanged;
+        const hasChanges = this.hasUnsavedChanges(undefined, value);
 
         this.setState({
             usernameField: value,
@@ -269,11 +281,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         }
 
         const {target: {value}} = event;
-
-        const didEmailChanged = !this.state.user.auth_service && this.state.emailField !== this.state.user.email;
-        const didUsernameChanged = !this.state.user.auth_service && this.state.usernameField !== this.state.user.username;
-        const didAuthDataChanged = value !== (this.state.user.auth_data || '');
-        const hasChanges = didEmailChanged || didUsernameChanged || didAuthDataChanged;
+        const hasChanges = this.hasUnsavedChanges(undefined, undefined, value);
 
         this.setState({
             authDataField: value,
@@ -326,7 +334,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             const usernameChanged = !this.state.user.auth_service && this.state.usernameField !== this.state.user.username;
 
             if (emailChanged || usernameChanged) {
-                const updatedUser: Partial<UserProfile> = {...this.state.user};
+                const updatedUser: UserProfile = {...this.state.user};
 
                 if (emailChanged) {
                     updatedUser.email = this.state.emailField.trim().toLowerCase();
@@ -336,7 +344,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     updatedUser.username = this.state.usernameField.trim();
                 }
 
-                const {data, error} = await this.props.patchUser(updatedUser as UserProfile) as ActionResult<UserProfile, ServerError>;
+                const {data, error} = await this.props.patchUser(updatedUser);
                 if (data) {
                     userData = data;
                 } else {
@@ -350,7 +358,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 const {data, error} = await this.props.updateUserAuth(this.state.user.id, {
                     auth_data: this.state.authDataField.trim(),
                     auth_service: this.state.user.auth_service,
-                }) as ActionResult<UserAuthResponse, ServerError>;
+                });
 
                 if (data) {
                     // Update the user data with the new auth information
