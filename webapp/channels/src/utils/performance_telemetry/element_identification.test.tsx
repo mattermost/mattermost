@@ -9,7 +9,7 @@ import {Permissions} from 'mattermost-redux/constants';
 
 import ChannelController from 'components/channel_layout/channel_controller';
 
-import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import {identifyElementRegion} from './element_identification';
@@ -137,33 +137,24 @@ describe('identifyElementRegion', () => {
             },
         );
 
-        await waitFor(() => {
-            const lhsChannel = screen.queryByLabelText(`${channel.display_name.toLowerCase()} public channel`);
-            expect(lhsChannel).toBeInTheDocument();
+        const lhsChannel = await screen.findByLabelText(`${channel.display_name.toLowerCase()} public channel`);
+        const channelHeaderText = await screen.findByText(channel.header);
+        const postTextbox = await screen.findByPlaceholderText('Write to ' + channel.display_name);
+        const postText = await screen.findByText(post.message);
 
-            const channelHeaderText = screen.queryByText(channel.header);
-            expect(channelHeaderText).toBeInTheDocument();
-
-            const postTextbox = screen.queryByPlaceholderText('Write to ' + channel.display_name);
-            expect(postTextbox).toBeInTheDocument();
-
-            const postText = screen.queryByText(post.message);
-            expect(postText).toBeInTheDocument();
-        });
-
-        const lhsChannel = screen.getByLabelText(`${channel.display_name.toLowerCase()} public channel`);
+        expect(lhsChannel).toBeInTheDocument();
         expect(identifyElementRegion(lhsChannel)).toEqual('channel_sidebar');
 
         const channelHeaderTitle = document.getElementById('channelHeaderTitle');
         expect(channelHeaderTitle).toBeInTheDocument();
 
-        const channelHeaderText = screen.getByText(channel.header);
+        expect(channelHeaderText).toBeInTheDocument();
         expect(identifyElementRegion(channelHeaderText)).toEqual('channel_header');
 
-        const postText = screen.getByText(post.message);
+        expect(postText).toBeInTheDocument();
         expect(identifyElementRegion(postText)).toEqual('post');
 
-        const postTextbox = screen.getByPlaceholderText('Write to ' + channel.display_name);
+        expect(postTextbox).toBeInTheDocument();
         expect(identifyElementRegion(postTextbox!)).toEqual('post_textbox');
     });
 });
