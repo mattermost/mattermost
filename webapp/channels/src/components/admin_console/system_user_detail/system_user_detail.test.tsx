@@ -3,10 +3,10 @@
 
 import '@testing-library/jest-dom';
 
+import {fireEvent, screen} from '@testing-library/react';
 import React from 'react';
 import type {IntlShape} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
-import {fireEvent, screen} from '@testing-library/react';
 
 import type {UserProfile} from '@mattermost/types/users';
 

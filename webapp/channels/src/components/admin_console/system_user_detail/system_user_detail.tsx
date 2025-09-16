@@ -8,11 +8,9 @@ import type {IntlShape, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import type {ServerError} from '@mattermost/types/errors';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
-import type {UserProfile, UserAuthResponse} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import AdminUserCard from 'components/admin_console/admin_user_card/admin_user_card';
@@ -216,12 +214,12 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             return false;
         }
 
-        const emailToCheck = emailValue !== undefined ? emailValue : this.state.emailField;
-        const usernameToCheck = usernameValue !== undefined ? usernameValue : this.state.usernameField;
-        const authDataToCheck = authDataValue !== undefined ? authDataValue : this.state.authDataField;
+        const emailToCheck = emailValue === undefined ? this.state.emailField : emailValue;
+        const usernameToCheck = usernameValue === undefined ? this.state.usernameField : usernameValue;
+        const authDataToCheck = authDataValue === undefined ? this.state.authDataField : authDataValue;
 
-        const didEmailChanged = !this.state.user.auth_service && emailToCheck !== this.state.user.email;
-        const didUsernameChanged = !this.state.user.auth_service && usernameToCheck !== this.state.user.username;
+        const didEmailChanged = this.state.user.auth_service === '' && emailToCheck !== this.state.user.email;
+        const didUsernameChanged = this.state.user.auth_service === '' && usernameToCheck !== this.state.user.username;
         const didAuthDataChanged = authDataToCheck !== (this.state.user.auth_data || '');
 
         return didEmailChanged || didUsernameChanged || didAuthDataChanged;
@@ -786,7 +784,11 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         disabled={!this.state.isSaveNeeded || this.state.isLoading || this.state.error !== null || this.state.isSaving || this.state.emailError !== null || this.state.usernameError !== null}
                         onClick={this.handleSubmit}
                     />
-                    <div className='error-message' role='alert' aria-live='polite'>
+                    <div
+                        className='error-message'
+                        role='alert'
+                        aria-live='polite'
+                    >
                         <FormError error={this.state.error}/>
                     </div>
                 </div>
