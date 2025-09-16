@@ -7,7 +7,7 @@
 body {
     &.announcement-bar--fixed {
         .signup-header {
-            top: 42px;
+            top: calc(var(--announcement-bar-count, 1) * #{variables.$announcement-bar-height});
         }
     }
 }

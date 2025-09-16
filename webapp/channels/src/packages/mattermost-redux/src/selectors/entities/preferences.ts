@@ -335,3 +335,4 @@ export function streamlinedMarketplaceEnabled(state: GlobalState): boolean {
 }
 
 export const getOverageBannerPreferences = makeGetCategory('getOverageBannerPreferences', Preferences.CATEGORY_OVERAGE_USERS_BANNER);
+export const getPostHistoryLimitBannerPreferences = makeGetCategory('getPostHistoryLimitBannerPreferences', Preferences.CATEGORY_POST_HISTORY_LIMIT_BANNER);

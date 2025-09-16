@@ -66,7 +66,7 @@ func (_m *SuiteIFace) HasPermissionToReadChannel(rctx request.CTX, userID string
 	return r0
 }
 
-// MFARequired provides a mock function with given fields: c
+// MFARequired provides a mock function with given fields: rctx
 func (_m *SuiteIFace) MFARequired(rctx request.CTX) *model.AppError {
 	ret := _m.Called(rctx)
 

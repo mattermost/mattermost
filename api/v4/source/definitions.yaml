@@ -2689,11 +2689,33 @@ components:
           type: string
           description: Set to "true" to enable mentions for first name. Defaults to "true"
             if a first name is set, "false" otherwise.
+        auto_responder_message:
+          type: string
+          description: The message sent to users when they are auto-responded to.
+            Defaults to "".
+        push_threads:
+          type: string
+          description: Set to "all" to enable mobile push notifications for followed threads and "none" to disable.
+            Defaults to "all".
+        comments:
+          type: string
+          description: Set to "any" to enable notifications for comments to any post you have
+            replied to, "root" for comments on your posts, and "never" to disable. Only
+            affects users with collapsed reply threads disabled.
+            Defaults to "never".
+        desktop_threads:
+          type: string
+          description: Set to "all" to enable desktop notifications for followed threads and "none" to disable.
+            Defaults to "all".
+        email_threads:
+          type: string
+          description: Set to "all" to enable email notifications for followed threads and "none" to disable.
+            Defaults to "all".
     Timezone:
       type: object
       properties:
         useAutomaticTimezone:
-          type: boolean
+          type: string
           description: Set to "true" to use the browser/system timezone, "false" to set
             manually. Defaults to "true".
         manualTimezone:
