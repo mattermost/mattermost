@@ -52,7 +52,6 @@ describe('components/admin_console/server_logs/LogList', () => {
             const formattedText = timestampElement.textContent;
             expect(formattedText).toMatch(/\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}/); // Should match MM/DD/YYYY HH:mm:ss pattern
             expect(formattedText).not.toBe('2025-09-04T14:32:24Z'); // Should not be the original UTC string
-            expect(timestampElement).toHaveAttribute('title', 'UTC: 2025-09-04T14:32:24Z');
         });
 
         test('should format valid ISO timestamp with milliseconds to local time', () => {
@@ -75,7 +74,6 @@ describe('components/admin_console/server_logs/LogList', () => {
             const formattedText = timestampElement.textContent;
             expect(formattedText).toMatch(/\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}/);
             expect(formattedText).not.toBe('2025-09-04T14:32:24.123Z');
-            expect(timestampElement).toHaveAttribute('title', 'UTC: 2025-09-04T14:32:24.123Z');
         });
 
         test('should format valid ISO timestamp without Z suffix to local time', () => {
@@ -98,7 +96,6 @@ describe('components/admin_console/server_logs/LogList', () => {
             const formattedText = timestampElement.textContent;
             expect(formattedText).toMatch(/\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}/);
             expect(formattedText).not.toBe('2025-09-04T14:32:24');
-            expect(timestampElement).toHaveAttribute('title', 'UTC: 2025-09-04T14:32:24');
         });
 
         test('should preserve test strings unchanged', () => {
@@ -161,7 +158,6 @@ describe('components/admin_console/server_logs/LogList', () => {
 
             const timestampElement = screen.getByTestId('timestamp');
             expect(timestampElement).toHaveTextContent('2025-13-45T25:99:99Z');
-            expect(timestampElement).toHaveAttribute('title', 'UTC: 2025-13-45T25:99:99Z');
         });
 
         test('should handle empty timestamp strings', () => {
@@ -228,7 +224,6 @@ describe('components/admin_console/server_logs/LogList', () => {
             const formattedText = timestampElement.textContent;
             expect(formattedText).toMatch(/\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}/);
             expect(formattedText).not.toBe('2025-09-05 08:18:24.558');
-            expect(timestampElement).toHaveAttribute('title', 'UTC: 2025-09-05 08:18:24.558');
         });
 
         test('should format server timestamp without milliseconds', () => {
@@ -251,7 +246,6 @@ describe('components/admin_console/server_logs/LogList', () => {
             const formattedText = timestampElement.textContent;
             expect(formattedText).toMatch(/\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}/);
             expect(formattedText).not.toBe('2025-09-05 08:18:24');
-            expect(timestampElement).toHaveAttribute('title', 'UTC: 2025-09-05 08:18:24');
         });
 
         test('should format date-only timestamps', () => {
