@@ -38,7 +38,6 @@ func TestCondenseSiteURL(t *testing.T) {
 func TestSendInviteEmails(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	th.ConfigureInbucketMail(t)
 
 	emailTo := "test@example.com"
@@ -261,7 +260,6 @@ func TestSendInviteEmails(t *testing.T) {
 func TestSendCloudWelcomeEmail(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown()
 	th.ConfigureInbucketMail(t)
 
 	emailTo := "testclouduser@example.com"

@@ -131,6 +131,17 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 	err = service.setUpRateLimiters()
 	require.NoError(tb, err)
 
+	tb.Cleanup(func() {
+		err := configStore.Close()
+		require.NoError(tb, err)
+
+		s.Close()
+
+		if tempWorkspace != "" {
+			os.RemoveAll(tempWorkspace)
+		}
+	})
+
 	return &TestHelper{
 		service:     service,
 		configStore: configStore,
@@ -256,16 +267,6 @@ func (th *TestHelper) CreateUserOrGuest(tb testing.TB, guest bool) *model.User {
 		require.NoError(tb, err)
 	}
 	return user
-}
-
-func (th *TestHelper) TearDown() {
-	th.configStore.Close()
-
-	th.store.Close()
-
-	if th.workspace != "" {
-		os.RemoveAll(th.workspace)
-	}
 }
 
 func (th *TestHelper) UpdateConfig(tb testing.TB, f func(*model.Config)) {
