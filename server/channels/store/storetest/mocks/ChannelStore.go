@@ -2701,36 +2701,6 @@ func (_m *ChannelStore) SearchAllChannels(term string, opts store.ChannelSearchO
 	return r0, r1, r2
 }
 
-// SearchArchivedInTeam provides a mock function with given fields: teamID, term, userID
-func (_m *ChannelStore) SearchArchivedInTeam(teamID string, term string, userID string) (model.ChannelList, error) {
-	ret := _m.Called(teamID, term, userID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SearchArchivedInTeam")
-	}
-
-	var r0 model.ChannelList
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, string) (model.ChannelList, error)); ok {
-		return rf(teamID, term, userID)
-	}
-	if rf, ok := ret.Get(0).(func(string, string, string) model.ChannelList); ok {
-		r0 = rf(teamID, term, userID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(model.ChannelList)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
-		r1 = rf(teamID, term, userID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // SearchForUserInTeam provides a mock function with given fields: userID, teamID, term, includeDeleted
 func (_m *ChannelStore) SearchForUserInTeam(userID string, teamID string, term string, includeDeleted bool) (model.ChannelList, error) {
 	ret := _m.Called(userID, teamID, term, includeDeleted)

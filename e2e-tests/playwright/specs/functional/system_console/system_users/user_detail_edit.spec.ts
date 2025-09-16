@@ -276,7 +276,4 @@ test('allows cancelling save confirmation dialog', {tag: '@user_management'}, as
     // * Verify modal closes and field retains the edited value
     await expect(confirmModal).not.toBeVisible();
     await expect(emailInput).toHaveValue(newEmail);
-
-    // * Verify the change was NOT saved (email should still be original)
-    // Note: The field keeps the edited value but API should have original value
 });

@@ -17,15 +17,24 @@ func (api *API) InitLimits() {
 }
 
 func getServerLimits(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !(c.IsSystemAdmin() && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementUsers)) {
-		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
-		return
-	}
+	isAdmin := c.IsSystemAdmin() && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementUsers)
 
 	serverLimits, err := c.App.GetServerLimits()
 	if err != nil {
 		c.Err = err
 		return
+	}
+
+	// Non-admin users only get message history limit information, no user count data
+	if !isAdmin {
+		limitedData := &model.ServerLimits{
+			MaxUsersLimit:          0,
+			MaxUsersHardLimit:      0,
+			ActiveUserCount:        0,
+			LastAccessiblePostTime: serverLimits.LastAccessiblePostTime,
+			PostHistoryLimit:       serverLimits.PostHistoryLimit,
+		}
+		serverLimits = limitedData
 	}
 
 	if err := json.NewEncoder(w).Encode(serverLimits); err != nil {
