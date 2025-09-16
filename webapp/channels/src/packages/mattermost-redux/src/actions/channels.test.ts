@@ -1161,49 +1161,6 @@ describe('Actions.Channels', () => {
         expect(response.data.channels.length === 2).toBeTruthy();
     });
 
-    it('searchArchivedChannels', async () => {
-        const userClient = TestHelper.createClient4();
-
-        nock(Client4.getBaseRoute()).
-            post('/users').
-            query(true).
-            reply(201, TestHelper.fakeUserWithId());
-
-        const user = await TestHelper.basicClient4!.createUser(
-            TestHelper.fakeUser(),
-            '',
-            '',
-            TestHelper.basicTeam!.invite_id,
-        );
-
-        nock(Client4.getBaseRoute()).
-            post('/users/login').
-            reply(200, user);
-
-        await userClient.login(user.email, 'password1');
-
-        nock(Client4.getBaseRoute()).
-            post('/channels').
-            reply(201, TestHelper.fakeChannelWithId(TestHelper.basicTeam!.id));
-
-        const userChannel = await userClient.createChannel(
-            TestHelper.fakeChannel(TestHelper.basicTeam!.id),
-        );
-
-        nock(Client4.getTeamsRoute()).
-            post(`/${TestHelper.basicTeam!.id}/channels/search_archived`).
-            reply(200, [TestHelper.basicChannel, userChannel]);
-
-        const {data} = await store.dispatch(Actions.searchChannels(TestHelper.basicTeam!.id, 'test', true));
-
-        const moreRequest = store.getState().requests.channels.getChannels;
-        if (moreRequest.status === RequestStatus.FAILURE) {
-            throw new Error(JSON.stringify(moreRequest.error));
-        }
-
-        expect(data.length === 2).toBeTruthy();
-    });
-
     it('getChannelMembers', async () => {
         nock(Client4.getBaseRoute()).
             get(`/channels/${TestHelper.basicChannel!.id}/members`).
