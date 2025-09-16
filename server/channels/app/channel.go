@@ -937,8 +937,7 @@ func (a *App) PatchChannel(rctx request.CTX, channel *model.Channel, patch *mode
 		return nil, err
 	}
 	if restrictDM {
-		err := model.NewAppError("PatchChannel", "api.channel.patch_update_channel.restricted_dm.app_error", nil, "", http.StatusBadRequest)
-		return nil, err
+		return nil, model.NewAppError("PatchChannel", "api.channel.patch_update_channel.restricted_dm.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	oldChannelDisplayName := channel.DisplayName
