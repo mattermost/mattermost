@@ -108,7 +108,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AttributeBasedAccessControl = true
 	f.ContentFlagging = false
 	f.InteractiveDialogAppsForm = true
-	f.EnableMattermostEntry = false
+	f.EnableMattermostEntry = true
 	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this default when feature is GA
 	f.ChannelAdminManageABACRules = false // Default to false for safety
 }
