@@ -61,15 +61,18 @@ describe('Interactive Dialog - Field Refresh', () => {
 
         // * Verify that the apps form modal opens up
         cy.get('#appsModal').should('be.visible').within(() => {
-            // * Verify initial state - Step 1 fields are visible
+            // * Verify initial state - fields are visible in correct order
             cy.get('#appsModalLabel').should('contain', 'Field Refresh Demo'); // Modal title stays same during refresh
 
             cy.get('.modal-body').within(() => {
-                // * Verify initial field refresh dialog fields are present
-                cy.contains('Project Type').should('be.visible');
+                // * Verify initial field refresh dialog fields are present in new order
                 cy.contains('Project Name').should('be.visible');
-                cy.get('.form-group').should('have.length', 2); // project_type + project_name
+                cy.contains('Project Type').should('be.visible');
+                cy.get('.form-group').should('have.length', 2); // project_name + project_type
             });
+
+            // # Enter project name first
+            cy.get('input[placeholder*="project name"]').type('Web App Project');
 
             // # Trigger field refresh by changing project type (refresh: true field)
             cy.get('.form-group').contains('Project Type').parent().within(() => {
@@ -89,23 +92,26 @@ describe('Interactive Dialog - Field Refresh', () => {
 
             // * Verify form has dynamic fields based on project type
             cy.get('.modal-body').within(() => {
-                // * Basic fields should still be visible
-                cy.contains('Project Type').should('be.visible');
+                // * Basic fields should still be visible in correct order
                 cy.contains('Project Name').should('be.visible');
+                cy.contains('Project Type').should('be.visible');
+
+                // * Project name value should be preserved
+                cy.get('input[placeholder*="project name"]').should('have.value', 'Web App Project');
 
                 // * Selection should be made
                 cy.get('.react-select__single-value').should('contain', 'Web Application');
 
                 // * New framework field should appear for web application
                 cy.contains('Framework').should('be.visible');
-                cy.get('.form-group').should('have.length', 3); // project_type + project_name + framework
+                cy.get('.form-group').should('have.length', 3); // project_name + project_type + framework
             });
 
             closeAppsFormModal();
         });
     });
 
-    it('MM-T2540B - Field values preserved during refresh', () => {
+    it('MM-T2540B - Field values preserved during refresh and form submits successfully', () => {
         // # Post a slash command
         cy.postMessage(`/${createdCommand.trigger} `);
 
@@ -129,8 +135,27 @@ describe('Interactive Dialog - Field Refresh', () => {
             // * Verify project type selection is preserved
             cy.get('.react-select__single-value').should('contain', 'Mobile App');
 
-            closeAppsFormModal();
+            // * Verify platform field appeared for mobile app
+            cy.contains('Platform').should('be.visible');
+
+            // # Fill in the platform field and submit
+            cy.get('.form-group').contains('Platform').parent().within(() => {
+                cy.get('[id^=\'MultiInput_\']').click();
+            });
+            cy.wait(TIMEOUTS.HALF_SEC);
+            cy.document().then((doc) => {
+                cy.wrap(doc).find('.react-select__option').contains('React Native').click();
+            });
+
+            // # Submit the form
+            cy.get('.modal-footer button').contains('Submit').click();
         });
+
+        // * Verify form was submitted successfully with preserved values
+        cy.get('.post__body').should('contain', 'Field refresh dialog submitted successfully!');
+        cy.get('.post__body').should('contain', 'My Test Project');
+        cy.get('.post__body').should('contain', 'mobile');
+        cy.get('.post__body').should('contain', 'react-native');
     });
 
     it('MM-T2540C - Multiple refresh cycles work correctly', () => {
@@ -138,6 +163,9 @@ describe('Interactive Dialog - Field Refresh', () => {
         cy.postMessage(`/${createdCommand.trigger} `);
 
         cy.get('#appsModal').should('be.visible').within(() => {
+            // # Enter project name first
+            cy.get('input[placeholder*="project name"]').type('Multi-Test Project');
+
             const projectTypes = [
                 'Web Application',
                 'Mobile App',
@@ -156,9 +184,12 @@ describe('Interactive Dialog - Field Refresh', () => {
                 });
                 cy.wait(TIMEOUTS.ONE_SEC);
 
-                // * Verify basic fields are always present
-                cy.contains('Project Type').should('be.visible');
+                // * Verify basic fields are always present in correct order
                 cy.contains('Project Name').should('be.visible');
+                cy.contains('Project Type').should('be.visible');
+
+                // * Verify project name is preserved through refresh cycles
+                cy.get('input[placeholder*="project name"]').should('have.value', 'Multi-Test Project');
 
                 // * Verify selection was made
                 cy.get('.react-select__single-value').should('contain', projectType);

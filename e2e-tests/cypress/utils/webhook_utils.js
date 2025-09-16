@@ -145,10 +145,10 @@ const DIALOG_CONFIGS = {
     fieldRefresh: {
         callback_id: 'field_refresh_callback',
         title: 'Field Refresh Demo',
-        introduction_text: 'Select a project type to see different fields',
+        introduction_text: 'Enter project name then select type to see different fields',
         elements: [
-            createElement('select', {display_name: 'Project Type', name: 'project_type', refresh: true, placeholder: 'Select project type...', options: [{text: 'Web Application', value: 'web'}, {text: 'Mobile App', value: 'mobile'}, {text: 'API Service', value: 'api'}]}),
             createElement('text', {display_name: 'Project Name', name: 'project_name', placeholder: 'Enter project name'}),
+            createElement('select', {display_name: 'Project Type', name: 'project_type', refresh: true, placeholder: 'Select project type...', options: [{text: 'Web Application', value: 'web'}, {text: 'Mobile App', value: 'mobile'}, {text: 'API Service', value: 'api'}]}),
         ],
     },
 

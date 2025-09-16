@@ -319,6 +319,14 @@ function onDialogSubmit(req, res) {
         return res.json({text: message});
     }
 
+    // Check if this is a field refresh dialog submission
+    if (body.callback_id === 'field_refresh_callback') {
+        const submission = body.submission || {};
+        message = `Field refresh dialog submitted successfully! Values: ${JSON.stringify(submission, null, 2)}`;
+        sendSysadminResponse(message, body.channel_id);
+        return res.json({text: message});
+    }
+
     // Regular dialog submission
     message = 'Dialog submitted';
 
@@ -434,11 +442,20 @@ function onFieldRefreshSource(req, res) {
     const {body} = req;
     const submission = body.submission || {};
     const projectType = submission.project_type;
+    const projectName = submission.project_name || '';
 
     res.setHeader('Content-Type', 'application/json');
 
     // Return updated form based on project type selection
     const elements = [
+        {
+            display_name: 'Project Name',
+            name: 'project_name',
+            type: 'text',
+            placeholder: 'Enter project name',
+            default: projectName,
+            optional: false,
+        },
         {
             display_name: 'Project Type',
             name: 'project_type',
@@ -451,13 +468,6 @@ function onFieldRefreshSource(req, res) {
                 {text: 'Mobile App', value: 'mobile'},
                 {text: 'API Service', value: 'api'},
             ],
-        },
-        {
-            display_name: 'Project Name',
-            name: 'project_name',
-            type: 'text',
-            placeholder: 'Enter project name',
-            optional: false,
         },
     ];
 
@@ -504,7 +514,7 @@ function onFieldRefreshSource(req, res) {
         type: 'form',
         form: {
             title: 'Field Refresh Demo',
-            introduction_text: 'Select a project type to see different fields',
+            introduction_text: 'Enter project name then select type to see different fields',
             submit_label: 'Submit',
             elements,
         },
