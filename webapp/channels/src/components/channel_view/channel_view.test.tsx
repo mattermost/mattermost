@@ -20,7 +20,6 @@ describe('components/channel_view', () => {
         enableOnboardingFlow: true,
         teamUrl: '/team',
         channelIsArchived: false,
-        viewArchivedChannels: false,
         isCloud: false,
         goToLastViewedChannel: jest.fn(),
         isFirstAdmin: false,

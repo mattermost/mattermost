@@ -922,10 +922,6 @@
     "translation": "omuz silkme"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "İstemci yapılandırması için yeni biçim henüz desteklenmiyor. Lütfen sorgu dizgesini format=old olarak yazın."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Ne yazık ki sayfa bulunamadı."
   },
@@ -2073,14 +2069,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Bot oturumu açılmasına izin verilmiyor."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Geçerli bir sertifika belirtilmeden deneme aşamasındaki ClientSideCert özelliği kullanılarak oturum açılmaya çalışıldı."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Geçerli bir Enterprise sürümü lisansı olmadan deneme aşamasındaki ClientSideCert özelliği kullanılmaya çalışıldı."
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -4715,98 +4703,6 @@
     "translation": "Hizmet koşulları metni kaydedilemedi."
   },
   {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve zaten başlatılmış."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Bleve ileti dizini oluşturulurken sorun çıktı."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Bleve kullanıcı dizini oluşturulurken sorun çıktı."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Kanal silinemedi."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "İleti silinemedi."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Kullanıcı silinemedi."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "İleti dizine eklenemedi."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Kullanıcı dizine eklenemedi."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Kanal yığını dizine eklenemedi."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Kullanıcı yığını dizine eklenemedi."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Bleve dizine ekleme görevi yürütülemedi: İşleyici kullanımdan kaldırılmış."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "Veri tabanından en eski varlık (kullanıcı, kanal ya da ileti) alınamadı."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Bleve dizine ekleme işlemi başlangıç zamanını işleyemedi."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Tüm varlıklar tamamlandığında yeni bir toplu dizine ekleme işlemi yapılmaya çalışılacak."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Kanal dizinleri boşaltılamadı."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "İleti dizinleri boşaltılamadı."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Kanal araması tamamlanamadı."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "İleti araması tamamlanamadı."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Kullanıcı araması tamamlanamadı."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Kullanıcı araması tamamlanamadı."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Kanal dizini kapatılamadı."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "İleti dizini kapatılamadı."
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Kullanıcı dizini kapatılamadı."
-  },
-  {
     "id": "ent.cluster.json_encode.error",
     "translation": "JSON isteği sıralanırken sorun çıktı"
   },
@@ -4891,14 +4787,6 @@
     "translation": "AutocompleteData değeri geçersiz"
   },
   {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Bleve EnableSearching seçeneği true olarak ayarlandığında, Bleve EnableIndexing seçeneği de true olarak ayarlanmalıdır"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Bleve IndexingDir seçeneği true olarak ayarlandığında, Bleve EnableIndexing seçeneği de true olarak ayarlanmalıdır"
-  },
-  {
     "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
     "translation": "Kanonik (standartlaştırma) algoritması geçersiz."
   },
@@ -4953,10 +4841,6 @@
   {
     "id": "plugin_api.bot_cant_create_bot",
     "translation": "Bot kullanıcısı bir bot kullanıcısı ekleyemez."
-  },
-  {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Blave dizinleri boşaltılırken sorun çıktı: İşleyici kullanımdan kaldırılmış"
   },
   {
     "id": "api.license.request-trial.bad-request",
@@ -5183,30 +5067,6 @@
     "translation": "Herhangi bir hizmet koşulları metni bulunamadı."
   },
   {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Bleve kanal dizini oluşturulurken sorun çıktı."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Kanal dizine eklenemedi."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "İleti yığını dizine eklenemedi."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Bleve dizine ekleme işlemi bitiş zamanını işleyemedi."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Kullanıcı dizinleri boşaltılamadı."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Kullanıcı araması tamamlanamadı."
-  },
-  {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "Kanallar için {{.Backend}} kalıbı oluşturulamadı"
   },
@@ -5229,10 +5089,6 @@
   {
     "id": "model.channel.is_valid.name.app_error",
     "translation": "Kanal adları onaltılık biçimde olamaz. Lütfen başka bir kanal adı yazın."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Bleve EnableAutoComplete seçeneği true olarak ayarlandığında, Bleve EnableIndexing seçeneği de true olarak ayarlanmalıdır"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
@@ -5732,14 +5588,6 @@
   },
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
-    "translation": "Kanal iletileri silinemedi"
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Kullanıcının iletileri silinemedi"
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
     "translation": "Kanal iletileri silinemedi"
   },
   {
@@ -6555,10 +6403,6 @@
     "translation": "Kanal üyeleri alınamadı."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Dizine eklenecek kanal topluluğu alınamadı."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Belirtilen şemanın uygulanabileceği kanallar alınamadı."
   },
@@ -6589,10 +6433,6 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "Kanalın iletileri alınamadı."
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Dizine eklenecek ileti topluluğu alınamadı."
   },
   {
     "id": "app.post.get_posts.app_error",
@@ -7271,42 +7111,6 @@
     "translation": "Dosyalar için {{.Backend}} kalıbı oluşturulamadı"
   },
   {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Dosya dizini kapatılamadı."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "Dosya araması tamamlanamadı."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Dosya yığını dizine eklenemedi."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "Dosya dizine eklenemedi."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Kullanıcı dosyaları silinemedi."
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "İleti dosyaları silinemedi."
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Dosyalar silinemedi."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Dosya silinemedi."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Bleve dosya dizini oluşturulurken sorun çıktı."
-  },
-  {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
     "translation": "İndirmek istediğiniz görev türü şu anda desteklenmiyor"
   },
@@ -7363,10 +7167,6 @@
     "translation": "Kullanıcının konusu bulunamadı ya da izlenmiyor"
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Dosya arka bölümden okunurken sorun çıktı"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "Zip dosyası oluşurulurken sorun çıktı."
   },
@@ -7421,14 +7221,6 @@
   {
     "id": "mfa.activate.app_error",
     "translation": "Kullanıcının çok adımlı doğrulama açık durumu güncellenemedi."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Dosya dizinleri boşaltılamadı."
-  },
-  {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "Toplu dosyalar dizine eklenmek üzere alınamadı."
   },
   {
     "id": "api.custom_status.recent_custom_statuses.delete.app_error",
@@ -8346,14 +8138,6 @@
     "translation": "Oturum süresi uzatılamadı"
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Arşivlenmiş bir kanalın kullanıcıları alınamaz"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Arşivlenmiş bir kanalın yazıları alınamaz"
-  },
-  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Alınan ileti kimliklerinin sayısı en fazla boyut sınırı olan {{.MaxLength}} değerini aşıyor"
   },
@@ -8448,10 +8232,6 @@
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
     "translation": "Arama toplu dizine ekleme işlem boyutu en az {{.BatchSize}} olmalıdır."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Bleve Bulk Indexing Batch Size değeri en az {{.BatchSize}} olmalıdır."
   },
   {
     "id": "api.getThreadsForUser.bad_only_params",
@@ -9702,10 +9482,6 @@
     "translation": "Kullanıcı etkinleştirilemedi. Sunucu güvenli kullanıcı sayısı sınırını aşıyor. Yöneticiniz ile görüşün: ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
-    "id": "bleveengine.purge_list.not_implemented",
-    "translation": "Listeyi temizleme özelliği Bleve ile kullanılamaz."
-  },
-  {
     "id": "model.channel_bookmark.is_valid.link_file.app_error",
     "translation": "Aynı yer imiyle bir bağlantı ve bir dosya ayarlanamaz."
   },
@@ -10384,10 +10160,6 @@
     "translation": "Kanal yer imi güncellenemedi."
   },
   {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Arşivlenmiş bir kanalın yer imleri alınamaz"
-  },
-  {
     "id": "app.file_info.get_count.app_error",
     "translation": "Tüm dosyaların sayısı alınamadı."
   },
@@ -10500,16 +10272,8 @@
     "translation": "CPA alanları alınamadı"
   },
   {
-    "id": "ent.ldap.update_cpa.multiple_errors",
-    "translation": "CPA değeri yamanırken sorun çıktı"
-  },
-  {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "SAML onaylama özniteliği ifadesi geçersiz"
-  },
-  {
-    "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "CPA değerleri güncellenirken sorun çıktı"
   },
   {
     "id": "model.access_policy.is_valid.version.app_error",

@@ -13,6 +13,7 @@
 import {Channel, ServerChannel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
+
 import {getAdminAccount} from '../../../support/env';
 import {getRandomId} from '../../../utils';
 
@@ -21,12 +22,6 @@ describe('Leave an archived channel', () => {
     let testUser: UserProfile;
 
     before(() => {
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
-
         cy.apiInitSetup().then(({team, user}) => {
             testTeam = team;
             testUser = user;

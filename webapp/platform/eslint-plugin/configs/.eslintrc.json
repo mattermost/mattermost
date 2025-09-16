@@ -374,12 +374,6 @@
     "no-restricted-imports": [
       "error",
       {
-        "patterns": [
-          {
-            "group": ["@mattermost/compass-components/*"],
-            "message": "compass-components is now archived."
-          }
-        ],
         "paths": [
           {
             "name": "redux",

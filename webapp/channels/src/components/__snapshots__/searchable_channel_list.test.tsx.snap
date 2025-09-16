@@ -5,7 +5,7 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
   className="filtered-user-list"
 >
   <div
-    className="filter-row filter-row--full"
+    className="filter-row"
   >
     <span
       aria-hidden="true"
@@ -31,6 +31,13 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
   >
     <span
       id="channelCountLabel"
+    >
+      0 Results
+    </span>
+    <span
+      aria-live="polite"
+      className="sr-only"
+      role="status"
     >
       0 Results
     </span>
@@ -121,6 +128,27 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
           }
           leadingElement={
             <LockOutlineIcon
+              size={16}
+            />
+          }
+          onClick={[Function]}
+          trailingElements={null}
+        />
+        <MenuItemSeparator
+          key="channelsMoreDropdownSeparator"
+        />
+        <MenuItem
+          aria-label="Archived channels"
+          id="channelsMoreDropdownArchived"
+          key="channelsMoreDropdownArchived"
+          labels={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Archived channels"
+              id="suggestion.archive"
+            />
+          }
+          leadingElement={
+            <ArchiveOutlineIcon
               size={16}
             />
           }

@@ -12,6 +12,7 @@
 
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
+
 import {getRandomId} from '../../../utils';
 
 describe('Leave an archived channel', () => {
@@ -23,12 +24,6 @@ describe('Leave an archived channel', () => {
         archived: 'Channel Type: Archived',
     };
     before(() => {
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
-
         // # Login as test user and visit off-topic
         cy.apiInitSetup({loginAfter: true}).then(({team, offTopicUrl: url}) => {
             testTeam = team;
@@ -283,33 +278,6 @@ describe('Leave an archived channel', () => {
 
             // # More channels list should contain the archived channel
             cy.get('#moreChannelsList').should('contain', archivedChannel.display_name);
-        });
-        cy.get('body').typeWithForce('{esc}');
-    });
-
-    it('MM-T1696 - When clicking Browse Channels no options for archived channels are shown when the feature is disabled', () => {
-        cy.apiAdminLogin();
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: false,
-            },
-        });
-
-        // # Create public channel
-        cy.apiCreateChannel(testTeam.id, 'channel', 'channel').then(({channel}) => {
-            // # Visit the channel
-            cy.visit(`/${testTeam.name}/channels/${channel.name}`);
-
-            // # Archive the channel
-            cy.uiArchiveChannel();
-
-            // # Click on browse channels from menu
-            cy.uiBrowseOrCreateChannel('Browse channels');
-
-            // # Modal should not contain the created channel
-            cy.findByText(channelType.all).should('be.visible').click();
-            cy.findByText('Archived channels').should('not.exist');
-            cy.get('#moreChannelsList').should('not.contain', channel.name);
         });
         cy.get('body').typeWithForce('{esc}');
     });

@@ -18,6 +18,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -598,6 +599,7 @@ func TestHubIsRegistered(t *testing.T) {
 
 	mockSuite := &platform_mocks.SuiteIFace{}
 	mockSuite.On("GetSession", session.Token).Return(session, nil)
+	mockSuite.On("MFARequired", mock.Anything).Return(nil)
 	th.Suite = mockSuite
 
 	s := httptest.NewServer(dummyWebsocketHandler(t))
@@ -633,6 +635,7 @@ func TestHubWebConnCount(t *testing.T) {
 
 	mockSuite := &platform_mocks.SuiteIFace{}
 	mockSuite.On("GetSession", session.Token).Return(session, nil)
+	mockSuite.On("MFARequired", mock.Anything).Return(nil)
 	th.Suite = mockSuite
 
 	s := httptest.NewServer(dummyWebsocketHandler(t))

@@ -38,9 +38,10 @@ func TestPluginProperties(t *testing.T) {
 				}
 
 				// Create a property field
+				fieldName := "Test Field " + model.NewId()
 				field := &model.PropertyField{
 					GroupID:     group.ID,
-					Name:        "Test Field",
+					Name:        fieldName,
 					Type:        model.PropertyFieldTypeText,
 					TargetType:  "user",
 				}
@@ -55,8 +56,8 @@ func TestPluginProperties(t *testing.T) {
 				if err != nil {
 					return fmt.Errorf("failed to get property field: %w", err)
 				}
-				if retrievedField.Name != "Test Field" {
-					return fmt.Errorf("field name mismatch: expected 'Test Field', got '%s'", retrievedField.Name)
+				if retrievedField.Name != fieldName {
+					return fmt.Errorf("field name mismatch: expected '%s', got '%s'", fieldName, retrievedField.Name)
 				}
 
 				// Update the field
@@ -70,7 +71,7 @@ func TestPluginProperties(t *testing.T) {
 				}
 
 				// Search for fields
-				fields, err := p.API.SearchPropertyFields(group.ID, "", model.PropertyFieldSearchOpts{})
+				fields, err := p.API.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{PerPage: 50})
 				if err != nil {
 					return fmt.Errorf("failed to search property fields: %w", err)
 				}
@@ -85,7 +86,7 @@ func TestPluginProperties(t *testing.T) {
 				}
 
 				// Verify deletion
-				fields, err = p.API.SearchPropertyFields(group.ID, "", model.PropertyFieldSearchOpts{})
+				fields, err = p.API.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{PerPage: 50})
 				if err != nil {
 					return fmt.Errorf("failed to search property fields after deletion: %w", err)
 				}
@@ -102,7 +103,7 @@ func TestPluginProperties(t *testing.T) {
 		`}, th.App, th.NewPluginAPI)
 		defer tearDown()
 		require.Len(t, activationErrors, 1)
-		require.Nil(t, nil, activationErrors[0])
+		require.NoError(t, activationErrors[0])
 
 		// Clean up
 		err2 := th.App.DisablePlugin(pluginIDs[0])
@@ -134,9 +135,10 @@ func TestPluginProperties(t *testing.T) {
 				}
 
 				// Create a property field
+				fieldName := "Test Field " + model.NewId()
 				field := &model.PropertyField{
 					GroupID:     group.ID,
-					Name:        "Test Field",
+					Name:        fieldName,
 					Type:        model.PropertyFieldTypeText,
 					TargetType:  "user",
 				}
@@ -148,7 +150,7 @@ func TestPluginProperties(t *testing.T) {
 
 				// Create a property value
 				targetId := model.NewId()
-				valueJson := []byte("test-value")
+				valueJson := []byte("\"test-value\"")
 				value := &model.PropertyValue{
 					GroupID:    group.ID,
 					FieldID:    createdField.ID,
@@ -167,22 +169,22 @@ func TestPluginProperties(t *testing.T) {
 				if err != nil {
 					return fmt.Errorf("failed to get property value: %w", err)
 				}
-				if string(retrievedValue.Value) != "test-value" {
-					return fmt.Errorf("value mismatch: expected 'test-value', got '%s'", string(retrievedValue.Value))
+				if string(retrievedValue.Value) != "\"test-value\"" {
+					return fmt.Errorf("value mismatch: expected '\"test-value\"', got '%s'", string(retrievedValue.Value))
 				}
 
 				// Update the value
-				retrievedValue.Value = []byte("updated-test-value")
+				retrievedValue.Value = []byte("\"updated-test-value\"")
 				updatedValue, err := p.API.UpdatePropertyValue(group.ID, retrievedValue)
 				if err != nil {
 					return fmt.Errorf("failed to update property value: %w", err)
 				}
-				if string(updatedValue.Value) != "updated-test-value" {
-					return fmt.Errorf("updated value mismatch: expected 'updated-test-value', got '%s'", string(updatedValue.Value))
+				if string(updatedValue.Value) != "\"updated-test-value\"" {
+					return fmt.Errorf("updated value mismatch: expected '\"updated-test-value\"', got '%s'", string(updatedValue.Value))
 				}
 
 				// Upsert the value
-				upsertValueJson := []byte("upserted-value")
+				upsertValueJson := []byte("\"upserted-value\"")
 				upsertValue := &model.PropertyValue{
 					GroupID:    group.ID,
 					FieldID:    createdField.ID,
@@ -197,7 +199,7 @@ func TestPluginProperties(t *testing.T) {
 				}
 
 				// Search for values
-				values, err := p.API.SearchPropertyValues(group.ID, targetId, model.PropertyValueSearchOpts{})
+				values, err := p.API.SearchPropertyValues(group.ID, model.PropertyValueSearchOpts{TargetIDs: []string{targetId}, PerPage: 50})
 				if err != nil {
 					return fmt.Errorf("failed to search property values: %w", err)
 				}
@@ -212,7 +214,7 @@ func TestPluginProperties(t *testing.T) {
 				}
 
 				// Verify deletion
-				values, err = p.API.SearchPropertyValues(group.ID, targetId, model.PropertyValueSearchOpts{})
+				values, err = p.API.SearchPropertyValues(group.ID, model.PropertyValueSearchOpts{TargetIDs: []string{targetId}, PerPage: 50})
 				if err != nil {
 					return fmt.Errorf("failed to search property values after deletion: %w", err)
 				}
@@ -229,7 +231,7 @@ func TestPluginProperties(t *testing.T) {
 		`}, th.App, th.NewPluginAPI)
 		defer tearDown()
 		require.Len(t, activationErrors, 1)
-		require.Nil(t, nil, activationErrors[0])
+		require.NoError(t, activationErrors[0])
 
 		// Clean up
 		err2 := th.App.DisablePlugin(pluginIDs[0])
@@ -277,7 +279,155 @@ func TestPluginProperties(t *testing.T) {
 		`}, th.App, th.NewPluginAPI)
 		defer tearDown()
 		require.Len(t, activationErrors, 1)
-		require.Nil(t, nil, activationErrors[0])
+		require.NoError(t, activationErrors[0])
+
+		// Clean up
+		err2 := th.App.DisablePlugin(pluginIDs[0])
+		require.Nil(t, err2)
+		appErr := th.App.ch.RemovePlugin(pluginIDs[0])
+		require.Nil(t, appErr)
+	})
+
+	t.Run("test property field counting", func(t *testing.T) {
+		groupName := model.NewId()
+		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"fmt"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				// Register a property group
+				group, err := p.API.RegisterPropertyGroup("` + groupName + `")
+				if err != nil {
+					return fmt.Errorf("failed to register property group: %w", err)
+				}
+
+				// Create multiple property fields for the same target
+				targetId := model.NewId()
+				for i := 1; i <= 20; i++ {
+					field := &model.PropertyField{
+						GroupID:     group.ID,
+						Name:        fmt.Sprintf("Field %d", i),
+						Type:        model.PropertyFieldTypeText,
+						TargetType:  "user",
+						TargetID:    targetId,
+					}
+
+					_, err := p.API.CreatePropertyField(field)
+					if err != nil {
+						return fmt.Errorf("failed to create property field %d: %w", i, err)
+					}
+				}
+
+				// Count active fields - should be 20
+				count, err := p.API.CountPropertyFields(group.ID, false)
+				if err != nil {
+					return fmt.Errorf("failed to count property fields: %w", err)
+				}
+				if count != 20 {
+					return fmt.Errorf("expected 20 active fields (test creates 20), got %d", count)
+				}
+
+				// Search for fields to get one to delete
+				fields, err := p.API.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{PerPage: 1})
+				if err != nil {
+					return fmt.Errorf("failed to search property fields: %w", err)
+				}
+				if len(fields) == 0 {
+					return fmt.Errorf("no fields found to delete")
+				}
+
+				// Delete one field
+				err = p.API.DeletePropertyField(group.ID, fields[0].ID)
+				if err != nil {
+					return fmt.Errorf("failed to delete property field: %w", err)
+				}
+
+				// Count active fields - should be 19
+				count, err = p.API.CountPropertyFields(group.ID, false)
+				if err != nil {
+					return fmt.Errorf("failed to count property fields after deletion: %w", err)
+				}
+				if count != 19 {
+					return fmt.Errorf("expected 19 active fields after deletion, got %d", count)
+				}
+
+				// Count all fields including deleted - should be 20
+				totalCount, err := p.API.CountPropertyFields(group.ID, true)
+				if err != nil {
+					return fmt.Errorf("failed to count all property fields: %w", err)
+				}
+				if totalCount != 20 {
+					return fmt.Errorf("expected 20 total fields including deleted (test created 20), got %d", totalCount)
+				}
+
+				// Now creating a new field for the same target should work again
+				newField := &model.PropertyField{
+					GroupID:     group.ID,
+					Name:        "New Field",
+					Type:        model.PropertyFieldTypeText,
+					TargetType:  "user",
+					TargetID:    targetId,
+				}
+
+				_, err = p.API.CreatePropertyField(newField)
+				if err != nil {
+					return fmt.Errorf("failed to create new field after deletion: %w", err)
+				}
+
+				// Count should be back to 20
+				count, err = p.API.CountPropertyFields(group.ID, false)
+				if err != nil {
+					return fmt.Errorf("failed to count property fields after new creation: %w", err)
+				}
+				if count != 20 {
+					return fmt.Errorf("expected 20 active fields after new creation (19 + 1), got %d", count)
+				}
+
+				// Test that we can create fields for a different target
+				differentTargetId := model.NewId()
+				for i := 1; i <= 20; i++ {
+					field := &model.PropertyField{
+						GroupID:     group.ID,
+						Name:        fmt.Sprintf("Different Target Field %d", i),
+						Type:        model.PropertyFieldTypeText,
+						TargetType:  "user",
+						TargetID:    differentTargetId,
+					}
+
+					_, err := p.API.CreatePropertyField(field)
+					if err != nil {
+						return fmt.Errorf("failed to create property field %d for different target: %w", i, err)
+					}
+				}
+
+				// Total count should now be 40 (20 for each target)
+				totalCount, err = p.API.CountPropertyFields(group.ID, false)
+				if err != nil {
+					return fmt.Errorf("failed to count total property fields: %w", err)
+				}
+				if totalCount != 40 {
+					return fmt.Errorf("expected 40 total active fields, got %d", totalCount)
+				}
+
+				return nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.Len(t, activationErrors, 1)
+		require.NoError(t, activationErrors[0])
 
 		// Clean up
 		err2 := th.App.DisablePlugin(pluginIDs[0])

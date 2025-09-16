@@ -5,6 +5,7 @@ import type {Channel, ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {GlobalState} from '@mattermost/types/store';
 
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {filterChannelsMatchingTerm} from 'mattermost-redux/utils/channel_utils';
 
 import {filterChannelList} from './channels';
@@ -12,7 +13,24 @@ import {filterChannelList} from './channels';
 import {createSelector} from '../create_selector';
 
 export function getAccessControlSettings(state: GlobalState): AccessControlSettings {
-    return state.entities.admin.config.AccessControlSettings as AccessControlSettings;
+    // First try to get from admin config (for admin console pages)
+    const adminConfig = state.entities.admin.config.AccessControlSettings as AccessControlSettings;
+    if (adminConfig) {
+        return adminConfig;
+    }
+
+    // Otherwise, build from client config (for regular users/channel admins)
+    const config = getConfig(state) as any;
+    return {
+        EnableAttributeBasedAccessControl: config?.EnableAttributeBasedAccessControl === 'true',
+        EnableChannelScopeAccessControl: config?.EnableChannelScopeAccessControl === 'true',
+        EnableUserManagedAttributes: config?.EnableUserManagedAttributes === 'true',
+    } as AccessControlSettings;
+}
+
+export function isChannelScopeAccessControlEnabled(state: GlobalState): boolean {
+    const settings = getAccessControlSettings(state);
+    return settings?.EnableChannelScopeAccessControl || false;
 }
 
 export function getAccessControlPolicy(state: GlobalState, id: string) {
