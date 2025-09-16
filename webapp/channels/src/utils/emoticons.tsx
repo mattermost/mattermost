@@ -5,7 +5,7 @@ import {formatWithRenderer} from './markdown';
 import PlainRenderer from './markdown/plain_renderer';
 
 export const emoticonPatterns: { [key: string]: RegExp } = {
-    slightly_smiling_face: /(^|\B)(\\?:-?\))($|\B)/g, // :)
+    slightly_smiling_face: /(^|\B)(\\?:-?\)|\\?\(-?:)(?![\/A-Za-z0-9_+-])($|\B)/g, // :)
     wink: /(^|\B)(\\?;-?\))($|\B)/g, // ;)
     open_mouth: /(^|\B)(\\?:o)($|\b)/gi, // :o
     scream: /(^|\B)(\\?:-o)($|\b)/gi, // :-o
