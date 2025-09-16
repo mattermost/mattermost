@@ -137,35 +137,33 @@ describe('identifyElementRegion', () => {
             },
         );
 
-        // Use waitFor since we're waiting for any lazily-loaded components to load
         await waitFor(() => {
             const lhsChannel = screen.queryByLabelText(`${channel.display_name.toLowerCase()} public channel`);
             expect(lhsChannel).toBeInTheDocument();
-            expect(identifyElementRegion(lhsChannel!)).toEqual('channel_sidebar');
-        });
 
-        await waitFor(() => {
-            const channelHeaderTitle = document.getElementById('channelHeaderTitle');
-            expect(channelHeaderTitle).toBeInTheDocument();
-            expect(identifyElementRegion(channelHeaderTitle!)).toEqual('channel_header');
-        });
-
-        await waitFor(() => {
             const channelHeaderText = screen.queryByText(channel.header);
             expect(channelHeaderText).toBeInTheDocument();
-            expect(identifyElementRegion(channelHeaderText!)).toEqual('channel_header');
-        });
 
-        await waitFor(() => {
-            const postText = screen.queryByText(post.message);
-            expect(postText).toBeInTheDocument();
-            expect(identifyElementRegion(postText!)).toEqual('post');
-        });
-
-        await waitFor(() => {
             const postTextbox = screen.queryByPlaceholderText('Write to ' + channel.display_name);
             expect(postTextbox).toBeInTheDocument();
-            expect(identifyElementRegion(postTextbox!)).toEqual('post_textbox');
+
+            const postText = screen.queryByText(post.message);
+            expect(postText).toBeInTheDocument();
         });
+
+        const lhsChannel = screen.getByLabelText(`${channel.display_name.toLowerCase()} public channel`);
+        expect(identifyElementRegion(lhsChannel)).toEqual('channel_sidebar');
+
+        const channelHeaderTitle = document.getElementById('channelHeaderTitle');
+        expect(channelHeaderTitle).toBeInTheDocument();
+
+        const channelHeaderText = screen.getByText(channel.header);
+        expect(identifyElementRegion(channelHeaderText)).toEqual('channel_header');
+
+        const postText = screen.getByText(post.message);
+        expect(identifyElementRegion(postText)).toEqual('post');
+
+        const postTextbox = screen.getByPlaceholderText('Write to ' + channel.display_name);
+        expect(identifyElementRegion(postTextbox!)).toEqual('post_textbox');
     });
 });
