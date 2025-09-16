@@ -20,7 +20,7 @@ import (
 )
 
 func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) []model.FileData {
-	functions := map[string]func(c request.CTX) (*model.FileData, error){
+	functions := map[string]func(rctx request.CTX) (*model.FileData, error){
 		"metadata":    a.getSupportPacketMetadata,
 		"stats":       a.getSupportPacketStats,
 		"jobs":        a.getSupportPacketJobList,
