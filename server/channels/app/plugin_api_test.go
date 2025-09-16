@@ -897,7 +897,7 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 
 	fullPath := filepath.Join(server.GetPackagePath(), "channels", "app", "plugin_api_tests", "manual.test_load_configuration_plugin", "main.go")
 
-	err = pluginAPIHookTest(t, th, fullPath, "testloadpluginconfig", `{"id": "testloadpluginconfig", "server": {"executable": "backend.exe"}, "settings_schema": {
+	err = pluginAPIHookTest(t, th, fullPath, "testloadpluginconfig", `{
 		"settings": [
 			{
 				"key": "MyStringSetting",
@@ -912,7 +912,7 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 				"type": "bool"
 			}
 		]
-	}}`)
+	}`)
 	require.NoError(t, err)
 }
 
