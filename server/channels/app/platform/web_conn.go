@@ -453,7 +453,7 @@ func (wc *WebConn) readPump() {
 		if err := wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime)); err != nil {
 			return err
 		}
-		if wc.IsAuthenticated() {
+		if wc.IsBasicAuthenticated() {
 			userID := wc.UserId
 			wc.Platform.Go(func() {
 				wc.Platform.SetStatusAwayIfNeeded(userID, false)
@@ -770,8 +770,8 @@ func (wc *WebConn) InvalidateCache() {
 	wc.SetSessionExpiresAt(0)
 }
 
-// IsAuthenticated returns whether the given WebConn is authenticated or not.
-func (wc *WebConn) IsAuthenticated() bool {
+// IsBasicAuthenticated returns whether the given WebConn has a valid session.
+func (wc *WebConn) IsBasicAuthenticated() bool {
 	// Check the expiry to see if we need to check for a new session
 	if wc.GetSessionExpiresAt() < model.GetMillis() {
 		if wc.GetSessionToken() == "" {
@@ -797,6 +797,24 @@ func (wc *WebConn) IsAuthenticated() bool {
 	}
 
 	return true
+}
+
+// IsMFAAuthenticated returns whether the user has completed MFA when required.
+func (wc *WebConn) IsMFAAuthenticated() bool {
+	session := wc.GetSession()
+	c := request.EmptyContext(wc.Platform.logger).WithSession(session)
+
+	// Check if MFA is required and user has NOT completed MFA
+	if appErr := wc.Suite.MFARequired(c); appErr != nil {
+		return false
+	}
+
+	return true
+}
+
+// IsAuthenticated returns whether the given WebConn is fully authenticated (session + MFA).
+func (wc *WebConn) IsAuthenticated() bool {
+	return wc.IsBasicAuthenticated() && wc.IsMFAAuthenticated()
 }
 
 func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
@@ -856,7 +874,7 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 
 // ShouldSendEvent returns whether the message should be sent or not.
 func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
-	// IMPORTANT: Do not send event if WebConn does not have a session
+	// IMPORTANT: Do not send event if WebConn does not have a session and completed MFA
 	if !wc.IsAuthenticated() {
 		return false
 	}

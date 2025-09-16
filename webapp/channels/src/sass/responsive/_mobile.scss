@@ -1597,7 +1597,7 @@
     .app__body {
         &.announcement-bar--fixed {
             .modal {
-                padding-top: variables.$announcement-bar-height;
+                padding-top: calc(var(--announcement-bar-count, 1) * #{variables.$announcement-bar-height});
             }
         }
 

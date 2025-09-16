@@ -8,23 +8,11 @@ import {LimitsTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
-import {getCurrentUserRoles} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
-import {isAdmin} from 'mattermost-redux/utils/user_utils';
 
 export function getServerLimits(): ActionFuncAsync<ServerLimits> {
     return async (dispatch, getState) => {
-        const roles = getCurrentUserRoles(getState());
-        const amIAdmin = isAdmin(roles);
-        if (!amIAdmin) {
-            return {
-                data: {
-                    activeUserCount: 0,
-                    maxUsersLimit: 0,
-                },
-            };
-        }
-
+        // All users can fetch server limits - server handles permission filtering
         let response;
         try {
             response = await Client4.getServerLimits();
@@ -37,9 +25,14 @@ export function getServerLimits(): ActionFuncAsync<ServerLimits> {
         const data: ServerLimits = {
             activeUserCount: response?.data?.activeUserCount ?? 0,
             maxUsersLimit: response?.data?.maxUsersLimit ?? 0,
+            maxUsersHardLimit: response?.data?.maxUsersHardLimit ?? 0,
+
+            // Post history limit fields from server response
+            lastAccessiblePostTime: response?.data?.lastAccessiblePostTime ?? 0,
+            postHistoryLimit: response?.data?.postHistoryLimit ?? 0,
         };
 
-        dispatch({type: LimitsTypes.RECIEVED_APP_LIMITS, data});
+        dispatch({type: LimitsTypes.RECEIVED_APP_LIMITS, data});
 
         return {data};
     };
