@@ -2765,16 +2765,6 @@ func (c *Client4) SearchChannels(ctx context.Context, teamId string, search *Cha
 	return DecodeJSONFromResponse[[]*Channel](r)
 }
 
-// SearchArchivedChannels returns the archived channels on a team matching the provided search term.
-func (c *Client4) SearchArchivedChannels(ctx context.Context, teamId string, search *ChannelSearch) ([]*Channel, *Response, error) {
-	r, err := c.DoAPIPostJSON(ctx, c.channelsForTeamRoute(teamId)+"/search_archived", search)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[[]*Channel](r)
-}
-
 // SearchAllChannels search in all the channels. Must be a system administrator.
 func (c *Client4) SearchAllChannels(ctx context.Context, search *ChannelSearch) (ChannelListWithTeamData, *Response, error) {
 	r, err := c.DoAPIPostJSON(ctx, c.channelsRoute()+"/search", search)

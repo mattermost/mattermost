@@ -34,7 +34,6 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelsForTeam.Handle("/private", api.APISessionRequired(getPrivateChannelsForTeam)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/ids", api.APISessionRequired(getPublicChannelsByIdsForTeam)).Methods(http.MethodPost)
 	api.BaseRoutes.ChannelsForTeam.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchChannelsForTeam)).Methods(http.MethodPost)
-	api.BaseRoutes.ChannelsForTeam.Handle("/search_archived", api.APISessionRequiredDisableWhenBusy(searchArchivedChannelsForTeam)).Methods(http.MethodPost)
 	api.BaseRoutes.ChannelsForTeam.Handle("/autocomplete", api.APISessionRequired(autocompleteChannelsForTeam)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/search_autocomplete", api.APISessionRequired(autocompleteChannelsForTeamForSearch)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels", api.APISessionRequired(getChannelsForTeamForUser)).Methods(http.MethodGet)
@@ -1221,45 +1220,6 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		channels, appErr = c.App.SearchChannelsForUser(c.AppContext, c.AppContext.Session().UserId, c.Params.TeamId, props.Term)
-	}
-
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	// Don't fill in channels props, since unused by client and potentially expensive.
-
-	if err := json.NewEncoder(w).Encode(channels); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
-}
-
-func searchArchivedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireTeamId()
-	if c.Err != nil {
-		return
-	}
-
-	var props *model.ChannelSearch
-	err := json.NewDecoder(r.Body).Decode(&props)
-	if err != nil || props == nil {
-		c.SetInvalidParamWithErr("channel_search", err)
-		return
-	}
-
-	var channels model.ChannelList
-	var appErr *model.AppError
-	if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
-		channels, appErr = c.App.SearchArchivedChannels(c.AppContext, c.Params.TeamId, props.Term, c.AppContext.Session().UserId)
-	} else {
-		// If the user is not a team member, return a 404
-		if _, appErr = c.App.GetTeamMember(c.AppContext, c.Params.TeamId, c.AppContext.Session().UserId); appErr != nil {
-			c.Err = appErr
-			return
-		}
-
-		channels, appErr = c.App.SearchArchivedChannels(c.AppContext, c.Params.TeamId, props.Term, c.AppContext.Session().UserId)
 	}
 
 	if appErr != nil {
