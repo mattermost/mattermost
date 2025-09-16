@@ -546,9 +546,16 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                     value={this.state.emailField}
                                                     onChange={this.handleEmailChange}
                                                     disabled={this.state.error !== null || this.state.isSaving}
+                                                    aria-describedby={this.state.emailError ? 'email-error' : undefined}
+                                                    aria-invalid={this.state.emailError ? 'true' : 'false'}
                                                 />
                                                 {this.state.emailError && (
-                                                    <div className='field-error'>
+                                                    <div
+                                                        id='email-error'
+                                                        className='field-error'
+                                                        role='alert'
+                                                        aria-live='polite'
+                                                    >
                                                         {this.state.emailError}
                                                     </div>
                                                 )}
@@ -595,9 +602,16 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                     onChange={this.handleUsernameChange}
                                                     disabled={this.state.error !== null || this.state.isSaving}
                                                     placeholder='Enter username'
+                                                    aria-describedby={this.state.usernameError ? 'username-error' : undefined}
+                                                    aria-invalid={this.state.usernameError ? 'true' : 'false'}
                                                 />
                                                 {this.state.usernameError && (
-                                                    <div className='field-error'>
+                                                    <div
+                                                        id='username-error'
+                                                        className='field-error'
+                                                        role='alert'
+                                                        aria-live='polite'
+                                                    >
                                                         {this.state.usernameError}
                                                     </div>
                                                 )}
@@ -772,7 +786,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         disabled={!this.state.isSaveNeeded || this.state.isLoading || this.state.error !== null || this.state.isSaving || this.state.emailError !== null || this.state.usernameError !== null}
                         onClick={this.handleSubmit}
                     />
-                    <div className='error-message'>
+                    <div className='error-message' role='alert' aria-live='polite'>
                         <FormError error={this.state.error}/>
                     </div>
                 </div>
