@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
+import React, {useState, useEffect, useCallback, useMemo, useRef, Suspense} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -14,6 +14,7 @@ import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import ConfirmModal from 'components/confirm_modal';
 import SystemPolicyIndicator from 'components/system_policy_indicator';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
@@ -21,7 +22,8 @@ import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
 
 import type {GlobalState} from 'types/store';
 
-import ChannelAccessRulesConfirmModal from './channel_access_rules_confirm_modal';
+// Lazy load the confirm modal to reduce initial bundle size
+const ChannelAccessRulesConfirmModal = React.lazy(() => import('./channel_access_rules_confirm_modal'));
 
 import './channel_settings_access_rules_tab.scss';
 
@@ -71,16 +73,15 @@ function ChannelSettingsAccessRulesTab({
     // Fetch system policies applied to this channel
     const {policies: systemPolicies, loading: policiesLoading} = useChannelSystemPolicies(channel);
 
+    // Memoize active policies check to avoid repeated computation
+    const hasActivePolicies = useMemo(() => {
+        return systemPolicies?.some((policy) => policy.active === true) || false;
+    }, [systemPolicies]);
+
     // Check if system policies force auto-sync to be enabled
     useEffect(() => {
-        if (systemPolicies && systemPolicies.length > 0) {
-            // System policies force auto-sync when they are active
-            const hasActivePolicies = systemPolicies.some((policy) => policy.active === true);
-            setSystemPolicyForcesAutoSync(hasActivePolicies);
-        } else {
-            setSystemPolicyForcesAutoSync(false);
-        }
-    }, [systemPolicies]);
+        setSystemPolicyForcesAutoSync(hasActivePolicies);
+    }, [hasActivePolicies]);
 
     // Load user attributes on component mount
     useEffect(() => {
@@ -106,9 +107,10 @@ function ChannelSettingsAccessRulesTab({
         };
 
         loadAttributes();
-    }, [actions]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    // Load existing channel access rules
+    // Load existing channel access rules (only when channel changes)
     useEffect(() => {
         const loadChannelPolicy = async () => {
             try {
@@ -116,12 +118,7 @@ function ChannelSettingsAccessRulesTab({
                 if (result.data) {
                     // Extract expression from the policy rules
                     const existingExpression = result.data.rules?.[0]?.expression || '';
-                    let existingAutoSync = result.data.active || false;
-
-                    // If system policies force auto-sync, override the channel setting
-                    if (systemPolicyForcesAutoSync) {
-                        existingAutoSync = true;
-                    }
+                    const existingAutoSync = result.data.active || false;
 
                     setExpression(existingExpression);
                     setOriginalExpression(existingExpression);
@@ -132,16 +129,14 @@ function ChannelSettingsAccessRulesTab({
                 // If no policy exists (404), that's fine - use defaults
                 setExpression('');
                 setOriginalExpression('');
-
-                // If system policies force auto-sync, enable it even without a channel policy
-                const defaultAutoSync = systemPolicyForcesAutoSync;
-                setAutoSyncMembers(defaultAutoSync);
-                setOriginalAutoSyncMembers(defaultAutoSync);
+                setAutoSyncMembers(false);
+                setOriginalAutoSyncMembers(false);
             }
         };
 
         loadChannelPolicy();
-    }, [channel.id, actions, systemPolicyForcesAutoSync]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [channel.id]);
 
     // Update parent component when changes occur
     useEffect(() => {
@@ -217,12 +212,16 @@ function ChannelSettingsAccessRulesTab({
         setAutoSyncMembers((prev) => !prev);
     }, [expression, isEmptyRulesState, systemPolicyForcesAutoSync, autoSyncMembers]);
 
+    // Memoize system policy expressions to avoid recomputing on every call
+    const systemExpressions = useMemo(() => {
+        return systemPolicies?.
+            map((policy) => policy.rules?.[0]?.expression).
+            filter((expr) => expr && expr.trim()) || [];
+    }, [systemPolicies]);
+
     // Helper function to combine system policy expressions with channel expression
     const combineSystemAndChannelExpressions = useCallback((channelExpression: string): string => {
-        // Get expressions from system policies
-        const systemExpressions = systemPolicies.
-            map((policy) => policy.rules?.[0]?.expression).
-            filter((expr) => expr && expr.trim());
+        // Use pre-computed system expressions
 
         // Combine channel expression with system expressions
         const allExpressions = [];
@@ -248,7 +247,7 @@ function ChannelSettingsAccessRulesTab({
         return allExpressions.
             map((expr) => `(${expr})`).
             join(' && ');
-    }, [systemPolicies]);
+    }, [systemExpressions]);
 
     // Validate that current user satisfies the expression
     const validateSelfExclusion = useCallback(async (testExpression: string): Promise<boolean> => {
@@ -737,27 +736,31 @@ function ChannelSettingsAccessRulesTab({
                 isStacked={true}
             />
 
-            {/* Confirmation modal for membership changes */}
-            <ChannelAccessRulesConfirmModal
-                show={showConfirmModal}
-                onHide={() => {
-                    setShowConfirmModal(false);
-                    setUsersToAdd([]);
-                    setUsersToRemove([]);
+            {/* Confirmation modal for membership changes - lazy loaded */}
+            {showConfirmModal && (
+                <Suspense fallback={<LoadingSpinner/>}>
+                    <ChannelAccessRulesConfirmModal
+                        show={showConfirmModal}
+                        onHide={() => {
+                            setShowConfirmModal(false);
+                            setUsersToAdd([]);
+                            setUsersToRemove([]);
 
-                    // Clear any error state when canceling the modal
-                    if (saveChangesPanelState === 'error') {
-                        setSaveChangesPanelState(undefined);
-                    }
-                }}
-                onConfirm={handleConfirmSave}
-                channelName={channel.display_name}
-                usersToAdd={usersToAdd}
-                usersToRemove={usersToRemove}
-                isProcessing={isProcessingSave}
-                autoSyncEnabled={autoSyncMembers}
-                isStacked={true}
-            />
+                            // Clear any error state when canceling the modal
+                            if (saveChangesPanelState === 'error') {
+                                setSaveChangesPanelState(undefined);
+                            }
+                        }}
+                        onConfirm={handleConfirmSave}
+                        channelName={channel.display_name}
+                        usersToAdd={usersToAdd}
+                        usersToRemove={usersToRemove}
+                        isProcessing={isProcessingSave}
+                        autoSyncEnabled={autoSyncMembers}
+                        isStacked={true}
+                    />
+                </Suspense>
+            )}
         </div>
     );
 }

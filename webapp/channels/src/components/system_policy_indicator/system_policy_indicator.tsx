@@ -37,7 +37,7 @@ const SystemPolicyIndicator: React.FC<SystemPolicyIndicatorProps> = ({
         return policies.filter((policy) => policy && typeof policy === 'object' && policy.id);
     }, [policies]);
 
-    const hasMultiplePolicies = safePolicies.length > 1;
+    const hasMultiplePolicies = useMemo(() => safePolicies.length > 1, [safePolicies]);
 
     const handleMorePoliciesClick = useCallback((event: React.MouseEvent | React.KeyboardEvent) => {
         event.preventDefault();
