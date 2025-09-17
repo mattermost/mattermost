@@ -2413,6 +2413,10 @@
     "translation": "E10 or E20 license required to use this endpoint."
   },
   {
+    "id": "api.not_implemented",
+    "translation": "This feature is not implemented."
+  },
+  {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
     "translation": "invalid_request: Supplied redirect_uri did not match registered callback_url."
   },
@@ -4007,6 +4011,10 @@
     "translation": "Login failed because of invalid password."
   },
   {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "The format of the hashed password is invalid and could not be parsed."
+  },
+  {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Blank email."
   },
@@ -5143,6 +5151,10 @@
     "translation": "Unable to delete Custom Profile Attribute field"
   },
   {
+    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
+    "translation": "Cannot update value for an admin-managed Custom Profile Attribute field"
+  },
+  {
     "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
     "translation": "Cannot update value for a synced Custom Profile Attribute field"
   },
@@ -6157,6 +6169,18 @@
   {
     "id": "app.login.doLogin.updateLastLogin.error",
     "translation": "Could not update last login timestamp"
+  },
+  {
+    "id": "app.lookup_interactive_dialog.decode_json_error",
+    "translation": "Encountered an error decoding JSON response from interactive dialog lookup."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.json_error",
+    "translation": "Encountered an error processing JSON response from interactive dialog lookup."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.read_body_error",
+    "translation": "Encountered an error reading response body from interactive dialog lookup."
   },
   {
     "id": "app.member_count",
@@ -7449,6 +7473,14 @@
     "translation": "We could not count the inactive users."
   },
   {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "Failed to migrate the user's password to the newest hashing method."
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "Failed to update the user's password."
+  },
+  {
     "id": "app.user.clear_all_custom_role_assignments.select.app_error",
     "translation": "Failed to retrieve the users."
   },
@@ -7911,6 +7943,14 @@
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
     "translation": "Setting up {{.Backend}} Client Failed"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "Failed to create Elasticsearch bulk processor"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+    "translation": "Failed to create Elasticsearch sync bulk processor"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",

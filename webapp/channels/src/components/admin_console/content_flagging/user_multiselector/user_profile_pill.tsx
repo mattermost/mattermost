@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {JSX} from 'react';
 import React from 'react';
 import {useSelector} from 'react-redux';
+import type {SingleValueProps} from 'react-select';
 import type {MultiValueProps} from 'react-select/dist/declarations/src/components/MultiValue';
 
 import type {UserProfile} from '@mattermost/types/users';
@@ -32,9 +34,39 @@ function Remove(props: any) {
     );
 }
 
-export function UserProfilePill(props: MultiValueProps<AutocompleteOptionType<UserProfile>, true>) {
+export function MultiUserProfilePill(props: MultiValueProps<AutocompleteOptionType<UserProfile>, true>) {
     const {data, innerProps, selectProps, removeProps} = props;
 
+    return (
+        <BaseUserProfilePill
+            data={data}
+            innerProps={innerProps}
+            selectProps={selectProps}
+            removeProps={removeProps}
+        />
+    );
+}
+
+export function SingleUserProfilePill(props: SingleValueProps<AutocompleteOptionType<UserProfile>, false>) {
+    const {data, innerProps, selectProps} = props;
+
+    return (
+        <BaseUserProfilePill
+            data={data}
+            innerProps={innerProps}
+            selectProps={selectProps}
+        />
+    );
+}
+
+type Props = {
+    data: AutocompleteOptionType<UserProfile>;
+    innerProps: JSX.IntrinsicElements['div'];
+    selectProps: unknown;
+    removeProps?: JSX.IntrinsicElements['div'];
+}
+
+function BaseUserProfilePill({data, innerProps, selectProps, removeProps}: Props) {
     const userProfile = data.raw;
     const userDisplayName = useSelector((state: GlobalState) => getDisplayNameByUser(state, userProfile));
 
@@ -51,12 +83,15 @@ export function UserProfilePill(props: MultiValueProps<AutocompleteOptionType<Us
 
             {userDisplayName}
 
-            <Remove
-                data={data}
-                innerProps={innerProps}
-                selectProps={selectProps}
-                {...removeProps}
-            />
+            {
+                removeProps &&
+                <Remove
+                    data={data}
+                    innerProps={innerProps}
+                    selectProps={selectProps}
+                    {...removeProps}
+                />
+            }
         </div>
     );
 }

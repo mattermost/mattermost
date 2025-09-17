@@ -5,7 +5,6 @@ import nock from 'nock';
 
 import Client4, {ClientError, HEADER_X_VERSION_ID} from './client4';
 import {buildQueryString} from './helpers';
-import type {TelemetryHandler} from './telemetry';
 
 describe('Client4', () => {
     beforeAll(() => {
@@ -108,24 +107,3 @@ describe('ClientError', () => {
     });
 });
 
-describe('trackEvent', () => {
-    class TestTelemetryHandler implements TelemetryHandler {
-        trackEvent = jest.fn();
-        trackFeatureEvent = jest.fn();
-        pageVisited = jest.fn();
-    }
-
-    test('should call the attached RudderTelemetryHandler, if one is attached to Client4', () => {
-        const client = new Client4();
-        client.setUrl('http://mattermost.example.com');
-
-        expect(() => client.trackEvent('test', 'onClick')).not.toThrowError();
-
-        const handler = new TestTelemetryHandler();
-
-        client.setTelemetryHandler(handler);
-        client.trackEvent('test', 'onClick');
-
-        expect(handler.trackEvent).toHaveBeenCalledTimes(1);
-    });
-});

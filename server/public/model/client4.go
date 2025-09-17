@@ -611,7 +611,7 @@ func (c *Client4) customProfileAttributesRoute() string {
 }
 
 func (c *Client4) userCustomProfileAttributesRoute(userID string) string {
-	return fmt.Sprintf("%s/%s", c.userRoute(userID), c.customProfileAttributesRoute())
+	return fmt.Sprintf("%s/custom_profile_attributes", c.userRoute(userID))
 }
 
 func (c *Client4) customProfileAttributeFieldsRoute() string {
@@ -639,7 +639,7 @@ func (c *Client4) accessControlPolicyRoute(policyID string) string {
 }
 
 func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
+	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/server", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3520,26 +3520,6 @@ func (c *Client4) SearchChannels(ctx context.Context, teamId string, search *Cha
 	return ch, BuildResponse(r), nil
 }
 
-// SearchArchivedChannels returns the archived channels on a team matching the provided search term.
-func (c *Client4) SearchArchivedChannels(ctx context.Context, teamId string, search *ChannelSearch) ([]*Channel, *Response, error) {
-	searchJSON, err := json.Marshal(search)
-	if err != nil {
-		return nil, nil, NewAppError("SearchArchivedChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPost(ctx, c.channelsForTeamRoute(teamId)+"/search_archived", string(searchJSON))
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var ch []*Channel
-	err = json.NewDecoder(r.Body).Decode(&ch)
-	if err != nil {
-		return nil, BuildResponse(r), NewAppError("SearchArchivedChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return ch, BuildResponse(r), nil
-}
-
 // SearchAllChannels search in all the channels. Must be a system administrator.
 func (c *Client4) SearchAllChannels(ctx context.Context, search *ChannelSearch) (ChannelListWithTeamData, *Response, error) {
 	searchJSON, err := json.Marshal(search)
@@ -4688,6 +4668,27 @@ func (c *Client4) SubmitInteractiveDialog(ctx context.Context, request SubmitDia
 
 	var resp SubmitDialogResponse
 	json.NewDecoder(r.Body).Decode(&resp)
+	return &resp, BuildResponse(r), nil
+}
+
+// LookupInteractiveDialog will perform a lookup request for dynamic select elements
+// in interactive dialogs. Used to fetch options for dynamic select fields.
+func (c *Client4) LookupInteractiveDialog(ctx context.Context, request SubmitDialogRequest) (*LookupDialogResponse, *Response, error) {
+	b, err := json.Marshal(request)
+	if err != nil {
+		return nil, nil, NewAppError("LookupInteractiveDialog", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPost(ctx, "/actions/dialogs/lookup", string(b))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var resp LookupDialogResponse
+	err = json.NewDecoder(r.Body).Decode(&resp)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("LookupInteractiveDialog", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 	return &resp, BuildResponse(r), nil
 }
 
@@ -9649,6 +9650,26 @@ func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]json.Raw
 	return patchedValues, BuildResponse(r), nil
 }
 
+func (c *Client4) PatchCPAValuesForUser(ctx context.Context, userID string, values map[string]json.RawMessage) (map[string]json.RawMessage, *Response, error) {
+	buf, err := json.Marshal(values)
+	if err != nil {
+		return nil, nil, NewAppError("PatchCPAValuesForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPatchBytes(ctx, c.userCustomProfileAttributesRoute(userID), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var patchedValues map[string]json.RawMessage
+	if err := json.NewDecoder(r.Body).Decode(&patchedValues); err != nil {
+		return nil, nil, NewAppError("PatchCPAValuesForUser", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return patchedValues, BuildResponse(r), nil
+}
+
 // Access Control Policies Section
 
 // CreateAccessControlPolicy creates a new access control policy.
@@ -9697,11 +9718,15 @@ func (c *Client4) DeleteAccessControlPolicy(ctx context.Context, id string) (*Re
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) CheckExpression(ctx context.Context, expression string) ([]CELExpressionError, *Response, error) {
+func (c *Client4) CheckExpression(ctx context.Context, expression string, channelId ...string) ([]CELExpressionError, *Response, error) {
 	checkExpressionRequest := struct {
 		Expression string `json:"expression"`
+		ChannelId  string `json:"channelId,omitempty"`
 	}{
 		Expression: expression,
+	}
+	if len(channelId) > 0 && channelId[0] != "" {
+		checkExpressionRequest.ChannelId = channelId[0]
 	}
 	b, err := json.Marshal(checkExpressionRequest)
 	if err != nil {

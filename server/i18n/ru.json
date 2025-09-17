@@ -924,10 +924,6 @@
     "translation": "пожимание плечами"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Новый формат конфигурации клиента пока не поддерживается. Пожалуйста, укажите format=old в строке запроса."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Извините, мы не смогли найти страницу."
   },
@@ -2078,14 +2074,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Логин бота запрещен."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Попытка войти с использованием экспериментальной возможности ClientSideCert без предоставления действительного сертификата."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Попытка использования экспериментальной возможности ClientSideCert без действительной корпоративной лицензии."
   },
   {
     "id": "api.user.login.inactive.app_error",

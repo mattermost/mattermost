@@ -3046,9 +3046,9 @@ func (s SqlChannelStore) GetMembersForUserWithCursorPagination(userId string, pe
 	return dbMembers.ToModel(), nil
 }
 
-func (s SqlChannelStore) GetTeamMembersForChannel(channelID string) ([]string, error) {
+func (s SqlChannelStore) GetTeamMembersForChannel(rctx request.CTX, channelID string) ([]string, error) {
 	teamMemberIDs := []string{}
-	if err := s.GetReplica().Select(&teamMemberIDs, `SELECT tm.UserId
+	if err := s.DBXFromContext(rctx.Context()).Select(&teamMemberIDs, `SELECT tm.UserId
 		FROM Channels c, Teams t, TeamMembers tm
 		WHERE
 			c.TeamId=t.Id
@@ -3313,50 +3313,6 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted
 	}
 
 	return s.performSearch(query, term)
-}
-
-func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId string) (model.ChannelList, error) {
-	queryBase := s.getQueryBuilder().Select(channelSliceColumns(true, "Channels")...).
-		From("Channels").
-		Join("Channels c ON (c.Id = Channels.Id)").
-		Where(sq.And{
-			sq.Eq{"c.TeamId": teamId},
-			sq.NotEq{"c.DeleteAt": 0},
-		}).
-		OrderBy("c.DisplayName").
-		Limit(100)
-
-	searchClause := s.searchClause(term)
-	if searchClause != nil {
-		queryBase = queryBase.Where(searchClause)
-	}
-
-	publicQuery := queryBase.
-		Where(sq.NotEq{"c.Type": model.ChannelTypePrivate})
-
-	privateQuery := queryBase.
-		Where(
-			sq.And{
-				sq.Eq{"c.Type": model.ChannelTypePrivate},
-				sq.Expr("c.Id IN (?)", sq.Select("ChannelId").
-					From("ChannelMembers").
-					Where(sq.Eq{"UserId": userId})),
-			})
-
-	publicChannels, err := s.performSearch(publicQuery, term)
-	if err != nil {
-		return nil, err
-	}
-
-	privateChannels, err := s.performSearch(privateQuery, term)
-	if err != nil {
-		return nil, err
-	}
-
-	output := publicChannels
-	output = append(output, privateChannels...)
-
-	return output, nil
 }
 
 func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (model.ChannelList, error) {
