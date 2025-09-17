@@ -1044,7 +1044,7 @@ func (a *App) userDeactivated(rctx request.CTX, userID string) *model.AppError {
 	return nil
 }
 
-func (a *App) softDeleteUserDMChannels(c request.CTX, userID string, deleteTimestamp int64) *model.AppError {
+func (a *App) softDeleteUserDMChannels(rctx request.CTX, userID string, deleteTimestamp int64) *model.AppError {
 	fromID := ""
 	const pageSize = 200
 
@@ -1068,7 +1068,7 @@ func (a *App) softDeleteUserDMChannels(c request.CTX, userID string, deleteTimes
 			}
 
 			if err := a.Srv().Store().Channel().SetDeleteAt(channel.Id, deleteTimestamp, deleteTimestamp); err != nil {
-				c.Logger().Error("SetDeleteAt failed", mlog.String("ch_id", channel.Id), mlog.Err(err))
+				rctx.Logger().Error("SetDeleteAt failed", mlog.String("ch_id", channel.Id), mlog.Err(err))
 				return model.NewAppError("softDeleteUserDMChannels", "app.channel.set_delete_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 
