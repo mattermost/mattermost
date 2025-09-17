@@ -70,7 +70,7 @@ export default keyMirror({
     DISABLED_USER_ACCESS_TOKEN: null,
     ENABLED_USER_ACCESS_TOKEN: null,
     RECEIVED_USER_STATS: null,
-    RECIEVED_APP_LIMITS: null,
+    RECEIVED_APP_LIMITS: null,
     RECEIVED_FILTERED_USER_STATS: null,
     PROFILE_NO_LONGER_VISIBLE: null,
     LOGIN: null,

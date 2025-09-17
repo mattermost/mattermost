@@ -11,8 +11,8 @@
 // Group: @channels @enterprise @system_console @authentication
 
 import {Team} from '@mattermost/types/teams';
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
+import * as TIMEOUTS from '../../../../fixtures/timeouts';
 import {getRandomId} from '../../../../utils';
 
 describe('Authentication', () => {

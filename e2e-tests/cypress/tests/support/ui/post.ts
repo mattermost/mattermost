@@ -63,6 +63,18 @@ function getPost(postId: string): ChainableT<JQuery> {
 }
 Cypress.Commands.add('getPost', getPost);
 
+function editLastPostWithNewMessage(message: string) {
+    cy.uiGetPostTextBox().type('{uparrow}');
+
+    // * Edit Post Input should appear
+    cy.get('#edit_textbox').should('be.visible');
+
+    // # Update the post message and click Save
+    cy.get('#edit_textbox').clear().type(message)
+    cy.get('#create_post').findByText('Save').should('be.visible').click();
+}
+Cypress.Commands.add('editLastPostWithNewMessage', editLastPostWithNewMessage);
+
 export function verifySavedPost(postId, message) {
     // * Check that the center save icon has been updated correctly
     cy.get(`#post_${postId}`).trigger('mouseover', {force: true});
@@ -181,6 +193,16 @@ declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace Cypress {
         interface Chainable {
+
+            /**
+             * Edit last post with a new message
+             *
+             * @param {string} - message
+             *
+             * @example
+             *   cy.editLastPostWithNewMessage('new message');
+             */
+            editLastPostWithNewMessage: typeof editLastPostWithNewMessage;
 
             /**
              * Get post profile image of a given post ID or the last post if post ID is not given
