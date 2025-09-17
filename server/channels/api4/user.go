@@ -155,10 +155,23 @@ func loginSSOCodeExchange(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Verify PKCE
 	computed := codeVerifier
-	if method == "S256" || method == "" {
+	switch strings.ToUpper(method) {
+	case "S256":
 		sum := sha256.Sum256([]byte(codeVerifier))
 		computed = base64.RawURLEncoding.EncodeToString(sum[:])
+	case "":
+		computed = codeVerifier
+	case "PLAIN":
+		// Explicitly reject plain method for security
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "plain PKCE method not supported",
+			http.StatusBadRequest)
+		return
+	default:
+		// Reject unknown methods
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "unsupported PKCE method", http.StatusBadRequest)
+		return
 	}
+
 	if computed != codeChallenge {
 		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "pkce mismatch", http.StatusBadRequest)
 		return
