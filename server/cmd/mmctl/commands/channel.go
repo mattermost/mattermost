@@ -136,6 +136,7 @@ func init() {
 	SearchChannelCmd.Flags().String("team", "", "Team name or ID")
 
 	MoveChannelCmd.Flags().Bool("force", false, "Remove users that are not members of target team before moving the channel.")
+	MoveChannelCmd.Flags().Bool("auto-add-users", false, "Automatically add users that are not members of target team to the target team before moving the channel.")
 
 	DeleteChannelsCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the channel and a DB backup has been performed.")
 

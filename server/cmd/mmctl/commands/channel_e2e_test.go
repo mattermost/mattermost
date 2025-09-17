@@ -625,6 +625,7 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 	s.RunForSystemAdminAndLocal("Move channel with auto add users flag", func(c client.Client) {
 		printer.Clean()
 
+		s.SetupTestHelper().InitBasic()
 		testTeamName := api4.GenerateTestTeamName()
 		var team *model.Team
 		team, appErr := s.th.App.CreateTeam(s.th.Context, &model.Team{
