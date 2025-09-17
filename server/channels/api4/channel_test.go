@@ -4371,6 +4371,37 @@ func TestAddChannelMember(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("requester is not a member of the team and tries to add a user to a channel where it is already a member", func(t *testing.T) {
+		// Create two teams using SystemAdminClient
+		t1 := th.CreateTeamWithClient(th.SystemAdminClient)
+		t2 := th.CreateTeamWithClient(th.SystemAdminClient)
+
+		// Use existing users - user will be BasicUser, user2 will be BasicUser2
+		u1 := th.BasicUser
+		u2 := th.BasicUser2
+
+		// Add user1 to team1 and user2 to team2 (they're already on BasicTeam)
+		th.LinkUserToTeam(u1, t1)
+		th.LinkUserToTeam(u2, t2)
+
+		// Create a public channel in team1
+		pubChannel := th.CreateChannelWithClientAndTeam(th.SystemAdminClient, model.ChannelTypeOpen, t1.Id)
+
+		// Add user1 to the public channel
+		th.AddUserToChannel(u1, pubChannel)
+
+		// Create client for user2
+		client2 := th.CreateClient()
+		_, _, err := client2.Login(context.Background(), u2.Email, u2.Password)
+		require.NoError(t, err)
+
+		// Try to add user1 to the public channel using user2's credentials
+		// This should fail with 403 since user2 is not a member of the team
+		_, resp, err := client2.AddChannelMember(context.Background(), pubChannel.Id, u1.Id)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+
 	t.Run("invalid request data", func(t *testing.T) {
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			// correct type for user ids (string) but invalid value.
