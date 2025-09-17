@@ -254,7 +254,7 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                     xmlns="http://www.w3.org/2000/svg"
                   >
                     <path
-                      d="M13,20H11V8L5.5,13.5L4.08,12.08L12,4.16L19.92,12.08L18.5,13.5L13,8V20Z"
+                      d="M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4Z"
                     />
                   </svg>
                 </div>
@@ -302,68 +302,7 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                     <span
                       class="group-description row-content"
                     >
-                      timestamp 1
-                    </span>
-                  </span>
-                </div>
-                <div
-                  class="DataGrid_cell"
-                  style="flex-grow: 0.5; text-align: left;"
-                >
-                  <span
-                    class="group-description adjusted row-content"
-                  >
-                    info
-                  </span>
-                </div>
-                <div
-                  class="DataGrid_cell"
-                  style="flex-grow: 2.5; text-align: left;"
-                >
-                  <span
-                    class="group-description row-content"
-                    title="msg 1"
-                  >
-                    msg 1
-                  </span>
-                </div>
-                <div
-                  class="DataGrid_cell"
-                  style="flex-grow: 1.5; text-align: left;"
-                >
-                  <span
-                    class="group-description row-content"
-                  >
-                    caller 1
-                  </span>
-                </div>
-                <div
-                  class="DataGrid_cell"
-                  style="flex-grow: 1; text-align: left;"
-                >
-                  <button
-                    class="btn btn-secondary btn-sm"
-                    type="submit"
-                  >
-                    Full Log event
-                  </button>
-                </div>
-              </div>
-              <div
-                class="DataGrid_row"
-              >
-                <div
-                  class="DataGrid_cell"
-                  style="flex-grow: 1.5; text-align: left;"
-                >
-                  <span
-                    class="group-name overflow--ellipsis row-content"
-                    data-testid="timestamp"
-                  >
-                    <span
-                      class="group-description row-content"
-                    >
-                      timestamp 2
+                      02/01/2001 24:00:00
                     </span>
                   </span>
                 </div>
@@ -396,6 +335,67 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                     class="group-description row-content"
                   >
                     caller 2
+                  </span>
+                </div>
+                <div
+                  class="DataGrid_cell"
+                  style="flex-grow: 1; text-align: left;"
+                >
+                  <button
+                    class="btn btn-secondary btn-sm"
+                    type="submit"
+                  >
+                    Full Log event
+                  </button>
+                </div>
+              </div>
+              <div
+                class="DataGrid_row"
+              >
+                <div
+                  class="DataGrid_cell"
+                  style="flex-grow: 1.5; text-align: left;"
+                >
+                  <span
+                    class="group-name overflow--ellipsis row-content"
+                    data-testid="timestamp"
+                  >
+                    <span
+                      class="group-description row-content"
+                    >
+                      01/01/2001 24:00:00
+                    </span>
+                  </span>
+                </div>
+                <div
+                  class="DataGrid_cell"
+                  style="flex-grow: 0.5; text-align: left;"
+                >
+                  <span
+                    class="group-description adjusted row-content"
+                  >
+                    info
+                  </span>
+                </div>
+                <div
+                  class="DataGrid_cell"
+                  style="flex-grow: 2.5; text-align: left;"
+                >
+                  <span
+                    class="group-description row-content"
+                    title="msg 1"
+                  >
+                    msg 1
+                  </span>
+                </div>
+                <div
+                  class="DataGrid_cell"
+                  style="flex-grow: 1.5; text-align: left;"
+                >
+                  <span
+                    class="group-description row-content"
+                  >
+                    caller 1
                   </span>
                 </div>
                 <div
