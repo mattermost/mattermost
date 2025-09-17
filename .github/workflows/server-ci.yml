@@ -205,6 +205,7 @@ jobs:
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
   test-postgres-normal-fips:
+    if: github.event.pull_request.head.repo.full_name == github.repository # Only for PRs from mattermost/mattermost
     name: Postgres (FIPS)
     needs: go
     uses: ./.github/workflows/server-test-template.yml
@@ -244,6 +245,7 @@ jobs:
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
   test-mmctl-fips:
+    if: github.event.pull_request.head.repo.full_name == github.repository # Only for PRs from mattermost/mattermost
     name: Run mmctl tests (FIPS)
     needs: go
     uses: ./.github/workflows/mmctl-test-template.yml
