@@ -6509,7 +6509,7 @@
   "workspace_limits.menu_limit.warn.files_storage": "Du kommst näher an das {limit} Dateispeicher-Limit. <a>{callToAction}</a>",
   "workspace_limits.menu_limit.warn.messages_history": "Du kommst näher an das {limit} freie Nachrichten-Limit. <a>{callToAction}</a>",
   "workspace_limits.message_history": "Nachrichten Historie",
-  "workspace_limits.message_history.locked.description.admin": "Der volle Zugriff auf den Nachrichtenverlauf ist in den <a>kostenpflichtigen Tarifen</a> enthalten.",
+  "workspace_limits.message_history.locked.description.admin": "Der volle Zugriff auf den Nachrichtenverlauf ist in den <a>kostenpflichtigen Tarifen</a> enthalten",
   "workspace_limits.message_history.locked.title.admin": "Begrenzte Historie wird angezeigt",
   "workspace_limits.message_history.short": "Nachrichten",
   "workspace_limits.message_history.short.usage": "{actual} / {limit}",
