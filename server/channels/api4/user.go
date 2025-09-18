@@ -113,7 +113,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/trigger-notify-admin-posts", api.APISessionRequired(handleTriggerNotifyAdminPosts)).Methods(http.MethodPost)
 }
 
-// loginSSOCodeExchange exchanges a short-lived login_code for session tokens (mobile PKCE)
+// loginSSOCodeExchange exchanges a short-lived login_code for session tokens (mobile SAML code exchange)
 func loginSSOCodeExchange(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.Config().FeatureFlags.MobileSSOCodeExchange {
 		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "feature disabled", http.StatusBadRequest)
@@ -153,8 +153,8 @@ func loginSSOCodeExchange(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Verify PKCE
-	computed := codeVerifier
+	// Verify SAML challenge
+	var computed string
 	switch strings.ToUpper(method) {
 	case "S256":
 		sum := sha256.Sum256([]byte(codeVerifier))
@@ -163,17 +163,17 @@ func loginSSOCodeExchange(c *Context, w http.ResponseWriter, r *http.Request) {
 		computed = codeVerifier
 	case "PLAIN":
 		// Explicitly reject plain method for security
-		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "plain PKCE method not supported",
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "plain SAML challenge method not supported",
 			http.StatusBadRequest)
 		return
 	default:
 		// Reject unknown methods
-		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "unsupported PKCE method", http.StatusBadRequest)
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "unsupported SAML challenge method", http.StatusBadRequest)
 		return
 	}
 
 	if computed != codeChallenge {
-		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "pkce mismatch", http.StatusBadRequest)
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "SAML challenge mismatch", http.StatusBadRequest)
 		return
 	}
 

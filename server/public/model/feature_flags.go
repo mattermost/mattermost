@@ -76,7 +76,7 @@ type FeatureFlags struct {
 
 	EnableMattermostEntry bool
 
-	// Enable mobile SSO PKCE code-exchange flow (no tokens in deep links)
+	// Enable mobile SSO SAML code-exchange flow (no tokens in deep links)
 	MobileSSOCodeExchange bool
 
 	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this field when feature is GA

@@ -37,7 +37,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	action := r.URL.Query().Get("action")
 	isMobile := action == model.OAuthActionMobile
 	redirectURL := html.EscapeString(r.URL.Query().Get("redirect_to"))
-	// Optional PKCE parameters for mobile code-exchange
+	// Optional SAML challenge parameters for mobile code-exchange
 	state := r.URL.Query().Get("state")
 	codeChallenge := r.URL.Query().Get("code_challenge")
 	codeChallengeMethod := r.URL.Query().Get("code_challenge_method")
@@ -65,7 +65,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps["redirect_to"] = redirectURL
 	}
 
-	// Forward PKCE values via RelayState so the complete step can prefer code-exchange
+	// Forward SAML challenge values via RelayState so the complete step can prefer code-exchange
 	if isMobile {
 		if state != "" {
 			relayProps["state"] = state
@@ -237,18 +237,18 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Decide between legacy token-in-URL vs PKCE code-exchange for mobile
-	pkceState := relayProps["state"]
-	pkceCodeChallenge := relayProps["code_challenge"]
-	pkceMethod := relayProps["code_challenge_method"]
+	// Decide between legacy token-in-URL vs SAML code-exchange for mobile
+	samlState := relayProps["state"]
+	samlChallenge := relayProps["code_challenge"]
+	samlMethod := relayProps["code_challenge_method"]
 
-	if isMobile && hasRedirectURL && pkceCodeChallenge != "" && c.App.Config().FeatureFlags.MobileSSOCodeExchange {
-		// Issue one-time login_code bound to user and PKCE values; do not create a session here
+	if isMobile && hasRedirectURL && samlChallenge != "" && c.App.Config().FeatureFlags.MobileSSOCodeExchange {
+		// Issue one-time login_code bound to user and SAML challenge values; do not create a session here
 		extra := model.MapToJSON(map[string]string{
 			"user_id":               user.Id,
-			"state":                 pkceState,
-			"code_challenge":        pkceCodeChallenge,
-			"code_challenge_method": pkceMethod,
+			"state":                 samlState,
+			"code_challenge":        samlChallenge,
+			"code_challenge_method": samlMethod,
 		})
 		code := model.NewToken(model.TokenTypeSaml, extra)
 		if err := c.App.Srv().Store().Token().Save(code); err != nil {
@@ -263,7 +263,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Legacy: create a session and attach tokens (web/mobile without PKCE)
+	// Legacy: create a session and attach tokens (web/mobile without SAML code exchange)
 	session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, true)
 	if err != nil {
 		handleError(err)
@@ -278,8 +278,8 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	if hasRedirectURL {
 		if isMobile {
 			// Mobile clients with redirect url support
-			// Legacy mobile path: return tokens only when PKCE was not requested
-			if pkceCodeChallenge == "" {
+			// Legacy mobile path: return tokens only when SAML code exchange was not requested
+			if samlChallenge == "" {
 				redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
 					model.SessionCookieToken: c.AppContext.Session().Token,
 					model.SessionCookieCsrf:  c.AppContext.Session().GetCSRF(),
