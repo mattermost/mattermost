@@ -10422,5 +10422,205 @@
   {
     "id": "api.channel.add_user.to.channel.rejected",
     "translation": "Kullanıcının kanala katılmak için gerekli öznitelikleri yok."
+  },
+  {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "İlke ile dayatılan kanallar güncellenemez."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Kanal üyesi güncellemesi geçersiz: Bir kanal üyesinin her zaman bir kullanıcı şeması vardır."
+  },
+  {
+    "id": "api.command_share.service_inactive",
+    "translation": "Paylaşılan kanallar hizmeti açık ancak etkin değil."
+  },
+  {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "İçerik işaretleme özelliği kapalı."
+  },
+  {
+    "id": "api.content_flagging.error.license",
+    "translation": "Lisansınızda içerik işaretleme özelliği yok."
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Sınama türü geçersiz: {{.TestType}}"
+  },
+  {
+    "id": "api.not_implemented",
+    "translation": "Bu özellik henüz eklenmemiş."
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Uzak kümeden içe aktarıma izin verilmiyor"
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Kullanıcı özniteliklerine dayalı erişim kısıtlamaları bulunduğundan konuk kullanıcıları bu kanala davet edemezsiniz."
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "Takım üyesi güncellemesi geçersiz: Bir takım üyesinin her zaman bir kullanıcı şeması vardır."
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Dosya yüklenemedi. Yükleme kanalı uzak taraf ile paylaşılmıyor."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "OnSamlLogin kancasında bir sorun çıktı. Lütfen sistem yöneticiniz ile görüşün."
+  },
+  {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "Karma parola, biçimi geçersiz olduğundan ayrıştırılamadı."
+  },
+  {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Kullanıcı oluşturulamadı. Sunucuda lisanslı en fazla kullanıcı sayısı aşıldı. Yöneticiniz ile görüşün: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Erişim denetimi hizmeti kullanılamıyor. ABAC etkin kanal için kullanıcılar süzülemedi."
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "Bu erişim denetimi ilkesini yönetme izniniz yok."
+  },
+  {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "Onay nesneleri grubu kaydedilemedi"
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Eksik iletinin onayı silinemedi"
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Eksik iletinin onayı kaydedilemedi"
+  },
+  {
+    "id": "app.channel.get.app_error",
+    "translation": "Kanal alınamadı."
+  },
+  {
+    "id": "app.cloud.preview_modal_bucket_url_not_configured",
+    "translation": "Klasör ön izleme adresi yapılandırılmamış"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "Ön izleme açılan penceresi verileri alınamadı"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_parse_error",
+    "translation": "Ön izleme penceresi verileri ayrıştırılamadı"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
+    "translation": "Yönetici tarafından yönetilen bir özel profil özniteliği alanının değeri güncellenemedi"
+  },
+  {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "Grup eşitlenebilir üyelikleri oluşturulamadı."
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "Geçersiz grup eşitlenebilir üyelikleri silinemedi."
+  },
+  {
+    "id": "app.group.user_not_found",
+    "translation": "Grup güncellenirken sorun çıktı. \"{{.Username}}\" adlı bir kullanıcı bulunamadı."
+  },
+  {
+    "id": "app.import.validate_attachment_import_data.invalid_path.error",
+    "translation": "Ek dosya içe aktarma verileri doğrulanamadı. Yol geçersiz: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.attachment.error",
+    "translation": "Doğrudan ileti ek dosya verileri doğrulanamadı."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.thread_follower.error",
+    "translation": "Doğrudan ileti konusu izleme verileri doğrulanamadı."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
+    "translation": "Duygu ifadesi içe aktarma alanındaki yol geçersiz: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_post_import_data.attachment.error",
+    "translation": "İleti ek dosyası verileri doğrulanamadı."
+  },
+  {
+    "id": "app.import.validate_post_import_data.thread_follower.error",
+    "translation": "İleti konusu izleme verileri doğrulanamadı."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.attachment.error",
+    "translation": "Yanıt ek dosyası verileri doğrulanamadı."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.empty.error",
+    "translation": "İçe aktarılan izleme verileri boş."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.user_missing.error",
+    "translation": "Zorunlu izleme özelliği eksik: user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.invalid_image_path.error",
+    "translation": "Kullanıcı profili görseli yolu geçersiz: \"{{.Path}}\""
+  },
+  {
+    "id": "app.lookup_interactive_dialog.decode_json_error",
+    "translation": "Etkileşimli pencere aramasından gelen JSON yanıtının kodu çözülürken bir sorun çıktı."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.json_error",
+    "translation": "Etkileşimli pencere aramasından gelen JSON yanıtı işlenirken bir sorun çıktı."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.read_body_error",
+    "translation": "Etkileşimli pencere aramasındaki yanıt içeriği okunurken bir sorun çıktı."
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "Kanalda grup kısıtlaması olduğundan erişim denetim ilkeleri uygulanamaz."
+  },
+  {
+    "id": "app.pap.access_control.channel_not_private",
+    "translation": "Erişim denetimi ilkeleri yalnızca özel kanallara uygulanabilir."
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "Paylaşılan kanallara erişim denetim ilkesi uygulanamaz."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "Bu kanalın erişim denetimini yönetme izniniz yok."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "Bu erişim denetimi ilkesini yönetme izniniz yok."
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_channels.app_error",
+    "translation": "Kanallara erişim denetimi ilkesi atanamadı."
+  },
+  {
+    "id": "app.pap.check_expression.app_error",
+    "translation": "İfade denetlenemedi."
+  },
+  {
+    "id": "app.pap.create_access_control_policy.app_error",
+    "translation": "Erişim denetimi ilkesi oluşturulamadı."
+  },
+  {
+    "id": "app.pap.delete_access_control_policy.app_error",
+    "translation": "Erişim denetimi ilkesi silinemedi."
+  },
+  {
+    "id": "app.pap.delete_policy.app_error",
+    "translation": "Erişim denetimi ilkesi silinemedi."
   }
 ]
