@@ -10622,5 +10622,61 @@
   {
     "id": "app.pap.delete_policy.app_error",
     "translation": "Erişim denetimi ilkesi silinemedi."
+  },
+  {
+    "id": "app.pap.expression_to_visual_ast.app_error",
+    "translation": "İfadeden görsel AST oluşturulamadı."
+  },
+  {
+    "id": "app.pap.get_access_control_auto_complete.app_error",
+    "translation": "Erişim denetimi otomatik olarak tamamlanamadı."
+  },
+  {
+    "id": "app.pap.get_all_access_control_policies.app_error",
+    "translation": "Erişim denetimi ilkeleri alınamadı."
+  },
+  {
+    "id": "app.pap.get_channel_access_control_attributes.app_error",
+    "translation": "Kanalın öznitelikleri alınamadı."
+  },
+  {
+    "id": "app.pap.get_channel_members_to_remove.app_error",
+    "translation": "Kanal üyelerinin kaldırılması sağlanamadı."
+  },
+  {
+    "id": "app.pap.get_policy.app_error",
+    "translation": "Erişim denetimi ilkesi alınamadı."
+  },
+  {
+    "id": "app.pap.get_policy_attributes.app_error",
+    "translation": "İlkenin öznitelikleri alınamadı."
+  },
+  {
+    "id": "app.pap.init.app_error",
+    "translation": "Erişim denetimi hizmeti hazırlanamadı."
+  },
+  {
+    "id": "app.pap.is_ready.app_error",
+    "translation": "Erişim denetimi hizmeti hazır değil."
+  },
+  {
+    "id": "app.pap.missing_attribute.app_error",
+    "translation": "İfadede bir öznitelik eksik."
+  },
+  {
+    "id": "app.pap.normalize_policy.app_error",
+    "translation": "İlke ifadesi normalleştirilemedi."
+  },
+  {
+    "id": "app.pap.query_expression.app_error",
+    "translation": "İfade için sorgulama yapılamadı."
+  },
+  {
+    "id": "app.pap.save_policy.app_error",
+    "translation": "Erişim denetimi ilkesi kaydetilemedi."
+  },
+  {
+    "id": "app.pap.search_access_control_policies.app_error",
+    "translation": "Erişim denetimi ilkeleri aranamadı."
   }
 ]
