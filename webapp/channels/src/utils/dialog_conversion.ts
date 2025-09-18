@@ -567,13 +567,15 @@ export function restoreFormFieldValues(storedValues: Record<string, any>, formFi
         return storedValues;
     }
 
+    const fieldMap = new Map(formFields.map((f) => [f.name, f]));
+
     Object.entries(storedValues).forEach(([key, value]) => {
         // Skip null, undefined, empty, or "<nil>" values when restoring to form
         if (value === null || value === undefined || value === '' || value === '<nil>') {
             return;
         }
 
-        const field = formFields.find((f) => f.name === key);
+        const field = fieldMap.get(key);
         if (field && (field.type === 'static_select' || field.type === 'radio') && field.options && value) {
             if (field.multiselect && Array.isArray(value)) {
                 // For multiselect fields, convert array of primitive values to array of option objects

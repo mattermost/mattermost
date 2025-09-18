@@ -24,6 +24,7 @@ import {filterEmptyOptions} from 'utils/apps';
 
 import type {DoAppCallResult} from 'types/apps';
 
+import {AppFormUpdateType} from './apps_form_container';
 import AppsFormField from './apps_form_field';
 import AppsFormHeader from './apps_form_header';
 
@@ -31,7 +32,7 @@ import './apps_form_component.scss';
 
 export type AppsFormProps = {
     form: AppForm;
-    updateType?: 'submit' | 'refresh';
+    updateType?: AppFormUpdateType;
     isEmbedded?: boolean;
     onExited: () => void;
     onHide?: () => void;
@@ -94,7 +95,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
         if (nextProps.form !== prevState.form) {
             let values;
 
-            if (nextProps.updateType === 'refresh') {
+            if (nextProps.updateType === AppFormUpdateType.REFRESH) {
                 // For refresh: clear all values and start fresh with new form defaults
                 values = initFormValues(nextProps.form);
             } else {

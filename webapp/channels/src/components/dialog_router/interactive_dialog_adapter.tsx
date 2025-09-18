@@ -170,7 +170,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
     /**
      * Common logic for processing form values - used by both submit and refresh
      */
-    private processFormValues = (currentValues: Record<string, any>, logPrefix: string): void => {
+    private processFormValues = (currentValues: Record<string, any>): void => {
         // Normalize current values to extract primitive values from select objects
         const normalizedCurrentValues = extractPrimitiveValues(currentValues);
 
@@ -179,13 +179,6 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             ...this.accumulatedValues, // Previous steps' values (including other pages)
             ...normalizedCurrentValues, // Current form normalized values
         };
-
-        // Debug logging
-        this.logWarn(`${logPrefix} - value accumulation`, {
-            rawCurrentValues: currentValues,
-            normalizedCurrentValues,
-            allAccumulatedValues: this.accumulatedValues,
-        });
     };
 
     /**
@@ -258,7 +251,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
         try {
             // Process and accumulate form values
             const currentValues = call.values || {};
-            this.processFormValues(currentValues, 'Form submission');
+            this.processFormValues(currentValues);
 
             // For final submission, use accumulated normalized values
             const finalSubmission = this.accumulatedValues;
@@ -279,11 +272,6 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                     });
                 }
             }
-
-            this.logWarn('Final submission payload', {
-                finalSubmission,
-                dialogState,
-            });
 
             const legacySubmission: DialogSubmission = {
                 url: this.props.url || '',
@@ -545,16 +533,10 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
 
             // Process and accumulate form values (same as submit)
             const currentValues = call.values || {};
-            this.processFormValues(currentValues, 'Field refresh');
+            this.processFormValues(currentValues);
 
             // For refresh, send all accumulated normalized values
             const refreshPayload = this.accumulatedValues;
-
-            // Additional debug logging for field refresh
-            this.logWarn('Field refresh debug', {
-                fieldTriggering: call.selected_field,
-                refreshPayload,
-            });
 
             const refreshSubmission: DialogSubmission = {
                 url: this.props.sourceUrl,
@@ -591,12 +573,6 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                         }
                     });
                 }
-
-                this.logWarn('Field refresh - restored accumulated values to form', {
-                    storedPrimitiveValues: this.accumulatedValues,
-                    convertedFormValues: formFieldValues,
-                    formFieldsWithValues: form.fields?.map((f) => ({name: f.name, type: f.type, value: f.value})),
-                });
 
                 return {
                     data: {
