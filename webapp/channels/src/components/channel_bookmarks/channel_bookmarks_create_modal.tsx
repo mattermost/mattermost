@@ -115,7 +115,7 @@ function ChannelBookmarkCreateModal({
     });
 
     // type === 'command'
-    const [command, setCommand] = useState(bookmark?.command ?? '');
+    const [command, setCommand] = useState(bookmark?.command ?? '/');
     const [commandError, setCommandError] = useState('');
 
     const handleLinkChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
