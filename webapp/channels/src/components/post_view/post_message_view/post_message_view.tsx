@@ -164,7 +164,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                     onClick={this.handleFormattedTextClick}
                 >
                     <PostMarkdown
-                        message={message}
+                        message={post.id + ' -- ' + message}
                         imageProps={this.imageProps}
                         options={options}
                         post={post}

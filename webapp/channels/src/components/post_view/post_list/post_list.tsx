@@ -308,17 +308,19 @@ export default class PostList extends React.PureComponent<Props, State> {
             return;
         }
 
-        if (!this.props.atOldestPost && type === PostRequestTypes.BEFORE_ID) {
-            await this.getPostsBeforeAutoLoad();
-        } else if (!this.props.atLatestPost) {
-            // if all olderPosts are loaded load new ones
-            await this.getPostsAfter();
-        }
+        // if (!this.props.atOldestPost && type === PostRequestTypes.BEFORE_ID) {
+        //     await this.getPostsBeforeAutoLoad();
+        // } else if (!this.props.atLatestPost) {
+        //     // if all olderPosts are loaded load new ones
+        //     await this.getPostsAfter();
+        // }
 
         this.extraPagesLoaded += 1;
     };
 
-    getPostsBefore = async () => {
+    getPostsBefore = async (asdf) => {
+        console.log('PL getPostsBefore', this.getOldestVisiblePostId());
+        console.log('PL getPostsBefore hmm', this.props.postListIds, asdf, this.props.postListIds[asdf]);
         if (this.state.loadingOlderPosts) {
             return;
         }

@@ -45,6 +45,8 @@ function makeMapStateToProps() {
     const getPostsChunkAroundPost = makeGetPostsChunkAroundPost();
     const preparePostIdsForPostList = makePreparePostIdsForPostList();
 
+    const reversePostList = memoizeResult((postIds: string[]) => postIds.toReversed());
+
     return function mapStateToProps(state: GlobalState, ownProps: Pick<Props, 'focusedPostId' | 'unreadChunkTimeStamp' | 'channelId'> & {shouldStartFromBottomWhenUnread: boolean}) {
         let latestPostTimeStamp = 0;
         let postIds: string[] | undefined;
@@ -70,7 +72,7 @@ function makeMapStateToProps() {
         }
 
         if (chunk) {
-            postIds = chunk.order;
+            postIds = reversePostList(chunk.order);
             atLatestPost = Boolean(chunk.recent);
             atOldestPost = Boolean(chunk.oldest);
         }

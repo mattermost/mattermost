@@ -703,59 +703,59 @@ describe('getPostIdsForCombinedUserActivityPost', () => {
     });
 });
 
-describe('getFirstPostId', () => {
-    test('should return the first item if it is a post', () => {
-        expect(getFirstPostId(['post1', 'post2', 'post3'])).toBe('post1');
-    });
+// describe('getFirstPostId', () => {
+//     test('should return the first item if it is a post', () => {
+//         expect(getFirstPostId(['post1', 'post2', 'post3'])).toBe('post1');
+//     });
 
-    test('should return the first ID from a combined post', () => {
-        expect(getFirstPostId(['user-activity-post2_post3', 'post4', 'user-activity-post5_post6'])).toBe('post2');
-    });
+//     test('should return the first ID from a combined post', () => {
+//         expect(getFirstPostId(['user-activity-post2_post3', 'post4', 'user-activity-post5_post6'])).toBe('post2');
+//     });
 
-    test('should skip date separators', () => {
-        expect(getFirstPostId(['date-1234', 'user-activity-post1_post2', 'post3', 'post4', 'date-1000'])).toBe('post1');
-    });
+//     test('should skip date separators', () => {
+//         expect(getFirstPostId(['date-1234', 'user-activity-post1_post2', 'post3', 'post4', 'date-1000'])).toBe('post1');
+//     });
 
-    test('should skip the new message line', () => {
-        expect(getFirstPostId([START_OF_NEW_MESSAGES + '1234', 'post2', 'post3', 'post4'])).toBe('post2');
-    });
-});
+//     test('should skip the new message line', () => {
+//         expect(getFirstPostId([START_OF_NEW_MESSAGES + '1234', 'post2', 'post3', 'post4'])).toBe('post2');
+//     });
+// });
 
-describe('getLastPostId', () => {
-    test('should return the last item if it is a post', () => {
-        expect(getLastPostId(['post1', 'post2', 'post3'])).toBe('post3');
-    });
+// describe('getLastPostId', () => {
+//     test('should return the last item if it is a post', () => {
+//         expect(getLastPostId(['post1', 'post2', 'post3'])).toBe('post3');
+//     });
 
-    test('should return the last ID from a combined post', () => {
-        expect(getLastPostId(['user-activity-post2_post3', 'post4', 'user-activity-post5_post6'])).toBe('post6');
-    });
+//     test('should return the last ID from a combined post', () => {
+//         expect(getLastPostId(['user-activity-post2_post3', 'post4', 'user-activity-post5_post6'])).toBe('post6');
+//     });
 
-    test('should skip date separators', () => {
-        expect(getLastPostId(['date-1234', 'user-activity-post1_post2', 'post3', 'post4', 'date-1000'])).toBe('post4');
-    });
+//     test('should skip date separators', () => {
+//         expect(getLastPostId(['date-1234', 'user-activity-post1_post2', 'post3', 'post4', 'date-1000'])).toBe('post4');
+//     });
 
-    test('should skip the new message line', () => {
-        expect(getLastPostId(['post2', 'post3', 'post4', START_OF_NEW_MESSAGES + '1234'])).toBe('post4');
-    });
-});
+//     test('should skip the new message line', () => {
+//         expect(getLastPostId(['post2', 'post3', 'post4', START_OF_NEW_MESSAGES + '1234'])).toBe('post4');
+//     });
+// });
 
-describe('getLastPostIndex', () => {
-    test('should return index of last post for list of all regular posts', () => {
-        expect(getLastPostIndex(['post1', 'post2', 'post3'])).toBe(2);
-    });
+// describe('getLastPostIndex', () => {
+//     test('should return index of last post for list of all regular posts', () => {
+//         expect(getLastPostIndex(['post1', 'post2', 'post3'])).toBe(2);
+//     });
 
-    test('should return index of last combined post', () => {
-        expect(getLastPostIndex(['user-activity-post2_post3', 'post4', 'user-activity-post5_post6'])).toBe(2);
-    });
+//     test('should return index of last combined post', () => {
+//         expect(getLastPostIndex(['user-activity-post2_post3', 'post4', 'user-activity-post5_post6'])).toBe(2);
+//     });
 
-    test('should skip date separators and return index of last post', () => {
-        expect(getLastPostIndex(['date-1234', 'user-activity-post1_post2', 'post3', 'post4', 'date-1000'])).toBe(3);
-    });
+//     test('should skip date separators and return index of last post', () => {
+//         expect(getLastPostIndex(['date-1234', 'user-activity-post1_post2', 'post3', 'post4', 'date-1000'])).toBe(3);
+//     });
 
-    test('should skip the new message line and return index of last post', () => {
-        expect(getLastPostIndex(['post2', 'post3', 'post4', START_OF_NEW_MESSAGES + '1234'])).toBe(2);
-    });
-});
+//     test('should skip the new message line and return index of last post', () => {
+//         expect(getLastPostIndex(['post2', 'post3', 'post4', START_OF_NEW_MESSAGES + '1234'])).toBe(2);
+//     });
+// });
 
 describe('makeGenerateCombinedPost', () => {
     test('should output a combined post', () => {

@@ -64,7 +64,7 @@ export function makeFilterPostsAndAddSeparators() {
             let addedNewMessagesIndicator = false;
 
             // Iterating through the posts from oldest to newest
-            for (let i = posts.length - 1; i >= 0; i--) {
+            for (let i = 0; i < posts.length; i++) { // HARRISON flipped
                 const post = posts[i];
 
                 if (
@@ -95,15 +95,21 @@ export function makeFilterPostsAndAddSeparators() {
                 out.push(post.id);
             }
 
-            // Flip it back to newest to oldest
-            return out.reverse();
+            return out; // HARRISON flipped
         },
     );
 }
 
 function pushPostDateIfNeeded(post: Post, currentUser: UserProfile, out: Array<Post|string>, lastDate?: Date) {
-    // Push on a date header if the last post was on a different day than the current one
     const postDate = new Date(post.create_at);
+
+    // Don't start the list with a date header to avoid weird flicker when loading
+    // TODO re-add this when you get to the channel intro message
+    if (out.length === 0) {
+        return postDate;
+    }
+
+    // Push on a date header if the last post was on a different day than the current one
     const currentOffset = postDate.getTimezoneOffset() * 60 * 1000;
     const timezone = getUserCurrentTimezone(currentUser.timezone);
     if (timezone) {
@@ -160,7 +166,7 @@ export function makeCombineUserActivityPosts() {
             const out: string[] = [];
             let changed = false;
 
-            for (let i = 0; i < postIds.length; i++) {
+            for (let i = 0; i < postIds.length; i++) { // HARRISON this doesn't need to be flipped
                 const postId = postIds[i];
 
                 if (isStartOfNewMessages(postId) || isDateLine(postId) || isCreateComment(postId)) {
@@ -178,7 +184,7 @@ export function makeCombineUserActivityPosts() {
 
                 if (postIsUserActivity && lastPostIsUserActivity && combinedCount < MAX_COMBINED_SYSTEM_POSTS) {
                     // Add the ID to the previous combined post
-                    out[out.length - 1] += '_' + postId;
+                    out[out.length - 1] += '_' + postId; // HARRISON flipped
 
                     combinedCount += 1;
 
@@ -241,64 +247,65 @@ export function getPostIdsForCombinedUserActivityPost(item: string) {
     return item.substring(COMBINED_USER_ACTIVITY.length).split('_');
 }
 
-export function getFirstPostId(items: string[]) {
-    for (let i = 0; i < items.length; i++) {
-        const item = items[i];
+// export function getFirstPostId(items: string[]) {
+//     for (let i = items.length - 1; i >= 0; i--) { // HARRISON flipped
+//         const item = items[i];
 
-        if (isStartOfNewMessages(item) || isDateLine(item) || isCreateComment(item)) {
-            // This is not a post at all
-            continue;
-        }
+//         if (isStartOfNewMessages(item) || isDateLine(item) || isCreateComment(item)) {
+//             // This is not a post at all
+//             continue;
+//         }
 
-        if (isCombinedUserActivityPost(item)) {
-            // This is a combined post, so find the first post ID from it
-            const combinedIds = getPostIdsForCombinedUserActivityPost(item);
+//         if (isCombinedUserActivityPost(item)) {
+//             // This is a combined post, so find the first post ID from it
+//             const combinedIds = getPostIdsForCombinedUserActivityPost(item);
 
-            return combinedIds[0];
-        }
+//             return combinedIds[0];
+//         }
 
-        // This is a post ID
-        return item;
-    }
+//         // This is a post ID
+//         return item;
+//     }
 
-    return '';
-}
+//     return '';
+// }
 
-export function getLastPostId(items: string[]) {
-    for (let i = items.length - 1; i >= 0; i--) {
-        const item = items[i];
+// export function getLastPostId(items: string[]) {
+//     // for (let i = items.length - 1; i >= 0; i--) {
+//     for (let i = 0; i < items.length; i++) {
+//         const item = items[i];
 
-        if (isStartOfNewMessages(item) || isDateLine(item) || isCreateComment(item)) {
-            // This is not a post at all
-            continue;
-        }
+//         if (isStartOfNewMessages(item) || isDateLine(item) || isCreateComment(item)) {
+//             // This is not a post at all
+//             continue;
+//         }
 
-        if (isCombinedUserActivityPost(item)) {
-            // This is a combined post, so find the first post ID from it
-            const combinedIds = getPostIdsForCombinedUserActivityPost(item);
+//         if (isCombinedUserActivityPost(item)) {
+//             // This is a combined post, so find the first post ID from it
+//             const combinedIds = getPostIdsForCombinedUserActivityPost(item);
 
-            return combinedIds[combinedIds.length - 1];
-        }
+//             return combinedIds[combinedIds.length - 1];
+//         }
 
-        // This is a post ID
-        return item;
-    }
+//         // This is a post ID
+//         return item;
+//     }
 
-    return '';
-}
+//     return '';
+// }
 
-export function getLastPostIndex(postIds: string[]) {
-    let index = 0;
-    for (let i = postIds.length - 1; i > 0; i--) {
-        const item = postIds[i];
-        if (!isStartOfNewMessages(item) && !isDateLine(item) && !isCreateComment(item)) {
-            index = i;
-            break;
-        }
-    }
+// export function getLastPostIndex(postIds: string[]) {
+//     let index = 0;
+//     for (let i = postIds.length - 1; i > 0; i--) {
+//         const item = postIds[i];
+//         if (!isStartOfNewMessages(item) && !isDateLine(item) && !isCreateComment(item)) {
+//             index = i;
+//             break;
+//         }
+//     }
 
-    return index;
-}
+//     return index;
+// }
 
 export function makeGenerateCombinedPost(): (state: GlobalState, combinedId: string) => UserActivityPost {
     const getPostsForIds = makeGetPostsForIds();
@@ -312,8 +319,8 @@ export function makeGenerateCombinedPost(): (state: GlobalState, combinedId: str
             // All posts should be in the same channel
             const channelId = posts[0].channel_id;
 
-            // Assume that the last post is the oldest one
-            const createAt = posts[posts.length - 1].create_at;
+            // Assume that the first post is the oldest one
+            const createAt = posts[0].create_at;
             const messages = posts.map((post) => post.message);
 
             return {
@@ -427,7 +434,7 @@ export function combineUserActivitySystemPost(systemPosts: Post[] = []): UserAct
         return undefined;
     }
     const userActivities: ActivityEntry[] = [];
-    systemPosts.reverse().forEach((post: Post) => {
+    systemPosts.forEach((post: Post) => { // HARRISON flipped
         const postType = post.type;
         const actorId = post.user_id;
 

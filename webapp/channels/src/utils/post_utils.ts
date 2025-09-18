@@ -365,7 +365,8 @@ export function isIdNotPost(postId: string): boolean {
 // getOldestPostId returns the oldest valid post ID in the given list of post IDs. This function is copied from
 // mattermost-redux, except it also includes additional special IDs that are only used in the web app.
 export function getOldestPostId(postIds: string[]): string {
-    for (let i = postIds.length - 1; i >= 0; i--) {
+    // for (let i = postIds.length - 1; i >= 0; i--) {
+    for (let i = 0; i < postIds.length; i++) {
         const item = postIds[i];
 
         if (isIdNotPost(item)) {
@@ -388,7 +389,8 @@ export function getOldestPostId(postIds: string[]): string {
 }
 
 export function getPreviousPostId(postIds: string[], startIndex: number): string {
-    for (let i = startIndex + 1; i < postIds.length; i++) {
+    // for (let i = startIndex + 1; i < postIds.length; i++) {
+    for (let i = startIndex; i >= 0; i--) {
         const itemId = postIds[i];
 
         if (isIdNotPost(itemId)) {
@@ -413,7 +415,8 @@ export function getPreviousPostId(postIds: string[], startIndex: number): string
 // getLatestPostId returns the most recent valid post ID in the given list of post IDs. This function is copied from
 // mattermost-redux, except it also includes additional special IDs that are only used in the web app.
 export function getLatestPostId(postIds: string[]): string {
-    for (let i = 0; i < postIds.length; i++) {
+    // for (let i = 0; i < postIds.length; i++) {
+    for (let i = postIds.length - 1; i >= 0; i--) {
         const item = postIds[i];
 
         if (isIdNotPost(item)) {
