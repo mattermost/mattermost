@@ -72,6 +72,17 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 
 	buffer := &bytes.Buffer{}
 
+	tb.Cleanup(func() {
+		err := configStore.Close()
+		require.NoError(tb, err)
+
+		s.Close()
+
+		if tempWorkspace != "" {
+			os.RemoveAll(tempWorkspace)
+		}
+	})
+
 	return &TestHelper{
 		service: &TeamService{
 			store:        s.Team(),
@@ -88,16 +99,6 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 		dbStore:     s,
 		LogBuffer:   buffer,
 		workspace:   tempWorkspace,
-	}
-}
-
-func (th *TestHelper) TearDown() {
-	th.configStore.Close()
-
-	th.dbStore.Close()
-
-	if th.workspace != "" {
-		os.RemoveAll(th.workspace)
 	}
 }
 

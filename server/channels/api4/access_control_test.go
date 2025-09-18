@@ -18,9 +18,8 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
 	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this env var when feature is GA
 	os.Setenv("MM_FEATUREFLAGS_CHANNELADMINMANAGEABACRULES", "true")
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	t.Cleanup(func() {
-		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
 		// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this unsetenv when feature is GA
 		os.Unsetenv("MM_FEATUREFLAGS_CHANNELADMINMANAGEABACRULES")
@@ -279,9 +278,8 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 
 func TestGetAccessControlPolicy(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	t.Cleanup(func() {
-		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
 	})
 
@@ -343,9 +341,8 @@ func TestGetAccessControlPolicy(t *testing.T) {
 
 func TestDeleteAccessControlPolicy(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	t.Cleanup(func() {
-		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
 	})
 
@@ -408,9 +405,8 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 
 func TestCheckExpression(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	t.Cleanup(func() {
-		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
 	})
 
@@ -517,9 +513,8 @@ func TestCheckExpression(t *testing.T) {
 
 func TestTestExpression(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	t.Cleanup(func() {
-		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
 	})
 
@@ -569,9 +564,8 @@ func TestTestExpression(t *testing.T) {
 
 func TestSearchAccessControlPolicies(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	t.Cleanup(func() {
-		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
 	})
 
@@ -623,9 +617,8 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 
 func TestAssignAccessPolicy(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	t.Cleanup(func() {
-		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
 	})
 
@@ -697,9 +690,8 @@ func TestAssignAccessPolicy(t *testing.T) {
 
 func TestUnassignAccessPolicy(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	t.Cleanup(func() {
-		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
 	})
 
@@ -775,9 +767,8 @@ func TestUnassignAccessPolicy(t *testing.T) {
 
 func TestGetChannelsForAccessControlPolicy(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	t.Cleanup(func() {
-		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
 	})
 
@@ -838,9 +829,8 @@ func TestGetChannelsForAccessControlPolicy(t *testing.T) {
 
 func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	t.Cleanup(func() {
-		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
 	})
 

@@ -31,8 +31,8 @@ func makePendingPostId(user *model.User) string {
 }
 
 func TestCreatePostDeduplicate(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	t.Run("duplicate create post is idempotent", func(t *testing.T) {
 		session := &model.Session{
@@ -283,8 +283,8 @@ func TestCreatePostDeduplicate(t *testing.T) {
 func TestAttachFilesToPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should attach files", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		info1, err := th.App.Srv().Store().FileInfo().Save(th.Context,
 			&model.FileInfo{
@@ -312,8 +312,8 @@ func TestAttachFilesToPost(t *testing.T) {
 	})
 
 	t.Run("should update File.PostIds after failing to add files", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		info1, err := th.App.Srv().Store().FileInfo().Save(th.Context,
 			&model.FileInfo{
@@ -350,8 +350,8 @@ func TestAttachFilesToPost(t *testing.T) {
 
 func TestUpdatePostEditAt(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	post := th.BasicPost.Clone()
 
@@ -373,8 +373,8 @@ func TestUpdatePostEditAt(t *testing.T) {
 
 func TestUpdatePostTimeLimit(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	post := th.BasicPost.Clone()
 
@@ -408,8 +408,8 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 
 func TestUpdatePostInArchivedChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	archivedChannel := th.CreateChannel(th.Context, th.BasicTeam)
 	post := th.CreatePost(archivedChannel)
@@ -425,8 +425,8 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	// This test ensures that when replying to a root post made by a user who has since left the channel, the reply
 	// post completes successfully. This is a regression test for PLT-6523.
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	channel := th.BasicChannel
 	userInChannel := th.BasicUser2
@@ -453,8 +453,8 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 
 func TestPostAttachPostToChildPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	channel := th.BasicChannel
 	user := th.BasicUser
@@ -499,8 +499,8 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 
 func TestUpdatePostPluginHooks(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	t.Run("Should stop processing at first reject", func(t *testing.T) {
 		setupMultiPluginAPITest(t, []string{
@@ -641,8 +641,8 @@ func TestUpdatePostPluginHooks(t *testing.T) {
 
 func TestPostChannelMentions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	channel := th.BasicChannel
 	user := th.BasicUser
@@ -709,7 +709,7 @@ func TestPostChannelMentions(t *testing.T) {
 func TestImageProxy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	mockStore := th.App.Srv().Store().(*storemocks.Store)
 	mockUserStore := storemocks.UserStore{}
@@ -832,8 +832,8 @@ func TestImageProxy(t *testing.T) {
 
 func TestDeletePostWithFileAttachments(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	// Create a post with a file attachment.
 	teamID := th.BasicTeam.Id
@@ -877,8 +877,8 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 
 func TestDeletePostInArchivedChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	archivedChannel := th.CreateChannel(th.Context, th.BasicTeam)
 	post := th.CreatePost(archivedChannel)
@@ -894,8 +894,8 @@ func TestCreatePost(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
@@ -923,8 +923,8 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("Sets prop MENTION_HIGHLIGHT_DISABLED when it should", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
 
 		t.Run("Does not set prop when user has USE_CHANNEL_MENTIONS", func(t *testing.T) {
@@ -976,8 +976,8 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("Sets PostPropsPreviewedPost when a permalink is the first link", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
 
 		referencedPost := &model.Post{
@@ -1012,8 +1012,8 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("creates a single record for a permalink preview post", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		channelForPreview := th.CreateChannel(th.Context, th.BasicTeam)
 
@@ -1052,8 +1052,8 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("sanitizes post metadata appropriately", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
@@ -1115,8 +1115,8 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("Should not allow to create posts on shared DMs", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := setupSharedChannels(t).InitBasic()
-		defer th.TearDown()
+		th := setupSharedChannels(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		user1 := th.CreateUser()
 		user2 := th.CreateUser()
@@ -1155,8 +1155,8 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("Should not allow to create posts on shared GMs", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := setupSharedChannels(t).InitBasic()
-		defer th.TearDown()
+		th := setupSharedChannels(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		user1 := th.CreateUser()
 		user2 := th.CreateUser()
@@ -1196,8 +1196,8 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("MM-40016 should not panic with `concurrent map read and map write`", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		channelForPreview := th.CreateChannel(th.Context, th.BasicTeam)
 
@@ -1248,8 +1248,8 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("should sanitize the force notifications prop if the flag is not set", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
 
 		postToCreate := &model.Post{
@@ -1265,8 +1265,8 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("should add the force notifications prop if the flag is set", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
 
 		postToCreate := &model.Post{
@@ -1284,8 +1284,8 @@ func TestPatchPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
@@ -1321,8 +1321,8 @@ func TestPatchPost(t *testing.T) {
 
 	t.Run("Sets Prop MENTION_HIGHLIGHT_DISABLED when it should", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
 
@@ -1374,8 +1374,8 @@ func TestCreatePostAsUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("marks channel as viewed for regular user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -1398,8 +1398,8 @@ func TestCreatePostAsUser(t *testing.T) {
 
 	t.Run("does not mark channel as viewed for webhook from user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -1423,8 +1423,8 @@ func TestCreatePostAsUser(t *testing.T) {
 
 	t.Run("does not mark channel as viewed for bot user in channel", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		bot := th.CreateBot()
 
@@ -1455,8 +1455,8 @@ func TestCreatePostAsUser(t *testing.T) {
 
 	t.Run("does not log warning for bot user not in channel", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		bot := th.CreateBot()
 
@@ -1481,8 +1481,8 @@ func TestCreatePostAsUser(t *testing.T) {
 
 	t.Run("marks channel as viewed for reply post when CRT is off", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOff
@@ -1517,8 +1517,8 @@ func TestCreatePostAsUser(t *testing.T) {
 
 	t.Run("does not mark channel as viewed for reply post when CRT is on", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -1555,8 +1555,8 @@ func TestCreatePostAsUser(t *testing.T) {
 
 func TestPatchPostInArchivedChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	archivedChannel := th.CreateChannel(th.Context, th.BasicTeam)
 	post := th.CreatePost(archivedChannel)
@@ -1572,8 +1572,8 @@ func TestUpdateEphemeralPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Post contains preview if the user has permissions", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
 
 		referencedPost := &model.Post{
@@ -1607,8 +1607,8 @@ func TestUpdateEphemeralPost(t *testing.T) {
 
 	t.Run("Post does not contain preview if the user has no permissions", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 		privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
 		th.AddUserToChannel(th.BasicUser, privateChannel)
 		th.AddUserToChannel(th.BasicUser2, th.BasicChannel)
@@ -1645,8 +1645,8 @@ func TestUpdatePost(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
@@ -1681,8 +1681,8 @@ func TestUpdatePost(t *testing.T) {
 
 	t.Run("Sets PostPropsPreviewedPost when a post is updated to have a permalink as the first link", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
 
 		referencedPost := &model.Post{
@@ -1721,8 +1721,8 @@ func TestUpdatePost(t *testing.T) {
 
 	t.Run("sanitizes post metadata appropriately", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
@@ -1791,7 +1791,7 @@ func TestSearchPostsForUser(t *testing.T) {
 	searchTerm := "searchTerm"
 
 	setup := func(t *testing.T, enableElasticsearch bool) (*TestHelper, []*model.Post) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 
 		posts := make([]*model.Post, 7)
 		for i := 0; i < cap(posts); i++ {
@@ -1825,7 +1825,7 @@ func TestSearchPostsForUser(t *testing.T) {
 	t.Run("should return everything as first page of posts from database", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, posts := setup(t, false)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		page := 0
 
@@ -1846,7 +1846,7 @@ func TestSearchPostsForUser(t *testing.T) {
 	t.Run("should not return later pages of posts from database", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, _ := setup(t, false)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		page := 1
 
@@ -1859,7 +1859,7 @@ func TestSearchPostsForUser(t *testing.T) {
 	t.Run("should return first page of posts from ElasticSearch", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, posts := setup(t, true)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		page := 0
 		resultsPage := []string{
@@ -1890,7 +1890,7 @@ func TestSearchPostsForUser(t *testing.T) {
 	t.Run("should return later pages of posts from ElasticSearch", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, posts := setup(t, true)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		page := 1
 		resultsPage := []string{
@@ -1918,7 +1918,7 @@ func TestSearchPostsForUser(t *testing.T) {
 	t.Run("should fall back to database if ElasticSearch fails on first page", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, posts := setup(t, true)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		page := 0
 
@@ -1951,7 +1951,7 @@ func TestSearchPostsForUser(t *testing.T) {
 	t.Run("should return nothing if ElasticSearch fails on later pages", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, _ := setup(t, true)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		page := 1
 
@@ -1976,7 +1976,7 @@ func TestSearchPostsForUser(t *testing.T) {
 	t.Run("should return the same results if there is a tilde in the channel name", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, _ := setup(t, false)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		page := 0
 
@@ -1998,7 +1998,7 @@ func TestSearchPostsForUser(t *testing.T) {
 	t.Run("should return the same results if there is an 'at' in the user", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, _ := setup(t, false)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		page := 0
 
@@ -2022,8 +2022,8 @@ func TestCountMentionsFromPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should not count posts without mentions", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
@@ -2058,8 +2058,8 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should count keyword mentions", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
@@ -2098,8 +2098,8 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should count channel-wide mentions when enabled", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
@@ -2138,8 +2138,8 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should not count channel-wide mentions when disabled for user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
@@ -2176,8 +2176,8 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should not count channel-wide mentions when disabled for channel", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
@@ -2219,8 +2219,8 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should count comment mentions when using COMMENTS_NOTIFY_ROOT", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
@@ -2274,8 +2274,8 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should count comment mentions when using COMMENTS_NOTIFY_ANY", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
@@ -2329,8 +2329,8 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should count mentions caused by being added to the channel", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
@@ -2379,8 +2379,8 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should return the number of posts made by the other user for a direct channel", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
@@ -2415,8 +2415,8 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should return the number of posts made by the other user for a group message", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
@@ -2459,8 +2459,8 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should not count mentions from the before the given post", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
@@ -2497,8 +2497,8 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should not count mentions from the user's own posts", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
@@ -2529,8 +2529,8 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should include comments made before the given post when counting comment mentions", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
@@ -2577,8 +2577,8 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should not include comments made before the given post when rootPost is inaccessible", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		// Create an Entry license with post history limits
 		license := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
@@ -2643,8 +2643,8 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should count mentions from the user's webhook posts", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
@@ -2684,8 +2684,8 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should count multiple pages of mentions", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
@@ -2721,8 +2721,8 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should count urgent mentions", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.PostPriority = true
@@ -2780,8 +2780,8 @@ func TestFillInPostProps(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should not add disable group highlight to post props for user with group mention permissions", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 		th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 		user1 := th.BasicUser
@@ -2803,8 +2803,8 @@ func TestFillInPostProps(t *testing.T) {
 
 	t.Run("should not add disable group highlight to post props for app without license", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		id := model.NewId()
 		guest := &model.User{
@@ -2836,8 +2836,8 @@ func TestFillInPostProps(t *testing.T) {
 
 	t.Run("should add disable group highlight to post props for guest user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 		th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 		id := model.NewId()
@@ -2873,8 +2873,8 @@ func TestThreadMembership(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should update memberships for conversation participants", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ThreadAutoFollow = true
 			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -2934,8 +2934,8 @@ func TestThreadMembership(t *testing.T) {
 
 func TestFollowThreadSkipsParticipants(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -3004,8 +3004,8 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 
 func TestAutofollowBasedOnRootPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -3033,8 +3033,8 @@ func TestAutofollowBasedOnRootPost(t *testing.T) {
 
 func TestViewChannelShouldNotUpdateThreads(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -3068,8 +3068,8 @@ func TestViewChannelShouldNotUpdateThreads(t *testing.T) {
 
 func TestCollapsedThreadFetch(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -3244,8 +3244,8 @@ func TestCollapsedThreadFetch(t *testing.T) {
 func TestSharedChannelSyncForPostActions(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("creating a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
-		th := setupSharedChannels(t).InitBasic()
-		defer th.TearDown()
+		th := setupSharedChannels(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		sharedChannelService := NewMockSharedChannelService(th.Server.GetSharedChannelSyncService())
 		th.Server.SetSharedChannelSyncService(sharedChannelService)
@@ -3268,8 +3268,8 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 	})
 
 	t.Run("updating a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
-		th := setupSharedChannels(t).InitBasic()
-		defer th.TearDown()
+		th := setupSharedChannels(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		sharedChannelService := NewMockSharedChannelService(th.Server.GetSharedChannelSyncService())
 		th.Server.SetSharedChannelSyncService(sharedChannelService)
@@ -3296,8 +3296,8 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 	})
 
 	t.Run("deleting a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
-		th := setupSharedChannels(t).InitBasic()
-		defer th.TearDown()
+		th := setupSharedChannels(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		sharedChannelService := NewMockSharedChannelService(th.Server.GetSharedChannelSyncService())
 		th.Server.SetSharedChannelSyncService(sharedChannelService)
@@ -3328,8 +3328,8 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 
 func TestAutofollowOnPostingAfterUnfollow(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -3370,8 +3370,8 @@ func TestAutofollowOnPostingAfterUnfollow(t *testing.T) {
 
 func TestGetPostIfAuthorized(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	t.Run("Private channel", func(t *testing.T) {
 		privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
@@ -3435,8 +3435,8 @@ func TestGetPostIfAuthorized(t *testing.T) {
 
 func TestShouldNotRefollowOnOthersReply(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -3486,7 +3486,7 @@ func TestShouldNotRefollowOnOthersReply(t *testing.T) {
 func TestGetLastAccessiblePostTime(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	// Setup store mocks needed for GetServerLimits
 	mockStore := th.App.Srv().Store().(*storemocks.Store)
@@ -3548,7 +3548,7 @@ func TestComputeLastAccessiblePostTime(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Updates the time, if Entry license limit is applicable", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		// Set Entry license with post history limit of 100 messages
 		entryLicensePostsLimit := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
@@ -3575,7 +3575,7 @@ func TestComputeLastAccessiblePostTime(t *testing.T) {
 
 	t.Run("Remove the time if license limit is NOT applicable", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		// Set license without post history limits (using test license without limits)
 		license := model.NewTestLicense()
@@ -3600,8 +3600,8 @@ func TestComputeLastAccessiblePostTime(t *testing.T) {
 
 func TestGetEditHistoryForPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	post := &model.Post{
 		ChannelId: th.BasicChannel.Id,
@@ -3742,8 +3742,8 @@ func TestGetEditHistoryForPost(t *testing.T) {
 
 func TestCopyWranglerPostlist(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	// Create a post with a file attachment
 	fileBytes := []byte("file contents")
@@ -3795,8 +3795,8 @@ func TestCopyWranglerPostlist(t *testing.T) {
 
 func TestValidateMoveOrCopy(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.WranglerSettings.MoveThreadFromPrivateChannelEnable = model.NewPointer(true)
@@ -3920,8 +3920,8 @@ func TestValidateMoveOrCopy(t *testing.T) {
 
 func TestPermanentDeletePost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	t.Run("should permanently delete a post and its file attachment", func(t *testing.T) {
 		// Create a post with a file attachment.
@@ -4012,8 +4012,8 @@ func TestPermanentDeletePost(t *testing.T) {
 
 func TestSendTestMessage(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 	t.Run("Should create the post with the correct prop", func(t *testing.T) {
 		post, result := th.App.SendTestMessage(th.Context, th.BasicUser.Id)
 		assert.Nil(t, result)
@@ -4023,8 +4023,8 @@ func TestSendTestMessage(t *testing.T) {
 
 func TestPopulateEditHistoryFileMetadata(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	t.Run("should populate file metadata for all posts", func(t *testing.T) {
 		fileInfo1, err := th.App.Srv().Store().FileInfo().Save(th.Context,

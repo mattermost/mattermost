@@ -17,8 +17,8 @@ import (
 )
 
 func TestGetChannelsForPolicy(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	rctx := request.TestContext(t)
 	policyID := "policyID"
@@ -124,8 +124,8 @@ func TestGetChannelsForPolicy(t *testing.T) {
 }
 
 func TestSearchAccessControlPolicies(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	rctx := request.TestContext(t)
 
@@ -205,8 +205,8 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 }
 
 func TestAssignAccessControlPolicyToChannels(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	rctx := request.TestContext(t)
 	parentID := model.NewId()
@@ -366,8 +366,8 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 }
 
 func TestUnassignPoliciesFromChannels(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	rctx := request.TestContext(t)
 
@@ -498,8 +498,7 @@ func TestUnassignPoliciesFromChannels(t *testing.T) {
 }
 
 func TestValidateChannelAccessControlPermission(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	rctx := request.TestContext(t)
 
@@ -587,8 +586,7 @@ func TestValidateChannelAccessControlPermission(t *testing.T) {
 }
 
 func TestValidateAccessControlPolicyPermission(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	rctx := request.TestContext(t)
 
@@ -692,8 +690,7 @@ func TestValidateAccessControlPolicyPermission(t *testing.T) {
 }
 
 func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	rctx := request.TestContext(t)
 
@@ -828,8 +825,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 }
 
 func TestTestExpressionWithChannelContext(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// Create test session with user
 	session := model.Session{
@@ -1024,8 +1020,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 }
 
 func TestValidateExpressionAgainstRequester(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	rctx := request.TestContext(t)
 
@@ -1143,8 +1138,7 @@ func TestValidateExpressionAgainstRequester(t *testing.T) {
 }
 
 func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	rctx := request.TestContext(t)
 	channelID := model.NewId()

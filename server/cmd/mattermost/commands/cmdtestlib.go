@@ -88,8 +88,8 @@ func SetupWithStoreMock(tb testing.TB) *testHelper {
 }
 
 // InitBasic simply proxies to api4.InitBasic, while still returning a testHelper.
-func (h *testHelper) InitBasic() *testHelper {
-	h.TestHelper.InitBasic()
+func (h *testHelper) InitBasic(tb testing.TB) *testHelper {
+	h.TestHelper.InitBasic(tb)
 	return h
 }
 
@@ -139,7 +139,6 @@ func (h *testHelper) SetAutoConfig(autoConfig bool) {
 
 // TearDown cleans up temporary files and assets created during the life of the test helper.
 func (h *testHelper) TearDown() {
-	h.TestHelper.TearDown()
 	os.RemoveAll(h.tempDir)
 }
 

@@ -28,7 +28,7 @@ func TestBuildPrepackagedPlugin(t *testing.T) {
 
 	t.Run("valid plugin with signature and icon data", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		// Import development public key for signature verification
 		appErr := th.App.AddPublicKey("development-public-key.asc", bytes.NewBuffer(publicKeyData))
@@ -68,7 +68,7 @@ func TestBuildPrepackagedPlugin(t *testing.T) {
 
 	t.Run("missing signature file", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		// Create plugin path with empty signature path
 		pluginPath := &pluginSignaturePath{
@@ -93,7 +93,7 @@ func TestBuildPrepackagedPlugin(t *testing.T) {
 
 	t.Run("nonexistent signature file", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		pluginPath := &pluginSignaturePath{
 			pluginID:      "testplugin",
@@ -117,7 +117,7 @@ func TestBuildPrepackagedPlugin(t *testing.T) {
 
 	t.Run("empty signature file", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		// Import development public key
 		appErr := th.App.AddPublicKey("development-public-key.asc", bytes.NewBuffer(publicKeyData))
@@ -151,7 +151,7 @@ func TestBuildPrepackagedPlugin(t *testing.T) {
 
 	t.Run("signature verification failure", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
+		defer th.TearDown(t)
 
 		// Use mismatched plugin and signature (testplugin.tar.gz with testplugin2.tar.gz.sig)
 		pluginPath := &pluginSignaturePath{

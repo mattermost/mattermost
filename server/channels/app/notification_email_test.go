@@ -117,7 +117,7 @@ func TestGetNotificationEmailSubject(t *testing.T) {
 func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -152,7 +152,7 @@ func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
 func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -187,7 +187,7 @@ func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
 func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -222,7 +222,7 @@ func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
 func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -257,7 +257,7 @@ func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
 func TestGetNotificationEmailBodyFullNotificationLocaleTimeWithTimezone(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	recipient := &model.User{
 		Id:       "test-recipient-id",
@@ -300,7 +300,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeWithTimezone(t *testi
 func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	recipient := &model.User{
 		Id:       "test-recipient-id",
@@ -356,7 +356,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing
 func TestGetNotificationEmailBodyFullNotificationLocaleTime12Hour(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	recipient := &model.User{
 		Id:       "test-recipient-id",
@@ -397,7 +397,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime12Hour(t *testing.T) 
 func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	recipient := &model.User{
 		Id:       "test-recipient-id",
@@ -438,7 +438,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) 
 func TestGetNotificationEmailBodyWithUserPreference(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	recipient := &model.User{
 		Id:       "test-recipient-id",
@@ -490,7 +490,7 @@ func TestGetNotificationEmailBodyWithUserPreference(t *testing.T) {
 func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -592,7 +592,7 @@ func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing
 func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -626,7 +626,7 @@ func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) 
 func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -660,7 +660,7 @@ func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
 func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -694,7 +694,7 @@ func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T)
 func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -728,7 +728,7 @@ func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) 
 func TestGetNotificationEmailEscapingChars(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	message := "<b>Bold Test</b>"
@@ -764,7 +764,7 @@ func TestGetNotificationEmailEscapingChars(t *testing.T) {
 func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	ch := &model.Channel{
 		Id:          "test-channel-id",
@@ -816,7 +816,7 @@ func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
 func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	ch := &model.Channel{
 		Id:          model.NewId(),
@@ -883,7 +883,7 @@ func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 func TestGetNotificationEmailBodyPrivateChannelMention(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	ch := &model.Channel{
 		Id:          "test-channel-id",
@@ -935,7 +935,7 @@ func TestGetNotificationEmailBodyPrivateChannelMention(t *testing.T) {
 func TestGenerateHyperlinkForChannelsPublic(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	ch := &model.Channel{
 		Name:        "channelname",
@@ -967,7 +967,7 @@ func TestGenerateHyperlinkForChannelsPublic(t *testing.T) {
 func TestGenerateHyperlinkForChannelsMultiPublic(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	// TODO: Fix the case where the first channel name contains the other channel names (for example here channelnameone)"
 	ch := &model.Channel{
@@ -1024,7 +1024,7 @@ func TestGenerateHyperlinkForChannelsMultiPublic(t *testing.T) {
 func TestGenerateHyperlinkForChannelsPrivate(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	ch := &model.Channel{
 		Name:        "channelname",
@@ -1060,7 +1060,7 @@ func TestLandingLink(t *testing.T) {
 		func(cfg *model.Config) {
 			cfg.ServiceSettings.SiteURL = model.NewPointer("http://localhost:8065")
 		}, nil, t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -1100,7 +1100,7 @@ func TestLandingLinkPermalink(t *testing.T) {
 		func(cfg *model.Config) {
 			cfg.ServiceSettings.SiteURL = model.NewPointer("http://localhost:8065")
 		}, nil, t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -1215,7 +1215,7 @@ func TestMarkdownConversion(t *testing.T) {
 	}
 
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	storeMock := th.App.Srv().Store().(*mocks.Store)

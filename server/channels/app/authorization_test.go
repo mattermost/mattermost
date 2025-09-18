@@ -22,8 +22,8 @@ import (
 )
 
 func TestSessionHasPermissionTo(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	localSession := model.Session{
 		UserId: th.BasicUser.Id,
@@ -61,8 +61,8 @@ func TestSessionHasPermissionTo(t *testing.T) {
 }
 
 func TestSessionHasPermissionToAndNotRestrictedAdmin(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	localSession := model.Session{
 		UserId: th.BasicUser.Id,
@@ -120,7 +120,7 @@ func TestSessionHasPermissionToAndNotRestrictedAdmin(t *testing.T) {
 func TestCheckIfRolesGrantPermission(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	cases := []struct {
 		roles        []string
@@ -153,8 +153,8 @@ func TestChannelRolesGrantPermission(t *testing.T) {
 
 func TestHasPermissionToTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.RemoveUserFromTeam(th.BasicUser, th.BasicTeam)
@@ -171,8 +171,8 @@ func TestHasPermissionToTeam(t *testing.T) {
 
 func TestSessionHasPermissionToTeams(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	// Adding another team with more channels (public and private)
 	myTeam := th.CreateTeam()
@@ -230,8 +230,8 @@ func TestSessionHasPermissionToTeams(t *testing.T) {
 
 func TestSessionHasPermissionToChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	session := model.Session{
 		UserId: th.BasicUser.Id,
@@ -281,8 +281,8 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 
 func TestSessionHasPermissionToChannels(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	ch1 := th.CreateChannel(th.Context, th.BasicTeam)
 	ch2 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
@@ -380,8 +380,8 @@ func TestSessionHasPermissionToChannels(t *testing.T) {
 
 func TestHasPermissionToUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	assert.True(t, th.App.HasPermissionToUser(th.SystemAdminUser.Id, th.BasicUser.Id))
 	assert.True(t, th.App.HasPermissionToUser(th.BasicUser.Id, th.BasicUser.Id))
@@ -390,8 +390,8 @@ func TestHasPermissionToUser(t *testing.T) {
 
 func TestSessionHasPermissionToManageBot(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	bot, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username",
@@ -502,8 +502,8 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 
 func TestSessionHasPermissionToUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	t.Run("test my user access", func(t *testing.T) {
 		session := model.Session{
@@ -553,8 +553,8 @@ func TestSessionHasPermissionToUser(t *testing.T) {
 
 func TestSessionHasPermissionToManageUserOrBot(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	bot, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username",
@@ -609,8 +609,8 @@ func TestSessionHasPermissionToManageUserOrBot(t *testing.T) {
 
 func TestHasPermissionToCategory(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 	session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
 	require.Nil(t, err)
 
@@ -628,8 +628,8 @@ func TestHasPermissionToCategory(t *testing.T) {
 
 func TestSessionHasPermissionToGroup(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	file, e := os.Open("tests/group-role-has-permission.csv")
 	require.NoError(t, e)
@@ -713,8 +713,8 @@ func TestSessionHasPermissionToGroup(t *testing.T) {
 
 func TestHasPermissionToReadChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	ttcc := []struct {
 		name                    string
@@ -819,8 +819,8 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 
 func TestSessionHasPermissionToChannelByPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	session, err := th.App.CreateSession(th.Context, &model.Session{
 		UserId: th.BasicUser.Id,
@@ -872,8 +872,8 @@ func TestSessionHasPermissionToChannelByPost(t *testing.T) {
 
 func TestHasPermissionToChannelByPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	channel := th.CreateChannel(th.Context, th.BasicTeam)
 	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)

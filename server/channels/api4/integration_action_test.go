@@ -48,8 +48,7 @@ func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func TestPostActionCookies(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -150,8 +149,7 @@ func TestPostActionCookies(t *testing.T) {
 
 func TestOpenDialog(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -288,8 +286,7 @@ func TestOpenDialog(t *testing.T) {
 
 func TestSubmitDialog(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -352,8 +349,7 @@ func TestSubmitDialog(t *testing.T) {
 
 func TestLookupDialog(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {

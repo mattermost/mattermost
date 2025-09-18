@@ -39,8 +39,8 @@ func getLicWithSkuShortName(skuShortName string) *model.License {
 
 func TestSendNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
 	require.Nil(t, appErr)
@@ -219,8 +219,8 @@ func TestSendNotifications(t *testing.T) {
 
 func TestSendNotifications_MentionsFollowers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	th.AddUserToChannel(th.BasicUser2, th.BasicChannel)
 
@@ -533,8 +533,8 @@ func connectFakeWebSocket(t *testing.T, th *TestHelper, userID string, connectio
 
 func TestConnectFakeWebSocket(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	teamID := th.BasicTeam.Id
 	userID := th.BasicUser.Id
@@ -568,8 +568,8 @@ func TestConnectFakeWebSocket(t *testing.T) {
 
 func TestSendNotificationsWithManyUsers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	users := []*model.User{}
 	for range 10 {
@@ -623,8 +623,8 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 
 func TestSendOutOfChannelMentions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	channel := th.BasicChannel
 
@@ -665,8 +665,8 @@ func TestSendOutOfChannelMentions(t *testing.T) {
 
 func TestFilterOutOfChannelMentions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	channel := th.BasicChannel
 
@@ -1525,8 +1525,8 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 
 func TestAllowChannelMentions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id}
 
@@ -1564,8 +1564,8 @@ func TestAllowChannelMentions(t *testing.T) {
 
 func TestAllowGroupMentions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id}
 
@@ -1624,7 +1624,7 @@ func TestAllowGroupMentions(t *testing.T) {
 func TestGetMentionKeywords(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	// user with username or custom mentions enabled
 	user1 := &model.User{
@@ -1950,7 +1950,7 @@ func TestGetMentionKeywords(t *testing.T) {
 func TestGetMentionKeywords_Groups(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	userID1 := model.NewId()
 	userID2 := model.NewId()
@@ -2323,7 +2323,7 @@ func TestPostNotificationGetChannelName(t *testing.T) {
 func TestPostNotificationGetSenderName(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	defaultChannel := &model.Channel{Type: model.ChannelTypeOpen}
 	defaultPost := &model.Post{Props: model.StringInterface{}}
@@ -2427,8 +2427,8 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 
 func TestGetNotificationNameFormat(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	t.Run("show full name on", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -2452,7 +2452,7 @@ func TestGetNotificationNameFormat(t *testing.T) {
 func TestUserAllowsEmail(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
+	defer th.TearDown(t)
 
 	t.Run("should return true", func(t *testing.T) {
 		user := th.CreateUser()
@@ -2562,8 +2562,8 @@ func TestUserAllowsEmail(t *testing.T) {
 
 func TestInsertGroupMentions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	team := th.BasicTeam
 	channel := th.BasicChannel
@@ -2697,8 +2697,8 @@ func TestInsertGroupMentions(t *testing.T) {
 
 func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	var err *model.AppError
 
@@ -2824,8 +2824,8 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 func TestReplyPostNotificationsWithCRT(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Reply posts only shows badges for explicit mentions in collapsed threads", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		u1 := th.BasicUser
 		u2 := th.BasicUser2
@@ -2893,8 +2893,8 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 	})
 
 	t.Run("Replies to post created by webhook should not auto-follow webhook creator", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -2936,8 +2936,8 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 	})
 
 	t.Run("should not auto follow when the original poster is no longer a channel member", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.TearDown(t)
 
 		u1 := th.BasicUser
 		u2 := th.BasicUser2
@@ -2980,8 +2980,8 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 
 func TestChannelAutoFollowThreads(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	u1 := th.BasicUser
 	u2 := th.BasicUser2
@@ -3044,8 +3044,8 @@ func TestChannelAutoFollowThreads(t *testing.T) {
 
 func TestRemoveNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+	defer th.TearDown(t)
 
 	u1 := th.BasicUser
 	u2 := th.BasicUser2
