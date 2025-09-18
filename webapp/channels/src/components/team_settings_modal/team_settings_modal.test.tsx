@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen, act} from '@testing-library/react';
+import {fireEvent, screen, act, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import TeamSettingsModal from 'components/team_settings_modal/team_settings_modal';
@@ -52,7 +52,7 @@ describe('components/team_settings_modal', () => {
         expect(infoButton).toBeDefined();
     });
 
-    test('should prevent modal close and show error state when trying to close with unsaved changes', async () => {
+    test('should warn on first close attempt with unsaved changes and stay open', async () => {
         jest.useFakeTimers();
 
         renderWithContext(
@@ -84,7 +84,7 @@ describe('components/team_settings_modal', () => {
             fireEvent.change(nameInput, {target: {value: 'Modified Team Name'}});
         });
 
-        // Try to close the modal by clicking the close button
+        // First close attempt - should show warning and prevent close
         const closeButton = screen.getByLabelText('Close');
         act(() => {
             fireEvent.click(closeButton);
@@ -100,6 +100,58 @@ describe('components/team_settings_modal', () => {
         // Fast-forward time to test the 3-second timeout
         act(() => {
             jest.advanceTimersByTime(3000);
+        });
+
+        jest.useRealTimers();
+    });
+
+    test('should allow close on second attempt with unsaved changes (warn-once behavior)', async () => {
+        jest.useFakeTimers();
+
+        renderWithContext(
+            <TeamSettingsModal
+                {...baseProps}
+            />,
+            {
+                entities: {
+                    teams: {
+                        currentTeamId: 'team-id',
+                        teams: {
+                            'team-id': {
+                                id: 'team-id',
+                                display_name: 'Team Name',
+                                description: 'Team Description',
+                            },
+                        },
+                    },
+                },
+            },
+        );
+
+        // Simulate unsaved changes
+        const nameInput = screen.getByDisplayValue('Team Name');
+        act(() => {
+            fireEvent.change(nameInput, {target: {value: 'Modified Team Name'}});
+        });
+
+        const closeButton = screen.getByLabelText('Close');
+
+        // First close attempt - should warn and prevent
+        act(() => {
+            fireEvent.click(closeButton);
+        });
+
+        // Should show warning
+        expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+
+        // Second close attempt - should close modal despite unsaved changes
+        act(() => {
+            fireEvent.click(closeButton);
+        });
+
+        // Modal should close and call onExited
+        await waitFor(() => {
+            expect(baseProps.onExited).toHaveBeenCalled();
         });
 
         jest.useRealTimers();
@@ -135,8 +187,66 @@ describe('components/team_settings_modal', () => {
             fireEvent.click(closeButton);
         });
 
-        // Modal should close (fade out)
-        expect(modal.className).toBe('fade modal');
+        // Should close without issues
+        await waitFor(() => {
+            expect(baseProps.onExited).toHaveBeenCalled();
+        });
+    });
+
+    test('should reset warning state when changes are saved', async () => {
+        jest.useFakeTimers();
+
+        renderWithContext(
+            <TeamSettingsModal
+                {...baseProps}
+            />,
+            {
+                entities: {
+                    teams: {
+                        currentTeamId: 'team-id',
+                        teams: {
+                            'team-id': {
+                                id: 'team-id',
+                                display_name: 'Team Name',
+                                description: 'Team Description',
+                            },
+                        },
+                    },
+                },
+            },
+        );
+
+        // Simulate unsaved changes
+        const nameInput = screen.getByDisplayValue('Team Name');
+        act(() => {
+            fireEvent.change(nameInput, {target: {value: 'Modified Team Name'}});
+        });
+
+        const closeButton = screen.getByLabelText('Close');
+
+        // First close attempt - should warn
+        act(() => {
+            fireEvent.click(closeButton);
+        });
+
+        expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+
+        // Save the changes (simulate clicking save)
+        const saveButton = screen.getByText('Save');
+        act(() => {
+            fireEvent.click(saveButton);
+        });
+
+        // Now close attempt should work immediately (no warning needed)
+        act(() => {
+            fireEvent.click(closeButton);
+        });
+
+        await waitFor(() => {
+            expect(baseProps.onExited).toHaveBeenCalled();
+        });
+
+        jest.useRealTimers();
     });
 });
 

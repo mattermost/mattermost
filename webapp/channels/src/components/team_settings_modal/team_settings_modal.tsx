@@ -25,6 +25,7 @@ const TeamSettingsModal = ({onExited, canInviteUsers, focusOriginElement}: Props
     const [show, setShow] = useState<boolean>(true);
     const [hasChanges, setHasChanges] = useState<boolean>(false);
     const [hasChangeTabError, setHasChangeTabError] = useState<boolean>(false);
+    const [hasBeenWarned, setHasBeenWarned] = useState<boolean>(false);
     const modalBodyRef = useRef<ModalBody>(null);
     const {formatMessage} = useIntl();
 
@@ -36,11 +37,13 @@ const TeamSettingsModal = ({onExited, canInviteUsers, focusOriginElement}: Props
         setActiveTab(tab);
         setHasChanges(false);
         setHasChangeTabError(false);
+        setHasBeenWarned(false);
     }, [hasChanges]);
 
     const handleHide = useCallback(() => {
-        // Prevent modal closing if there are unsaved changes
-        if (hasChanges) {
+        // Prevent modal closing if there are unsaved changes (warn once, then allow)
+        if (hasChanges && !hasBeenWarned) {
+            setHasBeenWarned(true);
             setHasChangeTabError(true);
             setTimeout(() => {
                 setHasChangeTabError(false);
@@ -48,7 +51,7 @@ const TeamSettingsModal = ({onExited, canInviteUsers, focusOriginElement}: Props
         } else {
             setShow(false);
         }
-    }, [hasChanges]);
+    }, [hasChanges, hasBeenWarned]);
 
     const handleClose = useCallback(() => {
         if (focusOriginElement) {
@@ -57,6 +60,7 @@ const TeamSettingsModal = ({onExited, canInviteUsers, focusOriginElement}: Props
         setActiveTab('info');
         setHasChanges(false);
         setHasChangeTabError(false);
+        setHasBeenWarned(false);
         onExited();
     }, [onExited, focusOriginElement]);
 

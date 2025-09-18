@@ -97,6 +97,9 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     // State to track if there are unsaved changes
     const [areThereUnsavedChanges, setAreThereUnsavedChanges] = useState(false);
 
+    // State to track if user has been warned about unsaved changes
+    const [hasBeenWarned, setHasBeenWarned] = useState(false);
+
     // Refs
     const modalBodyRef = useRef<HTMLDivElement>(null);
 
@@ -124,8 +127,10 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     };
 
     const handleHide = () => {
-        // Prevent modal closing if there are unsaved changes
-        if (areThereUnsavedChanges) {
+        // Prevent modal closing if there are unsaved changes (warn once, then allow)
+        if (areThereUnsavedChanges && !hasBeenWarned) {
+            setHasBeenWarned(true);
+
             // Show error message in SaveChangesPanel
             setShowTabSwitchError(true);
             setTimeout(() => {
@@ -147,6 +152,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     const handleExited = () => {
         // Clear anything if needed
         setActiveTab(ChannelSettingsTabs.INFO);
+        setHasBeenWarned(false);
         if (focusOriginElement) {
             focusElement(focusOriginElement, true);
         }
@@ -274,7 +280,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
             className='ChannelSettingsModal settings-modal'
             show={show}
             onHide={handleHide}
-            preventClose={areThereUnsavedChanges}
+            preventClose={areThereUnsavedChanges && !hasBeenWarned}
             onExited={handleExited}
             compassDesign={true}
             modalHeaderText={modalTitle}

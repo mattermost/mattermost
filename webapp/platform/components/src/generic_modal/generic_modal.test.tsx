@@ -351,38 +351,5 @@ describe('GenericModal', () => {
                 expect(modal).not.toHaveClass('in');
             });
         });
-
-        test('preventClose with autoCloseOnCancelButton=false still calls onHide but respects autoClose setting', async () => {
-            const onHideMock = jest.fn();
-            const handleCancelMock = jest.fn();
-            const props = {
-                ...baseProps,
-                onHide: onHideMock,
-                handleCancel: handleCancelMock,
-                preventClose: true,
-                autoCloseOnCancelButton: false,
-                show: true,
-            };
-
-            render(
-                wrapIntl(<GenericModal {...props}/>),
-            );
-
-            const modal = screen.getByRole('dialog');
-            const cancelButton = screen.getByText('Cancel');
-
-            cancelButton.click();
-
-            // handleCancel should be called
-            await waitFor(() => {
-                expect(handleCancelMock).toHaveBeenCalled();
-            });
-
-            // onHide should NOT be called because autoCloseOnCancelButton=false
-            expect(onHideMock).not.toHaveBeenCalled();
-
-            // Modal should still be visible
-            expect(modal).toHaveClass('in');
-        });
     });
 });

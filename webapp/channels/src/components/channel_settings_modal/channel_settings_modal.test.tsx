@@ -13,6 +13,46 @@ import type {GlobalState} from 'types/store';
 
 import ChannelSettingsModal from './channel_settings_modal';
 
+// Create controllable trigger for unsaved changes testing
+let triggerUnsavedChanges: () => void = () => {};
+let saveChanges: () => void = () => {};
+let mockShowPanel = false;
+
+// Mock the ChannelSettingsInfoTab component
+jest.mock('./channel_settings_info_tab', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const React = require('react');
+
+    return function MockChannelSettingsInfoTab({
+        setAreThereUnsavedChanges,
+        showTabSwitchError,
+    }: {
+        setAreThereUnsavedChanges: (value: boolean) => void;
+        showTabSwitchError?: boolean;
+    }) {
+        // Make the functions available to tests
+        triggerUnsavedChanges = () => {
+            mockShowPanel = true;
+            setAreThereUnsavedChanges(true);
+        };
+
+        saveChanges = () => {
+            mockShowPanel = false;
+            setAreThereUnsavedChanges(false);
+        };
+
+        return React.createElement('div', {'data-testid': 'info-tab'}, [
+            'Info Tab Content',
+
+            // Mock SaveChangesPanel - only show when triggered
+            mockShowPanel && React.createElement('div', {
+                key: 'save-changes-panel',
+                'data-testid': 'save-changes-panel',
+            }, showTabSwitchError ? 'You have unsaved changes' : 'Regular save panel'),
+        ]);
+    };
+});
+
 // Variables to control permission check results in tests
 let mockPrivateChannelPermission = true;
 let mockPublicChannelPermission = true;
@@ -441,50 +481,119 @@ describe('ChannelSettingsModal', () => {
     });
 
     describe('preventClose functionality', () => {
-        it('should pass preventClose prop to GenericModal based on unsaved changes state', async () => {
-            // Mock the InfoTab to simulate unsaved changes
-            const MockInfoTabWithChanges = jest.fn().mockImplementation(({setAreThereUnsavedChanges}) => {
-                // Simulate unsaved changes by calling the setter immediately
-                React.useEffect(() => {
-                    setAreThereUnsavedChanges?.(true);
-                }, [setAreThereUnsavedChanges]);
+        beforeEach(() => {
+            // Reset mock functions before each test
+            jest.clearAllMocks();
 
-                return <div data-testid='info-tab-with-changes'>{'Info Tab with unsaved changes'}</div>;
-            });
+            // Reset trigger functions and state before each test
+            triggerUnsavedChanges = () => {};
+            saveChanges = () => {};
+            mockShowPanel = false;
+        });
 
-            jest.doMock('./channel_settings_info_tab', () => MockInfoTabWithChanges);
-
+        it('should warn on first close attempt with unsaved changes and stay open', async () => {
             renderWithContext(<ChannelSettingsModal {...baseProps}/>);
 
-            // Wait for the modal to load
             await waitFor(() => {
                 expect(screen.getByRole('dialog')).toBeInTheDocument();
             });
 
-            const modal = screen.getByRole('dialog');
+            // Simulate unsaved changes
+            act(() => {
+                triggerUnsavedChanges();
+            });
 
-            // Try to close the modal - it should prevent closing due to unsaved changes
+            // First close attempt - should prevent close (warn-once behavior)
             const closeButton = screen.getByLabelText(/close/i);
             act(() => {
                 fireEvent.click(closeButton);
             });
 
-            // Modal should still be visible (not closed due to unsaved changes)
-            expect(modal).toBeInTheDocument();
-            expect(modal).toBeVisible();
+            // Modal should still be visible (prevented from closing on first attempt)
+            await waitFor(() => {
+                expect(screen.getByRole('dialog')).toBeInTheDocument();
+            }, {timeout: 1000});
 
-            // Restore the original mock
-            jest.doMock('./channel_settings_info_tab', () => {
-                return function MockInfoTab(): JSX.Element {
-                    return <div data-testid='info-tab'>{'Info Tab Content'}</div>;
-                };
+            // onExited should NOT have been called yet
+            expect(baseProps.onExited).not.toHaveBeenCalled();
+        });
+
+        it('should allow close on second attempt with unsaved changes (warn-once behavior)', async () => {
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+            await waitFor(() => {
+                expect(screen.getByRole('dialog')).toBeInTheDocument();
+            });
+
+            // Simulate unsaved changes
+            act(() => {
+                triggerUnsavedChanges();
+            });
+
+            const closeButton = screen.getByLabelText(/close/i);
+
+            // First close attempt - should warn and prevent
+            act(() => {
+                fireEvent.click(closeButton);
+            });
+
+            // Verify modal is still open after first attempt
+            await waitFor(() => {
+                expect(screen.getByRole('dialog')).toBeInTheDocument();
+            }, {timeout: 1000});
+
+            // Second close attempt - should close modal despite unsaved changes
+            act(() => {
+                fireEvent.click(closeButton);
+            });
+
+            // Modal should close and call onExited (warn-once behavior)
+            await waitFor(() => {
+                expect(baseProps.onExited).toHaveBeenCalled();
+            });
+        });
+
+        it('should reset warning state when changes are saved', async () => {
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+            await waitFor(() => {
+                expect(screen.getByRole('dialog')).toBeInTheDocument();
+            });
+
+            // Simulate unsaved changes
+            act(() => {
+                triggerUnsavedChanges();
+            });
+
+            // First close attempt - should warn and prevent
+            const closeButton = screen.getByLabelText(/close/i);
+            act(() => {
+                fireEvent.click(closeButton);
+            });
+
+            // Verify modal is still open after first attempt
+            await waitFor(() => {
+                expect(screen.getByRole('dialog')).toBeInTheDocument();
+            }, {timeout: 1000});
+
+            // Save changes (resets warning state)
+            act(() => {
+                saveChanges();
+            });
+
+            // Now close attempt should work immediately (no warning needed)
+            act(() => {
+                fireEvent.click(closeButton);
+            });
+
+            await waitFor(() => {
+                expect(baseProps.onExited).toHaveBeenCalled();
             });
         });
 
         it('should allow modal close when no unsaved changes', async () => {
             renderWithContext(<ChannelSettingsModal {...baseProps}/>);
 
-            // Wait for the modal to load
             await waitFor(() => {
                 expect(screen.getByRole('dialog')).toBeInTheDocument();
             });
@@ -492,15 +601,12 @@ describe('ChannelSettingsModal', () => {
             // Try to close the modal without making any changes
             const closeButton = screen.getByLabelText(/close/i);
 
-            // This should not throw any errors and should trigger the close flow
-            expect(() => {
-                act(() => {
-                    fireEvent.click(closeButton);
-                });
-            }).not.toThrow();
+            act(() => {
+                fireEvent.click(closeButton);
+            });
 
             await waitFor(() => {
-                expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+                expect(baseProps.onExited).toHaveBeenCalled();
             });
         });
     });
