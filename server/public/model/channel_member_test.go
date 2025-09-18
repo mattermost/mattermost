@@ -58,3 +58,74 @@ func TestIsChannelMemberNotifyPropsValid(t *testing.T) {
 		assert.Nil(t, err)
 	})
 }
+
+func TestChannelMemberSanitizeForCurrentUser(t *testing.T) {
+	currentUserId := NewId()
+	otherUserId := NewId()
+	channelId := NewId()
+
+	t.Run("should not sanitize current user's own membership", func(t *testing.T) {
+		member := &ChannelMember{
+			ChannelId:    channelId,
+			UserId:       currentUserId,
+			LastViewedAt: 1234567890000,
+			LastUpdateAt: 1234567890000,
+			NotifyProps:  GetDefaultChannelNotifyProps(),
+		}
+
+		originalLastViewedAt := member.LastViewedAt
+		originalLastUpdateAt := member.LastUpdateAt
+
+		member.SanitizeForCurrentUser(currentUserId)
+
+		assert.Equal(t, originalLastViewedAt, member.LastViewedAt, "LastViewedAt should not be sanitized for current user")
+		assert.Equal(t, originalLastUpdateAt, member.LastUpdateAt, "LastUpdateAt should not be sanitized for current user")
+	})
+
+	t.Run("should sanitize other users' membership data", func(t *testing.T) {
+		member := &ChannelMember{
+			ChannelId:    channelId,
+			UserId:       otherUserId,
+			LastViewedAt: 1234567890000,
+			LastUpdateAt: 1234567890000,
+			NotifyProps:  GetDefaultChannelNotifyProps(),
+		}
+
+		member.SanitizeForCurrentUser(currentUserId)
+
+		assert.Equal(t, int64(-1), member.LastViewedAt, "LastViewedAt should be sanitized for other users")
+		assert.Equal(t, int64(-1), member.LastUpdateAt, "LastUpdateAt should be sanitized for other users")
+	})
+
+	t.Run("should preserve other fields when sanitizing", func(t *testing.T) {
+		member := &ChannelMember{
+			ChannelId:     channelId,
+			UserId:        otherUserId,
+			Roles:         "channel_user",
+			LastViewedAt:  1234567890000,
+			LastUpdateAt:  1234567890000,
+			MsgCount:      100,
+			MentionCount:  5,
+			NotifyProps:   GetDefaultChannelNotifyProps(),
+			SchemeUser:    true,
+			SchemeAdmin:   false,
+			ExplicitRoles: "",
+		}
+
+		originalRoles := member.Roles
+		originalMsgCount := member.MsgCount
+		originalMentionCount := member.MentionCount
+		originalSchemeUser := member.SchemeUser
+		originalSchemeAdmin := member.SchemeAdmin
+
+		member.SanitizeForCurrentUser(currentUserId)
+
+		assert.Equal(t, int64(-1), member.LastViewedAt, "LastViewedAt should be sanitized")
+		assert.Equal(t, int64(-1), member.LastUpdateAt, "LastUpdateAt should be sanitized")
+		assert.Equal(t, originalRoles, member.Roles, "Roles should be preserved")
+		assert.Equal(t, originalMsgCount, member.MsgCount, "MsgCount should be preserved")
+		assert.Equal(t, originalMentionCount, member.MentionCount, "MentionCount should be preserved")
+		assert.Equal(t, originalSchemeUser, member.SchemeUser, "SchemeUser should be preserved")
+		assert.Equal(t, originalSchemeAdmin, member.SchemeAdmin, "SchemeAdmin should be preserved")
+	})
+}
