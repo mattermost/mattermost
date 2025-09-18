@@ -5,7 +5,7 @@ import React from 'react';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import {FileGenericOutlineIcon, BookOutlineIcon, SlashForwardIcon} from '@mattermost/compass-icons/components';
+import {FileGenericOutlineIcon, BookOutlineIcon, PlayIcon} from '@mattermost/compass-icons/components';
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -39,7 +39,7 @@ const BookmarkIcon = ({
     if (type === 'link') {
         icon = <BookOutlineIcon size={size}/>;
     } else if (type === 'command') {
-        icon = <SlashForwardIcon size={size}/>;
+        icon = <PlayIcon size={size}/>;
     } else {
         icon = <FileGenericOutlineIcon size={size}/>;
     }

@@ -309,7 +309,12 @@ function ChannelBookmarkCreateModal({
         }
 
         if (type === 'command') {
-            if (!command || !command.startsWith('/') || commandError) {
+            if (
+                command.trim() === '' ||
+                command.trim() === '/' ||
+                !command.startsWith('/') ||
+                commandError
+            ) {
                 return false;
             }
 
@@ -424,6 +429,7 @@ function ChannelBookmarkCreateModal({
             isConfirmDisabled={confirmDisabled}
             autoCloseOnConfirmButton={false}
             errorText={saveError}
+            bodyOverflowVisible={true}
         >
             <>
                 {type === 'link' ? (
