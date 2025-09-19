@@ -772,7 +772,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 					}
 					threadMembership = tm
 				}
-				userThread, err := a.Srv().Store().Thread().GetThreadForUser(threadMembership, true, a.IsPostPriorityEnabled())
+				userThread, err := a.Srv().Store().Thread().GetThreadForUser(rctx, threadMembership, true, a.IsPostPriorityEnabled())
 				if err != nil {
 					a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 					rctx.Logger().LogM(mlog.MlvlNotificationError, "Missing thread",
@@ -970,7 +970,7 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 				return err
 			}
 
-			userThread, err := a.Srv().Store().Thread().GetThreadForUser(threadMembership, true, a.IsPostPriorityEnabled())
+			userThread, err := a.Srv().Store().Thread().GetThreadForUser(rctx, threadMembership, true, a.IsPostPriorityEnabled())
 			if err != nil {
 				return err
 			}
@@ -1236,7 +1236,7 @@ func (a *App) filterOutOfChannelMentions(rctx request.CTX, sender *model.User, p
 	var outOfGroupsUsers model.UserSlice
 
 	if channel.IsGroupConstrained() {
-		nonMemberIDs, err := a.FilterNonGroupChannelMembers(teamUsers.IDs(), channel)
+		nonMemberIDs, err := a.FilterNonGroupChannelMembers(rctx, teamUsers.IDs(), channel)
 		if err != nil {
 			return nil, nil, nil, err
 		}

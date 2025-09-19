@@ -642,8 +642,8 @@ func (a *App) HandleCommandResponsePost(rctx request.CTX, command *model.Command
 
 	// Process Slack text replacements if the response does not contain "skip_slack_parsing": true.
 	if !response.SkipSlackParsing {
-		response.Text = a.ProcessSlackText(response.Text)
-		response.Attachments = a.ProcessSlackAttachments(response.Attachments)
+		response.Text = a.ProcessSlackText(rctx, response.Text)
+		response.Attachments = a.ProcessSlackAttachments(rctx, response.Attachments)
 	}
 
 	if _, err := a.CreateCommandPost(rctx, post, args.TeamId, response, response.SkipSlackParsing); err != nil {

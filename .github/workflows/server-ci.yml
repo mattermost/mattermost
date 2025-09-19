@@ -205,6 +205,8 @@ jobs:
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
   test-postgres-normal-fips:
+    # Skip FIPS testing for forks, which won't have docker login credentials.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     name: Postgres (FIPS)
     needs: go
     uses: ./.github/workflows/server-test-template.yml
@@ -217,9 +219,9 @@ jobs:
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: true
   test-coverage:
+    name: Generate Test Coverage
     # Skip coverage generation for cherry-pick PRs into release branches.
     if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
-    name: Generate Test Coverage
     needs: go
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
@@ -245,6 +247,8 @@ jobs:
       fips-enabled: false
   test-mmctl-fips:
     name: Run mmctl tests (FIPS)
+    # Skip FIPS testing for forks, which won't have docker login credentials.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     needs: go
     uses: ./.github/workflows/mmctl-test-template.yml
     secrets: inherit

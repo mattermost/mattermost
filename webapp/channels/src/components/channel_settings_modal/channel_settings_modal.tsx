@@ -84,7 +84,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     // FEATURE_FLAG_REMOVAL: ChannelAdminManageABACControl - Remove the feature flag check when feature is GA
     const channelAdminABACControlEnabled = useSelector(isChannelAdminManageABACControlEnabled);
 
-    const shouldShowAccessRulesTab = channelAdminABACControlEnabled && canManageChannelAccessRules && channel.type === Constants.PRIVATE_CHANNEL;
+    const shouldShowAccessRulesTab = channelAdminABACControlEnabled && canManageChannelAccessRules && channel.type === Constants.PRIVATE_CHANNEL && !channel.group_constrained;
 
     const [show, setShow] = useState(isOpen);
 

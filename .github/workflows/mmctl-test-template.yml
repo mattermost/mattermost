@@ -30,6 +30,8 @@ jobs:
       COMPOSE_PROJECT_NAME: ghactions
     steps:
       - name: buildenv/docker-login
+        # Only FIPS requires login for private build container. (Forks won't have credentials.)
+        if: inputs.fips-enabled
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}

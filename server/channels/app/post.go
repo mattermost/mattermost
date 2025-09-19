@@ -200,7 +200,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	if post.RootId != "" {
 		pchan = make(chan store.StoreResult[*model.PostList], 1)
 		go func() {
-			r, pErr := a.Srv().Store().Post().Get(sqlstore.WithMaster(context.Background()), post.RootId, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
+			r, pErr := a.Srv().Store().Post().Get(RequestContextWithMaster(rctx), post.RootId, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
 			pchan <- store.StoreResult[*model.PostList]{Data: r, NErr: pErr}
 			close(pchan)
 		}()
@@ -658,7 +658,7 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 
 	receivedUpdatedPost.SanitizeProps()
 
-	postLists, nErr := a.Srv().Store().Post().Get(context.Background(), receivedUpdatedPost.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
+	postLists, nErr := a.Srv().Store().Post().Get(rctx, receivedUpdatedPost.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -955,8 +955,8 @@ func (a *App) PatchPost(rctx request.CTX, postID string, patch *model.PostPatch,
 	return updatedPost, nil
 }
 
-func (a *App) GetPostsPage(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store().Post().GetPosts(options, false, a.Config().GetSanitizeOptions())
+func (a *App) GetPostsPage(rctx request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+	postList, err := a.Srv().Store().Post().GetPosts(rctx, options, false, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -977,8 +977,8 @@ func (a *App) GetPostsPage(options model.GetPostsOptions) (*model.PostList, *mod
 	return postList, nil
 }
 
-func (a *App) GetPosts(channelID string, offset int, limit int) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store().Post().GetPosts(model.GetPostsOptions{ChannelId: channelID, Page: offset, PerPage: limit}, true, a.Config().GetSanitizeOptions())
+func (a *App) GetPosts(rctx request.CTX, channelID string, offset int, limit int) (*model.PostList, *model.AppError) {
+	postList, err := a.Srv().Store().Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channelID, Page: offset, PerPage: limit}, true, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -1002,8 +1002,8 @@ func (a *App) GetPostsEtag(channelID string, collapsedThreads bool) string {
 	return a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads)
 }
 
-func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store().Post().GetPostsSince(options, true, a.Config().GetSanitizeOptions())
+func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {
+	postList, err := a.Srv().Store().Post().GetPostsSince(rctx, options, true, a.Config().GetSanitizeOptions())
 	if err != nil {
 		return nil, model.NewAppError("GetPostsSince", "app.post.get_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1042,8 +1042,8 @@ func (a *App) GetSinglePost(rctx request.CTX, postID string, includeDeleted bool
 	return post, nil
 }
 
-func (a *App) GetPostThread(postID string, opts model.GetPostsOptions, userID string) (*model.PostList, *model.AppError) {
-	posts, err := a.Srv().Store().Post().Get(context.Background(), postID, opts, userID, a.Config().GetSanitizeOptions())
+func (a *App) GetPostThread(rctx request.CTX, postID string, opts model.GetPostsOptions, userID string) (*model.PostList, *model.AppError) {
+	posts, err := a.Srv().Store().Post().Get(rctx, postID, opts, userID, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -1120,7 +1120,7 @@ func (a *App) GetFlaggedPostsForChannel(userID, channelID string, offset int, li
 }
 
 func (a *App) GetPermalinkPost(rctx request.CTX, postID string, userID string) (*model.PostList, *model.AppError) {
-	list, nErr := a.Srv().Store().Post().Get(context.Background(), postID, model.GetPostsOptions{}, userID, a.Config().GetSanitizeOptions())
+	list, nErr := a.Srv().Store().Post().Get(rctx, postID, model.GetPostsOptions{}, userID, a.Config().GetSanitizeOptions())
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -1157,8 +1157,8 @@ func (a *App) GetPermalinkPost(rctx request.CTX, postID string, userID string) (
 	return list, nil
 }
 
-func (a *App) GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store().Post().GetPostsBefore(options, a.Config().GetSanitizeOptions())
+func (a *App) GetPostsBeforePost(rctx request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+	postList, err := a.Srv().Store().Post().GetPostsBefore(rctx, options, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -1187,8 +1187,8 @@ func (a *App) GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList
 	return postList, nil
 }
 
-func (a *App) GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store().Post().GetPostsAfter(options, a.Config().GetSanitizeOptions())
+func (a *App) GetPostsAfterPost(rctx request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+	postList, err := a.Srv().Store().Post().GetPostsAfter(rctx, options, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -1217,14 +1217,14 @@ func (a *App) GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList,
 	return postList, nil
 }
 
-func (a *App) GetPostsAroundPost(before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (a *App) GetPostsAroundPost(rctx request.CTX, before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	var postList *model.PostList
 	var err error
 	sanitize := a.Config().GetSanitizeOptions()
 	if before {
-		postList, err = a.Srv().Store().Post().GetPostsBefore(options, sanitize)
+		postList, err = a.Srv().Store().Post().GetPostsBefore(rctx, options, sanitize)
 	} else {
-		postList, err = a.Srv().Store().Post().GetPostsAfter(options, sanitize)
+		postList, err = a.Srv().Store().Post().GetPostsAfter(rctx, options, sanitize)
 	}
 
 	if err != nil {
@@ -1379,7 +1379,7 @@ func (a *App) GetPostsForChannelAroundLastUnread(rctx request.CTX, channelID, us
 		CollapsedThreads:         collapsedThreads,
 		CollapsedThreadsExtended: collapsedThreadsExtended,
 	}
-	postList, err := a.GetPostThread(lastUnreadPostId, opts, userID)
+	postList, err := a.GetPostThread(rctx, lastUnreadPostId, opts, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -1391,14 +1391,14 @@ func (a *App) GetPostsForChannelAroundLastUnread(rctx request.CTX, channelID, us
 		postList.Order = []string{lastUnreadPostId}
 
 		// BeforePosts will only be accessible if the lastUnreadPostId is itself accessible
-		if postListBefore, err := a.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelID, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitBefore, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: userID}); err != nil {
+		if postListBefore, err := a.GetPostsBeforePost(rctx, model.GetPostsOptions{ChannelId: channelID, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitBefore, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: userID}); err != nil {
 			return nil, err
 		} else if postListBefore != nil {
 			postList.Extend(postListBefore)
 		}
 	}
 
-	if postListAfter, err := a.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelID, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitAfter - 1, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: userID}); err != nil {
+	if postListAfter, err := a.GetPostsAfterPost(rctx, model.GetPostsOptions{ChannelId: channelID, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitAfter - 1, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: userID}); err != nil {
 		return nil, err
 	} else if postListAfter != nil {
 		postList.Extend(postListAfter)
@@ -1919,7 +1919,7 @@ func (a *App) countMentionsFromPost(rctx request.CTX, user *model.User, post *mo
 	// A mapping of thread root IDs to whether or not a post in that thread mentions the user
 	mentionedByThread := make(map[string]bool)
 
-	thread, appErr := a.GetPostThread(post.Id, model.GetPostsOptions{}, user.Id)
+	thread, appErr := a.GetPostThread(rctx, post.Id, model.GetPostsOptions{}, user.Id)
 	if appErr != nil {
 		return 0, 0, 0, appErr
 	}
@@ -1946,7 +1946,7 @@ func (a *App) countMentionsFromPost(rctx request.CTX, user *model.User, post *mo
 	page := 0
 	perPage := 200
 	for {
-		postList, err := a.GetPostsAfterPost(model.GetPostsOptions{
+		postList, err := a.GetPostsAfterPost(rctx, model.GetPostsOptions{
 			ChannelId: post.ChannelId,
 			PostId:    post.Id,
 			Page:      page,
@@ -2534,7 +2534,7 @@ func (a *App) CopyWranglerPostlist(rctx request.CTX, wpl *model.WranglerPostList
 }
 
 func (a *App) MoveThread(rctx request.CTX, postID string, sourceChannelID, channelID string, user *model.User) *model.AppError {
-	postListResponse, appErr := a.GetPostThread(postID, model.GetPostsOptions{}, user.Id)
+	postListResponse, appErr := a.GetPostThread(rctx, postID, model.GetPostsOptions{}, user.Id)
 	if appErr != nil {
 		return model.NewAppError("getPostThread", "app.post.move_thread_command.error", nil, "postID="+postID+", "+"UserId="+user.Id+"", http.StatusBadRequest).Wrap(appErr)
 	}

@@ -644,9 +644,22 @@ export default class PluginRegistry {
         return {id, rootRegisterMenuItem: registerMenuItem(this.id, id, undefined, text, action, filter)};
     });
 
+    warnedAboutRegisterPostDropdownMenuComponent = false;
+
     // Register a component at the bottom of the post dropdown menu.
     // Accepts a React component. Returns a unique identifier.
     registerPostDropdownMenuComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        if (!this.warnedAboutRegisterPostDropdownMenuComponent) {
+            // eslint-disable-next-line no-console
+            console.warn(
+                `${this.id}: This plugin is using registerPostDropdownMenuComponent which is deprecated in Mattermost ` +
+                'v11.0. That API will be removed in a future release, and plugins that use it may not work correctly. ' +
+                'Please update the plugin to use registerPostDropdownMenuAction instead. See ' +
+                'https://forum.mattermost.com/t/deprecating-a-post-dropdown-menu-component-plugin-api-v11/25001 for ' +
+                'more information.',
+            );
+            this.warnedAboutRegisterPostDropdownMenuComponent = true;
+        }
         return dispatchPluginComponentAction('PostDropdownMenuItem', this.id, component);
     });
 

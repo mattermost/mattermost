@@ -5,6 +5,7 @@ import {Locator, Page, ViewportSize} from '@playwright/test';
 
 export type TestArgs = {
     page: Page;
+    locator?: Locator;
     browserName: string;
     viewport?: ViewportSize | null;
 };

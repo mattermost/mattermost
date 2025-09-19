@@ -2041,7 +2041,7 @@ func TestChannelHasBeenCreated(t *testing.T) {
 		require.NotNil(t, channel)
 
 		assert.EventuallyWithT(t, func(t *assert.CollectT) {
-			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
+			posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 1)
 
 			require.Nil(t, appErr)
 			assert.True(t, len(posts.Order) > 0)
@@ -2068,7 +2068,7 @@ func TestChannelHasBeenCreated(t *testing.T) {
 		require.NotNil(t, channel)
 
 		assert.EventuallyWithT(t, func(t *assert.CollectT) {
-			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
+			posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 1)
 
 			require.Nil(t, appErr)
 			assert.True(t, len(posts.Order) > 0)
@@ -2095,7 +2095,7 @@ func TestChannelHasBeenCreated(t *testing.T) {
 		require.NotNil(t, channel)
 
 		assert.EventuallyWithT(t, func(t *assert.CollectT) {
-			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
+			posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 1)
 
 			require.Nil(t, appErr)
 			assert.True(t, len(posts.Order) > 0)
@@ -2179,7 +2179,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		require.Nil(t, appErr)
 
 		assert.EventuallyWithT(t, func(t *assert.CollectT) {
-			posts, appErr := th.App.GetPosts(channel.Id, 0, 30)
+			posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 30)
 
 			require.Nil(t, appErr)
 			assert.True(t, len(posts.Order) > 0)
@@ -2228,7 +2228,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		assert.Eventually(t, func() bool {
 			// Typically, the post we're looking for will be the latest, but there's a race between the plugin and
 			// "User has joined the channel" post which means the plugin post may not the the latest one
-			posts, appErr := th.App.GetPosts(channel.Id, 0, 10)
+			posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 10)
 			require.Nil(t, appErr)
 
 			for _, postId := range posts.Order {
@@ -2264,7 +2264,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 		var posts *model.PostList
 		require.EventuallyWithT(t, func(c *assert.CollectT) {
-			posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
+			posts, appErr = th.App.GetPosts(th.Context, channel.Id, 0, 10)
 			assert.Nil(t, appErr)
 		}, 2*time.Second, 100*time.Millisecond)
 
@@ -2295,7 +2295,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 		var posts *model.PostList
 		require.EventuallyWithT(t, func(c *assert.CollectT) {
-			posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
+			posts, appErr = th.App.GetPosts(th.Context, channel.Id, 0, 10)
 			assert.Nil(t, appErr)
 		}, 2*time.Second, 100*time.Millisecond)
 
@@ -2327,7 +2327,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 		var posts *model.PostList
 		require.EventuallyWithT(t, func(c *assert.CollectT) {
-			posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
+			posts, appErr = th.App.GetPosts(th.Context, channel.Id, 0, 10)
 			assert.Nil(t, appErr)
 		}, 2*time.Second, 100*time.Millisecond)
 

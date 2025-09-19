@@ -71,7 +71,7 @@ COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
 
 # Copy /var/tmp directory needed for local socket files
-COPY --from=builder /var/tmp /var/tmp
+COPY --from=builder --chown=2000:2000 /var/tmp /var/tmp
 
 # We should refrain from running as privileged user
 USER mattermost

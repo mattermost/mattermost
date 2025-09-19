@@ -15,36 +15,36 @@ test('Should show channel banner when configured', async ({pw}) => {
 
     await channelsPage.newChannel(getRandomId(), 'O');
 
-    let settingsModal = await channelsPage.openChannelSettings();
-    let configurationTab = await settingsModal.openConfigurationTab();
+    let channelSettingsModal = await channelsPage.openChannelSettings();
+    let configurationTab = await channelSettingsModal.openConfigurationTab();
 
     await configurationTab.enableChannelBanner();
     await configurationTab.setChannelBannerText('Example channel banner text');
     await configurationTab.setChannelBannerTextColor('#77DD88');
 
     await configurationTab.save();
-    await settingsModal.closeModal();
+    await channelSettingsModal.close();
 
     await channelsPage.centerView.assertChannelBanner('Example channel banner text', '#77DD88');
 
     // Now we'll disable the channel banner
-    settingsModal = await channelsPage.openChannelSettings();
-    configurationTab = await settingsModal.openConfigurationTab();
+    channelSettingsModal = await channelsPage.openChannelSettings();
+    configurationTab = await channelSettingsModal.openConfigurationTab();
     await configurationTab.disableChannelBanner();
 
     await configurationTab.save();
-    await settingsModal.closeModal();
+    await channelSettingsModal.close();
 
     await channelsPage.centerView.assertChannelBannerNotVisible();
 
     // re-enabling channel banner should already have
     // the previously configured text and color
-    settingsModal = await channelsPage.openChannelSettings();
-    configurationTab = await settingsModal.openConfigurationTab();
+    channelSettingsModal = await channelsPage.openChannelSettings();
+    configurationTab = await channelSettingsModal.openConfigurationTab();
     await configurationTab.enableChannelBanner();
 
     await configurationTab.save();
-    await settingsModal.closeModal();
+    await channelSettingsModal.close();
 
     await channelsPage.centerView.assertChannelBanner('Example channel banner text', '#77DD88');
 });
@@ -60,15 +60,15 @@ test('Should render markdown', async ({pw}) => {
 
     await channelsPage.newChannel(getRandomId(), 'O');
 
-    const settingsModal = await channelsPage.openChannelSettings();
-    const configurationTab = await settingsModal.openConfigurationTab();
+    const channelSettingsModal = await channelsPage.openChannelSettings();
+    const configurationTab = await channelSettingsModal.openConfigurationTab();
 
     await configurationTab.enableChannelBanner();
     await configurationTab.setChannelBannerText('**bold** *italic* ~~strikethrough~~');
     await configurationTab.setChannelBannerTextColor('#77DD88');
 
     await configurationTab.save();
-    await settingsModal.closeModal();
+    await channelSettingsModal.close();
 
     await channelsPage.centerView.assertChannelBannerHasBoldText('bold');
     await channelsPage.centerView.assertChannelBannerHasItalicText('italic');
