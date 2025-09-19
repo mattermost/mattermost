@@ -17,6 +17,7 @@ export type Props = {
     onExited?: () => void;
     onEntered?: () => void;
     onHide?: () => void;
+    preventClose?: boolean;
     modalHeaderText?: React.ReactNode;
     modalHeaderTextId?: string;
     modalSubheaderText?: React.ReactNode;
@@ -105,6 +106,7 @@ export const GenericModal: React.FC<Props> = ({
     onExited,
     onEntered,
     onHide,
+    preventClose = false,
     modalHeaderText,
     modalHeaderTextId,
     modalSubheaderText,
@@ -146,9 +148,11 @@ export const GenericModal: React.FC<Props> = ({
     const [showState, setShowState] = useState(show);
 
     const onHideCallback = useCallback(() => {
-        setShowState(false);
+        if (!preventClose) {
+            setShowState(false);
+        }
         onHide?.();
-    }, [onHide]);
+    }, [onHide, preventClose]);
 
     // Use focus trap to keep focus within the modal when it's open
     useFocusTrap(showState, containerRef, {
