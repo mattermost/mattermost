@@ -418,6 +418,48 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 	require.Nil(t, appErr)
 }
 
+func TestUserDeactivationSoftDeletesDMs(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.CreateDmChannel(th.BasicUser)
+	th.CreateDmChannel(th.BasicUser2)
+
+	channelsBefore, err := th.App.Srv().Store().Channel().GetChannelsByUser(th.BasicUser.Id, true, 0, 100, "")
+	require.NoError(t, err)
+
+	var dmsBefore model.ChannelList
+	for _, ch := range channelsBefore {
+		if ch.Type == model.ChannelTypeDirect {
+			dmsBefore = append(dmsBefore, ch)
+		}
+	}
+
+	require.Greater(t, len(dmsBefore), 0)
+	for _, ch := range dmsBefore {
+		require.Zero(t, ch.DeleteAt)
+	}
+
+	_, errApp := th.App.UpdateActive(th.Context, th.BasicUser, false)
+	require.Nil(t, errApp)
+	require.NotZero(t, th.BasicUser.DeleteAt)
+
+	channelsAfter, err := th.App.Srv().Store().Channel().GetChannelsByUser(th.BasicUser.Id, true, 0, 100, "")
+	require.NoError(t, err)
+
+	var dmsAfter model.ChannelList
+	for _, ch := range channelsAfter {
+		if ch.Type == model.ChannelTypeDirect {
+			dmsAfter = append(dmsAfter, ch)
+		}
+	}
+
+	for _, ch := range dmsAfter {
+		require.NotZero(t, ch.DeleteAt)
+		require.GreaterOrEqual(t, ch.DeleteAt, th.BasicUser.DeleteAt)
+	}
+}
+
 func TestUpdateOAuthUserAttrs(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)

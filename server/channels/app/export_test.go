@@ -1674,7 +1674,7 @@ func TestExportDeactivatedUserDMs(t *testing.T) {
 
 	// 4. Export data
 	var b bytes.Buffer
-	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
+	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{IncludeArchivedChannels: true})
 	require.Nil(t, appErr)
 
 	// 5. Make a copy of the buffer for export validation
