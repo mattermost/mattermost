@@ -559,14 +559,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             includeDetailedError={true}
             key="Config_text_SecondSettings.settingk"
             requestAction={[Function]}
-            saveNeeded={false}
             showSuccessMessage={false}
-            successMessage={
-              Object {
-                "defaultMessage": "Test Successful",
-                "id": "admin.requestButton.requestSuccess",
-              }
-            }
           />
           <Memo(BooleanSetting)
             disabled={false}
