@@ -525,7 +525,7 @@
   },
   {
     "id": "api.command_dnd.desc",
-    "translation": "Rahatsız etmeyin kipini açarak masaüstü ve mobil uygulamalarda anında bildirimleri kapatır."
+    "translation": "Rahatsız etmeyin kipini açmak bilgisayar ve mobil uygulamalarda anında bildirimleri kapatır."
   },
   {
     "id": "api.command_dnd.name",
@@ -533,7 +533,7 @@
   },
   {
     "id": "api.command_dnd.success",
-    "translation": "Rahatsız etmeyin kipi açık. Rahatsız etmeyin kipini kapatana kadar masaüstü ya da mobil uygulamadan anında bildirimleri almayacaksınız."
+    "translation": "Rahatsız etmeyin kipi açık. Rahatsız etmeyin kipini kapatana kadar bilgisayar ya da mobil uygulamasında anında bildirimleri almayacaksınız."
   },
   {
     "id": "api.command_echo.delay.app_error",
@@ -771,7 +771,7 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "Geçerli kanal ya da belirtilen [kanal] için masaüstü, e-posta ve anlık bildirimlerini kapatır."
+    "translation": "Geçerli kanal ya da belirtilen [kanal] için bilgisayar, e-posta ve anlık bildirimlerini kapatır."
   },
   {
     "id": "api.command_mute.error",
@@ -2724,7 +2724,7 @@
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
-    "translation": "Kullanıcının kanal üyeliğinde masaüstü bildirim özellikleri değeri geçersiz."
+    "translation": "Kullanıcının kanal üyeliğinde bilgisayar bildirimi özellikleri değeri geçersiz."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
@@ -2776,11 +2776,11 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
-    "translation": "Kullanıcının masaüstü bildirim özellikleri değeri geçersiz."
+    "translation": "Kullanıcının bilgisayar bildirimi özellikleri değeri geçersiz."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
-    "translation": "Kullanıcının masaüstü sesi bildirim özelliği değeri geçersiz."
+    "translation": "Kullanıcının bilgisayar sesi bildirim özelliği değeri geçersiz."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
@@ -4868,7 +4868,7 @@
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
-    "translation": "Lütfen beni etkileşimde bulunmamı istediğiniz takım ve kanallara ekleyin. Bu işlemi tarayıcı ya da Mattermost masaüstü uygulaması üzerinden yapabilirsiniz."
+    "translation": "Lütfen beni etkileşimde bulunmamı istediğiniz takım ve kanallara ekleyin. Bu işlemi tarayıcı ya da Mattermost bilgisayar uygulaması üzerinden yapabilirsiniz."
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
@@ -7264,7 +7264,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_title",
-    "translation": "Masaüstü ve mobil uygulamaları indirin"
+    "translation": "Bilgisayar ve mobil uygulamalarını indirin"
   },
   {
     "id": "api.templates.welcome_body.app_download_button",
@@ -7384,7 +7384,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.mm_apps",
-    "translation": "mobil ve masaüstü uygulamaları"
+    "translation": "mobil ve bilgisayar uygulamaları"
   },
   {
     "id": "api.templates.cloud_welcome_email.invite_sub_info",
@@ -10678,5 +10678,121 @@
   {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Erişim denetimi ilkeleri aranamadı."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
+    "translation": "Kanallardan erişim denetimi ilkesi ataması kaldırılamadı."
+  },
+  {
+    "id": "app.pap.update_access_control_policy_active.app_error",
+    "translation": "Erişim denetimi ilkesinin etkin durumu değiştirilemedi."
+  },
+  {
+    "id": "app.pdp.access_evaluation.app_error",
+    "translation": "Erişim denetimi ilkesi değerlendirilemedi."
+  },
+  {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "Kullanıcının parolası en yeni karma yöntemine geçirilemedi."
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "Kullanıcının parolası güncellenemedi."
+  },
+  {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "Kullanıcı etkinleştirilemedi. Sunucuda olabilecek en fazla lisanslı kullanıcı sayısı aşıldı. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "ent.access_control.job_data_conversion.app_error",
+    "translation": "Önceki görevden veriler ayıklanamadı."
+  },
+  {
+    "id": "ent.access_control.sync_job.app_error",
+    "translation": "Erişim denetimi eşitleme görevi çalıştırılamadı."
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "Elasticsearch toplu işlemi oluşturulamadı"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+    "translation": "Elasticsearch toplu eşitleme işlemi oluşturulamadı"
+  },
+  {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "LDAP bağlantı sınaması başarısız oldu. Sunucu: {{.Server}}:{{.Port}}, Bağlantı güvenliği: {{.ConnectionType}}, Birincil anahtar dosyası adı: {{.PrivateKeyFilename}}, Herkese açık sertifika dosyası adı: {{.PublicCertFilename}}, Bing kullanıcı adı: {{.BindUsername}}. Hata: {{.Error}}"
+  },
+  {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "Üst öge zaten içe aktarılmış."
+  },
+  {
+    "id": "model.access_policy.inherit.version.app_error",
+    "translation": "Erişim denetimi ilkesi devralınamadı."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "Kanal kimliği geçersiz."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
+    "translation": "Kanal bildirimi rengi geçerli bir onaltılık renk değeri olmalıdır (#FF0000 veya #F00 gibi)"
+  },
+  {
+    "id": "model.config.is_valid.client_side_cert_enable.app_error",
+    "translation": "Sertifika temelli kimlik doğrulaması kaldırıldı. İlerlemek için lütfen ClientSideCertEnable özelliğini kapalı bırakın."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
+    "translation": "\"Tüm takımlar için aynı onaylayıcılar\" etkinleştirildiğinde ortak onaylayıcılar veya ek onaylayıcılar ayarlanmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.reasons_not_set.app_error",
+    "translation": "İşaretleme nedenleri boş olamaz."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
+    "translation": "Bir takım için \"Etkin\" olarak ayarlanırken takım onaylayıcıları veya ek onaylayıcılar ayarlanmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "{{.Setting}} için başta veya sonda boşluk algılandı. \"{{.Value}}\" bulundu."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "Denetim günlüğü yapılandırmasında en fazla dosya yedeği sayısı negatif olmamalıdır."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "Denetim günlüğü yapılandırmasında en fazla dosya kuyruğu sayısı sıfırdan büyük olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "Denetim günlüğü yapılandırmasında en büyük dosya boyutu sıfırdan büyük olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "Denetim dosyası günlüğü etkinleştirildiğinde, bir dosya adı belirtilmelidir."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "Dosya adı bir klasör olmamalıdır."
+  },
+  {
+    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
+    "translation": "Arşivlenmiş kanalların gizlenmesi artık desteklenmiyor. Bunun yerine bu kanalları özel yapın ve üyelerini kaldırın."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_event",
+    "translation": "Belirtilen işaretleme olayı geçersiz."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_target",
+    "translation": "Belirtilen işaretleme olayı hedefi geçersiz."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
+    "translation": "Onaylayanlar için yeni işaretlenmiş iletilerin bildirimleri kapatılamaz."
   }
 ]
