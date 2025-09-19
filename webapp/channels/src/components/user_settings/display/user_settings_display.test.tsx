@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React from 'react';
+import React, {act} from 'react';
 import {Provider} from 'react-redux';
 
 import type {UserProfile} from '@mattermost/types/users';
@@ -208,7 +208,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             </Provider>,
         ).find(UserSettingsDisplay);
 
-        await (wrapper.instance() as UserSettingsDisplay).handleSubmit();
+        await act(() => (wrapper.instance() as UserSettingsDisplay).handleSubmit());
         expect(updateSection).toHaveBeenCalledWith('');
     });
 
@@ -222,10 +222,14 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             </Provider>,
         ).find(UserSettingsDisplay);
 
-        (wrapper.instance() as UserSettingsDisplay).updateSection('');
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).updateSection('');
+        });
         expect(updateSection).toHaveBeenCalledWith('');
 
-        (wrapper.instance() as UserSettingsDisplay).updateSection('linkpreview');
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).updateSection('linkpreview');
+        });
         expect(updateSection).toHaveBeenCalledWith('linkpreview');
     });
 
@@ -262,10 +266,14 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             </Provider>,
         ).find(UserSettingsDisplay);
 
-        (wrapper.instance() as UserSettingsDisplay).handleClockRadio('false');
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).handleClockRadio('false');
+        });
         expect(wrapper.state('militaryTime')).toBe('false');
 
-        (wrapper.instance() as UserSettingsDisplay).handleClockRadio('true');
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).handleClockRadio('true');
+        });
         expect(wrapper.state('militaryTime')).toBe('true');
     });
 
@@ -276,13 +284,19 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             </Provider>,
         ).find(UserSettingsDisplay);
 
-        (wrapper.instance() as UserSettingsDisplay).handleTeammateNameDisplayRadio('username');
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).handleTeammateNameDisplayRadio('username');
+        });
         expect(wrapper.state('teammateNameDisplay')).toBe('username');
 
-        (wrapper.instance() as UserSettingsDisplay).handleTeammateNameDisplayRadio('nickname_full_name');
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).handleTeammateNameDisplayRadio('nickname_full_name');
+        });
         expect(wrapper.state('teammateNameDisplay')).toBe('nickname_full_name');
 
-        (wrapper.instance() as UserSettingsDisplay).handleTeammateNameDisplayRadio('full_name');
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).handleTeammateNameDisplayRadio('full_name');
+        });
         expect(wrapper.state('teammateNameDisplay')).toBe('full_name');
     });
 
@@ -293,10 +307,14 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             </Provider>,
         ).find(UserSettingsDisplay);
 
-        (wrapper.instance() as UserSettingsDisplay).handleChannelDisplayModeRadio('full');
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).handleChannelDisplayModeRadio('full');
+        });
         expect(wrapper.state('channelDisplayMode')).toBe('full');
 
-        (wrapper.instance() as UserSettingsDisplay).handleChannelDisplayModeRadio('centered');
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).handleChannelDisplayModeRadio('centered');
+        });
         expect(wrapper.state('channelDisplayMode')).toBe('centered');
     });
 
@@ -307,10 +325,14 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             </Provider>,
         ).find(UserSettingsDisplay);
 
-        (wrapper.instance() as UserSettingsDisplay).handlemessageDisplayRadio('clean');
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).handlemessageDisplayRadio('clean');
+        });
         expect(wrapper.state('messageDisplay')).toBe('clean');
 
-        (wrapper.instance() as UserSettingsDisplay).handlemessageDisplayRadio('compact');
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).handlemessageDisplayRadio('compact');
+        });
         expect(wrapper.state('messageDisplay')).toBe('compact');
     });
 
@@ -321,10 +343,14 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             </Provider>,
         ).find(UserSettingsDisplay);
 
-        (wrapper.instance() as UserSettingsDisplay).handleCollapseRadio('false');
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).handleCollapseRadio('false');
+        });
         expect(wrapper.state('collapseDisplay')).toBe('false');
 
-        (wrapper.instance() as UserSettingsDisplay).handleCollapseRadio('true');
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).handleCollapseRadio('true');
+        });
         expect(wrapper.state('collapseDisplay')).toBe('true');
     });
 
@@ -335,10 +361,14 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             </Provider>,
         ).find(UserSettingsDisplay);
 
-        (wrapper.instance() as UserSettingsDisplay).handleLinkPreviewRadio('false');
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).handleLinkPreviewRadio('false');
+        });
         expect(wrapper.state('linkPreviewDisplay')).toBe('false');
 
-        (wrapper.instance() as UserSettingsDisplay).handleLinkPreviewRadio('true');
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).handleLinkPreviewRadio('true');
+        });
         expect(wrapper.state('linkPreviewDisplay')).toBe('true');
     });
 
@@ -349,10 +379,14 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             </Provider>,
         ).find(UserSettingsDisplay);
 
-        (wrapper.instance() as UserSettingsDisplay).handleOnChange({} as React.ChangeEvent, {display: 'linkPreviewDisplay'});
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).handleOnChange({} as React.ChangeEvent, {display: 'linkPreviewDisplay'});
+        });
         expect(wrapper.state('display')).toBe('linkPreviewDisplay');
 
-        (wrapper.instance() as UserSettingsDisplay).handleOnChange({} as React.ChangeEvent, {display: 'collapseDisplay'});
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).handleOnChange({} as React.ChangeEvent, {display: 'collapseDisplay'});
+        });
         expect(wrapper.state('display')).toBe('collapseDisplay');
     });
 
@@ -363,10 +397,14 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             </Provider>,
         ).find(UserSettingsDisplay);
 
-        (wrapper.instance() as UserSettingsDisplay).handleCollapseReplyThreadsRadio('off');
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).handleCollapseReplyThreadsRadio('off');
+        });
         expect(wrapper.state('collapsedReplyThreads')).toBe('off');
 
-        (wrapper.instance() as UserSettingsDisplay).handleCollapseReplyThreadsRadio('on');
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).handleCollapseReplyThreadsRadio('on');
+        });
         expect(wrapper.state('collapsedReplyThreads')).toBe('on');
     });
 
@@ -377,10 +415,14 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             </Provider>,
         ).find(UserSettingsDisplay);
 
-        (wrapper.instance() as UserSettingsDisplay).handleLastActiveRadio('false');
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).handleLastActiveRadio('false');
+        });
         expect(wrapper.state('lastActiveDisplay')).toBe('false');
 
-        (wrapper.instance() as UserSettingsDisplay).handleLastActiveRadio('true');
+        act(() => {
+            (wrapper.instance() as UserSettingsDisplay).handleLastActiveRadio('true');
+        });
         expect(wrapper.state('lastActiveDisplay')).toBe('true');
     });
 

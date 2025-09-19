@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 import {Provider} from 'react-redux';
 
 import type {Team} from '@mattermost/types/teams';
@@ -126,14 +125,12 @@ describe('InviteView', () => {
     });
 
     it('shows InviteAs component when user can choose to invite guests or users', async () => {
-        await act(async () => {
-            const wrapper = mountWithIntl(
-                <Provider store={store}>
-                    <InviteView {...props}/>
-                </Provider>,
-            );
-            expect(wrapper.find(InviteAs).length).toBe(1);
-        });
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <InviteView {...props}/>
+            </Provider>,
+        );
+        expect(wrapper.find(InviteAs).length).toBe(1);
     });
 
     it('hides InviteAs component when user can not choose members option', async () => {
@@ -142,14 +139,13 @@ describe('InviteView', () => {
             canAddUsers: false,
         };
 
-        await act(async () => {
-            const wrapper = mountWithIntl(
-                <Provider store={store}>
-                    <InviteView {...props}/>
-                </Provider>,
-            );
-            expect(wrapper.find(InviteAs).length).toBe(0);
-        });
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <InviteView {...props}/>
+            </Provider>,
+        );
+
+        expect(wrapper.find(InviteAs).length).toBe(0);
     });
 
     it('hides InviteAs component when user can not choose guests option', async () => {
@@ -158,13 +154,11 @@ describe('InviteView', () => {
             canInviteGuests: false,
         };
 
-        await act(async () => {
-            const wrapper = mountWithIntl(
-                <Provider store={store}>
-                    <InviteView {...props}/>
-                </Provider>,
-            );
-            expect(wrapper.find(InviteAs).length).toBe(0);
-        });
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <InviteView {...props}/>
+            </Provider>,
+        );
+        expect(wrapper.find(InviteAs).length).toBe(0);
     });
 });

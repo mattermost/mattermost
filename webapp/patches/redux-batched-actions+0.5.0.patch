@@ -1,0 +1,22 @@
+diff --git a/node_modules/redux-batched-actions/lib/index.d.ts b/node_modules/redux-batched-actions/lib/index.d.ts
+index 4b47c65..eb172f7 100644
+--- a/node_modules/redux-batched-actions/lib/index.d.ts
++++ b/node_modules/redux-batched-actions/lib/index.d.ts
+@@ -3,7 +3,7 @@ import * as Redux from 'redux';
+ export declare type BatchActionType = 'BATCHING_REDUCER.BATCH';
+ export declare const BATCH: BatchActionType;
+ 
+-export interface BatchAction {
++export interface BatchAction extends Redux.UnknownAction {
+   type: BatchActionType;
+   payload: Redux.Action[];
+   meta: {
+@@ -11,7 +11,7 @@ export interface BatchAction {
+   }
+ }
+ 
+-export declare function batchActions(actions: Redux.AnyAction[], type?: string): BatchAction;
++export declare function batchActions(actions: Redux.UnknownAction[], type?: string): BatchAction;
+ 
+ export declare function enableBatching<S>(reduce: Redux.Reducer<S>): Redux.Reducer<S>;
+ 

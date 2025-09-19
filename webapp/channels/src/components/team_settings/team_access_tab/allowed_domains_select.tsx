@@ -32,7 +32,7 @@ const AllowedDomainsSelect = ({allowedDomains, setAllowedDomains, setHasChanges,
         setAllowedDomains([...allowedDomains, domain]);
     }, [allowedDomains, setAllowedDomains, setHasChanges, setSaveChangesPanelState]);
 
-    const handleOnChangeDomains = useCallback((allowedDomainsOptions?: SelectTextInputOption[] | null) => {
+    const handleOnChangeDomains = useCallback((allowedDomainsOptions?: readonly SelectTextInputOption[] | null) => {
         setHasChanges(true);
         setSaveChangesPanelState('editing');
         setAllowedDomains(allowedDomainsOptions?.map((domain) => domain.value) || []);

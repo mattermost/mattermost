@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React from 'react';
+import React, {act} from 'react';
 import type {ComponentProps} from 'react';
 
 import EmailNotificationSetting from 'components/user_settings/notifications/email_notification_setting/email_notification_setting';
@@ -181,12 +181,16 @@ describe('components/user_settings/notifications/EmailNotificationSetting', () =
         const props = {...requiredProps, updateSection: newUpdateSection, onCancel: newOnCancel};
         const wrapper = mountWithIntl(<EmailNotificationSetting {...props}/>);
 
-        (wrapper.instance() as EmailNotificationSetting).handleUpdateSection('email');
+        act(() => {
+            (wrapper.instance() as EmailNotificationSetting).handleUpdateSection('email');
+        });
         expect(newUpdateSection).toBeCalledWith('email');
         expect(newUpdateSection).toHaveBeenCalledTimes(1);
         expect(newOnCancel).not.toBeCalled();
 
-        (wrapper.instance() as EmailNotificationSetting).handleUpdateSection();
+        act(() => {
+            (wrapper.instance() as EmailNotificationSetting).handleUpdateSection();
+        });
         expect(newUpdateSection).toBeCalled();
         expect(newUpdateSection).toHaveBeenCalledTimes(2);
         expect(newUpdateSection).toBeCalledWith('');

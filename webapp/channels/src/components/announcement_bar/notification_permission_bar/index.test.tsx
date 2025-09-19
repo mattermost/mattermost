@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, userEvent, screen, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, screen} from 'tests/react_testing_utils';
 import * as utilsNotifications from 'utils/notifications';
 
 import NotificationPermissionBar from './index';
@@ -63,9 +63,7 @@ describe('NotificationPermissionBar', () => {
 
         expect(screen.getByText('We need your permission to show notifications in the browser.')).toBeInTheDocument();
 
-        await waitFor(async () => {
-            userEvent.click(screen.getByText('Manage notification preferences'));
-        });
+        await userEvent.click(screen.getByText('Manage notification preferences'));
 
         expect(utilsNotifications.requestNotificationPermission).toHaveBeenCalled();
         expect(screen.queryByText('We need your permission to show browser notifications.')).not.toBeInTheDocument();

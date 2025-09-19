@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act} from '@testing-library/react-hooks';
+import {act} from '@testing-library/react';
 
 import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
@@ -9,7 +9,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import {Client4} from 'mattermost-redux/client';
 import {generateId} from 'mattermost-redux/utils/helpers';
 
-import {renderHookWithContext} from 'tests/react_testing_utils';
+import {renderHookWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -71,7 +71,7 @@ describe('useUserPropertyFields', () => {
     getFields.mockResolvedValue([field0, field1, field2, field3]);
 
     it('should return a collection', async () => {
-        const {result, rerender, waitFor} = renderHookWithContext(() => {
+        const {result, rerender} = renderHookWithContext(() => {
             return useUserPropertyFields();
         }, getBaseState());
 
@@ -100,7 +100,7 @@ describe('useUserPropertyFields', () => {
     });
 
     it('should successfully handle edits', async () => {
-        const {result, rerender, waitFor} = renderHookWithContext(() => {
+        const {result, rerender} = renderHookWithContext(() => {
             return useUserPropertyFields();
         }, getBaseState());
 
@@ -151,7 +151,7 @@ describe('useUserPropertyFields', () => {
     it('should successfully handle reordering', async () => {
         patchField.mockImplementation((id: string, patch: UserPropertyFieldPatch) => Promise.resolve({...baseField, ...patch, id, update_at: Date.now()} as UserPropertyField));
 
-        const {result, rerender, waitFor} = renderHookWithContext(() => {
+        const {result, rerender} = renderHookWithContext(() => {
             return useUserPropertyFields();
         }, getBaseState());
 
@@ -202,7 +202,7 @@ describe('useUserPropertyFields', () => {
     });
 
     it('should successfully handle deletes', async () => {
-        const {result, rerender, waitFor} = renderHookWithContext(() => {
+        const {result, rerender} = renderHookWithContext(() => {
             return useUserPropertyFields();
         }, getBaseState());
 
@@ -251,7 +251,7 @@ describe('useUserPropertyFields', () => {
     it('should successfully handle creates', async () => {
         createField.mockImplementation((patch) => Promise.resolve({...baseField, ...patch, id: generateId()} as UserPropertyField));
 
-        const {result, rerender, waitFor} = renderHookWithContext(() => {
+        const {result, rerender} = renderHookWithContext(() => {
             return useUserPropertyFields();
         }, getBaseState());
 
@@ -300,7 +300,7 @@ describe('useUserPropertyFields', () => {
     });
 
     it('should validate name uniqueness', async () => {
-        const {result, rerender, waitFor} = renderHookWithContext(() => {
+        const {result, rerender} = renderHookWithContext(() => {
             return useUserPropertyFields();
         }, getBaseState());
 
@@ -330,7 +330,7 @@ describe('useUserPropertyFields', () => {
     });
 
     it('should validate names already taken', async () => {
-        const {result, rerender, waitFor} = renderHookWithContext(() => {
+        const {result, rerender} = renderHookWithContext(() => {
             return useUserPropertyFields();
         }, getBaseState());
 
@@ -370,7 +370,7 @@ describe('useUserPropertyFields', () => {
     });
 
     it('should validate name required', async () => {
-        const {result, rerender, waitFor} = renderHookWithContext(() => {
+        const {result, rerender} = renderHookWithContext(() => {
             return useUserPropertyFields();
         }, getBaseState());
 

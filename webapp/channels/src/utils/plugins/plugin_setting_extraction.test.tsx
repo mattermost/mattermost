@@ -140,7 +140,7 @@ function getCustomExample(): PluginConfiguration {
 }
 
 describe('plugin setting extraction', () => {
-    beforeAll(() => {
+    beforeEach(() => {
         console.warn = jest.fn();
     });
 

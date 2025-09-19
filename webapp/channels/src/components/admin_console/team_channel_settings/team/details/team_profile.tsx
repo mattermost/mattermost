@@ -146,7 +146,7 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                                     id='admin.teamSettings.teamDetail.teamName'
                                     defaultMessage='<b>Team Name</b>:'
                                     values={{
-                                        b: (chunks: string) => <b>{chunks}</b>,
+                                        b: (chunks) => <b>{chunks}</b>,
                                     }}
                                 />
                                 <br/>
@@ -157,7 +157,7 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                                     id='admin.teamSettings.teamDetail.teamDescription'
                                     defaultMessage='<b>Team Description</b>:'
                                     values={{
-                                        b: (chunks: string) => <b>{chunks}</b>,
+                                        b: (chunks) => <b>{chunks}</b>,
                                     }}
                                 />
                                 <br/>

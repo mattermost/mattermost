@@ -278,7 +278,7 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                             defaultMessage={'Are you sure you want to delete the <b>{description}</b> token?'}
                             values={{
                                 description: token.description,
-                                b: (chunks: string) => <b>{chunks}</b>,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                     </p>

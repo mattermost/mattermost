@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act} from '@testing-library/react-hooks';
+import {act} from '@testing-library/react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -106,13 +106,12 @@ describe('useOperation', () => {
 
         await act(async () => {
             await actionPromise;
-
-            const [, status3] = result.current;
-
-            expect(status3.loading).toBe(false);
-            expect(await actionPromise).toBe('test response value');
-            expect(status3.error).toBe(undefined);
         });
+
+        const [, status3] = result.current;
+        expect(status3.loading).toBe(false);
+        expect(status3.error).toBe(undefined);
+        expect(await actionPromise!).toBe('test response value');
     });
 
     it('should run operation on command with error and loading phases: false -> true -> false', async () => {

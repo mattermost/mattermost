@@ -9,14 +9,13 @@ import type {Role} from '@mattermost/types/roles';
 
 import WithTooltip from 'components/with_tooltip';
 
-import type {AdditionalValues} from './permissions_tree/types';
 import {rolesRolesStrings} from './strings/roles';
 
 type Props = {
     id: string;
     inherited?: Partial<Role>;
     selectRow: (id: string) => void;
-    additionalValues?: AdditionalValues | AdditionalValues['edit_post'];
+    additionalValues?: Record<string, unknown>;
     description: string | JSX.Element;
 }
 
@@ -50,7 +49,7 @@ const PermissionDescription = ({
                     defaultMessage='Inherited from <link>{name}</link>.'
                     values={{
                         name: formattedName,
-                        link: (text: string) => (
+                        link: (text) => (
                             <a>{text}</a>
                         ),
                     }}

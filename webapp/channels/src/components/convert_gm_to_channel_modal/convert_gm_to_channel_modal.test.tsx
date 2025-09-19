@@ -3,8 +3,7 @@
 
 import {fireEvent, waitFor} from '@testing-library/react';
 import nock from 'nock';
-import React from 'react';
-import {act} from 'react-dom/test-utils';
+import React, {act} from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';

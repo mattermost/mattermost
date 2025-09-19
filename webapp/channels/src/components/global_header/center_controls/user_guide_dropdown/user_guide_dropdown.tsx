@@ -19,11 +19,7 @@ const mattermostUserGuideLink = 'https://docs.mattermost.com/guides/use-mattermo
 const trainingResourcesLink = 'https://academy.mattermost.com/';
 const askTheCommunityUrl = 'https://mattermost.com/pl/default-ask-mattermost-community/';
 
-type Props = WrappedComponentProps & PropsFromRedux & {
-    location: {
-        pathname: string;
-    };
-}
+type Props = WrappedComponentProps & PropsFromRedux;
 
 type State = {
     buttonActive: boolean;

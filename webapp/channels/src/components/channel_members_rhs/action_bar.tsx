@@ -71,7 +71,7 @@ export interface Props {
 const ActionBar = ({className, channelType, membersCount, canManageMembers, editing, actions}: Props) => {
     const showManageButton = channelType !== Constants.GM_CHANNEL && membersCount > 1;
 
-    const handleShortcut = useCallback((e) => {
+    const handleShortcut = useCallback((e: KeyboardEvent) => {
         if (isKeyPressed(e, Constants.KeyCodes.ESCAPE) && editing) {
             actions.stopEditing();
         }

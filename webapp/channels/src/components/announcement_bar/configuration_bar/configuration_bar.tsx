@@ -251,8 +251,8 @@ const ConfigurationAnnouncementBar = (props: Props) => {
     }
 
     if (props.canViewSystemErrors && props.config?.SiteURL === '') {
-        const values: Record<string, ReactNode> = {
-            linkSite: (msg: string) => (
+        const values = {
+            linkSite: (msg: ReactNode[]) => (
                 <ExternalLink
                     href={props.siteURL}
                     location='configuration_announcement_bar'
@@ -260,7 +260,7 @@ const ConfigurationAnnouncementBar = (props: Props) => {
                     {msg}
                 </ExternalLink>
             ),
-            linkConsole: (msg: string) => (
+            linkConsole: (msg: ReactNode[]) => (
                 <Link to='/admin_console/environment/web_server'>
                     {msg}
                 </Link>

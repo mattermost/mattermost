@@ -60,7 +60,7 @@ export default function DeleteScheduledPostModal({
                     id={'scheduled_post.delete_modal.body'}
                     defaultMessage={'Are you sure you want to delete this scheduled post to <strong>{displayName}</strong>?'}
                     values={{
-                        strong: (chunk: string) => <strong>{chunk}</strong>,
+                        strong: (chunk) => <strong>{chunk}</strong>,
                         displayName: channelDisplayName,
                     }}
                 />
