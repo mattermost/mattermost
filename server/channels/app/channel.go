@@ -931,13 +931,21 @@ func (a *App) RestoreChannel(rctx request.CTX, channel *model.Channel, userID st
 }
 
 func (a *App) PatchChannel(rctx request.CTX, channel *model.Channel, patch *model.ChannelPatch, userID string) (*model.Channel, *model.AppError) {
+	restrictDM, err := a.CheckIfChannelIsRestrictedDM(rctx, channel)
+	if err != nil {
+		return nil, err
+	}
+	if restrictDM {
+		return nil, model.NewAppError("PatchChannel", "api.channel.patch_update_channel.restricted_dm.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	oldChannelDisplayName := channel.DisplayName
 	oldChannelHeader := channel.Header
 	oldChannelPurpose := channel.Purpose
 
 	channel.Patch(patch)
 	a.handleChannelCategoryName(channel)
-	channel, err := a.UpdateChannel(rctx, channel)
+	channel, err = a.UpdateChannel(rctx, channel)
 	if err != nil {
 		return nil, err
 	}
@@ -3672,14 +3680,14 @@ func (a *App) getDirectChannel(rctx request.CTX, userID, otherUserID string) (*m
 	return a.Srv().getDirectChannel(rctx, userID, otherUserID)
 }
 
-func (a *App) GetGroupMessageMembersCommonTeams(rctx request.CTX, channelID string) ([]*model.Team, *model.AppError) {
+func (a *App) GetDirectOrGroupMessageMembersCommonTeams(rctx request.CTX, channelID string) ([]*model.Team, *model.AppError) {
 	channel, appErr := a.GetChannel(rctx, channelID)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	if channel.Type != model.ChannelTypeGroup {
-		return nil, model.NewAppError("GetGroupMessageMembersCommonTeams", "app.channel.get_common_teams.incorrect_channel_type", nil, "", http.StatusBadRequest)
+	if channel.Type != model.ChannelTypeGroup && channel.Type != model.ChannelTypeDirect {
+		return nil, model.NewAppError("GetDirectOrGroupMessageMembersCommonTeams", "app.channel.get_common_teams.incorrect_channel_type", nil, "", http.StatusBadRequest)
 	}
 
 	users, appErr := a.GetUsersInChannel(&model.UserGetOptions{
@@ -3697,7 +3705,7 @@ func (a *App) GetGroupMessageMembersCommonTeams(rctx request.CTX, channelID stri
 
 	commonTeamIDs, err := a.Srv().Store().Team().GetCommonTeamIDsForMultipleUsers(userIDs)
 	if err != nil {
-		return nil, model.NewAppError("GetGroupMessageMembersCommonTeams", "app.channel.get_common_teams.store_get_common_teams_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetDirectOrGroupMessageMembersCommonTeams", "app.channel.get_common_teams.store_get_common_teams_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	teams := []*model.Team{}
@@ -3800,7 +3808,7 @@ func (a *App) setSidebarCategoriesForConvertedGroupMessage(rctx request.CTX, gmC
 }
 
 func (a *App) validateForConvertGroupMessageToChannel(rctx request.CTX, convertedByUserId string, originalChannel *model.Channel, gmConversionRequest *model.GroupMessageConversionRequestBody) *model.AppError {
-	commonTeams, appErr := a.GetGroupMessageMembersCommonTeams(rctx, originalChannel.Id)
+	commonTeams, appErr := a.GetDirectOrGroupMessageMembersCommonTeams(rctx, originalChannel.Id)
 	if appErr != nil {
 		return appErr
 	}
@@ -3913,6 +3921,23 @@ func (s *Server) getDirectChannel(rctx request.CTX, userID, otherUserID string) 
 	}
 
 	return channel, nil
+}
+
+func (a *App) CheckIfChannelIsRestrictedDM(rctx request.CTX, channel *model.Channel) (bool, *model.AppError) {
+	if *a.Config().TeamSettings.RestrictDirectMessage != model.DirectMessageTeam {
+		return false, nil
+	}
+
+	if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup {
+		return false, nil
+	}
+
+	teams, err := a.GetDirectOrGroupMessageMembersCommonTeams(rctx, channel.Id)
+	if err != nil {
+		return false, model.NewAppError("CheckIfChannelIsRestrictedDM", "app.channel.get_common_teams.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return len(teams) == 0, nil
 }
 
 func (a *App) ChannelAccessControlled(rctx request.CTX, channelID string) (bool, *model.AppError) {
