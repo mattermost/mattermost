@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"encoding/csv"
 	"fmt"
 	"io"
@@ -642,10 +641,10 @@ func TestSessionHasPermissionToGroup(t *testing.T) {
 	records, e := r.ReadAll()
 	require.NoError(t, e)
 
-	systemRole, err := th.App.GetRoleByName(context.Background(), model.SystemUserRoleId)
+	systemRole, err := th.App.GetRoleByName(th.Context, model.SystemUserRoleId)
 	require.Nil(t, err)
 
-	groupRole, err := th.App.GetRoleByName(context.Background(), model.CustomGroupUserRoleId)
+	groupRole, err := th.App.GetRoleByName(th.Context, model.CustomGroupUserRoleId)
 	require.Nil(t, err)
 
 	group, err := th.App.CreateGroup(&model.Group{
