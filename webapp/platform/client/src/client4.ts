@@ -4537,6 +4537,13 @@ export default class Client4 {
         );
     };
 
+    createAccessControlSyncJob = (jobData: {[key: string]: string}) => {
+        return this.doFetch<Job>(
+            `${this.getBaseRoute()}/access_control_policies/sync_job`,
+            {method: 'post', body: JSON.stringify(jobData)},
+        );
+    };
+
     getAccessControlFields = (after: string, limit: number, channelId?: string) => {
         const params = new URLSearchParams({after, limit: limit.toString()});
         if (channelId) {

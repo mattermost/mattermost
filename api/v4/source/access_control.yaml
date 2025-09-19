@@ -538,6 +538,43 @@
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  /api/v4/access_control_policies/sync_job:
+    post:
+      tags:
+        - access control
+      summary: Create an access control sync job
+      description: |
+        Creates a new access control sync job for a specific policy. Cancels any existing pending or in-progress sync jobs for the same policy.
+        ##### Permissions
+        Must have the `manage_system` permission.
+      operationId: CreateAccessControlSyncJob
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                policy_id:
+                  type: string
+                  description: The ID of the policy to sync.
+              required:
+                - policy_id
+      responses:
+        "201":
+          description: Sync job created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /api/v4/access_control_policies/cel/visual_ast:
     post:
       tags:
