@@ -206,7 +206,7 @@ jobs:
       fips-enabled: false
   test-postgres-normal-fips:
     # Skip FIPS testing for forks, which won't have docker login credentials.
-    if: github.repository_owner == 'mattermost'
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     name: Postgres (FIPS)
     needs: go
     uses: ./.github/workflows/server-test-template.yml
@@ -248,7 +248,7 @@ jobs:
   test-mmctl-fips:
     name: Run mmctl tests (FIPS)
     # Skip FIPS testing for forks, which won't have docker login credentials.
-    if: github.repository_owner == 'mattermost'
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     needs: go
     uses: ./.github/workflows/mmctl-test-template.yml
     secrets: inherit
