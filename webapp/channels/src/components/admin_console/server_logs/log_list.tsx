@@ -34,6 +34,76 @@ type State = {
 
 const PAGE_SIZE = 50;
 
+// Normalize timestamp to UTC Date object for consistent sorting
+const normalizeTimestamp = (timestamp: string): Date => {
+    try {
+        // Check if this looks like a real timestamp (contains date-like patterns)
+        // Supports formats like:
+        // - ISO: 2025-09-05T08:18:24Z, 2025-09-05T08:18:24.558Z
+        // - Server format UTC: 2025-09-05 08:18:24.558 Z
+        // - Server format with timezone: 2025-09-05 08:18:24.558 +02:00
+        const timestampPattern = /^\d{4}-\d{2}-\d{2}[\sT]\d{2}:\d{2}:\d{2}/;
+        if (!timestampPattern.test(timestamp)) {
+            return new Date(timestamp); // For test strings, let Date constructor handle it
+        }
+
+        // Handle server timestamp formats
+        let isoString = timestamp;
+        if (timestamp.includes(' ') && !timestamp.includes('T')) {
+            // Convert "YYYY-MM-DD HH:mm:ss.SSS" to ISO format
+            isoString = timestamp.replace(' ', 'T');
+
+            // Handle different timezone formats
+            if (isoString.endsWith(' Z')) {
+                // "2025-09-16T20:09:08.024 Z" -> "2025-09-16T20:09:08.024Z"
+                isoString = isoString.replace(' Z', 'Z');
+            } else if (isoString.includes(' +') || isoString.includes(' -')) {
+                // "2025-09-16T18:47:38.710 +02:00" -> "2025-09-16T18:47:38.710+02:00"
+                isoString = isoString.replace(/ ([+-]\d{2}:\d{2})$/, '$1');
+            } else if (!isoString.includes('+') && !isoString.includes('-', 10) && !isoString.endsWith('Z')) {
+                // No timezone info, assume UTC
+                isoString += 'Z';
+            }
+        }
+
+        return new Date(isoString);
+    } catch {
+        return new Date(timestamp); // Fallback to original behavior
+    }
+};
+
+// Format UTC timestamp to local date/time string
+const formatLogTimestamp = (utcTimestamp: string): string => {
+    try {
+        const date = normalizeTimestamp(utcTimestamp);
+
+        // If the timestamp doesn't parse to a valid date, return the original
+        if (isNaN(date.getTime())) {
+            return utcTimestamp;
+        }
+
+        // Format to local date and time
+        const dateOptions: Intl.DateTimeFormatOptions = {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+        };
+        const timeOptions: Intl.DateTimeFormatOptions = {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+        };
+
+        const localDate = date.toLocaleDateString(undefined, dateOptions);
+        const localTime = date.toLocaleTimeString(undefined, timeOptions);
+
+        return `${localDate} ${localTime}`;
+    } catch {
+        return utcTimestamp; // Return original if any error occurs
+    }
+};
+
 export default class LogList extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
@@ -42,7 +112,7 @@ export default class LogList extends React.PureComponent<Props, State> {
             modalLog: null,
             modalOpen: false,
             page: 0,
-            dateAsc: true,
+            dateAsc: false,
         };
     }
 
@@ -79,7 +149,6 @@ export default class LogList extends React.PureComponent<Props, State> {
 
     handleDateSort = () => {
         this.setState({dateAsc: !this.state.dateAsc});
-        this.getColumns(this.state.dateAsc);
     };
 
     getColumns = (dateAsc: boolean): Column[] => {
@@ -162,8 +231,8 @@ export default class LogList extends React.PureComponent<Props, State> {
     getRows = (): Row[] => {
         const {startCount, endCount} = this.getPaginationProps();
         const sortedLogs = this.props.logs.sort((a, b) => {
-            const timeA = new Date(a.timestamp).valueOf();
-            const timeB = new Date(b.timestamp).valueOf();
+            const timeA = normalizeTimestamp(a.timestamp).valueOf();
+            const timeB = normalizeTimestamp(b.timestamp).valueOf();
 
             if (this.state.dateAsc) {
                 return timeA - timeB;
@@ -182,7 +251,7 @@ export default class LogList extends React.PureComponent<Props, State> {
                             data-testid='timestamp'
                         >
                             <span className='group-description row-content'>
-                                {log.timestamp}
+                                {formatLogTimestamp(log.timestamp)}
                             </span>
                         </span>
                     ),
