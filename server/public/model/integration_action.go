@@ -316,6 +316,7 @@ type Dialog struct {
 	SubmitLabel      string          `json:"submit_label"`
 	NotifyOnCancel   bool            `json:"notify_on_cancel"`
 	State            string          `json:"state"`
+	SourceURL        string          `json:"source_url,omitempty"`
 }
 
 type DialogElement struct {
@@ -333,6 +334,7 @@ type DialogElement struct {
 	DataSourceURL string               `json:"data_source_url,omitempty"`
 	Options       []*PostActionOptions `json:"options"`
 	MultiSelect   bool                 `json:"multiselect"`
+	Refresh       bool                 `json:"refresh,omitempty"`
 }
 
 type OpenDialogRequest struct {
@@ -356,6 +358,8 @@ type SubmitDialogRequest struct {
 type SubmitDialogResponse struct {
 	Error  string            `json:"error,omitempty"`
 	Errors map[string]string `json:"errors,omitempty"`
+	Type   string            `json:"type,omitempty"`
+	Form   *Dialog           `json:"form,omitempty"`
 }
 
 // DialogSelectOption represents an option in a select dropdown for dialogs
