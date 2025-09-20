@@ -6,14 +6,14 @@ import React from 'react';
 
 import ReplyIcon from 'components/widgets/icons/reply_icon';
 
-import Button from './button';
+import ThreadButton from './thread_button';
 
-describe('components/threading/common/button', () => {
+describe('components/threading/common/thread_button', () => {
     test('should support onClick', () => {
         const action = jest.fn();
 
-        const wrapper = shallow<typeof Button>(
-            <Button
+        const wrapper = shallow<typeof ThreadButton>(
+            <ThreadButton
                 onClick={action}
             />,
         );
@@ -26,8 +26,8 @@ describe('components/threading/common/button', () => {
 
     test('should support className', () => {
         const className = 'test-class other-test-class';
-        const wrapper = shallow<typeof Button>(
-            <Button
+        const wrapper = shallow<typeof ThreadButton>(
+            <ThreadButton
                 className={className}
             />,
         );
@@ -39,34 +39,34 @@ describe('components/threading/common/button', () => {
     });
 
     test('should support prepended content', () => {
-        const wrapper = shallow<typeof Button>(
-            <Button
+        const wrapper = shallow<typeof ThreadButton>(
+            <ThreadButton
                 prepend={<ReplyIcon className='Icon'/>}
             />,
         );
 
         expect(wrapper).toMatchSnapshot();
 
-        expect(wrapper.exists('.Button_prepended ReplyIcon')).toBe(true);
+        expect(wrapper.exists('.ThreadButton_prepended ReplyIcon')).toBe(true);
     });
 
     test('should support appended content', () => {
-        const wrapper = shallow<typeof Button>(
-            <Button
+        const wrapper = shallow<typeof ThreadButton>(
+            <ThreadButton
                 append={<ReplyIcon className='Icon'/>}
             />,
         );
 
         expect(wrapper).toMatchSnapshot();
 
-        expect(wrapper.exists('.Button_appended ReplyIcon')).toBe(true);
+        expect(wrapper.exists('.ThreadButton_appended ReplyIcon')).toBe(true);
     });
 
     test('should support children', () => {
-        const wrapper = shallow<typeof Button>(
-            <Button>
+        const wrapper = shallow<typeof ThreadButton>(
+            <ThreadButton>
                 {'text-goes-here'}
-            </Button>,
+            </ThreadButton>,
         );
 
         expect(wrapper).toMatchSnapshot();
