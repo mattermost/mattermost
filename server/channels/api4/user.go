@@ -53,8 +53,8 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/email/verify", api.APIHandler(verifyUserEmail)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/email/verify/send", api.APIHandler(sendVerificationEmail)).Methods(http.MethodPost)
 	api.BaseRoutes.User.Handle("/email/verify/member", api.APISessionRequired(verifyUserEmailWithoutToken)).Methods(http.MethodPost)
-	api.BaseRoutes.User.Handle("/terms_of_service", api.APISessionRequired(saveUserTermsOfService)).Methods(http.MethodPost)
-	api.BaseRoutes.User.Handle("/terms_of_service", api.APISessionRequired(getUserTermsOfService)).Methods(http.MethodGet)
+	api.BaseRoutes.User.Handle("/terms_of_service", api.APISessionRequiredSkipTermsOfService(saveUserTermsOfService)).Methods(http.MethodPost)
+	api.BaseRoutes.User.Handle("/terms_of_service", api.APISessionRequiredSkipTermsOfService(getUserTermsOfService)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/reset_failed_attempts", api.APISessionRequired(resetPasswordFailedAttempts)).Methods(http.MethodPost)
 
 	api.BaseRoutes.User.Handle("/auth", api.APISessionRequiredTrustRequester(updateUserAuth)).Methods(http.MethodPut)
@@ -2815,6 +2815,16 @@ func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) 
 	if err := c.App.SaveUserTermsOfService(userId, termsOfServiceId, accepted); err != nil {
 		c.Err = err
 		return
+	}
+
+	// Update session cache when user accepts ToS
+	if accepted {
+		c.AppContext.Session().AddProp(model.SessionPropTermsOfServiceId, termsOfServiceId)
+	} else {
+		// Remove from session cache when user rejects ToS
+		if c.AppContext.Session().Props != nil {
+			delete(c.AppContext.Session().Props, model.SessionPropTermsOfServiceId)
+		}
 	}
 
 	auditRec.Success()
