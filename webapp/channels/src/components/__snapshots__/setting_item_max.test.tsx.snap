@@ -1,273 +1,284 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/SettingItemMax should match snapshot 1`] = `
-<section
-  className="section-max form-horizontal "
->
-  <h4
-    className="col-sm-12 section-title"
-    id="settingTitle"
+<DocumentFragment>
+  <section
+    class="section-max form-horizontal "
   >
-    title
-  </h4>
-  <div
-    className="sectionContent col-sm-10 col-sm-offset-2"
-  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
+    >
+      title
+    </h4>
     <div
-      className="setting-list"
-      tabIndex={-1}
+      class="sectionContent col-sm-10 col-sm-offset-2"
     >
       <div
-        className="setting-list-item"
+        class="setting-list"
+        tabindex="-1"
       >
-        input_1
-      </div>
-      <div
-        className="setting-list-item"
-      >
-        <hr />
         <div
-          role="alert"
-        />
-        <SaveButton
-          disabled={false}
-          onClick={[Function]}
-          saving={false}
-        />
-        <button
-          className="btn btn-tertiary"
-          id="cancelSetting"
-          onClick={[Function]}
+          class="setting-list-item"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Cancel"
-            id="setting_item_max.cancel"
+          input_1
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
           />
-        </button>
+          <button
+            class="btn btn-primary a11y--active a11y--focused"
+            data-testid="saveSetting"
+            id="saveSetting"
+            type="submit"
+          >
+            <span>
+              Save
+            </span>
+          </button>
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+</DocumentFragment>
 `;
 
 exports[`components/SettingItemMax should match snapshot, on clientError 1`] = `
-<section
-  className="section-max form-horizontal "
->
-  <h4
-    className="col-sm-12 section-title"
-    id="settingTitle"
+<DocumentFragment>
+  <section
+    class="section-max form-horizontal "
   >
-    title
-  </h4>
-  <div
-    className="sectionContent col-sm-10 col-sm-offset-2"
-  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
+    >
+      title
+    </h4>
     <div
-      className="setting-list"
-      tabIndex={-1}
+      class="sectionContent col-sm-10 col-sm-offset-2"
     >
       <div
-        className="setting-list-item"
+        class="setting-list"
+        tabindex="-1"
       >
-        input_1
-      </div>
-      <div
-        className="setting-list-item"
-      >
-        <hr />
         <div
-          role="alert"
-        />
-        <SaveButton
-          disabled={false}
-          onClick={[Function]}
-          saving={false}
-        />
-        <button
-          className="btn btn-tertiary"
-          id="cancelSetting"
-          onClick={[Function]}
+          class="setting-list-item"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Cancel"
-            id="setting_item_max.cancel"
+          input_1
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
           />
-        </button>
+          <button
+            class="btn btn-primary a11y--active a11y--focused"
+            data-testid="saveSetting"
+            id="saveSetting"
+            type="submit"
+          >
+            <span>
+              Save
+            </span>
+          </button>
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+</DocumentFragment>
 `;
 
 exports[`components/SettingItemMax should match snapshot, on serverError 1`] = `
-<section
-  className="section-max form-horizontal "
->
-  <h4
-    className="col-sm-12 section-title"
-    id="settingTitle"
+<DocumentFragment>
+  <section
+    class="section-max form-horizontal "
   >
-    title
-  </h4>
-  <div
-    className="sectionContent col-sm-10 col-sm-offset-2"
-  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
+    >
+      title
+    </h4>
     <div
-      className="setting-list"
-      tabIndex={-1}
+      class="sectionContent col-sm-10 col-sm-offset-2"
     >
       <div
-        className="setting-list-item"
+        class="setting-list"
+        tabindex="-1"
       >
-        input_1
-      </div>
-      <div
-        className="setting-list-item"
-      >
-        <hr />
         <div
-          role="alert"
+          class="setting-list-item"
         >
-          <div
-            className="form-group"
-          >
-            <label
-              className="col-sm-12 has-error"
-            >
-              <i
-                className="icon icon-alert-circle-outline"
-                role="presentation"
-              />
-              <span
-                className="sr-only"
-              >
-                <MemoizedFormattedMessage
-                  defaultMessage="Error"
-                  id="setting_item_max.error"
-                />
-              </span>
-              <span
-                id="serverError"
-              >
-                serverError
-              </span>
-            </label>
-          </div>
+          input_1
         </div>
-        <SaveButton
-          disabled={false}
-          onClick={[Function]}
-          saving={false}
-        />
-        <button
-          className="btn btn-tertiary"
-          id="cancelSetting"
-          onClick={[Function]}
+        <div
+          class="setting-list-item"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Cancel"
-            id="setting_item_max.cancel"
-          />
-        </button>
+          <hr />
+          <div
+            role="alert"
+          >
+            <div
+              class="form-group"
+            >
+              <label
+                class="col-sm-12 has-error"
+              >
+                <i
+                  class="icon icon-alert-circle-outline"
+                  role="presentation"
+                />
+                <span
+                  class="sr-only"
+                >
+                  Error
+                </span>
+                <span
+                  id="serverError"
+                >
+                  serverError
+                </span>
+              </label>
+            </div>
+          </div>
+          <button
+            class="btn btn-primary a11y--active a11y--focused"
+            data-testid="saveSetting"
+            id="saveSetting"
+            type="submit"
+          >
+            <span>
+              Save
+            </span>
+          </button>
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+</DocumentFragment>
 `;
 
 exports[`components/SettingItemMax should match snapshot, with new saveTextButton 1`] = `
-<section
-  className="section-max form-horizontal "
->
-  <h4
-    className="col-sm-12 section-title"
-    id="settingTitle"
+<DocumentFragment>
+  <section
+    class="section-max form-horizontal "
   >
-    title
-  </h4>
-  <div
-    className="sectionContent col-sm-10 col-sm-offset-2"
-  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
+    >
+      title
+    </h4>
     <div
-      className="setting-list"
-      tabIndex={-1}
+      class="sectionContent col-sm-10 col-sm-offset-2"
     >
       <div
-        className="setting-list-item"
+        class="setting-list"
+        tabindex="-1"
       >
-        input_1
-      </div>
-      <div
-        className="setting-list-item"
-      >
-        <hr />
         <div
-          role="alert"
-        />
-        <SaveButton
-          defaultMessage="CustomText"
-          disabled={false}
-          onClick={[Function]}
-          saving={false}
-        />
-        <button
-          className="btn btn-tertiary"
-          id="cancelSetting"
-          onClick={[Function]}
+          class="setting-list-item"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Cancel"
-            id="setting_item_max.cancel"
+          input_1
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
           />
-        </button>
+          <button
+            class="btn btn-primary "
+            data-testid="saveSetting"
+            id="saveSetting"
+            type="submit"
+          >
+            <span>
+              CustomText
+            </span>
+          </button>
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+</DocumentFragment>
 `;
 
 exports[`components/SettingItemMax should match snapshot, without submit 1`] = `
-<section
-  className="section-max form-horizontal "
->
-  <h4
-    className="col-sm-12 section-title"
-    id="settingTitle"
+<DocumentFragment>
+  <section
+    class="section-max form-horizontal a11y--active a11y--focused"
   >
-    title
-  </h4>
-  <div
-    className="sectionContent col-sm-10 col-sm-offset-2"
-  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
+    >
+      title
+    </h4>
     <div
-      className="setting-list"
-      tabIndex={-1}
+      class="sectionContent col-sm-10 col-sm-offset-2"
     >
       <div
-        className="setting-list-item"
+        class="setting-list"
+        tabindex="-1"
       >
-        input_1
-      </div>
-      <div
-        className="setting-list-item"
-      >
-        <hr />
         <div
-          role="alert"
-        />
-        <button
-          className="btn btn-tertiary"
-          id="cancelSetting"
-          onClick={[Function]}
+          class="setting-list-item"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Cancel"
-            id="setting_item_max.cancel"
+          input_1
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
           />
-        </button>
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+</DocumentFragment>
 `;

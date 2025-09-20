@@ -178,6 +178,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
           </button>
           <button
             class="btn btn-tertiary"
+            data-testid="cancelButton"
             id="cancelSetting"
           >
             Cancel
@@ -395,6 +396,7 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
           </button>
           <button
             class="btn btn-tertiary"
+            data-testid="cancelButton"
             id="cancelSetting"
           >
             Cancel

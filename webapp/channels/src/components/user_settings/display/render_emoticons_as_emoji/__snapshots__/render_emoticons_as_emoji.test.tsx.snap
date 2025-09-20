@@ -83,6 +83,7 @@ exports[`components/user_settings/display/render_emoticons_as_emoji/render_emoti
           </button>
           <button
             class="btn btn-tertiary"
+            data-testid="cancelButton"
             id="cancelSetting"
           >
             Cancel
