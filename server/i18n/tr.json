@@ -401,11 +401,11 @@
   },
   {
     "id": "api.command_channel_header.hint",
-    "translation": "[metin]"
+    "translation": "[yazı]"
   },
   {
     "id": "api.command_channel_header.message.app_error",
-    "translation": "/header komutunun yanında metin de yazılmalıdır."
+    "translation": "/header komutunun yanında yazı da yazılmalıdır."
   },
   {
     "id": "api.command_channel_header.name",
@@ -433,7 +433,7 @@
   },
   {
     "id": "api.command_channel_purpose.hint",
-    "translation": "[metin]"
+    "translation": "[yazı]"
   },
   {
     "id": "api.command_channel_purpose.message.app_error",
@@ -469,7 +469,7 @@
   },
   {
     "id": "api.command_channel_rename.hint",
-    "translation": "[metin]"
+    "translation": "[yazı]"
   },
   {
     "id": "api.command_channel_rename.message.app_error",
@@ -497,11 +497,11 @@
   },
   {
     "id": "api.command_code.desc",
-    "translation": "Metni kod bloğu olarak görüntüler"
+    "translation": "Yazıyı kod bloğu olarak görüntüler"
   },
   {
     "id": "api.command_code.hint",
-    "translation": "[metin]"
+    "translation": "[yazı]"
   },
   {
     "id": "api.command_code.message.app_error",
@@ -541,7 +541,7 @@
   },
   {
     "id": "api.command_echo.desc",
-    "translation": "Hesabınızdaki metni echo ile yansıtır"
+    "translation": "Hesabınızdaki yazıyı echo ile yansıtır"
   },
   {
     "id": "api.command_echo.high_volume.app_error",
@@ -871,11 +871,11 @@
   },
   {
     "id": "api.command_search.desc",
-    "translation": "İletilerde bir metni arar"
+    "translation": "İletilerde bir yazıyı arar"
   },
   {
     "id": "api.command_search.hint",
-    "translation": "[metin]"
+    "translation": "[yazı]"
   },
   {
     "id": "api.command_search.name",
@@ -963,7 +963,7 @@
   },
   {
     "id": "api.create_terms_of_service.empty_text.app_error",
-    "translation": "Lütfen özel hizmet koşulları metnini yazın."
+    "translation": "Lütfen özel hizmet koşulları içeriğini yazın."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -2580,7 +2580,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
-    "translation": "İleti metni özelliği izin verilen uzunluğu aşıyor."
+    "translation": "İleti yazısı özelliği izin verilen uzunluğu aşıyor."
   },
   {
     "id": "app.import.validate_post_import_data.message_missing.error",
@@ -4520,7 +4520,7 @@
   },
   {
     "id": "web.incoming_webhook.text.app_error",
-    "translation": "Herhangi bir metin belirtilmemiş."
+    "translation": "Herhangi bir yazı belirtilmemiş."
   },
   {
     "id": "web.incoming_webhook.user.app_error",
@@ -4688,19 +4688,19 @@
   },
   {
     "id": "app.user_terms_of_service.delete.app_error",
-    "translation": "Hizmet koşulları metni silinemedi."
+    "translation": "Hizmet koşulları içeriği silinemedi."
   },
   {
     "id": "app.user_terms_of_service.get_by_user.app_error",
-    "translation": "Hizmet koşulları metni alınamadı."
+    "translation": "Hizmet koşulları içeriği alınamadı."
   },
   {
     "id": "app.user_terms_of_service.get_by_user.no_rows.app_error",
-    "translation": "Herhangi bir hizmet koşulları metni bulunamadı."
+    "translation": "Herhangi bir hizmet koşulları içeriği bulunamadı."
   },
   {
     "id": "app.user_terms_of_service.save.app_error",
-    "translation": "Hizmet koşulları metni kaydedilemedi."
+    "translation": "Hizmet koşulları içeriği kaydedilemedi."
   },
   {
     "id": "ent.cluster.json_encode.error",
@@ -5064,7 +5064,7 @@
   },
   {
     "id": "app.terms_of_service.get.no_rows.app_error",
-    "translation": "Herhangi bir hizmet koşulları metni bulunamadı."
+    "translation": "Herhangi bir hizmet koşulları içeriği bulunamadı."
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
@@ -5172,7 +5172,7 @@
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
-    "translation": "Sertifika metni geçersiz."
+    "translation": "Sertifika yazısı geçersiz."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
@@ -5624,7 +5624,7 @@
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
-    "translation": "Lisans isteğinde bulunmak için Mattermost yazılım değerlendirme sözleşmesi ve kişisel verilerin gizliliği ilkesi metinlerini kabul etmelisiniz."
+    "translation": "Lisans isteğinde bulunmak için Mattermost yazılım değerlendirme sözleşmesi ve kişisel verilerin gizliliği ilkesi içeriklerini kabul etmelisiniz."
   },
   {
     "id": "app.channel.create_initial_sidebar_categories.internal_error",
@@ -7856,11 +7856,11 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
-    "translation": "Yazılan metin karakter sayısı sınırını aşıyor. Kanal amacı en fazla {{.MaxLength}} karakter uzunluğunda olabilir."
+    "translation": "Yazılmış yazı karakter sayısı sınırını aşıyor. Kanal amacı en fazla {{.MaxLength}} karakter uzunluğunda olabilir."
   },
   {
     "id": "api.command_channel_header.update_channel.max_length",
-    "translation": "Yazılan metin karakter sayısı sınırını aşıyor. Kanal başlığı en fazla {{.MaxLength}} karakter uzunluğunda olabilir."
+    "translation": "Yazılmış yazı karakter sayısı sınırını aşıyor. Kanal başlığı en fazla {{.MaxLength}} karakter uzunluğunda olabilir."
   },
   {
     "id": "app.notification.footer.title",
@@ -8127,7 +8127,7 @@
   },
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
-    "translation": "Özel durum güncellenemedi. Lütfen bir görsel ifade ve/veya özel durum metni ekleyin."
+    "translation": "Özel durum güncellenemedi. Lütfen bir görsel ifade ve/veya özel durum yazısı ekleyin."
   },
   {
     "id": "api.templates.invite_body.title.reminder",
@@ -10213,11 +10213,11 @@
   },
   {
     "id": "model.channel.is_valid.banner_info.text.empty.app_error",
-    "translation": "Kanal duyurusu açıldığında kanal duyurusu bilgi metni boş olamaz"
+    "translation": "Kanal duyurusu açıldığında kanal duyurusu bilgi yazısı boş olamaz"
   },
   {
     "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
-    "translation": "Kanal duyurusu bilgi metni çok uzun. En fazla {{.maxLength}} karakter uzunluğunda olabilir."
+    "translation": "Kanal duyurusu bilgi yazısı çok uzun. En fazla {{.maxLength}} karakter uzunluğunda olabilir."
   },
   {
     "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
