@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -140,7 +139,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Wait for the user to be locally added before checking for sync
 		require.Eventually(t, func() bool {
-			_, memberErr := ss.Channel().GetMember(context.Background(), channel.Id, user.Id)
+			_, memberErr := ss.Channel().GetMember(th.Context, channel.Id, user.Id)
 			return memberErr == nil
 		}, 5*time.Second, 100*time.Millisecond, "User should be locally added to channel")
 
@@ -156,7 +155,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}, 10*time.Second, 200*time.Millisecond, "All async sync tasks should be completed")
 
 		// Verify the user is a member at the receiver end
-		member, memberErr := ss.Channel().GetMember(context.Background(), channel.Id, user.Id)
+		member, memberErr := ss.Channel().GetMember(th.Context, channel.Id, user.Id)
 		require.NoError(t, memberErr)
 		require.Equal(t, user.Id, member.UserId)
 
@@ -184,7 +183,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Wait for the removal to be processed with extended timeout
 		require.Eventually(t, func() bool {
-			_, err = ss.Channel().GetMember(context.Background(), channel.Id, user.Id)
+			_, err = ss.Channel().GetMember(th.Context, channel.Id, user.Id)
 			return err != nil
 		}, 30*time.Second, 300*time.Millisecond, "User should not be a member after removal")
 	})
@@ -1039,7 +1038,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}, 10*time.Second, 100*time.Millisecond, "Change should propagate to other clusters")
 
 		// Verify the user was added locally
-		member, memberErr := ss.Channel().GetMember(context.Background(), channel.Id, userFromCluster2.Id)
+		member, memberErr := ss.Channel().GetMember(th.Context, channel.Id, userFromCluster2.Id)
 		require.NoError(t, memberErr, "User should be a member after receiving sync from cluster-2")
 		require.Equal(t, userFromCluster2.Id, member.UserId)
 
