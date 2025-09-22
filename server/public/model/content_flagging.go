@@ -9,9 +9,13 @@ import (
 	"unicode/utf8"
 )
 
-const ContentFlaggingGroupName = "content_flagging"
-const commentMaxRunes = 1000
-const ContentFlaggingPostType = PostCustomTypePrefix + "spillage_report"
+const (
+	ContentFlaggingGroupName   = "content_flagging"
+	ContentFlaggingPostType    = PostCustomTypePrefix + "spillage_report"
+	ContentFlaggingBotUsername = "content-review"
+
+	commentMaxRunes = 1000
+)
 
 const (
 	ContentFlaggingStatusPending  = "pending"

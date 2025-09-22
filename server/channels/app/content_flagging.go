@@ -44,7 +44,7 @@ func ContentFlaggingEnabledForTeam(config *model.Config, teamId string) bool {
 	return hasAdditionalReviewers
 }
 
-func (a *App) FlagPost(c request.CTX, post *model.Post, teamId, reportingUserId string, flagData model.FlagContentRequest) *model.AppError {
+func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUserId string, flagData model.FlagContentRequest) *model.AppError {
 	commentRequired := a.Config().ContentFlaggingSettings.AdditionalSettings.ReporterCommentRequired
 	validReasons := a.Config().ContentFlaggingSettings.AdditionalSettings.Reasons
 	if appErr := flagData.IsValid(*commentRequired, *validReasons); appErr != nil {
@@ -114,26 +114,26 @@ func (a *App) FlagPost(c request.CTX, post *model.Post, teamId, reportingUserId 
 		return model.NewAppError("FlagPost", "app.content_flagging.create_property_values.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
 	}
 
-	contentReviewBot, appErr := a.getContentReviewBot(c)
+	contentReviewBot, appErr := a.getContentReviewBot(rctx)
 	if appErr != nil {
 		return appErr
 	}
 
 	if *a.Config().ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent {
-		_, appErr = a.DeletePost(c, post.Id, contentReviewBot.UserId)
+		_, appErr = a.DeletePost(rctx, post.Id, contentReviewBot.UserId)
 		if appErr != nil {
 			return model.NewAppError("FlagPost", "app.content_flagging.delete_post.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
 		}
 	}
 
-	go func() {
-		appErr = a.createContentReviewPost(c, teamId, post.Id)
+	a.Srv().Go(func() {
+		appErr = a.createContentReviewPost(rctx, teamId, post.Id)
 		if appErr != nil {
-			c.Logger().Error("Failed to create content review post", mlog.Err(appErr), mlog.String("team_id", teamId), mlog.String("post_id", post.Id))
+			rctx.Logger().Error("Failed to create content review post", mlog.Err(appErr), mlog.String("team_id", teamId), mlog.String("post_id", post.Id))
 		}
-	}()
+	})
 
-	return a.sendContentFlaggingConfirmationMessage(c, reportingUserId, post.UserId, post.ChannelId)
+	return a.sendContentFlaggingConfirmationMessage(rctx, reportingUserId, post.UserId, post.ChannelId)
 }
 
 func (a *App) contentFlaggingGroupId() (string, *model.AppError) {
@@ -150,7 +150,8 @@ func (a *App) canFlagPost(groupId, postId, userLocal string) *model.AppError {
 		return model.NewAppError("canFlagPost", "app.content_flagging.get_status_property.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	propertyValues, err := a.Srv().propertyService.SearchPropertyValues(groupId, postId, model.PropertyValueSearchOpts{PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES, FieldID: statusPropertyField.ID})
+	searchOptions := model.PropertyValueSearchOpts{TargetIDs: []string{postId}, PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES, FieldID: statusPropertyField.ID}
+	propertyValues, err := a.Srv().propertyService.SearchPropertyValues(groupId, searchOptions)
 	if err != nil {
 		return model.NewAppError("canFlagPost", "app.content_flagging.search_status_property.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -178,7 +179,7 @@ func (a *App) canFlagPost(groupId, postId, userLocal string) *model.AppError {
 }
 
 func (a *App) getContentFlaggingMappedFields(groupId string) (map[string]*model.PropertyField, *model.AppError) {
-	fields, err := a.Srv().propertyService.SearchPropertyFields(groupId, "", model.PropertyFieldSearchOpts{PerPage: CONTENT_FLAGGING_MAX_PROPERTY_FIELDS})
+	fields, err := a.Srv().propertyService.SearchPropertyFields(groupId, model.PropertyFieldSearchOpts{PerPage: CONTENT_FLAGGING_MAX_PROPERTY_FIELDS})
 	if err != nil {
 		return nil, model.NewAppError("getContentFlaggingMappedFields", "app.content_flagging.search_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -191,13 +192,13 @@ func (a *App) getContentFlaggingMappedFields(groupId string) (map[string]*model.
 	return mappedFields, nil
 }
 
-func (a *App) createContentReviewPost(c request.CTX, teamId, postId string) *model.AppError {
-	contentReviewBot, appErr := a.getContentReviewBot(c)
+func (a *App) createContentReviewPost(rctx request.CTX, teamId, postId string) *model.AppError {
+	contentReviewBot, appErr := a.getContentReviewBot(rctx)
 	if appErr != nil {
 		return appErr
 	}
 
-	channels, appErr := a.getContentReviewChannels(c, teamId, contentReviewBot.UserId)
+	channels, appErr := a.getContentReviewChannels(rctx, teamId, contentReviewBot.UserId)
 	if appErr != nil {
 		return appErr
 	}
@@ -209,9 +210,9 @@ func (a *App) createContentReviewPost(c request.CTX, teamId, postId string) *mod
 			Type:      model.ContentFlaggingPostType,
 			ChannelId: channel.Id,
 		}
-		_, appErr := a.CreatePost(c, post, channel, model.CreatePostFlags{})
+		_, appErr := a.CreatePost(rctx, post, channel, model.CreatePostFlags{})
 		if appErr != nil {
-			c.Logger().Error("Failed to create content review post in one of the channels", mlog.Err(appErr), mlog.String("channel_id", channel.Id), mlog.String("team_id", teamId))
+			rctx.Logger().Error("Failed to create content review post in one of the channels", mlog.Err(appErr), mlog.String("channel_id", channel.Id), mlog.String("team_id", teamId))
 			continue // Don't stop processing other channels if one fails
 		}
 	}
@@ -219,7 +220,7 @@ func (a *App) createContentReviewPost(c request.CTX, teamId, postId string) *mod
 	return nil
 }
 
-func (a *App) getContentReviewChannels(c request.CTX, teamId, contentReviewBotId string) ([]*model.Channel, *model.AppError) {
+func (a *App) getContentReviewChannels(rctx request.CTX, teamId, contentReviewBotId string) ([]*model.Channel, *model.AppError) {
 	reviewersUserIDs, appErr := a.getReviewersForTeam(teamId)
 	if appErr != nil {
 		return nil, appErr
@@ -227,10 +228,10 @@ func (a *App) getContentReviewChannels(c request.CTX, teamId, contentReviewBotId
 
 	var channels []*model.Channel
 	for _, userId := range reviewersUserIDs {
-		channel, appErr := a.GetOrCreateDirectChannel(c, userId, contentReviewBotId)
+		channel, appErr := a.GetOrCreateDirectChannel(rctx, userId, contentReviewBotId)
 		if appErr != nil {
 			// Don't stop processing other reviewers if one fails
-			c.Logger().Error("Failed to get or create direct channel for one of the reviewers and content review bot", mlog.Err(appErr), mlog.String("user_id", userId), mlog.String("bot_id", contentReviewBotId))
+			rctx.Logger().Error("Failed to get or create direct channel for one of the reviewers and content review bot", mlog.Err(appErr), mlog.String("user_id", userId), mlog.String("bot_id", contentReviewBotId))
 		}
 
 		channels = append(channels, channel)
@@ -239,8 +240,8 @@ func (a *App) getContentReviewChannels(c request.CTX, teamId, contentReviewBotId
 	return channels, nil
 }
 
-func (a *App) getContentReviewBot(c request.CTX) (*model.Bot, *model.AppError) {
-	return a.GetOrCreateSystemOwnedBot(c, i18n.T("app.system.content_review_bot.bot_displayname"))
+func (a *App) getContentReviewBot(rctx request.CTX) (*model.Bot, *model.AppError) {
+	return a.GetOrCreateSystemOwnedBot(rctx, model.BotSystemBotUsername, i18n.T("app.system.content_review_bot.bot_displayname"))
 }
 
 func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
@@ -262,7 +263,6 @@ func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
 		}
 	}
 
-	var additionalReviewers []*model.User
 	// Additional reviewers
 	if *reviewerSettings.TeamAdminsAsReviewers {
 		options := &model.UserGetOptions{
@@ -279,7 +279,9 @@ func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
 				return nil, model.NewAppError("getReviewersForTeam", "app.content_flagging.get_users_in_team.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
 			}
 
-			additionalReviewers = append(additionalReviewers, page...)
+			for _, user := range page {
+				reviewerUserIDMap[user.Id] = true
+			}
 			if len(page) < options.PerPage {
 				break
 			}
@@ -302,7 +304,10 @@ func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
 				return nil, model.NewAppError("getReviewersForTeam", "app.content_flagging.get_users_in_team.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
 			}
 
-			additionalReviewers = append(additionalReviewers, page...)
+			for _, user := range page {
+				reviewerUserIDMap[user.Id] = true
+			}
+
 			if len(page) < options.PerPage {
 				break
 			}
@@ -310,21 +315,15 @@ func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
 		}
 	}
 
-	for _, user := range additionalReviewers {
-		reviewerUserIDMap[user.Id] = true
-	}
-
-	reviewerUserIDs := make([]string, len(reviewerUserIDMap))
-	i := 0
+	reviewerUserIDs := make([]string, 0, len(reviewerUserIDMap))
 	for userID := range maps.Keys(reviewerUserIDMap) {
-		reviewerUserIDs[i] = userID
-		i++
+		reviewerUserIDs = append(reviewerUserIDs, userID)
 	}
 
 	return reviewerUserIDs, nil
 }
 
-func (a *App) sendContentFlaggingConfirmationMessage(c request.CTX, flaggingUserId, flaggedPostAuthorId, channelID string) *model.AppError {
+func (a *App) sendContentFlaggingConfirmationMessage(rctx request.CTX, flaggingUserId, flaggedPostAuthorId, channelID string) *model.AppError {
 	flaggedPostAuthor, appErr := a.GetUser(flaggedPostAuthorId)
 	if appErr != nil {
 		return appErr
@@ -336,6 +335,6 @@ func (a *App) sendContentFlaggingConfirmationMessage(c request.CTX, flaggingUser
 		ChannelId: channelID,
 	}
 
-	a.SendEphemeralPost(c, flaggingUserId, post)
+	a.SendEphemeralPost(rctx, flaggingUserId, post)
 	return nil
 }

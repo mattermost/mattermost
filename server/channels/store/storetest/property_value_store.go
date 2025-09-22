@@ -106,8 +106,8 @@ func testCreateManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 
 		// Verify no values were created
 		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
-			TargetID: validValue.TargetID,
-			PerPage:  10,
+			TargetIDs: []string{validValue.TargetID},
+			PerPage:   10,
 		})
 		require.NoError(t, err)
 		require.Empty(t, results)
@@ -228,8 +228,8 @@ func testCreateManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 
 		// Verify the unique value was not created due to transaction rollback
 		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
-			TargetID: value3.TargetID,
-			PerPage:  10,
+			TargetIDs: []string{value3.TargetID},
+			PerPage:   10,
 		})
 		require.NoError(t, err)
 		require.Empty(t, results)
