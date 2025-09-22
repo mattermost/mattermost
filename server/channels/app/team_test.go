@@ -1157,13 +1157,13 @@ func TestAppUpdateTeamScheme(t *testing.T) {
 	require.NoError(t, err)
 
 	team2Scheme := th.SetupTeamScheme()
-	channelUser, appErr := th.App.GetRoleByName(context.Background(), team2Scheme.DefaultChannelUserRole)
+	channelUser, appErr := th.App.GetRoleByName(th.Context, team2Scheme.DefaultChannelUserRole)
 	require.Nil(t, appErr)
 	channelUser.Permissions = []string{}
 	_, appErr = th.App.UpdateRole(channelUser) // Remove all permissions from the team user role of the scheme
 	require.Nil(t, appErr)
 
-	channelAdmin, appErr := th.App.GetRoleByName(context.Background(), team2Scheme.DefaultChannelAdminRole)
+	channelAdmin, appErr := th.App.GetRoleByName(th.Context, team2Scheme.DefaultChannelAdminRole)
 	require.Nil(t, appErr)
 	channelAdmin.Permissions = []string{}
 	_, appErr = th.App.UpdateRole(channelAdmin) // Remove all permissions from the team admin role of the scheme

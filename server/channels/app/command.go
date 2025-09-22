@@ -34,7 +34,7 @@ var atMentionRegexp = regexp.MustCompile(`\B@[[:alnum:]][[:alnum:]\.\-_:]*`)
 type CommandProvider interface {
 	GetTrigger() string
 	GetCommand(a *App, T i18n.TranslateFunc) *model.Command
-	DoCommand(a *App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse
+	DoCommand(a *App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse
 }
 
 var commandProviders = make(map[string]CommandProvider)
@@ -52,7 +52,7 @@ func GetCommandProvider(name string) CommandProvider {
 	return nil
 }
 
-func (a *App) CreateCommandPost(c request.CTX, post *model.Post, teamID string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
+func (a *App) CreateCommandPost(rctx request.CTX, post *model.Post, teamID string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
 	if skipSlackParsing {
 		post.Message = response.Text
 	} else {
@@ -71,11 +71,11 @@ func (a *App) CreateCommandPost(c request.CTX, post *model.Post, teamID string, 
 	}
 
 	if response.ResponseType == model.CommandResponseTypeInChannel {
-		return a.CreatePostMissingChannel(c, post, true, true)
+		return a.CreatePostMissingChannel(rctx, post, true, true)
 	}
 
 	if (response.ResponseType == "" || response.ResponseType == model.CommandResponseTypeEphemeral) && (response.Text != "" || response.Attachments != nil) {
-		a.SendEphemeralPost(c, post.UserId, post)
+		a.SendEphemeralPost(rctx, post.UserId, post)
 	}
 
 	return post, nil
@@ -178,7 +178,7 @@ func (a *App) ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Com
 	return commands, nil
 }
 
-func (a *App) ExecuteCommand(c request.CTX, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+func (a *App) ExecuteCommand(rctx request.CTX, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	trigger := ""
 	message := ""
 	index := strings.IndexFunc(args.Command, unicode.IsSpace)
@@ -196,32 +196,32 @@ func (a *App) ExecuteCommand(c request.CTX, args *model.CommandArgs) (*model.Com
 
 	clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
 	if appErr != nil {
-		c.Logger().Warn("error occurred in generating trigger Id for a user ", mlog.Err(appErr))
+		rctx.Logger().Warn("error occurred in generating trigger Id for a user ", mlog.Err(appErr))
 	}
 
 	args.TriggerId = triggerId
 
 	// Plugins can override built in and custom commands
-	cmd, response, appErr := a.tryExecutePluginCommand(c, args)
+	cmd, response, appErr := a.tryExecutePluginCommand(rctx, args)
 	if appErr != nil {
 		return nil, appErr
 	} else if cmd != nil && response != nil {
 		response.TriggerId = clientTriggerId
-		return a.HandleCommandResponse(c, cmd, args, response, true)
+		return a.HandleCommandResponse(rctx, cmd, args, response, true)
 	}
 
 	// Custom commands can override built ins
-	cmd, response, appErr = a.tryExecuteCustomCommand(c, args, trigger, message)
+	cmd, response, appErr = a.tryExecuteCustomCommand(rctx, args, trigger, message)
 	if appErr != nil {
 		return nil, appErr
 	} else if cmd != nil && response != nil {
 		response.TriggerId = clientTriggerId
-		return a.HandleCommandResponse(c, cmd, args, response, false)
+		return a.HandleCommandResponse(rctx, cmd, args, response, false)
 	}
 
-	cmd, response = a.tryExecuteBuiltInCommand(c, args, trigger, message)
+	cmd, response = a.tryExecuteBuiltInCommand(rctx, args, trigger, message)
 	if cmd != nil && response != nil {
-		return a.HandleCommandResponse(c, cmd, args, response, true)
+		return a.HandleCommandResponse(rctx, cmd, args, response, true)
 	}
 
 	if len(trigger) > maxTriggerLen {
@@ -233,7 +233,7 @@ func (a *App) ExecuteCommand(c request.CTX, args *model.CommandArgs) (*model.Com
 
 // MentionsToTeamMembers returns all the @ mentions found in message that
 // belong to users in the specified team, linking them to their users
-func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model.UserMentionMap {
+func (a *App) MentionsToTeamMembers(rctx request.CTX, message, teamID string) model.UserMentionMap {
 	type mentionMapItem struct {
 		Name string
 		Id   string
@@ -251,7 +251,7 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 
 			var nfErr *store.ErrNotFound
 			if nErr != nil && !errors.As(nErr, &nfErr) {
-				c.Logger().Warn("Failed to retrieve user @"+mention, mlog.Err(nErr))
+				rctx.Logger().Warn("Failed to retrieve user @"+mention, mlog.Err(nErr))
 				return
 			}
 
@@ -269,7 +269,7 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 						continue
 					}
 
-					_, err := a.GetTeamMember(c, teamID, userFromTrimmed.Id)
+					_, err := a.GetTeamMember(rctx, teamID, userFromTrimmed.Id)
 					if err != nil {
 						// The user is not in the team, so we should ignore it
 						return
@@ -282,7 +282,7 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 				return
 			}
 
-			_, err := a.GetTeamMember(c, teamID, user.Id)
+			_, err := a.GetTeamMember(rctx, teamID, user.Id)
 			if err != nil {
 				// The user is not in the team, so we should ignore it
 				return
@@ -305,7 +305,7 @@ func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model
 
 // MentionsToPublicChannels returns all the mentions to public channels,
 // linking them to their channels
-func (a *App) MentionsToPublicChannels(c request.CTX, message, teamID string) model.ChannelMentionMap {
+func (a *App) MentionsToPublicChannels(rctx request.CTX, message, teamID string) model.ChannelMentionMap {
 	type mentionMapItem struct {
 		Name string
 		Id   string
@@ -319,7 +319,7 @@ func (a *App) MentionsToPublicChannels(c request.CTX, message, teamID string) mo
 		wg.Add(1)
 		go func(channelName string) {
 			defer wg.Done()
-			channel, err := a.GetChannelByName(c, channelName, teamID, false)
+			channel, err := a.GetChannelByName(rctx, channelName, teamID, false)
 			if err != nil {
 				return
 			}
@@ -345,7 +345,7 @@ func (a *App) MentionsToPublicChannels(c request.CTX, message, teamID string) mo
 
 // tryExecuteBuiltInCommand attempts to run a built in command based on the given arguments. If no such command can be
 // found, returns nil for all arguments.
-func (a *App) tryExecuteBuiltInCommand(c request.CTX, args *model.CommandArgs, trigger string, message string) (*model.Command, *model.CommandResponse) {
+func (a *App) tryExecuteBuiltInCommand(rctx request.CTX, args *model.CommandArgs, trigger string, message string) (*model.Command, *model.CommandResponse) {
 	provider := GetCommandProvider(trigger)
 	if provider == nil {
 		return nil, nil
@@ -356,12 +356,12 @@ func (a *App) tryExecuteBuiltInCommand(c request.CTX, args *model.CommandArgs, t
 		return nil, nil
 	}
 
-	return cmd, provider.DoCommand(a, c, args, message)
+	return cmd, provider.DoCommand(a, rctx, args, message)
 }
 
 // tryExecuteCustomCommand attempts to run a custom command based on the given arguments. If no such command can be
 // found, returns nil for all arguments.
-func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, trigger string, message string) (*model.Command, *model.CommandResponse, *model.AppError) {
+func (a *App) tryExecuteCustomCommand(rctx request.CTX, args *model.CommandArgs, trigger string, message string) (*model.Command, *model.CommandResponse, *model.AppError) {
 	// Handle custom commands
 	if !*a.Config().ServiceSettings.EnableCommands {
 		return nil, nil, model.NewAppError("ExecuteCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -442,7 +442,7 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 		return nil, nil, nil
 	}
 
-	c.Logger().Debug("Executing command", mlog.String("command", trigger), mlog.String("user_id", args.UserId))
+	rctx.Logger().Debug("Executing command", mlog.String("command", trigger), mlog.String("user_id", args.UserId))
 
 	p := url.Values{}
 	p.Set("token", cmd.Token)
@@ -462,10 +462,10 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 	p.Set("trigger_id", args.TriggerId)
 	p.Set("root_id", args.RootId)
 
-	userMentionMap := a.MentionsToTeamMembers(c, message, team.Id)
+	userMentionMap := a.MentionsToTeamMembers(rctx, message, team.Id)
 	maps.Copy(p, userMentionMap.ToURLValues())
 
-	channelMentionMap := a.MentionsToPublicChannels(c, message, team.Id)
+	channelMentionMap := a.MentionsToPublicChannels(rctx, message, team.Id)
 	maps.Copy(p, channelMentionMap.ToURLValues())
 
 	hook, appErr := a.CreateCommandWebhook(cmd.Id, args)
@@ -474,7 +474,7 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 	}
 	p.Set("response_url", args.SiteURL+"/hooks/commands/"+hook.Id)
 
-	return a.DoCommandRequest(c, cmd, p)
+	return a.DoCommandRequest(rctx, cmd, p)
 }
 
 func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError) {
@@ -561,7 +561,7 @@ func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Value
 	return cmd, response, nil
 }
 
-func (a *App) HandleCommandResponse(c request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
+func (a *App) HandleCommandResponse(rctx request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
 	trigger := ""
 	if args.Command != "" {
 		parts := strings.Split(args.Command, " ")
@@ -570,19 +570,19 @@ func (a *App) HandleCommandResponse(c request.CTX, command *model.Command, args 
 	}
 
 	var lastError *model.AppError
-	_, err := a.HandleCommandResponsePost(c, command, args, response, builtIn)
+	_, err := a.HandleCommandResponsePost(rctx, command, args, response, builtIn)
 
 	if err != nil {
-		c.Logger().Debug("Error occurred in handling command response post", mlog.Err(err))
+		rctx.Logger().Debug("Error occurred in handling command response post", mlog.Err(err))
 		lastError = err
 	}
 
 	if response.ExtraResponses != nil {
 		for _, resp := range response.ExtraResponses {
-			_, err := a.HandleCommandResponsePost(c, command, args, resp, builtIn)
+			_, err := a.HandleCommandResponsePost(rctx, command, args, resp, builtIn)
 
 			if err != nil {
-				c.Logger().Debug("Error occurred in handling command response post", mlog.Err(err))
+				rctx.Logger().Debug("Error occurred in handling command response post", mlog.Err(err))
 				lastError = err
 			}
 		}
@@ -595,7 +595,7 @@ func (a *App) HandleCommandResponse(c request.CTX, command *model.Command, args 
 	return response, nil
 }
 
-func (a *App) HandleCommandResponsePost(c request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.Post, *model.AppError) {
+func (a *App) HandleCommandResponsePost(rctx request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.Post, *model.AppError) {
 	post := &model.Post{}
 	post.ChannelId = args.ChannelId
 	post.RootId = args.RootId
@@ -604,7 +604,7 @@ func (a *App) HandleCommandResponsePost(c request.CTX, command *model.Command, a
 	post.SetProps(response.Props)
 
 	if response.ChannelId != "" {
-		_, err := a.GetChannelMember(c, response.ChannelId, args.UserId)
+		_, err := a.GetChannelMember(rctx, response.ChannelId, args.UserId)
 		if err != nil {
 			err = model.NewAppError("HandleCommandResponsePost", "api.command.command_post.forbidden.app_error", nil, "", http.StatusForbidden).Wrap(err)
 			return nil, err
@@ -642,11 +642,11 @@ func (a *App) HandleCommandResponsePost(c request.CTX, command *model.Command, a
 
 	// Process Slack text replacements if the response does not contain "skip_slack_parsing": true.
 	if !response.SkipSlackParsing {
-		response.Text = a.ProcessSlackText(response.Text)
-		response.Attachments = a.ProcessSlackAttachments(response.Attachments)
+		response.Text = a.ProcessSlackText(rctx, response.Text)
+		response.Attachments = a.ProcessSlackAttachments(rctx, response.Attachments)
 	}
 
-	if _, err := a.CreateCommandPost(c, post, args.TeamId, response, response.SkipSlackParsing); err != nil {
+	if _, err := a.CreateCommandPost(rctx, post, args.TeamId, response, response.SkipSlackParsing); err != nil {
 		return post, err
 	}
 

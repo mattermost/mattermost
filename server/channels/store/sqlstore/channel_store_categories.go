@@ -16,7 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (s SqlChannelStore) CreateInitialSidebarCategories(c request.CTX, userId string, teamID string) (_ *model.OrderedSidebarCategories, err error) {
+func (s SqlChannelStore) CreateInitialSidebarCategories(rctx request.CTX, userId string, teamID string) (_ *model.OrderedSidebarCategories, err error) {
 	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "CreateInitialSidebarCategories: begin_transaction")
