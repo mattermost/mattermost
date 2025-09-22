@@ -756,7 +756,7 @@ func (a *App) JoinUserToTeam(rctx request.CTX, team *model.Team, user *model.Use
 	}
 
 	var rejectionReason string
-	pluginContext := pluginContext(c)
+	pluginContext := pluginContext(rctx)
 	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		rejectionReason = hooks.UserWillJoinTeam(pluginContext, team, user, actor)
 		return rejectionReason == ""
