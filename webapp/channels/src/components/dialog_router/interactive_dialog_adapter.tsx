@@ -18,7 +18,6 @@ import {
     convertDialogToAppForm,
     convertServerDialogResponseToAppForm,
     extractPrimitiveValues,
-    restoreFormFieldValues,
     type ConversionOptions,
     type ValidationError,
 } from 'utils/dialog_conversion';
@@ -562,17 +561,6 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             if (result?.data?.type === 'form' && result?.data?.form) {
                 const form = this.convertServerResponseToForm(result.data.form);
 
-                // CRITICAL: Restore accumulated values to the refreshed form fields
-                // The server returns form structure but doesn't preserve field values
-                // We need to convert stored primitive values back to form field format (select -> option objects)
-                const formFieldValues = restoreFormFieldValues(this.accumulatedValues, form.fields);
-                if (form.fields) {
-                    form.fields.forEach((field) => {
-                        if (formFieldValues[field.name] !== undefined) {
-                            field.value = formFieldValues[field.name];
-                        }
-                    });
-                }
 
                 return {
                     data: {

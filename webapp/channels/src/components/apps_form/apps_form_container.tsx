@@ -15,11 +15,6 @@ import type {DoAppSubmit, DoAppFetchForm, DoAppLookup, DoAppCallResult, PostEphe
 
 import AppsForm from './apps_form_component';
 
-export enum AppFormUpdateType {
-    SUBMIT = 'submit',
-    REFRESH = 'refresh',
-}
-
 type Props = {
     intl: IntlShape;
     form?: AppForm;
@@ -36,7 +31,6 @@ type Props = {
 
 type State = {
     form?: AppForm;
-    updateType?: AppFormUpdateType;
 }
 
 class AppsFormContainer extends React.PureComponent<Props, State> {
@@ -86,7 +80,7 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
             }
             break;
         case AppCallResponseTypes.FORM:
-            this.setState({form: callResp.form, updateType: AppFormUpdateType.SUBMIT});
+            this.setState({form: callResp.form});
             break;
         case AppCallResponseTypes.NAVIGATE:
             break;
@@ -147,7 +141,7 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
         const callResp = res.data!;
         switch (callResp.type) {
         case AppCallResponseTypes.FORM:
-            this.setState({form: callResp.form, updateType: AppFormUpdateType.REFRESH});
+            this.setState({form: callResp.form});
             break;
         case AppCallResponseTypes.OK:
         case AppCallResponseTypes.NAVIGATE:
@@ -206,7 +200,6 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
         return (
             <AppsForm
                 form={form}
-                updateType={this.state.updateType}
                 onExited={this.props.onExited}
                 onHide={this.props.onHide}
                 actions={{

@@ -556,64 +556,6 @@ export function extractPrimitiveValues(values: Record<string, any>): Record<stri
     return normalized;
 }
 
-/**
- * Convert stored primitive values back to form field values
- * Select fields need option objects {label, value}, other fields need primitive values
- */
-export function restoreFormFieldValues(storedValues: Record<string, any>, formFields?: AppField[]): Record<string, any> {
-    const converted: Record<string, any> = {};
-
-    if (!formFields) {
-        return storedValues;
-    }
-
-    const fieldMap = new Map(formFields.map((f) => [f.name, f]));
-
-    Object.entries(storedValues).forEach(([key, value]) => {
-        // Skip null, undefined, empty, or "<nil>" values when restoring to form
-        if (value === null || value === undefined || value === '' || value === '<nil>') {
-            return;
-        }
-
-        const field = fieldMap.get(key);
-        if (field && (field.type === 'static_select' || field.type === 'radio') && field.options && value) {
-            if (field.multiselect && Array.isArray(value)) {
-                // For multiselect fields, convert array of primitive values to array of option objects
-                const matchingOptions = value.
-                    map((val) => field.options?.find((option: any) => option.value === val)).
-                    filter((option) => option !== undefined).
-                    map((option: any) => ({
-                        label: option.label,
-                        value: option.value,
-                    }));
-
-                if (matchingOptions.length > 0) {
-                    converted[key] = matchingOptions;
-                } else {
-                    // Fallback: use the primitive array as-is if no matching options found
-                    converted[key] = value;
-                }
-            } else {
-                // For single select/radio fields, find the matching option and create option object
-                const matchingOption = field.options.find((option: any) => option.value === value);
-                if (matchingOption) {
-                    converted[key] = {
-                        label: matchingOption.label,
-                        value: matchingOption.value,
-                    };
-                } else {
-                    // Fallback: use the value as-is if no matching option found (but only if meaningful)
-                    converted[key] = value;
-                }
-            }
-        } else {
-            // For non-select fields, use primitive value
-            converted[key] = value;
-        }
-    });
-
-    return converted;
-}
 
 /**
  * Convert server dialog response directly to AppForm
