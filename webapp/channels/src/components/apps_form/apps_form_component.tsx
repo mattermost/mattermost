@@ -23,6 +23,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import {filterEmptyOptions} from 'utils/apps';
 
 import type {DoAppCallResult} from 'types/apps';
+
 import AppsFormField from './apps_form_field';
 import AppsFormHeader from './apps_form_header';
 

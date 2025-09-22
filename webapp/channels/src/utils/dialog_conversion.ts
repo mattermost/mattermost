@@ -556,7 +556,6 @@ export function extractPrimitiveValues(values: Record<string, any>): Record<stri
     return normalized;
 }
 
-
 /**
  * Convert server dialog response directly to AppForm
  * Combines server response transformation with dialog-to-form conversion

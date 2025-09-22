@@ -561,7 +561,6 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             if (result?.data?.type === 'form' && result?.data?.form) {
                 const form = this.convertServerResponseToForm(result.data.form);
 
-
                 return {
                     data: {
                         type: 'form' as const,
