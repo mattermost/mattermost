@@ -35,11 +35,10 @@ function fields(state = {}, action: MMReduxAction) {
 function postValues(state = {}, action: MMReduxAction) {
     switch (action.type) {
     case ContentFlaggingTypes.RECEIVED_POST_CONTENT_FLAGGING_VALUES: {
-        const x = {
+        return {
             ...state,
             [action.data.postId]: action.data.values,
         };
-        return x;
     }
     default:
         return state;

@@ -21,5 +21,5 @@ export const contentFlaggingFields = (state: GlobalState) => {
 
 export const postContentFlaggingValues = (state: GlobalState, postId: string) => {
     const values = state.entities.contentFlagging.postValues || {};
-    return values[postId] || undefined;
+    return values[postId];
 };
