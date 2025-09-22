@@ -3,7 +3,7 @@
 
 import {shallow} from 'enzyme';
 import nock from 'nock';
-import React, {act} from 'react';
+import React from 'react';
 import type {ComponentProps} from 'react';
 import type {match} from 'react-router-dom';
 
@@ -19,7 +19,7 @@ import PermalinkView from 'components/permalink_view/permalink_view';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {waitFor} from 'tests/react_testing_utils';
+import {act, waitFor} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
 import {joinPrivateChannelPrompt} from 'utils/channel_utils';

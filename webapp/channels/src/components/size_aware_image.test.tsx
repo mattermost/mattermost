@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {act} from 'react';
+import React from 'react';
 import {Provider} from 'react-redux';
 
 import LoadingImagePreview from 'components/loading_image_preview';
 import SizeAwareImage, {SizeAwareImage as SizeAwareImageComponent} from 'components/size_aware_image';
 
 import {shallowWithIntl, mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 import {TestHelper} from 'utils/test_helper';
 

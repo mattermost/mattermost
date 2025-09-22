@@ -2,10 +2,11 @@
 // See LICENSE.txt for license information.
 
 import type {ReactWrapper} from 'enzyme';
-import React, {act} from 'react';
+import React from 'react';
 import {Provider} from 'react-redux';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 
 import RenewalLink from './renewal_link';

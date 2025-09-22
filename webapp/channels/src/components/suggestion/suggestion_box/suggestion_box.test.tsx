@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {act, useCallback, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import SuggestionBox from './suggestion_box';
@@ -27,7 +27,7 @@ function TestWrapper(props: React.ComponentPropsWithoutRef<typeof SuggestionBox>
     // eslint-disable-next-line react/prop-types
     const [value, setValue] = useState(props.value);
 
-    const handleChange = useCallback((e: React.InputEvent) => setValue((e.target as HTMLInputElement).value), []);
+    const handleChange = useCallback((e: React.FormEvent) => setValue((e.target as HTMLInputElement).value), []);
 
     return (
         <SuggestionBox

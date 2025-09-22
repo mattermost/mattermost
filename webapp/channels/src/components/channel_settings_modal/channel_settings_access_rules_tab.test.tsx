@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {act} from 'react';
+import React from 'react';
 
 import type {UserPropertyField} from '@mattermost/types/properties';
 
@@ -10,7 +10,7 @@ import SaveChangesPanel from 'components/widgets/modals/components/save_changes_
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
-import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsAccessRulesTab from './channel_settings_access_rules_tab';

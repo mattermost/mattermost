@@ -2,12 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React, {act} from 'react';
+import React from 'react';
 import {Provider} from 'react-redux';
 
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 
 jest.mock('mattermost-redux/actions/general', () => ({

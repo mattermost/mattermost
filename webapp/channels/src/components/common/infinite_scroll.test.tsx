@@ -2,12 +2,12 @@
 // See LICENSE.txt for license information.
 
 import type {ReactWrapper} from 'enzyme';
-import React, {act} from 'react';
+import React from 'react';
 
 import InfiniteScroll from 'components/common/infinite_scroll';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {waitFor} from 'tests/react_testing_utils';
+import {act, waitFor} from 'tests/react_testing_utils';
 
 describe('/components/common/InfiniteScroll', () => {
     const baseProps = {

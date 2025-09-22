@@ -108,20 +108,6 @@ afterEach(() => {
     for (const call of errorSpy.mock.calls) {
         if (
             typeof call[0] === 'string' && (
-                call[0].includes('uses the legacy childContextTypes API') ||
-                call[0].includes('findDOMNode is deprecated') ||
-                call[0].includes('uses the legacy contextTypes API') ||
-                call[0].includes('Support for defaultProps will be removed from function components') ||
-                call[0].includes('Support for defaultProps will be removed from memo components')
-            )
-        ) {
-            // These are warnings for deprecated APIs that will be removed in React 19. Most of them are in
-            // React Bootstrap or other dependencies.
-            continue;
-        }
-
-        if (
-            typeof call[0] === 'string' && (
                 call[0].includes('inside a test was not wrapped in act') ||
                 call[0].includes('A suspended resource finished loading inside a test, but the event was not wrapped in act')
             )

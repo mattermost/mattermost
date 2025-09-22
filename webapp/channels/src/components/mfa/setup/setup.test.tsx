@@ -2,12 +2,12 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React, {act} from 'react';
+import React from 'react';
 
 import Setup from 'components/mfa/setup/setup';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {waitFor} from 'tests/react_testing_utils';
+import {act, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 jest.mock('actions/global_actions', () => ({

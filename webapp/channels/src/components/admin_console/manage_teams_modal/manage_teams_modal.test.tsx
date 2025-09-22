@@ -3,13 +3,14 @@
 
 import type {ReactWrapper} from 'enzyme';
 import {mount, shallow} from 'enzyme';
-import React, {act} from 'react';
+import React from 'react';
 import {IntlProvider} from 'react-intl';
 
 import {General} from 'mattermost-redux/constants';
 
 import ManageTeamsModal from 'components/admin_console/manage_teams_modal/manage_teams_modal';
 
+import {act} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ManageTeamsDropdown from './manage_teams_dropdown';

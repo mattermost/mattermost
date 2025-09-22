@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {act} from 'react';
+import React from 'react';
 import type {RouteComponentProps} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
 
@@ -10,7 +10,7 @@ import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import * as GlobalActions from 'actions/global_actions';
 
 import testConfigureStore from 'packages/mattermost-redux/test/test_store';
-import {renderWithContext, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, waitFor} from 'tests/react_testing_utils';
 import {StoragePrefixes} from 'utils/constants';
 import * as Utils from 'utils/utils';
 

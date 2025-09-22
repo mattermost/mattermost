@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React, {act} from 'react';
+import React from 'react';
 
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
+import {act} from 'tests/react_testing_utils';
 
 import PolicyDetails from './policy_details';
 

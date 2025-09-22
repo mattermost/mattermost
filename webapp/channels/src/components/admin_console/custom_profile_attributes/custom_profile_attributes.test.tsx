@@ -2,13 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {screen, fireEvent} from '@testing-library/react';
-import React, {act} from 'react';
+import React from 'react';
 
 import type {UserPropertyField, UserPropertyFieldGroupID, UserPropertyFieldType} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {act, renderWithContext} from 'tests/react_testing_utils';
 
 import CustomProfileAttributes from './custom_profile_attributes';
 

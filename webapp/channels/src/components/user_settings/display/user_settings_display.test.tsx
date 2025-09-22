@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React, {act} from 'react';
+import React from 'react';
 import {Provider} from 'react-redux';
 
 import type {UserProfile} from '@mattermost/types/users';
@@ -11,6 +11,7 @@ import configureStore from 'store';
 
 import {getAllLanguages} from 'i18n/i18n';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act} from 'tests/react_testing_utils';
 
 import UserSettingsDisplay from './user_settings_display';
 

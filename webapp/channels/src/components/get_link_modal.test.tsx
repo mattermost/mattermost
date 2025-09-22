@@ -2,12 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React, {act} from 'react';
+import React from 'react';
 import {Modal} from 'react-bootstrap';
 
 import GetLinkModal from 'components/get_link_modal';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act} from 'tests/react_testing_utils';
 
 describe('components/GetLinkModal', () => {
     const onHide = jest.fn();

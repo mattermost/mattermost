@@ -2,12 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React, {act} from 'react';
+import React from 'react';
 import type {ComponentProps} from 'react';
 
 import EmailNotificationSetting from 'components/user_settings/notifications/email_notification_setting/email_notification_setting';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act} from 'tests/react_testing_utils';
 import {Preferences, NotificationLevels} from 'utils/constants';
 
 describe('components/user_settings/notifications/EmailNotificationSetting', () => {

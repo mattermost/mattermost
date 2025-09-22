@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {act} from 'react';
+import React from 'react';
 import {BrowserRouter} from 'react-router-dom';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {
+    act,
     renderWithContext,
     screen,
     waitFor,
