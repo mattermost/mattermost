@@ -15,21 +15,21 @@ import (
 )
 
 // SyncLdap starts an LDAP sync job.
-func (a *App) SyncLdap(c request.CTX) {
+func (a *App) SyncLdap(rctx request.CTX) {
 	a.Srv().Go(func() {
 		if license := a.Srv().License(); license != nil && *license.Features.LDAP {
 			if !*a.Config().LdapSettings.EnableSync {
-				c.Logger().Error("LdapSettings.EnableSync is set to false. Skipping LDAP sync.")
+				rctx.Logger().Error("LdapSettings.EnableSync is set to false. Skipping LDAP sync.")
 				return
 			}
 
 			ldapI := a.Ldap()
 			if ldapI == nil {
-				c.Logger().Error("Not executing ldap sync because ldap is not available")
+				rctx.Logger().Error("Not executing ldap sync because ldap is not available")
 				return
 			}
-			if _, appErr := ldapI.StartSynchronizeJob(c, false); appErr != nil {
-				c.Logger().Error("Failed to start LDAP sync job")
+			if _, appErr := ldapI.StartSynchronizeJob(rctx, false); appErr != nil {
+				rctx.Logger().Error("Failed to start LDAP sync job")
 			}
 		}
 	})
@@ -110,7 +110,7 @@ func (a *App) GetAllLdapGroupsPage(rctx request.CTX, page int, perPage int, opts
 	return groups, total, nil
 }
 
-func (a *App) SwitchEmailToLdap(c request.CTX, email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError) {
+func (a *App) SwitchEmailToLdap(rctx request.CTX, email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError) {
 	if a.Srv().License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("emailToLdap", "api.user.email_to_ldap.not_available.app_error", nil, "", http.StatusForbidden)
 	}
@@ -120,11 +120,11 @@ func (a *App) SwitchEmailToLdap(c request.CTX, email, password, code, ldapLoginI
 		return "", err
 	}
 
-	if err := a.CheckPasswordAndAllCriteria(c, user.Id, password, code); err != nil {
+	if err := a.CheckPasswordAndAllCriteria(rctx, user.Id, password, code); err != nil {
 		return "", err
 	}
 
-	if err := a.RevokeAllSessions(c, user.Id); err != nil {
+	if err := a.RevokeAllSessions(rctx, user.Id); err != nil {
 		return "", err
 	}
 
@@ -133,20 +133,20 @@ func (a *App) SwitchEmailToLdap(c request.CTX, email, password, code, ldapLoginI
 		return "", model.NewAppError("SwitchEmailToLdap", "api.user.email_to_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if err := ldapInterface.SwitchToLdap(c, user.Id, ldapLoginId, ldapPassword); err != nil {
+	if err := ldapInterface.SwitchToLdap(rctx, user.Id, ldapLoginId, ldapPassword); err != nil {
 		return "", err
 	}
 
 	a.Srv().Go(func() {
 		if err := a.Srv().EmailService.SendSignInChangeEmail(user.Email, "AD/LDAP", user.Locale, a.GetSiteURL()); err != nil {
-			c.Logger().Error("Could not send sign in method changed e-mail", mlog.Err(err))
+			rctx.Logger().Error("Could not send sign in method changed e-mail", mlog.Err(err))
 		}
 	})
 
 	return "/login?extra=signin_change", nil
 }
 
-func (a *App) SwitchLdapToEmail(c request.CTX, ldapPassword, code, email, newPassword string) (string, *model.AppError) {
+func (a *App) SwitchLdapToEmail(rctx request.CTX, ldapPassword, code, email, newPassword string) (string, *model.AppError) {
 	if a.Srv().License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("ldapToEmail", "api.user.ldap_to_email.not_available.app_error", nil, "", http.StatusForbidden)
 	}
@@ -173,16 +173,16 @@ func (a *App) SwitchLdapToEmail(c request.CTX, ldapPassword, code, email, newPas
 		return "", model.NewAppError("SwitchLdapToEmail", "api.user.ldap_to_email.not_available.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	user, err = a.checkLdapUserPasswordAndAllCriteria(c, user, ldapPassword, code)
+	user, err = a.checkLdapUserPasswordAndAllCriteria(rctx, user, ldapPassword, code)
 	if err != nil {
 		return "", err
 	}
 
-	if err := a.UpdatePassword(c, user, newPassword); err != nil {
+	if err := a.UpdatePassword(rctx, user, newPassword); err != nil {
 		return "", err
 	}
 
-	if err := a.RevokeAllSessions(c, user.Id); err != nil {
+	if err := a.RevokeAllSessions(rctx, user.Id); err != nil {
 		return "", err
 	}
 
@@ -190,16 +190,16 @@ func (a *App) SwitchLdapToEmail(c request.CTX, ldapPassword, code, email, newPas
 
 	a.Srv().Go(func() {
 		if err := a.Srv().EmailService.SendSignInChangeEmail(user.Email, T("api.templates.signin_change_email.body.method_email"), user.Locale, a.GetSiteURL()); err != nil {
-			c.Logger().Error("Could not send sign in method changed e-mail", mlog.Err(err))
+			rctx.Logger().Error("Could not send sign in method changed e-mail", mlog.Err(err))
 		}
 	})
 
 	return "/login?extra=signin_change", nil
 }
 
-func (a *App) MigrateIdLDAP(c request.CTX, toAttribute string) *model.AppError {
+func (a *App) MigrateIdLDAP(rctx request.CTX, toAttribute string) *model.AppError {
 	if ldapI := a.Ldap(); ldapI != nil {
-		if err := ldapI.MigrateIDAttribute(c, toAttribute); err != nil {
+		if err := ldapI.MigrateIDAttribute(rctx, toAttribute); err != nil {
 			switch err := err.(type) {
 			case *model.AppError:
 				return err
