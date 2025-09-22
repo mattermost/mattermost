@@ -387,8 +387,13 @@ func (jss SqlJobStore) GetCountByStatusAndType(status string, jobType string) (i
 	return count, nil
 }
 
-func (jss SqlJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data map[string]string) ([]*model.Job, error) {
+func (jss SqlJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data map[string]string, statuses ...string) ([]*model.Job, error) {
 	query := jss.jobQuery.Where(sq.Eq{"Type": jobType})
+
+	// Add status filtering if provided
+	if len(statuses) > 0 {
+		query = query.Where(sq.Eq{"Status": statuses})
+	}
 
 	// Add JSON data filtering for each key-value pair
 	for key, value := range data {

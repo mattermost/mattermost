@@ -271,9 +271,16 @@ func (_m *JobStore) GetAllByTypesPage(rctx request.CTX, jobTypes []string, offse
 	return r0, r1
 }
 
-// GetByTypeAndData provides a mock function with given fields: rctx, jobType, data
-func (_m *JobStore) GetByTypeAndData(rctx request.CTX, jobType string, data map[string]string) ([]*model.Job, error) {
-	ret := _m.Called(rctx, jobType, data)
+// GetByTypeAndData provides a mock function with given fields: rctx, jobType, data, statuses
+func (_m *JobStore) GetByTypeAndData(rctx request.CTX, jobType string, data map[string]string, statuses ...string) ([]*model.Job, error) {
+	_va := make([]interface{}, len(statuses))
+	for _i := range statuses {
+		_va[_i] = statuses[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, rctx, jobType, data)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetByTypeAndData")
@@ -281,19 +288,19 @@ func (_m *JobStore) GetByTypeAndData(rctx request.CTX, jobType string, data map[
 
 	var r0 []*model.Job
 	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string, map[string]string) ([]*model.Job, error)); ok {
-		return rf(rctx, jobType, data)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, map[string]string, ...string) ([]*model.Job, error)); ok {
+		return rf(rctx, jobType, data, statuses...)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, map[string]string) []*model.Job); ok {
-		r0 = rf(rctx, jobType, data)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, map[string]string, ...string) []*model.Job); ok {
+		r0 = rf(rctx, jobType, data, statuses...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Job)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string, map[string]string) error); ok {
-		r1 = rf(rctx, jobType, data)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, map[string]string, ...string) error); ok {
+		r1 = rf(rctx, jobType, data, statuses...)
 	} else {
 		r1 = ret.Error(1)
 	}
