@@ -863,7 +863,7 @@ func testJobGetByTypeAndData(t *testing.T, rctx request.CTX, ss store.Store) {
 		// Should find job1 and job3 (both have policy_id = "channel1" and correct type)
 		jobs, err := ss.Job().GetByTypeAndData(rctx, jobType, map[string]string{
 			"policy_id": "channel1",
-		})
+		}, false)
 		require.NoError(t, err)
 		require.Len(t, jobs, 2)
 
@@ -878,7 +878,7 @@ func testJobGetByTypeAndData(t *testing.T, rctx request.CTX, ss store.Store) {
 		jobs, err := ss.Job().GetByTypeAndData(rctx, jobType, map[string]string{
 			"policy_id": "channel1",
 			"extra":     "data1",
-		})
+		}, false)
 		require.NoError(t, err)
 		require.Len(t, jobs, 1)
 		assert.Equal(t, job1.Id, jobs[0].Id)
@@ -888,7 +888,7 @@ func testJobGetByTypeAndData(t *testing.T, rctx request.CTX, ss store.Store) {
 		// Should find nothing (no jobs with policy_id = "nonexistent")
 		jobs, err := ss.Job().GetByTypeAndData(rctx, jobType, map[string]string{
 			"policy_id": "nonexistent",
-		})
+		}, false)
 		require.NoError(t, err)
 		assert.Len(t, jobs, 0)
 	})
@@ -897,7 +897,7 @@ func testJobGetByTypeAndData(t *testing.T, rctx request.CTX, ss store.Store) {
 		// Should find only job4 (different job type with same policy_id)
 		jobs, err := ss.Job().GetByTypeAndData(rctx, otherJobType, map[string]string{
 			"policy_id": "channel1",
-		})
+		}, false)
 		require.NoError(t, err)
 		require.Len(t, jobs, 1)
 		assert.Equal(t, job4.Id, jobs[0].Id)

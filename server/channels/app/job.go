@@ -90,10 +90,10 @@ func (a *App) CreateAccessControlSyncJob(rctx request.CTX, jobData map[string]st
 
 	// If policy_id is provided, this is a channel-specific job that needs deduplication
 	if exists && policyID != "" {
-		// Find existing pending or in-progress jobs for this specific policy/channel and statuses
+		// Find existing pending or in-progress jobs for this specific policy/channel
 		existingJobs, err := a.Srv().Store().Job().GetByTypeAndData(rctx, model.JobTypeAccessControlSync, map[string]string{
 			"policy_id": policyID,
-		}, model.JobStatusPending, model.JobStatusInProgress)
+		}, true, model.JobStatusPending, model.JobStatusInProgress)
 		if err != nil {
 			return nil, model.NewAppError("CreateAccessControlSyncJob", "app.job.get_existing_jobs.error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}

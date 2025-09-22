@@ -387,10 +387,10 @@ func (jss SqlJobStore) GetCountByStatusAndType(status string, jobType string) (i
 	return count, nil
 }
 
-func (jss SqlJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data map[string]string, statuses ...string) ([]*model.Job, error) {
+func (jss SqlJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data map[string]string, useMaster bool, statuses ...string) ([]*model.Job, error) {
 	query := jss.jobQuery.Where(sq.Eq{"Type": jobType})
 
-	// Add status filtering if provided
+	// Add status filtering if provided - enables full usage of idx_jobs_status_type index
 	if len(statuses) > 0 {
 		query = query.Where(sq.Eq{"Status": statuses})
 	}
@@ -406,7 +406,13 @@ func (jss SqlJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data m
 	}
 
 	var jobs []*model.Job
-	if err := jss.GetReplica().Select(&jobs, queryString, args...); err != nil {
+	// For consistency-critical operations (like job deduplication), use master
+	db := jss.GetReplica()
+	if useMaster {
+		db = jss.GetMaster()
+	}
+
+	if err := db.Select(&jobs, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to get Jobs by type and data")
 	}
 

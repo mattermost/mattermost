@@ -268,7 +268,7 @@ func TestCreateAccessControlSyncJob(t *testing.T) {
 		// Test the cancellation logic by calling the method directly
 		existingJobs, storeErr := th.App.Srv().Store().Job().GetByTypeAndData(th.Context, model.JobTypeAccessControlSync, map[string]string{
 			"policy_id": "channel456",
-		})
+		}, false)
 		require.NoError(t, storeErr)
 		require.Len(t, existingJobs, 1)
 
@@ -308,7 +308,7 @@ func TestCreateAccessControlSyncJob(t *testing.T) {
 		// Test that GetByTypeAndData finds the in-progress job
 		existingJobs, storeErr := th.App.Srv().Store().Job().GetByTypeAndData(th.Context, model.JobTypeAccessControlSync, map[string]string{
 			"policy_id": "channel789",
-		})
+		}, false)
 		require.NoError(t, storeErr)
 		require.Len(t, existingJobs, 1)
 		assert.Equal(t, model.JobStatusInProgress, existingJobs[0].Status)
@@ -341,7 +341,7 @@ func TestCreateAccessControlSyncJob(t *testing.T) {
 		// Test that GetByTypeAndData finds the completed job
 		existingJobs, storeErr := th.App.Srv().Store().Job().GetByTypeAndData(th.Context, model.JobTypeAccessControlSync, map[string]string{
 			"policy_id": "channel101",
-		})
+		}, false)
 		require.NoError(t, storeErr)
 		require.Len(t, existingJobs, 1)
 		assert.Equal(t, model.JobStatusSuccess, existingJobs[0].Status)
