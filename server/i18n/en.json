@@ -6111,10 +6111,6 @@
     "translation": "insert error"
   },
   {
-    "id": "app.job.create_access_control_sync.missing_policy_id",
-    "translation": "Policy ID is required for access control sync job."
-  },
-  {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
   },
