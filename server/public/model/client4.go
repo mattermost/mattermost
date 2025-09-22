@@ -9862,23 +9862,3 @@ func (c *Client4) SearchChannelsForAccessControlPolicy(ctx context.Context, poli
 	return &channels, BuildResponse(r), nil
 }
 
-// CreateAccessControlSyncJob creates a new access control sync job.
-func (c *Client4) CreateAccessControlSyncJob(ctx context.Context, jobData map[string]string) (*Job, *Response, error) {
-	b, err := json.Marshal(jobData)
-	if err != nil {
-		return nil, nil, NewAppError("CreateAccessControlSyncJob", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPostBytes(ctx, c.accessControlPoliciesRoute()+"/sync_job", b)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var job Job
-	if err := json.NewDecoder(r.Body).Decode(&job); err != nil {
-		return nil, nil, NewAppError("CreateAccessControlSyncJob", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return &job, BuildResponse(r), nil
-}

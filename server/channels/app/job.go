@@ -75,7 +75,13 @@ func (a *App) GetJobsByTypesAndStatuses(rctx request.CTX, jobTypes []string, sta
 }
 
 func (a *App) CreateJob(rctx request.CTX, job *model.Job) (*model.Job, *model.AppError) {
-	return a.Srv().Jobs.CreateJob(rctx, job.Type, job.Data)
+	switch job.Type {
+	case model.JobTypeAccessControlSync:
+		// Route ABAC jobs to specialized deduplication handler
+		return a.CreateAccessControlSyncJob(rctx, job.Data)
+	default:
+		return a.Srv().Jobs.CreateJob(rctx, job.Type, job.Data)
+	}
 }
 
 func (a *App) CreateAccessControlSyncJob(rctx request.CTX, jobData map[string]string) (*model.Job, *model.AppError) {
@@ -101,12 +107,12 @@ func (a *App) CreateAccessControlSyncJob(rctx request.CTX, jobData map[string]st
 				mlog.String("policy_id", policyID),
 				mlog.String("status", job.Status))
 
-			if appErr := a.CancelJob(rctx, job.Id); appErr != nil {
+			// Follow team.go pattern: directly cancel jobs for deduplication
+			if err := a.Srv().Jobs.SetJobCanceled(job); err != nil {
 				rctx.Logger().Warn("Failed to cancel existing access control sync job",
 					mlog.String("job_id", job.Id),
 					mlog.String("policy_id", policyID),
-					mlog.Err(appErr))
-				// Continue anyway - we'll create the new job
+					mlog.Err(err))
 			}
 		}
 	}
