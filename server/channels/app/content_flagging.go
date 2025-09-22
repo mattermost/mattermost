@@ -241,7 +241,7 @@ func (a *App) getContentReviewChannels(rctx request.CTX, teamId, contentReviewBo
 }
 
 func (a *App) getContentReviewBot(rctx request.CTX) (*model.Bot, *model.AppError) {
-	return a.GetOrCreateSystemOwnedBot(rctx, model.BotSystemBotUsername, i18n.T("app.system.content_review_bot.bot_displayname"))
+	return a.GetOrCreateSystemOwnedBot(rctx, model.ContentFlaggingBotUsername, i18n.T("app.system.content_review_bot.bot_displayname"))
 }
 
 func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
