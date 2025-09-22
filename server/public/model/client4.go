@@ -9861,4 +9861,3 @@ func (c *Client4) SearchChannelsForAccessControlPolicy(ctx context.Context, poli
 
 	return &channels, BuildResponse(r), nil
 }
-

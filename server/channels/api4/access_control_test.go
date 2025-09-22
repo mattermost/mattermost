@@ -873,7 +873,3 @@ func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 }
-
-// NOTE: Rate limiting test for ABAC sync jobs was removed because jobs now go through
-// the generic /api/v4/jobs endpoint which doesn't have specific rate limiting.
-// The job deduplication logic itself provides protection against rapid job creation.

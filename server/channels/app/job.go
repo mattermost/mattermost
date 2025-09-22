@@ -87,35 +87,37 @@ func (a *App) CreateJob(rctx request.CTX, job *model.Job) (*model.Job, *model.Ap
 func (a *App) CreateAccessControlSyncJob(rctx request.CTX, jobData map[string]string) (*model.Job, *model.AppError) {
 	// Get the policy_id (channel ID) from job data to scope the deduplication
 	policyID, exists := jobData["policy_id"]
-	if !exists || policyID == "" {
-		return nil, model.NewAppError("CreateAccessControlSyncJob", "app.job.create_access_control_sync.missing_policy_id", nil, "", http.StatusBadRequest)
-	}
 
-	// Find existing pending or in-progress jobs for this specific policy/channel
-	existingJobs, err := a.Srv().Store().Job().GetByTypeAndData(rctx, model.JobTypeAccessControlSync, map[string]string{
-		"policy_id": policyID,
-	})
-	if err != nil {
-		return nil, model.NewAppError("CreateAccessControlSyncJob", "app.job.get_existing_jobs.error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
+	// If policy_id is provided, this is a channel-specific job that needs deduplication
+	if exists && policyID != "" {
+		// Find existing pending or in-progress jobs for this specific policy/channel
+		existingJobs, err := a.Srv().Store().Job().GetByTypeAndData(rctx, model.JobTypeAccessControlSync, map[string]string{
+			"policy_id": policyID,
+		})
+		if err != nil {
+			return nil, model.NewAppError("CreateAccessControlSyncJob", "app.job.get_existing_jobs.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 
-	// Cancel any existing pending or in-progress jobs for this policy
-	for _, job := range existingJobs {
-		if job.Status == model.JobStatusPending || job.Status == model.JobStatusInProgress {
-			rctx.Logger().Info("Canceling existing access control sync job before creating new one",
-				mlog.String("job_id", job.Id),
-				mlog.String("policy_id", policyID),
-				mlog.String("status", job.Status))
-
-			// Follow team.go pattern: directly cancel jobs for deduplication
-			if err := a.Srv().Jobs.SetJobCanceled(job); err != nil {
-				rctx.Logger().Warn("Failed to cancel existing access control sync job",
+		// Cancel any existing pending or in-progress jobs for this policy
+		for _, job := range existingJobs {
+			if job.Status == model.JobStatusPending || job.Status == model.JobStatusInProgress {
+				rctx.Logger().Info("Canceling existing access control sync job before creating new one",
 					mlog.String("job_id", job.Id),
 					mlog.String("policy_id", policyID),
-					mlog.Err(err))
+					mlog.String("status", job.Status))
+
+				// Follow team.go pattern: directly cancel jobs for deduplication
+				if err := a.Srv().Jobs.SetJobCanceled(job); err != nil {
+					rctx.Logger().Warn("Failed to cancel existing access control sync job",
+						mlog.String("job_id", job.Id),
+						mlog.String("policy_id", policyID),
+						mlog.Err(err))
+				}
 			}
 		}
 	}
+	// If no policy_id is provided, this is a system-wide job (from system console)
+	// System-wide jobs don't need channel-specific deduplication - they process all policies
 
 	// Create the new job
 	return a.Srv().Jobs.CreateJob(rctx, model.JobTypeAccessControlSync, jobData)

@@ -392,7 +392,6 @@ func (jss SqlJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data m
 
 	// Add JSON data filtering for each key-value pair
 	for key, value := range data {
-		// PostgreSQL JSON query
 		query = query.Where(sq.Expr("Data->? = ?", key, fmt.Sprintf(`"%s"`, value)))
 	}
 
@@ -405,8 +404,6 @@ func (jss SqlJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data m
 	if err := jss.GetReplica().Select(&jobs, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to get Jobs by type and data")
 	}
-
-	// Jobs are already properly unmarshaled by the SQL driver
 
 	return jobs, nil
 }

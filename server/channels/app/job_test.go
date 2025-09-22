@@ -356,30 +356,38 @@ func TestCreateAccessControlSyncJob(t *testing.T) {
 		assert.Equal(t, model.JobStatusSuccess, updatedJob.Status)
 	})
 
-	t.Run("handles missing policy_id", func(t *testing.T) {
-		// Try to create job without policy_id
+	t.Run("handles missing policy_id - system-wide job", func(t *testing.T) {
+		// System-wide job (from system console) has no policy_id - this should succeed
 		jobData := map[string]string{
 			"other_field": "value",
 		}
 
 		job, appErr := th.App.CreateAccessControlSyncJob(th.Context, jobData)
-		require.NotNil(t, appErr)
-		require.Nil(t, job)
-		assert.Equal(t, "app.job.create_access_control_sync.missing_policy_id", appErr.Id)
-		assert.Equal(t, 400, appErr.StatusCode)
+		skipIfEnterpriseJobCreationFails(t, appErr)
+		require.Nil(t, appErr)
+		require.NotNil(t, job)
+		assert.Equal(t, model.JobTypeAccessControlSync, job.Type)
+		assert.Equal(t, "value", job.Data["other_field"])
+
+		// Clean up
+		_, _ = th.App.Srv().Store().Job().Delete(job.Id)
 	})
 
-	t.Run("handles empty policy_id", func(t *testing.T) {
-		// Try to create job with empty policy_id
+	t.Run("handles empty policy_id - system-wide job", func(t *testing.T) {
+		// Empty policy_id is treated as system-wide job - this should succeed
 		jobData := map[string]string{
 			"policy_id": "",
 		}
 
 		job, appErr := th.App.CreateAccessControlSyncJob(th.Context, jobData)
-		require.NotNil(t, appErr)
-		require.Nil(t, job)
-		assert.Equal(t, "app.job.create_access_control_sync.missing_policy_id", appErr.Id)
-		assert.Equal(t, 400, appErr.StatusCode)
+		skipIfEnterpriseJobCreationFails(t, appErr)
+		require.Nil(t, appErr)
+		require.NotNil(t, job)
+		assert.Equal(t, model.JobTypeAccessControlSync, job.Type)
+		assert.Equal(t, "", job.Data["policy_id"])
+
+		// Clean up
+		_, _ = th.App.Srv().Store().Job().Delete(job.Id)
 	})
 
 	t.Run("enforces permission validation - system admin can create", func(t *testing.T) {
