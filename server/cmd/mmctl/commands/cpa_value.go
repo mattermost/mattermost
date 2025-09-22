@@ -27,12 +27,12 @@ var CPAValueListCmd = &cobra.Command{
 }
 
 var CPAValueSetCmd = &cobra.Command{
-	Use:   "set [user] [field-id]",
+	Use:   "set [user] [field]",
 	Short: "Set a CPA value for a user",
-	Long:  "Set a Custom Profile Attribute field value for a specific user.",
-	Example: `  cpa value set john.doe@company.com kx8m2w4r9p3q7n5t1j6h8s4c9e --value "Engineering"
-  cpa value set johndoe q7n3t8w5r2m9k4x6p1j3h7s8c4 --value "Go" --value "React" --value "Python"
-  cpa value set user123 w9r5t2n8k4x7p3q6m1j9h4s7c2 --value "Senior"`,
+	Long:  "Set a Custom Profile Attribute field value for a specific user by field ID or name.",
+	Example: `  cpa value set john.doe@company.com kx8m2w4r9p3q7n5t1j6h8s4c9e --value Engineering
+  cpa value set johndoe Department --value Engineering
+  cpa value set user123 Skills --value Go --value React --value Python`,
 	Args: cobra.ExactArgs(2),
 	RunE: withClient(cpaValueSetCmdF),
 }
@@ -52,6 +52,11 @@ func init() {
 func cpaValueListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	userArg := args[0]
 
+	// Setup template context for field and value resolution
+	if err := setupCPATemplateContext(c); err != nil {
+		return err
+	}
+
 	// Resolve user
 	user, err := getUserFromArg(c, userArg)
 	if err != nil {
@@ -68,14 +73,14 @@ func cpaValueListCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 		keypair := map[string]any{
 			fieldID: value,
 		}
-		printer.PrintT("{{range $k, $v := .}}FieldID: {{$k}}, Value: {{printf \"%s\" $v}}{{end}}", keypair)
+		printer.PrintT("{{range $k, $v := .}}{{fieldName $k}} ({{fieldType $k}}): {{resolveValue $k $v}}{{end}}", keypair)
 	}
 	return nil
 }
 
 func cpaValueSetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	userArg := args[0]
-	fieldID := args[1]
+	fieldArg := args[1]
 
 	// Get values from flag
 	values, err := cmd.Flags().GetStringSlice("value")
@@ -89,38 +94,31 @@ func cpaValueSetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Get field info to validate
-	fields, _, err := c.ListCPAFields(context.TODO())
+	// Resolve field
+	field, err := getFieldFromArg(c, fieldArg)
 	if err != nil {
-		return fmt.Errorf("failed to get CPA fields: %w", err)
+		return err
 	}
 
-	var targetField *model.PropertyField
-	for _, field := range fields {
-		if field.ID == fieldID {
-			targetField = field
-			break
-		}
-	}
-
-	if targetField == nil {
-		return fmt.Errorf("field %s not found", fieldID)
+	// Setup template context for field and value resolution
+	if err := setupCPATemplateContext(c); err != nil {
+		return err
 	}
 
 	// Resolve option names to IDs for select/multiselect fields
-	resolvedValues, err := resolveOptionNamesToIDs(targetField, values)
+	resolvedValues, err := resolveOptionNamesToIDs(field, values)
 	if err != nil {
 		return fmt.Errorf("failed to resolve option values: %w", err)
 	}
 
 	// Prepare the value for marshaling
 	var valueToMarshal any
-	if len(resolvedValues) == 1 {
-		// Single value
-		valueToMarshal = resolvedValues[0]
-	} else {
+	if field.Type == model.PropertyFieldTypeMultiselect || field.Type == model.PropertyFieldTypeMultiuser {
 		// Multiple values
 		valueToMarshal = resolvedValues
+	} else {
+		// Single value
+		valueToMarshal = resolvedValues[0]
 	}
 
 	// Set the value using PatchCPAValues
@@ -130,19 +128,21 @@ func cpaValueSetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	patchValues := map[string]json.RawMessage{
-		fieldID: valueJSON,
+		field.ID: valueJSON,
 	}
 
-	updatedValues, _, err := c.PatchCPAValuesForUser(context.TODO(), user.Id, patchValues)
-	if err != nil {
-		return fmt.Errorf("failed to set CPA value: %w", err)
+	updatedValues, _, vErr := c.PatchCPAValuesForUser(context.TODO(), user.Id, patchValues)
+	if vErr != nil {
+		return fmt.Errorf("failed to set CPA value: %w", vErr)
 	}
 
 	printer.SetSingle(true)
-	printer.Print(updatedValues)
-
-	valueStr := fmt.Sprintf("%v", valueToMarshal)
-	fmt.Printf("Successfully set CPA value for user %s, field %s: %s\n", user.Username, targetField.Name, valueStr)
+	for fieldID, value := range updatedValues {
+		keypair := map[string]any{
+			fieldID: value,
+		}
+		printer.PrintT("{{range $k, $v := .}}Successfully updated value for field {{fieldName $k}}: {{resolveValue $k $v}}{{end}}", keypair)
+	}
 	return nil
 }
 
