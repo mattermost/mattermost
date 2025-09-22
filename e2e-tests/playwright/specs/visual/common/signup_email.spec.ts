@@ -29,7 +29,7 @@ test(
 
         // # Get license information to determine snapshot suffix
         const license = await adminClient.getClientLicenseOld();
-        const editionSuffix = license.IsLicensed === 'true' ? '' : 'free edition';
+        const editionSuffix = license.IsLicensed === 'true' ? '' : 'team edition';
         const testArgs = {page, browserName, viewport};
 
         // * Verify visual appearance of signup page

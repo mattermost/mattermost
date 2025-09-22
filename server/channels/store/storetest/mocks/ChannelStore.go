@@ -5,12 +5,9 @@
 package mocks
 
 import (
-	context "context"
-
 	model "github.com/mattermost/mattermost/server/public/model"
-	mock "github.com/stretchr/testify/mock"
-
 	request "github.com/mattermost/mattermost/server/public/shared/request"
+	mock "github.com/stretchr/testify/mock"
 
 	store "github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -305,14 +302,14 @@ func (_m *ChannelStore) CountUrgentPostsAfter(channelID string, timestamp int64,
 	return r0, r1
 }
 
-// CreateDirectChannel provides a mock function with given fields: ctx, userID, otherUserID, channelOptions
-func (_m *ChannelStore) CreateDirectChannel(ctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
+// CreateDirectChannel provides a mock function with given fields: rctx, userID, otherUserID, channelOptions
+func (_m *ChannelStore) CreateDirectChannel(rctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 	_va := make([]interface{}, len(channelOptions))
 	for _i := range channelOptions {
 		_va[_i] = channelOptions[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx, userID, otherUserID)
+	_ca = append(_ca, rctx, userID, otherUserID)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
@@ -323,10 +320,10 @@ func (_m *ChannelStore) CreateDirectChannel(ctx request.CTX, userID *model.User,
 	var r0 *model.Channel
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, *model.User, ...model.ChannelOption) (*model.Channel, error)); ok {
-		return rf(ctx, userID, otherUserID, channelOptions...)
+		return rf(rctx, userID, otherUserID, channelOptions...)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, *model.User, ...model.ChannelOption) *model.Channel); ok {
-		r0 = rf(ctx, userID, otherUserID, channelOptions...)
+		r0 = rf(rctx, userID, otherUserID, channelOptions...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Channel)
@@ -334,7 +331,7 @@ func (_m *ChannelStore) CreateDirectChannel(ctx request.CTX, userID *model.User,
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, *model.User, *model.User, ...model.ChannelOption) error); ok {
-		r1 = rf(ctx, userID, otherUserID, channelOptions...)
+		r1 = rf(rctx, userID, otherUserID, channelOptions...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -342,9 +339,9 @@ func (_m *ChannelStore) CreateDirectChannel(ctx request.CTX, userID *model.User,
 	return r0, r1
 }
 
-// CreateInitialSidebarCategories provides a mock function with given fields: c, userID, teamID
-func (_m *ChannelStore) CreateInitialSidebarCategories(c request.CTX, userID string, teamID string) (*model.OrderedSidebarCategories, error) {
-	ret := _m.Called(c, userID, teamID)
+// CreateInitialSidebarCategories provides a mock function with given fields: rctx, userID, teamID
+func (_m *ChannelStore) CreateInitialSidebarCategories(rctx request.CTX, userID string, teamID string) (*model.OrderedSidebarCategories, error) {
+	ret := _m.Called(rctx, userID, teamID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateInitialSidebarCategories")
@@ -353,10 +350,10 @@ func (_m *ChannelStore) CreateInitialSidebarCategories(c request.CTX, userID str
 	var r0 *model.OrderedSidebarCategories
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (*model.OrderedSidebarCategories, error)); ok {
-		return rf(c, userID, teamID)
+		return rf(rctx, userID, teamID)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.OrderedSidebarCategories); ok {
-		r0 = rf(c, userID, teamID)
+		r0 = rf(rctx, userID, teamID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.OrderedSidebarCategories)
@@ -364,7 +361,7 @@ func (_m *ChannelStore) CreateInitialSidebarCategories(c request.CTX, userID str
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string, string) error); ok {
-		r1 = rf(c, userID, teamID)
+		r1 = rf(rctx, userID, teamID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -564,9 +561,9 @@ func (_m *ChannelStore) GetAllChannelMemberIdsByChannelId(id string) ([]string, 
 	return r0, r1
 }
 
-// GetAllChannelMembersForUser provides a mock function with given fields: ctx, userID, allowFromCache, includeDeleted
-func (_m *ChannelStore) GetAllChannelMembersForUser(ctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
-	ret := _m.Called(ctx, userID, allowFromCache, includeDeleted)
+// GetAllChannelMembersForUser provides a mock function with given fields: rctx, userID, allowFromCache, includeDeleted
+func (_m *ChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
+	ret := _m.Called(rctx, userID, allowFromCache, includeDeleted)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAllChannelMembersForUser")
@@ -575,10 +572,10 @@ func (_m *ChannelStore) GetAllChannelMembersForUser(ctx request.CTX, userID stri
 	var r0 map[string]string
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string, bool, bool) (map[string]string, error)); ok {
-		return rf(ctx, userID, allowFromCache, includeDeleted)
+		return rf(rctx, userID, allowFromCache, includeDeleted)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, bool, bool) map[string]string); ok {
-		r0 = rf(ctx, userID, allowFromCache, includeDeleted)
+		r0 = rf(rctx, userID, allowFromCache, includeDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]string)
@@ -586,7 +583,7 @@ func (_m *ChannelStore) GetAllChannelMembersForUser(ctx request.CTX, userID stri
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string, bool, bool) error); ok {
-		r1 = rf(ctx, userID, allowFromCache, includeDeleted)
+		r1 = rf(rctx, userID, allowFromCache, includeDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1192,9 +1189,9 @@ func (_m *ChannelStore) GetChannelsWithTeamDataByIds(channelIds []string, includ
 	return r0, r1
 }
 
-// GetChannelsWithUnreadsAndWithMentions provides a mock function with given fields: ctx, channelIDs, userID, userNotifyProps
-func (_m *ChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Context, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
-	ret := _m.Called(ctx, channelIDs, userID, userNotifyProps)
+// GetChannelsWithUnreadsAndWithMentions provides a mock function with given fields: rctx, channelIDs, userID, userNotifyProps
+func (_m *ChannelStore) GetChannelsWithUnreadsAndWithMentions(rctx request.CTX, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
+	ret := _m.Called(rctx, channelIDs, userID, userNotifyProps)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetChannelsWithUnreadsAndWithMentions")
@@ -1204,35 +1201,35 @@ func (_m *ChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Contex
 	var r1 []string
 	var r2 map[string]int64
 	var r3 error
-	if rf, ok := ret.Get(0).(func(context.Context, []string, string, model.StringMap) ([]string, []string, map[string]int64, error)); ok {
-		return rf(ctx, channelIDs, userID, userNotifyProps)
+	if rf, ok := ret.Get(0).(func(request.CTX, []string, string, model.StringMap) ([]string, []string, map[string]int64, error)); ok {
+		return rf(rctx, channelIDs, userID, userNotifyProps)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, []string, string, model.StringMap) []string); ok {
-		r0 = rf(ctx, channelIDs, userID, userNotifyProps)
+	if rf, ok := ret.Get(0).(func(request.CTX, []string, string, model.StringMap) []string); ok {
+		r0 = rf(rctx, channelIDs, userID, userNotifyProps)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, []string, string, model.StringMap) []string); ok {
-		r1 = rf(ctx, channelIDs, userID, userNotifyProps)
+	if rf, ok := ret.Get(1).(func(request.CTX, []string, string, model.StringMap) []string); ok {
+		r1 = rf(rctx, channelIDs, userID, userNotifyProps)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).([]string)
 		}
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, []string, string, model.StringMap) map[string]int64); ok {
-		r2 = rf(ctx, channelIDs, userID, userNotifyProps)
+	if rf, ok := ret.Get(2).(func(request.CTX, []string, string, model.StringMap) map[string]int64); ok {
+		r2 = rf(rctx, channelIDs, userID, userNotifyProps)
 	} else {
 		if ret.Get(2) != nil {
 			r2 = ret.Get(2).(map[string]int64)
 		}
 	}
 
-	if rf, ok := ret.Get(3).(func(context.Context, []string, string, model.StringMap) error); ok {
-		r3 = rf(ctx, channelIDs, userID, userNotifyProps)
+	if rf, ok := ret.Get(3).(func(request.CTX, []string, string, model.StringMap) error); ok {
+		r3 = rf(rctx, channelIDs, userID, userNotifyProps)
 	} else {
 		r3 = ret.Error(3)
 	}
@@ -1416,9 +1413,9 @@ func (_m *ChannelStore) GetMany(ids []string, allowFromCache bool) (model.Channe
 	return r0, r1
 }
 
-// GetMember provides a mock function with given fields: ctx, channelID, userID
-func (_m *ChannelStore) GetMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
-	ret := _m.Called(ctx, channelID, userID)
+// GetMember provides a mock function with given fields: rctx, channelID, userID
+func (_m *ChannelStore) GetMember(rctx request.CTX, channelID string, userID string) (*model.ChannelMember, error) {
+	ret := _m.Called(rctx, channelID, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetMember")
@@ -1426,19 +1423,19 @@ func (_m *ChannelStore) GetMember(ctx context.Context, channelID string, userID 
 
 	var r0 *model.ChannelMember
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*model.ChannelMember, error)); ok {
-		return rf(ctx, channelID, userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (*model.ChannelMember, error)); ok {
+		return rf(rctx, channelID, userID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) *model.ChannelMember); ok {
-		r0 = rf(ctx, channelID, userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.ChannelMember); ok {
+		r0 = rf(rctx, channelID, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ChannelMember)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, channelID, userID)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string) error); ok {
+		r1 = rf(rctx, channelID, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1492,9 +1489,9 @@ func (_m *ChannelStore) GetMemberCountFromCache(channelID string) int64 {
 	return r0
 }
 
-// GetMemberCountsByGroup provides a mock function with given fields: ctx, channelID, includeTimezones
-func (_m *ChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error) {
-	ret := _m.Called(ctx, channelID, includeTimezones)
+// GetMemberCountsByGroup provides a mock function with given fields: rctx, channelID, includeTimezones
+func (_m *ChannelStore) GetMemberCountsByGroup(rctx request.CTX, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error) {
+	ret := _m.Called(rctx, channelID, includeTimezones)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetMemberCountsByGroup")
@@ -1502,19 +1499,19 @@ func (_m *ChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID st
 
 	var r0 []*model.ChannelMemberCountByGroup
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, bool) ([]*model.ChannelMemberCountByGroup, error)); ok {
-		return rf(ctx, channelID, includeTimezones)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) ([]*model.ChannelMemberCountByGroup, error)); ok {
+		return rf(rctx, channelID, includeTimezones)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, bool) []*model.ChannelMemberCountByGroup); ok {
-		r0 = rf(ctx, channelID, includeTimezones)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) []*model.ChannelMemberCountByGroup); ok {
+		r0 = rf(rctx, channelID, includeTimezones)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.ChannelMemberCountByGroup)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, bool) error); ok {
-		r1 = rf(ctx, channelID, includeTimezones)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, bool) error); ok {
+		r1 = rf(rctx, channelID, includeTimezones)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1552,9 +1549,9 @@ func (_m *ChannelStore) GetMemberForPost(postID string, userID string) (*model.C
 	return r0, r1
 }
 
-// GetMemberLastViewedAt provides a mock function with given fields: ctx, channelID, userID
-func (_m *ChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error) {
-	ret := _m.Called(ctx, channelID, userID)
+// GetMemberLastViewedAt provides a mock function with given fields: rctx, channelID, userID
+func (_m *ChannelStore) GetMemberLastViewedAt(rctx request.CTX, channelID string, userID string) (int64, error) {
+	ret := _m.Called(rctx, channelID, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetMemberLastViewedAt")
@@ -1562,17 +1559,17 @@ func (_m *ChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID str
 
 	var r0 int64
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (int64, error)); ok {
-		return rf(ctx, channelID, userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (int64, error)); ok {
+		return rf(rctx, channelID, userID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) int64); ok {
-		r0 = rf(ctx, channelID, userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) int64); ok {
+		r0 = rf(rctx, channelID, userID)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, channelID, userID)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string) error); ok {
+		r1 = rf(rctx, channelID, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2375,9 +2372,9 @@ func (_m *ChannelStore) PatchMultipleMembersNotifyProps(members []*model.Channel
 	return r0, r1
 }
 
-// PermanentDelete provides a mock function with given fields: ctx, channelID
-func (_m *ChannelStore) PermanentDelete(ctx request.CTX, channelID string) error {
-	ret := _m.Called(ctx, channelID)
+// PermanentDelete provides a mock function with given fields: rctx, channelID
+func (_m *ChannelStore) PermanentDelete(rctx request.CTX, channelID string) error {
+	ret := _m.Called(rctx, channelID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for PermanentDelete")
@@ -2385,7 +2382,7 @@ func (_m *ChannelStore) PermanentDelete(ctx request.CTX, channelID string) error
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
-		r0 = rf(ctx, channelID)
+		r0 = rf(rctx, channelID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2411,9 +2408,9 @@ func (_m *ChannelStore) PermanentDeleteByTeam(teamID string) error {
 	return r0
 }
 
-// PermanentDeleteMembersByChannel provides a mock function with given fields: ctx, channelID
-func (_m *ChannelStore) PermanentDeleteMembersByChannel(ctx request.CTX, channelID string) error {
-	ret := _m.Called(ctx, channelID)
+// PermanentDeleteMembersByChannel provides a mock function with given fields: rctx, channelID
+func (_m *ChannelStore) PermanentDeleteMembersByChannel(rctx request.CTX, channelID string) error {
+	ret := _m.Called(rctx, channelID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for PermanentDeleteMembersByChannel")
@@ -2421,7 +2418,7 @@ func (_m *ChannelStore) PermanentDeleteMembersByChannel(ctx request.CTX, channel
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
-		r0 = rf(ctx, channelID)
+		r0 = rf(rctx, channelID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2429,9 +2426,9 @@ func (_m *ChannelStore) PermanentDeleteMembersByChannel(ctx request.CTX, channel
 	return r0
 }
 
-// PermanentDeleteMembersByUser provides a mock function with given fields: ctx, userID
-func (_m *ChannelStore) PermanentDeleteMembersByUser(ctx request.CTX, userID string) error {
-	ret := _m.Called(ctx, userID)
+// PermanentDeleteMembersByUser provides a mock function with given fields: rctx, userID
+func (_m *ChannelStore) PermanentDeleteMembersByUser(rctx request.CTX, userID string) error {
+	ret := _m.Called(rctx, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for PermanentDeleteMembersByUser")
@@ -2439,7 +2436,7 @@ func (_m *ChannelStore) PermanentDeleteMembersByUser(ctx request.CTX, userID str
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
-		r0 = rf(ctx, userID)
+		r0 = rf(rctx, userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2447,9 +2444,9 @@ func (_m *ChannelStore) PermanentDeleteMembersByUser(ctx request.CTX, userID str
 	return r0
 }
 
-// RemoveAllDeactivatedMembers provides a mock function with given fields: ctx, channelID
-func (_m *ChannelStore) RemoveAllDeactivatedMembers(ctx request.CTX, channelID string) error {
-	ret := _m.Called(ctx, channelID)
+// RemoveAllDeactivatedMembers provides a mock function with given fields: rctx, channelID
+func (_m *ChannelStore) RemoveAllDeactivatedMembers(rctx request.CTX, channelID string) error {
+	ret := _m.Called(rctx, channelID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RemoveAllDeactivatedMembers")
@@ -2457,7 +2454,7 @@ func (_m *ChannelStore) RemoveAllDeactivatedMembers(ctx request.CTX, channelID s
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
-		r0 = rf(ctx, channelID)
+		r0 = rf(rctx, channelID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2465,9 +2462,9 @@ func (_m *ChannelStore) RemoveAllDeactivatedMembers(ctx request.CTX, channelID s
 	return r0
 }
 
-// RemoveMember provides a mock function with given fields: ctx, channelID, userID
-func (_m *ChannelStore) RemoveMember(ctx request.CTX, channelID string, userID string) error {
-	ret := _m.Called(ctx, channelID, userID)
+// RemoveMember provides a mock function with given fields: rctx, channelID, userID
+func (_m *ChannelStore) RemoveMember(rctx request.CTX, channelID string, userID string) error {
+	ret := _m.Called(rctx, channelID, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RemoveMember")
@@ -2475,7 +2472,7 @@ func (_m *ChannelStore) RemoveMember(ctx request.CTX, channelID string, userID s
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string, string) error); ok {
-		r0 = rf(ctx, channelID, userID)
+		r0 = rf(rctx, channelID, userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2483,9 +2480,9 @@ func (_m *ChannelStore) RemoveMember(ctx request.CTX, channelID string, userID s
 	return r0
 }
 
-// RemoveMembers provides a mock function with given fields: ctx, channelID, userIds
-func (_m *ChannelStore) RemoveMembers(ctx request.CTX, channelID string, userIds []string) error {
-	ret := _m.Called(ctx, channelID, userIds)
+// RemoveMembers provides a mock function with given fields: rctx, channelID, userIds
+func (_m *ChannelStore) RemoveMembers(rctx request.CTX, channelID string, userIds []string) error {
+	ret := _m.Called(rctx, channelID, userIds)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RemoveMembers")
@@ -2493,7 +2490,7 @@ func (_m *ChannelStore) RemoveMembers(ctx request.CTX, channelID string, userIds
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string, []string) error); ok {
-		r0 = rf(ctx, channelID, userIds)
+		r0 = rf(rctx, channelID, userIds)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2574,9 +2571,9 @@ func (_m *ChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChanne
 	return r0, r1
 }
 
-// SaveDirectChannel provides a mock function with given fields: ctx, channel, member1, member2
-func (_m *ChannelStore) SaveDirectChannel(ctx request.CTX, channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
-	ret := _m.Called(ctx, channel, member1, member2)
+// SaveDirectChannel provides a mock function with given fields: rctx, channel, member1, member2
+func (_m *ChannelStore) SaveDirectChannel(rctx request.CTX, channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
+	ret := _m.Called(rctx, channel, member1, member2)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SaveDirectChannel")
@@ -2585,10 +2582,10 @@ func (_m *ChannelStore) SaveDirectChannel(ctx request.CTX, channel *model.Channe
 	var r0 *model.Channel
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel, *model.ChannelMember, *model.ChannelMember) (*model.Channel, error)); ok {
-		return rf(ctx, channel, member1, member2)
+		return rf(rctx, channel, member1, member2)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel, *model.ChannelMember, *model.ChannelMember) *model.Channel); ok {
-		r0 = rf(ctx, channel, member1, member2)
+		r0 = rf(rctx, channel, member1, member2)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Channel)
@@ -2596,7 +2593,7 @@ func (_m *ChannelStore) SaveDirectChannel(ctx request.CTX, channel *model.Channe
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, *model.Channel, *model.ChannelMember, *model.ChannelMember) error); ok {
-		r1 = rf(ctx, channel, member1, member2)
+		r1 = rf(rctx, channel, member1, member2)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2699,36 +2696,6 @@ func (_m *ChannelStore) SearchAllChannels(term string, opts store.ChannelSearchO
 	}
 
 	return r0, r1, r2
-}
-
-// SearchArchivedInTeam provides a mock function with given fields: teamID, term, userID
-func (_m *ChannelStore) SearchArchivedInTeam(teamID string, term string, userID string) (model.ChannelList, error) {
-	ret := _m.Called(teamID, term, userID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SearchArchivedInTeam")
-	}
-
-	var r0 model.ChannelList
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, string) (model.ChannelList, error)); ok {
-		return rf(teamID, term, userID)
-	}
-	if rf, ok := ret.Get(0).(func(string, string, string) model.ChannelList); ok {
-		r0 = rf(teamID, term, userID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(model.ChannelList)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
-		r1 = rf(teamID, term, userID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // SearchForUserInTeam provides a mock function with given fields: userID, teamID, term, includeDeleted
@@ -2887,9 +2854,9 @@ func (_m *ChannelStore) SetShared(channelID string, shared bool) error {
 	return r0
 }
 
-// Update provides a mock function with given fields: ctx, channel
-func (_m *ChannelStore) Update(ctx request.CTX, channel *model.Channel) (*model.Channel, error) {
-	ret := _m.Called(ctx, channel)
+// Update provides a mock function with given fields: rctx, channel
+func (_m *ChannelStore) Update(rctx request.CTX, channel *model.Channel) (*model.Channel, error) {
+	ret := _m.Called(rctx, channel)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Update")
@@ -2898,10 +2865,10 @@ func (_m *ChannelStore) Update(ctx request.CTX, channel *model.Channel) (*model.
 	var r0 *model.Channel
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel) (*model.Channel, error)); ok {
-		return rf(ctx, channel)
+		return rf(rctx, channel)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel) *model.Channel); ok {
-		r0 = rf(ctx, channel)
+		r0 = rf(rctx, channel)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Channel)
@@ -2909,7 +2876,7 @@ func (_m *ChannelStore) Update(ctx request.CTX, channel *model.Channel) (*model.
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, *model.Channel) error); ok {
-		r1 = rf(ctx, channel)
+		r1 = rf(rctx, channel)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2977,9 +2944,9 @@ func (_m *ChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID st
 	return r0, r1
 }
 
-// UpdateMember provides a mock function with given fields: ctx, member
-func (_m *ChannelStore) UpdateMember(ctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {
-	ret := _m.Called(ctx, member)
+// UpdateMember provides a mock function with given fields: rctx, member
+func (_m *ChannelStore) UpdateMember(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {
+	ret := _m.Called(rctx, member)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateMember")
@@ -2988,10 +2955,10 @@ func (_m *ChannelStore) UpdateMember(ctx request.CTX, member *model.ChannelMembe
 	var r0 *model.ChannelMember
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.ChannelMember) (*model.ChannelMember, error)); ok {
-		return rf(ctx, member)
+		return rf(rctx, member)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.ChannelMember) *model.ChannelMember); ok {
-		r0 = rf(ctx, member)
+		r0 = rf(rctx, member)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ChannelMember)
@@ -2999,7 +2966,7 @@ func (_m *ChannelStore) UpdateMember(ctx request.CTX, member *model.ChannelMembe
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, *model.ChannelMember) error); ok {
-		r1 = rf(ctx, member)
+		r1 = rf(rctx, member)
 	} else {
 		r1 = ret.Error(1)
 	}
