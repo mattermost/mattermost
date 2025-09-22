@@ -1100,3 +1100,108 @@ func TestIsMultiSelectDefaultInOptions(t *testing.T) {
 		assert.False(t, result)
 	})
 }
+
+func TestSubmitDialogResponse_IsValid(t *testing.T) {
+	validDialog := &Dialog{
+		Title: "Test Dialog",
+	}
+
+	tests := map[string]struct {
+		response *SubmitDialogResponse
+		wantErr  string
+	}{
+		"error takes precedence - with error field": {
+			response: &SubmitDialogResponse{
+				Error: "something went wrong",
+				Type:  "invalid_type",
+				Form:  validDialog,
+			},
+			wantErr: "",
+		},
+		"error takes precedence - with errors field": {
+			response: &SubmitDialogResponse{
+				Errors: map[string]string{"field1": "required"},
+				Type:   "invalid_type",
+				Form:   validDialog,
+			},
+			wantErr: "",
+		},
+		"valid empty type with no form": {
+			response: &SubmitDialogResponse{
+				Type: "",
+			},
+			wantErr: "",
+		},
+		"valid ok type with no form": {
+			response: &SubmitDialogResponse{
+				Type: "ok",
+			},
+			wantErr: "",
+		},
+		"valid navigate type with no form": {
+			response: &SubmitDialogResponse{
+				Type: "navigate",
+			},
+			wantErr: "",
+		},
+		"valid form type with valid form": {
+			response: &SubmitDialogResponse{
+				Type: "form",
+				Form: validDialog,
+			},
+			wantErr: "",
+		},
+		"invalid empty type with form": {
+			response: &SubmitDialogResponse{
+				Type: "",
+				Form: validDialog,
+			},
+			wantErr: "form field must be nil for type \"\"",
+		},
+		"invalid ok type with form": {
+			response: &SubmitDialogResponse{
+				Type: "ok",
+				Form: validDialog,
+			},
+			wantErr: "form field must be nil for type \"ok\"",
+		},
+		"invalid navigate type with form": {
+			response: &SubmitDialogResponse{
+				Type: "navigate",
+				Form: validDialog,
+			},
+			wantErr: "form field must be nil for type \"navigate\"",
+		},
+		"invalid form type with no form": {
+			response: &SubmitDialogResponse{
+				Type: "form",
+			},
+			wantErr: "form field is required for form type",
+		},
+		"invalid form type with invalid form": {
+			response: &SubmitDialogResponse{
+				Type: "form",
+				Form: &Dialog{}, // Invalid dialog - no title
+			},
+			wantErr: "invalid form: invalid dialog title \"\"",
+		},
+		"invalid type": {
+			response: &SubmitDialogResponse{
+				Type: "invalid",
+			},
+			wantErr: "invalid type \"invalid\", must be one of: empty, ok, form, navigate",
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := tt.response.IsValid()
+			if tt.wantErr == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.wantErr)
+			}
+		})
+	}
+}

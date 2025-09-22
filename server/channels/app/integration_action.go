@@ -536,6 +536,11 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.decode_json_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Validate the response
+	if err := response.IsValid(); err != nil {
+		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.invalid_response", nil, err.Error(), http.StatusBadRequest)
+	}
+
 	return &response, nil
 }
 
