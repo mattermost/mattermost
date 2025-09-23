@@ -1037,14 +1037,14 @@ func (a *App) userDeactivated(rctx request.CTX, userID string) *model.AppError {
 		rctx.Logger().Warn("unable to remove auth data by user id", mlog.Err(nErr))
 	}
 
-	if err = a.softDeleteUserDMChannels(rctx, userID, model.GetMillis()); err != nil {
+	if err = a.softDeleteUserDMChannels(rctx, userID); err != nil {
 		rctx.Logger().Warn("Failed to archive DM channels for deactivated user", mlog.Err(err))
 	}
 
 	return nil
 }
 
-func (a *App) softDeleteUserDMChannels(rctx request.CTX, userID string, deleteTimestamp int64) *model.AppError {
+func (a *App) softDeleteUserDMChannels(rctx request.CTX, userID string) *model.AppError {
 	fromID := ""
 	const pageSize = 200
 
@@ -1053,9 +1053,6 @@ func (a *App) softDeleteUserDMChannels(rctx request.CTX, userID string, deleteTi
 		if err != nil {
 			return model.NewAppError("softDeleteUserDMChannels", "app.channel.get_channels_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-		if len(channels) == 0 {
-			break
-		}
 
 		for _, channel := range channels {
 			fromID = channel.Id
@@ -1063,25 +1060,11 @@ func (a *App) softDeleteUserDMChannels(rctx request.CTX, userID string, deleteTi
 			if channel.Type != model.ChannelTypeDirect {
 				continue
 			}
-			if channel.DeleteAt != 0 {
-				continue
+
+			if err := a.DeleteChannel(rctx, channel, userID); err != nil {
+				rctx.Logger().Error("DeleteChannel failed", mlog.String("ch_id", channel.Id), mlog.Err(err))
+				return model.NewAppError("softDeleteUserDMChannels", "app.channel.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
-
-			if err := a.Srv().Store().Channel().SetDeleteAt(channel.Id, deleteTimestamp, deleteTimestamp); err != nil {
-				rctx.Logger().Error("SetDeleteAt failed", mlog.String("ch_id", channel.Id), mlog.Err(err))
-				return model.NewAppError("softDeleteUserDMChannels", "app.channel.set_delete_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			}
-
-			a.Srv().Store().Channel().InvalidateChannel(channel.Id)
-
-			evt := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, "", channel.Id, "", nil, "")
-
-			updated, _ := a.Srv().Store().Channel().Get(channel.Id, false)
-			if updated != nil {
-				b, _ := json.Marshal(updated)
-				evt.Add("channel", string(b))
-			}
-			a.Publish(evt)
 		}
 
 		if len(channels) < pageSize {
