@@ -5,11 +5,15 @@ import React, {useState, useRef, forwardRef, useCallback, useEffect} from 'react
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
+import type {Team} from '@mattermost/types/teams';
+
+import {hasResults} from 'components/suggestion/suggestion_results';
+
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {escapeRegex} from 'utils/text_formatting';
 
-import useSearchSuggestions from './hooks';
+import {useSearchSuggestions, useSearchSuggestionSelection} from './hooks';
 import SearchBoxHints from './search_box_hints';
 import SearchInput from './search_box_input';
 import SearchSuggestions from './search_box_suggestions';
@@ -25,6 +29,7 @@ type Props = {
     initialSearchType: string;
     initialSearchTeam: string;
     crossTeamSearchEnabled: boolean;
+    myTeams: Team[];
 };
 
 const SearchBoxContainer = styled.div`
@@ -63,7 +68,7 @@ const CloseIcon = styled.button`
 
 const SearchBoxHeader = styled.div`
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
 `;
 
@@ -73,7 +78,7 @@ const SearchTeamSelector = styled.div`
 
 const SearchBox = forwardRef(
     (
-        {onClose, onSearch, initialSearchTerms, initialSearchType, initialSearchTeam, crossTeamSearchEnabled}: Props,
+        {onClose, onSearch, initialSearchTerms, initialSearchType, initialSearchTeam, crossTeamSearchEnabled, myTeams}: Props,
         ref: React.Ref<HTMLDivElement>,
     ): JSX.Element => {
         const intl = useIntl();
@@ -81,7 +86,8 @@ const SearchBox = forwardRef(
         const [searchTerms, setSearchTerms] = useState<string>(initialSearchTerms);
         const [searchTeam, setSearchTeam] = useState<string>(initialSearchTeam);
         const [searchType, setSearchType] = useState<string>(initialSearchType || 'messages');
-        const [selectedOption, setSelectedOption] = useState<number>(-1);
+
+        const hasMoreThanOneTeam = myTeams.length > 1;
 
         const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -138,14 +144,21 @@ const SearchBox = forwardRef(
             };
         }, [inputRef.current]);
 
-        const [providerResults, suggestionsHeader] = useSearchSuggestions(
+        const results = useSearchSuggestions(
             searchType,
             searchTerms,
             searchTeam,
             caretPosition,
             getCaretPosition,
-            setSelectedOption,
         );
+
+        const {
+            selectedTerm,
+
+            clearSelection,
+            setSelectedTerm,
+            setSelectionByDelta,
+        } = useSearchSuggestionSelection(results);
 
         const focus = useCallback((newposition: number) => {
             if (inputRef.current) {
@@ -170,7 +183,7 @@ const SearchBox = forwardRef(
                 }
 
                 setSearchTerms(
-                    searchTerms.slice(0, caretPosition).replace(new RegExp(escapedMatchedPretext + '$', 'i'), '') +
+                    searchTerms.slice(0, caretPosition).trimEnd().replace(new RegExp(escapedMatchedPretext + '$', 'i'), '').trimEnd() +
                     val +
                     extraSpace +
                     searchTerms.slice(caretPosition),
@@ -185,50 +198,51 @@ const SearchBox = forwardRef(
                 if (Keyboard.isKeyPressed(e as any, KeyCodes.ESCAPE)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    if (!providerResults || providerResults?.items.length === 0 || selectedOption === -1) {
+
+                    if (!hasResults(results) || selectedTerm === '') {
                         onClose();
                     } else {
-                        setSelectedOption(-1);
+                        clearSelection();
                     }
                 }
 
                 if (Keyboard.isKeyPressed(e as any, KeyCodes.DOWN)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    const totalItems = providerResults?.items.length || 0;
-                    if (selectedOption + 1 < totalItems) {
-                        setSelectedOption(selectedOption + 1);
-                    }
+
+                    setSelectionByDelta(+1);
                 }
 
                 if (Keyboard.isKeyPressed(e as any, KeyCodes.UP)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    if (selectedOption > 0) {
-                        setSelectedOption(selectedOption - 1);
-                    }
+
+                    setSelectionByDelta(-1);
                 }
 
                 if (Keyboard.isKeyPressed(e as any, KeyCodes.ENTER)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    if (!providerResults || providerResults?.items.length === 0 || selectedOption === -1) {
+
+                    if (!hasResults(results) || selectedTerm === '') {
                         onSearch(searchType, searchTeam, searchTerms);
                     } else {
-                        const matchedPretext = providerResults?.matchedPretext;
-                        const value = providerResults?.terms[selectedOption];
+                        const matchedPretext = results.matchedPretext;
+                        const value = selectedTerm;
+
                         updateSearchValue(value, matchedPretext);
-                        setSelectedOption(-1);
+                        clearSelection();
                     }
                 }
             },
-            [providerResults, onClose, selectedOption, onSearch, searchType, searchTeam, searchTerms, updateSearchValue],
+            [results, onClose, selectedTerm, clearSelection, setSelectionByDelta, onSearch, searchType, searchTeam, searchTerms, updateSearchValue],
         );
 
         const changeSearchTeam = (selectedTeam: string) => {
             const newTerms = searchTerms.
                 replace(/\bin:[^\s]*/gi, '').replace(/\s{2,}/g, ' ').
-                replace(/\bfrom:[^\s]*/gi, '').replace(/\s{2,}/g, ' ');
+                replace(/\bfrom:[^\s]*/gi, '').replace(/\s{2,}/g, ' ').
+                trim();
 
             if (newTerms !== searchTerms) {
                 clearTimeout(filterResetTimeout.current);
@@ -262,17 +276,15 @@ const SearchBox = forwardRef(
             <SearchBoxContainer
                 ref={ref}
                 id='searchBox'
-                aria-label={intl.formatMessage({
-                    id: 'search_bar.search',
-                    defaultMessage: 'Search',
-                })}
-                aria-describedby='searchHints'
-                role='searchbox'
             >
                 <CloseIcon
                     data-testid='searchBoxClose'
                     className='btn btn-icon btn-m'
                     onClick={closeHandler}
+                    aria-label={intl.formatMessage({
+                        id: 'search_bar.close',
+                        defaultMessage: 'Close',
+                    })}
                 >
                     <i className='icon icon-close'/>
                 </CloseIcon>
@@ -281,8 +293,8 @@ const SearchBox = forwardRef(
                         searchType={searchType}
                         setSearchType={setSearchType}
                     />
-                    {crossTeamSearchEnabled && (
-                        <SearchTeamSelector>
+                    {crossTeamSearchEnabled && hasMoreThanOneTeam && (
+                        <SearchTeamSelector data-testid={'searchTeamSelector'}>
                             <SelectTeam
                                 selectedTeamId={searchTeam}
                                 onTeamSelected={changeSearchTeam}
@@ -297,15 +309,18 @@ const SearchBox = forwardRef(
                     setSearchTerms={setSearchTerms}
                     onKeyDown={handleKeyDown}
                     focus={focus}
+                    aria-activedescendant={selectedTerm ? `searchBoxSuggestions_item_${selectedTerm}` : undefined}
+                    aria-controls='searchBoxSuggestions'
+                    aria-expanded={hasResults(results)}
                 />
                 <SearchSuggestions
+                    id='searchBoxSuggestions'
                     searchType={searchType}
                     searchTeam={searchTeam}
                     searchTerms={searchTerms}
-                    suggestionsHeader={suggestionsHeader}
-                    providerResults={providerResults}
-                    selectedOption={selectedOption}
-                    setSelectedOption={setSelectedOption}
+                    results={results}
+                    selectedTerm={selectedTerm}
+                    setSelectedTerm={setSelectedTerm}
                     onSearch={onSearch}
                     onSuggestionSelected={updateSearchValue}
                 />
@@ -314,8 +329,8 @@ const SearchBox = forwardRef(
                     searchTeam={searchTeam}
                     setSearchTerms={addSearchHint}
                     searchType={searchType}
-                    providerResults={providerResults}
-                    selectedOption={selectedOption}
+                    results={results}
+                    selectedTerm={selectedTerm}
                     showFilterHaveBeenReset={showFilterHaveBeenReset}
                     focus={focus}
                 />

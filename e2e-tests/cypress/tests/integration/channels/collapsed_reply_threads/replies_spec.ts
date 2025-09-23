@@ -14,6 +14,7 @@ import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 import {PostMessageResp} from 'tests/support/task_commands';
+
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Collapsed Reply Threads', () => {
@@ -71,7 +72,7 @@ describe('Collapsed Reply Threads', () => {
         cy.uiGetPostThreadFooter(rootPost.id).should('not.exist');
 
         // # Post a reply post as current user
-        cy.postMessageAs({sender: testUser, message: 'reply!', channelId: testChannel.id, rootId: rootPost.id});
+        cy.postMessageAs({sender: testUser, message: 'reply to root post', channelId: testChannel.id, rootId: rootPost.id});
 
         // # Get thread footer of last post
         cy.uiGetPostThreadFooter(rootPost.id).within(() => {
@@ -86,7 +87,7 @@ describe('Collapsed Reply Threads', () => {
         cy.uiClickSidebarItem('threads');
 
         // * The sole thread item should have text in footer saying '1 reply'
-        cy.get('article.ThreadItem').find('.activity').should('have.text', '1 reply');
+        cy.get('div.ThreadItem').find('.activity').should('have.text', '1 reply');
 
         // # Visit the channel
         cy.uiClickSidebarItem(testChannel.name);
@@ -107,7 +108,7 @@ describe('Collapsed Reply Threads', () => {
         cy.uiClickSidebarItem('threads');
 
         // * The sole thread item should have text in footer saying '2 replies'
-        cy.get('article.ThreadItem').find('.activity').should('have.text', '2 replies');
+        cy.get('div.ThreadItem').find('.activity').should('have.text', '2 replies');
 
         // # Visit the channel
         cy.uiClickSidebarItem(testChannel.name);
@@ -128,7 +129,7 @@ describe('Collapsed Reply Threads', () => {
         cy.uiClickSidebarItem('threads');
 
         // * The sole thread item should have text in footer saying '1 new reply'
-        cy.get('article.ThreadItem').find('.activity').should('have.text', '1 new reply');
+        cy.get('div.ThreadItem').find('.activity').should('have.text', '1 new reply');
     });
 
     it('MM-T4646 should open popover when avatar is clicked', () => {
@@ -150,7 +151,7 @@ describe('Collapsed Reply Threads', () => {
         cy.uiClickSidebarItem('threads');
 
         // * Find the first avatar and click it
-        cy.get('article.ThreadItem').find('.activity').find('.Avatars').find('button').first().click();
+        cy.get('div.ThreadItem').find('.activity').find('.Avatars').find('button').first().click();
 
         // * Profile popover should be visible and close on ESC
         cy.get('div.user-profile-popover').first().should('be.visible').find('button.btn-primary.btn-sm');

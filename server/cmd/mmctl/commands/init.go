@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"slices"
 	"strings"
 	"time"
 
@@ -68,8 +69,22 @@ func CheckVersionMatch(version, serverVersion string) (bool, error) {
 	return true, nil
 }
 
-func getClient(ctx context.Context) (*model.Client4, string, bool, error) {
-	if viper.GetBool("local") {
+func getClient(ctx context.Context, cmd *cobra.Command) (*model.Client4, string, bool, error) {
+	useLocal := viper.GetBool("local")
+
+	if !useLocal {
+		// Assume local mode if no server address is provided
+		credentials, err := GetCurrentCredentials()
+		if err != nil {
+			cmd.PrintErrln("Warning: Unable to retrieve credentials, assuming --local mode")
+			useLocal = true
+		} else if credentials == nil {
+			cmd.PrintErrln("Warning: No credentials found, assuming --local mode")
+			useLocal = true
+		}
+	}
+
+	if useLocal {
 		c, err := InitUnixClient(viper.GetString("local-socket-path"))
 		if err != nil {
 			return nil, "", true, err
@@ -90,7 +105,7 @@ func getClient(ctx context.Context) (*model.Client4, string, bool, error) {
 func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		ctx := context.TODO()
-		c, serverVersion, local, err := getClient(ctx)
+		c, serverVersion, local, err := getClient(ctx, cmd)
 		if err != nil {
 			return fmt.Errorf("failed to create client: %w", err)
 		}
@@ -149,10 +164,8 @@ func isValidChain(chain []*x509.Certificate) bool {
 
 func VerifyCertificates(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
 	// loop over certificate chains
-	for _, chain := range verifiedChains {
-		if isValidChain(chain) {
-			return nil
-		}
+	if slices.ContainsFunc(verifiedChains, isValidChain) {
+		return nil
 	}
 	return fmt.Errorf("insecure algorithm found in the certificate chain. Use --insecure-sha1-intermediate flag to ignore. Aborting")
 }

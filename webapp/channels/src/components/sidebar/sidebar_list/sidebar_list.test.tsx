@@ -147,7 +147,7 @@ describe('SidebarList', () => {
 
         instance.scrollbar = {
             current: {
-                scrollToTop: jest.fn(),
+                scrollTo: jest.fn(),
             } as any,
         };
 
@@ -157,7 +157,7 @@ describe('SidebarList', () => {
         };
 
         wrapper.setProps({currentTeam: newCurrentTeam});
-        expect(instance.scrollbar.current!.scrollToTop).toHaveBeenCalled();
+        expect(instance.scrollbar.current!.scrollTo).toHaveBeenCalledWith({top: 0});
     });
 
     test('should display unread scroll indicator when channels appear outside visible area', () => {
@@ -168,8 +168,8 @@ describe('SidebarList', () => {
 
         instance.scrollbar = {
             current: {
-                getScrollTop: jest.fn(() => 0),
-                getClientHeight: jest.fn(() => 500),
+                scrollTop: 0,
+                clientHeight: 500,
             } as any,
         };
 
@@ -200,9 +200,9 @@ describe('SidebarList', () => {
 
         instance.scrollbar = {
             current: {
-                scrollTop: jest.fn(),
-                getScrollTop: jest.fn(() => 100),
-                getClientHeight: jest.fn(() => 500),
+                scrollTo: jest.fn(),
+                scrollTop: 100,
+                clientHeight: 500,
             } as any,
         };
 

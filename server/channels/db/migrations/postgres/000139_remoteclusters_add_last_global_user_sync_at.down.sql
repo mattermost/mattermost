@@ -1,0 +1,1 @@
+ALTER TABLE remoteclusters DROP COLUMN IF EXISTS lastglobalusersyncat;

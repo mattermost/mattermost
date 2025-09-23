@@ -11,6 +11,15 @@ import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
+import {
+    emptyResults,
+    flattenTerms,
+    getItemForTerm,
+    hasLoadedResults,
+    hasResults,
+    normalizeResultsFromProvider,
+} from '../suggestion_results';
+
 const EXECUTE_CURRENT_COMMAND_ITEM_ID = Constants.Integrations.EXECUTE_CURRENT_COMMAND_ITEM_ID;
 const OPEN_COMMAND_IN_MODAL_ITEM_ID = Constants.Integrations.OPEN_COMMAND_IN_MODAL_ITEM_ID;
 const KeyCodes = Constants.KeyCodes;
@@ -52,12 +61,6 @@ export default class SuggestionBox extends React.PureComponent {
          * CSS class for the div parent of the input box
          */
         containerClass: PropTypes.string,
-
-        /**
-         * Set to ['all'] to draw all available dividers, or use an array of the types of dividers to only render those
-         * (e.g. [Constants.MENTION_RECENT_CHANNELS, Constants.MENTION_PUBLIC_CHANNELS]) between types of list items
-         */
-        renderDividers: PropTypes.arrayOf(PropTypes.string),
 
         /**
          * Set to true to render a message when there were no results found, defaults to false
@@ -177,7 +180,6 @@ export default class SuggestionBox extends React.PureComponent {
     static defaultProps = {
         listPosition: 'top',
         containerClass: '',
-        renderDividers: [],
         renderNoResults: false,
         shouldSearchCompleteText: false,
         completeOnTab: true,
@@ -191,7 +193,6 @@ export default class SuggestionBox extends React.PureComponent {
 
     constructor(props) {
         super(props);
-        this.suggestionReadOut = React.createRef();
 
         // Keep track of whether we're composing a CJK character so we can make suggestions for partial characters
         this.composing = false;
@@ -205,18 +206,11 @@ export default class SuggestionBox extends React.PureComponent {
         this.preventSuggestionListCloseFlag = false;
 
         // pretext: the text before the cursor
-        // matchedPretext: a list of the text before the cursor that will be replaced if the corresponding autocomplete term is selected
-        // terms: a list of strings which the previously typed text may be replaced by
-        // items: a list of objects backing the terms which may be used in rendering
-        // components: a list of react components that can be used to render their corresponding item
         // selection: the term currently selected by the keyboard
         this.state = {
             focused: false,
             cleared: true,
-            matchedPretext: [],
-            items: [],
-            terms: [],
-            components: [],
+            results: emptyResults(),
             selection: '',
             selectionIndex: 0,
             allowDividers: true,
@@ -458,13 +452,9 @@ export default class SuggestionBox extends React.PureComponent {
         }
 
         if (this.props.onItemSelected) {
-            const items = this.state.items;
-            const terms = this.state.terms;
-            for (let i = 0; i < terms.length; i++) {
-                if (terms[i] === fixedTerm) {
-                    this.props.onItemSelected(items[i]);
-                    break;
-                }
+            const item = getItemForTerm(this.state.results, fixedTerm);
+            if (item) {
+                this.props.onItemSelected(item);
             }
         }
 
@@ -493,6 +483,7 @@ export default class SuggestionBox extends React.PureComponent {
                 });
                 if (e) {
                     e.preventDefault();
+                    e.stopPropagation();
                 }
             }
             this.props.onKeyPress(ke);
@@ -506,6 +497,11 @@ export default class SuggestionBox extends React.PureComponent {
                 }
             }
         }
+
+        if (e) {
+            e.stopPropagation();
+        }
+
         return false;
     };
 
@@ -518,7 +514,9 @@ export default class SuggestionBox extends React.PureComponent {
     };
 
     setSelectionByDelta = (delta) => {
-        let selectionIndex = this.state.terms.indexOf(this.state.selection);
+        const terms = flattenTerms(this.state.results);
+
+        let selectionIndex = terms.indexOf(this.state.selection);
 
         if (selectionIndex === -1) {
             this.setState({
@@ -531,18 +529,20 @@ export default class SuggestionBox extends React.PureComponent {
 
         if (selectionIndex < 0) {
             selectionIndex = 0;
-        } else if (selectionIndex > this.state.terms.length - 1) {
-            selectionIndex = this.state.terms.length - 1;
+        } else if (selectionIndex > terms.length - 1) {
+            selectionIndex = terms.length - 1;
         }
 
         this.setState({
-            selection: this.state.terms[selectionIndex],
+            selection: terms[selectionIndex],
             selectionIndex,
         });
     };
 
     setSelection = (term) => {
-        const selectionIndex = this.state.terms.indexOf(this.state.selection);
+        const terms = flattenTerms(this.state.results);
+
+        const selectionIndex = terms.indexOf(this.state.selection);
 
         this.setState({
             selection: term,
@@ -554,10 +554,7 @@ export default class SuggestionBox extends React.PureComponent {
         if (!this.state.cleared) {
             this.setState({
                 cleared: true,
-                matchedPretext: [],
-                terms: [],
-                items: [],
-                components: [],
+                results: emptyResults(),
                 selection: '',
                 suggestionBoxAlgn: undefined,
             });
@@ -565,7 +562,7 @@ export default class SuggestionBox extends React.PureComponent {
     };
 
     hasSuggestions = () => {
-        return this.state.items.some((item) => !item.loading);
+        return hasLoadedResults(this.state.results);
     };
 
     handleKeyDown = (e) => {
@@ -578,12 +575,8 @@ export default class SuggestionBox extends React.PureComponent {
                 this.selectNext();
                 e.preventDefault();
             } else if ((Keyboard.isKeyPressed(e, KeyCodes.ENTER) && !ctrlOrMetaKeyPressed) || (this.props.completeOnTab && Keyboard.isKeyPressed(e, KeyCodes.TAB))) {
-                let matchedPretext = '';
-                for (let i = 0; i < this.state.terms.length; i++) {
-                    if (this.state.terms[i] === this.state.selection) {
-                        matchedPretext = this.state.matchedPretext[i];
-                    }
-                }
+                e.stopPropagation();
+                const matchedPretext = this.state.results.matchedPretext;
 
                 // If these don't match, the user typed quickly and pressed enter before we could
                 // update the pretext, so update the pretext before completing
@@ -626,23 +619,13 @@ export default class SuggestionBox extends React.PureComponent {
     };
 
     handleReceivedSuggestions = (suggestions) => {
-        let newComponents = [];
-        const newPretext = [];
+        const results = normalizeResultsFromProvider(suggestions);
+
         if (this.props.onSuggestionsReceived) {
-            this.props.onSuggestionsReceived(suggestions);
+            this.props.onSuggestionsReceived(results);
         }
 
-        for (let i = 0; i < suggestions.terms.length; i++) {
-            newComponents.push(suggestions.component);
-            newPretext.push(suggestions.matchedPretext);
-        }
-
-        if (suggestions.components) {
-            newComponents = suggestions.components;
-        }
-
-        const terms = suggestions.terms;
-        const items = suggestions.items;
+        const terms = flattenTerms(results);
         let selection = this.state.selection;
         const selectionIndex = terms.indexOf(selection);
         if (selectionIndex !== this.state.selectionIndex) {
@@ -656,10 +639,7 @@ export default class SuggestionBox extends React.PureComponent {
         this.setState({
             cleared: false,
             selection,
-            terms,
-            items,
-            components: newComponents,
-            matchedPretext: newPretext,
+            results,
         });
 
         return {selection, matchedPretext: suggestions.matchedPretext};
@@ -773,13 +753,6 @@ export default class SuggestionBox extends React.PureComponent {
             ...props
         } = this.props;
 
-        // set the renderDivider const to either the value stored in the renderDividers prop or an empty string
-        // (the renderDividers prop can also probably be a empty string, but is not guaranteed to be)
-        let renderDividers;
-        if (this.state.allowDividers) {
-            renderDividers = this.props.renderDividers;
-        }
-
         // Don't pass props used by SuggestionBox
         Reflect.deleteProperty(props, 'providers');
         Reflect.deleteProperty(props, 'onChange'); // We use onInput instead of onChange on the actual input
@@ -793,7 +766,6 @@ export default class SuggestionBox extends React.PureComponent {
         Reflect.deleteProperty(props, 'onBlur');
         Reflect.deleteProperty(props, 'containerClass');
         Reflect.deleteProperty(props, 'replaceAllInputOnSelect');
-        Reflect.deleteProperty(props, 'renderDividers');
         Reflect.deleteProperty(props, 'contextId');
         Reflect.deleteProperty(props, 'forceSuggestionsWhenBlur');
         Reflect.deleteProperty(props, 'onSuggestionsReceived');
@@ -810,22 +782,15 @@ export default class SuggestionBox extends React.PureComponent {
                 ref={this.setContainerRef}
                 className={this.props.containerClass}
             >
-                <div
-                    ref={this.suggestionReadOut}
-                    aria-live='polite'
-                    role='alert'
-                    className='sr-only'
-                />
                 <QuickInput
                     ref={this.inputRef}
                     autoComplete='off'
                     {...props}
                     aria-controls='suggestionList'
                     role='combobox'
-                    {...(this.state.selection && {'aria-activedescendant': `${props.id}_${this.state.selection}`}
-                    )}
+                    aria-activedescendant={this.state.selection ? `suggestionList_item_${this.state.selection}` : undefined}
                     aria-autocomplete='list'
-                    aria-expanded={this.state.focused || this.props.forceSuggestionsWhenBlur}
+                    aria-expanded={(this.state.focused || this.props.forceSuggestionsWhenBlur) && hasResults(this.state.results)}
                     onInput={this.handleChange}
                     onCompositionStart={this.handleCompositionStart}
                     onCompositionUpdate={this.handleCompositionUpdate}
@@ -834,32 +799,24 @@ export default class SuggestionBox extends React.PureComponent {
                 />
                 {(this.props.openWhenEmpty || this.props.value.length >= this.props.requiredCharacters) && this.state.presentationType === 'text' && (
                     <SuggestionListComponent
-                        ariaLiveRef={this.suggestionReadOut}
                         open={this.state.focused || this.props.forceSuggestionsWhenBlur}
                         pretext={this.pretext}
                         position={this.getListPosition(listPosition)}
-                        renderDividers={renderDividers}
                         renderNoResults={renderNoResults}
                         onCompleteWord={this.handleCompleteWord}
                         preventClose={this.preventSuggestionListClose}
                         onItemHover={this.setSelection}
                         cleared={this.state.cleared}
-                        matchedPretext={this.state.matchedPretext}
-                        items={this.state.items}
-                        terms={this.state.terms}
+                        results={this.state.results}
                         suggestionBoxAlgn={this.state.suggestionBoxAlgn}
                         selection={this.state.selection}
-                        components={this.state.components}
                         inputRef={this.inputRef}
                         onLoseVisibility={this.blur}
                     />
                 )}
                 {(this.props.openWhenEmpty || this.props.value.length >= this.props.requiredCharacters) && this.state.presentationType === 'date' &&
                     <SuggestionDateComponent
-                        items={this.state.items}
-                        terms={this.state.terms}
-                        components={this.state.components}
-                        matchedPretext={this.state.matchedPretext}
+                        results={this.state.results}
                         onCompleteWord={this.handleCompleteWord}
                         preventClose={this.preventSuggestionListClose}
                         handleEscape={this.focusInputOnEscape}

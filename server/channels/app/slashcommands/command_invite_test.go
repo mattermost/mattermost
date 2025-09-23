@@ -14,8 +14,7 @@ import (
 )
 
 func TestInviteProvider(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	inviteProvider := InviteProvider{}
 	args := &model.CommandArgs{
@@ -52,7 +51,7 @@ func TestInviteProvider(t *testing.T) {
 	})
 
 	t.Run("add user to another channel not the current", func(t *testing.T) {
-		channel := th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
+		channel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
 
 		msg := "@" + th.BasicUser2.Username + " ~" + channel.Name + " "
 		runCmd(msg, "api.command_invite.success")
@@ -60,7 +59,7 @@ func TestInviteProvider(t *testing.T) {
 	})
 
 	t.Run("add a user to a private channel", func(t *testing.T) {
-		privateChannel := th.createChannel(th.BasicTeam, model.ChannelTypePrivate)
+		privateChannel := th.createChannel(t, th.BasicTeam, model.ChannelTypePrivate)
 
 		msg := "@" + th.BasicUser2.Username + " ~" + privateChannel.Name
 		runCmd(msg, "api.command_invite.success")
@@ -68,10 +67,10 @@ func TestInviteProvider(t *testing.T) {
 	})
 
 	t.Run("add multiple users to multiple channels", func(t *testing.T) {
-		anotherUser := th.createUser()
-		th.linkUserToTeam(anotherUser, th.BasicTeam)
-		channel1 := th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
-		channel2 := th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
+		anotherUser := th.createUser(t)
+		th.linkUserToTeam(t, anotherUser, th.BasicTeam)
+		channel1 := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
+		channel2 := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
 
 		msg := "@" + th.BasicUser2.Username + " @" + anotherUser.Username + " ~" + channel1.Name + " ~" + channel2.Name
 		expected := "api.command_invite.success\napi.command_invite.success"
@@ -83,13 +82,13 @@ func TestInviteProvider(t *testing.T) {
 	})
 
 	t.Run("adds multiple users even when some are invalid or already members", func(t *testing.T) {
-		channel := th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
-		userAlreadyInChannel := th.createUser()
-		th.linkUserToTeam(userAlreadyInChannel, th.BasicTeam)
-		th.addUserToChannel(userAlreadyInChannel, channel)
-		userInTeam := th.createUser()
-		th.linkUserToTeam(userInTeam, th.BasicTeam)
-		userNotInTeam := th.createUser()
+		channel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
+		userAlreadyInChannel := th.createUser(t)
+		th.linkUserToTeam(t, userAlreadyInChannel, th.BasicTeam)
+		th.addUserToChannel(t, userAlreadyInChannel, channel)
+		userInTeam := th.createUser(t)
+		th.linkUserToTeam(t, userInTeam, th.BasicTeam)
+		userNotInTeam := th.createUser(t)
 
 		msg := "@invalidUser123 @" + userAlreadyInChannel.Username + " @" + userInTeam.Username + " @" + userNotInTeam.Username + " ~" + channel.Name
 		expected := "api.command_invite.missing_user.app_error\n"
@@ -101,9 +100,9 @@ func TestInviteProvider(t *testing.T) {
 	})
 
 	t.Run("try to add a user to a direct channel", func(t *testing.T) {
-		anotherUser := th.createUser()
-		th.linkUserToTeam(anotherUser, th.BasicTeam)
-		directChannel := th.createDmChannel(th.BasicUser2)
+		anotherUser := th.createUser(t)
+		th.linkUserToTeam(t, anotherUser, th.BasicTeam)
+		directChannel := th.createDmChannel(t, th.BasicUser2)
 
 		msg := "@" + anotherUser.Username + " ~" + directChannel.Name
 		runCmd(msg, "api.command_invite.directchannel.app_error")
@@ -116,7 +115,7 @@ func TestInviteProvider(t *testing.T) {
 	})
 
 	t.Run("try to add a user using channel's display name", func(t *testing.T) {
-		channel := th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
+		channel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
 
 		msg := "@" + th.BasicUser2.Username + " ~" + channel.DisplayName
 		runCmd(msg, "api.command_invite.channel.error")
@@ -134,7 +133,7 @@ func TestInviteProvider(t *testing.T) {
 	})
 
 	t.Run("try to add a user which is not part of the team", func(t *testing.T) {
-		anotherUser := th.createUser()
+		anotherUser := th.createUser(t)
 		// Do not add user to the team
 
 		msg := anotherUser.Username
@@ -142,7 +141,7 @@ func TestInviteProvider(t *testing.T) {
 	})
 
 	t.Run("try to add a user not part of the group to a group channel", func(t *testing.T) {
-		groupChannel := th.createChannel(th.BasicTeam, model.ChannelTypePrivate)
+		groupChannel := th.createChannel(t, th.BasicTeam, model.ChannelTypePrivate)
 		_, err := th.App.AddChannelMember(th.Context, th.BasicUser.Id, groupChannel, app.ChannelMemberOpts{})
 		require.Nil(t, err)
 		groupChannel.GroupConstrained = model.NewPointer(true)
@@ -154,9 +153,9 @@ func TestInviteProvider(t *testing.T) {
 	})
 
 	t.Run("try to add a user to a private channel with no permission", func(t *testing.T) {
-		anotherUser := th.createUser()
-		th.linkUserToTeam(anotherUser, th.BasicTeam)
-		privateChannel := th.createChannelWithAnotherUser(th.BasicTeam, model.ChannelTypePrivate, th.BasicUser2.Id)
+		anotherUser := th.createUser(t)
+		th.linkUserToTeam(t, anotherUser, th.BasicTeam)
+		privateChannel := th.createChannelWithAnotherUser(t, th.BasicTeam, model.ChannelTypePrivate, th.BasicUser2.Id)
 
 		msg := "@" + anotherUser.Username + " ~" + privateChannel.Name
 		runCmd(msg, "api.command_invite.private_channel.app_error")
@@ -164,8 +163,8 @@ func TestInviteProvider(t *testing.T) {
 	})
 
 	t.Run("try to add a deleted user to a public channel", func(t *testing.T) {
-		channel := th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
-		deactivatedUser := th.createUser()
+		channel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
+		deactivatedUser := th.createUser(t)
 		_, appErr := th.App.UpdateActive(th.Context, deactivatedUser, false)
 		require.Nil(t, appErr)
 
@@ -210,8 +209,7 @@ func TestInviteProvider(t *testing.T) {
 }
 
 func TestInviteGroup(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
 	th.BasicTeam.GroupConstrained = model.NewPointer(true)
 	var err *model.AppError
@@ -220,11 +218,11 @@ func TestInviteGroup(t *testing.T) {
 	require.Nil(t, err)
 	th.BasicTeam, _ = th.App.UpdateTeam(th.BasicTeam)
 
-	privateChannel := th.createChannel(th.BasicTeam, model.ChannelTypePrivate)
+	privateChannel := th.createChannel(t, th.BasicTeam, model.ChannelTypePrivate)
 
 	groupChannelUser1 := "@" + th.BasicUser.Username + " ~" + privateChannel.Name
 	groupChannelUser2 := "@" + th.BasicUser2.Username + " ~" + privateChannel.Name
-	basicUser3 := th.createUser()
+	basicUser3 := th.createUser(t)
 	groupChannelUser3 := "@" + basicUser3.Username + " ~" + privateChannel.Name
 
 	InviteP := InviteProvider{}
@@ -266,10 +264,9 @@ func TestInviteGroup(t *testing.T) {
 }
 
 func TestUserGroups(t *testing.T) {
-	th := setup(t).initBasic()
-	defer th.tearDown()
+	th := setup(t).initBasic(t)
 
-	privateChannel := th.createChannel(th.BasicTeam, model.ChannelTypePrivate)
+	privateChannel := th.createChannel(t, th.BasicTeam, model.ChannelTypePrivate)
 
 	id := model.NewId()
 	teamGroup, err := th.App.CreateGroup(&model.Group{
@@ -288,8 +285,8 @@ func TestUserGroups(t *testing.T) {
 	require.Nil(t, upsertErr)
 	assert.Len(t, groupMembers, 1)
 
-	basicUser3 := th.createUser()
-	basicUser4 := th.createUser()
+	basicUser3 := th.createUser(t)
+	basicUser4 := th.createUser(t)
 	id2 := model.NewId()
 	nonTeamGroup, err := th.App.CreateGroup(&model.Group{
 		DisplayName:    "dn_" + id2,

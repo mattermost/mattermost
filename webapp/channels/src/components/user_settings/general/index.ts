@@ -6,17 +6,19 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
-import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {
     updateMe,
     sendVerificationEmail,
     setDefaultProfileImage,
     uploadProfileImage,
     saveCustomProfileAttribute,
+    getCustomProfileAttributeValues,
 } from 'mattermost-redux/actions/users';
-import {getConfig, getCustomProfileAttributes, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getCustomProfileAttributes, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import {getIsMobileView} from 'selectors/views/browser';
+
+import {isEnterpriseLicense} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -37,7 +39,10 @@ function mapStateToProps(state: GlobalState) {
     const samlPositionAttributeSet = config.SamlPositionAttributeSet === 'true';
     const ldapPositionAttributeSet = config.LdapPositionAttributeSet === 'true';
     const ldapPictureAttributeSet = config.LdapPictureAttributeSet === 'true';
-    const enableCustomProfileAttributes = getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true';
+
+    const license = getLicense(state);
+    const isEnterprise = isEnterpriseLicense(license);
+    const enableCustomProfileAttributes = isEnterprise && getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true';
 
     return {
         isMobileView: getIsMobileView(state),
@@ -67,7 +72,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             setDefaultProfileImage,
             uploadProfileImage,
             saveCustomProfileAttribute,
-            getCustomProfileAttributeFields,
+            getCustomProfileAttributeValues,
         }, dispatch),
     };
 }

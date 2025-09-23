@@ -40,13 +40,30 @@ function license(state: ClientLicense = {}, action: MMReduxAction) {
 }
 
 function customProfileAttributes(state: IDMappedObjects<UserPropertyField> = {}, action: MMReduxAction) {
-    const data: UserPropertyField[] = action.data;
     switch (action.type) {
-    case GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_RECEIVED:
+    case GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELDS_RECEIVED: {
+        const data: UserPropertyField[] = action.data;
         return data.reduce<IDMappedObjects<UserPropertyField>>((acc, field) => {
             acc[field.id] = field;
             return acc;
         }, {});
+    }
+    case GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_DELETED: {
+        const nextState = {...state};
+        const fieldId = action.data;
+        if (Object.hasOwn(nextState, fieldId)) {
+            Reflect.deleteProperty(nextState, fieldId);
+            return nextState;
+        }
+        return state;
+    }
+    case GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED:
+    case GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED: {
+        return {
+            ...state,
+            [action.data.id]: action.data,
+        };
+    }
     default:
         return state;
     }
@@ -83,6 +100,23 @@ function firstAdminCompleteSetup(state = false, action: MMReduxAction) {
     }
 }
 
+export type CWSAvailabilityState = 'pending' | 'available' | 'unavailable' | 'not_applicable';
+
+function cwsAvailability(state: CWSAvailabilityState = 'pending', action: MMReduxAction): CWSAvailabilityState {
+    switch (action.type) {
+    case GeneralTypes.CWS_AVAILABILITY_CHECK_REQUEST:
+        return 'pending';
+    case GeneralTypes.CWS_AVAILABILITY_CHECK_SUCCESS:
+        return action.data;
+    case GeneralTypes.CWS_AVAILABILITY_CHECK_FAILURE:
+        return 'unavailable';
+    case UserTypes.LOGOUT_SUCCESS:
+        return 'pending';
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     config,
     license,
@@ -90,4 +124,5 @@ export default combineReducers({
     serverVersion,
     firstAdminVisitMarketplaceStatus,
     firstAdminCompleteSetup,
+    cwsAvailability,
 });

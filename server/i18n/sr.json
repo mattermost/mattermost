@@ -512,10 +512,6 @@
     "translation": "Нажалост, нисмо могли да нађемо страницу."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Нови формат за подешавање клијента још није подржан. Наведите format=old у реченици упита."
-  },
-  {
     "id": "api.command_shrug.name",
     "translation": "слегни-раменима"
   },
@@ -906,10 +902,6 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v је напустио канал."
-  },
-  {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Ви сте једини преостали члан. Пробајте да уклоните приватни канал уместо напуштања."
   },
   {
     "id": "api.channel.join_channel.post_and_forget",

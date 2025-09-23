@@ -25,13 +25,6 @@ describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last messag
     let offTopicChannel;
 
     before(() => {
-        // # Enable Experimental View Archived Channels
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
-
         cy.apiInitSetup().then(({team, user}) => {
             testUser = user;
             testTeam = team;
@@ -193,7 +186,7 @@ describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last messag
             cy.get('#emojiPicker').should('exist');
 
             // # Click anywhere to close emoji picker
-            cy.get('#channelHeaderInfo').click();
+            cy.get('body').click();
             cy.get('#emojiPicker').should('not.exist');
         });
 

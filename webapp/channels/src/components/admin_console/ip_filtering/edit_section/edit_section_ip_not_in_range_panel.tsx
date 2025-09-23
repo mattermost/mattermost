@@ -33,7 +33,7 @@ const IPNotInRangeErrorPanel = ({
                     defaultMessage='Include your IP address in at least one of the rules below to continue.'
                 />
                 <div
-                    className='Button'
+                    className='btn btn-primary'
                     onClick={() => setShowAddModal(true)}
                 >
                     <FormattedMessage

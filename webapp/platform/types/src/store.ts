@@ -8,6 +8,7 @@ import type {ChannelBookmarksState} from './channel_bookmarks';
 import type {ChannelCategoriesState} from './channel_categories';
 import type {ChannelsState} from './channels';
 import type {CloudState, CloudUsage} from './cloud';
+import type {ContentFlaggingConfig} from './content_flagging';
 import type {EmojisState} from './emojis';
 import type {FilesState} from './files';
 import type {GeneralState} from './general';
@@ -28,6 +29,7 @@ import type {Role} from './roles';
 import type {ScheduledPostsState} from './schedule_post';
 import type {SchemesState} from './schemes';
 import type {SearchState} from './search';
+import type {RemoteClusterInfo} from './shared_channels';
 import type {TeamsState} from './teams';
 import type {ThreadsState} from './threads';
 import type {Typing} from './typing';
@@ -77,6 +79,13 @@ export type GlobalState = {
         hostedCustomer: HostedCustomerState;
         usage: CloudUsage;
         scheduledPosts: ScheduledPostsState;
+        sharedChannels?: {
+            remotes?: Record<string, RemoteClusterInfo[]>;
+            remotesByRemoteId?: Record<string, RemoteClusterInfo>;
+        };
+        contentFlagging: {
+            settings?: ContentFlaggingConfig;
+        };
     };
     errors: any[];
     requests: {

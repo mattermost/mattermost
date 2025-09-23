@@ -56,11 +56,19 @@
         cursor: default;
     }
 
-    &__add {
+    &.Reaction__add {
         position: relative;
         font-size: 20px;
         line-height: 0;
         vertical-align: middle;
+
+        &.Reaction__add--open {
+            background-color: rgba(var(--button-bg-rgb), 0.08);
+            color: functions.v(button-bg);
+            fill: functions.v(button-bg);
+            opacity: 1;
+            visibility: visible;
+        }
     }
 
     &__emoji {

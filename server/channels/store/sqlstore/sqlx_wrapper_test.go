@@ -20,7 +20,6 @@ func TestSqlX(t *testing.T) {
 	t.Run("NamedQuery", func(t *testing.T) {
 		testDrivers := []string{
 			model.DatabaseDriverPostgres,
-			model.DatabaseDriverMysql,
 		}
 
 		for _, driver := range testDrivers {
@@ -45,12 +44,7 @@ func TestSqlX(t *testing.T) {
 			tx, err := store.GetMaster().Beginx()
 			require.NoError(t, err)
 
-			var query string
-			if store.DriverName() == model.DatabaseDriverMysql {
-				query = `SELECT SLEEP(:Timeout);`
-			} else if store.DriverName() == model.DatabaseDriverPostgres {
-				query = `SELECT pg_sleep(:timeout);`
-			}
+			query := `SELECT pg_sleep(:timeout);`
 			arg := struct{ Timeout int }{Timeout: 2}
 			_, err = tx.NamedQuery(query, arg)
 			require.Equal(t, context.DeadlineExceeded, err)
@@ -94,7 +88,6 @@ func TestSqlX(t *testing.T) {
 func TestSqlxSelect(t *testing.T) {
 	testDrivers := []string{
 		model.DatabaseDriverPostgres,
-		model.DatabaseDriverMysql,
 	}
 	for _, driver := range testDrivers {
 		t.Run(driver, func(t *testing.T) {
@@ -124,12 +117,7 @@ func TestSqlxSelect(t *testing.T) {
 				// Test timeout
 				ctx, cancel := context.WithTimeout(context.Background(), 1)
 				defer cancel()
-				var query string
-				if driver == model.DatabaseDriverMysql {
-					query = "SELECT SLEEP(2)"
-				} else {
-					query = "SELECT pg_sleep(2)"
-				}
+				query := "SELECT pg_sleep(2)"
 				err = store.GetMaster().SelectCtx(ctx, &result, query)
 				require.Error(t, err)
 				require.Equal(t, context.DeadlineExceeded, err)
@@ -146,13 +134,8 @@ func TestSqlxSelect(t *testing.T) {
 				// Test timeout
 				ctx, cancel := context.WithTimeout(context.Background(), 1)
 				defer cancel()
-				if driver == model.DatabaseDriverMysql {
-					builder = store.getQueryBuilder().
-						Select("SLEEP(2)")
-				} else {
-					builder = store.getQueryBuilder().
-						Select("pg_sleep(2)")
-				}
+				builder = store.getQueryBuilder().
+					Select("pg_sleep(2)")
 				err = store.GetMaster().SelectBuilderCtx(ctx, &result, builder)
 				require.Error(t, err)
 				require.Equal(t, context.DeadlineExceeded, err)

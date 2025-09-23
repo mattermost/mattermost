@@ -25,6 +25,8 @@ import {
     SEARCH_RESULTS,
     EMOJI_PER_ROW,
     CUSTOM_EMOJI_SEARCH_THROTTLE_TIME_MS,
+    EMOJI_CONTAINER_HEIGHT,
+    CATEGORIES_CONTAINER_HEIGHT,
 } from 'components/emoji_picker/constants';
 import {NavigationDirection} from 'components/emoji_picker/types';
 import type {CategoryOrEmojiRow, Categories, EmojiCursor, EmojiPosition, EmojiRow} from 'components/emoji_picker/types';
@@ -145,14 +147,6 @@ const EmojiPicker = ({
         infiniteLoaderRef?.current?._listRef?.scrollToItem(0, 'start');
     }, [filter]);
 
-    // scroll as little as possible on cursor navigation
-    useEffect(() => {
-        if (cursor.emojiId) {
-            // eslint-disable-next-line no-underscore-dangle
-            infiniteLoaderRef?.current?._listRef?.scrollToItem(cursor.rowIndex, 'auto');
-        }
-    }, [cursor.rowIndex]);
-
     const focusOnSearchInput = useCallback(() => {
         searchInputRef.current?.focus();
     }, []);
@@ -207,6 +201,9 @@ const EmojiPicker = ({
             emojiId: '',
             emoji: undefined,
         });
+
+        // eslint-disable-next-line no-underscore-dangle
+        infiniteLoaderRef.current?._listRef?.scrollTo(0);
     }, []);
 
     const onAddCustomEmojiClickInner = useCallback(() => {
@@ -346,6 +343,9 @@ const EmojiPicker = ({
             emojiId: newCursor.emojiId,
             emoji: newCursorEmoji,
         });
+
+        // eslint-disable-next-line no-underscore-dangle
+        infiniteLoaderRef?.current?._listRef?.scrollToItem(newCursor.rowIndex, 'auto');
     };
 
     const handleEnterOnEmoji = useCallback(() => {
@@ -376,10 +376,7 @@ const EmojiPicker = ({
     const areSearchResultsEmpty = filter.length !== 0 && categoryOrEmojisRows.length === 1 && categoryOrEmojisRows?.[0]?.items?.[0]?.categoryName === SEARCH_RESULTS;
 
     return (
-        <div
-            className='emoji-picker__inner'
-            role='application'
-        >
+        <>
             <div
                 aria-live='assertive'
                 className='sr-only'
@@ -409,19 +406,26 @@ const EmojiPicker = ({
                     onSkinSelected={setUserSkinTone}
                 />
             </div>
-            <EmojiPickerCategories
-                isFiltering={filter.length > 0}
-                active={activeCategory}
-                categories={categories}
-                onClick={handleCategoryClick}
-                onKeyDown={handleKeyboardEmojiNavigation}
-                focusOnSearchInput={focusOnSearchInput}
-            />
-            {areSearchResultsEmpty ? (
-                <NoResultsIndicator
-                    variant={NoResultsVariant.Search}
-                    titleValues={{channelName: `${filter}`}}
+            {filter.length === 0 && (
+                <EmojiPickerCategories
+                    isFiltering={filter.length > 0}
+                    active={activeCategory}
+                    categories={categories}
+                    onClick={handleCategoryClick}
+                    onKeyDown={handleKeyboardEmojiNavigation}
+                    focusOnSearchInput={focusOnSearchInput}
                 />
+            )}
+            {areSearchResultsEmpty ? (
+                <div
+                    className='emoji-picker__items'
+                    style={{height: EMOJI_CONTAINER_HEIGHT + CATEGORIES_CONTAINER_HEIGHT}}
+                >
+                    <NoResultsIndicator
+                        variant={NoResultsVariant.Search}
+                        titleValues={{channelName: `${filter}`}}
+                    />
+                </div>
             ) : (
                 <EmojiPickerCurrentResults
                     ref={infiniteLoaderRef}
@@ -447,7 +451,7 @@ const EmojiPicker = ({
                     onClick={onAddCustomEmojiClickInner}
                 />
             </div>
-        </div>
+        </>
     );
 };
 

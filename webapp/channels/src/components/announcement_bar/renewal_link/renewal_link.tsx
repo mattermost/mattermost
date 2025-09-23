@@ -17,6 +17,7 @@ export interface RenewalLinkProps {
     };
     isDisabled?: boolean;
     customBtnText?: JSX.Element;
+    className?: string;
 }
 
 const RenewalLink = (props: RenewalLinkProps) => {
@@ -34,9 +35,15 @@ const RenewalLink = (props: RenewalLinkProps) => {
         />
     );
 
+    // Default classes for general context
+    const defaultClassName = 'btn btn-primary';
+
+    // Use provided className or default
+    const buttonClassName = props.className || defaultClassName;
+
     return (
         <button
-            className='btn btn-primary annnouncementBar__renewLicense'
+            className={buttonClassName}
             disabled={props.isDisabled}
             onClick={(e) => handleLinkClick(e)}
         >

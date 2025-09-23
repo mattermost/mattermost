@@ -27,7 +27,7 @@ export const PlanDetailsTopElements = ({
     isYearly,
 }: Props) => {
     let productName;
-    const openPricingModal = useOpenPricingModal();
+    const {openPricingModal, isAirGapped} = useOpenPricingModal();
     const {formatMessage} = useIntl();
 
     const userCountDisplay = (
@@ -61,6 +61,14 @@ export const PlanDetailsTopElements = ({
             <FormattedMessage
                 id='admin.billing.subscription.planDetails.productName.cloudFree'
                 defaultMessage='Cloud Free'
+            />
+        );
+        break;
+    case CloudProducts.ADVANCED:
+        productName = (
+            <FormattedMessage
+                id='admin.billing.subscription.planDetails.productName.cloudAdvanced'
+                defaultMessage='Cloud Enterprise Advanced'
             />
         );
         break;
@@ -123,9 +131,9 @@ export const PlanDetailsTopElements = ({
         return monthlyBadge;
     };
 
-    const viewPlansButton = (
+    const viewPlansButton = isAirGapped ? null : (
         <button
-            onClick={() => openPricingModal({trackingLocation: 'billing_plan_details_view_plans'})}
+            onClick={openPricingModal}
             className='btn btn-secondary PlanDetails__viewPlansButton'
         >
             {formatMessage({

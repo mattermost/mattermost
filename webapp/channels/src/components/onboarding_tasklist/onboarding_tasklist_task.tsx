@@ -37,7 +37,7 @@ const StyledTask = styled.div`
     }
 
     &.completed {
-        color: var(--denim-status-online);
+        color: var(--online-indicator);
 
         span {
             span {

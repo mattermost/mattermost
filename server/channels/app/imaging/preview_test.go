@@ -81,8 +81,8 @@ func TestGenerateThumbnail(t *testing.T) {
 func createTestImage(t *testing.T, width, height int) image.Image {
 	t.Helper()
 	img := image.NewNRGBA(image.Rect(0, 0, width, height))
-	for y := 0; y < height; y++ {
-		for x := 0; x < width; x++ {
+	for y := range height {
+		for x := range width {
 			img.Set(x, y, color.NRGBA{uint8(x % 256), uint8(y % 256), 0, 255})
 		}
 	}

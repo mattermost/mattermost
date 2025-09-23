@@ -42,6 +42,7 @@ describe('SupportSettings', () => {
         cy.findByTestId('SupportSettings.PrivacyPolicyLinkinput').clear().type(privacyLink);
         cy.findByTestId('SupportSettings.AboutLinkinput').clear().type(aboutLink);
         cy.findByTestId('SupportSettings.HelpLinkinput').clear().type(helpLink);
+        cy.findByTestId('SupportSettings.ReportAProblemTypedropdown').select('Custom link');
         cy.findByTestId('SupportSettings.ReportAProblemLinkinput').clear().type(problemLink);
 
         // # Save setting then back to team view
@@ -114,7 +115,7 @@ describe('SupportSettings', () => {
     it('MM-T1036 - Customization: Blank Help and Report a Problem hides options from help menu', () => {
         // # Change help and report links to blanks
         cy.findByTestId('SupportSettings.HelpLinkinput').type('any').clear();
-        cy.findByTestId('SupportSettings.ReportAProblemLinkinput').type('any').clear();
+        cy.findByTestId('SupportSettings.ReportAProblemTypedropdown').select('Hide link');
 
         // # Save setting and back to team view
         saveSetting();
@@ -157,11 +158,10 @@ describe('SupportSettings', () => {
 
         // * Verify that hover shows "Help" text
         cy.uiGetHelpButton().
-            trigger('mouseover', {force: true}).
-            should('have.attr', 'aria-describedby').
-            and('equal', 'userGuideHelpTooltip');
+            trigger('mouseenter').
+            should('have.attr', 'aria-describedby');
         cy.uiGetHelpButton().
-            trigger('mouseout', {force: true}).
+            trigger('mouseleave').
             should('not.have.attr', 'aria-describedby');
 
         // # Open help menu
@@ -184,6 +184,7 @@ describe('SupportSettings', () => {
 
         // Edit help link and report a problem link
         cy.findByTestId('SupportSettings.HelpLinkinput').clear().type(helpLink);
+        cy.findByTestId('SupportSettings.ReportAProblemTypedropdown').select('Custom link');
         cy.findByTestId('SupportSettings.ReportAProblemLinkinput').clear().type(problemLink);
 
         // # Save setting and back to team view

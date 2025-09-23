@@ -17,6 +17,7 @@ import (
 	"math/big"
 	"net/http"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -38,12 +39,17 @@ const (
 	DialogElementBoolMaxLength        = 150
 )
 
-var PostActionRetainPropKeys = []string{"from_webhook", "override_username", "override_icon_url"}
+var PostActionRetainPropKeys = []string{PostPropsFromWebhook, PostPropsOverrideUsername, PostPropsOverrideIconURL}
 
 type DoPostActionRequest struct {
 	SelectedOption string `json:"selected_option,omitempty"`
 	Cookie         string `json:"cookie,omitempty"`
 }
+
+const (
+	PostActionDataSourceUsers    = "users"
+	PostActionDataSourceChannels = "channels"
+)
 
 type PostAction struct {
 	// A unique Action ID. If not set, generated automatically.
@@ -83,6 +89,73 @@ type PostAction struct {
 	// client, or are encrypted in a Cookie.
 	Integration *PostActionIntegration `json:"integration,omitempty"`
 	Cookie      string                 `json:"cookie,omitempty" db:"-"`
+}
+
+// IsValid validates the action and returns an error if it is invalid.
+func (p *PostAction) IsValid() error {
+	var multiErr *multierror.Error
+
+	if p.Name == "" {
+		multiErr = multierror.Append(multiErr, fmt.Errorf("action must have a name"))
+	}
+
+	if p.Style != "" {
+		validStyles := []string{"default", "primary", "success", "good", "warning", "danger"}
+		// If not a predefined style, check if it's a hex color
+		if !slices.Contains(validStyles, p.Style) && !hexColorRegex.MatchString(p.Style) {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("invalid style '%s' - must be one of [default, primary, success, good, warning, danger] or a hex color", p.Style))
+		}
+	}
+
+	switch p.Type {
+	case PostActionTypeButton:
+		if len(p.Options) > 0 {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("button action must not have options"))
+		}
+		if p.DataSource != "" {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("button action must not have a data source"))
+		}
+	case PostActionTypeSelect:
+		if p.DataSource != "" {
+			validSources := []string{PostActionDataSourceUsers, PostActionDataSourceChannels}
+			if !slices.Contains(validSources, p.DataSource) {
+				multiErr = multierror.Append(multiErr, fmt.Errorf("invalid data_source '%s' for select action", p.DataSource))
+			}
+
+			if len(p.Options) > 0 {
+				multiErr = multierror.Append(multiErr, fmt.Errorf("select action cannot have both DataSource and Options set"))
+			}
+		} else {
+			if len(p.Options) == 0 {
+				multiErr = multierror.Append(multiErr, fmt.Errorf("select action must have either DataSource or Options set"))
+			} else {
+				for i, opt := range p.Options {
+					if opt == nil {
+						multiErr = multierror.Append(multiErr, fmt.Errorf("select action contains nil option"))
+						continue
+					}
+					if err := opt.IsValid(); err != nil {
+						multiErr = multierror.Append(multiErr, multierror.Prefix(err, fmt.Sprintf("option at index %d is invalid:", i)))
+					}
+				}
+			}
+		}
+	default:
+		multiErr = multierror.Append(multiErr, fmt.Errorf("invalid action type: must be '%s' or '%s'", PostActionTypeButton, PostActionTypeSelect))
+	}
+
+	if p.Integration == nil {
+		multiErr = multierror.Append(multiErr, fmt.Errorf("action must have integration settings"))
+	} else {
+		if p.Integration.URL == "" {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("action must have an integration URL"))
+		}
+		if !(strings.HasPrefix(p.Integration.URL, "/plugins/") || strings.HasPrefix(p.Integration.URL, "plugins/") || IsValidHTTPURL(p.Integration.URL)) {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("action must have an valid integration URL"))
+		}
+	}
+
+	return multiErr.ErrorOrNil()
 }
 
 func (p *PostAction) Equals(input *PostAction) bool {
@@ -189,7 +262,22 @@ type PostActionOptions struct {
 	Value string `json:"value"`
 }
 
+func (o *PostActionOptions) IsValid() error {
+	var multiErr *multierror.Error
+
+	if o.Text == "" {
+		multiErr = multierror.Append(multiErr, fmt.Errorf("text is required"))
+	}
+	if o.Value == "" {
+		multiErr = multierror.Append(multiErr, fmt.Errorf("value is required"))
+	}
+
+	return multiErr.ErrorOrNil()
+}
+
 type PostActionIntegration struct {
+	// URL is the endpoint that the action will be sent to.
+	// It can be a relative path to a plugin.
 	URL     string         `json:"url,omitempty"`
 	Context map[string]any `json:"context,omitempty"`
 }
@@ -231,18 +319,20 @@ type Dialog struct {
 }
 
 type DialogElement struct {
-	DisplayName string               `json:"display_name"`
-	Name        string               `json:"name"`
-	Type        string               `json:"type"`
-	SubType     string               `json:"subtype"`
-	Default     string               `json:"default"`
-	Placeholder string               `json:"placeholder"`
-	HelpText    string               `json:"help_text"`
-	Optional    bool                 `json:"optional"`
-	MinLength   int                  `json:"min_length"`
-	MaxLength   int                  `json:"max_length"`
-	DataSource  string               `json:"data_source"`
-	Options     []*PostActionOptions `json:"options"`
+	DisplayName   string               `json:"display_name"`
+	Name          string               `json:"name"`
+	Type          string               `json:"type"`
+	SubType       string               `json:"subtype"`
+	Default       string               `json:"default"`
+	Placeholder   string               `json:"placeholder"`
+	HelpText      string               `json:"help_text"`
+	Optional      bool                 `json:"optional"`
+	MinLength     int                  `json:"min_length"`
+	MaxLength     int                  `json:"max_length"`
+	DataSource    string               `json:"data_source"`
+	DataSourceURL string               `json:"data_source_url,omitempty"`
+	Options       []*PostActionOptions `json:"options"`
+	MultiSelect   bool                 `json:"multiselect"`
 }
 
 type OpenDialogRequest struct {
@@ -266,6 +356,17 @@ type SubmitDialogRequest struct {
 type SubmitDialogResponse struct {
 	Error  string            `json:"error,omitempty"`
 	Errors map[string]string `json:"errors,omitempty"`
+}
+
+// DialogSelectOption represents an option in a select dropdown for dialogs
+type DialogSelectOption struct {
+	Text  string `json:"text"`
+	Value string `json:"value"`
+}
+
+// LookupDialogResponse represents the response for a lookup dialog request.
+type LookupDialogResponse struct {
+	Items []DialogSelectOption `json:"items"`
 }
 
 func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppError) {
@@ -416,6 +517,10 @@ func (e *DialogElement) IsValid() error {
 	multiErr = multierror.Append(multiErr, checkMaxLength("Name", e.Name, DialogElementNameMaxLength))
 	multiErr = multierror.Append(multiErr, checkMaxLength("HelpText", e.HelpText, DialogElementHelpTextMaxLength))
 
+	if e.MultiSelect && e.Type != "select" {
+		multiErr = multierror.Append(multiErr, errors.Errorf("multiselect can only be used with select elements, got type %q", e.Type))
+	}
+
 	switch e.Type {
 	case "text":
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
@@ -435,11 +540,28 @@ func (e *DialogElement) IsValid() error {
 	case "select":
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementSelectMaxLength))
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementSelectMaxLength))
-		if e.DataSource != "" && e.DataSource != "users" && e.DataSource != "channels" {
-			multiErr = multierror.Append(multiErr, errors.Errorf("invalid data source %q, allowed are 'users' or 'channels'", e.DataSource))
+		if e.DataSource != "" && e.DataSource != "users" && e.DataSource != "channels" && e.DataSource != "dynamic" {
+			multiErr = multierror.Append(multiErr, errors.Errorf("invalid data source %q, allowed are 'users', 'channels', or 'dynamic'", e.DataSource))
 		}
-		if e.DataSource == "" && !isDefaultInOptions(e.Default, e.Options) {
-			multiErr = multierror.Append(multiErr, errors.Errorf("default value %q doesn't exist in options ", e.Default))
+		if e.DataSource == "dynamic" {
+			// Dynamic selects should have a data_source_url
+			if e.DataSourceURL == "" {
+				multiErr = multierror.Append(multiErr, errors.New("dynamic data_source requires data_source_url"))
+			} else if !IsValidLookupURL(e.DataSourceURL) {
+				multiErr = multierror.Append(multiErr, errors.New("invalid data_source_url for dynamic select"))
+			}
+			// Dynamic selects should not have static options
+			if len(e.Options) > 0 {
+				multiErr = multierror.Append(multiErr, errors.New("dynamic select element should not have static options"))
+			}
+		} else if e.DataSource == "" {
+			if e.MultiSelect {
+				if !isMultiSelectDefaultInOptions(e.Default, e.Options) {
+					multiErr = multierror.Append(multiErr, errors.Errorf("multiselect default value %q contains values not in options", e.Default))
+				}
+			} else if !isDefaultInOptions(e.Default, e.Options) {
+				multiErr = multierror.Append(multiErr, errors.Errorf("default value %q doesn't exist in options ", e.Default))
+			}
 		}
 
 	case "bool":
@@ -474,24 +596,49 @@ func isDefaultInOptions(defaultValue string, options []*PostActionOptions) bool 
 	return false
 }
 
-func checkMaxLength(fieldName string, field string, length int) error {
-	var valid bool
+func isMultiSelectDefaultInOptions(defaultValue string, options []*PostActionOptions) bool {
+	if defaultValue == "" {
+		return true
+	}
+
+	for value := range strings.SplitSeq(strings.ReplaceAll(defaultValue, " ", ""), ",") {
+		if value == "" {
+			continue
+		}
+		found := false
+		for _, option := range options {
+			if option != nil && value == option.Value {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+
+	return true
+}
+
+func checkMaxLength(fieldName string, field string, maxLength int) error {
 	// DisplayName and Name are required fields
 	if fieldName == "DisplayName" || fieldName == "Name" {
-		valid = len(field) > 0 && len(field) > length
-	} else {
-		valid = len(field) > length
+		if len(field) == 0 {
+			return errors.Errorf("%v cannot be empty", fieldName)
+		}
 	}
-	if valid {
-		return errors.Errorf("%v cannot be longer than %d characters", fieldName, length)
+
+	if len(field) > maxLength {
+		return errors.Errorf("%v cannot be longer than %d characters, got %d", fieldName, maxLength, len(field))
 	}
+
 	return nil
 }
 
 func (o *Post) StripActionIntegrations() {
 	attachments := o.Attachments()
-	if o.GetProp("attachments") != nil {
-		o.AddProp("attachments", attachments)
+	if o.GetProp(PostPropsAttachments) != nil {
+		o.AddProp(PostPropsAttachments, attachments)
 	}
 	for _, attachment := range attachments {
 		for _, action := range attachment.Actions {
@@ -512,10 +659,10 @@ func (o *Post) GetAction(id string) *PostAction {
 }
 
 func (o *Post) GenerateActionIds() {
-	if o.GetProp("attachments") != nil {
-		o.AddProp("attachments", o.Attachments())
+	if o.GetProp(PostPropsAttachments) != nil {
+		o.AddProp(PostPropsAttachments, o.Attachments())
 	}
-	if attachments, ok := o.GetProp("attachments").([]*SlackAttachment); ok {
+	if attachments, ok := o.GetProp(PostPropsAttachments).([]*SlackAttachment); ok {
 		for _, attachment := range attachments {
 			for _, action := range attachment.Actions {
 				if action != nil && action.Id == "" {
@@ -632,4 +779,23 @@ func DecryptPostActionCookie(encoded string, secret []byte) (string, error) {
 	}
 
 	return string(plain), nil
+}
+
+// IsValidLookupURL validates if a URL is safe for lookup operations
+func IsValidLookupURL(url string) bool {
+	if url == "" {
+		return false
+	}
+
+	// Allow plugin paths that start with /plugins/
+	if strings.HasPrefix(url, "/plugins/") {
+		// Additional validation for plugin paths - ensure no path traversal
+		if strings.Contains(url, "..") || strings.Contains(url, "//") {
+			return false
+		}
+		return true
+	}
+
+	// For external URLs, use the same basic validation as other models
+	return IsValidHTTPURL(url)
 }

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ChangeEvent, FormEvent, HTMLProps} from 'react';
-import React, {useRef, useEffect, useCallback} from 'react';
+import React, {useRef, useEffect, useCallback, useState} from 'react';
 
 import type {Intersection} from '@mattermost/types/utilities';
 
@@ -43,6 +43,9 @@ const styles = {
         borderColor: 'transparent',
     },
     textArea: {
+        overflowY: 'hidden' as const,
+    },
+    textAreaWithScroll: {
         overflowY: 'auto' as const,
     },
 };
@@ -67,6 +70,7 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
     const height = useRef(0);
     const textarea = useRef<HTMLTextAreaElement>();
     const referenceRef = useRef<HTMLDivElement>(null);
+    const [showScrollbar, setShowScrollbar] = useState(false);
 
     const recalculateHeight = () => {
         if (!referenceRef.current || !textarea.current) {
@@ -83,6 +87,9 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
             currentTextarea.style.height = `${scrollHeight}px`;
 
             height.current = scrollHeight;
+
+            // Only show scrollbar if content height exceeds 44px
+            setShowScrollbar(scrollHeight > 44);
 
             onHeightChange?.(scrollHeight, parseInt(style.maxHeight || '0', 10));
         }
@@ -158,7 +165,7 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
                 onInput={onInput}
                 value={value}
                 defaultValue={defaultValue}
-                style={styles.textArea}
+                style={showScrollbar ? styles.textAreaWithScroll : styles.textArea}
             />
             <div style={styles.container}>
                 <div

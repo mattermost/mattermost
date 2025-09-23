@@ -37,55 +37,30 @@ exports[`SidebarList should match snapshot 1`] = `
       onClick={[Function]}
       show={false}
     />
-    <div
-      onPointerLeave={[Function]}
-      onPointerOver={[Function]}
+    <Scrollbars
+      onScroll={[Function]}
     >
-      <Scrollbars
-        autoHeight={false}
-        autoHeightMax={200}
-        autoHeightMin={0}
-        autoHide={true}
-        autoHideDuration={200}
-        autoHideTimeout={1000}
-        hideTracksWhenNotNeeded={false}
-        onScroll={[Function]}
-        renderThumbHorizontal={[Function]}
-        renderThumbVertical={[Function]}
-        renderTrackHorizontal={[Function]}
-        renderTrackVertical={[Function]}
-        renderView={[Function]}
-        style={
-          Object {
-            "position": "absolute",
-          }
-        }
-        tagName="div"
-        thumbMinSize={30}
-        universal={false}
+      <DragDropContext
+        onBeforeCapture={[Function]}
+        onBeforeDragStart={[Function]}
+        onDragEnd={[Function]}
+        onDragStart={[Function]}
       >
-        <DragDropContext
-          onBeforeCapture={[Function]}
-          onBeforeDragStart={[Function]}
-          onDragEnd={[Function]}
-          onDragStart={[Function]}
+        <Connect(Droppable)
+          direction="vertical"
+          droppableId="droppable-categories"
+          getContainerForClone={[Function]}
+          ignoreContainerClipping={false}
+          isCombineEnabled={false}
+          isDropDisabled={false}
+          mode="standard"
+          renderClone={null}
+          type="SIDEBAR_CATEGORY"
         >
-          <Connect(Droppable)
-            direction="vertical"
-            droppableId="droppable-categories"
-            getContainerForClone={[Function]}
-            ignoreContainerClipping={false}
-            isCombineEnabled={false}
-            isDropDisabled={false}
-            mode="standard"
-            renderClone={null}
-            type="SIDEBAR_CATEGORY"
-          >
-            <Component />
-          </Connect(Droppable)>
-        </DragDropContext>
-      </Scrollbars>
-    </div>
+          <Component />
+        </Connect(Droppable)>
+      </DragDropContext>
+    </Scrollbars>
   </div>
 </Fragment>
 `;

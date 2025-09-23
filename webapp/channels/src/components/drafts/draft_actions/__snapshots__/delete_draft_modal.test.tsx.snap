@@ -2,13 +2,9 @@
 
 exports[`components/drafts/draft_actions/delete_draft_modal should have called onConfirm 1`] = `
 <GenericModal
-  autoCloseOnCancelButton={true}
-  autoCloseOnConfirmButton={true}
   autoFocusConfirmButton={true}
-  bodyPadding={true}
   compassDesign={true}
   confirmButtonText="Yes, delete"
-  enforceFocus={true}
   handleCancel={[Function]}
   handleConfirm={
     [MockFunction] {
@@ -23,12 +19,9 @@ exports[`components/drafts/draft_actions/delete_draft_modal should have called o
       ],
     }
   }
-  id="genericModal"
   isDeleteModal={true}
-  keyboardEscape={true}
   modalHeaderText="Delete draft"
   onExited={[MockFunction]}
-  show={true}
 >
   <MemoizedFormattedMessage
     defaultMessage="Are you sure you want to delete this draft to <strong>{displayName}</strong>?"
@@ -45,18 +38,12 @@ exports[`components/drafts/draft_actions/delete_draft_modal should have called o
 
 exports[`components/drafts/draft_actions/delete_draft_modal should have called onExited 1`] = `
 <GenericModal
-  autoCloseOnCancelButton={true}
-  autoCloseOnConfirmButton={true}
   autoFocusConfirmButton={true}
-  bodyPadding={true}
   compassDesign={true}
   confirmButtonText="Yes, delete"
-  enforceFocus={true}
   handleCancel={[Function]}
   handleConfirm={[MockFunction]}
-  id="genericModal"
   isDeleteModal={true}
-  keyboardEscape={true}
   modalHeaderText="Delete draft"
   onExited={
     [MockFunction] {
@@ -71,7 +58,6 @@ exports[`components/drafts/draft_actions/delete_draft_modal should have called o
       ],
     }
   }
-  show={true}
 >
   <MemoizedFormattedMessage
     defaultMessage="Are you sure you want to delete this draft to <strong>{displayName}</strong>?"

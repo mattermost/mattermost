@@ -7,14 +7,11 @@ exports[`components/ProductBranding should show correct icon glyph when we are o
   <ProductBoardsIcon
     size={24}
   />
-  <Heading
+  <h1
     className="sr-only"
-    element="h1"
-    margin="none"
-    size={200}
   >
     Boards
-  </Heading>
+  </h1>
   <ProductBrandingHeading>
     Boards
   </ProductBrandingHeading>
@@ -28,14 +25,11 @@ exports[`components/ProductBranding should show correct icon glyph when we are o
   <ProductChannelsIcon
     size={24}
   />
-  <Heading
+  <h1
     className="sr-only"
-    element="h1"
-    margin="none"
-    size={200}
   >
     Channels
-  </Heading>
+  </h1>
   <ProductBrandingHeading>
     Channels
   </ProductBrandingHeading>
@@ -49,14 +43,11 @@ exports[`components/ProductBranding should show correct icon glyph when we are o
   <ProductPlaybooksIcon
     size={24}
   />
-  <Heading
+  <h1
     className="sr-only"
-    element="h1"
-    margin="none"
-    size={200}
   >
     Playbooks
-  </Heading>
+  </h1>
   <ProductBrandingHeading>
     Playbooks
   </ProductBrandingHeading>

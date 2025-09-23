@@ -11,6 +11,10 @@ import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import PostMessageView from 'components/post_view/post_message_view/post_message_view';
 
+jest.mock('components/properties_card_view/propertyValueRenderer/post_preview_property_renderer/post_preview_property_renderer', () => {
+    return jest.fn(() => <div data-testid='post-preview-property-renderer-mock'>{'PostPreviewPropertyRenderer Mock'}</div>);
+});
+
 describe('components/post_view/PostAttachment', () => {
     const post = {
         id: 'post_id',

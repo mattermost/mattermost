@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"text/template"
 
@@ -26,6 +27,8 @@ var excludedPluginHooks = []string{
 	"Implemented",
 	"LoadPluginConfiguration",
 	"InstallPlugin",
+	"LogAuditRec",
+	"LogAuditRecWithLevel",
 	"LogDebug",
 	"LogError",
 	"LogInfo",
@@ -307,6 +310,15 @@ var hooksTemplate = `// Copyright (c) 2015-present Mattermost, Inc. All Rights R
 
 package plugin
 
+import (
+	"fmt"
+	"log"
+
+	saml2 "github.com/mattermost/gosaml2"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+)
+
 {{range .HooksMethods}}
 
 func init() {
@@ -432,6 +444,7 @@ import (
 	"net/http"
 	timePkg "time"
 
+	saml2 "github.com/mattermost/gosaml2"
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -600,12 +613,7 @@ func removeExcluded(info *PluginInterfaceInfo, excluded []string) *PluginInterfa
 		FileSet: info.FileSet,
 	}
 	toBeExcluded := func(item string) bool {
-		for _, exclusion := range excluded {
-			if exclusion == item {
-				return true
-			}
-		}
-		return false
+		return slices.Contains(excluded, item)
 	}
 	hooksResult := make([]IHookEntry, 0, len(info.Hooks))
 	for _, hook := range info.Hooks {

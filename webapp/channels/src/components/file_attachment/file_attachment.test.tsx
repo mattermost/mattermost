@@ -8,6 +8,7 @@ import type {GlobalState} from '@mattermost/types/store';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {renderWithContext} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import FileAttachment from './file_attachment';
 
@@ -58,6 +59,7 @@ describe('FileAttachment', () => {
         enableSVGs: false,
         enablePublicLink: false,
         pluginMenuItems: [],
+        currentChannel: TestHelper.getChannelMock(),
         handleFileDropdownOpened: jest.fn(() => null),
         actions: {
             openModal: jest.fn(),

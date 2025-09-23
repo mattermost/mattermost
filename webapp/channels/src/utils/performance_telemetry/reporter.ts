@@ -247,7 +247,7 @@ export default class PerformanceReporter {
         let labels: Record<string, string> | undefined;
 
         if (isLCPMetric(metric)) {
-            const selector = metric.attribution?.element;
+            const selector = metric.attribution?.target;
             const element = selector ? document.querySelector(selector) : null;
 
             if (element) {

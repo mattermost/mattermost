@@ -13,7 +13,7 @@ import {makeGetGlobalItem, makeGetGlobalItemWithDefault} from 'selectors/storage
 
 import type {SidebarSize} from 'components/resizable_sidebar/constants';
 
-import {PostTypes, StoragePrefixes} from 'utils/constants';
+import {PostTypes, RHSStates, StoragePrefixes} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -113,8 +113,10 @@ export const getCurrentSearchForSearchTeam: (state: GlobalState) => Record<strin
     'getCurrentSearchForSearchTeam',
     (state: GlobalState) => state.entities.search.current,
     getSearchTeam,
-    (current, teamId) => {
-        return current[teamId || 'ALL_TEAMS'];
+    (state: GlobalState) => getRhsState(state) === RHSStates.MENTION,
+    (current, teamId, isMentionSearch) => {
+        const team = isMentionSearch ? 'ALL_TEAMS' : teamId || 'ALL_TEAMS';
+        return current[team];
     },
 );
 

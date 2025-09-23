@@ -71,4 +71,41 @@ describe('components/mfa/setup', () => {
         wrapper.find('form').simulate('submit', {preventDefault: () => {}});
         expect(baseProps.actions.activateMfa).toBeCalledWith('testcodeinput');
     });
+
+    test('should focus input when code is empty', async () => {
+        const wrapper = mountWithIntl(
+            <Setup {...baseProps}/>,
+        );
+        const input = wrapper.find('input').getDOMNode() as HTMLInputElement;
+        const focusSpy = jest.spyOn(input, 'focus');
+
+        wrapper.find('form').simulate('submit', {preventDefault: () => {}});
+        expect(focusSpy).toHaveBeenCalled();
+    });
+
+    test('should focus input when authentication fails', async () => {
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                activateMfa: jest.fn().mockImplementation(() => Promise.resolve({
+                    error: {
+                        server_error_id: 'ent.mfa.activate.authenticate.app_error',
+                        message: 'Invalid code',
+                    },
+                })),
+            },
+        };
+
+        const wrapper = mountWithIntl(
+            <Setup {...props}/>,
+        );
+        const input = wrapper.find('input').getDOMNode() as HTMLInputElement;
+        const focusSpy = jest.spyOn(input, 'focus');
+
+        (wrapper.instance() as Setup).input.current!.value = 'invalidcode';
+        wrapper.find('form').simulate('submit', {preventDefault: () => {}});
+        await new Promise((resolve) => setTimeout(resolve, 0)); // Wait for state update
+        expect(focusSpy).toHaveBeenCalled();
+    });
 });

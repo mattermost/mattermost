@@ -8,7 +8,7 @@
         }
 
         &.success .circle {
-            stroke: var(--denim-status-online);
+            stroke: var(--online-indicator);
         }
 
         &.info .circle {

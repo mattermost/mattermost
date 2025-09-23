@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type React from 'react';
+import {defineMessage} from 'react-intl';
 import type {Store} from 'redux';
 
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
@@ -83,11 +84,19 @@ export default class AppCommandProvider extends Provider {
             });
 
             const terms = suggestions.map((suggestion) => '/' + suggestion.Complete);
+
             resultCallback({
                 matchedPretext: pretext,
-                terms,
-                items: matches,
-                components: element,
+                groups: [{
+                    key: 'appCommands',
+                    label: defineMessage({
+                        id: 'suggestion.commands',
+                        defaultMessage: 'Commands',
+                    }),
+                    terms,
+                    items: matches,
+                    components: element,
+                }],
             });
         });
         return true;

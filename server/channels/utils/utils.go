@@ -191,14 +191,17 @@ func AppendQueryParamsToURL(baseURL string, params map[string]string) string {
 // Validates RedirectURL passed during OAuth or SAML
 func IsValidWebAuthRedirectURL(config *model.Config, redirectURL string) bool {
 	u, err := url.Parse(redirectURL)
-	if err == nil && (u.Scheme == "http" || u.Scheme == "https") {
-		if config.ServiceSettings.SiteURL != nil {
-			siteURL := *config.ServiceSettings.SiteURL
-			return strings.Index(strings.ToLower(redirectURL), strings.ToLower(siteURL)) == 0
-		}
+	if err != nil || config.ServiceSettings.SiteURL == nil {
 		return false
 	}
-	return true
+	siteURL, err := url.Parse(*config.ServiceSettings.SiteURL)
+	if err != nil {
+		return false
+	}
+	if u.Scheme == siteURL.Scheme && u.Host == siteURL.Host {
+		return true
+	}
+	return false
 }
 
 // Validates Mobile Custom URL Scheme passed during OAuth or SAML

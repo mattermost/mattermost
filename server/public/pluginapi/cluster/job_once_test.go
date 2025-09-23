@@ -29,7 +29,7 @@ func TestScheduleOnceParallel(t *testing.T) {
 	count5 := new(int32)
 
 	manyJobs := make(map[string]*int32)
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		manyJobs[makeKey()] = new(int32)
 	}
 
@@ -310,7 +310,7 @@ func TestScheduleOnceSequential(t *testing.T) {
 
 		numPagingJobs := keysPerPage*3 + 2
 		testPagingJobs := make(map[string]*int32)
-		for i := 0; i < numPagingJobs; i++ {
+		for range numPagingJobs {
 			testPagingJobs[makeKey()] = new(int32)
 		}
 
@@ -412,7 +412,7 @@ func TestScheduleOnceSequential(t *testing.T) {
 		resetScheduler()
 
 		jobKeys := make(map[string]*int32)
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			jobKeys[makeKey()] = new(int32)
 		}
 
@@ -675,7 +675,7 @@ func TestScheduleOnceProps(t *testing.T) {
 		s := GetJobOnceScheduler(newMockPluginAPI(t))
 
 		props := make([]byte, propsLimit)
-		for i := 0; i < propsLimit; i++ {
+		for i := range propsLimit {
 			props[i] = 'a'
 		}
 

@@ -14,7 +14,6 @@ import {getThreadsForCurrentTeam, markAllThreadsInTeamRead} from 'mattermost-red
 import {getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {closeModal, openModal} from 'actions/views/modals';
 import {getIsMobileView} from 'selectors/views/browser';
 
@@ -26,6 +25,7 @@ import WithTooltip from 'components/with_tooltip';
 
 import {A11yClassNames, Constants, CrtTutorialSteps, ModalIdentifiers, Preferences} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
+import {a11yFocus, mod} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -119,9 +119,7 @@ const ThreadList = ({
             }
         }
         select(data[threadIdToSelect]);
-
-        // hacky way to ensure the thread item loses focus.
-        ref.current?.focus();
+        e.preventDefault();
     }, [selectedThreadId, data]);
 
     useEffect(() => {
@@ -130,15 +128,6 @@ const ThreadList = ({
             document.removeEventListener('keydown', handleKeyDown);
         };
     }, [handleKeyDown]);
-
-    const handleRead = useCallback(() => {
-        setFilter(ThreadFilter.none);
-    }, [setFilter]);
-
-    const handleUnread = useCallback(() => {
-        trackEvent('crt', 'filter_threads_by_unread');
-        setFilter(ThreadFilter.unread);
-    }, [setFilter]);
 
     const handleLoadMoreItems = useCallback(async (startIndex) => {
         setLoading(true);
@@ -157,7 +146,6 @@ const ThreadList = ({
     }, [currentTeamId, data, unread, selectedThreadId]);
 
     const handleAllMarkedRead = useCallback(() => {
-        trackEvent('crt', 'mark_all_threads_read');
         dispatch(markAllThreadsInTeamRead(currentUserId, currentTeamId));
         if (currentFilter === ThreadFilter.unread) {
             clear();
@@ -186,6 +174,23 @@ const ThreadList = ({
         }));
     }, [handleAllMarkedRead]);
 
+    const {tabListProps, tabProps} = useTabs<ThreadFilter>({
+        activeTab: currentFilter,
+        setActiveTab: setFilter,
+        tabs: [
+            {
+                id: 'threads-list-filter-none',
+                name: ThreadFilter.none,
+                panelId: 'threads-list',
+            },
+            {
+                id: 'threads-list-filter-unread',
+                name: ThreadFilter.unread,
+                panelId: 'threads-list',
+            },
+        ],
+    });
+
     return (
         <div
             tabIndex={0}
@@ -196,12 +201,19 @@ const ThreadList = ({
             <Header
                 id={'tutorial-threads-mobile-header'}
                 heading={(
-                    <>
+                    <div
+                        className='tab-buttons-list'
+                        aria-label={formatMessage({
+                            id: 'threading.threadList.tabsLabel',
+                            defaultMessage: 'Filter visible threads',
+                        })}
+                        {...tabListProps}
+                    >
                         <div className={'tab-button-wrapper'}>
                             <Button
                                 className={'Button___large Margined'}
                                 isActive={currentFilter === ThreadFilter.none}
-                                onClick={handleRead}
+                                {...tabProps[0]}
                             >
                                 <FormattedMessage
                                     id='globalThreads.heading'
@@ -217,7 +229,7 @@ const ThreadList = ({
                                 className={'Button___large Margined'}
                                 isActive={currentFilter === ThreadFilter.unread}
                                 hasDot={someUnread}
-                                onClick={handleUnread}
+                                {...tabProps[1]}
                             >
                                 <FormattedMessage
                                     id='threading.filters.unreads'
@@ -226,18 +238,22 @@ const ThreadList = ({
                             </Button>
                             {showUnreadTutorialTip && <CRTUnreadTutorialTip/>}
                         </div>
-                    </>
+                    </div>
                 )}
                 right={(
                     <div className='right-anchor'>
                         <WithTooltip
                             title={formatMessage({
                                 id: 'threading.threadList.markRead',
-                                defaultMessage: 'Mark all as read',
+                                defaultMessage: 'Mark all threads as read',
                             })}
                         >
                             <Button
                                 id={'threads-list__mark-all-as-read'}
+                                aria-label={formatMessage({
+                                    id: 'threading.threadList.markRead',
+                                    defaultMessage: 'Mark all threads as read',
+                                })}
                                 className={'Button___large Button___icon'}
                                 onClick={handleOpenMarkAllAsReadModal}
                                 marginTop={true}
@@ -251,6 +267,8 @@ const ThreadList = ({
                 )}
             />
             <div
+                id='threads-list'
+                role='tabpanel'
                 className='threads'
                 data-testid={'threads_list'}
             >
@@ -281,4 +299,58 @@ const ThreadList = ({
         </div>
     );
 };
+
+function useTabs<TabName extends string>({
+    activeTab,
+    setActiveTab,
+    tabs,
+}: {
+    activeTab: TabName;
+    setActiveTab: (tab: TabName) => void;
+    tabs: Array<{
+        id: string;
+        name: TabName;
+        panelId: string;
+    }>;
+}): {
+        tabListProps: React.HTMLAttributes<HTMLElement>;
+        tabProps: Array<React.HTMLAttributes<HTMLElement>>;
+    } {
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        let delta = 0;
+        if (Keyboard.isKeyPressed(e, Constants.KeyCodes.RIGHT)) {
+            delta = 1;
+        } else if (Keyboard.isKeyPressed(e, Constants.KeyCodes.LEFT)) {
+            delta = -1;
+        }
+
+        if (delta === 0) {
+            return;
+        }
+
+        let index = tabs.findIndex((tab) => tab.name === activeTab);
+        index += delta;
+        index = mod(index, tabs.length);
+
+        setActiveTab(tabs[index].name);
+        a11yFocus(document.getElementById(tabs[index].id));
+    }, [activeTab, setActiveTab, tabs]);
+
+    return {
+        tabListProps: {
+            role: 'tablist',
+            'aria-orientation': 'horizontal',
+        },
+        tabProps: tabs.map((tab) => ({
+            id: tab.id,
+            role: 'tab',
+            onClick: () => setActiveTab(tab.name),
+            onKeyDown: handleKeyDown,
+            tabIndex: tab.name === activeTab ? 0 : -1,
+            'aria-controls': tab.panelId,
+            'aria-selected': activeTab === tab.name,
+        })),
+    };
+}
+
 export default memo(ThreadList);

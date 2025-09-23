@@ -11,7 +11,6 @@
 // Group: @channels @system_console @authentication @mfa
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {getRandomId} from '../../../utils';
 
 describe('Authentication', () => {
@@ -49,7 +48,7 @@ describe('Authentication', () => {
 
         cy.uiSave();
 
-        cy.findByText('Must be 7-72 characters long.').should('be.visible');
+        cy.findByText('Your password must be 7-72 characters long.').should('be.visible');
 
         cy.apiLogout();
 
@@ -65,7 +64,7 @@ describe('Authentication', () => {
         cy.findByText('Create Account').click();
 
         // * Assert the error is what is expected;
-        cy.findByText('Must be 7-72 characters long.').should('be.visible');
+        cy.findByText('Your password must be 7-72 characters long.').should('be.visible');
 
         cy.get('#input_password-input').clear().type('greaterthan7');
 
@@ -118,7 +117,7 @@ describe('Authentication', () => {
             cy.findByText('Create Account').click();
 
             // * Assert the error is what is expected;
-            cy.findByText('Must be 5-72 characters long and include both lowercase and uppercase letters, numbers, and special characters.').should('be.visible');
+            cy.findByText('Your password must be 5-72 characters long and include both lowercase and uppercase letters, numbers, and special characters.').should('be.visible');
         });
     });
 

@@ -31,6 +31,7 @@ export default keyMirror({
     RECEIVED_TERMS_OF_SERVICE_STATUS: null,
     RECEIVED_PROFILE: null,
     RECEIVED_PROFILES: null,
+    RECEIVED_CPA_VALUES: null,
     RECEIVED_PROFILES_LIST: null,
     RECEIVED_PROFILES_IN_TEAM: null,
     RECEIVED_PROFILE_IN_TEAM: null,
@@ -69,8 +70,9 @@ export default keyMirror({
     DISABLED_USER_ACCESS_TOKEN: null,
     ENABLED_USER_ACCESS_TOKEN: null,
     RECEIVED_USER_STATS: null,
-    RECIEVED_APP_LIMITS: null,
+    RECEIVED_APP_LIMITS: null,
     RECEIVED_FILTERED_USER_STATS: null,
     PROFILE_NO_LONGER_VISIBLE: null,
     LOGIN: null,
+    CLEAR_CPA_VALUES: null,
 });

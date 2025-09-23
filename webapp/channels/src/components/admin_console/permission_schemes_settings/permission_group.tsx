@@ -147,6 +147,7 @@ export default class PermissionGroup extends React.PureComponent<Props, State> {
         if (!this.isInScope(permission)) {
             return null;
         }
+
         const comesFromParent = this.fromParent(permission);
         const active = comesFromParent || this.props.role?.permissions?.indexOf(permission) !== -1;
         const inherited = comesFromParent ? this.props.parentRole : undefined;

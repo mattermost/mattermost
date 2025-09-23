@@ -6,6 +6,7 @@ package model
 import (
 	"fmt"
 	"net/http"
+	"slices"
 	"unicode/utf8"
 )
 
@@ -32,8 +33,8 @@ type OAuthApp struct {
 	MattermostAppID string      `json:"mattermost_app_id"`
 }
 
-func (a *OAuthApp) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (a *OAuthApp) Auditable() map[string]any {
+	return map[string]any{
 		"id":                a.Id,
 		"creator_id":        a.CreatorId,
 		"create_at":         a.CreateAt,
@@ -137,11 +138,5 @@ func (a *OAuthApp) Sanitize() {
 }
 
 func (a *OAuthApp) IsValidRedirectURL(url string) bool {
-	for _, u := range a.CallbackUrls {
-		if u == url {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(a.CallbackUrls, url)
 }

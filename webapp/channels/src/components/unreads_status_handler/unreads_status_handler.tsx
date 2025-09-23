@@ -46,6 +46,7 @@ type Props = {
     currentTeammate: Channel | null;
     inGlobalThreads: boolean;
     inDrafts: boolean;
+    inScheduledPosts: boolean;
 };
 
 export class UnreadsStatusHandlerClass extends React.PureComponent<Props> {
@@ -90,6 +91,7 @@ export class UnreadsStatusHandlerClass extends React.PureComponent<Props> {
             unreadStatus,
             inGlobalThreads,
             inDrafts,
+            inScheduledPosts,
         } = this.props;
         const {formatMessage} = this.props.intl;
 
@@ -121,6 +123,15 @@ export class UnreadsStatusHandlerClass extends React.PureComponent<Props> {
             document.title = formatMessage({
                 id: 'drafts.title',
                 defaultMessage: '{prefix}Drafts - {displayName} {siteName}',
+            }, {
+                prefix: `${mentionTitle}${unreadTitle}`,
+                displayName: currentTeam.display_name,
+                siteName: currentSiteName,
+            });
+        } else if (currentTeam && inScheduledPosts) {
+            document.title = formatMessage({
+                id: 'scheduledPosts.title',
+                defaultMessage: '{prefix}Scheduled - {displayName} {siteName}',
             }, {
                 prefix: `${mentionTitle}${unreadTitle}`,
                 displayName: currentTeam.display_name,

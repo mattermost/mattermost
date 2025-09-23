@@ -2,43 +2,34 @@
 // See LICENSE.txt for license information.
 
 import {useCallback} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
 
-import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
+import {useExternalLink} from './use_external_link';
+import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from './useCWSAvailabilityCheck';
 
-import {trackEvent} from 'actions/telemetry_actions';
-import {openModal} from 'actions/views/modals';
-
-import PricingModal from 'components/pricing_modal';
-
-import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
-
-export type TelemetryProps = {
-    trackingLocation: string;
+export type UseOpenPricingModalReturn = {
+    openPricingModal: () => void;
+    isAirGapped: boolean;
 }
 
-export default function useOpenPricingModal() {
-    const dispatch = useDispatch();
-    const isCloud = useSelector(isCurrentLicenseCloud);
-    const openPricingModal = useCallback((telemetryProps?: TelemetryProps) => {
-        let category;
+export default function useOpenPricingModal(): UseOpenPricingModalReturn {
+    const cwsAvailability = useCWSAvailabilityCheck();
+    const [externalLink] = useExternalLink('https://mattermost.com/pricing');
 
-        if (isCloud) {
-            category = TELEMETRY_CATEGORIES.CLOUD_PRICING;
-        } else {
-            category = 'self_hosted_pricing';
+    const isAirGapped = cwsAvailability === CSWAvailabilityCheckTypes.Unavailable;
+    const canAccessExternalPricing = cwsAvailability === CSWAvailabilityCheckTypes.Available ||
+                                     cwsAvailability === CSWAvailabilityCheckTypes.NotApplicable;
+
+    const openPricingModal = useCallback(() => {
+        if (canAccessExternalPricing) {
+            // Redirect to external pricing page
+            window.open(externalLink, '_blank', 'noopener,noreferrer');
         }
-        trackEvent(category, 'click_open_pricing_modal', {
-            callerInfo: telemetryProps?.trackingLocation,
-        });
-        dispatch(openModal({
-            modalId: ModalIdentifiers.PRICING_MODAL,
-            dialogType: PricingModal,
-            dialogProps: {
-                callerCTA: telemetryProps?.trackingLocation,
-            },
-        }));
-    }, [dispatch, isCloud]);
 
-    return openPricingModal;
+        // For air-gapped instances, we don't open anything since the pricing modal has been removed
+    }, [canAccessExternalPricing]);
+
+    return {
+        openPricingModal,
+        isAirGapped,
+    };
 }

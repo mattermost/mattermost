@@ -15,8 +15,6 @@ import (
 	"math"
 	"net/http"
 	"net/url"
-	"os"
-	"path"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -519,7 +517,7 @@ func (a *App) MigrateFilenamesToFileInfos(rctx request.CTX, post *model.Post) []
 	fileMigrationLock.Lock()
 	defer fileMigrationLock.Unlock()
 
-	result, nErr := a.Srv().Store().Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
+	result, nErr := a.Srv().Store().Post().Get(rctx, post.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
 	if nErr != nil {
 		rctx.Logger().Error("Unable to get post when migrating post to use FileInfos", mlog.Err(nErr), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
@@ -592,12 +590,12 @@ func GeneratePublicLinkHash(fileID, salt string) string {
 }
 
 // UploadFile uploads a single file in form of a completely constructed byte array for a channel.
-func (a *App) UploadFile(c request.CTX, data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
-	return a.UploadFileForUserAndTeam(c, data, channelID, filename, "", "")
+func (a *App) UploadFile(rctx request.CTX, data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
+	return a.UploadFileForUserAndTeam(rctx, data, channelID, filename, "", "")
 }
 
-func (a *App) UploadFileForUserAndTeam(c request.CTX, data []byte, channelID string, filename string, rawUserId string, rawTeamId string) (*model.FileInfo, *model.AppError) {
-	_, err := a.GetChannel(c, channelID)
+func (a *App) UploadFileForUserAndTeam(rctx request.CTX, data []byte, channelID string, filename string, rawUserId string, rawTeamId string) (*model.FileInfo, *model.AppError) {
+	_, err := a.GetChannel(rctx, channelID)
 	if err != nil && channelID != "" {
 		return nil, model.NewAppError("UploadFile", "api.file.upload_file.incorrect_channelId.app_error",
 			map[string]any{"channelId": channelID}, "", http.StatusBadRequest)
@@ -613,7 +611,7 @@ func (a *App) UploadFileForUserAndTeam(c request.CTX, data []byte, channelID str
 		teamId = "noteam"
 	}
 
-	info, _, appError := a.DoUploadFileExpectModification(c, time.Now(), teamId, channelID, userId, filename, data, true)
+	info, _, appError := a.DoUploadFileExpectModification(rctx, time.Now(), teamId, channelID, userId, filename, data, true)
 	if appError != nil {
 		return nil, appError
 	}
@@ -623,14 +621,14 @@ func (a *App) UploadFileForUserAndTeam(c request.CTX, data []byte, channelID str
 		thumbnailPathList := []string{info.ThumbnailPath}
 		imageDataList := [][]byte{data}
 
-		a.HandleImages(c, previewPathList, thumbnailPathList, imageDataList)
+		a.HandleImages(rctx, previewPathList, thumbnailPathList, imageDataList)
 	}
 
 	return info, nil
 }
 
-func (a *App) DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte, extractContent bool) (*model.FileInfo, *model.AppError) {
-	info, _, err := a.DoUploadFileExpectModification(c, now, rawTeamId, rawChannelId, rawUserId, rawFilename, data, extractContent)
+func (a *App) DoUploadFile(rctx request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte, extractContent bool) (*model.FileInfo, *model.AppError) {
+	info, _, err := a.DoUploadFileExpectModification(rctx, now, rawTeamId, rawChannelId, rawUserId, rawFilename, data, extractContent)
 	return info, err
 }
 
@@ -769,14 +767,11 @@ func (t *UploadFileTask) init(a *App) {
 // returns a filled-out FileInfo and an optional error. A plugin may reject the
 // upload, returning a rejection error. In this case FileInfo would have
 // contained the last "good" FileInfo before the execution of that plugin.
-func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader,
-	opts ...func(*UploadFileTask)) (*model.FileInfo, *model.AppError) {
-	c = c.WithLogger(c.Logger().With(
-		mlog.String("file_name", name),
-	))
-
+func (a *App) UploadFileX(rctx request.CTX, channelID, name string, input io.Reader,
+	opts ...func(*UploadFileTask),
+) (*model.FileInfo, *model.AppError) {
 	t := &UploadFileTask{
-		Logger:         c.Logger(),
+		Logger:         rctx.Logger(),
 		ChannelId:      filepath.Base(channelID),
 		Name:           filepath.Base(name),
 		Input:          input,
@@ -789,6 +784,12 @@ func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader
 	for _, o := range opts {
 		o(t)
 	}
+
+	rctx = rctx.WithLogger(rctx.Logger().With(
+		mlog.String("file_name", name),
+		mlog.String("channel_id", channelID),
+		mlog.String("user_id", t.UserId),
+	))
 
 	if *a.Config().FileSettings.DriverName == "" {
 		return nil, t.newAppError("api.file.upload_file.storage.app_error", http.StatusNotImplemented)
@@ -814,7 +815,7 @@ func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader
 
 	if written > t.maxFileSize {
 		if fileErr := a.RemoveFile(t.fileinfo.Path); fileErr != nil {
-			c.Logger().Error("Failed to remove file", mlog.Err(fileErr))
+			rctx.Logger().Error("Failed to remove file", mlog.Err(fileErr))
 		}
 		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
 	}
@@ -827,7 +828,7 @@ func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader
 	}
 	defer file.Close()
 
-	aerr = a.runPluginsHook(c, t.fileinfo, file)
+	aerr = a.runPluginsHook(rctx, t.fileinfo, file)
 	if aerr != nil {
 		return nil, aerr
 	}
@@ -841,7 +842,7 @@ func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader
 		t.postprocessImage(file)
 	}
 
-	if _, err := t.saveToDatabase(c, t.fileinfo); err != nil {
+	if _, err := t.saveToDatabase(rctx, t.fileinfo); err != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &appErr):
@@ -854,9 +855,9 @@ func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader
 	if *a.Config().FileSettings.ExtractContent && t.ExtractContent {
 		infoCopy := *t.fileinfo
 		a.Srv().GoBuffered(func() {
-			err := a.ExtractContentFromFileInfo(c, &infoCopy)
+			err := a.ExtractContentFromFileInfo(rctx, &infoCopy)
 			if err != nil {
-				c.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+				rctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		})
 	}
@@ -880,15 +881,15 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	}
 
 	// If we fail to decode, return "as is".
-	w, h, err := imaging.GetDimensions(t.teeInput)
+	cfg, format, err := t.imgDecoder.DecodeConfig(t.teeInput)
 	if err != nil {
 		return nil
 	}
-	t.fileinfo.Width = w
-	t.fileinfo.Height = h
+	t.fileinfo.Width = cfg.Width
+	t.fileinfo.Height = cfg.Height
 
-	if err = checkImageResolutionLimit(w, h, t.maxImageRes); err != nil {
-		return t.newAppError("api.file.upload_file.large_image_detailed.app_error", http.StatusBadRequest)
+	if err = checkImageResolutionLimit(cfg.Width, cfg.Height, t.maxImageRes); err != nil {
+		return t.newAppError("api.file.upload_file.large_image_detailed.app_error", http.StatusBadRequest).Wrap(err)
 	}
 
 	t.fileinfo.HasPreviewImage = true
@@ -899,12 +900,14 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	// check the image orientation with goexif; consume the bytes we
 	// already have first, then keep Tee-ing from input.
 	// TODO: try to reuse exif's .Raw buffer rather than Tee-ing
-	if t.imageOrientation, err = imaging.GetImageOrientation(io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput)); err == nil &&
+	if t.imageOrientation, err = imaging.GetImageOrientation(io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput), format); err == nil &&
 		(t.imageOrientation == imaging.RotatedCWMirrored ||
 			t.imageOrientation == imaging.RotatedCCW ||
 			t.imageOrientation == imaging.RotatedCCWMirrored ||
 			t.imageOrientation == imaging.RotatedCW) {
 		t.fileinfo.Width, t.fileinfo.Height = t.fileinfo.Height, t.fileinfo.Width
+	} else if err != nil {
+		t.Logger.Warn("Failed to get image orientation", mlog.Err(err))
 	}
 
 	// For animated GIFs disable the preview; since we have to Decode gifs
@@ -1033,7 +1036,7 @@ func (t UploadFileTask) newAppError(id string, httpStatus int, extra ...any) *mo
 	return model.NewAppError("uploadFileTask", id, params, "", httpStatus)
 }
 
-func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte, extractContent bool) (*model.FileInfo, []byte, *model.AppError) {
+func (a *App) DoUploadFileExpectModification(rctx request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte, extractContent bool) (*model.FileInfo, []byte, *model.AppError) {
 	filename := filepath.Base(rawFilename)
 	teamID := filepath.Base(rawTeamId)
 	channelID := filepath.Base(rawChannelId)
@@ -1045,12 +1048,14 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 		return nil, data, err
 	}
 
-	if orientation, err := imaging.GetImageOrientation(bytes.NewReader(data)); err == nil &&
+	if orientation, err := imaging.GetImageOrientation(bytes.NewReader(data), info.MimeType); err == nil &&
 		(orientation == imaging.RotatedCWMirrored ||
 			orientation == imaging.RotatedCCW ||
 			orientation == imaging.RotatedCCWMirrored ||
 			orientation == imaging.RotatedCW) {
 		info.Width, info.Height = info.Height, info.Width
+	} else if err != nil {
+		rctx.Logger().Warn("Failed to get image orientation", mlog.Err(err))
 	}
 
 	info.Id = model.NewId()
@@ -1075,7 +1080,7 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 	}
 
 	var rejectionError *model.AppError
-	pluginContext := pluginContext(c)
+	pluginContext := pluginContext(rctx)
 	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		var newBytes bytes.Buffer
 		replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext, info, bytes.NewReader(data), &newBytes)
@@ -1101,7 +1106,7 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 		return nil, data, err
 	}
 
-	if _, err := a.Srv().Store().FileInfo().Save(c, info); err != nil {
+	if _, err := a.Srv().Store().FileInfo().Save(rctx, info); err != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &appErr):
@@ -1117,9 +1122,9 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 	if *a.Config().FileSettings.ExtractContent && extractContent {
 		infoCopy := *info
 		a.Srv().GoBuffered(func() {
-			err := a.ExtractContentFromFileInfo(c, &infoCopy)
+			err := a.ExtractContentFromFileInfo(rctx, &infoCopy)
 			if err != nil {
-				c.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+				rctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		})
 	}
@@ -1158,10 +1163,12 @@ func prepareImage(rctx request.CTX, imgDecoder *imaging.Decoder, imgData io.Read
 	if err != nil {
 		return nil, "", nil, fmt.Errorf("prepareImage: failed to decode image: %w", err)
 	}
-	imgData.Seek(0, io.SeekStart)
+	if _, err = imgData.Seek(0, io.SeekStart); err != nil {
+		return nil, "", nil, fmt.Errorf("prepareImage: failed to seek image data: %w", err)
+	}
 
 	// Flip the image to be upright
-	orientation, err := imaging.GetImageOrientation(imgData)
+	orientation, err := imaging.GetImageOrientation(imgData, imgType)
 	if err != nil {
 		rctx.Logger().Debug("GetImageOrientation failed", mlog.Err(err))
 	}
@@ -1396,29 +1403,14 @@ func (a *App) CopyFileInfos(rctx request.CTX, userID string, fileIDs []string) (
 	return newFileIds, nil
 }
 
-// This function zip's up all the files in fileDatas array and then saves it to the directory specified with the specified zip file name
-// Ensure the zip file name ends with a .zip
-func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error {
-	// Create Zip File (temporarily stored on disk)
-	conglomerateZipFile, err := os.Create(zipFileName)
-	if err != nil {
-		return err
-	}
-	defer os.Remove(zipFileName)
+// WriteZipFile writes a zip file to the provided writer from the provided file data.
+func (a *App) WriteZipFile(w io.Writer, fileDatas []model.FileData) error {
+	zipWriter := zip.NewWriter(w)
 
-	// Create a new zip archive.
-	zipFileWriter := zip.NewWriter(conglomerateZipFile)
-
-	// Populate Zip file with File Datas array
-	err = populateZipfile(zipFileWriter, fileDatas)
+	// Populate zip file with file data
+	err := populateZipfile(zipWriter, fileDatas)
 	if err != nil {
-		return err
-	}
-
-	conglomerateZipFile.Seek(0, 0)
-	_, err = fileBackend.WriteFile(conglomerateZipFile, path.Join(directory, zipFileName))
-	if err != nil {
-		return err
+		return fmt.Errorf("failed to populate zip file: %w", err)
 	}
 
 	return nil
@@ -1446,9 +1438,8 @@ func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
 	return nil
 }
 
-func (a *App) SearchFilesInTeamForUser(c request.CTX, terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.FileInfoList, *model.AppError) {
+func (a *App) SearchFilesInTeamForUser(rctx request.CTX, terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.FileInfoList, *model.AppError) {
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
-	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
 	if !*a.Config().ServiceSettings.EnableFileSearch {
 		return nil, model.NewAppError("SearchFilesInTeamForUser", "store.sql_file_info.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
@@ -1458,16 +1449,16 @@ func (a *App) SearchFilesInTeamForUser(c request.CTX, terms string, userId strin
 
 	for _, params := range paramsList {
 		params.OrTerms = isOrSearch
-		params.IncludeDeletedChannels = includeDeleted
+		params.IncludeDeletedChannels = includeDeletedChannels
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
 			// Convert channel names to channel IDs
-			params.InChannels = a.convertChannelNamesToChannelIds(c, params.InChannels, userId, teamId, includeDeletedChannels)
-			params.ExcludedChannels = a.convertChannelNamesToChannelIds(c, params.ExcludedChannels, userId, teamId, includeDeletedChannels)
+			params.InChannels = a.convertChannelNamesToChannelIds(rctx, params.InChannels, userId, teamId, includeDeletedChannels)
+			params.ExcludedChannels = a.convertChannelNamesToChannelIds(rctx, params.ExcludedChannels, userId, teamId, includeDeletedChannels)
 
 			// Convert usernames to user IDs
-			params.FromUsers = a.convertUserNameToUserIds(c, params.FromUsers)
-			params.ExcludedUsers = a.convertUserNameToUserIds(c, params.ExcludedUsers)
+			params.FromUsers = a.convertUserNameToUserIds(rctx, params.FromUsers)
+			params.ExcludedUsers = a.convertUserNameToUserIds(rctx, params.ExcludedUsers)
 
 			finalParamsList = append(finalParamsList, params)
 		}
@@ -1478,7 +1469,7 @@ func (a *App) SearchFilesInTeamForUser(c request.CTX, terms string, userId strin
 		return model.NewFileInfoList(), nil
 	}
 
-	fileInfoSearchResults, nErr := a.Srv().Store().FileInfo().Search(c, finalParamsList, userId, teamId, page, perPage)
+	fileInfoSearchResults, nErr := a.Srv().Store().FileInfo().Search(rctx, finalParamsList, userId, teamId, page, perPage)
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {

@@ -70,11 +70,11 @@ export default function AddToChannels(props: Props) {
 
     let placeholderChannelName = props.townSquareDisplayName;
 
-    // If the user is in a public or private channel,
+    // If the user is in a public or private channel and is not abac policy enforced,
     // use this channel name as a placeholder.
     // Inviting to direct or group message channels
     // on a team is not currently supported.
-    if (props.currentChannel && [Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(props.currentChannel.type)) {
+    if (props.currentChannel && [Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(props.currentChannel.type) && !props.currentChannel.policy_enforced) {
         placeholderChannelName = props.currentChannel.display_name;
     }
 

@@ -2,8 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {ChainableT} from 'tests/types';
-import theme from '../../fixtures/theme.json';
 import {PreferenceType} from '@mattermost/types/preferences';
+
+import theme from '../../fixtures/theme.json';
 
 // *****************************************************************************
 // Preferences
@@ -423,29 +424,6 @@ function apiSaveUnreadScrollPositionPreference(userId, value) {
 Cypress.Commands.add('apiSaveUnreadScrollPositionPreference', apiSaveUnreadScrollPositionPreference);
 
 /**
- * Save drafts tour tip preference.
- * See https://api.mattermost.com/#tag/preferences/paths/~1users~1{user_id}~1preferences/put
- * @param {string} userId - User ID
- * @param {string} value - values are 'true' or 'false'
- * @returns {Response} response: Cypress-chainable response which should have successful HTTP status of 200 OK to continue or pass.
- *
- * @example
- *   cy.apiSaveDraftsTourTipPreference('user-id', 'true');
- */
-function apiSaveDraftsTourTipPreference(userId: string, value: boolean): ChainableT<any> {
-    const preference = {
-        user_id: userId,
-        category: 'drafts',
-        name: 'drafts_tour_tip_showed',
-        value: JSON.stringify({drafts_tour_tip_showed: value}),
-    };
-
-    return cy.apiSaveUserPreference([preference], userId);
-}
-
-Cypress.Commands.add('apiSaveDraftsTourTipPreference', apiSaveDraftsTourTipPreference);
-
-/**
  * Mark Boards welcome page as viewed.
  * See https://api.mattermost.com/#tag/preferences/paths/~1users~1{user_id}~1preferences/put
  * @param {string} userId - User ID
@@ -540,12 +518,6 @@ function apiDisableTutorials(userId) {
         },
         {
             user_id: userId,
-            category: 'drafts',
-            name: 'drafts_tour_tip_showed',
-            value: '{"drafts_tour_tip_showed":true}',
-        },
-        {
-            user_id: userId,
             category: 'app_bar',
             name: 'channel_with_board_tip_showed',
             value: '{"channel_with_board_tip_showed":true}',
@@ -581,7 +553,6 @@ declare global {
             apiSaveOnboardingTaskListPreference: typeof apiSaveOnboardingTaskListPreference;
             apiSaveSkipStepsPreference: typeof apiSaveSkipStepsPreference;
             apiSaveUnreadScrollPositionPreference: typeof apiSaveUnreadScrollPositionPreference;
-            apiSaveDraftsTourTipPreference: typeof apiSaveDraftsTourTipPreference;
             apiBoardsWelcomePageViewed: typeof apiBoardsWelcomePageViewed;
             apiSaveJoinLeaveMessagesPreference: typeof apiSaveJoinLeaveMessagesPreference;
             apiDisableTutorials: typeof apiDisableTutorials;

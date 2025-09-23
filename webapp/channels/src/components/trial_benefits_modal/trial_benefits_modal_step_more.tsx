@@ -4,29 +4,21 @@
 import React, {useCallback} from 'react';
 import {useHistory} from 'react-router-dom';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
-import {TELEMETRY_CATEGORIES} from 'utils/constants';
-
 import './trial_benefits_modal_step_more.scss';
 
 export type TrialBenefitsModalStepMoreProps = {
-    id: string;
     route: string;
     message: string;
-    telemetryId?: string;
     onClick?: () => void;
     styleLink?: boolean; // show as a anchor link
 }
 
 const TrialBenefitsModalStepMore = (
     {
-        id,
         route,
         message,
         onClick,
         styleLink = false,
-        telemetryId = 'benefits_modal',
     }: TrialBenefitsModalStepMoreProps) => {
     const history = useHistory();
 
@@ -40,11 +32,6 @@ const TrialBenefitsModalStepMore = (
         if (onClick) {
             onClick();
         }
-
-        trackEvent(
-            TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL,
-            telemetryId + '_section_opened_' + id,
-        );
     }, [route, onClick]);
 
     return (

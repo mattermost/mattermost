@@ -55,6 +55,7 @@
         span.MenuItem__primary-text {
             display: inline-flex;
             max-width: 100%;
+            align-items: center;
             padding: 5px 0;
             line-height: 22px;
             white-space: nowrap;
@@ -162,8 +163,6 @@
             }
 
             .MenuItem__icon {
-                position: relative;
-                top: 4px;
                 display: inline-flex;
                 width: 20px;
                 height: 20px;
@@ -218,7 +217,7 @@
 
                 &__icon-section {
                     margin-top: -2px;
-                    color: var(--denim-button-bg);
+                    color: var(--button-bg);
                     font-size: 18px;
                 }
             }
@@ -273,13 +272,13 @@
         }
 
         .icon-information-outline {
-            color: var(--denim-button-bg);
+            color: var(--button-bg);
             cursor: pointer;
         }
 
         a {
             // overriding 4 deep selector
-            color: var(--denim-button-bg) !important;
+            color: var(--button-bg) !important;
             font-weight: bold;
             text-decoration: none;
 

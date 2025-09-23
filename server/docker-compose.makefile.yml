@@ -1,20 +1,4 @@
 services:
-  mysql:
-    restart: 'no'
-    container_name: mattermost-mysql
-    ports:
-      - "3306:3306"
-    extends:
-        file: build/docker-compose.common.yml
-        service: mysql
-  mysql-read-replica:
-    restart: 'no'
-    container_name: mattermost-mysql-read-replica
-    ports:
-      - "3307:3306"
-    extends:
-        file: build/docker-compose.common.yml
-        service: mysql-read-replica
   postgres:
     restart: 'no'
     container_name: mattermost-postgres

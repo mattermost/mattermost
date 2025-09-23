@@ -58,7 +58,7 @@ describe('Authentication', () => {
         cy.visit('/login');
 
         // # Remove autofocus from login input
-        cy.get('.login-body-card-content').should('be.visible').focus();
+        cy.get('.login-body-card-title').click();
 
         // # Clear email/username field and type username
         cy.apiGetClientLicense().then(({isLicensed}) => {
@@ -195,6 +195,9 @@ describe('Authentication', () => {
             TeamSettings: {
                 EnableUserCreation: false,
             },
+            LdapSettings: {
+                Enable: false,
+            },
         });
 
         cy.apiLogout();
@@ -203,22 +206,17 @@ describe('Authentication', () => {
         cy.visit('/login');
 
         // * Assert that create account button is visible
-        cy.findByText('Don\'t have an account?', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
+        cy.findByText('Don\'t have an account?', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').click();
+
+        // * Verify redirection to access problem page since account creation is disabled
+        cy.url().should('include', '/access_problem');
+        cy.findByText('Contact your workspace admin');
 
         // # Go to sign up with email page
         cy.visit('/signup_user_complete');
 
-        cy.get('#input_email', {timeout: TIMEOUTS.ONE_MIN}).type(`test-${getRandomId()}@example.com`);
-
-        cy.get('#input_password-input').type('Test123456!');
-
-        cy.get('#input_name').clear().type(`Test${getRandomId()}`);
-
-        cy.findByText('Create Account').click();
-
-        // * Make sure account was not created successfully and we are on the team joining page
-        cy.get('.AlertBanner__title').scrollIntoView().should('be.visible');
-        cy.findByText('User sign-up with email is disabled.').should('be.visible').and('exist');
+        // * No sign up methods enabled
+        cy.findByText('This server doesn’t have any sign-in methods enabled').should('be.visible').and('exist');
     });
 
     it('MM-T1754 - Restrict Domains - Account creation link on signin page', () => {
@@ -267,7 +265,7 @@ describe('Authentication', () => {
         cy.postMessage('hello');
 
         // # Open team menu and click on "Invite People"
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // # Click invite members if needed
         cy.findByText('Copy invite link').click();

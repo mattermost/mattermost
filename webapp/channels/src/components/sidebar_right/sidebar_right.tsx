@@ -8,8 +8,6 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ProductIdentifier} from '@mattermost/types/products';
 import type {Team} from '@mattermost/types/teams';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import ChannelInfoRhs from 'components/channel_info_rhs';
 import ChannelMembersRhs from 'components/channel_members_rhs';
 import FileUploadOverlay from 'components/file_upload_overlay';
@@ -23,8 +21,8 @@ import Search from 'components/search/index';
 
 import RhsPlugin from 'plugins/rhs_plugin';
 import a11yController from 'utils/a11y_controller_instance';
-import type {A11yFocusEventDetail} from 'utils/constants';
-import Constants, {A11yCustomEventTypes} from 'utils/constants';
+import {focusElement, getFirstFocusableChild} from 'utils/a11y_utils';
+import Constants from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {isMac} from 'utils/user_agent';
 
@@ -52,6 +50,8 @@ export type Props = {
     selectedPostCardId: string;
     isSavedPosts?: boolean;
     isRecentMentions?: boolean;
+    ariaLabel?: string;
+    ariaLabeledby?: string;
     actions: {
         setRhsExpanded: (expanded: boolean) => void;
         showPinnedPosts: (channelId: string) => void;
@@ -157,34 +157,30 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
 
         if (this.props.isOpen && (contentChanged || (!wasOpen && isOpen))) {
             this.previousActiveElement = document.activeElement as HTMLElement;
+
+            // Focus the sidebar after a tick
             setTimeout(() => {
                 if (this.sidebarRight.current) {
-                    document.dispatchEvent(
-                        new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
-                            detail: {
-                                target: this.sidebarRight.current,
-                                keyboardOnly: false,
-                            },
-                        }),
-                    );
+                    const rhsContainer = this.sidebarRight.current.querySelector('#rhsContainer') as HTMLElement;
+                    const searchContainer = this.sidebarRight.current.querySelector('#searchContainer') as HTMLElement;
+                    if (rhsContainer || searchContainer) {
+                        const firstFocusable = getFirstFocusableChild(rhsContainer || searchContainer);
+                        focusElement(firstFocusable || rhsContainer, true);
+                    } else {
+                        // Fallback: if rhsContainer isn't found, use sidebarRight.current directly.
+                        const firstFocusable = getFirstFocusableChild(this.sidebarRight.current);
+                        focusElement(firstFocusable || this.sidebarRight.current, true);
+                    }
                 }
             }, 0);
         } else if (!this.props.isOpen && wasOpen) {
             // RHS just was closed, restore focus to the previous element had it
-            // this will have to change for upcoming work specially for search and probalby plugins
             if (a11yController.originElement) {
                 a11yController.restoreOriginFocus();
             } else {
                 setTimeout(() => {
                     if (this.previousActiveElement) {
-                        document.dispatchEvent(
-                            new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
-                                detail: {
-                                    target: this.previousActiveElement,
-                                    keyboardOnly: false,
-                                },
-                            }),
-                        );
+                        focusElement(this.previousActiveElement, true);
                         this.previousActiveElement = null;
                     }
                 }, 0);
@@ -203,13 +199,6 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
     }
 
     componentDidUpdate(prevProps: Props) {
-        const wasOpen = prevProps.searchVisible || prevProps.postRightVisible;
-        const isOpen = this.props.searchVisible || this.props.postRightVisible;
-
-        if (!wasOpen && isOpen) {
-            trackEvent('ui', 'ui_rhs_opened');
-        }
-
         this.handleRHSFocus(prevProps);
 
         const {actions, isChannelFiles, isPinnedPosts, rhsChannel, channel} = this.props;
@@ -339,6 +328,8 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
                     id='sidebar-right'
                     role='region'
                     rightWidthHolderRef={this.sidebarRightWidthHolder}
+                    ariaLabel={this.props.ariaLabel}
+                    ariaLabeledby={this.props.ariaLabeledby}
                 >
                     <div
                         tabIndex={-1}

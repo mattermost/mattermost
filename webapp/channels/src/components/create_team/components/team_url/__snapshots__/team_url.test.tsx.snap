@@ -8,13 +8,15 @@ exports[`/components/create_team/components/display_name should match snapshot 1
       className="signup-team-logo"
       src="logo.png"
     />
-    <h5>
+    <label
+      htmlFor="teamURLInput"
+    >
       <MemoizedFormattedMessage
         defaultMessage="Team URL"
         id="create_team.team_url.teamUrl"
         tagName="strong"
       />
-    </h5>
+    </label>
     <div
       className="form-group"
     >
@@ -37,6 +39,7 @@ exports[`/components/create_team/components/display_name should match snapshot 1
               </span>
             </WithTooltip>
             <input
+              aria-describedby="teamURLInputError"
               autoFocus={true}
               className="form-control"
               id="teamURLInput"

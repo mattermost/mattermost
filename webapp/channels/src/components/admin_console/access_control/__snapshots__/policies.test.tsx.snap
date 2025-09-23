@@ -1,0 +1,274 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/access_control/PolicyList should match snapshot with no policies 1`] = `
+<div
+  className="PolicyTable"
+>
+  <div
+    className="policy-header"
+  >
+    <div
+      className="policy-header-text"
+    >
+      <h1>
+        <MemoizedFormattedMessage
+          defaultMessage="Access Control Policies"
+          id="admin.access_control.policies.title"
+        />
+      </h1>
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Create policies containing attribute based access rules and the resources they apply to."
+          id="admin.access_control.policies.description"
+        />
+      </p>
+    </div>
+    <button
+      className="btn btn-primary"
+      onClick={[Function]}
+    >
+      <i
+        className="icon icon-plus"
+      />
+      <span>
+        <MemoizedFormattedMessage
+          defaultMessage="Add policy"
+          id="admin.access_control.policies.add_policy"
+        />
+      </span>
+    </button>
+  </div>
+  <DataGrid
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.access_control.policies.name"
+          />,
+          "width": 5,
+        },
+        Object {
+          "field": "resources",
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Applies to"
+            id="admin.access_control.policies.applies_to"
+          />,
+          "textAlign": "center",
+          "width": 4,
+        },
+        Object {
+          "className": "actions-column",
+          "field": "actions",
+          "name": <span />,
+          "width": 1,
+        },
+      ]
+    }
+    endCount={0}
+    loading={false}
+    nextPage={[Function]}
+    onSearch={[Function]}
+    page={0}
+    placeholderEmpty={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="No policies found"
+        id="admin.user_settings.policy_list.no_policies_found"
+      />
+    }
+    previousPage={[Function]}
+    rows={Array []}
+    rowsContainerStyles={
+      Object {
+        "minHeight": "0px",
+      }
+    }
+    startCount={1}
+    term=""
+    total={0}
+  />
+</div>
+`;
+
+exports[`components/admin_console/access_control/PolicyList should match snapshot with policies 1`] = `
+<div
+  className="PolicyTable"
+>
+  <div
+    className="policy-header"
+  >
+    <div
+      className="policy-header-text"
+    >
+      <h1>
+        <MemoizedFormattedMessage
+          defaultMessage="Access Control Policies"
+          id="admin.access_control.policies.title"
+        />
+      </h1>
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Create policies containing attribute based access rules and the resources they apply to."
+          id="admin.access_control.policies.description"
+        />
+      </p>
+    </div>
+    <button
+      className="btn btn-primary"
+      onClick={[Function]}
+    >
+      <i
+        className="icon icon-plus"
+      />
+      <span>
+        <MemoizedFormattedMessage
+          defaultMessage="Add policy"
+          id="admin.access_control.policies.add_policy"
+        />
+      </span>
+    </button>
+  </div>
+  <DataGrid
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.access_control.policies.name"
+          />,
+          "width": 5,
+        },
+        Object {
+          "field": "resources",
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Applies to"
+            id="admin.access_control.policies.applies_to"
+          />,
+          "textAlign": "center",
+          "width": 4,
+        },
+        Object {
+          "className": "actions-column",
+          "field": "actions",
+          "name": <span />,
+          "width": 1,
+        },
+      ]
+    }
+    endCount={0}
+    loading={false}
+    nextPage={[Function]}
+    onSearch={[Function]}
+    page={0}
+    placeholderEmpty={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="No policies found"
+        id="admin.user_settings.policy_list.no_policies_found"
+      />
+    }
+    previousPage={[Function]}
+    rows={Array []}
+    rowsContainerStyles={
+      Object {
+        "minHeight": "0px",
+      }
+    }
+    startCount={1}
+    term=""
+    total={0}
+  />
+</div>
+`;
+
+exports[`components/admin_console/access_control/PolicyList should match snapshot with search error 1`] = `
+<div
+  className="PolicyTable"
+>
+  <div
+    className="policy-header"
+  >
+    <div
+      className="policy-header-text"
+    >
+      <h1>
+        <MemoizedFormattedMessage
+          defaultMessage="Access Control Policies"
+          id="admin.access_control.policies.title"
+        />
+      </h1>
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Create policies containing attribute based access rules and the resources they apply to."
+          id="admin.access_control.policies.description"
+        />
+      </p>
+    </div>
+    <button
+      className="btn btn-primary"
+      onClick={[Function]}
+    >
+      <i
+        className="icon icon-plus"
+      />
+      <span>
+        <MemoizedFormattedMessage
+          defaultMessage="Add policy"
+          id="admin.access_control.policies.add_policy"
+        />
+      </span>
+    </button>
+  </div>
+  <DataGrid
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.access_control.policies.name"
+          />,
+          "width": 5,
+        },
+        Object {
+          "field": "resources",
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Applies to"
+            id="admin.access_control.policies.applies_to"
+          />,
+          "textAlign": "center",
+          "width": 4,
+        },
+        Object {
+          "className": "actions-column",
+          "field": "actions",
+          "name": <span />,
+          "width": 1,
+        },
+      ]
+    }
+    endCount={0}
+    loading={false}
+    nextPage={[Function]}
+    onSearch={[Function]}
+    page={0}
+    placeholderEmpty={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="No policies found"
+        id="admin.user_settings.policy_list.no_policies_found"
+      />
+    }
+    previousPage={[Function]}
+    rows={Array []}
+    rowsContainerStyles={
+      Object {
+        "minHeight": "0px",
+      }
+    }
+    startCount={1}
+    term=""
+    total={0}
+  />
+</div>
+`;

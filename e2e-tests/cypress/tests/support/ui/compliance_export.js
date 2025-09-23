@@ -40,7 +40,7 @@ Cypress.Commands.add('uiExportCompliance', () => {
 
     // # Wait until export is finished
     cy.waitUntil(() => {
-        return cy.get('@firstRow').find('td:eq(1)').then((el) => {
+        return cy.get('@firstRow').find('td:eq(0)').then((el) => {
             return el[0].innerText.trim() === 'Success';
         });
     },

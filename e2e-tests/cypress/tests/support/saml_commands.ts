@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {AdminConfig} from '@mattermost/types/config';
+
 import * as TIMEOUTS from '../fixtures/timeouts';
 import {ChainableT} from '../types';
 import {stubClipboard} from '../utils';
@@ -79,7 +80,7 @@ function getInvitePeopleLink(settings: TestSettings): ChainableT<any> {
     cy.checkLeftSideBar(settings);
 
     // # Open team menu and click 'Invite People'
-    cy.uiOpenTeamMenu('Invite People');
+    cy.uiOpenTeamMenu('Invite people');
 
     stubClipboard().as('clipboard');
     cy.checkInvitePeoplePage();

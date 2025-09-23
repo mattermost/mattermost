@@ -640,10 +640,6 @@
     "translation": "%v sluttede sig til kanalen som gæst."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Du er det eneste medlem tilbage, prøv at fjerne den private kanal i stedet for at forlade den."
-  },
-  {
     "id": "api.channel.patch_channel_moderations.license.error",
     "translation": "Din licens understøtter ikke kanalmoderation"
   },
@@ -1074,5 +1070,37 @@
   {
     "id": "api.command_expand.name",
     "translation": "udvid"
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Kan ikke gemme kladde til slettet kanal"
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Kladdefunktionen er deaktiveret."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Det lykkedes ikke at slette den seneste status. Prøv at tilføje status først, eller kontakt din systemadministrator for detaljer."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Det lykkedes ikke at opdatere den brugerdefinerede status. En emoji med det givne navn findes ikke."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Funktionen Brugerdefineret status er blevet deaktiveret. Kontakt din systemadministrator for at få flere oplysninger."
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Elasticsearch-indstillingerne har uindstillede værdier."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Det lykkedes ikke at opdatere den brugerdefinerede status. Tilføj enten emoji eller brugerdefineret tekststatus eller begge dele."
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Din licens understøtter ikke brugerdefinerede profilattributter."
   }
 ]

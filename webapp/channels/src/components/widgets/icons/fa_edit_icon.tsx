@@ -9,6 +9,7 @@ export default function EditIcon() {
     return (
         <i
             className='icon-pencil-outline'
+            aria-hidden='true'
             title={formatMessage({id: 'generic_icons.edit', defaultMessage: 'Edit Icon'})}
         />
     );

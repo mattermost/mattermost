@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"encoding/csv"
 	"io"
 	"os"
@@ -28,6 +27,7 @@ type permissionInheritanceTestData struct {
 }
 
 func TestGetRolesByNames(t *testing.T) {
+	mainHelper.Parallel(t)
 	testPermissionInheritance(t, func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData) {
 		actualRoles, err := th.App.GetRolesByNames([]string{testData.channelRole.Name})
 		require.Nil(t, err)
@@ -42,8 +42,9 @@ func TestGetRolesByNames(t *testing.T) {
 }
 
 func TestGetRoleByName(t *testing.T) {
+	mainHelper.Parallel(t)
 	testPermissionInheritance(t, func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData) {
-		actualRole, err := th.App.GetRoleByName(context.Background(), testData.channelRole.Name)
+		actualRole, err := th.App.GetRoleByName(th.Context, testData.channelRole.Name)
 		require.Nil(t, err)
 		require.NotNil(t, actualRole)
 		require.Equal(t, testData.channelRole.Name, actualRole.Name)
@@ -52,6 +53,7 @@ func TestGetRoleByName(t *testing.T) {
 }
 
 func TestGetRoleByID(t *testing.T) {
+	mainHelper.Parallel(t)
 	testPermissionInheritance(t, func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData) {
 		actualRole, err := th.App.GetRole(testData.channelRole.Id)
 		require.Nil(t, err)
@@ -62,6 +64,7 @@ func TestGetRoleByID(t *testing.T) {
 }
 
 func TestGetAllRoles(t *testing.T) {
+	mainHelper.Parallel(t)
 	testPermissionInheritance(t, func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData) {
 		actualRoles, err := th.App.GetAllRoles()
 		require.Nil(t, err)
@@ -187,7 +190,7 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 				}
 
 				// add or remove the permission from the higher-scoped scheme
-				higherScopedRole, testErr := th.App.GetRoleByName(context.Background(), roleNameUnderTest)
+				higherScopedRole, testErr := th.App.GetRoleByName(th.Context, roleNameUnderTest)
 				require.Nil(t, testErr)
 
 				var higherScopedPermissions []string
@@ -209,7 +212,7 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 				case higherScopedAdmin:
 					channelRoleName = channelScheme.DefaultChannelAdminRole
 				}
-				channelRole, testErr := th.App.GetRoleByName(context.Background(), channelRoleName)
+				channelRole, testErr := th.App.GetRoleByName(th.Context, channelRoleName)
 				require.Nil(t, testErr)
 
 				// add or remove the permission from the channel scheme

@@ -35,10 +35,13 @@ describe('Settings > Display > Theme > Custom Theme Colors', () => {
             cy.get('#customThemes').check().should('be.checked');
 
             // # Open Center Channel Styles section
-            cy.get('#centerChannelStyles').click({force: true}).wait(TIMEOUTS.ONE_HUNDRED_MILLIS);
+            cy.get('#centerChannelStylesAccordion').click({force: true}).wait(TIMEOUTS.ONE_HUNDRED_MILLIS);
 
             // # Select custom code theme
-            cy.get('#codeThemeSelect').should('be.visible').scrollIntoView().select(theme.name);
+            cy.get('#codeThemeSelect').
+                scrollIntoView({offset: {top: 20, left: 0}}).
+                should('exist').
+                select(theme.name, {force: true});
 
             // * Verify that the setting changes in the background?
             verifyLastPostStyle(theme);

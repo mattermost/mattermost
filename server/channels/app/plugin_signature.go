@@ -73,35 +73,36 @@ func (a *App) DeletePublicKey(name string) *model.AppError {
 	return nil
 }
 
-// VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
-func (a *App) VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError {
-	return a.ch.verifyPlugin(plugin, signature)
-}
-
-func (ch *Channels) verifyPlugin(plugin, signature io.ReadSeeker) *model.AppError {
+func (ch *Channels) verifyPlugin(logger *mlog.Logger, plugin, signature io.ReadSeeker) *model.AppError {
+	// First try verifying using the hard-coded public key.
 	if err := verifySignature(bytes.NewReader(mattermostPluginPublicKey), plugin, signature); err == nil {
+		logger.Debug("Plugin signature verified using hard-coded public key")
 		return nil
 	}
+
+	// If that fails, try any of the admin-configured public keys.
 	publicKeys := ch.srv.Config().PluginSettings.SignaturePublicKeyFiles
 	for _, pk := range publicKeys {
 		pkBytes, appErr := ch.srv.getPublicKey(pk)
 		if appErr != nil {
-			mlog.Warn("Unable to get public key for ", mlog.String("filename", pk))
+			logger.Warn("Unable to read configured signature public key file", mlog.String("public_key_path", pk))
 			continue
 		}
 		publicKey := bytes.NewReader(pkBytes)
 		if _, err := plugin.Seek(0, io.SeekStart); err != nil {
-			mlog.Warn("Unable to seek in public key reader for ", mlog.String("filename", pk))
+			logger.Warn("Unable to seek in public key reader for ", mlog.String("public_key_path", pk))
 			continue
 		}
 		if _, err := signature.Seek(0, io.SeekStart); err != nil {
-			mlog.Warn("Unable to seek in signature for public key ", mlog.String("filename", pk))
+			logger.Warn("Unable to seek in signature for public key ", mlog.String("public_key_path", pk))
 			continue
 		}
 		if err := verifySignature(publicKey, plugin, signature); err == nil {
+			logger.Debug("Plugin signature verified using configured public key", mlog.String("public_key_path", pk))
 			return nil
 		}
 	}
+
 	return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, "", http.StatusInternalServerError)
 }
 

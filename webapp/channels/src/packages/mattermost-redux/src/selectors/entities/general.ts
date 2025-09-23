@@ -4,11 +4,12 @@
 import type {ClientConfig, FeatureFlags, ClientLicense} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
-import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {General} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
+
+import type {CWSAvailabilityState} from '../../reducers/entities/general';
 
 export function getConfig(state: GlobalState): Partial<ClientConfig> {
     return state.entities.general.config;
@@ -153,6 +154,18 @@ export function testingEnabled(state: GlobalState): boolean {
     return state.entities.general.config.EnableTesting === 'true';
 }
 
-export function getCustomProfileAttributes(state: GlobalState): IDMappedObjects<UserPropertyField> {
-    return state.entities.general.customProfileAttributes;
+export const getCustomProfileAttributes: (state: GlobalState) => UserPropertyField[] = createSelector(
+    'getCustomProfileAttributes',
+    (state) => state.entities.general.customProfileAttributes,
+    (fields) => {
+        return Object.values(fields).sort((a, b) => (a.attrs?.sort_order ?? 0) - (b.attrs?.sort_order ?? 0));
+    },
+);
+
+export function getIsCrossTeamSearchEnabled(state: GlobalState): boolean {
+    return state.entities.general.config.EnableCrossTeamSearch === 'true';
+}
+
+export function getCWSAvailability(state: GlobalState): CWSAvailabilityState {
+    return state.entities.general.cwsAvailability;
 }

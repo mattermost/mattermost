@@ -24,7 +24,7 @@ $announcement-bar-height: 40px;
 $backstage-bar-height: 43px;
 
 // Random variables
-$emoji-per-row: 9; // needs to match variable `EMOJI_PER_ROW` in emoji_picker.jsx
+$emoji-per-row: 9; // needs to match variable `EMOJI_PER_ROW` in components/emoji_picker/constants/index.ts
 
 // Transition timing defaults
 $transition-quick: 0.12s;

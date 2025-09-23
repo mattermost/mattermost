@@ -497,12 +497,36 @@ export function deleteOutgoingOAuthConnection(id: string): ActionFuncAsync<boole
 export function submitInteractiveDialog(submission: DialogSubmission): ActionFuncAsync<SubmitDialogResponse> {
     return async (dispatch, getState) => {
         const state = getState();
-        submission.channel_id = getCurrentChannelId(state);
+
+        // Use the current channel as fallback
+        submission.channel_id ||= getCurrentChannelId(state);
         submission.team_id = getCurrentTeamId(state);
+        submission.user_id = getCurrentUserId(state);
 
         let data;
         try {
             data = await Client4.submitInteractiveDialog(submission);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+
+            dispatch(logError(error));
+            return {error};
+        }
+
+        return {data};
+    };
+}
+
+export function lookupInteractiveDialog(submission: DialogSubmission): ActionFuncAsync<{items: Array<{text: string; value: string}>}> {
+    return async (dispatch, getState) => {
+        const state = getState();
+        submission.channel_id = getCurrentChannelId(state);
+        submission.team_id = getCurrentTeamId(state);
+        submission.user_id = getCurrentUserId(state);
+
+        let data;
+        try {
+            data = await Client4.lookupInteractiveDialog(submission);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
 

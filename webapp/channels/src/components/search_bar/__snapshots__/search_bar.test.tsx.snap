@@ -24,11 +24,6 @@ exports[`components/search_bar/SearchBar should match snapshot with search 1`] =
         class="w-full"
       >
         <div
-          aria-live="polite"
-          class="sr-only"
-          role="alert"
-        />
-        <div
           class="input-wrapper"
         >
           <input
@@ -99,11 +94,6 @@ exports[`components/search_bar/SearchBar should match snapshot with search, with
         class="w-full"
       >
         <div
-          aria-live="polite"
-          class="sr-only"
-          role="alert"
-        />
-        <div
           class="input-wrapper"
         >
           <input
@@ -166,11 +156,6 @@ exports[`components/search_bar/SearchBar should match snapshot without search 1`
         class="w-full"
       >
         <div
-          aria-live="polite"
-          class="sr-only"
-          role="alert"
-        />
-        <div
           class="input-wrapper"
         >
           <input
@@ -229,11 +214,6 @@ exports[`components/search_bar/SearchBar should match snapshot without search, w
         class="w-full"
       >
         <div
-          aria-live="polite"
-          class="sr-only"
-          role="alert"
-        />
-        <div
           class="input-wrapper"
         >
           <input
@@ -283,11 +263,6 @@ exports[`components/search_bar/SearchBar should match snapshot without search, w
       <div
         class="w-full"
       >
-        <div
-          aria-live="polite"
-          class="sr-only"
-          role="alert"
-        />
         <div
           class="input-wrapper"
         >

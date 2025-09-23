@@ -82,6 +82,7 @@ const sectionsList: SystemSection[] = [
             {name: 'environment_session_lengths'},
             {name: 'environment_performance_monitoring'},
             {name: 'environment_developer'},
+            {name: 'environment_mobile_security'},
         ],
     },
     {
@@ -145,7 +146,6 @@ const sectionsList: SystemSection[] = [
         subsections: [
             {name: 'experimental_features'},
             {name: 'experimental_feature_flags'},
-            {name: 'experimental_bleve'},
         ],
     },
 ];

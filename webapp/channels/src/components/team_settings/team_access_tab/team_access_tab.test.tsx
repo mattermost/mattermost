@@ -100,7 +100,7 @@ describe('components/TeamSettings', () => {
     test('should call patchTeam on handleAllowedDomainsSubmit', async () => {
         const props = {...defaultProps, team: TestHelper.getTeamMock({allowed_domains: 'test.com'})};
         renderWithContext(<AccessTab {...props}/>);
-        const allowedDomainsInput = screen.getAllByRole('textbox')[0];
+        const allowedDomainsInput = screen.getAllByRole('combobox')[0];
         const newDomain = 'best.com';
         await act(async () => {
             await allowedDomainsInput.focus();
@@ -110,7 +110,7 @@ describe('components/TeamSettings', () => {
         const newDomainText = screen.getByText(newDomain);
         expect(newDomainText).toBeInTheDocument();
 
-        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
+        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
         await act(async () => {
             userEvent.click(saveButton);
         });

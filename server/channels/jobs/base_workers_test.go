@@ -5,6 +5,7 @@ package jobs
 
 import (
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -14,6 +15,10 @@ import (
 )
 
 func TestSimpleWorkerPanic(t *testing.T) {
+	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
+		t.Parallel()
+	}
+
 	jobServer, mockStore, mockMetrics := makeJobServer(t)
 
 	job := &model.Job{
@@ -29,9 +34,9 @@ func TestSimpleWorkerPanic(t *testing.T) {
 		return true
 	}
 
-	mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusPending, model.JobStatusInProgress).Return(true, nil)
+	mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusPending, model.JobStatusInProgress).Return(&model.Job{Id: "job_id", Type: "job_type"}, nil)
 	mockStore.JobStore.On("UpdateOptimistically", mock.AnythingOfType("*model.Job"), model.JobStatusInProgress).Return(true, nil)
-	mockStore.JobStore.On("Get", mock.AnythingOfType("*request.Context"), "job_id").Return(nil, errors.New("test"))
+	mockStore.JobStore.On("UpdateStatus", "job_id", "success").Return(nil, errors.New("test"))
 	mockMetrics.On("IncrementJobActive", "job_type")
 	mockMetrics.On("DecrementJobActive", "job_type")
 	sWorker := NewSimpleWorker("test", jobServer, exec, isEnabled)

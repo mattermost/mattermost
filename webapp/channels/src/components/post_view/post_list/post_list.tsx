@@ -6,18 +6,22 @@ import React from 'react';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type {updateNewMessagesAtInChannel} from 'actions/global_actions';
-import {clearMarks, countRequestsBetween, mark, shouldTrackPerformance, trackEvent} from 'actions/telemetry_actions.jsx';
+import {clearMarks, mark} from 'actions/telemetry_actions.jsx';
 import type {LoadPostsParameters, LoadPostsReturnValue, CanLoadMorePosts} from 'actions/views/channel';
 
 import LoadingScreen from 'components/loading_screen';
 import VirtPostList from 'components/post_view/post_list_virtualized/post_list_virtualized';
 
-import {PostRequestTypes} from 'utils/constants';
+import {PostRequestTypes, Constants} from 'utils/constants';
 import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {getOldestPostId, getLatestPostId} from 'utils/post_utils';
 
 const MAX_NUMBER_OF_AUTO_RETRIES = 3;
-export const MAX_EXTRA_PAGES_LOADED = 10;
+export const MAX_EXTRA_PAGES_LOADED = 30;
+
+// Post loading page sizes
+const USER_SCROLL_POSTS_PER_PAGE = Constants.POST_CHUNK_SIZE / 2; // 30 posts for user scroll
+const AUTO_LOAD_POSTS_PER_PAGE = 200; // Maximum server limit for auto-loading
 
 // Measures the time between channel or team switch started and the post list component rendering posts.
 // Set "fresh" to true when the posts have not been loaded before.
@@ -25,7 +29,7 @@ function markAndMeasureChannelSwitchEnd(fresh = false) {
     mark(Mark.PostListLoaded);
 
     // Send new performance metrics to server
-    const channelSwitch = measureAndReport({
+    measureAndReport({
         name: Measure.ChannelSwitch,
         startMark: Mark.ChannelLinkClicked,
         endMark: Mark.PostListLoaded,
@@ -34,7 +38,7 @@ function markAndMeasureChannelSwitchEnd(fresh = false) {
         },
         canFail: true,
     });
-    const teamSwitch = measureAndReport({
+    measureAndReport({
         name: Measure.TeamSwitch,
         startMark: Mark.TeamLinkClicked,
         endMark: Mark.PostListLoaded,
@@ -43,29 +47,6 @@ function markAndMeasureChannelSwitchEnd(fresh = false) {
         },
         canFail: true,
     });
-
-    // Send old performance metrics to Rudder
-    if (shouldTrackPerformance()) {
-        if (channelSwitch) {
-            const requestCount1 = countRequestsBetween(Mark.ChannelLinkClicked, Mark.PostListLoaded);
-
-            trackEvent('performance', Measure.ChannelSwitch, {
-                duration: Math.round(channelSwitch.duration),
-                fresh,
-                requestCount: requestCount1,
-            });
-        }
-
-        if (teamSwitch) {
-            const requestCount2 = countRequestsBetween(Mark.TeamLinkClicked, Mark.PostListLoaded);
-
-            trackEvent('performance', Measure.TeamSwitch, {
-                duration: Math.round(teamSwitch.duration),
-                fresh,
-                requestCount: requestCount2,
-            });
-        }
-    }
 
     // Clear all the metrics so that we can differentiate between a channel and team switch next time this is called
     clearMarks([
@@ -263,11 +244,12 @@ export default class PostList extends React.PureComponent<Props, State> {
         }
     };
 
-    callLoadPosts = async (channelId: string, postId: string, type: CanLoadMorePosts) => {
+    callLoadPosts = async (channelId: string, postId: string, type: CanLoadMorePosts, perPage: number) => {
         const {error} = await this.props.actions.loadPosts({
             channelId,
             postId,
             type,
+            perPage,
         });
 
         if (type === PostRequestTypes.BEFORE_ID) {
@@ -279,7 +261,7 @@ export default class PostList extends React.PureComponent<Props, State> {
         if (error) {
             if (this.autoRetriesCount < MAX_NUMBER_OF_AUTO_RETRIES) {
                 this.autoRetriesCount++;
-                await this.callLoadPosts(channelId, postId, type);
+                await this.callLoadPosts(channelId, postId, type, perPage);
             } else if (this.mounted) {
                 this.setState({autoRetryEnable: false});
             }
@@ -327,7 +309,7 @@ export default class PostList extends React.PureComponent<Props, State> {
         }
 
         if (!this.props.atOldestPost && type === PostRequestTypes.BEFORE_ID) {
-            await this.getPostsBefore();
+            await this.getPostsBeforeAutoLoad();
         } else if (!this.props.atLatestPost) {
             // if all olderPosts are loaded load new ones
             await this.getPostsAfter();
@@ -348,7 +330,7 @@ export default class PostList extends React.PureComponent<Props, State> {
 
         const oldestPostId = this.getOldestVisiblePostId();
         this.setState({loadingOlderPosts: true});
-        await this.callLoadPosts(this.props.channelId, oldestPostId, PostRequestTypes.BEFORE_ID);
+        await this.callLoadPosts(this.props.channelId, oldestPostId, PostRequestTypes.BEFORE_ID, USER_SCROLL_POSTS_PER_PAGE);
     };
 
     getPostsAfter = async () => {
@@ -363,7 +345,17 @@ export default class PostList extends React.PureComponent<Props, State> {
 
         const latestPostId = this.getLatestVisiblePostId();
         this.setState({loadingNewerPosts: true});
-        await this.callLoadPosts(this.props.channelId, latestPostId, PostRequestTypes.AFTER_ID);
+        await this.callLoadPosts(this.props.channelId, latestPostId, PostRequestTypes.AFTER_ID, USER_SCROLL_POSTS_PER_PAGE);
+    };
+
+    getPostsBeforeAutoLoad = async () => {
+        if (this.state.loadingOlderPosts) {
+            return;
+        }
+
+        const oldestPostId = this.getOldestVisiblePostId();
+        this.setState({loadingOlderPosts: true});
+        await this.callLoadPosts(this.props.channelId, oldestPostId, PostRequestTypes.BEFORE_ID, AUTO_LOAD_POSTS_PER_PAGE);
     };
 
     render() {

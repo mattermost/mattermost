@@ -5,6 +5,7 @@ import React, {useCallback} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Group} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -91,7 +92,7 @@ const ViewUserGroupModalHeader = ({
                     {group.display_name}
                     {
                         group.delete_at > 0 &&
-                        <i className='icon icon-archive-outline'/>
+                        <ArchiveOutlineIcon size={18}/>
                     }
                 </Modal.Title>
             );
@@ -120,7 +121,7 @@ const ViewUserGroupModalHeader = ({
         if (permissionToRestoreGroup) {
             return (
                 <button
-                    className='user-groups-create btn btn-md btn-primary'
+                    className='user-groups-create btn btn-sm btn-secondary'
                     onClick={restoreGroup}
                 >
                     <FormattedMessage
@@ -160,7 +161,7 @@ const ViewUserGroupModalHeader = ({
     }, [backButtonCallback, onExited]);
 
     return (
-        <Modal.Header closeButton={true}>
+        <Modal.Header>
             <div className='d-flex align-items-center'>
                 <button
                     type='button'
@@ -179,6 +180,20 @@ const ViewUserGroupModalHeader = ({
                 {restoreGroupButton()}
                 {subMenuButton()}
             </div>
+            <button
+                type='button'
+                className='close'
+                onClick={onExited}
+                aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
+            >
+                <span aria-hidden='true'>{'×'}</span>
+                <span className='sr-only'>
+                    <FormattedMessage
+                        id='generic.close'
+                        defaultMessage='Close'
+                    />
+                </span>
+            </button>
         </Modal.Header>
     );
 };

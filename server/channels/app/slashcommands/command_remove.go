@@ -56,16 +56,16 @@ func (*KickProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command
 	}
 }
 
-func (*RemoveProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
-	return doCommand(a, c, args, message)
+func (*RemoveProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+	return doCommand(a, rctx, args, message)
 }
 
-func (*KickProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
-	return doCommand(a, c, args, message)
+func (*KickProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+	return doCommand(a, rctx, args, message)
 }
 
-func doCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
-	channel, err := a.GetChannel(c, args.ChannelId)
+func doCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+	channel, err := a.GetChannel(rctx, args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_remove.channel.app_error"),
@@ -75,14 +75,14 @@ func doCommand(a *app.App, c request.CTX, args *model.CommandArgs, message strin
 
 	switch channel.Type {
 	case model.ChannelTypeOpen:
-		if !a.HasPermissionToChannel(c, args.UserId, args.ChannelId, model.PermissionManagePublicChannelMembers) {
+		if !a.HasPermissionToChannel(rctx, args.UserId, args.ChannelId, model.PermissionManagePublicChannelMembers) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_remove.permission.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
 	case model.ChannelTypePrivate:
-		if !a.HasPermissionToChannel(c, args.UserId, args.ChannelId, model.PermissionManagePrivateChannelMembers) {
+		if !a.HasPermissionToChannel(rctx, args.UserId, args.ChannelId, model.PermissionManagePrivateChannelMembers) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_remove.permission.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
@@ -109,7 +109,7 @@ func doCommand(a *app.App, c request.CTX, args *model.CommandArgs, message strin
 
 	userProfile, nErr := a.Srv().Store().User().GetByUsername(targetUsername)
 	if nErr != nil {
-		c.Logger().Error(nErr.Error())
+		rctx.Logger().Error(nErr.Error())
 		return &model.CommandResponse{
 			Text:         args.T("api.command_remove.missing.app_error"),
 			ResponseType: model.CommandResponseTypeEphemeral,
@@ -122,7 +122,7 @@ func doCommand(a *app.App, c request.CTX, args *model.CommandArgs, message strin
 		}
 	}
 
-	_, err = a.GetChannelMember(c, args.ChannelId, userProfile.Id)
+	_, err = a.GetChannelMember(rctx, args.ChannelId, userProfile.Id)
 	if err != nil {
 		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
 		return &model.CommandResponse{
@@ -133,7 +133,7 @@ func doCommand(a *app.App, c request.CTX, args *model.CommandArgs, message strin
 		}
 	}
 
-	if err = a.RemoveUserFromChannel(c, userProfile.Id, args.UserId, channel); err != nil {
+	if err = a.RemoveUserFromChannel(rctx, userProfile.Id, args.UserId, channel); err != nil {
 		var text string
 		if err.Id == "api.channel.remove_members.denied" {
 			text = args.T("api.command_remove.group_constrained_user_denied")

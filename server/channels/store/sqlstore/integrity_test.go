@@ -317,10 +317,10 @@ func createScheme(ss store.Store) *model.Scheme {
 	return s
 }
 
-func createSession(c request.CTX, ss store.Store, userId string) *model.Session {
+func createSession(rctx request.CTX, ss store.Store, userId string) *model.Session {
 	m := model.Session{}
 	m.UserId = userId
-	s, _ := ss.Session().Save(c, &m)
+	s, _ := ss.Session().Save(rctx, &m)
 	return s
 }
 

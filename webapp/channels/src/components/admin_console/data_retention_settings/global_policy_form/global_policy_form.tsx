@@ -214,7 +214,7 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
                                             inputValue={this.state.messageRetentionInputValue}
                                             width={90}
                                             exceptionToInput={[FOREVER]}
-                                            disabled={this.isMessageRetentionSetByEnv()}
+                                            isDisabled={this.isMessageRetentionSetByEnv()}
                                             defaultValue={keepForeverOption()}
                                             options={[hoursOption(), daysOption(), yearsOption(), keepForeverOption()]}
                                             legend={messages.channelAndMessageRetention}
@@ -242,7 +242,7 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
                                             inputValue={this.state.fileRetentionInputValue}
                                             width={90}
                                             exceptionToInput={[FOREVER]}
-                                            disabled={this.isFileRetentionSetByEnv()}
+                                            isDisabled={this.isFileRetentionSetByEnv()}
                                             defaultValue={keepForeverOption()}
                                             options={[hoursOption(), daysOption(), yearsOption(), keepForeverOption()]}
                                             legend={messages.fileRetention}
@@ -273,7 +273,7 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
                         )}
                     />
                     <BlockableLink
-                        className='cancel-button'
+                        className='btn btn-tertiary'
                         to='/admin_console/compliance/data_retention_settings'
                     >
                         <FormattedMessage

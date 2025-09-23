@@ -1,10 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable max-lines */
-
-import {DynamicSizeList} from 'dynamic-virtualized-list';
-import type {OnItemsRenderedArgs} from 'dynamic-virtualized-list';
 import React from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
@@ -14,6 +10,8 @@ import {getNewMessagesIndex, isDateLine, isStartOfNewMessages} from 'mattermost-
 import type {updateNewMessagesAtInChannel} from 'actions/global_actions';
 import type {CanLoadMorePosts} from 'actions/views/channel';
 
+import {DynamicVirtualizedList} from 'components/dynamic_virtualized_list';
+import type {OnItemsRenderedArgs} from 'components/dynamic_virtualized_list';
 import FloatingTimestamp from 'components/post_view/floating_timestamp';
 import PostListRow from 'components/post_view/post_list_row';
 import ScrollToBottomArrows from 'components/post_view/scroll_to_bottom_arrows';
@@ -146,7 +144,7 @@ type State = {
 }
 
 export default class PostList extends React.PureComponent<Props, State> {
-    listRef: React.RefObject<DynamicSizeList>;
+    listRef: React.RefObject<DynamicVirtualizedList>;
     postListRef: React.RefObject<HTMLDivElement>;
     scrollStopAction: DelayedAction | null = null;
     initRangeToRender: number[];
@@ -716,11 +714,12 @@ export default class PostList extends React.PureComponent<Props, State> {
                                             {this.renderToasts(width)}
                                         </div>
 
-                                        <DynamicSizeList
+                                        <DynamicVirtualizedList
                                             ref={this.listRef}
+                                            id='postListScrollContainer'
+                                            className='post-list__dynamic'
                                             height={height}
                                             width={width}
-                                            className='post-list__dynamic'
                                             itemData={this.state.postListIds}
                                             overscanCountForward={OVERSCAN_COUNT_FORWARD}
                                             overscanCountBackward={OVERSCAN_COUNT_BACKWARD}
@@ -737,7 +736,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                                             scrollToFailed={this.scrollToFailed}
                                         >
                                             {this.renderRow}
-                                        </DynamicSizeList>
+                                        </DynamicVirtualizedList>
                                     </>
                                 )}
                             </AutoSizer>

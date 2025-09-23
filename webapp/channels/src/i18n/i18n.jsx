@@ -152,7 +152,7 @@ export function getAllLanguages(includeExperimental) {
             ...langIDs.reduce((out, id) => {
                 out[id] = {
                     value: id,
-                    name: langLabels[id],
+                    name: langLabels[id] + ' (Experimental)',
                     url: langFiles[id],
                     order: order++,
                 };

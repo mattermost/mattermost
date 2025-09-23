@@ -319,6 +319,70 @@ func TestGetClientConfig(t *testing.T) {
 				"GiphySdkKey": model.ServiceSettingsDefaultGiphySdkKeyTest,
 			},
 		},
+		{
+			"report a problem values",
+			&model.Config{
+				SupportSettings: model.SupportSettings{
+					ReportAProblemType: model.NewPointer("type"),
+					ReportAProblemLink: model.NewPointer("http://example.com"),
+					ReportAProblemMail: model.NewPointer("mail"),
+					AllowDownloadLogs:  model.NewPointer(true),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"ReportAProblemType": "type",
+				"ReportAProblemLink": "http://example.com",
+				"ReportAProblemMail": "mail",
+				"AllowDownloadLogs":  "true",
+			},
+		},
+		{
+			"access control settings enabled",
+			&model.Config{
+				AccessControlSettings: model.AccessControlSettings{
+					EnableAttributeBasedAccessControl: model.NewPointer(true),
+					EnableChannelScopeAccessControl:   model.NewPointer(true),
+					EnableUserManagedAttributes:       model.NewPointer(true),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"EnableAttributeBasedAccessControl": "true",
+				"EnableChannelScopeAccessControl":   "true",
+				"EnableUserManagedAttributes":       "true",
+			},
+		},
+		{
+			"access control settings disabled",
+			&model.Config{
+				AccessControlSettings: model.AccessControlSettings{
+					EnableAttributeBasedAccessControl: model.NewPointer(false),
+					EnableChannelScopeAccessControl:   model.NewPointer(false),
+					EnableUserManagedAttributes:       model.NewPointer(false),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"EnableAttributeBasedAccessControl": "false",
+				"EnableChannelScopeAccessControl":   "false",
+				"EnableUserManagedAttributes":       "false",
+			},
+		},
+		{
+			"access control settings default",
+			&model.Config{},
+			"",
+			nil,
+			map[string]string{
+				"EnableAttributeBasedAccessControl": "false",
+				"EnableChannelScopeAccessControl":   "false",
+				"EnableUserManagedAttributes":       "false",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {

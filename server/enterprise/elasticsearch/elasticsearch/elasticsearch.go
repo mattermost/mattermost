@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -42,8 +43,9 @@ type ElasticsearchInterfaceImpl struct {
 	fullVersion string
 	plugins     []string
 
-	bulkProcessor *Bulk
-	Platform      *platform.PlatformService
+	bulkProcessor     BulkClient
+	syncBulkProcessor BulkClient
+	Platform          *platform.PlatformService
 }
 
 func getJSONOrErrorStr(obj any) string {
@@ -127,10 +129,39 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 
 	ctx := context.Background()
 
-	if *es.Platform.Config().ElasticsearchSettings.LiveIndexingBatchSize > 1 {
-		es.bulkProcessor = NewBulk(es.Platform.Config().ElasticsearchSettings,
-			es.Platform.Log(),
-			es.client)
+	esSettings := es.Platform.Config().ElasticsearchSettings
+	if *esSettings.LiveIndexingBatchSize > 1 {
+		es.bulkProcessor, err = NewBulk(
+			common.BulkSettings{
+				FlushBytes:    0,
+				FlushInterval: common.BulkFlushInterval,
+				FlushNumReqs:  *esSettings.LiveIndexingBatchSize,
+			},
+			es.client,
+			time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
+			es.Platform.Log())
+		if err != nil {
+			return model.NewAppError("elasticsearch.start",
+				"ent.elasticsearch.create_processor.bulk_processor_create_failed",
+				nil, "",
+				http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	es.syncBulkProcessor, err = NewBulk(
+		common.BulkSettings{
+			FlushBytes:    common.BulkFlushBytes,
+			FlushInterval: 0,
+			FlushNumReqs:  0,
+		},
+		es.client,
+		time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
+		es.Platform.Log())
+	if err != nil {
+		return model.NewAppError("elasticsearch.start",
+			"ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+			nil, "",
+			http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Set up posts index template.
@@ -283,7 +314,7 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 	var filters, notFilters []types.Query
 	for i, params := range searchParams {
 		newTerms := []string{}
-		for _, term := range strings.Split(params.Terms, " ") {
+		for term := range strings.SplitSeq(params.Terms, " ") {
 			if searchengine.EmailRegex.MatchString(term) {
 				term = `"` + term + `"`
 			}
@@ -439,7 +470,7 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 				termQueries = append(termQueries, query)
 
 				hashtagTerms := []string{}
-				for _, term := range strings.Split(params.Terms, " ") {
+				for term := range strings.SplitSeq(params.Terms, " ") {
 					hashtagTerms = append(hashtagTerms, "#"+term)
 				}
 
@@ -549,14 +580,14 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 	}
 
 	search := es.client.Search().
-		Index(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBasePosts + "*").
+		Index(common.SearchIndexName(es.Platform.Config().ElasticsearchSettings, common.IndexBasePosts+"*")).
 		Request(&search.Request{
 			Query:     query,
 			Highlight: highlight,
 		}).
-		Sort(types.SortOptions{SortOptions: map[string]types.FieldSort{
+		Sort(NewSortOptions().SortOptions(map[string]types.FieldSort{
 			"create_at": {Order: &sortorder.Desc},
-		}}).
+		})).
 		From(page * perPage).
 		Size(perPage)
 
@@ -748,6 +779,49 @@ func (es *ElasticsearchInterfaceImpl) IndexChannel(rctx request.CTX, channel *mo
 	return nil
 }
 
+func (es *ElasticsearchInterfaceImpl) SyncBulkIndexChannels(rctx request.CTX, channels []*model.Channel, getUserIDsForChannel func(channel *model.Channel) ([]string, error), teamMemberIDs []string) *model.AppError {
+	if len(channels) == 0 {
+		return nil
+	}
+
+	es.mutex.RLock()
+	defer es.mutex.RUnlock()
+
+	if atomic.LoadInt32(&es.ready) == 0 {
+		return model.NewAppError("Elasticsearch.SyncBulkIndexChannels", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
+	}
+
+	indexName := *es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels
+	metrics := es.Platform.Metrics()
+
+	for _, channel := range channels {
+		userIDs, err := getUserIDsForChannel(channel)
+		if err != nil {
+			return model.NewAppError("Elasticsearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		searchChannel := common.ESChannelFromChannel(channel, userIDs, teamMemberIDs)
+
+		err = es.syncBulkProcessor.IndexOp(types.IndexOperation{
+			Index_: model.NewPointer(indexName),
+			Id_:    model.NewPointer(searchChannel.Id),
+		}, searchChannel)
+		if err != nil {
+			return model.NewAppError("Elasticsearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		if metrics != nil {
+			metrics.IncrementChannelIndexCounter()
+		}
+	}
+
+	if err := es.syncBulkProcessor.Flush(); err != nil {
+		return model.NewAppError("Elasticsearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
 func (es *ElasticsearchInterfaceImpl) SearchChannels(teamId, userID string, term string, isGuest, includeDeleted bool) ([]string, *model.AppError) {
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
@@ -822,7 +896,7 @@ func (es *ElasticsearchInterfaceImpl) SearchChannels(teamId, userID string, term
 	}
 
 	search := es.client.Search().
-		Index(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels).
+		Index(common.SearchIndexName(es.Platform.Config().ElasticsearchSettings, common.IndexBaseChannels)).
 		Request(&search.Request{
 			Query: &types.Query{Bool: query},
 		}).
@@ -996,7 +1070,7 @@ func (es *ElasticsearchInterfaceImpl) autocompleteUsers(contextCategory string, 
 	}
 
 	search := es.client.Search().
-		Index(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseUsers).
+		Index(common.SearchIndexName(es.Platform.Config().ElasticsearchSettings, common.IndexBaseUsers)).
 		Request(&search.Request{
 			Query: &types.Query{Bool: query},
 		}).
@@ -1116,7 +1190,7 @@ func (es *ElasticsearchInterfaceImpl) autocompleteUsersNotInChannel(teamId, chan
 	}
 
 	search := es.client.Search().
-		Index(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseUsers).
+		Index(common.SearchIndexName(es.Platform.Config().ElasticsearchSettings, common.IndexBaseUsers)).
 		Request(&search.Request{
 			Query: &types.Query{Bool: query},
 		}).
@@ -1282,7 +1356,7 @@ func (es *ElasticsearchInterfaceImpl) PurgeIndexes(rctx request.CTX) *model.AppE
 		// we are checking if provided indexes exist. If an index doesn't exist,
 		// elasticsearch returns an error while trying to purge it even we intend to
 		// ignore it.
-		for _, ignorePurgeIndex := range strings.Split(ignorePurgeIndexes, ",") {
+		for ignorePurgeIndex := range strings.SplitSeq(ignorePurgeIndexes, ",") {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*es.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
 			defer cancel()
 
@@ -1327,13 +1401,7 @@ func (es *ElasticsearchInterfaceImpl) PurgeIndexList(rctx request.CTX, indexes [
 	indexPrefix := *es.Platform.Config().ElasticsearchSettings.IndexPrefix
 	indexToDeleteMap := map[string]bool{}
 	for _, index := range indexes {
-		isKnownIndex := false
-		for _, allowedIndex := range purgeIndexListAllowedIndexes {
-			if index == allowedIndex {
-				isKnownIndex = true
-				break
-			}
-		}
+		isKnownIndex := slices.Contains(purgeIndexListAllowedIndexes, index)
 
 		if !isKnownIndex {
 			return model.NewAppError("Elasticsearch.PurgeIndexList", "ent.elasticsearch.purge_indexes.unknown_index", map[string]any{"unknown_index": index}, "", http.StatusBadRequest)
@@ -1344,7 +1412,7 @@ func (es *ElasticsearchInterfaceImpl) PurgeIndexList(rctx request.CTX, indexes [
 
 	if ign := *es.Platform.Config().ElasticsearchSettings.IgnoredPurgeIndexes; ign != "" {
 		// make sure we're not purging any index configured to be ignored
-		for _, ix := range strings.Split(ign, ",") {
+		for ix := range strings.SplitSeq(ign, ",") {
 			delete(indexToDeleteMap, ix)
 		}
 	}
@@ -1472,7 +1540,7 @@ func (es *ElasticsearchInterfaceImpl) SearchFiles(channels model.ChannelList, se
 	var filters, notFilters []types.Query
 	for i, params := range searchParams {
 		newTerms := []string{}
-		for _, term := range strings.Split(params.Terms, " ") {
+		for term := range strings.SplitSeq(params.Terms, " ") {
 			if searchengine.EmailRegex.MatchString(term) {
 				term = `"` + term + `"`
 			}
@@ -1664,13 +1732,13 @@ func (es *ElasticsearchInterfaceImpl) SearchFiles(channels model.ChannelList, se
 	}
 
 	search := es.client.Search().
-		Index(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseFiles).
+		Index(common.SearchIndexName(es.Platform.Config().ElasticsearchSettings, common.IndexBaseFiles)).
 		Request(&search.Request{
 			Query: query,
 		}).
-		Sort(types.SortOptions{SortOptions: map[string]types.FieldSort{
+		Sort(NewSortOptions().SortOptions(map[string]types.FieldSort{
 			"create_at": {Order: &sortorder.Desc},
-		}}).
+		})).
 		From(page * perPage).
 		Size(perPage)
 

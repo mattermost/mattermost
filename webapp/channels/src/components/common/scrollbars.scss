@@ -1,0 +1,21 @@
+.simplebar-track {
+    // Prevent clicking or dragging the scrollbar from interacting with elements behind it
+    pointer-events: all;
+}
+
+.simplebar-track .simplebar-scrollbar::before {
+    width: 6px;
+    border-radius: 2px;
+
+    // Defaults to sidebar text BG, but it can be overridden by the Scrollbars component
+    background-color: rgba(var(--scrollbar-color, var(--sidebar-text-rgb)), 0.32);
+}
+
+.simplebar-track .simplebar-scrollbar.simplebar-visible::before {
+    opacity: 1;
+}
+
+[data-simplebar] {
+    // Ensures that scrollbar divs never overflow their flexbox parents
+    min-height: 0;
+}

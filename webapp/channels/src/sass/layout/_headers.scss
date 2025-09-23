@@ -209,7 +209,6 @@
     .heading {
         overflow: hidden;
         align-self: center;
-        padding: 4px;
         margin: 0 0 0 2px;
         color: var(--center-channel-color);
         font-family: Metropolis, sans-serif;
@@ -696,7 +695,6 @@
 // Team Header in Sidebar
 .sidebar--left,
 #SidebarContainer,
-.sidebar--menu,
 .admin-sidebar {
     .divider {
         border-top: 1px solid transparent;

@@ -54,20 +54,23 @@ func WriteFileResponse(filename string, contentType string, contentSize int64, l
 	http.ServeContent(w, r, filename, lastModification, fileReader)
 }
 
-// WriteStreamResponse copies the ReadCloser `r` to the ResponseWriter `w`. Use this when you need to stream a response
+// WriteStreamResponse copies the Reader `r` to the ResponseWriter `w`. Use this when you need to stream a response
 // to the client that will appear as a file `filename` of type `contentType`.
-func WriteStreamResponse(w http.ResponseWriter, r io.ReadCloser, filename string, contentType string, forceDownload bool) error {
+func WriteStreamResponse(w http.ResponseWriter, r io.Reader, filename string, contentType string, forceDownload bool) error {
 	setHeaders(w, contentType, forceDownload, filename)
 
 	if _, err := io.Copy(w, r); err != nil {
-		return errors.Wrap(err, "error streaming ReadCloser")
+		return errors.Wrap(err, "error streaming Reader")
 	}
 
 	return nil
 }
 
 func setHeaders(w http.ResponseWriter, contentType string, forceDownload bool, filename string) {
-	w.Header().Set("Cache-Control", "private, max-age=86400")
+	// Only set Cache-Control if it hasn't been set already
+	if w.Header().Get("Cache-Control") == "" {
+		w.Header().Set("Cache-Control", "private, max-age=86400")
+	}
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 
 	if contentType == "" {

@@ -118,7 +118,7 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	if _, err := c.DoAPIPost(context.TODO(), url, data); err != nil {
-		return fmt.Errorf("could not create post: %s", err.Error())
+		return fmt.Errorf("could not create post: %w", err)
 	}
 	return nil
 }

@@ -31,7 +31,7 @@ const FormFieldLabel = styled.label`
     }
 `;
 
-export const SectionHeader = styled.header.attrs({className: 'header'})<{$borderless?: boolean}>`
+export const SectionHeader = styled.div.attrs({className: 'header'})<{$borderless?: boolean}>`
     &&& {
         padding: 24px 32px;
         ${({$borderless}) => !$borderless && css`

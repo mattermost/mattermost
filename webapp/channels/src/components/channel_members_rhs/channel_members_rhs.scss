@@ -1,0 +1,150 @@
+.channel-members-rhs {
+    &__members-container {
+        flex: 1 1 auto;
+        padding: 0 4px 16px;
+    }
+
+    &__member-list-separator {
+        padding: 0px 12px;
+        margin-top: 16px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        line-height: 28px;
+        text-transform: uppercase;
+
+        &--first {
+            margin-top: 0px;
+        }
+    }
+
+    &__alert-container {
+        padding: 0 20px 15px;
+
+        &.policy-enforced {
+            padding: 0;
+
+            .AlertBanner {
+                padding-bottom: 8px;
+                border: none;
+                border-radius: 0;
+                border-bottom: 1px solid var(--center-channel-color-8, rgba(63, 67, 80, 0.08));
+            }
+
+            .TagGroup {
+                margin-top: 12px;
+            }
+        }
+    }
+
+    &__member {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 8px 16px;
+        border-radius: 4px;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+
+            .channel-members-rhs__send-message {
+                display: block;
+                flex: 0 0 auto;
+            }
+        }
+
+        .ProfileSpan {
+            display: flex;
+            width: 100%;
+            flex-direction: row;
+            align-items: center;
+            padding: 4px 0; // This padding is to make sure the status icon doesn't get clipped off because of the overflow
+
+            .profileSpan_userInfo {
+                display: flex;
+                overflow: hidden;
+                flex-grow: 1;
+                cursor: pointer;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
+
+        .MenuWrapper {
+            font-size: 11px;
+            font-weight: 600;
+        }
+    }
+
+    &__avatar {
+        flex-basis: fit-content;
+        flex-shrink: 0;
+    }
+
+    &__display-name {
+        display: inline;
+        overflow: hidden;
+        margin-left: 8px;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        gap: 8px;
+        line-height: 20px;
+        text-overflow: ellipsis;
+    }
+
+    &__username {
+        margin-left: 4px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        line-height: 18px;
+    }
+
+    &__send-message {
+        display: none;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        border: 0;
+        border-radius: 4px;
+        margin-left: 8px;
+        background-color: transparent;
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.12);
+        }
+
+        .icon {
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            font-size: 14.4px;
+        }
+    }
+
+    &__role-chooser {
+        display: none;
+        flex-basis: fit-content;
+        flex-shrink: 0;
+
+        &.editing {
+            display: block;
+        }
+
+        .MenuWrapper {
+            padding: 6px 10px;
+            border-radius: 4px;
+            &.MenuWrapper--open {
+                background: rgba(var(--button-bg-rgb), 0.16);
+            }
+            &:not(.MenuWrapper--open):hover {
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+            }
+        }
+    }
+
+    &__shared-icon {
+        margin: 0 0 0 4px;
+        font-size: 16px;
+        line-height: 20px;
+    }
+}

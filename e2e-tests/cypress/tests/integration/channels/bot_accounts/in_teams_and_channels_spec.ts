@@ -11,9 +11,10 @@
 // Group: @channels @bot_accounts
 
 import {Team} from '@mattermost/types/teams';
+import {Channel} from '@mattermost/types/channels';
+
 import {createBotPatch} from '../../../support/api/bots';
 import {createChannelPatch} from '../../../support/api/channel';
-import {Channel} from '@mattermost/types/channels';
 
 describe('Managing bots in Teams and Channels', () => {
     let team: Team;
@@ -55,7 +56,7 @@ describe('Managing bots in Teams and Channels', () => {
             await client.addToTeam(team.id, bot.user_id);
 
             // # Add bot to channel in team
-            cy.uiAddUsersToCurrentChannel([bot.username]);
+            cy.uiInviteUsersToCurrentChannel([bot.username]);
 
             // * Verify system message in-channel
             cy.uiWaitUntilMessagePostedIncludes(`@${bot.username} added to the channel by you.`);
@@ -73,7 +74,7 @@ describe('Managing bots in Teams and Channels', () => {
             cy.postMessage(`/invite @${bot.username} `);
 
             // * Verify system message in-channel
-            cy.uiWaitUntilMessagePostedIncludes(`@${bot.username} is not a member of the team.`);
+            cy.uiWaitUntilMessagePostedIncludes(`You can add @${bot.username} to this channel once they are members of`);
         });
     });
 

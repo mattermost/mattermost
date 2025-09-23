@@ -46,8 +46,8 @@ describe('Login page with open server', () => {
         // * Verify title of the document is correct
         cy.title().should('include', config.TeamSettings.SiteName);
 
-        // # Remove autofocus from login id input
-        cy.get('.login-body-card-content').should('be.visible').focus();
+        // # Remove autofocus from login input
+        cy.get('.login-body-card-title').click();
 
         // * Verify email/username field is present
         cy.findByPlaceholderText('Email or Username').should('exist').and('be.visible');
@@ -156,6 +156,9 @@ describe('Login page with open server', () => {
     it('MM-T3306_7 Should show error with invalid password', () => {
         const invalidPassword = `${Date.now()}-password`;
 
+        // Remove autofocus from login input
+        cy.get('.login-body-card-title').click();
+
         // # Lets verify generated password is not an actual password
         expect(invalidPassword).to.not.equal(testUser.password);
 
@@ -173,6 +176,9 @@ describe('Login page with open server', () => {
     });
 
     it('MM-T3306_8 Should login with a valid email and password and logout', () => {
+        // Remove autofocus from login input
+        cy.get('.login-body-card-title').click();
+
         // # Enter actual users email/username in the email field
         cy.findByPlaceholderText('Email or Username').clear().type(testUser.username);
 
@@ -196,8 +202,8 @@ describe('Login page with open server', () => {
         // # Visit login page
         cy.visit('/login');
 
-        // # Remove autofocus from login id input
-        cy.get('.login-body-card-content').should('be.visible').focus();
+        // # Remove autofocus from login input
+        cy.get('.login-body-card-title').click();
 
         // # Enter actual users email/username in the email field
         cy.findByPlaceholderText('Email or Username').clear().type(testUser.username);

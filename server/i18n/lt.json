@@ -104,10 +104,6 @@
     "translation": "Naudotojui neleidžiama konvertuoti grupės žinutės į privatų kanalą"
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Esate vienintelis likęs narys, pabandykite pašalinti privatų kanalą, o ne išeiti."
-  },
-  {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
     "translation": "Nepavyko gauti naudotojo atnaujinant kanalo lauką DisplayName"
   },
@@ -762,5 +758,133 @@
   {
     "id": "api.command_channel_rename.hint",
     "translation": "[tekstas]"
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Nepavyko ištrinti kanalo žymos."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Nepavyko sukurti kanalo žymos."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Nepavyko ištrinti kanalo žymos."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Nepavyko atnaujinti kanalo žymos."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Nepavyko atnaujinti kanalo žymos."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Nepavyko atnaujinti kanalo žymos."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Nepavyko atnaujinti kanalo žymos."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Nepavyko atnaujinti kanalo žymos rūšiavimo sekos."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Vartotojas neturi leidimo sukurti kanalo žymos."
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Jūsų licencija nepalaiko kanalo žymų."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Nepavyko ištrinti kanalo žymos."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Nepavyko sukurti kanalo žymos."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Nepavyko ištrinti kanalo žymos."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Nepavyko sukurti kanalo žymos."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Nepavyko atnaujinti kanalo žymos rūšiavimo sekos."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Nepavyko atnaujinti kanalo žymos rūšiavimo sekos."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Nepavyko atnaujinti kanalo žymos rūšiavimo sekos."
+  },
+  {
+    "id": "api.command_expand.name",
+    "translation": "išplėsti"
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "Sugeneruoti eksporto atsisiuntimo nuorodą."
+  },
+  {
+    "id": "api.command_groupmsg.desc",
+    "translation": "Išsiunčia bendrą žinutę nurodytiems naudotojams"
+  },
+  {
+    "id": "api.command_invite_people.permission.app_error",
+    "translation": "Jūs neturite leidimo pridėti naujų naudotojų į šį serverį."
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "Savo failą galite atsisiųsti čia: {{.Link}}\nŠi nuoroda nustos galioti po {{.Expiration}}"
+  },
+  {
+    "id": "api.command_invite.desc",
+    "translation": "Pakviesti naudotoją į kanalą"
+  },
+  {
+    "id": "api.command_echo.delay.app_error",
+    "translation": "Delsimas negali trukti ilgiau 10000 sekundžių."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "Nerasta failų eksportavimui."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Nepavyko atkurti eksportavimo sąrašo."
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "Jūs neturite pakankamai leidimų šiai komandai."
+  },
+  {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Kanalo vėliava gali būti sukonfigūruota tik viešuose ir privačiuose kanaluose."
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Negalima sukurti grupinio kanalo nuotoliniams naudotojams"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Negalima sukurti tiesioginio kanalo su nuotoliniu vartotoju"
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Nepavyko rasti norimo failo."
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Negalima paleisti komandos ištrintame kanale."
   }
 ]

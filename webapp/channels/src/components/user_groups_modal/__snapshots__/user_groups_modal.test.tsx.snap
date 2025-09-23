@@ -1,200 +1,193 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`component/user_groups_modal should match snapshot with groups 1`] = `
-<Modal
-  animation={true}
-  aria-labelledby="userGroupsModalLabel"
-  autoFocus={true}
-  backdrop={true}
-  bsClass="modal"
-  dialogClassName="a11y__modal user-groups-modal"
-  dialogComponentClass={[Function]}
+<GenericModal
+  ariaLabel="userGroupsModalLabel"
+  bodyPadding={false}
+  className="a11y__modal user-groups-modal"
+  compassDesign={true}
   enforceFocus={true}
+  headerButton={
+    <button
+      className="user-groups-create btn btn-secondary btn-sm"
+      onClick={[Function]}
+    >
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Create Group"
+        id="user_groups_modal.createNew"
+      />
+    </button>
+  }
   id="userGroupsModal"
-  keyboard={true}
-  manager={
-    ModalManager {
-      "add": [Function],
-      "containers": Array [],
-      "data": Array [],
-      "handleContainerOverflow": true,
-      "hideSiblingNodes": true,
-      "isTopModal": [Function],
-      "modals": Array [],
-      "remove": [Function],
-    }
+  modalHeaderText={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="User Groups"
+      id="user_groups_modal.title"
+    />
   }
   onExited={[MockFunction]}
   onHide={[Function]}
-  renderBackdrop={[Function]}
-  restoreFocus={true}
-  role="none"
   show={true}
 >
-  <Connect(Component)
-    backButtonAction={[MockFunction]}
-    onExited={[MockFunction]}
-  />
-  <ModalBody
-    bsClass="modal-body"
-    componentClass="div"
+  <div
+    className="user-groups-search"
   >
     <div
-      className="user-groups-search"
-    >
-      <ForwardRef
-        className="user-group-search-input"
-        data-testid="searchInput"
-        inputPrefix={
-          <i
-            className="icon icon-magnify"
-          />
-        }
-        onChange={[Function]}
-        placeholder={
-          Object {
-            "defaultMessage": "Search Groups",
-            "id": "user_groups_modal.searchGroups",
-          }
-        }
-        type="text"
-        value=""
-      />
-    </div>
-    <Memo(UserGroupsFilter)
-      getGroups={[Function]}
-      selectedFilter="all"
+      aria-atomic="true"
+      aria-live="polite"
+      className="sr-only"
+      role="status"
     />
-    <Connect(Component)
-      backButtonAction={[MockFunction]}
-      groups={
-        Array [
-          Object {
-            "allow_reference": true,
-            "create_at": 1637349374137,
-            "delete_at": 0,
-            "description": "Group 0 description",
-            "display_name": "Group 0",
-            "has_syncables": false,
-            "id": "group0",
-            "member_count": 1,
-            "name": "group0",
-            "remote_id": null,
-            "scheme_admin": false,
-            "source": "custom",
-            "update_at": 1637349374137,
-          },
-          Object {
-            "allow_reference": true,
-            "create_at": 1637349374137,
-            "delete_at": 0,
-            "description": "Group 1 description",
-            "display_name": "Group 1",
-            "has_syncables": false,
-            "id": "group1",
-            "member_count": 2,
-            "name": "group1",
-            "remote_id": null,
-            "scheme_admin": false,
-            "source": "custom",
-            "update_at": 1637349374137,
-          },
-          Object {
-            "allow_reference": true,
-            "create_at": 1637349374137,
-            "delete_at": 0,
-            "description": "Group 2 description",
-            "display_name": "Group 2",
-            "has_syncables": false,
-            "id": "group2",
-            "member_count": 3,
-            "name": "group2",
-            "remote_id": null,
-            "scheme_admin": false,
-            "source": "custom",
-            "update_at": 1637349374137,
-          },
-        ]
+    <ForwardRef
+      className="user-group-search-input"
+      data-testid="searchInput"
+      inputPrefix={
+        <i
+          className="icon icon-magnify"
+        />
       }
-      hasNextPage={true}
-      loadMoreGroups={[Function]}
-      loading={false}
-      onExited={[MockFunction]}
-      searchTerm=""
+      onChange={[Function]}
+      placeholder={
+        Object {
+          "defaultMessage": "Search Groups",
+          "id": "user_groups_modal.searchGroups",
+        }
+      }
+      type="text"
+      value=""
     />
-  </ModalBody>
-</Modal>
+  </div>
+  <Memo(UserGroupsFilter)
+    getGroups={[Function]}
+    onToggle={[Function]}
+    selectedFilter="all"
+  />
+  <Connect(Component)
+    backButtonAction={[MockFunction]}
+    groups={
+      Array [
+        Object {
+          "allow_reference": true,
+          "create_at": 1637349374137,
+          "delete_at": 0,
+          "description": "Group 0 description",
+          "display_name": "Group 0",
+          "has_syncables": false,
+          "id": "group0",
+          "member_count": 1,
+          "name": "group0",
+          "remote_id": null,
+          "scheme_admin": false,
+          "source": "custom",
+          "update_at": 1637349374137,
+        },
+        Object {
+          "allow_reference": true,
+          "create_at": 1637349374137,
+          "delete_at": 0,
+          "description": "Group 1 description",
+          "display_name": "Group 1",
+          "has_syncables": false,
+          "id": "group1",
+          "member_count": 2,
+          "name": "group1",
+          "remote_id": null,
+          "scheme_admin": false,
+          "source": "custom",
+          "update_at": 1637349374137,
+        },
+        Object {
+          "allow_reference": true,
+          "create_at": 1637349374137,
+          "delete_at": 0,
+          "description": "Group 2 description",
+          "display_name": "Group 2",
+          "has_syncables": false,
+          "id": "group2",
+          "member_count": 3,
+          "name": "group2",
+          "remote_id": null,
+          "scheme_admin": false,
+          "source": "custom",
+          "update_at": 1637349374137,
+        },
+      ]
+    }
+    hasNextPage={true}
+    loadMoreGroups={[Function]}
+    loading={false}
+    onExited={[MockFunction]}
+    onToggle={[Function]}
+    searchTerm=""
+  />
+</GenericModal>
 `;
 
 exports[`component/user_groups_modal should match snapshot without groups 1`] = `
-<Modal
-  animation={true}
-  aria-labelledby="userGroupsModalLabel"
-  autoFocus={true}
-  backdrop={true}
-  bsClass="modal"
-  dialogClassName="a11y__modal user-groups-modal"
-  dialogComponentClass={[Function]}
+<GenericModal
+  ariaLabel="userGroupsModalLabel"
+  bodyPadding={false}
+  className="a11y__modal user-groups-modal"
+  compassDesign={true}
   enforceFocus={true}
+  headerButton={
+    <button
+      className="user-groups-create btn btn-secondary btn-sm"
+      onClick={[Function]}
+    >
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Create Group"
+        id="user_groups_modal.createNew"
+      />
+    </button>
+  }
   id="userGroupsModal"
-  keyboard={true}
-  manager={
-    ModalManager {
-      "add": [Function],
-      "containers": Array [],
-      "data": Array [],
-      "handleContainerOverflow": true,
-      "hideSiblingNodes": true,
-      "isTopModal": [Function],
-      "modals": Array [],
-      "remove": [Function],
-    }
+  modalHeaderText={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="User Groups"
+      id="user_groups_modal.title"
+    />
   }
   onExited={[MockFunction]}
   onHide={[Function]}
-  renderBackdrop={[Function]}
-  restoreFocus={true}
-  role="none"
   show={true}
 >
-  <Connect(Component)
-    backButtonAction={[MockFunction]}
-    onExited={[MockFunction]}
-  />
-  <ModalBody
-    bsClass="modal-body"
-    componentClass="div"
+  <div
+    className="user-groups-search"
   >
     <div
-      className="user-groups-search"
-    >
-      <ForwardRef
-        className="user-group-search-input"
-        data-testid="searchInput"
-        inputPrefix={
-          <i
-            className="icon icon-magnify"
-          />
-        }
-        onChange={[Function]}
-        placeholder={
-          Object {
-            "defaultMessage": "Search Groups",
-            "id": "user_groups_modal.searchGroups",
-          }
-        }
-        type="text"
-        value=""
-      />
-    </div>
-    <Memo(UserGroupsFilter)
-      getGroups={[Function]}
-      selectedFilter="all"
+      aria-atomic="true"
+      aria-live="polite"
+      className="sr-only"
+      role="status"
     />
-    <NoResultsIndicator
-      variant="UserGroups"
+    <ForwardRef
+      className="user-group-search-input"
+      data-testid="searchInput"
+      inputPrefix={
+        <i
+          className="icon icon-magnify"
+        />
+      }
+      onChange={[Function]}
+      placeholder={
+        Object {
+          "defaultMessage": "Search Groups",
+          "id": "user_groups_modal.searchGroups",
+        }
+      }
+      type="text"
+      value=""
     />
-    <Memo(ADLDAPUpsellBanner) />
-  </ModalBody>
-</Modal>
+  </div>
+  <Memo(UserGroupsFilter)
+    getGroups={[Function]}
+    onToggle={[Function]}
+    selectedFilter="all"
+  />
+  <NoResultsIndicator
+    variant="UserGroups"
+  />
+  <Memo(ADLDAPUpsellBanner) />
+</GenericModal>
 `;

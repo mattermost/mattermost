@@ -108,13 +108,6 @@ const EmojiPickerSearch = forwardRef<HTMLInputElement, Props>(({value, cursorCat
                 onKeyDown(NavigationDirection.NextEmojiRow);
             }
             break;
-        case KeyCodes.SPACE[0]: {
-            event.stopPropagation();
-            event.preventDefault();
-
-            onEnter();
-            break;
-        }
         case KeyCodes.ENTER[0]: {
             event.stopPropagation();
             event.preventDefault();
@@ -138,7 +131,7 @@ const EmojiPickerSearch = forwardRef<HTMLInputElement, Props>(({value, cursorCat
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
                 autoComplete='off'
-                placeholder={formatMessage({id: 'emoji_picker.search', defaultMessage: 'Search Emoji'})}
+                placeholder={formatMessage({id: 'emoji_picker.search', defaultMessage: 'Search emojis'})}
                 value={value}
             />
         </div>

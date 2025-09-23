@@ -52,7 +52,7 @@ describe('Guest Account - Member Invitation Flow', () => {
         const email = `temp-${getRandomId()}@mattermost.com`;
 
         // # Open team menu and click 'Invite People'
-        cy.uiOpenTeamMenu('Invite People');
+        cy.uiOpenTeamMenu('Invite people');
 
         // * Verify UI Elements in initial step
         cy.findByTestId('invitationModal').within(() => {
@@ -251,7 +251,7 @@ describe('Guest Account - Member Invitation Flow', () => {
 
 function invitePeople(typeText, resultsCount, verifyText, clickInvite = true) {
     // # Open team menu and click 'Invite People'
-    cy.uiOpenTeamMenu('Invite People');
+    cy.uiOpenTeamMenu('Invite people');
 
     // # Search and add a member
     cy.get('.users-emails-input__control').should('be.visible').within(() => {

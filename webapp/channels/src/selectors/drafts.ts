@@ -1,13 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getMyActiveChannelIds} from 'mattermost-redux/selectors/entities/channels';
-import {get, onboardingTourTipsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
 import {getGlobalItem} from 'selectors/storage';
-import {getIsMobileView} from 'selectors/views/browser';
 
 import {StoragePrefixes} from 'utils/constants';
 import {getDraftInfoFromKey} from 'utils/storage_utils';
@@ -23,17 +20,6 @@ export type Draft = DraftInfo & {
 
 export type DraftSelector = (state: GlobalState) => Draft[];
 export type DraftCountSelector = (state: GlobalState) => number;
-
-export function showDraftsPulsatingDotAndTourTip(state: GlobalState): boolean {
-    if (!onboardingTourTipsEnabled(state) || getIsMobileView(state)) {
-        return false;
-    }
-
-    const draftsTourTipShowed = get(state, Preferences.CATEGORY_DRAFTS, Preferences.DRAFTS_TOUR_TIP_SHOWED, '');
-    const draftsAlreadyViewed = draftsTourTipShowed && JSON.parse(draftsTourTipShowed)[Preferences.DRAFTS_TOUR_TIP_SHOWED];
-
-    return !draftsAlreadyViewed;
-}
 
 export function makeGetDraftsByPrefix(prefix: string): DraftSelector {
     return createSelector(
@@ -154,4 +140,8 @@ export function makeGetDraft() {
             };
         },
     );
+}
+
+export function getDraftRemotes(state: GlobalState) {
+    return state.views.drafts.remotes;
 }

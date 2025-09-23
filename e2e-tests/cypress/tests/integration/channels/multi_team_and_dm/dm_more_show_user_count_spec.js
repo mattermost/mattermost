@@ -55,7 +55,7 @@ describe('Multi Team and DM', () => {
             const totalUsers = number.text().split(' ').slice(2, 3);
 
             // * Assert that 2 unique users are displayed
-            cy.findByRole('textbox', {name: 'Search for people'}).typeWithForce(unique).then(() => {
+            cy.findByRole('combobox', {name: 'Search for people'}).typeWithForce(unique).then(() => {
                 cy.get('#multiSelectList').within(() => {
                     cy.get('.more-modal__details').should('have.length', 2);
                 });

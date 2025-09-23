@@ -205,6 +205,7 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
                 backdrop='static'
                 role='none'
                 aria-labelledby='interactiveDialogModalLabel'
+                style={{overflowY: 'hidden'}}
             >
                 <form
                     onSubmit={this.handleSubmit}

@@ -83,7 +83,7 @@ export default function ResetToDefaultButton(props: Props) {
 
     return (
         <button
-            className='channel-notifications-settings-modal__reset-btn'
+            className='ChannelNotificationModal__reset-btn'
             onClick={handleOnClick}
             data-testid={`resetToDefaultButton-${props.sectionName}`}
         >

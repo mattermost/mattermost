@@ -17,6 +17,7 @@ import (
 )
 
 func TestSAMLSettings(t *testing.T) {
+	mainHelper.Parallel(t)
 	tt := []struct {
 		name         string
 		setInterface bool

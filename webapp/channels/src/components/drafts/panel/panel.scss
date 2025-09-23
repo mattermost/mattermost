@@ -19,6 +19,16 @@
         transition-duration: 0.15s;
     }
 
+    &:hover, &:focus-within {
+        .PanelHeader__actions {
+            opacity: 1;
+        }
+
+        .PanelHeader__info {
+            display: none;
+        }
+    }
+
     &.draftError {
         border-color: var(--error-text);
     }

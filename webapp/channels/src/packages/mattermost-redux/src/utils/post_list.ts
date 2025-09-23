@@ -5,6 +5,7 @@ import moment from 'moment-timezone';
 
 import type {ActivityEntry, Post} from '@mattermost/types/posts';
 import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
 import {isStringArray, isArrayOf} from '@mattermost/types/utilities';
 
 import {Posts} from 'mattermost-redux/constants';
@@ -78,23 +79,7 @@ export function makeFilterPostsAndAddSeparators() {
                     continue;
                 }
 
-                // Push on a date header if the last post was on a different day than the current one
-                const postDate = new Date(post.create_at);
-                const currentOffset = postDate.getTimezoneOffset() * 60 * 1000;
-                const timezone = getUserCurrentTimezone(currentUser.timezone);
-                if (timezone) {
-                    const zone = moment.tz.zone(timezone);
-                    if (zone) {
-                        const timezoneOffset = zone.utcOffset(postDate.getTime()) * 60 * 1000;
-                        postDate.setTime(postDate.getTime() + (currentOffset - timezoneOffset));
-                    }
-                }
-
-                if (!lastDate || lastDate.toDateString() !== postDate.toDateString()) {
-                    out.push(DATE_LINE + postDate.getTime());
-
-                    lastDate = postDate;
-                }
+                lastDate = pushPostDateIfNeeded(post, currentUser, out, lastDate);
 
                 if (
                     lastViewedAt &&
@@ -112,6 +97,52 @@ export function makeFilterPostsAndAddSeparators() {
 
             // Flip it back to newest to oldest
             return out.reverse();
+        },
+    );
+}
+
+function pushPostDateIfNeeded(post: Post, currentUser: UserProfile, out: Array<Post|string>, lastDate?: Date) {
+    // Push on a date header if the last post was on a different day than the current one
+    const postDate = new Date(post.create_at);
+    const currentOffset = postDate.getTimezoneOffset() * 60 * 1000;
+    const timezone = getUserCurrentTimezone(currentUser.timezone);
+    if (timezone) {
+        const zone = moment.tz.zone(timezone);
+        if (zone) {
+            const timezoneOffset = zone.utcOffset(postDate.getTime()) * 60 * 1000;
+            postDate.setTime(postDate.getTime() + (currentOffset - timezoneOffset));
+        }
+    }
+
+    if (!lastDate || lastDate.toDateString() !== postDate.toDateString()) {
+        out.push(DATE_LINE + postDate.getTime());
+
+        return postDate;
+    }
+
+    return lastDate;
+}
+
+export function makeAddDateSeparatorsForSearchResults() {
+    return createIdsSelector(
+        'makeAddDateSeparatorsForSearchResults',
+        (state: GlobalState, posts: Post[]) => posts,
+        getCurrentUser,
+        (posts, currentUser) => {
+            if (posts.length === 0 || !currentUser) {
+                return [];
+            }
+
+            const out: Array<Post|string> = [];
+            let lastDate;
+
+            for (const post of posts) {
+                lastDate = pushPostDateIfNeeded(post, currentUser, out, lastDate);
+
+                out.push(post);
+            }
+
+            return out;
         },
     );
 }

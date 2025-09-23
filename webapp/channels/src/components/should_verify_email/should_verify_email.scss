@@ -27,7 +27,7 @@
                 justify-content: center;
 
                 .should-verify-body-content-button-resend {
-                    @include mixins.tertiary-button;
+                    @include mixins.primary-button;
                 }
 
                 .should-verify-body-content-button-return {
@@ -51,7 +51,7 @@
                 visibility: hidden;
 
                 &.success {
-                    color: var(--denim-status-online);
+                    color: var(--online-indicator);
                     visibility: visible;
                 }
 

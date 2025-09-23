@@ -1,18 +1,4 @@
 services:
-  mysql:
-    container_name: mattermost-mysql
-    ports:
-      - "3306:3306"
-    extends:
-        file: build/docker-compose.common.yml
-        service: mysql
-  mysql-read-replica:
-    container_name: mattermost-mysql-read-replica
-    ports:
-      - "3307:3306"
-    extends:
-        file: build/docker-compose.common.yml
-        service: mysql-read-replica
   postgres:
     container_name: mattermost-postgres
     ports:
@@ -114,7 +100,6 @@ services:
     networks:
       - mm-test
     depends_on:
-      - mysql
       - postgres
       - minio
       - inbucket
@@ -125,7 +110,7 @@ services:
       - grafana
       - loki
       - promtail
-    command: postgres:5432 mysql:3306 minio:9000 inbucket:9001 openldap:389 elasticsearch:9200 opensearch:9201 prometheus:9090 grafana:3000 loki:3100 promtail:3180
+    command: postgres:5432 minio:9000 inbucket:9001 openldap:389 elasticsearch:9200 opensearch:9201 prometheus:9090 grafana:3000 loki:3100 promtail:3180
 
   leader:
     build:
@@ -140,7 +125,6 @@ services:
       - "MM_CLUSTERSETTINGS_ENABLE=true"
       - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
       - "MM_LOGSETTINGS_FILELOCATION=./logs/leader"
-      - "MM_NOTIFICATIONLOGSETTINGSS_FILELOCATION=./logs/leader"
     networks:
       - mm-test
     depends_on:
@@ -178,7 +162,6 @@ services:
       - "MM_CLUSTERSETTINGS_ENABLE=true"
       - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
       - "MM_LOGSETTINGS_FILELOCATION=./logs/follower"
-      - "MM_NOTIFICATIONLOGSETTINGSS_FILELOCATION=./logs/follower"
     networks:
       - mm-test
     depends_on:
@@ -216,7 +199,6 @@ services:
       - "MM_CLUSTERSETTINGS_ENABLE=true"
       - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
       - "MM_LOGSETTINGS_FILELOCATION=./logs/follower2"
-      - "MM_NOTIFICATIONLOGSETTINGSS_FILELOCATION=./logs/follower2"
     networks:
       - mm-test
     depends_on:

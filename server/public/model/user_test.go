@@ -11,10 +11,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/bcrypt"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
 )
 
 func TestUserAuditable(t *testing.T) {
@@ -99,7 +99,7 @@ func TestUserLogClone(t *testing.T) {
 		l := u.LogClone()
 		require.NotNil(t, l)
 
-		m, ok := l.(map[string]interface{})
+		m, ok := l.(map[string]any)
 		require.True(t, ok)
 		assert.Equal(t, "", m["remote_id"])
 	})
@@ -135,7 +135,7 @@ func TestUserLogClone(t *testing.T) {
 		}
 
 		l := u.LogClone()
-		m, ok := l.(map[string]interface{})
+		m, ok := l.(map[string]any)
 		require.True(t, ok)
 
 		expected := map[string]any{
@@ -220,7 +220,7 @@ func TestUserPreSave(t *testing.T) {
 func TestUserPreSavePwdTooLong(t *testing.T) {
 	user := User{Password: strings.Repeat("1234567890", 8)}
 	err := user.PreSave()
-	assert.ErrorIs(t, err, bcrypt.ErrPasswordTooLong)
+	assert.ErrorIs(t, err, hashers.ErrPasswordTooLong)
 }
 
 func TestUserPreUpdate(t *testing.T) {

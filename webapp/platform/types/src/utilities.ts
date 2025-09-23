@@ -90,19 +90,19 @@ export const collectionFromArray = <T extends {id: string}>(arr: T[] = []): IDMa
         current.data = {...current.data, [item.id]: item};
         current.order.push(item.id);
         return current;
-    }, {data: {} as IDMappedObjects<T>, order: []} as IDMappedCollection<T>);
+    }, {data: {} as IDMappedObjects<T>, order: [] as string[]});
 };
 
 export const collectionToArray = <T extends {id: string}>({data, order}: IDMappedCollection<T>): T[] => {
     return order.map((id) => data[id]);
 };
 
-export const collectionReplaceItem = <T extends {id: string}>(collection: IDMappedCollection<T>, item: T) => {
-    return {...collection, data: {...collection.data, [item.id]: item}};
+export const collectionReplaceItem = <T extends {id: string}>(collection: IDMappedCollection<T>, ...items: T[]) => {
+    return {...collection, data: idMappedObjectsFromArr(items, collection.data)};
 };
 
-export const collectionAddItem = <T extends {id: string}>(collection: IDMappedCollection<T>, item: T) => {
-    return {...collection, data: {...collection.data, [item.id]: item}, order: [...collection.order, item.id]};
+export const collectionAddItem = <T extends {id: string}>(collection: IDMappedCollection<T>, ...items: T[]) => {
+    return {...collectionReplaceItem(collection, ...items), order: [...collection.order, ...items.map(({id}) => id)]};
 };
 
 export const collectionRemoveItem = <T extends {id: string}>(collection: IDMappedCollection<T>, item: T) => {
@@ -110,4 +110,8 @@ export const collectionRemoveItem = <T extends {id: string}>(collection: IDMappe
     Reflect.deleteProperty(data, item.id);
     const order = collection.order.filter((id) => id !== item.id);
     return {...collection, data, order};
+};
+
+export const idMappedObjectsFromArr = <T extends {id: string}>(items: T[], current?: IDMappedObjects<T>) => {
+    return items.reduce((r, item) => ({...r, [item.id]: item}), {...current} as IDMappedObjects<T>);
 };
