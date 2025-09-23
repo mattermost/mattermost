@@ -250,7 +250,7 @@ func TestFileSettingsDirectoryWhitespaceValidation(t *testing.T) {
 
 	// Test valid paths first
 	for _, setting := range pathSettings {
-		t.Run(fmt.Sprintf("Valid %s", setting.name), func(t *testing.T) {
+		t.Run("Valid "+setting.name, func(t *testing.T) {
 			cfg := &Config{}
 			cfg.SetDefaults()
 			setting.configSetter(cfg, NewPointer(setting.validValue))

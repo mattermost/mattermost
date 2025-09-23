@@ -1033,7 +1033,7 @@ func (o *Post) ToNilIfInvalid() *Post {
 func (o *Post) ForPlugin() *Post {
 	p := o.Clone()
 	p.Metadata = nil
-	if p.Type == fmt.Sprintf("%sup_notification", PostCustomTypePrefix) {
+	if p.Type == PostCustomTypePrefix+"up_notification" {
 		p.DelProp("requested_features")
 	}
 	return p

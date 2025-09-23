@@ -611,11 +611,11 @@ func (c *Client4) customProfileAttributesRoute() string {
 }
 
 func (c *Client4) userCustomProfileAttributesRoute(userID string) string {
-	return fmt.Sprintf("%s/custom_profile_attributes", c.userRoute(userID))
+	return c.userRoute(userID) + "/custom_profile_attributes"
 }
 
 func (c *Client4) customProfileAttributeFieldsRoute() string {
-	return fmt.Sprintf("%s/fields", c.customProfileAttributesRoute())
+	return c.customProfileAttributesRoute() + "/fields"
 }
 
 func (c *Client4) customProfileAttributeFieldRoute(fieldID string) string {
@@ -623,7 +623,7 @@ func (c *Client4) customProfileAttributeFieldRoute(fieldID string) string {
 }
 
 func (c *Client4) customProfileAttributeValuesRoute() string {
-	return fmt.Sprintf("%s/values", c.customProfileAttributesRoute())
+	return c.customProfileAttributesRoute() + "/values"
 }
 
 func (c *Client4) accessControlPoliciesRoute() string {
@@ -674,7 +674,7 @@ func (c *Client4) CreateScheduledPost(ctx context.Context, scheduledPost *Schedu
 
 func (c *Client4) GetUserScheduledPosts(ctx context.Context, teamId string, includeDirectChannels bool) (map[string][]*ScheduledPost, *Response, error) {
 	query := url.Values{}
-	query.Set("includeDirectChannels", fmt.Sprintf("%t", includeDirectChannels))
+	query.Set("includeDirectChannels", strconv.FormatBool(includeDirectChannels))
 
 	r, err := c.DoAPIGet(ctx, c.postsRoute()+"/scheduled/team/"+teamId+"?"+query.Encode(), "")
 	if err != nil {
@@ -1525,7 +1525,7 @@ func (c *Client4) GetUsersByIds(ctx context.Context, userIds []string) ([]*User,
 func (c *Client4) GetUsersByIdsWithOptions(ctx context.Context, userIds []string, options *UserGetByIdsOptions) ([]*User, *Response, error) {
 	v := url.Values{}
 	if options.Since != 0 {
-		v.Set("since", fmt.Sprintf("%d", options.Since))
+		v.Set("since", strconv.FormatInt(options.Since, 10))
 	}
 
 	url := c.usersRoute() + "/ids"
@@ -5827,7 +5827,7 @@ func (c *Client4) TestLdap(ctx context.Context) (*Response, error) {
 
 // GetLdapGroups retrieves the immediate child groups of the given parent group.
 func (c *Client4) GetLdapGroups(ctx context.Context) ([]*Group, *Response, error) {
-	path := fmt.Sprintf("%s/groups", c.ldapRoute())
+	path := c.ldapRoute() + "/groups"
 
 	r, err := c.DoAPIGet(ctx, path, "")
 	if err != nil {
@@ -5896,7 +5896,7 @@ func (c *Client4) MigrateIdLdap(ctx context.Context, toAttribute string) (*Respo
 }
 
 func (c *Client4) GetGroupsByNames(ctx context.Context, names []string) ([]*Group, *Response, error) {
-	path := fmt.Sprintf("%s/names", c.groupsRoute())
+	path := c.groupsRoute() + "/names"
 
 	r, err := c.DoAPIPost(ctx, path, ArrayToJSON(names))
 	if err != nil {
@@ -8122,7 +8122,7 @@ func (c *Client4) LinkGroupSyncable(ctx context.Context, groupID, syncableID str
 	if err != nil {
 		return nil, nil, NewAppError("LinkGroupSyncable", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	url := fmt.Sprintf("%s/link", c.groupSyncableRoute(groupID, syncableID, syncableType))
+	url := c.groupSyncableRoute(groupID, syncableID, syncableType) + "/link"
 	r, err := c.DoAPIPost(ctx, url, string(payload))
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -8136,7 +8136,7 @@ func (c *Client4) LinkGroupSyncable(ctx context.Context, groupID, syncableID str
 }
 
 func (c *Client4) UnlinkGroupSyncable(ctx context.Context, groupID, syncableID string, syncableType GroupSyncableType) (*Response, error) {
-	url := fmt.Sprintf("%s/link", c.groupSyncableRoute(groupID, syncableID, syncableType))
+	url := c.groupSyncableRoute(groupID, syncableID, syncableType) + "/link"
 	r, err := c.DoAPIDelete(ctx, url)
 	if err != nil {
 		return BuildResponse(r), err
@@ -8896,7 +8896,7 @@ func (c *Client4) GeneratePresignedURL(ctx context.Context, name string) (*Presi
 func (c *Client4) GetUserThreads(ctx context.Context, userId, teamId string, options GetUserThreadsOpts) (*Threads, *Response, error) {
 	v := url.Values{}
 	if options.Since != 0 {
-		v.Set("since", fmt.Sprintf("%d", options.Since))
+		v.Set("since", strconv.FormatUint(options.Since, 10))
 	}
 	if options.Before != "" {
 		v.Set("before", options.Before)
@@ -8905,7 +8905,7 @@ func (c *Client4) GetUserThreads(ctx context.Context, userId, teamId string, opt
 		v.Set("after", options.After)
 	}
 	if options.PageSize != 0 {
-		v.Set("per_page", fmt.Sprintf("%d", options.PageSize))
+		v.Set("per_page", strconv.FormatUint(options.PageSize, 10))
 	}
 	if options.Extended {
 		v.Set("extended", "true")
@@ -8923,7 +8923,7 @@ func (c *Client4) GetUserThreads(ctx context.Context, userId, teamId string, opt
 		v.Set("totalsOnly", "true")
 	}
 	if options.ExcludeDirect {
-		v.Set("excludeDirect", fmt.Sprintf("%t", options.ExcludeDirect))
+		v.Set("excludeDirect", strconv.FormatBool(options.ExcludeDirect))
 	}
 	url := c.userThreadsRoute(userId, teamId)
 	if len(v) > 0 {
@@ -8985,7 +8985,7 @@ func (c *Client4) GetUserThread(ctx context.Context, userId, teamId, threadId st
 }
 
 func (c *Client4) UpdateThreadsReadForUser(ctx context.Context, userId, teamId string) (*Response, error) {
-	r, err := c.DoAPIPut(ctx, fmt.Sprintf("%s/read", c.userThreadsRoute(userId, teamId)), "")
+	r, err := c.DoAPIPut(ctx, c.userThreadsRoute(userId, teamId)+"/read", "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -9065,10 +9065,10 @@ func (c *Client4) GetRemoteClusterInfo(ctx context.Context, remoteID string) (Re
 func (c *Client4) GetRemoteClusters(ctx context.Context, page, perPage int, filter RemoteClusterQueryFilter) ([]*RemoteCluster, *Response, error) {
 	v := url.Values{}
 	if page != 0 {
-		v.Set("page", fmt.Sprintf("%d", page))
+		v.Set("page", strconv.Itoa(page))
 	}
 	if perPage != 0 {
-		v.Set("per_page", fmt.Sprintf("%d", perPage))
+		v.Set("per_page", strconv.Itoa(perPage))
 	}
 	if filter.ExcludeOffline {
 		v.Set("exclude_offline", "true")
@@ -9142,7 +9142,7 @@ func (c *Client4) RemoteClusterAcceptInvite(ctx context.Context, rcAcceptInvite 
 		return nil, nil, NewAppError("RemoteClusterAcceptInvite", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	url := fmt.Sprintf("%s/accept_invite", c.remoteClusterRoute())
+	url := c.remoteClusterRoute() + "/accept_invite"
 	r, err := c.DoAPIPost(ctx, url, string(rcAcceptInviteJSON))
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -9234,10 +9234,10 @@ func (c *Client4) GetSharedChannelRemotesByRemoteCluster(ctx context.Context, re
 		v.Set("include_deleted", "true")
 	}
 	if page != 0 {
-		v.Set("page", fmt.Sprintf("%d", page))
+		v.Set("page", strconv.Itoa(page))
 	}
 	if perPage != 0 {
-		v.Set("per_page", fmt.Sprintf("%d", perPage))
+		v.Set("per_page", strconv.Itoa(perPage))
 	}
 	url := c.sharedChannelRemotesRoute(remoteId)
 	if len(v) > 0 {
@@ -9257,7 +9257,7 @@ func (c *Client4) GetSharedChannelRemotesByRemoteCluster(ctx context.Context, re
 }
 
 func (c *Client4) InviteRemoteClusterToChannel(ctx context.Context, remoteId, channelId string) (*Response, error) {
-	url := fmt.Sprintf("%s/invite", c.channelRemoteRoute(remoteId, channelId))
+	url := c.channelRemoteRoute(remoteId, channelId) + "/invite"
 	r, err := c.DoAPIPost(ctx, url, "")
 	if err != nil {
 		return BuildResponse(r), err
@@ -9267,7 +9267,7 @@ func (c *Client4) InviteRemoteClusterToChannel(ctx context.Context, remoteId, ch
 }
 
 func (c *Client4) UninviteRemoteClusterToChannel(ctx context.Context, remoteId, channelId string) (*Response, error) {
-	url := fmt.Sprintf("%s/uninvite", c.channelRemoteRoute(remoteId, channelId))
+	url := c.channelRemoteRoute(remoteId, channelId) + "/uninvite"
 	r, err := c.DoAPIPost(ctx, url, "")
 	if err != nil {
 		return BuildResponse(r), err
@@ -9278,7 +9278,7 @@ func (c *Client4) UninviteRemoteClusterToChannel(ctx context.Context, remoteId, 
 
 func (c *Client4) GetAncillaryPermissions(ctx context.Context, subsectionPermissions []string) ([]string, *Response, error) {
 	var returnedPermissions []string
-	url := fmt.Sprintf("%s/ancillary", c.permissionsRoute())
+	url := c.permissionsRoute() + "/ancillary"
 	r, err := c.DoAPIPost(ctx, url, ArrayToJSON(subsectionPermissions))
 	if err != nil {
 		return returnedPermissions, BuildResponse(r), err

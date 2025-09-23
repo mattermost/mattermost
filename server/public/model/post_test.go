@@ -5,7 +5,7 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
+
 	"os"
 	"strings"
 	"sync"
@@ -956,7 +956,7 @@ func TestPostAttachments(t *testing.T) {
 func TestPostForPlugin(t *testing.T) {
 	t.Run("post type custom_up_notification for plugin should have no requested features prop", func(t *testing.T) {
 		p := &Post{
-			Type: fmt.Sprintf("%sup_notification", PostCustomTypePrefix),
+			Type: PostCustomTypePrefix + "up_notification",
 		}
 		props := make(StringInterface)
 		props["requested_features"] = "test_requested_features_map"

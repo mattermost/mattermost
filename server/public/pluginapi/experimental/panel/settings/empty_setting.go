@@ -22,7 +22,7 @@ func NewEmptySetting(id, title, description string) Setting {
 }
 
 func (s *emptySetting) GetSlackAttachments(userID, settingHandler string, disabled bool) (*model.SlackAttachment, error) {
-	title := fmt.Sprintf("Setting: %s", s.title)
+	title := "Setting: " + s.title
 	sa := model.SlackAttachment{
 		Title:    title,
 		Text:     s.description,

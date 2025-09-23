@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 type ChannelCounts struct {
@@ -25,9 +26,11 @@ func (o *ChannelCounts) Etag() string {
 	sort.Strings(ids)
 
 	str := ""
+	var strSb28 strings.Builder
 	for _, id := range ids {
-		str += id + strconv.FormatInt(o.Counts[id], 10)
+		strSb28.WriteString(id + strconv.FormatInt(o.Counts[id], 10))
 	}
+	str += strSb28.String()
 
 	md5Counts := fmt.Sprintf("%x", md5.Sum([]byte(str)))
 

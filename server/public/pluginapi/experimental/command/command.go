@@ -2,7 +2,7 @@ package command
 
 import (
 	"encoding/base64"
-	"fmt"
+
 	"os"
 	"path/filepath"
 
@@ -27,5 +27,5 @@ func GetIconData(api PluginAPI, iconPath string) (string, error) {
 		return "", errors.Wrap(err, "failed to open icon")
 	}
 
-	return fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(icon)), nil
+	return "data:image/svg+xml;base64," + base64.StdEncoding.EncodeToString(icon), nil
 }

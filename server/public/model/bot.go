@@ -4,7 +4,6 @@
 package model
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"unicode/utf8"
@@ -179,7 +178,7 @@ func UserFromBot(b *Bot) *User {
 	return &User{
 		Id:        b.UserId,
 		Username:  b.Username,
-		Email:     NormalizeEmail(fmt.Sprintf("%s@localhost", b.Username)),
+		Email:     NormalizeEmail(b.Username + "@localhost"),
 		FirstName: b.DisplayName,
 		Roles:     SystemUserRoleId,
 	}
