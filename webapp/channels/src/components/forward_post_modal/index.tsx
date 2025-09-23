@@ -86,9 +86,30 @@ const ForwardPostModal = ({onExited, post}: Props) => {
 
     const canPostInSelectedChannel = useSelector(
         (state: GlobalState) => {
-            const channelId = isPrivateConversation ? post.channel_id : selectedChannelId;
+            // Logic cũ: kiểm tra quyền post trên channel
+            // const channelId = isPrivateConversation ? post.channel_id : selectedChannelId;
+            // const isDMChannel = selectedChannel?.details?.type === Constants.DM_CHANNEL;
+            // const teamId = isPrivateConversation ? currentTeam?.id : selectedChannel?.details?.team_id;
+
+            // const hasChannelPermission = haveIChannelPermission(
+            //     state,
+            //     teamId || currentTeam?.id,
+            //     channelId,
+            //     Permissions.CREATE_POST,
+            // );
+
+            // return Boolean(channelId) && (hasChannelPermission || isDMChannel);
+
+
+            // Logic mới: kiểm tra xem user có quyền post vào channel đích ko, 
+            // nếu có thì cho phép show forward
+            const channelId = selectedChannelId;
             const isDMChannel = selectedChannel?.details?.type === Constants.DM_CHANNEL;
-            const teamId = isPrivateConversation ? currentTeam?.id : selectedChannel?.details?.team_id;
+            const teamId = selectedChannel?.details?.team_id;
+
+            if (!channelId) {
+                return false;
+            }
 
             const hasChannelPermission = haveIChannelPermission(
                 state,
@@ -97,11 +118,19 @@ const ForwardPostModal = ({onExited, post}: Props) => {
                 Permissions.CREATE_POST,
             );
 
-            return Boolean(channelId) && (hasChannelPermission || isDMChannel);
+            return hasChannelPermission || isDMChannel;
         },
     );
 
-    const canForwardPost = (isPrivateConversation || canPostInSelectedChannel) && !postError;
+    // Logic cũ: cho phép forward nếu:
+    // - Kênh hiện tại không phải private, 
+    // - User có quyền post lên kênh đích
+    // - Không có lỗi nào khác
+    // const canForwardPost = (isPrivateConversation || canPostInSelectedChannel) && !postError;
+
+
+    //  Logic mới: bỏ check channel hiện tại có private hay ko
+    const canForwardPost = canPostInSelectedChannel && !postError;
 
     const onHide = useCallback(() => {
         onExited?.();
@@ -137,31 +166,77 @@ const ForwardPostModal = ({onExited, post}: Props) => {
         channel_id: post.channel_id,
     };
 
+
+    // Logic cũ: Hiện ra thông tin chặn cho các private channels
+    // let notification;
+    // if (isPrivateConversation) {
+    //     let notificationText;
+    //     if (channel?.type === General.PRIVATE_CHANNEL) {
+    //         const channelName = `~${channel.display_name}`;
+    //         notificationText = (
+    //             <FormattedMessage
+    //                 id='forward_post_modal.notification.private_channel'
+    //                 defaultMessage='This message is from a private channel and can only be shared with <strong>{channelName}</strong>'
+    //                 values={{
+    //                     channelName,
+    //                     strong: (x: React.ReactNode) => <strong>{x}</strong>,
+    //                 }}
+    //             />
+    //         );
+    //     } else {
+    //         const allParticipants = channel?.display_name.split(', ') || [];
+    //         const participants = allParticipants.map((participant) => <strong key={participant}>{participant}</strong>);
+
+    //         notificationText = (
+    //             <FormattedMessage
+    //                 id='forward_post_modal.notification.dm_or_gm'
+    //                 defaultMessage='This message is from a private conversation and can only be shared with {participants}'
+    //                 values={{
+    //                     participants: <FormattedList value={participants}/>,
+    //                     strong: (x: React.ReactNode) => <strong>{x}</strong>,
+    //                 }}
+    //             />
+    //         );
+    //     }
+
+    //     notification = (
+    //         <NotificationBox
+    //             variant={'info'}
+    //             text={notificationText}
+    //             id={'forward_post'}
+    //         />
+    //     );
+    // }
+
+
+    // Logic mới: hiện ra warning khi forward từ private sang public
     let notification;
-    if (isPrivateConversation) {
+    const isForwardingToPublic = selectedChannel?.details?.type === Constants.OPEN_CHANNEL;
+    
+    if (isPrivateConversation && isForwardingToPublic && selectedChannel) {
         let notificationText;
         if (channel?.type === General.PRIVATE_CHANNEL) {
             const channelName = `~${channel.display_name}`;
+            const targetChannelName = `~${selectedChannel.details.display_name}`;
             notificationText = (
                 <FormattedMessage
-                    id='forward_post_modal.notification.private_channel'
-                    defaultMessage='This message is from a private channel and can only be shared with <strong>{channelName}</strong>'
+                    id='forward_post_modal.warning.private_to_public'
+                    defaultMessage='You are forwarding a message from private channel <strong>{sourceChannel}</strong> to public channel <strong>{targetChannel}</strong>'
                     values={{
-                        channelName,
+                        sourceChannel: channelName,
+                        targetChannel: targetChannelName,
                         strong: (x: React.ReactNode) => <strong>{x}</strong>,
                     }}
                 />
             );
         } else {
-            const allParticipants = channel?.display_name.split(', ') || [];
-            const participants = allParticipants.map((participant) => <strong key={participant}>{participant}</strong>);
-
+            const targetChannelName = `~${selectedChannel.details.display_name}`;
             notificationText = (
                 <FormattedMessage
-                    id='forward_post_modal.notification.dm_or_gm'
-                    defaultMessage='This message is from a private conversation and can only be shared with {participants}'
+                    id='forward_post_modal.warning.dm_to_public'
+                    defaultMessage='You are forwarding a message from a private conversation to public channel <strong>{targetChannel}</strong>'
                     values={{
-                        participants: <FormattedList value={participants}/>,
+                        targetChannel: targetChannelName,
                         strong: (x: React.ReactNode) => <strong>{x}</strong>,
                     }}
                 />
@@ -170,9 +245,9 @@ const ForwardPostModal = ({onExited, post}: Props) => {
 
         notification = (
             <NotificationBox
-                variant={'info'}
+                variant={'warning'}
                 text={notificationText}
-                id={'forward_post'}
+                id={'forward_post_warning'}
             />
         );
     }
@@ -188,11 +263,19 @@ const ForwardPostModal = ({onExited, post}: Props) => {
             return Promise.resolve();
         }
 
-        if (!channel) {
+        // Logic cũ: không cho phép forward từ private channel
+        // if (!channel) {
+        //     return Promise.resolve();
+        // }
+
+        // const channelToForward = isPrivateConversation ? makeSelectedChannelOption(channel) : selectedChannel;
+        
+        // Logic mới: cho phép forward từ private channel
+        if (!selectedChannel) {
             return Promise.resolve();
         }
 
-        const channelToForward = isPrivateConversation ? makeSelectedChannelOption(channel) : selectedChannel;
+        const channelToForward = selectedChannel;
 
         if (!channelToForward) {
             return Promise.resolve();
@@ -271,6 +354,7 @@ const ForwardPostModal = ({onExited, post}: Props) => {
                 className={'forward-post__body'}
                 ref={measuredRef}
             >
+                {/* Logic cũ: giấu channel selector từ private channel
                 {isPrivateConversation ? (
                     notification
                 ) : (
@@ -280,6 +364,16 @@ const ForwardPostModal = ({onExited, post}: Props) => {
                         currentBodyHeight={bodyHeight}
                     />
                 )}
+                */}
+
+
+                {/* Logic mới: luôn hiển thị channel selector */}
+                {notification}
+                <ForwardPostChannelSelect
+                    onSelect={handleChannelSelect}
+                    value={selectedChannel}
+                    currentBodyHeight={bodyHeight}
+                />
                 <ForwardPostCommentInput
                     canForwardPost={canForwardPost}
                     channelId={selectedChannelId}
