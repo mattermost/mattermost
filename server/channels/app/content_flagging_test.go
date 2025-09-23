@@ -582,7 +582,7 @@ func TestFlagPost(t *testing.T) {
 
 		flagData := model.FlagContentRequest{
 			Reason:  "spam",
-			Comment: "This is spam content",
+			Comment: "\"This is spam content\"",
 		}
 
 		appErr := th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
@@ -675,7 +675,7 @@ func TestFlagPost(t *testing.T) {
 
 		flagData := model.FlagContentRequest{
 			Reason:  "spam",
-			Comment: "This is spam content",
+			Comment: "\"This is spam content\"",
 		}
 
 		// Flag the post first time
@@ -697,7 +697,7 @@ func TestFlagPost(t *testing.T) {
 
 		flagData := model.FlagContentRequest{
 			Reason:  "spam",
-			Comment: "This is spam content",
+			Comment: "\"This is spam content\"",
 		}
 
 		appErr := th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
@@ -719,7 +719,7 @@ func TestFlagPost(t *testing.T) {
 
 		flagData := model.FlagContentRequest{
 			Reason:  "harassment",
-			Comment: "This is harassment",
+			Comment: "\"This is harassment\"",
 		}
 
 		appErr := th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
@@ -790,7 +790,7 @@ func TestFlagPost(t *testing.T) {
 
 		flagData := model.FlagContentRequest{
 			Reason:  "spam",
-			Comment: "Test comment",
+			Comment: "\"Test comment\"",
 		}
 
 		beforeTime := model.GetMillis()

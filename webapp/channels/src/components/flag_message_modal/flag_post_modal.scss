@@ -52,4 +52,12 @@
             height: 110px !important;
         }
     }
+
+    .FlagPostModal__request-error {
+        display: flex;
+        width: 90%;
+        align-items: center;
+        color: var(--error-text);
+        font-size: 12px;
+    }
 }
