@@ -299,74 +299,7 @@
         }
     }
 
-    // Form controls
-    select {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 8px 16px;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: var(--radius-s);
-        margin: 0;
-        background-color: var(--center-channel-bg);
-        color: var(--center-channel-color);
-        font: inherit;
-        gap: 6px;
-        min-inline-size: 200px;
-
-        &, &::picker(select) {
-            appearance: base-select;
-        }
-
-        &::picker-icon {
-            display: none;
-        }
-
-        &::picker(select) {
-            padding: 4px;
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-            border-radius: var(--radius-s);
-            background-color: var(--center-channel-bg);
-            box-shadow: var(--elevation-4);
-            color: var(--center-channel-color);
-            font: inherit;
-            margin-block-start: 4px;
-        }
-
-        option {
-            display: flex;
-            justify-content: space-between;
-            padding: 4px 12px;
-            border-radius: var(--radius-xs);
-            background-color: var(--center-channel-bg);
-            color: var(--center-channel-color);
-            font: inherit;
-                
-            &:hover {
-                background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            }
-
-            &::checkmark {
-                order: 2;
-            }
-        }
-
-        .picker-icon {
-            display: flex;
-            transition: rotate 0.2s ease-in-out;
-
-            :open & {
-                rotate: 180deg;
-            }
-                
-            svg {
-                width: 16px;
-                height: 16px;
-                fill: rgba(var(--center-channel-color-rgb), 0.56);
-            }
-        }
-    }
+    // Form controls (native select styling removed - not used in component library)
 
     input[type="radio"] {
         position: relative;

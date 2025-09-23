@@ -18,9 +18,9 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {selectPost} from 'actions/views/rhs';
 
-import ThreadButton from 'components/threading/common/thread_button';
 import FollowButton from 'components/threading/common/follow_button';
 import {THREADING_TIME} from 'components/threading/common/options';
+import ThreadButton from 'components/threading/common/thread_button';
 import Timestamp from 'components/timestamp';
 import Avatars from 'components/widgets/users/avatars';
 import WithTooltip from 'components/with_tooltip';

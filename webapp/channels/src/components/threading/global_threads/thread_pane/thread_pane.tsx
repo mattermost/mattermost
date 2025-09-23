@@ -18,8 +18,8 @@ import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 
-import ThreadButton from '../../common/thread_button';
 import FollowButton from '../../common/follow_button';
+import ThreadButton from '../../common/thread_button';
 import {useThreadRouting} from '../../hooks';
 import ThreadMenu from '../thread_menu';
 

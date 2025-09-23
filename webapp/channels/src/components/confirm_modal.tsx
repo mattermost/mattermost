@@ -150,7 +150,6 @@ export default class ConfirmModal extends React.Component<Props, State> {
         }
     };
 
-
     render() {
         let checkbox;
         if (this.props.showCheckbox) {

@@ -9,8 +9,8 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
 
-import ThreadButton from 'components/threading/common/thread_button';
 import FollowButton from 'components/threading/common/follow_button';
+import ThreadButton from 'components/threading/common/thread_button';
 import Header from 'components/widgets/header';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
