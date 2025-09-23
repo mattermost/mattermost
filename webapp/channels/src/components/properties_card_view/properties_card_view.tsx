@@ -84,6 +84,18 @@ const fieldNameMessages = defineMessages({
         id: 'property_card.field.reporting_time.label',
         defaultMessage: 'Flagged at',
     },
+    actor_user_id: {
+        id: 'property_card.field.actor_user_id.label',
+        defaultMessage: 'Reviewed by',
+    },
+    action_time: {
+        id: 'property_card.field.action_time.label',
+        defaultMessage: 'Reviewed at',
+    },
+    actor_comment: {
+        id: 'property_card.field.actor_comment.label',
+        defaultMessage: 'Reviewer\'s comment',
+    },
 });
 
 type Props = {
