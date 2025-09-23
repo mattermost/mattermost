@@ -98,6 +98,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             actions={
               Object {
                 "createJob": [MockFunction],
+                "deleteChannelPolicy": [MockFunction],
                 "getAccessControlFields": [MockFunction],
                 "getChannelMembers": [MockFunction],
                 "getChannelPolicy": [MockFunction],
@@ -105,6 +106,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                 "saveChannelPolicy": [MockFunction],
                 "searchUsers": [MockFunction],
                 "updateAccessControlPolicyActive": [MockFunction],
+                "validateExpressionAgainstRequester": [MockFunction],
               }
             }
             enableUserManagedAttributes={false}
@@ -309,6 +311,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             actions={
               Object {
                 "createJob": [MockFunction],
+                "deleteChannelPolicy": [MockFunction],
                 "getAccessControlFields": [MockFunction],
                 "getChannelMembers": [MockFunction],
                 "getChannelPolicy": [MockFunction],
@@ -316,6 +319,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                 "saveChannelPolicy": [MockFunction],
                 "searchUsers": [MockFunction],
                 "updateAccessControlPolicyActive": [MockFunction],
+                "validateExpressionAgainstRequester": [MockFunction],
               }
             }
             enableUserManagedAttributes={false}

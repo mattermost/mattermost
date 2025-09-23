@@ -228,7 +228,7 @@ function PolicyDetails({
             try {
                 const job: JobTypeBase & { data: any } = {
                     type: JobTypes.ACCESS_CONTROL_SYNC,
-                    data: {parent_id: currentPolicyId},
+                    data: {policy_id: currentPolicyId},
                 };
                 await actions.createJob(job);
             } catch (error) {

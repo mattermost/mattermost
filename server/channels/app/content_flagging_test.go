@@ -583,7 +583,7 @@ func TestFlagPost(t *testing.T) {
 
 		flagData := model.FlagContentRequest{
 			Reason:  "spam",
-			Comment: "\"This is spam content\"",
+			Comment: "This is spam content",
 		}
 
 		appErr := th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
@@ -597,36 +597,40 @@ func TestFlagPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Check status property
-		statusValues, err := th.Server.propertyService.SearchPropertyValues(groupId, post.Id, model.PropertyValueSearchOpts{
-			PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
-			FieldID: mappedFields[contentFlaggingPropertyNameStatus].ID,
+		statusValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+			TargetIDs: []string{post.Id},
+			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
+			FieldID:   mappedFields[contentFlaggingPropertyNameStatus].ID,
 		})
 		require.NoError(t, err)
 		require.Len(t, statusValues, 1)
 		require.Equal(t, `"`+model.ContentFlaggingStatusPending+`"`, string(statusValues[0].Value))
 
 		// Check reporting user property
-		userValues, err := th.Server.propertyService.SearchPropertyValues(groupId, post.Id, model.PropertyValueSearchOpts{
-			PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
-			FieldID: mappedFields[contentFlaggingPropertyNameReportingUserID].ID,
+		userValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+			TargetIDs: []string{post.Id},
+			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
+			FieldID:   mappedFields[contentFlaggingPropertyNameReportingUserID].ID,
 		})
 		require.NoError(t, err)
 		require.Len(t, userValues, 1)
 		require.Equal(t, `"`+th.BasicUser2.Id+`"`, string(userValues[0].Value))
 
 		// Check reason property
-		reasonValues, err := th.Server.propertyService.SearchPropertyValues(groupId, post.Id, model.PropertyValueSearchOpts{
-			PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
-			FieldID: mappedFields[contentFlaggingPropertyNameReportingReason].ID,
+		reasonValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+			TargetIDs: []string{post.Id},
+			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
+			FieldID:   mappedFields[contentFlaggingPropertyNameReportingReason].ID,
 		})
 		require.NoError(t, err)
 		require.Len(t, reasonValues, 1)
 		require.Equal(t, `"spam"`, string(reasonValues[0].Value))
 
 		// Check comment property
-		commentValues, err := th.Server.propertyService.SearchPropertyValues(groupId, post.Id, model.PropertyValueSearchOpts{
-			PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
-			FieldID: mappedFields[contentFlaggingPropertyNameReportingComment].ID,
+		commentValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+			TargetIDs: []string{post.Id},
+			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
+			FieldID:   mappedFields[contentFlaggingPropertyNameReportingComment].ID,
 		})
 		require.NoError(t, err)
 		require.Len(t, commentValues, 1)
@@ -724,7 +728,7 @@ func TestFlagPost(t *testing.T) {
 
 		// The reviewer posts are created async in a go routine. Wait for a short time to allow it to complete.
 		// 2 seconds is the minimum time when the test consistently passes locally and in CI.
-		time.Sleep(2 * time.Second)
+		time.Sleep(5 * time.Second)
 
 		// Get the content review bot
 		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
@@ -735,7 +739,7 @@ func TestFlagPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Check if review post was created in the DM channel
-		posts, appErr := th.App.GetPostsPage(model.GetPostsOptions{
+		posts, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
 			ChannelId: dmChannel.Id,
 			Page:      0,
 			PerPage:   10,
@@ -772,9 +776,10 @@ func TestFlagPost(t *testing.T) {
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
-		commentValues, err := th.Server.propertyService.SearchPropertyValues(groupId, post.Id, model.PropertyValueSearchOpts{
-			PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
-			FieldID: mappedFields[contentFlaggingPropertyNameReportingComment].ID,
+		commentValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+			TargetIDs: []string{post.Id},
+			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
+			FieldID:   mappedFields[contentFlaggingPropertyNameReportingComment].ID,
 		})
 		require.NoError(t, err)
 		require.Len(t, commentValues, 1)
@@ -801,9 +806,10 @@ func TestFlagPost(t *testing.T) {
 		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
-		timeValues, err := th.Server.propertyService.SearchPropertyValues(groupId, post.Id, model.PropertyValueSearchOpts{
-			PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
-			FieldID: mappedFields[contentFlaggingPropertyNameReportingTime].ID,
+		timeValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+			TargetIDs: []string{post.Id},
+			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
+			FieldID:   mappedFields[contentFlaggingPropertyNameReportingTime].ID,
 		})
 		require.NoError(t, err)
 		require.Len(t, timeValues, 1)

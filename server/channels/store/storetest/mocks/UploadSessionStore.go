@@ -33,9 +33,9 @@ func (_m *UploadSessionStore) Delete(id string) error {
 	return r0
 }
 
-// Get provides a mock function with given fields: c, id
-func (_m *UploadSessionStore) Get(c request.CTX, id string) (*model.UploadSession, error) {
-	ret := _m.Called(c, id)
+// Get provides a mock function with given fields: rctx, id
+func (_m *UploadSessionStore) Get(rctx request.CTX, id string) (*model.UploadSession, error) {
+	ret := _m.Called(rctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
@@ -44,10 +44,10 @@ func (_m *UploadSessionStore) Get(c request.CTX, id string) (*model.UploadSessio
 	var r0 *model.UploadSession
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.UploadSession, error)); ok {
-		return rf(c, id)
+		return rf(rctx, id)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.UploadSession); ok {
-		r0 = rf(c, id)
+		r0 = rf(rctx, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.UploadSession)
@@ -55,7 +55,7 @@ func (_m *UploadSessionStore) Get(c request.CTX, id string) (*model.UploadSessio
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
-		r1 = rf(c, id)
+		r1 = rf(rctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}

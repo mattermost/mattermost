@@ -4039,6 +4039,10 @@
     "translation": "Login failed because of invalid password."
   },
   {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "The format of the hashed password is invalid and could not be parsed."
+  },
+  {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Blank email."
   },
@@ -5147,6 +5151,10 @@
     "translation": "Unable to soft-delete the flagged post."
   },
   {
+    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
+    "translation": "Failed to marshal flagging user's comment"
+  },
+  {
     "id": "app.content_flagging.flag_post_confirmation.message",
     "translation": "The message from @{{.username}} has been flagged for review. You will be notified once it is reviewed by a Content Reviewer. "
   },
@@ -5163,12 +5171,16 @@
     "translation": "Failed to search reviewers in team."
   },
   {
+    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
+    "translation": "Failed to marshal reviewer comment"
+  },
+  {
     "id": "app.content_flagging.keep_post.status_update.app_error",
     "translation": "Failed to update flagged post status when undeleting flagged post "
   },
   {
     "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "Failed tp update post in database when attempting to undelete the flagged post."
+    "translation": "Failed to update post in database when attempting to undelete the flagged post."
   },
   {
     "id": "app.content_flagging.marshal_property_values.app_error",
@@ -5177,6 +5189,10 @@
   {
     "id": "app.content_flagging.permanently_delete.app_error",
     "translation": "Failed to overwrite post with scrubbed post when permanently deleting flagged post."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
+    "translation": "Failed to marshal reviewer comment"
   },
   {
     "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
@@ -6904,7 +6920,7 @@
   },
   {
     "id": "app.post_priority.delete_for_post.app_error",
-    "translation": "Failed to permanently delete post psiority data from database for post."
+    "translation": "Failed to permanently delete post priority data from database for post."
   },
   {
     "id": "app.post_priority.delete_persistent_notification_post.app_error",
@@ -7579,6 +7595,14 @@
   {
     "id": "app.user.analytics_get_inactive_users_count.app_error",
     "translation": "We could not count the inactive users."
+  },
+  {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "Failed to migrate the user's password to the newest hashing method."
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "Failed to update the user's password."
   },
   {
     "id": "app.user.clear_all_custom_role_assignments.select.app_error",

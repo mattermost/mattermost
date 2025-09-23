@@ -80,7 +80,7 @@ export function loadPostContentFlaggingFields(): ActionFuncAsync<NameMappedPrope
     // Use data loader and fetch data to manage multiple, simultaneous dispatches
     return async (dispatch, getState, {loaders}: any) => {
         if (!loaders.postContentFlaggingFieldsLoader) {
-            loaders.postContentFlaggingFieldsLoader = new DelayedDataLoader<Array<PropertyValue<unknown>>>({
+            loaders.postContentFlaggingFieldsLoader = new DelayedDataLoader<NameMappedPropertyFields>({
                 fetchBatch: () => dispatch(getPostContentFlaggingFields()),
                 maxBatchSize: 1,
                 wait: 200,

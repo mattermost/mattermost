@@ -26,3 +26,10 @@ export type ContentFlaggingState = {
         [key: Post['id']]: Array<PropertyValue<unknown>>;
     };
 };
+
+export enum ContentFlaggingStatus {
+    Pending = 'Pending',
+    Assigned = 'Assigned',
+    Removed = 'Removed',
+    Retained = 'Retained',
+}

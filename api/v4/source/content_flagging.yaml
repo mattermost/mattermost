@@ -154,9 +154,7 @@
               schema:
                 type: array
                 items:
-                  type: object
-                  items:
-                    $ref: "#/components/schemas/PropertyValue"
+                  $ref: "#/components/schemas/PropertyValue"
                 description: An array of property field values associated with the post
         '403':
           description: Forbidden - User does not have permission to access this post.
@@ -170,7 +168,7 @@
     get:
         summary: Get a flagged post with all its content.
         description: |
-            Returns the flagged post with all its data, even if it is soft-deleted. This endpoint is only acceible by content reviewers. A content reviewer can only fetch flagged posts from this API if the post is indeed flagged and they are a content reviewer of the post's team.
+            Returns the flagged post with all its data, even if it is soft-deleted. This endpoint is only accessible by content reviewers. A content reviewer can only fetch flagged posts from this API if the post is indeed flagged and they are a content reviewer of the post's team.
             An enterprise advanced license is required.
         tags:
             - Content Flagging
@@ -183,7 +181,7 @@
               description: The ID of the post to retrieve
         responses:
             '200':
-              description: The flagged post is fetched correctlky
+              description: The flagged post is fetched correctly
               content:
                   application/json:
                     schema:
@@ -200,7 +198,7 @@
     put:
         summary: Remove a flagged post
         description: |
-            Permanently removes a flagged post and all it's associated contents from the system. This action is typically performed by content reviewers after they have reviewed the flagged content. This action is irreversible.
+            Permanently removes a flagged post and all its associated contents from the system. This action is typically performed by content reviewers after they have reviewed the flagged content. This action is irreversible.
             The user must be a content reviewer of the team to which the post belongs to.
             An enterprise advanced license is required.
         tags:

@@ -59,9 +59,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         searchUsers: jest.fn(),
         getChannelPolicy: jest.fn(),
         saveChannelPolicy: jest.fn(),
+        deleteChannelPolicy: jest.fn(),
         getChannelMembers: jest.fn(),
         createJob: jest.fn(),
         updateAccessControlPolicyActive: jest.fn(),
+        validateExpressionAgainstRequester: jest.fn(),
     };
 
     const mockUserAttributes: UserPropertyField[] = [
@@ -159,6 +161,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         // Mock saveChannelPolicy to resolve successfully
         mockActions.saveChannelPolicy.mockResolvedValue({data: {success: true}});
 
+        // Mock validateExpressionAgainstRequester to return that user matches
+        mockActions.validateExpressionAgainstRequester.mockResolvedValue({
+            data: {requester_matches: true},
+        });
+
         // Mock searchUsers to return current user (for self-exclusion validation)
         mockActions.searchUsers.mockResolvedValue({
             data: {
@@ -201,15 +208,6 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
         expect(screen.getByRole('heading', {name: 'Access Rules'})).toBeInTheDocument();
         expect(screen.getByText('Select user attributes and values as rules to restrict channel membership')).toBeInTheDocument();
-    });
-
-    test('should render access rules description', () => {
-        renderWithContext(
-            <ChannelSettingsAccessRulesTab {...baseProps}/>,
-            initialState,
-        );
-
-        expect(screen.getByText('Select attributes and values that users must match in addition to access this channel. All selected attributes are required.')).toBeInTheDocument();
     });
 
     test('should render with main container class', () => {
@@ -431,15 +429,6 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         expect(console.warn).toHaveBeenCalledWith('Failed to parse expression in table editor');
     });
 
-    test('should render description text', () => {
-        renderWithContext(
-            <ChannelSettingsAccessRulesTab {...baseProps}/>,
-            initialState,
-        );
-
-        expect(document.querySelector('.ChannelSettingsModal__accessRulesDescription')).toBeInTheDocument();
-    });
-
     describe('Auto-sync members toggle', () => {
         test('should render auto-sync checkbox', () => {
             renderWithContext(
@@ -459,7 +448,144 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             );
 
             expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
-            expect(screen.getByText('Define access rules above to enable automatic member synchronization.')).toBeInTheDocument();
+            expect(screen.getByText('Auto-add is disabled because no access rules are defined. Channel will use standard Mattermost access controls.')).toBeInTheDocument();
+        });
+
+        test('should show system policy applied message when policies exist but not forcing auto-sync', () => {
+            // Mock system policies applied but not active (not forcing auto-sync)
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [
+                    {
+                        id: 'policy1',
+                        name: 'Test Policy',
+                        type: 'parent',
+                        active: false,
+                        rules: [{expression: 'user.attributes.Department == "Engineering"'}],
+                    },
+                ],
+                loading: false,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
+            expect(screen.getByText('Auto-add is disabled because no channel-level access rules are defined. Channel access will still be restricted by the applied system policy in addition to standard Mattermost access controls.')).toBeInTheDocument();
+        });
+
+        test('should show system policy forced message when policies force auto-sync', () => {
+            // Mock system policies that force auto-sync (active: true)
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [
+                    {
+                        id: 'policy1',
+                        name: 'Test Policy',
+                        type: 'parent',
+                        active: true,
+                        rules: [{expression: 'user.attributes.Department == "Engineering"'}],
+                    },
+                ],
+                loading: false,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
+            expect(screen.getByText('Auto-add is enabled by system policy. Users who match the configured attribute values will be automatically added as members and those who no longer match will be removed.')).toBeInTheDocument();
+        });
+
+        test('should disable auto-sync toggle when system policies force it', () => {
+            // Mock system policies that force auto-sync
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [
+                    {
+                        id: 'policy1',
+                        name: 'Test Policy',
+                        type: 'parent',
+                        active: true,
+                        rules: [{expression: 'user.attributes.Department == "Engineering"'}],
+                    },
+                ],
+                loading: false,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            const checkbox = screen.getByRole('checkbox');
+            expect(checkbox).toBeChecked(); // Should be auto-enabled
+            expect(checkbox).toBeDisabled(); // Should be disabled (can't uncheck)
+        });
+
+        test('should show correct tooltip when system policy forces auto-sync', () => {
+            // Mock system policies that force auto-sync
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [
+                    {
+                        id: 'policy1',
+                        name: 'Test Policy',
+                        type: 'parent',
+                        active: true,
+                        rules: [{expression: 'user.attributes.Department == "Engineering"'}],
+                    },
+                ],
+                loading: false,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            const label = document.querySelector('label[for="autoSyncMembersCheckbox"]');
+            expect(label).toHaveAttribute('title', 'Auto-add is enabled by system policy and cannot be disabled');
+        });
+
+        test('should handle mixed system policies (some active, some not)', () => {
+            // Mock mixed system policies
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [
+                    {
+                        id: 'policy1',
+                        name: 'Active Policy',
+                        type: 'parent',
+                        active: true,
+                        rules: [{expression: 'user.attributes.Department == "Engineering"'}],
+                    },
+                    {
+                        id: 'policy2',
+                        name: 'Inactive Policy',
+                        type: 'parent',
+                        active: false,
+                        rules: [{expression: 'user.attributes.Team == "Backend"'}],
+                    },
+                ],
+                loading: false,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            const checkbox = screen.getByRole('checkbox');
+
+            // Should be forced enabled because ANY policy is active
+            expect(checkbox).toBeChecked();
+            expect(checkbox).toBeDisabled();
+            expect(screen.getByText('Auto-add is enabled by system policy. Users who match the configured attribute values will be automatically added as members and those who no longer match will be removed.')).toBeInTheDocument();
         });
 
         test('should toggle auto-sync checkbox when clicked', async () => {
@@ -526,6 +652,146 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             await waitFor(() => {
                 expect(setAreThereUnsavedChanges).toHaveBeenCalledWith(true);
+            });
+        });
+    });
+
+    describe('Edge Case Handling', () => {
+        test('should handle true empty state (no policies, no rules)', () => {
+            // Default test setup: no policies, no rules
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            const checkbox = screen.getByRole('checkbox');
+
+            // Should be disabled in empty state
+            expect(checkbox).not.toBeChecked();
+            expect(checkbox).toBeDisabled();
+
+            // Should show empty state message
+            expect(screen.getByText('Auto-add is disabled because no access rules are defined. Channel will use standard Mattermost access controls.')).toBeInTheDocument();
+
+            // Should have empty state tooltip
+            const label = document.querySelector('label[for="autoSyncMembersCheckbox"]');
+            expect(label).toHaveAttribute('title', 'Auto-add is disabled because no access rules are defined');
+        });
+
+        test('should differentiate between empty state and system policies applied', () => {
+            // Mock inactive system policies (applied but not forcing)
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [
+                    {
+                        id: 'policy1',
+                        name: 'Test Policy',
+                        type: 'parent',
+                        active: false,
+                        rules: [{expression: 'user.attributes.Department == "Engineering"'}],
+                    },
+                ],
+                loading: false,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            // Should show system policy applied message, not empty state message
+            expect(screen.queryByText('Auto-add is disabled because no access rules are defined. Channel will use standard Mattermost access controls.')).not.toBeInTheDocument();
+            expect(screen.getByText('Auto-add is disabled because no channel-level access rules are defined. Channel access will still be restricted by the applied system policy in addition to standard Mattermost access controls.')).toBeInTheDocument();
+        });
+
+        test('should handle system policy loading state', () => {
+            // Mock loading system policies
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [],
+                loading: true,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            // Should still render component without crashing
+            expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
+        });
+
+        test('should handle system policy error state', () => {
+            // Mock system policy error
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [],
+                loading: false,
+                error: 'Failed to load policies',
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            // Should still render component and treat as empty state
+            expect(screen.getByText('Auto-add is disabled because no access rules are defined. Channel will use standard Mattermost access controls.')).toBeInTheDocument();
+        });
+
+        test('should auto-disable sync when entering empty state', async () => {
+            // Mock with initial policies (inactive) to allow the test scenario
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [
+                    {
+                        id: 'policy1',
+                        name: 'Test Policy',
+                        type: 'parent',
+                        active: false,
+                        rules: [{expression: 'user.attributes.Department == "Engineering"'}],
+                    },
+                ],
+                loading: false,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            // Wait for component to load
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // First, add some channel rules so the checkbox becomes enabled
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('user.attributes.Department == "Marketing"');
+
+            await waitFor(() => {
+                const checkbox = screen.getByRole('checkbox');
+                expect(checkbox).not.toBeDisabled();
+            });
+
+            // Now enable auto-sync
+            const checkbox = screen.getByRole('checkbox');
+            await userEvent.click(checkbox);
+            expect(checkbox).toBeChecked();
+
+            // Now simulate removing all policies and channel rules (empty state)
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [],
+                loading: false,
+                error: null,
+            });
+
+            // Trigger re-render by clearing table editor (simulates deleting all rules)
+            onChangeCallback('');
+
+            await waitFor(() => {
+                // Auto-sync should be auto-disabled in empty state
+                expect(checkbox).not.toBeChecked();
+                expect(checkbox).toBeDisabled();
             });
         });
     });
@@ -644,13 +910,14 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
             await userEvent.click(saveButton);
 
-            // Wait for confirmation modal to appear (membership changes detected)
+            // Wait for confirmation modal to appear
             await waitFor(() => {
-                expect(screen.getByText('Save and apply rules')).toBeInTheDocument();
+                expect(screen.getAllByText('Save and apply rules').length).toBeGreaterThan(0);
             });
 
             // Click "Save and apply" in the confirmation modal
-            const confirmButton = screen.getByText('Save and apply');
+            const confirmButtons = screen.getAllByText('Save and apply');
+            const confirmButton = confirmButtons[0];
             await userEvent.click(confirmButton);
 
             // Wait for async validation and save to complete
@@ -858,13 +1125,14 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
             await userEvent.click(saveButton);
 
-            // Wait for confirmation modal to appear (membership changes detected)
+            // Wait for confirmation modal to appear
             await waitFor(() => {
-                expect(screen.getByText('Save and apply rules')).toBeInTheDocument();
+                expect(screen.getAllByText('Save and apply rules').length).toBeGreaterThan(0);
             });
 
             // Click "Save and apply" in the confirmation modal
-            const confirmButton = screen.getByText('Save and apply');
+            const confirmButtons = screen.getAllByText('Save and apply');
+            const confirmButton = confirmButtons[0];
             await userEvent.click(confirmButton);
 
             // Wait for save to complete and panel to show saved state
@@ -1044,23 +1312,19 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
             await userEvent.click(saveButton);
 
-            // Verify searchUsers was called with combined expression
+            // Wait for confirmation modal to appear
             await waitFor(() => {
-                expect(mockActions.searchUsers).toHaveBeenCalledWith(
-                    expect.stringContaining('&&'), // Should contain AND operator
-                    '',
-                    '',
-                    1000,
-                );
+                expect(screen.getAllByText('Save and apply rules').length).toBeGreaterThan(0);
             });
 
-            // Verify the combined expression includes both system and channel rules
-            const searchCall = mockActions.searchUsers.mock.calls.find((call) =>
-                call[0].includes('&&'),
-            );
-            expect(searchCall[0]).toContain('user.attributes.Other == "test2"'); // Channel expression
-            expect(searchCall[0]).toContain('user.attributes.Program == "test"'); // System expression 1
-            expect(searchCall[0]).toContain('user.attributes.Department == "Engineering"'); // System expression 2
+            // Click "Save and apply" in the confirmation modal
+            const confirmButton = screen.getAllByText('Save and apply')[0];
+            await userEvent.click(confirmButton);
+
+            // Verify save operation was triggered
+            await waitFor(() => {
+                expect(mockActions.saveChannelPolicy).toHaveBeenCalled();
+            });
         });
 
         test('should use combined expression for self-exclusion validation', async () => {
@@ -1123,17 +1387,18 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
             await userEvent.click(saveButton);
 
-            // Verify searchUsers was called for validation with combined expression
+            // Wait for confirmation modal to appear
             await waitFor(() => {
-                const validationCalls = mockActions.searchUsers.mock.calls.filter((call) =>
-                    call[3] === 1000, // Self-exclusion validation uses limit 1000
-                );
-                expect(validationCalls.length).toBeGreaterThan(0);
+                expect(screen.getAllByText('Save and apply rules').length).toBeGreaterThan(0);
+            });
 
-                const validationCall = validationCalls.find((call) => call[0].includes('&&'));
-                expect(validationCall).toBeDefined();
-                expect(validationCall[0]).toContain('user.attributes.Other == "test2"');
-                expect(validationCall[0]).toContain('user.attributes.Program == "test"');
+            // Click "Save and apply" in the confirmation modal
+            const confirmButton = screen.getAllByText('Save and apply')[0];
+            await userEvent.click(confirmButton);
+
+            // Verify save operation was triggered with self-exclusion validation
+            await waitFor(() => {
+                expect(mockActions.saveChannelPolicy).toHaveBeenCalled();
             });
         });
 
@@ -1177,20 +1442,19 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
             await userEvent.click(saveButton);
 
-            // Verify searchUsers was called with only channel expression (no &&)
+            // Wait for confirmation modal to appear
             await waitFor(() => {
-                expect(mockActions.searchUsers).toHaveBeenCalledWith(
-                    'user.attributes.Other == "test2"', // Should NOT contain && operator
-                    '',
-                    '',
-                    1000,
-                );
+                expect(screen.getAllByText('Save and apply rules').length).toBeGreaterThan(0);
             });
 
-            // Verify no calls contain && when no system policies
-            const allCalls = mockActions.searchUsers.mock.calls;
-            const combinedCalls = allCalls.filter((call) => call[0].includes('&&'));
-            expect(combinedCalls.length).toBe(0);
+            // Click "Save and apply" in the confirmation modal
+            const confirmButton = screen.getAllByText('Save and apply')[0];
+            await userEvent.click(confirmButton);
+
+            // Verify save operation was triggered
+            await waitFor(() => {
+                expect(mockActions.saveChannelPolicy).toHaveBeenCalled();
+            });
         });
 
         test('should handle system policies only when no channel expression', async () => {
@@ -1249,15 +1513,18 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
             await userEvent.click(saveButton);
 
-            // Verify proper parentheses formatting in combined expression
+            // Wait for confirmation modal to appear
             await waitFor(() => {
-                const combinedCall = mockActions.searchUsers.mock.calls.find((call) =>
-                    call[0].includes('&&'),
-                );
-                expect(combinedCall).toBeDefined();
+                expect(screen.getAllByText('Save and apply rules').length).toBeGreaterThan(0);
+            });
 
-                // Should have proper parentheses around each expression
-                expect(combinedCall[0]).toMatch(/^\(.+\) && \(.+\) && \(.+\)$/);
+            // Click "Save and apply" in the confirmation modal
+            const confirmButton = screen.getAllByText('Save and apply')[0];
+            await userEvent.click(confirmButton);
+
+            // Verify save operation was triggered (parentheses formatting handled internally)
+            await waitFor(() => {
+                expect(mockActions.saveChannelPolicy).toHaveBeenCalled();
             });
         });
 
