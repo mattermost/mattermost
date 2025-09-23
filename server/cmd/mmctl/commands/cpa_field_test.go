@@ -900,7 +900,6 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		s.Require().Len(lines, 1)
 		s.Require().Contains(lines[0], "Field Team successfully updated")
 	})
-
 }
 
 func (s *MmctlUnitTestSuite) TestCPAFieldDeleteCmd() {

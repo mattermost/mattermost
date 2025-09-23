@@ -355,7 +355,6 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 		s.Require().Nil(err)
 		s.Require().Equal("admin", cpaField.Attrs.Managed)
 	})
-
 }
 
 func (s *MmctlE2ETestSuite) TestCPAFieldDeleteCmd() {
@@ -454,7 +453,6 @@ func (s *MmctlE2ETestSuite) TestCPAFieldDeleteCmd() {
 		}
 		s.Require().False(fieldExists, "Field should have been deleted but still exists in the list")
 	})
-
 
 	s.RunForSystemAdminAndLocal("Delete nonexistent field", func(c client.Client) {
 		printer.Clean()

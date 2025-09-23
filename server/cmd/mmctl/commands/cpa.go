@@ -195,21 +195,21 @@ func resolveOptionDisplayValue(field *model.PropertyField, rawValue json.RawMess
 			return optionName
 		}
 		return optionID
-	} else {
-		// Multiselect - expect an array
-		var optionIDs []string
-		if err := json.Unmarshal(rawValue, &optionIDs); err != nil {
-			return string(rawValue)
-		}
-
-		optionNames := make([]string, 0, len(optionIDs))
-		for _, optionID := range optionIDs {
-			if optionName, exists := optionMap[optionID]; exists {
-				optionNames = append(optionNames, optionName)
-			} else {
-				optionNames = append(optionNames, optionID)
-			}
-		}
-		return fmt.Sprintf("[%s]", strings.Join(optionNames, ", "))
 	}
+
+	// Multiselect - expect an array
+	var optionIDs []string
+	if err := json.Unmarshal(rawValue, &optionIDs); err != nil {
+		return string(rawValue)
+	}
+
+	optionNames := make([]string, 0, len(optionIDs))
+	for _, optionID := range optionIDs {
+		if optionName, exists := optionMap[optionID]; exists {
+			optionNames = append(optionNames, optionName)
+		} else {
+			optionNames = append(optionNames, optionID)
+		}
+	}
+	return fmt.Sprintf("[%s]", strings.Join(optionNames, ", "))
 }

@@ -53,8 +53,8 @@ func cpaValueListCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 	userArg := args[0]
 
 	// Setup template context for field and value resolution
-	if err := setupCPATemplateContext(c); err != nil {
-		return err
+	if tErr := setupCPATemplateContext(c); tErr != nil {
+		return tErr
 	}
 
 	// Resolve user
@@ -101,8 +101,8 @@ func cpaValueSetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	// Setup template context for field and value resolution
-	if err := setupCPATemplateContext(c); err != nil {
-		return err
+	if tErr := setupCPATemplateContext(c); tErr != nil {
+		return tErr
 	}
 
 	// Resolve option names to IDs for select/multiselect fields
