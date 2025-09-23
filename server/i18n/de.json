@@ -10782,5 +10782,17 @@
   {
     "id": "model.config.is_valid.client_side_cert_enable.app_error",
     "translation": "Die zertifikatsbasierte Authentifizierung wurde entfernt. Bitte deaktiviere ClientSideCertEnable, um fortzufahren."
+  },
+  {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "Das Format des gehashten Passworts ist ungültig und konnte nicht geparst werden."
+  },
+  {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "Das Passwort des Benutzers konnte nicht auf die neueste Hashing-Methode umgestellt werden."
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "Das Passwort des Benutzers konnte nicht aktualisiert werden."
   }
 ]
