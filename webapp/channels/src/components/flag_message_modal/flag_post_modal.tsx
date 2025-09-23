@@ -42,6 +42,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
     const dispatch = useDispatch();
 
     useEffect(() => {
+        // TODO use new hook here
         dispatch(getContentFlaggingConfig());
     }, [dispatch]);
 
@@ -71,7 +72,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
             return [];
         }
 
-        return contentFlaggingSettings.reasons.map((reason) => ({
+        return contentFlaggingSettings.reasons.map((reason: string) => ({
             value: reason,
             label: reason,
         }));

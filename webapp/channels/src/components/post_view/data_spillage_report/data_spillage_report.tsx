@@ -5,6 +5,7 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {ContentFlaggingStatus} from '@mattermost/types/content_flagging';
 import type {Post} from '@mattermost/types/posts';
 import type {NameMappedPropertyFields, PropertyValue} from '@mattermost/types/properties';
 
@@ -21,20 +22,22 @@ import PropertiesCardView from 'components/properties_card_view/properties_card_
 import {DataSpillagePropertyNames} from 'utils/constants';
 
 import './data_spillage_report.scss';
+import DataSpillageFooter from './data_spillage_footer/data_spillage_footer';
 import {getSyntheticPropertyFields, getSyntheticPropertyValues} from './synthetic_data';
 
 // The order of fields to be displayed in the report, from top to bottom.
 const orderedFieldName = [
     'status',
     'reporting_reason',
+    'actor_user_id',
+    'actor_comment',
+    'action_time',
     'post_preview',
+    'post_id',
     'reviewer',
     'reporting_user_id',
     'reporting_time',
     'reporting_comment',
-    'actor_user_id',
-    'actor_comment',
-    'action_time',
     'channel',
     'team',
     'post_author',
@@ -72,7 +75,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
                 // We need to obtain the post directly from action bypassing the selectors
                 // because the post might be soft-deleted and the post reducers do not store deleted posts
                 // in the store.
-                const post = await Client4.getFlaggedPost(reportedPostId);
+                const post = await loadFlaggedPost(reportedPostId);
                 if (post) {
                     setReportedPost(post);
                     loaded.current = true;
@@ -135,6 +138,34 @@ export function DataSpillageReport({post, isRHS}: Props) {
         };
     }, [formatMessage]);
 
+    const footer = useMemo(() => {
+        if (isRHS) {
+            return null;
+        }
+
+        return (<DataSpillageFooter post={post}/>);
+    }, [isRHS, post]);
+
+    const actionRow = useMemo(() => {
+        if (!reportedPost || !reportingUser) {
+            return null;
+        }
+
+        let showActionRow;
+        if (!propertyFields || !propertyValues) {
+            showActionRow = true;
+        } else {
+            const status = propertyValues.find((value) => value.field_id === propertyFields.status.id)?.value as string | undefined;
+            showActionRow = reportedPost && reportingUser && status && (status === ContentFlaggingStatus.Pending || status === ContentFlaggingStatus.Assigned);
+        }
+
+        return showActionRow ? (
+            <DataSpillageAction
+                flaggedPost={reportedPost}
+                reportingUser={reportingUser}
+            />) : null;
+    }, [propertyFields, propertyValues, reportedPost, reportingUser]);
+
     return (
         <div
             className={`DataSpillageReport mode_${mode}`}
@@ -147,9 +178,10 @@ export function DataSpillageReport({post, isRHS}: Props) {
                 propertyValues={propertyValues}
                 fieldOrder={orderedFieldName}
                 shortModeFieldOrder={shortModeFieldOrder}
-                actionsRow={<DataSpillageAction/>}
+                actionsRow={actionRow}
                 mode={mode}
                 metadata={metadata}
+                footer={footer}
             />
         </div>
     );

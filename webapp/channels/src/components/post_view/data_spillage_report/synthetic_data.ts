@@ -5,6 +5,16 @@ import type {NameMappedPropertyFields, PropertyValue} from '@mattermost/types/pr
 
 export function getSyntheticPropertyFields(groupId: string): NameMappedPropertyFields {
     return {
+        post_id: {
+            id: 'post_id_field_id',
+            group_id: groupId,
+            name: 'post_id',
+            type: 'text',
+            attrs: {},
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        },
         post_preview: {
             id: 'post_preview_field_id',
             group_id: groupId,
@@ -73,6 +83,17 @@ export function getSyntheticPropertyValues(groupId: string, reportedPostId: stri
         {
             id: 'post_preview_value_id',
             field_id: 'post_preview_field_id',
+            target_id: reportedPostId,
+            target_type: 'post',
+            group_id: groupId,
+            value: reportedPostId,
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+        },
+        {
+            id: 'post_id_value_id',
+            field_id: 'post_id_field_id',
             target_id: reportedPostId,
             target_type: 'post',
             group_id: groupId,

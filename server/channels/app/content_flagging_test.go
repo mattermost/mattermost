@@ -583,7 +583,7 @@ func TestFlagPost(t *testing.T) {
 
 		flagData := model.FlagContentRequest{
 			Reason:  "spam",
-			Comment: "\"This is spam content\"",
+			Comment: "This is spam content",
 		}
 
 		appErr := th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
