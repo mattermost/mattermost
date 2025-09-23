@@ -29,7 +29,6 @@ import (
 func TestPermanentDeleteChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableIncomingWebhooks = true
@@ -87,7 +86,7 @@ func TestPermanentDeleteChannel(t *testing.T) {
 func TestRemoveAllDeactivatedMembersFromChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
+
 	var appErr *model.AppError
 
 	team := th.CreateTeam()
@@ -125,7 +124,7 @@ func TestMoveChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should move channels between teams", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
+
 		var appErr *model.AppError
 
 		sourceTeam := th.CreateTeam()
@@ -211,7 +210,6 @@ func TestMoveChannel(t *testing.T) {
 
 	t.Run("should remove sidebar entries when moving channels from one team to another", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		sourceTeam := th.CreateTeam()
 		targetTeam := th.CreateTeam()
@@ -252,7 +250,6 @@ func TestMoveChannel(t *testing.T) {
 
 	t.Run("should update threads when moving channels between teams", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		sourceTeam := th.CreateTeam()
 		targetTeam := th.CreateTeam()
@@ -307,7 +304,6 @@ func TestMoveChannel(t *testing.T) {
 func TestRemoveUsersFromChannelNotMemberOfTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	team := th.CreateTeam()
 	team2 := th.CreateTeam()
@@ -349,7 +345,6 @@ func TestRemoveUsersFromChannelNotMemberOfTeam(t *testing.T) {
 func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	// figure out the initial number of users in town square
 	channel, err := th.App.Srv().Store().Channel().GetByName(th.BasicTeam.Id, "town-square", true)
@@ -382,7 +377,6 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testi
 func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordOffTopic(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	// figure out the initial number of users in off-topic
 	channel, err := th.App.Srv().Store().Channel().GetByName(th.BasicTeam.Id, "off-topic", true)
@@ -415,7 +409,6 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordOffTopic(t *testing
 func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	basicChannel2 := th.CreateChannel(th.Context, th.BasicTeam)
 	defer func() {
@@ -442,7 +435,6 @@ func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
 func TestJoinDefaultChannelsExperimentalDefaultChannelsMissing(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	basicChannel2 := th.CreateChannel(th.Context, th.BasicTeam)
 	defer func() {
@@ -473,7 +465,6 @@ func TestJoinDefaultChannelsExperimentalDefaultChannelsMissing(t *testing.T) {
 func TestCreateChannelPublicCreatesChannelMemberHistoryRecord(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	// creates a public channel and adds basic user to it
 	publicChannel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
@@ -489,7 +480,6 @@ func TestCreateChannelPublicCreatesChannelMemberHistoryRecord(t *testing.T) {
 func TestCreateChannelPrivateCreatesChannelMemberHistoryRecord(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	// creates a private channel and adds basic user to it
 	privateChannel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypePrivate)
@@ -505,7 +495,6 @@ func TestCreateChannelPrivateCreatesChannelMemberHistoryRecord(t *testing.T) {
 func TestCreateChannelDisplayNameTrimsWhitespace(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "  Public 1  ", Name: "public1", Type: model.ChannelTypeOpen, TeamId: th.BasicTeam.Id}, false)
 	defer func() {
@@ -519,7 +508,6 @@ func TestCreateChannelDisplayNameTrimsWhitespace(t *testing.T) {
 func TestUpdateChannelPrivacy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	privateChannel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypePrivate)
 	privateChannel.Type = model.ChannelTypeOpen
@@ -533,7 +521,6 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 func TestGetOrCreateDirectChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	team1 := th.CreateTeam()
 	team2 := th.CreateTeam()
@@ -588,7 +575,6 @@ func TestGetOrCreateDirectChannel(t *testing.T) {
 func TestCreateGroupChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	user1 := th.CreateUser()
 	user2 := th.CreateUser()
@@ -612,7 +598,6 @@ func TestCreateGroupChannel(t *testing.T) {
 func TestCreateGroupChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	user1 := th.CreateUser()
 	user2 := th.CreateUser()
@@ -643,7 +628,6 @@ func TestCreateGroupChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 func TestCreateDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown(t)
 
 	user1 := th.CreateUser()
 	user2 := th.CreateUser()
@@ -670,7 +654,6 @@ func TestCreateDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 func TestGetDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown(t)
 
 	user1 := th.CreateUser()
 	user2 := th.CreateUser()
@@ -699,7 +682,6 @@ func TestGetDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t).DeleteBots(t)
-	defer th.TearDown(t)
 
 	// create a user and add it to a channel
 	user := th.CreateUser()
@@ -730,7 +712,6 @@ func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 func TestUsersAndPostsCreateActivityInChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t).DeleteBots(t)
-	defer th.TearDown(t)
 
 	user := th.CreateUser()
 	_, err := th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user.Id)
@@ -813,7 +794,6 @@ func TestUsersAndPostsCreateActivityInChannel(t *testing.T) {
 func TestLeaveDefaultChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	guest := th.CreateGuest()
 	th.LinkUserToTeam(guest, th.BasicTeam)
@@ -873,7 +853,6 @@ func TestLeaveDefaultChannel(t *testing.T) {
 func TestLeaveChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	createThread := func(channel *model.Channel) (rpost *model.Post) {
 		t.Helper()
@@ -933,7 +912,6 @@ func TestLeaveChannel(t *testing.T) {
 func TestLeaveLastChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	guest := th.CreateGuest()
 	th.LinkUserToTeam(guest, th.BasicTeam)
@@ -963,7 +941,6 @@ func TestLeaveLastChannel(t *testing.T) {
 func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	// create a user and add it to a channel
 	user := th.CreateUser()
@@ -1005,7 +982,6 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 func TestAddChannelMemberDeletedUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	user := th.CreateUser()
 	_, appErr := th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user.Id)
@@ -1022,7 +998,6 @@ func TestAddChannelMemberDeletedUser(t *testing.T) {
 func TestAppUpdateChannelScheme(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	channel := th.BasicChannel
 	mockID := model.NewPointer("x")
@@ -1040,7 +1015,6 @@ func TestSetChannelsMuted(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should mute and unmute the given channels", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		channel1 := th.BasicChannel
 
@@ -1091,7 +1065,6 @@ func TestSetChannelsMuted(t *testing.T) {
 func TestFillInChannelProps(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	channelPublic1, appErr := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "Public 1", Name: "public1", Type: model.ChannelTypeOpen, TeamId: th.BasicTeam.Id}, false)
 	require.Nil(t, appErr)
@@ -1312,7 +1285,6 @@ func TestFillInChannelProps(t *testing.T) {
 func TestRenameChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	testCases := []struct {
 		Name                string
@@ -1380,7 +1352,6 @@ func TestRenameChannel(t *testing.T) {
 func TestGetChannelMembersTimezones(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	_, appErr := th.App.AddChannelMember(th.Context, th.BasicUser2.Id, th.BasicChannel, ChannelMemberOpts{})
 	require.Nil(t, appErr, "Failed to add user to channel.")
@@ -1437,7 +1408,6 @@ func TestGetChannelsForUser(t *testing.T) {
 		appErr = th.App.PermanentDeleteChannel(th.Context, channel)
 		require.Nil(t, appErr)
 	}()
-	defer th.TearDown(t)
 
 	channelList, appErr := th.App.GetChannelsForTeamForUser(th.Context, th.BasicTeam.Id, th.BasicUser.Id, &model.ChannelSearchOpts{
 		IncludeDeleted: false,
@@ -1470,7 +1440,6 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 	team := th.CreateTeam()
-	defer th.TearDown(t)
 
 	var expectedChannels []*model.Channel
 
@@ -1518,7 +1487,6 @@ func TestGetPrivateChannelsForTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 	team := th.CreateTeam()
-	defer th.TearDown(t)
 
 	var expectedChannels []*model.Channel
 	for i := range 8 {
@@ -1554,7 +1522,6 @@ func TestGetPrivateChannelsForTeam(t *testing.T) {
 func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	t.Run("from guest to user", func(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
@@ -1633,7 +1600,6 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 func TestDefaultChannelNames(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown(t)
 
 	actual := th.App.DefaultChannelNames(th.Context)
 	expect := []string{"town-square", "off-topic"}
@@ -1651,7 +1617,6 @@ func TestDefaultChannelNames(t *testing.T) {
 func TestSearchChannelsForUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	c1, appErr := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "test-dev-1", Name: "test-dev-1", Type: model.ChannelTypeOpen, TeamId: th.BasicTeam.Id}, false)
 	require.Nil(t, appErr)
@@ -1709,7 +1674,6 @@ func TestSearchChannelsForUser(t *testing.T) {
 func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	u1 := th.BasicUser
 	u2 := th.BasicUser2
@@ -1866,7 +1830,6 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 func TestAddUserToChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 	ruser1, _ := th.App.CreateUser(th.Context, &user1)
@@ -1961,7 +1924,6 @@ func TestAddUserToChannel(t *testing.T) {
 func TestRemoveUserFromChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 	ruser, _ := th.App.CreateUser(th.Context, &user)
@@ -2021,7 +1983,6 @@ func TestRemoveUserFromChannel(t *testing.T) {
 func TestPatchChannelModerationsForChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
 	require.NoError(t, err)
@@ -2501,7 +2462,6 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 func TestClearChannelMembersCache(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown(t)
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockChannelStore := mocks.ChannelStore{}
@@ -2534,7 +2494,6 @@ func TestClearChannelMembersCache(t *testing.T) {
 func TestGetMemberCountsByGroup(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown(t)
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockChannelStore := mocks.ChannelStore{}
@@ -2557,7 +2516,6 @@ func TestGetMemberCountsByGroup(t *testing.T) {
 func TestGetChannelsMemberCount(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown(t)
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockChannelStore := mocks.ChannelStore{}
@@ -2576,7 +2534,6 @@ func TestGetChannelsMemberCount(t *testing.T) {
 func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	u1 := th.BasicUser
 	u2 := th.BasicUser2
@@ -2657,7 +2614,7 @@ func TestMarkChannelAsUnreadFromPostCollapsedThreadsTurnedOff(t *testing.T) {
 	// Enable CRT
 
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -2743,7 +2700,7 @@ func TestMarkChannelAsUnreadFromPostCollapsedThreadsTurnedOff(t *testing.T) {
 func TestMarkUnreadCRTOffUpdatesThreads(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOff
@@ -2845,7 +2802,6 @@ func TestIsCRTEnabledForUser(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			th := SetupWithStoreMock(t)
-			defer th.TearDown(t)
 
 			th.App.Config().ServiceSettings.CollapsedThreads = &tc.appCRT
 
@@ -2864,7 +2820,6 @@ func TestIsCRTEnabledForUser(t *testing.T) {
 func TestGetGroupMessageMembersCommonTeams(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown(t)
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 
@@ -2931,7 +2886,6 @@ func TestGetGroupMessageMembersCommonTeams(t *testing.T) {
 func TestConvertGroupMessageToChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown(t)
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 
@@ -3080,7 +3034,6 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 func TestPatchChannelMembersNotifyProps(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	t.Run("should update multiple users' notify props", func(t *testing.T) {
 		user1 := th.CreateUser()
@@ -3209,7 +3162,6 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 
 func TestGetChannelFileCount(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	channel := th.BasicChannel
 
@@ -3262,7 +3214,6 @@ func TestGetChannelFileCount(t *testing.T) {
 
 func TestUpdateChannel(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	t.Run("should be able to update banner info", func(t *testing.T) {
 		channel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
@@ -3290,7 +3241,6 @@ func TestUpdateChannel(t *testing.T) {
 
 func TestPatchChannel(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	t.Run("should be able to patch banner info", func(t *testing.T) {
 		channel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
@@ -3404,7 +3354,6 @@ func TestPatchChannel(t *testing.T) {
 
 func TestCreateChannelWithCategorySorting(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	// Enable ExperimentalChannelCategorySorting
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -3496,7 +3445,6 @@ func TestCreateChannelWithCategorySorting(t *testing.T) {
 
 func TestPatchChannelWithCategorySorting(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	// Enable ExperimentalChannelCategorySorting
 	th.App.UpdateConfig(func(cfg *model.Config) {

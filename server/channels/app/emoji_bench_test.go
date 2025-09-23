@@ -15,9 +15,6 @@ import (
 
 func BenchmarkUploadEmojiImage(b *testing.B) {
 	th := Setup(b)
-	b.Cleanup(func() {
-		th.TearDown(b)
-	})
 
 	rctx := request.TestContext(b)
 

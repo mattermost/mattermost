@@ -19,7 +19,6 @@ func TestPluginDeadlock(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Single Plugin", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		pluginPostOnActivate := template.Must(template.New("pluginPostOnActivate").Parse(`
 			package main
@@ -108,7 +107,6 @@ func TestPluginDeadlock(t *testing.T) {
 
 	t.Run("Multiple Plugins", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		pluginPostOnHasBeenPosted := template.Must(template.New("pluginPostOnHasBeenPosted").Parse(`
 			package main
@@ -296,7 +294,8 @@ func TestPluginDeadlock(t *testing.T) {
 			require.False(t, messageWillBePostedCalled, "MessageWillBePosted should not have been called")
 
 			SetAppEnvironmentWithPlugins(t, plugins, th.App, th.NewPluginAPI)
-			th.TearDown(t)
+			// Shut down all plugins
+			th.App.ch.ShutDownPlugins()
 
 			posts, appErr = th.App.GetPosts(th.BasicChannel.Id, 0, 2)
 			require.Nil(t, appErr)

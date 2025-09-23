@@ -13,7 +13,6 @@ import (
 
 func TestPluginProperties(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	t.Run("test property field methods", func(t *testing.T) {
 		groupName := model.NewId()

@@ -79,7 +79,6 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	t.Run("rejected", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
@@ -120,7 +119,6 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	t.Run("rejected, returned post ignored", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
@@ -162,7 +160,6 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	t.Run("allowed", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
@@ -206,7 +203,6 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	t.Run("updated", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
@@ -251,7 +247,6 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	t.Run("multiple updated", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
@@ -315,7 +310,6 @@ func TestHookMessageWillBePosted(t *testing.T) {
 func TestHookMessageHasBeenPosted(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -359,7 +353,6 @@ func TestHookMessageHasBeenPosted(t *testing.T) {
 func TestHookMessageWillBeUpdated(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -405,7 +398,6 @@ func TestHookMessageWillBeUpdated(t *testing.T) {
 func TestHookMessageHasBeenUpdated(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -454,7 +446,6 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 func TestHookMessageHasBeenDeleted(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -502,7 +493,6 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	t.Run("rejected", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -547,7 +537,6 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	t.Run("rejected, returned file ignored", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -598,7 +587,6 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	t.Run("allowed", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -655,7 +643,6 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	t.Run("updated", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -729,7 +716,6 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 func TestUserWillLogIn_Blocked(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
 	assert.Nil(t, err, "Error updating user password: %s", err)
@@ -769,7 +755,6 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 func TestUserWillLogInIn_Passed(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
 
@@ -812,7 +797,6 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 func TestUserHasLoggedIn(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
 
@@ -860,7 +844,6 @@ func TestUserHasLoggedIn(t *testing.T) {
 func TestUserHasBeenDeactivated(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown(t)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -910,7 +893,6 @@ func TestUserHasBeenDeactivated(t *testing.T) {
 func TestUserHasBeenCreated(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown(t)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -956,7 +938,6 @@ func TestUserHasBeenCreated(t *testing.T) {
 func TestErrorString(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown(t)
 
 	t.Run("errors.New", func(t *testing.T) {
 		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t,
@@ -1031,7 +1012,7 @@ func TestErrorString(t *testing.T) {
 func TestHookContext(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
+
 	ctx := request.EmptyContext(th.TestLogger)
 
 	// We don't actually have a session, we are faking it so just set something arbitrarily
@@ -1087,7 +1068,6 @@ func TestHookContext(t *testing.T) {
 func TestActiveHooks(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown(t)
 
 	t.Run("", func(t *testing.T) {
 		tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
@@ -1159,7 +1139,6 @@ func TestActiveHooks(t *testing.T) {
 func TestHookMetrics(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown(t)
 
 	t.Run("", func(t *testing.T) {
 		metricsMock := &mocks.MetricsInterface{}
@@ -1259,7 +1238,6 @@ func TestHookMetrics(t *testing.T) {
 func TestHookReactionHasBeenAdded(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -1303,7 +1281,6 @@ func TestHookReactionHasBeenAdded(t *testing.T) {
 func TestHookReactionHasBeenRemoved(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -1353,7 +1330,6 @@ func TestHookReactionHasBeenRemoved(t *testing.T) {
 func TestHookRunDataRetention(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -1399,7 +1375,6 @@ func TestHookRunDataRetention(t *testing.T) {
 func TestHookOnSendDailyTelemetry(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -1444,7 +1419,6 @@ func TestHookOnSendDailyTelemetry(t *testing.T) {
 func TestHookOnCloudLimitsUpdated(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -1525,7 +1499,6 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 			mainHelper.Parallel(t)
 
 			th := Setup(t).InitBasic(t)
-			defer th.TearDown(t)
 
 			templatedPlugin := fmt.Sprintf(hookNotificationWillBePushedTmpl, tt.testCode)
 			tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{templatedPlugin}, th.App, th.NewPluginAPI)
@@ -1660,7 +1633,6 @@ func TestHookEmailNotificationWillBeSent(t *testing.T) {
 			mainHelper.Parallel(t)
 
 			th := Setup(t).InitBasic(t)
-			defer th.TearDown(t)
 
 			// Create a test user for email notifications
 			user := th.CreateUser()
@@ -1782,7 +1754,6 @@ func TestHookMessagesWillBeConsumed(t *testing.T) {
 		th := SetupConfig(t, func(cfg *model.Config) {
 			cfg.FeatureFlags.ConsumePostHook = false
 		}).InitBasic(t)
-		t.Cleanup(func() { th.TearDown(t) })
 
 		setupPlugin(t, th)
 
@@ -1806,7 +1777,6 @@ func TestHookMessagesWillBeConsumed(t *testing.T) {
 		th := SetupConfig(t, func(cfg *model.Config) {
 			cfg.FeatureFlags.ConsumePostHook = true
 		}).InitBasic(t)
-		t.Cleanup(func() { th.TearDown(t) })
 
 		setupPlugin(t, th)
 
@@ -1830,7 +1800,6 @@ func TestHookPreferencesHaveChanged(t *testing.T) {
 	t.Run("should be called when preferences are changed by non-plugin code", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		// Setup plugin
 		var mockAPI plugintest.API
@@ -1899,7 +1868,6 @@ func TestHookPreferencesHaveChanged(t *testing.T) {
 	t.Run("should be called when preferences are changed by plugin code", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		// Setup plugin
 		pluginCode := `
@@ -2023,7 +1991,6 @@ func TestChannelHasBeenCreated(t *testing.T) {
 	t.Run("should call hook when a regular channel is created", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
@@ -2054,7 +2021,6 @@ func TestChannelHasBeenCreated(t *testing.T) {
 	t.Run("should call hook when a DM is created", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
@@ -2080,7 +2046,6 @@ func TestChannelHasBeenCreated(t *testing.T) {
 	t.Run("should call hook when a GM is created", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
@@ -2153,7 +2118,6 @@ func TestUserHasJoinedChannel(t *testing.T) {
 	t.Run("should call hook when a user joins an existing channel", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		user1 := th.CreateUser()
 		th.LinkUserToTeam(user1, th.BasicTeam)
@@ -2199,7 +2163,6 @@ func TestUserHasJoinedChannel(t *testing.T) {
 	t.Run("should call hook when a user is added to an existing channel", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		user1 := th.CreateUser()
 		th.LinkUserToTeam(user1, th.BasicTeam)
@@ -2245,7 +2208,6 @@ func TestUserHasJoinedChannel(t *testing.T) {
 	t.Run("should not call hook when a regular channel is created", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
@@ -2280,7 +2242,6 @@ func TestUserHasJoinedChannel(t *testing.T) {
 	t.Run("should not call hook when a DM is created", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
@@ -2311,7 +2272,6 @@ func TestUserHasJoinedChannel(t *testing.T) {
 	t.Run("should not call hook when a GM is created", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)

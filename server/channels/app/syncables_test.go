@@ -19,7 +19,6 @@ import (
 func TestCreateDefaultMemberships(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	singersTeam, err := th.App.CreateTeam(th.Context, &model.Team{
 		DisplayName: "Singers",
@@ -545,7 +544,6 @@ func (us *mokeUserStore) Get(_ context.Context, id string) (*model.User, error) 
 func TestDeleteGroupMemberships(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	group := th.CreateGroup()
 
@@ -613,7 +611,6 @@ func TestDeleteGroupMemberships(t *testing.T) {
 func TestSyncSyncableRoles(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	team := th.CreateTeam()
 

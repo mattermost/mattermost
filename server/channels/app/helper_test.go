@@ -101,8 +101,10 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 		options = append(options, StoreOverride(dbStore))
 	}
 
-	testLogger, _ := mlog.NewLogger()
-	logCfg, _ := config.MloggerConfigFromLoggerConfig(&memoryConfig.LogSettings, nil, config.GetLogFileLocation)
+	testLogger, err := mlog.NewLogger()
+	require.NoError(tb, err)
+	logCfg, err := config.MloggerConfigFromLoggerConfig(&memoryConfig.LogSettings, nil, config.GetLogFileLocation)
+	require.NoError(tb, err)
 	err = testLogger.ConfigureTargets(logCfg, nil)
 	require.NoError(tb, err)
 
@@ -165,6 +167,20 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 	if th.tempWorkspace == "" {
 		th.tempWorkspace = tempWorkspace
 	}
+
+	tb.Cleanup(func() {
+		if th.IncludeCacheLayer {
+			// Clean all the caches
+			appErr := th.App.Srv().InvalidateAllCaches()
+			require.Nil(tb, appErr)
+		}
+
+		th.ShutdownApp()
+		if th.tempWorkspace != "" {
+			err := os.RemoveAll(th.tempWorkspace)
+			require.NoError(tb, err)
+		}
+	})
 
 	return th
 }
@@ -648,20 +664,6 @@ func (th *TestHelper) ShutdownApp() {
 	}
 }
 
-func (th *TestHelper) TearDown(tb testing.TB) {
-	if th.IncludeCacheLayer {
-		// Clean all the caches
-		appErr := th.App.Srv().InvalidateAllCaches()
-		require.Nil(tb, appErr)
-	}
-
-	th.ShutdownApp()
-	if th.tempWorkspace != "" {
-		err := os.RemoveAll(th.tempWorkspace)
-		require.NoError(tb, err)
-	}
-}
-
 func (th *TestHelper) GetSqlStore() *sqlstore.SqlStore {
 	return th.SQLStore
 }
@@ -785,9 +787,9 @@ func (th *TestHelper) RemovePermissionFromRole(permission string, roleName strin
 }
 
 func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
-	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
-	if err1 != nil {
-		panic(err1)
+	role, appErr := th.App.GetRoleByName(context.Background(), roleName)
+	if appErr != nil {
+		panic(appErr)
 	}
 
 	if slices.Contains(role.Permissions, permission) {

@@ -16,6 +16,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	smocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/config"
@@ -24,7 +25,6 @@ import (
 func TestGenerateSupportPacket(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown(t)
 
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
 	require.NoError(t, err)
@@ -272,7 +272,6 @@ func TestGenerateSupportPacket(t *testing.T) {
 func TestGetPluginsFile(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown(t)
 
 	getJobList := func(t *testing.T) *model.SupportPacketPluginList {
 		t.Helper()
@@ -336,14 +335,13 @@ func TestGetPluginsFile(t *testing.T) {
 
 func TestGetSupportPacketStats(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t)
 
-	generateStats := func(t *testing.T) *model.SupportPacketStats {
+	generateStats := func(t *testing.T, rctx request.CTX, a *App) *model.SupportPacketStats {
 		t.Helper()
 
-		require.NoError(t, th.App.Srv().Store().Post().RefreshPostStats())
+		require.NoError(t, a.Srv().Store().Post().RefreshPostStats())
 
-		fileData, err := th.App.getSupportPacketStats(th.Context)
+		fileData, err := a.getSupportPacketStats(rctx)
 		require.NotNil(t, fileData)
 		assert.Equal(t, "stats.yaml", fileData.Filename)
 		assert.Positive(t, len(fileData.Body))
@@ -356,8 +354,10 @@ func TestGetSupportPacketStats(t *testing.T) {
 		return &packet
 	}
 
+	th := Setup(t)
+
 	t.Run("fresh server", func(t *testing.T) {
-		sp := generateStats(t)
+		sp := generateStats(t, th.Context, th.App)
 
 		assert.Equal(t, int64(0), sp.RegisteredUsers)
 		assert.Equal(t, int64(0), sp.ActiveUsers)
@@ -426,7 +426,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, webhookOut)
 
-		sp := generateStats(t)
+		sp := generateStats(t, th.Context, th.App)
 
 		assert.Equal(t, int64(9), sp.RegisteredUsers)
 		assert.Equal(t, int64(6), sp.ActiveUsers)
@@ -443,12 +443,9 @@ func TestGetSupportPacketStats(t *testing.T) {
 		assert.Equal(t, int64(1), sp.OutgoingWebhooks)
 	})
 
-	// Reset test server
-	th.TearDown(t)
-	th = Setup(t).InitBasic(t)
-	defer th.TearDown(t)
-
 	t.Run("post count should be present if number of users extends AnalyticsSettings.MaxUsersForStatistics", func(t *testing.T) {
+		// Setup a new test helper
+		th := Setup(t).InitBasic(t)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AnalyticsSettings.MaxUsersForStatistics = model.NewPointer(1)
 		})
@@ -459,15 +456,14 @@ func TestGetSupportPacketStats(t *testing.T) {
 		}
 
 		// InitBasic(t) already creats 5 posts
-		packet := generateStats(t)
-		assert.Equal(t, int64(10), packet.Posts)
+		sp := generateStats(t, th.Context, th.App)
+		assert.Equal(t, int64(10), sp.Posts)
 	})
 }
 
 func TestGetSupportPacketJobList(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown(t)
 
 	getJobList := func(t *testing.T) *model.SupportPacketJobList {
 		t.Helper()
@@ -575,7 +571,6 @@ func TestGetSupportPacketJobList(t *testing.T) {
 func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
 	require.NoError(t, err)
@@ -662,7 +657,6 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 func TestGetSupportPacketMetadata(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown(t)
 
 	t.Run("Happy path", func(t *testing.T) {
 		fileData, err := th.App.getSupportPacketMetadata(th.Context)
@@ -683,7 +677,6 @@ func TestGetSupportPacketMetadata(t *testing.T) {
 
 func TestGetSupportPacketDatabaseSchema(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown(t)
 
 	// Mock store for testing
 	mockStore := &smocks.Store{}

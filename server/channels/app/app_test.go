@@ -42,7 +42,6 @@ func init() {
 func TestUnitUpdateConfig(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown(t)
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
@@ -82,7 +81,6 @@ func TestUnitUpdateConfig(t *testing.T) {
 
 func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown(t)
 
 	th.ResetRoleMigration()
 
@@ -256,7 +254,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 
 func TestDoEmojisPermissionsMigration(t *testing.T) {
 	th := SetupWithoutPreloadMigrations(t)
-	defer th.TearDown(t)
 
 	expectedSystemAdmin := allPermissionIDs
 	sort.Strings(expectedSystemAdmin)
@@ -295,7 +292,6 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 func TestDBHealthCheckWriteAndDelete(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown(t)
 
 	expectedKey := "health_check_" + th.App.GetClusterId()
 	assert.Equal(t, expectedKey, th.App.dbHealthCheckKey())

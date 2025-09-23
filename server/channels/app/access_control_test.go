@@ -18,7 +18,6 @@ import (
 
 func TestGetChannelsForPolicy(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	rctx := request.TestContext(t)
 	policyID := "policyID"
@@ -125,7 +124,6 @@ func TestGetChannelsForPolicy(t *testing.T) {
 
 func TestSearchAccessControlPolicies(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	rctx := request.TestContext(t)
 
@@ -206,7 +204,6 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 
 func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	rctx := request.TestContext(t)
 	parentID := model.NewId()
@@ -367,7 +364,6 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 
 func TestUnassignPoliciesFromChannels(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	rctx := request.TestContext(t)
 

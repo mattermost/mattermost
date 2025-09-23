@@ -17,7 +17,6 @@ import (
 func TestGetLatestVersion(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	version := &model.GithubReleaseInfo{
 		Id:          57117096,

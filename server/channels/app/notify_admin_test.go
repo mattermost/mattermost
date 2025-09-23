@@ -18,7 +18,6 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("no error sending non trial upgrade post when no notifications are available", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -28,7 +27,6 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 
 	t.Run("no error sending trial upgrade post when no notifications are available", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -38,7 +36,6 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 
 	t.Run("successfully send upgrade notification", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -91,7 +88,6 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 
 	t.Run("successfully send trial upgrade notification", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -138,7 +134,6 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 
 	t.Run("error when trying to send upgrade post before end of cool off period", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -169,7 +164,6 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 
 	t.Run("can send upgrade post at the end of cool off period", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -204,7 +198,6 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 
 	t.Run("can filter notifications when plan changes within cool off period", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		defer th.TearDown(t)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 

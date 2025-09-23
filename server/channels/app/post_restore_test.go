@@ -14,7 +14,6 @@ import (
 func TestRestorePostVersion(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	t.Run("is able to restore a post version", func(t *testing.T) {
 		post := th.CreatePost(th.BasicChannel, func(p *model.Post) {

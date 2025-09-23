@@ -17,7 +17,6 @@ import (
 func TestGetJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown(t)
 
 	status := &model.Job{
 		Id:     model.NewId(),
@@ -39,7 +38,6 @@ func TestGetJob(t *testing.T) {
 func TestSessionHasPermissionToCreateJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown(t)
 
 	jobs := []model.Job{
 		{
@@ -224,7 +222,6 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 func TestSessionHasPermissionToReadJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown(t)
 
 	jobs := []model.Job{
 		{
@@ -310,7 +307,6 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 func TestGetJobByType(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown(t)
 
 	jobType := model.NewId()
 
@@ -356,7 +352,6 @@ func TestGetJobByType(t *testing.T) {
 func TestGetJobsByTypes(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown(t)
 
 	jobType := model.NewId()
 	jobType1 := model.NewId()

@@ -17,7 +17,6 @@ import (
 func TestGetDraft(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	th.Server.platform.SetConfigReadOnlyFF(false)
 	defer th.Server.platform.SetConfigReadOnlyFF(true)
@@ -58,7 +57,6 @@ func TestGetDraft(t *testing.T) {
 func TestUpsertDraft(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	th.Server.platform.SetConfigReadOnlyFF(false)
 	defer th.Server.platform.SetConfigReadOnlyFF(true)
@@ -117,7 +115,6 @@ func TestUpsertDraft(t *testing.T) {
 func TestCreateDraft(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	th.Server.platform.SetConfigReadOnlyFF(false)
 	defer th.Server.platform.SetConfigReadOnlyFF(true)
@@ -176,7 +173,6 @@ func TestCreateDraft(t *testing.T) {
 func TestUpdateDraft(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	th.Server.platform.SetConfigReadOnlyFF(false)
 	defer th.Server.platform.SetConfigReadOnlyFF(true)
@@ -222,7 +218,6 @@ func TestUpdateDraft(t *testing.T) {
 func TestGetDraftsForUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	th.Server.platform.SetConfigReadOnlyFF(false)
 	defer th.Server.platform.SetConfigReadOnlyFF(true)
@@ -346,7 +341,6 @@ func TestGetDraftsForUser(t *testing.T) {
 func TestDeleteDraft(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	defer th.TearDown(t)
 
 	th.Server.platform.SetConfigReadOnlyFF(false)
 	defer th.Server.platform.SetConfigReadOnlyFF(true)

@@ -19,7 +19,6 @@ import (
 func TestPluginPublicKeys(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown(t)
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
