@@ -198,7 +198,7 @@
     put:
         summary: Remove a flagged post
         description: |
-            Permanently removes a flagged post and all it's associated contents from the system. This action is typically performed by content reviewers after they have reviewed the flagged content. This action is irreversible.
+            Permanently removes a flagged post and all its associated contents from the system. This action is typically performed by content reviewers after they have reviewed the flagged content. This action is irreversible.
             The user must be a content reviewer of the team to which the post belongs to.
             An enterprise advanced license is required.
         tags:

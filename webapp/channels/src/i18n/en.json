@@ -5249,7 +5249,7 @@
   "property_card.field.channel.label": "Channel",
   "property_card.field.post_author.label": "Posted by",
   "property_card.field.post_creation_time.label": "Posted at",
-  "property_card.field.post_od.label": "Post ID",
+  "property_card.field.post_id.label": "Post ID",
   "property_card.field.post_preview.label": "Message",
   "property_card.field.reporting_comment.label": "Comment",
   "property_card.field.reporting_reason.label": "Reason",

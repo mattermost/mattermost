@@ -26,13 +26,13 @@ export default function DataSpillageAction({flaggedPost, reportingUser}: Props) 
 
     const handleRemoveMessage = useCallback(() => {
         const data = {
-            modalId: ModalIdentifiers.REMOVE_FLAGGED_post,
+            modalId: ModalIdentifiers.REMOVE_FLAGGED_POST,
             dialogType: KeepRemoveFlaggedMessageConfirmationModal,
             dialogProps: {
                 flaggedPost,
                 reportingUser,
                 action: 'remove' as const,
-                onExited: () => closeModal(ModalIdentifiers.REMOVE_FLAGGED_post),
+                onExited: () => closeModal(ModalIdentifiers.REMOVE_FLAGGED_POST),
             },
         };
 
@@ -41,13 +41,13 @@ export default function DataSpillageAction({flaggedPost, reportingUser}: Props) 
 
     const handleKeepMessage = useCallback(() => {
         const data = {
-            modalId: ModalIdentifiers.REMOVE_FLAGGED_post,
+            modalId: ModalIdentifiers.REMOVE_FLAGGED_POST,
             dialogType: KeepRemoveFlaggedMessageConfirmationModal,
             dialogProps: {
                 flaggedPost,
                 reportingUser,
                 action: 'keep' as const,
-                onExited: () => closeModal(ModalIdentifiers.REMOVE_FLAGGED_post),
+                onExited: () => closeModal(ModalIdentifiers.REMOVE_FLAGGED_POST),
             },
         };
 

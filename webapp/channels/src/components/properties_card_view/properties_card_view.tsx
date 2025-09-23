@@ -49,7 +49,7 @@ const fieldNameMessages = defineMessages({
         defaultMessage: 'Message',
     },
     post_id: {
-        id: 'property_card.field.post_od.label',
+        id: 'property_card.field.post_id.label',
         defaultMessage: 'Post ID',
     },
     reviewer: {

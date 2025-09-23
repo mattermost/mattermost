@@ -5,6 +5,7 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {ContentFlaggingStatus} from '@mattermost/types/content_flagging';
 import type {Post} from '@mattermost/types/posts';
 import type {NameMappedPropertyFields, PropertyValue} from '@mattermost/types/properties';
 
@@ -155,7 +156,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
             showActionRow = true;
         } else {
             const status = propertyValues.find((value) => value.field_id === propertyFields.status.id)?.value as string | undefined;
-            showActionRow = reportedPost && reportingUser && status && (status === 'Pending' || status === 'Assigned');
+            showActionRow = reportedPost && reportingUser && status && (status === ContentFlaggingStatus.Pending || status === ContentFlaggingStatus.Assigned);
         }
 
         return showActionRow ? (
