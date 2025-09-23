@@ -200,7 +200,7 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if channel.IsGroupConstrained() {
-		nonMembers, err := c.App.FilterNonGroupChannelMembers([]string{member.UserId}, channel)
+		nonMembers, err := c.App.FilterNonGroupChannelMembers(c.AppContext, []string{member.UserId}, channel)
 		if err != nil {
 			if v, ok := err.(*model.AppError); ok {
 				c.Err = v
