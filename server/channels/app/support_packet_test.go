@@ -377,29 +377,29 @@ func TestGetSupportPacketStats(t *testing.T) {
 	t.Run("Happy path", func(t *testing.T) {
 		var user *model.User
 		for range 4 {
-			user = th.CreateUser()
+			user = th.CreateUser(t)
 		}
 		th.BasicUser = user
 
 		for range 3 {
-			deactivatedUser := th.CreateUser()
+			deactivatedUser := th.CreateUser(t)
 			require.NotNil(t, deactivatedUser)
 			_, appErr := th.App.UpdateActive(th.Context, deactivatedUser, false)
 			require.Nil(t, appErr)
 		}
 
 		for range 2 {
-			guest := th.CreateGuest()
+			guest := th.CreateGuest(t)
 			require.NotNil(t, guest)
 		}
 
-		th.CreateBot()
+		th.CreateBot(t)
 
-		team := th.CreateTeam()
-		channel := th.CreateChannel(th.Context, team)
+		team := th.CreateTeam(t)
+		channel := th.CreateChannel(t, th.Context, team)
 
 		for range 3 {
-			p := th.CreatePost(channel)
+			p := th.CreatePost(t, channel)
 			require.NotNil(t, p)
 		}
 
@@ -451,7 +451,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 		})
 
 		for range 5 {
-			p := th.CreatePost(th.BasicChannel)
+			p := th.CreatePost(t, th.BasicChannel)
 			require.NotNil(t, p)
 		}
 

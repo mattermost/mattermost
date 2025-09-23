@@ -352,7 +352,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	t.Run("Team with restricted domains skips over members that do not match the allowed domains", func(t *testing.T) {
-		restrictedUser := th.CreateUser()
+		restrictedUser := th.CreateUser(t)
 		restrictedUser.Email = "restricted@mattermost.org"
 		_, err = th.App.UpdateUser(th.Context, restrictedUser, false)
 		require.Nil(t, err)
@@ -501,11 +501,11 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	})
 
 	t.Run("error should contain a information about all users that failed", func(t *testing.T) {
-		user1 := th.CreateUser()
+		user1 := th.CreateUser(t)
 		_, err = th.App.UpsertGroupMember(scienceGroup.Id, user1.Id)
 		require.Nil(t, err)
 
-		user2 := th.CreateUser()
+		user2 := th.CreateUser(t)
 		_, err = th.App.UpsertGroupMember(scienceGroup.Id, user2.Id)
 		require.Nil(t, err)
 
@@ -545,7 +545,7 @@ func TestDeleteGroupMemberships(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 
 	userIDs := []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}
 
@@ -612,16 +612,16 @@ func TestSyncSyncableRoles(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	team := th.CreateTeam()
+	team := th.CreateTeam(t)
 
-	channel := th.CreateChannel(th.Context, team)
+	channel := th.CreateChannel(t, th.Context, team)
 	channel.GroupConstrained = model.NewPointer(true)
 	channel, err := th.App.UpdateChannel(th.Context, channel)
 	require.Nil(t, err)
 
-	user1 := th.CreateUser()
-	user2 := th.CreateUser()
-	group := th.CreateGroup()
+	user1 := th.CreateUser(t)
+	user2 := th.CreateUser(t)
+	group := th.CreateGroup(t)
 
 	teamSyncable, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		SyncableId: team.Id,
@@ -646,7 +646,7 @@ func TestSyncSyncableRoles(t *testing.T) {
 		require.Nil(t, err)
 		require.False(t, tm.SchemeAdmin)
 
-		cm := th.AddUserToChannel(user, channel)
+		cm := th.AddUserToChannel(t, user, channel)
 		require.False(t, cm.SchemeAdmin)
 	}
 

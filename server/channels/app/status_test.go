@@ -118,7 +118,7 @@ func TestSetCustomStatus(t *testing.T) {
 		*cfg.ServiceSettings.EnableCustomEmoji = true
 	})
 
-	emoji := th.CreateEmoji()
+	emoji := th.CreateEmoji(t)
 
 	for _, testCase := range []struct {
 		Name         string

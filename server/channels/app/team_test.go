@@ -207,8 +207,8 @@ func TestAddUserToTeam(t *testing.T) {
 	})
 
 	t.Run("should set up initial sidebar categories when joining a team", func(t *testing.T) {
-		user := th.CreateUser()
-		team := th.CreateTeam()
+		user := th.CreateUser(t)
+		team := th.CreateTeam(t)
 
 		_, _, err := th.App.AddUserToTeam(th.Context, team.Id, user.Id, "")
 		require.Nil(t, err)
@@ -228,7 +228,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 	ruser, _ := th.App.CreateUser(th.Context, &user)
-	rguest := th.CreateGuest()
+	rguest := th.CreateGuest(t)
 
 	t.Run("invalid token", func(t *testing.T) {
 		_, _, err := th.App.AddUserToTeamByToken(th.Context, ruser.Id, "123")
@@ -460,8 +460,8 @@ func TestAddUserToTeamByToken(t *testing.T) {
 	})
 
 	t.Run("should set up initial sidebar categories when joining a team by token", func(t *testing.T) {
-		user := th.CreateUser()
-		team := th.CreateTeam()
+		user := th.CreateUser(t)
+		team := th.CreateTeam(t)
 
 		token := model.NewToken(
 			TokenTypeTeamInvitation,
@@ -698,7 +698,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	require.NotNil(t, appErr, "unable to get command")
 
 	// Test deleting a team with no channels.
-	team = th.CreateTeam()
+	team = th.CreateTeam(t)
 	defer func() {
 		appErr := th.App.PermanentDeleteTeam(th.Context, team)
 		require.Nil(t, appErr)
@@ -1005,7 +1005,7 @@ func TestJoinUserToTeam(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		group := th.CreateGroup()
+		group := th.CreateGroup(t)
 
 		_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
 		require.Nil(t, err)
@@ -1144,7 +1144,7 @@ func TestAppUpdateTeamScheme(t *testing.T) {
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
 	require.NoError(t, err)
 
-	team2Scheme := th.SetupTeamScheme()
+	team2Scheme := th.SetupTeamScheme(t)
 	channelUser, appErr := th.App.GetRoleByName(context.Background(), team2Scheme.DefaultChannelUserRole)
 	require.Nil(t, appErr)
 	channelUser.Permissions = []string{}
@@ -1157,10 +1157,10 @@ func TestAppUpdateTeamScheme(t *testing.T) {
 	_, appErr = th.App.UpdateRole(channelAdmin) // Remove all permissions from the team admin role of the scheme
 	require.Nil(t, appErr)
 
-	team2 := th.CreateTeam()
+	team2 := th.CreateTeam(t)
 	_, _, appErr = th.App.AddUserToTeam(th.Context, team2.Id, th.BasicUser.Id, "")
 	require.Nil(t, appErr)
-	channel := th.CreateChannel(th.Context, team2)
+	channel := th.CreateChannel(t, th.Context, team2)
 	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, channel, true)
 	require.Nil(t, appErr)
 	session := model.Session{
@@ -1695,7 +1695,7 @@ func TestInviteGuestsToChannelsWithPolicyEnforced(t *testing.T) {
 	})
 
 	// Create a private channel
-	channel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+	channel := th.CreatePrivateChannel(t, th.Context, th.BasicTeam)
 
 	// Create a policy with the same ID as the channel
 	channelPolicy := &model.AccessControlPolicy{
@@ -1740,7 +1740,7 @@ func TestTeamSendEvents(t *testing.T) {
 	th.Server.Platform().SetCluster(testCluster)
 	defer th.Server.Platform().SetCluster(nil)
 
-	team := th.CreateTeam()
+	team := th.CreateTeam(t)
 
 	testCluster.ClearMessages()
 

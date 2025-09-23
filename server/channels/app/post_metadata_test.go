@@ -157,7 +157,7 @@ func TestPreparePostForClient(t *testing.T) {
 	t.Run("metadata already set", func(t *testing.T) {
 		th := setup(t)
 
-		post := th.CreatePost(th.BasicChannel)
+		post := th.CreatePost(t, th.BasicChannel)
 
 		clientPost := th.App.PreparePostForClient(th.Context, post, false, false, false)
 
@@ -168,10 +168,10 @@ func TestPreparePostForClient(t *testing.T) {
 	t.Run("reactions", func(t *testing.T) {
 		th := setup(t)
 
-		post := th.CreatePost(th.BasicChannel)
-		reaction1 := th.AddReactionToPost(post, th.BasicUser, "smile")
-		reaction2 := th.AddReactionToPost(post, th.BasicUser2, "smile")
-		reaction3 := th.AddReactionToPost(post, th.BasicUser2, "ice_cream")
+		post := th.CreatePost(t, th.BasicChannel)
+		reaction1 := th.AddReactionToPost(t, post, th.BasicUser, "smile")
+		reaction2 := th.AddReactionToPost(t, post, th.BasicUser2, "smile")
+		reaction3 := th.AddReactionToPost(t, post, th.BasicUser2, "ice_cream")
 		reactions := []*model.Reaction{reaction1, reaction2, reaction3}
 		post.HasReactions = true
 
@@ -214,7 +214,7 @@ func TestPreparePostForClient(t *testing.T) {
 			*cfg.ServiceSettings.EnableCustomEmoji = false
 		})
 
-		emoji := th.CreateEmoji()
+		emoji := th.CreateEmoji(t)
 
 		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
@@ -230,9 +230,9 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
-		th.AddReactionToPost(post, th.BasicUser, "smile")
-		th.AddReactionToPost(post, th.BasicUser, "angry")
-		th.AddReactionToPost(post, th.BasicUser2, "angry")
+		th.AddReactionToPost(t, post, th.BasicUser, "smile")
+		th.AddReactionToPost(t, post, th.BasicUser, "angry")
+		th.AddReactionToPost(t, post, th.BasicUser2, "angry")
 		post.HasReactions = true
 
 		clientPost := th.App.PreparePostForClient(th.Context, post, false, false, false)
@@ -254,10 +254,10 @@ func TestPreparePostForClient(t *testing.T) {
 			*cfg.ServiceSettings.EnableCustomEmoji = true
 		})
 
-		emoji1 := th.CreateEmoji()
-		emoji2 := th.CreateEmoji()
-		emoji3 := th.CreateEmoji()
-		emoji4 := th.CreateEmoji()
+		emoji1 := th.CreateEmoji(t)
+		emoji2 := th.CreateEmoji(t)
+		emoji3 := th.CreateEmoji(t)
+		emoji4 := th.CreateEmoji(t)
 
 		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
@@ -273,10 +273,10 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
-		th.AddReactionToPost(post, th.BasicUser, emoji1.Name)
-		th.AddReactionToPost(post, th.BasicUser, emoji2.Name)
-		th.AddReactionToPost(post, th.BasicUser2, emoji2.Name)
-		th.AddReactionToPost(post, th.BasicUser2, "angry")
+		th.AddReactionToPost(t, post, th.BasicUser, emoji1.Name)
+		th.AddReactionToPost(t, post, th.BasicUser, emoji2.Name)
+		th.AddReactionToPost(t, post, th.BasicUser2, emoji2.Name)
+		th.AddReactionToPost(t, post, th.BasicUser2, "angry")
 		post.HasReactions = true
 
 		clientPost := th.App.PreparePostForClient(th.Context, post, false, false, false)
@@ -602,7 +602,7 @@ func TestPreparePostForClient(t *testing.T) {
 		require.Nil(t, err)
 		post.Metadata.Embeds = nil
 
-		th.AddReactionToPost(post, th.BasicUser, "taco")
+		th.AddReactionToPost(t, post, th.BasicUser, "taco")
 
 		post, err = th.App.DeletePost(th.Context, post.Id, th.BasicUser.Id)
 		require.Nil(t, err)
@@ -662,7 +662,7 @@ func TestPreparePostForClient(t *testing.T) {
 		directChannel, err := th.App.createDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
 		require.Nil(t, err)
 
-		groupChannel, err := th.App.createGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.CreateUser().Id}, th.BasicUser.Id)
+		groupChannel, err := th.App.createGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.CreateUser(t).Id}, th.BasicUser.Id)
 		require.Nil(t, err)
 
 		testCases := []struct {
@@ -1573,12 +1573,12 @@ func TestGetCustomEmojisForPost(t *testing.T) {
 	})
 
 	emojis := []*model.Emoji{
-		th.CreateEmoji(),
-		th.CreateEmoji(),
-		th.CreateEmoji(),
-		th.CreateEmoji(),
-		th.CreateEmoji(),
-		th.CreateEmoji(),
+		th.CreateEmoji(t),
+		th.CreateEmoji(t),
+		th.CreateEmoji(t),
+		th.CreateEmoji(t),
+		th.CreateEmoji(t),
+		th.CreateEmoji(t),
 	}
 
 	t.Run("from different parts of the post", func(t *testing.T) {

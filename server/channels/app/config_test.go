@@ -102,7 +102,7 @@ func TestEnsureInstallationDate(t *testing.T) {
 			assert.NoError(t, err)
 
 			for _, createAt := range tc.UsersCreationDates {
-				user := th.CreateUser()
+				user := th.CreateUser(t)
 				user.CreateAt = createAt
 				_, err = sqlStore.GetMaster().Exec("UPDATE Users SET CreateAt = ? WHERE Id = ?", createAt, user.Id)
 				assert.NoError(t, err)

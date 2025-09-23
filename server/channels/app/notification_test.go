@@ -61,7 +61,7 @@ func TestSendNotifications(t *testing.T) {
 	})
 
 	t.Run("license is required for group mention", func(t *testing.T) {
-		group := th.CreateGroup()
+		group := th.CreateGroup(t)
 		group.AllowReference = true
 		group, updateErr := th.App.UpdateGroup(group)
 		require.Nil(t, updateErr)
@@ -131,10 +131,10 @@ func TestSendNotifications(t *testing.T) {
 	t.Run("message in GM generate mention", func(t *testing.T) {
 		users := []*model.User{}
 		for range 2 {
-			user := th.CreateUser()
+			user := th.CreateUser(t)
 			users = append(users, user)
 		}
-		channel := th.CreateGroupChannel(th.Context, users[0], users[1])
+		channel := th.CreateGroupChannel(t, users[0], users[1])
 
 		post2, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
 			UserId:    users[0].Id,
@@ -220,12 +220,12 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddUserToChannel(th.BasicUser2, th.BasicChannel)
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
-	sender := th.CreateUser()
+	sender := th.CreateUser(t)
 
-	th.LinkUserToTeam(sender, th.BasicTeam)
-	member := th.AddUserToChannel(sender, th.BasicChannel)
+	th.LinkUserToTeam(t, sender, th.BasicTeam)
+	member := th.AddUserToChannel(t, sender, th.BasicChannel)
 
 	eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventPosted}
 
@@ -303,7 +303,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuEnterprise))
 
 		// Make a group and add users
-		group := th.CreateGroup()
+		group := th.CreateGroup(t)
 		group.AllowReference = true
 		group, updateErr := th.App.UpdateGroup(group)
 		require.Nil(t, updateErr)
@@ -569,8 +569,8 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 
 	users := []*model.User{}
 	for range 10 {
-		user := th.CreateUser()
-		th.LinkUserToTeam(user, th.BasicTeam)
+		user := th.CreateUser(t)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
 		_, appErr := th.App.AddUserToChannel(th.Context, user, th.BasicChannel, false)
 		require.Nil(t, appErr)
 		users = append(users, user)
@@ -647,7 +647,7 @@ func TestSendOutOfChannelMentions(t *testing.T) {
 	})
 
 	t.Run("should send ephemeral post when there is an out of team mention", func(t *testing.T) {
-		outOfTeamUser := th.CreateUser()
+		outOfTeamUser := th.CreateUser(t)
 		post := &model.Post{}
 		potentialMentions := []string{outOfTeamUser.Username}
 
@@ -666,17 +666,17 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
-	user3 := th.CreateUser()
-	guest := th.CreateGuest()
-	user4 := th.CreateUser()
-	guestAndUser4Channel := th.CreateChannel(th.Context, th.BasicTeam)
+	user3 := th.CreateUser(t)
+	guest := th.CreateGuest(t)
+	user4 := th.CreateUser(t)
+	guestAndUser4Channel := th.CreateChannel(t, th.Context, th.BasicTeam)
 	defer func() {
 		appErr := th.App.PermanentDeleteUser(th.Context, guest)
 		require.Nil(t, appErr)
 	}()
-	th.LinkUserToTeam(user3, th.BasicTeam)
-	th.LinkUserToTeam(user4, th.BasicTeam)
-	th.LinkUserToTeam(guest, th.BasicTeam)
+	th.LinkUserToTeam(t, user3, th.BasicTeam)
+	th.LinkUserToTeam(t, user4, th.BasicTeam)
+	th.LinkUserToTeam(t, guest, th.BasicTeam)
 	_, appErr := th.App.AddUserToChannel(th.Context, guest, channel, false)
 	require.Nil(t, appErr)
 	_, appErr = th.App.AddUserToChannel(th.Context, user4, guestAndUser4Channel, false)
@@ -699,8 +699,8 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	})
 
 	t.Run("should return users not in the team", func(t *testing.T) {
-		notThisTeamUser1 := th.CreateUser()
-		notThisTeamUser2 := th.CreateUser()
+		notThisTeamUser1 := th.CreateUser(t)
+		notThisTeamUser2 := th.CreateUser(t)
 		post := &model.Post{}
 		potentialMentions := []string{notThisTeamUser1.Username, notThisTeamUser2.Username}
 
@@ -772,7 +772,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	})
 
 	t.Run("should not return inactive users", func(t *testing.T) {
-		inactiveUser := th.CreateUser()
+		inactiveUser := th.CreateUser(t)
 		inactiveUser, appErr := th.App.UpdateActive(th.Context, inactiveUser, false)
 		require.Nil(t, appErr)
 
@@ -788,7 +788,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	})
 
 	t.Run("should not return bot users", func(t *testing.T) {
-		botUser := th.CreateBot()
+		botUser := th.CreateBot(t)
 
 		post := &model.Post{}
 		potentialMentions := []string{botUser.Username}
@@ -814,18 +814,18 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	})
 
 	t.Run("should separate users not in the channel from users not in the group", func(t *testing.T) {
-		nonChannelMember := th.CreateUser()
-		th.LinkUserToTeam(nonChannelMember, th.BasicTeam)
-		nonGroupMember := th.CreateUser()
-		th.LinkUserToTeam(nonGroupMember, th.BasicTeam)
+		nonChannelMember := th.CreateUser(t)
+		th.LinkUserToTeam(t, nonChannelMember, th.BasicTeam)
+		nonGroupMember := th.CreateUser(t)
+		th.LinkUserToTeam(t, nonGroupMember, th.BasicTeam)
 
-		group := th.CreateGroup()
+		group := th.CreateGroup(t)
 		_, appErr := th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		_, appErr = th.App.UpsertGroupMember(group.Id, nonChannelMember.Id)
 		require.Nil(t, appErr)
 
-		constrainedChannel := th.CreateChannel(th.Context, th.BasicTeam)
+		constrainedChannel := th.CreateChannel(t, th.Context, th.BasicTeam)
 		constrainedChannel.GroupConstrained = model.NewPointer(true)
 		constrainedChannel, appErr = th.App.UpdateChannel(th.Context, constrainedChannel)
 		require.Nil(t, appErr)
@@ -1546,10 +1546,10 @@ func TestAllowChannelMentions(t *testing.T) {
 	})
 
 	t.Run("should return false for a post where the post user does not have USE_CHANNEL_MENTIONS permission", func(t *testing.T) {
-		defer th.AddPermissionToRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
-		th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
-		th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
 		allowChannelMentions := th.App.allowChannelMentions(th.Context, post, 5)
 		assert.False(t, allowChannelMentions)
 	})
@@ -1603,11 +1603,11 @@ func TestAllowGroupMentions(t *testing.T) {
 
 	t.Run("should return false for a post where the post user does not have USE_GROUP_MENTIONS permission", func(t *testing.T) {
 		defer func() {
-			th.AddPermissionToRole(model.PermissionUseGroupMentions.Id, model.ChannelUserRoleId)
-			th.AddPermissionToRole(model.PermissionUseGroupMentions.Id, model.ChannelAdminRoleId)
+			th.AddPermissionToRole(t, model.PermissionUseGroupMentions.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionUseGroupMentions.Id, model.ChannelAdminRoleId)
 		}()
-		th.RemovePermissionFromRole(model.PermissionUseGroupMentions.Id, model.ChannelUserRoleId)
-		th.RemovePermissionFromRole(model.PermissionUseGroupMentions.Id, model.ChannelAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionUseGroupMentions.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionUseGroupMentions.Id, model.ChannelAdminRoleId)
 		allowGroupMentions := th.App.allowGroupMentions(th.Context, post)
 		assert.False(t, allowGroupMentions)
 	})
@@ -2441,7 +2441,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	th := Setup(t)
 
 	t.Run("should return true", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		th.App.SetStatusOffline(user.Id, true, false)
 
@@ -2454,7 +2454,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	})
 
 	t.Run("should return false in case the status is ONLINE", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		th.App.SetStatusOnline(user.Id, true)
 
@@ -2467,7 +2467,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	})
 
 	t.Run("should return false in case the EMAIL_NOTIFY_PROP is false", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		th.App.SetStatusOffline(user.Id, true, false)
 
@@ -2480,7 +2480,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	})
 
 	t.Run("should return false in case the MARK_UNREAD_NOTIFY_PROP is CHANNEL_MARK_UNREAD_MENTION", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		th.App.SetStatusOffline(user.Id, true, false)
 
@@ -2493,7 +2493,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	})
 
 	t.Run("should return false in case the Post type is POST_AUTO_RESPONDER", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		th.App.SetStatusOffline(user.Id, true, false)
 
@@ -2506,7 +2506,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	})
 
 	t.Run("should return false in case the status is STATUS_OUT_OF_OFFICE", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		th.App.SetStatusOutOfOffice(user.Id)
 
@@ -2519,7 +2519,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	})
 
 	t.Run("should return false in case the status is STATUS_ONLINE", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		th.App.SetStatusDoNotDisturb(user.Id)
 
@@ -2532,7 +2532,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	})
 
 	t.Run("should return false in the case user is a bot", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		_, appErr := th.App.ConvertUserToBot(th.Context, user)
 		require.Nil(t, appErr)
@@ -2552,37 +2552,37 @@ func TestInsertGroupMentions(t *testing.T) {
 
 	team := th.BasicTeam
 	channel := th.BasicChannel
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 	group.DisplayName = "engineering"
 	group.Name = model.NewPointer("engineering")
 	group, err := th.App.UpdateGroup(group)
 	require.Nil(t, err)
 
-	groupChannelMember := th.CreateUser()
-	th.LinkUserToTeam(groupChannelMember, team)
+	groupChannelMember := th.CreateUser(t)
+	th.LinkUserToTeam(t, groupChannelMember, team)
 	_, appErr := th.App.AddUserToChannel(th.Context, groupChannelMember, channel, false)
 	require.Nil(t, appErr)
 	_, err = th.App.UpsertGroupMember(group.Id, groupChannelMember.Id)
 	require.Nil(t, err)
 
-	senderGroupChannelMember := th.CreateUser()
-	th.LinkUserToTeam(senderGroupChannelMember, team)
+	senderGroupChannelMember := th.CreateUser(t)
+	th.LinkUserToTeam(t, senderGroupChannelMember, team)
 	_, appErr = th.App.AddUserToChannel(th.Context, senderGroupChannelMember, channel, false)
 	require.Nil(t, appErr)
 	_, err = th.App.UpsertGroupMember(group.Id, senderGroupChannelMember.Id)
 	require.Nil(t, err)
 
-	nonGroupChannelMember := th.CreateUser()
-	th.LinkUserToTeam(nonGroupChannelMember, team)
+	nonGroupChannelMember := th.CreateUser(t)
+	th.LinkUserToTeam(t, nonGroupChannelMember, team)
 	_, appErr = th.App.AddUserToChannel(th.Context, nonGroupChannelMember, channel, false)
 	require.Nil(t, appErr)
 
-	nonChannelGroupMember := th.CreateUser()
-	th.LinkUserToTeam(nonChannelGroupMember, team)
+	nonChannelGroupMember := th.CreateUser(t)
+	th.LinkUserToTeam(t, nonChannelGroupMember, team)
 	_, err = th.App.UpsertGroupMember(group.Id, nonChannelGroupMember.Id)
 	require.Nil(t, err)
 
-	groupWithNoMembers := th.CreateGroup()
+	groupWithNoMembers := th.CreateGroup(t)
 	groupWithNoMembers.DisplayName = "marketing"
 	groupWithNoMembers.Name = model.NewPointer("marketing")
 	groupWithNoMembers, err = th.App.UpdateGroup(groupWithNoMembers)
@@ -2688,7 +2688,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 
 	team := th.BasicTeam
 	channel := th.BasicChannel
-	group1 := th.CreateGroup()
+	group1 := th.CreateGroup(t)
 
 	t.Run("should return empty map when no groups with allow reference", func(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
@@ -2700,7 +2700,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	group1, err = th.App.UpdateGroup(group1)
 	require.Nil(t, err)
 
-	group2 := th.CreateGroup()
+	group2 := th.CreateGroup(t)
 	t.Run("should only return groups with allow reference", func(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
 		require.NoError(t, nErr)
@@ -2733,7 +2733,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Sync first group to constrained channel
-	constrainedChannel := th.CreateChannel(th.Context, th.BasicTeam)
+	constrainedChannel := th.CreateChannel(t, th.Context, th.BasicTeam)
 	constrainedChannel.GroupConstrained = model.NewPointer(true)
 	constrainedChannel, err = th.App.UpdateChannel(th.Context, constrainedChannel)
 	require.Nil(t, err)
@@ -2754,7 +2754,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	})
 
 	// Create a third ldap group not synced with a team or channel
-	group3 := th.CreateGroup()
+	group3 := th.CreateGroup(t)
 	group3.AllowReference = true
 	group3, err = th.App.UpdateGroup(group3)
 	require.Nil(t, err)
@@ -2813,7 +2813,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 		u1 := th.BasicUser
 		u2 := th.BasicUser2
 		c1 := th.BasicChannel
-		th.AddUserToChannel(u2, c1)
+		th.AddUserToChannel(t, u2, c1)
 
 		// Enable "Trigger notifications on messages in
 		// reply threads that I start or participate in"
@@ -2923,7 +2923,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 		u1 := th.BasicUser
 		u2 := th.BasicUser2
 		c1 := th.BasicChannel
-		th.AddUserToChannel(u2, c1)
+		th.AddUserToChannel(t, u2, c1)
 
 		// Enable CRT
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -2965,11 +2965,11 @@ func TestChannelAutoFollowThreads(t *testing.T) {
 
 	u1 := th.BasicUser
 	u2 := th.BasicUser2
-	u3 := th.CreateUser()
-	th.LinkUserToTeam(u3, th.BasicTeam)
+	u3 := th.CreateUser(t)
+	th.LinkUserToTeam(t, u3, th.BasicTeam)
 	c1 := th.BasicChannel
-	th.AddUserToChannel(u2, c1)
-	th.AddUserToChannel(u3, c1)
+	th.AddUserToChannel(t, u2, c1)
+	th.AddUserToChannel(t, u3, c1)
 
 	// Set auto-follow for user 2
 	member, appErr := th.App.UpdateChannelMemberNotifyProps(th.Context, map[string]string{model.ChannelAutoFollowThreads: model.ChannelAutoFollowThreadsOn}, c1.Id, u2.Id)
@@ -3029,7 +3029,7 @@ func TestRemoveNotifications(t *testing.T) {
 	u1 := th.BasicUser
 	u2 := th.BasicUser2
 	c1 := th.BasicChannel
-	th.AddUserToChannel(u2, c1)
+	th.AddUserToChannel(t, u2, c1)
 
 	// Enable CRT
 	th.App.UpdateConfig(func(cfg *model.Config) {

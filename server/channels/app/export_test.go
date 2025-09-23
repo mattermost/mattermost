@@ -196,7 +196,7 @@ func TestExportAllUsers(t *testing.T) {
 	th1 := Setup(t)
 
 	// Adding a user and deactivating it to check whether it gets included in bulk export
-	user := th1.CreateUser()
+	user := th1.CreateUser(t)
 	_, err := th1.App.UpdateActive(th1.Context, user, false)
 	require.Nil(t, err)
 
@@ -250,7 +250,7 @@ func TestExportAllBots(t *testing.T) {
 	mainHelper.Parallel(t)
 	th1 := Setup(t)
 
-	u := th1.CreateUser()
+	u := th1.CreateUser(t)
 	bot, err := th1.App.CreateBot(th1.Context, &model.Bot{
 		Username:    "bot_1",
 		DisplayName: model.NewId(),
@@ -287,7 +287,7 @@ func TestExportDMChannel(t *testing.T) {
 		th1 := Setup(t).InitBasic(t)
 
 		// DM Channel
-		ch := th1.CreateDmChannel(th1.BasicUser2)
+		ch := th1.CreateDmChannel(t, th1.BasicUser2)
 
 		err := th1.App.Srv().Store().Preference().Save(model.Preferences{
 			{
@@ -342,7 +342,7 @@ func TestExportDMChannel(t *testing.T) {
 		th1 := Setup(t).InitBasic(t)
 
 		// DM Channel
-		th1.CreateDmChannel(th1.BasicUser2)
+		th1.CreateDmChannel(t, th1.BasicUser2)
 
 		channels, nErr := th1.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 		require.NoError(t, nErr)
@@ -372,12 +372,12 @@ func TestExportDMChannel(t *testing.T) {
 		th1 := Setup(t).InitBasic(t)
 
 		// Create a DM Channel with another user
-		dmc1 := th1.CreateDmChannel(th1.BasicUser2)
-		th1.CreatePost(dmc1)
+		dmc1 := th1.CreateDmChannel(t, th1.BasicUser2)
+		th1.CreatePost(t, dmc1)
 
 		// Create a DM Channel with self
-		dmc2 := th1.CreateDmChannel(th1.BasicUser)
-		th1.CreatePost(dmc2)
+		dmc2 := th1.CreateDmChannel(t, th1.BasicUser)
+		th1.CreatePost(t, dmc2)
 
 		channels, nErr := th1.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 		require.NoError(t, nErr)
@@ -417,7 +417,7 @@ func TestExportDMChannelToSelf(t *testing.T) {
 	th1 := Setup(t).InitBasic(t)
 
 	// DM Channel with self (me channel)
-	th1.CreateDmChannel(th1.BasicUser)
+	th1.CreateDmChannel(t, th1.BasicUser)
 
 	var b bytes.Buffer
 	err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
@@ -449,13 +449,13 @@ func TestExportGMChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th1 := Setup(t).InitBasic(t)
 
-	user1 := th1.CreateUser()
-	th1.LinkUserToTeam(user1, th1.BasicTeam)
-	user2 := th1.CreateUser()
-	th1.LinkUserToTeam(user2, th1.BasicTeam)
+	user1 := th1.CreateUser(t)
+	th1.LinkUserToTeam(t, user1, th1.BasicTeam)
+	user2 := th1.CreateUser(t)
+	th1.LinkUserToTeam(t, user2, th1.BasicTeam)
 
 	// GM Channel
-	th1.CreateGroupChannel(th1.Context, user1, user2)
+	th1.CreateGroupChannel(t, user1, user2)
 
 	var b bytes.Buffer
 	err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
@@ -477,15 +477,15 @@ func TestExportGMandDMChannels(t *testing.T) {
 	th1 := Setup(t).InitBasic(t)
 
 	// DM Channel
-	th1.CreateDmChannel(th1.BasicUser2)
+	th1.CreateDmChannel(t, th1.BasicUser2)
 
-	user1 := th1.CreateUser()
-	th1.LinkUserToTeam(user1, th1.BasicTeam)
-	user2 := th1.CreateUser()
-	th1.LinkUserToTeam(user2, th1.BasicTeam)
+	user1 := th1.CreateUser(t)
+	th1.LinkUserToTeam(t, user1, th1.BasicTeam)
+	user2 := th1.CreateUser(t)
+	th1.LinkUserToTeam(t, user2, th1.BasicTeam)
 
 	// GM Channel
-	th1.CreateGroupChannel(th1.Context, user1, user2)
+	th1.CreateGroupChannel(t, user1, user2)
 
 	var b bytes.Buffer
 	err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
@@ -522,16 +522,16 @@ func TestExportDMandGMPost(t *testing.T) {
 	th1 := Setup(t).InitBasic(t)
 
 	// DM Channel
-	dmChannel := th1.CreateDmChannel(th1.BasicUser2)
+	dmChannel := th1.CreateDmChannel(t, th1.BasicUser2)
 	dmMembers := []string{th1.BasicUser.Username, th1.BasicUser2.Username}
 
-	user1 := th1.CreateUser()
-	th1.LinkUserToTeam(user1, th1.BasicTeam)
-	user2 := th1.CreateUser()
-	th1.LinkUserToTeam(user2, th1.BasicTeam)
+	user1 := th1.CreateUser(t)
+	th1.LinkUserToTeam(t, user1, th1.BasicTeam)
+	user2 := th1.CreateUser(t)
+	th1.LinkUserToTeam(t, user2, th1.BasicTeam)
 
 	// GM Channel
-	gmChannel := th1.CreateGroupChannel(th1.Context, user1, user2)
+	gmChannel := th1.CreateGroupChannel(t, user1, user2)
 	gmMembers := []string{th1.BasicUser.Username, user1.Username, user2.Username}
 
 	// DM posts
@@ -606,16 +606,16 @@ func TestExportPostWithProps(t *testing.T) {
 	attachments := []*model.SlackAttachment{{Footer: "footer"}}
 
 	// DM Channel
-	dmChannel := th1.CreateDmChannel(th1.BasicUser2)
+	dmChannel := th1.CreateDmChannel(t, th1.BasicUser2)
 	dmMembers := []string{th1.BasicUser.Username, th1.BasicUser2.Username}
 
-	user1 := th1.CreateUser()
-	th1.LinkUserToTeam(user1, th1.BasicTeam)
-	user2 := th1.CreateUser()
-	th1.LinkUserToTeam(user2, th1.BasicTeam)
+	user1 := th1.CreateUser(t)
+	th1.LinkUserToTeam(t, user1, th1.BasicTeam)
+	user2 := th1.CreateUser(t)
+	th1.LinkUserToTeam(t, user2, th1.BasicTeam)
 
 	// GM Channel
-	gmChannel := th1.CreateGroupChannel(th1.Context, user1, user2)
+	gmChannel := th1.CreateGroupChannel(t, user1, user2)
 	gmMembers := []string{th1.BasicUser.Username, user1.Username, user2.Username}
 
 	// DM posts
@@ -711,9 +711,9 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	th1 := Setup(t).InitBasic(t)
 
 	// DM Channel with self (me channel)
-	dmChannel := th1.CreateDmChannel(th1.BasicUser)
+	dmChannel := th1.CreateDmChannel(t, th1.BasicUser)
 
-	th1.CreatePost(dmChannel)
+	th1.CreatePost(t, dmChannel)
 
 	var b bytes.Buffer
 	err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
@@ -795,8 +795,8 @@ func TestExportPostsWithThread(t *testing.T) {
 	}
 
 	t.Run("Export thread followers for a thread (public channel)", func(t *testing.T) {
-		thread := th1.CreatePost(th1.BasicChannel)
-		_ = th1.CreatePostReply(thread)
+		thread := th1.CreatePost(t, th1.BasicChannel)
+		_ = th1.CreatePostReply(t, thread)
 
 		appErr := th1.App.UpdateThreadFollowForUser(th1.BasicUser2.Id, th1.BasicTeam.Id, thread.Id, true)
 		require.Nil(t, appErr)
@@ -817,10 +817,10 @@ func TestExportPostsWithThread(t *testing.T) {
 	})
 
 	t.Run("Export thread followers for a thread (direct messages)", func(t *testing.T) {
-		dmc := th1.CreateDmChannel(th1.BasicUser2)
+		dmc := th1.CreateDmChannel(t, th1.BasicUser2)
 
-		thread := th1.CreatePost(dmc)
-		_ = th1.CreatePostReply(thread)
+		thread := th1.CreatePost(t, dmc)
+		_ = th1.CreatePostReply(t, thread)
 
 		appErr := th1.App.UpdateThreadFollowForUser(th1.BasicUser2.Id, th1.BasicTeam.Id, thread.Id, true)
 		require.Nil(t, appErr)
@@ -1098,9 +1098,9 @@ func TestExportDeletedTeams(t *testing.T) {
 	mainHelper.Parallel(t)
 	th1 := Setup(t).InitBasic(t)
 
-	team1 := th1.CreateTeam()
-	channel1 := th1.CreateChannel(th1.Context, team1)
-	th1.CreatePost(channel1)
+	team1 := th1.CreateTeam(t)
+	channel1 := th1.CreateChannel(t, th1.Context, team1)
+	th1.CreatePost(t, channel1)
 
 	// Delete the team to check that this is handled correctly on import.
 	err := th1.App.SoftDeleteTeam(team1.Id)
@@ -1145,8 +1145,8 @@ func TestExportArchivedChannels(t *testing.T) {
 	mainHelper.Parallel(t)
 	th1 := Setup(t).InitBasic(t)
 
-	archivedChannel := th1.CreateChannel(th1.Context, th1.BasicTeam)
-	th1.CreatePost(archivedChannel)
+	archivedChannel := th1.CreateChannel(t, th1.Context, th1.BasicTeam)
+	th1.CreatePost(t, archivedChannel)
 	appErr := th1.App.DeleteChannel(th1.Context, archivedChannel, th1.SystemAdminUser.Id)
 	require.Nil(t, appErr)
 
@@ -1587,7 +1587,7 @@ func TestExportDeactivatedUserDMs(t *testing.T) {
 
 	// Create a DM Channel
 	user2 := th1.BasicUser2
-	dmChannel := th1.CreateDmChannel(user2)
+	dmChannel := th1.CreateDmChannel(t, user2)
 
 	// 1. First basic user (active) sends a message to user2 (who will later be deactivated)
 	initialMessage := "initial_message_from_basic_user"

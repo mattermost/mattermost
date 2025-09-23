@@ -313,7 +313,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 		}()
 
 		// create a dummy team
-		secondTeam := th.CreateTeam()
+		secondTeam := th.CreateTeam(t)
 		_, appErr = th.App.JoinUserToTeam(th.Context, secondTeam, th.BasicUser, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
@@ -328,7 +328,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// create a GM. Since a GM needs at least 3 users, we'll create a third user first
-		thirdUser := th.CreateUser()
+		thirdUser := th.CreateUser(t)
 		_, appErr = th.App.JoinUserToTeam(th.Context, th.BasicTeam, thirdUser, thirdUser.Id)
 		require.Nil(t, appErr)
 
@@ -376,7 +376,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// create a GM. Since a GM needs at least 3 users, we'll create a third user first
-		thirdUser := th.CreateUser()
+		thirdUser := th.CreateUser(t)
 		_, appErr = th.App.JoinUserToTeam(th.Context, th.BasicTeam, thirdUser, thirdUser.Id)
 		require.Nil(t, appErr)
 
@@ -424,12 +424,12 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 
 	t.Run("should not be able to fetch scheduled posts for team user doesn't belong to", func(t *testing.T) {
 		// create a dummy team
-		team := th.CreateTeam()
+		team := th.CreateTeam(t)
 		_, appErr := th.App.JoinUserToTeam(th.Context, team, th.BasicUser, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
 		// create a channel in this team
-		channel := th.CreateChannel(th.Context, team)
+		channel := th.CreateChannel(t, th.Context, team)
 
 		// create scheduled post
 		scheduledPost1 := &model.ScheduledPost{
@@ -628,8 +628,8 @@ func TestUpdateScheduledPost(t *testing.T) {
 	})
 
 	t.Run("should be able to update scheduled posts for channels user does not belong to", func(t *testing.T) {
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(th.BasicUser, channel)
+		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser, channel)
 
 		scheduledPost := &model.ScheduledPost{
 			Draft: model.Draft{
@@ -645,7 +645,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.NotNil(t, createdScheduledPost)
 
 		// now user will leave the channel
-		appErr = th.RemoveUserFromChannel(th.BasicUser, channel)
+		appErr = th.RemoveUserFromChannel(t, th.BasicUser, channel)
 		require.Nil(t, appErr)
 
 		createdScheduledPost.Message = "Updated message"

@@ -16,7 +16,7 @@ func TestGetGroup(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 
 	group, err := th.App.GetGroup(group.Id, nil, nil)
 	require.Nil(t, err)
@@ -39,7 +39,7 @@ func TestGetGroupByRemoteID(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 
 	g, err := th.App.GetGroupByRemoteID(*group.RemoteId, model.GroupSourceLdap)
 	require.Nil(t, err)
@@ -54,9 +54,9 @@ func TestGetGroupsByType(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	th.CreateGroup()
-	th.CreateGroup()
-	th.CreateGroup()
+	th.CreateGroup(t)
+	th.CreateGroup(t)
+	th.CreateGroup(t)
 
 	groups, err := th.App.GetGroupsBySource(model.GroupSourceLdap)
 	require.Nil(t, err)
@@ -88,7 +88,7 @@ func TestCreateGroup(t *testing.T) {
 	require.Nil(t, g)
 
 	t.Run("should check if the group mention is in use as a username", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 		usernameGroup := &model.Group{
 			DisplayName: "dn_" + model.NewId(),
 			Name:        &user.Username,
@@ -106,14 +106,14 @@ func TestUpdateGroup(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 	group.DisplayName = model.NewId()
 
 	g, err := th.App.UpdateGroup(group)
 	require.Nil(t, err)
 	require.NotNil(t, g)
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	g.Name = &user.Username
 	g, err = th.App.UpdateGroup(g)
 	require.NotNil(t, err)
@@ -124,7 +124,7 @@ func TestDeleteGroup(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 
 	g, err := th.App.DeleteGroup(group.Id)
 	require.Nil(t, err)
@@ -139,7 +139,7 @@ func TestUndeleteGroup(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 
 	g, err := th.App.DeleteGroup(group.Id)
 	require.Nil(t, err)
@@ -158,7 +158,7 @@ func TestCreateOrRestoreGroupMember(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 
 	g, err := th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
 	require.Nil(t, err)
@@ -173,7 +173,7 @@ func TestDeleteGroupMember(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 	groupMember, err := th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 	require.NotNil(t, groupMember)
@@ -191,7 +191,7 @@ func TestUpsertGroupSyncable(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 	groupSyncable := model.NewGroupTeam(group.Id, th.BasicTeam.Id, false)
 
 	gs, err := th.App.UpsertGroupSyncable(groupSyncable)
@@ -218,17 +218,17 @@ func TestUpsertGroupSyncableTeamGroupConstrained(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	group1 := th.CreateGroup()
-	group2 := th.CreateGroup()
+	group1 := th.CreateGroup(t)
+	group2 := th.CreateGroup(t)
 
-	team := th.CreateTeam()
+	team := th.CreateTeam(t)
 	team.GroupConstrained = model.NewPointer(true)
 	team, err := th.App.UpdateTeam(team)
 	require.Nil(t, err)
 	_, err = th.App.UpsertGroupSyncable(model.NewGroupTeam(group1.Id, team.Id, false))
 	require.Nil(t, err)
 
-	channel := th.CreateChannel(th.Context, team)
+	channel := th.CreateChannel(t, th.Context, team)
 
 	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(group2.Id, channel.Id, false))
 	require.NotNil(t, err)
@@ -246,7 +246,7 @@ func TestGetGroupSyncable(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 	groupSyncable := model.NewGroupTeam(group.Id, th.BasicTeam.Id, false)
 
 	gs, err := th.App.UpsertGroupSyncable(groupSyncable)
@@ -262,7 +262,7 @@ func TestGetGroupSyncables(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 
 	// Create a group team
 	groupSyncable := model.NewGroupTeam(group.Id, th.BasicTeam.Id, false)
@@ -281,7 +281,7 @@ func TestDeleteGroupSyncable(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 	groupChannel := model.NewGroupChannel(group.Id, th.BasicChannel.Id, false)
 
 	gs, err := th.App.UpsertGroupSyncable(groupChannel)
@@ -301,7 +301,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 
 	// Create a group channel
 	groupSyncable := &model.GroupSyncable{
@@ -336,7 +336,7 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 
 	// Create a group channel
 	groupSyncable := &model.GroupSyncable{
@@ -376,7 +376,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 
 	// Create a group team
 	groupSyncable := &model.GroupSyncable{
@@ -404,7 +404,7 @@ func TestGetGroups(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 
 	groups, err := th.App.GetGroups(0, 60, model.GroupSearchOpts{}, nil)
 	require.Nil(t, err)
@@ -415,8 +415,8 @@ func TestUserIsInAdminRoleGroup(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	group1 := th.CreateGroup()
-	group2 := th.CreateGroup()
+	group1 := th.CreateGroup(t)
+	group2 := th.CreateGroup(t)
 
 	g, err := th.App.UpsertGroupMember(group1.Id, th.BasicUser.Id)
 	require.Nil(t, err)

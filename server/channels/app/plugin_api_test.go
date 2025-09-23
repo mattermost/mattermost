@@ -530,8 +530,8 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 
 	api := th.SetupPluginAPI()
 
-	team1 := th.CreateTeam()
-	team2 := th.CreateTeam()
+	team1 := th.CreateTeam(t)
+	team2 := th.CreateTeam(t)
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
@@ -1861,7 +1861,7 @@ func TestPluginAPIGetPostsForChannel(t *testing.T) {
 	expectedPosts := make([]*model.Post, numPosts)
 	expectedPosts[numPosts-1] = th.BasicPost
 	for i := numPosts - 2; i >= 0; i-- {
-		expectedPosts[i] = th.CreatePost(th.BasicChannel)
+		expectedPosts[i] = th.CreatePost(t, th.BasicChannel)
 	}
 	// CreatePost does not add Metadata, but initializes the structure. GetPostsForChannel
 	// returns nil for an empty Metadata, so we need to match that behaviour
@@ -1977,7 +1977,7 @@ func TestPluginMFAEnforcement(t *testing.T) {
 	pluginID := ids[0]
 
 	// Create user that requires MFA
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 
 	// Create session
 	session, appErr := th.App.CreateSession(th.Context, &model.Session{
@@ -2088,8 +2088,8 @@ func TestPluginExecuteSlashCommand(t *testing.T) {
 	slashCommandMock := &MockSlashCommandProvider{}
 	RegisterCommandProvider(slashCommandMock)
 
-	newUser := th.CreateUser()
-	th.LinkUserToTeam(newUser, th.BasicTeam)
+	newUser := th.CreateUser(t)
+	th.LinkUserToTeam(t, newUser, th.BasicTeam)
 
 	t.Run("run invite command", func(t *testing.T) {
 		args := &model.CommandArgs{
@@ -2220,7 +2220,7 @@ func TestPluginAPIUpdateCommand(t *testing.T) {
 	require.Equal(t, "pluginid", newCmd2.PluginId)
 	require.Equal(t, "newtrigger", newCmd2.Trigger)
 
-	team1 := th.CreateTeam()
+	team1 := th.CreateTeam(t)
 
 	newCmd2.PluginId = "CannotChangeMe"
 	newCmd2.Trigger = "anotherNewTrigger"
@@ -2468,7 +2468,7 @@ func TestSendPushNotification(t *testing.T) {
 	}
 	var userSessions []userSession
 	for range 3 {
-		u := th.CreateUser()
+		u := th.CreateUser(t)
 		sess, err := th.App.CreateSession(th.Context, &model.Session{
 			UserId:    u.Id,
 			DeviceId:  "deviceID" + u.Id,
@@ -2484,7 +2484,7 @@ func TestSendPushNotification(t *testing.T) {
 		require.Nil(t, err)
 		_, err = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, u.Id)
 		require.Nil(t, err)
-		th.AddUserToChannel(u, th.BasicChannel)
+		th.AddUserToChannel(t, u, th.BasicChannel)
 		userSessions = append(userSessions, userSession{
 			user:    u,
 			session: sess,
@@ -2510,7 +2510,7 @@ func TestSendPushNotification(t *testing.T) {
 		wg.Add(1)
 		go func(user model.User) {
 			defer wg.Done()
-			post := th.CreatePost(th.BasicChannel)
+			post := th.CreatePost(t, th.BasicChannel)
 			post.Message = "started a conversation"
 			notification := &model.PushNotification{
 				Category:    model.CategoryCanReply,
@@ -2611,19 +2611,19 @@ func TestPluginGetChannelsForTeamForUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 
-	team1 := th.CreateTeam()
-	th.LinkUserToTeam(user, team1)
-	team2 := th.CreateTeam()
-	th.LinkUserToTeam(user, team2)
+	team1 := th.CreateTeam(t)
+	th.LinkUserToTeam(t, user, team1)
+	team2 := th.CreateTeam(t)
+	th.LinkUserToTeam(t, user, team2)
 
-	channel1 := th.CreateChannel(th.Context, team1)
-	th.AddUserToChannel(user, channel1)
-	channel2 := th.CreateChannel(th.Context, team2)
-	th.AddUserToChannel(user, channel2)
+	channel1 := th.CreateChannel(t, th.Context, team1)
+	th.AddUserToChannel(t, user, channel1)
+	channel2 := th.CreateChannel(t, th.Context, team2)
+	th.AddUserToChannel(t, user, channel2)
 
-	dmChannel := th.CreateDmChannel(user)
+	dmChannel := th.CreateDmChannel(t, user)
 
 	pluginCode := `
 	package main
@@ -2715,9 +2715,9 @@ func TestPluginPatchChannelMembersNotifications(t *testing.T) {
 	t.Run("should be able to set fields for multiple members", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(th.BasicUser, channel)
-		th.AddUserToChannel(th.BasicUser2, channel)
+		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser, channel)
+		th.AddUserToChannel(t, th.BasicUser2, channel)
 
 		member1, err := th.App.GetChannelMember(th.Context, channel.Id, th.BasicUser.Id)
 		require.Nil(t, err)
@@ -2782,8 +2782,8 @@ func TestPluginPatchChannelMembersNotifications(t *testing.T) {
 	t.Run("should be able to clear a field", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(th.BasicUser, channel)
+		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser, channel)
 
 		member, err := th.App.GetChannelMember(th.Context, channel.Id, th.BasicUser.Id)
 		require.Nil(t, err)

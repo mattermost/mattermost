@@ -29,7 +29,7 @@ func TestExportPermissions(t *testing.T) {
 	var scheme *model.Scheme
 	var roles []*model.Role
 	withMigrationMarkedComplete(t, th, func() {
-		scheme, roles = th.CreateScheme()
+		scheme, roles = th.CreateScheme(t)
 	})
 
 	results := [][]byte{}

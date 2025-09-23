@@ -41,7 +41,7 @@ func TestGetServerLimits(t *testing.T) {
 		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 
 		// now we create a new user
-		newUser := th.CreateUser()
+		newUser := th.CreateUser(t)
 
 		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
@@ -64,7 +64,7 @@ func TestGetServerLimits(t *testing.T) {
 		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 
 		// now we create a new user
-		newGuestUser := th.CreateGuest()
+		newGuestUser := th.CreateGuest(t)
 
 		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
@@ -87,7 +87,7 @@ func TestGetServerLimits(t *testing.T) {
 		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 
 		// now we create a new user
-		newUser := th.CreateUser()
+		newUser := th.CreateUser(t)
 
 		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
@@ -111,7 +111,7 @@ func TestGetServerLimits(t *testing.T) {
 		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 
 		// now we create a new user
-		newGuestUser := th.CreateGuest()
+		newGuestUser := th.CreateGuest(t)
 
 		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
@@ -135,7 +135,7 @@ func TestGetServerLimits(t *testing.T) {
 		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 
 		// now we create a new bot
-		newBot := th.CreateBot()
+		newBot := th.CreateBot(t)
 
 		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
@@ -334,8 +334,8 @@ func TestIsAtUserLimit(t *testing.T) {
 			th.App.Srv().SetLicense(license)
 
 			// Create 2 additional users to have 5 total (at base limit of 5, but below hard limit of 7)
-			th.CreateUser()
-			th.CreateUser()
+			th.CreateUser(t)
+			th.CreateUser(t)
 
 			atLimit, appErr := th.App.isAtUserLimit()
 			require.Nil(t, appErr)
@@ -396,8 +396,8 @@ func TestIsAtUserLimit(t *testing.T) {
 			th.App.Srv().SetLicense(license)
 
 			// Create 2 additional users to have 3 total (below limit of 5)
-			th.CreateUser()
-			th.CreateUser()
+			th.CreateUser(t)
+			th.CreateUser(t)
 
 			atLimit, appErr := th.App.isAtUserLimit()
 			require.Nil(t, appErr)
@@ -414,10 +414,10 @@ func TestIsAtUserLimit(t *testing.T) {
 			th.App.Srv().SetLicense(license)
 
 			// Create 4 additional users to have 5 total (at limit of 5)
-			th.CreateUser()
-			th.CreateUser()
-			th.CreateUser()
-			th.CreateUser()
+			th.CreateUser(t)
+			th.CreateUser(t)
+			th.CreateUser(t)
+			th.CreateUser(t)
 
 			atLimit, appErr := th.App.isAtUserLimit()
 			require.Nil(t, appErr)
@@ -434,11 +434,11 @@ func TestIsAtUserLimit(t *testing.T) {
 			th.App.Srv().SetLicense(license)
 
 			// Create 5 additional users to have 6 total (above limit of 5)
-			th.CreateUser()
-			th.CreateUser()
-			th.CreateUser()
-			th.CreateUser()
-			th.CreateUser()
+			th.CreateUser(t)
+			th.CreateUser(t)
+			th.CreateUser(t)
+			th.CreateUser(t)
+			th.CreateUser(t)
 
 			atLimit, appErr := th.App.isAtUserLimit()
 			require.Nil(t, appErr)

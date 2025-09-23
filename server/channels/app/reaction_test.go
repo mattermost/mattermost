@@ -17,7 +17,7 @@ func TestSaveReactionForPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	post := th.CreatePost(th.BasicChannel)
+	post := th.CreatePost(t, th.BasicChannel)
 	reaction1, err := th.App.SaveReactionForPost(th.Context, &model.Reaction{
 		UserId:    th.BasicUser.Id,
 		PostId:    post.Id,
@@ -74,7 +74,7 @@ func TestSaveReactionForPost(t *testing.T) {
 	})
 
 	t.Run("should always add reaction if we are over the limit but the reaction is not unique", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		var originalLimit *int
 		th.UpdateConfig(t, func(cfg *model.Config) {
@@ -109,7 +109,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 
 		user := th.BasicUser
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam, WithShared(true))
+		channel := th.CreateChannel(t, th.Context, th.BasicTeam, WithShared(true))
 
 		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user.Id,
@@ -141,7 +141,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 
 		user := th.BasicUser
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam, WithShared(true))
+		channel := th.CreateChannel(t, th.Context, th.BasicTeam, WithShared(true))
 
 		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user.Id,

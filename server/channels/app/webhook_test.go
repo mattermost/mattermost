@@ -452,7 +452,7 @@ func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 	})
 
 	t.Run("should set props based on icon_emoji (using a custom emoji)", func(t *testing.T) {
-		emoji := th.CreateEmoji()
+		emoji := th.CreateEmoji(t)
 
 		post, appErr := th.App.CreateWebhookPost(
 			th.Context,
@@ -901,7 +901,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 			}))
 			defer ts.Close()
 
-			channel := th.CreateChannel(th.Context, th.BasicTeam)
+			channel := th.CreateChannel(t, th.Context, th.BasicTeam)
 			hook, _ := createOutgoingWebhook(channel, ts.URL, th)
 			payload := getPayload(hook, th, channel)
 
@@ -999,7 +999,7 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ServiceSettings.EnableOutgoingWebhooks = true
 			})
-			channel := th.CreateChannel(th.Context, th.BasicTeam)
+			channel := th.CreateChannel(t, th.Context, th.BasicTeam)
 			hook, _ := createOutgoingWebhook(channel, testCase.CallBackURLs, th)
 			payload := getPayload(hook, th, channel)
 

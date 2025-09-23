@@ -183,15 +183,15 @@ func TestPostAction(t *testing.T) {
 			return th.BasicChannel
 		}},
 		{"direct channel", func(th *TestHelper) *model.Channel {
-			user1 := th.CreateUser()
+			user1 := th.CreateUser(t)
 
-			return th.CreateDmChannel(user1)
+			return th.CreateDmChannel(t, user1)
 		}},
 		{"group channel", func(th *TestHelper) *model.Channel {
-			user1 := th.CreateUser()
-			user2 := th.CreateUser()
+			user1 := th.CreateUser(t)
+			user2 := th.CreateUser(t)
 
-			return th.CreateGroupChannel(th.Context, user1, user2)
+			return th.CreateGroupChannel(t, user1, user2)
 		}},
 	}
 

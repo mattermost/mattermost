@@ -1511,7 +1511,7 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 			}
 			var userSessions []userSession
 			for range 3 {
-				u := th.CreateUser()
+				u := th.CreateUser(t)
 				sess, err := th.App.CreateSession(th.Context, &model.Session{
 					UserId:    u.Id,
 					DeviceId:  "deviceID" + u.Id,
@@ -1527,7 +1527,7 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 				require.Nil(t, err)
 				_, err = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, u.Id)
 				require.Nil(t, err)
-				th.AddUserToChannel(u, th.BasicChannel)
+				th.AddUserToChannel(t, u, th.BasicChannel)
 				userSessions = append(userSessions, userSession{
 					user:    u,
 					session: sess,
@@ -1554,7 +1554,7 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 				go func(user model.User) {
 					defer wg.Done()
 					notification := &PostNotification{
-						Post:    th.CreatePost(th.BasicChannel),
+						Post:    th.CreatePost(t, th.BasicChannel),
 						Channel: th.BasicChannel,
 						ProfileMap: map[string]*model.User{
 							user.Id: &user,
@@ -1635,9 +1635,9 @@ func TestHookEmailNotificationWillBeSent(t *testing.T) {
 			th := Setup(t).InitBasic(t)
 
 			// Create a test user for email notifications
-			user := th.CreateUser()
-			th.LinkUserToTeam(user, th.BasicTeam)
-			th.AddUserToChannel(user, th.BasicChannel)
+			user := th.CreateUser(t)
+			th.LinkUserToTeam(t, user, th.BasicTeam)
+			th.AddUserToChannel(t, user, th.BasicChannel)
 
 			// Set up email notification preferences to disable batching
 			appErr := th.App.UpdatePreferences(th.Context, user.Id, model.Preferences{
@@ -1995,7 +1995,7 @@ func TestChannelHasBeenCreated(t *testing.T) {
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
 
-		user1 := th.CreateUser()
+		user1 := th.CreateUser(t)
 
 		channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
 			CreatorId: user1.Id,
@@ -2025,8 +2025,8 @@ func TestChannelHasBeenCreated(t *testing.T) {
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
 
-		user1 := th.CreateUser()
-		user2 := th.CreateUser()
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
 
 		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, user1.Id, user2.Id)
 		require.Nil(t, appErr)
@@ -2050,9 +2050,9 @@ func TestChannelHasBeenCreated(t *testing.T) {
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
 
-		user1 := th.CreateUser()
-		user2 := th.CreateUser()
-		user3 := th.CreateUser()
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
+		user3 := th.CreateUser(t)
 
 		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id}, user1.Id)
 		require.Nil(t, appErr)
@@ -2119,10 +2119,10 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
-		user1 := th.CreateUser()
-		th.LinkUserToTeam(user1, th.BasicTeam)
-		user2 := th.CreateUser()
-		th.LinkUserToTeam(user2, th.BasicTeam)
+		user1 := th.CreateUser(t)
+		th.LinkUserToTeam(t, user1, th.BasicTeam)
+		user2 := th.CreateUser(t)
+		th.LinkUserToTeam(t, user2, th.BasicTeam)
 
 		channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
 			CreatorId: user1.Id,
@@ -2164,10 +2164,10 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
-		user1 := th.CreateUser()
-		th.LinkUserToTeam(user1, th.BasicTeam)
-		user2 := th.CreateUser()
-		th.LinkUserToTeam(user2, th.BasicTeam)
+		user1 := th.CreateUser(t)
+		th.LinkUserToTeam(t, user1, th.BasicTeam)
+		user2 := th.CreateUser(t)
+		th.LinkUserToTeam(t, user2, th.BasicTeam)
 
 		channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
 			CreatorId: user1.Id,
@@ -2212,7 +2212,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
 
-		user1 := th.CreateUser()
+		user1 := th.CreateUser(t)
 
 		channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
 			CreatorId: user1.Id,
@@ -2246,8 +2246,8 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
 
-		user1 := th.CreateUser()
-		user2 := th.CreateUser()
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
 
 		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, user1.Id, user2.Id)
 		require.Nil(t, appErr)
@@ -2276,9 +2276,9 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
 
-		user1 := th.CreateUser()
-		user2 := th.CreateUser()
-		user3 := th.CreateUser()
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
+		user3 := th.CreateUser(t)
 
 		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id}, user1.Id)
 		require.Nil(t, appErr)

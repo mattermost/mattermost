@@ -139,7 +139,7 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	defer func() {
 		appErr := th.App.PermanentDeleteUser(th.Context, user)
 		require.Nil(t, appErr)
@@ -157,7 +157,7 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 	assert.NotNil(t, err)
 
 	t.Run("Restricted Domains must be ignored for guest users", func(t *testing.T) {
-		guest := th.CreateGuest()
+		guest := th.CreateGuest(t)
 		defer func() {
 			appErr := th.App.PermanentDeleteUser(th.Context, guest)
 			require.Nil(t, appErr)
@@ -174,7 +174,7 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 	})
 
 	t.Run("Guest users should be affected by guest restricted domains", func(t *testing.T) {
-		guest := th.CreateGuest()
+		guest := th.CreateGuest(t)
 		defer func() {
 			appErr := th.App.PermanentDeleteUser(th.Context, guest)
 			require.Nil(t, appErr)
@@ -199,8 +199,8 @@ func TestUpdateUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	user := th.CreateUser()
-	group := th.CreateGroup()
+	user := th.CreateUser(t)
+	group := th.CreateGroup(t)
 
 	t.Run("fails if the username matches a group name", func(t *testing.T) {
 		user.Username = *group.Name
@@ -242,7 +242,7 @@ func TestUpdateUserMissingFields(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	defer func() {
 		appErr := th.App.PermanentDeleteUser(th.Context, user)
 		require.Nil(t, appErr)
@@ -276,7 +276,7 @@ func TestCreateUser(t *testing.T) {
 	th := Setup(t)
 
 	t.Run("fails if the username matches a group name", func(t *testing.T) {
-		group := th.CreateGroup()
+		group := th.CreateGroup(t)
 
 		id := model.NewId()
 		user := &model.User{
@@ -345,7 +345,7 @@ func TestUpdateUserActive(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 
 	EnableUserDeactivation := th.App.Config().TeamSettings.EnableUserDeactivation
 	defer func() {
@@ -564,7 +564,7 @@ func TestUpdateUserEmail(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 
 	t.Run("RequireVerification", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -612,7 +612,7 @@ func TestUpdateUserEmail(t *testing.T) {
 			*cfg.EmailSettings.RequireEmailVerification = true
 		})
 
-		user2 := th.CreateUser()
+		user2 := th.CreateUser(t)
 		newEmail := user2.Email
 
 		user.Email = newEmail
@@ -655,7 +655,7 @@ func TestUpdateUserEmail(t *testing.T) {
 			*cfg.EmailSettings.RequireEmailVerification = false
 		})
 
-		user2 := th.CreateUser()
+		user2 := th.CreateUser(t)
 		newEmail := user2.Email
 
 		user.Email = newEmail
@@ -744,7 +744,7 @@ func TestGetUsersByStatus(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	team := th.CreateTeam()
+	team := th.CreateTeam(t)
 	channel, err := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "dn_" + model.NewId(),
 		Name:        "name_" + model.NewId(),
@@ -765,8 +765,8 @@ func TestGetUsersByStatus(t *testing.T) {
 		})
 		require.Nil(t, err, "failed to create user: %v", err)
 
-		th.LinkUserToTeam(user, team)
-		th.AddUserToChannel(user, channel)
+		th.LinkUserToTeam(t, user, team)
+		th.AddUserToChannel(t, user, channel)
 
 		th.App.Srv().Platform().SaveAndBroadcastStatus(&model.Status{
 			UserId: user.Id,
@@ -882,15 +882,15 @@ func TestGetUsersNotInAbacChannel(t *testing.T) {
 	})
 
 	// Create an ABAC channel
-	abacChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+	abacChannel := th.CreatePrivateChannel(t, th.Context, th.BasicTeam)
 
 	// Create three test users and add them to the team
-	user1 := th.CreateUser() // Will have matching attributes for ABAC
-	user2 := th.CreateUser() // Won't have matching attributes
-	user3 := th.CreateUser() // Won't have matching attributes
-	th.LinkUserToTeam(user1, th.BasicTeam)
-	th.LinkUserToTeam(user2, th.BasicTeam)
-	th.LinkUserToTeam(user3, th.BasicTeam)
+	user1 := th.CreateUser(t) // Will have matching attributes for ABAC
+	user2 := th.CreateUser(t) // Won't have matching attributes
+	user3 := th.CreateUser(t) // Won't have matching attributes
+	th.LinkUserToTeam(t, user1, th.BasicTeam)
+	th.LinkUserToTeam(t, user2, th.BasicTeam)
+	th.LinkUserToTeam(t, user3, th.BasicTeam)
 
 	// Create a policy with the same ID as the ABAC channel
 	channelPolicy := &model.AccessControlPolicy{
@@ -1550,28 +1550,28 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	team1 := th.CreateTeam()
-	team2 := th.CreateTeam()
-	th.CreateTeam() // Another team
+	team1 := th.CreateTeam(t)
+	team2 := th.CreateTeam(t)
+	th.CreateTeam(t) // Another team
 
-	user1 := th.CreateUser()
+	user1 := th.CreateUser(t)
 
-	th.LinkUserToTeam(user1, team1)
-	th.LinkUserToTeam(user1, team2)
+	th.LinkUserToTeam(t, user1, team1)
+	th.LinkUserToTeam(t, user1, team2)
 
 	_, appErr := th.App.UpdateTeamMemberRoles(th.Context, team1.Id, user1.Id, "team_user team_admin")
 	require.Nil(t, appErr)
 
-	team1channel1 := th.CreateChannel(th.Context, team1)
-	team1channel2 := th.CreateChannel(th.Context, team1)
-	th.CreateChannel(th.Context, team1) // Another channel
+	team1channel1 := th.CreateChannel(t, th.Context, team1)
+	team1channel2 := th.CreateChannel(t, th.Context, team1)
+	th.CreateChannel(t, th.Context, team1) // Another channel
 	team1offtopic, err := th.App.GetChannelByName(th.Context, "off-topic", team1.Id, false)
 	require.Nil(t, err)
 	team1townsquare, err := th.App.GetChannelByName(th.Context, "town-square", team1.Id, false)
 	require.Nil(t, err)
 
-	team2channel1 := th.CreateChannel(th.Context, team2)
-	th.CreateChannel(th.Context, team2) // Another channel
+	team2channel1 := th.CreateChannel(t, th.Context, team2)
+	th.CreateChannel(t, th.Context, team2) // Another channel
 	team2offtopic, err := th.App.GetChannelByName(th.Context, "off-topic", team2.Id, false)
 	require.Nil(t, err)
 	team2townsquare, err := th.App.GetChannelByName(th.Context, "town-square", team2.Id, false)
@@ -1696,7 +1696,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 	})
 
 	t.Run("Must work with guest user without teams or channels", func(t *testing.T) {
-		guest := th.CreateGuest()
+		guest := th.CreateGuest(t)
 		require.Equal(t, "system_guest", guest.Roles)
 
 		err := th.App.PromoteGuestToUser(th.Context, guest, th.BasicUser.Id)
@@ -1707,9 +1707,9 @@ func TestPromoteGuestToUser(t *testing.T) {
 	})
 
 	t.Run("Must work with guest user with teams but no channels", func(t *testing.T) {
-		guest := th.CreateGuest()
+		guest := th.CreateGuest(t)
 		require.Equal(t, "system_guest", guest.Roles)
-		th.LinkUserToTeam(guest, th.BasicTeam)
+		th.LinkUserToTeam(t, guest, th.BasicTeam)
 		teamMember, err := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
 		require.Nil(t, err)
 		require.True(t, teamMember.SchemeGuest)
@@ -1727,15 +1727,15 @@ func TestPromoteGuestToUser(t *testing.T) {
 	})
 
 	t.Run("Must work with guest user with teams and channels", func(t *testing.T) {
-		guest := th.CreateGuest()
+		guest := th.CreateGuest(t)
 		require.Equal(t, "system_guest", guest.Roles)
-		th.LinkUserToTeam(guest, th.BasicTeam)
+		th.LinkUserToTeam(t, guest, th.BasicTeam)
 		teamMember, err := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
 		require.Nil(t, err)
 		require.True(t, teamMember.SchemeGuest)
 		require.False(t, teamMember.SchemeUser)
 
-		channelMember := th.AddUserToChannel(guest, th.BasicChannel)
+		channelMember := th.AddUserToChannel(t, guest, th.BasicChannel)
 		require.True(t, channelMember.SchemeGuest)
 		require.False(t, channelMember.SchemeUser)
 
@@ -1755,15 +1755,15 @@ func TestPromoteGuestToUser(t *testing.T) {
 	})
 
 	t.Run("Must add the default channels", func(t *testing.T) {
-		guest := th.CreateGuest()
+		guest := th.CreateGuest(t)
 		require.Equal(t, "system_guest", guest.Roles)
-		th.LinkUserToTeam(guest, th.BasicTeam)
+		th.LinkUserToTeam(t, guest, th.BasicTeam)
 		teamMember, err := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
 		require.Nil(t, err)
 		require.True(t, teamMember.SchemeGuest)
 		require.False(t, teamMember.SchemeUser)
 
-		channelMember := th.AddUserToChannel(guest, th.BasicChannel)
+		channelMember := th.AddUserToChannel(t, guest, th.BasicChannel)
 		require.True(t, channelMember.SchemeGuest)
 		require.False(t, channelMember.SchemeUser)
 
@@ -1791,9 +1791,9 @@ func TestPromoteGuestToUser(t *testing.T) {
 	})
 
 	t.Run("Must invalidate channel stats cache when promoting a guest", func(t *testing.T) {
-		guest := th.CreateGuest()
+		guest := th.CreateGuest(t)
 		require.Equal(t, "system_guest", guest.Roles)
-		th.LinkUserToTeam(guest, th.BasicTeam)
+		th.LinkUserToTeam(t, guest, th.BasicTeam)
 		teamMember, err := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
 		require.Nil(t, err)
 		require.True(t, teamMember.SchemeGuest)
@@ -1802,7 +1802,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		guestCount, _ := th.App.GetChannelGuestCount(th.Context, th.BasicChannel.Id)
 		require.Equal(t, int64(0), guestCount)
 
-		channelMember := th.AddUserToChannel(guest, th.BasicChannel)
+		channelMember := th.AddUserToChannel(t, guest, th.BasicChannel)
 		require.True(t, channelMember.SchemeGuest)
 		require.False(t, channelMember.SchemeUser)
 
@@ -1822,9 +1822,9 @@ func TestDemoteUserToGuest(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("Must invalidate channel stats cache when demoting a user", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 		require.Equal(t, "system_user", user.Roles)
-		th.LinkUserToTeam(user, th.BasicTeam)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
 		teamMember, err := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, user.Id)
 		require.Nil(t, err)
 		require.True(t, teamMember.SchemeUser)
@@ -1833,7 +1833,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		guestCount, _ := th.App.GetChannelGuestCount(th.Context, th.BasicChannel.Id)
 		require.Equal(t, int64(0), guestCount)
 
-		channelMember := th.AddUserToChannel(user, th.BasicChannel)
+		channelMember := th.AddUserToChannel(t, user, th.BasicChannel)
 		require.True(t, channelMember.SchemeUser)
 		require.False(t, channelMember.SchemeGuest)
 
@@ -1848,7 +1848,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 	})
 
 	t.Run("Must fail with guest user", func(t *testing.T) {
-		guest := th.CreateGuest()
+		guest := th.CreateGuest(t)
 		require.Equal(t, "system_guest", guest.Roles)
 		err := th.App.DemoteUserToGuest(th.Context, guest)
 		require.Nil(t, err)
@@ -1859,7 +1859,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 	})
 
 	t.Run("Must work with user without teams or channels", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 		require.Equal(t, "system_user", user.Roles)
 
 		err := th.App.DemoteUserToGuest(th.Context, user)
@@ -1870,9 +1870,9 @@ func TestDemoteUserToGuest(t *testing.T) {
 	})
 
 	t.Run("Must work with user with teams but no channels", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 		require.Equal(t, "system_user", user.Roles)
-		th.LinkUserToTeam(user, th.BasicTeam)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
 		teamMember, err := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, user.Id)
 		require.Nil(t, err)
 		require.True(t, teamMember.SchemeUser)
@@ -1890,15 +1890,15 @@ func TestDemoteUserToGuest(t *testing.T) {
 	})
 
 	t.Run("Must work with user with teams and channels", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 		require.Equal(t, "system_user", user.Roles)
-		th.LinkUserToTeam(user, th.BasicTeam)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
 		teamMember, err := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, user.Id)
 		require.Nil(t, err)
 		require.True(t, teamMember.SchemeUser)
 		require.False(t, teamMember.SchemeGuest)
 
-		channelMember := th.AddUserToChannel(user, th.BasicChannel)
+		channelMember := th.AddUserToChannel(t, user, th.BasicChannel)
 		require.True(t, channelMember.SchemeUser)
 		require.False(t, channelMember.SchemeGuest)
 
@@ -1918,15 +1918,15 @@ func TestDemoteUserToGuest(t *testing.T) {
 	})
 
 	t.Run("Must respect the current channels not removing defaults", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 		require.Equal(t, "system_user", user.Roles)
-		th.LinkUserToTeam(user, th.BasicTeam)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
 		teamMember, err := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, user.Id)
 		require.Nil(t, err)
 		require.True(t, teamMember.SchemeUser)
 		require.False(t, teamMember.SchemeGuest)
 
-		channelMember := th.AddUserToChannel(user, th.BasicChannel)
+		channelMember := th.AddUserToChannel(t, user, th.BasicChannel)
 		require.True(t, channelMember.SchemeUser)
 		require.False(t, channelMember.SchemeGuest)
 
@@ -1954,12 +1954,12 @@ func TestDemoteUserToGuest(t *testing.T) {
 	})
 
 	t.Run("Must be removed as team and channel admin", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 		require.Equal(t, "system_user", user.Roles)
 
-		team := th.CreateTeam()
+		team := th.CreateTeam(t)
 
-		th.LinkUserToTeam(user, team)
+		th.LinkUserToTeam(t, user, team)
 		_, appErr := th.App.UpdateTeamMemberRoles(th.Context, team.Id, user.Id, "team_user team_admin")
 		require.Nil(t, appErr)
 
@@ -1969,9 +1969,9 @@ func TestDemoteUserToGuest(t *testing.T) {
 		require.True(t, teamMember.SchemeAdmin)
 		require.False(t, teamMember.SchemeGuest)
 
-		channel := th.CreateChannel(th.Context, team)
+		channel := th.CreateChannel(t, th.Context, team)
 
-		th.AddUserToChannel(user, channel)
+		th.AddUserToChannel(t, user, channel)
 		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, user.Id, false, true, true)
 		require.Nil(t, appErr)
 
@@ -2006,9 +2006,9 @@ func TestDeactivateGuests(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	guest1 := th.CreateGuest()
-	guest2 := th.CreateGuest()
-	user := th.CreateUser()
+	guest1 := th.CreateGuest(t)
+	guest2 := th.CreateGuest(t)
+	user := th.CreateUser(t)
 
 	err := th.App.DeactivateGuests(th.Context)
 	require.Nil(t, err)
@@ -2033,7 +2033,7 @@ func TestUpdateUserRolesWithUser(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	// Create normal user.
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	assert.Equal(t, user.Roles, model.SystemUserRoleId)
 
 	// Upgrade to sysadmin.
@@ -2065,7 +2065,7 @@ func TestUpdateLastAdminUserRolesWithUser(t *testing.T) {
 	})
 
 	t.Run("Cannot remove if only non-Bot admin", func(t *testing.T) {
-		bot := th.CreateBot()
+		bot := th.CreateBot(t)
 		user, appErr := th.App.UpdateUserRoles(th.Context, bot.UserId, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 		require.Nil(t, appErr)
 		require.NotNil(t, user)
@@ -2077,7 +2077,7 @@ func TestUpdateLastAdminUserRolesWithUser(t *testing.T) {
 	})
 
 	t.Run("Can remove if not only non-Bot admin", func(t *testing.T) {
-		systemAdminUser2 := th.CreateUser()
+		systemAdminUser2 := th.CreateUser(t)
 		user, appErr := th.App.UpdateUserRoles(th.Context, systemAdminUser2.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 		require.Nil(t, appErr)
 		require.NotNil(t, user)
@@ -2108,7 +2108,7 @@ func TestPatchUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	testUser := th.CreateUser()
+	testUser := th.CreateUser(t)
 	defer func() {
 		appErr := th.App.PermanentDeleteUser(th.Context, testUser)
 		require.Nil(t, appErr)
@@ -2179,7 +2179,7 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		th.ConfigStore.SetReadOnlyFF(false)
 		defer th.ConfigStore.SetReadOnlyFF(true)
 
-		testUser := th.CreateUser()
+		testUser := th.CreateUser(t)
 		defer func() {
 			appErr := th.App.PermanentDeleteUser(th.Context, testUser)
 			require.Nil(t, appErr)
@@ -2204,7 +2204,7 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 	t.Run("successfully create a guest user with initial tutorial and recommended steps preferences", func(t *testing.T) {
 		th.Server.platform.SetConfigReadOnlyFF(false)
 		defer th.Server.platform.SetConfigReadOnlyFF(true)
-		testUser := th.CreateGuest()
+		testUser := th.CreateGuest(t)
 		defer func() {
 			appErr := th.App.PermanentDeleteUser(th.Context, testUser)
 			require.Nil(t, appErr)
@@ -2408,7 +2408,7 @@ func createTestRemoteCluster(t *testing.T, th *TestHelper, ss store.Store, name,
 }
 
 func createRemoteUser(t *testing.T, th *TestHelper, remoteCluster *model.RemoteCluster) *model.User {
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	user.RemoteId = &remoteCluster.RemoteId
 	updatedUser, appErr := th.App.UpdateUser(th.Context, user, false)
 	require.Nil(t, appErr)

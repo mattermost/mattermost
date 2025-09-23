@@ -104,7 +104,7 @@ func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	t.Run("Promote Guest to User updates the session", func(t *testing.T) {
-		guest := th.CreateGuest()
+		guest := th.CreateGuest(t)
 
 		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: guest.Id, Props: model.StringMap{model.SessionPropIsGuest: "true"}})
 		require.Nil(t, err)
@@ -128,7 +128,7 @@ func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 	})
 
 	t.Run("Demote User to Guest updates the session", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: user.Id, Props: model.StringMap{model.SessionPropIsGuest: "false"}})
 		require.Nil(t, err)

@@ -242,7 +242,7 @@ func TestPermalinkBroadcastHook(t *testing.T) {
 	}
 	hook := &permalinkBroadcastHook{}
 
-	refPost := th.CreatePost(th.BasicChannel)
+	refPost := th.CreatePost(t, th.BasicChannel)
 
 	th.BasicPost.Metadata.Embeds = append(th.BasicPost.Metadata.Embeds, &model.PostEmbed{Type: model.PostEmbedPermalink, Data: &model.Permalink{
 		PreviewPost: model.NewPreviewPost(refPost, th.BasicTeam, th.BasicChannel),

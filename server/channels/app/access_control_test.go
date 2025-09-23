@@ -86,7 +86,7 @@ func TestGetChannelsForPolicy(t *testing.T) {
 			},
 		}
 
-		ch := th.CreatePrivateChannel(rctx, th.BasicTeam)
+		ch := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
 
 		childPolicy := &model.AccessControlPolicy{
 			Type:     model.AccessControlPolicyTypeChannel,
@@ -239,7 +239,7 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 	})
 
 	t.Run("Error saving policy", func(t *testing.T) {
-		ch := th.CreatePrivateChannel(rctx, th.BasicTeam)
+		ch := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
 
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
@@ -283,7 +283,7 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 		th.App.Srv().ch.AccessControl = mockAccessControl
 		mockAccessControl.On("GetPolicy", rctx, parentID).Return(&model.AccessControlPolicy{Type: model.AccessControlPolicyTypeParent}, nil)
 		// Create a public channel
-		publicChannel := th.CreateChannel(rctx, th.BasicTeam)
+		publicChannel := th.CreateChannel(t, rctx, th.BasicTeam)
 		t.Cleanup(func() {
 			appErr := th.App.PermanentDeleteChannel(rctx, publicChannel)
 			require.Nil(t, appErr)
@@ -300,7 +300,7 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 		th.App.Srv().ch.AccessControl = mockAccessControl
 		mockAccessControl.On("GetPolicy", rctx, parentID).Return(&model.AccessControlPolicy{Type: model.AccessControlPolicyTypeParent}, nil)
 
-		privateChannel := th.CreatePrivateChannel(rctx, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
 		t.Cleanup(func() {
 			appErr := th.App.PermanentDeleteChannel(rctx, privateChannel)
 			require.Nil(t, appErr)
@@ -316,12 +316,12 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 	})
 
 	t.Run("Successful assignment", func(t *testing.T) {
-		ch1 := th.CreatePrivateChannel(rctx, th.BasicTeam)
+		ch1 := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
 		t.Cleanup(func() {
 			appErr := th.App.PermanentDeleteChannel(rctx, ch1)
 			require.Nil(t, appErr)
 		})
-		ch2 := th.CreatePrivateChannel(rctx, th.BasicTeam)
+		ch2 := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
 		t.Cleanup(func() {
 			appErr := th.App.PermanentDeleteChannel(rctx, ch2)
 			require.Nil(t, appErr)
@@ -386,12 +386,12 @@ func TestUnassignPoliciesFromChannels(t *testing.T) {
 		require.NoError(t, sErr)
 	})
 
-	ch1 := th.CreatePrivateChannel(rctx, th.BasicTeam)
+	ch1 := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
 	t.Cleanup(func() {
 		sErr := th.App.PermanentDeleteChannel(rctx, ch1)
 		require.Nil(t, sErr)
 	})
-	ch2 := th.CreatePrivateChannel(rctx, th.BasicTeam)
+	ch2 := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
 	t.Cleanup(func() {
 		sErr := th.App.PermanentDeleteChannel(rctx, ch2)
 		require.Nil(t, sErr)
@@ -464,7 +464,7 @@ func TestUnassignPoliciesFromChannels(t *testing.T) {
 	})
 
 	t.Run("Channel not actually a child policy", func(t *testing.T) {
-		ch3 := th.CreatePrivateChannel(rctx, th.BasicTeam) // Not a child of parentPolicy
+		ch3 := th.CreatePrivateChannel(t, rctx, th.BasicTeam) // Not a child of parentPolicy
 		t.Cleanup(func() { _ = th.App.PermanentDeleteChannel(rctx, ch3) })
 
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
@@ -498,26 +498,26 @@ func TestValidateChannelAccessControlPermission(t *testing.T) {
 
 	rctx := request.TestContext(t)
 
-	th.AddPermissionToRole(model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
 
 	// Create a private channel
-	privateChannel := th.CreatePrivateChannel(rctx, th.BasicTeam)
+	privateChannel := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
 	t.Cleanup(func() {
 		appErr := th.App.PermanentDeleteChannel(rctx, privateChannel)
 		require.Nil(t, appErr)
 	})
 
 	// Create a public channel
-	publicChannel := th.CreateChannel(rctx, th.BasicTeam)
+	publicChannel := th.CreateChannel(t, rctx, th.BasicTeam)
 	t.Cleanup(func() {
 		appErr := th.App.PermanentDeleteChannel(rctx, publicChannel)
 		require.Nil(t, appErr)
 	})
 
 	// Create a user and make them channel admin
-	channelAdmin := th.CreateUser()
-	th.LinkUserToTeam(channelAdmin, th.BasicTeam)
-	th.AddUserToChannel(channelAdmin, privateChannel)
+	channelAdmin := th.CreateUser(t)
+	th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+	th.AddUserToChannel(t, channelAdmin, privateChannel)
 
 	// Make user channel admin using the proper APP method
 	_, appErr := th.App.UpdateChannelMemberRoles(rctx, privateChannel.Id, channelAdmin.Id, "channel_user channel_admin")
@@ -529,9 +529,9 @@ func TestValidateChannelAccessControlPermission(t *testing.T) {
 	})
 
 	t.Run("User who is not channel admin", func(t *testing.T) {
-		regularUser := th.CreateUser()
-		th.LinkUserToTeam(regularUser, th.BasicTeam)
-		th.AddUserToChannel(regularUser, privateChannel)
+		regularUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, regularUser, th.BasicTeam)
+		th.AddUserToChannel(t, regularUser, privateChannel)
 
 		appErr := th.App.ValidateChannelAccessControlPermission(rctx, regularUser.Id, privateChannel.Id)
 		require.NotNil(t, appErr)
@@ -546,7 +546,7 @@ func TestValidateChannelAccessControlPermission(t *testing.T) {
 	})
 
 	t.Run("Public channel should fail", func(t *testing.T) {
-		th.AddUserToChannel(channelAdmin, publicChannel)
+		th.AddUserToChannel(t, channelAdmin, publicChannel)
 
 		// Make user channel admin for public channel
 		_, appErr2 := th.App.UpdateChannelMemberRoles(rctx, publicChannel.Id, channelAdmin.Id, "channel_user channel_admin")
@@ -558,7 +558,7 @@ func TestValidateChannelAccessControlPermission(t *testing.T) {
 	})
 
 	t.Run("Shared channel should fail", func(t *testing.T) {
-		sharedChannel := th.CreatePrivateChannel(rctx, th.BasicTeam)
+		sharedChannel := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
 		t.Cleanup(func() {
 			appErr := th.App.PermanentDeleteChannel(rctx, sharedChannel)
 			require.Nil(t, appErr)
@@ -569,7 +569,7 @@ func TestValidateChannelAccessControlPermission(t *testing.T) {
 		_, err := th.App.Srv().Store().Channel().Update(rctx, sharedChannel)
 		require.NoError(t, err)
 
-		th.AddUserToChannel(channelAdmin, sharedChannel)
+		th.AddUserToChannel(t, channelAdmin, sharedChannel)
 
 		// Make user channel admin for shared channel
 		_, appErr3 := th.App.UpdateChannelMemberRoles(rctx, sharedChannel.Id, channelAdmin.Id, "channel_user channel_admin")
@@ -586,18 +586,18 @@ func TestValidateAccessControlPolicyPermission(t *testing.T) {
 
 	rctx := request.TestContext(t)
 
-	th.AddPermissionToRole(model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
 
 	// Create a private channel and channel admin
-	privateChannel := th.CreatePrivateChannel(rctx, th.BasicTeam)
+	privateChannel := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
 	t.Cleanup(func() {
 		appErr := th.App.PermanentDeleteChannel(rctx, privateChannel)
 		require.Nil(t, appErr)
 	})
 
-	channelAdmin := th.CreateUser()
-	th.LinkUserToTeam(channelAdmin, th.BasicTeam)
-	th.AddUserToChannel(channelAdmin, privateChannel)
+	channelAdmin := th.CreateUser(t)
+	th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+	th.AddUserToChannel(t, channelAdmin, privateChannel)
 
 	// Make user channel admin using the proper APP method
 	_, appErr := th.App.UpdateChannelMemberRoles(rctx, privateChannel.Id, channelAdmin.Id, "channel_user channel_admin")
@@ -666,7 +666,7 @@ func TestValidateAccessControlPolicyPermission(t *testing.T) {
 	})
 
 	t.Run("Regular user accessing any policy should fail", func(t *testing.T) {
-		regularUser := th.CreateUser()
+		regularUser := th.CreateUser(t)
 
 		appErr := th.App.ValidateAccessControlPolicyPermission(rctx, regularUser.Id, channelPolicy.ID)
 		require.NotNil(t, appErr)
@@ -691,21 +691,21 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 	rctx := request.TestContext(t)
 
 	// Create a private channel and channel admin
-	privateChannel := th.CreatePrivateChannel(rctx, th.BasicTeam)
+	privateChannel := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
 	t.Cleanup(func() {
 		appErr := th.App.PermanentDeleteChannel(rctx, privateChannel)
 		require.Nil(t, appErr)
 	})
 
-	anotherChannel := th.CreatePrivateChannel(rctx, th.BasicTeam)
+	anotherChannel := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
 	t.Cleanup(func() {
 		appErr := th.App.PermanentDeleteChannel(rctx, anotherChannel)
 		require.Nil(t, appErr)
 	})
 
-	channelAdmin := th.CreateUser()
-	th.LinkUserToTeam(channelAdmin, th.BasicTeam)
-	th.AddUserToChannel(channelAdmin, privateChannel)
+	channelAdmin := th.CreateUser(t)
+	th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+	th.AddUserToChannel(t, channelAdmin, privateChannel)
 
 	// Make user channel admin using the proper APP method
 	_, appErr := th.App.UpdateChannelMemberRoles(rctx, privateChannel.Id, channelAdmin.Id, "channel_user channel_admin")
@@ -759,13 +759,13 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 	})
 
 	t.Run("Creating policy for public channel should fail", func(t *testing.T) {
-		publicChannel := th.CreateChannel(rctx, th.BasicTeam)
+		publicChannel := th.CreateChannel(t, rctx, th.BasicTeam)
 		t.Cleanup(func() {
 			appErr := th.App.PermanentDeleteChannel(rctx, publicChannel)
 			require.Nil(t, appErr)
 		})
 
-		th.AddUserToChannel(channelAdmin, publicChannel)
+		th.AddUserToChannel(t, channelAdmin, publicChannel)
 
 		// Make user channel admin for public channel
 		_, appErr4 := th.App.UpdateChannelMemberRoles(rctx, publicChannel.Id, channelAdmin.Id, "channel_user channel_admin")
@@ -787,7 +787,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 	})
 
 	t.Run("Creating policy for shared channel should fail", func(t *testing.T) {
-		sharedChannel := th.CreatePrivateChannel(rctx, th.BasicTeam)
+		sharedChannel := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
 		t.Cleanup(func() {
 			appErr := th.App.PermanentDeleteChannel(rctx, sharedChannel)
 			require.Nil(t, appErr)
@@ -798,7 +798,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 		_, err := th.App.Srv().Store().Channel().Update(rctx, sharedChannel)
 		require.NoError(t, err)
 
-		th.AddUserToChannel(channelAdmin, sharedChannel)
+		th.AddUserToChannel(t, channelAdmin, sharedChannel)
 
 		// Make user channel admin for shared channel
 		_, appErr5 := th.App.UpdateChannelMemberRoles(rctx, sharedChannel.Id, channelAdmin.Id, "channel_user channel_admin")

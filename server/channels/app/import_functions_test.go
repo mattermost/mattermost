@@ -514,8 +514,8 @@ func TestImportImportTeam(t *testing.T) {
 		require.NoError(t, err, "Failed to delete system value.")
 	}()
 
-	scheme1 := th.SetupTeamScheme()
-	scheme2 := th.SetupTeamScheme()
+	scheme1 := th.SetupTeamScheme(t)
+	scheme2 := th.SetupTeamScheme(t)
 
 	// Check how many teams are in the database.
 	teamsCount, err := th.App.Srv().Store().Team().AnalyticsTeamCount(nil)
@@ -611,8 +611,8 @@ func TestImportImportChannel(t *testing.T) {
 		require.NoError(t, err, "Failed to delete system value.")
 	}()
 
-	scheme1 := th.SetupChannelScheme()
-	scheme2 := th.SetupChannelScheme()
+	scheme1 := th.SetupChannelScheme(t)
+	scheme2 := th.SetupChannelScheme(t)
 
 	// Import a Team.
 	teamName := model.NewRandomTeamName()
@@ -1744,10 +1744,10 @@ func TestImportUserTeams(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	team2 := th.CreateTeam()
-	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
-	channel3 := th.CreateChannel(th.Context, team2)
-	customRole := th.CreateRole("test_custom_role")
+	team2 := th.CreateTeam(t)
+	channel2 := th.CreateChannel(t, th.Context, th.BasicTeam)
+	channel3 := th.CreateChannel(t, th.Context, team2)
+	customRole := th.CreateRole(t, "test_custom_role")
 	sampleTheme := "{\"test\":\"#abcdef\"}"
 
 	tt := []struct {
@@ -1915,7 +1915,7 @@ func TestImportUserTeams(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			user := th.CreateUser()
+			user := th.CreateUser(t)
 
 			// Two times import must end with the same results
 			for range 2 {
@@ -1950,7 +1950,7 @@ func TestImportUserTeams(t *testing.T) {
 	}
 
 	t.Run("Should fail if the MaxUserPerTeam is reached", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 		data := &[]imports.UserTeamImportData{
 			{
 				Name: &th.BasicTeam.Name,
@@ -1967,8 +1967,8 @@ func TestImportUserChannels(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
-	customRole := th.CreateRole("test_custom_role")
+	channel2 := th.CreateChannel(t, th.Context, th.BasicTeam)
+	customRole := th.CreateRole(t, "test_custom_role")
 	sampleNotifyProps := imports.UserChannelNotifyPropsImportData{
 		Desktop:    model.NewPointer("all"),
 		Mobile:     model.NewPointer("none"),
@@ -2068,7 +2068,7 @@ func TestImportUserChannels(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			user := th.CreateUser()
+			user := th.CreateUser(t)
 			_, _, err := th.App.ch.srv.teamService.JoinUserToTeam(th.Context, th.BasicTeam, user)
 			require.NoError(t, err)
 
@@ -3807,7 +3807,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	user3 := th.CreateUser()
+	user3 := th.CreateUser(t)
 
 	// Check how many channels are in the database.
 	directChannelCount, err := th.App.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypeDirect)
@@ -4643,7 +4643,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	// ------------------ Group Channel -------------------------
 
 	// Create the GROUP channel.
-	user3 := th.CreateUser()
+	user3 := th.CreateUser(t)
 	channelData = imports.DirectChannelImportData{
 		Participants: []*imports.DirectChannelMemberImportData{
 			{

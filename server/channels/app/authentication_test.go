@@ -378,7 +378,7 @@ func TestCheckUserPassword(t *testing.T) {
 	createUserWithHash := func(hash string) *model.User {
 		t.Helper()
 
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		// Update the hash directly in the store (otherwise the app hashes it)
 		err := th.Server.Store().User().UpdatePassword(user.Id, hash)
@@ -508,7 +508,7 @@ func TestMigratePassword(t *testing.T) {
 	createUserWithHash := func(hash string) *model.User {
 		t.Helper()
 
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		// Update the hash directly in the store (otherwise the app hashes it)
 		err := th.Server.Store().User().UpdatePassword(user.Id, hash)

@@ -1031,26 +1031,26 @@ func TestBuildPushNotificationMessageMentions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	team := th.CreateTeam()
-	sender := th.CreateUser()
-	receiver := th.CreateUser()
-	th.LinkUserToTeam(sender, team)
-	th.LinkUserToTeam(receiver, team)
-	channel1 := th.CreateChannel(th.Context, team)
-	th.AddUserToChannel(sender, channel1)
-	th.AddUserToChannel(receiver, channel1)
+	team := th.CreateTeam(t)
+	sender := th.CreateUser(t)
+	receiver := th.CreateUser(t)
+	th.LinkUserToTeam(t, sender, team)
+	th.LinkUserToTeam(t, receiver, team)
+	channel1 := th.CreateChannel(t, th.Context, team)
+	th.AddUserToChannel(t, sender, channel1)
+	th.AddUserToChannel(t, receiver, channel1)
 
-	channel2 := th.CreateChannel(th.Context, team)
-	th.AddUserToChannel(sender, channel2)
-	th.AddUserToChannel(receiver, channel2)
+	channel2 := th.CreateChannel(t, th.Context, team)
+	th.AddUserToChannel(t, sender, channel2)
+	th.AddUserToChannel(t, receiver, channel2)
 
 	// Create three mention posts and two non-mention posts
-	th.CreateMessagePost(channel1, "@channel Hello")
-	th.CreateMessagePost(channel1, "@all Hello")
-	th.CreateMessagePost(channel1, fmt.Sprintf("@%s Hello in channel 1", receiver.Username))
-	th.CreateMessagePost(channel2, fmt.Sprintf("@%s Hello in channel 2", receiver.Username))
-	th.CreatePost(channel1)
-	post := th.CreatePost(channel1)
+	th.CreateMessagePost(t, channel1, "@channel Hello")
+	th.CreateMessagePost(t, channel1, "@all Hello")
+	th.CreateMessagePost(t, channel1, fmt.Sprintf("@%s Hello in channel 1", receiver.Username))
+	th.CreateMessagePost(t, channel2, fmt.Sprintf("@%s Hello in channel 2", receiver.Username))
+	th.CreatePost(t, channel1)
+	post := th.CreatePost(t, channel1)
 
 	for name, tc := range map[string]struct {
 		explicitMention    bool
@@ -1462,7 +1462,7 @@ func TestAllPushNotifications(t *testing.T) {
 	}
 	var testData []userSession
 	for range 10 {
-		u := th.CreateUser()
+		u := th.CreateUser(t)
 		sess, err := th.App.CreateSession(th.Context, &model.Session{
 			UserId:    u.Id,
 			DeviceId:  "deviceID" + u.Id,
@@ -1478,7 +1478,7 @@ func TestAllPushNotifications(t *testing.T) {
 		require.Nil(t, err)
 		_, err = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, u.Id)
 		require.Nil(t, err)
-		th.AddUserToChannel(u, th.BasicChannel)
+		th.AddUserToChannel(t, u, th.BasicChannel)
 		testData = append(testData, userSession{
 			user:    u,
 			session: sess,
@@ -1508,7 +1508,7 @@ func TestAllPushNotifications(t *testing.T) {
 			go func(user model.User) {
 				defer wg.Done()
 				notification := &PostNotification{
-					Post:    th.CreatePost(th.BasicChannel),
+					Post:    th.CreatePost(t, th.BasicChannel),
 					Channel: th.BasicChannel,
 					ProfileMap: map[string]*model.User{
 						user.Id: &user,

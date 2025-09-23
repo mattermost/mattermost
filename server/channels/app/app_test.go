@@ -82,7 +82,7 @@ func TestUnitUpdateConfig(t *testing.T) {
 func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	th := Setup(t)
 
-	th.ResetRoleMigration()
+	th.ResetRoleMigration(t)
 
 	err := th.App.DoAdvancedPermissionsMigration()
 	require.NoError(t, err)
@@ -258,7 +258,7 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 	expectedSystemAdmin := allPermissionIDs
 	sort.Strings(expectedSystemAdmin)
 
-	th.ResetEmojisMigration()
+	th.ResetEmojisMigration(t)
 	err := th.App.DoEmojisPermissionsMigration()
 	require.NoError(t, err)
 
