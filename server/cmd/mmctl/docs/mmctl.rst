@@ -37,6 +37,7 @@ SEE ALSO
 * `mmctl completion <mmctl_completion.rst>`_ 	 - Generate the autocompletion script for the specified shell
 * `mmctl compliance-export <mmctl_compliance-export.rst>`_ 	 - Management of compliance exports
 * `mmctl config <mmctl_config.rst>`_ 	 - Configuration
+* `mmctl cpa <mmctl_cpa.rst>`_ 	 - Management of Custom Profile Attributes
 * `mmctl docs <mmctl_docs.rst>`_ 	 - Generates mmctl documentation
 * `mmctl export <mmctl_export.rst>`_ 	 - Management of exports
 * `mmctl extract <mmctl_extract.rst>`_ 	 - Management of content extraction job.

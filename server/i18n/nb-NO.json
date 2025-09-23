@@ -471,5 +471,17 @@
       "one": "[{{.SiteName}}] Nytt varsel for {{.Month}} {{.Day}}, {{.Year}}",
       "other": "[{{.SiteName}}] Nye varsler for {{.Month}} {{.Day}}, {{.Year}}"
     }
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "SMTP-server er påkrevd"
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "Mattermost - Testing av e-postinnstillinger"
+  },
+  {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "Lisensen din støtter ikke grupper"
   }
 ]

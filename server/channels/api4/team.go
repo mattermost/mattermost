@@ -789,7 +789,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterAuditableToAuditRec(auditRec, "team", team)
 
 	if team.IsGroupConstrained() {
-		nonMembers, err := c.App.FilterNonGroupTeamMembers([]string{member.UserId}, team)
+		nonMembers, err := c.App.FilterNonGroupTeamMembers(c.AppContext, []string{member.UserId}, team)
 		if err != nil {
 			if v, ok := err.(*model.AppError); ok {
 				c.Err = v
@@ -905,7 +905,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterAuditableToAuditRec(auditRec, "team", team)
 
 	if team.IsGroupConstrained() {
-		nonMembers, err := c.App.FilterNonGroupTeamMembers(memberIDs, team)
+		nonMembers, err := c.App.FilterNonGroupTeamMembers(c.AppContext, memberIDs, team)
 		if err != nil {
 			if v, ok := err.(*model.AppError); ok {
 				c.Err = v

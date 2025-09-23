@@ -63,7 +63,6 @@ export type Props = {
     teamId: string;
     teamName?: string;
     channelsRequestStarted?: boolean;
-    canShowArchivedChannels?: boolean;
     myChannelMemberships: RelationOneToOne<Channel, ChannelMembership>;
     shouldHideJoinedChannels: boolean;
     rhsState?: RhsState;
@@ -110,11 +109,8 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
 
         const promises = [
             this.props.actions.getChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2),
+            this.props.actions.getArchivedChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2),
         ];
-
-        if (this.props.canShowArchivedChannels) {
-            promises.push(this.props.actions.getArchivedChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2));
-        }
 
         Promise.all(promises).then((results) => {
             const channelIDsForMemberCount = results.flatMap((result) => {
@@ -351,7 +347,6 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     loading={search ? searching : channelsRequestStarted}
                     changeFilter={this.changeFilter}
                     filter={this.state.filter}
-                    canShowArchivedChannels={this.props.canShowArchivedChannels}
                     myChannelMemberships={this.props.myChannelMemberships}
                     closeModal={this.props.actions.closeModal}
                     hideJoinedChannelsPreference={this.handleShowJoinedChannelsPreference}

@@ -97,7 +97,16 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           <TableEditor
             actions={
               Object {
+                "createJob": [MockFunction],
+                "deleteChannelPolicy": [MockFunction],
+                "getAccessControlFields": [MockFunction],
+                "getChannelMembers": [MockFunction],
+                "getChannelPolicy": [MockFunction],
                 "getVisualAST": [MockFunction],
+                "saveChannelPolicy": [MockFunction],
+                "searchUsers": [MockFunction],
+                "updateAccessControlPolicyActive": [MockFunction],
+                "validateExpressionAgainstRequester": [MockFunction],
               }
             }
             enableUserManagedAttributes={false}
@@ -301,7 +310,16 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           <TableEditor
             actions={
               Object {
+                "createJob": [MockFunction],
+                "deleteChannelPolicy": [MockFunction],
+                "getAccessControlFields": [MockFunction],
+                "getChannelMembers": [MockFunction],
+                "getChannelPolicy": [MockFunction],
                 "getVisualAST": [MockFunction],
+                "saveChannelPolicy": [MockFunction],
+                "searchUsers": [MockFunction],
+                "updateAccessControlPolicyActive": [MockFunction],
+                "validateExpressionAgainstRequester": [MockFunction],
               }
             }
             enableUserManagedAttributes={false}

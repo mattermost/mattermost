@@ -34,7 +34,6 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelsForTeam.Handle("/private", api.APISessionRequired(getPrivateChannelsForTeam)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/ids", api.APISessionRequired(getPublicChannelsByIdsForTeam)).Methods(http.MethodPost)
 	api.BaseRoutes.ChannelsForTeam.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchChannelsForTeam)).Methods(http.MethodPost)
-	api.BaseRoutes.ChannelsForTeam.Handle("/search_archived", api.APISessionRequiredDisableWhenBusy(searchArchivedChannelsForTeam)).Methods(http.MethodPost)
 	api.BaseRoutes.ChannelsForTeam.Handle("/autocomplete", api.APISessionRequired(autocompleteChannelsForTeam)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/search_autocomplete", api.APISessionRequired(autocompleteChannelsForTeamForSearch)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels", api.APISessionRequired(getChannelsForTeamForUser)).Methods(http.MethodGet)
@@ -999,6 +998,15 @@ func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	if session := c.AppContext.Session(); session.IsGuest() {
+		for _, channel := range channels {
+			if !c.App.SessionHasPermissionToChannel(c.AppContext, *session, channel.Id, model.PermissionReadChannel) {
+				c.SetPermissionError(model.PermissionReadChannel)
+				return
+			}
+		}
+	}
+
 	appErr = c.App.FillInChannelsProps(c.AppContext, channels)
 	if appErr != nil {
 		c.Err = appErr
@@ -1212,45 +1220,6 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		channels, appErr = c.App.SearchChannelsForUser(c.AppContext, c.AppContext.Session().UserId, c.Params.TeamId, props.Term)
-	}
-
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	// Don't fill in channels props, since unused by client and potentially expensive.
-
-	if err := json.NewEncoder(w).Encode(channels); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
-}
-
-func searchArchivedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireTeamId()
-	if c.Err != nil {
-		return
-	}
-
-	var props *model.ChannelSearch
-	err := json.NewDecoder(r.Body).Decode(&props)
-	if err != nil || props == nil {
-		c.SetInvalidParamWithErr("channel_search", err)
-		return
-	}
-
-	var channels model.ChannelList
-	var appErr *model.AppError
-	if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
-		channels, appErr = c.App.SearchArchivedChannels(c.AppContext, c.Params.TeamId, props.Term, c.AppContext.Session().UserId)
-	} else {
-		// If the user is not a team member, return a 404
-		if _, appErr = c.App.GetTeamMember(c.AppContext, c.Params.TeamId, c.AppContext.Session().UserId); appErr != nil {
-			c.Err = appErr
-			return
-		}
-
-		channels, appErr = c.App.SearchArchivedChannels(c.AppContext, c.Params.TeamId, props.Term, c.AppContext.Session().UserId)
 	}
 
 	if appErr != nil {
@@ -1512,6 +1481,12 @@ func getChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Sanitize members for current user
+	currentUserId := c.AppContext.Session().UserId
+	for i := range members {
+		members[i].SanitizeForCurrentUser(currentUserId)
+	}
+
 	if err := json.NewEncoder(w).Encode(members); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -1565,6 +1540,12 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	// Sanitize members for current user
+	currentUserId := c.AppContext.Session().UserId
+	for i := range members {
+		members[i].SanitizeForCurrentUser(currentUserId)
+	}
+
 	if err := json.NewEncoder(w).Encode(members); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -1587,6 +1568,9 @@ func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	// Sanitize member for current user
+	member.SanitizeForCurrentUser(c.AppContext.Session().UserId)
 
 	if err := json.NewEncoder(w).Encode(member); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -1613,6 +1597,12 @@ func getChannelMembersForTeamForUser(c *Context, w http.ResponseWriter, r *http.
 	if err != nil {
 		c.Err = err
 		return
+	}
+
+	// Sanitize members for current user
+	currentUserId := c.AppContext.Session().UserId
+	for i := range members {
+		members[i].SanitizeForCurrentUser(currentUserId)
 	}
 
 	if err := json.NewEncoder(w).Encode(members); err != nil {
@@ -1862,9 +1852,22 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Security check: if the user is a guest, they must have access to the channel
 	// to view its members
-	if c.AppContext.Session().IsGuest() && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
-		return
+	if c.AppContext.Session().IsGuest() {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
+			c.SetPermissionError(model.PermissionReadChannel)
+			return
+		}
+		for _, userId := range userIds {
+			allowed, appErr := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, userId)
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+			if !allowed {
+				c.SetPermissionError(model.PermissionInviteUser)
+				return
+			}
+		}
 	}
 
 	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
@@ -1891,7 +1894,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if channel.IsGroupConstrained() {
-		nonMembers, err := c.App.FilterNonGroupChannelMembers(userIds, channel)
+		nonMembers, err := c.App.FilterNonGroupChannelMembers(c.AppContext, userIds, channel)
 		if err != nil {
 			if v, ok2 := err.(*model.AppError); ok2 {
 				c.Err = v
@@ -1934,16 +1937,15 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 				lastError = err
 				continue
 			}
-		} else {
-			// user is already a member, go to next
-			c.Logger.Warn("User is already a channel member, skipping", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id))
-			newChannelMembers = append(newChannelMembers, *existingMember)
-			continue
 		}
 
 		if channel.Type == model.ChannelTypeOpen {
 			isSelfAdd := member.UserId == c.AppContext.Session().UserId
-			if isSelfAdd && !canAddSelf {
+			if isSelfAdd && existingMember != nil {
+				// users should be able to add themselves if they're already a member, even if they don't have permissions
+				newChannelMembers = append(newChannelMembers, *existingMember)
+				continue
+			} else if isSelfAdd && !canAddSelf {
 				c.Logger.Warn("Error adding channel member, Invalid Permission to add self", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id))
 				c.SetPermissionError(model.PermissionJoinPublicChannels)
 				lastError = c.Err
@@ -1954,6 +1956,13 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 				lastError = c.Err
 				continue
 			}
+		}
+
+		if existingMember != nil {
+			// user is already a member, go to next
+			c.Logger.Warn("User is already a channel member, skipping", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id))
+			newChannelMembers = append(newChannelMembers, *existingMember)
+			continue
 		}
 
 		cm, err := c.App.AddChannelMember(c.AppContext, member.UserId, channel, app.ChannelMemberOpts{
@@ -1986,6 +1995,12 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	if lastError != nil && len(newChannelMembers) == 0 {
 		c.Err = lastError
 		return
+	}
+
+	// Sanitize the returned members
+	currentUserId := c.AppContext.Session().UserId
+	for i := range newChannelMembers {
+		newChannelMembers[i].SanitizeForCurrentUser(currentUserId)
 	}
 
 	w.WriteHeader(http.StatusCreated)

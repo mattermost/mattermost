@@ -103,7 +103,7 @@ describe('Channel sidebar', () => {
         cy.get('.SidebarChannel:contains(Off-Topic)').should('not.exist');
     });
 
-    it('MM-T1684 should remove channel from sidebar after deleting it', () => {
+    it('MM-T1684 should remove channel from sidebar after deleting it and navigate away', () => {
         // # Start with a new team
         const teamName = `team-${getRandomId()}`;
         cy.createNewTeam(teamName, teamName);
@@ -122,10 +122,19 @@ describe('Channel sidebar', () => {
         cy.get('#channelArchiveChannel').should('be.visible').click();
         cy.get('#deleteChannelModalDeleteButton').should('be.visible').click();
 
-        // * Verify that we've switched to Town Square
-        verifyChannelSwitch('Town Square', `/${teamName}/channels/town-square`);
+        // * Verify we stay in the archived channel (no redirect)
+        cy.url().should('include', `/${teamName}/channels/off-topic`);
 
-        // * Verify that Off Topic has disappeared from the sidebar
+        // * Verify archived channel message is displayed
+        cy.contains('You are viewing an archived channel').should('be.visible');
+
+        // * Verify channel is still visible in sidebar while viewing it
+        cy.get('.SidebarChannel:contains(Off-Topic)').should('exist');
+
+        // # Navigate to a different channel
+        cy.visit(`/${teamName}/channels/town-square`);
+
+        // * Verify archived channel disappears from sidebar after navigating away
         cy.get('.SidebarChannel:contains(Off-Topic)').should('not.exist');
     });
 
