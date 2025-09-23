@@ -32,16 +32,17 @@ export default function PostPreviewPropertyRenderer({value, metadata}: Props) {
     const postFromStore = usePost(postId);
 
     useEffect(() => {
-        if ((!metadata || !metadata.getPost) && postFromStore) {
-            if (postFromStore.delete_at !== 0 && !metadata?.fetchDeletedPost) {
-                setPost(postFromStore);
-                loaded.current = true;
-                return;
-            }
+        const usePostFromStore = Boolean(!metadata?.getPost && postFromStore);
+        const allowDeletedPost = postFromStore?.delete_at !== 0 && !metadata?.fetchDeletedPost;
+        if (usePostFromStore && allowDeletedPost) {
+            setPost(postFromStore);
+            loaded.current = true;
+            return;
         }
 
         const loadPost = async () => {
-            if (!metadata || loaded.current || Boolean(post)) {
+            const canLoadPost = metadata?.getPost && !loaded.current && !post;
+            if (!canLoadPost) {
                 return;
             }
 
@@ -52,7 +53,7 @@ export default function PostPreviewPropertyRenderer({value, metadata}: Props) {
                 }
             } catch (error) {
                 // eslint-disable-next-line no-console
-                console.log(error);
+                console.log('Error occurred while fetching post for post preview property renderer', error);
             } finally {
                 loaded.current = true;
             }

@@ -27,6 +27,8 @@ func TestGetFlaggingConfiguration(t *testing.T) {
 
 	t.Run("Should return 501 when Enterprise Advanced license is not present even if feature is enabled", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer th.RemoveLicense()
+
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
 			config.ContentFlaggingSettings.SetDefaults()
@@ -40,6 +42,8 @@ func TestGetFlaggingConfiguration(t *testing.T) {
 
 	t.Run("Should return 501 when feature is disabled", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense()
+
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(false)
 			config.ContentFlaggingSettings.SetDefaults()
@@ -110,13 +114,6 @@ func TestGetPostPropertyValues(t *testing.T) {
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
 			config.ContentFlaggingSettings.SetDefaults()
-			// Set up config so user is not a reviewer
-			config.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(false)
-			config.ContentFlaggingSettings.ReviewerSettings.TeamReviewersSetting = &map[string]model.TeamReviewerSetting{}
-			(*config.ContentFlaggingSettings.ReviewerSettings.TeamReviewersSetting)[th.BasicTeam.Id] = model.TeamReviewerSetting{
-				Enabled:     model.NewPointer(true),
-				ReviewerIds: &[]string{}, // Empty list - user is not a reviewer
-			}
 		})
 
 		post := th.CreatePost()
@@ -172,7 +169,7 @@ func TestGetFlaggedPost(t *testing.T) {
 		})
 
 		post := th.CreatePost()
-		flaggedPost, resp, err := client.GetFlaggedPost(context.Background(), post.Id)
+		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 		require.Nil(t, flaggedPost)
@@ -186,7 +183,7 @@ func TestGetFlaggedPost(t *testing.T) {
 		})
 
 		post := th.CreatePost()
-		flaggedPost, resp, err := client.GetFlaggedPost(context.Background(), post.Id)
+		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 		require.Nil(t, flaggedPost)
@@ -199,7 +196,7 @@ func TestGetFlaggedPost(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		flaggedPost, resp, err := client.GetFlaggedPost(context.Background(), model.NewId())
+		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), model.NewId())
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
 		require.Nil(t, flaggedPost)
@@ -220,7 +217,7 @@ func TestGetFlaggedPost(t *testing.T) {
 		})
 
 		post := th.CreatePost()
-		flaggedPost, resp, err := client.GetFlaggedPost(context.Background(), post.Id)
+		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 		require.Nil(t, flaggedPost)
@@ -236,7 +233,7 @@ func TestGetFlaggedPost(t *testing.T) {
 		})
 
 		post := th.CreatePost()
-		flaggedPost, resp, err := client.GetFlaggedPost(context.Background(), post.Id)
+		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
 		require.Nil(t, flaggedPost)
@@ -263,7 +260,7 @@ func TestGetFlaggedPost(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
 		// Now get the flagged post
-		flaggedPost, resp, err := client.GetFlaggedPost(context.Background(), post.Id)
+		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotNil(t, flaggedPost)
@@ -285,6 +282,8 @@ func TestFlagPost(t *testing.T) {
 
 	t.Run("Should return 501 when Enterprise Advanced license is not present even if feature is enabled", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer th.RemoveLicense()
+
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
 			config.ContentFlaggingSettings.SetDefaults()
@@ -303,6 +302,8 @@ func TestFlagPost(t *testing.T) {
 
 	t.Run("Should return 501 when feature is disabled", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense()
+
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(false)
 			config.ContentFlaggingSettings.SetDefaults()
@@ -321,6 +322,8 @@ func TestFlagPost(t *testing.T) {
 
 	t.Run("Should return 404 when post does not exist", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense()
+
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
 			config.ContentFlaggingSettings.SetDefaults()
@@ -338,6 +341,8 @@ func TestFlagPost(t *testing.T) {
 
 	t.Run("Should return 403 when user does not have permission to view post", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense()
+
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
 			config.ContentFlaggingSettings.SetDefaults()
@@ -360,6 +365,8 @@ func TestFlagPost(t *testing.T) {
 
 	t.Run("Should return 400 when content flagging is not enabled for the team", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense()
+
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
 			config.ContentFlaggingSettings.SetDefaults()
@@ -382,6 +389,8 @@ func TestFlagPost(t *testing.T) {
 
 	t.Run("Should successfully flag a post when all conditions are met", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense()
+
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
 			config.ContentFlaggingSettings.SetDefaults()
@@ -415,6 +424,8 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 
 	t.Run("Should return 501 when Enterprise Advanced license is not present even if feature is enabled", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer th.RemoveLicense()
+
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
 			config.ContentFlaggingSettings.SetDefaults()
@@ -428,6 +439,8 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 
 	t.Run("Should return 501 when feature is disabled", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense()
+
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(false)
 			config.ContentFlaggingSettings.SetDefaults()
@@ -441,6 +454,8 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 
 	t.Run("Should return Forbidden error when calling for a team without the team membership", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense()
+
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
 			config.ContentFlaggingSettings.SetDefaults()

@@ -23,6 +23,6 @@ export const contentFlaggingFields = (state: GlobalState) => {
 };
 
 export const postContentFlaggingValues = (state: GlobalState, postId: string) => {
-    const values = state.entities.contentFlagging.postValues;
-    return (values && values[postId]) || undefined;
+    const values = state.entities.contentFlagging.postValues || {};
+    return values[postId];
 };

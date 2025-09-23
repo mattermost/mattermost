@@ -12,6 +12,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import AtMention from 'components/at_mention';
 import {useChannel} from 'components/common/hooks/useChannel';
+import {useContentFlaggingFields, usePostContentFlaggingValues} from 'components/common/hooks/useContentFlaggingFields';
 import {useUser} from 'components/common/hooks/useUser';
 import DataSpillageAction from 'components/post_view/data_spillage_report/data_spillage_actions/data_spillage_actions';
 import type {PropertiesCardViewMetadata} from 'components/properties_card_view/properties_card_view';
@@ -22,8 +23,6 @@ import {DataSpillagePropertyNames} from 'utils/constants';
 import './data_spillage_report.scss';
 import DataSpillageFooter from './data_spillage_footer/data_spillage_footer';
 import {getSyntheticPropertyFields, getSyntheticPropertyValues} from './synthetic_data';
-
-import {useContentFlaggingFields, usePostContentFlaggingValues} from '../../common/hooks/useContentFlaggingFields';
 
 // The order of fields to be displayed in the report, from top to bottom.
 const orderedFieldName = [
