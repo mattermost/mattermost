@@ -38,33 +38,13 @@ type testHelper struct {
 }
 
 // Setup creates an instance of testHelper.
-func Setup(tb testing.TB) *testHelper {
-	dir, err := testlib.SetupTestResources()
-	if err != nil {
-		panic("failed to create temporary directory: " + err.Error())
-	}
-
-	api4TestHelper := api4.Setup(tb)
-
-	testHelper := &testHelper{
-		TestHelper:     api4TestHelper,
-		tempDir:        dir,
-		configFilePath: filepath.Join(dir, "config-helper.json"),
-	}
-
-	config := &model.Config{}
-	config.SetDefaults()
-	testHelper.SetConfig(config)
-
-	return testHelper
-}
-
-// Setup creates an instance of testHelper.
 func SetupWithStoreMock(tb testing.TB) *testHelper {
 	dir, err := testlib.SetupTestResources()
-	if err != nil {
-		panic("failed to create temporary directory: " + err.Error())
-	}
+	require.NoError(tb, err)
+	tb.Cleanup(func() {
+		err = os.RemoveAll(dir)
+		require.NoError(tb, err)
+	})
 
 	api4TestHelper := api4.SetupWithStoreMock(tb)
 	systemStore := mocks.SystemStore{}
@@ -135,11 +115,6 @@ func (h *testHelper) SetConfig(config *model.Config) {
 // SetAutoConfig configures whether the --config flag is automatically passed to a running command.
 func (h *testHelper) SetAutoConfig(autoConfig bool) {
 	h.disableAutoConfig = !autoConfig
-}
-
-// TearDown cleans up temporary files and assets created during the life of the test helper.
-func (h *testHelper) TearDown() {
-	os.RemoveAll(h.tempDir)
 }
 
 func (h *testHelper) execArgs(t *testing.T, args []string) []string {
