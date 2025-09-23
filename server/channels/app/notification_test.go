@@ -669,7 +669,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	user3 := th.CreateUser(t)
 	guest := th.CreateGuest(t)
 	user4 := th.CreateUser(t)
-	guestAndUser4Channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+	guestAndUser4Channel := th.CreateChannel(t, th.BasicTeam)
 	defer func() {
 		appErr := th.App.PermanentDeleteUser(th.Context, guest)
 		require.Nil(t, appErr)
@@ -825,7 +825,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		_, appErr = th.App.UpsertGroupMember(group.Id, nonChannelMember.Id)
 		require.Nil(t, appErr)
 
-		constrainedChannel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		constrainedChannel := th.CreateChannel(t, th.BasicTeam)
 		constrainedChannel.GroupConstrained = model.NewPointer(true)
 		constrainedChannel, appErr = th.App.UpdateChannel(th.Context, constrainedChannel)
 		require.Nil(t, appErr)
@@ -2733,7 +2733,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Sync first group to constrained channel
-	constrainedChannel := th.CreateChannel(t, th.Context, th.BasicTeam)
+	constrainedChannel := th.CreateChannel(t, th.BasicTeam)
 	constrainedChannel.GroupConstrained = model.NewPointer(true)
 	constrainedChannel, err = th.App.UpdateChannel(th.Context, constrainedChannel)
 	require.Nil(t, err)

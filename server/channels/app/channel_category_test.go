@@ -16,7 +16,7 @@ func TestSidebarCategory(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	basicChannel2 := th.CreateChannel(t, th.Context, th.BasicTeam)
+	basicChannel2 := th.CreateChannel(t, th.BasicTeam)
 	defer func() {
 		err := th.App.PermanentDeleteChannel(th.Context, basicChannel2)
 		require.Nil(t, err)
@@ -151,10 +151,10 @@ func TestUpdateSidebarCategories(t *testing.T) {
 		channelsCategory := categories.Categories[1]
 
 		// Create some channels to be part of the channels category
-		channel1 := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel1 := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, th.BasicUser, channel1)
 
-		channel2 := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, th.BasicUser, channel2)
 
 		// Mute the category
@@ -204,10 +204,10 @@ func TestUpdateSidebarCategories(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		// Create some channels
-		channel1 := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel1 := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, th.BasicUser, channel1)
 
-		channel2 := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, th.BasicUser, channel2)
 
 		// And some categories
@@ -293,10 +293,10 @@ func TestUpdateSidebarCategories(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		// Create some channels
-		channel1 := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel1 := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, th.BasicUser, channel1)
 
-		channel2 := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, th.BasicUser, channel2)
 
 		// And some categories
@@ -388,10 +388,10 @@ func TestUpdateSidebarCategories(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		// Create some channels
-		channel1 := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel1 := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, th.BasicUser, channel1)
 
-		channel2 := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, th.BasicUser, channel2)
 
 		// And some categories

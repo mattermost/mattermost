@@ -2618,9 +2618,9 @@ func TestPluginGetChannelsForTeamForUser(t *testing.T) {
 	team2 := th.CreateTeam(t)
 	th.LinkUserToTeam(t, user, team2)
 
-	channel1 := th.CreateChannel(t, th.Context, team1)
+	channel1 := th.CreateChannel(t, team1)
 	th.AddUserToChannel(t, user, channel1)
-	channel2 := th.CreateChannel(t, th.Context, team2)
+	channel2 := th.CreateChannel(t, team2)
 	th.AddUserToChannel(t, user, channel2)
 
 	dmChannel := th.CreateDmChannel(t, user)
@@ -2715,7 +2715,7 @@ func TestPluginPatchChannelMembersNotifications(t *testing.T) {
 	t.Run("should be able to set fields for multiple members", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, th.BasicUser, channel)
 		th.AddUserToChannel(t, th.BasicUser2, channel)
 
@@ -2782,7 +2782,7 @@ func TestPluginPatchChannelMembersNotifications(t *testing.T) {
 	t.Run("should be able to clear a field", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, th.BasicUser, channel)
 
 		member, err := th.App.GetChannelMember(th.Context, channel.Id, th.BasicUser.Id)

@@ -324,7 +324,7 @@ func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
 
 	th.LinkUserToTeam(tb, th.BasicUser, th.BasicTeam)
 	th.LinkUserToTeam(tb, th.BasicUser2, th.BasicTeam)
-	th.BasicChannel = th.CreateChannel(tb, th.Context, th.BasicTeam)
+	th.BasicChannel = th.CreateChannel(tb, th.BasicTeam)
 	th.BasicPost = th.CreatePost(tb, th.BasicChannel)
 	return th
 }
@@ -415,11 +415,11 @@ func WithCreateAt(v int64) ChannelOption {
 	}
 }
 
-func (th *TestHelper) CreateChannel(tb testing.TB, _ request.CTX, team *model.Team, options ...ChannelOption) *model.Channel {
+func (th *TestHelper) CreateChannel(tb testing.TB, team *model.Team, options ...ChannelOption) *model.Channel {
 	return th.createChannel(tb, team, model.ChannelTypeOpen, options...)
 }
 
-func (th *TestHelper) CreatePrivateChannel(tb testing.TB, _ request.CTX, team *model.Team, options ...ChannelOption) *model.Channel {
+func (th *TestHelper) CreatePrivateChannel(tb testing.TB, team *model.Team, options ...ChannelOption) *model.Channel {
 	return th.createChannel(tb, team, model.ChannelTypePrivate, options...)
 }
 

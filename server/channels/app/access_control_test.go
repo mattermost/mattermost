@@ -19,7 +19,6 @@ import (
 func TestGetChannelsForPolicy(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
-	rctx := request.TestContext(t)
 	policyID := "policyID"
 	cursor := model.AccessControlPolicyCursor{}
 	limit := 10
@@ -27,7 +26,7 @@ func TestGetChannelsForPolicy(t *testing.T) {
 	t.Run("Feature not enabled", func(t *testing.T) {
 		th.App.Srv().ch.AccessControl = nil
 
-		channels, total, err := th.App.GetChannelsForPolicy(rctx, policyID, cursor, limit)
+		channels, total, err := th.App.GetChannelsForPolicy(th.Context, policyID, cursor, limit)
 		require.NotNil(t, err)
 		assert.Nil(t, channels)
 		assert.Equal(t, int64(0), total)
@@ -38,7 +37,7 @@ func TestGetChannelsForPolicy(t *testing.T) {
 		th.App.Srv().ch.AccessControl = mockAccessControl
 		mockAccessControl.On("GetPolicy", mock.AnythingOfType("*request.Context"), policyID).Return(&model.AccessControlPolicy{Type: "invalid"}, nil)
 
-		channels, total, err := th.App.GetChannelsForPolicy(rctx, policyID, cursor, limit)
+		channels, total, err := th.App.GetChannelsForPolicy(th.Context, policyID, cursor, limit)
 		require.NotNil(t, err)
 		require.Nil(t, channels)
 		require.Equal(t, int64(0), total)
@@ -62,9 +61,9 @@ func TestGetChannelsForPolicy(t *testing.T) {
 
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
-		mockAccessControl.On("GetPolicy", rctx, pID).Return(parentPolicy, nil)
+		mockAccessControl.On("GetPolicy", th.Context, pID).Return(parentPolicy, nil)
 
-		channels, total, err := th.App.GetChannelsForPolicy(rctx, pID, cursor, limit)
+		channels, total, err := th.App.GetChannelsForPolicy(th.Context, pID, cursor, limit)
 		require.Nil(t, err)
 		require.NotNil(t, channels)
 		require.Equal(t, int64(0), total)
@@ -86,7 +85,7 @@ func TestGetChannelsForPolicy(t *testing.T) {
 			},
 		}
 
-		ch := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
+		ch := th.CreatePrivateChannel(t, th.BasicTeam)
 
 		childPolicy := &model.AccessControlPolicy{
 			Type:     model.AccessControlPolicyTypeChannel,
@@ -99,22 +98,22 @@ func TestGetChannelsForPolicy(t *testing.T) {
 		require.Nil(t, appErr)
 
 		var err error
-		childPolicy, err = th.App.Srv().Store().AccessControlPolicy().Save(rctx, childPolicy)
+		childPolicy, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, childPolicy)
 		require.NoError(t, err)
 		require.NotNil(t, childPolicy)
 
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
-		mockAccessControl.On("GetPolicy", rctx, pID).Return(parentPolicy, nil)
+		mockAccessControl.On("GetPolicy", th.Context, pID).Return(parentPolicy, nil)
 
-		channels, total, appErr := th.App.GetChannelsForPolicy(rctx, pID, cursor, limit)
+		channels, total, appErr := th.App.GetChannelsForPolicy(th.Context, pID, cursor, limit)
 		require.Nil(t, appErr)
 		require.NotNil(t, channels)
 		require.Equal(t, int64(1), total)
 		assert.Equal(t, ch.Id, channels[0].Id)
 
-		mockAccessControl.On("GetPolicy", rctx, ch.Id).Return(childPolicy, nil)
-		channels, total, appErr = th.App.GetChannelsForPolicy(rctx, ch.Id, cursor, limit)
+		mockAccessControl.On("GetPolicy", th.Context, ch.Id).Return(childPolicy, nil)
+		channels, total, appErr = th.App.GetChannelsForPolicy(th.Context, ch.Id, cursor, limit)
 		require.Nil(t, appErr)
 		require.NotNil(t, channels)
 		require.Equal(t, int64(1), total)
@@ -125,10 +124,8 @@ func TestGetChannelsForPolicy(t *testing.T) {
 func TestSearchAccessControlPolicies(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
-	rctx := request.TestContext(t)
-
 	t.Run("Feature not enabled", func(t *testing.T) {
-		policies, total, err := th.App.SearchAccessControlPolicies(rctx, model.AccessControlPolicySearch{})
+		policies, total, err := th.App.SearchAccessControlPolicies(th.Context, model.AccessControlPolicySearch{})
 		require.NotNil(t, err)
 		require.Empty(t, policies)
 		require.Equal(t, int64(0), total)
@@ -138,7 +135,7 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
 
-		policies, total, err := th.App.SearchAccessControlPolicies(rctx, model.AccessControlPolicySearch{})
+		policies, total, err := th.App.SearchAccessControlPolicies(th.Context, model.AccessControlPolicySearch{})
 		require.Nil(t, err)
 		require.Empty(t, policies)
 		require.Equal(t, int64(0), total)
@@ -161,20 +158,20 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 		}
 
 		var err error
-		parentPolicy, err = th.App.Srv().Store().AccessControlPolicy().Save(rctx, parentPolicy)
+		parentPolicy, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parentPolicy)
 		require.NoError(t, err)
 		require.NotNil(t, parentPolicy)
 		defer func() {
-			dErr := th.App.Srv().Store().AccessControlPolicy().Delete(rctx, parentPolicy.ID)
+			dErr := th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, parentPolicy.ID)
 			require.NoError(t, dErr)
 		}()
 
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
-		mockAccessControl.On("NormalizePolicy", rctx, parentPolicy).Return(parentPolicy, nil)
+		mockAccessControl.On("NormalizePolicy", th.Context, parentPolicy).Return(parentPolicy, nil)
 
 		t.Run("With no term", func(t *testing.T) {
-			policies, total, err := th.App.SearchAccessControlPolicies(rctx, model.AccessControlPolicySearch{})
+			policies, total, err := th.App.SearchAccessControlPolicies(th.Context, model.AccessControlPolicySearch{})
 			require.Nil(t, err)
 			require.NotNil(t, policies)
 			require.Equal(t, int64(1), total)
@@ -182,7 +179,7 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 		})
 
 		t.Run("With term", func(t *testing.T) {
-			policies, total, err := th.App.SearchAccessControlPolicies(rctx, model.AccessControlPolicySearch{
+			policies, total, err := th.App.SearchAccessControlPolicies(th.Context, model.AccessControlPolicySearch{
 				Term: "parent",
 			})
 			require.Nil(t, err)
@@ -192,7 +189,7 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 		})
 
 		t.Run("With term and no results", func(t *testing.T) {
-			policies, total, err := th.App.SearchAccessControlPolicies(rctx, model.AccessControlPolicySearch{
+			policies, total, err := th.App.SearchAccessControlPolicies(th.Context, model.AccessControlPolicySearch{
 				Term: "something else",
 			})
 			require.Nil(t, err)
@@ -205,7 +202,6 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
-	rctx := request.TestContext(t)
 	parentID := model.NewId()
 
 	parentPolicy := &model.AccessControlPolicy{
@@ -222,37 +218,37 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 		},
 	}
 	var err error
-	parentPolicy, err = th.App.Srv().Store().AccessControlPolicy().Save(rctx, parentPolicy)
+	parentPolicy, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parentPolicy)
 	require.NoError(t, err)
 	require.NotNil(t, parentPolicy)
 	t.Cleanup(func() {
-		dErr := th.App.Srv().Store().AccessControlPolicy().Delete(rctx, parentPolicy.ID)
+		dErr := th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, parentPolicy.ID)
 		require.NoError(t, dErr)
 	})
 
 	t.Run("Feature not enabled", func(t *testing.T) {
 		th.App.Srv().ch.AccessControl = nil
-		policies, err := th.App.AssignAccessControlPolicyToChannels(rctx, parentID, []string{})
+		policies, err := th.App.AssignAccessControlPolicyToChannels(th.Context, parentID, []string{})
 		require.NotNil(t, err)
 		assert.Nil(t, policies)
 		assert.Equal(t, "app.pap.assign_access_control_policy_to_channels.app_error", err.Id)
 	})
 
 	t.Run("Error saving policy", func(t *testing.T) {
-		ch := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
+		ch := th.CreatePrivateChannel(t, th.BasicTeam)
 
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
-		mockAccessControl.On("GetPolicy", rctx, parentID).Return(parentPolicy, nil)
-		mockAccessControl.On("GetPolicy", rctx, ch.Id).Return(parentPolicy, nil)
-		mockAccessControl.On("SavePolicy", rctx, mock.Anything).Return(nil, model.NewAppError("SavePolicy", "error", nil, "save error", http.StatusInternalServerError))
+		mockAccessControl.On("GetPolicy", th.Context, parentID).Return(parentPolicy, nil)
+		mockAccessControl.On("GetPolicy", th.Context, ch.Id).Return(parentPolicy, nil)
+		mockAccessControl.On("SavePolicy", th.Context, mock.Anything).Return(nil, model.NewAppError("SavePolicy", "error", nil, "save error", http.StatusInternalServerError))
 
 		t.Cleanup(func() {
-			appErr := th.App.PermanentDeleteChannel(rctx, ch)
+			appErr := th.App.PermanentDeleteChannel(th.Context, ch)
 			require.Nil(t, appErr)
 		})
 
-		policies, err := th.App.AssignAccessControlPolicyToChannels(rctx, parentID, []string{ch.Id})
+		policies, err := th.App.AssignAccessControlPolicyToChannels(th.Context, parentID, []string{ch.Id})
 		require.NotNil(t, err)
 		require.Empty(t, policies)
 	})
@@ -260,9 +256,9 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 	t.Run("Parent policy not found", func(t *testing.T) {
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
-		mockAccessControl.On("GetPolicy", rctx, parentID).Return(nil, model.NewAppError("GetPolicy", "error", nil, "not found", http.StatusNotFound))
+		mockAccessControl.On("GetPolicy", th.Context, parentID).Return(nil, model.NewAppError("GetPolicy", "error", nil, "not found", http.StatusNotFound))
 
-		policies, err := th.App.AssignAccessControlPolicyToChannels(rctx, parentID, []string{})
+		policies, err := th.App.AssignAccessControlPolicyToChannels(th.Context, parentID, []string{})
 		require.NotNil(t, err)
 		assert.Nil(t, policies)
 	})
@@ -270,9 +266,9 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 	t.Run("Policy is not of type parent", func(t *testing.T) {
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
-		mockAccessControl.On("GetPolicy", rctx, parentID).Return(&model.AccessControlPolicy{Type: model.AccessControlPolicyTypeChannel}, nil)
+		mockAccessControl.On("GetPolicy", th.Context, parentID).Return(&model.AccessControlPolicy{Type: model.AccessControlPolicyTypeChannel}, nil)
 
-		policies, err := th.App.AssignAccessControlPolicyToChannels(rctx, parentID, []string{})
+		policies, err := th.App.AssignAccessControlPolicyToChannels(th.Context, parentID, []string{})
 		require.NotNil(t, err)
 		assert.Nil(t, policies)
 		assert.Equal(t, "app.pap.assign_access_control_policy_to_channels.app_error", err.Id)
@@ -281,15 +277,15 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 	t.Run("Channel is not private", func(t *testing.T) {
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
-		mockAccessControl.On("GetPolicy", rctx, parentID).Return(&model.AccessControlPolicy{Type: model.AccessControlPolicyTypeParent}, nil)
+		mockAccessControl.On("GetPolicy", th.Context, parentID).Return(&model.AccessControlPolicy{Type: model.AccessControlPolicyTypeParent}, nil)
 		// Create a public channel
-		publicChannel := th.CreateChannel(t, rctx, th.BasicTeam)
+		publicChannel := th.CreateChannel(t, th.BasicTeam)
 		t.Cleanup(func() {
-			appErr := th.App.PermanentDeleteChannel(rctx, publicChannel)
+			appErr := th.App.PermanentDeleteChannel(th.Context, publicChannel)
 			require.Nil(t, appErr)
 		})
 
-		policies, err := th.App.AssignAccessControlPolicyToChannels(rctx, parentID, []string{publicChannel.Id})
+		policies, err := th.App.AssignAccessControlPolicyToChannels(th.Context, parentID, []string{publicChannel.Id})
 		require.NotNil(t, err)
 		assert.Nil(t, policies)
 		assert.Contains(t, err.Error(), "Channel is not of type private")
@@ -298,32 +294,32 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 	t.Run("Channel is shared", func(t *testing.T) {
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
-		mockAccessControl.On("GetPolicy", rctx, parentID).Return(&model.AccessControlPolicy{Type: model.AccessControlPolicyTypeParent}, nil)
+		mockAccessControl.On("GetPolicy", th.Context, parentID).Return(&model.AccessControlPolicy{Type: model.AccessControlPolicyTypeParent}, nil)
 
-		privateChannel := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 		t.Cleanup(func() {
-			appErr := th.App.PermanentDeleteChannel(rctx, privateChannel)
+			appErr := th.App.PermanentDeleteChannel(th.Context, privateChannel)
 			require.Nil(t, appErr)
 		})
 		privateChannel.Shared = model.NewPointer(true)
-		_, err := th.App.Srv().Store().Channel().Update(rctx, privateChannel)
+		_, err := th.App.Srv().Store().Channel().Update(th.Context, privateChannel)
 		require.NoError(t, err)
 
-		policies, appErr := th.App.AssignAccessControlPolicyToChannels(rctx, parentID, []string{privateChannel.Id})
+		policies, appErr := th.App.AssignAccessControlPolicyToChannels(th.Context, parentID, []string{privateChannel.Id})
 		require.NotNil(t, appErr)
 		assert.Nil(t, policies)
 		assert.Contains(t, appErr.Error(), "Channel is shared")
 	})
 
 	t.Run("Successful assignment", func(t *testing.T) {
-		ch1 := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
+		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
 		t.Cleanup(func() {
-			appErr := th.App.PermanentDeleteChannel(rctx, ch1)
+			appErr := th.App.PermanentDeleteChannel(th.Context, ch1)
 			require.Nil(t, appErr)
 		})
-		ch2 := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
+		ch2 := th.CreatePrivateChannel(t, th.BasicTeam)
 		t.Cleanup(func() {
-			appErr := th.App.PermanentDeleteChannel(rctx, ch2)
+			appErr := th.App.PermanentDeleteChannel(th.Context, ch2)
 			require.Nil(t, appErr)
 		})
 
@@ -347,25 +343,23 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
-		mockAccessControl.On("GetPolicy", rctx, parentID).Return(parentPolicy, nil)
-		mockAccessControl.On("GetPolicy", rctx, ch1.Id).Return(nil, nil)
-		mockAccessControl.On("GetPolicy", rctx, ch2.Id).Return(nil, nil)
-		mockAccessControl.On("SavePolicy", rctx, mock.MatchedBy(func(p *model.AccessControlPolicy) bool { return p.ID == ch1.Id })).Return(childP1, nil)
-		mockAccessControl.On("SavePolicy", rctx, mock.MatchedBy(func(p *model.AccessControlPolicy) bool { return p.ID == ch2.Id })).Return(childP2, nil)
+		mockAccessControl.On("GetPolicy", th.Context, parentID).Return(parentPolicy, nil)
+		mockAccessControl.On("GetPolicy", th.Context, ch1.Id).Return(nil, nil)
+		mockAccessControl.On("GetPolicy", th.Context, ch2.Id).Return(nil, nil)
+		mockAccessControl.On("SavePolicy", th.Context, mock.MatchedBy(func(p *model.AccessControlPolicy) bool { return p.ID == ch1.Id })).Return(childP1, nil)
+		mockAccessControl.On("SavePolicy", th.Context, mock.MatchedBy(func(p *model.AccessControlPolicy) bool { return p.ID == ch2.Id })).Return(childP2, nil)
 
-		policies, err := th.App.AssignAccessControlPolicyToChannels(rctx, parentID, []string{ch1.Id, ch2.Id})
+		policies, err := th.App.AssignAccessControlPolicyToChannels(th.Context, parentID, []string{ch1.Id, ch2.Id})
 		require.Nil(t, err)
 		require.NotNil(t, policies)
 		require.Len(t, policies, 2)
 		assert.ElementsMatch(t, []string{ch1.Id, ch2.Id}, []string{policies[0].ID, policies[1].ID})
-		mockAccessControl.AssertCalled(t, "SavePolicy", rctx, mock.AnythingOfType("*model.AccessControlPolicy"))
+		mockAccessControl.AssertCalled(t, "SavePolicy", th.Context, mock.AnythingOfType("*model.AccessControlPolicy"))
 	})
 }
 
 func TestUnassignPoliciesFromChannels(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-
-	rctx := request.TestContext(t)
 
 	parentPolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -378,22 +372,22 @@ func TestUnassignPoliciesFromChannels(t *testing.T) {
 		},
 	}
 	var err error
-	parentPolicy, err = th.App.Srv().Store().AccessControlPolicy().Save(rctx, parentPolicy)
+	parentPolicy, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parentPolicy)
 	require.NoError(t, err)
 	require.NotNil(t, parentPolicy)
 	t.Cleanup(func() {
-		sErr := th.App.Srv().Store().AccessControlPolicy().Delete(rctx, parentPolicy.ID)
+		sErr := th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, parentPolicy.ID)
 		require.NoError(t, sErr)
 	})
 
-	ch1 := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
+	ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
 	t.Cleanup(func() {
-		sErr := th.App.PermanentDeleteChannel(rctx, ch1)
+		sErr := th.App.PermanentDeleteChannel(th.Context, ch1)
 		require.Nil(t, sErr)
 	})
-	ch2 := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
+	ch2 := th.CreatePrivateChannel(t, th.BasicTeam)
 	t.Cleanup(func() {
-		sErr := th.App.PermanentDeleteChannel(rctx, ch2)
+		sErr := th.App.PermanentDeleteChannel(th.Context, ch2)
 		require.Nil(t, sErr)
 	})
 
@@ -406,11 +400,11 @@ func TestUnassignPoliciesFromChannels(t *testing.T) {
 
 	appErrInherit1 := childPolicy1.Inherit(parentPolicy)
 	require.Nil(t, appErrInherit1)
-	childPolicy1, err = th.App.Srv().Store().AccessControlPolicy().Save(rctx, childPolicy1)
+	childPolicy1, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, childPolicy1)
 	require.NoError(t, err)
 	require.NotNil(t, childPolicy1)
 	t.Cleanup(func() {
-		sErr := th.App.Srv().Store().AccessControlPolicy().Delete(rctx, childPolicy1.ID)
+		sErr := th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, childPolicy1.ID)
 		require.NoError(t, sErr)
 	})
 
@@ -423,17 +417,17 @@ func TestUnassignPoliciesFromChannels(t *testing.T) {
 
 	appErrInherit2 := childPolicy2.Inherit(parentPolicy)
 	require.Nil(t, appErrInherit2)
-	childPolicy2, err = th.App.Srv().Store().AccessControlPolicy().Save(rctx, childPolicy2)
+	childPolicy2, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, childPolicy2)
 	require.NoError(t, err)
 	require.NotNil(t, childPolicy2)
 	t.Cleanup(func() {
-		sErr := th.App.Srv().Store().AccessControlPolicy().Delete(rctx, childPolicy2.ID)
+		sErr := th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, childPolicy2.ID)
 		require.NoError(t, sErr)
 	})
 
 	t.Run("Feature not enabled", func(t *testing.T) {
 		th.App.Srv().ch.AccessControl = nil
-		appErr := th.App.UnassignPoliciesFromChannels(rctx, parentPolicy.ID, []string{ch1.Id, ch2.Id})
+		appErr := th.App.UnassignPoliciesFromChannels(th.Context, parentPolicy.ID, []string{ch1.Id, ch2.Id})
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.pap.unassign_access_control_policy_from_channels.app_error", appErr.Id)
 	})
@@ -444,38 +438,38 @@ func TestUnassignPoliciesFromChannels(t *testing.T) {
 		th.App.Srv().ch.AccessControl = mockAccessControl
 
 		expectedErr := model.NewAppError("DeletePolicy", "mock.delete.error", nil, "failed to delete from acs", http.StatusInternalServerError)
-		mockAccessControl.On("DeletePolicy", rctx, ch1.Id).Return(expectedErr).Once()
-		mockAccessControl.On("DeletePolicy", rctx, ch2.Id).Return(nil).Maybe()
+		mockAccessControl.On("DeletePolicy", th.Context, ch1.Id).Return(expectedErr).Once()
+		mockAccessControl.On("DeletePolicy", th.Context, ch2.Id).Return(nil).Maybe()
 
-		appErr := th.App.UnassignPoliciesFromChannels(rctx, parentPolicy.ID, []string{ch1.Id, ch2.Id})
+		appErr := th.App.UnassignPoliciesFromChannels(th.Context, parentPolicy.ID, []string{ch1.Id, ch2.Id})
 		require.NotNil(t, appErr)
 		assert.Equal(t, expectedErr.Id, appErr.Id)
 		assert.Equal(t, expectedErr.Message, appErr.Message)
 
-		mockAccessControl.AssertCalled(t, "DeletePolicy", rctx, ch1.Id)
-		mockAccessControl.AssertNotCalled(t, "DeletePolicy", rctx, ch2.Id)
+		mockAccessControl.AssertCalled(t, "DeletePolicy", th.Context, ch1.Id)
+		mockAccessControl.AssertNotCalled(t, "DeletePolicy", th.Context, ch2.Id)
 
-		p1, storeErr := th.App.Srv().Store().AccessControlPolicy().Get(rctx, ch1.Id)
+		p1, storeErr := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, ch1.Id)
 		assert.NoError(t, storeErr)
 		assert.NotNil(t, p1)
-		p2, storeErr := th.App.Srv().Store().AccessControlPolicy().Get(rctx, ch2.Id)
+		p2, storeErr := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, ch2.Id)
 		assert.NoError(t, storeErr)
 		assert.NotNil(t, p2)
 	})
 
 	t.Run("Channel not actually a child policy", func(t *testing.T) {
-		ch3 := th.CreatePrivateChannel(t, rctx, th.BasicTeam) // Not a child of parentPolicy
-		t.Cleanup(func() { _ = th.App.PermanentDeleteChannel(rctx, ch3) })
+		ch3 := th.CreatePrivateChannel(t, th.BasicTeam) // Not a child of parentPolicy
+		t.Cleanup(func() { _ = th.App.PermanentDeleteChannel(th.Context, ch3) })
 
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
 
-		mockAccessControl.On("GetPolicy", rctx, ch1.Id).Return(childPolicy1, nil).Once()
-		mockAccessControl.On("GetPolicy", rctx, ch2.Id).Return(childPolicy2, nil).Once()
-		mockAccessControl.On("DeletePolicy", rctx, ch1.Id).Return(nil).Once()
-		mockAccessControl.On("DeletePolicy", rctx, ch2.Id).Return(nil).Once()
+		mockAccessControl.On("GetPolicy", th.Context, ch1.Id).Return(childPolicy1, nil).Once()
+		mockAccessControl.On("GetPolicy", th.Context, ch2.Id).Return(childPolicy2, nil).Once()
+		mockAccessControl.On("DeletePolicy", th.Context, ch1.Id).Return(nil).Once()
+		mockAccessControl.On("DeletePolicy", th.Context, ch2.Id).Return(nil).Once()
 
-		appErr := th.App.UnassignPoliciesFromChannels(rctx, parentPolicy.ID, []string{ch1.Id, ch2.Id, ch3.Id})
+		appErr := th.App.UnassignPoliciesFromChannels(th.Context, parentPolicy.ID, []string{ch1.Id, ch2.Id, ch3.Id})
 		require.Nil(t, appErr)
 	})
 
@@ -483,12 +477,12 @@ func TestUnassignPoliciesFromChannels(t *testing.T) {
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
 
-		mockAccessControl.On("DeletePolicy", rctx, ch1.Id).Return(nil).Once()
-		mockAccessControl.On("DeletePolicy", rctx, ch2.Id).Return(nil).Once()
-		mockAccessControl.On("GetPolicy", rctx, ch1.Id).Return(childPolicy1, nil).Once()
-		mockAccessControl.On("GetPolicy", rctx, ch2.Id).Return(childPolicy2, nil).Once()
+		mockAccessControl.On("DeletePolicy", th.Context, ch1.Id).Return(nil).Once()
+		mockAccessControl.On("DeletePolicy", th.Context, ch2.Id).Return(nil).Once()
+		mockAccessControl.On("GetPolicy", th.Context, ch1.Id).Return(childPolicy1, nil).Once()
+		mockAccessControl.On("GetPolicy", th.Context, ch2.Id).Return(childPolicy2, nil).Once()
 
-		appErr := th.App.UnassignPoliciesFromChannels(rctx, parentPolicy.ID, []string{ch1.Id, ch2.Id})
+		appErr := th.App.UnassignPoliciesFromChannels(th.Context, parentPolicy.ID, []string{ch1.Id, ch2.Id})
 		require.Nil(t, appErr)
 	})
 }
@@ -496,21 +490,19 @@ func TestUnassignPoliciesFromChannels(t *testing.T) {
 func TestValidateChannelAccessControlPermission(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
-	rctx := request.TestContext(t)
-
 	th.AddPermissionToRole(t, model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
 
 	// Create a private channel
-	privateChannel := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 	t.Cleanup(func() {
-		appErr := th.App.PermanentDeleteChannel(rctx, privateChannel)
+		appErr := th.App.PermanentDeleteChannel(th.Context, privateChannel)
 		require.Nil(t, appErr)
 	})
 
 	// Create a public channel
-	publicChannel := th.CreateChannel(t, rctx, th.BasicTeam)
+	publicChannel := th.CreateChannel(t, th.BasicTeam)
 	t.Cleanup(func() {
-		appErr := th.App.PermanentDeleteChannel(rctx, publicChannel)
+		appErr := th.App.PermanentDeleteChannel(th.Context, publicChannel)
 		require.Nil(t, appErr)
 	})
 
@@ -520,11 +512,11 @@ func TestValidateChannelAccessControlPermission(t *testing.T) {
 	th.AddUserToChannel(t, channelAdmin, privateChannel)
 
 	// Make user channel admin using the proper APP method
-	_, appErr := th.App.UpdateChannelMemberRoles(rctx, privateChannel.Id, channelAdmin.Id, "channel_user channel_admin")
+	_, appErr := th.App.UpdateChannelMemberRoles(th.Context, privateChannel.Id, channelAdmin.Id, "channel_user channel_admin")
 	require.Nil(t, appErr)
 
 	t.Run("Valid channel admin user", func(t *testing.T) {
-		appErr := th.App.ValidateChannelAccessControlPermission(rctx, channelAdmin.Id, privateChannel.Id)
+		appErr := th.App.ValidateChannelAccessControlPermission(th.Context, channelAdmin.Id, privateChannel.Id)
 		require.Nil(t, appErr)
 	})
 
@@ -533,14 +525,14 @@ func TestValidateChannelAccessControlPermission(t *testing.T) {
 		th.LinkUserToTeam(t, regularUser, th.BasicTeam)
 		th.AddUserToChannel(t, regularUser, privateChannel)
 
-		appErr := th.App.ValidateChannelAccessControlPermission(rctx, regularUser.Id, privateChannel.Id)
+		appErr := th.App.ValidateChannelAccessControlPermission(th.Context, regularUser.Id, privateChannel.Id)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.pap.access_control.insufficient_channel_permissions", appErr.Id)
 	})
 
 	t.Run("Non-existent channel", func(t *testing.T) {
 		nonExistentChannelId := model.NewId()
-		appErr := th.App.ValidateChannelAccessControlPermission(rctx, channelAdmin.Id, nonExistentChannelId)
+		appErr := th.App.ValidateChannelAccessControlPermission(th.Context, channelAdmin.Id, nonExistentChannelId)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.channel.get.existing.app_error", appErr.Id)
 	})
@@ -549,33 +541,33 @@ func TestValidateChannelAccessControlPermission(t *testing.T) {
 		th.AddUserToChannel(t, channelAdmin, publicChannel)
 
 		// Make user channel admin for public channel
-		_, appErr2 := th.App.UpdateChannelMemberRoles(rctx, publicChannel.Id, channelAdmin.Id, "channel_user channel_admin")
+		_, appErr2 := th.App.UpdateChannelMemberRoles(th.Context, publicChannel.Id, channelAdmin.Id, "channel_user channel_admin")
 		require.Nil(t, appErr2)
 
-		appErr2 = th.App.ValidateChannelAccessControlPermission(rctx, channelAdmin.Id, publicChannel.Id)
+		appErr2 = th.App.ValidateChannelAccessControlPermission(th.Context, channelAdmin.Id, publicChannel.Id)
 		require.NotNil(t, appErr2)
 		assert.Equal(t, "app.pap.access_control.channel_not_private", appErr2.Id)
 	})
 
 	t.Run("Shared channel should fail", func(t *testing.T) {
-		sharedChannel := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
+		sharedChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 		t.Cleanup(func() {
-			appErr := th.App.PermanentDeleteChannel(rctx, sharedChannel)
+			appErr := th.App.PermanentDeleteChannel(th.Context, sharedChannel)
 			require.Nil(t, appErr)
 		})
 
 		// Mark channel as shared
 		sharedChannel.Shared = model.NewPointer(true)
-		_, err := th.App.Srv().Store().Channel().Update(rctx, sharedChannel)
+		_, err := th.App.Srv().Store().Channel().Update(th.Context, sharedChannel)
 		require.NoError(t, err)
 
 		th.AddUserToChannel(t, channelAdmin, sharedChannel)
 
 		// Make user channel admin for shared channel
-		_, appErr3 := th.App.UpdateChannelMemberRoles(rctx, sharedChannel.Id, channelAdmin.Id, "channel_user channel_admin")
+		_, appErr3 := th.App.UpdateChannelMemberRoles(th.Context, sharedChannel.Id, channelAdmin.Id, "channel_user channel_admin")
 		require.Nil(t, appErr3)
 
-		appErr3 = th.App.ValidateChannelAccessControlPermission(rctx, channelAdmin.Id, sharedChannel.Id)
+		appErr3 = th.App.ValidateChannelAccessControlPermission(th.Context, channelAdmin.Id, sharedChannel.Id)
 		require.NotNil(t, appErr3)
 		assert.Equal(t, "app.pap.access_control.channel_shared", appErr3.Id)
 	})
@@ -584,14 +576,12 @@ func TestValidateChannelAccessControlPermission(t *testing.T) {
 func TestValidateAccessControlPolicyPermission(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
-	rctx := request.TestContext(t)
-
 	th.AddPermissionToRole(t, model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
 
 	// Create a private channel and channel admin
-	privateChannel := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 	t.Cleanup(func() {
-		appErr := th.App.PermanentDeleteChannel(rctx, privateChannel)
+		appErr := th.App.PermanentDeleteChannel(th.Context, privateChannel)
 		require.Nil(t, appErr)
 	})
 
@@ -600,7 +590,7 @@ func TestValidateAccessControlPolicyPermission(t *testing.T) {
 	th.AddUserToChannel(t, channelAdmin, privateChannel)
 
 	// Make user channel admin using the proper APP method
-	_, appErr := th.App.UpdateChannelMemberRoles(rctx, privateChannel.Id, channelAdmin.Id, "channel_user channel_admin")
+	_, appErr := th.App.UpdateChannelMemberRoles(th.Context, privateChannel.Id, channelAdmin.Id, "channel_user channel_admin")
 	require.Nil(t, appErr)
 
 	// Create channel policy
@@ -614,10 +604,10 @@ func TestValidateAccessControlPolicyPermission(t *testing.T) {
 		},
 	}
 	var err2 error
-	channelPolicy, err2 = th.App.Srv().Store().AccessControlPolicy().Save(rctx, channelPolicy)
+	channelPolicy, err2 = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, channelPolicy)
 	require.NoError(t, err2)
 	t.Cleanup(func() {
-		sErr := th.App.Srv().Store().AccessControlPolicy().Delete(rctx, channelPolicy.ID)
+		sErr := th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, channelPolicy.ID)
 		require.NoError(t, sErr)
 	})
 
@@ -632,35 +622,35 @@ func TestValidateAccessControlPolicyPermission(t *testing.T) {
 			{Actions: []string{"*"}, Expression: "true"},
 		},
 	}
-	parentPolicy, err2 = th.App.Srv().Store().AccessControlPolicy().Save(rctx, parentPolicy)
+	parentPolicy, err2 = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parentPolicy)
 	require.NoError(t, err2)
 	t.Cleanup(func() {
-		sErr := th.App.Srv().Store().AccessControlPolicy().Delete(rctx, parentPolicy.ID)
+		sErr := th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, parentPolicy.ID)
 		require.NoError(t, sErr)
 	})
 
 	// Set up mock Access Control service
 	mockAccessControl := &mocks.AccessControlServiceInterface{}
 	th.App.Srv().ch.AccessControl = mockAccessControl
-	mockAccessControl.On("GetPolicy", rctx, channelPolicy.ID).Return(channelPolicy, nil)
-	mockAccessControl.On("GetPolicy", rctx, parentPolicy.ID).Return(parentPolicy, nil)
-	mockAccessControl.On("GetPolicy", rctx, mock.AnythingOfType("string")).Return(nil, model.NewAppError("GetPolicy", "app.access_control_policy.get.app_error", nil, "not found", http.StatusNotFound))
+	mockAccessControl.On("GetPolicy", th.Context, channelPolicy.ID).Return(channelPolicy, nil)
+	mockAccessControl.On("GetPolicy", th.Context, parentPolicy.ID).Return(parentPolicy, nil)
+	mockAccessControl.On("GetPolicy", th.Context, mock.AnythingOfType("string")).Return(nil, model.NewAppError("GetPolicy", "app.access_control_policy.get.app_error", nil, "not found", http.StatusNotFound))
 
 	t.Run("System admin accessing any policy should succeed", func(t *testing.T) {
-		appErr := th.App.ValidateAccessControlPolicyPermission(rctx, th.SystemAdminUser.Id, channelPolicy.ID)
+		appErr := th.App.ValidateAccessControlPolicyPermission(th.Context, th.SystemAdminUser.Id, channelPolicy.ID)
 		require.Nil(t, appErr)
 
-		appErr = th.App.ValidateAccessControlPolicyPermission(rctx, th.SystemAdminUser.Id, parentPolicy.ID)
+		appErr = th.App.ValidateAccessControlPolicyPermission(th.Context, th.SystemAdminUser.Id, parentPolicy.ID)
 		require.Nil(t, appErr)
 	})
 
 	t.Run("Channel admin accessing their channel's policy should succeed", func(t *testing.T) {
-		appErr := th.App.ValidateAccessControlPolicyPermission(rctx, channelAdmin.Id, channelPolicy.ID)
+		appErr := th.App.ValidateAccessControlPolicyPermission(th.Context, channelAdmin.Id, channelPolicy.ID)
 		require.Nil(t, appErr)
 	})
 
 	t.Run("Channel admin accessing parent policy should fail", func(t *testing.T) {
-		appErr := th.App.ValidateAccessControlPolicyPermission(rctx, channelAdmin.Id, parentPolicy.ID)
+		appErr := th.App.ValidateAccessControlPolicyPermission(th.Context, channelAdmin.Id, parentPolicy.ID)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.pap.access_control.insufficient_permissions", appErr.Id)
 	})
@@ -668,18 +658,18 @@ func TestValidateAccessControlPolicyPermission(t *testing.T) {
 	t.Run("Regular user accessing any policy should fail", func(t *testing.T) {
 		regularUser := th.CreateUser(t)
 
-		appErr := th.App.ValidateAccessControlPolicyPermission(rctx, regularUser.Id, channelPolicy.ID)
+		appErr := th.App.ValidateAccessControlPolicyPermission(th.Context, regularUser.Id, channelPolicy.ID)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.pap.access_control.insufficient_channel_permissions", appErr.Id)
 
-		appErr = th.App.ValidateAccessControlPolicyPermission(rctx, regularUser.Id, parentPolicy.ID)
+		appErr = th.App.ValidateAccessControlPolicyPermission(th.Context, regularUser.Id, parentPolicy.ID)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.pap.access_control.insufficient_permissions", appErr.Id)
 	})
 
 	t.Run("Non-existent policy should fail", func(t *testing.T) {
 		nonExistentPolicyId := model.NewId()
-		appErr := th.App.ValidateAccessControlPolicyPermission(rctx, channelAdmin.Id, nonExistentPolicyId)
+		appErr := th.App.ValidateAccessControlPolicyPermission(th.Context, channelAdmin.Id, nonExistentPolicyId)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.access_control_policy.get.app_error", appErr.Id)
 	})
@@ -688,18 +678,16 @@ func TestValidateAccessControlPolicyPermission(t *testing.T) {
 func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
-	rctx := request.TestContext(t)
-
 	// Create a private channel and channel admin
-	privateChannel := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 	t.Cleanup(func() {
-		appErr := th.App.PermanentDeleteChannel(rctx, privateChannel)
+		appErr := th.App.PermanentDeleteChannel(th.Context, privateChannel)
 		require.Nil(t, appErr)
 	})
 
-	anotherChannel := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
+	anotherChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 	t.Cleanup(func() {
-		appErr := th.App.PermanentDeleteChannel(rctx, anotherChannel)
+		appErr := th.App.PermanentDeleteChannel(th.Context, anotherChannel)
 		require.Nil(t, appErr)
 	})
 
@@ -708,7 +696,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 	th.AddUserToChannel(t, channelAdmin, privateChannel)
 
 	// Make user channel admin using the proper APP method
-	_, appErr := th.App.UpdateChannelMemberRoles(rctx, privateChannel.Id, channelAdmin.Id, "channel_user channel_admin")
+	_, appErr := th.App.UpdateChannelMemberRoles(th.Context, privateChannel.Id, channelAdmin.Id, "channel_user channel_admin")
 	require.Nil(t, appErr)
 
 	t.Run("Channel admin creating policy for their channel should succeed", func(t *testing.T) {
@@ -722,7 +710,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 			},
 		}
 
-		appErr := th.App.ValidateChannelAccessControlPolicyCreation(rctx, channelAdmin.Id, policy)
+		appErr := th.App.ValidateChannelAccessControlPolicyCreation(th.Context, channelAdmin.Id, policy)
 		require.Nil(t, appErr)
 	})
 
@@ -737,7 +725,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 			},
 		}
 
-		appErr := th.App.ValidateChannelAccessControlPolicyCreation(rctx, channelAdmin.Id, policy)
+		appErr := th.App.ValidateChannelAccessControlPolicyCreation(th.Context, channelAdmin.Id, policy)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.pap.access_control.insufficient_channel_permissions", appErr.Id)
 	})
@@ -753,22 +741,22 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 			},
 		}
 
-		appErr := th.App.ValidateChannelAccessControlPolicyCreation(rctx, channelAdmin.Id, policy)
+		appErr := th.App.ValidateChannelAccessControlPolicyCreation(th.Context, channelAdmin.Id, policy)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.access_control.insufficient_permissions", appErr.Id)
 	})
 
 	t.Run("Creating policy for public channel should fail", func(t *testing.T) {
-		publicChannel := th.CreateChannel(t, rctx, th.BasicTeam)
+		publicChannel := th.CreateChannel(t, th.BasicTeam)
 		t.Cleanup(func() {
-			appErr := th.App.PermanentDeleteChannel(rctx, publicChannel)
+			appErr := th.App.PermanentDeleteChannel(th.Context, publicChannel)
 			require.Nil(t, appErr)
 		})
 
 		th.AddUserToChannel(t, channelAdmin, publicChannel)
 
 		// Make user channel admin for public channel
-		_, appErr4 := th.App.UpdateChannelMemberRoles(rctx, publicChannel.Id, channelAdmin.Id, "channel_user channel_admin")
+		_, appErr4 := th.App.UpdateChannelMemberRoles(th.Context, publicChannel.Id, channelAdmin.Id, "channel_user channel_admin")
 		require.Nil(t, appErr4)
 
 		policy := &model.AccessControlPolicy{
@@ -781,27 +769,27 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 			},
 		}
 
-		appErr4 = th.App.ValidateChannelAccessControlPolicyCreation(rctx, channelAdmin.Id, policy)
+		appErr4 = th.App.ValidateChannelAccessControlPolicyCreation(th.Context, channelAdmin.Id, policy)
 		require.NotNil(t, appErr4)
 		assert.Equal(t, "app.pap.access_control.channel_not_private", appErr4.Id)
 	})
 
 	t.Run("Creating policy for shared channel should fail", func(t *testing.T) {
-		sharedChannel := th.CreatePrivateChannel(t, rctx, th.BasicTeam)
+		sharedChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 		t.Cleanup(func() {
-			appErr := th.App.PermanentDeleteChannel(rctx, sharedChannel)
+			appErr := th.App.PermanentDeleteChannel(th.Context, sharedChannel)
 			require.Nil(t, appErr)
 		})
 
 		// Mark channel as shared
 		sharedChannel.Shared = model.NewPointer(true)
-		_, err := th.App.Srv().Store().Channel().Update(rctx, sharedChannel)
+		_, err := th.App.Srv().Store().Channel().Update(th.Context, sharedChannel)
 		require.NoError(t, err)
 
 		th.AddUserToChannel(t, channelAdmin, sharedChannel)
 
 		// Make user channel admin for shared channel
-		_, appErr5 := th.App.UpdateChannelMemberRoles(rctx, sharedChannel.Id, channelAdmin.Id, "channel_user channel_admin")
+		_, appErr5 := th.App.UpdateChannelMemberRoles(th.Context, sharedChannel.Id, channelAdmin.Id, "channel_user channel_admin")
 		require.Nil(t, appErr5)
 
 		policy := &model.AccessControlPolicy{
@@ -814,7 +802,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 			},
 		}
 
-		appErr5 = th.App.ValidateChannelAccessControlPolicyCreation(rctx, channelAdmin.Id, policy)
+		appErr5 = th.App.ValidateChannelAccessControlPolicyCreation(th.Context, channelAdmin.Id, policy)
 		require.NotNil(t, appErr5)
 		assert.Equal(t, "app.pap.access_control.channel_shared", appErr5.Id)
 	})
@@ -830,7 +818,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 	}
 
 	// Setup test context with session
-	rctx := request.TestContext(t).WithSession(&session)
+	th.Context = th.Context.WithSession(&session).(*request.Context)
 
 	t.Run("should allow channel admin to test expression they match", func(t *testing.T) {
 		// Setup mock access control service
@@ -843,7 +831,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 		// Mock that admin matches the expression (for validation)
 		mockAccessControlService.On(
 			"QueryUsersForExpression",
-			rctx,
+			th.Context,
 			expression,
 			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
 		).Return([]*model.User{th.BasicUser}, int64(1), nil) // Admin matches
@@ -853,13 +841,13 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 		expectedCount := int64(2)
 		mockAccessControlService.On(
 			"QueryUsersForExpression",
-			rctx,
+			th.Context,
 			expression,
 			opts,
 		).Return(expectedUsers, expectedCount, nil)
 
 		// Call the function
-		users, count, appErr := th.App.TestExpressionWithChannelContext(rctx, expression, opts)
+		users, count, appErr := th.App.TestExpressionWithChannelContext(th.Context, expression, opts)
 
 		require.Nil(t, appErr)
 		require.Equal(t, expectedUsers, users)
@@ -878,13 +866,13 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 		// Mock that admin does NOT match the expression (for validation)
 		mockAccessControlService.On(
 			"QueryUsersForExpression",
-			rctx,
+			th.Context,
 			expression,
 			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
 		).Return([]*model.User{}, int64(0), nil) // Admin doesn't match
 
 		// Call the function
-		users, count, appErr := th.App.TestExpressionWithChannelContext(rctx, expression, opts)
+		users, count, appErr := th.App.TestExpressionWithChannelContext(th.Context, expression, opts)
 
 		require.Nil(t, appErr)
 		require.Empty(t, users) // Should return empty results
@@ -904,7 +892,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 		// Mock that admin matches the expression (for validation)
 		mockAccessControlService.On(
 			"QueryUsersForExpression",
-			rctx,
+			th.Context,
 			expression,
 			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
 		).Return([]*model.User{th.BasicUser}, int64(1), nil) // Admin matches
@@ -914,13 +902,13 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 		expectedCount := int64(2)
 		mockAccessControlService.On(
 			"QueryUsersForExpression",
-			rctx,
+			th.Context,
 			expression,
 			opts,
 		).Return(expectedUsers, expectedCount, nil)
 
 		// Call the function
-		users, count, appErr := th.App.TestExpressionWithChannelContext(rctx, expression, opts)
+		users, count, appErr := th.App.TestExpressionWithChannelContext(th.Context, expression, opts)
 
 		require.Nil(t, appErr)
 		require.Equal(t, expectedUsers, users)
@@ -940,13 +928,13 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 		// Mock that admin does NOT match the full expression (for validation)
 		mockAccessControlService.On(
 			"QueryUsersForExpression",
-			rctx,
+			th.Context,
 			expression,
 			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
 		).Return([]*model.User{}, int64(0), nil) // Admin doesn't match full expression
 
 		// Call the function
-		users, count, appErr := th.App.TestExpressionWithChannelContext(rctx, expression, opts)
+		users, count, appErr := th.App.TestExpressionWithChannelContext(th.Context, expression, opts)
 
 		require.Nil(t, appErr)
 		require.Empty(t, users) // Should return empty results
@@ -966,7 +954,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 		// Mock that admin matches the expression (admin has department='engineering')
 		mockAccessControlService.On(
 			"QueryUsersForExpression",
-			rctx,
+			th.Context,
 			expression,
 			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
 		).Return([]*model.User{th.BasicUser}, int64(1), nil) // Admin matches
@@ -976,13 +964,13 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 		expectedCount := int64(2)
 		mockAccessControlService.On(
 			"QueryUsersForExpression",
-			rctx,
+			th.Context,
 			expression,
 			opts,
 		).Return(expectedUsers, expectedCount, nil)
 
 		// Call the function
-		users, count, appErr := th.App.TestExpressionWithChannelContext(rctx, expression, opts)
+		users, count, appErr := th.App.TestExpressionWithChannelContext(th.Context, expression, opts)
 
 		require.Nil(t, appErr)
 		require.Equal(t, expectedUsers, users)
@@ -1001,13 +989,13 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 		// Mock that validation step fails
 		mockAccessControlService.On(
 			"QueryUsersForExpression",
-			rctx,
+			th.Context,
 			expression,
 			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
 		).Return([]*model.User{}, int64(0), model.NewAppError("TestExpressionWithChannelContext", "app.access_control.query.app_error", nil, "validation error", http.StatusInternalServerError))
 
 		// Call the function
-		_, _, appErr := th.App.TestExpressionWithChannelContext(rctx, expression, opts)
+		_, _, appErr := th.App.TestExpressionWithChannelContext(th.Context, expression, opts)
 
 		require.NotNil(t, appErr)
 		require.Equal(t, "TestExpressionWithChannelContext", appErr.Where)
@@ -1017,8 +1005,6 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 
 func TestValidateExpressionAgainstRequester(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-
-	rctx := request.TestContext(t)
 
 	t.Run("should return true when requester matches expression", func(t *testing.T) {
 		// Setup mock access control service
@@ -1032,13 +1018,13 @@ func TestValidateExpressionAgainstRequester(t *testing.T) {
 		mockUsers := []*model.User{th.BasicUser}
 		mockAccessControlService.On(
 			"QueryUsersForExpression",
-			rctx,
+			th.Context,
 			expression,
 			model.SubjectSearchOptions{SubjectID: requesterID, Limit: 1},
 		).Return(mockUsers, int64(1), nil)
 
 		// Call the function
-		matches, appErr := th.App.ValidateExpressionAgainstRequester(rctx, expression, requesterID)
+		matches, appErr := th.App.ValidateExpressionAgainstRequester(th.Context, expression, requesterID)
 
 		require.Nil(t, appErr)
 		require.True(t, matches)
@@ -1057,13 +1043,13 @@ func TestValidateExpressionAgainstRequester(t *testing.T) {
 		mockUsers := []*model.User{} // Empty results - requester doesn't match
 		mockAccessControlService.On(
 			"QueryUsersForExpression",
-			rctx,
+			th.Context,
 			expression,
 			model.SubjectSearchOptions{SubjectID: requesterID, Limit: 1},
 		).Return(mockUsers, int64(0), nil)
 
 		// Call the function
-		matches, appErr := th.App.ValidateExpressionAgainstRequester(rctx, expression, requesterID)
+		matches, appErr := th.App.ValidateExpressionAgainstRequester(th.Context, expression, requesterID)
 
 		require.Nil(t, appErr)
 		require.False(t, matches)
@@ -1082,13 +1068,13 @@ func TestValidateExpressionAgainstRequester(t *testing.T) {
 		mockUsers := []*model.User{}
 		mockAccessControlService.On(
 			"QueryUsersForExpression",
-			rctx,
+			th.Context,
 			expression,
 			model.SubjectSearchOptions{SubjectID: requesterID, Limit: 1},
 		).Return(mockUsers, int64(0), nil)
 
 		// Call the function
-		matches, appErr := th.App.ValidateExpressionAgainstRequester(rctx, expression, requesterID)
+		matches, appErr := th.App.ValidateExpressionAgainstRequester(th.Context, expression, requesterID)
 
 		require.Nil(t, appErr)
 		require.False(t, matches)
@@ -1106,13 +1092,13 @@ func TestValidateExpressionAgainstRequester(t *testing.T) {
 		// Mock that the service returns an error (optimized query)
 		mockAccessControlService.On(
 			"QueryUsersForExpression",
-			rctx,
+			th.Context,
 			expression,
 			model.SubjectSearchOptions{SubjectID: requesterID, Limit: 1},
 		).Return([]*model.User{}, int64(0), model.NewAppError("ValidateExpressionAgainstRequester", "app.access_control.validate_requester.app_error", nil, "expression parsing error", http.StatusInternalServerError))
 
 		// Call the function
-		matches, appErr := th.App.ValidateExpressionAgainstRequester(rctx, expression, requesterID)
+		matches, appErr := th.App.ValidateExpressionAgainstRequester(th.Context, expression, requesterID)
 
 		require.NotNil(t, appErr)
 		require.False(t, matches)
@@ -1124,7 +1110,7 @@ func TestValidateExpressionAgainstRequester(t *testing.T) {
 	t.Run("should handle missing access control service", func(t *testing.T) {
 		th.App.Srv().ch.AccessControl = nil
 
-		matches, appErr := th.App.ValidateExpressionAgainstRequester(rctx, "true", th.BasicUser.Id)
+		matches, appErr := th.App.ValidateExpressionAgainstRequester(th.Context, "true", th.BasicUser.Id)
 
 		require.NotNil(t, appErr)
 		require.False(t, matches)
@@ -1136,7 +1122,6 @@ func TestValidateExpressionAgainstRequester(t *testing.T) {
 func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
-	rctx := request.TestContext(t)
 	channelID := model.NewId()
 	systemPolicyID := model.NewId()
 	t.Run("should return false when channel has no policy", func(t *testing.T) {
@@ -1146,7 +1131,7 @@ func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
 
 		mockAccessControl.On("GetPolicy", mock.AnythingOfType("*request.Context"), channelID).Return(nil, model.NewAppError("GetPolicy", "not.found", nil, "", http.StatusNotFound))
 
-		result := th.App.isSystemPolicyAppliedToChannel(rctx, systemPolicyID, channelID)
+		result := th.App.isSystemPolicyAppliedToChannel(th.Context, systemPolicyID, channelID)
 		assert.False(t, result)
 	})
 
@@ -1167,7 +1152,7 @@ func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
 
 		mockAccessControl.On("GetPolicy", mock.AnythingOfType("*request.Context"), channelID).Return(channelPolicy, nil)
 
-		result := th.App.isSystemPolicyAppliedToChannel(rctx, systemPolicyID, channelID)
+		result := th.App.isSystemPolicyAppliedToChannel(th.Context, systemPolicyID, channelID)
 		assert.False(t, result)
 	})
 
@@ -1188,7 +1173,7 @@ func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
 
 		mockAccessControl.On("GetPolicy", mock.AnythingOfType("*request.Context"), channelID).Return(channelPolicy, nil)
 
-		result := th.App.isSystemPolicyAppliedToChannel(rctx, systemPolicyID, channelID)
+		result := th.App.isSystemPolicyAppliedToChannel(th.Context, systemPolicyID, channelID)
 		assert.False(t, result)
 	})
 
@@ -1210,7 +1195,7 @@ func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
 
 		mockAccessControl.On("GetPolicy", mock.AnythingOfType("*request.Context"), channelID).Return(channelPolicy, nil)
 
-		result := th.App.isSystemPolicyAppliedToChannel(rctx, systemPolicyID, channelID)
+		result := th.App.isSystemPolicyAppliedToChannel(th.Context, systemPolicyID, channelID)
 		assert.False(t, result)
 	})
 
@@ -1231,7 +1216,7 @@ func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
 
 		mockAccessControl.On("GetPolicy", mock.AnythingOfType("*request.Context"), channelID).Return(channelPolicy, nil)
 
-		result := th.App.isSystemPolicyAppliedToChannel(rctx, systemPolicyID, channelID)
+		result := th.App.isSystemPolicyAppliedToChannel(th.Context, systemPolicyID, channelID)
 		assert.True(t, result)
 	})
 
@@ -1254,7 +1239,7 @@ func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
 
 		mockAccessControl.On("GetPolicy", mock.AnythingOfType("*request.Context"), channelID).Return(channelPolicy, nil)
 
-		result := th.App.isSystemPolicyAppliedToChannel(rctx, systemPolicyID, channelID)
+		result := th.App.isSystemPolicyAppliedToChannel(th.Context, systemPolicyID, channelID)
 		assert.True(t, result)
 	})
 
@@ -1265,7 +1250,7 @@ func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
 
 		mockAccessControl.On("GetPolicy", mock.AnythingOfType("*request.Context"), channelID).Return(nil, model.NewAppError("GetPolicy", "service.error", nil, "", http.StatusInternalServerError))
 
-		result := th.App.isSystemPolicyAppliedToChannel(rctx, systemPolicyID, channelID)
+		result := th.App.isSystemPolicyAppliedToChannel(th.Context, systemPolicyID, channelID)
 		assert.False(t, result)
 	})
 }

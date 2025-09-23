@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/require"
 )
 
@@ -114,7 +113,6 @@ func TestCheckForExistingJobs(t *testing.T) {
 
 	t.Run("should return error if job with same options exists in pending jobs", func(t *testing.T) {
 		app := th.App
-		rctx := request.TestContext(t)
 		options := map[string]string{
 			"date_range":         "last_30_days",
 			"requesting_user_id": th.BasicUser.Id,
@@ -127,22 +125,21 @@ func TestCheckForExistingJobs(t *testing.T) {
 		jobType := model.JobTypeExportUsersToCSV
 
 		// Create a pending job with same options
-		job, err := app.Srv().Jobs.CreateJob(rctx, jobType, options)
+		job, err := app.Srv().Jobs.CreateJob(th.Context, jobType, options)
 		defer func() {
-			_ = app.Srv().Jobs.RequestCancellation(rctx, job.Id)
+			_ = app.Srv().Jobs.RequestCancellation(th.Context, job.Id)
 		}()
 		require.Nil(t, err)
 		require.NotNil(t, job)
 
 		// checkForExistingJobs
-		appErr := app.checkForExistingJobs(rctx, options, jobType)
+		appErr := app.checkForExistingJobs(th.Context, options, jobType)
 		require.NotNil(t, appErr)
 		require.Equal(t, "app.report.start_users_batch_export.job_exists", appErr.Id)
 	})
 
 	t.Run("should return error if job with same options exists in in-progress jobs", func(t *testing.T) {
 		app := th.App
-		rctx := request.TestContext(t)
 		options := map[string]string{
 			"date_range":         "last_30_days",
 			"requesting_user_id": th.BasicUser.Id,
@@ -155,9 +152,9 @@ func TestCheckForExistingJobs(t *testing.T) {
 		jobType := model.JobTypeExportUsersToCSV
 
 		// Create an in-progress job with same options
-		job, err := app.Srv().Jobs.CreateJob(rctx, jobType, options)
+		job, err := app.Srv().Jobs.CreateJob(th.Context, jobType, options)
 		defer func() {
-			_ = app.Srv().Jobs.RequestCancellation(rctx, job.Id)
+			_ = app.Srv().Jobs.RequestCancellation(th.Context, job.Id)
 		}()
 		require.Nil(t, err)
 		require.NotNil(t, job)
@@ -167,14 +164,13 @@ func TestCheckForExistingJobs(t *testing.T) {
 		require.Nil(t, err)
 
 		// Call checkForExistingJobs
-		appErr := app.checkForExistingJobs(rctx, options, jobType)
+		appErr := app.checkForExistingJobs(th.Context, options, jobType)
 		require.NotNil(t, appErr)
 		require.Equal(t, "app.report.start_users_batch_export.job_exists", appErr.Id)
 	})
 
 	t.Run("should not return error if existing jobs have different options", func(t *testing.T) {
 		app := th.App
-		rctx := request.TestContext(t)
 		options := map[string]string{
 			"date_range":         "last_30_days",
 			"requesting_user_id": th.BasicUser.Id,
@@ -195,12 +191,12 @@ func TestCheckForExistingJobs(t *testing.T) {
 			"hide_inactive":      "false",
 		}
 
-		job, err := app.Srv().Jobs.CreateJob(rctx, jobType, differentOptions)
+		job, err := app.Srv().Jobs.CreateJob(th.Context, jobType, differentOptions)
 		require.Nil(t, err)
 		require.NotNil(t, job)
 
 		// Call checkForExistingJobs
-		appErr := app.checkForExistingJobs(rctx, options, jobType)
+		appErr := app.checkForExistingJobs(th.Context, options, jobType)
 		require.Nil(t, appErr)
 	})
 }

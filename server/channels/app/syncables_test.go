@@ -614,7 +614,7 @@ func TestSyncSyncableRoles(t *testing.T) {
 
 	team := th.CreateTeam(t)
 
-	channel := th.CreateChannel(t, th.Context, team)
+	channel := th.CreateChannel(t, team)
 	channel.GroupConstrained = model.NewPointer(true)
 	channel, err := th.App.UpdateChannel(th.Context, channel)
 	require.Nil(t, err)

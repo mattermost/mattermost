@@ -177,7 +177,7 @@ func TestUpdateBookmark(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, bookmarkToEdit)
 
-		otherChannel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
 
 		createAt := time.Now().Add(-1 * time.Minute)
 		deleteAt := createAt.Add(1 * time.Second)

@@ -277,8 +277,8 @@ func TestSessionHasPermissionToChannels(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	ch1 := th.CreateChannel(t, th.Context, th.BasicTeam)
-	ch2 := th.CreatePrivateChannel(t, th.Context, th.BasicTeam)
+	ch1 := th.CreateChannel(t, th.BasicTeam)
+	ch2 := th.CreatePrivateChannel(t, th.BasicTeam)
 	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, ch1, false)
 	assert.Nil(t, appErr)
 	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, ch2, false)
@@ -309,7 +309,7 @@ func TestSessionHasPermissionToChannels(t *testing.T) {
 			UserId: th.BasicUser.Id,
 		}
 
-		newChannel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		newChannel := th.CreateChannel(t, th.BasicTeam)
 		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, newChannel, false)
 		assert.Nil(t, appErr)
 
@@ -323,7 +323,7 @@ func TestSessionHasPermissionToChannels(t *testing.T) {
 			UserId: th.BasicUser.Id,
 		}
 
-		archivedChannel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		archivedChannel := th.CreateChannel(t, th.BasicTeam)
 		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, archivedChannel, false)
 		assert.Nil(t, appErr)
 
@@ -782,9 +782,9 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 
 			var channel *model.Channel
 			if tc.channelIsOpen {
-				channel = th.CreateChannel(t, th.Context, team)
+				channel = th.CreateChannel(t, team)
 			} else {
-				channel = th.CreatePrivateChannel(t, th.Context, team)
+				channel = th.CreatePrivateChannel(t, team)
 			}
 			if tc.canReadChannel {
 				_, err := th.App.AddUserToChannel(th.Context, th.BasicUser2, channel, false)
@@ -820,12 +820,12 @@ func TestSessionHasPermissionToChannelByPost(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+	channel := th.CreateChannel(t, th.BasicTeam)
 	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
 	assert.Nil(t, appErr)
 	post := th.CreatePost(t, channel)
 
-	archivedChannel := th.CreateChannel(t, th.Context, th.BasicTeam)
+	archivedChannel := th.CreateChannel(t, th.BasicTeam)
 	archivedPost := th.CreatePost(t, archivedChannel)
 	appErr = th.App.DeleteChannel(th.Context, archivedChannel, th.SystemAdminUser.Id)
 	assert.Nil(t, appErr)
@@ -860,12 +860,12 @@ func TestHasPermissionToChannelByPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+	channel := th.CreateChannel(t, th.BasicTeam)
 	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
 	assert.Nil(t, appErr)
 	post := th.CreatePost(t, channel)
 
-	archivedChannel := th.CreateChannel(t, th.Context, th.BasicTeam)
+	archivedChannel := th.CreateChannel(t, th.BasicTeam)
 	archivedPost := th.CreatePost(t, archivedChannel)
 	appErr = th.App.DeleteChannel(th.Context, archivedChannel, th.SystemAdminUser.Id)
 	assert.Nil(t, appErr)

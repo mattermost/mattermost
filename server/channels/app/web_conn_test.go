@@ -108,7 +108,7 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
 
 	// Create another channel with just BasicUser (implicitly) and SystemAdminUser to test channel broadcast
-	channel2 := th.CreateChannel(t, th.Context, th.BasicTeam)
+	channel2 := th.CreateChannel(t, th.BasicTeam)
 	th.AddUserToChannel(t, th.SystemAdminUser, channel2)
 
 	cases := []struct {

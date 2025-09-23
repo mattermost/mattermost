@@ -1099,7 +1099,7 @@ func TestExportDeletedTeams(t *testing.T) {
 	th1 := Setup(t).InitBasic(t)
 
 	team1 := th1.CreateTeam(t)
-	channel1 := th1.CreateChannel(t, th1.Context, team1)
+	channel1 := th1.CreateChannel(t, team1)
 	th1.CreatePost(t, channel1)
 
 	// Delete the team to check that this is handled correctly on import.
@@ -1145,7 +1145,7 @@ func TestExportArchivedChannels(t *testing.T) {
 	mainHelper.Parallel(t)
 	th1 := Setup(t).InitBasic(t)
 
-	archivedChannel := th1.CreateChannel(t, th1.Context, th1.BasicTeam)
+	archivedChannel := th1.CreateChannel(t, th1.BasicTeam)
 	th1.CreatePost(t, archivedChannel)
 	appErr := th1.App.DeleteChannel(th1.Context, archivedChannel, th1.SystemAdminUser.Id)
 	require.Nil(t, appErr)

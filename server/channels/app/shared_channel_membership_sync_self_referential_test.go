@@ -81,7 +81,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		defer testServer.Close()
 
 		// Create a shared channel
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		sc := &model.SharedChannel{
 			ChannelId: channel.Id,
 			TeamId:    th.BasicTeam.Id,
@@ -209,7 +209,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		defer testServer.Close()
 
 		// Create channel but DON'T share it yet
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 
 		// Create self-referential remote cluster
 		selfCluster = &model.RemoteCluster{
@@ -388,7 +388,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		defer testServer.Close()
 
 		// Create and share channel
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		sc := &model.SharedChannel{
 			ChannelId: channel.Id,
 			TeamId:    th.BasicTeam.Id,
@@ -563,7 +563,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		defer testServer.Close()
 
 		// Create and share channel
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		sc := &model.SharedChannel{
 			ChannelId: channel.Id,
 			TeamId:    th.BasicTeam.Id,
@@ -702,7 +702,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		defer testServer.Close()
 
 		// Create and share channel
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		sc := &model.SharedChannel{
 			ChannelId: channel.Id,
 			TeamId:    th.BasicTeam.Id,
@@ -1107,7 +1107,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		defer testServer.Close()
 
 		// Create and share channel
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		sc := &model.SharedChannel{
 			ChannelId: channel.Id,
 			TeamId:    th.BasicTeam.Id,
@@ -1208,7 +1208,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		defer testServer.Close()
 
 		// Create channel and share it
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		sc := &model.SharedChannel{
 			ChannelId: channel.Id,
 			TeamId:    th.BasicTeam.Id,
@@ -1332,7 +1332,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		defer testServer.Close()
 
 		// Create channel and share it
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		sc := &model.SharedChannel{
 			ChannelId: channel.Id,
 			TeamId:    th.BasicTeam.Id,
@@ -1462,9 +1462,9 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		th.LinkUserToTeam(t, user3, th.BasicTeam)
 
 		// Create multiple shared channels
-		channel1 := th.CreateChannel(t, th.Context, th.BasicTeam)
-		channel2 := th.CreateChannel(t, th.Context, th.BasicTeam)
-		channel3 := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel1 := th.CreateChannel(t, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
+		channel3 := th.CreateChannel(t, th.BasicTeam)
 
 		// Add users to multiple shared channels
 		// user1 in all channels
@@ -1731,7 +1731,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 	// 	defer testServer.Close()
 
 	// 	// Create and share channel
-	// 	channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+	// 	channel := th.CreateChannel(t, th.BasicTeam)
 	// 	sc := &model.SharedChannel{
 	// 		ChannelId: channel.Id,
 	// 		TeamId:    th.BasicTeam.Id,

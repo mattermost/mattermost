@@ -1745,8 +1745,8 @@ func TestImportUserTeams(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	team2 := th.CreateTeam(t)
-	channel2 := th.CreateChannel(t, th.Context, th.BasicTeam)
-	channel3 := th.CreateChannel(t, th.Context, team2)
+	channel2 := th.CreateChannel(t, th.BasicTeam)
+	channel3 := th.CreateChannel(t, team2)
 	customRole := th.CreateRole(t, "test_custom_role")
 	sampleTheme := "{\"test\":\"#abcdef\"}"
 
@@ -1967,7 +1967,7 @@ func TestImportUserChannels(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	channel2 := th.CreateChannel(t, th.Context, th.BasicTeam)
+	channel2 := th.CreateChannel(t, th.BasicTeam)
 	customRole := th.CreateRole(t, "test_custom_role")
 	sampleNotifyProps := imports.UserChannelNotifyPropsImportData{
 		Desktop:    model.NewPointer("all"),

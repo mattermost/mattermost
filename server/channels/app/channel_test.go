@@ -90,7 +90,7 @@ func TestRemoveAllDeactivatedMembersFromChannel(t *testing.T) {
 	var appErr *model.AppError
 
 	team := th.CreateTeam(t)
-	channel := th.CreateChannel(t, th.Context, team)
+	channel := th.CreateChannel(t, team)
 	defer func() {
 		appErr = th.App.PermanentDeleteChannel(th.Context, channel)
 		require.Nil(t, appErr)
@@ -129,7 +129,7 @@ func TestMoveChannel(t *testing.T) {
 
 		sourceTeam := th.CreateTeam(t)
 		targetTeam := th.CreateTeam(t)
-		channel1 := th.CreateChannel(t, th.Context, sourceTeam)
+		channel1 := th.CreateChannel(t, sourceTeam)
 		defer func() {
 			appErr = th.App.PermanentDeleteChannel(th.Context, channel1)
 			require.Nil(t, appErr)
@@ -168,7 +168,7 @@ func TestMoveChannel(t *testing.T) {
 		// Test moving a channel with a deactivated user who isn't in the destination team.
 		// It should fail, unless removeDeactivatedMembers is true.
 		deactivatedUser := th.CreateUser(t)
-		channel2 := th.CreateChannel(t, th.Context, sourceTeam)
+		channel2 := th.CreateChannel(t, sourceTeam)
 		defer func() {
 			appErr = th.App.PermanentDeleteChannel(th.Context, channel2)
 			require.Nil(t, appErr)
@@ -213,7 +213,7 @@ func TestMoveChannel(t *testing.T) {
 
 		sourceTeam := th.CreateTeam(t)
 		targetTeam := th.CreateTeam(t)
-		channel := th.CreateChannel(t, th.Context, sourceTeam)
+		channel := th.CreateChannel(t, sourceTeam)
 
 		th.LinkUserToTeam(t, th.BasicUser, sourceTeam)
 		th.LinkUserToTeam(t, th.BasicUser, targetTeam)
@@ -253,7 +253,7 @@ func TestMoveChannel(t *testing.T) {
 
 		sourceTeam := th.CreateTeam(t)
 		targetTeam := th.CreateTeam(t)
-		channel := th.CreateChannel(t, th.Context, sourceTeam)
+		channel := th.CreateChannel(t, sourceTeam)
 
 		th.LinkUserToTeam(t, th.BasicUser, sourceTeam)
 		th.LinkUserToTeam(t, th.BasicUser, targetTeam)
@@ -307,7 +307,7 @@ func TestRemoveUsersFromChannelNotMemberOfTeam(t *testing.T) {
 
 	team := th.CreateTeam(t)
 	team2 := th.CreateTeam(t)
-	channel1 := th.CreateChannel(t, th.Context, team)
+	channel1 := th.CreateChannel(t, team)
 	defer func() {
 		appErr := th.App.PermanentDeleteChannel(th.Context, channel1)
 		require.Nil(t, appErr)
@@ -410,7 +410,7 @@ func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	basicChannel2 := th.CreateChannel(t, th.Context, th.BasicTeam)
+	basicChannel2 := th.CreateChannel(t, th.BasicTeam)
 	defer func() {
 		appErr := th.App.PermanentDeleteChannel(th.Context, basicChannel2)
 		require.Nil(t, appErr)
@@ -436,7 +436,7 @@ func TestJoinDefaultChannelsExperimentalDefaultChannelsMissing(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	basicChannel2 := th.CreateChannel(t, th.Context, th.BasicTeam)
+	basicChannel2 := th.CreateChannel(t, th.BasicTeam)
 	defer func() {
 		appErr := th.App.PermanentDeleteChannel(th.Context, basicChannel2)
 		require.Nil(t, appErr)
@@ -1018,7 +1018,7 @@ func TestSetChannelsMuted(t *testing.T) {
 
 		channel1 := th.BasicChannel
 
-		channel2 := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, th.BasicUser, channel2)
 
 		// Ensure that both channels start unmuted
@@ -1678,7 +1678,7 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 	u1 := th.BasicUser
 	u2 := th.BasicUser2
 	c1 := th.BasicChannel
-	pc1 := th.CreatePrivateChannel(t, th.Context, th.BasicTeam)
+	pc1 := th.CreatePrivateChannel(t, th.BasicTeam)
 	th.AddUserToChannel(t, u2, c1)
 	th.AddUserToChannel(t, u1, pc1)
 	th.AddUserToChannel(t, u2, pc1)
@@ -1764,7 +1764,7 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 	})
 
 	t.Run("Unread with mentions", func(t *testing.T) {
-		c2 := th.CreateChannel(t, th.Context, th.BasicTeam)
+		c2 := th.CreateChannel(t, th.BasicTeam)
 		_, appErr := th.App.AddUserToChannel(th.Context, u2, c2, false)
 		require.Nil(t, appErr)
 
@@ -1900,7 +1900,7 @@ func TestAddUserToChannel(t *testing.T) {
 	require.Nil(t, appErr)
 	require.True(t, cm2.SchemeAdmin)
 
-	privateChannel := th.CreatePrivateChannel(t, th.Context, th.BasicTeam)
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 	privateChannel.GroupConstrained = model.NewPointer(true)
 	_, appErr = th.App.UpdateChannel(th.Context, privateChannel)
 	require.Nil(t, appErr)
@@ -1945,7 +1945,7 @@ func TestRemoveUserFromChannel(t *testing.T) {
 	_, appErr = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, bot.UserId)
 	require.Nil(t, appErr)
 
-	privateChannel := th.CreatePrivateChannel(t, th.Context, th.BasicTeam)
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 
 	_, appErr = th.App.AddUserToChannel(th.Context, ruser, privateChannel, false)
 	require.Nil(t, appErr)
@@ -3039,8 +3039,8 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 		user1 := th.CreateUser(t)
 		user2 := th.CreateUser(t)
 
-		channel1 := th.CreateChannel(t, th.Context, th.BasicTeam)
-		channel2 := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel1 := th.CreateChannel(t, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
 
 		th.LinkUserToTeam(t, user1, th.BasicTeam)
 		th.LinkUserToTeam(t, user2, th.BasicTeam)
@@ -3087,8 +3087,8 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 		user1 := th.CreateUser(t)
 		user2 := th.CreateUser(t)
 
-		channel1 := th.CreateChannel(t, th.Context, th.BasicTeam)
-		channel2 := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel1 := th.CreateChannel(t, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
 
 		th.LinkUserToTeam(t, user1, th.BasicTeam)
 		th.LinkUserToTeam(t, user2, th.BasicTeam)

@@ -123,7 +123,7 @@ func TestCreateDraft(t *testing.T) {
 
 	user := th.BasicUser
 	channel := th.BasicChannel
-	channel2 := th.CreateChannel(t, th.Context, th.BasicTeam)
+	channel2 := th.CreateChannel(t, th.BasicTeam)
 	th.AddUserToChannel(t, user, channel2)
 
 	draft1 := &model.Draft{
@@ -226,7 +226,7 @@ func TestGetDraftsForUser(t *testing.T) {
 
 	user := th.BasicUser
 	channel := th.BasicChannel
-	channel2 := th.CreateChannel(t, th.Context, th.BasicTeam)
+	channel2 := th.CreateChannel(t, th.BasicTeam)
 	th.AddUserToChannel(t, user, channel2)
 
 	draft1 := &model.Draft{

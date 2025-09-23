@@ -113,7 +113,7 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	// Create a private channel and make BasicUser a channel admin
-	privateChannel := th.CreatePrivateChannel(t, th.Context, th.BasicTeam)
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 	_, err := th.App.AddUserToChannel(th.Context, th.BasicUser, privateChannel, false)
 	require.Nil(t, err)
 
@@ -162,7 +162,7 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 
 	t.Run("channel admin cannot create access control sync job for other channel", func(t *testing.T) {
 		// Create another private channel that BasicUser is NOT admin of
-		otherChannel := th.CreatePrivateChannel(t, th.Context, th.BasicTeam)
+		otherChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 
 		// EXPLICITLY remove channel admin role from BasicUser for otherChannel
 		// (CreatePrivateChannel might auto-add admin roles)

@@ -882,7 +882,7 @@ func TestGetUsersNotInAbacChannel(t *testing.T) {
 	})
 
 	// Create an ABAC channel
-	abacChannel := th.CreatePrivateChannel(t, th.Context, th.BasicTeam)
+	abacChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 
 	// Create three test users and add them to the team
 	user1 := th.CreateUser(t) // Will have matching attributes for ABAC
@@ -1562,16 +1562,16 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	_, appErr := th.App.UpdateTeamMemberRoles(th.Context, team1.Id, user1.Id, "team_user team_admin")
 	require.Nil(t, appErr)
 
-	team1channel1 := th.CreateChannel(t, th.Context, team1)
-	team1channel2 := th.CreateChannel(t, th.Context, team1)
-	th.CreateChannel(t, th.Context, team1) // Another channel
+	team1channel1 := th.CreateChannel(t, team1)
+	team1channel2 := th.CreateChannel(t, team1)
+	th.CreateChannel(t, team1) // Another channel
 	team1offtopic, err := th.App.GetChannelByName(th.Context, "off-topic", team1.Id, false)
 	require.Nil(t, err)
 	team1townsquare, err := th.App.GetChannelByName(th.Context, "town-square", team1.Id, false)
 	require.Nil(t, err)
 
-	team2channel1 := th.CreateChannel(t, th.Context, team2)
-	th.CreateChannel(t, th.Context, team2) // Another channel
+	team2channel1 := th.CreateChannel(t, team2)
+	th.CreateChannel(t, team2) // Another channel
 	team2offtopic, err := th.App.GetChannelByName(th.Context, "off-topic", team2.Id, false)
 	require.Nil(t, err)
 	team2townsquare, err := th.App.GetChannelByName(th.Context, "town-square", team2.Id, false)
@@ -1969,7 +1969,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		require.True(t, teamMember.SchemeAdmin)
 		require.False(t, teamMember.SchemeGuest)
 
-		channel := th.CreateChannel(t, th.Context, team)
+		channel := th.CreateChannel(t, team)
 
 		th.AddUserToChannel(t, user, channel)
 		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, user.Id, false, true, true)

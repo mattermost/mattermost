@@ -429,7 +429,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// create a channel in this team
-		channel := th.CreateChannel(t, th.Context, team)
+		channel := th.CreateChannel(t, team)
 
 		// create scheduled post
 		scheduledPost1 := &model.ScheduledPost{
@@ -628,7 +628,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 	})
 
 	t.Run("should be able to update scheduled posts for channels user does not belong to", func(t *testing.T) {
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, th.BasicUser, channel)
 
 		scheduledPost := &model.ScheduledPost{

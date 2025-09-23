@@ -1007,9 +1007,9 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create multiple shared channels
-		channel1 := th.CreateChannel(t, th.Context, th.BasicTeam)
-		channel2 := th.CreateChannel(t, th.Context, th.BasicTeam)
-		channel3 := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel1 := th.CreateChannel(t, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
+		channel3 := th.CreateChannel(t, th.BasicTeam)
 
 		// Make channels shared
 		sc1 := &model.SharedChannel{

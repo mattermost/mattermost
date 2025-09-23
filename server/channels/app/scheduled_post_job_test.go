@@ -279,7 +279,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 		user2 := th.BasicUser2
 
 		channel1 := th.BasicChannel
-		channel2 := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
 
 		// Create failed scheduled posts: 1 for user1 and 2 for user2
 		failedScheduledPosts := []*model.ScheduledPost{

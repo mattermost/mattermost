@@ -396,7 +396,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 		th.CreateBot(t)
 
 		team := th.CreateTeam(t)
-		channel := th.CreateChannel(t, th.Context, team)
+		channel := th.CreateChannel(t, team)
 
 		for range 3 {
 			p := th.CreatePost(t, channel)

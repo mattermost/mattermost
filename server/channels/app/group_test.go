@@ -228,7 +228,7 @@ func TestUpsertGroupSyncableTeamGroupConstrained(t *testing.T) {
 	_, err = th.App.UpsertGroupSyncable(model.NewGroupTeam(group1.Id, team.Id, false))
 	require.Nil(t, err)
 
-	channel := th.CreateChannel(t, th.Context, team)
+	channel := th.CreateChannel(t, team)
 
 	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(group2.Id, channel.Id, false))
 	require.NotNil(t, err)

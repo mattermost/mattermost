@@ -130,7 +130,7 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 	}()
 
 	// Make a channel
-	channel := th.CreateChannel(t, th.Context, team)
+	channel := th.CreateChannel(t, team)
 	defer func() {
 		appErr = th.App.PermanentDeleteChannel(th.Context, channel)
 		require.Nil(t, appErr)

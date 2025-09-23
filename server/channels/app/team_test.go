@@ -1160,7 +1160,7 @@ func TestAppUpdateTeamScheme(t *testing.T) {
 	team2 := th.CreateTeam(t)
 	_, _, appErr = th.App.AddUserToTeam(th.Context, team2.Id, th.BasicUser.Id, "")
 	require.Nil(t, appErr)
-	channel := th.CreateChannel(t, th.Context, team2)
+	channel := th.CreateChannel(t, team2)
 	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, channel, true)
 	require.Nil(t, appErr)
 	session := model.Session{
@@ -1695,7 +1695,7 @@ func TestInviteGuestsToChannelsWithPolicyEnforced(t *testing.T) {
 	})
 
 	// Create a private channel
-	channel := th.CreatePrivateChannel(t, th.Context, th.BasicTeam)
+	channel := th.CreatePrivateChannel(t, th.BasicTeam)
 
 	// Create a policy with the same ID as the channel
 	channelPolicy := &model.AccessControlPolicy{

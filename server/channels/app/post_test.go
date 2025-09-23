@@ -244,7 +244,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 
 		pendingPostId := makePendingPostId(th.BasicUser)
 
-		privateChannel := th.CreatePrivateChannel(t, th.Context, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, th.BasicUser, privateChannel)
 
 		post, err := th.App.CreatePostAsUser(th.Context.WithSession(sessionBasicUser), &model.Post{
@@ -405,7 +405,7 @@ func TestUpdatePostInArchivedChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	archivedChannel := th.CreateChannel(t, th.Context, th.BasicTeam)
+	archivedChannel := th.CreateChannel(t, th.BasicTeam)
 	post := th.CreatePost(t, archivedChannel)
 	appErr := th.App.DeleteChannel(th.Context, archivedChannel, "")
 	require.Nil(t, appErr)
@@ -867,7 +867,7 @@ func TestDeletePostInArchivedChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	archivedChannel := th.CreateChannel(t, th.Context, th.BasicTeam)
+	archivedChannel := th.CreateChannel(t, th.BasicTeam)
 	post := th.CreatePost(t, archivedChannel)
 	appErr := th.App.DeleteChannel(th.Context, archivedChannel, "")
 	require.Nil(t, appErr)
@@ -983,7 +983,7 @@ func TestCreatePost(t *testing.T) {
 
 		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
 
-		channelForPreview := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channelForPreview := th.CreateChannel(t, th.BasicTeam)
 		previewPost := &model.Post{
 			ChannelId: channelForPreview.Id,
 			Message:   permalink,
@@ -1000,7 +1000,7 @@ func TestCreatePost(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
-		channelForPreview := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channelForPreview := th.CreateChannel(t, th.BasicTeam)
 
 		referencedPost := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -1180,7 +1180,7 @@ func TestCreatePost(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
-		channelForPreview := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channelForPreview := th.CreateChannel(t, th.BasicTeam)
 
 		for range 20 {
 			user := th.CreateUser(t)
@@ -1530,7 +1530,7 @@ func TestPatchPostInArchivedChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	archivedChannel := th.CreateChannel(t, th.Context, th.BasicTeam)
+	archivedChannel := th.CreateChannel(t, th.BasicTeam)
 	post := th.CreatePost(t, archivedChannel)
 	appErr := th.App.DeleteChannel(th.Context, archivedChannel, "")
 	require.Nil(t, appErr)
@@ -1581,7 +1581,7 @@ func TestUpdateEphemeralPost(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
-		privateChannel := th.CreatePrivateChannel(t, th.Context, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, th.BasicUser, privateChannel)
 		th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
@@ -1673,7 +1673,7 @@ func TestUpdatePost(t *testing.T) {
 
 		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
 
-		channelForTestPost := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channelForTestPost := th.CreateChannel(t, th.BasicTeam)
 		testPost := &model.Post{
 			ChannelId: channelForTestPost.Id,
 			Message:   "hello world",
@@ -1989,7 +1989,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
@@ -2024,7 +2024,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
 		user2.NotifyProps[model.MentionKeysNotifyProp] = "apple"
@@ -2063,7 +2063,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
 		user2.NotifyProps[model.ChannelMentionsNotifyProp] = "true"
@@ -2102,7 +2102,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
 		user2.NotifyProps[model.ChannelMentionsNotifyProp] = "false"
@@ -2139,7 +2139,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
 		user2.NotifyProps[model.ChannelMentionsNotifyProp] = "true"
@@ -2181,7 +2181,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
 		user2.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyRoot
@@ -2235,7 +2235,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
 		user2.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyAny
@@ -2289,7 +2289,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
@@ -2416,7 +2416,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
 		_, err := th.App.CreatePost(th.Context, &model.Post{
@@ -2453,7 +2453,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
@@ -2484,7 +2484,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
 		user2.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyAny
@@ -2538,7 +2538,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
 		user2.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyAny
@@ -2596,7 +2596,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
@@ -2636,7 +2636,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
 		numPosts := 215
@@ -2676,7 +2676,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
 		user2.NotifyProps[model.MentionKeysNotifyProp] = "apple"
@@ -2731,7 +2731,7 @@ func TestFillInPostProps(t *testing.T) {
 
 		user1 := th.BasicUser
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
@@ -2762,7 +2762,7 @@ func TestFillInPostProps(t *testing.T) {
 		require.Nil(t, err)
 		th.LinkUserToTeam(t, guest, th.BasicTeam)
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, guest, channel)
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
@@ -2796,7 +2796,7 @@ func TestFillInPostProps(t *testing.T) {
 		require.Nil(t, err)
 		th.LinkUserToTeam(t, guest, th.BasicTeam)
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, guest, channel)
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
@@ -2827,7 +2827,7 @@ func TestThreadMembership(t *testing.T) {
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
 		postRoot, err := th.App.CreatePost(th.Context, &model.Post{
@@ -3019,7 +3019,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 	user2 := th.BasicUser2
 
 	t.Run("should only return root posts, enriched", func(t *testing.T) {
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 		defer func() {
 			appErr := th.App.DeleteChannel(th.Context, channel, user1.Id)
@@ -3062,7 +3062,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 	})
 
 	t.Run("Should not panic on unexpected db error", func(t *testing.T) {
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 		defer func() {
 			appErr := th.App.DeleteChannel(th.Context, channel, user1.Id)
@@ -3115,7 +3115,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		defer func() {
 			appErr = th.App.DeleteChannel(th.Context, channel, user1.Id)
 			require.Nil(t, appErr)
@@ -3193,7 +3193,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 
 		user := th.BasicUser
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam, WithShared(true))
+		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
 
 		_, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user.Id,
@@ -3216,7 +3216,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 
 		user := th.BasicUser
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam, WithShared(true))
+		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
 
 		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user.Id,
@@ -3243,7 +3243,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 
 		user := th.BasicUser
 
-		channel := th.CreateChannel(t, th.Context, th.BasicTeam, WithShared(true))
+		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
 
 		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user.Id,
@@ -3309,7 +3309,7 @@ func TestGetPostIfAuthorized(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("Private channel", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t, th.Context, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 		post, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: privateChannel.Id, Message: "Hello"}, privateChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 		require.NotNil(t, post)
@@ -3332,7 +3332,7 @@ func TestGetPostIfAuthorized(t *testing.T) {
 	})
 
 	t.Run("Public channel", func(t *testing.T) {
-		publicChannel := th.CreateChannel(t, th.Context, th.BasicTeam)
+		publicChannel := th.CreateChannel(t, th.BasicTeam)
 		post, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: publicChannel.Id, Message: "Hello"}, publicChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 		require.NotNil(t, post)
