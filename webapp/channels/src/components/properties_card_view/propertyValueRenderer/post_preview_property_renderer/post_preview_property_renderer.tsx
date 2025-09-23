@@ -44,7 +44,7 @@ export default function PostPreviewPropertyRenderer({value, metadata}: Props) {
             const canLoadPost = metadata?.getPost && !loaded.current && !post;
             if (!canLoadPost) {
                 return;
-                {Boolean(value.value) && value.value}            }
+            }
 
             try {
                 const fetchedPost = await metadata.getPost!(postId);

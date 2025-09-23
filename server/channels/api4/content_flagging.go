@@ -47,10 +47,14 @@ func getFlaggingConfiguration(c *Context, w http.ResponseWriter, r *http.Request
 
 	config := getFlaggingConfig(c.App.Config().ContentFlaggingSettings)
 
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(config); err != nil {
-		mlog.Error("failed to encode content flagging configuration to return API response", mlog.Err(err))
+	responseBytes, err := json.Marshal(config)
+	if err != nil {
+		c.Err = model.NewAppError("getFlaggingConfiguration", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
+	}
+
+	if _, err := w.Write(responseBytes); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -76,10 +80,15 @@ func getTeamPostFlaggingFeatureStatus(c *Context, w http.ResponseWriter, r *http
 	payload := map[string]bool{
 		"enabled": enabled,
 	}
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(payload); err != nil {
-		mlog.Error("failed to encode content flagging configuration to return API response", mlog.Err(err))
+
+	responseBytes, err := json.Marshal(payload)
+	if err != nil {
+		c.Err = model.NewAppError("getTeamPostFlaggingFeatureStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
+	}
+
+	if _, err := w.Write(responseBytes); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -155,10 +164,14 @@ func getContentFlaggingFields(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(mappedFields); err != nil {
-		mlog.Error("failed to encode content flagging configuration to return API response", mlog.Err(err))
+	responseBytes, err := json.Marshal(mappedFields)
+	if err != nil {
+		c.Err = model.NewAppError("getContentFlaggingFields", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
+	}
+
+	if _, err := w.Write(responseBytes); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -176,18 +189,12 @@ func getPostPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	// The requesting user must be a reviewer of the post's team
 	// to be able to fetch the post's Content Flagging property values
 	postId := c.Params.PostId
-	posts, _, appErr := c.App.GetPostsByIds([]string{postId})
+	post, appErr := c.App.GetSinglePost(c.AppContext, postId, true)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	if len(posts) == 0 {
-		c.Err = model.NewAppError("getPostPropertyValues", "app.post.get.app_error", nil, "", http.StatusNotFound)
-		return
-	}
-
-	post := posts[0]
 	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
@@ -212,10 +219,14 @@ func getPostPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(propertyValues); err != nil {
-		mlog.Error("failed to encode content flagging configuration to return API response", mlog.Err(err))
+	responseBytes, err := json.Marshal(propertyValues)
+	if err != nil {
+		c.Err = model.NewAppError("getPostPropertyValues", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
+	}
+
+	if _, err := w.Write(responseBytes); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -241,11 +252,6 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	post, appErr := c.App.GetSinglePost(c.AppContext, postId, true)
 	if appErr != nil {
 		c.Err = appErr
-		return
-	}
-
-	if post == nil {
-		c.Err = model.NewAppError("getFlaggedPost", "app.post.get.app_error", nil, "", http.StatusNotFound)
 		return
 	}
 
@@ -285,6 +291,7 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := post.EncodeJSON(w); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
+		c.Err = model.NewAppError("getFlaggedPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
 	}
 }

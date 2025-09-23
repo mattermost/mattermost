@@ -114,13 +114,6 @@ func TestGetPostPropertyValues(t *testing.T) {
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
 			config.ContentFlaggingSettings.SetDefaults()
-			// Set up config so user is not a reviewer
-			config.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(false)
-			config.ContentFlaggingSettings.ReviewerSettings.TeamReviewersSetting = &map[string]model.TeamReviewerSetting{}
-			(*config.ContentFlaggingSettings.ReviewerSettings.TeamReviewersSetting)[th.BasicTeam.Id] = model.TeamReviewerSetting{
-				Enabled:     model.NewPointer(true),
-				ReviewerIds: &[]string{}, // Empty list - user is not a reviewer
-			}
 		})
 
 		post := th.CreatePost()
@@ -176,7 +169,7 @@ func TestGetFlaggedPost(t *testing.T) {
 		})
 
 		post := th.CreatePost()
-		flaggedPost, resp, err := client.GetFlaggedPost(context.Background(), post.Id)
+		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 		require.Nil(t, flaggedPost)
@@ -190,7 +183,7 @@ func TestGetFlaggedPost(t *testing.T) {
 		})
 
 		post := th.CreatePost()
-		flaggedPost, resp, err := client.GetFlaggedPost(context.Background(), post.Id)
+		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 		require.Nil(t, flaggedPost)
@@ -203,7 +196,7 @@ func TestGetFlaggedPost(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		flaggedPost, resp, err := client.GetFlaggedPost(context.Background(), model.NewId())
+		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), model.NewId())
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
 		require.Nil(t, flaggedPost)
@@ -224,7 +217,7 @@ func TestGetFlaggedPost(t *testing.T) {
 		})
 
 		post := th.CreatePost()
-		flaggedPost, resp, err := client.GetFlaggedPost(context.Background(), post.Id)
+		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 		require.Nil(t, flaggedPost)
@@ -240,7 +233,7 @@ func TestGetFlaggedPost(t *testing.T) {
 		})
 
 		post := th.CreatePost()
-		flaggedPost, resp, err := client.GetFlaggedPost(context.Background(), post.Id)
+		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
 		require.Nil(t, flaggedPost)
@@ -267,7 +260,7 @@ func TestGetFlaggedPost(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
 		// Now get the flagged post
-		flaggedPost, resp, err := client.GetFlaggedPost(context.Background(), post.Id)
+		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotNil(t, flaggedPost)

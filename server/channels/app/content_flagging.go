@@ -15,6 +15,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/public/utils"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -327,17 +329,21 @@ func (a *App) getAllUsersInTeamForRoles(teamId string, systemRoles, teamRoles []
 		TeamRoles: teamRoles,
 	}
 
-	for {
-		page, appErr := a.GetUsersInTeam(options)
+	fetchFunc := func(page int) ([]*model.User, error) {
+		options.Page = page
+		users, appErr := a.GetUsersInTeam(options)
+		// Checking for error this way instead of directly returning *model.AppError
+		// doesn't equate to error == nil (pointer vs non-pointer)
 		if appErr != nil {
-			return nil, model.NewAppError("getReviewersForTeam", "app.content_flagging.get_users_in_team.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
+			return users, errors.New(appErr.Error())
 		}
 
-		additionalReviewers = append(additionalReviewers, page...)
-		if len(page) < options.PerPage {
-			break
-		}
-		options.Page++
+		return users, nil
+	}
+
+	additionalReviewers, err := utils.Pager(fetchFunc, options.PerPage)
+	if err != nil {
+		return nil, model.NewAppError("getReviewersForTeam", "app.content_flagging.get_users_in_team.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
 	}
 
 	return additionalReviewers, nil
