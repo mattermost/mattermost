@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"slices"
@@ -2058,7 +2057,7 @@ func (s SqlChannelStore) GetChannelMembersTimezones(channelId string) ([]model.S
 	return dbMembersTimezone, nil
 }
 
-func (s SqlChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Context, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
+func (s SqlChannelStore) GetChannelsWithUnreadsAndWithMentions(_ request.CTX, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
 	query := s.getQueryBuilder().Select(
 		"Channels.Id",
 		"Channels.Type",
@@ -2130,7 +2129,7 @@ func (s SqlChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx context.Conte
 	return channelsWithUnreads, channelsWithMentions, readTimes, nil
 }
 
-func (s SqlChannelStore) GetMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
+func (s SqlChannelStore) GetMember(rctx request.CTX, channelID string, userID string) (*model.ChannelMember, error) {
 	selectSQL, args, err := s.channelMembersForTeamWithSchemeSelectQuery.
 		Where(sq.Eq{
 			"ChannelMembers.ChannelId": channelID,
@@ -2142,7 +2141,7 @@ func (s SqlChannelStore) GetMember(ctx context.Context, channelID string, userID
 
 	var dbMember channelMemberWithSchemeRoles
 
-	if err := s.DBXFromContext(ctx).Get(&dbMember, selectSQL, args...); err != nil {
+	if err := s.DBXFromContext(rctx.Context()).Get(&dbMember, selectSQL, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("ChannelMember", fmt.Sprintf("channelId=%s, userId=%s", channelID, userID))
 		}
@@ -2152,9 +2151,9 @@ func (s SqlChannelStore) GetMember(ctx context.Context, channelID string, userID
 	return dbMember.ToModel(), nil
 }
 
-func (s SqlChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error) {
+func (s SqlChannelStore) GetMemberLastViewedAt(rctx request.CTX, channelID string, userID string) (int64, error) {
 	var lastViewedAt int64
-	if err := s.DBXFromContext(ctx).Get(&lastViewedAt, `SELECT COALESCE(LastViewedAt, 0) AS LastViewedAt
+	if err := s.DBXFromContext(rctx.Context()).Get(&lastViewedAt, `SELECT COALESCE(LastViewedAt, 0) AS LastViewedAt
 		FROM ChannelMembers
 		WHERE ChannelId=? AND UserId=?`, channelID, userID); err != nil {
 		if err == sql.ErrNoRows {
@@ -2376,7 +2375,7 @@ func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) (
 
 // GetMemberCountsByGroup returns a slice of ChannelMemberCountByGroup for a given channel
 // which contains the number of channel members for each group and optionally the number of unique timezones present for each group in the channel
-func (s SqlChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error) {
+func (s SqlChannelStore) GetMemberCountsByGroup(rctx request.CTX, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error) {
 	selectStr := "GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount"
 
 	if includeTimezones {
@@ -2408,7 +2407,7 @@ func (s SqlChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID s
 	}
 
 	data := []*model.ChannelMemberCountByGroup{}
-	if err := s.DBXFromContext(ctx).Select(&data, queryString, args...); err != nil {
+	if err := s.DBXFromContext(rctx.Context()).Select(&data, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to count ChannelMembers with channelId=%s", channelID)
 	}
 
@@ -3313,50 +3312,6 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted
 	}
 
 	return s.performSearch(query, term)
-}
-
-func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId string) (model.ChannelList, error) {
-	queryBase := s.getQueryBuilder().Select(channelSliceColumns(true, "Channels")...).
-		From("Channels").
-		Join("Channels c ON (c.Id = Channels.Id)").
-		Where(sq.And{
-			sq.Eq{"c.TeamId": teamId},
-			sq.NotEq{"c.DeleteAt": 0},
-		}).
-		OrderBy("c.DisplayName").
-		Limit(100)
-
-	searchClause := s.searchClause(term)
-	if searchClause != nil {
-		queryBase = queryBase.Where(searchClause)
-	}
-
-	publicQuery := queryBase.
-		Where(sq.NotEq{"c.Type": model.ChannelTypePrivate})
-
-	privateQuery := queryBase.
-		Where(
-			sq.And{
-				sq.Eq{"c.Type": model.ChannelTypePrivate},
-				sq.Expr("c.Id IN (?)", sq.Select("ChannelId").
-					From("ChannelMembers").
-					Where(sq.Eq{"UserId": userId})),
-			})
-
-	publicChannels, err := s.performSearch(publicQuery, term)
-	if err != nil {
-		return nil, err
-	}
-
-	privateChannels, err := s.performSearch(privateQuery, term)
-	if err != nil {
-		return nil, err
-	}
-
-	output := publicChannels
-	output = append(output, privateChannels...)
-
-	return output, nil
 }
 
 func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (model.ChannelList, error) {
