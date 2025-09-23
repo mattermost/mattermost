@@ -1342,7 +1342,7 @@ func TestPatchGroupChannel(t *testing.T) {
 	assert.NotNil(t, groupSyncable)
 	assert.True(t, groupSyncable.AutoAdd)
 
-	role, appErr := th.App.GetRoleByName(context.Background(), "channel_user")
+	role, appErr := th.App.GetRoleByName(th.Context, "channel_user")
 	require.Nil(t, appErr)
 	originalPermissions := role.Permissions
 	_, appErr = th.App.PatchRole(role, &model.RolePatch{Permissions: &[]string{}})

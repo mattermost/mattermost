@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -1383,14 +1382,14 @@ func TestCreatePostAsUser(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 		}
 
-		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
 		_, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		require.Greater(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
@@ -1408,14 +1407,14 @@ func TestCreatePostAsUser(t *testing.T) {
 		}
 		post.AddProp(model.PostPropsFromWebhook, "true")
 
-		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
 		_, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
@@ -1440,14 +1439,14 @@ func TestCreatePostAsUser(t *testing.T) {
 			UserId:    bot.UserId,
 		}
 
-		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
 		_, appErr = th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
@@ -1496,7 +1495,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		rootPost, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
@@ -1509,7 +1508,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		_, appErr = th.App.CreatePostAsUser(th.Context, replyPost, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		require.NotEqual(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
@@ -1533,7 +1532,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		rootPost, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
@@ -1546,7 +1545,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		_, appErr = th.App.CreatePostAsUser(th.Context, replyPost, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
@@ -2963,7 +2962,7 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 
 	threadMembership, appErr := th.App.GetThreadMembershipForUser(user.Id, p1.Id)
 	require.Nil(t, appErr)
-	thread, appErr := th.App.GetThreadForUser(threadMembership, false)
+	thread, appErr := th.App.GetThreadForUser(th.Context, threadMembership, false)
 	require.Nil(t, appErr)
 	require.Len(t, thread.Participants, 1) // length should be 1, the original poster, since sysadmin was just mentioned but didn't post
 
@@ -2972,7 +2971,7 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 
 	threadMembership, appErr = th.App.GetThreadMembershipForUser(user.Id, p1.Id)
 	require.Nil(t, appErr)
-	thread, appErr = th.App.GetThreadForUser(threadMembership, false)
+	thread, appErr = th.App.GetThreadForUser(th.Context, threadMembership, false)
 	require.Nil(t, appErr)
 	require.Len(t, thread.Participants, 2) // length should be 2, the original poster and sysadmin, since sysadmin participated now
 
@@ -2982,7 +2981,7 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 
 	threadMembership, appErr = th.App.GetThreadMembershipForUser(user2.Id, p1.Id)
 	require.Nil(t, appErr)
-	thread, appErr = th.App.GetThreadForUser(threadMembership, false)
+	thread, appErr = th.App.GetThreadForUser(th.Context, threadMembership, false)
 	require.Nil(t, appErr)
 	require.Len(t, thread.Participants, 2) // length should be 2, since follow shouldn't update participant list, only user1 and sysadmin are participants
 	for _, p := range thread.Participants {
@@ -2991,13 +2990,13 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 
 	oldID := threadMembership.PostId
 	threadMembership.PostId = "notfound"
-	_, appErr = th.App.GetThreadForUser(threadMembership, false)
+	_, appErr = th.App.GetThreadForUser(th.Context, threadMembership, false)
 	require.NotNil(t, appErr)
 	assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
 
 	threadMembership.Following = false
 	threadMembership.PostId = oldID
-	_, appErr = th.App.GetThreadForUser(threadMembership, false)
+	_, appErr = th.App.GetThreadForUser(th.Context, threadMembership, false)
 	require.NotNil(t, appErr)
 	assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
 }
@@ -3203,7 +3202,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		require.Len(t, thread.Participants, 1)
 
 		// extended fetch posts page
-		l, appErr := th.App.GetPostsPage(model.GetPostsOptions{
+		l, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
 			UserId:                   user1.Id,
 			ChannelId:                channel.Id,
 			PerPage:                  int(10),
@@ -3233,7 +3232,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 			CollapsedThreadsExtended: true,
 		}
 
-		l, appErr = th.App.GetPostThread(postRoot.Id, opts, user1.Id)
+		l, appErr = th.App.GetPostThread(th.Context, postRoot.Id, opts, user1.Id)
 		require.Nil(t, appErr)
 		require.Len(t, l.Order, 2)
 		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)
