@@ -3701,7 +3701,7 @@ func (s *AccessControlSettings) SetDefaults() {
 	}
 
 	if s.EnableChannelScopeAccessControl == nil {
-		s.EnableChannelScopeAccessControl = NewPointer(false)
+		s.EnableChannelScopeAccessControl = NewPointer(true)
 	}
 
 	if s.EnableUserManagedAttributes == nil {
