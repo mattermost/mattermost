@@ -625,7 +625,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Neplatný název ovladače pro SQL windows. Musí být 'mysql' nebo 'postgres'."
+    "translation": "Neplatný název ovladače pro SQL. Musí být 'postgres'."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -5705,7 +5705,7 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Nevalidní uživatel - „auth data“ musí být zadána s „auth type\"."
+    "translation": "Neplatný uživatel: Autentizační data mohou být nastavena pouze pokud uživatel používá externí autentizační službu, nikoliv email/heslo."
   },
   {
     "id": "model.user.is_valid.password_limit.app_error",
@@ -10430,5 +10430,33 @@
   {
     "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
     "translation": "Neplatná aktualizace člena kanálu: Člen kanálu vždy musí mít uživatelský plán."
+  },
+  {
+    "id": "api.command_share.service_inactive",
+    "translation": "Služba sdílených kanálů je zapnuta, ale neaktivní."
+  },
+  {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "Označování obsahu je vypnuto."
+  },
+  {
+    "id": "api.content_flagging.error.license",
+    "translation": "Vaše licence nepodporuje označování obsahu."
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Neplatný typ testu: {{.TestType}}"
+  },
+  {
+    "id": "api.not_implemented",
+    "translation": "Tato vlastnost není implementována."
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Import vzdáleného clusteru není povolen"
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Pozvání hostů do tohoto kanálu není umožněno, protože má nastavené omezení na základě uživatelských vlastností."
   }
 ]
