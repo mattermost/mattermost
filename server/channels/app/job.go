@@ -105,7 +105,7 @@ func (a *App) CreateAccessControlSyncJob(rctx request.CTX, jobData map[string]st
 				mlog.String("policy_id", policyID),
 				mlog.String("status", job.Status))
 
-			// Follow team.go pattern: directly cancel jobs for deduplication
+			// directly cancel jobs for deduplication
 			if err := a.Srv().Jobs.SetJobCanceled(job); err != nil {
 				rctx.Logger().Warn("Failed to cancel existing access control sync job",
 					mlog.String("job_id", job.Id),
@@ -114,8 +114,6 @@ func (a *App) CreateAccessControlSyncJob(rctx request.CTX, jobData map[string]st
 			}
 		}
 	}
-	// If no policy_id is provided, this is a system-wide job (from system console)
-	// System-wide jobs don't need channel-specific deduplication - they process all policies
 
 	// Create the new job
 	return a.Srv().Jobs.CreateJob(rctx, model.JobTypeAccessControlSync, jobData)
