@@ -1181,7 +1181,7 @@ func TestSubmitDialogResponse_IsValid(t *testing.T) {
 		"invalid form type with invalid form": {
 			response: &SubmitDialogResponse{
 				Type: "form",
-				Form: &Dialog{}, // Invalid dialog - no title
+				Form: &Dialog{}, // Invalid dialog
 			},
 			wantErr: "invalid form: 1 error occurred:\n\t* invalid dialog title \"\"",
 		},

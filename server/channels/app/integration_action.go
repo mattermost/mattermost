@@ -538,7 +538,11 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 
 	// Validate the response
 	if err := response.IsValid(); err != nil {
-		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.invalid_response", nil, err.Error(), http.StatusBadRequest)
+		if strings.Contains(err.Error(), "invalid form") {
+			rctx.Logger().Info("Interactive dialog is invalid", mlog.Err(err))
+		} else {
+			return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.invalid_response", nil, err.Error(), http.StatusBadRequest)
+		}
 	}
 
 	return &response, nil
