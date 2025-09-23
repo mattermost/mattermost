@@ -345,7 +345,7 @@ func (a *App) sendPostUpdateEvent(rctx request.CTX, post *model.Post) {
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", post.ChannelId, "", nil, "")
 
 	// Prepare the post with metadata for the event
-	preparedPost := a.PreparePostForClient(rctx, post, false, true, true)
+	preparedPost := a.PreparePostForClient(rctx, post, &model.PreparePostForClientOpts{IsEditPost: true, IncludePriority: true})
 
 	if appErr := a.publishWebsocketEventForPost(rctx, preparedPost, message); appErr != nil {
 		rctx.Logger().Warn("Failed to send post update event for acknowledgement sync", mlog.String("post_id", post.Id), mlog.Err(appErr))

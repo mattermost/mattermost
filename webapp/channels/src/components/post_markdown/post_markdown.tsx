@@ -9,7 +9,7 @@ import type {Post} from '@mattermost/types/posts';
 import {Posts} from 'mattermost-redux/constants';
 
 import Markdown from 'components/markdown';
-import DataSpillageReport from 'components/post_view/data_spillage_report/data_spillage_report';
+import {DataSpillageReport} from 'components/post_view/data_spillage_report/data_spillage_report';
 
 import {PostTypes} from 'utils/constants';
 import {isChannelNamesMap, type TextFormattingOptions} from 'utils/text_formatting';

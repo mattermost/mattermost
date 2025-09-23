@@ -8,17 +8,22 @@ import (
 	"fmt"
 	"maps"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/public/utils"
+	"github.com/pkg/errors"
 )
 
 const (
 	CONTENT_FLAGGING_MAX_PROPERTY_FIELDS = 100
 	CONTENT_FLAGGING_MAX_PROPERTY_VALUES = 100
+
+	POST_PROP_KEY_FLAGGED_POST_ID = "reported_post_id"
 )
 
 func ContentFlaggingEnabledForTeam(config *model.Config, teamId string) bool {
@@ -51,7 +56,7 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 		return appErr
 	}
 
-	groupId, appErr := a.contentFlaggingGroupId()
+	groupId, appErr := a.ContentFlaggingGroupId()
 	if appErr != nil {
 		return appErr
 	}
@@ -66,7 +71,7 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 		return appErr
 	}
 
-	mappedFields, appErr := a.getContentFlaggingMappedFields(groupId)
+	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupId)
 	if appErr != nil {
 		return appErr
 	}
@@ -136,7 +141,7 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 	return a.sendContentFlaggingConfirmationMessage(rctx, reportingUserId, post.UserId, post.ChannelId)
 }
 
-func (a *App) contentFlaggingGroupId() (string, *model.AppError) {
+func (a *App) ContentFlaggingGroupId() (string, *model.AppError) {
 	group, err := a.Srv().propertyService.GetPropertyGroup(model.ContentFlaggingGroupName)
 	if err != nil {
 		return "", model.NewAppError("getContentFlaggingGroupId", "app.content_flagging.get_group.error", nil, err.Error(), http.StatusInternalServerError)
@@ -144,27 +149,44 @@ func (a *App) contentFlaggingGroupId() (string, *model.AppError) {
 	return group.ID, nil
 }
 
-func (a *App) canFlagPost(groupId, postId, userLocal string) *model.AppError {
+func (a *App) GetPostContentFlaggingStatusValue(postId string) (*model.PropertyValue, *model.AppError) {
+	groupId, appErr := a.ContentFlaggingGroupId()
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	statusPropertyField, err := a.Srv().propertyService.GetPropertyFieldByName(groupId, "", contentFlaggingPropertyNameStatus)
 	if err != nil {
-		return model.NewAppError("canFlagPost", "app.content_flagging.get_status_property.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetPostContentFlaggingStatusValue", "app.content_flagging.get_status_property.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	searchOptions := model.PropertyValueSearchOpts{TargetIDs: []string{postId}, PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES, FieldID: statusPropertyField.ID}
 	propertyValues, err := a.Srv().propertyService.SearchPropertyValues(groupId, searchOptions)
 	if err != nil {
-		return model.NewAppError("canFlagPost", "app.content_flagging.search_status_property.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetPostContentFlaggingStatusValue", "app.content_flagging.search_status_property.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if len(propertyValues) == 0 {
-		// If no status property exist for the post, we can flag it
+		return nil, nil
+	}
+
+	return propertyValues[0], nil
+}
+
+func (a *App) canFlagPost(groupId, postId, userLocal string) *model.AppError {
+	status, appErr := a.GetPostContentFlaggingStatusValue(postId)
+	if appErr != nil {
+		return appErr
+	}
+
+	if status == nil {
 		return nil
 	}
 
 	var reason string
 	T := i18n.GetUserTranslations(userLocal)
 
-	switch strings.Trim(string(propertyValues[0].Value), `"`) {
+	switch strings.Trim(string(status.Value), `"`) {
 	case model.ContentFlaggingStatusPending, model.ContentFlaggingStatusAssigned:
 		reason = T("app.content_flagging.can_flag_post.in_progress")
 	case model.ContentFlaggingStatusRetained:
@@ -178,10 +200,10 @@ func (a *App) canFlagPost(groupId, postId, userLocal string) *model.AppError {
 	return model.NewAppError("canFlagPost", reason, nil, "", http.StatusBadRequest)
 }
 
-func (a *App) getContentFlaggingMappedFields(groupId string) (map[string]*model.PropertyField, *model.AppError) {
+func (a *App) GetContentFlaggingMappedFields(groupId string) (map[string]*model.PropertyField, *model.AppError) {
 	fields, err := a.Srv().propertyService.SearchPropertyFields(groupId, model.PropertyFieldSearchOpts{PerPage: CONTENT_FLAGGING_MAX_PROPERTY_FIELDS})
 	if err != nil {
-		return nil, model.NewAppError("getContentFlaggingMappedFields", "app.content_flagging.search_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetContentFlaggingMappedFields", "app.content_flagging.search_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	mappedFields := map[string]*model.PropertyField{}
@@ -210,6 +232,7 @@ func (a *App) createContentReviewPost(rctx request.CTX, teamId, postId string) *
 			Type:      model.ContentFlaggingPostType,
 			ChannelId: channel.Id,
 		}
+		post.AddProp(POST_PROP_KEY_FLAGGED_POST_ID, postId)
 		_, appErr := a.CreatePost(rctx, post, channel, model.CreatePostFlags{})
 		if appErr != nil {
 			rctx.Logger().Error("Failed to create content review post in one of the channels", mlog.Err(appErr), mlog.String("channel_id", channel.Id), mlog.String("team_id", teamId))
@@ -221,7 +244,7 @@ func (a *App) createContentReviewPost(rctx request.CTX, teamId, postId string) *
 }
 
 func (a *App) getContentReviewChannels(rctx request.CTX, teamId, contentReviewBotId string) ([]*model.Channel, *model.AppError) {
-	reviewersUserIDs, appErr := a.getReviewersForTeam(teamId)
+	reviewersUserIDs, appErr := a.getReviewersForTeam(teamId, true)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -244,7 +267,7 @@ func (a *App) getContentReviewBot(rctx request.CTX) (*model.Bot, *model.AppError
 	return a.GetOrCreateSystemOwnedBot(rctx, model.ContentFlaggingBotUsername, i18n.T("app.system.content_review_bot.bot_displayname"))
 }
 
-func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
+func (a *App) getReviewersForTeam(teamId string, includeAdditionalReviewers bool) ([]string, *model.AppError) {
 	reviewerUserIDMap := map[string]bool{}
 
 	reviewerSettings := a.Config().ContentFlaggingSettings.ReviewerSettings
@@ -263,55 +286,26 @@ func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
 		}
 	}
 
-	// Additional reviewers
-	if *reviewerSettings.TeamAdminsAsReviewers {
-		options := &model.UserGetOptions{
-			InTeamId:  teamId,
-			Page:      0,
-			PerPage:   100,
-			Active:    true,
-			TeamRoles: []string{model.TeamAdminRoleId},
-		}
-
-		for {
-			page, appErr := a.GetUsersInTeam(options)
+	if includeAdditionalReviewers {
+		var additionalReviewers []*model.User
+		if *reviewerSettings.TeamAdminsAsReviewers {
+			teamAdminReviewers, appErr := a.getAllUsersInTeamForRoles(teamId, nil, []string{model.TeamAdminRoleId})
 			if appErr != nil {
-				return nil, model.NewAppError("getReviewersForTeam", "app.content_flagging.get_users_in_team.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
+				return nil, appErr
 			}
-
-			for _, user := range page {
-				reviewerUserIDMap[user.Id] = true
-			}
-			if len(page) < options.PerPage {
-				break
-			}
-			options.Page++
-		}
-	}
-
-	if *reviewerSettings.SystemAdminsAsReviewers {
-		options := &model.UserGetOptions{
-			InTeamId: teamId,
-			Page:     0,
-			PerPage:  100,
-			Active:   true,
-			Roles:    []string{model.SystemAdminRoleId},
+			additionalReviewers = append(additionalReviewers, teamAdminReviewers...)
 		}
 
-		for {
-			page, appErr := a.GetUsersInTeam(options)
+		if *reviewerSettings.SystemAdminsAsReviewers {
+			sysAdminReviewers, appErr := a.getAllUsersInTeamForRoles(teamId, []string{model.SystemAdminRoleId}, nil)
 			if appErr != nil {
-				return nil, model.NewAppError("getReviewersForTeam", "app.content_flagging.get_users_in_team.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
+				return nil, appErr
 			}
+			additionalReviewers = append(additionalReviewers, sysAdminReviewers...)
+		}
 
-			for _, user := range page {
-				reviewerUserIDMap[user.Id] = true
-			}
-
-			if len(page) < options.PerPage {
-				break
-			}
-			options.Page++
+		for _, user := range additionalReviewers {
+			reviewerUserIDMap[user.Id] = true
 		}
 	}
 
@@ -321,6 +315,38 @@ func (a *App) getReviewersForTeam(teamId string) ([]string, *model.AppError) {
 	}
 
 	return reviewerUserIDs, nil
+}
+
+func (a *App) getAllUsersInTeamForRoles(teamId string, systemRoles, teamRoles []string) ([]*model.User, *model.AppError) {
+	var additionalReviewers []*model.User
+
+	options := &model.UserGetOptions{
+		InTeamId:  teamId,
+		Page:      0,
+		PerPage:   100,
+		Active:    true,
+		Roles:     systemRoles,
+		TeamRoles: teamRoles,
+	}
+
+	fetchFunc := func(page int) ([]*model.User, error) {
+		options.Page = page
+		users, appErr := a.GetUsersInTeam(options)
+		// Checking for error this way instead of directly returning *model.AppError
+		// doesn't equate to error == nil (pointer vs non-pointer)
+		if appErr != nil {
+			return users, errors.New(appErr.Error())
+		}
+
+		return users, nil
+	}
+
+	additionalReviewers, err := utils.Pager(fetchFunc, options.PerPage)
+	if err != nil {
+		return nil, model.NewAppError("getReviewersForTeam", "app.content_flagging.get_users_in_team.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
+	}
+
+	return additionalReviewers, nil
 }
 
 func (a *App) sendContentFlaggingConfirmationMessage(rctx request.CTX, flaggingUserId, flaggedPostAuthorId, channelID string) *model.AppError {
@@ -337,4 +363,40 @@ func (a *App) sendContentFlaggingConfirmationMessage(rctx request.CTX, flaggingU
 
 	a.SendEphemeralPost(rctx, flaggingUserId, post)
 	return nil
+}
+
+func (a *App) IsUserTeamContentReviewer(userId, teamId string) (bool, *model.AppError) {
+	// not fetching additional reviewers because if the user exist in common or team
+	// specific reviewers, they are definitely a reviewer, and it saves multiple database calls.
+	reviewers, appErr := a.getReviewersForTeam(teamId, false)
+	if appErr != nil {
+		return false, appErr
+	}
+
+	if slices.Contains(reviewers, userId) {
+		return true, nil
+	}
+
+	// if user is not in common or team specific reviewers, we need to check if they are
+	// an additional reviewer.
+	reviewers, appErr = a.getReviewersForTeam(teamId, true)
+	if appErr != nil {
+		return false, appErr
+	}
+
+	return slices.Contains(reviewers, userId), nil
+}
+
+func (a *App) GetPostContentFlaggingPropertyValues(postId string) ([]*model.PropertyValue, *model.AppError) {
+	groupId, appErr := a.ContentFlaggingGroupId()
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	propertyValues, err := a.Srv().propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{TargetIDs: []string{postId}, PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES})
+	if err != nil {
+		return nil, model.NewAppError("GetPostContentFlaggingPropertyValues", "app.content_flagging.search_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return propertyValues, nil
 }

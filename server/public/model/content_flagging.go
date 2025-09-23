@@ -18,10 +18,10 @@ const (
 )
 
 const (
-	ContentFlaggingStatusPending  = "pending"
-	ContentFlaggingStatusAssigned = "assigned"
-	ContentFlaggingStatusRemoved  = "removed"
-	ContentFlaggingStatusRetained = "retained"
+	ContentFlaggingStatusPending  = "Pending"
+	ContentFlaggingStatusAssigned = "Assigned"
+	ContentFlaggingStatusRemoved  = "Removed"
+	ContentFlaggingStatusRetained = "Retained"
 )
 
 type FlagContentRequest struct {

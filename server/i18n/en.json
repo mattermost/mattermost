@@ -1754,12 +1754,20 @@
     "translation": "Content flagging feature is not enabled on this team."
   },
   {
+    "id": "api.content_flagging.error.post_not_flagged",
+    "translation": "Cannot fetch flagged post as the post is not flagged."
+  },
+  {
     "id": "api.content_flagging.error.reason_invalid",
     "translation": "Unknown reason specified for flagging message."
   },
   {
     "id": "api.content_flagging.error.reason_required",
     "translation": "Please select a reason for flagging this message."
+  },
+  {
+    "id": "api.content_flagging.error.reviewer_only",
+    "translation": "You do not have permission to view this resource."
   },
   {
     "id": "api.context.404.app_error",
@@ -5157,6 +5165,10 @@
   {
     "id": "app.content_flagging.search_property_fields.app_error",
     "translation": "Failed to search Content Flagging property fields."
+  },
+  {
+    "id": "app.content_flagging.search_property_values.app_error",
+    "translation": "Failed to fetch post's content flagging property values from the database."
   },
   {
     "id": "app.content_flagging.search_status_property.app_error",
