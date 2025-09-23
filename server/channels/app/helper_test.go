@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -567,7 +566,7 @@ func (th *TestHelper) CreateScheme(tb testing.TB) (*model.Scheme, []*model.Role)
 
 	var roles []*model.Role
 	for _, roleName := range roleNames {
-		role, err := th.App.GetRoleByName(context.Background(), roleName)
+		role, err := th.App.GetRoleByName(th.Context, roleName)
 		require.Nil(tb, err)
 		roles = append(roles, role)
 	}
@@ -712,7 +711,7 @@ func (th *TestHelper) SetupPluginAPI() *PluginAPI {
 }
 
 func (th *TestHelper) RemovePermissionFromRole(tb testing.TB, permission string, roleName string) {
-	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
+	role, err1 := th.App.GetRoleByName(th.Context, roleName)
 	require.Nil(tb, err1)
 
 	var newPermissions []string
@@ -733,7 +732,7 @@ func (th *TestHelper) RemovePermissionFromRole(tb testing.TB, permission string,
 }
 
 func (th *TestHelper) AddPermissionToRole(tb testing.TB, permission string, roleName string) {
-	role, appErr := th.App.GetRoleByName(context.Background(), roleName)
+	role, appErr := th.App.GetRoleByName(th.Context, roleName)
 	require.Nil(tb, appErr)
 
 	if slices.Contains(role.Permissions, permission) {

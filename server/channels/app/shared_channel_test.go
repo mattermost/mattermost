@@ -189,7 +189,7 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 		require.NoError(t, err)
 
 		// Get post count before "remote-initiated unshare"
-		postsBeforeRemove, appErr := th.App.GetPostsPage(model.GetPostsOptions{
+		postsBeforeRemove, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
 			ChannelId: channel.Id,
 			Page:      0,
 			PerPage:   10,
@@ -224,7 +224,7 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 		assert.Error(t, err, "Channel should no longer be shared after error handling")
 
 		// Verify a system message was posted to inform users the channel is no longer shared
-		postsAfterRemove, appErr := th.App.GetPostsPage(model.GetPostsOptions{
+		postsAfterRemove, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
 			ChannelId: channel.Id,
 			Page:      0,
 			PerPage:   10,
@@ -369,7 +369,7 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Get post count after creating the test post but before "remote-initiated unshare"
-		postsBeforeRemove, appErr := th.App.GetPostsPage(model.GetPostsOptions{
+		postsBeforeRemove, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
 			ChannelId: channel.Id,
 			Page:      0,
 			PerPage:   10,
@@ -417,7 +417,7 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 		assert.True(t, hasRemote2After, "Channel should still be shared with remote 2")
 
 		// Verify a system message was posted about remote 1 unsharing
-		postsAfterRemove, appErr := th.App.GetPostsPage(model.GetPostsOptions{
+		postsAfterRemove, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
 			ChannelId: channel.Id,
 			Page:      0,
 			PerPage:   10,
@@ -538,7 +538,7 @@ func TestSyncMessageErrChannelNotSharedResponse(t *testing.T) {
 	require.False(t, hasRemoteAfter, "Channel should no longer be shared with remote after error")
 
 	// Verify a system message was posted
-	posts, appErr := th.App.GetPostsPage(model.GetPostsOptions{
+	posts, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
 		ChannelId: channel.Id,
 		Page:      0,
 		PerPage:   10,

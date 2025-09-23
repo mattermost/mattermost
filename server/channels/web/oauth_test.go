@@ -778,7 +778,7 @@ func (th *TestHelper) SaveDefaultRolePermissions(tb testing.TB) map[string][]str
 		"channel_user",
 		"channel_admin",
 	} {
-		role, appErr := th.App.GetRoleByName(context.Background(), roleName)
+		role, appErr := th.App.GetRoleByName(th.Context, roleName)
 		require.Nil(tb, appErr)
 
 		results[roleName] = role.Permissions
@@ -788,7 +788,7 @@ func (th *TestHelper) SaveDefaultRolePermissions(tb testing.TB) map[string][]str
 
 func (th *TestHelper) RestoreDefaultRolePermissions(tb testing.TB, data map[string][]string) {
 	for roleName, permissions := range data {
-		role, appErr := th.App.GetRoleByName(context.Background(), roleName)
+		role, appErr := th.App.GetRoleByName(th.Context, roleName)
 		require.Nil(tb, appErr)
 
 		if strings.Join(role.Permissions, " ") == strings.Join(permissions, " ") {
@@ -835,7 +835,7 @@ func (th *TestHelper) RestoreDefaultRolePermissions(tb testing.TB, data map[stri
 // }
 
 func (th *TestHelper) AddPermissionToRole(tb testing.TB, permission string, roleName string) {
-	role, appErr := th.App.GetRoleByName(context.Background(), roleName)
+	role, appErr := th.App.GetRoleByName(th.Context, roleName)
 	require.Nil(tb, appErr)
 
 	if slices.Contains(role.Permissions, permission) {

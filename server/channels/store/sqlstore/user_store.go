@@ -244,18 +244,29 @@ func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateD
 	if !trustedUpdateData {
 		user.Roles = oldUser.Roles
 		user.DeleteAt = oldUser.DeleteAt
-	}
 
-	if user.IsOAuthUser() {
-		if !trustedUpdateData {
+		if user.IsOAuthUser() {
 			user.Email = oldUser.Email
 		}
-	} else if user.IsLDAPUser() && !trustedUpdateData {
-		if user.Username != oldUser.Username || user.Email != oldUser.Email {
-			return nil, store.NewErrInvalidInput("User", "id", user.Id)
+
+		if user.IsLDAPUser() {
+			if user.Username != oldUser.Username {
+				return nil, store.NewErrInvalidInput("User", "id", user.Id)
+			}
+			if user.Email != oldUser.Email {
+				return nil, store.NewErrInvalidInput("User", "email", user.Id)
+			}
 		}
-	} else if user.Email != oldUser.Email {
-		user.EmailVerified = false
+
+		if user.Email != oldUser.Email {
+			user.EmailVerified = false
+		}
+	}
+
+	// In the past, changing the email of a SSO user would mark the email as unverified.
+	// This is a lazy migration to fix broken records.
+	if user.IsSSOUser() {
+		user.EmailVerified = true
 	}
 
 	if user.Username != oldUser.Username {
@@ -499,10 +510,10 @@ func (us SqlUserStore) GetMfaUsedTimestamps(userId string) ([]int, error) {
 }
 
 // GetMany returns a list of users for the provided list of ids
-func (us SqlUserStore) GetMany(ctx context.Context, ids []string) ([]*model.User, error) {
+func (us SqlUserStore) GetMany(rctx request.CTX, ids []string) ([]*model.User, error) {
 	query := us.usersQuery.Where(sq.Eq{"Id": ids})
 	users := []*model.User{}
-	if err := us.SqlStore.DBXFromContext(ctx).SelectBuilderCtx(ctx, &users, query); err != nil {
+	if err := us.SqlStore.DBXFromContext(rctx.Context()).SelectBuilderCtx(rctx.Context(), &users, query); err != nil {
 		return nil, errors.Wrap(err, "users_get_many_select")
 	}
 
@@ -1102,7 +1113,7 @@ func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int, view
 	return users, nil
 }
 
-func (us SqlUserStore) GetProfileByIds(ctx context.Context, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
+func (us SqlUserStore) GetProfileByIds(rctx request.CTX, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
 	if options == nil {
 		options = &store.UserGetByIdsOpts{}
 	}
@@ -1127,7 +1138,7 @@ func (us SqlUserStore) GetProfileByIds(ctx context.Context, userIds []string, op
 		return nil, errors.Wrap(err, "get_profile_by_ids_tosql")
 	}
 
-	if err := us.SqlStore.DBXFromContext(ctx).Select(&users, queryString, args...); err != nil {
+	if err := us.SqlStore.DBXFromContext(rctx.Context()).Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
