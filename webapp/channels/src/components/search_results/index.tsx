@@ -6,11 +6,10 @@ import {connect} from 'react-redux';
 import type {FileSearchResultItem} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getSearchFilesResults} from 'mattermost-redux/selectors/entities/files';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getSearchMatches, getSearchResults} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {makeAddDateSeparatorsForSearchResults} from 'mattermost-redux/utils/post_list';
 
 import {
     getSearchResultsTerms,
@@ -32,12 +31,9 @@ function makeMapStateToProps() {
     let fileResults: FileSearchResultItem[];
     let files: FileSearchResultItem[] = [];
     let posts: Post[];
+    const addDateSeparatorsForSearchResults = makeAddDateSeparatorsForSearchResults();
 
-    return function mapStateToProps(state: GlobalState) {
-        const config = getConfig(state);
-
-        const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
-
+    return function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         const newResults = getSearchResults(state);
 
         // Cache posts and channels
@@ -52,6 +48,10 @@ function makeMapStateToProps() {
 
                 posts.push(post);
             });
+
+            if (ownProps.isPinnedPosts) {
+                results = results.sort((postA: Post | FileSearchResultItem, postB: Post | FileSearchResultItem) => postB.create_at - postA.create_at);
+            }
         }
 
         const newFilesResults = getSearchFilesResults(state);
@@ -66,11 +66,6 @@ function makeMapStateToProps() {
                     return;
                 }
 
-                const channel = getChannel(state, file.channel_id);
-                if (channel && channel.delete_at !== 0 && !viewArchivedChannels) {
-                    return;
-                }
-
                 files.push(file);
             });
         }
@@ -80,8 +75,10 @@ function makeMapStateToProps() {
         const currentSearch = (getCurrentSearchForSearchTeam(state) as unknown as Record<string, any>) || {};
         const currentTeamName = getCurrentTeam(state)?.name ?? '';
 
+        const resultsWithDateSeparators = addDateSeparatorsForSearchResults(state, results);
+
         return {
-            results: posts,
+            results: resultsWithDateSeparators,
             fileResults: files,
             matches: getSearchMatches(state),
             searchTerms: getSearchResultsTerms(state),

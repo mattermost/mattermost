@@ -17,8 +17,6 @@ import {LogErrorBarMode} from 'mattermost-redux/actions/errors';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import SettingPicture from 'components/setting_picture';
@@ -253,8 +251,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
         user.username = username;
 
-        trackEvent('settings', 'user_settings_update', {field: 'username'});
-
         this.submitUser(user, false);
     };
 
@@ -268,8 +264,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         }
 
         user.nickname = nickname;
-
-        trackEvent('settings', 'user_settings_update', {field: 'nickname'});
 
         this.submitUser(user, false);
     };
@@ -287,8 +281,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         user.first_name = firstName;
         user.last_name = lastName;
 
-        trackEvent('settings', 'user_settings_update', {field: 'fullname'});
-
         this.submitUser(user, false);
     };
 
@@ -305,7 +297,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
         user.email = email;
         user.password = currentPassword;
-        trackEvent('settings', 'user_settings_update', {field: 'email'});
         this.submitUser(user, true);
     };
 
@@ -388,8 +379,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             return;
         }
 
-        trackEvent('settings', 'user_settings_update', {field: 'picture'});
-
         const {formatMessage} = this.props.intl;
         const file = this.state.pictureFile;
 
@@ -427,8 +416,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
         user.position = position;
 
-        trackEvent('settings', 'user_settings_update', {field: 'position'});
-
         this.submitUser(user, false);
     };
 
@@ -465,7 +452,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         if (attributeField.type === 'multiselect' && !attributeValue) {
             attributeValue = [];
         }
-        trackEvent('settings', 'user_settings_update', {field: 'customAttributeValues-' + attributeID});
 
         this.setState({sectionIsSaving: true});
 
@@ -1511,6 +1497,15 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             <FormattedMessage
                                 id='user.settings.general.field_handled_externally'
                                 defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
+                            />
+                        </span>
+                    );
+                } else if (attribute.attrs?.managed === 'admin') {
+                    extraInfo = (
+                        <span>
+                            <FormattedMessage
+                                id='user.settings.general.field_managed_by_admin'
+                                defaultMessage='This field can only be changed by an administrator.'
                             />
                         </span>
                     );

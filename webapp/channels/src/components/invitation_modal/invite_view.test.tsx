@@ -9,7 +9,7 @@ import type {Team} from '@mattermost/types/teams';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import {mountWithThemedIntl} from 'tests/helpers/themed-intl-test-helper';
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 import {SelfHostedProducts} from 'utils/constants';
 import {TestHelper as TH} from 'utils/test_helper';
@@ -127,7 +127,7 @@ describe('InviteView', () => {
 
     it('shows InviteAs component when user can choose to invite guests or users', async () => {
         await act(async () => {
-            const wrapper = mountWithThemedIntl(
+            const wrapper = mountWithIntl(
                 <Provider store={store}>
                     <InviteView {...props}/>
                 </Provider>,
@@ -143,7 +143,7 @@ describe('InviteView', () => {
         };
 
         await act(async () => {
-            const wrapper = mountWithThemedIntl(
+            const wrapper = mountWithIntl(
                 <Provider store={store}>
                     <InviteView {...props}/>
                 </Provider>,
@@ -159,7 +159,7 @@ describe('InviteView', () => {
         };
 
         await act(async () => {
-            const wrapper = mountWithThemedIntl(
+            const wrapper = mountWithIntl(
                 <Provider store={store}>
                     <InviteView {...props}/>
                 </Provider>,

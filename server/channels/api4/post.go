@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
 	"strconv"
 	"time"
 
@@ -80,7 +81,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	post.SanitizeInput()
 	post.UserId = c.AppContext.Session().UserId
 
-	auditRec := c.MakeAuditRecord("createPost", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreatePost, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "post", &post)
 
@@ -221,23 +222,11 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !*c.App.Config().TeamSettings.ExperimentalViewArchivedChannels {
-		channel, appErr := c.App.GetChannel(c.AppContext, channelId)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-		if channel.DeleteAt != 0 {
-			c.Err = model.NewAppError("Api4.getPostsForChannel", "api.user.view_archived_channels.get_posts_for_channel.app_error", nil, "", http.StatusForbidden)
-			return
-		}
-	}
-
 	var list *model.PostList
 	etag := ""
 
 	if since > 0 {
-		list, err = c.App.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
+		list, err = c.App.GetPostsSince(c.AppContext, model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
 	} else if afterPost != "" {
 		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
 
@@ -245,7 +234,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		list, err = c.App.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelId, PostId: afterPost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
+		list, err = c.App.GetPostsAfterPost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: afterPost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else if beforePost != "" {
 		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
 
@@ -253,7 +242,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		list, err = c.App.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelId, PostId: beforePost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
+		list, err = c.App.GetPostsBeforePost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: beforePost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else {
 		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
 
@@ -261,7 +250,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		list, err = c.App.GetPostsPage(model.GetPostsOptions{ChannelId: channelId, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
+		list, err = c.App.GetPostsPage(c.AppContext, model.GetPostsOptions{ChannelId: channelId, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	}
 
 	if err != nil {
@@ -332,7 +321,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 			return
 		}
 
-		postList, err = c.App.GetPostsPage(model.GetPostsOptions{ChannelId: channelId, Page: app.PageDefault, PerPage: c.Params.LimitBefore, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
+		postList, err = c.App.GetPostsPage(c.AppContext, model.GetPostsOptions{ChannelId: channelId, Page: app.PageDefault, PerPage: c.Params.LimitBefore, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
 		if err != nil {
 			c.Err = err
 			return
@@ -582,7 +571,7 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 
 	permanent := c.Params.Permanent
 
-	auditRec := c.MakeAuditRecord("deletePost", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeletePost, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	model.AddEventParameterToAuditRec(auditRec, "post_id", c.Params.PostId)
 	model.AddEventParameterToAuditRec(auditRec, "permanent", permanent)
@@ -716,7 +705,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		FromCreateAt:             fromCreateAt,
 		FromUpdateAt:             fromUpdateAt,
 	}
-	list, err := c.App.GetPostThread(c.Params.PostId, opts, c.AppContext.Session().UserId)
+	list, err := c.App.GetPostThread(c.AppContext, c.Params.PostId, opts, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -818,7 +807,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 		includeDeletedChannels = *params.IncludeDeletedChannels
 	}
 
-	auditRec := c.MakeAuditRecord("searchPosts", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventSearchPosts, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelAPI)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "search_params", params)
 
@@ -867,7 +856,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updatePost", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdatePost, model.AuditStatusFail)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "post", &post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
@@ -942,7 +931,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchPost", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventPatchPost, model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.PostId)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "patch", &post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
@@ -1065,7 +1054,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("saveIsPinnedPost", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventSaveIsPinnedPost, model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "post_id", c.Params.PostId)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
@@ -1202,7 +1191,7 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("moveThread", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventMoveThread, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	model.AddEventParameterToAuditRec(auditRec, "original_post_id", c.Params.PostId)
 	model.AddEventParameterToAuditRec(auditRec, "to_channel_id", moveThreadParams.ChannelId)
@@ -1233,12 +1222,10 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userHasEmailDomain := len(c.App.Config().WranglerSettings.AllowedEmailDomain) == 0
-	for _, domain := range c.App.Config().WranglerSettings.AllowedEmailDomain {
-		if user.EmailDomain() == domain {
-			userHasEmailDomain = true
-			break
-		}
+	userHasEmailDomain := true
+	// Only check the user's email domain if a list of allowed domains is configured
+	if len(c.App.Config().WranglerSettings.AllowedEmailDomain) > 0 {
+		userHasEmailDomain = slices.Contains(c.App.Config().WranglerSettings.AllowedEmailDomain, user.EmailDomain())
 	}
 
 	if !userHasEmailDomain && !user.IsSystemAdmin() {
@@ -1343,7 +1330,7 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("restorePostVersion", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRestorePostVersion, model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.PostId)
 	model.AddEventParameterToAuditRec(auditRec, "restore_version_id", restoreVersionId)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)

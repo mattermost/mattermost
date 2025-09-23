@@ -21,7 +21,6 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/hashicorp/go-plugin"
 	"github.com/lib/pq"
 
@@ -105,10 +104,6 @@ func encodableError(err error) error {
 		return err
 	}
 
-	if _, ok := err.(*mysql.MySQLError); ok {
-		return err
-	}
-
 	ret := &ErrorString{
 		Err: err.Error(),
 	}
@@ -162,7 +157,6 @@ func init() {
 	gob.Register(map[string]any{})
 	gob.Register(&model.AppError{})
 	gob.Register(&pq.Error{})
-	gob.Register(&mysql.MySQLError{})
 	gob.Register(&ErrorString{})
 	gob.Register(&model.AutocompleteDynamicListArg{})
 	gob.Register(&model.AutocompleteStaticListArg{})

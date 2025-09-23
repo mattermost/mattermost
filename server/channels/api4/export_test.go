@@ -221,8 +221,7 @@ func BenchmarkDownloadExport(b *testing.B) {
 	err = os.Truncate(filepath.Join(exportDir, exportName), 1024*1024*1024)
 	require.NoError(b, err)
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for i := 0; b.Loop(); i++ {
 		outFilePath := filepath.Join(dataDir, fmt.Sprintf("export%d.zip", i))
 		outFile, err := os.Create(outFilePath)
 		require.NoError(b, err)

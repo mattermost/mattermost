@@ -4,14 +4,12 @@
 package app
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
 
 func TestGetJob(t *testing.T) {
@@ -44,11 +42,6 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 	jobs := []model.Job{
 		{
 			Id:       model.NewId(),
-			Type:     model.JobTypeBlevePostIndexing,
-			CreateAt: 1000,
-		},
-		{
-			Id:       model.NewId(),
 			Type:     model.JobTypeDataRetention,
 			CreateAt: 999,
 		},
@@ -65,14 +58,10 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 	}{
 		{
 			Job:                jobs[0],
-			PermissionRequired: model.PermissionCreatePostBleveIndexesJob,
-		},
-		{
-			Job:                jobs[1],
 			PermissionRequired: model.PermissionCreateDataRetentionJob,
 		},
 		{
-			Job:                jobs[2],
+			Job:                jobs[1],
 			PermissionRequired: model.PermissionCreateComplianceExportJob,
 		},
 	}
@@ -101,27 +90,12 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
 	}
 
-	ctx := sqlstore.WithMaster(context.Background())
-	role, _ := th.App.GetRoleByName(ctx, model.SystemReadOnlyAdminRoleId)
-
-	role.Permissions = append(role.Permissions, model.PermissionCreatePostBleveIndexesJob.Id)
-
-	_, err := th.App.UpdateRole(role)
-	require.Nil(t, err)
-
-	// Now system read only admin should have ability to create a Belve Post Index job but not the others
-	for _, testCase := range testCases {
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(session, &testCase.Job)
-		expectedHasPermission := testCase.Job.Type == model.JobTypeBlevePostIndexing
-		assert.Equal(t, expectedHasPermission, hasPermission)
-		require.NotNil(t, permissionRequired)
-		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
-	}
+	role, _ := th.App.GetRoleByName(RequestContextWithMaster(th.Context), model.SystemReadOnlyAdminRoleId)
 
 	role.Permissions = append(role.Permissions, model.PermissionCreateDataRetentionJob.Id)
 	role.Permissions = append(role.Permissions, model.PermissionCreateComplianceExportJob.Id)
 
-	_, err = th.App.UpdateRole(role)
+	_, err := th.App.UpdateRole(role)
 	require.Nil(t, err)
 
 	// Now system read only admin should have ability to create all jobs
@@ -131,6 +105,118 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
 	}
+}
+
+func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Create a private channel and make BasicUser a channel admin
+	privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+	_, err := th.App.AddUserToChannel(th.Context, th.BasicUser, privateChannel, false)
+	require.Nil(t, err)
+
+	// Update BasicUser to have channel admin permissions for this channel
+	_, err = th.App.UpdateChannelMemberRoles(th.Context, privateChannel.Id, th.BasicUser.Id,
+		model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+	require.Nil(t, err)
+
+	job := model.Job{
+		Id:   model.NewId(),
+		Type: model.JobTypeAccessControlSync,
+	}
+
+	t.Run("system admin can create access control sync job", func(t *testing.T) {
+		adminSession := model.Session{
+			UserId: th.SystemAdminUser.Id,
+			Roles:  model.SystemUserRoleId + " " + model.SystemAdminRoleId,
+		}
+
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(adminSession, &job)
+		assert.True(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
+	})
+
+	t.Run("channel admin can create access control sync job for their channel", func(t *testing.T) {
+		channelAdminSession := model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  model.SystemUserRoleId,
+		}
+
+		// Create job with channel-specific data (like channel admin would)
+		jobWithChannelData := model.Job{
+			Id:   model.NewId(),
+			Type: model.JobTypeAccessControlSync,
+			Data: model.StringMap{
+				"policy_id": privateChannel.Id, // Channel admin jobs have policy_id = channelID
+			},
+		}
+
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(channelAdminSession, &jobWithChannelData)
+		assert.True(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageChannelAccessRules.Id, permissionRequired.Id)
+	})
+
+	t.Run("channel admin cannot create access control sync job for other channel", func(t *testing.T) {
+		// Create another private channel that BasicUser is NOT admin of
+		otherChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+
+		// EXPLICITLY remove channel admin role from BasicUser for otherChannel
+		// (CreatePrivateChannel might auto-add admin roles)
+		_, err := th.App.UpdateChannelMemberRoles(th.Context, otherChannel.Id, th.BasicUser.Id, model.ChannelUserRoleId)
+		require.Nil(t, err)
+
+		// Verify BasicUser is NOT a channel admin of otherChannel
+		otherChannelMember, err := th.App.GetChannelMember(th.Context, otherChannel.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.NotNil(t, otherChannelMember)
+		// BasicUser should only be a regular member, not admin
+		assert.Equal(t, model.ChannelUserRoleId, otherChannelMember.Roles)
+
+		channelAdminSession := model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  model.SystemUserRoleId,
+		}
+
+		// Try to create job for channel they don't admin
+		jobWithOtherChannelData := model.Job{
+			Id:   model.NewId(),
+			Type: model.JobTypeAccessControlSync,
+			Data: model.StringMap{
+				"policy_id": otherChannel.Id,
+			},
+		}
+
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(channelAdminSession, &jobWithOtherChannelData)
+		assert.False(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
+	})
+
+	t.Run("regular user cannot create access control sync job", func(t *testing.T) {
+		regularUser := th.CreateUser()
+		regularUserSession := model.Session{
+			UserId: regularUser.Id,
+			Roles:  model.SystemUserRoleId,
+		}
+
+		// Regular user tries to create job with channel data
+		jobWithChannelData := model.Job{
+			Id:   model.NewId(),
+			Type: model.JobTypeAccessControlSync,
+			Data: model.StringMap{
+				"policy_id": privateChannel.Id,
+			},
+		}
+
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(regularUserSession, &jobWithChannelData)
+		assert.False(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
+	})
 }
 
 func TestSessionHasPermissionToReadJob(t *testing.T) {
@@ -188,8 +274,7 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
 	}
 
-	ctx := sqlstore.WithMaster(context.Background())
-	role, _ := th.App.GetRoleByName(ctx, model.SystemManagerRoleId)
+	role, _ := th.App.GetRoleByName(RequestContextWithMaster(th.Context), model.SystemManagerRoleId)
 
 	role.Permissions = append(role.Permissions, model.PermissionReadDataRetentionJob.Id)
 

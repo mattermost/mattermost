@@ -13,6 +13,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -202,9 +203,7 @@ func GetClientLicense(l *model.License) map[string]string {
 func GetSanitizedClientLicense(l map[string]string) map[string]string {
 	sanitizedLicense := make(map[string]string)
 
-	for k, v := range l {
-		sanitizedLicense[k] = v
-	}
+	maps.Copy(sanitizedLicense, l)
 
 	delete(sanitizedLicense, "Id")
 	delete(sanitizedLicense, "Name")

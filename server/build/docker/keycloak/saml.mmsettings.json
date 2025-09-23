@@ -12,7 +12,7 @@
         "IdpMetadataURL": "http://localhost:8484/realms/mattermost/protocol/saml/descriptor",
         "ServiceProviderIdentifier": "mattermost",
         "AssertionConsumerServiceURL": "http://localhost:8065/login/sso/saml",
-        "SignatureAlgorithm": "RSAwithSHA1",
+        "SignatureAlgorithm": "RSAwithSHA256",
         "CanonicalAlgorithm": "Canonical1.0",
         "ScopingIDPProviderId": "",
         "ScopingIDPName": "",

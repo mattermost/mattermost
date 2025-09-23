@@ -4,14 +4,14 @@
 
 # Enable services to be run in docker.
 #
-# Possible options: mysql, postgres, minio, inbucket, openldap, dejavu,
+# Possible options: postgres, minio, inbucket, openldap, dejavu,
 # keycloak, elasticsearch, opensearch, redis, prometheus,
 # grafana, loki and promtail.
 #
 # Must be space separated names.
 #
-# Example: mysql postgres elasticsearch
-ENABLED_DOCKER_SERVICES ?= mysql postgres inbucket redis
+# Example: postgres elasticsearch
+ENABLED_DOCKER_SERVICES ?= postgres inbucket redis
 
 # Disable entirely the use of docker
 MM_NO_DOCKER ?= false
