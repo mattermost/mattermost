@@ -6,6 +6,7 @@ package platform
 import (
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -33,6 +34,8 @@ type TestHelper struct {
 	// BasicPost    *model.Post
 
 	SystemAdminUser *model.User
+
+	runShutdown sync.Once
 }
 
 type mockSuite struct{}
@@ -198,16 +201,24 @@ func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterpr
 	err = th.Service.Start(nil)
 	require.NoError(tb, err)
 
+	tb.Cleanup(func() {
+		th.Shutdown(tb)
+	})
+
 	return th
 }
 
-func (th *TestHelper) TearDown(tb testing.TB) {
-	err := th.Service.ShutdownMetrics()
-	require.NoError(tb, err)
-	err = th.Service.Shutdown()
-	require.NoError(tb, err)
-	err = th.Service.ShutdownConfig()
-	require.NoError(tb, err)
+// Shutdown may be called by tests to manually shut down the [TestHelper].
+// If it's not called manually, it will get called automatically via [testing.TB.Cleanup].
+func (th *TestHelper) Shutdown(tb testing.TB) {
+	th.runShutdown.Do(func() {
+		err := th.Service.ShutdownMetrics()
+		require.NoError(tb, err)
+		err = th.Service.Shutdown()
+		require.NoError(tb, err)
+		err = th.Service.ShutdownConfig()
+		require.NoError(tb, err)
+	})
 }
 
 func (th *TestHelper) CreateTeam(tb testing.TB) *model.Team {
