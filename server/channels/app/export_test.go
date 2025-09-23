@@ -1747,8 +1747,18 @@ func TestExportDeactivatedUserDMs(t *testing.T) {
 		}, false, nil)
 	require.NoError(t, nErr)
 
+	// Ignore system posts (e.g., the "channel archived" message emitted by DeleteChannel);
+	// this test asserts only user-generated posts.
+	var userPosts []*model.Post
+	for _, p := range posts.Posts {
+		if p.IsSystemMessage() || p.Type == model.PostTypeChannelDeleted {
+			continue
+		}
+		userPosts = append(userPosts, p)
+	}
+
 	// We should have exactly 3 posts
-	require.Equal(t, 3, len(posts.Posts), "Should have imported exactly 3 posts")
+	require.Equal(t, 3, len(userPosts), "Should have imported exactly 3 posts")
 
 	// 10. Specifically check that both types of replies are present
 	foundThreadedReplyInImport := false

@@ -4975,10 +4975,6 @@
         "translation": "Unable to determine if the user belongs to a list of channels."
     },
     {
-        "id": "app.channel.set_delete_at.app_error",
-        "translation": "Couldn't set delete timestamp for the channel"
-    },
-    {
         "id": "app.channel.get_channels_by_user.app_error",
         "translation": "Unable to get channels for the given user."
     },
