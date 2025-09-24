@@ -129,10 +129,16 @@ func loginSSOCodeExchange(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Load one-time code
-	token, appErr := c.App.GetTokenById(loginCode)
+	// Consume one-time code atomically
+	token, appErr := c.App.ConsumeTokenOnce(loginCode)
 	if appErr != nil {
-		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "", http.StatusBadRequest).Wrap(appErr)
+		c.Err = appErr
+		return
+	}
+
+	// Check token expiration as fallback to cleanup process
+	if token.IsExpired() {
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "token expired", http.StatusBadRequest)
 		return
 	}
 
@@ -192,11 +198,6 @@ func loginSSOCodeExchange(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.AppContext = c.AppContext.WithSession(session)
 	c.App.AttachSessionCookies(c.AppContext, w, r)
-
-	// Invalidate code
-	if delErr := c.App.DeleteToken(token); delErr != nil {
-		c.Logger.Warn("Failed deleting sso login code", mlog.Err(delErr))
-	}
 
 	// Respond with tokens for mobile client to set
 	resp := map[string]string{
