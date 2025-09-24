@@ -764,13 +764,11 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 
 		var expectedErr *multierror.Error
 		expectedErr = multierror.Append(expectedErr, fmt.Errorf("unable to delete user %s error: %w", newUser.Username,
-			fmt.Errorf("Permanent user deletion feature is not enabled. Please contact your System Administrator.")))
+			fmt.Errorf("Permanent user deletion feature is not enabled. ServiceSettings.EnableAPIUserDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information.")))
 
 		err := deleteUsersCmdF(s.th.SystemAdminClient, cmd, []string{newUser.Email})
-		s.Require().Nil(err)
-		s.Len(printer.GetLines(), 0)
-		s.Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Sprintf("Unable to delete user '%s' error: Permanent user deletion feature is not enabled. ServiceSettings.EnableAPIUserDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information.", newUser.Username), printer.GetErrorLines()[0])
+		s.Require().NotNil(err)
+		s.Require().EqualError(err, expectedErr.Error())
 
 		// expect user not deleted
 		user, err := s.th.App.GetUser(newUser.Id)
