@@ -475,7 +475,6 @@ func TestCheckExpression(t *testing.T) {
 	}, "CheckExpression with system admin errors returned")
 
 	t.Run("CheckExpression with channel admin for their channel", func(t *testing.T) {
-
 		// Reload config to pick up the feature flag
 		err := th.App.ReloadConfig()
 		require.NoError(t, err)

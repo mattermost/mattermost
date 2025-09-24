@@ -958,9 +958,7 @@ export type CloudSettings = {
     PreviewModalBucketURL: string;
 };
 
-export type FeatureFlags = Record<string, string | boolean> & {
-
-};
+export type FeatureFlags = Record<string, string | boolean>;
 
 export type ImportSettings = {
     Directory: string;
