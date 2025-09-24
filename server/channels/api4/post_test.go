@@ -3031,7 +3031,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 
 	// Set channel member's last viewed to 0.
 	// All returned posts are latest posts as if all previous posts were already read by the user.
-	channelMember, err := th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
+	channelMember, err := th.App.Srv().Store().Channel().GetMember(th.Context, channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = 0
 	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
@@ -3052,7 +3052,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	postIdNames[systemPost1.Id] = "system post 1"
 
 	// Set channel member's last viewed before post1.
-	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
+	channelMember, err = th.App.Srv().Store().Channel().GetMember(th.Context, channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post1.CreateAt - 1
 	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
@@ -3076,7 +3076,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	}, posts)
 
 	// Set channel member's last viewed before post6.
-	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
+	channelMember, err = th.App.Srv().Store().Channel().GetMember(th.Context, channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post6.CreateAt - 1
 	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
@@ -3103,7 +3103,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	}, posts)
 
 	// Set channel member's last viewed before post10.
-	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
+	channelMember, err = th.App.Srv().Store().Channel().GetMember(th.Context, channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post10.CreateAt - 1
 	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
@@ -3128,7 +3128,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	}, posts)
 
 	// Set channel member's last viewed equal to post10.
-	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
+	channelMember, err = th.App.Srv().Store().Channel().GetMember(th.Context, channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post10.CreateAt
 	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
@@ -3167,7 +3167,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	postIdNames[post12.Id] = "post12 (reply to post4)"
 	postIdNames[post13.Id] = "post13"
 
-	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
+	channelMember, err = th.App.Srv().Store().Channel().GetMember(th.Context, channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post12.CreateAt - 1
 	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
@@ -4514,7 +4514,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 
 		threadMembership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost1.Id)
 		require.Nil(t, appErr)
-		thread, appErr := th.App.GetThreadForUser(threadMembership, false)
+		thread, appErr := th.App.GetThreadForUser(th.Context, threadMembership, false)
 		require.Nil(t, appErr)
 		require.Equal(t, int64(2), thread.UnreadMentions)
 		require.Equal(t, int64(3), thread.UnreadReplies)
