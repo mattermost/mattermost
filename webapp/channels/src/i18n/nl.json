@@ -6522,6 +6522,8 @@
   "workspace_limits.modals.limits_reached.title.message_history": "Berichtgeschiedenis",
   "workspace_limits.modals.view_plan_options": "Planopties bekijken",
   "workspace_limits.modals.view_plans": "Plannen bekijken",
+  "workspace_limits.post_history_banner.text": "{limit, number}-berichtenlimiet bereikt. Berichten verzonden voor {date} worden verborgen. Upgrade om toegang te herstellen",
+  "workspace_limits.post_history_banner.upgrade_button": "Upgraden",
   "workspace_limits.teams_limit_reached.tool_tip": "Je hebt de teamlimiet voor uw huidige abonnement bereikt. Overweeg een upgrade om dit team te uit het archief te halen of archiveer je andere teams",
   "workspace_limits.teams_limit_reached.upgrade_to_unarchive": "Upgrade om het archiveren ongedaan te maken",
   "workspace_limits.teams_limit_reached.view_upgrade_options": "Bekijk de upgrade-opties",
