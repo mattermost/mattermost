@@ -25,6 +25,7 @@ func TestPropertyValueStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("UpsertPropertyValue", func(t *testing.T) { testUpsertPropertyValue(t, rctx, ss) })
 	t.Run("DeletePropertyValue", func(t *testing.T) { testDeletePropertyValue(t, rctx, ss) })
 	t.Run("SearchPropertyValues", func(t *testing.T) { testSearchPropertyValues(t, rctx, ss) })
+	t.Run("SearchPropertyValuesSince", func(t *testing.T) { testSearchPropertyValuesSince(t, rctx, ss) })
 	t.Run("DeleteForField", func(t *testing.T) { testDeleteForField(t, rctx, ss) })
 	t.Run("DeleteForTarget", func(t *testing.T) { testDeleteForTarget(t, rctx, ss) })
 }
@@ -879,6 +880,48 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			},
 			expectedIDs: []string{value1.ID, value2.ID},
 		},
+		{
+			name: "filter by since timestamp - no results before",
+			opts: model.PropertyValueSearchOpts{
+				Since:   value3.UpdateAt + 1, // After all existing values
+				PerPage: 10,
+			},
+			expectedIDs: []string{},
+		},
+		{
+			name: "filter by since timestamp - get values after specific time",
+			opts: model.PropertyValueSearchOpts{
+				Since:   value1.UpdateAt + 1, // After value1, should get value2 and value3
+				PerPage: 10,
+			},
+			expectedIDs: []string{value2.ID, value3.ID},
+		},
+		{
+			name: "filter by since timestamp with group filter",
+			opts: model.PropertyValueSearchOpts{
+				GroupID: groupID,
+				Since:   value1.UpdateAt + 1, // After value1, should only get value2 from same group
+				PerPage: 10,
+			},
+			expectedIDs: []string{value2.ID},
+		},
+		{
+			name: "filter by since timestamp including deleted",
+			opts: model.PropertyValueSearchOpts{
+				Since:          value3.UpdateAt + 1, // After value3, should get value4 (deleted)
+				IncludeDeleted: true,
+				PerPage:        10,
+			},
+			expectedIDs: []string{value4.ID},
+		},
+		{
+			name: "filter by since zero should return all non-deleted",
+			opts: model.PropertyValueSearchOpts{
+				Since:   0, // Should return all non-deleted values
+				PerPage: 10,
+			},
+			expectedIDs: []string{value1.ID, value2.ID, value3.ID},
+		},
 	}
 
 	for _, tc := range tests {
@@ -897,6 +940,97 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			require.ElementsMatch(t, tc.expectedIDs, ids)
 		})
 	}
+}
+
+func testSearchPropertyValuesSince(t *testing.T, _ request.CTX, ss store.Store) {
+	// Create values with controlled timestamps for precise testing
+	baseTime := model.GetMillis()
+	groupID := model.NewId()
+
+	// Create values with specific timestamps
+	valueEarly := &model.PropertyValue{
+		GroupID:    groupID,
+		TargetID:   model.NewId(),
+		TargetType: "test_type",
+		FieldID:    model.NewId(),
+		Value:      json.RawMessage(`"early value"`),
+	}
+	_, err := ss.PropertyValue().Create(valueEarly)
+	require.NoError(t, err)
+	// Set specific timestamp
+	valueEarly.UpdateAt = baseTime
+
+	time.Sleep(10 * time.Millisecond) // Ensure different timestamps
+
+	valueMid := &model.PropertyValue{
+		GroupID:    groupID,
+		TargetID:   model.NewId(),
+		TargetType: "test_type",
+		FieldID:    model.NewId(),
+		Value:      json.RawMessage(`"mid value"`),
+	}
+	_, err = ss.PropertyValue().Create(valueMid)
+	require.NoError(t, err)
+	// Set specific timestamp
+	valueMid.UpdateAt = baseTime + 1000
+
+	time.Sleep(10 * time.Millisecond)
+
+	valueLate := &model.PropertyValue{
+		GroupID:    groupID,
+		TargetID:   model.NewId(),
+		TargetType: "test_type",
+		FieldID:    model.NewId(),
+		Value:      json.RawMessage(`"late value"`),
+	}
+	_, err = ss.PropertyValue().Create(valueLate)
+	require.NoError(t, err)
+	// Set specific timestamp
+	valueLate.UpdateAt = baseTime + 2000
+
+	// Update the values with controlled timestamps
+	_, err = ss.PropertyValue().Update("", []*model.PropertyValue{valueEarly, valueMid, valueLate})
+	require.NoError(t, err)
+
+	t.Run("Since field filters correctly by UpdateAt", func(t *testing.T) {
+		// Test: Get values updated since baseTime + 500 (should get mid and late)
+		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			GroupID: groupID,
+			Since:   baseTime + 500,
+			PerPage: 10,
+		})
+		require.NoError(t, err)
+		require.Len(t, results, 2)
+
+		resultIDs := make([]string, len(results))
+		for i, result := range results {
+			resultIDs[i] = result.ID
+		}
+		require.ElementsMatch(t, []string{valueMid.ID, valueLate.ID}, resultIDs)
+	})
+
+	t.Run("Since field with boundary conditions", func(t *testing.T) {
+		// Test: Get values updated since exact timestamp (should exclude that value)
+		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			GroupID: groupID,
+			Since:   baseTime + 1000, // Exact timestamp of valueMid
+			PerPage: 10,
+		})
+		require.NoError(t, err)
+		require.Len(t, results, 1)
+		require.Equal(t, valueLate.ID, results[0].ID)
+	})
+
+	t.Run("Since field with very recent timestamp", func(t *testing.T) {
+		// Test: Get values updated since very recent timestamp (should get none)
+		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			GroupID: groupID,
+			Since:   model.GetMillis(), // Current time
+			PerPage: 10,
+		})
+		require.NoError(t, err)
+		require.Len(t, results, 0)
+	})
 }
 
 func testCreatePropertyValueWithArray(t *testing.T, _ request.CTX, ss store.Store) {
