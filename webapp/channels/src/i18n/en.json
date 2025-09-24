@@ -2,7 +2,6 @@
   "about.buildnumber": "Build Number:",
   "about.cloudEdition": "Cloud",
   "about.copyright": "Copyright 2015 - {currentYear} Mattermost, Inc. All rights reserved",
-  "about.copyVersionInfo": "Copy Version Info",
   "about.database": "Database:",
   "about.date": "Build Date:",
   "about.dbversion": "Database Schema Version:",
