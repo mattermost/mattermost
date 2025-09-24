@@ -3138,7 +3138,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 				(PostId, ChannelId, ReplyCount, LastReplyAt, Participants, ThreadTeamId)
 				VALUES ($1, $2, $3, $4, $5, $6)
 				ON CONFLICT (PostId) DO UPDATE SET
-					ReplyCount = Threads.ReplyCount + 1,
+					ReplyCount = Threads.ReplyCount + EXCLUDED.ReplyCount,
 					LastReplyAt = GREATEST(Threads.LastReplyAt, EXCLUDED.LastReplyAt),
 					Participants = COALESCE(
 							(
