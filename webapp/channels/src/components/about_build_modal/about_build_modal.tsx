@@ -14,6 +14,7 @@ import Nbsp from 'components/html_entities/nbsp';
 import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
 import {AboutLinks} from 'utils/constants';
+import {getDesktopVersion, isDesktopApp} from 'utils/user_agent';
 
 import AboutBuildModalCloud from './about_build_modal_cloud/about_build_modal_cloud';
 
@@ -302,15 +303,55 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
                                 {subTitle}
                             </p>
                             <div className='form-group less'>
-                                <div data-testid='aboutModalVersion'>
-                                    <FormattedMessage
-                                        id='about.version'
-                                        defaultMessage='Mattermost Version:'
-                                    />
+                                <button
+                                    onClick={() => {
+                                        if (mmversion) {
+                                            navigator.clipboard.writeText(mmversion);
+                                        }
+                                    }}
+                                    disabled={!mmversion}
+                                    data-testid='aboutModalVersion'
+                                    className='about-modal__version-button'
+                                >
+                                    {isDesktopApp() && (
+                                        <FormattedMessage
+                                            id='about.serverVersion'
+                                            defaultMessage='Server Version:'
+                                        />
+                                    )}
+                                    {!isDesktopApp() && (
+                                        <FormattedMessage
+                                            id='about.version'
+                                            defaultMessage='Mattermost Version:'
+                                        />
+                                    )}
                                     <span id='versionString'>
                                         {'\u00a0' + mmversion}
                                     </span>
-                                </div>
+                                    <i className='icon icon-content-copy'/>
+                                </button>
+                                {isDesktopApp() && (
+                                    <button
+                                        onClick={() => {
+                                            const desktopVersion = getDesktopVersion();
+                                            if (desktopVersion) {
+                                                navigator.clipboard.writeText(desktopVersion);
+                                            }
+                                        }}
+                                        className='about-modal__version-button'
+                                        disabled={!getDesktopVersion()}
+                                        data-testid='aboutModalDesktopVersion'
+                                    >
+                                        <FormattedMessage
+                                            id='about.desktopVersion'
+                                            defaultMessage='Desktop Version:'
+                                        />
+                                        <span id='versionString'>
+                                            {'\u00a0' + getDesktopVersion()}
+                                        </span>
+                                        <i className='icon icon-content-copy'/>
+                                    </button>)
+                                }
                                 {loadMetricComponent}
                                 <div data-testid='aboutModalDBVersionString'>
                                     <FormattedMessage

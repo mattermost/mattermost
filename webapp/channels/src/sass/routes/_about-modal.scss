@@ -121,5 +121,35 @@
                 fill: inherit;
             }
         }
+
+        .about-modal__version-button {
+            display: flex;
+            border: none;
+            margin-left: -6px;
+            width: 100%;
+            border-radius: 4px;
+            padding: 0 6px;
+
+            i {
+                margin-left: auto;
+                font-size: 14px;
+            }
+
+            &:not(:hover) {
+                background: none;
+
+                i {
+                    display: none;
+                }
+            }
+
+            &:hover, &:focus {
+                background: rgba(var(--button-bg-rgb), 0.08);
+
+                i {
+                    display: block;
+                }
+            }
+        }
     }
 }
