@@ -15,12 +15,14 @@ import * as TIMEOUTS from '../../../fixtures/timeouts';
 describe('Messaging', () => {
     let offTopicUrl;
     let testChannelName;
+    let user;
 
     before(() => {
         // # Login as test user
         cy.apiInitSetup({loginAfter: true}).then((out) => {
             offTopicUrl = out.offTopicUrl;
             testChannelName = out.channel.display_name;
+            user = out.user;
         });
     });
 
@@ -94,6 +96,43 @@ describe('Messaging', () => {
         cy.clickPostCommentIcon();
 
         // * Verify RHS textbox is again focused the second time, when already open
+        cy.uiGetReplyTextBox().should('be.focused');
+    });
+
+    it('MM-T205 Focus to remain in RHS textbox when replying to reply post in center channel (CRT disabled)', () => {
+        // # Ensure collapsed reply threads is disabled
+        cy.apiSaveCRTPreference(user.id, 'off');
+
+        // # Post a thread root message
+        cy.postMessage('Thread root message');
+
+        // # Open RHS and post a reply
+        cy.clickPostCommentIcon();
+        cy.uiGetReplyTextBox().type('First reply{enter}');
+
+        // # Close RHS
+        cy.get('#rhsCloseButton').click();
+
+        // * Verify RHS is closed
+        cy.get('.sidebar--right__header').should('not.exist');
+
+        // # Get the reply post ID and click its comment icon
+        cy.getLastPostId().then((postId) => {
+            // # Click the reply arrow on the reply post
+            cy.clickPostCommentIcon(postId);
+
+            // * Verify RHS opens and textbox is focused
+            cy.get('.sidebar--right__header').should('be.visible');
+            cy.uiGetReplyTextBox().should('be.focused');
+
+            // # Focus away from RHS textbox
+            cy.get('#rhsContainer .post-right__content').click();
+
+            // # Click reply arrow on the same reply post again
+            cy.clickPostCommentIcon(postId);
+        });
+
+        // * Verify RHS textbox is focused again
         cy.uiGetReplyTextBox().should('be.focused');
     });
 
