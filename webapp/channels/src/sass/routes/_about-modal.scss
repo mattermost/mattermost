@@ -122,31 +122,25 @@
             }
         }
 
-        .about-modal__version-button {
+        .about-modal__version-info {
             display: flex;
             width: 100%;
             padding: 0 6px;
             border: none;
             border-radius: 4px;
             margin-left: -6px;
-
-            i {
+            text-align: left;
+            
+            > span.about-modal__version-info-copy-button {
+                display: none;
+                margin-top: 6px;
                 margin-left: auto;
-                font-size: 14px;
             }
 
-            &:not(:hover) {
-                background: none;
-
-                i {
-                    display: none;
-                }
-            }
-
-            &:hover, &:focus {
+            &:hover {
                 background: rgba(var(--button-bg-rgb), 0.08);
 
-                i {
+                > span.about-modal__version-info-copy-button {
                     display: block;
                 }
             }
