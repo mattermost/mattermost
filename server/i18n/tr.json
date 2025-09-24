@@ -3564,7 +3564,7 @@
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "Veri saklama görevinin başlangıç zamanı SS:DD biçiminde 24 saat düzeninde olmalıdır."
+    "translation": "Verileri tutma görevinin başlangıç zamanı SS:DD biçiminde 24 saat düzeninde olmalıdır."
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
@@ -7987,7 +7987,7 @@
   },
   {
     "id": "ent.data_retention.run_failed.error",
-    "translation": "Veri saklama görevi yürütülemedi."
+    "translation": "Verileri tutma görevi yürütülemedi."
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
