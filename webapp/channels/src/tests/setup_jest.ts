@@ -91,17 +91,6 @@ afterEach(() => {
             continue;
         }
 
-        if (
-            typeof call[0] === 'string' && (
-                call[0].includes('returned a different')
-            )
-        ) {
-            // This warning is about a bad selector or mapStateToProps that returns new results every time it's called.
-            //
-            // TODO Fix these if possible
-            continue;
-        }
-
         warns.push(call);
     }
 
