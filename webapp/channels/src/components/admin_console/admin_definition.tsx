@@ -29,6 +29,7 @@ import {
 } from 'actions/admin_actions';
 
 import ContentFlaggingAdditionalSettingsSection from 'components/admin_console/content_flagging/additional_settings/additional_settings';
+import ContentFlaggingSettings from 'components/admin_console/content_flagging/content_flagging_settings';
 import ContentFlaggingContentReviewers from 'components/admin_console/content_flagging/content_reviewers/content_reviewers';
 import ContentFlaggingNotificationSettingsSection from 'components/admin_console/content_flagging/notificatin_settings/notification_settings';
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
@@ -120,7 +121,6 @@ import TeamDetails from './team_channel_settings/team/details';
 import type {AdminDefinition as AdminDefinitionType} from './types';
 import ValidationResult from './validation';
 import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
-import ContentFlaggingSettings from "components/admin_console/content_flagging/content_flagging_settings";
 
 // Re-export for backward compatibility
 export {it};
@@ -3273,6 +3273,7 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'ContentFlaggingSettings',
                     component: ContentFlaggingSettings,
+
                     // name: defineMessage({id: 'admin.contentFlagging.title', defaultMessage: 'Content Flagging'}),
                     // settings: [
                     //     {
