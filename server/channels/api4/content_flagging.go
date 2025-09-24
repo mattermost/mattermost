@@ -27,6 +27,8 @@ func (api *API) InitContentFlagging() {
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}", api.APISessionRequired(getFlaggedPost)).Methods(http.MethodGet)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/remove", api.APISessionRequired(removeFlaggedPost)).Methods(http.MethodPut)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/keep", api.APISessionRequired(keepFlaggedPost)).Methods(http.MethodPut)
+	api.BaseRoutes.ContentFlagging.Handle("/config", api.APISessionRequired(saveContentFlaggingSettings)).Methods(http.MethodPut)
+	api.BaseRoutes.ContentFlagging.Handle("/config", api.APISessionRequired(getContentFlaggingSettings)).Methods(http.MethodGet)
 }
 
 func requireContentFlaggingEnabled(c *Context) {
@@ -432,4 +434,57 @@ func keepRemoveFlaggedPostChecks(c *Context, r *http.Request) (*model.FlagConten
 	}
 
 	return &actionRequest, userId, post
+}
+
+func saveContentFlaggingSettings(c *Context, w http.ResponseWriter, r *http.Request) {
+	var config model.ContentFlaggingSettingsRequest
+	if err := json.NewDecoder(r.Body).Decode(&config); err != nil {
+		c.SetInvalidParamWithErr("config", err)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateContentFlaggingConfig, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	config.SetDefaults()
+	if appErr := config.IsValid(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	appErr := c.App.SaveContentFlaggingConfig(config)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+}
+
+func getContentFlaggingSettings(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	config, appErr := c.App.GetContentFlaggingConfig()
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	responseBytes, err := json.Marshal(config)
+	if err != nil {
+		c.Err = model.NewAppError("getContentFlaggingSettings", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(responseBytes); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

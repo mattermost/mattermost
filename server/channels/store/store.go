@@ -98,6 +98,7 @@ type Store interface {
 	AccessControlPolicy() AccessControlPolicyStore
 	Attributes() AttributesStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
+	ContentFlagging() ContentFlaggingStore
 }
 
 type RetentionPolicyStore interface {
@@ -1141,6 +1142,11 @@ type AttributesStore interface {
 	GetSubject(rctx request.CTX, ID, groupID string) (*model.Subject, error)
 	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
 	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
+}
+
+type ContentFlaggingStore interface {
+	SaveReviewerSettings(reviewerSettings model.ReviewSettingsRequest) error
+	GetReviewerSettings() (*model.ReviewSettingsRequest, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

@@ -23,6 +23,7 @@ import type {SchemaAdminSettingsProps} from 'components/admin_console/schema_adm
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import './content_flagging_settings.scss';
+import { Client4 } from "mattermost-redux/client";
 
 export default function ContentFlaggingSettings(props: SchemaAdminSettingsProps) {
     console.log({props});
@@ -31,12 +32,29 @@ export default function ContentFlaggingSettings(props: SchemaAdminSettingsProps)
     const [saving, setSaving] = useState(false);
     const [contentFlaggingSettings, setContentFlaggingSettings] = useState<TypeContentFlaggingSettings>();
 
+    // useEffect(() => {
+    //     const contentFlaggingSettings = props.config.ContentFlaggingSettings;
+    //     if (contentFlaggingSettings) {
+    //         setContentFlaggingSettings(contentFlaggingSettings);
+    //     }
+    // }, [props.config.ContentFlaggingSettings]);
+
     useEffect(() => {
-        const contentFlaggingSettings = props.config.ContentFlaggingSettings;
-        if (contentFlaggingSettings) {
-            setContentFlaggingSettings(contentFlaggingSettings);
+        const fetchConfig = async () => {
+            try {
+                const config = await Client4.getAdminContentFlaggingConfig();
+                if (config) {
+                    setContentFlaggingSettings(config);
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        };
+
+        if (!contentFlaggingSettings) {
+            fetchConfig();
         }
-    }, [props.config.ContentFlaggingSettings]);
+    }, [contentFlaggingSettings]);
 
     const handleSettingsChange = useCallback((id: string, value: any, confirm?: boolean, doSubmit?: boolean, warning?: boolean) => {
         const newValue = {...contentFlaggingSettings};
@@ -61,9 +79,19 @@ export default function ContentFlaggingSettings(props: SchemaAdminSettingsProps)
     }, [contentFlaggingSettings]);
 
     const onSave = useCallback(() => {
+        if (!contentFlaggingSettings) {
+            return;
+        }
+
         setSaving(true);
-        console.log({newValue: contentFlaggingSettings});
-        setTimeout(() => setSaving(false), 3000);
+
+        try {
+            Client4.saveContentFlaggingConfig(contentFlaggingSettings);
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setSaving(false);
+        }
     }, [contentFlaggingSettings]);
 
     if (!contentFlaggingSettings) {
@@ -122,7 +150,7 @@ export default function ContentFlaggingSettings(props: SchemaAdminSettingsProps)
 
             <SaveChangesPanel
                 saveNeeded={saveNeeded}
-                saving={false}
+                saving={saving}
                 onClick={onSave}
                 onCancel={() => {}}
             />
