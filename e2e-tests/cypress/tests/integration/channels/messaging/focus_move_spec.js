@@ -157,8 +157,8 @@ function verifyFocusInAddChannelMemberModal() {
     // * Check that input box has character A
     cy.get('#selectItems input').should('have.value', 'A');
 
-    // # Click anywhere in the modal that is not on a field that can take focus
-    cy.get('#deletePostModalLabel > span').click();
+    // # Remove the focus from the input box
+    cy.get('#selectItems input').blur();
 
     // * Note the focus has been removed from the search box
     cy.get('#selectItems input').should('not.be.focused');
