@@ -91,7 +91,7 @@
   "add_command.displayName.help": "Wpisz tytuł, zawierający do 64 znaków, dla ustawień komendy po ukośniku.",
   "add_command.doneHelp": "Twoja komenda po ukośniku została skonfigurowana. Następujący token został wysłany przy wychodzącym payloadzie. Użyj go aby zweryfikować, czy żądnie pochodzi z twojego Mattermosta (szczegóły na <link>Komendach po ukośniku</link>).",
   "add_command.iconUrl": "Ikona odpowiedzi",
-  "add_command.iconUrl.help": "(Opcjonalne) Wpisz URL pliku .png lub .jpg aby używać go jako ikony do odpowiedzi do tej komendy po ukośniku. Plik musi mieć przynajmniej rozmiar 128 pikseli na 128 pikseli. Jeśli zostawisz puste, zostanie użyte twoje aktualne zdjęcie.",
+  "add_command.iconUrl.help": "(Opcjonalnie) Wprowadź URL pliku .png lub .jpg, który będzie używany jako ikona podczas wysyłania odpowiedzi na to polecenie slash. Plik musi mieć rozmiar co najmniej 128 pikseli na 128 pikseli. Jeśli pozostanie puste, zostanie użyte twoje zdjęcie profilowe.",
   "add_command.iconUrl.placeholder": "https://www.example.com/myicon.png",
   "add_command.method": "Metoda Zapytania",
   "add_command.method.get": "GET",
