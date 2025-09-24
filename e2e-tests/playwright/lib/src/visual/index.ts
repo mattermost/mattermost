@@ -26,7 +26,7 @@ export async function matchSnapshot(testInfo: TestInfo, testArgs: TestArgs, opti
     if (testConfig.snapshotEnabled || testConfig.percyEnabled) {
         await testArgs.page.waitForLoadState('networkidle');
         await testArgs.page.waitForLoadState('domcontentloaded');
-        await wait(duration.half_sec);
+        await wait(duration.one_sec);
     }
 
     if (testConfig.snapshotEnabled) {
