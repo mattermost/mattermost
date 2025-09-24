@@ -5734,7 +5734,7 @@ func createConcurrentReplies(rctx request.CTX, ss store.Store, rootPostId, chann
 	postsChan := make(chan *model.Post, numReplies)
 
 	// concurrent goroutines that create replies simultaneously
-	for i := 0; i < numReplies; i++ {
+	for replyNum := range numReplies {
 		wg.Add(1)
 		go func(replyNum int) {
 			defer wg.Done()
@@ -5752,7 +5752,7 @@ func createConcurrentReplies(rctx request.CTX, ss store.Store, rootPostId, chann
 				return
 			}
 			postsChan <- savedReply
-		}(i)
+		}(replyNum)
 	}
 
 	wg.Wait()
@@ -5779,7 +5779,7 @@ func testConcurrentReplies(t *testing.T, rctx request.CTX, ss store.Store) {
 		numTestIterations := 10    // Number of times to repeat the entire test
 		numConcurrentReplies := 10 // Number of concurrent replies per iteration
 
-		for iteration := 0; iteration < numTestIterations; iteration++ {
+		for iteration := range numTestIterations {
 			t.Run(fmt.Sprintf("Iteration_%d", iteration), func(t *testing.T) {
 				// Setup: Create a team, channel and root post
 				teamID := model.NewId()
