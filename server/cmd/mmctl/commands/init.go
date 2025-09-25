@@ -141,6 +141,8 @@ func withClientAndExitCode(fn func(c client.Client, cmd *cobra.Command, args []s
 			return err
 		}
 		if shouldExit {
+			// Flush the printer as the program will exit soon
+			printer.Flush()
 			os.Exit(1)
 		}
 		return nil
