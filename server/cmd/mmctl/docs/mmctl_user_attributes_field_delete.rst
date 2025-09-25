@@ -1,33 +1,35 @@
-.. _mmctl_cpa_field_list:
+.. _mmctl_user_attributes_field_delete:
 
-mmctl cpa field list
---------------------
+mmctl user attributes field delete
+----------------------------------
 
-List CPA fields
+Delete a User Attributes field
 
 Synopsis
 ~~~~~~~~
 
 
-List all Custom Profile Attribute fields with their properties.
+Delete a User Attributes field. This will automatically delete all user values for this field.
 
 ::
 
-  mmctl cpa field list [flags]
+  mmctl user attributes field delete [field-id] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    cpa field list
+    user attributes field delete n4qdbtro4j8x3n8z81p48ww9gr --confirm
+    user attributes field delete 8kj9xm4p6f3y7n2z9q5w8r1t4v --confirm
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for list
+      --confirm   Bypass confirmation prompt
+  -h, --help      help for delete
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -47,5 +49,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl cpa field <mmctl_cpa_field.rst>`_ 	 - Management of CPA fields
+* `mmctl user attributes field <mmctl_user_attributes_field.rst>`_ 	 - Management of User Attributes fields
 

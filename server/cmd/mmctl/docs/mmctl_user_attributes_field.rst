@@ -1,36 +1,22 @@
-.. _mmctl_cpa_value_set:
+.. _mmctl_user_attributes_field:
 
-mmctl cpa value set
--------------------
+mmctl user attributes field
+---------------------------
 
-Set a CPA value for a user
+Management of User Attributes fields
 
 Synopsis
 ~~~~~~~~
 
 
-Set a Custom Profile Attribute field value for a specific user.
-
-::
-
-  mmctl cpa value set [user] [field-id] [flags]
-
-Examples
-~~~~~~~~
-
-::
-
-    cpa value set john.doe@company.com kx8m2w4r9p3q7n5t1j6h8s4c9e --value "Engineering"
-    cpa value set johndoe q7n3t8w5r2m9k4x6p1j3h7s8c4 --value "Go" --value "React" --value "Python"
-    cpa value set user123 w9r5t2n8k4x7p3q6m1j9h4s7c2 --value "Senior"
+Create, list, edit, and delete User Attribute fields.
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help            help for set
-      --value strings   Value(s) to set for the field. Can be specified multiple times for multiselect/multiuser fields
+  -h, --help   help for field
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -50,5 +36,9 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl cpa value <mmctl_cpa_value.rst>`_ 	 - Management of CPA values
+* `mmctl user attributes <mmctl_user_attributes.rst>`_ 	 - Management of User Attributes
+* `mmctl user attributes field create <mmctl_user_attributes_field_create.rst>`_ 	 - Create a User Attributes field
+* `mmctl user attributes field delete <mmctl_user_attributes_field_delete.rst>`_ 	 - Delete a User Attributes field
+* `mmctl user attributes field edit <mmctl_user_attributes_field_edit.rst>`_ 	 - Edit a User Attributes field
+* `mmctl user attributes field list <mmctl_user_attributes_field_list.rst>`_ 	 - List User Attributes fields
 

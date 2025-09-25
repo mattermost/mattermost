@@ -38,6 +38,7 @@ SEE ALSO
 
 * `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
 * `mmctl user activate <mmctl_user_activate.rst>`_ 	 - Activate users
+* `mmctl user attributes <mmctl_user_attributes.rst>`_ 	 - Management of User Attributes
 * `mmctl user change-password <mmctl_user_change-password.rst>`_ 	 - Changes a user's password
 * `mmctl user convert <mmctl_user_convert.rst>`_ 	 - Convert users to bots, or a bot to a user
 * `mmctl user create <mmctl_user_create.rst>`_ 	 - Create a user
