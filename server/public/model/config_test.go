@@ -2502,7 +2502,8 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 		{
 			name: "enabled with no provider should fail",
 			settings: AutoTranslationSettings{
-				Enable: NewPointer(true),
+				Enable:   NewPointer(true),
+				Provider: NewPointer(""),
 			},
 			expectError: true,
 			errorId:     "model.config.is_valid.autotranslation.provider.app_error",

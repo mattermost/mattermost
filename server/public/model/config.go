@@ -4681,7 +4681,7 @@ func (s *DataRetentionSettings) isValid() *AppError {
 
 func (s *AutoTranslationSettings) isValid() *AppError {
 	if s.Enable != nil && *s.Enable {
-		if s.Provider == nil {
+		if s.Provider == nil || *s.Provider == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.provider.app_error", nil, "", http.StatusBadRequest)
 		}
 		// TODO: Enable Agents provider in future release
