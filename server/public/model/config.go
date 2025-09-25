@@ -4690,7 +4690,7 @@ func (s *AutoTranslationSettings) isValid() *AppError {
 		}
 
 		if *s.Provider == "libretranslate" {
-			if s.LibreTranslate == nil || s.LibreTranslate.URL == nil || *s.LibreTranslate.URL == "" {
+			if s.LibreTranslate == nil || s.LibreTranslate.URL == nil || *s.LibreTranslate.URL == "" || !IsValidHTTPURL(*s.LibreTranslate.URL) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.libretranslate.url.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
