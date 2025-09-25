@@ -26,29 +26,32 @@ const (
 	POST_PROP_KEY_FLAGGED_POST_ID = "reported_post_id"
 )
 
-func ContentFlaggingEnabledForTeam(config *model.Config, teamId string) bool {
-	//reviewerSettings := config.ContentFlaggingSettings.ReviewerSettings
-	//
-	//hasCommonReviewers := *reviewerSettings.CommonReviewers
-	//if hasCommonReviewers {
-	//	return true
-	//}
-	//
-	//teamSettings, exist := (*reviewerSettings.TeamReviewersSetting)[teamId]
-	//if !exist || (teamSettings.Enabled != nil && !*teamSettings.Enabled) {
-	//	return false
-	//}
-	//
-	//if teamSettings.ReviewerIds != nil && len(*teamSettings.ReviewerIds) > 0 {
-	//	return true
-	//}
-	//
-	//hasAdditionalReviewers := (reviewerSettings.TeamAdminsAsReviewers != nil && *reviewerSettings.TeamAdminsAsReviewers) ||
-	//	(reviewerSettings.SystemAdminsAsReviewers != nil && *reviewerSettings.SystemAdminsAsReviewers)
-	//
-	//return hasAdditionalReviewers
+func (a *App) ContentFlaggingEnabledForTeam(teamId string) (bool, *model.AppError) {
+	config, appErr := a.GetContentFlaggingConfig()
+	if appErr != nil {
+		return false, appErr
+	}
 
-	return true
+	reviewerSettings := config.ReviewerSettings
+
+	hasCommonReviewers := *reviewerSettings.CommonReviewers && len(*reviewerSettings.CommonReviewerIds) > 0
+	if hasCommonReviewers {
+		return true, nil
+	}
+
+	teamSettings, exist := (*reviewerSettings.TeamReviewersSetting)[teamId]
+	if !exist || (teamSettings.Enabled != nil && !*teamSettings.Enabled) {
+		return false, nil
+	}
+
+	if teamSettings.ReviewerIds != nil && len(*teamSettings.ReviewerIds) > 0 {
+		return true, nil
+	}
+
+	hasAdditionalReviewers := (reviewerSettings.TeamAdminsAsReviewers != nil && *reviewerSettings.TeamAdminsAsReviewers) ||
+		(reviewerSettings.SystemAdminsAsReviewers != nil && *reviewerSettings.SystemAdminsAsReviewers)
+
+	return hasAdditionalReviewers, nil
 }
 
 func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUserId string, flagData model.FlagContentRequest) *model.AppError {
@@ -280,21 +283,26 @@ func (a *App) getContentReviewBot(rctx request.CTX) (*model.Bot, *model.AppError
 func (a *App) getReviewersForTeam(teamId string, includeAdditionalReviewers bool) ([]string, *model.AppError) {
 	reviewerUserIDMap := map[string]bool{}
 
-	reviewerSettings := a.Config().ContentFlaggingSettings.ReviewerSettings
+	config, appErr := a.GetContentFlaggingConfig()
+	if appErr != nil {
+		return nil, appErr
+	}
 
-	//if *reviewerSettings.CommonReviewers {
-	//	for _, userID := range *reviewerSettings.CommonReviewerIds {
-	//		reviewerUserIDMap[userID] = true
-	//	}
-	//} else {
-	//	// If common reviewers are not enabled, we still need to check if the team has specific reviewers
-	//	teamSettings, exist := (*reviewerSettings.TeamReviewersSetting)[teamId]
-	//	if exist && *teamSettings.Enabled && teamSettings.ReviewerIds != nil {
-	//		for _, userID := range *teamSettings.ReviewerIds {
-	//			reviewerUserIDMap[userID] = true
-	//		}
-	//	}
-	//}
+	reviewerSettings := config.ReviewerSettings
+
+	if *reviewerSettings.CommonReviewers {
+		for _, userID := range *reviewerSettings.CommonReviewerIds {
+			reviewerUserIDMap[userID] = true
+		}
+	} else {
+		// If common reviewers are not enabled, we still need to check if the team has specific reviewers
+		teamSettings, exist := (*reviewerSettings.TeamReviewersSetting)[teamId]
+		if exist && *teamSettings.Enabled && teamSettings.ReviewerIds != nil {
+			for _, userID := range *teamSettings.ReviewerIds {
+				reviewerUserIDMap[userID] = true
+			}
+		}
+	}
 
 	if includeAdditionalReviewers {
 		var additionalReviewers []*model.User

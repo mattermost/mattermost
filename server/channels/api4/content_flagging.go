@@ -97,7 +97,11 @@ func getTeamPostFlaggingFeatureStatus(c *Context, w http.ResponseWriter, r *http
 		return
 	}
 
-	enabled := app.ContentFlaggingEnabledForTeam(c.App.Config(), teamID)
+	enabled, appErr := c.App.ContentFlaggingEnabledForTeam(teamID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	payload := map[string]bool{
 		"enabled": enabled,
@@ -151,7 +155,12 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	enabled := app.ContentFlaggingEnabledForTeam(c.App.Config(), channel.TeamId)
+	enabled, appErr := c.App.ContentFlaggingEnabledForTeam(channel.TeamId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
 	if !enabled {
 		c.Err = model.NewAppError("flagPost", "api.content_flagging.error.not_available_on_team", nil, "", http.StatusBadRequest)
 		return
