@@ -19,7 +19,6 @@ OUTPUT_EXCLUDING_IGNORED=$(echo "$OUTPUT" | grep -Fv \
     -e 'Cannot find /api/v4/channels/members/{user_id}/mark_read method: POST in OpenAPI 3 spec.' \
     -e 'Cannot find /api/v4/channels/members/{user_id}/mark_read method: POST in OpenAPI 3 spec.' \
     -e 'Cannot find /api/v4/channels/stats/member_count method: POST in OpenAPI 3 spec.' \
-    -e 'Cannot find /api/v4/channels/{channel_id}/common_teams method: GET in OpenAPI 3 spec.' \
     -e 'Cannot find /api/v4/channels/{channel_id}/convert_to_channel method: POST in OpenAPI 3 spec.' \
     -e 'Cannot find /api/v4/client_perf method: POST in OpenAPI 3 spec.' \
     -e 'Cannot find /api/v4/cloud/products/selfhosted method: GET in OpenAPI 3 spec.' \
