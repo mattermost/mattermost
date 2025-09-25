@@ -107,7 +107,7 @@
     "@testing-library/user-event": "14.6.1",
     "@types/country-list": "2.1.0",
     "@types/enzyme": "3.10.11",
-    "@types/jest": "28.1.8",
+    "@types/jest": "30.0.0",
     "@types/katex": "0.11.0",
     "@types/lodash": "4.14.202",
     "@types/luxon": "3.0.2",

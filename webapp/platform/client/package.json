@@ -19,7 +19,7 @@
     "directory": "webapp/platform/client"
   },
   "devDependencies": {
-    "@types/jest": "28.1.8",
+    "@types/jest": "30.0.0",
     "jest": "29.7.0",
     "typescript": "^5.0.0"
   },
