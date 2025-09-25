@@ -902,4 +902,53 @@ func testJobGetByTypeAndData(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Len(t, jobs, 1)
 		assert.Equal(t, job4.Id, jobs[0].Id)
 	})
+
+	// Test status parameter filtering
+	t.Run("filters by single status", func(t *testing.T) {
+		// Filter by single status should return only matching jobs
+		jobs, err := ss.Job().GetByTypeAndData(rctx, jobType, map[string]string{
+			"policy_id": "channel1",
+		}, false, model.JobStatusPending)
+		require.NoError(t, err)
+		require.Len(t, jobs, 1)
+		assert.Equal(t, job1.Id, jobs[0].Id)
+		assert.Equal(t, model.JobStatusPending, jobs[0].Status)
+	})
+
+	t.Run("filters by multiple statuses", func(t *testing.T) {
+		// Filter by multiple statuses should return jobs matching any status
+		jobs, err := ss.Job().GetByTypeAndData(rctx, jobType, map[string]string{
+			"policy_id": "channel1",
+		}, false, model.JobStatusPending, model.JobStatusSuccess)
+		require.NoError(t, err)
+		require.Len(t, jobs, 2)
+
+		// Verify both statuses are represented
+		statuses := []string{jobs[0].Status, jobs[1].Status}
+		assert.Contains(t, statuses, model.JobStatusPending)
+		assert.Contains(t, statuses, model.JobStatusSuccess)
+	})
+
+	t.Run("no status filter returns all statuses", func(t *testing.T) {
+		// No status filter should return all jobs regardless of status
+		jobs, err := ss.Job().GetByTypeAndData(rctx, jobType, map[string]string{
+			"policy_id": "channel1",
+		}, false) // No status parameters
+		require.NoError(t, err)
+		require.Len(t, jobs, 2) // job1 (pending), job3 (success) - both have policy_id=channel1
+
+		// Verify both statuses are present
+		statuses := []string{jobs[0].Status, jobs[1].Status}
+		assert.Contains(t, statuses, model.JobStatusPending)
+		assert.Contains(t, statuses, model.JobStatusSuccess)
+	})
+
+	t.Run("filters by non-existent status returns empty", func(t *testing.T) {
+		// Invalid status filter should return empty result
+		jobs, err := ss.Job().GetByTypeAndData(rctx, jobType, map[string]string{
+			"policy_id": "channel1",
+		}, false, model.JobStatusError)
+		require.NoError(t, err)
+		require.Len(t, jobs, 0)
+	})
 }
