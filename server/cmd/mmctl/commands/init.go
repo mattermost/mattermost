@@ -134,6 +134,19 @@ func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) erro
 	}
 }
 
+func withClientAndExitCode(fn func(c client.Client, cmd *cobra.Command, args []string) (bool, error)) func(cmd *cobra.Command, args []string) error {
+	return withClient(func(c client.Client, cmd *cobra.Command, args []string) error {
+		shouldExit, err := fn(c, cmd, args)
+		if err != nil {
+			return err
+		}
+		if shouldExit {
+			os.Exit(1)
+		}
+		return nil
+	})
+}
+
 func localOnlyPrecheck(cmd *cobra.Command, args []string) {
 	local := viper.GetBool("local")
 	if !local {
