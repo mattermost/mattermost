@@ -40,10 +40,10 @@ const useTextboxFocus = (
         };
 
         const wait = (call: () => void) => {
-            // Add a delay to allow for any animation.
-            setTimeout(() => {
+            // Wait for next frame to allow for any animation.
+            requestAnimationFrame(() => {
                 call();
-            }, 100);
+            });
         };
 
         const postTextboxDisabled = !canPost;
