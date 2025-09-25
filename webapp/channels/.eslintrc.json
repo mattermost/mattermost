@@ -33,13 +33,15 @@
       "allow": ["Timestamp"]
     }],
     "formatjs/no-multiple-whitespaces": 2,
-    "react/jsx-fragments": ["error", "syntax"]
+    "react/jsx-fragments": ["error", "syntax"],
+    "@mattermost/prefer-design-system-button": "warn"
   },
   "overrides": [
     {
       "files": ["*.test.*", "src/tests/**"],
       "rules": {
-        "no-only-tests/no-only-tests": ["error", {"focus": ["only", "skip"]}]
+        "no-only-tests/no-only-tests": ["error", {"focus": ["only", "skip"]}],
+        "@mattermost/prefer-design-system-button": "off"
       }
     },
     {
