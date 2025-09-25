@@ -23,6 +23,7 @@ export async function waitForAnimationEnd(locator: Locator) {
 }
 
 export async function toBeFocusedWithFocusVisible(locator: Locator) {
+    await expect(locator).toBeVisible();
     await expect(locator).toBeFocused();
     return locator.evaluate((element) => element.matches(':focus-visible'));
 }
