@@ -31,28 +31,18 @@ const useTextboxFocus = (
     const shouldFocusRHS = useSelector(getShouldFocusRHS, () => true);
 
     const focusTextbox = useCallback((keepFocus = false) => {
-        const doBlur = () => {
-            textboxRef.current?.blur();
-        };
-
-        const doFocus = () => {
-            textboxRef.current?.focus();
-        };
-
-        const wait = (call: () => void) => {
-            // Wait for next frame to allow for any animation.
-            requestAnimationFrame(() => {
-                call();
-            });
-        };
-
         const postTextboxDisabled = !canPost;
         if (textboxRef.current && postTextboxDisabled) {
-            wait(doBlur); // Fixes Firefox bug which causes keyboard shortcuts to be ignored (MM-22482)
+            // Fixes Firefox bug which causes keyboard shortcuts to be ignored (MM-22482)
+            requestAnimationFrame(() => {
+                textboxRef.current?.blur();
+            });
             return;
         }
         if (textboxRef.current && (keepFocus || !UserAgent.isMobile())) {
-            wait(doFocus);
+            requestAnimationFrame(() => {
+                textboxRef.current?.focus();
+            });
         }
     }, [canPost, textboxRef]);
 
