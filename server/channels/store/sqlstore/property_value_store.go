@@ -133,8 +133,8 @@ func (s *SqlPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSea
 		builder = builder.Where(sq.Eq{"FieldID": opts.FieldID})
 	}
 
-	if opts.Since > 0 {
-		builder = builder.Where(sq.Gt{"UpdateAt": opts.Since})
+	if opts.UpdatedSince > 0 {
+		builder = builder.Where(sq.Gt{"UpdateAt": opts.UpdatedSince})
 	}
 
 	var values []*model.PropertyValue

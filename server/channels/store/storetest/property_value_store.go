@@ -883,7 +883,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 		{
 			name: "filter by since timestamp - no results before",
 			opts: model.PropertyValueSearchOpts{
-				Since:   value3.UpdateAt, // After all existing values
+				UpdatedSince:   value3.UpdateAt, // After all existing values
 				PerPage: 10,
 			},
 			expectedIDs: []string{},
@@ -891,7 +891,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 		{
 			name: "filter by since timestamp - get values after specific time",
 			opts: model.PropertyValueSearchOpts{
-				Since:   value1.UpdateAt, // After value1, should get value2 and value3
+				UpdatedSince:   value1.UpdateAt, // After value1, should get value2 and value3
 				PerPage: 10,
 			},
 			expectedIDs: []string{value2.ID, value3.ID},
@@ -900,7 +900,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "filter by since timestamp with group filter",
 			opts: model.PropertyValueSearchOpts{
 				GroupID: groupID,
-				Since:   value1.UpdateAt, // After value1, should only get value2 from same group
+				UpdatedSince:   value1.UpdateAt, // After value1, should only get value2 from same group
 				PerPage: 10,
 			},
 			expectedIDs: []string{value2.ID},
@@ -908,7 +908,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 		{
 			name: "filter by since timestamp including deleted",
 			opts: model.PropertyValueSearchOpts{
-				Since:          value3.UpdateAt, // After value3, should get value4 (deleted)
+				UpdatedSince:          value3.UpdateAt, // After value3, should get value4 (deleted)
 				IncludeDeleted: true,
 				PerPage:        10,
 			},
@@ -984,7 +984,7 @@ func testSearchPropertyValuesSince(t *testing.T, _ request.CTX, ss store.Store) 
 		// Get values updated after value1 (should get value2 and value3)
 		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
 			GroupID: groupID,
-			Since:   value1.UpdateAt,
+			UpdatedSince:   value1.UpdateAt,
 			PerPage: 10,
 		})
 		require.NoError(t, err)
@@ -1002,7 +1002,7 @@ func testSearchPropertyValuesSince(t *testing.T, _ request.CTX, ss store.Store) 
 		// Should get both value2 (updated) and value3, so expect 2 results
 		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
 			GroupID: groupID,
-			Since:   value3.UpdateAt - 1, // Slightly before value3's timestamp
+			UpdatedSince:   value3.UpdateAt - 1, // Slightly before value3's timestamp
 			PerPage: 10,
 		})
 		require.NoError(t, err)
@@ -1020,7 +1020,7 @@ func testSearchPropertyValuesSince(t *testing.T, _ request.CTX, ss store.Store) 
 		// Get values updated after the most recent update
 		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
 			GroupID: groupID,
-			Since:   updatedValue2.UpdateAt, // After the update
+			UpdatedSince:   updatedValue2.UpdateAt, // After the update
 			PerPage: 10,
 		})
 		require.NoError(t, err)
@@ -1031,7 +1031,7 @@ func testSearchPropertyValuesSince(t *testing.T, _ request.CTX, ss store.Store) 
 		// Get values updated since current time
 		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
 			GroupID: groupID,
-			Since:   model.GetMillis(),
+			UpdatedSince:   model.GetMillis(),
 			PerPage: 10,
 		})
 		require.NoError(t, err)
