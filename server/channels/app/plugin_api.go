@@ -1131,6 +1131,22 @@ func (api *PluginAPI) LogWarn(msg string, keyValuePairs ...any) {
 	api.logger.Warnw(msg, keyValuePairs...)
 }
 
+func (api *PluginAPI) LogWithLevel(level mlog.Level, msg string, keyValuePairs ...any) {
+	// Convert keyValuePairs to mlog.Field slice
+	fields := make([]mlog.Field, 0, len(keyValuePairs)/2+1)
+	fields = append(fields, mlog.String("plugin_id", api.id))
+
+	for i := 0; i < len(keyValuePairs); i += 2 {
+		if i+1 < len(keyValuePairs) {
+			if key, ok := keyValuePairs[i].(string); ok {
+				fields = append(fields, mlog.Any(key, keyValuePairs[i+1]))
+			}
+		}
+	}
+
+	api.app.Log().Log(level, msg, fields...)
+}
+
 func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	// Bots created by a plugin should use the plugin's ID for the creator field, unless
 	// otherwise specified by the plugin.

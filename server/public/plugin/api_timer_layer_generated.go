@@ -1093,6 +1093,12 @@ func (api *apiTimerLayer) LogWarn(msg string, keyValuePairs ...any) {
 	api.recordTime(startTime, "LogWarn", true)
 }
 
+func (api *apiTimerLayer) LogWithLevel(level mlog.Level, msg string, keyValuePairs ...any) {
+	startTime := timePkg.Now()
+	api.apiImpl.LogWithLevel(level, msg, keyValuePairs...)
+	api.recordTime(startTime, "LogWithLevel", true)
+}
+
 func (api *apiTimerLayer) SendMail(to, subject, htmlBody string) *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.SendMail(to, subject, htmlBody)
