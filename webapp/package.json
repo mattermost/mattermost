@@ -55,6 +55,9 @@
     "webpack-dev-server": "5.1.0"
   },
   "overrides": {
+    "@deanwhillier/jest-matchmedia-mock": {
+      "jest": "30.1.3"
+    },
     "@giphy/react-components": {
       "styled-components": "5.3.6"
     },
