@@ -4701,6 +4701,19 @@ func (s *AutoTranslationSettings) isValid() *AppError {
 		// 		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.agents.bot_user_id.app_error", nil, "", http.StatusBadRequest)
 		// 	}
 		// }
+
+		// Validate timeouts if set
+		if s.Timeouts != nil {
+			if s.Timeouts.NewPost != nil && *s.Timeouts.NewPost <= 0 {
+				return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.new_post.app_error", nil, "", http.StatusBadRequest)
+			}
+			if s.Timeouts.Fetch != nil && *s.Timeouts.Fetch <= 0 {
+				return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.fetch.app_error", nil, "", http.StatusBadRequest)
+			}
+			if s.Timeouts.Notification != nil && *s.Timeouts.Notification <= 0 {
+				return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.notification.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
 	}
 
 	return nil
