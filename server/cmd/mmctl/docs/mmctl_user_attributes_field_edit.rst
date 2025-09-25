@@ -1,35 +1,39 @@
-.. _mmctl_cpa_field_delete:
+.. _mmctl_user_attributes_field_edit:
 
-mmctl cpa field delete
-----------------------
+mmctl user attributes field edit
+--------------------------------
 
-Delete a CPA field
+Edit a User Attributes field
 
 Synopsis
 ~~~~~~~~
 
 
-Delete a Custom Profile Attribute field. This will automatically delete all user values for this field.
+Edit an existing User Attributes field.
 
 ::
 
-  mmctl cpa field delete [field-id] [flags]
+  mmctl user attributes field edit [field-id] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    cpa field delete n4qdbtro4j8x3n8z81p48ww9gr --confirm
-    cpa field delete 8kj9xm4p6f3y7n2z9q5w8r1t4v --confirm
+    user attributes field edit n4qdbtro4j8x3n8z81p48ww9gr --name "Department Name" --managed
+    user attributes field edit 8kj9xm4p6f3y7n2z9q5w8r1t4v --option Go --option React --option Python --option Java
+    user attributes field edit 3h7k9m2x5b8v4n6p1q9w7r3t2y --managed=false
 
 Options
 ~~~~~~~
 
 ::
 
-      --confirm   Bypass confirmation prompt
-  -h, --help      help for delete
+      --attrs string     Update full attrs JSON object
+  -h, --help             help for edit
+      --managed          Mark field as admin-managed (overrides --attrs)
+      --name string      Update field name
+      --option strings   Add an option for select/multiselect fields (overrides --attrs, can be repeated)
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -49,5 +53,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl cpa field <mmctl_cpa_field.rst>`_ 	 - Management of CPA fields
+* `mmctl user attributes field <mmctl_user_attributes_field.rst>`_ 	 - Management of User Attributes fields
 
