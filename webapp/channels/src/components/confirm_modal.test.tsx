@@ -4,7 +4,7 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import Button from './button/button';
+import Button from 'components/design_system/button';
 import ConfirmModal from './confirm_modal';
 
 describe('ConfirmModal', () => {

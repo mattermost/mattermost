@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 
-import Button from 'components/button/button';
+import Button from 'components/design_system/button';
 
 import {focusElement} from 'utils/a11y_utils';
 
