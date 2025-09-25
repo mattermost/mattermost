@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-Management of Custom Profile Attributes (CPA) fields.
+Management of Custom Profile Attributes (CPA) fields and values.
 
 Options
 ~~~~~~~
@@ -38,4 +38,5 @@ SEE ALSO
 
 * `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
 * `mmctl cpa field <mmctl_cpa_field.rst>`_ 	 - Management of CPA fields
+* `mmctl cpa value <mmctl_cpa_value.rst>`_ 	 - Management of CPA values
 

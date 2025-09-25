@@ -4,14 +4,12 @@
 package app
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
 
 func TestGetJob(t *testing.T) {
@@ -92,8 +90,7 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
 	}
 
-	ctx := sqlstore.WithMaster(context.Background())
-	role, _ := th.App.GetRoleByName(ctx, model.SystemReadOnlyAdminRoleId)
+	role, _ := th.App.GetRoleByName(RequestContextWithMaster(th.Context), model.SystemReadOnlyAdminRoleId)
 
 	role.Permissions = append(role.Permissions, model.PermissionCreateDataRetentionJob.Id)
 	role.Permissions = append(role.Permissions, model.PermissionCreateComplianceExportJob.Id)
@@ -153,7 +150,7 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 			Id:   model.NewId(),
 			Type: model.JobTypeAccessControlSync,
 			Data: model.StringMap{
-				"parent_id": privateChannel.Id, // Channel admin jobs have parent_id = channelID
+				"policy_id": privateChannel.Id, // Channel admin jobs have policy_id = channelID
 			},
 		}
 
@@ -189,7 +186,7 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 			Id:   model.NewId(),
 			Type: model.JobTypeAccessControlSync,
 			Data: model.StringMap{
-				"parent_id": otherChannel.Id,
+				"policy_id": otherChannel.Id,
 			},
 		}
 
@@ -211,7 +208,7 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 			Id:   model.NewId(),
 			Type: model.JobTypeAccessControlSync,
 			Data: model.StringMap{
-				"parent_id": privateChannel.Id,
+				"policy_id": privateChannel.Id,
 			},
 		}
 
@@ -277,8 +274,7 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
 	}
 
-	ctx := sqlstore.WithMaster(context.Background())
-	role, _ := th.App.GetRoleByName(ctx, model.SystemManagerRoleId)
+	role, _ := th.App.GetRoleByName(RequestContextWithMaster(th.Context), model.SystemManagerRoleId)
 
 	role.Permissions = append(role.Permissions, model.PermissionReadDataRetentionJob.Id)
 
