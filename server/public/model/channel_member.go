@@ -89,6 +89,17 @@ func (o *ChannelMember) Auditable() map[string]any {
 	}
 }
 
+// SanitizeForCurrentUser sanitizes channel member data based on whether
+// it's the current user's own membership or another user's membership
+func (o *ChannelMember) SanitizeForCurrentUser(currentUserId string) {
+	// If this is not the current user's own membership,
+	// sanitize sensitive timestamp fields
+	if o.UserId != currentUserId {
+		o.LastViewedAt = -1
+		o.LastUpdateAt = -1
+	}
+}
+
 // ChannelMemberWithTeamData contains ChannelMember appended with extra team information
 // as well.
 type ChannelMemberWithTeamData struct {

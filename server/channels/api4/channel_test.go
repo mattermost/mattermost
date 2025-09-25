@@ -2474,100 +2474,6 @@ func TestSearchChannels(t *testing.T) {
 	})
 }
 
-func TestSearchArchivedChannels(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	client := th.Client
-
-	search := &model.ChannelSearch{Term: th.BasicChannel.Name}
-
-	_, err := client.DeleteChannel(context.Background(), th.BasicChannel.Id)
-	require.NoError(t, err)
-
-	channels, _, err := client.SearchArchivedChannels(context.Background(), th.BasicTeam.Id, search)
-	require.NoError(t, err)
-
-	found := false
-	for _, c := range channels {
-		require.Equal(t, model.ChannelTypeOpen, c.Type)
-
-		if c.Id == th.BasicChannel.Id {
-			found = true
-		}
-	}
-
-	require.True(t, found)
-
-	search.Term = th.BasicPrivateChannel.Name
-	_, err = client.DeleteChannel(context.Background(), th.BasicPrivateChannel.Id)
-	require.NoError(t, err)
-
-	channels, _, err = client.SearchArchivedChannels(context.Background(), th.BasicTeam.Id, search)
-	require.NoError(t, err)
-
-	found = false
-	for _, c := range channels {
-		if c.Id == th.BasicPrivateChannel.Id {
-			found = true
-		}
-	}
-
-	require.True(t, found)
-
-	search.Term = ""
-	_, _, err = client.SearchArchivedChannels(context.Background(), th.BasicTeam.Id, search)
-	require.NoError(t, err)
-
-	search.Term = th.BasicDeletedChannel.Name
-	_, resp, err := client.SearchArchivedChannels(context.Background(), model.NewId(), search)
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
-
-	_, resp, err = client.SearchArchivedChannels(context.Background(), "junk", search)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
-
-	_, _, err = th.SystemAdminClient.SearchArchivedChannels(context.Background(), th.BasicTeam.Id, search)
-	require.NoError(t, err)
-
-	// Check the appropriate permissions are enforced.
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
-	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
-	}()
-
-	// Remove list channels permission from the user
-	th.RemovePermissionFromRole(model.PermissionListTeamChannels.Id, model.TeamUserRoleId)
-
-	t.Run("Search for a BasicDeletedChannel, which the user is a member of", func(t *testing.T) {
-		search.Term = th.BasicDeletedChannel.Name
-		channelList, _, err := client.SearchArchivedChannels(context.Background(), th.BasicTeam.Id, search)
-		require.NoError(t, err)
-
-		channelNames := []string{}
-		for _, c := range channelList {
-			channelNames = append(channelNames, c.Name)
-		}
-		require.Contains(t, channelNames, th.BasicDeletedChannel.Name)
-	})
-
-	t.Run("Remove the user from BasicDeletedChannel and search again, should still return", func(t *testing.T) {
-		appErr := th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, th.BasicUser.Id, th.BasicDeletedChannel)
-		require.Nil(t, appErr)
-
-		search.Term = th.BasicDeletedChannel.Name
-		channelList, _, err := client.SearchArchivedChannels(context.Background(), th.BasicTeam.Id, search)
-		require.NoError(t, err)
-
-		channelNames := []string{}
-		for _, c := range channelList {
-			channelNames = append(channelNames, c.Name)
-		}
-		require.Contains(t, channelNames, th.BasicDeletedChannel.Name)
-	})
-}
-
 func TestSearchAllChannels(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := setupForSharedChannels(t).InitBasic()
@@ -4465,6 +4371,37 @@ func TestAddChannelMember(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("requester is not a member of the team and tries to add a user to a channel where it is already a member", func(t *testing.T) {
+		// Create two teams using SystemAdminClient
+		t1 := th.CreateTeamWithClient(th.SystemAdminClient)
+		t2 := th.CreateTeamWithClient(th.SystemAdminClient)
+
+		// Use existing users - user will be BasicUser, user2 will be BasicUser2
+		u1 := th.BasicUser
+		u2 := th.BasicUser2
+
+		// Add user1 to team1 and user2 to team2 (they're already on BasicTeam)
+		th.LinkUserToTeam(u1, t1)
+		th.LinkUserToTeam(u2, t2)
+
+		// Create a public channel in team1
+		pubChannel := th.CreateChannelWithClientAndTeam(th.SystemAdminClient, model.ChannelTypeOpen, t1.Id)
+
+		// Add user1 to the public channel
+		th.AddUserToChannel(u1, pubChannel)
+
+		// Create client for user2
+		client2 := th.CreateClient()
+		_, _, err := client2.Login(context.Background(), u2.Email, u2.Password)
+		require.NoError(t, err)
+
+		// Try to add user1 to the public channel using user2's credentials
+		// This should fail with 403 since user2 is not a member of the team
+		_, resp, err := client2.AddChannelMember(context.Background(), pubChannel.Id, u1.Id)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+
 	t.Run("invalid request data", func(t *testing.T) {
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			// correct type for user ids (string) but invalid value.
@@ -6231,7 +6168,7 @@ func TestRootMentionsCount(t *testing.T) {
 	channel := th.BasicChannel
 
 	// initially, MentionCountRoot is 0 in the database
-	channelMember, err := th.App.Srv().Store().Channel().GetMember(context.Background(), channel.Id, user.Id)
+	channelMember, err := th.App.Srv().Store().Channel().GetMember(th.Context, channel.Id, user.Id)
 	require.NoError(t, err)
 	require.Equal(t, int64(0), channelMember.MentionCountRoot)
 	require.Equal(t, int64(0), channelMember.MentionCount)
@@ -6252,7 +6189,7 @@ func TestRootMentionsCount(t *testing.T) {
 	// regular count stays the same
 	require.Equal(t, int64(2), channelUnread.MentionCount)
 	// validate that DB is updated
-	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channel.Id, user.Id)
+	channelMember, err = th.App.Srv().Store().Channel().GetMember(th.Context, channel.Id, user.Id)
 	require.NoError(t, err)
 	require.EqualValues(t, int64(1), channelMember.MentionCountRoot)
 
@@ -6301,4 +6238,88 @@ func TestViewChannelWithoutCollapsedThreads(t *testing.T) {
 	threads, _, err = client.GetUserThreads(context.Background(), user.Id, team.Id, model.GetUserThreadsOpts{})
 	require.NoError(t, err)
 	require.Zero(t, threads.TotalUnreadMentions)
+}
+
+func TestChannelMemberSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	client := th.Client
+	user := th.BasicUser
+	user2 := th.BasicUser2
+	channel := th.CreatePublicChannel()
+
+	// Add second user to channel
+	_, _, err := client.AddChannelMember(context.Background(), channel.Id, user2.Id)
+	require.NoError(t, err)
+
+	t.Run("getChannelMembers sanitizes LastViewedAt and LastUpdateAt for other users", func(t *testing.T) {
+		members, _, err := client.GetChannelMembers(context.Background(), channel.Id, 0, 60, "")
+		require.NoError(t, err)
+
+		for _, member := range members {
+			if member.UserId == user.Id {
+				// Current user should see their own timestamps
+				assert.NotEqual(t, int64(-1), member.LastViewedAt, "Current user should see their LastViewedAt")
+				assert.NotEqual(t, int64(-1), member.LastUpdateAt, "Current user should see their LastUpdateAt")
+			} else {
+				// Other users' timestamps should be sanitized
+				assert.Equal(t, int64(-1), member.LastViewedAt, "Other users' LastViewedAt should be sanitized")
+				assert.Equal(t, int64(-1), member.LastUpdateAt, "Other users' LastUpdateAt should be sanitized")
+			}
+		}
+	})
+
+	t.Run("getChannelMember sanitizes LastViewedAt and LastUpdateAt for other users", func(t *testing.T) {
+		// Get other user's membership data
+		member, _, err := client.GetChannelMember(context.Background(), channel.Id, user2.Id, "")
+		require.NoError(t, err)
+
+		// Should be sanitized since it's not the current user
+		assert.Equal(t, int64(-1), member.LastViewedAt, "Other user's LastViewedAt should be sanitized")
+		assert.Equal(t, int64(-1), member.LastUpdateAt, "Other user's LastUpdateAt should be sanitized")
+
+		// Get current user's membership data
+		currentMember, _, err := client.GetChannelMember(context.Background(), channel.Id, user.Id, "")
+		require.NoError(t, err)
+
+		// Should not be sanitized since it's the current user
+		assert.NotEqual(t, int64(-1), currentMember.LastViewedAt, "Current user should see their LastViewedAt")
+		assert.NotEqual(t, int64(-1), currentMember.LastUpdateAt, "Current user should see their LastUpdateAt")
+	})
+
+	t.Run("getChannelMembersByIds sanitizes data appropriately", func(t *testing.T) {
+		userIds := []string{user.Id, user2.Id}
+		members, _, err := client.GetChannelMembersByIds(context.Background(), channel.Id, userIds)
+		require.NoError(t, err)
+		require.Len(t, members, 2)
+
+		for _, member := range members {
+			if member.UserId == user.Id {
+				// Current user should see their own timestamps
+				assert.NotEqual(t, int64(-1), member.LastViewedAt, "Current user should see their LastViewedAt")
+				assert.NotEqual(t, int64(-1), member.LastUpdateAt, "Current user should see their LastUpdateAt")
+			} else {
+				// Other users' timestamps should be sanitized
+				assert.Equal(t, int64(-1), member.LastViewedAt, "Other users' LastViewedAt should be sanitized")
+				assert.Equal(t, int64(-1), member.LastUpdateAt, "Other users' LastUpdateAt should be sanitized")
+			}
+		}
+	})
+
+	t.Run("addChannelMember sanitizes returned member data", func(t *testing.T) {
+		newUser := th.CreateUser()
+		th.LinkUserToTeam(newUser, th.BasicTeam)
+
+		// Add new user and check returned member data
+		returnedMember, _, err := client.AddChannelMember(context.Background(), channel.Id, newUser.Id)
+		require.NoError(t, err)
+
+		// The returned member should be sanitized since it's not the current user
+		assert.Equal(t, int64(-1), returnedMember.LastViewedAt, "Returned member LastViewedAt should be sanitized")
+		assert.Equal(t, int64(-1), returnedMember.LastUpdateAt, "Returned member LastUpdateAt should be sanitized")
+		assert.Equal(t, newUser.Id, returnedMember.UserId, "UserId should be preserved")
+		assert.Equal(t, channel.Id, returnedMember.ChannelId, "ChannelId should be preserved")
+	})
 }

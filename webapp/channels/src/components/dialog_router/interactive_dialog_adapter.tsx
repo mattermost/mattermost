@@ -44,6 +44,7 @@ interface Props extends WrappedComponentProps {
     onExited?: () => void;
     actions: {
         submitInteractiveDialog: (submission: DialogSubmission) => Promise<ActionResult<SubmitDialogResponse>>;
+        lookupInteractiveDialog: (submission: DialogSubmission) => Promise<ActionResult<{items: Array<{text: string; value: string}>}>>;
     };
 
     // Enhanced configuration options
@@ -178,9 +179,9 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 callback_id: this.props.callbackId || '',
                 state: this.props.state || '',
                 submission: convertedValues as {[x: string]: string},
-                user_id: '',
-                channel_id: '',
-                team_id: '',
+                user_id: '', // Populated by submitInteractiveDialog action
+                channel_id: '', // Populated by submitInteractiveDialog action
+                team_id: '', // Populated by submitInteractiveDialog action
                 cancelled: false,
             };
 
@@ -261,9 +262,9 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             callback_id: this.props.callbackId || '',
             state: this.props.state || '',
             cancelled: true,
-            user_id: '',
-            channel_id: '',
-            team_id: '',
+            user_id: '', // Populated by submitInteractiveDialog action
+            channel_id: '', // Populated by submitInteractiveDialog action
+            team_id: '', // Populated by submitInteractiveDialog action
             submission: {},
         };
 
@@ -289,16 +290,134 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
     };
 
     /**
-     * No-op lookup adapter for unsupported legacy feature
+     * Handles dynamic lookup requests for interactive dialog select fields.
+     * Validates the lookup URL, processes form values, and makes the lookup call
+     * to fetch dynamic options for select elements.
+     *
+     * @param call - The app call request containing lookup parameters
+     * @returns Promise resolving to lookup response with options or error
      */
-    private performLookupCall = async (): Promise<DoAppCallResult<unknown>> => {
-        this.logWarn('Unexpected lookup call in Interactive Dialog adapter - this should not happen');
-        return {
-            data: {
-                type: 'ok' as const,
-                data: {items: []},
-            },
+    private performLookupCall = async (call: AppCallRequest): Promise<DoAppCallResult<unknown>> => {
+        const {url, callbackId, state} = this.props;
+
+        // Get the lookup path from the call or field configuration
+        let lookupPath = call.path;
+
+        // If the field has a lookup path defined, use that instead
+        if (!lookupPath && call.selected_field) {
+            const field = this.props.elements?.find((element) => element.name === call.selected_field);
+            if (field?.data_source === 'dynamic' && field?.data_source_url) {
+                lookupPath = field.data_source_url;
+            }
+        }
+
+        // If still no path, fall back to the dialog URL
+        if (!lookupPath) {
+            lookupPath = url || '';
+        }
+
+        // Validate URL for security
+        if (!lookupPath) {
+            return {
+                error: {
+                    type: 'error' as const,
+                    text: 'No lookup URL provided',
+                },
+            };
+        }
+
+        if (!lookupPath || !this.isValidLookupURL(lookupPath)) {
+            return {
+                error: {
+                    type: 'error' as const,
+                    text: 'Invalid lookup URL: must be HTTPS URL or /plugins/ path',
+                },
+            };
+        }
+
+        // Validate and convert AppCallRequest values back to legacy format
+        const values = call.values || {};
+        const {submission: convertedValues, errors} = convertAppFormValuesToDialogSubmission(
+            values,
+            this.props.elements,
+            this.conversionContext,
+        );
+
+        // Handle validation errors if any
+        if (errors.length > 0) {
+            this.logWarn('Form submission validation errors', {
+                errorCount: errors.length,
+                errors,
+            });
+        }
+
+        // For dynamic select, we need to make a lookup call to get options
+        const dialog: DialogSubmission = {
+            url: lookupPath || '',
+            callback_id: callbackId ?? '',
+            state: state ?? '',
+            submission: convertedValues as {[x: string]: string},
+            user_id: '',
+            channel_id: '',
+            team_id: '',
+            cancelled: false,
         };
+
+        // Add the query and selected field to the submission
+        if (call.query) {
+            dialog.submission.query = call.query;
+        }
+
+        if (call.selected_field) {
+            dialog.submission.selected_field = call.selected_field;
+        }
+
+        try {
+            const response = await this.props.actions.lookupInteractiveDialog(dialog);
+
+            // Convert the response to the format expected by AppsFormContainer
+            if (response?.data?.items) {
+                return {
+                    data: {
+                        type: 'ok' as const,
+                        data: {
+                            items: response.data.items.map((item) => ({
+                                label: item.text,
+                                value: item.value,
+                            })),
+                        },
+                    },
+                };
+            }
+
+            if (response?.error) {
+                return {
+                    error: {
+                        type: 'error' as const,
+                        text: response.error.message || 'Lookup failed',
+                    },
+                };
+            }
+
+            return {
+                data: {
+                    type: 'ok' as const,
+                    data: {
+                        items: [],
+                    },
+                },
+            };
+        } catch (error) {
+            // Log the full error for debugging but return a sanitized message to the user
+            this.logError('Lookup request failed', error);
+
+            return {
+                error: {
+                    type: 'error' as const,
+                    text: this.getSafeErrorMessage(error),
+                },
+            };
+        }
     };
 
     /**
@@ -317,6 +436,57 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
      * No-op ephemeral response adapter for legacy compatibility
      */
     private postEphemeralCallResponseForContext = (): void => {
+    };
+
+    /**
+     * Validates if a URL is safe for lookup operations
+     */
+    private isValidLookupURL = (url: string): boolean => {
+        if (!url) {
+            return false;
+        }
+
+        // Only allow HTTPS for external URLs (more secure than HTTP)
+        if (url.startsWith('https://')) {
+            return true; // Simple check, full validation happens server-side
+        }
+
+        // Allow HTTP URLs to localhost and 127.0.0.1 for testing scenarios
+        if (url.startsWith('http://')) {
+            try {
+                const parsedURL = new URL(url);
+                const host = parsedURL.hostname;
+                if (host === 'localhost' || host === '127.0.0.1') {
+                    return true;
+                }
+            } catch {
+                return false;
+            }
+        }
+
+        // Only allow plugin paths that start with /plugins/
+        if (url.startsWith('/plugins/')) {
+            // Additional validation for plugin paths - ensure no path traversal
+            if (url.includes('..') || url.includes('//')) {
+                return false;
+            }
+            return true;
+        }
+
+        return false;
+    };
+
+    /**
+     * Gets a safe error message for display to users
+     */
+    private getSafeErrorMessage = (error: unknown): string => {
+        if (error instanceof Error) {
+            return error.message;
+        }
+        return this.props.intl.formatMessage({
+            id: 'interactive_dialog.lookup_failed',
+            defaultMessage: 'Lookup failed',
+        });
     };
 
     render() {

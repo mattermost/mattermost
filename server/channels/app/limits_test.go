@@ -4,9 +4,11 @@
 package app
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -26,8 +28,8 @@ func TestGetServerLimits(t *testing.T) {
 
 		// InitBasic creates 3 users by default
 		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
-		require.Equal(t, int64(2500), serverLimits.MaxUsersLimit)
-		require.Equal(t, int64(5000), serverLimits.MaxUsersHardLimit)
+		require.Equal(t, int64(200), serverLimits.MaxUsersLimit)
+		require.Equal(t, int64(250), serverLimits.MaxUsersHardLimit)
 	})
 
 	t.Run("user count should increase on creating new user and decrease on permanently deleting", func(t *testing.T) {
@@ -277,7 +279,7 @@ func TestIsAtUserLimit(t *testing.T) {
 			th.App.Srv().SetLicense(nil)
 
 			mockUserStore := storemocks.UserStore{}
-			mockUserStore.On("Count", mock.Anything).Return(int64(4000), nil) // Under hard limit of 5000
+			mockUserStore.On("Count", mock.Anything).Return(int64(200), nil) // Under hard limit of 250
 			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockStore.On("User").Return(&mockUserStore)
 
@@ -293,7 +295,7 @@ func TestIsAtUserLimit(t *testing.T) {
 			th.App.Srv().SetLicense(nil)
 
 			mockUserStore := storemocks.UserStore{}
-			mockUserStore.On("Count", mock.Anything).Return(int64(5000), nil) // At hard limit of 5000
+			mockUserStore.On("Count", mock.Anything).Return(int64(250), nil) // At hard limit of 250
 			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockStore.On("User").Return(&mockUserStore)
 
@@ -309,7 +311,7 @@ func TestIsAtUserLimit(t *testing.T) {
 			th.App.Srv().SetLicense(nil)
 
 			mockUserStore := storemocks.UserStore{}
-			mockUserStore.On("Count", mock.Anything).Return(int64(6000), nil) // Over hard limit of 5000
+			mockUserStore.On("Count", mock.Anything).Return(int64(300), nil) // Over hard limit of 250
 			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockStore.On("User").Return(&mockUserStore)
 
@@ -545,7 +547,219 @@ func TestExtraUsersBehavior(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Unlicensed servers use hard-coded limits without extra users
-		require.Equal(t, int64(2500), serverLimits.MaxUsersLimit)
-		require.Equal(t, int64(5000), serverLimits.MaxUsersHardLimit)
+		require.Equal(t, int64(200), serverLimits.MaxUsersLimit)
+		require.Equal(t, int64(250), serverLimits.MaxUsersHardLimit)
+	})
+}
+
+func TestGetServerLimitsWithPostHistory(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("unlicensed server has no post history limits", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.Srv().SetLicense(nil)
+
+		serverLimits, appErr := th.App.GetServerLimits()
+		require.Nil(t, appErr)
+
+		// Unlicensed servers should have no post history limits
+		require.Equal(t, int64(0), serverLimits.PostHistoryLimit)
+		require.Equal(t, int64(0), serverLimits.LastAccessiblePostTime)
+	})
+
+	t.Run("licensed server without post history limits", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		license := model.NewTestLicense("")
+		license.Limits = nil // No limits configured
+		th.App.Srv().SetLicense(license)
+
+		serverLimits, appErr := th.App.GetServerLimits()
+		require.Nil(t, appErr)
+
+		// Should have no post history limits when Limits is nil
+		require.Equal(t, int64(0), serverLimits.PostHistoryLimit)
+		require.Equal(t, int64(0), serverLimits.LastAccessiblePostTime)
+	})
+
+	t.Run("licensed server with zero post history limit", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		license := model.NewTestLicense("")
+		license.Limits = &model.LicenseLimits{
+			PostHistory: 0, // Zero limit
+		}
+		th.App.Srv().SetLicense(license)
+
+		serverLimits, appErr := th.App.GetServerLimits()
+		require.Nil(t, appErr)
+
+		// Should have no post history limits when PostHistory is 0
+		require.Equal(t, int64(0), serverLimits.PostHistoryLimit)
+		require.Equal(t, int64(0), serverLimits.LastAccessiblePostTime)
+	})
+
+	t.Run("licensed server with positive post history limit and successful GetLastAccessiblePostTime", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		// Mock user store for existing functionality
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockUserStore := storemocks.UserStore{}
+		mockUserStore.On("Count", mock.Anything).Return(int64(5), nil)
+		mockStore.On("User").Return(&mockUserStore)
+
+		// Mock system store for GetLastAccessiblePostTime
+		mockSystemStore := storemocks.SystemStore{}
+		mockSystemStore.On("GetByName", model.SystemLastAccessiblePostTime).Return(&model.System{
+			Name:  model.SystemLastAccessiblePostTime,
+			Value: "1234567890",
+		}, nil)
+		mockStore.On("System").Return(&mockSystemStore)
+
+		// Create Entry license with post history limit
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+		license.Limits = &model.LicenseLimits{
+			PostHistory: 1000,
+		}
+		th.App.Srv().SetLicense(license)
+
+		serverLimits, appErr := th.App.GetServerLimits()
+		require.Nil(t, appErr)
+
+		// Should have proper post history limits set
+		require.Equal(t, int64(1000), serverLimits.PostHistoryLimit)
+		require.Equal(t, int64(1234567890), serverLimits.LastAccessiblePostTime)
+		require.Equal(t, int64(5), serverLimits.ActiveUserCount)
+	})
+
+	t.Run("licensed server with post history limit but GetLastAccessiblePostTime fails", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		// Mock user store for existing functionality
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockUserStore := storemocks.UserStore{}
+		mockUserStore.On("Count", mock.Anything).Return(int64(5), nil)
+		mockStore.On("User").Return(&mockUserStore)
+
+		// Mock system store to return error
+		mockSystemStore := storemocks.SystemStore{}
+		mockSystemStore.On("GetByName", model.SystemLastAccessiblePostTime).Return(nil, errors.New("database error"))
+		mockStore.On("System").Return(&mockSystemStore)
+
+		// Create Entry license with post history limit
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+		license.Limits = &model.LicenseLimits{
+			PostHistory: 1000,
+		}
+		th.App.Srv().SetLicense(license)
+
+		_, appErr := th.App.GetServerLimits()
+		require.NotNil(t, appErr)
+		require.Contains(t, appErr.Message, "Unable to find the system variable")
+	})
+
+	t.Run("licensed server with post history limit but no system value found", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		// Mock user store for existing functionality
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockUserStore := storemocks.UserStore{}
+		mockUserStore.On("Count", mock.Anything).Return(int64(5), nil)
+		mockStore.On("User").Return(&mockUserStore)
+
+		// Mock system store to return ErrNotFound (all posts accessible)
+		mockSystemStore := storemocks.SystemStore{}
+		mockSystemStore.On("GetByName", model.SystemLastAccessiblePostTime).Return(nil, store.NewErrNotFound("", ""))
+		mockStore.On("System").Return(&mockSystemStore)
+
+		// Create Entry license with post history limit
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+		license.Limits = &model.LicenseLimits{
+			PostHistory: 1000,
+		}
+		th.App.Srv().SetLicense(license)
+
+		serverLimits, appErr := th.App.GetServerLimits()
+		require.Nil(t, appErr)
+
+		// Should have post history limit set but LastAccessiblePostTime should be 0 (all posts accessible)
+		require.Equal(t, int64(1000), serverLimits.PostHistoryLimit)
+		require.Equal(t, int64(0), serverLimits.LastAccessiblePostTime)
+		require.Equal(t, int64(5), serverLimits.ActiveUserCount)
+	})
+}
+func TestGetPostHistoryLimit(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("unlicensed server returns zero limit", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.Srv().SetLicense(nil)
+
+		limit := th.App.GetPostHistoryLimit()
+		require.Equal(t, int64(0), limit)
+	})
+
+	t.Run("licensed server with no Limits returns zero", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		license := model.NewTestLicense("")
+		license.Limits = nil // No limits configured
+		th.App.Srv().SetLicense(license)
+
+		limit := th.App.GetPostHistoryLimit()
+		require.Equal(t, int64(0), limit)
+	})
+
+	t.Run("licensed server with zero PostHistory returns zero", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		license := model.NewTestLicense("")
+		license.Limits = &model.LicenseLimits{
+			PostHistory: 0,
+		}
+		th.App.Srv().SetLicense(license)
+
+		limit := th.App.GetPostHistoryLimit()
+		require.Equal(t, int64(0), limit)
+	})
+
+	t.Run("licensed server with positive PostHistory returns exact value", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		license := model.NewTestLicense("")
+		license.Limits = &model.LicenseLimits{
+			PostHistory: 1500,
+		}
+		th.App.Srv().SetLicense(license)
+
+		limit := th.App.GetPostHistoryLimit()
+		require.Equal(t, int64(1500), limit)
+	})
+
+	t.Run("Entry license with PostHistory returns exact value", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+
+		license.Limits = &model.LicenseLimits{
+			PostHistory: 2000,
+		}
+		th.App.Srv().SetLicense(license)
+
+		limit := th.App.GetPostHistoryLimit()
+		require.Equal(t, int64(2000), limit)
 	})
 }

@@ -4,12 +4,14 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -1082,6 +1084,531 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 
 		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 		require.Nil(t, err)
+	})
+}
+
+func TestLookupInteractiveDialog(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	t.Run("should handle successful lookup request", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var request model.SubmitDialogRequest
+			err := json.NewDecoder(r.Body).Decode(&request)
+			require.NoError(t, err)
+
+			assert.Equal(t, "dialog_lookup", request.Type)
+			assert.Equal(t, th.BasicUser.Id, request.UserId)
+			assert.Equal(t, th.BasicChannel.Id, request.ChannelId)
+			assert.Equal(t, th.BasicTeam.Id, request.TeamId)
+			assert.Equal(t, "callbackid", request.CallbackId)
+
+			// Check for query and selected_field in submission
+			query, ok := request.Submission["query"].(string)
+			require.True(t, ok)
+			assert.Equal(t, "test query", query)
+
+			selectedField, ok := request.Submission["selected_field"].(string)
+			require.True(t, ok)
+			assert.Equal(t, "dynamic_field", selectedField)
+
+			// Return mock lookup response
+			response := model.LookupDialogResponse{
+				Items: []model.DialogSelectOption{
+					{Text: "Option 1", Value: "value1"},
+					{Text: "Option 2", Value: "value2"},
+					{Text: "Option 3", Value: "value3"},
+				},
+			}
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(response)
+		}))
+		defer ts.Close()
+
+		submit := model.SubmitDialogRequest{
+			URL:        ts.URL,
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     th.BasicTeam.Id,
+			Submission: map[string]any{
+				"query":          "test query",
+				"selected_field": "dynamic_field",
+			},
+		}
+
+		resp, err := th.App.LookupInteractiveDialog(th.Context, submit)
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Len(t, resp.Items, 3)
+		assert.Equal(t, "Option 1", resp.Items[0].Text)
+		assert.Equal(t, "value1", resp.Items[0].Value)
+		assert.Equal(t, "Option 2", resp.Items[1].Text)
+		assert.Equal(t, "value2", resp.Items[1].Value)
+	})
+
+	t.Run("should handle empty response", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			// Empty response body
+		}))
+		defer ts.Close()
+
+		submit := model.SubmitDialogRequest{
+			URL:        ts.URL,
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     th.BasicTeam.Id,
+			Submission: map[string]any{"query": "test"},
+		}
+
+		resp, err := th.App.LookupInteractiveDialog(th.Context, submit)
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Empty(t, resp.Items)
+	})
+
+	t.Run("should handle HTTP error response", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte("Internal server error"))
+		}))
+		defer ts.Close()
+
+		submit := model.SubmitDialogRequest{
+			URL:        ts.URL,
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     th.BasicTeam.Id,
+			Submission: map[string]any{"query": "test"},
+		}
+
+		resp, err := th.App.LookupInteractiveDialog(th.Context, submit)
+		require.NotNil(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "status=500")
+	})
+
+	t.Run("should handle malformed JSON response", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("invalid json"))
+		}))
+		defer ts.Close()
+
+		submit := model.SubmitDialogRequest{
+			URL:        ts.URL,
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     th.BasicTeam.Id,
+			Submission: map[string]any{"query": "test"},
+		}
+
+		resp, err := th.App.LookupInteractiveDialog(th.Context, submit)
+		require.NotNil(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "Encountered an error decoding JSON response")
+	})
+
+	t.Run("should handle plugin lookup", func(t *testing.T) {
+		setupPluginAPITest(t,
+			`
+			package main
+
+			import (
+				"encoding/json"
+				"net/http"
+
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+				var request model.SubmitDialogRequest
+				json.NewDecoder(r.Body).Decode(&request)
+				
+				response := &model.LookupDialogResponse{
+					Items: []model.DialogSelectOption{
+						{Text: "Plugin Option 1", Value: "plugin_value1"},
+						{Text: "Plugin Option 2", Value: "plugin_value2"},
+					},
+				}
+				w.WriteHeader(http.StatusOK)
+				responseJSON, _ := json.Marshal(response)
+				w.Write(responseJSON)
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`, `{"id": "myplugin", "server": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
+
+		submit := model.SubmitDialogRequest{
+			URL:        "/plugins/myplugin/lookup",
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     th.BasicTeam.Id,
+			Submission: map[string]any{"query": "test"},
+		}
+
+		resp, err := th.App.LookupInteractiveDialog(th.Context, submit)
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Len(t, resp.Items, 2)
+		assert.Equal(t, "Plugin Option 1", resp.Items[0].Text)
+		assert.Equal(t, "plugin_value1", resp.Items[0].Value)
+	})
+
+	t.Run("should fail on invalid URL", func(t *testing.T) {
+		submit := model.SubmitDialogRequest{
+			URL:        "not-a-valid-url",
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     th.BasicTeam.Id,
+			Submission: map[string]any{"query": "test"},
+		}
+
+		resp, err := th.App.LookupInteractiveDialog(th.Context, submit)
+		require.NotNil(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "unsupported protocol scheme")
+	})
+
+	t.Run("should handle timeout", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Simulate a slow response that would trigger a timeout
+			time.Sleep(2 * time.Second)
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
+		})
+
+		submit := model.SubmitDialogRequest{
+			URL:        ts.URL,
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     th.BasicTeam.Id,
+			Submission: map[string]any{"query": "test"},
+		}
+
+		resp, err := th.App.LookupInteractiveDialog(th.Context, submit)
+		require.NotNil(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "context deadline exceeded")
+	})
+}
+
+func TestOpenInteractiveDialog(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("should successfully open dialog with valid trigger ID", func(t *testing.T) {
+		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
+		require.Nil(t, err)
+
+		request := model.OpenDialogRequest{
+			TriggerId: triggerId,
+			URL:       "http://localhost:8065",
+			Dialog: model.Dialog{
+				CallbackId: "callbackid",
+				Title:      "Test Dialog",
+				Elements: []model.DialogElement{
+					{
+						DisplayName: "Field Name",
+						Name:        "field_name",
+						Type:        "text",
+						Placeholder: "Enter value",
+					},
+				},
+				SubmitLabel:    "Submit",
+				NotifyOnCancel: false,
+				State:          "somestate",
+			},
+		}
+
+		err = th.App.OpenInteractiveDialog(th.Context, request)
+		require.Nil(t, err)
+	})
+
+	t.Run("should fail with invalid trigger ID", func(t *testing.T) {
+		request := model.OpenDialogRequest{
+			TriggerId: "invalid_trigger_id",
+			URL:       "http://localhost:8065",
+			Dialog: model.Dialog{
+				CallbackId: "callbackid",
+				Title:      "Test Dialog",
+			},
+		}
+
+		err := th.App.OpenInteractiveDialog(th.Context, request)
+		require.NotNil(t, err)
+		assert.Contains(t, err.Error(), "trigger ID")
+	})
+
+	t.Run("should fail with expired trigger ID", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
+		})
+
+		// Generate trigger ID and wait for it to expire
+		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
+		require.Nil(t, err)
+
+		time.Sleep(2 * time.Second)
+
+		request := model.OpenDialogRequest{
+			TriggerId: triggerId,
+			URL:       "http://localhost:8065",
+			Dialog: model.Dialog{
+				CallbackId: "callbackid",
+				Title:      "Test Dialog",
+			},
+		}
+
+		err = th.App.OpenInteractiveDialog(th.Context, request)
+		require.NotNil(t, err)
+		assert.Contains(t, err.Error(), "Trigger ID for interactive dialog is expired")
+	})
+
+	t.Run("should handle dialog with invalid elements", func(t *testing.T) {
+		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
+		require.Nil(t, err)
+
+		request := model.OpenDialogRequest{
+			TriggerId: triggerId,
+			URL:       "http://localhost:8065",
+			Dialog: model.Dialog{
+				CallbackId: "callbackid",
+				Title:      "Test Dialog",
+				Elements: []model.DialogElement{
+					{
+						DisplayName: strings.Repeat("A", 500), // Too long display name
+						Name:        "field_name",
+						Type:        "text",
+					},
+				},
+			},
+		}
+
+		// Should succeed but log warning about invalid dialog
+		err = th.App.OpenInteractiveDialog(th.Context, request)
+		require.Nil(t, err)
+	})
+}
+
+func TestDoActionRequest(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	t.Run("should handle successful external request", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "POST", r.Method)
+			assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+			assert.Equal(t, "application/json", r.Header.Get("Accept"))
+
+			body, err := io.ReadAll(r.Body)
+			require.NoError(t, err)
+			assert.NotEmpty(t, body)
+
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{"success": true}`))
+		}))
+		defer ts.Close()
+
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, ts.URL, requestBody)
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		body, readErr := io.ReadAll(resp.Body)
+		require.NoError(t, readErr)
+		assert.Equal(t, `{"success": true}`, string(body))
+		resp.Body.Close()
+	})
+
+	t.Run("should handle non-200 status code", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusBadRequest)
+			_, _ = w.Write([]byte("Bad request"))
+		}))
+		defer ts.Close()
+
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, ts.URL, requestBody)
+		require.NotNil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		assert.Contains(t, err.Error(), "status=400")
+		resp.Body.Close()
+	})
+
+	t.Run("should handle invalid URL", func(t *testing.T) {
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, "invalid-url", requestBody)
+		require.NotNil(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "unsupported protocol scheme")
+	})
+
+	t.Run("should handle plugin URL", func(t *testing.T) {
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, "/plugins/myplugin/action", requestBody)
+		require.Nil(t, err) // Plugin URLs return HTTP response, not Go error
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode) // Plugin doesn't exist, returns 404
+		resp.Body.Close()
+	})
+
+	t.Run("should handle context timeout", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			time.Sleep(2 * time.Second)
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+		defer cancel()
+		c := th.Context.WithContext(ctx)
+
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(c, ts.URL, requestBody)
+		require.NotNil(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "context deadline exceeded")
+	})
+
+	t.Run("should handle network error", func(t *testing.T) {
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, "http://invalid-host-that-does-not-exist:9999", requestBody)
+		require.NotNil(t, err)
+		assert.Nil(t, resp)
+	})
+}
+
+func TestDoLocalRequest(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("should delegate to doPluginRequest", func(t *testing.T) {
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoLocalRequest(th.Context, "/plugins/nonexistent/action", requestBody)
+		require.Nil(t, err) // DoLocalRequest returns HTTP response, not error
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode) // Plugin doesn't exist, returns 404
+	})
+}
+
+func TestDoPostActionWithCookieEdgeCases(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	t.Run("should handle missing post with valid cookie", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{}`))
+		}))
+		defer ts.Close()
+
+		cookie := &model.PostActionCookie{
+			PostId:    "nonexistent_post_id",
+			ChannelId: th.BasicChannel.Id,
+			Type:      model.PostActionTypeButton,
+			Integration: &model.PostActionIntegration{
+				URL: ts.URL,
+			},
+		}
+
+		_, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", th.BasicUser.Id, "", cookie)
+		require.Nil(t, err)
+	})
+
+	t.Run("should handle cookie with mismatched post ID", func(t *testing.T) {
+		cookie := &model.PostActionCookie{
+			PostId:    "different_post_id",
+			ChannelId: th.BasicChannel.Id,
+			Type:      model.PostActionTypeButton,
+			Integration: &model.PostActionIntegration{
+				URL: "http://example.com",
+			},
+		}
+
+		_, err := th.App.DoPostActionWithCookie(th.Context, "actual_post_id", "action_id", th.BasicUser.Id, "", cookie)
+		require.NotNil(t, err)
+		assert.Contains(t, err.Error(), "postId doesn't match")
+	})
+
+	t.Run("should handle cookie with nil integration", func(t *testing.T) {
+		cookie := &model.PostActionCookie{
+			PostId:      "nonexistent_post_id",
+			ChannelId:   th.BasicChannel.Id,
+			Type:        model.PostActionTypeButton,
+			Integration: nil,
+		}
+
+		_, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", th.BasicUser.Id, "", cookie)
+		require.NotNil(t, err)
+		assert.Contains(t, err.Error(), "no Integration in action cookie")
+	})
+
+	t.Run("should handle missing user error", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{}`))
+		}))
+		defer ts.Close()
+
+		cookie := &model.PostActionCookie{
+			PostId:    "nonexistent_post_id",
+			ChannelId: th.BasicChannel.Id,
+			Type:      model.PostActionTypeButton,
+			Integration: &model.PostActionIntegration{
+				URL: ts.URL,
+			},
+		}
+
+		_, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", "nonexistent_user_id", "", cookie)
+		require.NotNil(t, err)
+		assert.Contains(t, err.Error(), "Unable to find the user.")
 	})
 }
 

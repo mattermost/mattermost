@@ -24,7 +24,7 @@ test(
         // # Get license information and prepare test args
         const testArgs = {page, browserName, viewport};
         const license = await adminClient.getClientLicenseOld();
-        const editionSuffix = license.IsLicensed === 'true' ? '' : 'free edition';
+        const editionSuffix = license.IsLicensed === 'true' ? '' : 'team edition';
 
         // * Verify login page appears as expected
         await pw.matchSnapshot({...testInfo, title: `${testInfo.title} ${editionSuffix}`}, testArgs);
@@ -32,7 +32,6 @@ test(
         // # Click sign in button without entering user credential
         await pw.loginPage.signInButton.click();
         await pw.loginPage.userErrorLabel.waitFor();
-        await pw.waitForAnimationEnd(pw.loginPage.bodyCard);
 
         // * Verify login page with error appears as expected
         await pw.matchSnapshot({...testInfo, title: `${testInfo.title} error ${editionSuffix}`}, testArgs);
