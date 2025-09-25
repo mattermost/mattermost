@@ -36,6 +36,11 @@ type Props = {
     confirmButtonClass?: string;
 
     /*
+     * Set to true for destructive actions (red button)
+     */
+    destructive?: boolean;
+
+    /*
      * The CSS class to apply to the modal
      */
     modalClass?: string;
@@ -111,7 +116,6 @@ export default class ConfirmModal extends React.Component<Props, State> {
     static defaultProps = {
         title: '',
         message: '',
-        confirmButtonClass: 'btn btn-primary',
         confirmButtonText: '',
         modalClass: '',
     };
@@ -222,8 +226,9 @@ export default class ConfirmModal extends React.Component<Props, State> {
                         {!this.props.hideConfirm && (
                             <Button
                                 type='button'
+                                data-testid='confirm-button'
                                 emphasis='primary'
-                                destructive={this.props.confirmButtonClass?.includes('btn-danger') || false}
+                                destructive={this.props.destructive ?? (this.props.confirmButtonClass?.includes('btn-danger') || false)}
                                 onClick={this.handleConfirm}
                                 id='confirmModalButton'
                                 autoFocus={true}

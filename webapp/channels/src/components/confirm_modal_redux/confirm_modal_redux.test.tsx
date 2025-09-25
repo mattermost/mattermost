@@ -27,7 +27,7 @@ describe('ConfirmModalRedux', () => {
         expect(wrapper.find(Modal).prop('show')).toBe(true);
         expect(baseProps.onExited).not.toHaveBeenCalled();
 
-        wrapper.find('#confirmModalButton').simulate('click');
+        wrapper.find('button[data-testid="confirm-button"]').simulate('click');
 
         expect(wrapper.find(Modal).prop('show')).toBe(false);
     }, 5000);
@@ -44,7 +44,7 @@ describe('ConfirmModalRedux', () => {
         expect(wrapper.find(Modal).prop('show')).toBe(true);
         expect(baseProps.onExited).not.toHaveBeenCalled();
 
-        wrapper.find('#cancelModalButton').simulate('click');
+        wrapper.find('button[data-testid="cancel-button"]').simulate('click');
 
         expect(wrapper.find(Modal).prop('show')).toBe(false);
     }, 5000);
