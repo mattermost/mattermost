@@ -2695,7 +2695,8 @@ type AutoTranslationSettings struct {
 	Provider       *string                         `access:"site_localization,cloud_restrictable"`
 	Timeouts       *AutoTranslationTimeouts        `access:"site_localization,cloud_restrictable"`
 	LibreTranslate *LibreTranslateProviderSettings `access:"site_localization,cloud_restrictable"`
-	Agents         *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
+	// TODO: Enable Agents provider in future release
+	// Agents         *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
 }
 
 type AutoTranslationTimeouts struct {
@@ -2709,9 +2710,10 @@ type LibreTranslateProviderSettings struct {
 	APIKey *string `access:"site_localization,cloud_restrictable"`
 }
 
-type AgentsProviderSettings struct {
-	BotUserId *string `access:"site_localization,cloud_restrictable"`
-}
+// TODO: Enable Agents provider in future release
+// type AgentsProviderSettings struct {
+// 	BotUserId *string `access:"site_localization,cloud_restrictable"`
+// }
 
 func (s *AutoTranslationSettings) SetDefaults() {
 	if s.Enable == nil {
@@ -2719,7 +2721,7 @@ func (s *AutoTranslationSettings) SetDefaults() {
 	}
 
 	if s.Provider == nil {
-		s.Provider = NewPointer("agents")
+		s.Provider = NewPointer("libretranslate")
 	}
 
 	if s.Timeouts == nil {
@@ -2732,10 +2734,11 @@ func (s *AutoTranslationSettings) SetDefaults() {
 	}
 	s.LibreTranslate.SetDefaults()
 
-	if s.Agents == nil {
-		s.Agents = &AgentsProviderSettings{}
-	}
-	s.Agents.SetDefaults()
+	// TODO: Enable Agents provider in future release
+	// if s.Agents == nil {
+	// 	s.Agents = &AgentsProviderSettings{}
+	// }
+	// s.Agents.SetDefaults()
 }
 
 func (s *AutoTranslationTimeouts) SetDefaults() {
@@ -2762,11 +2765,12 @@ func (s *LibreTranslateProviderSettings) SetDefaults() {
 	}
 }
 
-func (s *AgentsProviderSettings) SetDefaults() {
-	if s.BotUserId == nil {
-		s.BotUserId = NewPointer("")
-	}
-}
+// TODO: Enable Agents provider in future release
+// func (s *AgentsProviderSettings) SetDefaults() {
+// 	if s.BotUserId == nil {
+// 		s.BotUserId = NewPointer("")
+// 	}
+// }
 
 type SamlSettings struct {
 	// Basic
@@ -4680,7 +4684,8 @@ func (s *AutoTranslationSettings) isValid() *AppError {
 		if s.Provider == nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.provider.app_error", nil, "", http.StatusBadRequest)
 		}
-		if *s.Provider != "agents" && *s.Provider != "libretranslate" {
+		// TODO: Enable Agents provider in future release
+		if *s.Provider != "libretranslate" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.provider.unsupported.app_error", nil, "", http.StatusBadRequest)
 		}
 
@@ -4690,11 +4695,12 @@ func (s *AutoTranslationSettings) isValid() *AppError {
 			}
 		}
 
-		if *s.Provider == "agents" {
-			if s.Agents == nil || s.Agents.BotUserId == nil || *s.Agents.BotUserId == "" {
-				return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.agents.bot_user_id.app_error", nil, "", http.StatusBadRequest)
-			}
-		}
+		// TODO: Enable Agents provider in future release
+		// if *s.Provider == "agents" {
+		// 	if s.Agents == nil || s.Agents.BotUserId == nil || *s.Agents.BotUserId == "" {
+		// 		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.agents.bot_user_id.app_error", nil, "", http.StatusBadRequest)
+		// 	}
+		// }
 	}
 
 	return nil

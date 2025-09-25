@@ -2474,13 +2474,14 @@ func TestAutoTranslationSettingsDefaults(t *testing.T) {
 		c.SetDefaults()
 
 		require.False(t, *c.AutoTranslationSettings.Enable)
-		require.Equal(t, "agents", *c.AutoTranslationSettings.Provider)
+		require.Equal(t, "libretranslate", *c.AutoTranslationSettings.Provider)
 		require.Equal(t, 800, *c.AutoTranslationSettings.Timeouts.NewPost)
 		require.Equal(t, 2000, *c.AutoTranslationSettings.Timeouts.Fetch)
 		require.Equal(t, 300, *c.AutoTranslationSettings.Timeouts.Notification)
 		require.Equal(t, "", *c.AutoTranslationSettings.LibreTranslate.URL)
 		require.Equal(t, "", *c.AutoTranslationSettings.LibreTranslate.APIKey)
-		require.Equal(t, "", *c.AutoTranslationSettings.Agents.BotUserId)
+		// TODO: Enable Agents provider in future release
+		// require.Equal(t, "", *c.AutoTranslationSettings.Agents.BotUserId)
 	})
 }
 
@@ -2527,18 +2528,19 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 			expectError: true,
 			errorId:     "model.config.is_valid.autotranslation.libretranslate.url.app_error",
 		},
-		{
-			name: "agents without bot user ID should fail",
-			settings: AutoTranslationSettings{
-				Enable:   NewPointer(true),
-				Provider: NewPointer("agents"),
-				Agents: &AgentsProviderSettings{
-					BotUserId: NewPointer(""),
-				},
-			},
-			expectError: true,
-			errorId:     "model.config.is_valid.autotranslation.agents.bot_user_id.app_error",
-		},
+		// TODO: Enable Agents provider in future release
+		// {
+		// 	name: "agents without bot user ID should fail",
+		// 	settings: AutoTranslationSettings{
+		// 		Enable:   NewPointer(true),
+		// 		Provider: NewPointer("agents"),
+		// 		Agents: &AgentsProviderSettings{
+		// 			BotUserId: NewPointer(""),
+		// 		},
+		// 	},
+		// 	expectError: true,
+		// 	errorId:     "model.config.is_valid.autotranslation.agents.bot_user_id.app_error",
+		// },
 		{
 			name: "valid libretranslate settings",
 			settings: AutoTranslationSettings{
@@ -2551,17 +2553,18 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 			},
 			expectError: false,
 		},
-		{
-			name: "valid agents settings",
-			settings: AutoTranslationSettings{
-				Enable:   NewPointer(true),
-				Provider: NewPointer("agents"),
-				Agents: &AgentsProviderSettings{
-					BotUserId: NewPointer("bot123"),
-				},
-			},
-			expectError: false,
-		},
+		// TODO: Enable Agents provider in future release
+		// {
+		// 	name: "valid agents settings",
+		// 	settings: AutoTranslationSettings{
+		// 		Enable:   NewPointer(true),
+		// 		Provider: NewPointer("agents"),
+		// 		Agents: &AgentsProviderSettings{
+		// 			BotUserId: NewPointer("bot123"),
+		// 		},
+		// 	},
+		// 	expectError: false,
+		// },
 	}
 
 	for _, tc := range testCases {
