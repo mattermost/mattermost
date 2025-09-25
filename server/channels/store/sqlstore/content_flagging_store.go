@@ -112,17 +112,23 @@ func (s *SqlContentFlaggingStore) saveTeamReviewers(tx *sqlxTxWrapper, teamSetti
 		Insert("ContentFlaggingTeamReviewers").
 		Columns("teamid", "userid")
 
+	dataExists := false
+
 	for teamID, teamSetting := range teamSettings {
-		if teamSetting.ReviewerIds == nil {
+		if teamSetting.ReviewerIds == nil || len(*teamSetting.ReviewerIds) == 0 {
 			continue
 		}
+
 		for _, userID := range *teamSetting.ReviewerIds {
 			insertBuilder = insertBuilder.Values(teamID, userID)
 		}
+		dataExists = true
 	}
 
-	if _, err := tx.ExecBuilder(insertBuilder); err != nil {
-		return errors.Wrap(err, "SqlContentFlaggingStore.saveTeamReviewers failed to insert new team reviewers")
+	if dataExists {
+		if _, err := tx.ExecBuilder(insertBuilder); err != nil {
+			return errors.Wrap(err, "SqlContentFlaggingStore.saveTeamReviewers failed to insert new team reviewers")
+		}
 	}
 
 	return nil

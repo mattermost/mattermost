@@ -464,6 +464,7 @@ func saveContentFlaggingSettings(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	auditRec.Success()
+	writeOKResponse(w)
 }
 
 func getContentFlaggingSettings(c *Context, w http.ResponseWriter, r *http.Request) {

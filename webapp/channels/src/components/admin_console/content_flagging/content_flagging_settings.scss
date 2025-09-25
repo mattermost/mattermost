@@ -47,4 +47,10 @@
         flex-direction: column;
         gap: 8px;
     }
+
+    .admin-console-save {
+        .error-message {
+            color: var(--dnd-indicator);
+        }
+    }
 }

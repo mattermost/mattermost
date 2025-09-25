@@ -9,6 +9,9 @@ import type {
     ContentFlaggingNotificationSettings,
     ContentFlaggingSettings as TypeContentFlaggingSettings,
     ContentFlaggingReviewerSetting} from '@mattermost/types/config';
+import type {ServerError} from '@mattermost/types/errors';
+
+import {Client4} from 'mattermost-redux/client';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import BooleanSetting from 'components/admin_console/boolean_setting';
@@ -23,21 +26,12 @@ import type {SchemaAdminSettingsProps} from 'components/admin_console/schema_adm
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import './content_flagging_settings.scss';
-import { Client4 } from "mattermost-redux/client";
 
 export default function ContentFlaggingSettings(props: SchemaAdminSettingsProps) {
-    console.log({props});
-
-    const [saveNeeded, setSaveNeeded] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [saveNeeded, setSaveNeeded] = useState(false);
+    const [serverError, setServerError] = useState('');
     const [contentFlaggingSettings, setContentFlaggingSettings] = useState<TypeContentFlaggingSettings>();
-
-    // useEffect(() => {
-    //     const contentFlaggingSettings = props.config.ContentFlaggingSettings;
-    //     if (contentFlaggingSettings) {
-    //         setContentFlaggingSettings(contentFlaggingSettings);
-    //     }
-    // }, [props.config.ContentFlaggingSettings]);
 
     useEffect(() => {
         const fetchConfig = async () => {
@@ -47,7 +41,7 @@ export default function ContentFlaggingSettings(props: SchemaAdminSettingsProps)
                     setContentFlaggingSettings(config);
                 }
             } catch (error) {
-                console.log(error);
+                console.error(error); // eslint-disable-line no-console
             }
         };
 
@@ -78,7 +72,7 @@ export default function ContentFlaggingSettings(props: SchemaAdminSettingsProps)
         setSaveNeeded(true);
     }, [contentFlaggingSettings]);
 
-    const onSave = useCallback(() => {
+    const onSave = useCallback(async () => {
         if (!contentFlaggingSettings) {
             return;
         }
@@ -86,9 +80,15 @@ export default function ContentFlaggingSettings(props: SchemaAdminSettingsProps)
         setSaving(true);
 
         try {
-            Client4.saveContentFlaggingConfig(contentFlaggingSettings);
+            await Client4.saveContentFlaggingConfig(contentFlaggingSettings);
+            setSaveNeeded(false);
+            setServerError('');
         } catch (error) {
-            console.log(error);
+            console.error(error); // eslint-disable-line no-console
+
+            if (error satisfies ServerError) {
+                setServerError(error.message);
+            }
         } finally {
             setSaving(false);
         }
@@ -152,7 +152,8 @@ export default function ContentFlaggingSettings(props: SchemaAdminSettingsProps)
                 saveNeeded={saveNeeded}
                 saving={saving}
                 onClick={onSave}
-                onCancel={() => {}}
+                cancelLink=
+                serverError={serverError}
             />
         </div>
     );

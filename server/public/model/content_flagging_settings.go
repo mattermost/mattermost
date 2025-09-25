@@ -4,6 +4,7 @@
 package model
 
 import (
+	"fmt"
 	"net/http"
 	"slices"
 )
@@ -76,7 +77,7 @@ func (cfs *ContentFlaggingNotificationSettings) IsValid() *AppError {
 
 		for _, target := range targets {
 			if target != TargetReviewers && target != TargetAuthor && target != TargetReporter {
-				return NewAppError("Config.IsValid", "model.config.is_valid.notification_settings.invalid_target", nil, "", http.StatusBadRequest)
+				return NewAppError("Config.IsValid", "model.config.is_valid.notification_settings.invalid_target", nil, fmt.Sprintf("target: %s", target), http.StatusBadRequest)
 			}
 		}
 	}

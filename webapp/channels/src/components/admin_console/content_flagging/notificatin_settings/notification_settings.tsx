@@ -126,7 +126,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                             />
 
                             <CheckboxSetting
-                                id='flagged_authors'
+                                id='flagged_author'
                                 label={
                                     <FormattedMessage
                                         id='admin.contentFlagging.notificationSettings.author'
