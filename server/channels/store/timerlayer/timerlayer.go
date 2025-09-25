@@ -3411,6 +3411,21 @@ func (s *TimerLayerComplianceStore) Update(compliance *model.Compliance) (*model
 	return result, err
 }
 
+func (s *TimerLayerContentFlaggingStore) ClearCaches() {
+	start := time.Now()
+
+	s.ContentFlaggingStore.ClearCaches()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ContentFlaggingStore.ClearCaches", success, elapsed)
+	}
+}
+
 func (s *TimerLayerContentFlaggingStore) GetReviewerSettings() (*model.ReviewSettingsRequest, error) {
 	start := time.Now()
 

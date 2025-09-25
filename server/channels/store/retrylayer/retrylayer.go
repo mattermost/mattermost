@@ -4168,6 +4168,12 @@ func (s *RetryLayerComplianceStore) Update(compliance *model.Compliance) (*model
 
 }
 
+func (s *RetryLayerContentFlaggingStore) ClearCaches() {
+
+	s.ContentFlaggingStore.ClearCaches()
+
+}
+
 func (s *RetryLayerContentFlaggingStore) GetReviewerSettings() (*model.ReviewSettingsRequest, error) {
 
 	tries := 0

@@ -222,3 +222,5 @@ func (s *SqlContentFlaggingStore) getTeamReviewers(teamSettings map[string]model
 
 	return teamSettings, nil
 }
+
+func (s *SqlContentFlaggingStore) ClearCaches() {}

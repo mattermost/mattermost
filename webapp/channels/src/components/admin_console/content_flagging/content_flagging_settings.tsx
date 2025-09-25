@@ -152,7 +152,7 @@ export default function ContentFlaggingSettings(props: SchemaAdminSettingsProps)
                 saveNeeded={saveNeeded}
                 saving={saving}
                 onClick={onSave}
-                cancelLink=
+                cancelLink=''
                 serverError={serverError}
             />
         </div>

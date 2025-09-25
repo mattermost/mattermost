@@ -703,7 +703,23 @@ func (a *App) SaveContentFlaggingConfig(config model.ContentFlaggingSettingsRequ
 	}
 
 	_, _, appErr := a.SaveConfig(systemConfig, true)
-	return appErr
+	if appErr != nil {
+		return appErr
+	}
+
+	a.clearContentFlaggingConfigCache()
+	return nil
+}
+
+func (a *App) clearContentFlaggingConfigCache() {
+	a.Srv().Store().ContentFlagging().ClearCaches()
+	if cluster := a.Cluster(); cluster != nil && *a.Config().ClusterSettings.Enable {
+		cluster.SendClusterMessage(&model.ClusterMessage{
+			Event:    model.ClusterEventInvalidateCacheForContentFlagging,
+			SendType: model.ClusterSendReliable,
+			Data:     nil,
+		})
+	}
 }
 
 func (a *App) GetContentFlaggingConfig() (*model.ContentFlaggingSettingsRequest, *model.AppError) {
