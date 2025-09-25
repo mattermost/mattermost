@@ -7,19 +7,45 @@ type NotificationSettingsSection = 'keysWithHighlight' | 'keysWithNotification';
 
 export default class NotificationsSettings {
     readonly container: Locator;
-    readonly keysWithHighlightDesc: Locator;
+
+    readonly title;
+    public id = '#notificationsSettings';
+    readonly expandedSection;
+    public expandedSectionId = '.section-max';
+
+    readonly learnMoreText;
+    readonly desktopAndMobileEditButton;
+    readonly desktopNotificationSoundEditButton;
+    readonly emailEditButton;
+    readonly keywordsTriggerNotificationsEditButton;
+    readonly keywordsGetHighlightedEditButton;
+
+    readonly testNotificationButton;
+    readonly troubleshootingDocsButton;
+
+    readonly keysWithHighlightDesc;
 
     constructor(container: Locator) {
         this.container = container;
+
+        this.title = container.getByRole('heading', {name: 'Notifications', exact: true});
+        this.expandedSection = container.locator(this.expandedSectionId);
+
+        this.learnMoreText = container.getByRole('link', {name: 'Learn more about notifications'});
+        this.desktopAndMobileEditButton = container.locator('#desktopAndMobileEdit');
+        this.desktopNotificationSoundEditButton = container.locator('#desktopNotificationSoundEdit');
+        this.emailEditButton = container.locator('#emailEdit');
+        this.keywordsTriggerNotificationsEditButton = container.locator('#keywordsAndMentionsEdit');
+        this.keywordsGetHighlightedEditButton = container.locator('#keywordsAndHighlightEdit');
+
+        this.testNotificationButton = container.getByRole('button', {name: 'Send a test notification'});
+        this.troubleshootingDocsButton = container.getByRole('button', {name: 'Troubleshooting docs 󰏌'});
+
         this.keysWithHighlightDesc = container.locator('#keywordsAndHighlightDesc');
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
-    }
-
-    async getContainerId() {
-        return 'notificationsSettings';
     }
 
     async expandSection(section: NotificationSettingsSection) {
