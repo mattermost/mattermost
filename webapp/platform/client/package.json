@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "@types/jest": "28.1.8",
-    "jest": "27.1.0",
+    "jest": "29.7.0",
     "typescript": "^5.0.0"
   },
   "peerDependencies": {
