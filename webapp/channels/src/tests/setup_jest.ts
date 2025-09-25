@@ -3,6 +3,8 @@
 
 /* eslint-disable no-console */
 
+import * as util from 'node:util';
+
 import Adapter from '@cfaester/enzyme-adapter-react-18';
 import {configure} from 'enzyme';
 import nock from 'nock';
@@ -73,28 +75,30 @@ function isDependencyWarning(params: string[]) {
     );
 }
 
-let warns: string[][];
-let errors: string[][];
+let warnSpy: jest.SpyInstance<void, Parameters<typeof console.warn>>;
+let errorSpy: jest.SpyInstance<void, Parameters<typeof console.error>>;
 beforeAll(() => {
-    const originalWarn = console.warn;
-    console.warn = jest.fn((...params) => {
-        // Ignore any deprecation warnings coming from dependencies
-        if (isDependencyWarning(params)) {
-            return;
+    warnSpy = jest.spyOn(console, 'warn');
+    errorSpy = jest.spyOn(console, 'error');
+});
+
+afterEach(() => {
+    const warns = [];
+    const errors = [];
+
+    for (const call of warnSpy.mock.calls) {
+        if (isDependencyWarning(call)) {
+            continue;
         }
 
-        originalWarn(...params);
-        warns.push(params);
-    });
+        warns.push(call);
+    }
 
-    const originalError = console.error;
-    console.error = jest.fn((...params) => {
-        originalError(...params);
-
+    for (const call of errorSpy.mock.calls) {
         if (
-            typeof params[0] === 'string' && (
-                params[0].includes('inside a test was not wrapped in act') ||
-                params[0].includes('A suspended resource finished loading inside a test, but the event was not wrapped in act')
+            typeof call[0] === 'string' && (
+                call[0].includes('inside a test was not wrapped in act') ||
+                call[0].includes('A suspended resource finished loading inside a test, but the event was not wrapped in act')
             )
         ) {
             // These warnings indicate that we're not using React Testing Library properly because we're not waiting
@@ -105,23 +109,36 @@ beforeAll(() => {
             //
             // Ideally, we wouldn't ignore these, but so many of our existing tests are set up in a way that we can't
             // fix this everywhere at the moment.
-            return;
+            continue;
         }
 
-        errors.push(params);
-    });
-});
+        errors.push(call);
+    }
 
-beforeEach(() => {
-    warns = [];
-    errors = [];
-});
-
-afterEach(() => {
     if (warns.length > 0 || errors.length > 0) {
-        const message = 'Unexpected console logs' + warns + errors;
+        function formatCall(call: string[]) {
+            const args = [...call];
+            const format = args.shift();
+
+            let message = util.format(format, ...args);
+            message = message.split('\n')[0];
+
+            return message;
+        }
+
+        let message = 'Unexpected console errors:';
+        for (const call of warns) {
+            message += `\n\t- (warning) ${formatCall(call)}`;
+        }
+        for (const call of errors) {
+            message += `\n\t- (error) ${formatCall(call)}`;
+        }
+
         throw new Error(message);
     }
+
+    warnSpy.mockReset();
+    errorSpy.mockReset();
 });
 
 expect.extend({
