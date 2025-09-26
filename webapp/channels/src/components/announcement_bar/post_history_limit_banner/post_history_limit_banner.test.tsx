@@ -46,7 +46,7 @@ const currentUserId = 'current_user';
 const postHistoryLimit = 10000;
 const lastAccessiblePostTime = new Date('2021-12-31T12:00:00.000Z').getTime();
 
-const bannerText = `${postHistoryLimit.toLocaleString()}-message limit reached. Messages sent before December 31, 2021 are hidden. Upgrade to restore access`;
+const bannerText = `${postHistoryLimit.toLocaleString()}-message limit reached. Messages sent before December 31, 2021 are hidden`;
 
 describe('components/announcement_bar/PostHistoryLimitBanner', () => {
     let mockOpenPricingModal: jest.Mock;
