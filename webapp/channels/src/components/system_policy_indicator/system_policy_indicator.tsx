@@ -37,6 +37,7 @@ const SystemPolicyIndicator: React.FC<SystemPolicyIndicatorProps> = ({
         return policies.filter((policy) => policy && typeof policy === 'object' && policy.id);
     }, [policies]);
 
+    // Check for multiple policies
     const hasMultiplePolicies = safePolicies.length > 1;
 
     const handleMorePoliciesClick = useCallback((event: React.MouseEvent | React.KeyboardEvent) => {

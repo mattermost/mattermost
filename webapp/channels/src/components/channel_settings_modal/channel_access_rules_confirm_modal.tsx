@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -14,6 +14,22 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import SearchableUserList from 'components/searchable_user_list/searchable_user_list_container';
 
 import './channel_access_rules_confirm_modal.scss';
+
+// Utility function to filter users by search term
+const filterUsersByTerm = (users: UserProfile[], searchTerm: string): UserProfile[] => {
+    if (!searchTerm.trim()) {
+        return users;
+    }
+
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return users.filter((user) =>
+        user.username.toLowerCase().includes(lowerSearchTerm) ||
+        user.first_name?.toLowerCase().includes(lowerSearchTerm) ||
+        user.last_name?.toLowerCase().includes(lowerSearchTerm) ||
+        user.email?.toLowerCase().includes(lowerSearchTerm) ||
+        user.nickname?.toLowerCase().includes(lowerSearchTerm),
+    );
+};
 
 type ChannelAccessRulesConfirmModalProps = {
     show: boolean;
@@ -46,8 +62,7 @@ function ChannelAccessRulesConfirmModal({
     const [activeTab, setActiveTab] = useState<'allowed' | 'restricted'>('allowed');
     const [allowedUsers, setAllowedUsers] = useState<UserProfile[]>([]);
     const [restrictedUsers, setRestrictedUsers] = useState<UserProfile[]>([]);
-    const [filteredAllowedUsers, setFilteredAllowedUsers] = useState<UserProfile[]>([]);
-    const [filteredRestrictedUsers, setFilteredRestrictedUsers] = useState<UserProfile[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
 
     // Load user profiles when modal opens or user list is shown
     useEffect(() => {
@@ -62,7 +77,6 @@ function ChannelAccessRulesConfirmModal({
             const result = await dispatch(getProfilesByIds(usersToAdd) as any) as ActionResult<UserProfile[]>;
             if (result?.data) {
                 setAllowedUsers(result.data);
-                setFilteredAllowedUsers(result.data);
             }
         }
 
@@ -71,68 +85,49 @@ function ChannelAccessRulesConfirmModal({
             const result = await dispatch(getProfilesByIds(usersToRemove) as any) as ActionResult<UserProfile[]>;
             if (result?.data) {
                 setRestrictedUsers(result.data);
-                setFilteredRestrictedUsers(result.data);
             }
         }
     }, [usersToAdd, usersToRemove, dispatch]);
 
-    const handleViewUsers = () => {
+    const handleViewUsers = useCallback(() => {
         setShowUserList(true);
-    };
+    }, []);
 
-    const handleHideUsers = () => {
+    const handleHideUsers = useCallback(() => {
         setShowUserList(false);
-    };
+    }, []);
 
-    const handleTabChange = (tab: 'allowed' | 'restricted') => {
+    const handleTabChange = useCallback((tab: 'allowed' | 'restricted') => {
         setActiveTab(tab);
-    };
+    }, []);
 
-    const handleSearch = (searchTerm: string) => {
-        if (searchTerm === '') {
-            // Reset to original data when search is empty
-            setFilteredAllowedUsers(allowedUsers);
-            setFilteredRestrictedUsers(restrictedUsers);
-        } else {
-            // Filter allowed users
-            const filteredAllowed = allowedUsers.filter((user) => {
-                return user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    user.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    user.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    user.nickname?.toLowerCase().includes(searchTerm.toLowerCase());
-            });
-            setFilteredAllowedUsers(filteredAllowed);
+    // Memoized search filtering
+    const filteredAllowedUsers = useMemo(() =>
+        filterUsersByTerm(allowedUsers, searchTerm),
+    [allowedUsers, searchTerm],
+    );
 
-            // Filter restricted users
-            const filteredRestricted = restrictedUsers.filter((user) => {
-                return user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    user.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    user.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    user.nickname?.toLowerCase().includes(searchTerm.toLowerCase());
-            });
-            setFilteredRestrictedUsers(filteredRestricted);
-        }
-    };
+    const filteredRestrictedUsers = useMemo(() =>
+        filterUsersByTerm(restrictedUsers, searchTerm),
+    [restrictedUsers, searchTerm],
+    );
 
-    const handleClose = () => {
+    const handleSearch = useCallback((newSearchTerm: string) => {
+        setSearchTerm(newSearchTerm);
+    }, []);
+
+    const handleClose = useCallback(() => {
         // Reset state when closing
         setShowUserList(false);
         setActiveTab('allowed');
         setAllowedUsers([]);
         setRestrictedUsers([]);
-        setFilteredAllowedUsers([]);
-        setFilteredRestrictedUsers([]);
+        setSearchTerm('');
         onHide();
-    };
+    }, [onHide]);
 
+    // Simple computations
     const hasChanges = usersToAdd.length > 0 || usersToRemove.length > 0;
-
-    // Don't show modal if there are no changes
-    if (!hasChanges) {
-        return null;
-    }
 
     const modalTitle = (
         <FormattedMessage
@@ -143,8 +138,14 @@ function ChannelAccessRulesConfirmModal({
 
     const modalSubtitle = channelName;
 
+    // Dynamic tab content
     const currentUsers = activeTab === 'allowed' ? filteredAllowedUsers : filteredRestrictedUsers;
     const totalCount = activeTab === 'allowed' ? usersToAdd.length : usersToRemove.length;
+
+    // Don't show modal if there are no changes
+    if (!hasChanges) {
+        return null;
+    }
 
     // Common buttons component
     const renderButtons = (leftButton: React.ReactNode) => (

@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AccessControlVisualAST} from '@mattermost/types/access_control';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -14,6 +14,10 @@ import AttributeSelectorMenu from './attribute_selector_menu';
 import OperatorSelectorMenu from './operator_selector_menu';
 import type {TableRow} from './value_selector_menu';
 import ValueSelectorMenu from './value_selector_menu';
+
+// Constants to prevent new array references
+const EMPTY_OPTIONS: PropertyFieldOption[] = [];
+const EMPTY_VALUES: string[] = [];
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
 import TestResultsModal from '../../modals/policy_test/test_modal';
@@ -116,6 +120,15 @@ function TableEditor({
     const [showTestResults, setShowTestResults] = useState(false);
     const [showHelpModal, setShowHelpModal] = useState(false);
     const [autoOpenAttributeMenuForRow, setAutoOpenAttributeMenuForRow] = useState<number | null>(null);
+
+    // Memoize attribute options map to avoid O(n) search on every render
+    const attributeOptionsMap = useMemo(() => {
+        const map = new Map<string, PropertyFieldOption[]>();
+        userAttributes.forEach((attr) => {
+            map.set(attr.name, attr.attrs?.options || []);
+        });
+        return map;
+    }, [userAttributes]);
 
     // Effect to parse the incoming CEL expression string (value prop)
     // and update the internal rows state. Handles errors during parsing.
@@ -227,7 +240,7 @@ function TableEditor({
             const newRow = {
                 attribute: firstAvailableAttribute.name, // Default to the first available attribute
                 operator: OperatorLabel.IS, // Default operator
-                values: [],
+                values: EMPTY_VALUES,
                 attribute_type: userAttributes[0]?.type || '',
             };
             const newRows = [...currentRows, newRow];
@@ -253,7 +266,7 @@ function TableEditor({
 
             // If attribute changes, we are resetting values.
             if (oldAttribute !== attribute) {
-                newRows[index].values = [];
+                newRows[index].values = EMPTY_VALUES;
                 newRows[index].operator = OperatorLabel.IS;
             }
             updateExpression(newRows);
@@ -345,7 +358,7 @@ function TableEditor({
                     ) : (
                         rows.map((row, index) => (
                             <tr
-                                key={index}
+                                key={`${row.attribute}-${row.operator}`}
                                 className='table-editor__row'
                             >
                                 <td className='table-editor__cell'>
@@ -373,7 +386,7 @@ function TableEditor({
                                         row={row}
                                         disabled={disabled}
                                         updateValues={(values: string[]) => updateRowValues(index, values)}
-                                        options={row.attribute ? userAttributes.find((attr) => attr.name === row.attribute)?.attrs?.options || [] : []}
+                                        options={attributeOptionsMap.get(row.attribute) || EMPTY_OPTIONS}
                                     />
                                 </td>
                                 <td className='table-editor__cell-actions'>
