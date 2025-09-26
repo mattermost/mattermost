@@ -2,13 +2,14 @@
 
 .AutoTranslationFeatureDiscovery .FeatureDiscovery {
     all: unset; // removes all inheritable and non-inheritable properties (use with caution)
+    
+    display: grid;
+    align-items: start;
     font-family: Open Sans, sans-serif;
     font-style: normal;
     font-weight: normal;
-    display: grid;
-    grid-template-columns: 1fr auto;
     gap: 24px;
-    align-items: start;
+    grid-template-columns: 1fr auto;
 
     .FeatureDiscovery_copyWrapper,
     .FeatureDiscovery_imageWrapper {
