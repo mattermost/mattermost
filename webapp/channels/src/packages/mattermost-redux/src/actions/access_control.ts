@@ -172,3 +172,16 @@ export function validateExpressionAgainstRequester(expression: string, channelId
         return {data};
     };
 }
+
+export function createAccessControlSyncJob(jobData: {policy_id: string}): ActionFuncAsync<any> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.createAccessControlSyncJob(jobData);
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            return {error};
+        }
+        return {data};
+    };
+}
