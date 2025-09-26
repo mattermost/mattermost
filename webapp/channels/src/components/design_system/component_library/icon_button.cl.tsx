@@ -6,6 +6,14 @@
 import classNames from 'classnames';
 import React, {useCallback, useMemo, useState} from 'react';
 
+import {
+    PlusIcon,
+    StarOutlineIcon,
+    TrashCanOutlineIcon,
+    DotsHorizontalIcon,
+    ChevronRightIcon,
+} from '@mattermost/compass-icons/components';
+
 import DropdownInput from 'components/dropdown_input';
 import CheckboxSettingItem from 'components/widgets/modals/components/checkbox_setting_item';
 
@@ -157,8 +165,9 @@ const IconButtonComponentLibrary = () => {
             destructive,
             inverted,
             rounded,
-            icon: <i className='icon icon-plus'/>,
+            icon: <PlusIcon/>,
             'aria-label': 'Add item',
+            title: 'Add item',
             onClick: () => window.alert('Icon Button clicked!'),
         };
 
@@ -183,10 +192,10 @@ const IconButtonComponentLibrary = () => {
         {label: 'Inverted', props: {inverted: true}},
     ];
     const icons = [
-        {label: 'Plus', props: {icon: <i className='icon icon-plus'/>, 'aria-label': 'Add item'}},
-        {label: 'Star', props: {icon: <i className='icon icon-star'/>, 'aria-label': 'Favorite'}},
-        {label: 'Trash', props: {icon: <i className='icon icon-trash'/>, 'aria-label': 'Delete'}},
-        {label: 'Menu', props: {icon: <i className='icon icon-menu'/>, 'aria-label': 'Menu'}},
+        {label: 'Plus', props: {icon: <PlusIcon/>, 'aria-label': 'Add item', title: 'Add item'}},
+        {label: 'Star', props: {icon: <StarOutlineIcon/>, 'aria-label': 'Favorite', title: 'Favorite'}},
+        {label: 'Trash', props: {icon: <TrashCanOutlineIcon/>, 'aria-label': 'Delete', title: 'Delete'}},
+        {label: 'Menu', props: {icon: <DotsHorizontalIcon/>, 'aria-label': 'Menu', title: 'Menu'}},
     ];
 
     return (
@@ -196,7 +205,10 @@ const IconButtonComponentLibrary = () => {
                     <p className='cl__intro-subtitle'>{'Component'}</p>
                     <h1 className='cl__intro-title'>{'Icon Button'}</h1>
                     <p className='cl__description'>
-                        {'Icon buttons enable users to take actions with a single icon. They are used for secondary actions, toggles, and compact interfaces where space is limited. Icon buttons should always include accessible labels for screen readers.'}
+                        {'Icon Buttons are smaller buttons used when real estate is confined or where less emphasis is needed for an action.'}
+                    </p>
+                    <p className='cl__description'>
+                        {'Icon Buttons aren’t highly emphasized as they are typically used for secondary actions for things like closing modals or triggering menus. They should always include tooltips for added clarity.'}
                     </p>
                 </div>
             </div>
@@ -242,8 +254,9 @@ const IconButtonComponentLibrary = () => {
                     <IconButton
                         key={size}
                         size={size}
-                        icon={<i className='icon icon-plus'/>}
-                        aria-label={`${formatSizeLabel(size)} add button`}
+                        icon={<PlusIcon/>}
+                        aria-label={`${formatSizeLabel(size)} Icon button`}
+                        title={`${formatSizeLabel(size)} Icon button`}
                     />
                 ))}
             </div>
@@ -269,8 +282,9 @@ const IconButtonComponentLibrary = () => {
                     <IconButton
                         key={state.label}
                         size='md'
-                        icon={<i className='icon icon-plus'/>}
+                        icon={<PlusIcon/>}
                         aria-label={`${state.label} button`}
+                        title={`${state.label} button`}
                         {...state.props}
                     />
                 ))}
@@ -284,9 +298,6 @@ const IconButtonComponentLibrary = () => {
                 <p>
                     <strong>{'Rounded:'}</strong> {'Circular shape using 50% border-radius.'}
                 </p>
-                <p>
-                    <strong>{'Inverted:'}</strong> {'For use on dark backgrounds with inverted colors.'}
-                </p>
             </div>
 
             <div className='cl__variants-row'>
@@ -294,8 +305,9 @@ const IconButtonComponentLibrary = () => {
                     <IconButton
                         key={variant.label}
                         size='md'
-                        icon={<i className='icon icon-plus'/>}
+                        icon={<PlusIcon/>}
                         aria-label={`${variant.label} button`}
+                        title={`${variant.label} button`}
                         {...variant.props}
                     />
                 ))}
@@ -309,14 +321,15 @@ const IconButtonComponentLibrary = () => {
             </div>
 
             <div className='cl__variants-row cl__variants-row--inverted'>
-                {variants.map((variant) => (
+                {states.map((state) => (
                     <IconButton
-                        key={variant.label}
+                        key={state.label}
                         size='md'
-                        icon={<i className='icon icon-plus'/>}
-                        aria-label={`${variant.label} inverted button`}
+                        icon={<PlusIcon/>}
+                        aria-label={`${state.label} inverted button`}
+                        title={`${state.label} inverted button`}
                         inverted={true}
-                        {...variant.props}
+                        {...state.props}
                     />
                 ))}
             </div>
@@ -353,7 +366,7 @@ const IconButtonComponentLibrary = () => {
                     }}
                 >
                     <h2>{'All variants'}</h2>
-                    <i className={`icon icon-chevron-right ${variantsExpanded ? 'cl__variants-header--expanded' : ''}`}/>
+                    <ChevronRightIcon className={variantsExpanded ? 'cl__variants-header--expanded' : ''}/>
                 </div>
 
                 <div className={`cl__variants-content ${variantsExpanded ? 'cl__variants-content--expanded' : 'cl__variants-content--collapsed'}`}>
@@ -400,8 +413,9 @@ const IconButtonComponentLibrary = () => {
                                                 <td key={`state-${state.label}`}>
                                                     <IconButton
                                                         size={size}
-                                                        icon={<i className='icon icon-plus'/>}
+                                                        icon={<PlusIcon/>}
                                                         aria-label={`${state.label} ${size} button`}
+                                                        title={`${state.label} ${size} button`}
                                                         {...state.props}
                                                     />
                                                 </td>
@@ -412,8 +426,9 @@ const IconButtonComponentLibrary = () => {
                                                 <td key={`variant-${variant.label}`}>
                                                     <IconButton
                                                         size={size}
-                                                        icon={<i className='icon icon-plus'/>}
+                                                        icon={<PlusIcon/>}
                                                         aria-label={`${variant.label} ${size} button`}
+                                                        title={`${variant.label} ${size} button`}
                                                         {...variant.props}
                                                     />
                                                 </td>
@@ -480,8 +495,9 @@ const IconButtonComponentLibrary = () => {
                                                     <td key={`state-${state.label}`}>
                                                         <IconButton
                                                             size={size}
-                                                            icon={<i className='icon icon-plus'/>}
+                                                            icon={<PlusIcon/>}
                                                             aria-label={`${state.label} ${size} inverted button`}
+                                                            title={`${state.label} ${size} inverted button`}
                                                             inverted={true}
                                                             {...state.props}
                                                         />
@@ -493,8 +509,9 @@ const IconButtonComponentLibrary = () => {
                                                     <td key={`variant-${variant.label}`}>
                                                         <IconButton
                                                             size={size}
-                                                            icon={<i className='icon icon-plus'/>}
+                                                            icon={<PlusIcon/>}
                                                             aria-label={`${variant.label} ${size} inverted button`}
+                                                            title={`${variant.label} ${size} inverted button`}
                                                             inverted={true}
                                                             {...variant.props}
                                                         />

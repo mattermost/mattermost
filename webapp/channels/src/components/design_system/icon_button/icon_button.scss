@@ -14,6 +14,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    width: fit-content;
+    height: fit-content;
     border: none;
     border-radius: var(--radius-s);
     cursor: pointer;
@@ -34,17 +36,17 @@
         box-shadow: 0 0 0 2px var(--sidebar-text-active-border);
     }
 
-    // Default state - quaternary button behavior
-    color: var(--link-color);
+    // Default state - using center-channel-color from Figma
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     
     &:hover:not(:disabled) {
-        background-color: rgba(var(--link-color-rgb), 0.08);
-        color: rgba(var(--link-color-rgb), 0.88);
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
     }
     
     &:active:not(:disabled) {
-        background-color: rgba(var(--link-color-rgb), 0.16);
-        color: var(--button-bg);
+        background-color: rgba(var(--link-color-rgb), 0.12);
+        color: var(--link-color);
     }
     
     // Toggled state (primary button colors)
@@ -54,6 +56,7 @@
         
         &:hover:not(:disabled) {
             background-color: color-mix(in srgb, var(--button-bg) 88%, black 12%);
+            color: var(--button-color);
         }
         
         &:active:not(:disabled) {
@@ -61,7 +64,7 @@
         }
     }
     
-    // Destructive variant
+    // Destructive variant - using error-text
     &--destructive {
         color: var(--error-text);
         
@@ -76,18 +79,34 @@
         }
     }
     
-    // Inverted style (quaternary inverted pattern)
+    // Inverted style - using sidebar-text from Figma for dark backgrounds
     &--inverted {
-        color: rgba(var(--button-color-rgb), 0.75);
+        color: rgba(var(--sidebar-text-rgb), 0.64);
         
         &:hover:not(:disabled) {
-            background-color: rgba(var(--button-color-rgb), 0.08);
-            color: rgba(var(--button-color-rgb), 0.88);
+            background-color: rgba(var(--sidebar-text-rgb), 0.08);
+            color: rgba(var(--sidebar-text-rgb), 0.75);
         }
         
         &:active:not(:disabled) {
-            background-color: rgba(var(--button-color-rgb), 0.16);
-            color: var(--button-color);
+            background-color: rgba(var(--sidebar-text-rgb), 0.16);
+            color: var(--sidebar-text);
+        }
+        
+        // Inverted toggled state - uses sidebar text color
+        &.IconButton--toggled {
+            background-color: var(--sidebar-text);
+            color: var(--sidebar-bg);
+            
+            &:hover:not(:disabled) {
+                background-color: rgba(var(--sidebar-text-rgb), 0.88);
+                color: var(--sidebar-bg);
+            }
+            
+            &:active:not(:disabled) {
+                background-color: rgba(var(--sidebar-text-rgb), 0.80);
+                color: var(--sidebar-bg);
+            }
         }
     }
     
@@ -105,8 +124,8 @@
         }
         
         .IconButton__icon {
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
         }
     }
     
@@ -118,8 +137,8 @@
         }
         
         .IconButton__icon {
-            width: 14px;
-            height: 14px;
+            width: 18px;
+            height: 18px;
         }
     }
     
@@ -131,8 +150,8 @@
         }
         
         .IconButton__icon {
-            width: 16px;
-            height: 16px;
+            width: 24px;
+            height: 24px;
         }
     }
     
@@ -144,8 +163,8 @@
         }
         
         .IconButton__icon {
-            width: 20px;
-            height: 20px;
+            width: 32px;
+            height: 32px;
         }
     }
     
@@ -184,20 +203,20 @@
     }
     
     &--sm { 
-        width: 14px; 
-        height: 14px;
+        width: 16px; 
+        height: 16px;
         mask-image: radial-gradient(farthest-side, transparent calc(100% - 1.5px), #fff calc(100% - 1px));
     }
     
     &--md { 
-        width: 16px; 
-        height: 16px;
+        width: 20px; 
+        height: 20px;
         mask-image: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 1.5px));
     }
     
     &--lg { 
-        width: 20px; 
-        height: 20px;
+        width: 24px; 
+        height: 24px;
         mask-image: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #fff calc(100% - 2px));
     }
     
