@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen, act, waitFor} from '@testing-library/react';
+import {screen, waitFor} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import TeamSettingsModal from 'components/team_settings_modal/team_settings_modal';
@@ -22,7 +23,7 @@ describe('components/team_settings_modal', () => {
         );
         const modal = screen.getByRole('dialog', {name: 'Close Team Settings'});
         expect(modal.className).toBe('fade in modal');
-        fireEvent.click(screen.getByText('Close'));
+        await userEvent.click(screen.getByText('Close'));
         expect(modal.className).toBe('fade modal');
     });
 
@@ -53,8 +54,6 @@ describe('components/team_settings_modal', () => {
     });
 
     test('should warn on first close attempt with unsaved changes and stay open', async () => {
-        jest.useFakeTimers();
-
         renderWithContext(
             <TeamSettingsModal
                 {...baseProps}
@@ -78,36 +77,27 @@ describe('components/team_settings_modal', () => {
         const modal = screen.getByRole('dialog', {name: 'Close Team Settings'});
         expect(modal).toBeInTheDocument();
 
-        // Simulate unsaved changes by modifying the team name input
+        // Create unsaved changes by modifying team name
         const nameInput = screen.getByDisplayValue('Team Name');
-        act(() => {
-            fireEvent.change(nameInput, {target: {value: 'Modified Team Name'}});
-        });
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'Modified Team Name');
 
-        // First close attempt - should show warning and prevent close
+        // Attempt to close modal with unsaved changes
         const closeButton = screen.getByLabelText('Close');
-        act(() => {
-            fireEvent.click(closeButton);
-        });
+        await userEvent.click(closeButton);
 
-        // Modal should still be visible (not closed due to unsaved changes)
+        // Verify modal remains open
         expect(modal).toBeInTheDocument();
         expect(modal).toBeVisible();
 
-        // Should show SaveChangesPanel with error state (red banner)
+        // Verify warning message is displayed
         expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
 
-        // Fast-forward time to test the 3-second timeout
-        act(() => {
-            jest.advanceTimersByTime(3000);
-        });
-
-        jest.useRealTimers();
+        // Verify close was prevented
+        expect(baseProps.onExited).not.toHaveBeenCalled();
     });
 
     test('should allow close on second attempt with unsaved changes (warn-once behavior)', async () => {
-        jest.useFakeTimers();
-
         renderWithContext(
             <TeamSettingsModal
                 {...baseProps}
@@ -128,33 +118,26 @@ describe('components/team_settings_modal', () => {
             },
         );
 
-        // Simulate unsaved changes
+        // Create unsaved changes
         const nameInput = screen.getByDisplayValue('Team Name');
-        act(() => {
-            fireEvent.change(nameInput, {target: {value: 'Modified Team Name'}});
-        });
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'Modified Team Name');
 
         const closeButton = screen.getByLabelText('Close');
 
-        // First close attempt - should warn and prevent
-        act(() => {
-            fireEvent.click(closeButton);
-        });
+        // First close attempt triggers warning
+        await userEvent.click(closeButton);
 
-        // Should show warning
+        // Verify warning is displayed
         expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
 
-        // Second close attempt - should close modal despite unsaved changes
-        act(() => {
-            fireEvent.click(closeButton);
-        });
+        // Second close attempt closes modal
+        await userEvent.click(closeButton);
 
-        // Modal should close and call onExited
+        // Verify modal closes successfully
         await waitFor(() => {
             expect(baseProps.onExited).toHaveBeenCalled();
         });
-
-        jest.useRealTimers();
     });
 
     test('should close modal normally when no unsaved changes', async () => {
@@ -181,21 +164,17 @@ describe('components/team_settings_modal', () => {
         const modal = screen.getByRole('dialog', {name: 'Close Team Settings'});
         expect(modal).toBeInTheDocument();
 
-        // Try to close the modal without making any changes
+        // Close modal with no unsaved changes
         const closeButton = screen.getByLabelText('Close');
-        act(() => {
-            fireEvent.click(closeButton);
-        });
+        await userEvent.click(closeButton);
 
-        // Should close without issues
+        // Verify modal closes normally
         await waitFor(() => {
             expect(baseProps.onExited).toHaveBeenCalled();
         });
     });
 
     test('should reset warning state when changes are saved', async () => {
-        jest.useFakeTimers();
-
         renderWithContext(
             <TeamSettingsModal
                 {...baseProps}
@@ -216,37 +195,29 @@ describe('components/team_settings_modal', () => {
             },
         );
 
-        // Simulate unsaved changes
+        // Create unsaved changes
         const nameInput = screen.getByDisplayValue('Team Name');
-        act(() => {
-            fireEvent.change(nameInput, {target: {value: 'Modified Team Name'}});
-        });
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'Modified Team Name');
 
         const closeButton = screen.getByLabelText('Close');
 
-        // First close attempt - should warn
-        act(() => {
-            fireEvent.click(closeButton);
-        });
+        // Trigger warning by attempting to close
+        await userEvent.click(closeButton);
 
         expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
 
-        // Save the changes (simulate clicking save)
+        // Save changes to reset warning state
         const saveButton = screen.getByText('Save');
-        act(() => {
-            fireEvent.click(saveButton);
-        });
+        await userEvent.click(saveButton);
 
-        // Now close attempt should work immediately (no warning needed)
-        act(() => {
-            fireEvent.click(closeButton);
-        });
+        // Close modal after saving
+        await userEvent.click(closeButton);
 
+        // Verify modal closes successfully
         await waitFor(() => {
             expect(baseProps.onExited).toHaveBeenCalled();
         });
-
-        jest.useRealTimers();
     });
 });
 
