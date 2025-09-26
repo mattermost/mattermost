@@ -6872,7 +6872,7 @@
   },
   {
     "id": "app.user.analytics_get_inactive_users_count.app_error",
-    "translation": "Etkin olmayan kullanıcılar sayılamadı."
+    "translation": "Etkisizleştirilmiş kullanıcılar sayılamadı."
   },
   {
     "id": "app.user.analytics_daily_active_users.app_error",
@@ -9127,7 +9127,7 @@
   },
   {
     "id": "api.getUsersForReporting.invalid_active_filter",
-    "translation": "Hem etkin hem de etkin olmayan kullanıcılar gizlenemez."
+    "translation": "Hem etkin hem de etkisizleştirilmiş kullanıcılar gizlenemez."
   },
   {
     "id": "api.user.create_user.user_limits.exceeded",
