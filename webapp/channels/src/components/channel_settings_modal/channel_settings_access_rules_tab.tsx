@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useCallback, useMemo} from 'react';
+import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
-import type {JobTypeBase} from '@mattermost/types/jobs';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
@@ -19,7 +18,6 @@ import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/m
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
-import {JobTypes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -389,13 +387,9 @@ function ChannelSettingsAccessRulesTab({
             // This ensures both user removal (always) and addition (conditional) happen immediately
             if (expression.trim()) {
                 try {
-                    const job: JobTypeBase & { data: {policy_id: string} } = {
-                        type: JobTypes.ACCESS_CONTROL_SYNC,
-                        data: {
-                            policy_id: channel.id, // Sync only this specific channel policy
-                        },
-                    };
-                    await actions.createJob(job);
+                    await actions.createAccessControlSyncJob({
+                        policy_id: channel.id, // Sync only this specific channel policy
+                    });
                 } catch (jobError) {
                     // Log job creation error but don't fail the save operation
                     // eslint-disable-next-line no-console
@@ -478,27 +472,52 @@ function ChannelSettingsAccessRulesTab({
         }
     }, [expression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState]);
 
-    // Handle confirmation modal confirm
+    // Prevent duplicate saves with immediate response
+    const saveInProgressRef = useRef(false);
+
+    // Handle confirmation modal confirm - immediate response, no debounce
     const handleConfirmSave = useCallback(async () => {
-        const success = await performSave();
-        if (success) {
-            setSaveChangesPanelState('saved');
-        } else {
-            setSaveChangesPanelState('error');
+        // Prevent duplicate clicks - immediate response
+        if (saveInProgressRef.current) {
+            return;
+        }
+
+        saveInProgressRef.current = true;
+
+        try {
+            const success = await performSave();
+            if (success) {
+                setSaveChangesPanelState('saved');
+            } else {
+                setSaveChangesPanelState('error');
+            }
+        } finally {
+            saveInProgressRef.current = false;
         }
     }, [performSave]);
 
-    // Handle save changes panel actions
+    // Handle save changes panel actions - immediate response, no debounce
     const handleSaveChanges = useCallback(async () => {
-        const result = await handleSave();
-
-        if (result === 'saved') {
-            setSaveChangesPanelState('saved');
-        } else if (result === 'error') {
-            setSaveChangesPanelState('error');
+        // Prevent duplicate clicks - immediate response
+        if (saveInProgressRef.current) {
+            return;
         }
 
-        // If result is 'confirmation_required', do nothing to the panel state
+        saveInProgressRef.current = true;
+
+        try {
+            const result = await handleSave();
+
+            if (result === 'saved') {
+                setSaveChangesPanelState('saved');
+            } else if (result === 'error') {
+                setSaveChangesPanelState('error');
+            }
+
+            // If result is 'confirmation_required', do nothing to the panel state
+        } finally {
+            saveInProgressRef.current = false;
+        }
     }, [handleSave]);
 
     const handleCancel = useCallback(() => {

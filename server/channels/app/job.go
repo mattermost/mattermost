@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -74,7 +75,48 @@ func (a *App) GetJobsByTypesAndStatuses(rctx request.CTX, jobTypes []string, sta
 }
 
 func (a *App) CreateJob(rctx request.CTX, job *model.Job) (*model.Job, *model.AppError) {
-	return a.Srv().Jobs.CreateJob(rctx, job.Type, job.Data)
+	switch job.Type {
+	case model.JobTypeAccessControlSync:
+		// Route ABAC jobs to specialized deduplication handler
+		return a.CreateAccessControlSyncJob(rctx, job.Data)
+	default:
+		return a.Srv().Jobs.CreateJob(rctx, job.Type, job.Data)
+	}
+}
+
+func (a *App) CreateAccessControlSyncJob(rctx request.CTX, jobData map[string]string) (*model.Job, *model.AppError) {
+	// Get the policy_id (channel ID) from job data to scope the deduplication
+	policyID, exists := jobData["policy_id"]
+
+	// If policy_id is provided, this is a channel-specific job that needs deduplication
+	if exists && policyID != "" {
+		// Find existing pending or in-progress jobs for this specific policy/channel
+		existingJobs, err := a.Srv().Store().Job().GetByTypeAndData(rctx, model.JobTypeAccessControlSync, map[string]string{
+			"policy_id": policyID,
+		}, true, model.JobStatusPending, model.JobStatusInProgress)
+		if err != nil {
+			return nil, model.NewAppError("CreateAccessControlSyncJob", "app.job.get_existing_jobs.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		// Cancel any existing active jobs for this policy (all returned jobs are already active)
+		for _, job := range existingJobs {
+			rctx.Logger().Info("Canceling existing access control sync job before creating new one",
+				mlog.String("job_id", job.Id),
+				mlog.String("policy_id", policyID),
+				mlog.String("status", job.Status))
+
+			// directly cancel jobs for deduplication
+			if err := a.Srv().Jobs.SetJobCanceled(job); err != nil {
+				rctx.Logger().Warn("Failed to cancel existing access control sync job",
+					mlog.String("job_id", job.Id),
+					mlog.String("policy_id", policyID),
+					mlog.Err(err))
+			}
+		}
+	}
+
+	// Create the new job
+	return a.Srv().Jobs.CreateJob(rctx, model.JobTypeAccessControlSync, jobData)
 }
 
 func (a *App) CancelJob(rctx request.CTX, jobId string) *model.AppError {
