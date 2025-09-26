@@ -2072,7 +2072,7 @@
   },
   {
     "id": "api.user.login.inactive.app_error",
-    "translation": "Hesabınız kullanımdan kaldırılmış olduğundan oturum açılamadı. Lütfen bir yönetici ile görüşün."
+    "translation": "Hesabınız etkisizleştirilmiş olduğundan oturum açılamadı. Lütfen bir yönetici ile görüşün."
   },
   {
     "id": "api.user.login.not_verified.app_error",
