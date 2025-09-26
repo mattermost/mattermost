@@ -56,6 +56,141 @@ func TestGetFlaggingConfiguration(t *testing.T) {
 	})
 }
 
+func TestSaveContentFlaggingSettings(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
+	th := Setup(t).InitBasic()
+	defer func() {
+		th.TearDown()
+		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
+	}()
+
+	client := th.Client
+
+	t.Run("Should return 403 when user does not have manage system permission", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense()
+
+		config := model.ContentFlaggingSettingsRequest{
+			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
+				EnableContentFlagging: model.NewPointer(true),
+			},
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers: model.NewPointer(true),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					CommonReviewerIds: &[]string{th.BasicUser.Id},
+				},
+			},
+		}
+
+		// Use basic user who doesn't have manage system permission
+		th.LoginBasic()
+		resp, err := client.SaveContentFlaggingSettings(context.Background(), &config)
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("Should return 400 when config is invalid", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense()
+
+		// Invalid config - missing required fields
+		config := model.ContentFlaggingSettingsRequest{}
+
+		resp, err := client.SaveContentFlaggingSettings(context.Background(), &config)
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("Should successfully save content flagging settings when user has manage system permission", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense()
+
+		config := model.ContentFlaggingSettingsRequest{
+			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
+				EnableContentFlagging: model.NewPointer(true),
+			},
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers: model.NewPointer(true),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					CommonReviewerIds: &[]string{th.BasicUser.Id},
+				},
+			},
+		}
+
+		// Use system admin who has manage system permission
+		resp, err := client.SaveContentFlaggingSettings(context.Background(), &config)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+}
+
+func TestGetContentFlaggingSettings(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
+	th := Setup(t).InitBasic()
+	defer func() {
+		th.TearDown()
+		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
+	}()
+
+	client := th.Client
+
+	t.Run("Should return 403 when user does not have manage system permission", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense()
+
+		// Use basic user who doesn't have manage system permission
+		th.LoginBasic()
+		settings, resp, err := client.GetContentFlaggingSettings(context.Background())
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		require.Nil(t, settings)
+	})
+
+	t.Run("Should successfully get content flagging settings when user has manage system permission", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.RemoveLicense()
+
+		// First save some settings
+		config := model.ContentFlaggingSettingsRequest{
+			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
+				EnableContentFlagging: model.NewPointer(true),
+			},
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers: model.NewPointer(true),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					CommonReviewerIds: &[]string{th.BasicUser.Id},
+				},
+			},
+		}
+		config.SetDefaults()
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		// Use system admin who has manage system permission
+		settings, resp, err := client.GetContentFlaggingSettings(context.Background())
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.NotNil(t, settings)
+		require.NotNil(t, settings.EnableContentFlagging)
+		require.True(t, *settings.EnableContentFlagging)
+		require.NotNil(t, settings.ReviewerSettings)
+		require.NotNil(t, settings.ReviewerSettings.CommonReviewers)
+		require.True(t, *settings.ReviewerSettings.CommonReviewers)
+		require.NotNil(t, settings.ReviewerSettings.CommonReviewerIds)
+		require.Contains(t, *settings.ReviewerSettings.CommonReviewerIds, th.BasicUser.Id)
+	})
+}
+
 func TestGetPostPropertyValues(t *testing.T) {
 	mainHelper.Parallel(t)
 
