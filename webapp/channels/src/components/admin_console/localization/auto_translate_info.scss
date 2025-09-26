@@ -1,0 +1,32 @@
+#autoTranslateInfo {
+    color: var(--center-channel-color, #3F4350);
+
+    font-family: "Open Sans";
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 20px;
+
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+
+    .auto-translate-info-icon {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .auto-translate-info-secondary {
+        color: var(--center-channel-color, #3F4350);
+        font-family: "Open Sans";
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 20px;
+
+        a {
+            color: var(--link-color, #1C58D9);
+        }
+    }
+}
