@@ -129,7 +129,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
             renderWithContext(<PostHistoryLimitBanner/>, state);
 
             expect(screen.getByText(bannerText)).toBeInTheDocument();
-            expect(screen.getByText('Upgrade')).toBeInTheDocument();
+            expect(screen.getByText('Restore Access')).toBeInTheDocument();
         });
 
         it('should not show banner when limits are not loaded', () => {
@@ -265,7 +265,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
 
             renderWithContext(<PostHistoryLimitBanner/>, state);
 
-            const upgradeButton = screen.getByText('Upgrade');
+            const upgradeButton = screen.getByText('Restore Access');
             fireEvent.click(upgradeButton);
 
             expect(mockOpenPricingModal).toHaveBeenCalled();
