@@ -2510,10 +2510,11 @@ const AdminDefinition: AdminDefinitionType = {
                                 isHidden: it.stateIsFalse('AutoTranslationSettings.Enable'),
                                 isDisabled: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
                                 label: defineMessage({id: 'admin.general.localization.autoTranslateProviderTitle', defaultMessage: 'Translation Service'}),
-                                help_text: defineMessage({id: 'admin.general.localization.autoTranslateProviderDescription', defaultMessage: '<strong>NOTE:</strong> If using external translation services (e.g., cloud based),\n message data may be processed outside of your environment.'}),
+                                help_text: defineMessage({id: 'admin.general.localization.autoTranslateProviderDescription', defaultMessage: '<strong>NOTE:</strong> If using external translation services (e.g., cloud based),{br}message data may be processed outside of your environment.'}),
                                 help_text_markdown: false,
                                 help_text_values: {
                                     strong: (msg: string) => <strong>{msg}</strong>,
+                                    br: <br/>,
                                 },
                                 options: [
                                     {
