@@ -273,7 +273,7 @@ func makeAuditFileTarget(a *model.ExperimentalAuditSettings, level string, asJSO
 		return mlog.TargetCfg{}, fmt.Errorf("cannot encode audit file options: %w", err)
 	}
 
-	// Match the queue size used by makeSimpleFileTarget in *your* file (1000).
+	// Match the queue size (1000) used by makeSimpleFileTarget in the corresponding file.
 	maxQueue := 1000
 	if a != nil && a.FileMaxQueueSize != nil {
 		maxQueue = *a.FileMaxQueueSize
