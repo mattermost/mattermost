@@ -78,6 +78,21 @@ func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 	return &token, nil
 }
 
+func (s SqlTokenStore) ConsumeOnce(tokenStr string) (*model.Token, error) {
+	var token model.Token
+
+	query := `DELETE FROM Tokens WHERE Token = ? RETURNING *`
+
+	if err := s.GetMaster().Get(&token, query, tokenStr); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Token", tokenStr)
+		}
+		return nil, errors.Wrapf(err, "failed to consume token")
+	}
+
+	return &token, nil
+}
+
 func (s SqlTokenStore) Cleanup(expiryTime int64) {
 	if _, err := s.GetMaster().Exec("DELETE FROM Tokens WHERE CreateAt < ?", expiryTime); err != nil {
 		mlog.Error("Unable to cleanup token store.")
