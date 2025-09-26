@@ -9,11 +9,11 @@ Synopsis
 ~~~~~~~~
 
 
-Delete a Custom Profile Attribute field. This will automatically delete all user values for this field.
+Delete a Custom Profile Attribute field by ID or name. This will automatically delete all user values for this field.
 
 ::
 
-  mmctl cpa field delete [field-id] [flags]
+  mmctl cpa field delete [field] [flags]
 
 Examples
 ~~~~~~~~
@@ -21,7 +21,8 @@ Examples
 ::
 
     cpa field delete n4qdbtro4j8x3n8z81p48ww9gr --confirm
-    cpa field delete 8kj9xm4p6f3y7n2z9q5w8r1t4v --confirm
+    cpa field delete Department --confirm
+    cpa field delete Skills --confirm
 
 Options
 ~~~~~~~
