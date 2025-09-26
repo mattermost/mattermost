@@ -27,7 +27,6 @@ const NavbarInfoButton: React.FunctionComponent<Props> = ({channel, actions}: Pr
             <InfoIcon
                 className='icon icon__info'
                 aria-hidden='true'
-                
             />
         </button>
     );
