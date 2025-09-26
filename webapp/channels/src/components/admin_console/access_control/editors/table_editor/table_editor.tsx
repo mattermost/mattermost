@@ -15,6 +15,10 @@ import OperatorSelectorMenu from './operator_selector_menu';
 import type {TableRow} from './value_selector_menu';
 import ValueSelectorMenu from './value_selector_menu';
 
+// Constants to prevent new array references
+const EMPTY_OPTIONS: PropertyFieldOption[] = [];
+const EMPTY_VALUES: string[] = [];
+
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
 import TestResultsModal from '../../modals/policy_test/test_modal';
 import {AddAttributeButton, TestButton, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel} from '../shared';
@@ -236,7 +240,7 @@ function TableEditor({
             const newRow = {
                 attribute: firstAvailableAttribute.name, // Default to the first available attribute
                 operator: OperatorLabel.IS, // Default operator
-                values: [],
+                values: EMPTY_VALUES,
                 attribute_type: userAttributes[0]?.type || '',
             };
             const newRows = [...currentRows, newRow];
@@ -262,7 +266,7 @@ function TableEditor({
 
             // If attribute changes, we are resetting values.
             if (oldAttribute !== attribute) {
-                newRows[index].values = [];
+                newRows[index].values = EMPTY_VALUES;
                 newRows[index].operator = OperatorLabel.IS;
             }
             updateExpression(newRows);
@@ -354,7 +358,7 @@ function TableEditor({
                     ) : (
                         rows.map((row, index) => (
                             <tr
-                                key={`${row.attribute}-${row.operator}-${index}`}
+                                key={`${row.attribute}-${row.operator}`}
                                 className='table-editor__row'
                             >
                                 <td className='table-editor__cell'>
@@ -382,7 +386,7 @@ function TableEditor({
                                         row={row}
                                         disabled={disabled}
                                         updateValues={(values: string[]) => updateRowValues(index, values)}
-                                        options={attributeOptionsMap.get(row.attribute) || []}
+                                        options={attributeOptionsMap.get(row.attribute) || EMPTY_OPTIONS}
                                     />
                                 </td>
                                 <td className='table-editor__cell-actions'>

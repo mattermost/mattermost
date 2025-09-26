@@ -15,6 +15,22 @@ import SearchableUserList from 'components/searchable_user_list/searchable_user_
 
 import './channel_access_rules_confirm_modal.scss';
 
+// Utility function to filter users by search term
+const filterUsersByTerm = (users: UserProfile[], searchTerm: string): UserProfile[] => {
+    if (!searchTerm.trim()) {
+        return users;
+    }
+
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return users.filter((user) =>
+        user.username.toLowerCase().includes(lowerSearchTerm) ||
+        user.first_name?.toLowerCase().includes(lowerSearchTerm) ||
+        user.last_name?.toLowerCase().includes(lowerSearchTerm) ||
+        user.email?.toLowerCase().includes(lowerSearchTerm) ||
+        user.nickname?.toLowerCase().includes(lowerSearchTerm),
+    );
+};
+
 type ChannelAccessRulesConfirmModalProps = {
     show: boolean;
     onHide: () => void;
@@ -85,34 +101,16 @@ function ChannelAccessRulesConfirmModal({
         setActiveTab(tab);
     }, []);
 
-    // Memoize search filtering for performance
-    const filteredAllowedUsersMemo = useMemo(() => {
-        if (!searchTerm.trim()) {
-            return allowedUsers;
-        }
-        const lowerSearchTerm = searchTerm.toLowerCase();
-        return allowedUsers.filter((user) => {
-            return user.username.toLowerCase().includes(lowerSearchTerm) ||
-                user.first_name?.toLowerCase().includes(lowerSearchTerm) ||
-                user.last_name?.toLowerCase().includes(lowerSearchTerm) ||
-                user.email?.toLowerCase().includes(lowerSearchTerm) ||
-                user.nickname?.toLowerCase().includes(lowerSearchTerm);
-        });
-    }, [allowedUsers, searchTerm]);
+    // Memoized search filtering
+    const filteredAllowedUsers = useMemo(() =>
+        filterUsersByTerm(allowedUsers, searchTerm),
+    [allowedUsers, searchTerm],
+    );
 
-    const filteredRestrictedUsersMemo = useMemo(() => {
-        if (!searchTerm.trim()) {
-            return restrictedUsers;
-        }
-        const lowerSearchTerm = searchTerm.toLowerCase();
-        return restrictedUsers.filter((user) => {
-            return user.username.toLowerCase().includes(lowerSearchTerm) ||
-                user.first_name?.toLowerCase().includes(lowerSearchTerm) ||
-                user.last_name?.toLowerCase().includes(lowerSearchTerm) ||
-                user.email?.toLowerCase().includes(lowerSearchTerm) ||
-                user.nickname?.toLowerCase().includes(lowerSearchTerm);
-        });
-    }, [restrictedUsers, searchTerm]);
+    const filteredRestrictedUsers = useMemo(() =>
+        filterUsersByTerm(restrictedUsers, searchTerm),
+    [restrictedUsers, searchTerm],
+    );
 
     const handleSearch = useCallback((newSearchTerm: string) => {
         setSearchTerm(newSearchTerm);
@@ -128,10 +126,8 @@ function ChannelAccessRulesConfirmModal({
         onHide();
     }, [onHide]);
 
-    const hasChanges = useMemo(() =>
-        usersToAdd.length > 0 || usersToRemove.length > 0,
-    [usersToAdd.length, usersToRemove.length],
-    );
+    // Simple computations
+    const hasChanges = usersToAdd.length > 0 || usersToRemove.length > 0;
 
     const modalTitle = (
         <FormattedMessage
@@ -142,15 +138,9 @@ function ChannelAccessRulesConfirmModal({
 
     const modalSubtitle = channelName;
 
-    const currentUsers = useMemo(() =>
-        (activeTab === 'allowed' ? filteredAllowedUsersMemo : filteredRestrictedUsersMemo),
-    [activeTab, filteredAllowedUsersMemo, filteredRestrictedUsersMemo],
-    );
-
-    const totalCount = useMemo(() =>
-        (activeTab === 'allowed' ? usersToAdd.length : usersToRemove.length),
-    [activeTab, usersToAdd.length, usersToRemove.length],
-    );
+    // Dynamic tab content
+    const currentUsers = activeTab === 'allowed' ? filteredAllowedUsers : filteredRestrictedUsers;
+    const totalCount = activeTab === 'allowed' ? usersToAdd.length : usersToRemove.length;
 
     // Don't show modal if there are no changes
     if (!hasChanges) {
