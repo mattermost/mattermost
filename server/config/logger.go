@@ -222,7 +222,7 @@ func makeAuditFileOptions(a *model.ExperimentalAuditSettings) (json.RawMessage, 
 	compress := LogCompress
 
 	if a != nil {
-		// NOTE: In *your* tree the field is FileName (not Filename). Keep it exactly like this.
+		// NOTE: The field in ExperimentalAuditSettings is named FileName (not Filename). This is intentional; do not change it.
 		if a.FileName != nil {
 			filename = *a.FileName
 		}
