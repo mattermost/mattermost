@@ -23,6 +23,11 @@ import {Constants} from 'utils/constants';
 
 import './channel_list.scss';
 
+type PolicyActiveStatus = {
+    id: string;
+    active: boolean;
+}
+
 type Props = {
     channels: ChannelWithTeamData[];
     totalCount: number;
@@ -32,6 +37,8 @@ type Props = {
     onRemoveCallback: (channel: ChannelWithTeamData) => void;
     channelsToRemove: Record<string, ChannelWithTeamData>;
     channelsToAdd: Record<string, ChannelWithTeamData>;
+    policyActiveStatusChanges?: PolicyActiveStatus[];
+    onPolicyActiveStatusChange?: (changes: PolicyActiveStatus[]) => void;
     actions: {
         searchChannels: (id: string, term: string, opts: ChannelSearchOpts) => Promise<ActionResult>;
         setChannelListSearch: (term: string) => void;
@@ -207,6 +214,119 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         }
     };
 
+    private handleAutoAddToggle = (channelId: string, currentStatus: boolean) => {
+        const {policyActiveStatusChanges = [], onPolicyActiveStatusChange} = this.props;
+
+        if (!onPolicyActiveStatusChange) {
+            return;
+        }
+
+        const newStatus = !currentStatus;
+        const existingChangeIndex = policyActiveStatusChanges.findIndex((change) => change.id === channelId);
+        const updatedChanges = [...policyActiveStatusChanges];
+
+        if (existingChangeIndex >= 0) {
+            // Update existing change
+            updatedChanges[existingChangeIndex] = {
+                id: channelId,
+                active: newStatus,
+            };
+        } else {
+            // Add new change
+            updatedChanges.push({
+                id: channelId,
+                active: newStatus,
+            });
+        }
+
+        onPolicyActiveStatusChange(updatedChanges);
+    };
+
+    private getChannelAutoAddStatus = (channelId: string): boolean => {
+        const {policyActiveStatusChanges = [], channels, channelsToAdd} = this.props;
+        const change = policyActiveStatusChanges.find((change) => change.id === channelId);
+
+        // If there's a pending change, use that status
+        if (change) {
+            return change.active;
+        }
+
+        // Find the channel to get its current policy_is_active status
+        const allChannels = [...channels, ...Object.values(channelsToAdd)];
+        const channel = allChannels.find((ch) => ch.id === channelId);
+
+        // Use the channel's policy_is_active value, defaulting to true if undefined
+        return channel?.policy_is_active ?? true;
+    };
+
+    private getAllChannelsAutoAddStatus = (): {allActive: boolean; allInactive: boolean; mixed: boolean} => {
+        const {channels, channelsToAdd, channelsToRemove} = this.props;
+        const {startCount, endCount} = this.getPaginationProps();
+
+        // Get all visible channels
+        const channelsToDisplay = [
+            ...Object.values(channelsToAdd),
+            ...channels.filter((channel) => !channelsToRemove[channel.id]),
+        ].slice(startCount - 1, endCount);
+
+        if (channelsToDisplay.length === 0) {
+            return {allActive: false, allInactive: false, mixed: false};
+        }
+
+        let activeCount = 0;
+        channelsToDisplay.forEach((channel) => {
+            if (this.getChannelAutoAddStatus(channel.id)) {
+                activeCount++;
+            }
+        });
+
+        const allActive = activeCount === channelsToDisplay.length;
+        const allInactive = activeCount === 0;
+        const mixed = !allActive && !allInactive;
+
+        return {allActive, allInactive, mixed};
+    };
+
+    private handleBulkAutoAddToggle = () => {
+        const {channels, channelsToAdd, channelsToRemove, policyActiveStatusChanges = [], onPolicyActiveStatusChange} = this.props;
+        const {startCount, endCount} = this.getPaginationProps();
+
+        if (!onPolicyActiveStatusChange) {
+            return;
+        }
+
+        // Get all visible channels
+        const channelsToDisplay = [
+            ...Object.values(channelsToAdd),
+            ...channels.filter((channel) => !channelsToRemove[channel.id]),
+        ].slice(startCount - 1, endCount);
+
+        const {allActive} = this.getAllChannelsAutoAddStatus();
+        const newStatus = !allActive; // If all are active, make them inactive; otherwise make them all active
+
+        const updatedChanges = [...policyActiveStatusChanges];
+
+        channelsToDisplay.forEach((channel) => {
+            const existingChangeIndex = updatedChanges.findIndex((change) => change.id === channel.id);
+
+            if (existingChangeIndex >= 0) {
+                // Update existing change
+                updatedChanges[existingChangeIndex] = {
+                    id: channel.id,
+                    active: newStatus,
+                };
+            } else {
+                // Add new change
+                updatedChanges.push({
+                    id: channel.id,
+                    active: newStatus,
+                });
+            }
+        });
+
+        onPolicyActiveStatusChange(updatedChanges);
+    };
+
     getColumns = (): Column[] => {
         return [
             {
@@ -227,6 +347,34 @@ export default class ChannelList extends React.PureComponent<Props, State> {
                     />
                 ),
                 field: 'team',
+                fixed: true,
+            },
+            {
+                name: (
+                    <div className='ChannelList__autoAddHeader'>
+                        <input
+                            type='checkbox'
+                            id='auto-add-header-checkbox'
+                            className='header-checkbox'
+                            checked={this.getAllChannelsAutoAddStatus().allActive}
+                            ref={(input) => {
+                                if (input) {
+                                    const {mixed} = this.getAllChannelsAutoAddStatus();
+                                    input.indeterminate = mixed;
+                                }
+                            }}
+                            onChange={this.handleBulkAutoAddToggle}
+                        />
+                        <span className='header-text'>
+                            <FormattedMessage
+                                id='admin.access_control.policy.channel_list.autoAddHeader'
+                                defaultMessage='Auto-add members'
+                            />
+                        </span>
+                    </div>
+                ),
+                field: 'autoAdd',
+                textAlign: 'center',
                 fixed: true,
             },
             {
@@ -271,6 +419,8 @@ export default class ChannelList extends React.PureComponent<Props, State> {
                 />
             );
 
+            const autoAddStatus = this.getChannelAutoAddStatus(channel.id);
+
             return {
                 cells: {
                     id: channel.id,
@@ -288,6 +438,30 @@ export default class ChannelList extends React.PureComponent<Props, State> {
                         </div>
                     ),
                     team: channel.team_display_name,
+                    autoAdd: (
+                        <div className='ChannelList__autoAddColumn'>
+                            <input
+                                type='checkbox'
+                                id={`auto-add-checkbox-${channel.id}`}
+                                className='channel-checkbox'
+                                checked={autoAddStatus}
+                                onChange={() => this.handleAutoAddToggle(channel.id, autoAddStatus)}
+                            />
+                            <span className='checkbox-label'>
+                                {autoAddStatus ? (
+                                    <FormattedMessage
+                                        id='admin.access_control.policy.channel_list.on'
+                                        defaultMessage='On'
+                                    />
+                                ) : (
+                                    <FormattedMessage
+                                        id='admin.access_control.policy.channel_list.off'
+                                        defaultMessage='Off'
+                                    />
+                                )}
+                            </span>
+                        </div>
+                    ),
                     remove: (
                         <a
                             id={`remove-channel-${channel.id}`}
