@@ -43,9 +43,13 @@ func init() {
 	RootCmd.AddCommand(CPACmd)
 }
 
-// Helper function to build field attributes from command flags
-func buildFieldAttrs(cmd *cobra.Command) (model.StringInterface, error) {
-	attrs := make(model.StringInterface)
+// Helper function to build field attributes from command flags. If existingAttrs is
+// provided, it will be used as the base and merged with flag changes
+func buildFieldAttrs(cmd *cobra.Command, existingAttrs model.StringInterface) (model.StringInterface, error) {
+	var attrs = make(model.StringInterface)
+	if existingAttrs != nil {
+		maps.Copy(attrs, existingAttrs)
+	}
 
 	// First parse --attrs if provided
 	if attrsStr, err := cmd.Flags().GetString("attrs"); err == nil && attrsStr != "" && cmd.Flags().Changed("attrs") {
@@ -70,11 +74,25 @@ func buildFieldAttrs(cmd *cobra.Command) (model.StringInterface, error) {
 	// Handle --option flags for select/multiselect fields
 	if options, err := cmd.Flags().GetStringSlice("option"); err == nil && len(options) > 0 && cmd.Flags().Changed("option") {
 		var selectOptions []*model.CustomProfileAttributesSelectOption
+
+		existingOptionsMap := make(map[string]*model.CustomProfileAttributesSelectOption)
+		if existingOptions, ok := attrs["options"]; ok {
+			if existingList, ok := existingOptions.([]*model.CustomProfileAttributesSelectOption); ok {
+				for _, option := range existingList {
+					existingOptionsMap[option.Name] = option
+				}
+			}
+		}
+
 		for _, optionName := range options {
-			selectOptions = append(selectOptions, &model.CustomProfileAttributesSelectOption{
-				ID:   model.NewId(),
-				Name: optionName,
-			})
+			if existingOption, exists := existingOptionsMap[optionName]; exists {
+				selectOptions = append(selectOptions, existingOption)
+			} else {
+				selectOptions = append(selectOptions, &model.CustomProfileAttributesSelectOption{
+					ID:   model.NewId(),
+					Name: optionName,
+				})
+			}
 		}
 		attrs["options"] = selectOptions
 	}

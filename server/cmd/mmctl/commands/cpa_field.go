@@ -165,7 +165,7 @@ func cpaFieldCreateCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 	}
 
 	// Build attrs from flags
-	attrs, err := buildFieldAttrs(cmd)
+	attrs, err := buildFieldAttrs(cmd, nil)
 	if err != nil {
 		return err
 	}
@@ -215,7 +215,7 @@ func cpaFieldEditCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 
 	// Build attrs from flags if any changes
 	if hasAttrsChanges(cmd) {
-		attrs, err := buildFieldAttrs(cmd)
+		attrs, err := buildFieldAttrs(cmd, field.Attrs)
 		if err != nil {
 			return err
 		}
