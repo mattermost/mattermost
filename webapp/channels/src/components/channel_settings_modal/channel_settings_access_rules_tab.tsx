@@ -112,7 +112,7 @@ function ChannelSettingsAccessRulesTab({
         };
 
         loadAttributes();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- Only run once on mount
     }, []);
 
     // Load existing channel access rules (only when channel changes)
@@ -140,7 +140,7 @@ function ChannelSettingsAccessRulesTab({
         };
 
         loadChannelPolicy();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- Actions is stable, avoid unnecessary re-runs
     }, [channel.id]);
 
     // Update parent component when changes occur
