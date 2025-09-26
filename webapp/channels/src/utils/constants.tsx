@@ -50,6 +50,7 @@ export const SettingsTypes = {
     TYPE_CUSTOM: 'custom' as const,
     TYPE_ROLES: 'roles' as const,
     TYPE_EXPANDABLE_SETTING: 'expandable_setting' as const,
+    TYPE_SWITCH: 'switch' as const,
 };
 
 export const InviteTypes = {
