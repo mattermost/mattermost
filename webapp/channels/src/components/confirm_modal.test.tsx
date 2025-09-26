@@ -4,8 +4,6 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import Button from 'components/design_system/button';
-
 import ConfirmModal from './confirm_modal';
 
 describe('ConfirmModal', () => {
@@ -27,7 +25,7 @@ describe('ConfirmModal', () => {
         expect(wrapper.find('input[type="checkbox"]').prop('checked')).toBe(false);
         expect(wrapper.find('input[type="checkbox"]').exists()).toBe(true);
 
-        wrapper.find(Button).filter({'data-testid': 'confirm-button'}).simulate('click');
+        wrapper.find('#confirmModalButton').simulate('click');
 
         expect(props.onConfirm).toHaveBeenCalledWith(false);
 
@@ -36,7 +34,7 @@ describe('ConfirmModal', () => {
         expect(wrapper.state('checked')).toBe(true);
         expect(wrapper.find('input[type="checkbox"]').prop('checked')).toBe(true);
 
-        wrapper.find(Button).filter({'data-testid': 'confirm-button'}).simulate('click');
+        wrapper.find('#confirmModalButton').simulate('click');
 
         expect(props.onConfirm).toHaveBeenCalledWith(true);
     });
@@ -53,7 +51,7 @@ describe('ConfirmModal', () => {
         expect(wrapper.find('input[type="checkbox"]').prop('checked')).toBe(false);
         expect(wrapper.find('input[type="checkbox"]').exists()).toBe(true);
 
-        wrapper.find(Button).filter({'data-testid': 'cancel-button'}).simulate('click');
+        wrapper.find('#cancelModalButton').simulate('click');
 
         expect(props.onCancel).toHaveBeenCalledWith(false);
 
@@ -62,7 +60,7 @@ describe('ConfirmModal', () => {
         expect(wrapper.state('checked')).toBe(true);
         expect(wrapper.find('input[type="checkbox"]').prop('checked')).toBe(true);
 
-        wrapper.find(Button).filter({'data-testid': 'cancel-button'}).simulate('click');
+        wrapper.find('#cancelModalButton').simulate('click');
 
         expect(props.onCancel).toHaveBeenCalledWith(true);
     });

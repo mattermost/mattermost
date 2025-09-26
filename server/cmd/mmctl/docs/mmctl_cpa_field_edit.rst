@@ -9,11 +9,11 @@ Synopsis
 ~~~~~~~~
 
 
-Edit an existing Custom Profile Attribute field.
+Edit an existing Custom Profile Attribute field by ID or name.
 
 ::
 
-  mmctl cpa field edit [field-id] [flags]
+  mmctl cpa field edit [field] [flags]
 
 Examples
 ~~~~~~~~
@@ -21,8 +21,8 @@ Examples
 ::
 
     cpa field edit n4qdbtro4j8x3n8z81p48ww9gr --name "Department Name" --managed
-    cpa field edit 8kj9xm4p6f3y7n2z9q5w8r1t4v --option Go --option React --option Python --option Java
-    cpa field edit 3h7k9m2x5b8v4n6p1q9w7r3t2y --managed=false
+    cpa field edit Department --option Go --option React --option Python --option Java
+    cpa field edit Skills --managed=false
 
 Options
 ~~~~~~~
