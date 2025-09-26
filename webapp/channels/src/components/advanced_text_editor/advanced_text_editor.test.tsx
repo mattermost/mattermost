@@ -13,7 +13,7 @@ import type {FileUpload} from 'components/file_upload/file_upload';
 import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, userEvent, screen, act} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, screen} from 'tests/react_testing_utils';
 import Constants, {Locations, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -201,9 +201,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             );
             const textbox = screen.getByTestId('post_textbox');
 
-            await act(async () => {
-                userEvent.type(textbox, 'something{esc}');
-            });
+            await userEvent.type(textbox, 'something{escape}');
 
             expect(textbox).not.toHaveFocus();
             expect(mockedUpdateDraft).not.toHaveBeenCalled();
@@ -230,15 +228,15 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 }),
             );
             const textbox = screen.getByTestId('edit_textbox');
-            await act(async () => {
-                userEvent.type(textbox, 'something{esc}');
-            });
+            await userEvent.type(textbox, 'something{escape}', {advanceTimers: jest.advanceTimersByTime});
             expect(textbox).not.toHaveFocus();
 
             // save is called with a short delayed after pressing escape key
             jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT + 50);
             expect(mockedRemoveDraft).toHaveBeenCalled();
             expect(mockedUpdateDraft).not.toHaveBeenCalled();
+
+            jest.useRealTimers();
         });
     });
 
@@ -267,14 +265,13 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
         expect(screen.getByPlaceholderText('Write to Test Channel')).toHaveValue('original draft');
 
-        await act(async () => {
-            rerender(
-                <AdvancedTextEditor
-                    {...baseProps}
-                    channelId={otherChannelId}
-                />,
-            );
-        });
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                channelId={otherChannelId}
+            />,
+        );
+
         expect(screen.getByPlaceholderText('Write to Other Channel')).toHaveValue('a different draft');
     });
 
@@ -286,20 +283,16 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             initialState,
         );
 
-        await act(async () => {
-            userEvent.type(screen.getByPlaceholderText('Write to Test Channel'), 'some text');
-        });
+        await userEvent.type(screen.getByPlaceholderText('Write to Test Channel'), 'some text');
 
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
-        await act(async () => {
-            rerender(
-                <AdvancedTextEditor
-                    {...baseProps}
-                    channelId={otherChannelId}
-                />,
-            );
-        });
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                channelId={otherChannelId}
+            />,
+        );
 
         expect(mockedUpdateDraft).toHaveBeenCalled();
         expect(mockedUpdateDraft.mock.calls[0][1]).toMatchObject({
@@ -328,14 +321,12 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
-        await act(async () => {
-            rerender(
-                <AdvancedTextEditor
-                    {...baseProps}
-                    channelId={otherChannelId}
-                />,
-            );
-        });
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                channelId={otherChannelId}
+            />,
+        );
 
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
     });
@@ -358,20 +349,16 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             }),
         );
 
-        await act(async () => {
-            userEvent.type(screen.getByPlaceholderText('Write to Test Channel'), ' plus some new text');
-        });
+        await userEvent.type(screen.getByPlaceholderText('Write to Test Channel'), ' plus some new text');
 
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
-        await act(async () => {
-            rerender(
-                <AdvancedTextEditor
-                    {...baseProps}
-                    channelId={otherChannelId}
-                />,
-            );
-        });
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                channelId={otherChannelId}
+            />,
+        );
 
         expect(mockedUpdateDraft).toHaveBeenCalled();
         expect(mockedUpdateDraft.mock.calls[0][1]).toMatchObject({
@@ -398,21 +385,17 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             }),
         );
 
-        await act(async () => {
-            userEvent.clear(screen.getByPlaceholderText('Write to Test Channel'));
-        });
+        await userEvent.clear(screen.getByPlaceholderText('Write to Test Channel'));
 
         expect(mockedRemoveDraft).not.toHaveBeenCalled();
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
-        await act(async () => {
-            rerender(
-                <AdvancedTextEditor
-                    {...baseProps}
-                    channelId={otherChannelId}
-                />,
-            );
-        });
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                channelId={otherChannelId}
+            />,
+        );
 
         expect(mockedRemoveDraft).toHaveBeenCalled();
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
@@ -429,14 +412,12 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         expect(mockedRemoveDraft).not.toHaveBeenCalled();
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
-        await act(async () => {
-            rerender(
-                <AdvancedTextEditor
-                    {...baseProps}
-                    channelId={otherChannelId}
-                />,
-            );
-        });
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                channelId={otherChannelId}
+            />,
+        );
 
         expect(mockedRemoveDraft).not.toHaveBeenCalled();
         expect(mockedUpdateDraft).not.toHaveBeenCalled();

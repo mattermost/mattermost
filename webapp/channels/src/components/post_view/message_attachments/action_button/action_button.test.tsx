@@ -29,12 +29,12 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
         expect(loadingIcon).toHaveClass('fa fa-spinner fa-fw fa-pulse spinner');
     });
 
-    test('should call handleAction on click', () => {
+    test('should call handleAction on click', async () => {
         renderWithContext(<ActionButton {...baseProps}/>);
 
         const button = screen.getByRole('button');
 
-        userEvent.click(button);
+        await userEvent.click(button);
 
         expect(baseProps.handleAction).toHaveBeenCalledTimes(1);
     });

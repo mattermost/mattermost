@@ -8,6 +8,7 @@ import LoadingImagePreview from 'components/loading_image_preview';
 import SizeAwareImage, {SizeAwareImage as SizeAwareImageComponent} from 'components/size_aware_image';
 
 import {shallowWithIntl, mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 import {TestHelper} from 'utils/test_helper';
 
@@ -79,7 +80,9 @@ describe('components/SizeAwareImage', () => {
 
         const wrapper = mountWithIntl(<Provider store={store}><SizeAwareImage {...props}/></Provider>);
 
-        wrapper.find(SizeAwareImageComponent).setState({loaded: false, error: false});
+        act(() => {
+            wrapper.find(SizeAwareImageComponent).setState({loaded: false, error: false});
+        });
 
         const src = wrapper.find('.image-loading__container img').prop('src');
         expect(src).toEqual('data:mime_type;base64,mini_preview');
@@ -87,7 +90,10 @@ describe('components/SizeAwareImage', () => {
 
     test('should have display set to initial in loaded state', () => {
         const wrapper = mountWithIntl(<Provider store={store}><SizeAwareImage {...baseProps}/></Provider>);
-        wrapper.find(SizeAwareImageComponent).setState({loaded: true, error: false});
+
+        act(() => {
+            wrapper.find(SizeAwareImageComponent).setState({loaded: true, error: false});
+        });
 
         const style = wrapper.find('.file-preview__button').prop('style');
         expect(style).toHaveProperty('display', 'inline-block');
@@ -99,7 +105,9 @@ describe('components/SizeAwareImage', () => {
 
         const wrapper = mountWithIntl(<Provider store={store}><SizeAwareImage {...props}/></Provider>);
 
-        wrapper.find(SizeAwareImageComponent).setState({error: false});
+        act(() => {
+            wrapper.find(SizeAwareImageComponent).setState({error: false});
+        });
 
         const src = wrapper.find('img').prop('src');
         expect(src).toEqual(baseProps.src);
@@ -124,7 +132,10 @@ describe('components/SizeAwareImage', () => {
             preventDefault: () => { },
             stopPropagation: () => { },
         } as React.SyntheticEvent<HTMLImageElement>;
-        wrapper.find(SizeAwareImageComponent).find('img').prop('onError')?.(errorEvent);
+
+        act(() => {
+            wrapper.find(SizeAwareImageComponent).find('img').prop('onError')?.(errorEvent);
+        });
 
         expect(wrapper.find(SizeAwareImageComponent).state('error')).toBe(true);
         expect(wrapper.find(SizeAwareImageComponent).find('svg').exists()).toEqual(true);

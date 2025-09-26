@@ -188,7 +188,7 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
                         id='installed_outgoing_webhooks.search.empty'
                         defaultMessage='No outgoing webhooks match <b>{searchTerm}</b>'
                         values={{
-                            b: (chunks: string) => <b>{chunks}</b>,
+                            b: (chunks) => <b>{chunks}</b>,
                         }}
                     />
                 }

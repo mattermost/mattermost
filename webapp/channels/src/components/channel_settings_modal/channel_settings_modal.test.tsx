@@ -5,11 +5,10 @@ import {screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import type {DeepPartial} from '@mattermost/types/utilities';
+import {General} from 'mattermost-redux/constants';
 
 import {renderWithContext} from 'tests/react_testing_utils';
-
-import type {GlobalState} from 'types/store';
+import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsModal from './channel_settings_modal';
 
@@ -17,35 +16,6 @@ import ChannelSettingsModal from './channel_settings_modal';
 let mockPrivateChannelPermission = true;
 let mockPublicChannelPermission = true;
 let mockManageChannelAccessRulesPermission = false;
-
-// Variable to control group-constrained status in tests
-let mockGroupConstrained = false;
-
-// Mock the redux selectors
-jest.mock('mattermost-redux/selectors/entities/channels', () => ({
-    getChannel: jest.fn().mockImplementation((state, channelId) => {
-        // Return a mock channel based on the channelId
-        return {
-            id: channelId,
-            team_id: 'team1',
-            display_name: 'Test Channel',
-            name: channelId === 'default_channel' ? 'town-square' : 'test-channel',
-            purpose: 'Testing purpose',
-            header: 'Channel header',
-            type: mockChannelType, // Use a variable to control the channel type
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-            last_post_at: 0,
-            total_msg_count: 0,
-            extra_update_at: 0,
-            creator_id: 'creator1',
-            last_root_post_at: 0,
-            scheme_id: '',
-            group_constrained: mockGroupConstrained,
-        };
-    }),
-}));
 
 // Mock the channel banner selector
 jest.mock('mattermost-redux/selectors/entities/channel_banner', () => ({
@@ -109,9 +79,6 @@ type TabType = {
     display?: boolean;
 };
 
-// Variable to control the channel type in tests
-let mockChannelType = 'O';
-
 // Mock the settings sidebar
 jest.mock('components/settings_sidebar', () => {
     return function MockSettingsSidebar({tabs, activeTab, updateTab}: {tabs: TabType[]; activeTab: string; updateTab: (tab: string) => void}): JSX.Element {
@@ -134,30 +101,58 @@ jest.mock('components/settings_sidebar', () => {
     };
 });
 
-const baseProps = {
-    channelId: 'channel1',
-    isOpen: true,
-    onExited: jest.fn(),
-    focusOriginElement: 'button1',
-};
-
 describe('ChannelSettingsModal', () => {
+    const channelId = 'channel1';
+
+    const baseProps = {
+        channelId,
+        isOpen: true,
+        onExited: jest.fn(),
+        focusOriginElement: 'button1',
+    };
+
+    function makeTestState() {
+        return {
+            entities: {
+                channels: {
+                    channels: {
+                        [channelId]: TestHelper.getChannelMock({
+                            id: channelId,
+                            type: General.OPEN_CHANNEL,
+                            purpose: 'Testing purpose',
+                            header: 'Channel header',
+                            group_constrained: false,
+                        }),
+                    },
+                },
+                general: {
+                    license: {
+                        SkuShortName: '',
+                    },
+                },
+            },
+        };
+    }
+
     beforeEach(() => {
         jest.clearAllMocks();
-        mockChannelType = 'O'; // Default to public channel
         mockPrivateChannelPermission = true;
         mockPublicChannelPermission = true;
         mockManageChannelAccessRulesPermission = false; // Default to no access rules permission
-        mockGroupConstrained = false; // Default to not group-constrained
     });
 
     it('should render the modal with correct header text', async () => {
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+        const testState = makeTestState();
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+
         expect(screen.getByText('Channel Settings')).toBeInTheDocument();
     });
 
     it('should render Info tab by default', async () => {
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+        const testState = makeTestState();
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
         // Wait for the lazy-loaded components
         await waitFor(() => {
@@ -166,7 +161,9 @@ describe('ChannelSettingsModal', () => {
     });
 
     it('should switch tabs when clicked', async () => {
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+        const testState = makeTestState();
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
         // Wait for the sidebar to load
         await waitFor(() => {
@@ -185,11 +182,11 @@ describe('ChannelSettingsModal', () => {
     });
 
     it('should not show archive tab for default channel', async () => {
-        renderWithContext(
-            <ChannelSettingsModal
-                {...{...baseProps, channelId: 'default_channel'}}
-            />,
-        );
+        const testState = makeTestState();
+
+        testState.entities.channels.channels[channelId].name = 'town-square';
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
         // Wait for the sidebar to load
         await waitFor(() => {
@@ -204,10 +201,11 @@ describe('ChannelSettingsModal', () => {
     });
 
     it('should show archive tab for public channel when user has permission', async () => {
-        mockChannelType = 'O';
         mockPublicChannelPermission = true;
 
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+        const testState = makeTestState();
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
         // Wait for the sidebar to load
         await waitFor(() => {
@@ -219,10 +217,11 @@ describe('ChannelSettingsModal', () => {
     });
 
     it('should not show archive tab for public channel when user does not have permission', async () => {
-        mockChannelType = 'O';
         mockPublicChannelPermission = false;
 
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+        const testState = makeTestState();
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
         // Wait for the sidebar to load
         await waitFor(() => {
@@ -234,10 +233,12 @@ describe('ChannelSettingsModal', () => {
     });
 
     it('should show archive tab for private channel when user has permission', async () => {
-        mockChannelType = 'P';
         mockPrivateChannelPermission = true;
 
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+        const testState = makeTestState();
+        testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
         // Wait for the sidebar to load
         await waitFor(() => {
@@ -249,10 +250,12 @@ describe('ChannelSettingsModal', () => {
     });
 
     it('should not show archive tab for private channel when user does not have permission', async () => {
-        mockChannelType = 'P';
         mockPrivateChannelPermission = false;
 
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+        const testState = makeTestState();
+        testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
         // Wait for the sidebar to load
         await waitFor(() => {
@@ -264,67 +267,44 @@ describe('ChannelSettingsModal', () => {
     });
 
     it('should not show configuration tab with no license', async () => {
-        const baseState: DeepPartial<GlobalState> = {
-            entities: {
-                general: {
-                    license: {
-                        SkuShortName: '',
-                    },
-                },
-            },
-        };
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>, baseState as GlobalState);
+        const testState = makeTestState();
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
         expect(screen.queryByTestId('configuration-tab-button')).not.toBeInTheDocument();
     });
 
     it('should not show configuration tab with professional license', async () => {
-        const baseState: DeepPartial<GlobalState> = {
-            entities: {
-                general: {
-                    license: {
-                        SkuShortName: 'professional',
-                    },
-                },
-            },
-        };
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>, baseState as GlobalState);
+        const testState = makeTestState();
+        testState.entities.general.license.SkuShortName = 'professional';
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
         expect(screen.queryByTestId('configuration-tab-button')).not.toBeInTheDocument();
     });
 
     it('should not show configuration tab with enterprise license', async () => {
-        const baseState: DeepPartial<GlobalState> = {
-            entities: {
-                general: {
-                    license: {
-                        SkuShortName: 'enterprise',
-                    },
-                },
-            },
-        };
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>, baseState as GlobalState);
+        const testState = makeTestState();
+        testState.entities.general.license.SkuShortName = 'enterprise';
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
         expect(screen.queryByTestId('configuration-tab-button')).not.toBeInTheDocument();
     });
 
     it('should show configuration tab when enterprise advanced license', async () => {
-        const baseState: DeepPartial<GlobalState> = {
-            entities: {
-                general: {
-                    license: {
-                        SkuShortName: 'advanced',
-                    },
-                },
-            },
-        };
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>, baseState as GlobalState);
+        const testState = makeTestState();
+        testState.entities.general.license.SkuShortName = 'advanced';
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
         expect(screen.getByTestId('configuration-tab-button')).toBeInTheDocument();
     });
 
     describe('Access Control tab visibility', () => {
         it('should show Access Control tab for private channel when user has permission', async () => {
-            mockChannelType = 'P';
             mockManageChannelAccessRulesPermission = true;
 
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+            const testState = makeTestState();
+            testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
             // Wait for the sidebar to load
             await waitFor(() => {
@@ -337,10 +317,12 @@ describe('ChannelSettingsModal', () => {
         });
 
         it('should not show Access Control tab for private channel when user lacks permission', async () => {
-            mockChannelType = 'P';
             mockManageChannelAccessRulesPermission = false;
 
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+            const testState = makeTestState();
+            testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
             // Wait for the sidebar to load
             await waitFor(() => {
@@ -353,10 +335,11 @@ describe('ChannelSettingsModal', () => {
         });
 
         it('should not show Access Control tab for public channel even with permission', async () => {
-            mockChannelType = 'O';
             mockManageChannelAccessRulesPermission = true;
 
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+            const testState = makeTestState();
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
             // Wait for the sidebar to load
             await waitFor(() => {
@@ -369,10 +352,11 @@ describe('ChannelSettingsModal', () => {
         });
 
         it('should not show Access Control tab for public channel without permission', async () => {
-            mockChannelType = 'O';
             mockManageChannelAccessRulesPermission = false;
 
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+            const testState = makeTestState();
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
             // Wait for the sidebar to load
             await waitFor(() => {
@@ -385,10 +369,12 @@ describe('ChannelSettingsModal', () => {
         });
 
         it('should be able to navigate to Access Control tab when visible', async () => {
-            mockChannelType = 'P';
             mockManageChannelAccessRulesPermission = true;
 
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+            const testState = makeTestState();
+            testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
             // Wait for the sidebar to load
             await waitFor(() => {
@@ -408,10 +394,12 @@ describe('ChannelSettingsModal', () => {
         });
 
         it('should show correct tab label as "Access Control"', async () => {
-            mockChannelType = 'P';
             mockManageChannelAccessRulesPermission = true;
 
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+            const testState = makeTestState();
+            testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
             // Wait for the sidebar to load
             await waitFor(() => {
@@ -424,14 +412,13 @@ describe('ChannelSettingsModal', () => {
         });
 
         it('should show Access Control tab for default channel if private and user has permission', async () => {
-            mockChannelType = 'P';
             mockManageChannelAccessRulesPermission = true;
 
-            renderWithContext(
-                <ChannelSettingsModal
-                    {...{...baseProps, channelId: 'default_channel'}}
-                />,
-            );
+            const testState = makeTestState();
+            testState.entities.channels.channels[channelId].name = 'town-square';
+            testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
             // Wait for the sidebar to load
             await waitFor(() => {
@@ -443,11 +430,13 @@ describe('ChannelSettingsModal', () => {
         });
 
         it('should not show Access Control tab for group-constrained private channel even with permission', async () => {
-            mockChannelType = 'P';
             mockManageChannelAccessRulesPermission = true;
-            mockGroupConstrained = true;
 
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+            const testState = makeTestState();
+            testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
+            testState.entities.channels.channels[channelId].group_constrained = true;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
             // Wait for the sidebar to load
             await waitFor(() => {
@@ -460,11 +449,13 @@ describe('ChannelSettingsModal', () => {
         });
 
         it('should not show Access Control tab for group-constrained private channel without permission', async () => {
-            mockChannelType = 'P';
             mockManageChannelAccessRulesPermission = false;
-            mockGroupConstrained = true;
 
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+            const testState = makeTestState();
+            testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
+            testState.entities.channels.channels[channelId].group_constrained = true;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
             // Wait for the sidebar to load
             await waitFor(() => {
@@ -477,11 +468,12 @@ describe('ChannelSettingsModal', () => {
         });
 
         it('should not show Access Control tab for group-constrained public channel', async () => {
-            mockChannelType = 'O';
             mockManageChannelAccessRulesPermission = true;
-            mockGroupConstrained = true;
 
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+            const testState = makeTestState();
+            testState.entities.channels.channels[channelId].group_constrained = true;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
             // Wait for the sidebar to load
             await waitFor(() => {

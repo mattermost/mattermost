@@ -37,7 +37,7 @@ const CRTThreadsPaneTutorialTip = () => {
                     defaultMessage: 'Click the <b>Follow</b> button to be notified about replies and see it in your <b>Threads</b> view. Within a thread, the <b>New Messages</b> line shows you where you left off.',
                 },
                 {
-                    b: (value: string) => <b>{value}</b>,
+                    b: (value) => <b>{value}</b>,
                 },
             )}
         </p>

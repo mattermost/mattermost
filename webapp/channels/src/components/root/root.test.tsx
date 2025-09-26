@@ -10,7 +10,7 @@ import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import * as GlobalActions from 'actions/global_actions';
 
 import testConfigureStore from 'packages/mattermost-redux/test/test_store';
-import {renderWithContext, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, waitFor} from 'tests/react_testing_utils';
 import {StoragePrefixes} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
@@ -193,7 +193,7 @@ describe('components/Root', () => {
         });
     });
 
-    test('should call history on props change', () => {
+    test('should call history on props change', async () => {
         const props = {
             ...baseProps,
             noAccounts: false,
@@ -213,10 +213,12 @@ describe('components/Root', () => {
 
         rerender(<Root {...props2}/>);
 
-        expect(props.history.push).toHaveBeenLastCalledWith('/signup_user_complete');
+        await waitFor(() => {
+            expect(props.history.push).toHaveBeenLastCalledWith('/signup_user_complete');
+        });
     });
 
-    test('should reload on focus after getting signal login event from another tab', () => {
+    test('should reload on focus after getting signal login event from another tab', async () => {
         renderWithContext(<Root {...baseProps}/>);
 
         const loginSignal = new StorageEvent('storage', {
@@ -228,7 +230,9 @@ describe('components/Root', () => {
         window.dispatchEvent(loginSignal);
         window.dispatchEvent(new Event('focus'));
 
-        expect(window.location.reload).toBeCalledTimes(1);
+        await waitFor(() => {
+            expect(window.location.reload).toBeCalledTimes(1);
+        });
     });
 
     describe('showLandingPageIfNecessary', () => {
@@ -325,6 +329,7 @@ describe('components/Root', () => {
 
             rerender(<Root {...props2}/>);
 
+            await act(() => {});
             expect(Utils.applyTheme).not.toHaveBeenCalled();
         });
     });
