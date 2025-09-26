@@ -3470,6 +3470,49 @@ func TestPatchChannel(t *testing.T) {
 		require.Equal(t, appErr.StatusCode, http.StatusBadRequest)
 		require.Equal(t, "model.channel.is_valid.banner_info.channel_type.app_error", appErr.Id)
 	})
+
+	t.Run("cannot patch restricted DM", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageTeam
+		})
+
+		// Create a DM channel between two users who don't share a team
+		dmChannel := th.CreateDmChannel(th.BasicUser2)
+
+		// Ensure the two users do not share a team
+		teams, err := th.App.GetTeamsForUser(th.BasicUser.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+		teams, err = th.App.GetTeamsForUser(th.BasicUser2.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+
+		// Create separate teams for each user
+		team1 := th.CreateTeam()
+		team2 := th.CreateTeam()
+		th.LinkUserToTeam(th.BasicUser, team1)
+		th.LinkUserToTeam(th.BasicUser2, team2)
+
+		patch := &model.ChannelPatch{
+			DisplayName: model.NewPointer("Updated DM"),
+		}
+
+		_, appErr := th.App.PatchChannel(th.Context, dmChannel, patch, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.channel.patch_update_channel.restricted_dm.app_error", appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+		// Reset config
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageAny
+		})
+	})
 }
 
 func TestCreateChannelWithCategorySorting(t *testing.T) {

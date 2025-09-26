@@ -304,7 +304,7 @@ NextPart:
 			mr, err = multipartReader(r, io.MultiReader(buf, r.Body))
 			if err != nil {
 				c.Err = model.NewAppError("uploadFileMultipart",
-					"ç.read_request.app_error",
+					"api.file.upload_file.read_request.app_error",
 					nil, err.Error(), http.StatusBadRequest)
 				return nil
 			}

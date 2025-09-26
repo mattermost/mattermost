@@ -2210,7 +2210,7 @@
   },
   {
     "id": "api.file.upload_file.restricted_dm.error",
-    "translation": ""
+    "translation": "Cannot upload file to restricted DM"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -7032,7 +7032,7 @@
   },
   {
     "id": "app.save_scheduled_post.restricted_dm.error",
-    "translation": ""
+    "translation": "Cannot schedule post in a restricted DM"
   },
   {
     "id": "app.save_scheduled_post.save.app_error",
@@ -10851,9 +10851,5 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user {{.user}}"
-  },
-  {
-    "id": "ç.read_request.app_error",
-    "translation": ""
   }
 ]
