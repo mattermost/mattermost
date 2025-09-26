@@ -8,7 +8,7 @@ import {test} from '@mattermost/playwright-lib';
  */
 test(
     'login page visual check',
-    {tag: ['@visual', '@login_page']},
+    {tag: ['@visual', '@login_page', '@snapshots']},
     async ({pw, page, browserName, viewport}, testInfo) => {
         // # Set up the page not to redirect to the landing page
         await pw.hasSeenLandingPage();
