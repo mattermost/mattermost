@@ -188,6 +188,10 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockTeamStore.On("GetUserTeamIds", "123", false).Return(fakeUserTeamIds, nil)
 	mockStore.On("Team").Return(&mockTeamStore)
 
+	mockContentFlaggingStore := mocks.ContentFlaggingStore{}
+	mockContentFlaggingStore.On("GetReviewerSettings").Return(nil, nil)
+	mockStore.On("ContentFlagging").Return(&mockContentFlaggingStore)
+
 	return &mockStore
 }
 
