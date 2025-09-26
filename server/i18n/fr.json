@@ -924,10 +924,6 @@
     "translation": "haussement"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Le nouveau format pour la configuration du client n'est pas encore supporté. Veuillez spécifier format=old dans la chaîne de requête (query string)"
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Désolé, impossible de trouver cette page."
   },
@@ -2078,14 +2074,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Bot login is forbidden"
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Tentative de connexion à l'aide de la fonctionnalité expérimentale ClientSideCert sans avoir fourni un certificat valide"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Tentative d'utilisation la fonctionnalité expérimentale ClientSideCertEnable sans avoir défini une licence entreprise valide"
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -8365,7 +8353,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Vous ne pouvez pas acquitter dans un canal archivé."
+    "translation": "Vous ne pouvez pas enregistrer une confirmation dans un canal archivé."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
@@ -8830,5 +8818,9 @@
   {
     "id": "api.plugin.upload.file_too_large.app_error",
     "translation": "La taille du plugin envoyé excède la limite. Cette limite peut être changée dans la console système via Stockage de fichiers > Taille maximale de fichier"
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Échec de l’ajout du certificat."
   }
 ]

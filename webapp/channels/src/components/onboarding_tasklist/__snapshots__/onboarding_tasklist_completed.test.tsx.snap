@@ -42,7 +42,6 @@ exports[`components/onboarding_tasklist/onboarding_tasklist_completed.tsx should
       </span>
       <StartTrialBtn
         onClick={[MockFunction]}
-        telemetryId="start_trial_from_onboarding_completed_task"
       />
       <button
         className="no-thanks-link style-link"

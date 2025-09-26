@@ -924,10 +924,6 @@
     "translation": "shrug"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "O novo formato para a configuração do cliente não é suportado ainda. Por favor, especifique na query string format=old."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Desculpe, não conseguimos encontrar a página."
   },
@@ -2078,14 +2074,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "O login de bot é proibido."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Tentou entrar usando o recurso experimental ClientSideCert sem fornecer um certificado válido."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Tentativa de usar o recurso experimental ClientSideCertEnable sem uma licença corporativa válida."
   },
   {
     "id": "api.user.login.inactive.app_error",

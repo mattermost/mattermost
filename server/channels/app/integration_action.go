@@ -39,7 +39,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
-func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
+func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
 	// PostAction may result in the original post being updated. For the
 	// updated post, we need to unconditionally preserve the original
 	// IsPinned and HasReaction attributes, and preserve its entire
@@ -67,7 +67,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 	// Start all queries here for parallel execution
 	pchan := make(chan store.StoreResult[*model.Post], 1)
 	go func() {
-		post, err := a.Srv().Store().Post().GetSingle(c, postID, false)
+		post, err := a.Srv().Store().Post().GetSingle(rctx, postID, false)
 		pchan <- store.StoreResult[*model.Post]{Data: post, NErr: err}
 		close(pchan)
 	}()
@@ -235,7 +235,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 	}
 
 	// Log request, regardless of whether destination is internal or external
-	c.Logger().Info("DoPostActionWithCookie POST request, through DoActionRequest",
+	rctx.Logger().Info("DoPostActionWithCookie POST request, through DoActionRequest",
 		mlog.String("url", upstreamURL),
 		mlog.String("user_id", upstreamRequest.UserId),
 		mlog.String("post_id", upstreamRequest.PostId),
@@ -245,7 +245,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
-	resp, appErr := a.DoActionRequest(c.WithContext(ctx), upstreamURL, requestJSON)
+	resp, appErr := a.DoActionRequest(rctx.WithContext(ctx), upstreamURL, requestJSON)
 	if appErr != nil {
 		return "", appErr
 	}
@@ -280,7 +280,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 		response.Update.IsPinned = originalIsPinned
 		response.Update.HasReactions = originalHasReactions
 
-		if _, appErr = a.UpdatePost(c, response.Update, &model.UpdatePostOptions{SafeUpdate: false}); appErr != nil {
+		if _, appErr = a.UpdatePost(rctx, response.Update, &model.UpdatePostOptions{SafeUpdate: false}); appErr != nil {
 			return "", appErr
 		}
 	}
@@ -300,7 +300,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 		for key, value := range retain {
 			ephemeralPost.AddProp(key, value)
 		}
-		a.SendEphemeralPost(c, userID, ephemeralPost)
+		a.SendEphemeralPost(rctx, userID, ephemeralPost)
 	}
 
 	return clientTriggerId, nil
@@ -309,7 +309,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 // DoActionRequest performs an HTTP POST request to an integration's action endpoint.
 // Caller must consume and close returned http.Response as necessary.
 // For internal requests, requests are routed directly to a plugin ServerHTTP hook
-func (a *App) DoActionRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError) {
+func (a *App) DoActionRequest(rctx request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError) {
 	inURL, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -317,13 +317,13 @@ func (a *App) DoActionRequest(c request.CTX, rawURL string, body []byte) (*http.
 
 	rawURLPath := path.Clean(rawURL)
 	if strings.HasPrefix(rawURLPath, "/plugins/") || strings.HasPrefix(rawURLPath, "plugins/") {
-		return a.DoLocalRequest(c, rawURLPath, body)
+		return a.DoLocalRequest(rctx, rawURLPath, body)
 	}
 
-	req, err := http.NewRequestWithContext(c.Context(), "POST", rawURL, bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(rctx.Context(), "POST", rawURL, bytes.NewReader(body))
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
-			c.Logger().Info("Outgoing Integration Action request timed out. Consider increasing ServiceSettings.OutgoingIntegrationRequestsTimeout.")
+			rctx.Logger().Info("Outgoing Integration Action request timed out. Consider increasing ServiceSettings.OutgoingIntegrationRequestsTimeout.")
 		}
 		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -335,7 +335,7 @@ func (a *App) DoActionRequest(c request.CTX, rawURL string, body []byte) (*http.
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
 	if inURL.Hostname() == siteURL.Hostname() && strings.HasPrefix(inURL.Path, path.Join(subpath, "plugins")) {
-		req.Header.Set(model.HeaderAuth, "Bearer "+c.Session().Token)
+		req.Header.Set(model.HeaderAuth, "Bearer "+rctx.Session().Token)
 		httpClient = a.HTTPService().MakeClient(true)
 	} else {
 		httpClient = a.HTTPService().MakeClient(false)
@@ -376,11 +376,11 @@ func (w *LocalResponseWriter) WriteHeader(statusCode int) {
 	w.status = statusCode
 }
 
-func (a *App) doPluginRequest(c request.CTX, method, rawURL string, values url.Values, body []byte) (*http.Response, *model.AppError) {
-	return a.ch.doPluginRequest(c, method, rawURL, values, body)
+func (a *App) doPluginRequest(rctx request.CTX, method, rawURL string, values url.Values, body []byte) (*http.Response, *model.AppError) {
+	return a.ch.doPluginRequest(rctx, method, rawURL, values, body)
 }
 
-func (ch *Channels) doPluginRequest(c request.CTX, method, rawURL string, values url.Values, body []byte) (*http.Response, *model.AppError) {
+func (ch *Channels) doPluginRequest(rctx request.CTX, method, rawURL string, values url.Values, body []byte) (*http.Response, *model.AppError) {
 	rawURL = strings.TrimPrefix(rawURL, "/")
 	inURL, err := url.Parse(rawURL)
 	if err != nil {
@@ -423,8 +423,8 @@ func (ch *Channels) doPluginRequest(c request.CTX, method, rawURL string, values
 	if err != nil {
 		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
-	r.Header.Set("Mattermost-User-Id", c.Session().UserId)
-	r.Header.Set(model.HeaderAuth, "Bearer "+c.Session().Token)
+	r.Header.Set("Mattermost-User-Id", rctx.Session().UserId)
+	r.Header.Set(model.HeaderAuth, "Bearer "+rctx.Session().Token)
 	params := make(map[string]string)
 	params["plugin_id"] = pluginID
 	r = mux.SetURLVars(r, params)
@@ -459,11 +459,11 @@ func (mlc *MailToLinkContent) ToJSON() string {
 	return string(b)
 }
 
-func (a *App) DoLocalRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError) {
-	return a.doPluginRequest(c, "POST", rawURL, nil, body)
+func (a *App) DoLocalRequest(rctx request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError) {
+	return a.doPluginRequest(rctx, "POST", rawURL, nil, body)
 }
 
-func (a *App) OpenInteractiveDialog(c request.CTX, request model.OpenDialogRequest) *model.AppError {
+func (a *App) OpenInteractiveDialog(rctx request.CTX, request model.OpenDialogRequest) *model.AppError {
 	timeout := time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout) * time.Second
 	clientTriggerId, userID, appErr := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey(), timeout)
 	if appErr != nil {
@@ -471,7 +471,7 @@ func (a *App) OpenInteractiveDialog(c request.CTX, request model.OpenDialogReque
 	}
 
 	if dialogErr := request.IsValid(); dialogErr != nil {
-		c.Logger().Warn("Interactive dialog is invalid", mlog.Err(dialogErr))
+		rctx.Logger().Warn("Interactive dialog is invalid", mlog.Err(dialogErr))
 	}
 
 	request.TriggerId = clientTriggerId
@@ -488,10 +488,14 @@ func (a *App) OpenInteractiveDialog(c request.CTX, request model.OpenDialogReque
 	return nil
 }
 
-func (a *App) SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError) {
+func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError) {
 	url := request.URL
 	request.URL = ""
-	request.Type = "dialog_submission"
+
+	// Preserve Type field for field refresh functionality, otherwise default to dialog_submission
+	if request.Type != "refresh" {
+		request.Type = "dialog_submission"
+	}
 
 	b, err := json.Marshal(request)
 	if err != nil {
@@ -499,7 +503,7 @@ func (a *App) SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogR
 	}
 
 	// Log request, regardless of whether destination is internal or external
-	c.Logger().Info("SubmitInteractiveDialog POST request, through DoActionRequest",
+	rctx.Logger().Info("SubmitInteractiveDialog POST request, through DoActionRequest",
 		mlog.String("url", url),
 		mlog.String("user_id", request.UserId),
 		mlog.String("channel_id", request.ChannelId),
@@ -508,7 +512,7 @@ func (a *App) SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogR
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
-	resp, appErr := a.DoActionRequest(c.WithContext(ctx), url, b)
+	resp, appErr := a.DoActionRequest(rctx.WithContext(ctx), url, b)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -532,10 +536,19 @@ func (a *App) SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogR
 		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.decode_json_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Validate the response
+	if err := response.IsValid(); err != nil {
+		if strings.Contains(err.Error(), "invalid form") {
+			rctx.Logger().Info("Interactive dialog is invalid", mlog.Err(err))
+		} else {
+			return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.invalid_response", nil, err.Error(), http.StatusBadRequest)
+		}
+	}
+
 	return &response, nil
 }
 
-func (a *App) LookupInteractiveDialog(c request.CTX, request model.SubmitDialogRequest) (*model.LookupDialogResponse, *model.AppError) {
+func (a *App) LookupInteractiveDialog(rctx request.CTX, request model.SubmitDialogRequest) (*model.LookupDialogResponse, *model.AppError) {
 	url := request.URL
 	request.URL = ""
 	request.Type = "dialog_lookup"
@@ -546,7 +559,7 @@ func (a *App) LookupInteractiveDialog(c request.CTX, request model.SubmitDialogR
 	}
 
 	// Log request, regardless of whether destination is internal or external
-	c.Logger().Info("LookupInteractiveDialog POST request, through DoActionRequest",
+	rctx.Logger().Info("LookupInteractiveDialog POST request, through DoActionRequest",
 		mlog.String("url", url),
 		mlog.String("user_id", request.UserId),
 		mlog.String("channel_id", request.ChannelId),
@@ -555,7 +568,7 @@ func (a *App) LookupInteractiveDialog(c request.CTX, request model.SubmitDialogR
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
-	resp, appErr := a.DoActionRequest(c.WithContext(ctx), url, b)
+	resp, appErr := a.DoActionRequest(rctx.WithContext(ctx), url, b)
 	if appErr != nil {
 		return nil, appErr
 	}

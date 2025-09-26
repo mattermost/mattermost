@@ -10,11 +10,12 @@
 // Stage: @prod
 // Group: @channels @enterprise @ldap
 
+import {UserProfile} from '@mattermost/types/users';
+
 import ldapUsers from '../../../../fixtures/ldap_users.json';
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 import {getAdminAccount} from '../../../../support/env';
 import {getRandomId} from '../../../../utils';
-import {UserProfile} from '@mattermost/types/users';
 
 // assumes that E20 license is uploaded
 // for setup with AWS: Follow the instructions mentioned in the mattermost/platform-private/config/ldap-test-setup.txt file

@@ -239,7 +239,6 @@ export type MarketplaceItemPluginProps = {
     pluginStatus?: PluginStatusRedux;
     error?: string;
     isDefaultMarketplace: boolean;
-    trackEvent: (category: string, event: string, props?: Record<string, unknown>) => void;
 
     actions: {
         installPlugin: (id: string) => void;
@@ -260,18 +259,6 @@ export default class MarketplaceItemPlugin extends React.PureComponent <Marketpl
         };
     }
 
-    trackEvent = (eventName: string, allowDetail = true): void => {
-        if (this.props.isDefaultMarketplace && allowDetail) {
-            this.props.trackEvent('plugins', eventName, {
-                plugin_id: this.props.id,
-                version: this.props.version,
-                installed_version: this.props.installedVersion,
-            });
-        } else {
-            this.props.trackEvent('plugins', eventName);
-        }
-    };
-
     showUpdateConfirmationModal = (): void => {
         this.setState({showUpdateConfirmationModal: true});
     };
@@ -281,19 +268,14 @@ export default class MarketplaceItemPlugin extends React.PureComponent <Marketpl
     };
 
     onInstall = (): void => {
-        this.trackEvent('ui_marketplace_download');
         this.props.actions.installPlugin(this.props.id);
     };
 
     onConfigure = (): void => {
-        this.trackEvent('ui_marketplace_configure', false);
-
         this.props.actions.closeMarketplaceModal();
     };
 
     onUpdate = (): void => {
-        this.trackEvent('ui_marketplace_download_update');
-
         this.hideUpdateConfirmationModal();
         this.props.actions.installPlugin(this.props.id);
     };

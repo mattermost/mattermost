@@ -2,8 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {ChainableT} from 'tests/types';
-import theme from '../../fixtures/theme.json';
 import {PreferenceType} from '@mattermost/types/preferences';
+
+import theme from '../../fixtures/theme.json';
 
 // *****************************************************************************
 // Preferences

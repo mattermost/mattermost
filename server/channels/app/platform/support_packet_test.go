@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/config"
 	emocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
+	semocks "github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
 	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
 
@@ -256,6 +257,10 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 	t.Run("no LDAP info if LDAP sync is disabled", func(t *testing.T) {
 		ldapMock := &emocks.LdapDiagnosticInterface{}
+		originalLDAP := th.Service.ldapDiagnostic
+		t.Cleanup(func() {
+			th.Service.ldapDiagnostic = originalLDAP
+		})
 		th.Service.ldapDiagnostic = ldapMock
 
 		packet := getDiagnostics(t)
@@ -278,6 +283,10 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			"RunTest",
 			mock.AnythingOfType("*request.Context"),
 		).Return(nil)
+		originalLDAP := th.Service.ldapDiagnostic
+		t.Cleanup(func() {
+			th.Service.ldapDiagnostic = originalLDAP
+		})
 		th.Service.ldapDiagnostic = ldapMock
 
 		packet := getDiagnostics(t)
@@ -298,6 +307,10 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			"RunTest",
 			mock.AnythingOfType("*request.Context"),
 		).Return(nil)
+		originalLDAP := th.Service.ldapDiagnostic
+		t.Cleanup(func() {
+			th.Service.ldapDiagnostic = originalLDAP
+		})
 		th.Service.ldapDiagnostic = ldapMock
 
 		packet := getDiagnostics(t)
@@ -318,6 +331,10 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			"RunTest",
 			mock.AnythingOfType("*request.Context"),
 		).Return(model.NewAppError("", "some error", nil, "", 0))
+		originalLDAP := th.Service.ldapDiagnostic
+		t.Cleanup(func() {
+			th.Service.ldapDiagnostic = originalLDAP
+		})
 		th.Service.ldapDiagnostic = ldapMock
 
 		packet := getDiagnostics(t)
@@ -326,6 +343,72 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, "some error", packet.LDAP.Error)
 		assert.Equal(t, "unknown", packet.LDAP.ServerName)
 		assert.Equal(t, "unknown", packet.LDAP.ServerVersion)
+	})
+
+	t.Run("Elasticsearch config test when indexing disabled", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.ElasticsearchSettings.EnableIndexing = model.NewPointer(false)
+		})
+
+		esMock := &semocks.SearchEngineInterface{}
+		esMock.On("GetFullVersion").Return("7.10.0")
+		esMock.On("GetPlugins").Return([]string{"plugin1", "plugin2"})
+		originalES := th.Service.SearchEngine.ElasticsearchEngine
+		t.Cleanup(func() {
+			th.Service.SearchEngine.ElasticsearchEngine = originalES
+		})
+		th.Service.SearchEngine.ElasticsearchEngine = esMock
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, "7.10.0", packet.ElasticSearch.ServerVersion)
+		assert.Equal(t, []string{"plugin1", "plugin2"}, packet.ElasticSearch.ServerPlugins)
+		assert.Empty(t, packet.ElasticSearch.Error)
+	})
+
+	t.Run("Elasticsearch config test when indexing enabled and config valid", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.ElasticsearchSettings.EnableIndexing = model.NewPointer(true)
+		})
+
+		esMock := &semocks.SearchEngineInterface{}
+		esMock.On("GetFullVersion").Return("7.10.0")
+		esMock.On("GetPlugins").Return([]string{"plugin1", "plugin2"})
+		esMock.On("TestConfig", mock.AnythingOfType("*request.Context"), mock.Anything).Return(nil)
+		originalES := th.Service.SearchEngine.ElasticsearchEngine
+		t.Cleanup(func() {
+			th.Service.SearchEngine.ElasticsearchEngine = originalES
+		})
+		th.Service.SearchEngine.ElasticsearchEngine = esMock
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, "7.10.0", packet.ElasticSearch.ServerVersion)
+		assert.Equal(t, []string{"plugin1", "plugin2"}, packet.ElasticSearch.ServerPlugins)
+		assert.Empty(t, packet.ElasticSearch.Error)
+	})
+
+	t.Run("Elasticsearch config test when indexing enabled and config invalid", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.ElasticsearchSettings.EnableIndexing = model.NewPointer(true)
+		})
+
+		esMock := &semocks.SearchEngineInterface{}
+		esMock.On("GetFullVersion").Return("7.10.0")
+		esMock.On("GetPlugins").Return([]string{"plugin1", "plugin2"})
+		esMock.On("TestConfig", mock.AnythingOfType("*request.Context"), mock.Anything).Return(
+			model.NewAppError("TestConfig", "ent.elasticsearch.test_config.connection_failed", nil, "connection refused", 500))
+		originalES := th.Service.SearchEngine.ElasticsearchEngine
+		t.Cleanup(func() {
+			th.Service.SearchEngine.ElasticsearchEngine = originalES
+		})
+		th.Service.SearchEngine.ElasticsearchEngine = esMock
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, "7.10.0", packet.ElasticSearch.ServerVersion)
+		assert.Equal(t, []string{"plugin1", "plugin2"}, packet.ElasticSearch.ServerPlugins)
+		assert.Equal(t, "TestConfig: ent.elasticsearch.test_config.connection_failed, connection refused", packet.ElasticSearch.Error)
 	})
 }
 

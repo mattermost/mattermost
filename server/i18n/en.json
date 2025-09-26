@@ -4007,6 +4007,10 @@
     "translation": "Login failed because of invalid password."
   },
   {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "The format of the hashed password is invalid and could not be parsed."
+  },
+  {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Blank email."
   },
@@ -6131,6 +6135,10 @@
     "translation": "Unable to get the job count by status and type."
   },
   {
+    "id": "app.job.get_existing_jobs.error",
+    "translation": "Unable to get existing jobs."
+  },
+  {
     "id": "app.job.get_newest_job_by_status_and_type.app_error",
     "translation": "Unable to get the newest job by status and type."
   },
@@ -7137,6 +7145,10 @@
     "translation": "Encountered an error decoding JSON response from interactive dialog submission."
   },
   {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "Encountered an invalid response from interactive dialog submission."
+  },
+  {
     "id": "app.submit_interactive_dialog.json_error",
     "translation": "Encountered an error encoding JSON for the interactive dialog."
   },
@@ -7463,6 +7475,14 @@
   {
     "id": "app.user.analytics_get_inactive_users_count.app_error",
     "translation": "We could not count the inactive users."
+  },
+  {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "Failed to migrate the user's password to the newest hashing method."
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "Failed to update the user's password."
   },
   {
     "id": "app.user.clear_all_custom_role_assignments.select.app_error",

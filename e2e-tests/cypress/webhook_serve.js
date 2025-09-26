@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable camelcase, no-console */
+/* eslint-disable no-console */
 
 const express = require('express');
 const axios = require('axios');
 const ClientOAuth2 = require('client-oauth2');
 
 const webhookUtils = require('./utils/webhook_utils');
-
 const postMessageAs = require('./tests/plugins/post_message_as');
 
 const port = 3000;
@@ -30,6 +29,9 @@ server.post('/boolean_dialog_request', onBooleanDialogRequest);
 server.post('/multiselect_dialog_request', onMultiSelectDialogRequest);
 server.post('/dynamic_select_dialog_request', onDynamicSelectDialogRequest);
 server.post('/dynamic_select_source', onDynamicSelectSource);
+server.post('/dialog/field-refresh', onFieldRefreshDialogRequest);
+server.post('/dialog/multistep', onMultistepDialogRequest);
+server.post('/field_refresh_source', onFieldRefreshSource);
 server.post('/datetime_dialog_request', onDateTimeDialogRequest);
 server.post('/datetime_dialog_submit', onDateTimeDialogSubmit);
 server.post('/slack_compatible_message_response', postSlackCompatibleMessageResponse);
@@ -57,6 +59,9 @@ function ping(req, res) {
             'POST /multiselect_dialog_request',
             'POST /dynamic_select_dialog_request',
             'POST /dynamic_select_source',
+            'POST /dialog/field-refresh',
+            'POST /dialog/multistep',
+            'POST /field_refresh_source',
             'POST /datetime_dialog_request',
             'POST /datetime_dialog_submit',
             'POST /slack_compatible_message_response',
@@ -138,7 +143,7 @@ async function postOAuthMessage(req, res) {
                 root_id: rootId,
             },
         });
-    } catch (err) {
+    } catch {
         // Do nothing
     }
     return res.status(200).send('OK');
@@ -359,11 +364,49 @@ function onDialogSubmit(req, res) {
     if (body.cancelled) {
         message = 'Dialog cancelled';
         sendSysadminResponse(message, body.channel_id);
-    } else {
-        message = 'Dialog submitted';
-        sendSysadminResponse(message, body.channel_id);
+        return res.json({text: message});
     }
 
+    // Check if this is a multistep submission
+    if (body.callback_id === 'multistep_callback') {
+        const currentState = body.state || '';
+
+        // Determine next step based on current state
+        if (currentState === 'step1') {
+            // Move to step 2
+            const nextForm = webhookUtils.getMultistepStep2Dialog(null, webhookBaseUrl);
+            return res.json({
+                type: 'form',
+                form: nextForm,
+            });
+        } else if (currentState === 'step2') {
+            // Move to step 3
+            const nextForm = webhookUtils.getMultistepStep3Dialog(null, webhookBaseUrl);
+            return res.json({
+                type: 'form',
+                form: nextForm,
+            });
+        }
+
+        // Final step - complete the multistep
+        const submission = body.submission || {};
+        message = `Multistep completed successfully! Final step values: ${JSON.stringify(submission, null, 2)}`;
+        sendSysadminResponse(message, body.channel_id);
+        return res.json({text: message});
+    }
+
+    // Check if this is a field refresh dialog submission
+    if (body.callback_id === 'field_refresh_callback') {
+        const submission = body.submission || {};
+        message = `Field refresh dialog submitted successfully! Values: ${JSON.stringify(submission, null, 2)}`;
+        sendSysadminResponse(message, body.channel_id);
+        return res.json({text: message});
+    }
+
+    // Regular dialog submission
+    message = 'Dialog submitted';
+
+    sendSysadminResponse(message, body.channel_id);
     return res.json({text: message});
 }
 
@@ -447,4 +490,109 @@ function postOutgoingWebhook(req, res) {
         response_type: responseType,
     };
     res.status(200).send(response);
+}
+
+function onFieldRefreshDialogRequest(req, res) {
+    const {body} = req;
+    if (body.trigger_id) {
+        const dialog = webhookUtils.getFieldRefreshDialog(body.trigger_id, webhookBaseUrl);
+        openDialog(dialog);
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({text: 'Field refresh dialog triggered via slash command!'});
+}
+
+function onMultistepDialogRequest(req, res) {
+    const {body} = req;
+    if (body.trigger_id) {
+        const dialog = webhookUtils.getMultistepStep1Dialog(body.trigger_id, webhookBaseUrl);
+        openDialog(dialog);
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({text: 'Multistep dialog triggered via slash command!'});
+}
+
+function onFieldRefreshSource(req, res) {
+    const {body} = req;
+    const submission = body.submission || {};
+    const projectType = submission.project_type;
+    const projectName = submission.project_name || '';
+
+    res.setHeader('Content-Type', 'application/json');
+
+    // Return updated form based on project type selection
+    const elements = [
+        {
+            display_name: 'Project Name',
+            name: 'project_name',
+            type: 'text',
+            placeholder: 'Enter project name',
+            default: projectName,
+            optional: false,
+        },
+        {
+            display_name: 'Project Type',
+            name: 'project_type',
+            type: 'select',
+            refresh: true,
+            placeholder: 'Select project type...',
+            default: projectType,
+            options: [
+                {text: 'Web Application', value: 'web'},
+                {text: 'Mobile App', value: 'mobile'},
+                {text: 'API Service', value: 'api'},
+            ],
+        },
+    ];
+
+    // Add different fields based on project type
+    if (projectType === 'web') {
+        elements.push({
+            display_name: 'Framework',
+            name: 'framework',
+            type: 'select',
+            placeholder: 'Select framework...',
+            options: [
+                {text: 'React', value: 'react'},
+                {text: 'Vue', value: 'vue'},
+                {text: 'Angular', value: 'angular'},
+            ],
+        });
+    } else if (projectType === 'mobile') {
+        elements.push({
+            display_name: 'Platform',
+            name: 'platform',
+            type: 'select',
+            placeholder: 'Select platform...',
+            options: [
+                {text: 'iOS', value: 'ios'},
+                {text: 'Android', value: 'android'},
+                {text: 'React Native', value: 'react-native'},
+            ],
+        });
+    } else if (projectType === 'api') {
+        elements.push({
+            display_name: 'Language',
+            name: 'language',
+            type: 'select',
+            placeholder: 'Select language...',
+            options: [
+                {text: 'Go', value: 'go'},
+                {text: 'Node.js', value: 'nodejs'},
+                {text: 'Python', value: 'python'},
+            ],
+        });
+    }
+
+    return res.json({
+        type: 'form',
+        form: {
+            title: 'Field Refresh Demo',
+            introduction_text: 'Enter project name then select type to see different fields',
+            submit_label: 'Submit',
+            elements,
+        },
+    });
 }
