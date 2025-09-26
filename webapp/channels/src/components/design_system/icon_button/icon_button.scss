@@ -285,6 +285,10 @@
     &--with-count {
         padding-left: 8px;
         padding-right: 12px;
+
+        &.IconButton--rounded {
+            border-radius: var(--radius-s);
+        }
         
         &.IconButton--xs {
             padding-left: 6px;
