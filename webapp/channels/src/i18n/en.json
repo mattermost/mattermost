@@ -1177,7 +1177,7 @@
   "admin.filter.title": "Filter by",
   "admin.general.localization.autoTranslateInfo": "Auto-translation must also be enabled in each channel where it's needed.",
   "admin.general.localization.autoTranslateInfoSecondary": "When multiple languages are detected, users will be prompted to enable auto-translation. <link>Learn more</link>",
-  "admin.general.localization.autoTranslateProviderDescription": "<strong>NOTE:</strong> If using external translation services (e.g., cloud based),\n message data may be processed outside of your environment.",
+  "admin.general.localization.autoTranslateProviderDescription": "<strong>NOTE:</strong> If using external translation services (e.g., cloud based),{br}message data may be processed outside of your environment.",
   "admin.general.localization.autoTranslateProviderLibreTranslateAPIKeyDescription": "If your LibreTranslate server requires an API key, enter it here. Otherwise, leave this field blank. View <link>LibreTranslate docs</link> for API Key management.",
   "admin.general.localization.autoTranslateProviderLibreTranslateAPIKeyExample": "Enter LibreTranslate API Key",
   "admin.general.localization.autoTranslateProviderLibreTranslateAPIKeyTitle": "LibreTranslate API Key",
