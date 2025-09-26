@@ -973,7 +973,7 @@ func userConvertCmdF(c client.Client, cmd *cobra.Command, userArgs []string) err
 }
 
 func convertUserToBot(c client.Client, _ *cobra.Command, userArgs []string) error {
-	
+
 	users, err := getUsersFromArgs(c, userArgs)
 
 	if err != nil {
@@ -986,7 +986,7 @@ func convertUserToBot(c client.Client, _ *cobra.Command, userArgs []string) erro
 		bot, _, err := c.ConvertUserToBot(context.TODO(), user.Id)
 		if err != nil {
 			printer.PrintError(err.Error())
-			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to convert username - %s to bot: %w", user.Username, err))
+			multiErr = multierror.Append(multiErr, err)
 			continue
 		}
 
