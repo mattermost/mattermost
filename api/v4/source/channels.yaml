@@ -1149,64 +1149,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-  "/api/v4/teams/{team_id}/channels/search_archived":
-    post:
-      tags:
-        - channels
-      summary: Search archived channels
-      description: >
-        Search archived channels on a team based on the search term provided in
-        the request body.
-
-
-        __Minimum server version__: 5.18
-
-
-        ##### Permissions
-
-        Must have the `list_team_channels` permission.
-
-
-        In server version 5.18 and later, a user without the `list_team_channels` permission will be able to use this endpoint, with the search results limited to the channels that the user is a member of.
-      operationId: SearchArchivedChannels
-      parameters:
-        - name: team_id
-          in: path
-          description: Team GUID
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - term
-              properties:
-                term:
-                  description: The search term to match against the name or display name of
-                    archived channels
-                  type: string
-        description: Search criteria
-        required: true
-      responses:
-        "201":
-          description: Channels search successful
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Channel"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
   "/api/v4/teams/{team_id}/channels/name/{channel_name}":
     get:
       tags:
@@ -2555,3 +2497,43 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  "/api/v4/channels/{channel_id}/common_teams":
+    get:
+      tags:
+        - channels
+        - group message
+      summary: Get common teams for members of a Group Message.
+      description: |
+        Gets all the common teams for all active members of a Group Message channel.
+        Returns empty list of no common teams are found.
+
+        __Minimum server version__: 9.1
+
+        ##### Permissions
+        Must be authenticated and have the `read_channel` permission for the channel.
+      operationId: GetGroupMessageMembersCommonTeams
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Common teams retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Team"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
