@@ -12,6 +12,7 @@ import {
     TrashCanOutlineIcon,
     DotsHorizontalIcon,
     ChevronRightIcon,
+    FileTextOutlineIcon,
 } from '@mattermost/compass-icons/components';
 
 import DropdownInput from 'components/dropdown_input';
@@ -20,6 +21,7 @@ import CheckboxSettingItem from 'components/widgets/modals/components/checkbox_s
 import IconButton from '../icon_button';
 
 import './component_library.scss';
+import Input from 'components/widgets/inputs/input/input';
 
 const sizeValues = ['xs', 'sm', 'md', 'lg'];
 
@@ -44,6 +46,9 @@ const IconButtonComponentLibrary = () => {
     const [destructive, setDestructive] = useState(false);
     const [inverted, setInverted] = useState(false);
     const [rounded, setRounded] = useState(false);
+    const [count, setCount] = useState(false);
+    const [countText, setCountText] = useState('3');
+    const [unread, setUnread] = useState(false);
 
     // Variants Panel State
     const [variantsExpanded, setVariantsExpanded] = useState(false);
@@ -154,6 +159,41 @@ const IconButtonComponentLibrary = () => {
         </div>
     );
 
+    const countCheckbox = (
+        <div
+            className='cl__input-wrapper'
+            style={{display: 'flex', alignItems: 'center', gap: '8px', height: '20px'}}
+        >
+            <CheckboxSettingItem
+                inputFieldData={{name: 'count', dataTestId: 'count'}}
+                inputFieldValue={count}
+                inputFieldTitle='Show Count'
+                handleChange={setCount}
+            />
+            {count && (
+                <div className='cl__input-wrapper' style={{width: '80px'}}>
+                    <Input
+                        id='countText'
+                        type='number'
+                        value={countText}
+                        onChange={(e) => setCountText(e.target.value)}
+                    />
+                </div>
+            )}
+        </div>
+    );
+
+    const unreadCheckbox = (
+        <div className='cl__input-wrapper'>
+            <CheckboxSettingItem
+                inputFieldData={{name: 'unread', dataTestId: 'unread'}}
+                inputFieldValue={unread}
+                inputFieldTitle='Unread Indicator'
+                handleChange={setUnread}
+            />
+        </div>
+    );
+
     // Build interactive icon button
     const interactiveIconButton = useMemo(() => {
         const allProps = {
@@ -165,16 +205,19 @@ const IconButtonComponentLibrary = () => {
             destructive,
             inverted,
             rounded,
-            icon: <PlusIcon/>,
-            'aria-label': 'Add item',
-            title: 'Add item',
+            count,
+            countText,
+            unread,
+            icon: <FileTextOutlineIcon/>,
+            'aria-label': 'Tooltip',
+            title: 'Tooltip',
             onClick: () => window.alert('Icon Button clicked!'),
         };
 
         return (
             <IconButton {...allProps}/>
         );
-    }, [size, padding, disabled, loading, toggled, destructive, inverted, rounded]);
+    }, [size, padding, disabled, loading, toggled, destructive, inverted, rounded, count, countText, unread]);
 
     // Static variant definitions for comprehensive view
     const sizes = ['xs', 'sm', 'md', 'lg'] as const;
@@ -190,6 +233,8 @@ const IconButtonComponentLibrary = () => {
         {label: 'Compact', props: {padding: 'compact' as const}},
         {label: 'Rounded', props: {rounded: true}},
         {label: 'Inverted', props: {inverted: true}},
+        {label: 'With Count', props: {count: true, countText: '5'}},
+        {label: 'With Unread', props: {unread: true}},
     ];
     const icons = [
         {label: 'Plus', props: {icon: <PlusIcon/>, 'aria-label': 'Add item', title: 'Add item'}},
@@ -228,6 +273,8 @@ const IconButtonComponentLibrary = () => {
                             {destructiveCheckbox}
                             {invertedCheckbox}
                             {roundedCheckbox}
+                            {countCheckbox}
+                            {unreadCheckbox}
                         </div>
                     </div>
 
@@ -335,6 +382,49 @@ const IconButtonComponentLibrary = () => {
             </div>
 
             <div className='cl__text-content-block'>
+                <h3>{'Counts and Numbers'}</h3>
+                <p>
+                    {'Icon buttons can display counts alongside icons, typically used for counts, numbers, or short indicators. Common use cases include notification counts, unread message counts, and numeric badges.'}
+                </p>
+            </div>
+
+            <div className='cl__variants-row'>
+                <IconButton
+                    size='md'
+                    icon={<PlusIcon/>}
+                    count={true}
+                    countText='3'
+                    aria-label='Add item (3 pending)'
+                    title='Add item (3 pending)'
+                />
+                <IconButton
+                    size='md'
+                    icon={<StarOutlineIcon/>}
+                    count={true}
+                    countText='12'
+                    aria-label='Favorites (12 items)'
+                    title='Favorites (12 items)'
+                />
+                <IconButton
+                    size='md'
+                    icon={<DotsHorizontalIcon/>}
+                    count={true}
+                    countText='99+'
+                    aria-label='Menu (99+ notifications)'
+                    title='Menu (99+ notifications)'
+                />
+                <IconButton
+                    size='md'
+                    icon={<TrashCanOutlineIcon/>}
+                    count={true}
+                    countText='5'
+                    destructive={true}
+                    aria-label='Delete (5 selected)'
+                    title='Delete (5 selected)'
+                />
+            </div>
+
+            <div className='cl__text-content-block'>
                 <h3>{'Icon Variations'}</h3>
                 <p>
                     {'Icon buttons can display various icons. Always provide appropriate aria-label text for accessibility.'}
@@ -381,7 +471,7 @@ const IconButtonComponentLibrary = () => {
                                     <tr>
                                         <th rowSpan={2}>{'Size'}</th>
                                         <th colSpan={5}>{'States'}</th>
-                                        <th colSpan={4}>{'Variants'}</th>
+                                        <th colSpan={6}>{'Variants'}</th>
                                         <th colSpan={4}>{'Icons'}</th>
                                     </tr>
                                     <tr>
@@ -396,6 +486,8 @@ const IconButtonComponentLibrary = () => {
                                         <th>{'Compact'}</th>
                                         <th>{'Rounded'}</th>
                                         <th>{'Inverted'}</th>
+                                        <th>{'Count'}</th>
+                                        <th>{'Unread'}</th>
                                         {/* Icons */}
                                         <th>{'Plus'}</th>
                                         <th>{'Star'}</th>
@@ -426,7 +518,7 @@ const IconButtonComponentLibrary = () => {
                                                 <td key={`variant-${variant.label}`}>
                                                     <IconButton
                                                         size={size}
-                                                        icon={<PlusIcon/>}
+                                                        icon={<FileTextOutlineIcon/>}
                                                         aria-label={`${variant.label} ${size} button`}
                                                         title={`${variant.label} ${size} button`}
                                                         {...variant.props}
@@ -463,7 +555,7 @@ const IconButtonComponentLibrary = () => {
                                         <tr>
                                             <th rowSpan={2}>{'Size'}</th>
                                             <th colSpan={5}>{'States'}</th>
-                                            <th colSpan={4}>{'Variants'}</th>
+                                            <th colSpan={6}>{'Variants'}</th>
                                             <th colSpan={4}>{'Icons'}</th>
                                         </tr>
                                         <tr>
@@ -478,6 +570,8 @@ const IconButtonComponentLibrary = () => {
                                             <th>{'Compact'}</th>
                                             <th>{'Rounded'}</th>
                                             <th>{'Inverted'}</th>
+                                            <th>{'Count'}</th>
+                                            <th>{'Unread'}</th>
                                             {/* Icons */}
                                             <th>{'Plus'}</th>
                                             <th>{'Star'}</th>

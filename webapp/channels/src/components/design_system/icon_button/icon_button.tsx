@@ -31,6 +31,15 @@ export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
     /** Border radius style */
     rounded?: boolean;
 
+    /** Show count/number alongside icon */
+    count?: boolean;
+
+    /** Text content for the count (typically used for counts/numbers) */
+    countText?: string;
+
+    /** Show unread indicator (notification dot) */
+    unread?: boolean;
+
     /** Compass Icon component to display */
     icon: ReactNode;
 
@@ -64,6 +73,9 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         destructive = false,
         inverted = false,
         rounded = false,
+        count = false,
+        countText,
+        unread = false,
         icon,
         disabled = false,
         loading = false,
@@ -93,14 +105,14 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
                 'IconButton--rounded': rounded,
                 'IconButton--compact': padding === 'compact',
                 'IconButton--loading': loading,
+                'IconButton--with-count': count,
+                'IconButton--with-unread': unread,
             },
             className,
         );
 
         // Clone the icon element and add the appropriate size prop for Compass Icons
-        const iconWithSize = React.isValidElement(icon) ?
-            React.cloneElement(icon, {size: iconSizeMap[size]}) :
-            icon;
+        const iconWithSize = React.isValidElement(icon) ? React.cloneElement(icon, {size: iconSizeMap[size]}) : icon;
 
         return (
             <WithTooltip title={title}>
@@ -113,21 +125,37 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
                     aria-pressed={toggled}
                     {...htmlProps}
                 >
-                    {loading ? (
-                        <span
-                            className={classNames(
-                                'IconButton__spinner',
-                                `IconButton__spinner--${size}`,
-                                {
-                                    'IconButton__spinner--inverted': inverted,
-                                },
-                            )}
-                        />
-                    ) : (
-                        <span className={`IconButton__icon IconButton__icon--${size}`}>
-                            {iconWithSize}
-                        </span>
-                    )}
+                    <span className='IconButton__content'>
+                        {loading ? (
+                            <span
+                                className={classNames(
+                                    'IconButton__spinner',
+                                    `IconButton__spinner--${size}`,
+                                    {
+                                        'IconButton__spinner--inverted': inverted,
+                                    },
+                                )}
+                            />
+                        ) : (
+                            <span className={`IconButton__icon IconButton__icon--${size}`}>
+                                {iconWithSize}
+                                {unread && (
+                                    <span
+                                        className={classNames(
+                                            'IconButton__unread-indicator',
+                                            `IconButton__unread-indicator--${size}`,
+                                        )}
+                                    />
+                                )}
+                            </span>
+                        )}
+
+                        {count && !loading && (
+                            <span className={`IconButton__count IconButton__count--${size}`}>
+                                {countText}
+                            </span>
+                        )}
+                    </span>
                 </button>
             </WithTooltip>
         );
