@@ -42,6 +42,7 @@ type Props = {
         getCloudSubscription: () => void;
         openModal: <P>(modalData: ModalData<P>) => void;
     };
+    isEnterpriseReady: boolean;
     isCloud: boolean;
     isCloudTrial: boolean;
     hadPrevCloudTrial: boolean;
@@ -267,6 +268,9 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
             );
         }
 
+        // Show "Contact Sales" when trial is over or in Team Edition where no trial is available
+        const showPostTrialCta = this.props.prevTrialLicense?.IsLicensed === 'true' || this.props.isEnterpriseReady === false;
+
         return (
             <div
                 className='FeatureDiscovery'
@@ -286,7 +290,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                             {...copy}
                         />
                     </div>
-                    {this.props.prevTrialLicense?.IsLicensed === 'true' ? this.renderPostTrialCta() : this.renderStartTrial(learnMoreURL, gettingTrialError)}
+                    {showPostTrialCta ? this.renderPostTrialCta() : this.renderStartTrial(learnMoreURL, gettingTrialError)}
                 </div>
                 <div className='FeatureDiscovery_imageWrapper'>
                     {featureDiscoveryImage}

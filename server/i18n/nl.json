@@ -10794,5 +10794,17 @@
   {
     "id": "model.config.is_valid.client_side_cert_enable.app_error",
     "translation": "Certificaat-gebaseerde authenticatie is verwijderd. Schakel ClientSideCertEnable uit om verder te gaan."
+  },
+  {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "Het formaat van het gehashte wachtwoord is ongeldig en kon niet worden verwerkt."
+  },
+  {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "Het is niet gelukt om het wachtwoord van de gebruiker te migreren naar de nieuwste hashingmethode."
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "Het is niet gelukt om het wachtwoord van de gebruiker bij te werken."
   }
 ]
