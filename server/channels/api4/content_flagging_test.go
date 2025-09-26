@@ -98,9 +98,21 @@ func TestSaveContentFlaggingSettings(t *testing.T) {
 		defer th.RemoveLicense()
 
 		// Invalid config - missing required fields
-		config := model.ContentFlaggingSettingsRequest{}
+		config := model.ContentFlaggingSettingsRequest{
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers:       model.NewPointer(true),
+					TeamAdminsAsReviewers: model.NewPointer(false),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					CommonReviewerIds: &[]string{},
+				},
+			},
+		}
+		config.SetDefaults()
 
-		resp, err := client.SaveContentFlaggingSettings(context.Background(), &config)
+		th.LoginSystemAdmin()
+		resp, err := th.SystemAdminClient.SaveContentFlaggingSettings(context.Background(), &config)
 		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
@@ -124,7 +136,7 @@ func TestSaveContentFlaggingSettings(t *testing.T) {
 		}
 
 		// Use system admin who has manage system permission
-		resp, err := client.SaveContentFlaggingSettings(context.Background(), &config)
+		resp, err := th.SystemAdminClient.SaveContentFlaggingSettings(context.Background(), &config)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
@@ -140,15 +152,13 @@ func TestGetContentFlaggingSettings(t *testing.T) {
 		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
 	}()
 
-	client := th.Client
-
 	t.Run("Should return 403 when user does not have manage system permission", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		defer th.RemoveLicense()
 
 		// Use basic user who doesn't have manage system permission
 		th.LoginBasic()
-		settings, resp, err := client.GetContentFlaggingSettings(context.Background())
+		settings, resp, err := th.Client.GetContentFlaggingSettings(context.Background())
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 		require.Nil(t, settings)
@@ -177,7 +187,7 @@ func TestGetContentFlaggingSettings(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Use system admin who has manage system permission
-		settings, resp, err := client.GetContentFlaggingSettings(context.Background())
+		settings, resp, err := th.SystemAdminClient.GetContentFlaggingSettings(context.Background())
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotNil(t, settings)

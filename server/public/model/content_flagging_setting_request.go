@@ -1,6 +1,9 @@
 package model
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 type ReviewSettingsRequest struct {
 	ReviewerSettings
@@ -14,6 +17,8 @@ func (rs *ReviewSettingsRequest) SetDefaults() {
 
 func (rs *ReviewSettingsRequest) IsValid() *AppError {
 	additionalReviewersEnabled := *rs.SystemAdminsAsReviewers || *rs.TeamAdminsAsReviewers
+
+	fmt.Println(fmt.Sprintf("common reviewers: %t, common reviewerIDs: %v, additionalReviewers: %t, SystemAdminsAsReviewers: %t, TeamAdminsAsReviewers: %t", *rs.CommonReviewers, *rs.CommonReviewerIds, additionalReviewersEnabled, *rs.SystemAdminsAsReviewers, *rs.TeamAdminsAsReviewers))
 
 	// If common reviewers are enabled, there must be at least one specified reviewer, or additional viewers be specified
 	if *rs.CommonReviewers && (rs.CommonReviewerIds == nil || len(*rs.CommonReviewerIds) == 0) && !additionalReviewersEnabled {
