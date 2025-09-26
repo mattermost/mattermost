@@ -5769,15 +5769,13 @@ func createConcurrentReplies(rctx request.CTX, ss store.Store, rootPostId, chann
 	for post := range postsChan {
 		posts = append(posts, post)
 	}
-
 	return posts, errors
 }
 
 func testConcurrentReplies(t *testing.T, rctx request.CTX, ss store.Store) {
-
 	t.Run("No duplicate key violations on concurrent replies", func(t *testing.T) {
-		numTestIterations := 10    // Number of times to repeat the entire test
-		numConcurrentReplies := 10 // Number of concurrent replies per iteration
+		numTestIterations := 20    // Number of times to repeat the entire test
+		numConcurrentReplies := 50 // Number of concurrent replies per iteration
 
 		for iteration := range numTestIterations {
 			t.Run(fmt.Sprintf("Iteration_%d", iteration), func(t *testing.T) {
@@ -5828,7 +5826,7 @@ func testConcurrentReplies(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Create concurrent replies
-		numConcurrentReplies := 8
+		numConcurrentReplies := 50
 		savedPosts, errorList := createConcurrentReplies(rctx, ss, savedRootPost.Id, channel.Id, numConcurrentReplies)
 		require.Empty(t, errorList, "Setup should succeed without errors")
 
@@ -5890,8 +5888,8 @@ func testConcurrentReplies(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Empty(t, errorList, "Setup should succeed without errors")
 
 		for _, post := range savedPosts {
-			retrievedPost, err := ss.Post().GetSingle(rctx, post.Id, false)
-			assert.NoError(t, err, "Should be able to retrieve saved post %s", post.Id)
+			retrievedPost, errGet := ss.Post().GetSingle(rctx, post.Id, false)
+			assert.NoError(t, errGet, "Should be able to retrieve saved post %s", post.Id)
 			assert.Equal(t, savedRootPost.Id, retrievedPost.RootId,
 				"Retrieved post should have correct RootId")
 			assert.Equal(t, post.Message, retrievedPost.Message,
