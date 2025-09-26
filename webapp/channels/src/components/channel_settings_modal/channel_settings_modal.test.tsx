@@ -58,6 +58,9 @@ let mockPrivateChannelPermission = true;
 let mockPublicChannelPermission = true;
 let mockManageChannelAccessRulesPermission = false;
 
+// Variable to control group-constrained status in tests
+let mockGroupConstrained = false;
+
 // Mock the redux selectors
 jest.mock('mattermost-redux/selectors/entities/channels', () => ({
     getChannel: jest.fn().mockImplementation((state, channelId) => {
@@ -79,7 +82,7 @@ jest.mock('mattermost-redux/selectors/entities/channels', () => ({
             creator_id: 'creator1',
             last_root_post_at: 0,
             scheme_id: '',
-            group_constrained: false,
+            group_constrained: mockGroupConstrained,
         };
     }),
 }));
@@ -186,6 +189,7 @@ describe('ChannelSettingsModal', () => {
         mockPrivateChannelPermission = true;
         mockPublicChannelPermission = true;
         mockManageChannelAccessRulesPermission = false; // Default to no access rules permission
+        mockGroupConstrained = false; // Default to not group-constrained
     });
 
     it('should render the modal with correct header text', async () => {
@@ -477,6 +481,57 @@ describe('ChannelSettingsModal', () => {
 
             // Access Control tab visibility is not restricted for default channel - only depends on channel type and permission
             expect(screen.getByRole('tab', {name: 'access_rules'})).toBeInTheDocument();
+        });
+
+        it('should not show Access Control tab for group-constrained private channel even with permission', async () => {
+            mockChannelType = 'P';
+            mockManageChannelAccessRulesPermission = true;
+            mockGroupConstrained = true;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+            // Wait for the sidebar to load
+            await waitFor(() => {
+                expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+            });
+
+            // The Access Control tab should not be visible for group-constrained channels
+            expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
+            expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
+        });
+
+        it('should not show Access Control tab for group-constrained private channel without permission', async () => {
+            mockChannelType = 'P';
+            mockManageChannelAccessRulesPermission = false;
+            mockGroupConstrained = true;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+            // Wait for the sidebar to load
+            await waitFor(() => {
+                expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+            });
+
+            // The Access Control tab should not be visible (for multiple reasons)
+            expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
+            expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
+        });
+
+        it('should not show Access Control tab for group-constrained public channel', async () => {
+            mockChannelType = 'O';
+            mockManageChannelAccessRulesPermission = true;
+            mockGroupConstrained = true;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+            // Wait for the sidebar to load
+            await waitFor(() => {
+                expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+            });
+
+            // The Access Control tab should not be visible (for multiple reasons: public + group-constrained)
+            expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
+            expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
         });
     });
 

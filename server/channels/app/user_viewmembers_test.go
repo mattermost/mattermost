@@ -839,7 +839,7 @@ func TestRestrictedViewMembers(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				results, appErr := th.App.GetUsersByIds(tc.UserIds, &store.UserGetByIdsOpts{
+				results, appErr := th.App.GetUsersByIds(th.Context, tc.UserIds, &store.UserGetByIdsOpts{
 					IsAdmin:          false,
 					ViewRestrictions: tc.Restrictions,
 				})
