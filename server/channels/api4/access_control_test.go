@@ -16,14 +16,10 @@ import (
 
 func TestCreateAccessControlPolicy(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
-	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this env var when feature is GA
-	os.Setenv("MM_FEATUREFLAGS_CHANNELADMINMANAGEABACRULES", "true")
 	th := Setup(t).InitBasic()
 	t.Cleanup(func() {
 		th.TearDown()
 		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
-		// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this unsetenv when feature is GA
-		os.Unsetenv("MM_FEATUREFLAGS_CHANNELADMINMANAGEABACRULES")
 	})
 
 	samplePolicy := &model.AccessControlPolicy{
@@ -319,7 +315,7 @@ func TestGetAccessControlPolicy(t *testing.T) {
 
 		_, resp, err := th.Client.GetAccessControlPolicy(context.Background(), samplePolicy.ID)
 		require.Error(t, err)
-		CheckNotImplementedStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -385,7 +381,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 
 		resp, err := th.Client.DeleteAccessControlPolicy(context.Background(), samplePolicyID)
 		require.Error(t, err)
-		CheckNotImplementedStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -479,10 +475,6 @@ func TestCheckExpression(t *testing.T) {
 	}, "CheckExpression with system admin errors returned")
 
 	t.Run("CheckExpression with channel admin for their channel", func(t *testing.T) {
-		// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this env var when feature is GA
-		os.Setenv("MM_FEATUREFLAGS_CHANNELADMINMANAGEABACRULES", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CHANNELADMINMANAGEABACRULES")
-
 		// Reload config to pick up the feature flag
 		err := th.App.ReloadConfig()
 		require.NoError(t, err)

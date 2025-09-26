@@ -379,7 +379,7 @@ func TestGetClientConfig(t *testing.T) {
 			nil,
 			map[string]string{
 				"EnableAttributeBasedAccessControl": "false",
-				"EnableChannelScopeAccessControl":   "false",
+				"EnableChannelScopeAccessControl":   "true",
 				"EnableUserManagedAttributes":       "false",
 			},
 		},
