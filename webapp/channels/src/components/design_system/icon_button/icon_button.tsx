@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {forwardRef, memo} from 'react';
+import React, {forwardRef, memo, useMemo, useCallback} from 'react';
 import type {ButtonHTMLAttributes, ReactNode} from 'react';
 
 import WithTooltip from 'components/with_tooltip';
@@ -10,6 +10,14 @@ import WithTooltip from 'components/with_tooltip';
 import './icon_button.scss';
 
 export type IconButtonSize = 'xs' | 'sm' | 'md' | 'lg';
+
+// Map IconButton sizes to icon pixel sizes (from Figma) - static, so moved outside component
+const ICON_SIZE_MAP = {
+    xs: 14,
+    sm: 18,
+    md: 24,
+    lg: 32,
+} as const;
 
 export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type'> {
 
@@ -34,8 +42,8 @@ export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
     /** Show count/number alongside icon */
     count?: boolean;
 
-    /** Text content for the count (typically used for counts/numbers) */
-    countText?: string;
+    /** Text content for the count (typically used for counts/numbers) - will be truncated to 4 characters if longer */
+    countText?: string | number;
 
     /** Show unread indicator (notification dot) */
     unread?: boolean;
@@ -87,15 +95,28 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
     }, ref) => {
         const isDisabled = disabled || loading;
 
-        // Map IconButton sizes to icon pixel sizes (from Figma)
-        const iconSizeMap = {
-            xs: 14,
-            sm: 18,
-            md: 24,
-            lg: 32,
-        };
+        // Validate and format count text - memoized to prevent recreation on every render
+        const validateCountText = useCallback((text: string | number | undefined): string => {
+            if (!text) {
+                return '';
+            }
 
-        const buttonClasses = classNames(
+            const str = String(text).trim();
+            const maxLength = 4;
+
+            if (str.length > maxLength) {
+                // eslint-disable-next-line no-process-env
+                if (process.env.NODE_ENV === 'development') {
+                    // eslint-disable-next-line no-console
+                    console.warn(`IconButton: countText "${str}" truncated to "${str.slice(0, maxLength)}"`);
+                }
+                return str.slice(0, maxLength);
+            }
+
+            return str;
+        }, []); // No dependencies since this function is pure
+
+        const buttonClasses = useMemo(() => classNames(
             'IconButton',
             `IconButton--${size}`,
             {
@@ -109,10 +130,12 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
                 'IconButton--with-unread': unread,
             },
             className,
-        );
+        ), [size, toggled, destructive, inverted, rounded, padding, loading, count, unread, className]);
 
         // Clone the icon element and add the appropriate size prop for Compass Icons
-        const iconWithSize = React.isValidElement(icon) ? React.cloneElement(icon, {size: iconSizeMap[size]}) : icon;
+        const iconWithSize = useMemo(() => {
+            return React.isValidElement(icon) ? React.cloneElement(icon, {size: ICON_SIZE_MAP[size]}) : icon;
+        }, [icon, size]);
 
         return (
             <WithTooltip title={title}>
@@ -152,7 +175,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
 
                         {count && !loading && (
                             <span className={`IconButton__count IconButton__count--${size}`}>
-                                {countText}
+                                {validateCountText(countText)}
                             </span>
                         )}
                     </span>
