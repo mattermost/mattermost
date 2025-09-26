@@ -4,14 +4,11 @@
 import React, {useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {
-    ContentFlaggingNotificationSettings,
-    ContentFlaggingReviewerSetting,
-} from "@mattermost/types/config";
+import type {ContentFlaggingNotificationSettings} from '@mattermost/types/config';
 import type {ContentFlaggingEvent, NotificationTarget} from '@mattermost/types/content_flagging';
 
 import CheckboxSetting from 'components/admin_console/checkbox_setting';
-import type { SystemConsoleCustomSettingChangeHandler, SystemConsoleCustomSettingsComponentProps} from 'components/admin_console/schema_admin_settings';
+import type {SystemConsoleCustomSettingChangeHandler} from 'components/admin_console/schema_admin_settings';
 import {
     AdminSection,
     SectionContent,

@@ -3,8 +3,8 @@
 
 .ContentFlaggingSettings {
     h1.content-flagging-section-title {
-        font-size: 16px;
         margin: 0;
+        font-size: 16px;
         line-height: 24px;
     }
 
@@ -23,9 +23,9 @@
     }
 
     .setting-title {
+        min-width: 290px;
         font-size: 14px;
         font-weight: 600;
-        min-width: 290px;
     }
 
     .content-flagging-section-setting-wrapper {
@@ -34,12 +34,11 @@
         gap: 24px;
     }
 
-    .setting-content {flex: 1;}
-
     .setting-content {
         display: flex;
-        gap: 24px;
+        flex: 1;
         font-size: 14px;
+        gap: 24px;
     }
 
     .setting-content-wrapper {

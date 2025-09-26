@@ -22,12 +22,11 @@ import ContentFlaggingContentReviewers
 import ContentFlaggingNotificationSettingsSection
     from 'components/admin_console/content_flagging/notificatin_settings/notification_settings';
 import SaveChangesPanel from 'components/admin_console/save_changes_panel';
-import type {SchemaAdminSettingsProps} from 'components/admin_console/schema_admin_settings';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import './content_flagging_settings.scss';
 
-export default function ContentFlaggingSettings(props: SchemaAdminSettingsProps) {
+export default function ContentFlaggingSettings() {
     const [saving, setSaving] = useState(false);
     const [saveNeeded, setSaveNeeded] = useState(false);
     const [serverError, setServerError] = useState('');
@@ -50,7 +49,7 @@ export default function ContentFlaggingSettings(props: SchemaAdminSettingsProps)
         }
     }, [contentFlaggingSettings]);
 
-    const handleSettingsChange = useCallback((id: string, value: any, confirm?: boolean, doSubmit?: boolean, warning?: boolean) => {
+    const handleSettingsChange = useCallback((id: string, value: unknown) => {
         const newValue = {...contentFlaggingSettings};
 
         switch (id) {
