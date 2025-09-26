@@ -43,14 +43,14 @@ func (s *SqlContentFlaggingStore) SaveReviewerSettings(reviewerSettings model.Re
 }
 
 func (s *SqlContentFlaggingStore) saveCommonReviewers(tx *sqlxTxWrapper, commonReviewers []string) error {
-	if len(commonReviewers) == 0 {
-		return nil
-	}
-
 	// first delete existing common reviewers
 	deleteBuilder := s.getQueryBuilder().Delete("ContentFlaggingCommonReviewers")
 	if _, err := tx.ExecBuilder(deleteBuilder); err != nil {
 		return errors.Wrap(err, "SqlContentFlaggingStore.saveCommonReviewers failed to delete existing common reviewers")
+	}
+
+	if len(commonReviewers) == 0 {
+		return nil
 	}
 
 	// then insert new common reviewers
@@ -70,14 +70,14 @@ func (s *SqlContentFlaggingStore) saveCommonReviewers(tx *sqlxTxWrapper, commonR
 }
 
 func (s *SqlContentFlaggingStore) saveTeamSettings(tx *sqlxTxWrapper, teamSettings map[string]model.TeamReviewerSetting) error {
-	if len(teamSettings) == 0 {
-		return nil
-	}
-
 	// first delete existing team settings
 	deleteBuilder := s.getQueryBuilder().Delete("ContentFlaggingTeamSettings")
 	if _, err := tx.ExecBuilder(deleteBuilder); err != nil {
 		return errors.Wrap(err, "SqlContentFlaggingStore.saveTeamSettings failed to delete existing team settings")
+	}
+
+	if len(teamSettings) == 0 {
+		return nil
 	}
 
 	// then insert new team settings
@@ -97,14 +97,14 @@ func (s *SqlContentFlaggingStore) saveTeamSettings(tx *sqlxTxWrapper, teamSettin
 }
 
 func (s *SqlContentFlaggingStore) saveTeamReviewers(tx *sqlxTxWrapper, teamSettings map[string]model.TeamReviewerSetting) error {
-	if len(teamSettings) == 0 {
-		return nil
-	}
-
 	// first delete existing team reviewers
 	deleteBuilder := s.getQueryBuilder().Delete("ContentFlaggingTeamReviewers")
 	if _, err := tx.ExecBuilder(deleteBuilder); err != nil {
 		return errors.Wrap(err, "SqlContentFlaggingStore.saveTeamReviewers failed to delete existing team reviewers")
+	}
+
+	if len(teamSettings) == 0 {
+		return nil
 	}
 
 	// then insert new team reviewers
