@@ -6,8 +6,6 @@ import React from 'react';
 
 import type {ContentFlaggingReviewerSetting, TeamReviewerSetting} from '@mattermost/types/config';
 
-import type {SystemConsoleCustomSettingsComponentProps} from 'components/admin_console/schema_admin_settings';
-
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import ContentFlaggingContentReviewers from './content_reviewers';
@@ -57,7 +55,7 @@ describe('ContentFlaggingContentReviewers', () => {
         onChange: jest.fn(),
         disabled: false,
         setByEnv: false,
-    } as unknown as SystemConsoleCustomSettingsComponentProps;
+    };
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -215,8 +213,8 @@ describe('ContentFlaggingContentReviewers', () => {
 
     it('passes correct team reviewer settings to TeamReviewers component', () => {
         const teamReviewersSetting = {
-            team1: {ReviewerIds: ['user1']},
-            team2: {ReviewerIds: ['user2']},
+            team1: {Enabled: true, ReviewerIds: ['user1']},
+            team2: {Enabled: true, ReviewerIds: ['user2']},
         };
 
         const props = {

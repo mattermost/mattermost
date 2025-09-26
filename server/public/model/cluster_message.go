@@ -36,6 +36,7 @@ const (
 	ClusterEventInvalidateCacheForLastPostTime              ClusterEvent = "inv_last_post_time"
 	ClusterEventInvalidateCacheForPostsUsage                ClusterEvent = "inv_posts_usage"
 	ClusterEventInvalidateCacheForTeams                     ClusterEvent = "inv_teams"
+	ClusterEventInvalidateCacheForContentFlagging           ClusterEvent = "inv_content_flagging"
 	ClusterEventClearSessionCacheForAllUsers                ClusterEvent = "inv_all_user_sessions"
 	ClusterEventInstallPlugin                               ClusterEvent = "install_plugin"
 	ClusterEventRemovePlugin                                ClusterEvent = "remove_plugin"

@@ -7,8 +7,6 @@ import {IntlProvider} from 'react-intl';
 
 import type {ContentFlaggingNotificationSettings} from '@mattermost/types/config';
 
-import type {SystemConsoleCustomSettingsComponentProps} from 'components/admin_console/schema_admin_settings';
-
 import ContentFlaggingNotificationSettingsSection from './notification_settings';
 
 const renderWithIntl = (component: React.ReactElement) => {
@@ -31,7 +29,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
             },
         } as ContentFlaggingNotificationSettings,
         onChange: jest.fn(),
-    } as unknown as SystemConsoleCustomSettingsComponentProps;
+    };
 
     beforeEach(() => {
         jest.clearAllMocks();
