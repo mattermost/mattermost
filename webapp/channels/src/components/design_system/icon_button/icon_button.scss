@@ -36,7 +36,6 @@
         box-shadow: 0 0 0 2px var(--sidebar-text-active-border);
     }
 
-    // Default state - using center-channel-color from Figma
     color: rgba(var(--center-channel-color-rgb), 0.64);
     
     &:hover:not(:disabled) {
@@ -63,20 +62,43 @@
     &--toggled {
         background-color: var(--button-bg);
         color: var(--button-color);
+
+        .IconButton__count {
+            color: var(--button-color);
+        }
+
+        .IconButton__unread-indicator {
+            background-color: var(--button-color);
+            box-shadow: 0 0 0 2px var(--button-bg);
+        }
         
         &:hover:not(:disabled) {
             background-color: color-mix(in srgb, var(--button-bg) 88%, black 12%);
             color: var(--button-color);
+
+            .IconButton__unread-indicator {
+                box-shadow: 0 0 0 2px color-mix(in srgb, var(--button-bg) 88%, black 12%),
+                0 0 0 2px var(--center-channel-bg);
+            }
         }
         
         &:active:not(:disabled) {
             background-color: color-mix(in srgb, var(--button-bg) 80%, black 20%);
+
+            .IconButton__unread-indicator {
+                box-shadow: 0 0 0 2px color-mix(in srgb, var(--button-bg) 80%, black 20%),
+                0 0 0 2px var(--center-channel-bg);
+            }
         }
     }
     
     // Destructive variant - using error-text
     &--destructive {
         color: var(--error-text);
+
+        .IconButton__count {
+            color: var(--error-text);
+        }
         
         &:hover:not(:disabled) {
             background-color: rgba(var(--error-text-color-rgb), 0.08);
@@ -92,6 +114,10 @@
     // Inverted style - using sidebar-text from Figma for dark backgrounds
     &--inverted {
         color: rgba(var(--sidebar-text-rgb), 0.64);
+
+        .IconButton__count {
+            color: rgba(var(--sidebar-text-rgb), 0.75);
+        }
 
         .IconButton__unread-indicator {
             background-color: var(--sidebar-text);
@@ -112,6 +138,10 @@
             background-color: rgba(var(--sidebar-text-rgb), 0.16);
             color: var(--sidebar-text);
 
+            .IconButton__count {
+                color: var(--sidebar-text);
+            }
+
             .IconButton__unread-indicator {
                 box-shadow: 0 0 0 2px rgba(var(--sidebar-text-rgb), 0.16),
                 0 0 0 2px var(--sidebar-bg);
@@ -122,15 +152,62 @@
         &.IconButton--toggled {
             background-color: var(--sidebar-text);
             color: var(--sidebar-bg);
+
+            .IconButton__count {
+                color: var(--sidebar-bg);
+            }
+
+            .IconButton__unread-indicator {
+                background-color: var(--sidebar-bg);
+                box-shadow: 0 0 0 2px var(--sidebar-text);
+            }
             
             &:hover:not(:disabled) {
                 background-color: rgba(var(--sidebar-text-rgb), 0.88);
                 color: var(--sidebar-bg);
+
+                .IconButton__unread-indicator {
+                    background-color: var(--sidebar-bg);
+                    box-shadow: 0 0 0 2px rgba(var(--sidebar-text-rgb), 0.88),
+                        0 0 0 2px var(--sidebar-bg);
+                }
             }
             
             &:active:not(:disabled) {
                 background-color: rgba(var(--sidebar-text-rgb), 0.80);
                 color: var(--sidebar-bg);
+
+                .IconButton__count {
+                    color: var(--sidebar-bg);
+                }
+
+                .IconButton__unread-indicator {
+                    background-color: var(--sidebar-bg);
+                    box-shadow: 0 0 0 2px var(--sidebar-text);
+                }
+            }
+        }
+
+        // Inverted and destructive state
+        &.IconButton--destructive {
+            color: var(--error-text);
+
+            .IconButton__count {
+                color: var(--error-text);
+            }
+            
+            &:hover:not(:disabled) {
+                background-color: rgba(var(--error-text-color-rgb), 0.08);
+                color: var(--error-text);
+            }
+            
+            &:active:not(:disabled) {
+                background-color: rgba(var(--error-text-color-rgb), 0.16);
+                color: var(--error-text);
+
+                .IconButton__count {
+                    color: var(--error-text);
+                }
             }
         }
     }
@@ -246,7 +323,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 4px;
     width: 100%;
     height: 100%;
 }
@@ -273,6 +350,7 @@
     line-height: 1;
     white-space: nowrap;
     flex-shrink: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     
     &--xs {
         font-size: 11px;

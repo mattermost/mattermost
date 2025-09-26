@@ -16,12 +16,12 @@ import {
 } from '@mattermost/compass-icons/components';
 
 import DropdownInput from 'components/dropdown_input';
+import Input from 'components/widgets/inputs/input/input';
 import CheckboxSettingItem from 'components/widgets/modals/components/checkbox_setting_item';
 
 import IconButton from '../icon_button';
 
 import './component_library.scss';
-import Input from 'components/widgets/inputs/input/input';
 
 const sizeValues = ['xs', 'sm', 'md', 'lg'];
 
@@ -171,7 +171,10 @@ const IconButtonComponentLibrary = () => {
                 handleChange={setCount}
             />
             {count && (
-                <div className='cl__input-wrapper' style={{width: '80px'}}>
+                <div
+                    className='cl__input-wrapper'
+                    style={{width: '80px'}}
+                >
                     <Input
                         id='countText'
                         type='number'
