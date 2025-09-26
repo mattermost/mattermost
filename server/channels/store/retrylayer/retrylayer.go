@@ -4174,7 +4174,7 @@ func (s *RetryLayerContentFlaggingStore) ClearCaches() {
 
 }
 
-func (s *RetryLayerContentFlaggingStore) GetReviewerSettings() (*model.ReviewSettingsRequest, error) {
+func (s *RetryLayerContentFlaggingStore) GetReviewerSettings() (*model.ReviewerIDsSettings, error) {
 
 	tries := 0
 	for {

@@ -482,13 +482,27 @@ func getContentFlaggingSettings(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	config, appErr := c.App.GetContentFlaggingConfig()
+	reviewerIDs, appErr := c.App.GetContentFlaggingConfigReviewerIDs()
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	responseBytes, err := json.Marshal(config)
+	config := c.App.Config().ContentFlaggingSettings
+
+	fullConfig := model.ContentFlaggingSettingsRequest{
+		ReviewerSettings: &model.ReviewSettingsRequest{
+			ReviewerSettings:    *config.ReviewerSettings,
+			ReviewerIDsSettings: *reviewerIDs,
+		},
+		ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
+			EnableContentFlagging: config.EnableContentFlagging,
+			NotificationSettings:  config.NotificationSettings,
+			AdditionalSettings:    config.AdditionalSettings,
+		},
+	}
+
+	responseBytes, err := json.Marshal(fullConfig)
 	if err != nil {
 		c.Err = model.NewAppError("getContentFlaggingSettings", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return

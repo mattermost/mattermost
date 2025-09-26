@@ -134,7 +134,7 @@ func (s *SqlContentFlaggingStore) saveTeamReviewers(tx *sqlxTxWrapper, teamSetti
 	return nil
 }
 
-func (s *SqlContentFlaggingStore) GetReviewerSettings() (*model.ReviewSettingsRequest, error) {
+func (s *SqlContentFlaggingStore) GetReviewerSettings() (*model.ReviewerIDsSettings, error) {
 	commonReviewers, err := s.getCommonReviewers()
 	if err != nil {
 		return nil, errors.Wrap(err, "SqlContentFlaggingStore.GetReviewerSettings failed to get common reviewers")
@@ -151,7 +151,7 @@ func (s *SqlContentFlaggingStore) GetReviewerSettings() (*model.ReviewSettingsRe
 		return nil, errors.Wrap(err, "SqlContentFlaggingStore.GetReviewerSettings failed to get team reviewers")
 	}
 
-	return &model.ReviewSettingsRequest{
+	return &model.ReviewerIDsSettings{
 		CommonReviewerIds:    &commonReviewers,
 		TeamReviewersSetting: &teamSettings,
 	}, nil

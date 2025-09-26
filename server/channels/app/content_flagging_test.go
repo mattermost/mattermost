@@ -23,7 +23,9 @@ func TestContentFlaggingEnabledForTeam(t *testing.T) {
 				ReviewerSettings: model.ReviewerSettings{
 					CommonReviewers: model.NewPointer(true),
 				},
-				CommonReviewerIds: &[]string{"reviewer_user_id_1", "reviewer_user_id_2"},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					CommonReviewerIds: &[]string{"reviewer_user_id_1", "reviewer_user_id_2"},
+				},
 			},
 		}
 		config.SetDefaults()
@@ -42,10 +44,12 @@ func TestContentFlaggingEnabledForTeam(t *testing.T) {
 				ReviewerSettings: model.ReviewerSettings{
 					CommonReviewers: model.NewPointer(false),
 				},
-				TeamReviewersSetting: &map[string]model.TeamReviewerSetting{
-					"team1": {
-						Enabled:     model.NewPointer(true),
-						ReviewerIds: model.NewPointer([]string{"reviewer_user_id_1"}),
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					TeamReviewersSetting: &map[string]model.TeamReviewerSetting{
+						"team1": {
+							Enabled:     model.NewPointer(true),
+							ReviewerIds: model.NewPointer([]string{"reviewer_user_id_1"}),
+						},
 					},
 				},
 			},
@@ -67,9 +71,11 @@ func TestContentFlaggingEnabledForTeam(t *testing.T) {
 					CommonReviewers:       model.NewPointer(false),
 					TeamAdminsAsReviewers: model.NewPointer(true),
 				},
-				TeamReviewersSetting: &map[string]model.TeamReviewerSetting{
-					"team1": {
-						Enabled: model.NewPointer(true),
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					TeamReviewersSetting: &map[string]model.TeamReviewerSetting{
+						"team1": {
+							Enabled: model.NewPointer(true),
+						},
 					},
 				},
 			},
@@ -118,7 +124,9 @@ func TestGetContentReviewChannels(t *testing.T) {
 					SystemAdminsAsReviewers: model.NewPointer(true),
 					CommonReviewers:         model.NewPointer(true),
 				},
-				CommonReviewerIds: &[]string{th.BasicUser.Id, th.BasicUser2.Id},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					CommonReviewerIds: &[]string{th.BasicUser.Id, th.BasicUser2.Id},
+				},
 			},
 		}
 		config.SetDefaults()

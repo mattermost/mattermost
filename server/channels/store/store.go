@@ -1146,7 +1146,7 @@ type AttributesStore interface {
 
 type ContentFlaggingStore interface {
 	SaveReviewerSettings(reviewerSettings model.ReviewSettingsRequest) error
-	GetReviewerSettings() (*model.ReviewSettingsRequest, error)
+	GetReviewerSettings() (*model.ReviewerIDsSettings, error)
 	ClearCaches()
 }
 

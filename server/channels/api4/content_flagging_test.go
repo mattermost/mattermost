@@ -133,7 +133,9 @@ func TestGetPostPropertyValues(t *testing.T) {
 				ReviewerSettings: model.ReviewerSettings{
 					CommonReviewers: model.NewPointer(true),
 				},
-				CommonReviewerIds: &[]string{th.BasicUser.Id},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					CommonReviewerIds: &[]string{th.BasicUser.Id},
+				},
 			},
 		}
 		config.SetDefaults()
@@ -231,10 +233,12 @@ func TestGetFlaggedPost(t *testing.T) {
 				ReviewerSettings: model.ReviewerSettings{
 					CommonReviewers: model.NewPointer(false),
 				},
-				TeamReviewersSetting: &map[string]model.TeamReviewerSetting{
-					th.BasicTeam.Id: {
-						Enabled:     model.NewPointer(true),
-						ReviewerIds: &[]string{}, // Empty list - user is not a reviewer
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					TeamReviewersSetting: &map[string]model.TeamReviewerSetting{
+						th.BasicTeam.Id: {
+							Enabled:     model.NewPointer(true),
+							ReviewerIds: &[]string{}, // Empty list - user is not a reviewer
+						},
 					},
 				},
 			},
@@ -267,7 +271,9 @@ func TestGetFlaggedPost(t *testing.T) {
 				ReviewerSettings: model.ReviewerSettings{
 					CommonReviewers: model.NewPointer(true),
 				},
-				CommonReviewerIds: &[]string{th.BasicUser.Id},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					CommonReviewerIds: &[]string{th.BasicUser.Id},
+				},
 			},
 		}
 		config.SetDefaults()
@@ -298,7 +304,9 @@ func TestGetFlaggedPost(t *testing.T) {
 				ReviewerSettings: model.ReviewerSettings{
 					CommonReviewers: model.NewPointer(true),
 				},
-				CommonReviewerIds: &[]string{th.BasicUser.Id},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					CommonReviewerIds: &[]string{th.BasicUser.Id},
+				},
 			},
 		}
 		config.SetDefaults()
@@ -441,8 +449,10 @@ func TestFlagPost(t *testing.T) {
 				ReviewerSettings: model.ReviewerSettings{
 					CommonReviewers: model.NewPointer(false),
 				},
-				TeamReviewersSetting: &map[string]model.TeamReviewerSetting{
-					th.BasicTeam.Id: {Enabled: model.NewPointer(false)},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					TeamReviewersSetting: &map[string]model.TeamReviewerSetting{
+						th.BasicTeam.Id: {Enabled: model.NewPointer(false)},
+					},
 				},
 			},
 		}
@@ -480,7 +490,9 @@ func TestFlagPost(t *testing.T) {
 				ReviewerSettings: model.ReviewerSettings{
 					CommonReviewers: model.NewPointer(true),
 				},
-				CommonReviewerIds: &[]string{th.BasicUser.Id},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					CommonReviewerIds: &[]string{th.BasicUser.Id},
+				},
 			},
 		}
 		config.SetDefaults()
@@ -560,7 +572,9 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 				ReviewerSettings: model.ReviewerSettings{
 					CommonReviewers: model.NewPointer(true),
 				},
-				CommonReviewerIds: &[]string{"reviewer_user_id_1", "reviewer_user_id_2"},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					CommonReviewerIds: &[]string{"reviewer_user_id_1", "reviewer_user_id_2"},
+				},
 			},
 		}
 		config.SetDefaults()

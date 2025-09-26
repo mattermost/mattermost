@@ -3426,7 +3426,7 @@ func (s *TimerLayerContentFlaggingStore) ClearCaches() {
 	}
 }
 
-func (s *TimerLayerContentFlaggingStore) GetReviewerSettings() (*model.ReviewSettingsRequest, error) {
+func (s *TimerLayerContentFlaggingStore) GetReviewerSettings() (*model.ReviewerIDsSettings, error) {
 	start := time.Now()
 
 	result, err := s.ContentFlaggingStore.GetReviewerSettings()

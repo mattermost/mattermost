@@ -27,19 +27,18 @@ const (
 )
 
 func (a *App) ContentFlaggingEnabledForTeam(teamId string) (bool, *model.AppError) {
-	config, appErr := a.GetContentFlaggingConfig()
+	reviewerSettings := a.Config().ContentFlaggingSettings.ReviewerSettings
+	reviewerIDs, appErr := a.GetContentFlaggingConfigReviewerIDs()
 	if appErr != nil {
 		return false, appErr
 	}
 
-	reviewerSettings := config.ReviewerSettings
-
-	hasCommonReviewers := *reviewerSettings.CommonReviewers && len(*reviewerSettings.CommonReviewerIds) > 0
+	hasCommonReviewers := *reviewerSettings.CommonReviewers && len(*reviewerIDs.CommonReviewerIds) > 0
 	if hasCommonReviewers {
 		return true, nil
 	}
 
-	teamSettings, exist := (*reviewerSettings.TeamReviewersSetting)[teamId]
+	teamSettings, exist := (*reviewerIDs.TeamReviewersSetting)[teamId]
 	if !exist || (teamSettings.Enabled != nil && !*teamSettings.Enabled) {
 		return false, nil
 	}
@@ -283,20 +282,19 @@ func (a *App) getContentReviewBot(rctx request.CTX) (*model.Bot, *model.AppError
 func (a *App) getReviewersForTeam(teamId string, includeAdditionalReviewers bool) ([]string, *model.AppError) {
 	reviewerUserIDMap := map[string]bool{}
 
-	config, appErr := a.GetContentFlaggingConfig()
+	reviewerSettings := a.Config().ContentFlaggingSettings.ReviewerSettings
+	reviewerIDs, appErr := a.GetContentFlaggingConfigReviewerIDs()
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	reviewerSettings := config.ReviewerSettings
-
 	if *reviewerSettings.CommonReviewers {
-		for _, userID := range *reviewerSettings.CommonReviewerIds {
+		for _, userID := range *reviewerIDs.CommonReviewerIds {
 			reviewerUserIDMap[userID] = true
 		}
 	} else {
 		// If common reviewers are not enabled, we still need to check if the team has specific reviewers
-		teamSettings, exist := (*reviewerSettings.TeamReviewersSetting)[teamId]
+		teamSettings, exist := (*reviewerIDs.TeamReviewersSetting)[teamId]
 		if exist && *teamSettings.Enabled && teamSettings.ReviewerIds != nil {
 			for _, userID := range *teamSettings.ReviewerIds {
 				reviewerUserIDMap[userID] = true
@@ -730,28 +728,11 @@ func (a *App) clearContentFlaggingConfigCache() {
 	}
 }
 
-func (a *App) GetContentFlaggingConfig() (*model.ContentFlaggingSettingsRequest, *model.AppError) {
+func (a *App) GetContentFlaggingConfigReviewerIDs() (*model.ReviewerIDsSettings, *model.AppError) {
 	reviewerSettings, err := a.Srv().Store().ContentFlagging().GetReviewerSettings()
 	if err != nil {
 		return nil, model.NewAppError("GetContentFlaggingConfig", "app.content_flagging.get_reviewer_settings.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	contentFlaggingSettings := a.Config().ContentFlaggingSettings
-
-	return &model.ContentFlaggingSettingsRequest{
-		ReviewerSettings: &model.ReviewSettingsRequest{
-			ReviewerSettings: model.ReviewerSettings{
-				CommonReviewers:         contentFlaggingSettings.ReviewerSettings.CommonReviewers,
-				SystemAdminsAsReviewers: contentFlaggingSettings.ReviewerSettings.SystemAdminsAsReviewers,
-				TeamAdminsAsReviewers:   contentFlaggingSettings.ReviewerSettings.TeamAdminsAsReviewers,
-			},
-			CommonReviewerIds:    reviewerSettings.CommonReviewerIds,
-			TeamReviewersSetting: reviewerSettings.TeamReviewersSetting,
-		},
-		ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
-			EnableContentFlagging: contentFlaggingSettings.EnableContentFlagging,
-			NotificationSettings:  contentFlaggingSettings.NotificationSettings,
-			AdditionalSettings:    contentFlaggingSettings.AdditionalSettings,
-		},
-	}, nil
+	return reviewerSettings, nil
 }

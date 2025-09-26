@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package localcachelayer
 
 import (
@@ -16,7 +19,9 @@ type LocalCacheContentFlaggingStore struct {
 }
 
 func (s *LocalCacheContentFlaggingStore) handleClusterInvalidateContentFlagging(msg *model.ClusterMessage) {
-	s.rootStore.contentFlaggingCache.Purge()
+	if err := s.rootStore.contentFlaggingCache.Purge(); err != nil {
+		s.rootStore.logger.Error("failed to purge content flagging cache", mlog.Err(err))
+	}
 }
 
 func (s LocalCacheContentFlaggingStore) ClearCaches() {
@@ -29,8 +34,8 @@ func (s LocalCacheContentFlaggingStore) ClearCaches() {
 	}
 }
 
-func (s LocalCacheContentFlaggingStore) GetReviewerSettings() (*model.ReviewSettingsRequest, error) {
-	var reviewerSettings *model.ReviewSettingsRequest
+func (s LocalCacheContentFlaggingStore) GetReviewerSettings() (*model.ReviewerIDsSettings, error) {
+	var reviewerSettings *model.ReviewerIDsSettings
 
 	err := s.rootStore.doStandardReadCache(s.rootStore.contentFlaggingCache, CACHE_KEY_REVIEWER_SETTINGS, &reviewerSettings)
 	if err == nil {
