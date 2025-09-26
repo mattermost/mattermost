@@ -241,6 +241,17 @@ func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.Schedu
 		return model.ScheduledPostErrorCodeChannelArchived, nil
 	}
 
+	restrictDM, err := a.CheckIfChannelIsRestrictedDM(rctx, channel)
+	if err != nil {
+		rctx.Logger().Debug("canPostScheduledPost unknown error fetching teams for restricted DM", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.String("channel_id", channel.Id), mlog.String("error_code", model.ScheduledPostErrorUnknownError))
+		return model.ScheduledPostErrorUnknownError, err
+	}
+
+	if restrictDM {
+		rctx.Logger().Debug("canPostScheduledPost channel for scheduled post is restricted DM", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.String("channel_id", channel.Id), mlog.String("error_code", model.ScheduledPostErrorCodeRestrictedDM))
+		return model.ScheduledPostErrorCodeRestrictedDM, err
+	}
+
 	if scheduledPost.RootId != "" {
 		rootPosts, _, appErr := a.GetPostsByIds([]string{scheduledPost.RootId})
 		if appErr != nil {

@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"io"
 	"math/rand"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sync"
@@ -82,6 +83,54 @@ func TestCreateUploadSession(t *testing.T) {
 		u, err := th.App.CreateUploadSession(th.Context, us)
 		require.Nil(t, err)
 		require.NotEmpty(t, u)
+	})
+
+	t.Run("cannot create upload session in restricted DM", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageTeam
+		})
+
+		// Create a DM channel between two users who don't share a team
+		dmChannel := th.CreateDmChannel(th.BasicUser2)
+
+		// Ensure the two users do not share a team
+		teams, err := th.App.GetTeamsForUser(th.BasicUser.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+		teams, err = th.App.GetTeamsForUser(th.BasicUser2.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+
+		// Create separate teams for each user
+		team1 := th.CreateTeam()
+		team2 := th.CreateTeam()
+		th.LinkUserToTeam(th.BasicUser, team1)
+		th.LinkUserToTeam(th.BasicUser2, team2)
+
+		us := &model.UploadSession{
+			Id:        model.NewId(),
+			Type:      model.UploadTypeAttachment,
+			UserId:    th.BasicUser.Id,
+			ChannelId: dmChannel.Id,
+			Filename:  "upload",
+			FileSize:  8 * 1024 * 1024,
+		}
+
+		_, uploadErr := th.App.CreateUploadSession(th.Context, us)
+		require.NotNil(t, uploadErr)
+		require.Equal(t, "app.upload.create.cannot_upload_to_restricted_dm.error", uploadErr.Id)
+		require.Equal(t, http.StatusBadRequest, uploadErr.StatusCode)
+
+		// Reset config
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageAny
+		})
 	})
 }
 
