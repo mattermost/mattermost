@@ -109,6 +109,195 @@ func TestContentFlaggingEnabledForTeam(t *testing.T) {
 	})
 }
 
+func TestSaveContentFlaggingConfig(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	t.Run("should save content flagging config successfully", func(t *testing.T) {
+		config := model.ContentFlaggingSettingsRequest{
+			EnableContentFlagging: model.NewPointer(true),
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers:         model.NewPointer(true),
+					SystemAdminsAsReviewers: model.NewPointer(true),
+					TeamAdminsAsReviewers:   model.NewPointer(false),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					CommonReviewerIds: &[]string{th.BasicUser.Id, th.BasicUser2.Id},
+				},
+			},
+			AdditionalSettings: &model.AdditionalSettings{
+				ReporterCommentRequired: model.NewPointer(true),
+				HideFlaggedContent:      model.NewPointer(false),
+				Reasons:                 &[]string{"spam", "harassment", "inappropriate"},
+			},
+		}
+		config.SetDefaults()
+
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		// Verify system config was updated
+		savedConfig := th.App.Config()
+		require.Equal(t, *config.EnableContentFlagging, *savedConfig.ContentFlaggingSettings.EnableContentFlagging)
+		require.Equal(t, *config.ReviewerSettings.CommonReviewers, *savedConfig.ContentFlaggingSettings.ReviewerSettings.CommonReviewers)
+		require.Equal(t, *config.ReviewerSettings.SystemAdminsAsReviewers, *savedConfig.ContentFlaggingSettings.ReviewerSettings.SystemAdminsAsReviewers)
+		require.Equal(t, *config.ReviewerSettings.TeamAdminsAsReviewers, *savedConfig.ContentFlaggingSettings.ReviewerSettings.TeamAdminsAsReviewers)
+		require.Equal(t, *config.AdditionalSettings.ReporterCommentRequired, *savedConfig.ContentFlaggingSettings.AdditionalSettings.ReporterCommentRequired)
+		require.Equal(t, *config.AdditionalSettings.HideFlaggedContent, *savedConfig.ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent)
+		require.Equal(t, *config.AdditionalSettings.Reasons, *savedConfig.ContentFlaggingSettings.AdditionalSettings.Reasons)
+
+		// Verify reviewer IDs were saved separately
+		reviewerIDs, appErr := th.App.GetContentFlaggingConfigReviewerIDs()
+		require.Nil(t, appErr)
+		require.Equal(t, *config.ReviewerSettings.CommonReviewerIds, *reviewerIDs.CommonReviewerIds)
+	})
+
+	t.Run("should save config with team reviewers", func(t *testing.T) {
+		config := model.ContentFlaggingSettingsRequest{
+			EnableContentFlagging: model.NewPointer(true),
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers:         model.NewPointer(false),
+					SystemAdminsAsReviewers: model.NewPointer(false),
+					TeamAdminsAsReviewers:   model.NewPointer(false),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					TeamReviewersSetting: &map[string]model.TeamReviewerSetting{
+						th.BasicTeam.Id: {
+							Enabled:     model.NewPointer(true),
+							ReviewerIds: model.NewPointer([]string{th.BasicUser.Id}),
+						},
+					},
+				},
+			},
+		}
+		config.SetDefaults()
+
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		// Verify team reviewers were saved
+		reviewerIDs, appErr := th.App.GetContentFlaggingConfigReviewerIDs()
+		require.Nil(t, appErr)
+		require.NotNil(t, reviewerIDs.TeamReviewersSetting)
+		
+		teamSettings := (*reviewerIDs.TeamReviewersSetting)[th.BasicTeam.Id]
+		require.True(t, *teamSettings.Enabled)
+		require.Equal(t, []string{th.BasicUser.Id}, *teamSettings.ReviewerIds)
+	})
+
+	t.Run("should handle empty config", func(t *testing.T) {
+		config := model.ContentFlaggingSettingsRequest{}
+		config.SetDefaults()
+
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		// Verify defaults were applied
+		savedConfig := th.App.Config()
+		require.NotNil(t, savedConfig.ContentFlaggingSettings.EnableContentFlagging)
+		require.NotNil(t, savedConfig.ContentFlaggingSettings.ReviewerSettings.CommonReviewers)
+	})
+}
+
+func TestGetContentFlaggingConfigReviewerIDs(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	t.Run("should return reviewer IDs after saving config", func(t *testing.T) {
+		config := model.ContentFlaggingSettingsRequest{
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers: model.NewPointer(true),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					CommonReviewerIds: &[]string{th.BasicUser.Id, th.BasicUser2.Id},
+				},
+			},
+		}
+		config.SetDefaults()
+
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		reviewerIDs, appErr := th.App.GetContentFlaggingConfigReviewerIDs()
+		require.Nil(t, appErr)
+		require.NotNil(t, reviewerIDs)
+		require.Equal(t, []string{th.BasicUser.Id, th.BasicUser2.Id}, *reviewerIDs.CommonReviewerIds)
+	})
+
+	t.Run("should return team reviewer settings", func(t *testing.T) {
+		config := model.ContentFlaggingSettingsRequest{
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers: model.NewPointer(false),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					TeamReviewersSetting: &map[string]model.TeamReviewerSetting{
+						th.BasicTeam.Id: {
+							Enabled:     model.NewPointer(true),
+							ReviewerIds: model.NewPointer([]string{th.BasicUser.Id}),
+						},
+						"team2": {
+							Enabled:     model.NewPointer(false),
+							ReviewerIds: model.NewPointer([]string{th.BasicUser2.Id}),
+						},
+					},
+				},
+			},
+		}
+		config.SetDefaults()
+
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		reviewerIDs, appErr := th.App.GetContentFlaggingConfigReviewerIDs()
+		require.Nil(t, appErr)
+		require.NotNil(t, reviewerIDs.TeamReviewersSetting)
+		
+		teamSettings := *reviewerIDs.TeamReviewersSetting
+		require.Len(t, teamSettings, 2)
+		
+		// Check first team
+		team1Settings := teamSettings[th.BasicTeam.Id]
+		require.True(t, *team1Settings.Enabled)
+		require.Equal(t, []string{th.BasicUser.Id}, *team1Settings.ReviewerIds)
+		
+		// Check second team
+		team2Settings := teamSettings["team2"]
+		require.False(t, *team2Settings.Enabled)
+		require.Equal(t, []string{th.BasicUser2.Id}, *team2Settings.ReviewerIds)
+	})
+
+	t.Run("should return empty settings when no config saved", func(t *testing.T) {
+		// Clear any existing config by saving empty config
+		config := model.ContentFlaggingSettingsRequest{}
+		config.SetDefaults()
+		
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		reviewerIDs, appErr := th.App.GetContentFlaggingConfigReviewerIDs()
+		require.Nil(t, appErr)
+		require.NotNil(t, reviewerIDs)
+		
+		// Should have default empty values
+		if reviewerIDs.CommonReviewerIds != nil {
+			require.Empty(t, *reviewerIDs.CommonReviewerIds)
+		}
+		if reviewerIDs.TeamReviewersSetting != nil {
+			require.Empty(t, *reviewerIDs.TeamReviewersSetting)
+		}
+	})
+}
+
 func TestGetContentReviewChannels(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
