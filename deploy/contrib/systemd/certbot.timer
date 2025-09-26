@@ -1,0 +1,9 @@
+[Unit]
+Description=Certbot certificate renew trigger
+
+[Timer]
+Persistent=true
+OnCalendar=*-*-* 4:00:00
+
+[Install]
+WantedBy=timers.target

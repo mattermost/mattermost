@@ -1,0 +1,16 @@
+[Unit]
+Description=Certbot certificate renew trigger
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Environment="VOLUME_ROOT=/home/admin/mattermost-docker"
+Type=oneshot
+ExecStart=/usr/bin/docker run --rm --name certbot --network mattermost \
+                              -v '${VOLUME_ROOT}/certs/etc/letsencrypt:/etc/letsencrypt' \
+                              -v '${VOLUME_ROOT}/certs/var/lib/letsencrypt:/var/lib/letsencrypt' \
+                              -v shared-webroot:/webroot \
+                              certbot/certbot renew --webroot-path /webroot
+
+[Install]
+WantedBy=multi-user.target

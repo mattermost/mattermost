@@ -1,0 +1,41 @@
+services:
+  nginx:
+    depends_on:
+      - mattermost
+    container_name: nginx_mattermost
+    image: nginx:${NGINX_IMAGE_TAG}
+    restart: ${RESTART_POLICY}
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 100
+    read_only: true
+    tmpfs:
+      - /var/run
+      - /var/cache
+      - /var/log/nginx
+    volumes:
+      - ${NGINX_CONFIG_PATH}:/etc/nginx/conf.d:ro
+      - ${NGINX_DHPARAMS_FILE}:/dhparams4096.pem
+      - ${CERT_PATH}:/cert.pem:ro
+      - ${KEY_PATH}:/key.pem:ro
+      - shared-webroot:/usr/share/nginx/html
+    environment:
+      # timezone inside container
+      - TZ
+    ports:
+      - ${HTTPS_PORT}:443
+      - ${HTTP_PORT}:80
+  mattermost:
+    ports:
+      - ${CALLS_PORT}:${CALLS_PORT}/udp
+      - ${CALLS_PORT}:${CALLS_PORT}/tcp
+
+# Shared volume for Let's Encrypt certificate renewal with a webroot
+volumes:
+  shared-webroot:
+    name: shared-webroot
+
+# This network name is being used for Let's Encrypt certificate renewal
+networks:
+  default:
+    name: mattermost
