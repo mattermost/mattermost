@@ -97,6 +97,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           <TableEditor
             actions={
               Object {
+                "createAccessControlSyncJob": [MockFunction],
                 "createJob": [MockFunction],
                 "deleteChannelPolicy": [MockFunction],
                 "getAccessControlFields": [MockFunction],
@@ -310,6 +311,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           <TableEditor
             actions={
               Object {
+                "createAccessControlSyncJob": [MockFunction],
                 "createJob": [MockFunction],
                 "deleteChannelPolicy": [MockFunction],
                 "getAccessControlFields": [MockFunction],
