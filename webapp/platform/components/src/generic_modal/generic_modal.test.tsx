@@ -141,4 +141,215 @@ describe('GenericModal', () => {
             expect(onHideMock).toHaveBeenCalled();
         });
     });
+
+    describe('preventClose functionality', () => {
+        test('preventClose=true prevents modal from closing when close button is clicked', async () => {
+            const onHideMock = jest.fn();
+            const onExitedMock = jest.fn();
+            const props = {
+                ...baseProps,
+                onHide: onHideMock,
+                onExited: onExitedMock,
+                preventClose: true,
+                show: true,
+            };
+
+            render(
+                wrapIntl(<GenericModal {...props}/>),
+            );
+
+            const modal = screen.getByRole('dialog');
+            expect(modal).toBeInTheDocument();
+            expect(modal).toHaveClass('in'); // Modal is visible
+
+            // Find and click the close button
+            const closeButton = screen.getByLabelText('Close');
+            closeButton.click();
+
+            // onHide should still be called (for error handling, etc.)
+            await waitFor(() => {
+                expect(onHideMock).toHaveBeenCalled();
+            });
+
+            // But modal should still be visible (preventClose prevents internal state change)
+            expect(modal).toBeInTheDocument();
+            expect(modal).toHaveClass('in'); // Still visible
+
+            // onExited should NOT be called since modal didn't actually close
+            expect(onExitedMock).not.toHaveBeenCalled();
+        });
+
+        test('preventClose=true prevents modal from closing when cancel button is clicked', async () => {
+            const onHideMock = jest.fn();
+            const handleCancelMock = jest.fn();
+            const props = {
+                ...baseProps,
+                onHide: onHideMock,
+                handleCancel: handleCancelMock,
+                preventClose: true,
+                show: true,
+                autoCloseOnCancelButton: true, // Default behavior
+            };
+
+            render(
+                wrapIntl(<GenericModal {...props}/>),
+            );
+
+            const modal = screen.getByRole('dialog');
+            expect(modal).toHaveClass('in');
+
+            // Find and click the cancel button
+            const cancelButton = screen.getByText('Cancel');
+            cancelButton.click();
+
+            // Both callbacks should be called
+            await waitFor(() => {
+                expect(handleCancelMock).toHaveBeenCalled();
+                expect(onHideMock).toHaveBeenCalled();
+            });
+
+            // But modal should still be visible due to preventClose
+            expect(modal).toHaveClass('in');
+        });
+
+        test('preventClose=true prevents modal from closing when confirm button is clicked', async () => {
+            const onHideMock = jest.fn();
+            const handleConfirmMock = jest.fn();
+            const props = {
+                ...baseProps,
+                onHide: onHideMock,
+                handleConfirm: handleConfirmMock,
+                preventClose: true,
+                show: true,
+                autoCloseOnConfirmButton: true, // Default behavior
+            };
+
+            render(
+                wrapIntl(<GenericModal {...props}/>),
+            );
+
+            const modal = screen.getByRole('dialog');
+            expect(modal).toHaveClass('in');
+
+            // Find and click the confirm button
+            const confirmButton = screen.getByText('Confirm');
+            confirmButton.click();
+
+            // Both callbacks should be called
+            await waitFor(() => {
+                expect(handleConfirmMock).toHaveBeenCalled();
+                expect(onHideMock).toHaveBeenCalled();
+            });
+
+            // But modal should still be visible due to preventClose
+            expect(modal).toHaveClass('in');
+        });
+
+        test('preventClose=false allows normal modal closing via close button', async () => {
+            const onHideMock = jest.fn();
+            const onExitedMock = jest.fn();
+            const props = {
+                ...baseProps,
+                onHide: onHideMock,
+                onExited: onExitedMock,
+                preventClose: false,
+                show: true,
+            };
+
+            render(
+                wrapIntl(<GenericModal {...props}/>),
+            );
+
+            const modal = screen.getByRole('dialog');
+            expect(modal).toHaveClass('in');
+
+            // Find and click the close button
+            const closeButton = screen.getByLabelText('Close');
+            closeButton.click();
+
+            // onHide should be called
+            await waitFor(() => {
+                expect(onHideMock).toHaveBeenCalled();
+            });
+
+            // Modal should close (lose 'in' class)
+            await waitFor(() => {
+                expect(modal).not.toHaveClass('in');
+            });
+        });
+
+        test('preventClose=false allows normal modal closing via cancel button', async () => {
+            const onHideMock = jest.fn();
+            const handleCancelMock = jest.fn();
+            const props = {
+                ...baseProps,
+                onHide: onHideMock,
+                handleCancel: handleCancelMock,
+                preventClose: false,
+                show: true,
+            };
+
+            render(
+                wrapIntl(<GenericModal {...props}/>),
+            );
+
+            const modal = screen.getByRole('dialog');
+            expect(modal).toHaveClass('in');
+
+            // Find and click the cancel button
+            const cancelButton = screen.getByText('Cancel');
+            cancelButton.click();
+
+            // Both callbacks should be called
+            await waitFor(() => {
+                expect(handleCancelMock).toHaveBeenCalled();
+                expect(onHideMock).toHaveBeenCalled();
+            });
+
+            // Modal should close normally
+            await waitFor(() => {
+                expect(modal).not.toHaveClass('in');
+            });
+        });
+
+        test('preventClose state can be toggled dynamically', async () => {
+            const onHideMock = jest.fn();
+            const props = {
+                ...baseProps,
+                onHide: onHideMock,
+                preventClose: true,
+                show: true,
+            };
+
+            const {rerender} = render(
+                wrapIntl(<GenericModal {...props}/>),
+            );
+
+            const modal = screen.getByRole('dialog');
+            const closeButton = screen.getByLabelText('Close');
+
+            // First click - should be prevented
+            closeButton.click();
+            await waitFor(() => {
+                expect(onHideMock).toHaveBeenCalledTimes(1);
+            });
+            expect(modal).toHaveClass('in'); // Still visible
+
+            // Change preventClose to false
+            rerender(
+                wrapIntl(<GenericModal {...props} preventClose={false}/>),
+            );
+
+            // Second click - should close modal
+            closeButton.click();
+            await waitFor(() => {
+                expect(onHideMock).toHaveBeenCalledTimes(2);
+            });
+
+            // Modal should close now
+            await waitFor(() => {
+                expect(modal).not.toHaveClass('in');
+            });
+        });
+    });
 });
