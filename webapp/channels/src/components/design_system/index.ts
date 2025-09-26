@@ -4,3 +4,6 @@
 // Design System Components
 export {default as Button} from './button';
 export type {ButtonProps, ButtonSize, ButtonEmphasis} from './button';
+
+export {default as IconButton} from './icon_button';
+export type {IconButtonProps, IconButtonSize} from './icon_button';
