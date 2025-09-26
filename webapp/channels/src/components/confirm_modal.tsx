@@ -6,8 +6,6 @@ import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 
-import Button from 'components/design_system/button';
-
 import {focusElement} from 'utils/a11y_utils';
 
 import './confirm_modal.scss';
@@ -34,11 +32,6 @@ type Props = {
      * The CSS class to apply to the confirm button
      */
     confirmButtonClass?: string;
-
-    /*
-     * Set to true for destructive actions (red button)
-     */
-    destructive?: boolean;
 
     /*
      * The CSS class to apply to the modal
@@ -116,6 +109,7 @@ export default class ConfirmModal extends React.Component<Props, State> {
     static defaultProps = {
         title: '',
         message: '',
+        confirmButtonClass: 'btn btn-primary',
         confirmButtonText: '',
         modalClass: '',
     };
@@ -186,15 +180,15 @@ export default class ConfirmModal extends React.Component<Props, State> {
         let cancelButton;
         if (!this.props.hideCancel) {
             cancelButton = (
-                <Button
+                <button
                     type='button'
                     data-testid='cancel-button'
-                    emphasis='tertiary'
+                    className='btn btn-tertiary'
                     onClick={this.handleCancel}
                     id='cancelModalButton'
                 >
                     {cancelText}
-                </Button>
+                </button>
             );
         }
 
@@ -224,17 +218,15 @@ export default class ConfirmModal extends React.Component<Props, State> {
                         {this.props.checkboxInFooter && checkbox}
                         {cancelButton}
                         {!this.props.hideConfirm && (
-                            <Button
+                            <button
                                 type='button'
-                                data-testid='confirm-button'
-                                emphasis='primary'
-                                destructive={this.props.destructive ?? (this.props.confirmButtonClass?.includes('btn-danger') || false)}
+                                className={this.props.confirmButtonClass}
                                 onClick={this.handleConfirm}
                                 id='confirmModalButton'
                                 autoFocus={true}
                             >
                                 {this.props.confirmButtonText}
-                            </Button>
+                            </button>
                         )}
                     </div>
                 </div>
