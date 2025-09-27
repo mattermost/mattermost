@@ -22,7 +22,6 @@ func TestGetMattermostLog(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t)
-	defer th.TearDown()
 
 	// disable mattermost log file setting in config so we should get an warning
 	th.Service.UpdateConfig(func(cfg *model.Config) {
@@ -77,7 +76,6 @@ func TestGetAdvancedLogs(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("log messages from advanced logging settings get returned", func(t *testing.T) {
 		dir, err := os.MkdirTemp("", "logs")

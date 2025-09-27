@@ -21,8 +21,7 @@ import (
 )
 
 func TestSessionHasPermissionTo(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	localSession := model.Session{
 		UserId: th.BasicUser.Id,
@@ -60,8 +59,7 @@ func TestSessionHasPermissionTo(t *testing.T) {
 }
 
 func TestSessionHasPermissionToAndNotRestrictedAdmin(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	localSession := model.Session{
 		UserId: th.BasicUser.Id,
@@ -119,7 +117,6 @@ func TestSessionHasPermissionToAndNotRestrictedAdmin(t *testing.T) {
 func TestCheckIfRolesGrantPermission(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	cases := []struct {
 		roles        []string
@@ -152,29 +149,27 @@ func TestChannelRolesGrantPermission(t *testing.T) {
 
 func TestHasPermissionToTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
-	th.RemoveUserFromTeam(th.BasicUser, th.BasicTeam)
+	th.RemoveUserFromTeam(t, th.BasicUser, th.BasicTeam)
 	assert.False(t, th.App.HasPermissionToTeam(th.Context, th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 
 	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
-	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
 	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
-	th.RemovePermissionFromRole(model.PermissionListTeamChannels.Id, model.TeamUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionListTeamChannels.Id, model.TeamUserRoleId)
 	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
-	th.RemoveUserFromTeam(th.SystemAdminUser, th.BasicTeam)
+	th.RemoveUserFromTeam(t, th.SystemAdminUser, th.BasicTeam)
 	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 }
 
 func TestSessionHasPermissionToTeams(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// Adding another team with more channels (public and private)
-	myTeam := th.CreateTeam()
+	myTeam := th.CreateTeam(t)
 
 	bothTeams := []string{th.BasicTeam.Id, myTeam.Id}
 	t.Run("session with team members can access teams", func(t *testing.T) {
@@ -229,8 +224,7 @@ func TestSessionHasPermissionToTeams(t *testing.T) {
 
 func TestSessionHasPermissionToChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	session := model.Session{
 		UserId: th.BasicUser.Id,
@@ -280,11 +274,10 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 
 func TestSessionHasPermissionToChannels(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	ch1 := th.CreateChannel(th.Context, th.BasicTeam)
-	ch2 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+	ch1 := th.CreateChannel(t, th.BasicTeam)
+	ch2 := th.CreatePrivateChannel(t, th.BasicTeam)
 	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, ch1, false)
 	assert.Nil(t, appErr)
 	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, ch2, false)
@@ -315,7 +308,7 @@ func TestSessionHasPermissionToChannels(t *testing.T) {
 			UserId: th.BasicUser.Id,
 		}
 
-		newChannel := th.CreateChannel(th.Context, th.BasicTeam)
+		newChannel := th.CreateChannel(t, th.BasicTeam)
 		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, newChannel, false)
 		assert.Nil(t, appErr)
 
@@ -329,7 +322,7 @@ func TestSessionHasPermissionToChannels(t *testing.T) {
 			UserId: th.BasicUser.Id,
 		}
 
-		archivedChannel := th.CreateChannel(th.Context, th.BasicTeam)
+		archivedChannel := th.CreateChannel(t, th.BasicTeam)
 		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, archivedChannel, false)
 		assert.Nil(t, appErr)
 
@@ -379,8 +372,7 @@ func TestSessionHasPermissionToChannels(t *testing.T) {
 
 func TestHasPermissionToUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	assert.True(t, th.App.HasPermissionToUser(th.SystemAdminUser.Id, th.BasicUser.Id))
 	assert.True(t, th.App.HasPermissionToUser(th.BasicUser.Id, th.BasicUser.Id))
@@ -389,8 +381,7 @@ func TestHasPermissionToUser(t *testing.T) {
 
 func TestSessionHasPermissionToManageBot(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	bot, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username",
@@ -414,18 +405,18 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
 		assert.NoError(t, err.Unwrap())
 
-		th.AddPermissionToRole(model.PermissionReadBots.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionReadBots.Id, model.SystemUserRoleId)
 		err = th.App.SessionHasPermissionToManageBot(th.Context, session, bot.UserId)
 		assert.NotNil(t, err)
 		assert.Equal(t, "api.context.permissions.app_error", err.Id)
 		assert.NoError(t, err.Unwrap())
 
-		th.AddPermissionToRole(model.PermissionManageBots.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.SystemUserRoleId)
 		err = th.App.SessionHasPermissionToManageBot(th.Context, session, bot.UserId)
 		assert.Nil(t, err)
 
-		th.RemovePermissionFromRole(model.PermissionReadBots.Id, model.SystemUserRoleId)
-		th.RemovePermissionFromRole(model.PermissionManageBots.Id, model.SystemUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionReadBots.Id, model.SystemUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionManageBots.Id, model.SystemUserRoleId)
 	})
 
 	t.Run("test others bot", func(t *testing.T) {
@@ -438,18 +429,18 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
 		assert.NoError(t, err.Unwrap())
 
-		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionReadOthersBots.Id, model.SystemUserRoleId)
 		err = th.App.SessionHasPermissionToManageBot(th.Context, session, bot.UserId)
 		assert.NotNil(t, err)
 		assert.Equal(t, "api.context.permissions.app_error", err.Id)
 		assert.NoError(t, err.Unwrap())
 
-		th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
 		err = th.App.SessionHasPermissionToManageBot(th.Context, session, bot.UserId)
 		assert.Nil(t, err)
 
-		th.RemovePermissionFromRole(model.PermissionReadOthersBots.Id, model.SystemUserRoleId)
-		th.RemovePermissionFromRole(model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionReadOthersBots.Id, model.SystemUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
 	})
 
 	t.Run("test user manager access", func(t *testing.T) {
@@ -471,11 +462,11 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 		assert.NoError(t, err.Unwrap())
 
 		// test with correct permissions
-		th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.SystemUserManagerRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOthersBots.Id, model.SystemUserManagerRoleId)
 		err = th.App.SessionHasPermissionToManageBot(th.Context, session, bot.UserId)
 		assert.Nil(t, err)
 
-		th.RemovePermissionFromRole(model.PermissionManageOthersBots.Id, model.SystemUserManagerRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionManageOthersBots.Id, model.SystemUserManagerRoleId)
 	})
 
 	t.Run("test sysadmin role", func(t *testing.T) {
@@ -501,8 +492,7 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 
 func TestSessionHasPermissionToUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("test my user access", func(t *testing.T) {
 		session := model.Session{
@@ -520,10 +510,10 @@ func TestSessionHasPermissionToUser(t *testing.T) {
 		}
 		assert.False(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
 
-		th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
+		th.AddPermissionToRole(t, model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 		assert.True(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
 		assert.False(t, th.App.SessionHasPermissionToUser(session, th.SystemAdminUser.Id))
-		th.RemovePermissionFromRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    "username",
@@ -552,8 +542,7 @@ func TestSessionHasPermissionToUser(t *testing.T) {
 
 func TestSessionHasPermissionToManageUserOrBot(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	bot, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username",
@@ -585,15 +574,15 @@ func TestSessionHasPermissionToManageUserOrBot(t *testing.T) {
 		assert.True(t, th.App.SessionHasPermissionToUserOrBot(th.Context, session, th.BasicUser2.Id))
 		assert.False(t, th.App.SessionHasPermissionToUserOrBot(th.Context, session, bot.UserId))
 
-		th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
+		th.AddPermissionToRole(t, model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 		assert.True(t, th.App.SessionHasPermissionToUserOrBot(th.Context, session, th.BasicUser.Id))
 		assert.False(t, th.App.SessionHasPermissionToUserOrBot(th.Context, session, bot.UserId))
-		th.RemovePermissionFromRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 
-		th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.SystemUserManagerRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOthersBots.Id, model.SystemUserManagerRoleId)
 		assert.False(t, th.App.SessionHasPermissionToUserOrBot(th.Context, session, th.BasicUser.Id))
 		assert.True(t, th.App.SessionHasPermissionToUserOrBot(th.Context, session, bot.UserId))
-		th.RemovePermissionFromRole(model.PermissionManageOthersBots.Id, model.SystemUserManagerRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionManageOthersBots.Id, model.SystemUserManagerRoleId)
 	})
 
 	t.Run("test system admin access", func(t *testing.T) {
@@ -608,8 +597,8 @@ func TestSessionHasPermissionToManageUserOrBot(t *testing.T) {
 
 func TestHasPermissionToCategory(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
 	require.Nil(t, err)
 
@@ -627,8 +616,7 @@ func TestHasPermissionToCategory(t *testing.T) {
 
 func TestSessionHasPermissionToGroup(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	file, e := os.Open("tests/group-role-has-permission.csv")
 	require.NoError(t, e)
@@ -676,9 +664,9 @@ func TestSessionHasPermissionToGroup(t *testing.T) {
 		require.NoError(t, e)
 
 		if systemRoleHasPermission {
-			th.AddPermissionToRole(permission.Id, systemRole.Name)
+			th.AddPermissionToRole(t, permission.Id, systemRole.Name)
 		} else {
-			th.RemovePermissionFromRole(permission.Id, systemRole.Name)
+			th.RemovePermissionFromRole(t, permission.Id, systemRole.Name)
 		}
 
 		if isGroupMember {
@@ -692,9 +680,9 @@ func TestSessionHasPermissionToGroup(t *testing.T) {
 		}
 
 		if groupRoleHasPermission {
-			th.AddPermissionToRole(permission.Id, groupRole.Name)
+			th.AddPermissionToRole(t, permission.Id, groupRole.Name)
 		} else {
-			th.RemovePermissionFromRole(permission.Id, groupRole.Name)
+			th.RemovePermissionFromRole(t, permission.Id, groupRole.Name)
 		}
 
 		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}, Roles: systemRole.Name})
@@ -712,8 +700,7 @@ func TestSessionHasPermissionToGroup(t *testing.T) {
 
 func TestHasPermissionToReadChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	ttcc := []struct {
 		name                    string
@@ -787,16 +774,16 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 				cfg.ComplianceSettings.Enable = &configComplianceEnabled
 			})
 
-			team := th.CreateTeam()
+			team := th.CreateTeam(t)
 			if tc.canReadPublicChannel {
-				th.LinkUserToTeam(th.BasicUser2, team)
+				th.LinkUserToTeam(t, th.BasicUser2, team)
 			}
 
 			var channel *model.Channel
 			if tc.channelIsOpen {
-				channel = th.CreateChannel(th.Context, team)
+				channel = th.CreateChannel(t, team)
 			} else {
-				channel = th.CreatePrivateChannel(th.Context, team)
+				channel = th.CreatePrivateChannel(t, team)
 			}
 			if tc.canReadChannel {
 				_, err := th.App.AddUserToChannel(th.Context, th.BasicUser2, channel, false)
@@ -818,8 +805,7 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 
 func TestSessionHasPermissionToChannelByPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	session, err := th.App.CreateSession(th.Context, &model.Session{
 		UserId: th.BasicUser.Id,
@@ -833,13 +819,13 @@ func TestSessionHasPermissionToChannelByPost(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	channel := th.CreateChannel(th.Context, th.BasicTeam)
+	channel := th.CreateChannel(t, th.BasicTeam)
 	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
 	assert.Nil(t, appErr)
-	post := th.CreatePost(channel)
+	post := th.CreatePost(t, channel)
 
-	archivedChannel := th.CreateChannel(th.Context, th.BasicTeam)
-	archivedPost := th.CreatePost(archivedChannel)
+	archivedChannel := th.CreateChannel(t, th.BasicTeam)
+	archivedPost := th.CreatePost(t, archivedChannel)
 	appErr = th.App.DeleteChannel(th.Context, archivedChannel, th.SystemAdminUser.Id)
 	assert.Nil(t, appErr)
 
@@ -871,16 +857,15 @@ func TestSessionHasPermissionToChannelByPost(t *testing.T) {
 
 func TestHasPermissionToChannelByPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	channel := th.CreateChannel(th.Context, th.BasicTeam)
+	channel := th.CreateChannel(t, th.BasicTeam)
 	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
 	assert.Nil(t, appErr)
-	post := th.CreatePost(channel)
+	post := th.CreatePost(t, channel)
 
-	archivedChannel := th.CreateChannel(th.Context, th.BasicTeam)
-	archivedPost := th.CreatePost(archivedChannel)
+	archivedChannel := th.CreateChannel(t, th.BasicTeam)
+	archivedPost := th.CreatePost(t, archivedChannel)
 	appErr = th.App.DeleteChannel(th.Context, archivedChannel, th.SystemAdminUser.Id)
 	assert.Nil(t, appErr)
 

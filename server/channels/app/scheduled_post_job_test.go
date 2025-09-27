@@ -16,8 +16,7 @@ import (
 func TestProcessScheduledPosts(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("base case - happy path", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 
@@ -56,8 +55,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 	})
 
 	t.Run("sets error code for archived channel", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 
@@ -107,8 +105,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 	})
 
 	t.Run("sets error code for archived user", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 
@@ -160,8 +157,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 	})
 
 	t.Run("sets error code when user is not a channel member", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 
@@ -213,8 +209,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 	})
 
 	t.Run("sets error code when user is not a team member", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 
@@ -268,8 +263,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 
 func TestHandleFailedScheduledPosts(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should handle failed scheduled posts correctly and notify users about failure via system-bot", func(t *testing.T) {
 		rctx := th.Context
@@ -285,7 +279,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 		user2 := th.BasicUser2
 
 		channel1 := th.BasicChannel
-		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
 
 		// Create failed scheduled posts: 1 for user1 and 2 for user2
 		failedScheduledPosts := []*model.ScheduledPost{

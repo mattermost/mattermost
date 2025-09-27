@@ -56,9 +56,8 @@ func Test_getPostExport(t *testing.T) {
 	}
 
 	jobs.DefaultWatcherPollingInterval = 100
-	th := api4.SetupEnterprise(t).InitBasic()
+	th := api4.SetupEnterprise(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("message_export"))
-	defer th.TearDown()
 
 	// the post exports from the db will be random (because they all have the same updateAt), so do it a few times
 	for i := range 10 {
