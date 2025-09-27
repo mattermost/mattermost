@@ -552,7 +552,7 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		_, _, err := th.Client.CreateUserWithToken(context.Background(), &user, "")
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.user.create_user.missing_token.app_error")
+		assert.ErrorContains(t, err, "token ID is required")
 	})
 
 	t.Run("TokenExpired", func(t *testing.T) {
@@ -902,7 +902,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 		_, _, err := th.Client.CreateUserWithInviteId(context.Background(), &user, "")
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.user.create_user.missing_invite_id.app_error")
+		assert.ErrorContains(t, err, "invite ID is required")
 	})
 
 	t.Run("ExpiredInviteId", func(t *testing.T) {
