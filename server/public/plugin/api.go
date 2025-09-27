@@ -1030,6 +1030,15 @@ type API interface {
 	// Minimum server version: 5.2
 	LogWarn(msg string, keyValuePairs ...any)
 
+	// LogWithLevel writes a log message to the Mattermost server log file with a custom log level.
+	// This allows plugins to create logs that can be filtered and routed by the advanced logging system.
+	// Appropriate context such as the plugin name will already be added as fields so plugins
+	// do not need to add that info.
+	//
+	// @tag Logging
+	// Minimum server version: 11.0
+	LogWithLevel(level mlog.Level, msg string, keyValuePairs ...any)
+
 	// SendMail sends an email to a specific address
 	//
 	// Minimum server version: 5.7

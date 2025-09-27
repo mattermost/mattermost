@@ -5544,6 +5544,35 @@ func (s *apiRPCServer) RolesGrantPermission(args *Z_RolesGrantPermissionArgs, re
 	return nil
 }
 
+type Z_LogWithLevelArgs struct {
+	A mlog.Level
+	B string
+	C []any
+}
+
+type Z_LogWithLevelReturns struct {
+}
+
+func (g *apiRPCClient) LogWithLevel(level mlog.Level, msg string, keyValuePairs ...any) {
+	_args := &Z_LogWithLevelArgs{level, msg, keyValuePairs}
+	_returns := &Z_LogWithLevelReturns{}
+	if err := g.client.Call("Plugin.LogWithLevel", _args, _returns); err != nil {
+		log.Printf("RPC call to LogWithLevel API failed: %s", err.Error())
+	}
+
+}
+
+func (s *apiRPCServer) LogWithLevel(args *Z_LogWithLevelArgs, returns *Z_LogWithLevelReturns) error {
+	if hook, ok := s.impl.(interface {
+		LogWithLevel(level mlog.Level, msg string, keyValuePairs ...any)
+	}); ok {
+		hook.LogWithLevel(args.A, args.B, args.C...)
+	} else {
+		return encodableError(fmt.Errorf("API LogWithLevel called but not implemented."))
+	}
+	return nil
+}
+
 type Z_SendMailArgs struct {
 	A string
 	B string
