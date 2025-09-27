@@ -21,7 +21,7 @@ describe('Keyboard Shortcuts', () => {
 
     it('MM-T1277 SHIFT+UP', () => {
         // # Press shift+up to open the latest thread in the channel in the RHS
-        cy.uiGetPostTextBox().type('{shift}{uparrow}');
+        cy.uiGetPostTextBox().type('{shift+uparrow}', {delay: 50});
 
         // * RHS Opens up
         cy.get('.sidebar--right__header').should('be.visible');
@@ -33,7 +33,28 @@ describe('Keyboard Shortcuts', () => {
         cy.uiGetPostTextBox().click();
 
         // # Press shift+up again
-        cy.uiGetPostTextBox().type('{shift}{uparrow}');
+        cy.uiGetPostTextBox().type('{shift+uparrow}', {delay: 50});
+
+        // * RHS textbox should be focused
+        cy.uiGetReplyTextBox().should('be.focused');
+
+        // # Post a reply in the thread
+        cy.uiGetReplyTextBox().type('This is a reply{enter}');
+
+        // # Close the RHS by clicking the X button
+        cy.get('#rhsCloseButton').click();
+
+        // * Verify RHS is closed
+        cy.get('.sidebar--right__header').should('not.exist');
+
+        // # Click into the center channel post textbox
+        cy.uiGetPostTextBox().click();
+
+        // # Press shift+up to open the thread with replies
+        cy.uiGetPostTextBox().type('{shift+uparrow}', {delay: 50});
+
+        // * RHS Opens up
+        cy.get('.sidebar--right__header').should('be.visible');
 
         // * RHS textbox should be focused
         cy.uiGetReplyTextBox().should('be.focused');
