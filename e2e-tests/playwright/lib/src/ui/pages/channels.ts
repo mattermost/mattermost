@@ -32,6 +32,7 @@ export default class ChannelsPage {
     readonly postDotMenu;
     readonly postReminderMenu;
     readonly userAccountMenu;
+    readonly dndSubMenu;
     readonly emojiGifPickerPopup;
     readonly scheduleMessageMenu;
     readonly scheduleMessageModal;
@@ -60,6 +61,7 @@ export default class ChannelsPage {
         this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
         this.postReminderMenu = new components.PostReminderMenu(page.getByRole('menu', {name: 'Set a reminder for:'}));
         this.userAccountMenu = new components.UserAccountMenu(page.locator('#userAccountMenu'));
+        this.dndSubMenu = new components.DndSubMenu(page.locator('[id="userAccountMenu\\.dndSubMenu"]'));
         this.scheduleMessageMenu = new components.ScheduleMessageMenu(page.locator('#dropdown_send_post_options'));
 
         // Popovers

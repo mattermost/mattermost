@@ -45,6 +45,7 @@ import ScheduledPost from './channels/scheduled_post';
 import SendMessageNowModal from './channels/send_message_now_modal';
 import DeleteScheduledPostModal from './channels/delete_scheduled_post_modal';
 import DraftPost from './channels/draft_post';
+import DndSubMenu from './dnd_sub_menu';
 
 const components = {
     GlobalHeader,
@@ -59,6 +60,7 @@ const components = {
     ChannelsPost,
     ChannelSettingsModal,
     DraftPost,
+    DndSubMenu,
     FindChannelsModal,
     DeletePostModal,
     DeleteScheduledPostModal,
@@ -107,6 +109,7 @@ export {
     ChannelsPost,
     ChannelSettingsModal,
     DraftPost,
+    DndSubMenu,
     FindChannelsModal,
     DeletePostModal,
     DeleteScheduledPostModal,
