@@ -81,6 +81,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	)
 
 	d.Version = model.CurrentSupportPacketVersion
+	d.Timestamp = time.Now().Format(time.RFC3339)
 
 	/* License */
 	if license := ps.License(); license != nil {
