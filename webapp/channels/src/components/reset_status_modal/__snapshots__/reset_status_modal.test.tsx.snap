@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/ResetStatusModal should match snapshot 1`] = `
-<ConfirmModal
+<Memo(ConfirmModal)
   cancelButtonText=""
   checkboxText={
     <Memo(MemoizedFormattedMessage)
@@ -9,7 +9,6 @@ exports[`components/ResetStatusModal should match snapshot 1`] = `
       id="modal.manual_status.ask"
     />
   }
-  confirmButtonClass="btn btn-primary"
   confirmButtonText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Set status to \\"Online\\""
@@ -22,7 +21,6 @@ exports[`components/ResetStatusModal should match snapshot 1`] = `
       id="modal.manual_status.message_online"
     />
   }
-  modalClass=""
   onCancel={[Function]}
   onConfirm={[Function]}
   show={false}
@@ -32,7 +30,7 @@ exports[`components/ResetStatusModal should match snapshot 1`] = `
 `;
 
 exports[`components/ResetStatusModal should match snapshot, render modal for OOF status 1`] = `
-<ConfirmModal
+<Memo(ConfirmModal)
   cancelButtonText=""
   checkboxText={
     <Memo(MemoizedFormattedMessage)
@@ -40,7 +38,6 @@ exports[`components/ResetStatusModal should match snapshot, render modal for OOF
       id="modal.manual_status.ask"
     />
   }
-  confirmButtonClass="btn btn-primary"
   confirmButtonText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Set status to \\"Online\\""
@@ -53,7 +50,6 @@ exports[`components/ResetStatusModal should match snapshot, render modal for OOF
       id="modal.manual_status.auto_responder.message_online"
     />
   }
-  modalClass=""
   onCancel={[Function]}
   onConfirm={[Function]}
   show={false}
