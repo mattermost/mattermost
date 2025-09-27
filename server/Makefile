@@ -161,7 +161,6 @@ PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
 PLUGIN_PACKAGES += mattermost-plugin-agents-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.6
-PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.2.2
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.3.4
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.2.0
