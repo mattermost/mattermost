@@ -134,7 +134,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
 
         // Clone the icon element and add the appropriate size prop for Compass Icons
         const iconWithSize = useMemo(() => {
-            return React.isValidElement(icon) ? React.cloneElement(icon, {size: ICON_SIZE_MAP[size]}) : icon;
+            return React.isValidElement(icon) ? React.cloneElement(icon, {size: ICON_SIZE_MAP[size]} as any) : icon;
         }, [icon, size]);
 
         return (
