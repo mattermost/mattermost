@@ -4,9 +4,9 @@
 package model
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"unicode/utf8"
 )
 
@@ -201,7 +201,7 @@ func (oaf *OutgoingOAuthConnectionGetConnectionsFilter) ToURLValues() url.Values
 	v := url.Values{}
 
 	if oaf.Limit > 0 {
-		v.Set("limit", fmt.Sprintf("%d", oaf.Limit))
+		v.Set("limit", strconv.Itoa(oaf.Limit))
 	}
 
 	if oaf.OffsetId != "" {

@@ -4,7 +4,6 @@
 package model
 
 import (
-	"fmt"
 	"slices"
 
 	"github.com/pkg/errors"
@@ -198,7 +197,7 @@ func (p *AccessControlPolicy) Inherit(parent *AccessControlPolicy) *AppError {
 			copy(actions, rule.Actions)
 			rules[i] = AccessControlPolicyRule{
 				Actions:    actions,
-				Expression: fmt.Sprintf("policies.id_%s", p.ID),
+				Expression: "policies.id_" + p.ID,
 			}
 		}
 	case AccessControlPolicyVersionV0_2:

@@ -5,7 +5,7 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
+
 	"strings"
 	"testing"
 	"unicode/utf8"
@@ -25,8 +25,8 @@ const BigText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamu
 
 func sampleImage(imageName string) *image.Image {
 	return &image.Image{
-		URL:       fmt.Sprintf("http://example.com/%s", imageName),
-		SecureURL: fmt.Sprintf("https://example.com/%s", imageName),
+		URL:       "http://example.com/" + imageName,
+		SecureURL: "https://example.com/" + imageName,
 		Type:      "png",
 		Width:     32,
 		Height:    32,

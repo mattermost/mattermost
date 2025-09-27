@@ -4,7 +4,6 @@
 package main
 
 import (
-	"fmt"
 	"go/ast"
 	"go/token"
 
@@ -44,7 +43,7 @@ func hasValidMinimumVersionComment(s string) bool {
 func renderErrors(fset *token.FileSet, methods []*ast.Field) []string {
 	var out []string
 	for _, m := range methods {
-		out = append(out, renderWithFilePosition(fset, m.Pos(), fmt.Sprintf("missing a minimum server version comment on method %s", m.Names[0].Name)))
+		out = append(out, renderWithFilePosition(fset, m.Pos(), "missing a minimum server version comment on method "+m.Names[0].Name))
 	}
 	return out
 }

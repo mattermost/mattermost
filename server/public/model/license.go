@@ -5,8 +5,9 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
+
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -364,7 +365,7 @@ func (l *License) IsWithinExpirationPeriod() bool {
 
 func (l *License) DaysToExpiration() int {
 	dif := l.ExpiresAt - GetMillis()
-	d, _ := time.ParseDuration(fmt.Sprint(dif) + "ms")
+	d, _ := time.ParseDuration(strconv.FormatInt(dif, 10) + "ms")
 	days := d.Hours() / 24
 	return int(days)
 }
