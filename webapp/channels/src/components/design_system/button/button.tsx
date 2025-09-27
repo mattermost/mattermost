@@ -120,7 +120,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
             >
                 {loading && (
                     <span className='Button__loading'>
-                        <i className={spinnerClasses} />
+                        <i className={spinnerClasses}/>
                     </span>
                 )}
 
