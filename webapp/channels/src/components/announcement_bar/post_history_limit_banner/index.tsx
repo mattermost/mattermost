@@ -103,7 +103,7 @@ const PostHistoryLimitBanner = () => {
     const message = (
         <FormattedMessage
             id='workspace_limits.post_history_banner.text'
-            defaultMessage='{limit, number}-message limit reached. Messages sent before {date} are hidden. Upgrade to restore access'
+            defaultMessage='{limit, number}-message limit reached. Messages sent before {date} are hidden'
             values={{
                 limit: postHistoryLimit,
                 date: formattedDate,
@@ -112,8 +112,8 @@ const PostHistoryLimitBanner = () => {
     );
 
     const upgradeButtonText = defineMessage({
-        id: 'workspace_limits.post_history_banner.upgrade_button',
-        defaultMessage: 'Upgrade',
+        id: 'workspace_limits.post_history_banner.cta_button',
+        defaultMessage: 'Restore Access',
     });
 
     return (

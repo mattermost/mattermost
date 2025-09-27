@@ -17,7 +17,7 @@ import ExternalLink from 'components/external_link';
 import Tag from 'components/widgets/tag/tag';
 import WithTooltip from 'components/with_tooltip';
 
-import {FileTypes, LicenseSkus} from 'utils/constants';
+import {FileTypes, LicenseLinks, LicenseSkus} from 'utils/constants';
 import {calculateOverageUserActivated} from 'utils/overage_team';
 import {getSkuDisplayName} from 'utils/subscription';
 import {getRemainingDaysFromFutureTimestamp, toTitleCase} from 'utils/utils';
@@ -118,16 +118,16 @@ const EnterpriseEditionLeftPanel = ({
                 <div className='subtitle'>
                     <FormattedMessage
                         id='admin.license.entryEdition.subtitle'
-                        defaultMessage='Entry offers Enterprise Advanced capabilities with {limitsLink} designed to support evaluation.'
+                        defaultMessage='Entry offers Enterprise Advanced capabilities {limitsLink} designed to support evaluation.'
                         values={{
                             limitsLink: (
                                 <ExternalLink
-                                    href='https://mattermost.com/pl/mattermost-entry-limits'
+                                    href={LicenseLinks.ENTRY_LIMITS_INFO}
                                     location='enterprise_edition_left_panel_entry'
                                 >
                                     <FormattedMessage
                                         id='admin.license.entryEdition.limits'
-                                        defaultMessage='limits'
+                                        defaultMessage='with limits'
                                     />
                                 </ExternalLink>
                             ),
