@@ -5,24 +5,24 @@ exports[`components/threading/common/follow_button should say follow 1`] = `
   isFollowing={false}
   onClick={[MockFunction]}
 >
-  <Button
+  <ThreadButton
     className="FollowButton"
     disabled={false}
     isActive={false}
     onClick={[MockFunction]}
   >
     <button
-      className="Button Button___transparent FollowButton"
+      className="ThreadButton ThreadButton___transparent FollowButton"
       disabled={false}
       onClick={[MockFunction]}
     >
       <span
-        className="Button_label"
+        className="ThreadButton_label"
       >
         Follow
       </span>
     </button>
-  </Button>
+  </ThreadButton>
 </Memo(FollowButton)>
 `;
 
@@ -30,21 +30,21 @@ exports[`components/threading/common/follow_button should say following 1`] = `
 <Memo(FollowButton)
   isFollowing={true}
 >
-  <Button
+  <ThreadButton
     className="FollowButton"
     disabled={false}
     isActive={true}
   >
     <button
-      className="Button Button___transparent is-active FollowButton"
+      className="ThreadButton ThreadButton___transparent is-active FollowButton"
       disabled={false}
     >
       <span
-        className="Button_label"
+        className="ThreadButton_label"
       >
         Following
       </span>
     </button>
-  </Button>
+  </ThreadButton>
 </Memo(FollowButton)>
 `;
