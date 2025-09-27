@@ -105,30 +105,24 @@
             schema:
               type: object
               required:
-                - group
+                - name
+                - display_name
+                - source
+                - allow_reference
                 - user_ids
               properties:
-                group:
-                  type: object
-                  required:
-                    - name
-                    - display_name
-                    - source
-                    - allow_reference
-                  description: Group object to create.
-                  properties:
-                    name:
-                      type: string
-                      description: The unique group name used for at-mentioning.
-                    display_name:
-                      type: string
-                      description: The display name of the group which can include spaces.
-                    source:
-                      type: string
-                      description: Must be `custom`
-                    allow_reference:
-                      type: boolean
-                      description: Must be true
+                name:
+                  type: string
+                  description: The unique group name used for at-mentioning.
+                display_name:
+                  type: string
+                  description: The display name of the group which can include spaces.
+                source:
+                  type: string
+                  description: Must be `custom`
+                allow_reference:
+                  type: boolean
+                  description: Must be true
                 user_ids:
                   type: array
                   description: The user ids of the group members to add.
