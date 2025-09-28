@@ -336,7 +336,8 @@ export const getSearchResults: (state: GlobalState) => Post[] = createSelector(
             return [];
         }
 
-        return postIds.map((id) => posts[id]);
+        // Filter out posts that may no longer exist
+        return postIds.map((id) => posts[id]).filter((post) => post);
     },
 );
 

@@ -27,15 +27,12 @@ exports[`components/global/AtMentionsButton should match snapshot 1`] = `
     </React.Fragment>
   }
 >
-  <ForwardRef
+  <HeaderIconButton
     aria-controls="searchContainer"
     aria-expanded={false}
     aria-label="Recent mentions"
-    compact={true}
     icon="at"
-    inverted={true}
     onClick={[Function]}
-    size="sm"
     toggled={false}
   />
 </WithTooltip>

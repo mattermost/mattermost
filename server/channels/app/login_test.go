@@ -4,7 +4,6 @@
 package app
 
 import (
-	"net/http"
 	"os"
 	"testing"
 
@@ -12,33 +11,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
-
-func TestCheckForClientSideCert(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t)
-	defer th.TearDown()
-
-	tests := []struct {
-		pem           string
-		subject       string
-		expectedEmail string
-	}{
-		{"blah", "blah", ""},
-		{"blah", "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=test@test.com", "test@test.com"},
-		{"blah", "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/EmailAddress=test@test.com", ""},
-		{"blah", "CN=www.freesoft.org/EmailAddress=test@test.com, C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft", ""},
-	}
-
-	for _, tt := range tests {
-		r := &http.Request{Header: http.Header{}}
-		r.Header.Add("X-SSL-Client-Cert", tt.pem)
-		r.Header.Add("X-SSL-Client-Cert-Subject-DN", tt.subject)
-
-		_, _, actualEmail := th.App.CheckForClientSideCert(r)
-
-		require.Equal(t, actualEmail, tt.expectedEmail, "CheckForClientSideCert(%v): expected %v, actual %v", tt.subject, tt.expectedEmail, actualEmail)
-	}
-}
 
 func TestCWSLogin(t *testing.T) {
 	mainHelper.Parallel(t)

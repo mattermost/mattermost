@@ -949,6 +949,56 @@ func TestRestoreTeam(t *testing.T) {
 		require.Equal(t, model.TeamOpen, team.Type)
 	}, "restore active public team")
 
+	t.Run("sanitization", func(t *testing.T) {
+		t.Run("team admin without invite permission gets sanitized invite id", func(t *testing.T) {
+			team := createTeam(t, true, model.TeamOpen)
+			th.LinkUserToTeam(th.BasicUser2, team)
+
+			client2 := th.CreateClient()
+			th.LoginBasic2WithClient(client2)
+
+			// Make BasicUser2 a team admin
+			resp, err := th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), team.Id, th.BasicUser2.Id, "team_user team_admin")
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+
+			defaultRolePermissions := th.SaveDefaultRolePermissions()
+			defer th.RestoreDefaultRolePermissions(defaultRolePermissions)
+
+			// Remove invite permission from both team user and team admin roles
+			th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
+			th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+			restoredTeam, _, err := client2.RestoreTeam(context.Background(), team.Id)
+			require.NoError(t, err)
+			require.Empty(t, restoredTeam.InviteId, "InviteId should be sanitized for team admins without invite permission")
+		})
+
+		t.Run("team admin with invite permission gets unsanitized invite id", func(t *testing.T) {
+			team := createTeam(t, true, model.TeamOpen)
+			th.LinkUserToTeam(th.BasicUser2, team)
+
+			client2 := th.CreateClient()
+			th.LoginBasic2WithClient(client2)
+
+			// Make BasicUser2 a team admin
+			resp, err := th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), team.Id, th.BasicUser2.Id, "team_user team_admin")
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+
+			defaultRolePermissions := th.SaveDefaultRolePermissions()
+			defer th.RestoreDefaultRolePermissions(defaultRolePermissions)
+
+			// Ensure team admin role has invite permission
+			th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+			restoredTeam, _, err := client2.RestoreTeam(context.Background(), team.Id)
+			require.NoError(t, err)
+			require.NotEmpty(t, restoredTeam.InviteId, "InviteId should be present for team admins with invite permission")
+			require.Equal(t, team.InviteId, restoredTeam.InviteId)
+		})
+	})
+
 	t.Run("not logged in", func(t *testing.T) {
 		_, err := client.Logout(context.Background())
 		require.NoError(t, err)
@@ -1897,7 +1947,7 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 	commonRandom := model.NewId()
 	teams := [3]*model.Team{}
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		uid := model.NewId()
 		newTeam, err := th.App.CreateTeam(th.Context, &model.Team{
 			DisplayName: fmt.Sprintf("%s %d %s", commonRandom, i, uid),
@@ -2945,7 +2995,7 @@ func TestAddTeamMembers(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	// Test with many users.
-	for i := 0; i < 260; i++ {
+	for range 260 {
 		testUserList = append(testUserList, GenerateTestID())
 	}
 	_, resp, err = client.AddTeamMembers(context.Background(), team.Id, testUserList)
@@ -3839,7 +3889,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 		require.Nilf(t, appErr, "%v, Should update the team", appErr)
 
 		emailList := make([]string, 22)
-		for i := 0; i < 22; i++ {
+		for i := range 22 {
 			emailList[i] = "test-" + strconv.Itoa(i) + "@common.com"
 		}
 		resp, err := client.InviteUsersToTeam(context.Background(), th.BasicTeam.Id, emailList)
@@ -3980,7 +4030,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 		require.Nilf(t, err, "%v, Should update the team", err)
 
 		emailList := make([]string, 22)
-		for i := 0; i < 22; i++ {
+		for i := range 22 {
 			emailList[i] = "test-" + strconv.Itoa(i) + "@guest.com"
 		}
 		invite := &model.GuestsInvite{

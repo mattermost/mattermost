@@ -210,10 +210,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={true}
         areAllSectionsInactive={false}
         max={
-          <SettingItemMax
-            containerStyle=""
+          <Memo(SettingItemMax)
             extraInfo={null}
-            infoPosition="bottom"
             inputs={
               Array [
                 <fieldset>
@@ -272,7 +270,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
               ]
             }
             saving={false}
-            section=""
             submit={[Function]}
             title={
               <Memo(MemoizedFormattedMessage)
@@ -589,10 +586,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={true}
         areAllSectionsInactive={false}
         max={
-          <SettingItemMax
-            containerStyle=""
+          <Memo(SettingItemMax)
             extraInfo={null}
-            infoPosition="bottom"
             inputs={
               Array [
                 <fieldset>
@@ -651,7 +646,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
               ]
             }
             saving={false}
-            section=""
             submit={[Function]}
             title={
               <Memo(MemoizedFormattedMessage)
@@ -848,10 +842,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={true}
         areAllSectionsInactive={false}
         max={
-          <SettingItemMax
-            containerStyle=""
+          <Memo(SettingItemMax)
             extraInfo={null}
-            infoPosition="bottom"
             inputs={
               Array [
                 <fieldset>
@@ -910,7 +902,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
               ]
             }
             saving={false}
-            section=""
             submit={[Function]}
             title={
               <Memo(MemoizedFormattedMessage)
@@ -1347,10 +1338,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={true}
         areAllSectionsInactive={false}
         max={
-          <SettingItemMax
-            containerStyle=""
+          <Memo(SettingItemMax)
             extraInfo={null}
-            infoPosition="bottom"
             inputs={
               Array [
                 <fieldset>
@@ -1409,7 +1398,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
               ]
             }
             saving={false}
-            section=""
             submit={[Function]}
             title={
               <Memo(MemoizedFormattedMessage)
@@ -2356,10 +2344,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={true}
         areAllSectionsInactive={false}
         max={
-          <SettingItemMax
-            containerStyle=""
+          <Memo(SettingItemMax)
             extraInfo={null}
-            infoPosition="bottom"
             inputs={
               Array [
                 <fieldset>
@@ -2418,7 +2404,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
               ]
             }
             saving={false}
-            section=""
             submit={[Function]}
             title={
               <Memo(MemoizedFormattedMessage)
@@ -2789,10 +2774,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={true}
         areAllSectionsInactive={false}
         max={
-          <SettingItemMax
-            containerStyle=""
+          <Memo(SettingItemMax)
             extraInfo={null}
-            infoPosition="bottom"
             inputs={
               Array [
                 <fieldset>
@@ -2869,7 +2852,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
               ]
             }
             saving={false}
-            section=""
             submit={[Function]}
             title={
               <Memo(MemoizedFormattedMessage)

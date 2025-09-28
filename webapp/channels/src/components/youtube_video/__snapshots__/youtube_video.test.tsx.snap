@@ -63,41 +63,51 @@ exports[`YoutubeVideo should match init snapshot 1`] = `
         </h4>
         <div
           className="video-div embed-responsive-item"
-          onClick={[Function]}
         >
-          <div
-            className="embed-responsive video-div__placeholder"
+          <YouTubeThumbnail
+            onError={[Function]}
+            play={[Function]}
+            thumbnailUrl="https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg"
+            useMaxResThumbnail={true}
+            videoTitle="Youtube title"
           >
             <div
+              aria-label="Play Youtube title on YouTube"
               className="video-thumbnail__container"
+              onClick={[Function]}
+              onKeyDown={[Function]}
+              role="button"
+              tabIndex={0}
             >
               <Connect(Component)
-                src="linkForThumbnail"
+                src="https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg"
               >
                 <Memo(ExternalImage)
                   dispatch={[Function]}
                   enableSVGs={false}
                   hasImageProxy={false}
-                  src="linkForThumbnail"
+                  src="https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg"
                 >
                   <img
-                    alt="youtube video thumbnail"
+                    alt="Thumbnail for Youtube title on YouTube"
                     className="video-thumbnail"
-                    src="linkForThumbnail"
+                    onError={[Function]}
+                    src="https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg"
                   />
                 </Memo(ExternalImage)>
               </Connect(Component)>
               <div
-                className="block"
+                aria-label="Play video"
+                className="play-button"
+                role="presentation"
               >
-                <span
-                  className="play-button"
-                >
-                  <span />
-                </span>
+                <i
+                  aria-hidden="true"
+                  className="icon-play"
+                />
               </div>
             </div>
-          </div>
+          </YouTubeThumbnail>
         </div>
       </div>
     </div>
@@ -129,19 +139,21 @@ exports[`YoutubeVideo should match snapshot for playing state 1`] = `
     </h4>
     <div
       className="video-div embed-responsive-item"
-      onClick={[Function]}
     >
-      <iframe
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowFullScreen={true}
-        frameBorder="0"
-        height="360px"
-        referrerPolicy="no-referrer"
-        sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
-        src="https://www.youtube.com/embed/xqCoNej8Zxo?autoplay=1&autohide=1&border=0&wmode=opaque&fs=1&enablejsapi=1"
-        title="Youtube title"
-        width="480px"
-      />
+      <div
+        className="video-playing"
+      >
+        <iframe
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen={true}
+          frameBorder="0"
+          height="100%"
+          sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
+          src="https://www.youtube.com/embed/xqCoNej8Zxo?autoplay=1&rel=0&fs=1&enablejsapi=1"
+          title="Youtube title"
+          width="100%"
+        />
+      </div>
     </div>
   </div>
 </div>
@@ -171,19 +183,22 @@ exports[`YoutubeVideo should match snapshot for playing state and \`youtubeRefer
     </h4>
     <div
       className="video-div embed-responsive-item"
-      onClick={[Function]}
     >
-      <iframe
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowFullScreen={true}
-        frameBorder="0"
-        height="360px"
-        referrerPolicy="strict-origin-when-cross-origin"
-        sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
-        src="https://www.youtube.com/embed/xqCoNej8Zxo?autoplay=1&autohide=1&border=0&wmode=opaque&fs=1&enablejsapi=1"
-        title="Youtube title"
-        width="480px"
-      />
+      <div
+        className="video-playing"
+      >
+        <iframe
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen={true}
+          frameBorder="0"
+          height="100%"
+          referrerPolicy="origin"
+          sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
+          src="https://www.youtube.com/embed/xqCoNej8Zxo?autoplay=1&rel=0&fs=1&enablejsapi=1"
+          title="Youtube title"
+          width="100%"
+        />
+      </div>
     </div>
   </div>
 </div>

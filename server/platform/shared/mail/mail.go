@@ -12,6 +12,7 @@ import (
 	"net"
 	"net/mail"
 	"net/smtp"
+	"slices"
 	"time"
 
 	"github.com/jaytaylor/html2text"
@@ -79,11 +80,8 @@ type authChooser struct {
 func (a *authChooser) Start(server *smtp.ServerInfo) (string, []byte, error) {
 	smtpAddress := a.config.ServerName + ":" + a.config.Port
 	a.Auth = LoginAuth(a.config.Username, a.config.Password, smtpAddress)
-	for _, method := range server.Auth {
-		if method == "PLAIN" {
-			a.Auth = smtp.PlainAuth("", a.config.Username, a.config.Password, a.config.ServerName+":"+a.config.Port)
-			break
-		}
+	if slices.Contains(server.Auth, "PLAIN") {
+		a.Auth = smtp.PlainAuth("", a.config.Username, a.config.Password, a.config.ServerName+":"+a.config.Port)
 	}
 	return a.Auth.Start(server)
 }

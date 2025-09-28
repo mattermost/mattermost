@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useRef, useEffect, useMemo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {useState, useRef, useEffect, useMemo, useCallback} from 'react';
 import {useDispatch} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -11,19 +10,19 @@ import type {ServerError} from '@mattermost/types/errors';
 import {autocompleteChannelsForSearchInTeam} from 'actions/channel_actions';
 import {autocompleteUsersInTeam} from 'actions/user_actions';
 
-import type {ProviderResult} from 'components/suggestion/provider';
 import type Provider from 'components/suggestion/provider';
 import SearchChannelProvider from 'components/suggestion/search_channel_provider';
 import SearchDateProvider from 'components/suggestion/search_date_provider';
 import SearchUserProvider from 'components/suggestion/search_user_provider';
+import type {ProviderResults, SuggestionResults} from 'components/suggestion/suggestion_results';
+import {emptyResults, flattenTerms, normalizeResultsFromProvider, trimResults} from 'components/suggestion/suggestion_results';
 
 import {SearchFileExtensionProvider} from './extension_suggestions_provider';
 
-const useSearchSuggestions = (searchType: string, searchTerms: string, searchTeam: string, caretPosition: number, getCaretPosition: () => number, setSelectedOption: (idx: number) => void): [ProviderResult<unknown>|null, React.ReactNode] => {
+export const useSearchSuggestions = (searchType: string, searchTerms: string, searchTeam: string, caretPosition: number, getCaretPosition: () => number): SuggestionResults => {
     const dispatch = useDispatch();
 
-    const [providerResults, setProviderResults] = useState<ProviderResult<unknown>|null>(null);
-    const [suggestionsHeader, setSuggestionsHeader] = useState<React.ReactNode>(<span/>);
+    const [results, setResults] = useState<SuggestionResults>(emptyResults());
 
     const suggestionProviders = useRef<Provider[]>([
         new SearchDateProvider(),
@@ -32,27 +31,8 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, searchTea
         new SearchFileExtensionProvider(),
     ]);
 
-    const headers = useMemo<React.ReactNode[]>(() => [
-        <span key={1}/>,
-        <FormattedMessage
-            id='search_bar.channels'
-            defaultMessage='Channels'
-            key={2}
-        />,
-        <FormattedMessage
-            id='search_bar.users'
-            defaultMessage='Users'
-            key={3}
-        />,
-        <FormattedMessage
-            id='search_bar.file_types'
-            defaultMessage='File types'
-            key={4}
-        />,
-    ], []);
-
     useEffect(() => {
-        setProviderResults(null);
+        setResults(emptyResults());
         if (searchType !== '' && searchType !== 'messages' && searchType !== 'files') {
             return;
         }
@@ -67,23 +47,63 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, searchTea
         }
 
         suggestionProviders.current.forEach((provider, idx) => {
-            provider.handlePretextChanged(partialSearchTerms, (res: ProviderResult<unknown>) => {
+            provider.handlePretextChanged(partialSearchTerms, (res: ProviderResults) => {
                 if (idx === 3 && searchType !== 'files') {
                     return;
                 }
                 if (caretPosition !== getCaretPosition()) {
                     return;
                 }
-                res.items = res.items.slice(0, 10);
-                res.terms = res.terms.slice(0, 10);
-                setProviderResults(res);
-                setSelectedOption(0);
-                setSuggestionsHeader(headers[idx]);
+
+                let trimmedResults = normalizeResultsFromProvider(res);
+                trimmedResults = trimResults(trimmedResults, 10);
+
+                setResults(trimmedResults);
             }, searchTeam);
         });
     }, [searchTerms, searchTeam, searchType, caretPosition]);
 
-    return [providerResults, suggestionsHeader];
+    return results;
 };
 
-export default useSearchSuggestions;
+export function useSearchSuggestionSelection(results: SuggestionResults) {
+    const [selectedTerm, setSelectedTerm] = useState('');
+
+    const flattenedTerms = useMemo(() => flattenTerms(results), [results]);
+
+    // Logic
+
+    useEffect(() => {
+        // Unlike the SuggestionBox, this always resets the selection when suggestions changes. This is probably
+        // much more reliable than the SuggestionBox's behaviour.
+        setSelectedTerm(flattenedTerms.length > 0 ? flattenedTerms[0] : '');
+    }, [flattenedTerms]);
+
+    // Callbacks
+
+    const clearSelection = useCallback(() => {
+        setSelectedTerm('');
+    }, []);
+
+    const setSelectionByDelta = useCallback((delta: number) => {
+        const selectionIndex = flattenedTerms.indexOf(selectedTerm);
+        if (selectionIndex === -1) {
+            setSelectedTerm('');
+        } else {
+            let nextSelectionIndex = selectionIndex + delta;
+
+            // Keyboard selection doesn't wrap around
+            nextSelectionIndex = Math.min(Math.max(nextSelectionIndex, 0), flattenedTerms.length - 1);
+
+            setSelectedTerm(flattenedTerms[nextSelectionIndex]);
+        }
+    }, [selectedTerm, flattenedTerms]);
+
+    return {
+        selectedTerm,
+
+        clearSelection,
+        setSelectedTerm,
+        setSelectionByDelta,
+    };
+}

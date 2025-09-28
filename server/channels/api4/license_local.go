@@ -19,7 +19,7 @@ func (api *API) InitLicenseLocal() {
 }
 
 func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("localAddLicense", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalAddLicense, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -80,7 +80,7 @@ func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localRemoveLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("localRemoveLicense", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalRemoveLicense, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 

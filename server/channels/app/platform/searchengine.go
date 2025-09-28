@@ -86,9 +86,4 @@ func (ps *PlatformService) StopSearchEngine() {
 			ps.Log().Error("Failed to stop Elasticsearch engine", mlog.Err(err))
 		}
 	}
-	if ps.SearchEngine != nil && ps.SearchEngine.BleveEngine != nil && ps.SearchEngine.BleveEngine.IsActive() {
-		if err := ps.SearchEngine.BleveEngine.Stop(); err != nil {
-			ps.Log().Error("Failed to stop Bleve Engine", mlog.Err(err))
-		}
-	}
 }

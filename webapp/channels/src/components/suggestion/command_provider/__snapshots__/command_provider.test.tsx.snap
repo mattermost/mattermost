@@ -2,6 +2,9 @@
 
 exports[`CommandSuggestion should match snapshot 1`] = `
 <SuggestionContainer
+  aria-describedby="test-suggestion-description"
+  aria-labelledby="test-suggestion-label"
+  id="test-suggestion"
   isSelection={true}
   item={
     Object {
@@ -29,11 +32,13 @@ exports[`CommandSuggestion should match snapshot 1`] = `
   >
     <div
       className="slash-command__title"
+      id="test-suggestion-label"
     >
       invite @[username] ~[channel]
     </div>
     <div
       className="slash-command__desc"
+      id="test-suggestion-description"
     >
       Invite a user to a channel
     </div>

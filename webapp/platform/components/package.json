@@ -43,7 +43,7 @@
     "classnames": "^2.3.1",
     "lodash": "^4.17.21",
     "react": "^17.0.2",
-    "react-bootstrap": "github:mattermost/react-bootstrap#d821e2b1db1059bd36112d7587fd1b0912b27626",
+    "react-bootstrap": "github:mattermost/react-bootstrap#7d8660f06188a6433bb0f69b5816a97dc9ebe48c",
     "react-dom": "^17.0.2",
     "react-intl": "*",
     "shallow-equals": "^1.0.0",

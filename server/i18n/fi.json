@@ -352,14 +352,6 @@
     "translation": "Sähköpostien yhdistelyä ei voi ottaa käyttöön kun klusterointi on käytössä."
   },
   {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Elasticsearch IndexingEnabled asetus on asetettava päälle kun Elasticsearch SearchEnabled asetetaan päälle."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Elasticsearch IndexingEnabled asetus on asetettava päälle kun Elasticsearch SearchEnabled asetetaan päälle."
-  },
-  {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
     "translation": "Virheellinen RemoteImageProxyURL arvo atmos/camoa varten. Täytyy asettaa jaettuun avaimeen."
   },
@@ -2876,58 +2868,6 @@
     "translation": "Ei voitu dekoodata kuvadataa."
   },
   {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Haku ei valmistunut"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Haku ei valmistunut"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Haku ei valmistunut"
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Haku ei valmistunut"
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Haku ei valmistunut"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch-indeksointityöskentelijä ei voinut parsia aloitusaikaa"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch-indeksointityöskentelijä ei voinut parsia loppuaikaa"
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Viestin indeksointi epäonnistui"
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Viestin indeksointi epäonnistui"
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Kanavaa ei voitu päivittää"
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Viestin poisto epäonnistui"
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Viestin poisto epäonnistui"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Kanavaa ei voitu päivittää"
-  },
-  {
     "id": "app.user_access_token.invalid_or_missing",
     "translation": "Virheellinen tai puuttuva token"
   },
@@ -3677,10 +3617,6 @@
     "translation": "Sivua ei löytynyt."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Asiakkaan konfiguroinnin uutta muotoa ei tueta vielä. Määritä format=old pyynnössä."
-  },
-  {
     "id": "api.command_shrug.name",
     "translation": "olankohtautus"
   },
@@ -3859,14 +3795,6 @@
   {
     "id": "api.user.login.guest_accounts.license.error",
     "translation": "Lisenssisi ei tue vierailijatilejä"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Yritettiin käyttää kokeellista ClientSideCertEnable-ominaisuutta ilman voimassa olevaa yrityslisenssiä."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Yritettiin kirjautua sisään kokeellisella ClientSideCert-ominaisuuden avulla antamatta kelvollista varmennetta."
   },
   {
     "id": "api.user.login.blank_pwd.app_error",

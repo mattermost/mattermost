@@ -67,8 +67,8 @@ function mapStateToProps(state: GlobalState) {
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
-    const autocompleteChannels = (term: string, teamId: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void): void => {
-        autocompleteChannelsForSearch(term, success, error);
+    const autocompleteChannels = (term: string, teamId: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => {
+        return autocompleteChannelsForSearch(term, success, error);
     };
 
     return {

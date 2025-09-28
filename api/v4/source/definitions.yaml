@@ -1335,8 +1335,6 @@ components:
           type: string
         SyncIntervalMinutes:
           type: integer
-        ReAddRemovedMembers:
-          type: boolean
         SkipCertificateVerification:
           type: boolean
         PublicCertificateFile:
@@ -2691,11 +2689,33 @@ components:
           type: string
           description: Set to "true" to enable mentions for first name. Defaults to "true"
             if a first name is set, "false" otherwise.
+        auto_responder_message:
+          type: string
+          description: The message sent to users when they are auto-responded to.
+            Defaults to "".
+        push_threads:
+          type: string
+          description: Set to "all" to enable mobile push notifications for followed threads and "none" to disable.
+            Defaults to "all".
+        comments:
+          type: string
+          description: Set to "any" to enable notifications for comments to any post you have
+            replied to, "root" for comments on your posts, and "never" to disable. Only
+            affects users with collapsed reply threads disabled.
+            Defaults to "never".
+        desktop_threads:
+          type: string
+          description: Set to "all" to enable desktop notifications for followed threads and "none" to disable.
+            Defaults to "all".
+        email_threads:
+          type: string
+          description: Set to "all" to enable email notifications for followed threads and "none" to disable.
+            Defaults to "all".
     Timezone:
       type: object
       properties:
         useAutomaticTimezone:
-          type: boolean
+          type: string
           description: Set to "true" to use the browser/system timezone, "false" to set
             manually. Defaults to "true".
         manualTimezone:
@@ -3956,6 +3976,37 @@ components:
         state:
           description: The current state of the installation
           type: string
+    MessageDescriptor:
+      type: object
+      properties:
+        id:
+          description: The i18n message ID
+          type: string
+        defaultMessage:
+          description: The default message text
+          type: string
+        values:
+          description: Optional values for message interpolation
+          type: object
+          additionalProperties: true
+    PreviewModalContentData:
+      type: object
+      properties:
+        skuLabel:
+          $ref: "#/components/schemas/MessageDescriptor"
+        title:
+          $ref: "#/components/schemas/MessageDescriptor"
+        subtitle:
+          $ref: "#/components/schemas/MessageDescriptor"
+        videoUrl:
+          description: URL of the video content
+          type: string
+        videoPoster:
+          description: URL of the video poster/thumbnail image
+          type: string
+        useCase:
+          description: The use case category for this content
+          type: string
     ServerLimits:
       type: object
       properties:
@@ -4233,6 +4284,18 @@ components:
         value_type:
           type: string
           description: The value type.
+    ChannelBanner:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          description: enabled indicates whether the channel banner is enabled or not
+        text:
+          type: string
+          description: text is the actual text that renders in the channel banner. Markdown is supported.
+        background_color:
+          type: string
+          description: background_color is the HEX color code for the banner's backgroubd
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

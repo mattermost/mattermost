@@ -138,7 +138,7 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 		return nil
 	}
 
-	auditRec := c.MakeAuditRecord("uploadFileSimple", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUploadFileSimple, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 
@@ -319,7 +319,7 @@ NextPart:
 			clientId = clientIds[nFiles]
 		}
 
-		auditRec := c.MakeAuditRecord("uploadFileMultipart", model.AuditStatusFail)
+		auditRec := c.MakeAuditRecord(model.AuditEventUploadFileMultipart, model.AuditStatusFail)
 		model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 		model.AddEventParameterToAuditRec(auditRec, "client_id", clientId)
 
@@ -426,7 +426,7 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 			clientId = clientIds[i]
 		}
 
-		auditRec := c.MakeAuditRecord("uploadFileMultipartLegacy", model.AuditStatusFail)
+		auditRec := c.MakeAuditRecord(model.AuditEventUploadFileMultipartLegacy, model.AuditStatusFail)
 		defer c.LogAuditRec(auditRec)
 		model.AddEventParameterToAuditRec(auditRec, "channel_id", channelId)
 		model.AddEventParameterToAuditRec(auditRec, "client_id", clientId)
@@ -471,7 +471,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	forceDownload, _ := strconv.ParseBool(r.URL.Query().Get("download"))
 
-	auditRec := c.MakeAuditRecord("getFile", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetFile, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "force_download", forceDownload)
 
@@ -569,7 +569,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("getFileLink", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetFileLink, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)

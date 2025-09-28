@@ -5,50 +5,41 @@ import React, {memo} from 'react';
 
 import Popover from 'components/widgets/popover';
 
+import type {SuggestionResults, SuggestionResultsUngrouped} from './suggestion_results';
+import {hasResults} from './suggestion_results';
+
 type SuggestionItem = {
     date: string;
     label: string;
 }
 
-type SuggestionItemProps = {
-    key: string;
-    item: SuggestionItem;
-    term: string;
-    matchedPretext: string;
-    preventClose: () => void;
-    handleEscape: () => void;
-    isSelection: boolean;
-    onClick: (term: string, matchedPretext: string[], e?: React.MouseEvent<HTMLDivElement>) => boolean;
-}
-
 type Props = {
     onCompleteWord: (term: string, matchedPretext: string[], e?: React.MouseEvent<HTMLDivElement>) => boolean;
-    matchedPretext: string[];
-    items: SuggestionItem[];
-    terms: string[];
+    matchedPretext: string;
+    results: SuggestionResults<SuggestionItem>;
     preventClose: () => void;
     handleEscape: () => void;
-    components: Array<React.ComponentType<SuggestionItemProps>>;
 }
 
 const SuggestionDate = ({
-    items,
-    terms,
-    components,
+    results,
     matchedPretext,
     onCompleteWord,
     preventClose,
     handleEscape,
 }: Props) => {
-    if (items.length === 0) {
+    if (!hasResults(results)) {
         return null;
     }
 
-    const item = items[0];
-    const term = terms[0];
+    // This is safe to do because SearchDateProvider only returns ungrouped results
+    const ungroupedResults = results as SuggestionResultsUngrouped;
+
+    const item = ungroupedResults.items[0];
+    const term = ungroupedResults.terms[0];
 
     // ReactComponent names need to be upper case when used in JSX
-    const Component = components[0];
+    const Component = ungroupedResults.components[0];
 
     return (
         <Popover
@@ -58,9 +49,9 @@ const SuggestionDate = ({
         >
             <Component
                 key={term}
-                item={item}
+                item={item as SuggestionItem}
                 term={term}
-                matchedPretext={matchedPretext[0]}
+                matchedPretext={matchedPretext}
                 isSelection={false}
                 onClick={onCompleteWord}
                 preventClose={preventClose}

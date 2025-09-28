@@ -440,7 +440,7 @@ func testGroupStoreGetByIDs(t *testing.T, rctx request.CTX, ss store.Store) {
 	var group1 *model.Group
 	var group2 *model.Group
 
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		group := &model.Group{
 			Name:        model.NewPointer(model.NewId()),
 			DisplayName: model.NewId(),
@@ -462,7 +462,7 @@ func testGroupStoreGetByIDs(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	require.Len(t, groups, 2)
 
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		require.True(t, (groups[i].Id == group1.Id || groups[i].Id == group2.Id))
 	}
 
@@ -1506,7 +1506,7 @@ func testGroupPermanentDeleteMembersByUser(t *testing.T, rctx request.CTX, ss st
 	var groups []*model.Group
 	numberOfGroups := 5
 
-	for i := 0; i < numberOfGroups; i++ {
+	for range numberOfGroups {
 		g = &model.Group{
 			Name:        model.NewPointer(model.NewId()),
 			DisplayName: model.NewId(),
@@ -1681,7 +1681,7 @@ func testGetAllGroupSyncablesByGroupTeam(t *testing.T, rctx request.CTX, ss stor
 	groupTeams := []*model.GroupSyncable{}
 
 	// Create groupTeams
-	for i := 0; i < numGroupSyncables; i++ {
+	for range numGroupSyncables {
 		// Create Team
 		t1 := &model.Team{
 			DisplayName:     "Name",
@@ -1754,7 +1754,7 @@ func testGetAllGroupSyncablesByGroupChannel(t *testing.T, rctx request.CTX, ss s
 	groupChannels := []*model.GroupSyncable{}
 
 	// Create groupChannels
-	for i := 0; i < numGroupSyncables; i++ {
+	for range numGroupSyncables {
 		// Create Channel
 		channel := &model.Channel{
 			TeamId:      team.Id,
@@ -4377,7 +4377,7 @@ func testTeamMembersMinusGroupMembers(t *testing.T, rctx request.CTX, ss store.S
 	team, err := ss.Team().Save(team)
 	require.NoError(t, err)
 
-	for i := 0; i < numberOfUsers; i++ {
+	for i := range numberOfUsers {
 		user := &model.User{
 			Email:    MakeEmail(),
 			Username: fmt.Sprintf("a%d_%s", i, model.NewId()),
@@ -4402,7 +4402,7 @@ func testTeamMembersMinusGroupMembers(t *testing.T, rctx request.CTX, ss store.S
 	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: team.Id, UserId: user.Id, SchemeUser: true, SchemeAdmin: false}, 999)
 	require.NoError(t, nErr)
 
-	for i := 0; i < numberOfGroups; i++ {
+	for i := range numberOfGroups {
 		group := &model.Group{
 			Name:        model.NewPointer(fmt.Sprintf("n_%d_%s", i, model.NewId())),
 			DisplayName: model.NewId(),
@@ -4420,7 +4420,7 @@ func testTeamMembersMinusGroupMembers(t *testing.T, rctx request.CTX, ss store.S
 	})
 
 	// Add even users to even group, and the inverse
-	for i := 0; i < numberOfUsers; i++ {
+	for i := range numberOfUsers {
 		groupIndex := int(math.Mod(float64(i), 2))
 		_, err := ss.Group().UpsertMember(groups[groupIndex].Id, users[i].Id)
 		require.NoError(t, err)
@@ -4529,7 +4529,7 @@ func testChannelMembersMinusGroupMembers(t *testing.T, rctx request.CTX, ss stor
 	channel, err := ss.Channel().Save(rctx, channel, 9999)
 	require.NoError(t, err)
 
-	for i := 0; i < numberOfUsers; i++ {
+	for i := range numberOfUsers {
 		user := &model.User{
 			Email:    MakeEmail(),
 			Username: fmt.Sprintf("a%d_%s", i, model.NewId()),
@@ -4565,7 +4565,7 @@ func testChannelMembersMinusGroupMembers(t *testing.T, rctx request.CTX, ss stor
 	})
 	require.NoError(t, err)
 
-	for i := 0; i < numberOfGroups; i++ {
+	for i := range numberOfGroups {
 		group := &model.Group{
 			Name:        model.NewPointer(fmt.Sprintf("n_%d_%s", i, model.NewId())),
 			DisplayName: model.NewId(),
@@ -4583,7 +4583,7 @@ func testChannelMembersMinusGroupMembers(t *testing.T, rctx request.CTX, ss stor
 	})
 
 	// Add even users to even group, and the inverse
-	for i := 0; i < numberOfUsers; i++ {
+	for i := range numberOfUsers {
 		groupIndex := int(math.Mod(float64(i), 2))
 		_, err := ss.Group().UpsertMember(groups[groupIndex].Id, users[i].Id)
 		require.NoError(t, err)
@@ -4688,7 +4688,7 @@ func groupTestGetMemberCount(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	var user *model.User
 	var nErr error
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		user = &model.User{
 			Email:    MakeEmail(),
 			Username: fmt.Sprintf("a%d_%s", i, model.NewId()),

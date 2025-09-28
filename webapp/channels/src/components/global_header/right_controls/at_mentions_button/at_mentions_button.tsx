@@ -5,11 +5,10 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
-
 import {closeRightHandSide, showMentions} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
 
+import IconButton from 'components/global_header/header_icon_button';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import WithTooltip from 'components/with_tooltip';
 
@@ -48,12 +47,9 @@ const AtMentionsButton = (): JSX.Element => {
             }
         >
             <IconButton
-                size={'sm'}
                 icon={'at'}
                 toggled={rhsState === RHSStates.MENTION}
                 onClick={mentionButtonClick}
-                inverted={true}
-                compact={true}
                 aria-expanded={rhsState === RHSStates.MENTION}
                 aria-controls='searchContainer' // Must be changed if the ID of the container changes
                 aria-label={formatMessage({id: 'channel_header.recentMentions', defaultMessage: 'Recent mentions'})}

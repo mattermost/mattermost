@@ -49,7 +49,7 @@ func addAuditLogCertificate(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("addAuditLogCertificate", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddAuditLogCertificate, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "filename", fileData.Filename)
 
@@ -70,7 +70,7 @@ func removeAuditLogCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("removeAuditLogCertificate", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveAuditLogCertificate, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.RemoveAuditLogCertificate(c.AppContext); err != nil {

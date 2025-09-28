@@ -526,6 +526,7 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                   restoreFocus={true}
                   role="none"
                   show={false}
+                  style={Object {}}
                 >
                   <Modal
                     autoFocus={true}

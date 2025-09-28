@@ -139,7 +139,7 @@ func TestTimeout(t *testing.T) {
 		r, w := io.Pipe()
 		go func() {
 			defer w.Close()
-			for i := 0; i < 10; i++ {
+			for range 10 {
 				_, writeErr := w.Write([]byte("data"))
 				require.NoError(t, writeErr)
 				time.Sleep(time.Millisecond * 200)

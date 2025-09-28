@@ -1537,7 +1537,7 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 				session *model.Session
 			}
 			var userSessions []userSession
-			for i := 0; i < 3; i++ {
+			for range 3 {
 				u := th.CreateUser()
 				sess, err := th.App.CreateSession(th.Context, &model.Session{
 					UserId:    u.Id,
@@ -1613,6 +1613,131 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 				}
 			}
 			assert.Equal(t, tt.expectedNotifications, numMessages)
+		})
+	}
+}
+
+//go:embed test_templates/hook_email_notification_will_be_sent.tmpl
+var hookEmailNotificationWillBeSentTmpl string
+
+func TestHookEmailNotificationWillBeSent(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	tests := []struct {
+		name                        string
+		testCode                    string
+		expectedNotificationSubject string
+		expectedNotificationTitle   string
+		expectedButtonText          string
+		expectedFooterText          string
+	}{
+		{
+			name:     "successfully sent",
+			testCode: `return nil, ""`,
+		},
+		{
+			name:     "email notification rejected",
+			testCode: `return nil, "rejected"`,
+		},
+		{
+			name: "email notification modified",
+			testCode: `content := &model.EmailNotificationContent{
+		Subject: "Modified Subject by Plugin",
+		Title: "Modified Title by Plugin",
+		ButtonText: "Modified Button by Plugin",
+		FooterText: "Modified Footer by Plugin",
+	}
+	return content, ""`,
+			expectedNotificationSubject: "Modified Subject by Plugin",
+			expectedNotificationTitle:   "Modified Title by Plugin",
+			expectedButtonText:          "Modified Button by Plugin",
+			expectedFooterText:          "Modified Footer by Plugin",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mainHelper.Parallel(t)
+
+			th := Setup(t).InitBasic()
+			defer th.TearDown()
+
+			// Create a test user for email notifications
+			user := th.CreateUser()
+			th.LinkUserToTeam(user, th.BasicTeam)
+			th.AddUserToChannel(user, th.BasicChannel)
+
+			// Set up email notification preferences to disable batching
+			appErr := th.App.UpdatePreferences(th.Context, user.Id, model.Preferences{
+				{
+					UserId:   user.Id,
+					Category: model.PreferenceCategoryNotifications,
+					Name:     model.PreferenceNameEmailInterval,
+					Value:    model.PreferenceEmailIntervalNoBatchingSeconds,
+				},
+			})
+			require.Nil(t, appErr)
+
+			// Disable email batching in config
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.EmailSettings.EnableEmailBatching = false
+			})
+
+			// Create and set up plugin
+			templatedPlugin := fmt.Sprintf(hookEmailNotificationWillBeSentTmpl, tt.testCode)
+			tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{templatedPlugin}, th.App, th.NewPluginAPI)
+			defer tearDown()
+
+			// For the modification test, create a simple test that verifies the hook is called
+			// The detailed verification would require more complex mocking which is beyond this test's scope
+
+			// Create a post that will trigger email notification
+			post := &model.Post{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "@" + user.Username + " test message",
+				CreateAt:  model.GetMillis(),
+			}
+
+			// Create notification
+			notification := &PostNotification{
+				Post:    post,
+				Channel: th.BasicChannel,
+				ProfileMap: map[string]*model.User{
+					user.Id: user,
+				},
+				Sender: th.BasicUser,
+			}
+
+			// Send email notification (this will trigger the hook)
+			// Use assert.Eventually to handle any potential race conditions with plugin activation/deactivation
+			assert.Eventually(t, func() bool {
+				modifiedNotification, err := th.App.sendNotificationEmail(th.Context, notification, user, th.BasicTeam, nil)
+
+				// For the rejected test case, we expect the notification to be rejected
+				if tt.name == "email notification rejected" {
+					// When rejected, sendNotificationEmail returns nil for the notification
+					return modifiedNotification == nil && err == nil
+				}
+				if err != nil || modifiedNotification == nil {
+					return false
+				}
+
+				// Verify the modified notification fields
+				if tt.expectedNotificationSubject != "" && modifiedNotification.Subject != tt.expectedNotificationSubject {
+					return false
+				}
+				if tt.expectedNotificationTitle != "" && modifiedNotification.Title != tt.expectedNotificationTitle {
+					return false
+				}
+				if tt.expectedButtonText != "" && modifiedNotification.ButtonText != tt.expectedButtonText {
+					return false
+				}
+				if tt.expectedFooterText != "" && modifiedNotification.FooterText != tt.expectedFooterText {
+					return false
+				}
+				return true
+			}, 2*time.Second, 100*time.Millisecond)
 		})
 	}
 }
@@ -1916,7 +2041,7 @@ func TestChannelHasBeenCreated(t *testing.T) {
 		require.NotNil(t, channel)
 
 		assert.EventuallyWithT(t, func(t *assert.CollectT) {
-			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
+			posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 1)
 
 			require.Nil(t, appErr)
 			assert.True(t, len(posts.Order) > 0)
@@ -1943,7 +2068,7 @@ func TestChannelHasBeenCreated(t *testing.T) {
 		require.NotNil(t, channel)
 
 		assert.EventuallyWithT(t, func(t *assert.CollectT) {
-			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
+			posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 1)
 
 			require.Nil(t, appErr)
 			assert.True(t, len(posts.Order) > 0)
@@ -1970,7 +2095,7 @@ func TestChannelHasBeenCreated(t *testing.T) {
 		require.NotNil(t, channel)
 
 		assert.EventuallyWithT(t, func(t *assert.CollectT) {
-			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
+			posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 1)
 
 			require.Nil(t, appErr)
 			assert.True(t, len(posts.Order) > 0)
@@ -2054,7 +2179,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		require.Nil(t, appErr)
 
 		assert.EventuallyWithT(t, func(t *assert.CollectT) {
-			posts, appErr := th.App.GetPosts(channel.Id, 0, 30)
+			posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 30)
 
 			require.Nil(t, appErr)
 			assert.True(t, len(posts.Order) > 0)
@@ -2103,7 +2228,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		assert.Eventually(t, func() bool {
 			// Typically, the post we're looking for will be the latest, but there's a race between the plugin and
 			// "User has joined the channel" post which means the plugin post may not the the latest one
-			posts, appErr := th.App.GetPosts(channel.Id, 0, 10)
+			posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 10)
 			require.Nil(t, appErr)
 
 			for _, postId := range posts.Order {
@@ -2139,7 +2264,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 		var posts *model.PostList
 		require.EventuallyWithT(t, func(c *assert.CollectT) {
-			posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
+			posts, appErr = th.App.GetPosts(th.Context, channel.Id, 0, 10)
 			assert.Nil(t, appErr)
 		}, 2*time.Second, 100*time.Millisecond)
 
@@ -2170,7 +2295,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 		var posts *model.PostList
 		require.EventuallyWithT(t, func(c *assert.CollectT) {
-			posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
+			posts, appErr = th.App.GetPosts(th.Context, channel.Id, 0, 10)
 			assert.Nil(t, appErr)
 		}, 2*time.Second, 100*time.Millisecond)
 
@@ -2202,7 +2327,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 		var posts *model.PostList
 		require.EventuallyWithT(t, func(c *assert.CollectT) {
-			posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
+			posts, appErr = th.App.GetPosts(th.Context, channel.Id, 0, 10)
 			assert.Nil(t, appErr)
 		}, 2*time.Second, 100*time.Millisecond)
 

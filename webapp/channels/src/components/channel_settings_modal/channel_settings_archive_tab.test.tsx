@@ -5,7 +5,6 @@ import {screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import type {ClientConfig} from '@mattermost/types/config';
 import type {Team} from '@mattermost/types/teams';
 
 import * as teams from 'mattermost-redux/selectors/entities/teams';
@@ -24,11 +23,6 @@ jest.mock('actions/views/channel', () => ({
 
 jest.mock('utils/browser_history', () => ({
     getHistory: jest.fn(),
-}));
-
-jest.mock('mattermost-redux/selectors/entities/general', () => ({
-    ...jest.requireActual('mattermost-redux/selectors/entities/general') as typeof import('mattermost-redux/selectors/entities/general'),
-    getConfig: () => mockConfig,
 }));
 
 // Mock the roles selector which is a dependency for other selectors
@@ -52,16 +46,10 @@ const baseProps = {
     onHide: jest.fn(),
 };
 
-let mockConfig: Partial<ClientConfig>;
-
 describe('ChannelSettingsArchiveTab', () => {
     const {getHistory} = require('utils/browser_history');
     beforeEach(() => {
         jest.clearAllMocks();
-
-        mockConfig = {
-            ExperimentalViewArchivedChannels: 'false',
-        };
 
         jest.spyOn(teams, 'getCurrentTeam').mockReturnValue({
             id: 'team1',
@@ -196,5 +184,37 @@ describe('ChannelSettingsArchiveTab', () => {
 
         // Check that deleteChannel was called with the invalid channel ID
         expect(channelActions.deleteChannel).toHaveBeenCalledWith(invalidChannel.id);
+    });
+
+    it('should handle backdrops correctly when confirmation modal is opened', async () => {
+        // Create a mock backdrop element to simulate the parent modal's backdrop
+        const mockBackdrop = document.createElement('div');
+        mockBackdrop.className = 'modal-backdrop';
+        document.body.appendChild(mockBackdrop);
+
+        try {
+            renderWithContext(<ChannelSettingsArchiveTab {...baseProps}/>);
+
+            // Click the archive button to open the confirmation modal
+            await userEvent.click(screen.getByText('Archive this channel'));
+
+            // Check that the confirmation modal is shown
+            expect(screen.getByTestId('archiveChannelConfirmModal')).toBeInTheDocument();
+
+            // With the new approach, there should be two backdrops:
+            // 1. The parent modal's backdrop (with opacity 0)
+            // 2. The confirmation modal's backdrop
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            expect(backdrops.length).toBe(2);
+
+            // Check that one of the backdrops has opacity 0
+            const hasInvisibleBackdrop = Array.from(backdrops).some(
+                (backdrop) => (backdrop as HTMLElement).style.opacity === '0',
+            );
+            expect(hasInvisibleBackdrop).toBe(true);
+        } finally {
+            // Clean up - remove the mock backdrop
+            document.body.removeChild(mockBackdrop);
+        }
     });
 });

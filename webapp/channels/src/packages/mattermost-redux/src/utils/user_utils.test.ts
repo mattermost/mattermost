@@ -75,7 +75,7 @@ describe('user utils', () => {
             email: 'test.user_name@example.com',
         });
 
-        it('should return correct suggestions for user', () => {
+        it('should return correct suggestions for user (without full email)', () => {
             const suggestions = nameSuggestionsForUser(userObj);
             const expectedSuggestions = [
                 'test.user', '.user', 'user',
@@ -84,6 +84,32 @@ describe('user utils', () => {
                 'test.user_name',
             ];
             expect(suggestions).toEqual(expectedSuggestions);
+        });
+
+        it('should return correct suggestions for user (with full email when requested)', () => {
+            const suggestions = nameSuggestionsForUser(userObj, true);
+            const expectedSuggestions = [
+                'test.user', '.user', 'user',
+                'test', 'user name', 'test user name', 'tester',
+                'software engineer at mattermost', 'engineer at mattermost', 'at mattermost', 'mattermost',
+                'test.user_name',
+                'test.user_name@example.com',
+            ];
+            expect(suggestions).toEqual(expectedSuggestions);
+        });
+
+        it('should not include full email when includeFullEmail is true but email has no @ symbol', () => {
+            const userWithInvalidEmail = {...userObj, email: 'invalidemail'};
+            const suggestions = nameSuggestionsForUser(userWithInvalidEmail, true);
+            expect(suggestions).toContain('invalidemail'); // Should still contain the prefix part
+            // Should not contain the full email since there's no @ symbol - only one instance should exist
+            expect(suggestions.filter((s) => s === 'invalidemail').length).toBe(1);
+        });
+
+        it('should not include full email when includeFullEmail is false', () => {
+            const suggestions = nameSuggestionsForUser(userObj, false);
+            expect(suggestions).not.toContain('test.user_name@example.com');
+            expect(suggestions).toContain('test.user_name'); // Should still contain the prefix
         });
 
         it('should gracefully handle missing values for fields', () => {
@@ -190,8 +216,8 @@ describe('user utils', () => {
             expect(filterProfilesStartingWithTerm(users, 'right')).not.toContain(userB);
         });
 
-        it('should not match by full email as email domain is ignored', () => {
-            expect(filterProfilesStartingWithTerm(users, 'left@right.com')).not.toContain(userB);
+        it('should match by full email when @ is present in search term', () => {
+            expect(filterProfilesStartingWithTerm(users, 'left@right.com')).toContain(userB);
         });
 
         it('should ignore leading @ for username', () => {
@@ -200,6 +226,65 @@ describe('user utils', () => {
 
         it('should ignore leading @ for firstname', () => {
             expect(filterProfilesStartingWithTerm(users, '@first')).toEqual([userA, userB]);
+        });
+
+        // NEW TESTS FOR SMART EMAIL SEARCH FUNCTIONALITY
+        describe('Smart Email Search (Context-Aware)', () => {
+            const userWithEmail = TestHelper.getUserMock({
+                id: '200',
+                username: 'emailuser',
+                email: 'test-the-at-issue@theissue.com',
+                first_name: 'Email',
+                last_name: 'User',
+            });
+            const userWithCommonDomain = TestHelper.getUserMock({
+                id: '201',
+                username: 'comuser',
+                email: 'another@example.com',
+                first_name: 'Com',
+                last_name: 'User',
+            });
+            const usersWithEmails = [userWithEmail, userWithCommonDomain];
+
+            it('should NOT match by domain when searching without @ (prevents pollution)', () => {
+                // These searches should NOT return users based on email domains
+                // BUT they might match usernames that contain these terms
+                expect(filterProfilesStartingWithTerm(usersWithEmails, 'com')).toEqual([userWithCommonDomain]); // matches "comuser" username
+                expect(filterProfilesStartingWithTerm(usersWithEmails, 'theissue')).toEqual([]);
+                expect(filterProfilesStartingWithTerm(usersWithEmails, 'example')).toEqual([]);
+            });
+
+            it('should match by email prefix when searching without @', () => {
+                // These should work - searching by email prefix (before @)
+                expect(filterProfilesStartingWithTerm(usersWithEmails, 'test-the-at-issue')).toEqual([userWithEmail]);
+                expect(filterProfilesStartingWithTerm(usersWithEmails, 'another')).toEqual([userWithCommonDomain]);
+            });
+
+            it('should match by full email when searching WITH @ symbol', () => {
+                // These should work - searching by full email when @ is present
+                expect(filterProfilesStartingWithTerm(usersWithEmails, 'test-the-at-issue@theissue.com')).toEqual([userWithEmail]);
+                expect(filterProfilesStartingWithTerm(usersWithEmails, 'another@example.com')).toEqual([userWithCommonDomain]);
+                expect(filterProfilesStartingWithTerm(usersWithEmails, 'test-the-at-issue@')).toEqual([userWithEmail]);
+            });
+
+            it('should match by partial email with @ symbol', () => {
+                // Partial email searches with @ should work
+                expect(filterProfilesStartingWithTerm(usersWithEmails, 'test-the-at-issue@')).toEqual([userWithEmail]);
+                expect(filterProfilesStartingWithTerm(usersWithEmails, 'another@')).toEqual([userWithCommonDomain]);
+            });
+
+            it('should handle @ at the beginning correctly', () => {
+                // @ at the beginning should be stripped and then apply smart logic
+                expect(filterProfilesStartingWithTerm(usersWithEmails, '@test-the-at-issue')).toEqual([userWithEmail]);
+                expect(filterProfilesStartingWithTerm(usersWithEmails, '@another')).toEqual([userWithCommonDomain]);
+            });
+
+            it('should NOT match domain-only searches even with @ prefix', () => {
+                // Even with @ prefix, domain-only searches should not work
+                expect(filterProfilesStartingWithTerm(usersWithEmails, '@com')).toEqual([userWithCommonDomain]); // matches "comuser" username
+                expect(filterProfilesStartingWithTerm(usersWithEmails, '@theissue')).toEqual([]);
+                expect(filterProfilesStartingWithTerm(usersWithEmails, '@example')).toEqual([]);
+            });
         });
     });
 
@@ -272,8 +357,8 @@ describe('user utils', () => {
             expect(filterProfilesMatchingWithTerm(users, 'right')).not.toContain(userB);
         });
 
-        it('should match by full email', () => {
-            expect(filterProfilesMatchingWithTerm(users, 'left@right.com')).not.toContain(userB);
+        it('should match by full email when @ is present in search term', () => {
+            expect(filterProfilesMatchingWithTerm(users, 'left@right.com')).toContain(userB);
         });
 
         it('should ignore leading @ for username', () => {
@@ -282,6 +367,67 @@ describe('user utils', () => {
 
         it('should ignore leading @ for firstname', () => {
             expect(filterProfilesMatchingWithTerm(users, '@first')).toEqual([userA, userB]);
+        });
+
+        // NEW TESTS FOR SMART EMAIL SEARCH FUNCTIONALITY (MATCHING)
+        describe('Smart Email Search (Context-Aware Matching)', () => {
+            const userWithEmail = TestHelper.getUserMock({
+                id: '300',
+                username: 'matchuser',
+                email: 'test-the-at-issue@theissue.com',
+                first_name: 'Match',
+                last_name: 'User',
+            });
+            const userWithCommonDomain = TestHelper.getUserMock({
+                id: '301',
+                username: 'matchcom',
+                email: 'another@example.com',
+                first_name: 'Match',
+                last_name: 'Com',
+            });
+            const usersForMatching = [userWithEmail, userWithCommonDomain];
+
+            it('should NOT match by domain when searching without @ (prevents pollution)', () => {
+                // These searches should NOT return users based on email domains
+                // BUT they might match usernames or other fields that contain these terms
+                expect(filterProfilesMatchingWithTerm(usersForMatching, 'com')).toEqual([userWithCommonDomain]); // matches "matchcom" username and "Com" last name
+                expect(filterProfilesMatchingWithTerm(usersForMatching, 'theissue')).toEqual([]);
+                expect(filterProfilesMatchingWithTerm(usersForMatching, 'example')).toEqual([]);
+            });
+
+            it('should match by email prefix when searching without @', () => {
+                // These should work - searching by email prefix (before @)
+                expect(filterProfilesMatchingWithTerm(usersForMatching, 'test-the-at-issue')).toEqual([userWithEmail]);
+                expect(filterProfilesMatchingWithTerm(usersForMatching, 'another')).toEqual([userWithCommonDomain]);
+                expect(filterProfilesMatchingWithTerm(usersForMatching, 'the-at-issue')).toEqual([userWithEmail]); // substring match
+            });
+
+            it('should match by full email when searching WITH @ symbol', () => {
+                // These should work - searching by full email when @ is present
+                expect(filterProfilesMatchingWithTerm(usersForMatching, 'test-the-at-issue@theissue.com')).toEqual([userWithEmail]);
+                expect(filterProfilesMatchingWithTerm(usersForMatching, 'another@example.com')).toEqual([userWithCommonDomain]);
+                expect(filterProfilesMatchingWithTerm(usersForMatching, '@theissue.com')).toEqual([userWithEmail]); // domain match when @ present
+            });
+
+            it('should match by partial email with @ symbol', () => {
+                // Partial email searches with @ should work
+                expect(filterProfilesMatchingWithTerm(usersForMatching, 'test-the-at-issue@')).toEqual([userWithEmail]);
+                expect(filterProfilesMatchingWithTerm(usersForMatching, 'another@')).toEqual([userWithCommonDomain]);
+                expect(filterProfilesMatchingWithTerm(usersForMatching, '@theissue')).toEqual([userWithEmail]);
+            });
+
+            it('should handle @ at the beginning correctly for matching', () => {
+                // @ at the beginning should be stripped and then apply smart logic
+                expect(filterProfilesMatchingWithTerm(usersForMatching, '@test-the-at-issue')).toEqual([userWithEmail]);
+                expect(filterProfilesMatchingWithTerm(usersForMatching, '@another')).toEqual([userWithCommonDomain]);
+            });
+
+            it('should match domain when @ is present in search term', () => {
+                // When @ is present, domain matching should work
+                expect(filterProfilesMatchingWithTerm(usersForMatching, '@theissue')).toEqual([userWithEmail]);
+                expect(filterProfilesMatchingWithTerm(usersForMatching, '@example')).toEqual([userWithCommonDomain]);
+                expect(filterProfilesMatchingWithTerm(usersForMatching, 'theissue@')).toEqual([]); // This might not match as expected due to how the search works
+            });
         });
     });
 

@@ -569,7 +569,8 @@ func BulkIndexChannels(config *model.Config,
 			}
 		}
 
-		teamMemberIDs, err := store.Channel().GetTeamMembersForChannel(channel.Id)
+		rctx := request.EmptyContext(logger)
+		teamMemberIDs, err := store.Channel().GetTeamMembersForChannel(rctx, channel.Id)
 		if err != nil {
 			return nil, model.NewAppError("IndexerWorker.BulkIndexChannels", "ent.elasticsearch.getAllTeamMembers.error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}

@@ -93,7 +93,7 @@ func slackImportCmdF(command *cobra.Command, args []string) error {
 	CommandPrettyPrintln("Finished Slack Import.")
 	CommandPrettyPrintln("")
 
-	auditRec := a.MakeAuditRecord(rctx, "slackImport", model.AuditStatusSuccess)
+	auditRec := a.MakeAuditRecord(rctx, model.AuditEventSlackImport, model.AuditStatusSuccess)
 	auditRec.AddMeta("team", team)
 	auditRec.AddMeta("file", args[1])
 	a.LogAuditRec(rctx, auditRec, nil)
@@ -165,7 +165,7 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 
 	if apply {
 		CommandPrettyPrintln("Finished Bulk Import.")
-		auditRec := a.MakeAuditRecord(rctx, "bulkImport", model.AuditStatusSuccess)
+		auditRec := a.MakeAuditRecord(rctx, model.AuditEventBulkImport, model.AuditStatusSuccess)
 		auditRec.AddMeta("file", args[0])
 		a.LogAuditRec(rctx, auditRec, nil)
 	} else {

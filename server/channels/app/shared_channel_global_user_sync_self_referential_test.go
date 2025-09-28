@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -201,7 +202,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 		// Create regular users
 		regularUsers := make([]*model.User, 3)
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			regularUsers[i] = th.CreateUser()
 			regularUsers[i].UpdateAt = baseTime + int64(i*100)
 			_, err = ss.User().Update(th.Context, regularUsers[i], true)
@@ -327,7 +328,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		clusters := make([]*model.RemoteCluster, 3)
 		testServers := make([]*httptest.Server, 3)
 
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			clusterName := fmt.Sprintf("cluster-%d", i+1)
 			var count int32
 			syncMessagesPerCluster[clusterName] = &count
@@ -385,7 +386,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		}()
 
 		// Create remote clusters
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			clusters[i] = &model.RemoteCluster{
 				RemoteId:             model.NewId(),
 				Name:                 fmt.Sprintf("cluster-%d", i+1),
@@ -403,7 +404,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 		// Create users to sync
 		users := make([]*model.User, 5)
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			users[i] = th.CreateUser()
 			users[i].UpdateAt = model.GetMillis() + int64(i)
 			_, err = ss.User().Update(th.Context, users[i], true)
@@ -606,7 +607,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create users
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			user := th.CreateUser()
 			user.UpdateAt = model.GetMillis() + int64(i)
 			_, err = ss.User().Update(th.Context, user, true)
@@ -690,7 +691,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		defer testServer.Close()
 
 		// Create users before creating remote cluster
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			user := th.CreateUser()
 			user.UpdateAt = model.GetMillis() + int64(i)
 			_, err = ss.User().Update(th.Context, user, true)
@@ -815,7 +816,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		}
 
 		// Create some users to sync
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			user := th.CreateUser()
 			user.UpdateAt = model.GetMillis() + int64(i)
 			_, err = ss.User().Update(th.Context, user, true)
@@ -890,7 +891,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create users to sync
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			user := th.CreateUser()
 			user.UpdateAt = model.GetMillis() + int64(i)
 			_, err = ss.User().Update(th.Context, user, true)
@@ -913,7 +914,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		assert.Greater(t, firstCursor, int64(0), "Cursor should be set after first sync")
 
 		// Create more users
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			user := th.CreateUser()
 			user.UpdateAt = model.GetMillis() + int64(100+i)
 			_, err = ss.User().Update(th.Context, user, true)
@@ -1183,12 +1184,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		require.Eventually(t, func() bool {
 			mu.Lock()
 			defer mu.Unlock()
-			for _, userID := range syncedToB {
-				if userID == originalUser.Id {
-					return true
-				}
-			}
-			return false
+			return slices.Contains(syncedToB, originalUser.Id)
 		}, 5*time.Second, 100*time.Millisecond, "Original user should sync from A to B")
 
 		// Step 2: Simulate the synced user existing on Server B
@@ -1229,12 +1225,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		require.Never(t, func() bool {
 			mu.Lock()
 			defer mu.Unlock()
-			for _, userID := range syncedBackToA {
-				if userID == syncedUserOnB.Id {
-					return true
-				}
-			}
-			return false
+			return slices.Contains(syncedBackToA, syncedUserOnB.Id)
 		}, 2*time.Second, 100*time.Millisecond, "Synced user should NEVER be synced back to its originating cluster")
 
 		// Verify that the synced user still exists locally but wasn't synced

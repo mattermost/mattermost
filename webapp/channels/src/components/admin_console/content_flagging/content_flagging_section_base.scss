@@ -1,0 +1,49 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.content:has(.content-flagging-section-setting-wrapper) {
+    padding: 28px 32px !important;
+}
+
+.content-flagging-section-setting-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.content-flagging-section-title {
+    margin: unset;
+    font-size: 16px;
+}
+
+.content-flagging-section-description, .helpText {
+    color: var(--center-channel-color-72);
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+}
+
+.content-flagging-section-setting {
+    display: flex;
+    width: 100%;
+    align-items: baseline;
+
+    .setting-title {
+        min-width: 290px;
+        max-width: 290px;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 600;
+    }
+
+    .setting-content {
+        display: flex;
+        flex: 1;
+        gap: 32px;
+    }
+}
+
+.helpText {
+    margin-top: 8px;
+}

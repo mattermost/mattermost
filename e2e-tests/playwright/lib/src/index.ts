@@ -31,6 +31,7 @@ export {
     ChannelsPostCreate,
     ChannelsPostEdit,
     ChannelsPost,
+    ChannelSettingsModal,
     DraftPost,
     FindChannelsModal,
     DeletePostModal,

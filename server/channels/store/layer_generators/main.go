@@ -14,6 +14,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"slices"
 	"strings"
 	"text/template"
 )
@@ -212,26 +213,17 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 			return strings.Join(vars, ", ")
 		},
 		"errorToBoolean": func(results []string) string {
-			for _, typeName := range results {
-				if isError(typeName) {
-					return "err == nil"
-				}
+			if slices.ContainsFunc(results, isError) {
+				return "err == nil"
 			}
 			return "true"
 		},
 		"errorPresent": func(results []string) bool {
-			for _, typeName := range results {
-				if isError(typeName) {
-					return true
-				}
-			}
-			return false
+			return slices.ContainsFunc(results, isError)
 		},
 		"errorVar": func(results []string) string {
-			for _, typeName := range results {
-				if isError(typeName) {
-					return "err"
-				}
+			if slices.ContainsFunc(results, isError) {
+				return "err"
 			}
 			return ""
 		},

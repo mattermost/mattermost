@@ -284,8 +284,8 @@ func (s *MmctlUnitTestSuite) TestImportValidateCmdF() {
 		_, err = wr.Write([]byte(importBase))
 		s.Require().NoError(err)
 
-		_, err = wr.Write([]byte(fmt.Sprintf(`
-{"type":"post","post":{"team":"ad-1","channel":"iusto-9","user":"ashley.berry","message":"%s","props":{},"create_at":1603398068740,"reactions":null,"replies":null}}`, msg)))
+		_, err = wr.Write(fmt.Appendf(nil, `
+{"type":"post","post":{"team":"ad-1","channel":"iusto-9","user":"ashley.berry","message":"%s","props":{},"create_at":1603398068740,"reactions":null,"replies":null}}`, msg))
 		s.Require().NoError(err)
 
 		err = zipWr.Close()
@@ -324,8 +324,8 @@ func (s *MmctlUnitTestSuite) TestImportValidateCmdF() {
 		_, err = wr.Write([]byte(importBase))
 		s.Require().NoError(err)
 
-		_, err = wr.Write([]byte(fmt.Sprintf(`
-{"type":"post","post":{"team":"ad-1","channel":"iusto-9","user":"ashley.berry","message":"%s","props":{},"create_at":1603398068740,"reactions":null,"replies":null}}`, msg)))
+		_, err = wr.Write(fmt.Appendf(nil, `
+{"type":"post","post":{"team":"ad-1","channel":"iusto-9","user":"ashley.berry","message":"%s","props":{},"create_at":1603398068740,"reactions":null,"replies":null}}`, msg))
 		s.Require().NoError(err)
 
 		err = zipWr.Close()
@@ -367,8 +367,8 @@ func (s *MmctlUnitTestSuite) TestImportValidateCmdF() {
 		_, err = wr.Write([]byte(importBase))
 		s.Require().NoError(err)
 
-		_, err = wr.Write([]byte(fmt.Sprintf(`
-{"type":"post","post":{"team":"ad-1","channel":"iusto-9","user":"ashley.berry","message":"%s","props":{},"create_at":1603398068740,"reactions":null,"replies":null}}`, msg)))
+		_, err = wr.Write(fmt.Appendf(nil, `
+{"type":"post","post":{"team":"ad-1","channel":"iusto-9","user":"ashley.berry","message":"%s","props":{},"create_at":1603398068740,"reactions":null,"replies":null}}`, msg))
 		s.Require().NoError(err)
 
 		err = zipWr.Close()
@@ -393,7 +393,7 @@ func (s *MmctlUnitTestSuite) TestImportValidateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetOldClientConfig(context.TODO(), "").
+			GetClientConfig(context.TODO(), "").
 			Return(map[string]string{
 				"MaxPostSize": fmt.Sprintf("%d", model.PostMessageMaxRunesV2*2),
 			}, &model.Response{}, nil).
@@ -428,8 +428,8 @@ func (s *MmctlUnitTestSuite) TestImportValidateCmdF() {
 		_, err = wr.Write([]byte(importBase))
 		s.Require().NoError(err)
 
-		_, err = wr.Write([]byte(fmt.Sprintf(`
-{"type":"direct_post","direct_post":{"channel_members":["ashley.berry","ashley.berry"],"user":"ashley.berry","message":"%s","props":{},"create_at":1603398112372,"flagged_by":null,"reactions":null,"replies":null,"attachments":null}}`, msg)))
+		_, err = wr.Write(fmt.Appendf(nil, `
+{"type":"direct_post","direct_post":{"channel_members":["ashley.berry","ashley.berry"],"user":"ashley.berry","message":"%s","props":{},"create_at":1603398112372,"flagged_by":null,"reactions":null,"replies":null,"attachments":null}}`, msg))
 		s.Require().NoError(err)
 
 		err = zipWr.Close()
@@ -454,7 +454,7 @@ func (s *MmctlUnitTestSuite) TestImportValidateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetOldClientConfig(context.TODO(), "").
+			GetClientConfig(context.TODO(), "").
 			Return(map[string]string{
 				"MaxPostSize": fmt.Sprintf("%d", model.PostMessageMaxRunesV2*2),
 			}, &model.Response{}, nil).
@@ -513,7 +513,7 @@ func (s *MmctlUnitTestSuite) TestImportValidateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetOldClientConfig(context.TODO(), "").
+			GetClientConfig(context.TODO(), "").
 			Return(map[string]string{
 				"MaxPostSize": fmt.Sprintf("%d", model.PostMessageMaxRunesV2*2),
 			}, &model.Response{}, nil).

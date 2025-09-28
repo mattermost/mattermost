@@ -512,10 +512,6 @@
     "translation": "Нажалост, нисмо могли да нађемо страницу."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Нови формат за подешавање клијента још није подржан. Наведите format=old у реченици упита."
-  },
-  {
     "id": "api.command_shrug.name",
     "translation": "слегни-раменима"
   },

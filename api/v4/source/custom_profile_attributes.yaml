@@ -250,7 +250,7 @@
                     type: string
                   value:
                     oneOf:
-                      - type: string 
+                      - type: string
                       - type: array
                         items:
                           type: string
@@ -349,6 +349,66 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+    patch:
+      tags:
+        - custom profile attributes
+      summary: Update custom profile attribute values for a user
+      description: |
+        Update Custom Profile Attribute field values for a specific user.
 
+        _This endpoint is experimental._
 
+        __Minimum server version__: 11
 
+        ##### Permissions
+        Must have permission to edit the user. Users can only edit their own CPA values unless they are system administrators.
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+      operationId: PatchCPAValuesForUser
+      requestBody:
+        description: Custom Profile Attribute values that are to be updated
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  value:
+                    oneOf:
+                      - type: string
+                      - type: array
+                        items:
+                          type: string
+      responses:
+        '200':
+          description: Custom profile attribute values updated successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    value:
+                      oneOf:
+                        - type: string
+                        - type: array
+                          items:
+                            type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'

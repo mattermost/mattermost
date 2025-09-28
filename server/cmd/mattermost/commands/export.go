@@ -111,7 +111,7 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 		} else {
 			CommandPrettyPrintln("SUCCESS: Message export job complete")
 
-			auditRec := a.MakeAuditRecord(rctx, "scheduleExport", model.AuditStatusSuccess)
+			auditRec := a.MakeAuditRecord(rctx, model.AuditEventScheduleExport, model.AuditStatusSuccess)
 			auditRec.AddMeta("format", format)
 			auditRec.AddMeta("start", startTime)
 			a.LogAuditRec(rctx, auditRec, nil)
@@ -178,7 +178,7 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
-	auditRec := a.MakeAuditRecord(rctx, "bulkExport", model.AuditStatusSuccess)
+	auditRec := a.MakeAuditRecord(rctx, model.AuditEventBulkExport, model.AuditStatusSuccess)
 	auditRec.AddMeta("all_teams", allTeams)
 	auditRec.AddMeta("file", args[0])
 	a.LogAuditRec(rctx, auditRec, nil)

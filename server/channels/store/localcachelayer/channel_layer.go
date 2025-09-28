@@ -281,7 +281,7 @@ func (s LocalCacheChannelStore) GetMany(ids []string, allowFromCache bool) (mode
 	return append(foundChannels, channels...), nil
 }
 
-func (s LocalCacheChannelStore) GetAllChannelMembersForUser(ctx request.CTX, userId string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
+func (s LocalCacheChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
 	cache_key := userId
 	if includeDeleted {
 		cache_key += "_deleted"
@@ -293,7 +293,7 @@ func (s LocalCacheChannelStore) GetAllChannelMembersForUser(ctx request.CTX, use
 		}
 	}
 
-	ids, err := s.ChannelStore.GetAllChannelMembersForUser(ctx, userId, allowFromCache, includeDeleted)
+	ids, err := s.ChannelStore.GetAllChannelMembersForUser(rctx, userId, allowFromCache, includeDeleted)
 	if err != nil {
 		return nil, err
 	}

@@ -196,34 +196,70 @@ func TestUpdateConfig(t *testing.T) {
 			CheckBadRequestStatus(t, resp)
 			CheckErrorID(t, err, "model.config.is_valid.password_length.app_error")
 		})
+	})
 
-		t.Run("Should not be able to modify PluginSettings.EnableUploads", func(t *testing.T) {
+	t.Run("Ensure PluginSettings.EnableUploads settings are protected", func(t *testing.T) {
+		t.Run("sysadmin", func(t *testing.T) {
 			oldEnableUploads := *th.App.Config().PluginSettings.EnableUploads
 			*cfg.PluginSettings.EnableUploads = !oldEnableUploads
 
-			cfg, _, err = client.UpdateConfig(context.Background(), cfg)
+			cfg, _, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg)
 			require.NoError(t, err)
 			assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
 			assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
 
 			cfg.PluginSettings.EnableUploads = nil
-			cfg, _, err = client.UpdateConfig(context.Background(), cfg)
+			cfg, _, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg)
 			require.NoError(t, err)
 			assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
 			assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
 		})
 
-		t.Run("Should not be able to modify PluginSettings.SignaturePublicKeyFiles", func(t *testing.T) {
+		t.Run("local mode", func(t *testing.T) {
+			oldEnableUploads := *th.App.Config().PluginSettings.EnableUploads
+			*cfg.PluginSettings.EnableUploads = !oldEnableUploads
+
+			cfg, _, err = th.LocalClient.UpdateConfig(context.Background(), cfg)
+			require.NoError(t, err)
+			assert.NotEqual(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
+			assert.NotEqual(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
+
+			cfg.PluginSettings.EnableUploads = nil
+			cfg, _, err = th.LocalClient.UpdateConfig(context.Background(), cfg)
+			require.NoError(t, err)
+			assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
+			assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
+		})
+	})
+
+	t.Run("Should not be able to modify PluginSettings.SignaturePublicKeyFiles", func(t *testing.T) {
+		t.Run("sysadmin", func(t *testing.T) {
 			oldPublicKeys := th.App.Config().PluginSettings.SignaturePublicKeyFiles
 			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, "new_signature")
 
-			cfg, _, err = client.UpdateConfig(context.Background(), cfg)
+			cfg, _, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg)
 			require.NoError(t, err)
 			assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
 			assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
 
 			cfg.PluginSettings.SignaturePublicKeyFiles = nil
-			cfg, _, err = client.UpdateConfig(context.Background(), cfg)
+			cfg, _, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg)
+			require.NoError(t, err)
+			assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
+			assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
+		})
+
+		t.Run("local mode", func(t *testing.T) {
+			oldPublicKeys := th.App.Config().PluginSettings.SignaturePublicKeyFiles
+			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, "new_signature")
+
+			cfg, _, err = th.LocalClient.UpdateConfig(context.Background(), cfg)
+			require.NoError(t, err)
+			assert.NotEqual(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
+			assert.NotEqual(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
+
+			cfg.PluginSettings.SignaturePublicKeyFiles = nil
+			cfg, _, err = th.LocalClient.UpdateConfig(context.Background(), cfg)
 			require.NoError(t, err)
 			assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
 			assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
@@ -600,7 +636,7 @@ func TestGetEnvironmentConfig(t *testing.T) {
 	})
 }
 
-func TestGetOldClientConfig(t *testing.T) {
+func TestGetClientConfig(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -614,7 +650,7 @@ func TestGetOldClientConfig(t *testing.T) {
 
 		client := th.Client
 
-		config, _, err := client.GetOldClientConfig(context.Background(), "")
+		config, _, err := client.GetClientConfig(context.Background(), "")
 		require.NoError(t, err)
 
 		require.NotEmpty(t, config["Version"], "config not returned correctly")
@@ -628,27 +664,37 @@ func TestGetOldClientConfig(t *testing.T) {
 
 		client := th.CreateClient()
 
-		config, _, err := client.GetOldClientConfig(context.Background(), "")
+		config, _, err := client.GetClientConfig(context.Background(), "")
 		require.NoError(t, err)
 
 		require.NotEmpty(t, config["Version"], "config not returned correctly")
 		require.Empty(t, config["GoogleDeveloperKey"], "config should be missing developer key")
 	})
 
-	t.Run("missing format", func(t *testing.T) {
+	t.Run("format=old (backward compatibility)", func(t *testing.T) {
 		client := th.Client
 
-		resp, err := client.DoAPIGet(context.Background(), "/config/client", "")
-		require.Error(t, err)
-		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+		resp, err := client.DoAPIGet(context.Background(), "/config/client?format=old", "")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var config map[string]string
+		err = json.NewDecoder(resp.Body).Decode(&config)
+		require.NoError(t, err)
+		require.NotEmpty(t, config["Version"], "config not returned correctly")
 	})
 
-	t.Run("invalid format", func(t *testing.T) {
+	t.Run("format=junk (ignored)", func(t *testing.T) {
 		client := th.Client
 
 		resp, err := client.DoAPIGet(context.Background(), "/config/client?format=junk", "")
-		require.Error(t, err)
-		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var config map[string]string
+		err = json.NewDecoder(resp.Body).Decode(&config)
+		require.NoError(t, err)
+		require.NotEmpty(t, config["Version"], "config not returned correctly")
 	})
 }
 

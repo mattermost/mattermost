@@ -24,7 +24,7 @@ func localDeletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	permanent := c.Params.Permanent
 
-	auditRec := c.MakeAuditRecord("localDeletePost", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalDeletePost, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	model.AddEventParameterToAuditRec(auditRec, "post_id", c.Params.PostId)
 	model.AddEventParameterToAuditRec(auditRec, "permanent", permanent)

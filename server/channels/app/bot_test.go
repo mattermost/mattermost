@@ -94,7 +94,7 @@ func TestCreateBot(t *testing.T) {
 		// Check that a post was created to add bot to team and channels
 		channel, err := th.App.getOrCreateDirectChannelWithUser(th.Context, user, th.BasicUser)
 		require.Nil(t, err)
-		posts, err := th.App.GetPosts(channel.Id, 0, 1)
+		posts, err := th.App.GetPosts(th.Context, channel.Id, 0, 1)
 		require.Nil(t, err)
 
 		postArray := posts.ToSlice()
@@ -671,7 +671,7 @@ func TestDisableUserBots(t *testing.T) {
 		}
 	}()
 
-	for i := 0; i < 46; i++ {
+	for i := range 46 {
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    fmt.Sprintf("username%v", i),
 			Description: "a bot",
@@ -777,7 +777,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 
 	// create bots owned by user (equal to numBotsToPrint)
 	var bot *model.Bot
-	for i := 0; i < numBotsToPrint; i++ {
+	for i := range numBotsToPrint {
 		bot, err = th.App.CreateBot(th.Context, &model.Bot{
 			Username:    fmt.Sprintf("bot%v", i),
 			Description: "a bot",
@@ -799,11 +799,11 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 	require.Nil(t, err)
 
 	// get posts from sysadmin1 and sysadmin2 DM channels
-	posts1, err := th.App.GetPosts(channelSys1.Id, 0, 5)
+	posts1, err := th.App.GetPosts(th.Context, channelSys1.Id, 0, 5)
 	require.Nil(t, err)
 	assert.Empty(t, posts1.Order)
 
-	posts2, err := th.App.GetPosts(channelSys2.Id, 0, 5)
+	posts2, err := th.App.GetPosts(th.Context, channelSys2.Id, 0, 5)
 	require.Nil(t, err)
 	assert.Empty(t, posts2.Order)
 
@@ -812,11 +812,11 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 	require.Nil(t, err)
 
 	// get posts from sysadmin1  and sysadmin2 DM channels
-	posts1, err = th.App.GetPosts(channelSys1.Id, 0, 5)
+	posts1, err = th.App.GetPosts(th.Context, channelSys1.Id, 0, 5)
 	require.Nil(t, err)
 	assert.Len(t, posts1.Order, 1)
 
-	posts2, err = th.App.GetPosts(channelSys2.Id, 0, 5)
+	posts2, err = th.App.GetPosts(th.Context, channelSys2.Id, 0, 5)
 	require.Nil(t, err)
 	assert.Len(t, posts2.Order, 1)
 

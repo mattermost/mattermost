@@ -87,7 +87,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -124,7 +124,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -160,7 +160,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -196,7 +196,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -232,7 +232,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -398,7 +398,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -435,7 +435,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -471,7 +471,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -507,7 +507,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -543,7 +543,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -676,6 +676,13 @@ Object {
   "queryByTitle": [Function],
   "replaceStoreState": [Function],
   "rerender": [Function],
+  "store": Object {
+    "@@observable": [Function],
+    "dispatch": [Function],
+    "getState": [Function],
+    "replaceReducer": [Function],
+    "subscribe": [Function],
+  },
   "unmount": [Function],
   "updateStoreState": [Function],
 }
@@ -768,7 +775,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -805,7 +812,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -841,7 +848,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -877,7 +884,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -916,7 +923,7 @@ Object {
             class="section-min isDisabled"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title isDisabled"
@@ -1081,7 +1088,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1118,7 +1125,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1154,7 +1161,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1190,7 +1197,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1229,7 +1236,7 @@ Object {
           class="section-min isDisabled"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title isDisabled"
@@ -1361,6 +1368,13 @@ Object {
   "queryByTitle": [Function],
   "replaceStoreState": [Function],
   "rerender": [Function],
+  "store": Object {
+    "@@observable": [Function],
+    "dispatch": [Function],
+    "getState": [Function],
+    "replaceReducer": [Function],
+    "subscribe": [Function],
+  },
   "unmount": [Function],
   "updateStoreState": [Function],
 }
@@ -1453,7 +1467,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -1490,7 +1504,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -1526,7 +1540,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -1562,7 +1576,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -1728,7 +1742,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1765,7 +1779,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1801,7 +1815,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1837,7 +1851,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1970,6 +1984,13 @@ Object {
   "queryByTitle": [Function],
   "replaceStoreState": [Function],
   "rerender": [Function],
+  "store": Object {
+    "@@observable": [Function],
+    "dispatch": [Function],
+    "getState": [Function],
+    "replaceReducer": [Function],
+    "subscribe": [Function],
+  },
   "unmount": [Function],
   "updateStoreState": [Function],
 }

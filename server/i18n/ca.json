@@ -676,62 +676,6 @@
     "translation": "No es pot descodificar les dades de la imatge."
   },
   {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "No s'ha pogut completar la cerca"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "No s'ha pogut completar la cerca"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "No s'ha pogut completar la cerca"
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "No s'ha pogut completar la cerca"
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "No s'ha pogut completar la cerca"
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "S'està intentant indexar un nou lot quan es completin totes les entitats."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "El treball d'indexació d'Elasticsearch no va poder analitzar la hora d'inici"
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "El treball d'indexació d'Elasticsearch no ha pogut analitzar l'hora de finalització"
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "No s'ha pogut indexar l'usuari"
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "No s'ha pogut indexar la publicació"
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "No s'ha pogut indexar el canal"
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "No s'ha pogut eliminar l'usuari"
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "No s'ha pogut eliminar la publicació"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "No s'ha pogut suprimir el canal"
-  },
-  {
     "id": "app.user_access_token.invalid_or_missing",
     "translation": "Testimoni no vàlid o absent"
   },
@@ -1356,14 +1300,6 @@
     "translation": "Els comptes de convidat estan desactivats"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "S'ha intentat utilitzar la característica experimental ClientSideCert sense una llicència empresarial vàlida"
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "S'ha intentat iniciar sessió utilitzant la característica experimental ClientSideCert sense proveir un certificat vàlid"
-  },
-  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "L'inici de sessió com a bot està prohibit"
   },
@@ -1906,14 +1842,6 @@
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "No es pot activar l'enviament per correu per lots quan el clúster està activat."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "El valor d'Elastic Search «IndexingEnabled» ha de ser verdader quan el valor d'Elastic Search «SearchEnabled» és verdader."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "El valor d'Elastic Search «IndexingEnabled» ha de ser verdader quan el valor d'Elastic Search «SearchEnabled» és verdader."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
@@ -3082,10 +3010,6 @@
   {
     "id": "api.config.update_config.restricted_merge.app_error",
     "translation": "No s'ha pogut combinar la configuració proporcionada."
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "El nou format per a la configuració del client encara no és compatible. Especifica format=old a la cadena de consulta."
   },
   {
     "id": "api.command_shrug.name",

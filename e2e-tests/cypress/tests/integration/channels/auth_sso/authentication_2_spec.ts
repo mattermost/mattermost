@@ -11,7 +11,6 @@
 // Group: @channels @system_console @authentication @mfa
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {getRandomId} from '../../../utils';
 
 describe('Authentication', () => {

@@ -84,7 +84,7 @@ func (glu *GitLabUser) getAuthData() string {
 	return strconv.FormatInt(glu.Id, 10)
 }
 
-func (gp *GitLabProvider) GetUserFromJSON(c request.CTX, data io.Reader, tokenUser *model.User) (*model.User, error) {
+func (gp *GitLabProvider) GetUserFromJSON(rctx request.CTX, data io.Reader, tokenUser *model.User) (*model.User, error) {
 	glu, err := gitLabUserFromJSON(data)
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func (gp *GitLabProvider) GetUserFromJSON(c request.CTX, data io.Reader, tokenUs
 		return nil, err
 	}
 
-	return userFromGitLabUser(c.Logger(), glu), nil
+	return userFromGitLabUser(rctx.Logger(), glu), nil
 }
 
 func (gp *GitLabProvider) GetSSOSettings(_ request.CTX, config *model.Config, service string) (*model.SSOSettings, error) {

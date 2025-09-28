@@ -10,7 +10,6 @@ import type {Invoice, InvoiceLineItem, Product} from '@mattermost/types/cloud';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
 
 import BlockableLink from 'components/admin_console/blockable_link';
@@ -56,7 +55,6 @@ export const noBillingHistory = (
             location='billing_summary'
             href={CloudLinks.BILLING_DOCS}
             className='btn btn-primary BillingSummary__noBillingHistory-link'
-            onClick={() => trackEvent('cloud_admin', 'click_how_billing_works', {screen: 'subscriptions'})}
         >
             <FormattedMessage
                 id='admin.billing.subscriptions.billing_summary.noBillingHistory.link'
@@ -98,14 +96,14 @@ export const FreeTrial = ({daysLeftOnTrial}: FreeTrialProps) => {
                 {daysLeftOnTrial > TrialPeriodDays.TRIAL_WARNING_THRESHOLD &&
                     <FormattedMessage
                         id='admin.billing.subscription.freeTrial.description'
-                        defaultMessage='Your free trial will expire in {daysLeftOnTrial} days. Add your payment information to continue after the trial ends.'
+                        defaultMessage='Your free trial will expire in {daysLeftOnTrial} days. Contact sales to continue after the trial ends.'
                         values={{daysLeftOnTrial}}
                     />
                 }
                 {(daysLeftOnTrial > TrialPeriodDays.TRIAL_1_DAY && daysLeftOnTrial <= TrialPeriodDays.TRIAL_WARNING_THRESHOLD) &&
                     <FormattedMessage
                         id='admin.billing.subscription.freeTrial.lessThan3Days.description'
-                        defaultMessage='Your free trial will end in {daysLeftOnTrial, number} {daysLeftOnTrial, plural, one {day} other {days}}. Add payment information to continue enjoying the benefits of Cloud Professional.'
+                        defaultMessage='Your free trial will end in {daysLeftOnTrial, number} {daysLeftOnTrial, plural, one {day} other {days}}. Contact sales to continue enjoying the benefits of Cloud Professional.'
                         values={{daysLeftOnTrial}}
                     />
                 }
@@ -119,9 +117,8 @@ export const FreeTrial = ({daysLeftOnTrial}: FreeTrialProps) => {
             <button
                 type='button'
                 onClick={() => openSalesLink()}
-                className='UpgradeMattermostCloud__upgradeButton'
+                className='UpgradeMattermostCloud__upgradeButton btn btn-primary'
             >
-
                 <FormattedMessage
                     id='admin.billing.subscription.privateCloudCard.contactSales'
                     defaultMessage='Contact Sales'

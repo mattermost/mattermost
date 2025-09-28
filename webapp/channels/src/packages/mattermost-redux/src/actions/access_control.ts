@@ -13,12 +13,13 @@ import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
-export function getAccessControlPolicy(id: string) {
+export function getAccessControlPolicy(id: string, channelId?: string) {
     return bindClientFunc({
         clientFunc: Client4.getAccessControlPolicy,
         onSuccess: [AdminTypes.RECEIVED_ACCESS_CONTROL_POLICY],
         params: [
             id,
+            channelId,
         ],
     });
 }
@@ -113,12 +114,13 @@ export function unassignChannelsFromAccessControlPolicy(policyId: string, channe
     });
 }
 
-export function getAccessControlFields(after: string, limit: number) {
+export function getAccessControlFields(after: string, limit: number, channelId?: string) {
     return bindClientFunc({
         clientFunc: Client4.getAccessControlFields,
         params: [
             after,
             limit,
+            channelId,
         ],
     });
 }
@@ -133,11 +135,11 @@ export function updateAccessControlPolicyActive(policyId: string, active: boolea
     });
 }
 
-export function searchUsersForExpression(expression: string, term: string, after: string, limit: number): ActionFuncAsync<AccessControlTestResult> {
+export function searchUsersForExpression(expression: string, term: string, after: string, limit: number, channelId?: string): ActionFuncAsync<AccessControlTestResult> {
     return async (dispatch, getState) => {
         let data;
         try {
-            data = await Client4.testAccessControlExpression(expression, term, after, limit);
+            data = await Client4.testAccessControlExpression(expression, term, after, limit, channelId);
         } catch (error) {
             forceLogoutIfNecessary(error as ServerError, dispatch, getState);
             return {error};
@@ -151,9 +153,35 @@ export function searchUsersForExpression(expression: string, term: string, after
     };
 }
 
-export function getVisualAST(expression: string) {
+export function getVisualAST(expression: string, channelId?: string) {
     return bindClientFunc({
         clientFunc: Client4.expressionToVisualFormat,
-        params: [expression],
+        params: [expression, channelId],
     });
+}
+
+export function validateExpressionAgainstRequester(expression: string, channelId?: string): ActionFuncAsync<{requester_matches: boolean}> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.validateExpressionAgainstRequester(expression, channelId);
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            return {error};
+        }
+        return {data};
+    };
+}
+
+export function createAccessControlSyncJob(jobData: {policy_id: string}): ActionFuncAsync<any> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.createAccessControlSyncJob(jobData);
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            return {error};
+        }
+        return {data};
+    };
 }

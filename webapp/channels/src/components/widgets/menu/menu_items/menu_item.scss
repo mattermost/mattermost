@@ -55,6 +55,7 @@
         span.MenuItem__primary-text {
             display: inline-flex;
             max-width: 100%;
+            align-items: center;
             padding: 5px 0;
             line-height: 22px;
             white-space: nowrap;
@@ -162,8 +163,6 @@
             }
 
             .MenuItem__icon {
-                position: relative;
-                top: 4px;
                 display: inline-flex;
                 width: 20px;
                 height: 20px;

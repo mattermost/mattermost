@@ -100,6 +100,7 @@ const ChannelInviteModalComponent = (props: Props) => {
     const [groupAndUserOptions, setGroupAndUserOptions] = useState<Array<UserProfileValue | GroupValue>>([]);
     const [inviteError, setInviteError] = useState<string | undefined>(undefined);
     const [pageCursors, setPageCursors] = useState<{[page: number]: string}>({});
+    const [abacFilteredUsers, setAbacFilteredUsers] = useState<UserProfile[]>([]);
 
     const searchTimeoutId = useRef<number>(0);
     const selectedItemRef = useRef<HTMLDivElement>(null);
@@ -183,22 +184,24 @@ const ChannelInviteModalComponent = (props: Props) => {
 
         let users: UserProfileValue[];
         if (props.channel.policy_enforced) {
-        // When ABAC is enabled, only use the ABAC-filtered profilesNotInCurrentChannel
-            const filteredUsers = filterProfilesStartingWithTerm(props.profilesNotInCurrentChannel, term);
+            // ABAC mode: Use local state with fresh API data, completely bypass Redux
+            const filteredUsers = filterProfilesStartingWithTerm(abacFilteredUsers, term);
             users = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredUsers, excludedAndNotInTeamUserIds);
         } else {
-        // When ABAC is not enabled, use the current logic
+            // Non-ABAC mode: existing logic
             const filteredUsers = filterProfilesStartingWithTerm(props.profilesNotInCurrentChannel.concat(props.profilesInCurrentChannel), term);
             users = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredUsers, excludedAndNotInTeamUserIds);
-        }
 
-        // Only include explicitly added users if ABAC is not enabled
-        if (props.includeUsers && !props.channel.policy_enforced) {
-            users = [...users, ...Object.values(props.includeUsers)];
+            // Only include explicitly added users if ABAC is not enabled
+            if (props.includeUsers) {
+                users = [...users, ...Object.values(props.includeUsers)];
+            }
         }
 
         const groupsAndUsers = [
-            ...filterGroupsMatchingTerm(props.groups, term) as GroupValue[],
+
+            // Only include groups if ABAC policy is NOT enforced
+            ...(props.channel.policy_enforced ? [] : filterGroupsMatchingTerm(props.groups, term) as GroupValue[]),
             ...users,
         ].sort(sortUsersAndGroups);
 
@@ -218,6 +221,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         props.channel.policy_enforced,
         excludedUsers,
         filterOutDeletedAndExcludedAndNotInTeamUsers,
+        abacFilteredUsers,
     ]);
 
     // Handle modal hide
@@ -246,6 +250,24 @@ const ChannelInviteModalComponent = (props: Props) => {
     const setUsersLoadingState = useCallback((loadingState: boolean) => {
         setLoadingUsers(loadingState);
     }, []);
+
+    // Custom function to fetch ABAC users without polluting Redux store
+    const fetchAbacUsers = useCallback(async (page = 0, perPage = USERS_PER_PAGE, cursorId = '') => {
+        try {
+            const profiles = await Client4.getProfilesNotInChannel(
+                props.channel.team_id,
+                props.channel.id,
+                props.channel.group_constrained,
+                page,
+                perPage,
+                cursorId,
+            );
+            setAbacFilteredUsers(profiles);
+            return {data: profiles};
+        } catch (error) {
+            return {error};
+        }
+    }, [props.channel.team_id, props.channel.id, props.channel.group_constrained]);
 
     // Handle page change with cursor-based pagination
     const handlePageChange = useCallback((page: number, prevPage: number) => {
@@ -342,7 +364,9 @@ const ChannelInviteModalComponent = (props: Props) => {
                 const promises = [
                     props.actions.searchProfiles(term, options),
                 ];
-                if (props.isGroupsEnabled) {
+
+                // Only search for groups if groups are enabled AND ABAC policy is NOT enforced
+                if (props.isGroupsEnabled && !props.channel.policy_enforced) {
                     promises.push(props.actions.searchAssociatedGroupsForReference(term, props.channel.team_id, props.channel.id, opts));
                 }
                 await Promise.all(promises);
@@ -439,9 +463,24 @@ const ChannelInviteModalComponent = (props: Props) => {
 
     // Initial data loading - only run when channel changes or component mounts
     useEffect(() => {
-        props.actions.getProfilesNotInChannel(props.channel.team_id, props.channel.id, props.channel.group_constrained, 0, USERS_PER_PAGE).then(() => {
-            setUsersLoadingState(false);
-        });
+        if (props.channel.policy_enforced) {
+            // For ABAC channels, use custom function to avoid Redux store pollution
+            fetchAbacUsers().then(() => {
+                setUsersLoadingState(false);
+            });
+        } else {
+            // For non-ABAC channels, use normal Redux actions
+            props.actions.getProfilesNotInChannel(
+                props.channel.team_id,
+                props.channel.id,
+                props.channel.group_constrained,
+                0,
+                USERS_PER_PAGE,
+            ).then(() => {
+                setUsersLoadingState(false);
+            });
+        }
+
         props.actions.getProfilesInChannel(props.channel.id, 0, USERS_PER_PAGE, '', {active: true});
         props.actions.getTeamStats(props.channel.team_id);
         props.actions.loadStatusesForProfilesList(props.profilesNotInCurrentChannel);
@@ -450,12 +489,9 @@ const ChannelInviteModalComponent = (props: Props) => {
         props.channel.id,
         props.channel.team_id,
         props.channel.group_constrained,
+        props.channel.policy_enforced,
         props.actions,
-
-        // Removing these dependencies as they cause an infinite loop
-        // These profiles are updated by the actions above, which triggers the effect again
-        // props.profilesNotInCurrentChannel,
-        // props.profilesInCurrentChannel,
+        fetchAbacUsers,
     ]);
 
     // Compute options with useMemo to ensure they're always fresh
@@ -468,6 +504,8 @@ const ChannelInviteModalComponent = (props: Props) => {
         props.groups,
         props.profilesNotInCurrentTeam,
         props.excludeUsers,
+        props.channel.policy_enforced, // Add this to trigger recomputation when ABAC mode changes
+        abacFilteredUsers, // Add local ABAC state
     ]);
 
     // Update team members when options change

@@ -15,16 +15,17 @@ import AdminPanelWithButton from 'components/widgets/admin_console/admin_panel_w
 import './channel_access_control_policy.scss';
 
 interface Props {
-    accessControlPolicies: AccessControlPolicy[];
+    parentPolicies: AccessControlPolicy[];
     actions: {
         searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
         onPolicySelected?: (policy: AccessControlPolicy) => void;
-        onPolicyRemoved: () => void;
+        onPolicyRemoveAll: () => void;
+        onPolicyRemove: (policyId: string) => void;
     };
 }
 
 export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element => {
-    const {accessControlPolicies, actions} = props;
+    const {parentPolicies: accessControlPolicies, actions} = props;
     const [showPolicySelectionModal, setShowPolicySelectionModal] = useState<boolean>(false);
 
     const intl = useIntl();
@@ -76,7 +77,7 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
                                 <td className='policy-name'>{policy.name}</td>
                                 <td className='text-right'>
                                     <Link
-                                        to={'/admin_console/user_management/attribute_based_access_control/edit_policy/' + policy.id}
+                                        to={'/admin_console/system_attributes/attribute_based_access_control/edit_policy/' + policy.id}
                                         className='policy-edit-icon'
                                         aria-label={intl.formatMessage({
                                             id: 'admin.channel_settings.channel_detail.go_to_policy.aria_label',
@@ -85,6 +86,19 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
                                     >
                                         <i className='fa fa-external-link'/>
                                     </Link>
+                                    <button
+                                        className='policy-remove-icon'
+                                        aria-label={intl.formatMessage({
+                                            id: 'admin.channel_settings.channel_detail.remove_policy.aria_label',
+                                            defaultMessage: 'Remove policy',
+                                        })}
+                                        onClick={() => {
+                                            actions.onPolicyRemove(policy.id);
+                                        }}
+                                    >
+                                        <i className='fa fa-trash'/>
+
+                                    </button>
                                 </td>
                             </tr>
                         ))}
@@ -123,9 +137,9 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
             id='channel_access_control_with_policy'
             title={defineMessage({id: 'admin.channel_settings.channel_detail.access_control_policy_title', defaultMessage: 'Access Policy'})}
             subtitle={defineMessage({id: 'admin.channel_settings.channel_detail.policy_following', defaultMessage: 'This channel is currently using the following access policy.'})}
-            buttonText={defineMessage({id: 'admin.channel_settings.channel_detail.remove_policy', defaultMessage: 'Remove policy'})}
+            buttonText={defineMessage({id: 'admin.channel_settings.channel_detail.remove_policy', defaultMessage: 'Remove all'})}
             onButtonClick={() => {
-                actions.onPolicyRemoved();
+                actions.onPolicyRemoveAll();
             }}
         >
             <div className='group-teams-and-channels'>
@@ -135,7 +149,7 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
                             <div className='access-policy-description'>
                                 <FormattedMessage
                                     id='admin.channel_settings.channel_detail.select_policy'
-                                    defaultMessage='Select an access policy for this channel to restrict membership'
+                                    defaultMessage='Apply an access policy for this channel to restrict membership'
                                 />
                             </div>
                         )}

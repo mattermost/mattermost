@@ -1,7 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`components/actions_menu/ActionsMenu returning empty ("") should match snapshot, return empty ("") on Center 1`] = `
-<ContextConsumer>
-  <Component />
-</ContextConsumer>
-`;

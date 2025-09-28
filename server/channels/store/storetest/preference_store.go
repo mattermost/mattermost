@@ -256,7 +256,7 @@ func testPreferenceGetAll(t *testing.T, _ request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	require.Equal(t, 3, len(result), "got the wrong number of preferences")
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		assert.Falsef(t, result[0] != preferences[i] && result[1] != preferences[i] && result[2] != preferences[i], "got incorrect preferences")
 	}
 }

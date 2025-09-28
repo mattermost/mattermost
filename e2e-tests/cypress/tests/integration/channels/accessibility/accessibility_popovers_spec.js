@@ -15,7 +15,7 @@ let previousEmoji = 'grinning';
 function verifyArrowKeysEmojiNavigation(arrowKey, count) {
     for (let index = 0; index < count; index++) {
         cy.get('body').type(arrowKey);
-        // eslint-disable-next-line no-loop-func
+
         cy.get('.emoji-picker__preview-name').invoke('text').then((selectedEmoji) => {
             expect(selectedEmoji).not.equal(previousEmoji);
             previousEmoji = selectedEmoji;

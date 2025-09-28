@@ -1024,50 +1024,6 @@
     "translation": "Podatkov o sliki ni mogoče dekodirati."
   },
   {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Iskanje ni bilo mogoče dokončati"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Iskanje ni bilo mogoče dokončati"
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Iskanje ni bilo mogoče dokončati"
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Iskanje ni bilo mogoče dokončati"
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Iskanje ni bilo mogoče dokončati"
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Objave ni bilo mogoče indeksirati"
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Objave ni bilo mogoče indeksirati"
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Posodobitev kanala ni uspela"
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Objave ni bilo mogoče izbrisati"
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Objave ni bilo mogoče izbrisati"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Posodobitev kanala ni uspela"
-  },
-  {
     "id": "app.user_access_token.invalid_or_missing",
     "translation": "Neveljaven ali manjkajoč žeton"
   },
@@ -1622,14 +1578,6 @@
   {
     "id": "api.user.login.guest_accounts.license.error",
     "translation": "vaša licenca ne podpira skupin ldap"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Poskušali ste uporabiti poskusno funkcijo ClientSideCertEnable brez veljavne licence podjetja"
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Poskušali ste se prijaviti z eksperimentalno funkcijo ClientSideCert, ne da bi zagotovili veljaven certifikat"
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -3517,10 +3465,6 @@
   {
     "id": "api.context.404.app_error",
     "translation": "Strani ni mogoče najti."
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Nov format konfiguracije klienta še ni podprt. Nastavi format=old v poizvedbi."
   },
   {
     "id": "api.command_shrug.name",

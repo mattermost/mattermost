@@ -46,6 +46,25 @@ import './schema_admin_settings.scss';
 
 const emptyList: string[] = [];
 
+export type SystemConsoleCustomSettingChangeHandler = (id: string, value: any, confirm?: boolean, doSubmit?: boolean, warning?: boolean) => void;
+
+export type SystemConsoleCustomSettingsComponentProps = {
+    id: string;
+    label: string;
+    helpText: string;
+    value: unknown;
+    disabled: boolean;
+    config: Partial<AdminConfig>;
+    license: ClientLicense;
+    setByEnv: boolean;
+    onChange: SystemConsoleCustomSettingChangeHandler;
+    registerSaveAction: (saveAction: () => Promise<{error?: {message?: string}}>) => void;
+    setSaveNeeded: () => void;
+    unRegisterSaveAction: (saveAction: () => Promise<{error?: {message?: string}}>) => void;
+    cancelSubmit: () => void;
+    showConfirm: boolean;
+}
+
 type Props = {
     config: Partial<AdminConfig>;
     environmentConfig: Partial<EnvironmentConfig>;

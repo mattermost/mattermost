@@ -14,16 +14,10 @@ import (
 )
 
 var (
-	mainHelper  *testlib.MainHelper
-	replicaFlag bool
+	mainHelper *testlib.MainHelper
 )
 
 func TestMain(m *testing.M) {
-	if f := flag.Lookup("mysql-replica"); f == nil {
-		flag.BoolVar(&replicaFlag, "mysql-replica", false, "")
-		flag.Parse()
-	}
-
 	var parallelism int
 	if f := flag.Lookup("test.parallel"); f != nil {
 		parallelism, _ = strconv.Atoi(f.Value.String())
@@ -36,7 +30,6 @@ func TestMain(m *testing.M) {
 	options := testlib.HelperOptions{
 		EnableStore:     true,
 		EnableResources: true,
-		WithReadReplica: replicaFlag,
 		RunParallel:     runParallel,
 		Parallelism:     parallelism,
 	}

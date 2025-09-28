@@ -337,7 +337,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 		th.App.handleFailedScheduledPosts(rctx, failedScheduledPosts)
 
 		// Validate that the WebSocket events for both users are sent and received correctly
-		for i := 0; i < len(failedScheduledPosts); i++ {
+		for i := range failedScheduledPosts {
 			var received *model.WebSocketEvent
 			select {
 			case received = <-messagesUser1:
@@ -368,7 +368,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 				if time.Since(begin) > timeout {
 					break
 				}
-				posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
+				posts, appErr = th.App.GetPosts(th.Context, channel.Id, 0, 10)
 				assert.True(t, appErr == nil)
 				if len(posts.Posts) > 0 {
 					break

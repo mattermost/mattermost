@@ -133,10 +133,7 @@ func (s *SqlPostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.Po
 
 	perPage := 200
 	for i := 0; i < len(postIds); i += perPage {
-		j := i + perPage
-		if len(postIds) < j {
-			j = len(postIds)
-		}
+		j := min(len(postIds), i+perPage)
 
 		query := s.getQueryBuilder().
 			Select("PostId", "UserId", "ChannelId", "AcknowledgedAt", "RemoteId").
@@ -232,11 +229,7 @@ func (s *SqlPostAcknowledgementStore) buildUpsertQuery(acknowledgement *model.Po
 		Columns(columnsToInsert...).
 		Values(valuesToInsert...)
 
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE AcknowledgedAt = ?", acknowledgement.AcknowledgedAt))
-	} else {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (postid, userid) DO UPDATE SET AcknowledgedAt = ?", acknowledgement.AcknowledgedAt))
-	}
+	query = query.SuffixExpr(sq.Expr("ON CONFLICT (postid, userid) DO UPDATE SET AcknowledgedAt = ?", acknowledgement.AcknowledgedAt))
 
 	return query
 }
