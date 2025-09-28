@@ -40,7 +40,7 @@ describe('Teams Settings', () => {
         cy.get('#teamIconImage').should('be.visible');
         cy.get('#teamIconInitial').should('not.exist');
 
-        cy.wait(TIMEOUTS.ONE_HUNDRED_MILLIS);
+        cy.wait(TIMEOUTS.QUARTER_SEC);
 
         // # Close the team settings dialog
         cy.uiClose();
