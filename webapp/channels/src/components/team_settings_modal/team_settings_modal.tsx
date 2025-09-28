@@ -26,6 +26,7 @@ const TeamSettingsModal = ({onExited, canInviteUsers, focusOriginElement}: Props
     const [hasChanges, setHasChanges] = useState<boolean>(false);
     const [hasChangeTabError, setHasChangeTabError] = useState<boolean>(false);
     const [hasBeenWarned, setHasBeenWarned] = useState<boolean>(false);
+    const [justSaved, setJustSaved] = useState<boolean>(false);
     const modalBodyRef = useRef<ModalBody>(null);
     const {formatMessage} = useIntl();
 
@@ -42,7 +43,8 @@ const TeamSettingsModal = ({onExited, canInviteUsers, focusOriginElement}: Props
 
     const handleHide = useCallback(() => {
         // Prevent modal closing if there are unsaved changes (warn once, then allow)
-        if (hasChanges && !hasBeenWarned) {
+        // Don't warn if showing "Settings saved"
+        if (hasChanges && !hasBeenWarned && !justSaved) {
             setHasBeenWarned(true);
             setHasChangeTabError(true);
             setTimeout(() => {
@@ -51,7 +53,7 @@ const TeamSettingsModal = ({onExited, canInviteUsers, focusOriginElement}: Props
         } else {
             setShow(false);
         }
-    }, [hasChanges, hasBeenWarned]);
+    }, [hasChanges, hasBeenWarned, justSaved]);
 
     const handleClose = useCallback(() => {
         if (focusOriginElement) {
@@ -61,6 +63,7 @@ const TeamSettingsModal = ({onExited, canInviteUsers, focusOriginElement}: Props
         setHasChanges(false);
         setHasChangeTabError(false);
         setHasBeenWarned(false);
+        setJustSaved(false);
         onExited();
     }, [onExited, focusOriginElement]);
 
@@ -116,6 +119,7 @@ const TeamSettingsModal = ({onExited, canInviteUsers, focusOriginElement}: Props
                             setHasChanges={setHasChanges}
                             hasChangeTabError={hasChangeTabError}
                             setHasChangeTabError={setHasChangeTabError}
+                            setJustSaved={setJustSaved}
                             closeModal={handleHide}
                             collapseModal={handleCollapse}
                         />
