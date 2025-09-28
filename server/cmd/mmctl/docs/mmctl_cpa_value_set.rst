@@ -9,20 +9,20 @@ Synopsis
 ~~~~~~~~
 
 
-Set a Custom Profile Attribute field value for a specific user.
+Set a Custom Profile Attribute field value for a specific user by field ID or name.
 
 ::
 
-  mmctl cpa value set [user] [field-id] [flags]
+  mmctl cpa value set [user] [field] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    cpa value set john.doe@company.com kx8m2w4r9p3q7n5t1j6h8s4c9e --value "Engineering"
-    cpa value set johndoe q7n3t8w5r2m9k4x6p1j3h7s8c4 --value "Go" --value "React" --value "Python"
-    cpa value set user123 w9r5t2n8k4x7p3q6m1j9h4s7c2 --value "Senior"
+    cpa value set john.doe@company.com kx8m2w4r9p3q7n5t1j6h8s4c9e --value Engineering
+    cpa value set johndoe Department --value Engineering
+    cpa value set user123 Skills --value Go --value React --value Python
 
 Options
 ~~~~~~~
