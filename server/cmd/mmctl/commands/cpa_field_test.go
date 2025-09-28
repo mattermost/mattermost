@@ -437,8 +437,17 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		printer.SetFormat(printer.FormatPlain)
 		viper.Set("json", false)
 
+		fieldID := model.NewId()
+		mockFields := []*model.PropertyField{
+			{
+				ID:   fieldID,
+				Name: "Department",
+				Type: model.PropertyFieldTypeText,
+			},
+		}
+
 		expectedField := &model.PropertyField{
-			ID:         "field-id",
+			ID:         fieldID,
 			Name:       "New Department",
 			Type:       model.PropertyFieldTypeText,
 			TargetType: "user",
@@ -448,7 +457,13 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		newName := "New Department"
 		s.client.
 			EXPECT().
-			PatchCPAField(context.TODO(), "field-id", &model.PropertyFieldPatch{
+			ListCPAFields(context.TODO()).
+			Return(mockFields, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PatchCPAField(context.TODO(), fieldID, &model.PropertyFieldPatch{
 				Name: &newName,
 			}).
 			Return(expectedField, &model.Response{}, nil).
@@ -457,7 +472,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("name", "", "")
 		_ = cmd.Flags().Set("name", "New Department")
-		err := cpaFieldEditCmdF(s.client, cmd, []string{"field-id"})
+		err := cpaFieldEditCmdF(s.client, cmd, []string{fieldID})
 		s.Require().NoError(err)
 
 		lines := printer.GetLines()
@@ -470,8 +485,9 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		printer.SetFormat(printer.FormatPlain)
 		viper.Set("json", false)
 
+		fieldID := model.NewId()
 		expectedField := &model.PropertyField{
-			ID:         "field-id",
+			ID:         fieldID,
 			Name:       "Department",
 			Type:       model.PropertyFieldTypeText,
 			TargetType: "user",
@@ -483,9 +499,17 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		expectedAttrs := model.StringInterface{
 			"managed": "admin",
 		}
+
+		mockFields := []*model.PropertyField{expectedField}
 		s.client.
 			EXPECT().
-			PatchCPAField(context.TODO(), "field-id", &model.PropertyFieldPatch{
+			ListCPAFields(context.TODO()).
+			Return(mockFields, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PatchCPAField(context.TODO(), fieldID, &model.PropertyFieldPatch{
 				Attrs: &expectedAttrs,
 			}).
 			Return(expectedField, &model.Response{}, nil).
@@ -496,7 +520,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		cmd.Flags().String("attrs", "", "")
 		cmd.Flags().StringSlice("option", []string{}, "")
 		_ = cmd.Flags().Set("managed", "true")
-		err := cpaFieldEditCmdF(s.client, cmd, []string{"field-id"})
+		err := cpaFieldEditCmdF(s.client, cmd, []string{fieldID})
 		s.Require().NoError(err)
 
 		lines := printer.GetLines()
@@ -509,8 +533,9 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		printer.SetFormat(printer.FormatPlain)
 		viper.Set("json", false)
 
+		fieldID := model.NewId()
 		expectedField := &model.PropertyField{
-			ID:         "field-id",
+			ID:         fieldID,
 			Name:       "Department",
 			Type:       model.PropertyFieldTypeText,
 			TargetType: "user",
@@ -522,9 +547,17 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		expectedAttrs := model.StringInterface{
 			"managed": "",
 		}
+
+		mockFields := []*model.PropertyField{expectedField}
 		s.client.
 			EXPECT().
-			PatchCPAField(context.TODO(), "field-id", &model.PropertyFieldPatch{
+			ListCPAFields(context.TODO()).
+			Return(mockFields, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PatchCPAField(context.TODO(), fieldID, &model.PropertyFieldPatch{
 				Attrs: &expectedAttrs,
 			}).
 			Return(expectedField, &model.Response{}, nil).
@@ -535,7 +568,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		cmd.Flags().String("attrs", "", "")
 		cmd.Flags().StringSlice("option", []string{}, "")
 		_ = cmd.Flags().Set("managed", "false")
-		err := cpaFieldEditCmdF(s.client, cmd, []string{"field-id"})
+		err := cpaFieldEditCmdF(s.client, cmd, []string{fieldID})
 		s.Require().NoError(err)
 
 		lines := printer.GetLines()
@@ -548,8 +581,9 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		printer.SetFormat(printer.FormatPlain)
 		viper.Set("json", false)
 
+		fieldID := model.NewId()
 		expectedField := &model.PropertyField{
-			ID:         "field-id",
+			ID:         fieldID,
 			Name:       "Department",
 			Type:       model.PropertyFieldTypeText,
 			TargetType: "user",
@@ -563,9 +597,17 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 			"visibility": "always",
 			"required":   true,
 		}
+
+		mockFields := []*model.PropertyField{expectedField}
 		s.client.
 			EXPECT().
-			PatchCPAField(context.TODO(), "field-id", &model.PropertyFieldPatch{
+			ListCPAFields(context.TODO()).
+			Return(mockFields, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PatchCPAField(context.TODO(), fieldID, &model.PropertyFieldPatch{
 				Attrs: &expectedAttrs,
 			}).
 			Return(expectedField, &model.Response{}, nil).
@@ -576,7 +618,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		cmd.Flags().String("attrs", "", "")
 		cmd.Flags().StringSlice("option", []string{}, "")
 		_ = cmd.Flags().Set("attrs", `{"visibility":"always","required":true}`)
-		err := cpaFieldEditCmdF(s.client, cmd, []string{"field-id"})
+		err := cpaFieldEditCmdF(s.client, cmd, []string{fieldID})
 		s.Require().NoError(err)
 
 		lines := printer.GetLines()
@@ -589,8 +631,9 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		printer.SetFormat(printer.FormatPlain)
 		viper.Set("json", false)
 
+		fieldID := model.NewId()
 		expectedField := &model.PropertyField{
-			ID:         "field-id",
+			ID:         fieldID,
 			Name:       "Skills",
 			Type:       model.PropertyFieldTypeMultiselect,
 			TargetType: "user",
@@ -603,11 +646,18 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 			},
 		}
 
+		mockFields := []*model.PropertyField{expectedField}
 		s.client.
 			EXPECT().
-			PatchCPAField(context.TODO(), "field-id", gomock.Any()).
-			DoAndReturn(func(ctx context.Context, fieldID string, patch *model.PropertyFieldPatch) (*model.PropertyField, *model.Response, error) {
-				s.Require().Equal("field-id", fieldID)
+			ListCPAFields(context.TODO()).
+			Return(mockFields, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PatchCPAField(context.TODO(), fieldID, gomock.Any()).
+			DoAndReturn(func(ctx context.Context, receivedFieldID string, patch *model.PropertyFieldPatch) (*model.PropertyField, *model.Response, error) {
+				s.Require().Equal(fieldID, receivedFieldID)
 				s.Require().NotNil(patch.Attrs)
 
 				options, ok := (*patch.Attrs)["options"].([]*model.CustomProfileAttributesSelectOption)
@@ -631,7 +681,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		_ = cmd.Flags().Set("option", "Go")
 		_ = cmd.Flags().Set("option", "React")
 		_ = cmd.Flags().Set("option", "Python")
-		err := cpaFieldEditCmdF(s.client, cmd, []string{"field-id"})
+		err := cpaFieldEditCmdF(s.client, cmd, []string{fieldID})
 		s.Require().NoError(err)
 
 		lines := printer.GetLines()
@@ -644,8 +694,9 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		printer.SetFormat(printer.FormatPlain)
 		viper.Set("json", false)
 
+		fieldID := model.NewId()
 		expectedField := &model.PropertyField{
-			ID:         "field-id",
+			ID:         fieldID,
 			Name:       "Department",
 			Type:       model.PropertyFieldTypeText,
 			TargetType: "user",
@@ -655,11 +706,18 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 			},
 		}
 
+		mockFields := []*model.PropertyField{expectedField}
 		s.client.
 			EXPECT().
-			PatchCPAField(context.TODO(), "field-id", gomock.Any()).
-			DoAndReturn(func(ctx context.Context, fieldID string, patch *model.PropertyFieldPatch) (*model.PropertyField, *model.Response, error) {
-				s.Require().Equal("field-id", fieldID)
+			ListCPAFields(context.TODO()).
+			Return(mockFields, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PatchCPAField(context.TODO(), fieldID, gomock.Any()).
+			DoAndReturn(func(ctx context.Context, receivedFieldID string, patch *model.PropertyFieldPatch) (*model.PropertyField, *model.Response, error) {
+				s.Require().Equal(fieldID, receivedFieldID)
 				s.Require().NotNil(patch.Attrs)
 
 				// individual flags should take precedence over attrs
@@ -676,7 +734,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		cmd.Flags().StringSlice("option", []string{}, "")
 		_ = cmd.Flags().Set("managed", "true")
 		_ = cmd.Flags().Set("attrs", `{"visibility":"always","managed":""}`)
-		err := cpaFieldEditCmdF(s.client, cmd, []string{"field-id"})
+		err := cpaFieldEditCmdF(s.client, cmd, []string{fieldID})
 		s.Require().NoError(err)
 
 		lines := printer.GetLines()
@@ -690,18 +748,26 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		viper.Set("json", false)
 
 		newName := "New Name"
+		fieldID := model.NewId()
 		expectedField := &model.PropertyField{
-			ID:         "field-id",
+			ID:         fieldID,
 			Name:       "New Name",
 			Type:       model.PropertyFieldTypeText,
 			TargetType: "user",
 			Attrs:      make(model.StringInterface),
 		}
 
+		mockFields := []*model.PropertyField{expectedField}
+		s.client.
+			EXPECT().
+			ListCPAFields(context.TODO()).
+			Return(mockFields, &model.Response{}, nil).
+			Times(1)
+
 		// Should only pass name, no attrs
 		s.client.
 			EXPECT().
-			PatchCPAField(context.TODO(), "field-id", &model.PropertyFieldPatch{
+			PatchCPAField(context.TODO(), fieldID, &model.PropertyFieldPatch{
 				Name: &newName,
 			}).
 			Return(expectedField, &model.Response{}, nil).
@@ -710,7 +776,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("name", "", "")
 		_ = cmd.Flags().Set("name", "New Name")
-		err := cpaFieldEditCmdF(s.client, cmd, []string{"field-id"})
+		err := cpaFieldEditCmdF(s.client, cmd, []string{fieldID})
 		s.Require().NoError(err)
 
 		lines := printer.GetLines()
@@ -721,12 +787,25 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 	s.Run("Should handle error for invalid attrs JSON syntax", func() {
 		printer.Clean()
 
+		fieldID := model.NewId()
+		mockField := &model.PropertyField{
+			ID:   fieldID,
+			Name: "Department",
+			Type: model.PropertyFieldTypeText,
+		}
+		mockFields := []*model.PropertyField{mockField}
+		s.client.
+			EXPECT().
+			ListCPAFields(context.TODO()).
+			Return(mockFields, &model.Response{}, nil).
+			Times(1)
+
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("managed", false, "")
 		cmd.Flags().String("attrs", "", "")
 		cmd.Flags().StringSlice("option", []string{}, "")
 		_ = cmd.Flags().Set("attrs", `{"invalid": json}`) // Invalid JSON
-		err := cpaFieldEditCmdF(s.client, cmd, []string{"field-id"})
+		err := cpaFieldEditCmdF(s.client, cmd, []string{fieldID})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "failed to parse attrs JSON")
 	})
@@ -734,20 +813,92 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 	s.Run("Should handle API error when PatchCPAField client call fails", func() {
 		printer.Clean()
 
+		fieldID := model.NewId()
+		mockField := &model.PropertyField{
+			ID:   fieldID,
+			Name: "Department",
+			Type: model.PropertyFieldTypeText,
+		}
+		mockFields := []*model.PropertyField{mockField}
+		s.client.
+			EXPECT().
+			ListCPAFields(context.TODO()).
+			Return(mockFields, &model.Response{}, nil).
+			Times(1)
+
 		expectedError := errors.New("API error")
 		s.client.
 			EXPECT().
-			PatchCPAField(context.TODO(), "field-id", gomock.Any()).
+			PatchCPAField(context.TODO(), fieldID, gomock.Any()).
 			Return(nil, &model.Response{}, expectedError).
 			Times(1)
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("name", "", "")
 		_ = cmd.Flags().Set("name", "New Name")
-		err := cpaFieldEditCmdF(s.client, cmd, []string{"field-id"})
+		err := cpaFieldEditCmdF(s.client, cmd, []string{fieldID})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "failed to update CPA field")
 		s.Require().Contains(err.Error(), "API error")
+	})
+
+	s.Run("Should successfully edit field by name", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		viper.Set("json", false)
+
+		fieldID := model.NewId()
+		mockFields := []*model.PropertyField{
+			{
+				ID:   fieldID,
+				Name: "Department",
+				Type: model.PropertyFieldTypeText,
+			},
+		}
+
+		expectedField := &model.PropertyField{
+			ID:         fieldID,
+			Name:       "Team",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "user",
+			Attrs: model.StringInterface{
+				"managed": "admin",
+			},
+		}
+
+		newName := "Team"
+		expectedAttrs := model.StringInterface{
+			"managed": "admin",
+		}
+
+		s.client.
+			EXPECT().
+			ListCPAFields(context.TODO()).
+			Return(mockFields, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PatchCPAField(context.TODO(), fieldID, &model.PropertyFieldPatch{
+				Name:  &newName,
+				Attrs: &expectedAttrs,
+			}).
+			Return(expectedField, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("name", "", "")
+		cmd.Flags().Bool("managed", false, "")
+		cmd.Flags().String("attrs", "", "")
+		cmd.Flags().StringSlice("option", []string{}, "")
+		_ = cmd.Flags().Set("name", "Team")
+		_ = cmd.Flags().Set("managed", "true")
+		err := cpaFieldEditCmdF(s.client, cmd, []string{"Department"})
+		s.Require().NoError(err)
+
+		lines := printer.GetLines()
+		s.Require().Len(lines, 1)
+		s.Require().Contains(lines[0], "Field Team successfully updated")
 	})
 }
 
@@ -755,21 +906,116 @@ func (s *MmctlUnitTestSuite) TestCPAFieldDeleteCmd() {
 	s.Run("Should successfully delete field with --confirm flag", func() {
 		printer.Clean()
 
+		fieldID := model.NewId()
+		mockFields := []*model.PropertyField{
+			{
+				ID:   fieldID,
+				Name: "Department",
+				Type: model.PropertyFieldTypeText,
+			},
+		}
+
 		s.client.
 			EXPECT().
-			DeleteCPAField(context.TODO(), "field-id").
+			ListCPAFields(context.TODO()).
+			Return(mockFields, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			DeleteCPAField(context.TODO(), fieldID).
 			Return(&model.Response{}, nil).
 			Times(1)
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", false, "")
 		_ = cmd.Flags().Set("confirm", "true")
-		err := cpaFieldDeleteCmdF(s.client, cmd, []string{"field-id"})
+		err := cpaFieldDeleteCmdF(s.client, cmd, []string{fieldID})
 		s.Require().NoError(err)
 
 		lines := printer.GetLines()
 		s.Require().Len(lines, 1)
-		s.Require().Contains(lines[0], "Successfully deleted CPA field: field-id")
+		s.Require().Contains(lines[0], "Successfully deleted CPA field: "+fieldID)
+	})
+
+	s.Run("Should successfully delete field by name with --confirm flag", func() {
+		printer.Clean()
+
+		fieldID := model.NewId()
+		mockFields := []*model.PropertyField{
+			{
+				ID:   fieldID,
+				Name: "Department",
+				Type: model.PropertyFieldTypeText,
+			},
+		}
+
+		s.client.
+			EXPECT().
+			ListCPAFields(context.TODO()).
+			Return(mockFields, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			DeleteCPAField(context.TODO(), fieldID).
+			Return(&model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", false, "")
+		_ = cmd.Flags().Set("confirm", "true")
+		err := cpaFieldDeleteCmdF(s.client, cmd, []string{"Department"})
+		s.Require().NoError(err)
+
+		lines := printer.GetLines()
+		s.Require().Len(lines, 1)
+		s.Require().Contains(lines[0], "Successfully deleted CPA field: Department")
+	})
+
+	s.Run("Should handle getFieldFromArg error when field not found", func() {
+		printer.Clean()
+
+		fieldID := model.NewId()
+		mockFields := []*model.PropertyField{
+			{
+				ID:   fieldID,
+				Name: "Department",
+				Type: model.PropertyFieldTypeText,
+			},
+		}
+
+		s.client.
+			EXPECT().
+			ListCPAFields(context.TODO()).
+			Return(mockFields, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", false, "")
+		_ = cmd.Flags().Set("confirm", "true")
+		err := cpaFieldDeleteCmdF(s.client, cmd, []string{"NonexistentField"})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), `failed to get field for "NonexistentField"`)
+	})
+
+	s.Run("Should handle ListCPAFields API error in getFieldFromArg", func() {
+		printer.Clean()
+
+		expectedError := errors.New("API error")
+		s.client.
+			EXPECT().
+			ListCPAFields(context.TODO()).
+			Return(nil, &model.Response{}, expectedError).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", false, "")
+		_ = cmd.Flags().Set("confirm", "true")
+		err := cpaFieldDeleteCmdF(s.client, cmd, []string{"field-name"})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "failed to get CPA fields")
+		s.Require().Contains(err.Error(), "API error")
 	})
 
 	s.Run("Should error when --confirm flag is not provided in non-interactive shell", func() {
@@ -786,17 +1032,32 @@ func (s *MmctlUnitTestSuite) TestCPAFieldDeleteCmd() {
 	s.Run("Should handle API error when DeleteCPAField client call fails", func() {
 		printer.Clean()
 
+		fieldID := model.NewId()
+		mockFields := []*model.PropertyField{
+			{
+				ID:   fieldID,
+				Name: "Department",
+				Type: model.PropertyFieldTypeText,
+			},
+		}
+
+		s.client.
+			EXPECT().
+			ListCPAFields(context.TODO()).
+			Return(mockFields, &model.Response{}, nil).
+			Times(1)
+
 		expectedError := errors.New("API error")
 		s.client.
 			EXPECT().
-			DeleteCPAField(context.TODO(), "field-id").
+			DeleteCPAField(context.TODO(), fieldID).
 			Return(&model.Response{}, expectedError).
 			Times(1)
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", false, "")
 		_ = cmd.Flags().Set("confirm", "true")
-		err := cpaFieldDeleteCmdF(s.client, cmd, []string{"field-id"})
+		err := cpaFieldDeleteCmdF(s.client, cmd, []string{fieldID})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "failed to delete CPA field")
 		s.Require().Contains(err.Error(), "API error")
