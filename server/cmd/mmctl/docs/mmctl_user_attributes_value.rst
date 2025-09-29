@@ -1,33 +1,22 @@
-.. _mmctl_cpa_field_list:
+.. _mmctl_user_attributes_value:
 
-mmctl cpa field list
---------------------
+mmctl user attributes value
+---------------------------
 
-List CPA fields
+Management of User Attributes values
 
 Synopsis
 ~~~~~~~~
 
 
-List all Custom Profile Attribute fields with their properties.
-
-::
-
-  mmctl cpa field list [flags]
-
-Examples
-~~~~~~~~
-
-::
-
-    cpa field list
+List, set, and delete User Attribute values for users.
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for list
+  -h, --help   help for value
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -47,5 +36,7 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl cpa field <mmctl_cpa_field.rst>`_ 	 - Management of CPA fields
+* `mmctl user attributes <mmctl_user_attributes.rst>`_ 	 - Management of User Attributes
+* `mmctl user attributes value list <mmctl_user_attributes_value_list.rst>`_ 	 - List User Attributes values for a user
+* `mmctl user attributes value set <mmctl_user_attributes_value_set.rst>`_ 	 - Set a User Attributes value for a user
 

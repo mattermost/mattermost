@@ -4567,7 +4567,6 @@
   "interactive_dialog.element.optional": "(可选)",
   "interactive_dialog.lookup_failed": "查找失败",
   "interactive_dialog.submission_failed": "提交失败",
-  "interactive_dialog.submission_failed_validation": "提交失败，存在校验错误",
   "interactive_dialog.submit": "发送",
   "interactive_dialog.submitting": "提交中…",
   "interactive_dialog.validation_failed": "对话框校验失败：{errors}",
