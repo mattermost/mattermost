@@ -4567,7 +4567,6 @@
   "interactive_dialog.element.optional": "(opcjonalne)",
   "interactive_dialog.lookup_failed": "Wyszukiwanie nie powiodło się",
   "interactive_dialog.submission_failed": "Zgłoszenie nie powiodło się",
-  "interactive_dialog.submission_failed_validation": "Przesyłanie nie powiodło się z błędami walidacji",
   "interactive_dialog.submit": "Wyślij",
   "interactive_dialog.submitting": "Dodawanie...",
   "interactive_dialog.validation_failed": "Walidacja okna dialogowego nie powiodła się: {errors}",
