@@ -74,15 +74,27 @@ func (s *MmctlE2ETestSuite) TestCPAValueList() {
 		_, appErr = s.th.App.PatchCPAValues(s.th.BasicUser.Id, updates, false)
 		s.Require().Nil(appErr)
 
-		// Test listing the values
+		// Test listing the values with plain format (human-readable)
+		printer.SetFormat(printer.FormatPlain)
 		err := cpaValueListCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		// Check that the value returned corresponds to Engineering
+		// Check that the human-readable format is used
+		output := printer.GetLines()[0].(string)
+		s.Require().Equal("Department (text): Engineering", output)
+
+		// Test with JSON format to ensure raw data is preserved
+		printer.Clean()
+		printer.SetFormat(printer.FormatJSON)
+		err = cpaValueListCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		// Check that JSON format outputs raw data structure
 		outputMap := printer.GetLines()[0].(map[string]any)
-		// The output contains field ID as key and value as the map value
 		s.Require().Contains(outputMap, createdField.ID)
 		s.Require().Equal(`"Engineering"`, string(outputMap[createdField.ID].(json.RawMessage)))
 	})
@@ -256,8 +268,75 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 		s.Require().Contains(actualValue, goOptionID)
 		s.Require().Contains(actualValue, reactOptionID)
 		s.Require().Contains(actualValue, pythonOptionID)
+	})
+
+	s.Run("Set a single value for multiselect type field", func() {
+		c := s.th.SystemAdminClient
+		printer.Clean()
+		s.cleanCPAFields()
+		s.cleanCPAValuesForUser(s.th.BasicUser.Id)
+
+		// Create a multiselect field with options
+		multiselectField := &model.CPAField{
+			PropertyField: model.PropertyField{
+				Name:       "Programming Languages",
+				Type:       model.PropertyFieldTypeMultiselect,
+				TargetType: "user",
+			},
+			Attrs: model.CPAAttrs{
+				Managed: "",
+				Options: []*model.CustomProfileAttributesSelectOption{
+					{ID: model.NewId(), Name: "Go"},
+					{ID: model.NewId(), Name: "Python"},
+					{ID: model.NewId(), Name: "JavaScript"},
+				},
+			},
+		}
+
+		createdField, appErr := s.th.App.CreateCPAField(multiselectField)
+		s.Require().Nil(appErr)
+
+		// Convert to CPAField to access options
+		cpaField, err := model.NewCPAFieldFromPropertyField(createdField)
+		s.Require().Nil(err)
+
+		// Set a single value using option name
+		cmd := &cobra.Command{}
+		cmd.Flags().StringSlice("value", []string{}, "")
+
+		err = cmd.Flags().Set("value", "Python")
+		s.Require().Nil(err)
+
+		err = cpaValueSetCmdF(c, cmd, []string{s.th.BasicUser.Email, createdField.ID})
+		s.Require().Nil(err)
+
+		// Verify the value was set (should be stored as an array with single option ID)
+		values, appErr := s.th.App.ListCPAValues(s.th.BasicUser.Id)
+		s.Require().Nil(appErr)
+		s.Require().Len(values, 1)
+		s.Require().Equal(createdField.ID, values[0].FieldID)
+
+		// Find the option ID for verification
+		var pythonOptionID string
+		for _, option := range cpaField.Attrs.Options {
+			if option.Name == "Python" {
+				pythonOptionID = option.ID
+				break
+			}
+		}
+
+		// The multiselect value should be stored as an array with single option ID
+		// Even for single value, multiselect fields store values as arrays
+		actualValue := string(values[0].Value)
+		s.Require().Contains(actualValue, pythonOptionID)
 		s.Require().Contains(actualValue, "[")
 		s.Require().Contains(actualValue, "]")
+		// Verify it doesn't contain other option IDs
+		for _, option := range cpaField.Attrs.Options {
+			if option.Name != "Python" {
+				s.Require().NotContains(actualValue, option.ID)
+			}
+		}
 	})
 
 	s.Run("Set value for user type field", func() {

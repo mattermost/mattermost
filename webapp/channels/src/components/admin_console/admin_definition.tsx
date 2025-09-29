@@ -432,7 +432,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.groups', defaultMessage: 'Groups'}),
                 isHidden: it.any(
                     it.licensedForFeature('LDAPGroups'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'Groups',
@@ -561,7 +560,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
                 isHidden: it.any(
                     it.licensedForFeature('LDAPGroups'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'SystemRoles',
@@ -608,7 +606,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
                 isHidden: it.any(
                     it.minLicenseTier(LicenseSkus.Enterprise),
-                    it.not(it.enterpriseReady),
                     it.configIsFalse('FeatureFlags', 'CustomProfileAttributes'),
                 ),
                 schema: {
@@ -728,7 +725,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
                 isHidden: it.any(
                     it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
-                    it.not(it.enterpriseReady),
                     it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                 ),
                 schema: {
@@ -2187,7 +2183,6 @@ const AdminDefinition: AdminDefinitionType = {
                 isHidden: it.any(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MOBILE_SECURITY)),
                     it.minLicenseTier(LicenseSkus.Enterprise),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'MobileSecurityFeatureDiscoverySettings',
@@ -2879,7 +2874,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'System-wide Notifications'}),
                 isHidden: it.any(
                     it.licensedForFeature('Announcement'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'AnnouncementSettings',
@@ -3692,7 +3686,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.ldap', defaultMessage: 'AD/LDAP'}),
                 isHidden: it.any(
                     it.licensedForFeature('LDAP'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'LdapSettings',
@@ -4170,7 +4163,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.saml', defaultMessage: 'SAML 2.0'}),
                 isHidden: it.any(
                     it.licensedForFeature('SAML'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'SamlSettings',
@@ -4864,7 +4856,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.openid', defaultMessage: 'OpenID Connect'}),
                 isHidden: it.any(
                     it.any(it.licensedForFeature('OpenId'), it.cloudLicensed),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'OpenIdSettings',
@@ -4886,7 +4877,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.gitlab', defaultMessage: 'GitLab'}),
                 isHidden: it.any(
                     it.licensedForFeature('OpenId'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'GitLabSettings',
@@ -4989,7 +4979,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.guest_access', defaultMessage: 'Guest Access'}),
                 isHidden: it.any(
                     it.licensedForFeature('GuestAccounts'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'GuestAccountsSettings',
@@ -5429,7 +5418,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.dataRetentionPolicy', defaultMessage: 'Data Retention Policy'}),
                 isHidden: it.any(
                     it.licensedForFeature('DataRetention'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'DataRetentionSettings',
@@ -5466,7 +5454,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.complianceExport', defaultMessage: 'Compliance Export'}),
                 isHidden: it.any(
                     it.licensedForFeature('MessageExport'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'MessageExportSettings',
@@ -5720,7 +5707,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.customTermsOfService', defaultMessage: 'Custom Terms of Service'}),
                 isHidden: it.any(
                     it.licensedForFeature('CustomTermsOfService'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'TermsOfServiceSettings',
