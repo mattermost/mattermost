@@ -108,6 +108,7 @@ type PropertyValueSearchOpts struct {
 	TargetType     string
 	TargetIDs      []string
 	FieldID        string
+	SinceUpdateAt  int64 // UpdateAt after which to send the items
 	IncludeDeleted bool
 	Cursor         PropertyValueSearchCursor
 	PerPage        int

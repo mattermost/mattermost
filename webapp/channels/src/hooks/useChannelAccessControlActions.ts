@@ -18,6 +18,7 @@ import {
     updateAccessControlPolicyActive,
     deleteAccessControlPolicy,
     validateExpressionAgainstRequester,
+    createAccessControlSyncJob,
 } from 'mattermost-redux/actions/access_control';
 import {getChannelMembers} from 'mattermost-redux/actions/channels';
 import {createJob} from 'mattermost-redux/actions/jobs';
@@ -34,6 +35,7 @@ export interface ChannelAccessControlActions {
     createJob: (job: JobTypeBase & { data: any }) => Promise<ActionResult>;
     updateAccessControlPolicyActive: (policyId: string, active: boolean) => Promise<ActionResult>;
     validateExpressionAgainstRequester: (expression: string) => Promise<ActionResult<{requester_matches: boolean}>>;
+    createAccessControlSyncJob: (jobData: {policy_id: string}) => Promise<ActionResult>;
 }
 
 /**
@@ -123,6 +125,13 @@ export const useChannelAccessControlActions = (channelId?: string): ChannelAcces
          */
         validateExpressionAgainstRequester: (expression: string) => {
             return dispatch(validateExpressionAgainstRequester(expression, channelId));
+        },
+
+        /**
+         * Create an access control sync job with deduplication
+         */
+        createAccessControlSyncJob: (jobData: {policy_id: string}) => {
+            return dispatch(createAccessControlSyncJob(jobData));
         },
     }), [dispatch, channelId]);
 };
