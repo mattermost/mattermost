@@ -4567,7 +4567,6 @@
   "interactive_dialog.element.optional": "(isteğe bağlı)",
   "interactive_dialog.lookup_failed": "Sonuç bulunamadı",
   "interactive_dialog.submission_failed": "Gönderilemedi",
-  "interactive_dialog.submission_failed_validation": "Doğrulama sorunları nedeniyle gönderilemedi",
   "interactive_dialog.submit": "Gönder",
   "interactive_dialog.submitting": "Gönderiliyor...",
   "interactive_dialog.validation_failed": "Pencere doğrulanamadı: {errors}",
