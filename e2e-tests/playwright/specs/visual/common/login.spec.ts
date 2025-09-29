@@ -8,7 +8,7 @@ import {test} from '@mattermost/playwright-lib';
  */
 test(
     'login page visual check',
-    {tag: ['@visual', '@login_page']},
+    {tag: ['@visual', '@login_page', '@snapshots']},
     async ({pw, page, browserName, viewport}, testInfo) => {
         // # Set up the page not to redirect to the landing page
         await pw.hasSeenLandingPage();
@@ -32,7 +32,6 @@ test(
         // # Click sign in button without entering user credential
         await pw.loginPage.signInButton.click();
         await pw.loginPage.userErrorLabel.waitFor();
-        await pw.waitForAnimationEnd(pw.loginPage.bodyCard);
 
         // * Verify login page with error appears as expected
         await pw.matchSnapshot({...testInfo, title: `${testInfo.title} error ${editionSuffix}`}, testArgs);

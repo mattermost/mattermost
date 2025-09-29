@@ -96,7 +96,7 @@ import type {
     OutgoingWebhook,
     SubmitDialogResponse,
 } from '@mattermost/types/integrations';
-import type {Job, JobTypeBase} from '@mattermost/types/jobs';
+import type {Job, JobType, JobTypeBase} from '@mattermost/types/jobs';
 import type {ServerLimits} from '@mattermost/types/limits';
 import type {
     MarketplaceApp,
@@ -3186,7 +3186,7 @@ export default class Client4 {
         );
     };
 
-    createJob = (job: JobTypeBase) => {
+    createJob = (job: JobTypeBase & { data?: any }) => {
         return this.doFetch<Job>(
             `${this.getJobsRoute()}`,
             {method: 'post', body: JSON.stringify(job)},
@@ -4535,6 +4535,14 @@ export default class Client4 {
             `${this.getBaseRoute()}/access_control_policies/${policyId}/unassign`,
             {method: 'delete', body: JSON.stringify({channel_ids: channelIds})},
         );
+    };
+
+    createAccessControlSyncJob = (jobData: {[key: string]: string}) => {
+        const job = {
+            type: 'access_control_sync' as JobType,
+            data: jobData,
+        };
+        return this.createJob(job);
     };
 
     getAccessControlFields = (after: string, limit: number, channelId?: string) => {

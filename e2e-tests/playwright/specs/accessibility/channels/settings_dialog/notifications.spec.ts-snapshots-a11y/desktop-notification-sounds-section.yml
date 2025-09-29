@@ -1,0 +1,10 @@
+- heading "Desktop notification sounds" [level=4]
+- checkbox "Message notification sound" [checked]
+- text: Message notification sound
+- log
+- text: Bing
+- combobox "Message notification sound"
+- separator
+- alert
+- button "Save"
+- button "Cancel"

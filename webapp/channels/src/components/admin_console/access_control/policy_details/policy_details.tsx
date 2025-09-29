@@ -26,7 +26,6 @@ import TextSetting from 'components/widgets/settings/text_setting';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {getHistory} from 'utils/browser_history';
-import {JobTypes} from 'utils/constants';
 
 import ChannelList from './channel_list';
 
@@ -226,11 +225,9 @@ function PolicyDetails({
         // --- Step 4: Create Job if necessary ---
         if (apply) {
             try {
-                const job: JobTypeBase & { data: any } = {
-                    type: JobTypes.ACCESS_CONTROL_SYNC,
-                    data: {policy_id: currentPolicyId},
-                };
-                await actions.createJob(job);
+                await abacActions.createAccessControlSyncJob({
+                    policy_id: currentPolicyId,
+                });
             } catch (error) {
                 setServerError(formatMessage({
                     id: 'admin.access_control.policy.edit_policy.error.create_job',
