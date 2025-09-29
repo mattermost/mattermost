@@ -180,6 +180,12 @@ export PERCY_TOKEN=<your-percy-token>
 npm run percy:docker
 ```
 
+## Accessibility Testing
+
+Accessibility tests ensure Mattermost meets WCAG 2.1 AA compliance standards. Tests are located in `specs/accessibility/` and cover keyboard navigation, screen reader support, focus management, and automated accessibility scanning.
+
+For comprehensive guidelines on writing accessibility tests, aria snapshots, and folder structure, see [docs/accessibility/](docs/accessibility/).
+
 ## Page/Component Object Model
 
 See https://playwright.dev/docs/test-pom.
