@@ -8,9 +8,11 @@ import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 
 import Reaction from 'components/post_view/reaction/reaction';
 
+import {getIntl} from 'utils/i18n';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/post_view/Reaction', () => {
+    const intl = getIntl();
     const post = TestHelper.getPostMock({
         id: 'post_id',
     });
@@ -43,6 +45,7 @@ describe('components/post_view/Reaction', () => {
         reactions,
         emojiImageUrl: 'emoji_image_url',
         actions,
+        intl,
     };
 
     test('should match snapshot', () => {
