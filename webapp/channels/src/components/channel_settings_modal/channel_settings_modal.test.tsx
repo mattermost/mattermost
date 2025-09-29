@@ -74,7 +74,7 @@ jest.mock('mattermost-redux/selectors/entities/roles', () => ({
 
 // Mock the general selectors
 jest.mock('selectors/general', () => ({
-    isChannelAdminManageABACControlEnabled: jest.fn().mockReturnValue(true),
+    isChannelAccessControlEnabled: jest.fn().mockReturnValue(true),
 }));
 
 // Mock the child components to simplify testing
