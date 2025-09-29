@@ -18,8 +18,7 @@ import (
 )
 
 func TestGetSharedChannelRemotes(t *testing.T) {
-	th := setupForSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	th := setupForSharedChannels(t).InitBasic(t)
 
 	// Create remote clusters
 	remote1 := &model.RemoteCluster{

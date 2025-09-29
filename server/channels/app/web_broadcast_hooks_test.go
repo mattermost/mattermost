@@ -228,8 +228,7 @@ func TestAddMentionsAndAddFollowersHooks(t *testing.T) {
 
 func TestPermalinkBroadcastHook(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	session, err := th.Server.Platform().CreateSession(th.Context, &model.Session{
 		UserId: th.BasicUser.Id,
@@ -243,7 +242,7 @@ func TestPermalinkBroadcastHook(t *testing.T) {
 	}
 	hook := &permalinkBroadcastHook{}
 
-	refPost := th.CreatePost(th.BasicChannel)
+	refPost := th.CreatePost(t, th.BasicChannel)
 
 	th.BasicPost.Metadata.Embeds = append(th.BasicPost.Metadata.Embeds, &model.PostEmbed{Type: model.PostEmbedPermalink, Data: &model.Permalink{
 		PreviewPost: model.NewPreviewPost(refPost, th.BasicTeam, th.BasicChannel),

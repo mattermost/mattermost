@@ -24,7 +24,6 @@ import (
 func TestWebSocketTrailingSlash(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port)
 	_, _, err := websocket.DefaultDialer.Dial(url+model.APIURLSuffix+"/websocket/", nil)
@@ -33,8 +32,7 @@ func TestWebSocketTrailingSlash(t *testing.T) {
 
 func TestWebSocketEvent(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	WebSocketClient := th.CreateConnectedWebSocketClient(t)
 
@@ -99,8 +97,7 @@ func TestWebSocketEvent(t *testing.T) {
 
 func TestCreateDirectChannelWithSocket(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	user2 := th.BasicUser2
@@ -156,7 +153,6 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 func TestWebsocketOriginSecurity(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port)
 
@@ -206,8 +202,7 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 
 func TestWebSocketReconnectRace(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	WebSocketClient, err := th.CreateWebSocketClient()
 	require.NoError(t, err)
@@ -241,8 +236,7 @@ func TestWebSocketReconnectRace(t *testing.T) {
 
 func TestWebSocketSendBinary(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.CreateClient()
 	th.LoginBasicWithClient(client)
@@ -281,8 +275,7 @@ func TestWebSocketSendBinary(t *testing.T) {
 
 func TestWebSocketStatuses(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	WebSocketClient := th.CreateConnectedWebSocketClient(t)
@@ -421,8 +414,7 @@ func TestWebSocketStatuses(t *testing.T) {
 
 func TestWebSocketPresence(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	wsClient := th.CreateConnectedWebSocketClient(t)
 
@@ -453,7 +445,6 @@ func TestWebSocketPresence(t *testing.T) {
 func TestWebSocketUpgrade(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	buffer := &mlog.Buffer{}
 	err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)
@@ -562,8 +553,7 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	t.Run("WebSocket works when MFA enforcement is disabled", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// MFA enforcement disabled - should work normally
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
@@ -581,8 +571,7 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 	})
 
 	t.Run("WebSocket blocked when MFA required but user has no MFA", func(t *testing.T) {
-		th := SetupEnterprise(t).InitBasic()
-		defer th.TearDown()
+		th := SetupEnterprise(t).InitBasic(t)
 
 		// Enable MFA enforcement in config
 		enableMFAEnforcement(th)
@@ -629,8 +618,7 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 	})
 
 	t.Run("WebSocket connection allowed when user has MFA active", func(t *testing.T) {
-		th := SetupEnterprise(t).InitBasic()
-		defer th.TearDown()
+		th := SetupEnterprise(t).InitBasic(t)
 
 		// Enable MFA enforcement in config
 		enableMFAEnforcement(th)

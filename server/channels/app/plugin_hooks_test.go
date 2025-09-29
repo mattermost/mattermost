@@ -78,8 +78,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("rejected", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
@@ -119,8 +118,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 
 	t.Run("rejected, returned post ignored", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
@@ -161,8 +159,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 
 	t.Run("allowed", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
@@ -205,8 +202,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 
 	t.Run("updated", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
@@ -250,8 +246,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 
 	t.Run("multiple updated", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
@@ -314,8 +309,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 
 func TestHookMessageHasBeenPosted(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -358,8 +352,7 @@ func TestHookMessageHasBeenPosted(t *testing.T) {
 
 func TestHookMessageWillBeUpdated(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -404,8 +397,7 @@ func TestHookMessageWillBeUpdated(t *testing.T) {
 
 func TestHookMessageHasBeenUpdated(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -453,8 +445,7 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 
 func TestHookMessageHasBeenDeleted(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -501,8 +492,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("rejected", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -546,8 +536,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 	t.Run("rejected, returned file ignored", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -597,8 +586,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 	t.Run("allowed", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -654,8 +642,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 	t.Run("updated", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -728,8 +715,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 func TestUserWillLogIn_Blocked(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
 	assert.Nil(t, err, "Error updating user password: %s", err)
@@ -768,8 +754,7 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 
 func TestUserWillLogInIn_Passed(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
 
@@ -811,8 +796,7 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 
 func TestUserHasLoggedIn(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
 
@@ -860,7 +844,6 @@ func TestUserHasLoggedIn(t *testing.T) {
 func TestUserHasBeenDeactivated(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -910,7 +893,6 @@ func TestUserHasBeenDeactivated(t *testing.T) {
 func TestUserHasBeenCreated(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -956,7 +938,6 @@ func TestUserHasBeenCreated(t *testing.T) {
 func TestErrorString(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("errors.New", func(t *testing.T) {
 		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t,
@@ -1030,8 +1011,8 @@ func TestErrorString(t *testing.T) {
 
 func TestHookContext(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	ctx := request.EmptyContext(th.TestLogger)
 
 	// We don't actually have a session, we are faking it so just set something arbitrarily
@@ -1087,7 +1068,6 @@ func TestHookContext(t *testing.T) {
 func TestActiveHooks(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("", func(t *testing.T) {
 		tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
@@ -1159,7 +1139,6 @@ func TestActiveHooks(t *testing.T) {
 func TestHookMetrics(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("", func(t *testing.T) {
 		metricsMock := &mocks.MetricsInterface{}
@@ -1258,8 +1237,7 @@ func TestHookMetrics(t *testing.T) {
 
 func TestHookReactionHasBeenAdded(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -1302,8 +1280,7 @@ func TestHookReactionHasBeenAdded(t *testing.T) {
 
 func TestHookReactionHasBeenRemoved(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -1352,8 +1329,7 @@ func TestHookReactionHasBeenRemoved(t *testing.T) {
 
 func TestHookRunDataRetention(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -1398,8 +1374,7 @@ func TestHookRunDataRetention(t *testing.T) {
 
 func TestHookOnSendDailyTelemetry(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -1443,8 +1418,7 @@ func TestHookOnSendDailyTelemetry(t *testing.T) {
 
 func TestHookOnCloudLimitsUpdated(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -1524,8 +1498,7 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mainHelper.Parallel(t)
 
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
+			th := Setup(t).InitBasic(t)
 
 			templatedPlugin := fmt.Sprintf(hookNotificationWillBePushedTmpl, tt.testCode)
 			tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{templatedPlugin}, th.App, th.NewPluginAPI)
@@ -1538,7 +1511,7 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 			}
 			var userSessions []userSession
 			for range 3 {
-				u := th.CreateUser()
+				u := th.CreateUser(t)
 				sess, err := th.App.CreateSession(th.Context, &model.Session{
 					UserId:    u.Id,
 					DeviceId:  "deviceID" + u.Id,
@@ -1554,7 +1527,7 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 				require.Nil(t, err)
 				_, err = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, u.Id)
 				require.Nil(t, err)
-				th.AddUserToChannel(u, th.BasicChannel)
+				th.AddUserToChannel(t, u, th.BasicChannel)
 				userSessions = append(userSessions, userSession{
 					user:    u,
 					session: sess,
@@ -1581,7 +1554,7 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 				go func(user model.User) {
 					defer wg.Done()
 					notification := &PostNotification{
-						Post:    th.CreatePost(th.BasicChannel),
+						Post:    th.CreatePost(t, th.BasicChannel),
 						Channel: th.BasicChannel,
 						ProfileMap: map[string]*model.User{
 							user.Id: &user,
@@ -1659,13 +1632,12 @@ func TestHookEmailNotificationWillBeSent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mainHelper.Parallel(t)
 
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
+			th := Setup(t).InitBasic(t)
 
 			// Create a test user for email notifications
-			user := th.CreateUser()
-			th.LinkUserToTeam(user, th.BasicTeam)
-			th.AddUserToChannel(user, th.BasicChannel)
+			user := th.CreateUser(t)
+			th.LinkUserToTeam(t, user, th.BasicTeam)
+			th.AddUserToChannel(t, user, th.BasicChannel)
 
 			// Set up email notification preferences to disable batching
 			appErr := th.App.UpdatePreferences(th.Context, user.Id, model.Preferences{
@@ -1781,8 +1753,7 @@ func TestHookMessagesWillBeConsumed(t *testing.T) {
 
 		th := SetupConfig(t, func(cfg *model.Config) {
 			cfg.FeatureFlags.ConsumePostHook = false
-		}).InitBasic()
-		t.Cleanup(th.TearDown)
+		}).InitBasic(t)
 
 		setupPlugin(t, th)
 
@@ -1805,9 +1776,7 @@ func TestHookMessagesWillBeConsumed(t *testing.T) {
 
 		th := SetupConfig(t, func(cfg *model.Config) {
 			cfg.FeatureFlags.ConsumePostHook = true
-		}).InitBasic()
-
-		t.Cleanup(th.TearDown)
+		}).InitBasic(t)
 
 		setupPlugin(t, th)
 
@@ -1830,8 +1799,7 @@ func TestHookPreferencesHaveChanged(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should be called when preferences are changed by non-plugin code", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Setup plugin
 		var mockAPI plugintest.API
@@ -1899,8 +1867,7 @@ func TestHookPreferencesHaveChanged(t *testing.T) {
 
 	t.Run("should be called when preferences are changed by plugin code", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Setup plugin
 		pluginCode := `
@@ -2023,13 +1990,12 @@ func TestChannelHasBeenCreated(t *testing.T) {
 
 	t.Run("should call hook when a regular channel is created", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
 
-		user1 := th.CreateUser()
+		user1 := th.CreateUser(t)
 
 		channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
 			CreatorId: user1.Id,
@@ -2054,14 +2020,13 @@ func TestChannelHasBeenCreated(t *testing.T) {
 
 	t.Run("should call hook when a DM is created", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
 
-		user1 := th.CreateUser()
-		user2 := th.CreateUser()
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
 
 		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, user1.Id, user2.Id)
 		require.Nil(t, appErr)
@@ -2080,15 +2045,14 @@ func TestChannelHasBeenCreated(t *testing.T) {
 
 	t.Run("should call hook when a GM is created", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
 
-		user1 := th.CreateUser()
-		user2 := th.CreateUser()
-		user3 := th.CreateUser()
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
+		user3 := th.CreateUser(t)
 
 		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id}, user1.Id)
 		require.Nil(t, appErr)
@@ -2153,13 +2117,12 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 	t.Run("should call hook when a user joins an existing channel", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
-		user1 := th.CreateUser()
-		th.LinkUserToTeam(user1, th.BasicTeam)
-		user2 := th.CreateUser()
-		th.LinkUserToTeam(user2, th.BasicTeam)
+		user1 := th.CreateUser(t)
+		th.LinkUserToTeam(t, user1, th.BasicTeam)
+		user2 := th.CreateUser(t)
+		th.LinkUserToTeam(t, user2, th.BasicTeam)
 
 		channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
 			CreatorId: user1.Id,
@@ -2199,13 +2162,12 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 	t.Run("should call hook when a user is added to an existing channel", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
-		user1 := th.CreateUser()
-		th.LinkUserToTeam(user1, th.BasicTeam)
-		user2 := th.CreateUser()
-		th.LinkUserToTeam(user2, th.BasicTeam)
+		user1 := th.CreateUser(t)
+		th.LinkUserToTeam(t, user1, th.BasicTeam)
+		user2 := th.CreateUser(t)
+		th.LinkUserToTeam(t, user2, th.BasicTeam)
 
 		channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
 			CreatorId: user1.Id,
@@ -2245,13 +2207,12 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 	t.Run("should not call hook when a regular channel is created", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
 
-		user1 := th.CreateUser()
+		user1 := th.CreateUser(t)
 
 		channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
 			CreatorId: user1.Id,
@@ -2280,14 +2241,13 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 	t.Run("should not call hook when a DM is created", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
 
-		user1 := th.CreateUser()
-		user2 := th.CreateUser()
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
 
 		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, user1.Id, user2.Id)
 		require.Nil(t, appErr)
@@ -2311,15 +2271,14 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 	t.Run("should not call hook when a GM is created", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
 
-		user1 := th.CreateUser()
-		user2 := th.CreateUser()
-		user3 := th.CreateUser()
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
+		user3 := th.CreateUser(t)
 
 		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id}, user1.Id)
 		require.Nil(t, appErr)

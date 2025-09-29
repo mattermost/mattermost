@@ -22,8 +22,7 @@ import (
 
 func TestCreateUploadSession(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	us := &model.UploadSession{
 		Type:      model.UploadTypeAttachment,
@@ -67,7 +66,7 @@ func TestCreateUploadSession(t *testing.T) {
 	})
 
 	t.Run("deleted channel", func(t *testing.T) {
-		ch := th.CreateChannel(th.Context, th.BasicTeam)
+		ch := th.CreateChannel(t, th.BasicTeam)
 		appErr := th.App.DeleteChannel(th.Context, ch, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		us.ChannelId = ch.Id
@@ -87,8 +86,7 @@ func TestCreateUploadSession(t *testing.T) {
 
 func TestUploadData(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	us := &model.UploadSession{
 		Id:        model.NewId(),
@@ -247,8 +245,7 @@ func TestUploadData(t *testing.T) {
 
 func TestUploadDataConcurrent(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	us := &model.UploadSession{
 		Id:        model.NewId(),

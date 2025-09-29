@@ -16,7 +16,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestGetBusyCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	s.th.App.Srv().Platform().Busy.Set(time.Minute)
 	defer s.th.App.Srv().Platform().Busy.Clear()
@@ -44,7 +44,7 @@ func (s *MmctlE2ETestSuite) TestGetBusyCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestSetBusyCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	s.th.App.Srv().Platform().Busy.Clear()
 	cmd := &cobra.Command{}
@@ -76,7 +76,7 @@ func (s *MmctlE2ETestSuite) TestSetBusyCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestClearBusyCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	s.th.App.Srv().Platform().Busy.Set(time.Minute)
 	defer s.th.App.Srv().Platform().Busy.Clear()
@@ -107,7 +107,7 @@ func (s *MmctlE2ETestSuite) TestClearBusyCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestSupportPacketCmdF() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	printer.SetFormat(printer.FormatPlain)
 	s.T().Cleanup(func() { printer.SetFormat(printer.FormatJSON) })

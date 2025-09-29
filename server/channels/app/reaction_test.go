@@ -15,9 +15,9 @@ import (
 
 func TestSaveReactionForPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 
-	post := th.CreatePost(th.BasicChannel)
+	post := th.CreatePost(t, th.BasicChannel)
 	reaction1, err := th.App.SaveReactionForPost(th.Context, &model.Reaction{
 		UserId:    th.BasicUser.Id,
 		PostId:    post.Id,
@@ -54,11 +54,11 @@ func TestSaveReactionForPost(t *testing.T) {
 
 	t.Run("should not add reaction if we are over the limit", func(t *testing.T) {
 		var originalLimit *int
-		th.UpdateConfig(func(cfg *model.Config) {
+		th.UpdateConfig(t, func(cfg *model.Config) {
 			originalLimit = cfg.ServiceSettings.UniqueEmojiReactionLimitPerPost
 			*cfg.ServiceSettings.UniqueEmojiReactionLimitPerPost = 3
 		})
-		defer th.UpdateConfig(func(cfg *model.Config) {
+		defer th.UpdateConfig(t, func(cfg *model.Config) {
 			cfg.ServiceSettings.UniqueEmojiReactionLimitPerPost = originalLimit
 		})
 
@@ -74,14 +74,14 @@ func TestSaveReactionForPost(t *testing.T) {
 	})
 
 	t.Run("should always add reaction if we are over the limit but the reaction is not unique", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		var originalLimit *int
-		th.UpdateConfig(func(cfg *model.Config) {
+		th.UpdateConfig(t, func(cfg *model.Config) {
 			originalLimit = cfg.ServiceSettings.UniqueEmojiReactionLimitPerPost
 			*cfg.ServiceSettings.UniqueEmojiReactionLimitPerPost = 3
 		})
-		defer th.UpdateConfig(func(cfg *model.Config) {
+		defer th.UpdateConfig(t, func(cfg *model.Config) {
 			cfg.ServiceSettings.UniqueEmojiReactionLimitPerPost = originalLimit
 		})
 
@@ -100,7 +100,7 @@ func TestSaveReactionForPost(t *testing.T) {
 func TestSharedChannelSyncForReactionActions(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("adding a reaction in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
-		th := setupSharedChannels(t).InitBasic()
+		th := setupSharedChannels(t).InitBasic(t)
 
 		sharedChannelService := NewMockSharedChannelService(th.Server.GetSharedChannelSyncService())
 		th.Server.SetSharedChannelSyncService(sharedChannelService)
@@ -109,7 +109,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 
 		user := th.BasicUser
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam, WithShared(true))
+		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
 
 		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user.Id,
@@ -126,16 +126,13 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 
 		_, err = th.App.SaveReactionForPost(th.Context, reaction)
 		require.Nil(t, err, "Adding a reaction should not error")
-
-		th.TearDown() // We need to enforce teardown because reaction instrumentation happens in a goroutine
-
 		assert.Len(t, sharedChannelService.channelNotifications, 2)
 		assert.Equal(t, channel.Id, sharedChannelService.channelNotifications[0])
 		assert.Equal(t, channel.Id, sharedChannelService.channelNotifications[1])
 	})
 
 	t.Run("removing a reaction in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
-		th := setupSharedChannels(t).InitBasic()
+		th := setupSharedChannels(t).InitBasic(t)
 
 		sharedChannelService := NewMockSharedChannelService(th.Server.GetSharedChannelSyncService())
 		th.Server.SetSharedChannelSyncService(sharedChannelService)
@@ -144,7 +141,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 
 		user := th.BasicUser
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam, WithShared(true))
+		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
 
 		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user.Id,
@@ -161,23 +158,19 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 
 		err = th.App.DeleteReactionForPost(th.Context, reaction)
 		require.Nil(t, err, "Adding a reaction should not error")
-
-		th.TearDown() // We need to enforce teardown because reaction instrumentation happens in a goroutine
-
 		assert.Len(t, sharedChannelService.channelNotifications, 2)
 		assert.Equal(t, channel.Id, sharedChannelService.channelNotifications[0])
 		assert.Equal(t, channel.Id, sharedChannelService.channelNotifications[1])
 	})
 }
 
-func (th *TestHelper) UpdateConfig(f func(*model.Config)) {
+func (th *TestHelper) UpdateConfig(tb testing.TB, f func(*model.Config)) {
 	if th.ConfigStore.IsReadOnly() {
 		return
 	}
 	old := th.ConfigStore.Get()
 	updated := old.Clone()
 	f(updated)
-	if _, _, err := th.ConfigStore.Set(updated); err != nil {
-		panic(err)
-	}
+	_, _, err := th.ConfigStore.Set(updated)
+	require.NoError(tb, err)
 }

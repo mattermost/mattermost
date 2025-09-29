@@ -19,7 +19,7 @@ import (
 
 // setupTestEnvironment sets up a common test environment for shared channel metadata tests
 func setupTestEnvironment(t *testing.T) (*TestHelper, *sharedchannel.Service) {
-	th := setupForSharedChannels(t).InitBasic()
+	th := setupForSharedChannels(t).InitBasic(t)
 	ss := th.App.Srv().Store()
 	EnsureCleanState(t, th, ss)
 
@@ -116,7 +116,6 @@ func createSharedChannelSetup(t *testing.T, th *TestHelper, service *sharedchann
 
 func TestSharedChannelPostMetadataSync(t *testing.T) {
 	th, service := setupTestEnvironment(t)
-	defer th.TearDown()
 
 	t.Run("Post Priority Metadata Self-Referential Sync", func(t *testing.T) {
 		t.Skip("MM-64687")
