@@ -11,7 +11,6 @@
 // Group: @channels @team_settings
 
 import {getRandomId, stubClipboard} from '../../../utils';
-
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Team Settings', () => {
