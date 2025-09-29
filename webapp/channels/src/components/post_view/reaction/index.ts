@@ -83,4 +83,5 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default injectIntl(connect(makeMapStateToProps, mapDispatchToProps)(Reaction));
+const ReactionWithIntl = injectIntl(Reaction);
+export default connect(makeMapStateToProps, mapDispatchToProps)(ReactionWithIntl);

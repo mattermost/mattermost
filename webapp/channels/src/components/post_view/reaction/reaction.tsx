@@ -85,7 +85,7 @@ type Props = {
     users?: string[];
 
     // react-intl instance injected via HOC
-    intl?: IntlShape;
+    intl: IntlShape;
 }
 
 export default class Reaction extends React.PureComponent<Props, State> {
