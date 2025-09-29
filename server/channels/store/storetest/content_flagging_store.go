@@ -250,7 +250,7 @@ func testGetReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s S
 func testSaveAndGetReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("comprehensive save and get", func(t *testing.T) {
 		ss.ContentFlagging().ClearCaches()
-		
+
 		// Create comprehensive test data
 		commonUserId1 := model.NewId()
 		commonUserId2 := model.NewId()

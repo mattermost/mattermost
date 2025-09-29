@@ -62,12 +62,14 @@ func TestContentFlaggingStoreGetReviewerSettingsCache(t *testing.T) {
 		require.NoError(t, err)
 		setBasicMock(mockStore, cachedStore)
 
-		cachedStore.ContentFlagging().GetReviewerSettings()
+		_, err = cachedStore.ContentFlagging().GetReviewerSettings()
+		require.NoError(t, err)
 		mockStore.ContentFlagging().(*mocks.ContentFlaggingStore).AssertNumberOfCalls(t, "GetReviewerSettings", 1)
 
 		cachedStore.ContentFlagging().ClearCaches()
 
-		cachedStore.ContentFlagging().GetReviewerSettings()
+		_, err = cachedStore.ContentFlagging().GetReviewerSettings()
+		require.NoError(t, err)
 		mockStore.ContentFlagging().(*mocks.ContentFlaggingStore).AssertNumberOfCalls(t, "GetReviewerSettings", 2)
 	})
 
@@ -79,7 +81,8 @@ func TestContentFlaggingStoreGetReviewerSettingsCache(t *testing.T) {
 		setBasicMock(mockStore, cachedStore)
 
 		// First call to populate cache
-		cachedStore.ContentFlagging().GetReviewerSettings()
+		_, err = cachedStore.ContentFlagging().GetReviewerSettings()
+		require.NoError(t, err)
 		mockStore.ContentFlagging().(*mocks.ContentFlaggingStore).AssertNumberOfCalls(t, "GetReviewerSettings", 1)
 
 		// Simulate cluster invalidation message
@@ -89,7 +92,8 @@ func TestContentFlaggingStoreGetReviewerSettingsCache(t *testing.T) {
 		cachedStore.contentFlagging.handleClusterInvalidateContentFlagging(msg)
 
 		// Next call should hit the store again
-		cachedStore.ContentFlagging().GetReviewerSettings()
+		_, err = cachedStore.ContentFlagging().GetReviewerSettings()
+		require.NoError(t, err)
 		mockStore.ContentFlagging().(*mocks.ContentFlaggingStore).AssertNumberOfCalls(t, "GetReviewerSettings", 2)
 	})
 }
