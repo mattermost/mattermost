@@ -408,6 +408,51 @@ export async function setupCustomProfileAttributeValues(
 }
 
 /**
+ * Sets up custom profile attribute values for a specific user (admin function)
+ * @param {Client4} adminClient - Admin client object
+ * @param {Array} attributes - Array of attribute objects with name and value
+ * @param {Object} fields - Map of field IDs to field objects
+ * @param {string} targetUserId - ID of the user to set values for
+ */
+export async function setupCustomProfileAttributeValuesForUser(
+    adminClient: Client4,
+    attributes: CustomProfileAttribute[],
+    fields: Record<string, UserPropertyField>,
+    targetUserId: string,
+): Promise<void> {
+    // Create a map of attribute values by field ID
+    const valuesByFieldId: Record<string, string | string[]> = {};
+
+    for (const attr of attributes) {
+        let fieldID = '';
+
+        // Find the field ID for this attribute name
+        for (const [id, field] of Object.entries(fields)) {
+            if (field.name === attr.name) {
+                fieldID = id;
+                break;
+            }
+        }
+
+        // If we found a matching field, add it to our values object
+        if (fieldID && attr.value) {
+            valuesByFieldId[fieldID] = attr.value;
+        }
+    }
+
+    // Only make the API call if we have values to set
+    if (Object.keys(valuesByFieldId).length > 0) {
+        try {
+            // Use the admin client method for updating other user's values
+            await adminClient.updateUserCustomProfileAttributesValues(targetUserId, valuesByFieldId);
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.log('Failed to set attribute values for user:', error);
+        }
+    }
+}
+
+/**
  * Deletes all custom profile attributes
  * @param {Client4} adminClient - Admin API client
  * @param {Object} attributes - Map of field IDs to field objects
