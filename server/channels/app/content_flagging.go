@@ -132,7 +132,7 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 	}
 
 	a.Srv().Go(func() {
-		appErr = a.createContentReviewPost(rctx, teamId, reportingUserId, flagData.Reason, post.ChannelId, post.UserId)
+		appErr = a.createContentReviewPost(rctx, post.Id, teamId, reportingUserId, flagData.Reason, post.ChannelId, post.UserId)
 		if appErr != nil {
 			rctx.Logger().Error("Failed to create content review post", mlog.Err(appErr), mlog.String("team_id", teamId), mlog.String("post_id", post.Id))
 		}
@@ -214,7 +214,7 @@ func (a *App) GetContentFlaggingMappedFields(groupId string) (map[string]*model.
 	return mappedFields, nil
 }
 
-func (a *App) createContentReviewPost(rctx request.CTX, teamId, reportingUserId, reportingReason, flaggedPostChannelId, flaggedPostAuthorId string) *model.AppError {
+func (a *App) createContentReviewPost(rctx request.CTX, reportedPostId, teamId, reportingUserId, reportingReason, flaggedPostChannelId, flaggedPostAuthorId string) *model.AppError {
 	contentReviewBot, appErr := a.getContentReviewBot(rctx)
 	if appErr != nil {
 		return appErr
@@ -261,7 +261,7 @@ func (a *App) createContentReviewPost(rctx request.CTX, teamId, reportingUserId,
 			Type:      model.ContentFlaggingPostType,
 			ChannelId: channel.Id,
 		}
-		post.AddProp(POST_PROP_KEY_FLAGGED_POST_ID, postId)
+		post.AddProp(POST_PROP_KEY_FLAGGED_POST_ID, reportedPostId)
 		_, appErr := a.CreatePost(rctx, post, channel, model.CreatePostFlags{})
 		if appErr != nil {
 			rctx.Logger().Error("Failed to create content review post in one of the channels", mlog.Err(appErr), mlog.String("channel_id", channel.Id), mlog.String("team_id", teamId))

@@ -133,7 +133,7 @@ func TestGetPostPropertyValues(t *testing.T) {
 		})
 
 		post := th.CreatePost()
-		response, err := client.FlagPost(context.Background(), post.Id, &model.FlagContentRequest{
+		response, err := client.FlagPostForContentReview(context.Background(), post.Id, &model.FlagContentRequest{
 			Reason:  "Sensitive data",
 			Comment: "This is sensitive content",
 		})
@@ -255,7 +255,7 @@ func TestGetFlaggedPost(t *testing.T) {
 			Reason:  "Sensitive data",
 			Comment: "This is sensitive content",
 		}
-		resp, err := client.FlagPost(context.Background(), post.Id, flagRequest)
+		resp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
