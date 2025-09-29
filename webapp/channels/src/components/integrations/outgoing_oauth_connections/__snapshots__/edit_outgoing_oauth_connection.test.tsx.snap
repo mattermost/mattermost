@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/integrations/EditOutgoingOAuthConnection should match snapshot 1`] = `
 <BrowserRouter>
@@ -15,7 +15,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "undefinedundefined",
+          "pathname": "/",
           "search": "",
           "state": undefined,
         },
@@ -760,7 +760,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "undefinedundefined",
+          "pathname": "/",
           "search": "",
           "state": undefined,
         },
@@ -1506,7 +1506,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "undefinedundefined",
+          "pathname": "/",
           "search": "",
           "state": undefined,
         },

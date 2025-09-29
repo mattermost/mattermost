@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/post_view/Reaction should apply read-only class if user does not have permission to add reaction 1`] = `
 <Connect(ReactionTooltip)
