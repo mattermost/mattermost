@@ -13,7 +13,7 @@ Edit an existing User Attributes field.
 
 ::
 
-  mmctl user attributes field edit [field-id] [flags]
+  mmctl user attributes field edit [field] [flags]
 
 Examples
 ~~~~~~~~
@@ -21,8 +21,8 @@ Examples
 ::
 
     user attributes field edit n4qdbtro4j8x3n8z81p48ww9gr --name "Department Name" --managed
-    user attributes field edit 8kj9xm4p6f3y7n2z9q5w8r1t4v --option Go --option React --option Python --option Java
-    user attributes field edit 3h7k9m2x5b8v4n6p1q9w7r3t2y --managed=false
+    user attributes field edit Department --option Go --option React --option Python --option Java
+    user attributes field edit Skills --managed=false
 
 Options
 ~~~~~~~

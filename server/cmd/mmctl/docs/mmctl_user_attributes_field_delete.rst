@@ -13,7 +13,7 @@ Delete a User Attributes field. This will automatically delete all user values f
 
 ::
 
-  mmctl user attributes field delete [field-id] [flags]
+  mmctl user attributes field delete [field] [flags]
 
 Examples
 ~~~~~~~~
@@ -21,7 +21,7 @@ Examples
 ::
 
     user attributes field delete n4qdbtro4j8x3n8z81p48ww9gr --confirm
-    user attributes field delete 8kj9xm4p6f3y7n2z9q5w8r1t4v --confirm
+    user attributes field delete Department --confirm
 
 Options
 ~~~~~~~
