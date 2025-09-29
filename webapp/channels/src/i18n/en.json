@@ -5249,6 +5249,8 @@
   "reaction.add.ariaLabel": "Add a reaction",
   "reaction.clickToAdd": "(click to add)",
   "reaction.clickToRemove": "(click to remove)",
+  "reaction.a11y.clickToAdd": "Click to add.",
+  "reaction.a11y.clickToRemove": "Click to remove.",
   "reaction.container.ariaLabel": "reactions",
   "reaction.othersReacted": "{otherUsers, number} {otherUsers, plural, one {user} other {users}}",
   "reaction.reacted": "{users} {reactionVerb} with {emoji}",

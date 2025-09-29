@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {injectIntl} from 'react-intl';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
-import {injectIntl} from 'react-intl';
 
 import type {Emoji as EmojiType} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
