@@ -78,9 +78,13 @@ func buildFieldAttrs(cmd *cobra.Command, existingAttrs model.StringInterface) (m
 
 		existingOptionsMap := make(map[string]*model.CustomProfileAttributesSelectOption)
 		if existingOptions, ok := attrs["options"]; ok {
-			if existingList, ok := existingOptions.([]*model.CustomProfileAttributesSelectOption); ok {
-				for _, option := range existingList {
-					existingOptionsMap[option.Name] = option
+			existingOptionsJSON, err := json.Marshal(existingOptions)
+			if err == nil {
+				var existingSelectOptions []*model.CustomProfileAttributesSelectOption
+				if err := json.Unmarshal(existingOptionsJSON, &existingSelectOptions); err == nil {
+					for _, option := range existingSelectOptions {
+						existingOptionsMap[option.Name] = option
+					}
 				}
 			}
 		}

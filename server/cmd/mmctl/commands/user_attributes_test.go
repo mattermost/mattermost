@@ -246,13 +246,12 @@ func (s *MmctlUnitTestSuite) TestBuildFieldAttrs() {
 	// Test cases with existing attributes (for edit scenarios)
 	s.Run("WithExistingAttrs", func() {
 		existingAttrsTestCases := []struct {
-			Name            string
-			ExistingAttrs   model.StringInterface
-			FlagChanges     map[string]any
-			ExpectedAttrs   model.StringInterface
-			ExpectedOptions []string // For option validation
-			ShouldError     bool
-			ErrorText       string
+			Name          string
+			ExistingAttrs model.StringInterface
+			FlagChanges   map[string]any
+			ExpectedAttrs model.StringInterface
+			ShouldError   bool
+			ErrorText     string
 		}{
 			{
 				Name: "Should preserve existing attrs when no flags changed",
@@ -301,10 +300,13 @@ func (s *MmctlUnitTestSuite) TestBuildFieldAttrs() {
 						{ID: "existing2", Name: "Option2"},
 					},
 				},
-				FlagChanges:     map[string]any{"option": []string{"Option1", "Option2"}},
-				ExpectedOptions: []string{"Option1", "Option2"},
+				FlagChanges: map[string]any{"option": []string{"Option1", "Option2"}},
 				ExpectedAttrs: model.StringInterface{
 					"managed": "admin",
+					"options": []*model.CustomProfileAttributesSelectOption{
+						{ID: "existing1", Name: "Option1"},
+						{ID: "existing2", Name: "Option2"},
+					},
 				},
 				ShouldError: false,
 			},
@@ -317,10 +319,14 @@ func (s *MmctlUnitTestSuite) TestBuildFieldAttrs() {
 						{ID: "existing2", Name: "Option2"},
 					},
 				},
-				FlagChanges:     map[string]any{"option": []string{"Option1", "Option2", "Option3"}},
-				ExpectedOptions: []string{"Option1", "Option2", "Option3"},
+				FlagChanges: map[string]any{"option": []string{"Option1", "Option2", "Option3"}},
 				ExpectedAttrs: model.StringInterface{
 					"visibility": "always",
+					"options": []*model.CustomProfileAttributesSelectOption{
+						{ID: "existing1", Name: "Option1"}, // Preserve existing ID
+						{ID: "existing2", Name: "Option2"}, // Preserve existing ID
+						{ID: "any", Name: "Option3"},       // New option, ID will be generated
+					},
 				},
 				ShouldError: false,
 			},
@@ -334,10 +340,13 @@ func (s *MmctlUnitTestSuite) TestBuildFieldAttrs() {
 						{ID: "existing3", Name: "Option3"},
 					},
 				},
-				FlagChanges:     map[string]any{"option": []string{"Option2", "Option4"}},
-				ExpectedOptions: []string{"Option2", "Option4"},
+				FlagChanges: map[string]any{"option": []string{"Option2", "Option4"}},
 				ExpectedAttrs: model.StringInterface{
 					"managed": "",
+					"options": []*model.CustomProfileAttributesSelectOption{
+						{ID: "existing2", Name: "Option2"}, // Preserve existing ID
+						{ID: "any", Name: "Option4"},       // New option, ID will be generated
+					},
 				},
 				ShouldError: false,
 			},
@@ -409,43 +418,45 @@ func (s *MmctlUnitTestSuite) TestBuildFieldAttrs() {
 					s.Require().NoError(err)
 					s.Require().NotNil(result)
 
-					// Validate options if specified
-					if len(tc.ExpectedOptions) > 0 {
-						s.Require().Contains(result, "options")
-						options, ok := result["options"].([]*model.CustomProfileAttributesSelectOption)
-						s.Require().True(ok, "Options should be []*model.CustomProfileAttributesSelectOption")
+					// Validate all attributes (including options)
+					for key, expectedValue := range tc.ExpectedAttrs {
+						s.Require().Contains(result, key)
 
-						optionNames := make([]string, len(options))
-						optionIDs := make([]string, len(options))
-						for i, opt := range options {
-							optionNames[i] = opt.Name
-							optionIDs[i] = opt.ID
-							s.Require().NotEmpty(opt.ID)
-						}
-						s.Require().ElementsMatch(tc.ExpectedOptions, optionNames)
+						if key == "options" {
+							// Special validation for options to verify IDs and structure
+							expectedOptions, ok := expectedValue.([]*model.CustomProfileAttributesSelectOption)
+							s.Require().True(ok, "Expected options should be []*model.CustomProfileAttributesSelectOption")
 
-						// Verify ID preservation for existing options
-						if existingOptions, ok := tc.ExistingAttrs["options"]; ok {
-							if existingList, ok := existingOptions.([]*model.CustomProfileAttributesSelectOption); ok {
-								existingMap := make(map[string]string)
-								for _, existing := range existingList {
-									existingMap[existing.Name] = existing.ID
-								}
+							resultOptions, ok := result[key].([]*model.CustomProfileAttributesSelectOption)
+							s.Require().True(ok, "Result options should be []*model.CustomProfileAttributesSelectOption")
 
-								for i, option := range options {
-									if existingID, exists := existingMap[option.Name]; exists {
-										s.Require().Equal(existingID, optionIDs[i],
-											"Option %s should preserve existing ID %s", option.Name, existingID)
-									}
+							s.Require().Len(resultOptions, len(expectedOptions), "Options count should match")
+
+							// Create maps for easier comparison
+							expectedMap := make(map[string]string) // name -> id
+							for _, opt := range expectedOptions {
+								expectedMap[opt.Name] = opt.ID
+							}
+
+							resultMap := make(map[string]string) // name -> id
+							for _, opt := range resultOptions {
+								resultMap[opt.Name] = opt.ID
+								s.Require().NotEmpty(opt.ID, "Option ID should not be empty")
+							}
+
+							// Verify all expected options exist with correct IDs
+							for name, expectedID := range expectedMap {
+								resultID, exists := resultMap[name]
+								s.Require().True(exists, "Option %s should exist in result", name)
+
+								// Only check ID if it's not a placeholder ("any")
+								if expectedID != "any" {
+									s.Require().Equal(expectedID, resultID,
+										"Option %s should preserve existing ID %s, got %s", name, expectedID, resultID)
 								}
 							}
-						}
-					}
-
-					// Validate non-option attributes
-					for key, expectedValue := range tc.ExpectedAttrs {
-						if key != "options" { // Skip options as they're validated separately
-							s.Require().Contains(result, key)
+						} else {
+							// Standard validation for non-option attributes
 							s.Require().Equal(expectedValue, result[key])
 						}
 					}
