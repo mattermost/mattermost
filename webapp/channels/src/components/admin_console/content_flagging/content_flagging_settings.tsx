@@ -106,7 +106,7 @@ export default function ContentFlaggingSettings() {
                         className='fa fa-angle-left back'
                     />
                     <FormattedMessage
-                        id='asdasdas'
+                        id='admin.contentFlagging.title'
                         defaultMessage='Content Flagging'
                     />
                 </div>
