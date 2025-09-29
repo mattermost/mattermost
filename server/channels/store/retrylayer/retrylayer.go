@@ -23,6 +23,7 @@ type RetryLayer struct {
 	AccessControlPolicyStore        store.AccessControlPolicyStore
 	AttributesStore                 store.AttributesStore
 	AuditStore                      store.AuditStore
+	AutoTranslationStore            store.AutoTranslationStore
 	BotStore                        store.BotStore
 	ChannelStore                    store.ChannelStore
 	ChannelBookmarkStore            store.ChannelBookmarkStore
@@ -83,6 +84,10 @@ func (s *RetryLayer) Attributes() store.AttributesStore {
 
 func (s *RetryLayer) Audit() store.AuditStore {
 	return s.AuditStore
+}
+
+func (s *RetryLayer) AutoTranslation() store.AutoTranslationStore {
+	return s.AutoTranslationStore
 }
 
 func (s *RetryLayer) Bot() store.BotStore {
@@ -289,6 +294,11 @@ type RetryLayerAttributesStore struct {
 
 type RetryLayerAuditStore struct {
 	store.AuditStore
+	Root *RetryLayer
+}
+
+type RetryLayerAutoTranslationStore struct {
+	store.AutoTranslationStore
 	Root *RetryLayer
 }
 
@@ -792,6 +802,60 @@ func (s *RetryLayerAuditStore) Save(audit *model.Audit) error {
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
+
+}
+
+func (s *RetryLayerAutoTranslationStore) Get(rctx request.CTX, objectType string, objectID string, dstLang string) (*model.Translation, *model.AppError) {
+
+	return s.AutoTranslationStore.Get(rctx, objectType, objectID, dstLang)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) GetActiveDestinationLanguages(rctx request.CTX, channelID string, excludeUserID string, filterUserIDs *[]string) ([]string, *model.AppError) {
+
+	return s.AutoTranslationStore.GetActiveDestinationLanguages(rctx, channelID, excludeUserID, filterUserIDs)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) GetUserLanguage(rctx request.CTX, userID string, channelID string) (string, *model.AppError) {
+
+	return s.AutoTranslationStore.GetUserLanguage(rctx, userID, channelID)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) IsChannelEnabled(rctx request.CTX, channelID string) (bool, *model.AppError) {
+
+	return s.AutoTranslationStore.IsChannelEnabled(rctx, channelID)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) IsUserEnabled(rctx request.CTX, userID string, channelID string) (bool, *model.AppError) {
+
+	return s.AutoTranslationStore.IsUserEnabled(rctx, userID, channelID)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) Save(rctx request.CTX, objectType string, objectID string, dstLang string, providerID string, normHash string, text string, confidence *float64, meta map[string]interface{}) *model.AppError {
+
+	return s.AutoTranslationStore.Save(rctx, objectType, objectID, dstLang, providerID, normHash, text, confidence, meta)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) Search(rctx request.CTX, dstLang string, searchTerm string, limit int) ([]*model.Translation, *model.AppError) {
+
+	return s.AutoTranslationStore.Search(rctx, dstLang, searchTerm, limit)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) SetChannelEnabled(rctx request.CTX, channelID string, enabled bool) *model.AppError {
+
+	return s.AutoTranslationStore.SetChannelEnabled(rctx, channelID, enabled)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) SetUserEnabled(rctx request.CTX, userID string, channelID string, enabled bool) *model.AppError {
+
+	return s.AutoTranslationStore.SetUserEnabled(rctx, userID, channelID, enabled)
 
 }
 
@@ -16853,6 +16917,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.AccessControlPolicyStore = &RetryLayerAccessControlPolicyStore{AccessControlPolicyStore: childStore.AccessControlPolicy(), Root: &newStore}
 	newStore.AttributesStore = &RetryLayerAttributesStore{AttributesStore: childStore.Attributes(), Root: &newStore}
 	newStore.AuditStore = &RetryLayerAuditStore{AuditStore: childStore.Audit(), Root: &newStore}
+	newStore.AutoTranslationStore = &RetryLayerAutoTranslationStore{AutoTranslationStore: childStore.AutoTranslation(), Root: &newStore}
 	newStore.BotStore = &RetryLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &RetryLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
 	newStore.ChannelBookmarkStore = &RetryLayerChannelBookmarkStore{ChannelBookmarkStore: childStore.ChannelBookmark(), Root: &newStore}

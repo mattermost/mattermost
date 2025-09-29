@@ -97,6 +97,7 @@ type Store interface {
 	PropertyValue() PropertyValueStore
 	AccessControlPolicy() AccessControlPolicyStore
 	Attributes() AttributesStore
+	AutoTranslation() AutoTranslationStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 }
 
@@ -1138,6 +1139,21 @@ type AttributesStore interface {
 	GetSubject(rctx request.CTX, ID, groupID string) (*model.Subject, error)
 	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
 	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
+}
+
+type AutoTranslationStore interface {
+	IsChannelEnabled(rctx request.CTX, channelID string) (bool, *model.AppError)
+	SetChannelEnabled(rctx request.CTX, channelID string, enabled bool) *model.AppError
+	IsUserEnabled(rctx request.CTX, userID, channelID string) (bool, *model.AppError)
+	SetUserEnabled(rctx request.CTX, userID, channelID string, enabled bool) *model.AppError
+	GetUserLanguage(rctx request.CTX, userID, channelID string) (string, *model.AppError)
+	// GetActiveDestinationLanguages returns distinct locales of users who have auto-translation enabled.
+	// Optional filterUserIDs parameter restricts results to specific user IDs (typically those with active WebSocket connections).
+	// Pass nil for filterUserIDs to include all users, or a pointer to a slice to filter to specific users.
+	GetActiveDestinationLanguages(rctx request.CTX, channelID, excludeUserID string, filterUserIDs *[]string) ([]string, *model.AppError)
+	Get(rctx request.CTX, objectType, objectID, dstLang string) (*model.Translation, *model.AppError)
+	Save(rctx request.CTX, objectType, objectID, dstLang, providerID, normHash, text string, confidence *float64, meta map[string]interface{}) *model.AppError
+	Search(rctx request.CTX, dstLang, searchTerm string, limit int) ([]*model.Translation, *model.AppError)
 }
 
 // ChannelSearchOpts contains options for searching channels.
