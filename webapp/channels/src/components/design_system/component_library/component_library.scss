@@ -1,5 +1,7 @@
 .cl {
     --cl-max-width: 740px;
+    --cl-font-family-body: 'Open Sans', sans-serif;
+    --cl-font-family-heading: Metropolis, sans-serif;
 
     display: flex;
     width: auto;
@@ -7,7 +9,7 @@
     padding: 48px;
     background: linear-gradient(0deg, var(--center-channel-color-8, rgba(var(--center-channel-color-rgb), 0.08)) 0%, var(--center-channel-color-8, rgba(var(--center-channel-color-rgb), 0.08)) 100%), var(--center-channel-bg, var(--center-channel-bg));
     color: var(--center-channel-color);
-    font-family: 'Open Sans', sans-serif;
+    font-family: var(--cl-font-family-body);
     font-size: 14px;
     gap: 24px;
     line-height: 20px;
@@ -44,7 +46,7 @@
             padding: 0 12px;
             margin: 0 0 12px 0;
             color: rgba(var(--center-channel-color-rgb), 0.64);
-            font-family: 'Open Sans', sans-serif;
+            font-family: var(--cl-font-family-body);
             font-size: 12px;
             font-weight: 600;
             letter-spacing: 0.01em;
@@ -76,7 +78,7 @@
             background: none;
             color: rgba(var(--center-channel-color-rgb), 0.75);
             cursor: pointer;
-            font-family: 'Open Sans', sans-serif;
+            font-family: var(--cl-font-family-body);
             font-size: 14px;
             line-height: 20px;
             text-align: left;
@@ -120,7 +122,7 @@
         .cl__description {
             margin: 0;
             color: var(--center-channel-color-64);
-            font-family: 'Open Sans', sans-serif;
+            font-family: var(--cl-font-family-body);
             font-size: 18px;
             font-weight: 500;
             line-height: 26px;
@@ -188,7 +190,7 @@
 
         .cl__controls-panel-title {
             margin-bottom: 24px;
-            font-family: Metropolis, sans-serif;
+            font-family: var(--cl-font-family-heading);
             font-size: 20px;
             font-weight: 600;
             line-height: 24px;
@@ -425,7 +427,7 @@
         h2 {
             flex: 1;
             margin: 0;
-            font-family: 'Open Sans', sans-serif;
+            font-family: var(--cl-font-family-body);
             font-size: 14px;
             font-weight: 600;
             line-height: 20px;
