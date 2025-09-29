@@ -137,7 +137,7 @@ Cypress.Commands.add('uiClickSidebarItem', (name) => {
                 cy.uiCloseModal('A new way to view and follow threads');
             }
         });
-        cy.get('#tutorial-threads-mobile-header span.Button_label').contains('Followed threads');
+        cy.get('#tutorial-threads-mobile-header span.ThreadButton_label').contains('Followed threads');
     } else {
         cy.findAllByTestId('postView').last().scrollIntoView().should('be.visible');
     }
