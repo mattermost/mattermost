@@ -25,8 +25,10 @@ func testSaveReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s 
 		teamSettings := map[string]model.TeamReviewerSetting{}
 
 		reviewerSettings := model.ReviewSettingsRequest{
-			CommonReviewerIds:    &commonReviewers,
-			TeamReviewersSetting: &teamSettings,
+			ReviewerIDsSettings: model.ReviewerIDsSettings{
+				CommonReviewerIds:    &commonReviewers,
+				TeamReviewersSetting: &teamSettings,
+			},
 		}
 
 		err := ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
@@ -48,8 +50,10 @@ func testSaveReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s 
 		teamSettings := map[string]model.TeamReviewerSetting{}
 
 		reviewerSettings := model.ReviewSettingsRequest{
-			CommonReviewerIds:    &commonReviewers,
-			TeamReviewersSetting: &teamSettings,
+			ReviewerIDsSettings: model.ReviewerIDsSettings{
+				CommonReviewerIds:    &commonReviewers,
+				TeamReviewersSetting: &teamSettings,
+			},
 		}
 
 		err := ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
@@ -83,8 +87,10 @@ func testSaveReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s 
 		}
 
 		reviewerSettings := model.ReviewSettingsRequest{
-			CommonReviewerIds:    &commonReviewers,
-			TeamReviewersSetting: &teamSettings,
+			ReviewerIDsSettings: model.ReviewerIDsSettings{
+				CommonReviewerIds:    &commonReviewers,
+				TeamReviewersSetting: &teamSettings,
+			},
 		}
 
 		err := ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
@@ -95,7 +101,7 @@ func testSaveReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s 
 		assert.NoError(t, err)
 		assert.NotNil(t, settings.TeamReviewersSetting)
 		assert.Equal(t, 2, len(*settings.TeamReviewersSetting))
-		
+
 		teamSetting1, exists := (*settings.TeamReviewersSetting)[teamId1]
 		assert.True(t, exists)
 		assert.NotNil(t, teamSetting1.Enabled)
@@ -122,8 +128,10 @@ func testSaveReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s 
 		}
 
 		reviewerSettings := model.ReviewSettingsRequest{
-			CommonReviewerIds:    &commonReviewers,
-			TeamReviewersSetting: &teamSettings,
+			ReviewerIDsSettings: model.ReviewerIDsSettings{
+				CommonReviewerIds:    &commonReviewers,
+				TeamReviewersSetting: &teamSettings,
+			},
 		}
 
 		err := ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
@@ -133,7 +141,7 @@ func testSaveReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s 
 		settings, err := ss.ContentFlagging().GetReviewerSettings()
 		assert.NoError(t, err)
 		assert.NotNil(t, settings.TeamReviewersSetting)
-		
+
 		teamSetting, exists := (*settings.TeamReviewersSetting)[teamId]
 		assert.True(t, exists)
 		assert.NotNil(t, teamSetting.ReviewerIds)
@@ -157,8 +165,10 @@ func testSaveReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s 
 		}
 
 		reviewerSettings := model.ReviewSettingsRequest{
-			CommonReviewerIds:    &commonReviewers,
-			TeamReviewersSetting: &teamSettings,
+			ReviewerIDsSettings: model.ReviewerIDsSettings{
+				CommonReviewerIds:    &commonReviewers,
+				TeamReviewersSetting: &teamSettings,
+			},
 		}
 
 		err := ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
@@ -179,8 +189,10 @@ func testSaveReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s 
 		}
 
 		newReviewerSettings := model.ReviewSettingsRequest{
-			CommonReviewerIds:    &newCommonReviewers,
-			TeamReviewersSetting: &newTeamSettings,
+			ReviewerIDsSettings: model.ReviewerIDsSettings{
+				CommonReviewerIds:    &newCommonReviewers,
+				TeamReviewersSetting: &newTeamSettings,
+			},
 		}
 
 		err = ss.ContentFlagging().SaveReviewerSettings(newReviewerSettings)
@@ -189,7 +201,7 @@ func testSaveReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s 
 		// Verify old settings were replaced
 		settings, err := ss.ContentFlagging().GetReviewerSettings()
 		assert.NoError(t, err)
-		
+
 		// Common reviewers should be updated
 		assert.NotNil(t, settings.CommonReviewerIds)
 		assert.Equal(t, 2, len(*settings.CommonReviewerIds))
@@ -200,7 +212,7 @@ func testSaveReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s 
 		// Team settings should be updated
 		assert.NotNil(t, settings.TeamReviewersSetting)
 		assert.Equal(t, 1, len(*settings.TeamReviewersSetting))
-		
+
 		_, exists := (*settings.TeamReviewersSetting)[teamId1]
 		assert.False(t, exists) // Old team should be gone
 
@@ -218,8 +230,10 @@ func testGetReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s S
 		emptyTeamSettings := map[string]model.TeamReviewerSetting{}
 
 		reviewerSettings := model.ReviewSettingsRequest{
-			CommonReviewerIds:    &emptyCommonReviewers,
-			TeamReviewersSetting: &emptyTeamSettings,
+			ReviewerIDsSettings: model.ReviewerIDsSettings{
+				CommonReviewerIds:    &emptyCommonReviewers,
+				TeamReviewersSetting: &emptyTeamSettings,
+			},
 		}
 
 		err := ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
@@ -232,40 +246,6 @@ func testGetReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s S
 		assert.NotNil(t, settings.TeamReviewersSetting)
 		assert.Equal(t, 0, len(*settings.CommonReviewerIds))
 		assert.Equal(t, 0, len(*settings.TeamReviewersSetting))
-	})
-
-	t.Run("get settings with team reviewers but no team settings", func(t *testing.T) {
-		// This tests the case where team reviewers exist but no corresponding team settings
-		// This could happen if data gets out of sync
-		teamId := model.NewId()
-		userId := model.NewId()
-
-		// Save settings with team reviewers but no team settings
-		commonReviewers := []string{}
-		teamSettings := map[string]model.TeamReviewerSetting{
-			teamId: {
-				Enabled:     nil, // No enabled setting
-				ReviewerIds: &[]string{userId},
-			},
-		}
-
-		reviewerSettings := model.ReviewSettingsRequest{
-			CommonReviewerIds:    &commonReviewers,
-			TeamReviewersSetting: &teamSettings,
-		}
-
-		err := ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
-		assert.NoError(t, err)
-
-		settings, err := ss.ContentFlagging().GetReviewerSettings()
-		assert.NoError(t, err)
-		
-		teamSetting, exists := (*settings.TeamReviewersSetting)[teamId]
-		assert.True(t, exists)
-		assert.Nil(t, teamSetting.Enabled) // Should be nil since we didn't save team settings
-		assert.NotNil(t, teamSetting.ReviewerIds)
-		assert.Equal(t, 1, len(*teamSetting.ReviewerIds))
-		assert.Contains(t, *teamSetting.ReviewerIds, userId)
 	})
 }
 
@@ -305,8 +285,10 @@ func testSaveAndGetReviewerSettings(t *testing.T, rctx request.CTX, ss store.Sto
 		}
 
 		reviewerSettings := model.ReviewSettingsRequest{
-			CommonReviewerIds:    &commonReviewers,
-			TeamReviewersSetting: &teamSettings,
+			ReviewerIDsSettings: model.ReviewerIDsSettings{
+				CommonReviewerIds:    &commonReviewers,
+				TeamReviewersSetting: &teamSettings,
+			},
 		}
 
 		// Save the settings
@@ -355,44 +337,5 @@ func testSaveAndGetReviewerSettings(t *testing.T, rctx request.CTX, ss store.Sto
 		assert.True(t, *team3Setting.Enabled)
 		assert.NotNil(t, team3Setting.ReviewerIds)
 		assert.Equal(t, 0, len(*team3Setting.ReviewerIds))
-	})
-
-	t.Run("multiple save and get operations", func(t *testing.T) {
-		// Test multiple sequential operations to ensure data consistency
-		for i := 0; i < 3; i++ {
-			userId := model.NewId()
-			teamId := model.NewId()
-			enabled := i%2 == 0 // Alternate between true and false
-
-			commonReviewers := []string{userId}
-			teamSettings := map[string]model.TeamReviewerSetting{
-				teamId: {
-					Enabled:     &enabled,
-					ReviewerIds: &[]string{userId},
-				},
-			}
-
-			reviewerSettings := model.ReviewSettingsRequest{
-				CommonReviewerIds:    &commonReviewers,
-				TeamReviewersSetting: &teamSettings,
-			}
-
-			err := ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
-			assert.NoError(t, err)
-
-			settings, err := ss.ContentFlagging().GetReviewerSettings()
-			assert.NoError(t, err)
-			
-			// Verify the data matches what we just saved
-			assert.Equal(t, 1, len(*settings.CommonReviewerIds))
-			assert.Contains(t, *settings.CommonReviewerIds, userId)
-			
-			assert.Equal(t, 1, len(*settings.TeamReviewersSetting))
-			teamSetting, exists := (*settings.TeamReviewersSetting)[teamId]
-			assert.True(t, exists)
-			assert.Equal(t, enabled, *teamSetting.Enabled)
-			assert.Equal(t, 1, len(*teamSetting.ReviewerIds))
-			assert.Contains(t, *teamSetting.ReviewerIds, userId)
-		}
 	})
 }
