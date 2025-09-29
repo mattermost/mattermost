@@ -75,4 +75,8 @@ export type SelectPropertyField = PropertyField & {
     };
 }
 
+export const supportsOptions = (field: UserPropertyField) => {
+    return field.type === 'select' || field.type === 'multiselect';
+};
+
 export type UserPropertyFieldPatch = Partial<Pick<UserPropertyField, 'name' | 'attrs' | 'type'>>;
