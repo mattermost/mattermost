@@ -2457,7 +2457,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'AutoTranslationSettings',
                             component: AutoTranslation,
                             isHidden: it.any(
-                                it.configIsFalse('FeatureFlags', 'AutoTranslate'),
+                                it.configIsFalse('FeatureFlags', 'AutoTranslation'),
                                 it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                             ),
                         },
@@ -2468,10 +2468,10 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
                             isHidden: it.any(
                                 it.all(
-                                    it.configIsTrue('FeatureFlags', 'AutoTranslate'),
+                                    it.configIsTrue('FeatureFlags', 'AutoTranslation'),
                                     it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
                                 ),
-                                it.configIsFalse('FeatureFlags', 'AutoTranslate'),
+                                it.configIsFalse('FeatureFlags', 'AutoTranslation'),
                             ),
                         },
                     ],
