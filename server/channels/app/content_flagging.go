@@ -116,7 +116,7 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 
 	_, err := a.Srv().propertyService.CreatePropertyValues(propertyValues)
 	if err != nil {
-		return model.NewAppError("FlagPost", "app.content_flagging.create_property_values.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("FlagPostForContentReview", "app.content_flagging.create_property_values.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
 	}
 
 	contentReviewBot, appErr := a.getContentReviewBot(rctx)
@@ -127,12 +127,12 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 	if *a.Config().ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent {
 		_, appErr = a.DeletePost(rctx, post.Id, contentReviewBot.UserId)
 		if appErr != nil {
-			return model.NewAppError("FlagPost", "app.content_flagging.delete_post.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
+			return model.NewAppError("FlagPostForContentReview", "app.content_flagging.delete_post.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
 		}
 	}
 
 	a.Srv().Go(func() {
-		appErr = a.createContentReviewPost(rctx, teamId, post.Id)
+		appErr = a.createContentReviewPost(rctx, teamId, reportingUserId, flagData.Reason, post.ChannelId, post.UserId)
 		if appErr != nil {
 			rctx.Logger().Error("Failed to create content review post", mlog.Err(appErr), mlog.String("team_id", teamId), mlog.String("post_id", post.Id))
 		}
@@ -214,7 +214,7 @@ func (a *App) GetContentFlaggingMappedFields(groupId string) (map[string]*model.
 	return mappedFields, nil
 }
 
-func (a *App) createContentReviewPost(rctx request.CTX, teamId, postId string) *model.AppError {
+func (a *App) createContentReviewPost(rctx request.CTX, teamId, reportingUserId, reportingReason, flaggedPostChannelId, flaggedPostAuthorId string) *model.AppError {
 	contentReviewBot, appErr := a.getContentReviewBot(rctx)
 	if appErr != nil {
 		return appErr
@@ -225,9 +225,38 @@ func (a *App) createContentReviewPost(rctx request.CTX, teamId, postId string) *
 		return appErr
 	}
 
+	reportingUser, appErr := a.GetUser(reportingUserId)
+	if appErr != nil {
+		return appErr
+	}
+
+	flaggedPostChannel, appErr := a.GetChannel(rctx, flaggedPostChannelId)
+	if appErr != nil {
+		return appErr
+	}
+
+	flaggedPostTeam, appErr := a.GetTeam(flaggedPostChannel.TeamId)
+	if appErr != nil {
+		return appErr
+	}
+
+	flaggedPostAuthor, appErr := a.GetUser(flaggedPostAuthorId)
+	if appErr != nil {
+		return appErr
+	}
+
+	message := fmt.Sprintf(
+		"@%s flagged a message for review.\n\nReason: %s\nChannel: ~%s\nTeam: %s\nPost Author: @%s\n\nOpen on a web browser or the Desktop app to view the full report and take action.",
+		reportingUser.Username,
+		reportingReason,
+		flaggedPostChannel.Name,
+		flaggedPostTeam.DisplayName,
+		flaggedPostAuthor.Username,
+	)
+
 	for _, channel := range channels {
 		post := &model.Post{
-			Message:   "TODO - use mobile specific message here - https://mattermost.atlassian.net/browse/MM-65134",
+			Message:   message,
 			UserId:    contentReviewBot.UserId,
 			Type:      model.ContentFlaggingPostType,
 			ChannelId: channel.Id,
