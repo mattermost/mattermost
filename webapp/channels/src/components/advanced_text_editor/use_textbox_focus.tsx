@@ -40,6 +40,10 @@ const useTextboxFocus = (
             return;
         }
         if (textboxRef.current && (keepFocus || !UserAgent.isMobile())) {
+            // Focus immediately, so we capture any typed text.
+            textboxRef.current?.focus();
+
+            // Also re-focus after the next animation frame, to work around issues where the RHS is "opening".
             requestAnimationFrame(() => {
                 textboxRef.current?.focus();
             });
